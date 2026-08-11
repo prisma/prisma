@@ -42,11 +42,12 @@ export function applySqlSpecifierControlPolicy(
  * control policy is not `managed`.
  *
  * A derived check is exactly a wire-named one — the ones authoring composes a
- * prefix and content hash for. That identification holds while no user-authored
- * check surface exists (`@@check` is a project non-goal); when one arrives, an
- * authored check will need its own marker and this test moves with the opt-out
- * surface. See `projects/sql-check-constraint-unification/plan.md`
- * § Slice 3 locked decisions.
+ * prefix and content hash for. The slice-3 opt-out surface (`@noCheck`)
+ * re-examined this identification and it stands: the opt-out adds no producer
+ * of checks — an opted-out check is never emitted — so wire-named remains
+ * exactly "derived by authoring". The identification moves only when a
+ * user-authored check surface exists (`@@check`, still a project non-goal),
+ * at which point an authored check needs its own marker.
  *
  * Why derivation stops at the namespace boundary: the contract *describes* an
  * external schema, it does not *prescribe* enforcement for it. Deriving a check

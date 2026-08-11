@@ -6,6 +6,7 @@ import {
   type AnyExpression,
   type AnyParamRef,
   BinaryExpr,
+  CastExpr,
   CodecJsonValueProjection,
   type CodecRef,
   ColumnRef,
@@ -405,10 +406,10 @@ describe('compileSelectWithIncludes', () => {
 
     /**
      * A reducer's value enters the JSON envelope under the codec the target
-     * declares for it, so the expectation names that codec: `count` reads
-     * through `pg/int8@1`, and `views` being `pg/int4@1`, `sum` widens to
-     * `pg/int8@1`, `avg` goes to `pg/numeric@1`, and `min`/`max` keep the
-     * column's own codec.
+     * declares for it, so the expectation names that codec: `count` and `sum`
+     * read through `pg/int8number@1`, `avg` through `pg/float8@1` — its
+     * lowering casting the mean once — and `min`/`max` keep the column's own
+     * codec, `pg/int4@1` here.
      */
     function expectAggregateProjection(
       subquerySelect: SelectAst,
@@ -442,7 +443,7 @@ describe('compileSelectWithIncludes', () => {
       );
       const subquery = extractScalarCorrelatedSubquery(plan, 'posts');
 
-      expectAggregateProjection(subquery, 'posts', AggregateExpr.count(), 'pg/int8@1');
+      expectAggregateProjection(subquery, 'posts', AggregateExpr.count(), 'pg/int8number@1');
       expect(subquery.where).toEqual(
         BinaryExpr.eq(ColumnRef.of('posts', 'user_id'), ColumnRef.of('users', 'id')),
       );
@@ -467,7 +468,7 @@ describe('compileSelectWithIncludes', () => {
       );
       const subquery = extractScalarCorrelatedSubquery(plan, 'posts');
 
-      expectAggregateProjection(subquery, 'posts', AggregateExpr.count(), 'pg/int8@1');
+      expectAggregateProjection(subquery, 'posts', AggregateExpr.count(), 'pg/int8number@1');
       expect(subquery.where).toEqual(
         AndExpr.of([
           BinaryExpr.eq(ColumnRef.of('posts', 'user_id'), ColumnRef.of('users', 'id')),
@@ -520,7 +521,7 @@ describe('compileSelectWithIncludes', () => {
       );
       const subquery = extractScalarCorrelatedSubquery(plan, 'posts');
 
-      expectAggregateProjection(subquery, 'posts', AggregateExpr.count(), 'pg/int8@1');
+      expectAggregateProjection(subquery, 'posts', AggregateExpr.count(), 'pg/int8number@1');
       expect(subquery.limit).toBeUndefined();
       expect(subquery.offset).toBeUndefined();
       expect(subquery.where).toBeUndefined();
@@ -568,7 +569,7 @@ describe('compileSelectWithIncludes', () => {
         subquery,
         'posts',
         AggregateExpr.sum(ColumnRef.of('posts__scalar', 'views')),
-        'pg/int8@1',
+        'pg/int8number@1',
       );
       expectDerivedTableSource(subquery.from);
       expect(subquery.from.alias).toBe('posts__scalar');
@@ -583,9 +584,13 @@ describe('compileSelectWithIncludes', () => {
     });
 
     it('emits correlated SUM / AVG / MIN / MAX over the column reference', () => {
-      const reducers: ReadonlyArray<['sum' | 'avg' | 'min' | 'max', AggregateExpr, string]> = [
-        ['sum', AggregateExpr.sum(ColumnRef.of('posts', 'views')), 'pg/int8@1'],
-        ['avg', AggregateExpr.avg(ColumnRef.of('posts', 'views')), 'pg/numeric@1'],
+      const reducers: ReadonlyArray<['sum' | 'avg' | 'min' | 'max', AnyExpression, string]> = [
+        ['sum', AggregateExpr.sum(ColumnRef.of('posts', 'views')), 'pg/int8number@1'],
+        [
+          'avg',
+          CastExpr.as(AggregateExpr.avg(ColumnRef.of('posts', 'views')), 'float8'),
+          'pg/float8@1',
+        ],
         ['min', AggregateExpr.min(ColumnRef.of('posts', 'views')), 'pg/int4@1'],
         ['max', AggregateExpr.max(ColumnRef.of('posts', 'views')), 'pg/int4@1'],
       ];
@@ -644,7 +649,9 @@ describe('compileSelectWithIncludes', () => {
           JsonObjectExpr.fromEntries([
             JsonObjectExpr.entry(
               'value',
-              new CodecJsonValueProjection(AggregateExpr.count(), { codecId: 'pg/int8@1' }),
+              new CodecJsonValueProjection(AggregateExpr.count(), {
+                codecId: 'pg/int8number@1',
+              }),
             ),
           ]),
         ),
@@ -740,7 +747,9 @@ describe('compileSelectWithIncludes', () => {
           JsonObjectExpr.fromEntries([
             JsonObjectExpr.entry(
               'value',
-              new CodecJsonValueProjection(AggregateExpr.count(), { codecId: 'pg/int8@1' }),
+              new CodecJsonValueProjection(AggregateExpr.count(), {
+                codecId: 'pg/int8number@1',
+              }),
             ),
           ]),
         ),
@@ -755,7 +764,7 @@ describe('compileSelectWithIncludes', () => {
             JsonObjectExpr.entry(
               'value',
               new CodecJsonValueProjection(AggregateExpr.sum(ColumnRef.of('posts', 'views')), {
-                codecId: 'pg/int8@1',
+                codecId: 'pg/int8number@1',
               }),
             ),
           ]),

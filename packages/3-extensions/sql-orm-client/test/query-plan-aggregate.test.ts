@@ -255,9 +255,9 @@ describe('query plan aggregate', () => {
   });
 
   // The result codec is the target's answer per operation and input, not a
-  // rule the planner knows: over `pg/int4@1` PostgreSQL widens `sum` to
-  // `pg/int8@1` and takes `avg` to `pg/numeric@1`, while `count` is `pg/int8@1`
-  // whatever it counts.
+  // rule the planner knows: over `pg/int4@1` the bare `sum` and `count` read as
+  // `pg/int8number@1` and `avg` as `pg/float8@1`, whatever the database itself
+  // computes them into.
   it('stamps the resolved output codec on count, sum, and avg', () => {
     const plan = compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {
       total: { kind: 'aggregate', fn: 'count' },
@@ -268,9 +268,9 @@ describe('query plan aggregate', () => {
     const ast = plan.ast as SelectAst;
     const byAlias = Object.fromEntries(ast.projection.map((p) => [p.alias, p.codec?.codecId]));
     expect(byAlias).toEqual({
-      total: 'pg/int8@1',
-      sumViews: 'pg/int8@1',
-      avgViews: 'pg/numeric@1',
+      total: 'pg/int8number@1',
+      sumViews: 'pg/int8number@1',
+      avgViews: 'pg/float8@1',
     });
   });
 

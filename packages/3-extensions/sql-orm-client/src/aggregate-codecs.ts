@@ -6,21 +6,28 @@
 
 import type { Contract } from '@internal/contract/types';
 import type { CodecRef } from '@internal/framework-components/codec';
+import type { AggregateResultNullability } from '@internal/framework-components/components';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlAggregateLowering } from '@internal/sql-relational-core/aggregate-descriptor-registry';
+import {
+  AggregateExpr,
+  type AnyExpression,
+  isAggregateFn,
+} from '@internal/sql-relational-core/ast';
 import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { ormError } from './orm-errors';
 
-export interface ResolvedAggregate {
+export type ResolvedAggregate = AggregateResultNullability & {
   /** The codec the result carries. */
   readonly codec: CodecRef;
   /** The codec of the value being aggregated, absent for an aggregate over rows. A lowering reads it to render per input where it must. */
   readonly input: CodecRef | undefined;
   /** Builds the expression, where the target declares one; absent means a plain aggregate call. */
   readonly lower: SqlAggregateLowering | undefined;
-}
+};
 
 export interface AggregateCodecQuery {
   readonly aggregates: SqlAggregateDescriptorRegistry;
@@ -43,12 +50,25 @@ export function resolveAggregate(query: AggregateCodecQuery): ResolvedAggregate 
   const input = inputCodecRef(query);
   const resolved = query.aggregates.resolve(query.fn, input);
   if (resolved === undefined) throw unsupportedAggregate(query, input);
-  return { codec: resolved.output, input, lower: resolved.lower };
+  const nullability: AggregateResultNullability = resolved.nullable
+    ? { nullable: true }
+    : { nullable: false, emptyResultJson: resolved.emptyResultJson };
+  return { codec: resolved.output, ...nullability, input, lower: resolved.lower };
 }
 
-/** The codec an aggregate's result carries. Rejects a pair the composed stack declares no overload for, exactly as planning does. */
-export function resolveAggregateOutputCodec(query: AggregateCodecQuery): CodecRef {
-  return resolveAggregate(query).codec;
+/**
+ * The plain SQL form of an operation in the closed aggregate alphabet.
+ * Registry composition guarantees every operation outside the alphabet
+ * carries a lowering hook, so a resolution without one for any other name is
+ * a composition bug, not a user error.
+ */
+export function plainAggregateExpr(fn: string, expr: AnyExpression | undefined): AggregateExpr {
+  if (!isAggregateFn(fn)) {
+    throw new InternalError(
+      `aggregate operation '${fn}' is outside the SQL aggregate alphabet and resolved without a lowering hook`,
+    );
+  }
+  return new AggregateExpr(fn, expr);
 }
 
 function unsupportedAggregate(query: AggregateCodecQuery, input: CodecRef | undefined) {

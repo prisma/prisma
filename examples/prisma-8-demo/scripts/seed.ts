@@ -7,7 +7,8 @@
  *
  * Creates:
  * - 2 users (alice, bob)
- * - 3 posts with vector embeddings (for similarity search demos)
+ * - 3 posts with vector embeddings (for similarity search demos) and
+ *   engagement counters (for the integer-representation demos)
  * - 3 tags (typescript, orm, demo) + post_tag junction rows (for the
  *   many-to-many demos)
  *
@@ -89,7 +90,21 @@ async function main() {
       return embedding;
     };
 
-    // Insert posts with embeddings
+    // Insert posts with embeddings and engagement counters.
+    //
+    // The counters are chosen so the integer-representation demos have
+    // something to say (`integer-representations`, `aggregate-precision`):
+    //
+    // - viewCount is `BigIntNumber`, a JS `number`. Every row and the total
+    //   stay inside ±(2^53 − 1), so `sum('viewCount')` answers normally.
+    // - impressionCount is `BigInt`, a `bigint`. No single row crosses the
+    //   safe-integer range — 2^52 twice and a thousand — but their total is
+    //   2^53 + 1000. That is what makes `sum('impressionCount')` throw and
+    //   `sumBigInt('impressionCount')` answer: the guard is about the value
+    //   the aggregate produces, not about the values it read.
+    // - reachScore is `UnboundedInt`, exact at any magnitude. Two rows sit
+    //   past 2^63 — where a 64-bit column would already have overflowed —
+    //   and one is small, because the same column holds ordinary values too.
     const firstPostRows = await runtime.execute(
       db.sql.public.post
         .insert([
@@ -99,6 +114,9 @@ async function main() {
             priority: db.enums.public.Priority.members.Low,
             embedding: generateEmbedding(1),
             createdAt: new Date(),
+            viewCount: 12_500,
+            impressionCount: 4_503_599_627_370_496n,
+            reachScore: 18_446_744_073_709_551_616n,
           },
         ])
         .returning('id', 'title')
@@ -114,6 +132,9 @@ async function main() {
             priority: db.enums.public.Priority.members.High,
             embedding: generateEmbedding(2),
             createdAt: new Date(),
+            viewCount: 9_800,
+            impressionCount: 4_503_599_627_370_496n,
+            reachScore: 9_223_372_036_854_775_809n,
           },
         ])
         .returning('id', 'title')
@@ -129,6 +150,9 @@ async function main() {
             priority: db.enums.public.Priority.members.Urgent,
             embedding: generateEmbedding(3),
             createdAt: new Date(),
+            viewCount: 3_112,
+            impressionCount: 1_000n,
+            reachScore: 42n,
           },
         ])
         .build(),

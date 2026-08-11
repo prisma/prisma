@@ -1,5 +1,5 @@
 import type { CodecInstanceContext } from '@internal/framework-components/codec';
-import { ColumnRef } from '@internal/sql-relational-core/ast';
+import { AggregateExpr, CastExpr, ColumnRef } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { SQLITE_BIGINT_NUMBER_CODEC_ID } from '../src/core/codec-ids';
 import {
@@ -10,6 +10,13 @@ import {
 import { sqliteCodecDescriptorRegistry, sqliteCodecRegistry } from '../src/core/registry';
 
 const instanceCtx: CodecInstanceContext = { name: 'test' };
+
+/**
+ * A value the typed surface refuses, as a JS caller — or a migration from the
+ * previous result type — still supplies it. The encode guards answer for what
+ * reaches them at runtime, so that is what these cases hand them.
+ */
+const wrongTyped = (value: unknown): never => value as never;
 
 describe('sqlite/bigint@1 number wire values', () => {
   const codec = sqliteBigintDescriptor.factory()(instanceCtx);
@@ -40,6 +47,33 @@ describe('sqlite/bigint@1 number wire values', () => {
         'sqlite/bigint@1 wire number must be an integer within the safe integer range, got 1.5',
       meta: { codecId: 'sqlite/bigint@1', received: '1.5' },
     });
+  });
+
+  // The same guard from the other side of the pair: this codec reads a
+  // `bigint`, so a `number` is named for the type it is — SQLite would store
+  // a fractional one as the REAL it is, in a column of integers.
+  it('names the expected type when a number arrives where a bigint is read', async () => {
+    await expect(codec.encode(wrongTyped(9), {})).rejects.toMatchObject({
+      code: 'RUNTIME.ENCODE_FAILED',
+      message: 'sqlite/bigint@1 value must be a bigint, got number 9',
+      meta: { codecId: 'sqlite/bigint@1', received: 'number' },
+    });
+  });
+
+  // A schema literal (`BigInt @default(0)`) reaches the JSON boundary as a
+  // number, because that is the only integer a schema language writes.
+  it('reads a schema-written integer literal at the JSON boundary', () => {
+    expect(codec.encodeJson(wrongTyped(0))).toBe('0');
+    expect(codec.encodeJson(wrongTyped(-42))).toBe('-42');
+  });
+
+  it('rejects a written number the literal does not name exactly', () => {
+    expect(() => codec.encodeJson(wrongTyped(1.5))).toThrow(
+      'sqlite/bigint@1 number literal must be an integer within the safe integer range, got 1.5',
+    );
+    expect(() => codec.encodeJson(wrongTyped(9007199254740992))).toThrow(
+      'sqlite/bigint@1 number literal must be an integer within the safe integer range, got 9007199254740992',
+    );
   });
 });
 
@@ -126,6 +160,20 @@ describe('sqlite/bigintnumber@1', () => {
         meta: { codecId: 'sqlite/bigintnumber@1', received: '1.5' },
       });
     });
+
+    // A value of the wrong type is not a value out of range, and saying so
+    // about a plainly in-range 9 sends the reader looking for a magnitude
+    // problem. The type is what changed, so the type is what the message names.
+    it('names the expected type when a bigint arrives where a number is read', async () => {
+      await expect(codec.encode(wrongTyped(9n), {})).rejects.toMatchObject({
+        code: 'RUNTIME.ENCODE_FAILED',
+        message: 'sqlite/bigintnumber@1 value must be a number, got bigint 9',
+        meta: { codecId: 'sqlite/bigintnumber@1', received: 'bigint' },
+      });
+      expect(() => codec.encodeJson(wrongTyped(9n))).toThrow(
+        'sqlite/bigintnumber@1 value must be a number, got bigint 9',
+      );
+    });
   });
 
   describe('encodeJson / decodeJson', () => {
@@ -167,13 +215,26 @@ describe('sqlite/bigintnumber@1', () => {
     });
   });
 
-  it('projects the stored INTEGER unchanged, so the database emits a JSON number', () => {
+  it('projects through an INTEGER cast, so the database emits a JSON number', () => {
     const expression = ColumnRef.of('records', 'value');
     expect(
       sqliteBigintNumberDescriptor.projectJson(expression, {
         codecId: SQLITE_BIGINT_NUMBER_CODEC_ID,
       }),
-    ).toBe(expression);
+    ).toEqual(CastExpr.as(expression, 'INTEGER'));
+  });
+
+  // An aggregate whose result this codec carries reaches the projection already
+  // cast to text, so the driver never reads a wide integer off the wire. The
+  // projection is what puts such a value back into the codec's canonical JSON
+  // form, and it has to do so whatever expression it is handed.
+  it('projects a text-cast aggregate back to a JSON number', () => {
+    const lowered = CastExpr.as(new AggregateExpr('count', undefined), 'text');
+    expect(
+      sqliteBigintNumberDescriptor.projectJson(lowered, {
+        codecId: SQLITE_BIGINT_NUMBER_CODEC_ID,
+      }),
+    ).toEqual(CastExpr.as(lowered, 'INTEGER'));
   });
 
   it('claims no target type, so integer in type position keeps its current codecs', () => {

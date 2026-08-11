@@ -30,7 +30,7 @@ export async function addPostsWithinQuota(input: AddPostsWithinQuotaInput) {
         .where((f, fns) => fns.eq(f.userId, input.userId))
         .build(),
     );
-    const existingCount = Number(countRows[0]?.postCount ?? 0);
+    const existingCount = countRows[0]?.postCount ?? 0;
 
     // The count and the inserts must be one atomic unit: two concurrent callers
     // could each pass a standalone check and jointly exceed the quota (TOCTOU).

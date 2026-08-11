@@ -70,7 +70,7 @@ describe('relational-core structured error codes', () => {
   it('twice-claimed aggregate overload raises RUNTIME.DUPLICATE_AGGREGATE_DESCRIPTOR', () => {
     const error = capture(() =>
       buildSqlAggregateDescriptorRegistry(
-        [sumOverNumeric, { ...sumOverNumeric, nullable: false }],
+        [sumOverNumeric, { ...sumOverNumeric, nullable: false, emptyResultJson: '0' }],
         buildCodecDescriptorRegistry([]),
       ),
     );
@@ -92,6 +92,20 @@ describe('relational-core structured error codes', () => {
     expect(error).toMatchObject({
       code: 'RUNTIME.AMBIGUOUS_AGGREGATE_DESCRIPTOR',
       meta: { operation: 'sum', codecId: 'lib/int@1', traits: ['numeric', 'order'] },
+    });
+  });
+
+  it('alphabet-external operation without a lowering hook raises RUNTIME.AGGREGATE_LOWERING_MISSING', () => {
+    const error = capture(() =>
+      buildSqlAggregateDescriptorRegistry(
+        [{ ...sumOverNumeric, operation: 'median' }],
+        buildCodecDescriptorRegistry([codecWithTraits('lib/int8@1', ['numeric'])]),
+      ),
+    );
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'RUNTIME.AGGREGATE_LOWERING_MISSING',
+      meta: { operation: 'median', key: 'median:trait:numeric' },
     });
   });
 

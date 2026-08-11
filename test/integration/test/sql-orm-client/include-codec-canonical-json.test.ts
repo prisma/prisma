@@ -9,7 +9,7 @@ import postgresAdapter from '@internal/adapter-postgres/runtime';
 import { vector } from '@internal/extension-pgvector/column-types';
 import pgvectorRuntime from '@internal/extension-pgvector/runtime';
 import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
-import { Collection } from '@internal/sql-orm-client';
+import { type AggregateSpec, Collection } from '@internal/sql-orm-client';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import postgresTarget from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
@@ -229,7 +229,7 @@ describe('integration/include canonical JSON', () => {
   );
 
   it(
-    'an aggregate past 2^53 survives both the top-level read and the include',
+    'a lossless aggregate past 2^53 survives both the top-level read and the include',
     async () => {
       await withCollectionRuntime(async (runtime) => {
         await setupTables(runtime);
@@ -245,17 +245,19 @@ describe('integration/include canonical JSON', () => {
           namespaceId: 'public',
         });
 
-        const counterField = 'counter' as never;
-        const stats = await readings.aggregate((aggregate) => ({
-          total: aggregate.sum(counterField),
-          peak: aggregate.max(counterField),
-        }));
+        // The contract is authored in this file, so its static aggregate map
+        // is unknown and the typed builder surface is empty; dispatch
+        // dynamically, as the include reducer below already does.
+        const stats = await readings.aggregate((aggregate) => {
+          const dynamic = aggregate as Record<string, (field?: string) => AggregateSpec[string]>;
+          return { total: dynamic['sumBigInt']!('counter'), peak: dynamic['max']!('counter') };
+        });
 
-        // PostgreSQL sums bigints into a numeric, whose canonical form is its
-        // decimal string; the maximum keeps the column's own bigint. Both are
-        // exact, which the same values read as numbers are not.
-        expect(stats).toEqual({ total: '9007199254740995', peak: 9007199254740993n });
-        expect(String(Number(stats.total))).not.toBe(stats.total);
+        // The lossless sum reads PostgreSQL's numeric total as an unbounded
+        // bigint; the maximum keeps the column's own bigint. Both are exact,
+        // which the same values read as numbers are not.
+        expect(stats).toEqual({ total: 9007199254740995n, peak: 9007199254740993n });
+        expect(BigInt(Number(stats.total))).not.toBe(stats.total);
         expect(BigInt(Number(stats.peak))).not.toBe(9007199254740993n);
 
         // The include refinement's cardinality inference does not read a

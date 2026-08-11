@@ -28,6 +28,7 @@ const countRows: SqlAggregateDescriptor = {
   input: { kind: 'none' },
   output: { kind: 'codec', codecId: 'lib/int8@1' },
   nullable: false,
+  emptyResultJson: '0',
 };
 
 const sumNumeric: SqlAggregateDescriptor = {
@@ -56,6 +57,7 @@ const countAnything: SqlAggregateDescriptor = {
   input: { kind: 'any' },
   output: { kind: 'codec', codecId: 'lib/int8@1' },
   nullable: false,
+  emptyResultJson: '0',
 };
 
 describe('buildSqlAggregateDescriptorRegistry — input-agnostic matching', () => {
@@ -66,6 +68,7 @@ describe('buildSqlAggregateDescriptorRegistry — input-agnostic matching', () =
       operation: 'count',
       output: { codecId: 'lib/int8@1' },
       nullable: false,
+      emptyResultJson: '0',
       lower: undefined,
     });
   });
@@ -145,6 +148,7 @@ describe('buildSqlAggregateDescriptorRegistry — resolution', () => {
       operation: 'count',
       output: { codecId: 'lib/int8@1' },
       nullable: false,
+      emptyResultJson: '0',
       lower: undefined,
     });
   });
@@ -259,16 +263,149 @@ describe('buildSqlAggregateDescriptorRegistry — resolution', () => {
   });
 });
 
+describe('buildSqlAggregateDescriptorRegistry — contributed operation names', () => {
+  const medianOverNumeric: SqlAggregateDescriptor = {
+    operation: 'median',
+    input: { kind: 'trait', trait: 'numeric' },
+    output: { kind: 'codec', codecId: 'lib/numeric@1' },
+    nullable: true,
+  };
+
+  it('accepts an operation outside the alphabet when its descriptor carries a lowering hook', () => {
+    const lower = () => LiteralExpr.of('lowered');
+    const registry = buildSqlAggregateDescriptorRegistry([{ ...medianOverNumeric, lower }], codecs);
+
+    expect(registry.resolve('median', { codecId: 'lib/int4@1' })).toEqual({
+      operation: 'median',
+      output: { codecId: 'lib/numeric@1' },
+      nullable: true,
+      lower,
+    });
+  });
+
+  it('rejects an operation outside the alphabet whose descriptor carries no lowering hook', () => {
+    expect(() => buildSqlAggregateDescriptorRegistry([medianOverNumeric], codecs)).toThrow(
+      /outside the SQL aggregate alphabet .* carries no lowering hook/,
+    );
+  });
+
+  it('requires no lowering hook for an operation in the alphabet', () => {
+    const registry = buildSqlAggregateDescriptorRegistry([sumNumeric], codecs);
+
+    expect(registry.resolve('sum', { codecId: 'lib/int4@1' })).toEqual({
+      operation: 'sum',
+      output: { codecId: 'lib/int8@1' },
+      nullable: true,
+      lower: undefined,
+    });
+  });
+
+  it('enforces the lowering rule per descriptor, not per operation', () => {
+    const lower = () => LiteralExpr.of('lowered');
+    expect(() =>
+      buildSqlAggregateDescriptorRegistry(
+        [
+          { ...medianOverNumeric, lower },
+          { ...medianOverNumeric, input: { kind: 'trait', trait: 'order' } },
+        ],
+        codecs,
+      ),
+    ).toThrow(/outside the SQL aggregate alphabet .* carries no lowering hook/);
+  });
+
+  it('resolves a contributed operation that consumes no input', () => {
+    const lower = () => LiteralExpr.of('lowered');
+    const registry = buildSqlAggregateDescriptorRegistry(
+      [
+        {
+          operation: 'tally',
+          input: { kind: 'none' },
+          output: { kind: 'codec', codecId: 'lib/int8@1' },
+          nullable: false,
+          emptyResultJson: '0',
+          lower,
+        },
+      ],
+      codecs,
+    );
+
+    expect(registry.resolve('tally')).toEqual({
+      operation: 'tally',
+      output: { codecId: 'lib/int8@1' },
+      nullable: false,
+      emptyResultJson: '0',
+      lower,
+    });
+  });
+
+  it('keeps exact-over-trait-over-any precedence for a contributed operation', () => {
+    const lowerAny = () => LiteralExpr.of('any');
+    const lowerTrait = () => LiteralExpr.of('trait');
+    const lowerExact = () => LiteralExpr.of('exact');
+    const registry = buildSqlAggregateDescriptorRegistry(
+      [
+        {
+          operation: 'median',
+          input: { kind: 'any' },
+          output: { kind: 'codec', codecId: 'lib/int8@1' },
+          nullable: true,
+          lower: lowerAny,
+        },
+        { ...medianOverNumeric, lower: lowerTrait },
+        {
+          operation: 'median',
+          input: { kind: 'codec', codecId: 'lib/int8@1' },
+          output: { kind: 'codec', codecId: 'lib/numeric@1' },
+          nullable: true,
+          lower: lowerExact,
+        },
+      ],
+      codecs,
+    );
+
+    expect(registry.resolve('median', { codecId: 'lib/int8@1' })).toEqual({
+      operation: 'median',
+      output: { codecId: 'lib/numeric@1' },
+      nullable: true,
+      lower: lowerExact,
+    });
+    expect(registry.resolve('median', { codecId: 'lib/int4@1' })).toEqual({
+      operation: 'median',
+      output: { codecId: 'lib/numeric@1' },
+      nullable: true,
+      lower: lowerTrait,
+    });
+    expect(registry.resolve('median', { codecId: 'lib/text@1' })).toEqual({
+      operation: 'median',
+      output: { codecId: 'lib/int8@1' },
+      nullable: true,
+      lower: lowerAny,
+    });
+  });
+});
+
 describe('buildSqlAggregateDescriptorRegistry — composition-time validation', () => {
   it('rejects a duplicate operation and input pair', () => {
     expect(() =>
-      buildSqlAggregateDescriptorRegistry([sumNumeric, { ...sumNumeric, nullable: false }], codecs),
+      buildSqlAggregateDescriptorRegistry(
+        [sumNumeric, { ...sumNumeric, nullable: false, emptyResultJson: '0' }],
+        codecs,
+      ),
     ).toThrow(/Duplicate aggregate descriptor for 'sum:trait:numeric'/);
   });
 
   it('rejects a malformed contribution', () => {
     expect(() =>
       buildSqlAggregateDescriptorRegistry([{ operation: 'sum', nullable: true }], codecs),
+    ).toThrow(/is not a valid SQL aggregate descriptor/);
+  });
+
+  // A non-nullable result is one the caller reads without a null check, so the
+  // value it reads where no row arrived has to come from somewhere. The row
+  // declares it; a row that declares none has no answer to give.
+  it('rejects a non-nullable row that declares no empty result', () => {
+    expect(() =>
+      buildSqlAggregateDescriptorRegistry([{ ...countRows, emptyResultJson: undefined }], codecs),
     ).toThrow(/is not a valid SQL aggregate descriptor/);
   });
 

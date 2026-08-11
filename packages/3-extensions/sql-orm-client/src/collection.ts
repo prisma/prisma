@@ -22,7 +22,9 @@ import { InternalError } from '@internal/utils/internal-error';
 import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import type { Simplify } from '@internal/utils/types';
 import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder';
+import { resolveAggregate } from './aggregate-codecs';
 import { emptyAggregateResult } from './aggregate-empty-result';
+import { aggregateOperationNames } from './aggregate-operations';
 import { mapCursorValuesToColumns, mapFieldsToColumns } from './collection-column-mapping';
 import {
   assertReturningCapability,
@@ -97,10 +99,9 @@ import {
 } from './query-plan';
 import {
   type AggregateBuilder,
-  type AggregateFieldNames,
-  type AggregateFieldResultFor,
+  type AggregateIncludeReducers,
   type AggregateResult,
-  type AggregateResultFor,
+  type AggregateSelector,
   type AggregateSpec,
   type CollectionContext,
   type CollectionState,
@@ -208,7 +209,7 @@ interface MtiCreateContext {
   pkColumn: string;
 }
 
-export class Collection<
+class CollectionImpl<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   Row = SimplifyDeep<InferRootRow<TContract, ModelName>>,
@@ -247,6 +248,56 @@ export class Collection<
     this.state = options.state ?? emptyState();
     this.registry = options.registry ?? new Map<string, CollectionConstructor<TContract>>();
     this.includeRefinementMode = options.includeRefinementMode ?? false;
+    this.#installAggregateReducers();
+  }
+
+  /**
+   * Install one include-scalar reducer per operation the composed registry
+   * contributes — the runtime mirror of the contract's emitted aggregate map,
+   * which is what types the reducers as {@link AggregateIncludeReducers} on
+   * the public {@link Collection} surface. The reducers live on the instance
+   * because their names are the registry's, not the class declaration's.
+   *
+   * A name the collection already carries is skipped, and which member holds
+   * it decides what the skip means. A `CollectionImpl` member is rejected at
+   * ORM composition with `ORM.AGGREGATE_OPERATION_RESERVED`, since
+   * {@link reservedCollectionMemberNames} scans this class. A member declared
+   * by a custom collection class registered through `orm({ collections })`
+   * falls outside that set, so it keeps the name and the operation gets no
+   * reducer. The type level is what guards that case: {@link Collection}
+   * intersects the class with {@link AggregateIncludeReducers}, so for any
+   * contract whose emitted map carries the operation, a subclass member that
+   * does not match the reducer's signature is a type error.
+   */
+  #installAggregateReducers(): void {
+    for (const operation of aggregateOperationNames(this.ctx.context.aggregateDescriptors)) {
+      if (operation in this) {
+        continue;
+      }
+      Object.defineProperty(this, operation, {
+        value: (field?: string) => this.#includeScalarReducer(operation, field),
+        writable: true,
+        enumerable: false,
+        configurable: true,
+      });
+    }
+  }
+
+  /**
+   * Scalar reducer — reduces a to-many relation to the operation's value over
+   * the related rows. Use inside an `include(...)` refinement callback as
+   * `include(..., (rel) => rel.count())`; throws if called elsewhere. The
+   * parent row's relation field becomes that value instead of an array. A
+   * call without a field aggregates over rows; a call with one aggregates the
+   * field's storage column.
+   */
+  #includeScalarReducer(operation: string, field: string | undefined): IncludeScalar<unknown> {
+    this.#assertIncludeRefinementMode(`${operation}()`);
+    const column =
+      field === undefined
+        ? undefined
+        : resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
+    return createIncludeScalar(operation, this.state, column);
   }
 
   /**
@@ -694,7 +745,7 @@ export class Collection<
    *   .where({ published: true })
    *   .groupBy('userId')
    *   .aggregate((agg) => ({ count: agg.count(), totalViews: agg.sum('views') }));
-   * // [{ userId: 1, count: 3n, totalViews: 120n }, ...]
+   * // [{ userId: 1, count: 3, totalViews: 120 }, ...]
    * ```
    */
   groupBy<
@@ -721,105 +772,6 @@ export class Collection<
   }
 
   /**
-   * Scalar reducer — reduces a to-many relation to the number of
-   * related rows. Use inside an `include(...)` refinement callback as
-   * `include(..., (rel) => rel.count())`; throws if called elsewhere.
-   * The parent row's relation field becomes that count instead of an
-   * array.
-   *
-   * ```typescript
-   * const users = await db.orm.User.include('posts', (posts) => posts.count()).all();
-   * // each user row: { ...user, posts: bigint }
-   * ```
-   */
-  count(): IncludeScalar<AggregateResultFor<TContract, 'count'>> {
-    this.#assertIncludeRefinementMode('count()');
-    return createIncludeScalar<AggregateResultFor<TContract, 'count'>>('count', this.state);
-  }
-
-  /**
-   * Scalar reducer — reduces a to-many relation to the sum of `field`
-   * across related rows. Returns `null` when there are no related
-   * rows. Use inside an `include(...)` refinement callback; throws if
-   * called elsewhere.
-   *
-   * ```typescript
-   * const users = await db.orm.User.include('posts', (posts) => posts.sum('views')).all();
-   * // each user row: { ...user, posts: bigint | null } — an int4 column's sum widens to int8
-   * ```
-   */
-  sum<FieldName extends AggregateFieldNames<TContract, ModelName, 'sum', State['nsId']>>(
-    field: FieldName,
-  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName, State['nsId']>> {
-    this.#assertIncludeRefinementMode('sum()');
-    const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<
-      AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName, State['nsId']>
-    >('sum', this.state, columnName);
-  }
-
-  /**
-   * Scalar reducer — reduces a to-many relation to the average of
-   * `field` across related rows. Returns `null` when there are no
-   * related rows. Use inside an `include(...)` refinement callback;
-   * throws if called elsewhere.
-   *
-   * ```typescript
-   * const users = await db.orm.User.include('posts', (posts) => posts.avg('views')).all();
-   * // each user row: { ...user, posts: string | null } — PostgreSQL averages integers as numeric
-   * ```
-   */
-  avg<FieldName extends AggregateFieldNames<TContract, ModelName, 'avg', State['nsId']>>(
-    field: FieldName,
-  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName, State['nsId']>> {
-    this.#assertIncludeRefinementMode('avg()');
-    const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<
-      AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName, State['nsId']>
-    >('avg', this.state, columnName);
-  }
-
-  /**
-   * Scalar reducer — reduces a to-many relation to the minimum value
-   * of `field` across related rows. Returns `null` when there are no
-   * related rows. Use inside an `include(...)` refinement callback;
-   * throws if called elsewhere.
-   *
-   * ```typescript
-   * const users = await db.orm.User.include('posts', (posts) => posts.min('views')).all();
-   * ```
-   */
-  min<FieldName extends AggregateFieldNames<TContract, ModelName, 'min', State['nsId']>>(
-    field: FieldName,
-  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName, State['nsId']>> {
-    this.#assertIncludeRefinementMode('min()');
-    const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<
-      AggregateFieldResultFor<TContract, ModelName, 'min', FieldName, State['nsId']>
-    >('min', this.state, columnName);
-  }
-
-  /**
-   * Scalar reducer — reduces a to-many relation to the maximum value
-   * of `field` across related rows. Returns `null` when there are no
-   * related rows. Use inside an `include(...)` refinement callback;
-   * throws if called elsewhere.
-   *
-   * ```typescript
-   * const users = await db.orm.User.include('posts', (posts) => posts.max('views')).all();
-   * ```
-   */
-  max<FieldName extends AggregateFieldNames<TContract, ModelName, 'max', State['nsId']>>(
-    field: FieldName,
-  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName, State['nsId']>> {
-    this.#assertIncludeRefinementMode('max()');
-    const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<
-      AggregateFieldResultFor<TContract, ModelName, 'max', FieldName, State['nsId']>
-    >('max', this.state, columnName);
-  }
-
-  /**
    * Produce multiple named sub-views of a to-many relation in a
    * single `include(...)`. Each branch is either another refined
    * collection (mapped to a row array on the parent) or a scalar
@@ -836,21 +788,21 @@ export class Collection<
    * ).all();
    * // each user row: {
    * //   ...user,
-   * //   posts: { recent: Post[]; total: bigint; averageViews: string | null };
+   * //   posts: { recent: Post[]; total: number; averageViews: number | null };
    * // }
    * ```
    */
   combine<
     Spec extends Record<
       string,
-      Collection<TContract, ModelName, unknown, CollectionTypeState> | IncludeScalar<unknown>
+      CollectionImpl<TContract, ModelName, unknown, CollectionTypeState> | IncludeScalar<unknown>
     >,
   >(
     spec: Spec,
   ): IncludeCombine<{
     [K in keyof Spec]: Spec[K] extends IncludeScalar<infer ScalarResult>
       ? ScalarResult
-      : Spec[K] extends Collection<TContract, ModelName, infer BranchRow, CollectionTypeState>
+      : Spec[K] extends CollectionImpl<TContract, ModelName, infer BranchRow, CollectionTypeState>
         ? BranchRow[]
         : never;
   }> {
@@ -882,7 +834,7 @@ export class Collection<
     return createIncludeCombine<{
       [K in keyof Spec]: Spec[K] extends IncludeScalar<infer ScalarResult>
         ? ScalarResult
-        : Spec[K] extends Collection<TContract, ModelName, infer BranchRow, CollectionTypeState>
+        : Spec[K] extends CollectionImpl<TContract, ModelName, infer BranchRow, CollectionTypeState>
           ? BranchRow[]
           : never;
     }>(branches);
@@ -921,7 +873,10 @@ export class Collection<
     );
 
     if (Object.keys(mappedCursor).length === 0) {
-      return this;
+      return blindCast<
+        Collection<TContract, ModelName, Row, State>,
+        'the constructor installed the reducer members the surface type declares'
+      >(this);
     }
 
     return this.#clone({
@@ -1139,7 +1094,7 @@ export class Collection<
    *     averageViews: agg.avg('views'),
    *     maxViews: agg.max('views'),
    *   }));
-   * // { total: 42n, averageViews: '17.3000000000000000', maxViews: 9001 }
+   * // { total: 42, averageViews: 17.3, maxViews: 9001 }
    * ```
    *
    * Accepts an optional `configure` callback that receives a
@@ -1153,6 +1108,7 @@ export class Collection<
     const aggregateSpec = fn(
       createAggregateBuilder<TContract, ModelName, State['nsId']>(
         this.contract,
+        this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.modelName,
       ),
@@ -1197,12 +1153,12 @@ export class Collection<
     ).toArray();
     // Values arrive decoded: the projection carries each aggregate's resolved
     // output codec, so the runtime's decode pass has already turned the wire
-    // value into the application one. An absent alias means an empty input set,
-    // whose SQL answer for `count` is zero and for the rest is null.
+    // value into the application one. An absent alias means an empty input
+    // set, whose answer reads off the operation's declared row.
     const row = rows[0] ?? {};
     const result: Record<string, unknown> = {};
     for (const [alias, selector] of entries) {
-      result[alias] = row[alias] ?? emptyAggregateResult(selector.fn);
+      result[alias] = row[alias] ?? this.#emptyAggregateValue(selector);
     }
     return blindCast<
       AggregateResult<Spec>,
@@ -2457,6 +2413,27 @@ export class Collection<
     return rows[0] ?? null;
   }
 
+  /**
+   * The value an aggregate alias reads as when the result set has no row to
+   * read at all. Resolution mirrors planning — the same registry, operation,
+   * and column — so the answer derives from the operation's declared row
+   * rather than its name.
+   */
+  #emptyAggregateValue(selector: AggregateSelector<unknown>): unknown {
+    const resolved = resolveAggregate({
+      aggregates: this.ctx.context.aggregateDescriptors,
+      contract: this.contract,
+      namespaceId: this.namespaceId,
+      tableName: this.tableName,
+      fn: selector.fn,
+      column: selector.column,
+    });
+    return emptyAggregateResult(
+      resolved,
+      this.ctx.context.contractCodecs.forCodecRef(resolved.codec),
+    );
+  }
+
   #assertIncludeRefinementMode(action: string): void {
     if (this.includeRefinementMode) {
       return;
@@ -2478,13 +2455,13 @@ export class Collection<
     });
   }
 
-  #withRuntime(runtime: RuntimeQueryable): Collection<TContract, ModelName, Row, State> {
+  #withRuntime(runtime: RuntimeQueryable): CollectionImpl<TContract, ModelName, Row, State> {
     const Ctor = blindCast<
       CollectionConstructor<TContract>,
       'runtime collection subclasses preserve the Collection constructor contract'
     >(this.constructor);
     return blindCast<
-      Collection<TContract, ModelName, Row, State>,
+      CollectionImpl<TContract, ModelName, Row, State>,
       'runtime collection construction erases model row and state generics'
     >(
       new Ctor({ ...this.ctx, runtime }, this.modelName, {
@@ -2540,7 +2517,7 @@ export class Collection<
       blindCast<
         CollectionConstructor<TContract>,
         'base Collection constructor is generic over the runtime contract'
-      >(Collection);
+      >(CollectionImpl);
     return blindCast<
       Collection<TContract, ModelNameInner, RowInner, StateInner>,
       'runtime related collection construction erases model row and state generics'
@@ -2625,3 +2602,76 @@ export class Collection<
     return meta.annotations.size === 0 ? undefined : meta.annotations;
   }
 }
+
+const collectionInstanceMemberNames = [
+  'ctx',
+  'contract',
+  'modelName',
+  'tableName',
+  'namespaceId',
+  'state',
+  'registry',
+  'includeRefinementMode',
+] as const;
+
+/**
+ * Every member name the collection surface owns: the prototype's methods plus
+ * the declared instance fields. A contributed aggregate operation may not
+ * take one of these names — reducers install into the same flat namespace —
+ * so ORM composition rejects any operation this set contains.
+ */
+export function reservedCollectionMemberNames(): ReadonlySet<string> {
+  return new Set([
+    ...Object.getOwnPropertyNames(CollectionImpl.prototype),
+    ...collectionInstanceMemberNames,
+  ]);
+}
+
+/**
+ * The public collection surface: the chainable builder and terminal methods
+ * the class declares, plus one include-scalar reducer per operation the
+ * contract's emitted aggregate map declares
+ * ({@link AggregateIncludeReducers}). The reducer set derives from the map —
+ * chaining preserves it, and a contributed operation surfaces without any
+ * client change.
+ */
+export type Collection<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Row = SimplifyDeep<InferRootRow<TContract, ModelName>>,
+  State extends CollectionTypeState = DefaultCollectionTypeState,
+> = CollectionImpl<TContract, ModelName, Row, State> &
+  AggregateIncludeReducers<TContract, ModelName, State['nsId']>;
+
+/**
+ * The constructor face of {@link Collection}: constructing — or subclassing,
+ * as custom collections registered via `orm({ collections })` do — yields the
+ * intersection surface, whose reducer members the constructor installs from
+ * the registry the execution context carries.
+ */
+interface CollectionSurfaceConstructor {
+  new <
+    TContract extends Contract<SqlStorage>,
+    ModelName extends string,
+    Row = SimplifyDeep<InferRootRow<TContract, ModelName>>,
+    State extends CollectionTypeState = DefaultCollectionTypeState,
+  >(
+    ctx: CollectionContext<TContract>,
+    modelName: ModelName,
+    options: CollectionInit<TContract>,
+  ): Collection<TContract, ModelName, Row, State>;
+}
+
+export const Collection = blindCast<
+  CollectionSurfaceConstructor,
+  'the constructor installs one reducer per aggregate operation the registry contributes'
+>(CollectionImpl);
+
+/**
+ * The class behind {@link Collection}, for package-internal prototype-chain
+ * checks (`instanceof`) and default construction. The public constructor
+ * surface carries a single construct signature returning the intersection,
+ * which heritage clauses require; the raw class keeps the `Function` shape
+ * those checks need.
+ */
+export const CollectionBase = CollectionImpl;

@@ -21,6 +21,12 @@
  *                                          QuotaExceededError and rolls back. Prints created posts
  *                                          on success; prints the rollback reason and the unchanged
  *                                          count on quota violation.
+ * - integer-representations [limit]        The two Post engagement counters side by side:
+ *                                          `BigIntNumber` reads as a JS number, `BigInt` as a
+ *                                          bigint. SQLite offers no `UnboundedInt`.
+ * - aggregate-precision                    count/sum/avg beside countBigInt/sumBigInt, including a
+ *                                          bare sum() whose total passes 2^53 and raises rather
+ *                                          than rounding. SQLite has no avgDecimal at all.
  *
  * Many-to-many commands (Post ↔ Tag via PostTag junction):
  * - post-tags <postId>                     Include a post's tags (N:M read)
@@ -47,6 +53,8 @@ import { ormClientCreatePostWithTags } from './orm-client/create-post-with-tags'
 import { ormClientCreateUser } from './orm-client/create-user';
 import { ormClientDisconnectPostTags } from './orm-client/disconnect-post-tags';
 import { ormClientFindUserById } from './orm-client/find-user-by-id';
+import { ormClientGetEngagementPrecision } from './orm-client/get-engagement-precision';
+import { ormClientGetPostEngagement } from './orm-client/get-post-engagement';
 import { ormClientGetPostTags } from './orm-client/get-post-tags';
 import { ormClientGetPostsByTagFilter } from './orm-client/get-posts-by-tag-filter';
 import { ormClientGetTagPosts } from './orm-client/get-tag-posts';
@@ -59,6 +67,17 @@ import { addPostsWithinQuota, QuotaExceededError } from './transactions/add-post
 
 const argv = process.argv.slice(2).filter((arg) => arg !== '--');
 const [cmd, ...args] = argv;
+
+/**
+ * Renders a value with the JavaScript type it arrived as. The
+ * integer-representation demos are about exactly that, and `JSON.stringify`
+ * cannot help: it refuses a `bigint` outright.
+ */
+function describe(value: unknown): string {
+  if (value === null) return 'null';
+  if (typeof value === 'bigint') return `${value}n (bigint)`;
+  return `${String(value)} (${typeof value})`;
+}
 
 async function main() {
   const { databasePath } = loadAppConfig();
@@ -218,6 +237,49 @@ async function main() {
       }
       const result = await ormClientCreatePostConnectTags({ id, userId, title, tagIds }, runtime);
       console.log(JSON.stringify(result, null, 2));
+    } else if (cmd === 'integer-representations') {
+      const limit = args[0] ? Number.parseInt(args[0], 10) : 10;
+      const posts = await ormClientGetPostEngagement(limit, runtime);
+
+      console.log('Post engagement counters, one column per integer representation:\n');
+      console.log('  viewCount        BigIntNumber   sqlite/bigintnumber@1   read as a number');
+      console.log('  impressionCount  BigInt         sqlite/bigint@1         read as a bigint\n');
+      for (const post of posts) {
+        console.log(post.title);
+        console.log(`  viewCount        ${describe(post.viewCount)}`);
+        console.log(`  impressionCount  ${describe(post.impressionCount)}`);
+      }
+      console.log(
+        '\nSQLite declares no UnboundedInt: it has no lossless unbounded integer storage,',
+      );
+      console.log('so the type is simply not on offer. See examples/prisma-8-demo for all three.');
+    } else if (cmd === 'aggregate-precision') {
+      const report = await ormClientGetEngagementPrecision(runtime);
+
+      console.log('Counting posts:');
+      console.log(`  count()                       ${describe(report.posts.count)}`);
+      console.log(`  countBigInt()                 ${describe(report.posts.countBigInt)}\n`);
+
+      console.log('viewCount — BigIntNumber, and the total stays inside the safe range:');
+      console.log(`  sum('viewCount')              ${describe(report.views.sum)}`);
+      console.log(`  sumBigInt('viewCount')        ${describe(report.views.sumBigInt)}`);
+      console.log(`  avg('viewCount')              ${describe(report.views.avg)}\n`);
+
+      console.log('impressionCount — BigInt, and the total is 2^53 + 1000:');
+      if (report.impressions.sum.kind === 'guarded') {
+        console.log("  sum('impressionCount')        refused — this is the guard working:");
+        console.log(`    ${report.impressions.sum.code}: ${report.impressions.sum.message}`);
+        console.log('    A number cannot hold that total exactly, so the codec raises rather');
+        console.log('    than rounding. Reach for the lossless variant instead:');
+      } else {
+        console.log(
+          `  sum('impressionCount')        ${describe(report.impressions.sum.total)} — expected the guard here; is the database seeded?`,
+        );
+      }
+      console.log(`  sumBigInt('impressionCount')  ${describe(report.impressions.sumBigInt)}\n`);
+
+      console.log('There is no avgDecimal on a SQLite contract: an exact mean needs a decimal');
+      console.log('result codec, and SQLite has none, so the method does not exist to call.');
     } else {
       console.log(
         'Usage: pnpm start -- [users [limit] | repo-user <id> | repo-user-posts <id> [limit] |\n' +
@@ -229,7 +291,8 @@ async function main() {
           '  connect-post-tags <postId> <tagId...> |\n' +
           '  disconnect-post-tags <postId> <tagId...> |\n' +
           '  create-post-with-tags <id> <userId> <title> <label...> |\n' +
-          '  create-post-connect-tags <id> <userId> <title> <tagId...>]',
+          '  create-post-connect-tags <id> <userId> <title> <tagId...> |\n' +
+          '  integer-representations [limit] | aggregate-precision]',
       );
       process.exitCode = 1;
       return;

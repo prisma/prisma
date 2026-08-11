@@ -1,5 +1,5 @@
 /**
- * Aggregate descriptor vocabulary: the declarative mapping from `(aggregate operation, optional input codec)` to the identity and nullability of the aggregate's result.
+ * Aggregate descriptor vocabulary: the declarative mapping from `(aggregate operation, optional input codec)` to the identity of the aggregate's result, whether it can be null, and — where it cannot — the value it answers with over no result row.
  *
  * Result identity is operation- and target-specific, so it lives beside codec descriptors rather than on them: one input codec produces different results under different operations, and one operation produces different results on different targets.
  *
@@ -45,32 +45,39 @@ export interface SelfAggregateOutput {
 /** Declarative identity of the codec an aggregate's result carries. */
 export type AggregateOutputCodec = SelfAggregateOutput | NamedAggregateOutput;
 
-interface AggregateDescriptorBase {
+/**
+ * Whether the result can be null — declared, never inferred from the input's nullability — and, where it cannot, the value the operation answers with.
+ *
+ * A database answers an empty input set itself, so the declared value is read only where no result row reached the caller at all: an absent aggregate alias, or a nested envelope that never arrived. It is stated in the result codec's canonical JSON and decoded through it, so the application value's shape stays the codec's to define while the answer stays the operation's to declare — `count` over nothing is a zero whatever type the codec reads a zero as, and an operation whose identity element is not zero declares that instead.
+ */
+export type AggregateResultNullability =
+  | { readonly nullable: true }
+  | { readonly nullable: false; readonly emptyResultJson: JsonValue };
+
+type AggregateDescriptorBase = AggregateResultNullability & {
   /** The aggregate operation this descriptor resolves (e.g. `count`, `sum`). */
   readonly operation: string;
-  /** Whether the result can be null — declared, never inferred from the input's nullability. */
-  readonly nullable: boolean;
-}
+};
 
 /** Overload of an operation that consumes no value. Its result names a codec outright, there being no input codec to reuse. */
-export interface NoInputAggregateDescriptor extends AggregateDescriptorBase {
+export type NoInputAggregateDescriptor = AggregateDescriptorBase & {
   readonly input: { readonly kind: 'none' };
   readonly output: NamedAggregateOutput;
-}
+};
 
 /** Overload of an operation whose result does not depend on its input. It answers calls with and without an input, so — like a no-input overload — it names its result codec outright. */
-export interface AnyInputAggregateDescriptor extends AggregateDescriptorBase {
+export type AnyInputAggregateDescriptor = AggregateDescriptorBase & {
   readonly input: { readonly kind: 'any' };
   readonly output: NamedAggregateOutput;
-}
+};
 
 /** Overload of an operation over values whose codec matches by id or by trait. */
-export interface ValueInputAggregateDescriptor extends AggregateDescriptorBase {
+export type ValueInputAggregateDescriptor = AggregateDescriptorBase & {
   readonly input:
     | { readonly kind: 'codec'; readonly codecId: string }
     | { readonly kind: 'trait'; readonly trait: CodecTrait };
   readonly output: AggregateOutputCodec;
-}
+};
 
 /**
  * One `(operation, input)` overload of an aggregate operation.
@@ -160,6 +167,12 @@ export function isAggregateDescriptor(value: unknown): value is AggregateDescrip
   if (!isObjectLike(value)) return false;
   if (!('operation' in value) || !isNonEmptyString(value.operation)) return false;
   if (!('nullable' in value) || typeof value.nullable !== 'boolean') return false;
+  if (
+    value.nullable === false &&
+    (!('emptyResultJson' in value) || value.emptyResultJson === undefined)
+  ) {
+    return false;
+  }
   if (!('input' in value) || !isAggregateInputMatch(value.input)) return false;
   if (!('output' in value) || !isAggregateOutputCodec(value.output)) return false;
   const reusesAnInput = value.input.kind === 'codec' || value.input.kind === 'trait';

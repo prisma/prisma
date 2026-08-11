@@ -3,7 +3,7 @@ import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { CheckConstraint, SqlStorage } from '@internal/sql-contract/types';
-import { computeCheckContentHash } from '@internal/sql-schema-ir/naming';
+import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 
 import {
   postgresCreateNamespace,
@@ -47,7 +47,7 @@ function declaredArrayElementChecks(): CheckConstraint[] {
         new CheckConstraint({
           naming: {
             kind: 'wire',
-            prefix: `ArrayTest_${candidate.columnName}_elem_not_null`,
+            prefix: composeCheckWirePrefix('ArrayTest', candidate.columnName, candidate.kind),
             hash: computeCheckContentHash(candidate.expression),
           },
           expression: candidate.expression,

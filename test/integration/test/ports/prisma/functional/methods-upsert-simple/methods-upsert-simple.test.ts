@@ -26,7 +26,7 @@ describe('ports/prisma/functional/methods-upsert-simple', () => {
         const { count } = await db.public.User.where({ name }).aggregate((agg) => ({
           count: agg.count(),
         }));
-        expect(count).toEqual(1n);
+        expect(count).toEqual(1);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -48,12 +48,12 @@ describe('ports/prisma/functional/methods-upsert-simple', () => {
         const { countOld } = await db.public.User.where({ name }).aggregate((agg) => ({
           countOld: agg.count(),
         }));
-        expect(countOld).toEqual(0n);
+        expect(countOld).toEqual(0);
 
         const { countNew } = await db.public.User.where({ name: `${name}new` }).aggregate(
           (agg) => ({ countNew: agg.count() }),
         );
-        expect(countNew).toEqual(1n);
+        expect(countNew).toEqual(1);
       }),
     timeouts.spinUpPpgDev,
   );

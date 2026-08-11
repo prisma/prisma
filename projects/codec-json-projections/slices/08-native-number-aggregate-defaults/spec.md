@@ -4,7 +4,7 @@ _(Parent project `projects/codec-json-projections/`. Outcome this slice contribu
 
 ## At a glance
 
-Splits the aggregate vocabulary: `count()`/`sum()`/`avg()` return JS-native values (`number`, throwing past the safe-integer range where loss is possible), while `countBigInt()`/`sumBigInt()`/`avgDecimal()` keep the lossless results the hard cut introduced. Breaking for `count()`/`sum()`/`avg()` result types; carries upgrade instructions. Depends on slice 06 (the output codecs) and slice 07 (the contribution mechanism that lets targets add the new operations without client changes).
+Splits the aggregate vocabulary: `count()`/`sum()`/`avg()` return JS-native `number`s — `count` and `sum` through a guarded integer codec that throws past the safe-integer range rather than rounding, `avg` through an unguarded `float8`, a mean being a fraction already — while `countBigInt()`/`sumBigInt()`/`avgDecimal()` keep the lossless results the hard cut introduced. Breaking for `count()`/`sum()`/`avg()` result types; carries upgrade instructions. Depends on slice 06 (the output codecs) and slice 07 (the contribution mechanism that lets targets add the new operations without client changes).
 
 ## Chosen design
 
@@ -36,7 +36,14 @@ Number-flavoured SQLite outputs keep the existing cast-to-text lowering so `node
 
 ### What follows automatically
 
-Top-level aggregates, grouped `.aggregate()`, and include reducers all read the same contributed namespace (slice 07), so `posts.count()` in an include returns `number` with no further wiring — and include-count JSON entries become JSON numbers again, safely (slice 06's canonical-form argument). The shared empty-input result (`src/aggregate-empty-result.ts`) changes `count: 0n` → `count: 0`; `sum`/`avg` stay `null`.
+Top-level aggregates, grouped `.aggregate()`, and include reducers all read the same contributed namespace (slice 07), so `posts.count()` in an include returns `number` with no further wiring — and include-count JSON entries become JSON numbers again, safely (slice 06's canonical-form argument).
+
+Amended 2026-08-07, after slices 06 and 07 shipped:
+
+- **The empty-input result needs no edit.** Slice 07 replaced `emptyAggregateResult(fn)`'s name check with `emptyAggregateResult(nullable, codec)`, so `count`'s zero decodes through whatever codec the row declares — changing `count`'s output codec turns `0n` into `0` on its own.
+- **The suffixed variants reach every surface for free** (open question 1, resolved): slice 07 derives the ORM and lane surfaces from `aggregateTypes`, so contributing an operation is the whole of the work.
+- **This slice rewrites rows slice 06 authored.** Slice 06 declared `sum`/`avg` over `int8number` as `pg/numeric@1` — storage-determined, and correct under the policy of its day. Under the defaults policy they become `pg/int8number@1` and `pg/float8@1`. Rewriting a sibling slice's rows is expected here, not scope creep.
+- **A `sum` past 2^53 throws rather than corrupts, including through JSON.** PostgreSQL computes `sum(int8)` as `numeric`; declaring the output `pg/int8number@1` means the include path emits it as a JSON number, and a total beyond the safe range parses to a value the codec's post-parse guard rejects. That is the designed behaviour — monotone rounding makes the guard un-foolable — and it must be pinned on the include path, not only the wire path.
 
 ### The breaking baseline
 
@@ -58,7 +65,13 @@ One behavioural flip of the default vocabulary together with its escape hatches,
 
 **In:** new operation contributions (`countBigInt`, `sumBigInt`, `avgDecimal`) and changed default rows in both targets' matrices; the `avg` result-cast lowering; empty-input result change; regenerated contracts/fixtures; database-backed matrix updates in the conformance suites; renegotiated test baselines; error-reference and aggregate-descriptor-guide updates; upgrade instructions.
 
-**Out:** `sumDecimal` (rejected — no non-redundant domain); any further operations (`median`, `string_agg`, …); codec changes (slice 06 owns them); Mongo; client/builder code changes (slice 07 makes them unnecessary — this slice is target contributions, fixtures, tests, and docs).
+**Out:** `sumDecimal` (rejected — no non-redundant domain); any further operations (`median`, `string_agg`, …); Mongo.
+
+**Scope taken on during execution** (amended 2026-08-08). Three repairs the defaults policy exposed rather than caused, each a stale assumption that only held while every non-nullable aggregate decoded through a bigint codec:
+
+- **Codec and client source.** The spec expected none (slice 07 made the surfaces derive). Wrong on two counts: `sqlite/bigintnumber@1` needed a `jsonProjection` that yields a JSON number, since its transport cast renders a JSON *string* inside an envelope; and `emptyAggregateResult` hardcoded `decodeJson('0')`, which the number-flavoured codecs reject. The latter moved the empty-input answer onto the descriptor as `emptyResultJson`, where it belongs — it is a property of the operation (`count`'s identity is zero; `every()`'s would be `true`), not of the codec.
+- **Encode guards, and the class beyond them.** Distinguishing a wrong JS type from a wrong magnitude revealed that the bigint codecs silently accepted JS numbers — `String(1.5)` is valid decimal text, so a fraction could reach an integer column unremarked. Predates this slice.
+- **Literal defaults.** Tightening those guards broke emission of `BigInt @default(0)`: a schema language writes no `bigint`, so PSL literals arrive as JSON numbers. `encodeJson` was widened (guarded, integral and safe-magnitude only) as a stopgap; the DDL renderers' sibling conflation — passing canonical JSON straight to `encode` — was fixed properly by composing `encode(decodeJson(stored))`, which also corrected a `timestamptz` default handed an ISO string where the codec declares `Date`. The proper seam for schema literals is [TML-3187](https://linear.app/prisma-company/issue/TML-3187/schema-written-literals-are-not-application-values-give-them-their-own).
 
 ## Pre-investigated edge cases
 

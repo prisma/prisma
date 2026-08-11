@@ -801,6 +801,7 @@ function resolveModelNode(
       descriptor,
       nullable: fieldState.nullable,
       ...(fieldState.many === true ? { many: true } : {}),
+      ...(fieldState.noCheck !== undefined ? { noCheck: fieldState.noCheck } : {}),
       ...(fieldState.default ? { default: fieldState.default } : {}),
       ...(fieldState.executionDefaults ? { executionDefaults: fieldState.executionDefaults } : {}),
       ...(enumHandle !== undefined ? { enumTypeHandle: enumHandle } : {}),
