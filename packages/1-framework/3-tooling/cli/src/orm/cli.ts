@@ -9,6 +9,7 @@ import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
 import { migrationShowCommand } from './migration/show';
+import { normalizeError } from './normalize-error';
 import { refDeleteCommand } from './ref/delete';
 import { refListCommand } from './ref/list';
 import { refSetCommand } from './ref/set';
@@ -100,8 +101,27 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
   };
 }
 
+/** What the engine itself exits with for a failure it cannot attribute to a command. */
+const STARTUP_FAILURE_EXIT_CODE = 1;
+
+/**
+ * The engine settles everything that happens inside a run. What happens before one exists —
+ * reading the config, resolving telemetry, building the CLI — has no invocation to attach a
+ * diagnostic to, so a throw there would reach the user as a raw stack trace. This writes the
+ * same single line the engine writes in that position instead.
+ */
+function reportStartupFailure(proc: HostProcess, error: unknown): number {
+  const normalized = normalizeError(error);
+  proc.stderr.write(`✘ [${normalized.code}] ${normalized.message}\n`);
+  return STARTUP_FAILURE_EXIT_CODE;
+}
+
 /** Parses, executes and settles one invocation; returns the exit code. */
 export async function runOrmCli(proc: HostProcess): Promise<number> {
-  const hooks = resolveTelemetryHooks(proc);
-  return createOrmCli().run(proc.argv.slice(2), runtimeFromProcess(proc), hooks);
+  try {
+    const hooks = resolveTelemetryHooks(proc);
+    return await createOrmCli().run(proc.argv.slice(2), runtimeFromProcess(proc), hooks);
+  } catch (error) {
+    return reportStartupFailure(proc, error);
+  }
 }

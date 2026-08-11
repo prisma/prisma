@@ -1,7 +1,7 @@
-import type { LoadedConfig } from '@prisma/cli-engine';
+import type { HostProcess, LoadedConfig } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { describe, expect, it } from 'vitest';
-import { BIN_COMMANDS, BIN_GROUPS, createOrmCli } from '../../src/orm/cli';
+import { BIN_COMMANDS, BIN_GROUPS, createOrmCli, runOrmCli } from '../../src/orm/cli';
 import { ormCommandFamily } from '../../src/orm/family';
 
 function recordingLoader(): {
@@ -102,5 +102,44 @@ describe('a retired invocation', () => {
       envelope: { ok: false },
     });
     expect(JSON.stringify(run.json)).toContain('migrate --to <contract>');
+  });
+});
+
+/**
+ * A host process whose working directory has been unlinked: `process.cwd()`
+ * throws ENOENT, which is the shape of every startup failure that happens
+ * before the engine has a run to settle.
+ */
+function processWithUnreadableCwd(stderr: string[]): HostProcess {
+  return {
+    argv: ['node', 'prisma-next', 'migration', 'list'],
+    env: {},
+    cwd: () => {
+      throw new Error('ENOENT: uv_cwd');
+    },
+    stdout: { write: () => true },
+    stderr: { write: (text: string) => stderr.push(text) },
+    stdin: { [Symbol.asyncIterator]: () => [][Symbol.iterator]() as never },
+    on: () => undefined,
+    off: () => undefined,
+    exit: () => {
+      throw new Error('exit must not be called');
+    },
+  };
+}
+
+describe('runOrmCli', () => {
+  it('reports a startup failure as a structured line instead of a raw stack trace', async () => {
+    const stderr: string[] = [];
+
+    const code = await runOrmCli(processWithUnreadableCwd(stderr));
+
+    expect(code).toBe(1);
+    expect(stderr.join('')).toContain('[CLI.UNEXPECTED]');
+    expect(stderr.join('')).toContain('ENOENT: uv_cwd');
+  });
+
+  it('does not let the failure escape as a rejection', async () => {
+    await expect(runOrmCli(processWithUnreadableCwd([]))).resolves.toBeTypeOf('number');
   });
 });

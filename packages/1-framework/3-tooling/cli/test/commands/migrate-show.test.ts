@@ -189,6 +189,33 @@ describe('migrate --show (read-only + faithfulness)', () => {
     cleanupMocks();
   });
 
+  describe('the config sections an offline preview asks for', () => {
+    async function runShow(argv: readonly string[]): Promise<readonly string[]> {
+      const { cwd } = await buildFixture();
+      process.chdir(cwd);
+      const { createMigrateCommand } = await import('../../src/commands/migrate');
+
+      try {
+        await executeCommand(createMigrateCommand(), [...argv, '--no-color']);
+      } catch {
+        // The sections are recorded before any planning failure can matter.
+      }
+      return mocks.loadConfig.mock.calls[0]?.[1] ?? [];
+    }
+
+    it('omits driver for an offline --from, which never reads it', async () => {
+      expect(await runShow(['--show', '--from', EMPTY])).not.toContain('driver');
+    });
+
+    it('requires driver when --from is absent and the live marker is read', async () => {
+      expect(await runShow(['--show'])).toContain('driver');
+    });
+
+    it('requires driver for --from @db, which resolves against the live marker', async () => {
+      expect(await runShow(['--show', '--from', '@db'])).toContain('driver');
+    });
+  });
+
   it('read-only: never calls runMigration when --show is passed', async () => {
     const { cwd } = await buildFixture();
     process.chdir(cwd);
