@@ -110,6 +110,22 @@ describe('loadOrmConfig', () => {
       ]);
     });
 
+    it('turns a config module that throws while evaluating into a diagnostic', async () => {
+      const dir = projectDir();
+      writeFileSync(
+        join(dir, 'prisma-next.config.ts'),
+        "throw new Error('boom while importing');",
+        'utf-8',
+      );
+
+      const loaded = await loadOrmConfig({ cwd: dir });
+
+      expect(loaded.sections).toEqual({});
+      expect(loaded.diagnostics).toHaveLength(1);
+      expect(loaded.diagnostics[0]).toMatchObject({ section: null });
+      expect(loaded.diagnostics[0]?.diagnostic.code).toMatch(/^[A-Z][A-Z0-9]*\.[A-Z][A-Z0-9_]*$/);
+    });
+
     it('reports a missing version marker as file-level', async () => {
       const dir = projectDir();
       writeFileSync(join(dir, 'prisma-next.config.ts'), 'export default { family: {} };', 'utf-8');

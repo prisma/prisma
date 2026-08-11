@@ -1,4 +1,5 @@
 import { CliStructuredError } from '@internal/errors/control';
+import { structuredError } from '@internal/utils/structured-error';
 import { CliStructuredError as EngineStructuredError } from '@prisma/cli-engine/protocol';
 import { describe, expect, it } from 'vitest';
 import { normalizeError, toEngineDiagnostic } from '../../src/orm/normalize-error';
@@ -82,6 +83,54 @@ describe('normalizeError', () => {
     it('drops the fix prose the commander shell still renders', () => {
       expect(raised.fix).toBeDefined();
       expect(normalizeError(raised).toEnvelope()).not.toHaveProperty('fix');
+    });
+  });
+
+  describe('a structuredError() value, which carries no toEnvelope method', () => {
+    const raised = structuredError('CONTRACT.VALIDATION_FAILED', 'Contract is not valid', {
+      why: 'storage.storageHash is missing',
+      fix: 'Run `prisma-next contract emit` to regenerate.',
+      where: { path: '/app/contract.json' },
+      meta: { target: 'postgres' },
+    });
+
+    it('keeps every structured field instead of flattening to CLI.UNEXPECTED', () => {
+      expect(normalizeError(raised).toEnvelope()).toEqual({
+        ok: false,
+        code: 'CONTRACT.VALIDATION_FAILED',
+        severity: 'error',
+        summary: 'Contract is not valid',
+        why: 'storage.storageHash is missing',
+        where: { path: '/app/contract.json' },
+        meta: { target: 'postgres' },
+        nextActions: [
+          { kind: 'user-choice', label: 'Run `prisma-next contract emit` to regenerate.' },
+        ],
+      });
+    });
+  });
+
+  describe('an error whose code is not a dotted NAMESPACE.SUBCODE', () => {
+    it('settles as CLI.UNEXPECTED rather than emitting a code the protocol rejects', () => {
+      const raised = Object.assign(new Error('Something broke'), { code: 'UNEXPECTED' });
+
+      expect(normalizeError(raised).toEnvelope()).toEqual({
+        ok: false,
+        code: 'CLI.UNEXPECTED',
+        severity: 'error',
+        summary: 'Something broke',
+        meta: { code: 'UNEXPECTED' },
+        nextActions: [],
+      });
+    });
+
+    it('keeps a filesystem errno in meta so the cause survives the flattening', () => {
+      const raised = Object.assign(new Error('ENOENT: no such file'), { code: 'ENOENT' });
+
+      expect(normalizeError(raised).toEnvelope()).toMatchObject({
+        code: 'CLI.UNEXPECTED',
+        meta: { code: 'ENOENT' },
+      });
     });
   });
 

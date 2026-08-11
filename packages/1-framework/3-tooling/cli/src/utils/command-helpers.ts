@@ -8,6 +8,7 @@ import { APP_SPACE_ID, spaceMigrationDirectory } from '@internal/migration-tools
 import { ifDefined } from '@internal/utils/defined';
 import type { Command } from 'commander';
 import { relative, resolve } from 'pathe';
+import type { ControlClient } from '../control-api/types';
 import { CliStructuredError, errorRuntime } from './cli-errors';
 import { formatCommandHelp } from './formatters/help';
 import type { CommonCommandOptions } from './global-flags';
@@ -136,9 +137,12 @@ export function resolveMigrationPaths(
   appMigrationsRelative: string;
   refsDir: string;
 } {
-  const configPath = configOption ? relative(cwd, resolve(configOption)) : 'prisma-next.config.ts';
+  const resolvedConfigPath = configOption ? resolve(cwd, configOption) : undefined;
+  const configPath = resolvedConfigPath
+    ? relative(cwd, resolvedConfigPath)
+    : 'prisma-next.config.ts';
   const migrationsDir = resolve(
-    configOption ? resolve(configOption, '..') : cwd,
+    resolvedConfigPath ? resolve(resolvedConfigPath, '..') : cwd,
     config.migrations?.dir ?? 'migrations',
   );
   const migrationsRelative = relative(cwd, migrationsDir);
@@ -228,6 +232,20 @@ export function toPathDecisionResult(decision: PathDecision): PathDecisionResult
 
 export function targetSupportsMigrations(target: ControlTargetDescriptor<string, string>): boolean {
   return hasMigrations(target);
+}
+
+/**
+ * Hangs up without letting the hang-up decide the command's result. A rejection out of a
+ * `finally` replaces the value the `try`/`catch` already returned, so an unguarded close turns a
+ * mapped connection error into an unmapped one — and that is the case it hits most, because a
+ * `connect()` that failed leaves nothing to close.
+ */
+export async function closeQuietly(client: Pick<ControlClient, 'close'>): Promise<void> {
+  try {
+    await client.close();
+  } catch {
+    // The command already decided its result; failing to hang up cannot change it.
+  }
 }
 
 export function getTargetMigrations(target: ControlTargetDescriptor<string, string>) {

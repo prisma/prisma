@@ -23,7 +23,7 @@ import {
   mapRefResolutionError,
   requireLiveDatabase,
 } from '../../utils/cli-errors';
-import { resolveMigrationPaths } from '../../utils/command-helpers';
+import { closeQuietly, resolveMigrationPaths } from '../../utils/command-helpers';
 import { createControlClient } from '../client';
 import { buildReadAggregate } from './contract-space-aggregate-loader';
 import { planSpacePath } from './migrate';
@@ -257,7 +257,7 @@ export async function executeMigrateShowPlan(
         }),
       );
     } finally {
-      await client.close();
+      await closeQuietly(client);
     }
   }
 

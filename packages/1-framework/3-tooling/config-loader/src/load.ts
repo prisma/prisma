@@ -18,7 +18,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { dirname, join, resolve } from 'pathe';
-import { finalizeContractConfig } from './finalize-config';
+import { finalizeContractConfig, finalizeMigrationsConfig } from './finalize-config';
 
 const CONFIG_FILENAME = 'prisma-next.config.ts';
 
@@ -101,10 +101,16 @@ function buildLoadedConfig(rawConfig: Record<string, unknown>, configDir: string
     errorConfigValidation(issue.field, { why: issue.message, section: issue.section }),
   );
 
-  const config = blindCast<
+  const raw = blindCast<
     PrismaNextConfig,
     'Structure was checked by collectConfigIssues; sections carrying diagnostics are guarded by requireConfigSections'
   >(rawConfig);
+
+  // A section that already has a diagnostic is not well-typed enough to
+  // finalize; it is left exactly as authored for the caller to report.
+  const config = issues.some((issue) => issue.section === 'migrations')
+    ? raw
+    : { ...raw, migrations: finalizeMigrationsConfig(raw.migrations, configDir) };
 
   if (config.contract === undefined || issues.some((issue) => issue.section === 'contract')) {
     return { config, diagnostics };

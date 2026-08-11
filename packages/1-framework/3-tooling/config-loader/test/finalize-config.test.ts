@@ -52,9 +52,28 @@ function createSource(inputs?: readonly string[]) {
 }
 
 describe('finalizeConfig', () => {
-  it('returns the config unchanged when no contract is present', () => {
-    const config = createConfig();
-    expect(finalizeConfig(config, '/project')).toBe(config);
+  it('leaves the contract absent when the config declares none', () => {
+    expect(finalizeConfig(createConfig(), '/project').contract).toBeUndefined();
+  });
+
+  describe('the migrations directory', () => {
+    it('resolves a relative dir against the config directory, not the invocation directory', () => {
+      const config = createConfig(undefined, { migrations: { dir: 'db' } });
+
+      expect(finalizeConfig(config, '/project').migrations?.dir).toBe('/project/db');
+    });
+
+    it('supplies the default dir so callers never re-derive it against another base', () => {
+      expect(finalizeConfig(createConfig(), '/project').migrations?.dir).toBe(
+        '/project/migrations',
+      );
+    });
+
+    it('leaves an absolute dir alone', () => {
+      const config = createConfig(undefined, { migrations: { dir: '/elsewhere/db' } });
+
+      expect(finalizeConfig(config, '/project').migrations?.dir).toBe('/elsewhere/db');
+    });
   });
 
   it('resolves relative inputs and output against the config directory', () => {

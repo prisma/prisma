@@ -8,6 +8,7 @@ import { mapCaughtMigrationError } from '../control-api/operations/caught-errors
 import { type CliStructuredError, errorUnexpected, requireLiveDatabase } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveMigrationPaths,
   setCommandDescriptions,
@@ -107,7 +108,7 @@ export async function executeMigrationLogCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

@@ -1,7 +1,7 @@
 import type { LedgerEntryRecord } from '@internal/contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations, Text } from '@prisma/cli-engine';
-import { defineCommand, flag } from '@prisma/cli-engine';
+import { flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import type { MigrationLogResult } from '../../commands/json/schemas';
 import { createControlClient } from '../../control-api/client';
@@ -11,7 +11,11 @@ import {
   errorUnexpected,
   requireLiveDatabase,
 } from '../../utils/cli-errors';
-import { maskConnectionUrl, targetSupportsMigrations } from '../../utils/command-helpers';
+import {
+  closeQuietly,
+  maskConnectionUrl,
+  targetSupportsMigrations,
+} from '../../utils/command-helpers';
 import { createToneMigrationListStyler } from '../../utils/formatters/migration-list-styler';
 import {
   formatLedgerAppliedAt,
@@ -23,6 +27,7 @@ import {
 import { toneSpans } from '../../utils/formatters/tone-markup';
 import type { GlyphMode } from '../../utils/glyph-mode';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { normalizeError } from '../normalize-error';
 
@@ -95,7 +100,7 @@ function logPresentations(inputs: {
   };
 }
 
-export const migrationLogCommand = defineCommand({
+export const migrationLogCommand = defineOrmCommand({
   help: {
     summary: 'Show executed migration history',
     description:
@@ -161,7 +166,7 @@ export const migrationLogCommand = defineCommand({
         ),
       );
     } finally {
-      await client.close();
+      await closeQuietly(client);
     }
 
     const records = serializeLedgerEntriesForJson(entries);
