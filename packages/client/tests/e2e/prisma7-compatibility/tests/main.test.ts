@@ -14,6 +14,25 @@ type CommandOutput = {
   stdout: string
 }
 
+type VersionProjection = {
+  json: {
+    clientVersion: unknown
+    distributionKey: 'prisma7'
+    distributionVersion: unknown
+    hasPrismaKey: boolean
+    metadataKeys: string[]
+  }
+  text: {
+    clientLabel: '@prisma/client'
+    clientVersion: string
+    distributionLabel: 'prisma7'
+    distributionVersion: string
+    hasPrismaLabel: boolean
+    metadataLabels: string[]
+    stderr: string
+  }
+}
+
 function normalizeText(text: string, replacements: ReadonlyArray<readonly [string, string]>): string {
   let normalized = text.replace(/\r\n/g, '\n').replace(ansiPattern, '').trimEnd()
 
@@ -38,6 +57,41 @@ function normalizeValue(value: unknown, replacements: ReadonlyArray<readonly [st
   }
 
   return value
+}
+
+function getVersionRows(stdout: string): Map<string, string> {
+  return new Map(
+    stdout
+      .split('\n')
+      .map((line) => line.match(/^(?<label>.+?)\s+:\s+(?<value>.*)$/)?.groups)
+      .filter((groups): groups is { label: string; value: string } => groups !== undefined)
+      .map(({ label, value }) => [label, value]),
+  )
+}
+
+function projectVersion(versionText: CommandOutput, versionJson: Record<string, unknown>): VersionProjection {
+  const rows = getVersionRows(versionText.stdout)
+
+  return {
+    json: {
+      clientVersion: versionJson['@prisma/client'],
+      distributionKey: 'prisma7',
+      distributionVersion: versionJson.prisma7,
+      hasPrismaKey: Object.hasOwn(versionJson, 'prisma'),
+      metadataKeys: Object.keys(versionJson)
+        .filter((key) => key !== '@prisma/client' && key !== 'prisma7')
+        .sort(),
+    },
+    text: {
+      clientLabel: '@prisma/client',
+      clientVersion: rows.get('@prisma/client') ?? '',
+      distributionLabel: 'prisma7',
+      distributionVersion: rows.get('prisma7') ?? '',
+      hasPrismaLabel: rows.has('prisma'),
+      metadataLabels: [...rows.keys()].filter((label) => label !== '@prisma/client' && label !== 'prisma7'),
+      stderr: versionText.stderr,
+    },
+  }
 }
 
 function run(command: string, args: string[], cwd = rootDir): CommandOutput {
@@ -103,10 +157,7 @@ test('prisma7 snapshots real CLI-owned identity surfaces and keeps the packed sm
             stdout: init.stdout,
             stderr: init.stderr,
           },
-          version: {
-            json: versionJson,
-            text: versionText,
-          },
+          version: projectVersion(versionText, versionJson),
         },
         replacements,
       ),

@@ -382,35 +382,44 @@ Learn more: https://pris.ly/getting-started",
   },
   "version": {
     "json": {
-      "@prisma/client": "0.0.0",
-      "architecture": "arm64",
-      "default-engines-hash": "0edf323efd1d98336f3f0a68684b56f689b900d3",
-      "node.js": "v22.23.2",
-      "operating-system": "linux",
-      "prisma-cli-path": "<cwd>/node_modules/.pnpm/prisma@file+..+..+tmp+prisma-0.0.0.tgz_@types+react@19.2.18_better-sqlite3@12.11.1_reac_55ff5ae3a292f370145240e4cbfbb131/node_modules/prisma",
-      "prisma7": "0.0.0",
-      "psl": "@prisma/prisma-schema-wasm 7.10.0-4.0edf323efd1d98336f3f0a68684b56f689b900d3",
-      "query-compiler": "enabled",
-      "schema-engine": "schema-engine-cli 0edf323efd1d98336f3f0a68684b56f689b900d3 (at node_modules/.pnpm/@prisma+engines@file+..+..+tmp+prisma-engines-0.0.0.tgz/node_modules/@prisma/engines/schema-engine-linux-arm64-openssl-3.0.x)",
-      "studio": "0.33.0",
-      "typescript": "5.7.3",
+      "clientVersion": "0.0.0",
+      "distributionKey": "prisma7",
+      "distributionVersion": "0.0.0",
+      "hasPrismaKey": false,
+      "metadataKeys": [
+        "architecture",
+        "default-engines-hash",
+        "node.js",
+        "operating-system",
+        "prisma-cli-path",
+        "psl",
+        "query-compiler",
+        "schema-engine",
+        "studio",
+        "typescript",
+      ],
     },
     "text": {
+      "clientLabel": "@prisma/client",
+      "clientVersion": "0.0.0",
+      "distributionLabel": "prisma7",
+      "distributionVersion": "0.0.0",
+      "hasPrismaLabel": false,
+      "metadataLabels": [
+        "Operating System",
+        "Architecture",
+        "Node.js",
+        "TypeScript",
+        "Query Compiler",
+        "PSL",
+        "Schema Engine",
+        "Default Engines Hash",
+        "Studio",
+        "Prisma CLI Path",
+      ],
       "stderr": "Loaded Prisma config from prisma.config.ts.
 
 Prisma schema loaded from project-models/non-default.prisma.",
-      "stdout": "prisma7              : 0.0.0
-@prisma/client       : 0.0.0
-Operating System     : linux
-Architecture         : arm64
-Node.js              : v22.23.2
-TypeScript           : 5.7.3
-Query Compiler       : enabled
-PSL                  : @prisma/prisma-schema-wasm 7.10.0-4.0edf323efd1d98336f3f0a68684b56f689b900d3
-Schema Engine        : schema-engine-cli 0edf323efd1d98336f3f0a68684b56f689b900d3 (at node_modules/.pnpm/@prisma+engines@file+..+..+tmp+prisma-engines-0.0.0.tgz/node_modules/@prisma/engines/schema-engine-linux-arm64-openssl-3.0.x)
-Default Engines Hash : 0edf323efd1d98336f3f0a68684b56f689b900d3
-Studio               : 0.33.0
-Prisma CLI Path      : <cwd>/node_modules/.pnpm/prisma@file+..+..+tmp+prisma-0.0.0.tgz_@types+react@19.2.18_better-sqlite3@12.11.1_reac_55ff5ae3a292f370145240e4cbfbb131/node_modules/prisma",
     },
   },
 }
