@@ -22,7 +22,7 @@ function makeMockClient(config: MockConfig = {}) {
     _ending: false,
     connect: vi.fn(async () => undefined),
     end: vi.fn(async () => undefined),
-    query: vi.fn(async (arg: unknown, values?: unknown[]) => {
+    query: vi.fn((arg: unknown, values?: unknown[]) => {
       const call: MockQueryArg = { arg, values };
       calls.push(call);
       const outcome = handler(call, calls.length - 1);
@@ -60,12 +60,12 @@ function makePgError(code: string, message = `simulated ${code}`): Error {
   return Object.assign(new Error(message), { code });
 }
 
-function makeDriver(binding: PostgresBinding, preparedStatements?: boolean) {
-  // Disable cursor so the buffered path is exercised directly — the mock
-  // client doesn't implement pg-cursor's protocol.
+function makeDriver(binding: PostgresBinding, preparedStatements?: boolean, cursorDisabled = true) {
+  // Disable cursor by default so the buffered path is exercised directly — most
+  // mock clients don't implement pg-cursor's protocol.
   return createBoundDriverFromBinding(
     binding,
-    { disabled: true },
+    { disabled: cursorDisabled },
     preparedStatements === undefined ? undefined : { preparedStatements },
   );
 }
@@ -135,10 +135,32 @@ describe('postgres prepared statements', () => {
   });
 
   it('streams every prepared row and closes the source when the consumer returns early', async () => {
+    let cursorCloseCalls = 0;
     const { client } = makeMockClient({
-      handler: () => ({ rows: [{ id: 1 }, { id: 2 }] }),
+      handler: ({ arg }) => {
+        if (typeof arg === 'object' && arg !== null && 'read' in arg) {
+          let readCalls = 0;
+          return {
+            read: (
+              _size: number,
+              callback: (error: Error | null, rows: { id: number }[]) => void,
+            ) => {
+              callback(null, readCalls++ === 0 ? [{ id: 1 }, { id: 2 }] : []);
+            },
+            close: (callback: (error: Error | null) => void) => {
+              cursorCloseCalls += 1;
+              callback(null);
+            },
+          };
+        }
+        return { rows: [{ id: 1 }, { id: 2 }] };
+      },
     });
-    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    const driver = makeDriver(
+      { kind: 'pgClient', client: client as unknown as Client },
+      undefined,
+      false,
+    );
     cleanups.push(() => driver.close());
 
     const { slot } = makeSlot();
@@ -147,11 +169,13 @@ describe('postgres prepared statements', () => {
       { id: 1 },
       { id: 2 },
     ]);
+    expect(cursorCloseCalls).toBe(1);
 
     for await (const row of driver.query<{ id: number }>(request)) {
       expect(row).toEqual({ id: 1 });
       break;
     }
+    expect(cursorCloseCalls).toBe(2);
   });
 
   it('returns no rows when a prepared query has an empty result', async () => {
