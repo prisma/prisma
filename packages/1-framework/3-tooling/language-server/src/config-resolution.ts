@@ -1,5 +1,5 @@
 import type { ContractSourceContext } from '@internal/config/config-types';
-import { loadConfigForSections, type PrismaNextConfig } from '@internal/config-loader';
+import { loadConfig, type PrismaNextConfig, requireConfigSections } from '@internal/config-loader';
 import type { ControlStack } from '@internal/framework-components/control';
 import { createControlStack } from '@internal/framework-components/control';
 import type { FormatOptions } from '@internal/psl-parser/format';
@@ -29,19 +29,15 @@ const emptyPipelineInputs: PipelineInputs = {
 export async function resolveConfigInputs(configPath: string): Promise<ConfigResolution> {
   // The language server keeps its established failure channel: a config that
   // cannot serve the project is thrown and published as a document diagnostic.
-  const configResult = await loadConfigForSections(configPath, [
-    'family',
-    'target',
-    'adapter',
-    'driver',
-    'extensions',
-    'contract',
-    'formatter',
-  ]);
-  if (!configResult.ok) {
-    throw configResult.failure;
+  const loaded = await loadConfig(configPath);
+  if (!loaded.ok) {
+    throw loaded.failure;
   }
-  const config = configResult.value;
+  const projectSections = requireConfigSections(loaded.value, ['contract', 'formatter']);
+  if (!projectSections.ok) {
+    throw projectSections.failure;
+  }
+  const config = projectSections.value;
   const inputs = resolveSchemaInputs(config);
   if (!hasPslInputs(config)) {
     return {
@@ -49,6 +45,18 @@ export async function resolveConfigInputs(configPath: string): Promise<ConfigRes
       controlStack: emptyPipelineInputs,
       ...(config.formatter === undefined ? {} : { formatter: config.formatter }),
     };
+  }
+  // Only a PSL project builds a control stack, so only it is blocked by the
+  // sections that stack is assembled from.
+  const controlSections = requireConfigSections(loaded.value, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+  ]);
+  if (!controlSections.ok) {
+    throw controlSections.failure;
   }
   const stack = createControlStack(config);
   const interpretation = resolveInterpretation(config, stack, inputs);
