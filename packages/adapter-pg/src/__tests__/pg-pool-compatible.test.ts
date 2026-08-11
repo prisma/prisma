@@ -41,4 +41,27 @@ describe('PrismaPgAdapterFactory with a pg-compatible pool', () => {
 
     await adapter.dispose()
   })
+
+  it('treats a PoolConfig-shaped object as config, not as an external pool', async () => {
+    // A plain object that happens to carry a few pg.Pool-ish keys (query,
+    // connect, end, options) but is NOT a real pool must not be mistaken for
+    // one — the factory should treat it as config and create a fresh internal
+    // pool. Under a naive query/connect/end-only duck-check such an object
+    // would be adopted as the pool and crash when the adapter attaches the
+    // `error` listener (it has no EventEmitter surface).
+    const configLike = {
+      query: vi.fn(async () => ({ rows: [], fields: [], rowCount: 0 })),
+      connect: vi.fn(async () => ({})),
+      end: vi.fn(async () => undefined),
+      options: { host: 'localhost', port: 5432 },
+    }
+    const factory = new PrismaPgAdapterFactory(configLike as unknown as pg.Pool)
+    const adapter = await factory.connect()
+
+    // A fresh internal `pg.Pool` must be created from the config, not the
+    // config-like object being adopted as the pool.
+    expect(adapter.underlyingDriver()).not.toBe(configLike)
+
+    await adapter.dispose()
+  })
 })
