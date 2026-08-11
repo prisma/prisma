@@ -36,7 +36,6 @@ function makeCtx(overrides?: Partial<RuntimeMiddlewareContext>): RuntimeMiddlewa
     scope: 'runtime',
     planExecutionId: 'test-fixture-plan-execution-id',
     ...overrides,
-    operation: overrides?.operation ?? 'query',
   };
 }
 
@@ -74,7 +73,7 @@ describe('cache key resolution', () => {
       await mw.onRow!({ id: 1 }, exec, ctx);
       await mw.afterQuery!(
         exec,
-        { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+        { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
       );
 
@@ -114,7 +113,7 @@ describe('cache key resolution', () => {
       await mw.onRow!({ from: 'A' }, execA, ctx);
       await mw.afterQuery!(
         execA,
-        { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+        { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
       );
 
@@ -123,7 +122,7 @@ describe('cache key resolution', () => {
       await mw.onRow!({ from: 'B' }, execB, ctx);
       await mw.afterQuery!(
         execB,
-        { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+        { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
       );
 
@@ -146,7 +145,7 @@ describe('cache key resolution', () => {
       await mw.onRow!({ id: 1 }, exec, ctx);
       await mw.afterQuery!(
         exec,
-        { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+        { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
       );
 
@@ -183,7 +182,7 @@ describe('cache key resolution', () => {
       await mw.onRow!({ id: 1 }, exec, ctx);
       await mw.afterQuery!(
         exec,
-        { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+        { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
       );
 
@@ -204,9 +203,8 @@ describe('cache key resolution', () => {
       const ctx = makeCtx();
 
       const result = await mw.interceptQuery!(exec, ctx);
-      expect(result?.operation).toBe('query');
-      if (result?.operation !== 'query') throw new Error('Expected query cache hit');
-      expect(await drain(result.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
+      expect(result).toBeDefined();
+      expect(await drain(result!.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
         { id: 'pre-cached' },
       ]);
     });
@@ -246,15 +244,14 @@ describe('cache key resolution', () => {
       await mw.onRow!({ _id: 'a', active: true }, exec, ctx);
       await mw.afterQuery!(
         exec,
-        { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+        { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
       );
 
       // Hit on the second call.
       const second = await mw.interceptQuery!(exec, ctx);
-      expect(second?.operation).toBe('query');
-      if (second?.operation !== 'query') throw new Error('Expected query cache hit');
-      expect(await drain(second.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
+      expect(second).toBeDefined();
+      expect(await drain(second!.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
         { _id: 'a', active: true },
       ]);
       expect(store.inner.has('mongo:users:find:{active:true}')).toBe(true);
@@ -279,7 +276,7 @@ describe('cache key resolution', () => {
       await mw.onRow!({ from: 'A' }, exec, ctxA);
       await mw.afterQuery!(
         exec,
-        { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+        { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctxA,
       );
 
@@ -288,7 +285,7 @@ describe('cache key resolution', () => {
       await mw.onRow!({ from: 'B' }, exec, ctxB);
       await mw.afterQuery!(
         exec,
-        { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+        { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctxB,
       );
 

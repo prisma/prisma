@@ -154,21 +154,15 @@ export function createCacheMiddleware(options?: CacheMiddlewareOptions): CrossFa
   // Per-execution scratch space, keyed on the post-lowering `exec`
   // object identity. WeakMap keeps cleanup automatic: if an execution is
   // dropped without `afterQuery` firing (e.g. an early throw before
-  // `operation-specific middleware runner` even starts), the entry is GC'd alongside the
-  // exec object.
+  // the middleware lifecycle starts), the entry is GC'd alongside the exec
+  // object.
   const pending = new WeakMap<object, PendingMiss>();
 
   async function interceptQuery(
     exec: ExecutionPlan,
     ctx: RuntimeMiddlewareContext,
-  ): Promise<
-    | {
-        readonly operation: 'query';
-        readonly rows: Iterable<Record<string, unknown>>;
-      }
-    | undefined
-  > {
-    if (ctx.scope !== 'runtime' || ctx.operation !== 'query') {
+  ): Promise<{ readonly rows: Iterable<Record<string, unknown>> } | undefined> {
+    if (ctx.scope !== 'runtime') {
       return undefined;
     }
 
@@ -187,9 +181,9 @@ export function createCacheMiddleware(options?: CacheMiddlewareOptions): CrossFa
     const hit = await store.get(key);
     if (hit !== undefined) {
       ctx.log.debug?.({ event: 'middleware.cache.hit', middleware: 'cache', key });
-      // Hit path leaves no WeakMap entry — afterExecute's lookup will
+      // Hit path leaves no WeakMap entry — afterQuery's lookup will
       // return undefined and short-circuit.
-      return { operation: 'query', rows: hit.rows };
+      return { rows: hit.rows };
     }
 
     // Miss: record the pending buffer so onRow / afterExecute can
@@ -225,7 +219,7 @@ export function createCacheMiddleware(options?: CacheMiddlewareOptions): CrossFa
     // any state we leave behind is dead weight on the GC.
     pending.delete(exec);
 
-    if (result.operation !== 'query' || !result.completed || result.source !== 'driver') {
+    if (!result.completed || result.source !== 'driver') {
       return;
     }
 
