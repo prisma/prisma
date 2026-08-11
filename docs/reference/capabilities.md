@@ -18,6 +18,7 @@ Common SQL features reported by adapters using the `sql` namespace. This is a na
 | `jsonAgg` | boolean | Supports JSON aggregation functions | Stable |
 | `enums` | boolean | Supports native enum storage types | Stable |
 | `foreignKeys` | boolean | Supports FOREIGN KEY constraint DDL | Stable |
+| `checkConstraint` | boolean | Supports CHECK constraint DDL. Gates the `@@check` authoring surface: a PSL contract declaring a check against an adapter that does not report this is refused at authoring. | Stable |
 | `autoIndexesForeignKeys` | boolean | Database automatically creates indexes for foreign keys | Stable |
 | `defaultInInsert` | boolean | Supports `DEFAULT` as a value in multi-row `INSERT ... VALUES` (e.g. `INSERT INTO t (a, b) VALUES (1, DEFAULT)`). When false, the ORM splits multi-row inserts by column signature so each statement has a uniform column list. | Stable |
 

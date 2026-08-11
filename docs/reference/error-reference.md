@@ -199,7 +199,7 @@ A Mongo model's collection attachment is wrong: the model declares `indexes`, `c
 
 ### CONTRACT.CONSTRAINT_INVALID
 
-A model declares an empty unique constraint (a unique with no fields), raised during SQL contract lowering (meta: `modelName`). Also raised when a CHECK constraint reaches SQLite migration DDL rendering — SQLite has no DDL for it, and `sql.checkConstraint` is a Postgres-only capability, so this is the safety net for a check that bypassed the authoring-time capability gate (a hand-edited contract, for instance) rather than a normal user-facing failure (meta: `constraintName`, and `tableName` where available).
+A model declares an empty unique constraint (a unique with no fields), raised during SQL contract lowering (meta: `modelName`). Also raised when a CHECK constraint reaches SQLite migration DDL rendering — SQLite has no DDL for it, and `sql.checkConstraint` is a Postgres-only capability. A `@@check` is refused earlier, by the PSL capability gate; a `check()` declared through the TypeScript builder is not, because capabilities reach the contract only after it is built, so this is where a SQLite `check()` is refused (meta: `constraintName`, and `tableName` where available).
 
 ### CONTRACT.DEFAULT_INVALID
 

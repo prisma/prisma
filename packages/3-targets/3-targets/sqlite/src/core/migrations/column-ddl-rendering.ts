@@ -148,11 +148,13 @@ export function ddlColumnFromNode(column: SqlColumnIR, inline: boolean): DdlColu
  * path from the table node — the node-sourced sibling of the retired
  * contract-based `tableToDdlParts`'s constraint half.
  *
- * A check constraint on the table node throws rather than being dropped: the
- * `sql.checkConstraint` capability gate rejects `@@check` / `check()` against
- * SQLite at authoring time, so a check reaching this far means something
- * bypassed that gate (a hand-edited contract, for instance). This is the
- * safety net for that case, not the primary enforcement point.
+ * A check constraint on the table node throws rather than being dropped.
+ * `@@check` is refused earlier, by the `sql.checkConstraint` capability gate in
+ * PSL interpretation. The TS `check()` builder is not gated there — capabilities
+ * are adapter-reported and reach the contract only after it is built — so a
+ * `check()` declared against SQLite arrives here, and this is where it is
+ * refused. It is the primary enforcement point for that surface, and the safety
+ * net for a contract that reached storage some other way.
  */
 export function tableConstraintsFromNode(
   table: SqlTableIR,
