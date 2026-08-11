@@ -69,12 +69,12 @@ export class CLI implements Command {
 
     const cmd = this.cmds[cmdName]
     if (cmd) {
-      // Only track if the command actually exists
-      const checkResultPromise = runCheckpointClientCheck({ schemaPathFromConfig: config.schema, baseDir }).catch(
-        () => {
-          /* noop */
-        },
-      )
+      const checkResultPromise =
+        this.identity === 'prisma'
+          ? runCheckpointClientCheck({ schemaPathFromConfig: config.schema, baseDir }).catch(() => {
+              /* noop */
+            })
+          : undefined
 
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {
@@ -96,7 +96,9 @@ export class CLI implements Command {
 
       const result = await cmd.parse(argsForCmd, config, baseDir)
 
-      printUpdateMessage(await checkResultPromise)
+      if (checkResultPromise) {
+        printUpdateMessage(await checkResultPromise)
+      }
 
       return result
     }
