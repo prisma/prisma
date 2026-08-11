@@ -1,10 +1,13 @@
 import { ifDefined } from '@internal/utils/defined';
-import type { StructuredError } from '@internal/utils/structured-error';
+import type { NextAction, StructuredError } from '@internal/utils/structured-error';
 import { docsUrlFor } from '@internal/utils/structured-error';
 
 /**
  * CLI error envelope for output formatting.
  * This is the serialized form of a CliStructuredError.
+ *
+ * A `command` inside `nextActions` still carries the `{bin}` placeholder here;
+ * the surface that renders the envelope substitutes the running binary's name.
  */
 export interface CliErrorEnvelope {
   readonly ok: false;
@@ -13,6 +16,7 @@ export interface CliErrorEnvelope {
   readonly summary: string;
   readonly why?: string;
   readonly fix?: string;
+  readonly nextActions?: readonly NextAction[];
   readonly where?: { readonly path?: string; readonly line?: number };
   readonly meta?: Record<string, unknown>;
   readonly docsUrl?: string;
@@ -43,6 +47,7 @@ export class CliStructuredError extends Error implements StructuredError {
   readonly severity: 'error' | 'warn' | 'info';
   declare readonly why?: string;
   declare readonly fix?: string;
+  declare readonly nextActions?: readonly NextAction[];
   declare readonly where?: { readonly path?: string; readonly line?: number };
   declare readonly meta?: Record<string, unknown>;
   declare readonly docsUrl?: string;
@@ -54,6 +59,7 @@ export class CliStructuredError extends Error implements StructuredError {
       readonly severity?: 'error' | 'warn' | 'info';
       readonly why?: string;
       readonly fix?: string;
+      readonly nextActions?: readonly NextAction[];
       readonly where?: { readonly path?: string; readonly line?: number };
       readonly meta?: Record<string, unknown>;
       readonly docsUrl?: string;
@@ -71,6 +77,7 @@ export class CliStructuredError extends Error implements StructuredError {
     Object.assign(this, {
       ...ifDefined('why', options?.why),
       ...ifDefined('fix', fix),
+      ...ifDefined('nextActions', options?.nextActions),
       ...ifDefined('where', where),
       ...ifDefined('meta', options?.meta),
       ...ifDefined('docsUrl', options?.docsUrl),
@@ -88,6 +95,7 @@ export class CliStructuredError extends Error implements StructuredError {
       summary: this.message,
       ...ifDefined('why', this.why),
       ...ifDefined('fix', this.fix),
+      ...ifDefined('nextActions', this.nextActions),
       ...ifDefined('where', this.where),
       ...ifDefined('meta', this.meta),
       ...ifDefined('docsUrl', this.docsUrl),
@@ -127,6 +135,7 @@ export function errorConfigFileNotFound(
   return new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Config file not found', {
     ...(options?.why ? { why: options.why } : { why: 'Config file not found' }),
     fix: "Run 'prisma-next init' to create a config file",
+    nextActions: [{ kind: 'run-command', label: 'Create a config file', command: '{bin} init' }],
     docsUrl: docsUrlFor('CONFIG.FILE_NOT_FOUND'),
     ...(configPath ? { where: { path: configPath } } : {}),
   });
@@ -195,6 +204,14 @@ export function errorContractValidationFailed(
   return new CliStructuredError('CONTRACT.VALIDATION_FAILED', 'Contract validation failed', {
     why: reason,
     fix: 'Re-run `prisma-next contract emit`, or fix the contract file and try again',
+    nextActions: [
+      { kind: 'run-command', label: 'Re-emit the contract', command: '{bin} contract emit' },
+      {
+        kind: 'edit-file',
+        label: 'Fix the contract file, then re-run the command',
+        reason: reason,
+      },
+    ],
     docsUrl: docsUrlFor('CONTRACT.VALIDATION_FAILED'),
     ...(options?.where ? { where: options.where } : {}),
     ...ifDefined('cause', options?.cause),

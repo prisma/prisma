@@ -15,7 +15,8 @@ Three snippets carry most of this ADR. First, the shared shapes:
 export interface StructuredError extends Error {
   readonly code: `${string}.${string}`; // NAMESPACE.SUBCODE
   readonly why?: string;
-  readonly nextActions: readonly NextAction[]; // always present; empty when there are none
+  readonly fix?: string; // retired prose — set alongside nextActions until the last raise site converts
+  readonly nextActions?: readonly NextAction[]; // optional on the raise side; the serialized envelope always carries it
   readonly where?: { readonly path?: string; readonly line?: number };
   readonly severity?: 'error' | 'warn' | 'info';
   readonly meta?: Record<string, unknown>;
@@ -38,7 +39,7 @@ export interface Diagnostic {
   readonly severity: 'error' | 'warn' | 'info';
   readonly summary: string;
   readonly why?: string;
-  readonly nextActions: readonly NextAction[];
+  readonly nextActions: readonly NextAction[]; // a serialized shape — required, `[]` when there is nothing to suggest
   readonly where?: { readonly path?: string; readonly line?: number };
   readonly meta?: Record<string, unknown>;
   readonly docsUrl?: string;
@@ -66,7 +67,7 @@ export function errorMigrationFileMissing(dir: string): StructuredError {
   return structuredError('MIGRATION.FILE_MISSING', 'Migration file not found', {
     why: `No migration.ts under "${dir}".`,
     nextActions: [
-      { kind: 'run-command', label: 'Create the migration', command: 'prisma-next migration new' },
+      { kind: 'run-command', label: 'Create the migration', command: '{bin} migration new' },
       { kind: 'edit-file', label: 'Point the config at the right migrations directory', reason: `"${dir}" does not exist.` },
     ],
     meta: { dir },
@@ -89,8 +90,8 @@ return {
     summary: `Ref "${ref.name}" points at a hash no migration produces`,
     where: { path: ref.path },
     nextActions: [
-      { kind: 'run-command', label: 'Repoint the ref', command: `prisma-next ref set ${ref.name} <valid-hash>` },
-      { kind: 'run-command', label: 'Or delete it', command: `prisma-next ref delete ${ref.name}` },
+      { kind: 'run-command', label: 'Repoint the ref', command: `{bin} ref set ${ref.name} <valid-hash>` },
+      { kind: 'run-command', label: 'Or delete it', command: `{bin} ref delete ${ref.name}` },
     ],
   })),
 };
@@ -160,9 +161,9 @@ This ADR collapsed five parallel error systems — a numeric `PN-DOMAIN-NNNN` cl
 
 One module owns the shared shape. It exports:
 
-- `StructuredError` — the interface above. `code` and `nextActions` are the required fields beyond `Error`; `why` / `where` / `severity` / `meta` / `cause` / `docsUrl` are optional.
+- `StructuredError` — the interface above. `code` is the one required field beyond `Error`; `why` / `fix` / `nextActions` / `where` / `severity` / `meta` / `cause` / `docsUrl` are optional. `nextActions` is optional here and required on the serialized shapes — see [Which surface guarantees `nextActions`](#which-surface-guarantees-nextactions).
 - `NextAction` and `Diagnostic` — the two shapes above.
-- `isStructuredError(e): e is StructuredError` — structural predicate. It checks the identifying fields only (the code shape and a message); it is identification, not schema validation, so it deliberately does not probe `nextActions` or the optional fields. Completeness is the construction side's job: the factory always sets `nextActions`, and a boundary that rehydrates a serialized envelope normalizes a missing `nextActions` to `[]` before handing the value to typed consumers.
+- `isStructuredError(e): e is StructuredError` — structural predicate. It checks the identifying fields only (the code shape and a message); it is identification, not schema validation, so it deliberately does not probe `nextActions` or the optional fields. Completeness is the serializing side's job: a boundary that emits or rehydrates an envelope normalizes a missing `nextActions` to `[]` before handing the value to typed consumers.
 - `structuredError(code, message, options?)` — the convenience factory. Brands a plain `Error` with the fields (via `Object.assign` + a non-enumerable `name`), returning `Error & StructuredError`. Usable as a throw target or a `Result` failure value.
 - `docsUrlFor(code)` — returns `` `${DOCS_BASE}#${code}` ``, where `DOCS_BASE` is `https://docs.prisma.io/docs/orm/next/reference/error-reference` — one errors page, the dotted code as the fragment (e.g. `…/error-reference#CONTRACT.MARKER_MISSING`). The version segment is a single token (`next`) that flips to `v8` when the RC ships; a factory may override `docsUrl` for a code with its own page. Centralizing the URL makes that flip a one-line edit. `scripts/list-error-codes.mjs` enumerates every published code from source and has a `--verify <page>` mode the docs site uses to prove the reference page lists all of them.
 
@@ -170,13 +171,23 @@ One module owns the shared shape. It exports:
 
 ## Remediation is typed, not prose
 
-Remediation is a `nextActions` array, not a freeform sentence. `nextActions` is always present and is empty when there is nothing to suggest, so a consumer never has to distinguish "no remediation" from "field absent".
+Remediation is a `nextActions` array, not a freeform sentence.
 
 The reason is the audience. A remediation string like ``'Update the ref with `prisma-next ref set <name> <valid-hash>` or delete it.'`` is two actions, a command, and an argument placeholder, all fused into one sentence that only a human can take apart. An agent has to parse English to find out that there is a command to run and what it is. A `NextAction` states it directly: a `kind` the caller can branch on, a `label` for display, and a `command` (or `commands`) that is executable as written. Human presentation loses nothing: the CLI renders each action as a `→` line under the error, label then command.
 
 The `kind` values are `run-command` (there is a command to run — `command` for a single command, `commands` for an ordered sequence run first to last; the two are alternatives, never both), `open-url` (the user should visit `url` — a URL is not a command, and putting one in `command` would tell a consumer to execute it), `user-choice` (the user must decide between the listed options), `edit-file` (a file needs a human edit), and `done` (nothing further is required — used to close out a multi-step flow). The shape is deliberately flat rather than a per-kind discriminated union: it mirrors the CLI engine's wire protocol type, and a consumer branches on `kind` and reads the fields that kind documents. A `command` may contain an angle-bracket placeholder (`<valid-hash>`) when only the user can supply the value; everything outside angle brackets is literal and runnable.
 
+A `command` never names a binary. The error factories live in libraries that do not know — and must not decide — which executable the user invoked; the same `MIGRATION.UNKNOWN_REF` is raised under `prisma-next` in this repo and under a differently-named binary wherever else the libraries are embedded. So a command is written with a `{bin}` placeholder — `{bin} ref set <name> <hash>` — and the surface that renders or serializes the envelope substitutes the running binary's name. The two placeholder styles say different things: angle brackets mark a value only the user can supply and are left in place, while `{bin}` is always resolved before a consumer sees the action. After substitution every emitted `command` is runnable as written.
+
 `Diagnostic` carries the same field for the same reason, and the two shapes stay aligned field-for-field (the exact mapping is in the Decision section). That alignment is the point: a consumer that can read a finding can read an error.
+
+### Which surface guarantees `nextActions`
+
+Two surfaces make different promises about the field, and conflating them produces a claim that is false of one of them.
+
+**The serialized envelope requires it.** `Diagnostic`, the completed and errored JSON envelopes, and the CLI engine's wire protocol all declare `nextActions` as a required array that is `[]` when there is nothing to suggest. A consumer reading a serialized envelope never has to distinguish "no remediation" from "field absent", and a boundary that emits or rehydrates an envelope normalizes a missing field to `[]`.
+
+**The raise side converges on it.** `StructuredError` — the value a factory constructs and a call site throws — declares `nextActions` optional, because the conversion is ratcheted rather than atomic (see [Adoption and freeze scope](#adoption-and-freeze-scope)). A factory that has not been converted yet still carries only `fix` prose, and forcing it to spell an empty array would record a false claim: that the site was reviewed and found to have no remediation, when in fact it has remediation that is still prose. The field becomes required on the raise side when the last site converts and `fix` is deleted from the type.
 
 ## The severity scale
 
@@ -251,7 +262,7 @@ Scope of the ban:
 
 The **taxonomy** — the namespace list, the naming conventions, and the crosswalk of every published code — froze at RC, validated against the entire throw surface so there are no namespace gaps. What grows afterwards is the **sweep**: codeless user-facing throws are converted plane by plane under the fixed conventions. Adding a code to a previously-codeless site is additive and non-breaking; only renames of already-published codes break consumers, and those are all recorded in the crosswalk.
 
-The `fix` → `nextActions` field migration trails the same way: the target shape is frozen here, and the call sites that still pass a `fix` string convert cluster by cluster under a ratchet. The same trail carries the completed-envelope JSON shape — commands whose JSON output predates this ADR converge on the one contract (a `diagnostics` array and the documented exit code on the envelope) as they convert. Freezing the shape before the sweep is what keeps `Diagnostic` and the error envelope aligned — converting first and settling the shape afterwards would let the two drift while half the tree used each spelling.
+The `fix` → `nextActions` field migration trails the same way: the target shape is frozen here, and the call sites that still pass a `fix` string convert cluster by cluster under a ratchet. A converted site sets **both** fields — `fix` for the surfaces that still render prose, `nextActions` for the ones that read structure — so the sweep never regresses what a user sees. Carrying both is the transition cost, not the destination; `fix` leaves the type when the last site converts (see [Alternatives considered](#alternatives-considered)). The same trail carries the completed-envelope JSON shape — commands whose JSON output predates this ADR converge on the one contract (a `diagnostics` array and the documented exit code on the envelope) as they convert. Freezing the shape before the sweep is what keeps `Diagnostic` and the error envelope aligned — converting first and settling the shape afterwards would let the two drift while half the tree used each spelling.
 
 ## Crosswalk (retired → dotted)
 
@@ -403,7 +414,9 @@ The `migration check` failure catalogue (`PN-MIG-CHECK-NNN`) converts to self-de
 
 **A separate `Finding` shape, unrelated to the error envelope.** Rejected: two shapes means two renderers, two JSON schemas, and two things for a consumer to learn, for a distinction that is about *carrier*, not content. A dangling ref is the same information whether the command aborted on it or listed it. `Diagnostic` carries the envelope's fields precisely so the two never drift.
 
-**Keep `fix` prose alongside `nextActions`.** Rejected: it guarantees they disagree. Every factory would have to keep a sentence and a structured list in sync by hand, and consumers would have to decide which one wins when they differ. If prose is wanted around an action, it is that action's `reason`.
+**Support `fix` prose alongside `nextActions` permanently.** Rejected as an end state: two indefinitely-supported remediation fields guarantee they eventually disagree. Every factory would have to keep a sentence and a structured list in sync by hand, and consumers would have to decide which one wins when they differ. If prose is wanted around an action, it is that action's `reason`.
+
+What is rejected is the permanent dual surface, not a period in which both exist. The transition is the stated adoption path: `fix` stays on the type, a converted factory sets both fields, and a ratchet drives the count of prose-only sites down cluster by cluster (see [Adoption and freeze scope](#adoption-and-freeze-scope)). During that window the two fields *are* maintained by hand at converted sites, which is exactly the cost this alternative names — it is accepted as bounded and paid down, rather than accepted as the design. `fix` is deleted from the type when the last raise site converts, and that deletion is what closes the alternative out.
 
 **Trim severity to `'error' | 'warn'`.** Rejected on evidence: `CLI.INIT_USER_ABORTED` ships with `severity: 'info'`, and the migration-status diagnostics publish `'warn' | 'info'` in their JSON schema. See [The severity scale](#the-severity-scale).
 
