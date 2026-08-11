@@ -22,7 +22,7 @@ export function slowQueryWarning(options?: SlowQueryWarningOptions): SqlMiddlewa
     familyId: 'sql',
 
     async afterQuery(plan, result, ctx) {
-      if (result.operation !== 'query' || result.latencyMs <= thresholdMs) return;
+      if (result.latencyMs <= thresholdMs) return;
       ctx.log.warn({
         code: 'APP.SLOW_QUERY',
         message: `Query took ${result.latencyMs}ms (threshold: ${thresholdMs}ms)`,
