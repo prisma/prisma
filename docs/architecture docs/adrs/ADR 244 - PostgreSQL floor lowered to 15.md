@@ -22,11 +22,11 @@ The 17 floor was set during early access as "the latest GA release we test again
 
 ### Market context (August 2026)
 
-No public census breaks down Postgres deployments by major version; the State of PostgreSQL survey does not publish one. The best available proxies:
+No public census breaks down Postgres deployments by major version; the [State of PostgreSQL survey](https://www.tigerdata.com/state-of-postgres/2024) does not publish one. The best available proxies:
 
-- **Community support:** versions 14–18 are supported. 14 reaches end of life in November 2026; 15 is supported until November 2027. A 15 floor covers every community-supported major from December 2026 onward.
-- **Cloud standard support:** AWS RDS standard support now starts at 14 (13 exited standard support in February 2026; 11–13 are paid Extended Support only). Azure and Cloud SQL follow similar calendars, with 18 generally available on all three.
-- **Overall adoption:** PostgreSQL leads the Stack Overflow 2025 survey at 55.6% developer usage, so the version tail is large in absolute terms; excluding 15 and 16 would exclude a substantial share of real deployments for no technical benefit.
+- **Community support:** per the [community versioning policy](https://www.postgresql.org/support/versioning/), versions 14–18 are supported. 14 reaches end of life in November 2026; 15 is supported until November 2027. A 15 floor covers every community-supported major from December 2026 onward.
+- **Cloud standard support:** AWS RDS standard support now starts at 14 ([13 exited standard support in February 2026](https://repost.aws/articles/ARRvHxJ_9sTDCGloBavca3kg/announcement-amazon-rds-postgresql-13-x-end-of-standard-support-is-february-28-2026); 11–13 are paid Extended Support only, per the [RDS PostgreSQL version calendar](https://endoflife.date/amazon-rds-postgresql)). [Azure](https://techcommunity.microsoft.com/blog/adforpostgresql/whats-new-with-postgres-at-microsoft-2026-edition/4526963) and [Cloud SQL](https://docs.cloud.google.com/sql/docs/postgres/db-versions) follow similar calendars, with 18 generally available on all three.
+- **Overall adoption:** PostgreSQL is the most-used database in the [Stack Overflow 2025 Developer Survey](https://survey.stackoverflow.co/2025/), at 55.6% developer usage. No public data breaks that usage down by major version, so the case for 15 rests on the support-calendar and cloud-support proxies above, not on any claimed version distribution.
 
 ## Why 15 and not lower
 
