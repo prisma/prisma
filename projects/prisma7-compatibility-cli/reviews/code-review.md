@@ -3,10 +3,23 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7, D8
-- **AC scoreboard totals:** 54 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7, D8, D9
+- **AC scoreboard totals:** 60 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
+
+## cli-owned-distribution-identity D9 acceptance criteria scoreboard
+
+| AC ID  | Description (short)                                                                                                         | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------ | --------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D9-AC1 | Exact CI `prisma7` import-resolution failure is fixed with source root/subpath aliases and no typecheck weakening.          | PASS   | `8ca24fe182`; `tsconfig.build.bundle.json` now maps `prisma` to `packages/cli/src/types`, `prisma/*` to `packages/cli/src/*`, `prisma7` to `packages/prisma7/src/index`, and `prisma7/*` to `packages/prisma7/src/*`. That matches the package export shapes used by `packages/prisma7/src/index.ts` (`from 'prisma'`) and `packages/prisma7/src/config.ts` (`from 'prisma/config'`) instead of the prior package-root-to-directory alias that broke exact workspace typecheck resolution. The change is scoped to path targets only; no compiler strictness or include/exclude surface is relaxed.             |
+| D9-AC2 | Generated package forwarding artifacts are ignored consistently while root lint/Prettier stay green with artifacts present. | PASS   | `.prettierignore` and `eslint.config.cjs` now ignore `packages/prisma7/{index,config}.{js,d.ts}`, mirroring the existing `packages/cli/config.{js,d.ts}` treatment for generated forwarding artifacts. The ignore additions are limited to those generated Prisma7 root/config files; they do not widen to `packages/prisma7/build/**` or source files.                                                                                                                                                                                                                                                         |
+| D9-AC3 | Bootstrap resolves the selected local CLI binary and preserves existing behavior.                                           | PASS   | `packages/cli/src/bootstrap/Bootstrap.ts` changes only the local-bin lookup from hardcoded `.bin/prisma` to `.bin/${identity}` and threads `this.identity` into that lookup; migrate/generate shell-out conditions, subprocess env, cwd, stdio, and in-process fallback logic are otherwise unchanged. This directly addresses the `prisma7 bootstrap` bug where existing-project migrate/generate would have invoked the wrong local binary.                                                                                                                                                                   |
+| D9-AC4 | Platform comments are removed and current review-comment classifications are defensible.                                    | PASS   | `packages/cli/src/platform/$.ts` and `packages/cli/src/platform/_lib/help.ts` drop the two redundant comments without behavior change. The remaining review classifications described in the implementation report are consistent with the diff: the Bootstrap/local-bin issue is fixed, the platform comments are removed, the deleted-test suggestion targets code already removed in D7 and is obsolete, and the `pnpm`/`npx` review suggestions conflict with the slice's user-facing CLI-output scope rather than contributor-tooling rules.                                                               |
+| D9-AC5 | Gates are credible and the remaining local benchmark typecheck issue is shown unrelated to this PR/CI failure.              | PASS   | `git diff --check 8ca24fe182^ 8ca24fe182` passed. The commit scope is confined to ignore config, one path-mapping file, one Bootstrap fix, one focused Bootstrap test, and comment removals; nothing touches the generated type-benchmark fixtures mentioned in the implementation report. The alias correction explains the reported exact CI failure mode (`prisma7` root/config imports in workspace typecheck), while the unrelated unused `@ts-expect-error` noise lives outside the touched surfaces and does not undermine the PR's CI-root-cause claim.                                                 |
+| D9-AC6 | The round honors the operator's anti-mock direction; the new Bootstrap test is proportionate rather than slice drift.       | PASS   | The new 45-line case lives in the pre-existing `packages/cli/src/bootstrap/__tests__/Bootstrap.vitest.ts` suite and asserts one regression the packed `prisma7` E2E does not observe: that an existing project shells out through the selected local `.bin/prisma7` for `migrate dev` and `generate` instead of hardcoded `.bin/prisma`. This is a narrow command-selection assertion on a new D9 fix, not a revival of the removed identity mock suites from D7. Given the current executable-boundary coverage never exercises `bootstrap`, removing this test would leave the fix backed only by code audit. |
+
+**Overall slice verdict:** SATISFIED. D1-D9 are satisfied, and D9 closes the remaining CI/review follow-up without reopening the slice.
 
 ## cli-owned-distribution-identity D8 acceptance criteria scoreboard
 
@@ -54,7 +67,7 @@
 
 **Overall slice verdict at D6 close:** SATISFIED. `cli-owned-distribution-identity` had reviewer-passed D1-D6 dispatches, zero open findings/escalations, and a met slice-specific done condition before the follow-up D7 feedback landed.
 
-**Current status after D8 R1:** CLOSED. D1-D8 are satisfied, and the slice now stays closed with explicit identity requirements at CLI command boundaries while executable inference remains confined to the real entrypoints.
+**Current status after D9 R1:** CLOSED. D1-D9 are satisfied, and the slice stays closed after the CI/review follow-up: path mappings are typecheck-correct, generated Prisma7 forwarding artifacts are ignored like their CLI counterparts, Bootstrap now shells through the selected local binary, and the remaining review comments are either fixed or defensibly classified.
 
 ## cli-owned-distribution-identity D1 acceptance criteria scoreboard
 
@@ -108,8 +121,8 @@
 
 ## Subagent IDs
 
-- **Implementer:** `d50332d5-aa1d-47a` — replacement Pi implementer established at `cli-owned-distribution-identity` D7 R1 after D2–D6 implementer `becc7679-cf83-4ce` became inaccessible to resume.
-- **Reviewer:** `8e5fbba6-5840-44a` — replacement Pi reviewer established at `cli-owned-distribution-identity` D8 R1 after D7 reviewer `f6926f02-f2f0-4e2` became inaccessible to resume.
+- **Implementer:** `c00ab7bd-a02f-41f` — replacement Pi implementer established at `cli-owned-distribution-identity` D9 R1 after D7/D8 implementer `d50332d5-aa1d-47a` became inaccessible to resume.
+- **Reviewer:** `02edbde7-ca33-43a` — replacement Pi reviewer established at `cli-owned-distribution-identity` D9 R1 after D8 reviewer `8e5fbba6-5840-44a` became inaccessible to resume.
 
 ## Orchestrator notes
 
@@ -444,3 +457,17 @@
 **Verification:** `git diff --check 46c4cdc1c7^ 46c4cdc1c7` passed. The reviewer audit found the only remaining defaulted identity inference in `getCliDistributionIdentity(executedScript = process.argv[1])`, consumed by `bin.ts` and `completions/completion-entry.ts`; all other touched CLI-owned boundaries now require explicit identity. No product, test, planning, or workflow files were edited during review; only this review ledger and `wip/heartbeats/reviewer.txt` were written.
 
 **For orchestrator:** `cli-owned-distribution-identity` remains closed. The next planned work is `downstream-actionable-guidance` unless the operator reprioritizes.
+
+### cli-owned-distribution-identity D9 R1 — SATISFIED
+
+**Scope:** close the exact CI/typecheck and current review follow-up. Commit `8ca24fe182`.
+
+**Tasks:** Root/subpath typecheck aliases now match the actual `prisma` and `prisma7` source export shapes, generated Prisma7 forwarding artifacts are ignored by root lint/Prettier like the existing CLI forwarding artifacts, Bootstrap shells through the selected local binary, and the two redundant platform comments are removed. The remaining current review comments are either fixed, obsolete because their target test was deleted in D7, or rejected because they misapply contributor tooling rules to user-facing CLI guidance.
+
+**AC delta:** D9-AC1 through D9-AC6 PASS (commit `8ca24fe182`; diff audit; transient scan clean).
+
+**Findings:** none.
+
+**Verification:** `git diff --check 8ca24fe182^ 8ca24fe182` passed. The mandatory transient-ID scan over `.prettierignore`, `eslint.config.cjs`, `packages/cli/src/bootstrap/Bootstrap.ts`, `packages/cli/src/bootstrap/__tests__/Bootstrap.vitest.ts`, `packages/cli/src/platform/$.ts`, `packages/cli/src/platform/_lib/help.ts`, and `tsconfig.build.bundle.json` found no UUID, `agent_id`, `subagent`, `trace_id`, `session`, or `projects/prisma7-compatibility-cli/` hits. No product, test, planning, or workflow files were edited during review; only this review ledger and `wip/heartbeats/reviewer.txt` were written.
+
+**For orchestrator:** `cli-owned-distribution-identity` stays closed. The next planned work remains `downstream-actionable-guidance` unless the operator reprioritizes.
