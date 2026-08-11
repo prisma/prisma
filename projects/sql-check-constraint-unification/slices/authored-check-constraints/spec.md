@@ -132,7 +132,7 @@ Mirroring `@@index` at every step:
 | --- | --- |
 | neither `name:` nor `map:` | error `PSL_CHECK_REQUIRES_NAME_OR_MAP` (TS: `CONTRACT.ARGUMENT_INVALID`), span-anchored |
 | both `name:` and `map:` | error `PSL_CHECK_NAME_XOR_MAP` (TS: `CONTRACT.ARGUMENT_INVALID`) |
-| empty or whitespace-only `expression` | error `CONTRACT.ARGUMENT_INVALID` — an empty predicate is not a constraint |
+| empty or whitespace-only `expression` | PSL: span-anchored `PSL_CHECK_EXPRESSION_EMPTY`; TS: `CONTRACT.ARGUMENT_INVALID` from the lowering backstop |
 | authored `name:` prefix over the 54-byte wire budget | throw from `assertWireNamePrefixLength` (author can shorten it) |
 | `map:` with a hand-authored body | **warning** `PN_EXACT_NAME_BODY_COMPARISON`, not an error |
 | authored name collides with another check on the same table (authored or derived) | error — table-wide constraint-name uniqueness is already validated and stays |
@@ -145,7 +145,9 @@ Mirroring `@@index` at every step:
 
 SQLite has no checks today by omission, not by refusal: it contributes no `renderCheckExpressions`, so nothing derives. A family-level `@@check` would reach it, and the current failure modes are all bad — `tableConstraintsFromNode` (`column-ddl-rendering.ts:150-179`) **silently drops** the constraint at `CREATE TABLE`, introspection never returns checks so the declared one is permanently `declaredMissing`, and the planner conflicts with a message that misattributes the cause to scalar arrays.
 
-Gate it as a capability, matching the `scalarList` precedent (`psl-field-resolution.ts:499-507`): add `sql.checkConstraint` to the capability matrix, reported `true` by the Postgres adapter (`adapter.ts:33-39`, `descriptor-meta.ts:188`) and absent for SQLite. `@@check` on a target lacking it is a span-anchored `PSL_CHECK_UNSUPPORTED_TARGET` diagnostic; the TS `check()` constructor consults the same matrix. Independently, add the missing `check` branch to `tableConstraintsFromNode` that throws rather than drops, so no future path can silently lose a constraint.
+Gate it as a capability, matching the `scalarList` precedent (`psl-field-resolution.ts:499-507`): add `sql.checkConstraint` to the capability matrix, reported `true` by the Postgres adapter (`adapter.ts:33-39`, `descriptor-meta.ts:188`) and absent for SQLite. `@@check` on a target lacking it is a span-anchored `PSL_CHECK_UNSUPPORTED_TARGET` diagnostic.
+
+**The TypeScript surface cannot be gated at build time, and this is architectural.** [`capabilities-ownership.mdc`](../../../../.agents/rules/capabilities-ownership.mdc) makes capabilities adapter-reported: the contract declares *required* capabilities, and the composed adapter matrix is layered on by the CLI's `enrichContract` — which runs after `source.load()` has already built the whole contract, check nodes included. `buildSqlContractFromDefinition` sees only `definition.target.capabilities`, which is `{}` for Postgres by design, so gating there would reject every Postgres check. Branching on `targetId` instead is forbidden by [`no-target-branches.mdc`](../../../../.agents/rules/no-target-branches.mdc). So the TS path is ungated at authoring and fails later, when the SQLite DDL renderer refuses — with an accurate message rather than today's silent drop. Closing that gap properly means validating declared capability requirements after enrichment, which is a separate concern from this slice and is recorded as a follow-up. Independently, add the missing `check` branch to `tableConstraintsFromNode` that throws rather than drops, so no future path can silently lose a constraint.
 
 ## Infer
 
@@ -203,7 +205,7 @@ This is what closes the reported defect: pull a database with a hand-written che
 - An authored check on a non-`managed` table survives the specifier strip; derived checks still do not.
 - **Test 8 passes**: a hand-written database constraint survives `infer → emit → destructive plan` without being dropped. It fails on `main`.
 - No contract shape change; `fixtures:check` clean; existing adoption/introspection/lifecycle tests unchanged in meaning.
-- `sql.checkConstraint` gates the surface; SQLite rejects at authoring rather than dropping at DDL.
+- `sql.checkConstraint` gates the PSL surface at authoring; the TS surface fails at DDL render with an accurate refusal instead of silently dropping the constraint (see § SQLite for why authoring-time gating is not reachable from the TS path).
 - ADR 244 amendments and user-facing docs land in the same PR.
 
 ## Non-goals
