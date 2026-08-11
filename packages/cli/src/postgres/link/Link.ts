@@ -174,14 +174,14 @@ export class Link implements Command {
 
     try {
       const result = await this.executeLinkFlow(apiKey, databaseId, baseDir)
-      return formatCompletionOutput(result)
+      return formatCompletionOutput(result, this.identity)
     } catch (err) {
       if (!apiKey && isExpiredSessionError(err)) {
         console.log(`Session expired. Re-authenticating via browser...`)
         await login({ utmMedium: 'command-postgres-link' })
         try {
           const result = await this.executeLinkFlow(apiKey, databaseId, baseDir)
-          return formatCompletionOutput(result)
+          return formatCompletionOutput(result, this.identity)
         } catch (retryErr) {
           return Link.formatError(retryErr)
         }

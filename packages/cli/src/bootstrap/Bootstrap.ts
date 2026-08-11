@@ -123,6 +123,7 @@ export class Bootstrap implements Command {
     baseDir: string,
   ): Promise<string | HelpError> {
     const flowStart = performance.now()
+    const cliPackage = this.identity
     const stepsCompleted: string[] = []
     const steps: BootstrapStepStatus = {
       init: 'skipped',
@@ -180,19 +181,19 @@ export class Bootstrap implements Command {
             templateScaffolded = steps.template === 'completed'
             if (!templateScaffolded) {
               return new HelpError(
-                `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx prisma bootstrap`,
+                `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold(`${this.identity} bootstrap`)}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx ${this.identity} bootstrap`,
               )
             }
           } else {
             return new HelpError(
-              `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold('prisma bootstrap')}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx prisma bootstrap`,
+              `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold(`${this.identity} bootstrap`)}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx ${this.identity} bootstrap`,
             )
           }
         } else if (templateName) {
           await this.scaffoldTemplate(templateName, baseDir, steps, stepsCompleted, telemetryCtx)
           templateScaffolded = steps.template === 'completed'
           if (!templateScaffolded) {
-            console.log(`${dim('  Falling back to prisma init...')}`)
+            console.log(dim(`  Falling back to ${this.identity} init...`))
             await this.runInit(steps, stepsCompleted, telemetryCtx, config, await this.askAboutSampleModel())
           }
         } else {
@@ -250,7 +251,7 @@ export class Bootstrap implements Command {
           installSpinner.fail(`Dependency install failed: ${sanitizeErrorMessage(msg)}`)
           await emitStepFailed(telemetryCtx, 'install_deps', sanitizeErrorMessage(msg))
           return new HelpError(
-            `\n${bold(red('!'))} Dependency installation failed. Please install dependencies manually and re-run ${bold('prisma bootstrap')}.`,
+            `\n${bold(red('!'))} Dependency installation failed. Please install dependencies manually and re-run ${bold(`${this.identity} bootstrap`)}.`,
           )
         }
       }
@@ -285,7 +286,7 @@ export class Bootstrap implements Command {
       const missingDevDeps: string[] = []
       const missingDeps: string[] = []
       if (!templateScaffolded) {
-        for (const pkg of ['dotenv', 'prisma']) {
+        for (const pkg of ['dotenv', cliPackage]) {
           if (!fs.existsSync(path.join(baseDir, 'node_modules', pkg))) {
             missingDevDeps.push(pkg)
           }
@@ -315,7 +316,7 @@ export class Bootstrap implements Command {
                 : `${pm} add -D ${missingDevDeps.join(' ')}`
             console.log(`  ${dim('$')} ${installHint}`)
           }
-          console.log(`  ${dim('$')} npx prisma@latest bootstrap`)
+          console.log(`  ${dim('$')} npx ${this.identity}@latest bootstrap`)
 
           return formatBootstrapOutput({
             databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',
@@ -323,6 +324,7 @@ export class Bootstrap implements Command {
             steps,
             hasModels: updatedState.hasModels,
             pendingDepsInstall: true,
+            identity: this.identity,
           })
         }
 
@@ -394,7 +396,7 @@ export class Bootstrap implements Command {
         const modelSummary =
           modelCount > 0 ? ` ${modelCount} model${modelCount === 1 ? '' : 's'} (${modelNames.join(', ')})` : ' schema'
         const shouldMigrate = await confirm({
-          message: `Apply${modelSummary} to database with prisma migrate dev?`,
+          message: `Apply${modelSummary} to database with ${this.identity} migrate dev?`,
           default: true,
         })
 
@@ -521,6 +523,7 @@ export class Bootstrap implements Command {
         isNewProject: !initialState.hasPackageJson,
         steps,
         hasModels: finalState.hasModels,
+        identity: this.identity,
       })
     } finally {
       await emitFlowCompleted(telemetryCtx, stepsCompleted, performance.now() - flowStart)
