@@ -2,7 +2,7 @@
 
 Status: **Accepted**
 
-Related: [ADR 239 — Errors are structural envelopes with dotted namespace codes](<./ADR 239 - Errors are structural envelopes with dotted namespace codes.md>) defines the envelope itself — the `CliStructuredError` shape, dotted `NAMESPACE.SUBCODE` codes, structural recognition, exit codes. This ADR governs how envelopes are **constructed and carried**: who creates them, where, and what shape they travel in. Composer records the same rules for its tree as its ADR-0043/ADR-0044; the duplicated foundation types interoperate because recognition is structural.
+Related: [ADR 239 — Errors are structural envelopes with dotted namespace codes](<./ADR 239 - Errors are structural envelopes with dotted namespace codes.md>) defines the envelope itself — the `CliStructuredError` shape, dotted `NAMESPACE.SUBCODE` codes, structural recognition, exit codes, and (as amended) the typed `nextActions` remediation field this ADR's examples use. This ADR governs how envelopes are **constructed and carried**: who creates them, where, and what shape they travel in. Composer records the same rules for its tree as its ADR-0043/ADR-0044; the duplicated foundation types interoperate because recognition is structural.
 
 ## The shape of a failure, end to end
 
@@ -14,7 +14,14 @@ if (!snapshot) {
   return notOk(
     errorRuntime('MIGRATION.SNAPSHOT_MISSING', `Ref "${refName}" is not resolvable`, {
       why: `Ref "${refName}" has no pointer file and its fallback hash is not a graph node.`,
-      fix: `Create the ref with \`prisma-next ref set ${refName} <hash>\`, or pass a graph-node hash.`,
+      nextActions: [
+        {
+          kind: 'run-command',
+          label: 'Create the ref',
+          command: `prisma-next ref set ${refName} <hash>`,
+        },
+        { kind: 'user-choice', label: 'Or pass a graph-node hash instead of a ref name' },
+      ],
       meta: { identifier: refName, viaRef: true },
     }),
   );
@@ -34,11 +41,11 @@ if (!result.ok) {
 }
 ```
 
-Nothing between the two snippets transforms the error. Within a process, the value raised at the origin is the value the consumer holds — class, `meta`, `cause` chain and all. A consumer on the far side of a process boundary (`--json` output, the query-plan executor's HTTP surface) receives the serialized `toEnvelope()` form instead: the same `code`/`summary`/`why`/`fix`/`where`/`meta`, without `cause`.
+Nothing between the two snippets transforms the error. Within a process, the value raised at the origin is the value the consumer holds — class, `meta`, `cause` chain and all. A consumer on the far side of a process boundary (`--json` output, the query-plan executor's HTTP surface) receives the serialized `toEnvelope()` form instead: the same `code`/`summary`/`why`/`nextActions`/`where`/`meta`, without `cause`.
 
 ## Decision
 
-**1. Errors are structured at their origin — there are no catch-all codes.** Any failure meant to surface to a user is a `CliStructuredError` (or a subclass) at the site that raises it, carrying its own dotted code and its own why/fix. Wrapping a foreign cause at the site that understands it — a driver error, a config module that threw, an I/O failure the tool can name — is legal, and the wrap attaches the original as `cause`. What is banned is the boundary fallback: no generic construction path supplies a default code, and no code exists whose meaning is "something in this phase failed". The generic factory's signature enforces this — `errorRuntime(code, summary, options)` — the code is the first, required argument.
+**1. Errors are structured at their origin — there are no catch-all codes.** Any failure meant to surface to a user is a `CliStructuredError` (or a subclass) at the site that raises it, carrying its own dotted code, its own `why`, and its own `nextActions`. Wrapping a foreign cause at the site that understands it — a driver error, a config module that threw, an I/O failure the tool can name — is legal, and the wrap attaches the original as `cause`. What is banned is the boundary fallback: no generic construction path supplies a default code, and no code exists whose meaning is "something in this phase failed". The generic factory's signature enforces this — `errorRuntime(code, summary, options)` — the code is the first, required argument.
 
 A non-structured error reaching a process boundary is therefore, by definition, a bug: it exits `1` with a report hint and no code (ADR 239's exit-code rule). This is deliberate. An expected failure someone forgot to name should be loud, not laundered into a polite envelope nobody can act on.
 
@@ -46,7 +53,7 @@ A non-structured error reaching a process boundary is therefore, by definition, 
 
 **3. Results carry one discriminator: `ok`.** Every operation and command returns the shared `Result` type — `{ ok: true, value } | { ok: false, failure }` — instantiated with a `CliStructuredError` failure. (The foundation type itself stays generic in its failure parameter; this rule is about how operations instantiate it, and a signature like `Result<MigrationPlanResult, CliStructuredError>` is the required form.) The success payload's *type* carries whatever is operation-specific; the discriminator never does. Per-operation outcome enums (`outcome: 'deployed' | 'failed' | …`) are banned: they force every caller to learn a second, operation-local vocabulary that restates what `ok` plus the payload type already say. And because the same envelope value is throwable *and* a valid `Result` failure (ADR 239), no boundary needs a conversion type in either direction.
 
-**Error subclasses extend the one base class.** Domain subclasses are part of the contract, not an exception to it: a domain that wants richer construction (for example `MigrationToolsError`, whose constructor requires `why`/`fix` and narrows `code` to `` `MIGRATION.${string}` ``) subclasses `CliStructuredError`. The rules for a subclass:
+**Error subclasses extend the one base class.** Domain subclasses are part of the contract, not an exception to it: a domain that wants richer construction (for example `MigrationToolsError`, whose constructor requires `why` and a non-empty `nextActions`, and narrows `code` to `` `MIGRATION.${string}` ``) subclasses `CliStructuredError`. The rules for a subclass:
 
 - Structured data goes in `meta` — a subclass does not introduce a parallel field for it.
 - The subclass must **not** set `this.name`: ADR 239's structural predicate keys on `name`, and a renamed subclass would stop being recognized as a structured error at boundaries.
@@ -64,7 +71,7 @@ The `code` field is only a branching surface if exactly one code space exists an
 - A parallel error class with boundary mappers makes fidelity depend on the mapper: every field the mapper forgets — the cause chain, a meta key added later — is silently dropped at that boundary, and every new boundary needs the mapping re-derived.
 - A per-operation discriminator moves failure identity out of the shared shape entirely, so generic tooling (renderers, agents, retry logic) cannot be written once.
 
-Structuring at origin also puts the why/fix where the knowledge is: the raise site knows what was being attempted and what the user can do about it; a boundary handler only knows that *something* failed.
+Structuring at origin also puts the `why` and the `nextActions` where the knowledge is: the raise site knows what was being attempted and what the user can do about it; a boundary handler only knows that *something* failed. This is sharper for `nextActions` than it ever was for prose, because a next action names an executable command with real arguments in it — the raise site is the only place that holds those arguments.
 
 ## Alternatives considered
 
