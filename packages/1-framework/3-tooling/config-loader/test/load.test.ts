@@ -498,7 +498,7 @@ describe('loadConfig', () => {
     'maps an unresolvable import inside the config to CONFIG.FILE_NOT_FOUND',
     async () => {
       const configPath = join(tempDir, 'prisma-next.config.ts');
-      writeFileSync(configPath, "import 'prisma-next-no-such-package';\n", 'utf-8');
+      writeFileSync(configPath, "import 'no-such-package-for-config-tests';\n", 'utf-8');
 
       const failure = (await loadConfig(configPath)).assertNotOk();
 
