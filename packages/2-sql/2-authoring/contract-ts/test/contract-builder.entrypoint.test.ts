@@ -66,6 +66,21 @@ describe('defineContract runtime guards', () => {
       code: 'CONTRACT.PACK_FAMILY_MISMATCH',
     },
     {
+      name: 'a target pack from another family',
+      run: () =>
+        defineContract({
+          family: sqlFamilyPack,
+          target: { ...postgresTargetPack, familyId: 'document' } as unknown as TargetPackRef<
+            'sql',
+            'postgres'
+          >,
+          createNamespace: createTestSqlNamespace,
+          models: {},
+        }),
+      error: 'target pack "postgres" targets family "document" but contract family is "sql".',
+      code: 'CONTRACT.PACK_FAMILY_MISMATCH',
+    },
+    {
       name: 'non-extension pack refs in extensions',
       run: () =>
         defineContract({
