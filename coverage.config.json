@@ -39,15 +39,6 @@
       "notes": "vitest.config.ts excludes the IR class-only files from coverage (mirroring the existing pack-types.ts pattern); validators.ts and index-type-validation.ts remain under-covered pending dedicated branch-coverage tests."
     },
     {
-      "package": "2-sql/1-core/schema-ir",
-      "reason": "M9 target-extensible-IR refactor lifted SQL Schema IR shapes to IR classes (primary-key.ts, sql-column-ir.ts, sql-foreign-key-ir.ts, sql-index-ir.ts, sql-schema-ir.ts, sql-table-ir.ts, sql-unique-ir.ts). They are exercised through schema verify/planner integration paths rather than direct unit tests today.",
-      "addedDate": "2026-05-16",
-      "expiryDays": 90,
-      "assignee": null,
-      "linear": "TML-2521",
-      "notes": "Per-class unit tests tracked as a follow-up before 0.9 release."
-    },
-    {
       "package": "2-sql/2-authoring/contract-ts",
       "reason": "M9 target-extensible-IR refactor reshaped build-contract.ts, composed-authoring-helpers.ts, config-types.ts, contract-builder.ts, and contract-warnings.ts to thread polymorphic storage type entries and composed authoring contributions through the SQL contract-ts builder. Coverage delta is small (1-5% below threshold) and falls on new authoring branches exercised through integration paths.",
       "addedDate": "2026-05-16",
