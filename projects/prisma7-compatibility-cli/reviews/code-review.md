@@ -3,8 +3,8 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1
-- **AC scoreboard totals:** 18 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2
+- **AC scoreboard totals:** 23 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
 
@@ -33,10 +33,20 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 | D1-AC4 | Remaining actionable CLI literals are surfaced/classified; no D1 help literal silently remains in the changed CLI-owned surfaces. | PASS   | `c944253750`; targeted literal checks over the touched files leave the remaining executable-specific runtime strings in `packages/cli/src/Init.ts` and `packages/cli/src/bootstrap/Bootstrap.ts` project-creation flows, while the D1 help renderers are parameterized.                        |
 | D1-AC5 | Reported gates are defensible and the mandatory transient-ID scan is clean.                                                       | PASS   | No on-disk evidence contradicts the reported focused `prisma` CLI tests / `pnpm --filter prisma tsc` / Prettier / diff-check gates for `c944253750`; the mandatory transient-ID scan over `c944253750^..c944253750` produced zero token or `projects/prisma7-compatibility-cli/` hits.         |
 
+## cli-owned-distribution-identity D2 acceptance criteria scoreboard
+
+| AC ID  | Description (short)                                                                                                                    | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D2-AC1 | `prisma7 init` generates `prisma7/config`, while ordinary init remains `prisma/config` without unrelated ordinary-init snapshot churn. | PASS   | `f18a6738d5`; `packages/cli/src/__tests__/distribution-identity-project-creation.vitest.ts` asserts exact generated `prisma.config.ts` content for both identities, and `packages/cli/src/__tests__/Init.vitest.ts` still pins ordinary Prisma inline snapshots to `import { defineConfig } from "prisma/config"`.                                                                             |
+| D2-AC2 | Project-creation guidance uses the selected identity while stable domain paths/packages remain unchanged.                              | PASS   | `c526edd56d`; `packages/cli/src/Init.ts` now threads identity into `defaultEnv()` and the appended `.env` banner, so compatibility init emits `${identity} dev` / `${identity} init` while domain-stable paths and packages remain unchanged. Focused dual-identity coverage for both comment surfaces lives in `packages/cli/src/__tests__/distribution-identity-project-creation.vitest.ts`. |
+| D2-AC3 | Tests are focused, non-tautological, and cover both identities without broad snapshot duplication.                                     | PASS   | `f18a6738d5`; the new suite adds ten focused dual-identity assertions across Init/Bootstrap/Link outputs in `packages/cli/src/__tests__/distribution-identity-project-creation.vitest.ts`, reuses shared mocks, and avoids broad snapshot cloning of the existing ordinary-identity suites.                                                                                                    |
+| D2-AC4 | Identity remains the minimal primitive seam with no object/map/global/env framework or out-of-scope package change.                    | PASS   | `f18a6738d5`; the implementation continues to thread the existing `'prisma' \| 'prisma7'` primitive through CLI-owned renderers only. The product diff stays in `packages/cli/src/**` plus the focused test file, with no new lower-package identity framework or package-surface churn.                                                                                                       |
+| D2-AC5 | Reported gates are defensible and the mandatory transient-ID scan is clean.                                                            | PASS   | No on-disk evidence contradicts the reported `pnpm --filter prisma tsc`, focused project-creation Vitest suite, changed-file Prettier, diff-check, and transient-ID scan gates for `c526edd56d`. The mandatory reviewer rerun over `f18a6738d5..c526edd56d` produced zero plan-ID and `projects/prisma7-compatibility-cli/` hits in the round's added source/test diff.                        |
+
 ## Subagent IDs
 
-- **Implementer:** Prior Cursor implementer `da05b30d-8bbb-4c7` is inaccessible in the current Pi harness. D1 used replacement Pi general-purpose sessions whose foreground agent handles were not resumable; establish a resumable persistent implementer at D2 R1.
-- **Reviewer:** Prior Cursor reviewer `51dd7158-75b7-486` is inaccessible in the current Pi harness. D1 used replacement Pi reviewer session `019ff054-afbe-73d1-bc19-c0177eb39947`; establish a resumable persistent reviewer at D2 R1.
+- **Implementer:** `becc7679-cf83-4ce` — persistent Pi implementer established at `cli-owned-distribution-identity` D2 R1 after prior Cursor and foreground Pi sessions became inaccessible.
+- **Reviewer:** `2eb959d7-d051-424` — persistent Pi reviewer established at `cli-owned-distribution-identity` D2 R1 after prior Cursor and foreground Pi sessions became inaccessible.
 
 ## Orchestrator notes
 
@@ -107,6 +117,20 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 **Recommended next action:** Remove the redundant monorepo rebuilds from the package `test` script, and declare the test-only workspace packages (and any newly required direct tooling) explicitly or move their build/provisioning into the documented CI setup order. Verify the package test from the same clean built state used by CI.
 
 **Status:** resolved (`11c3681f70`) — `test` is back to `vitest run`; required workspace fixture packages and `tsx` are declared, the lockfile is updated, and the fixture only creates/junction-links temporary project files without rebuilding or installing.
+
+### F5 — Generated `.env` guidance still hardcodes `prisma` under `prisma7 init`
+
+**Severity:** must-fix
+
+**Where:** `packages/cli/src/Init.ts:151,625`
+
+**What:** `defaultEnv()` still emits the local Prisma Postgres comment with `prisma dev` and the append-to-existing-`.env` marker `# This was inserted by \`prisma init\`:`regardless of the selected distribution. A`prisma7 init`invocation therefore leaves generated`.env`guidance with ordinary-Prisma command names even though the same round updated the surrounding config and next-step output to`prisma7`.
+
+**Why it matters:** This slice's contract is that actionable CLI-owned distribution references follow the selected identity while stable domain paths remain unchanged. Leaving `prisma7 init` to generate `.env` comments that tell the user to run `prisma dev` or attribute edits to `prisma init` breaks that identity consistency in a project-creation surface the user is expected to read.
+
+**Recommended next action:** Thread the primitive identity into `.env` comment generation so compatibility init emits `prisma7 dev` and `prisma7 init` while ordinary Prisma output stays byte-for-byte stable, and add focused coverage for the default local-Postgres init path plus the existing-`.env` append path.
+
+**Status:** resolved (`c526edd56d`) — `defaultEnv()` now accepts the primitive identity, local Prisma Postgres `.env` comments render `${identity} dev`, the appended banner renders `${identity} init`, and `packages/cli/src/__tests__/distribution-identity-project-creation.vitest.ts` covers both identities for both comment surfaces.
 
 ## Round notes
 
@@ -233,3 +257,27 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 **Findings:** none.
 
 **For orchestrator:** none.
+
+### cli-owned-distribution-identity D2 R1 — ANOTHER ROUND NEEDED
+
+**Scope:** Dispatch 2 identity-correct project creation. Commit `f18a6738d5`.
+
+**Tasks:** Config import generation, bootstrap/link/postgres next-step guidance, and selected-package dependency detection are clean; generated `.env` command comments still hardcode ordinary Prisma under `prisma7 init`.
+
+**AC delta:** D2-AC1, D2-AC3, D2-AC4, and D2-AC5 PASS (commit `f18a6738d5`, test `packages/cli/src/__tests__/distribution-identity-project-creation.vitest.ts`). D2-AC2 FAIL on `packages/cli/src/Init.ts:151,625` (see F5).
+
+**Findings:** F5 (must-fix).
+
+**For orchestrator:** The new 331-line focused suite is proportionate: it reuses shared mocks, covers distinct Init/Bootstrap/Link identity surfaces, and avoids cloning the broad ordinary-identity snapshots. `node_modules/<identity>` is the correct bootstrap dependency invariant because generated `prisma.config.ts` imports and re-run guidance depend on the selected distribution package, not the nested implementation package.
+
+### cli-owned-distribution-identity D2 R2 — SATISFIED
+
+**Scope:** F5 follow-up. Commit `c526edd56d`.
+
+**Tasks:** Generated `.env` local-dev comments and inserted banner now follow the selected identity; focused dual-identity coverage widened cleanly.
+
+**AC delta:** D2-AC2 FAIL → PASS (commit `c526edd56d`, test `packages/cli/src/__tests__/distribution-identity-project-creation.vitest.ts`). F5 resolved (`c526edd56d`).
+
+**Findings:** none.
+
+**For orchestrator:** Root Prettier remains blocked only by this review ledger's uncommitted edits; format/commit the ledger after verdict.
