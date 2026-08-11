@@ -11,7 +11,7 @@ import type { Refs } from '@internal/migration-tools/refs';
 import { castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import type { Presentations } from '@prisma/cli-engine';
-import { defineCommand, positional } from '@prisma/cli-engine';
+import { positional } from '@prisma/cli-engine';
 import type { CliStructuredError, Result } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { relative } from 'pathe';
@@ -34,6 +34,7 @@ import {
   resolveAppTargetPath,
 } from '../../utils/migration-path-target';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { appMigrationsDirFor, contractPathFor, displayPath, migrationsDirFor } from './paths';
 
@@ -116,7 +117,7 @@ function resolvePackage(inputs: {
     : ok(matched);
 }
 
-export const migrationShowCommand = defineCommand({
+export const migrationShowCommand = defineOrmCommand({
   help: {
     summary: 'Display migration package contents',
     description:

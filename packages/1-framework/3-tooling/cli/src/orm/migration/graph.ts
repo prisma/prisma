@@ -1,6 +1,6 @@
 import { ifDefined } from '@internal/utils/defined';
 import type { Presentations } from '@prisma/cli-engine';
-import { defineCommand, flag } from '@prisma/cli-engine';
+import { flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import type {
   MigrationGraphJsonResult,
@@ -21,6 +21,7 @@ import {
 } from '../../utils/formatters/migration-graph-sections';
 import type { GlyphMode } from '../../utils/glyph-mode';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { displayPath, migrationsDirFor } from './paths';
 
@@ -64,7 +65,7 @@ function graphSummary(spaces: readonly MigrationSpaceGraphEntry[]): string {
   return `${spaces.length} space(s), ${contracts} contract(s), ${migrations} migration(s)`;
 }
 
-export const migrationGraphCommand = defineCommand({
+export const migrationGraphCommand = defineOrmCommand({
   help: {
     summary: 'Show the migration graph topology',
     description:

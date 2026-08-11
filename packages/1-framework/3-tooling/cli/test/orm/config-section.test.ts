@@ -130,6 +130,33 @@ describe('ormConfigSection', () => {
         'contract.source.inputs[]',
       ]);
     });
+
+    it('reports the collision when the input spells the same file differently', () => {
+      const result = ormConfigSection.validate({
+        ...validConfig(),
+        contract: {
+          source: { format: 'psl', inputs: ['./out/./contract.json'], load: () => ({}) },
+          output: 'out/contract.json',
+        },
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result.diagnostics.map((diagnostic) => diagnostic.meta?.['field'])).toEqual([
+        'contract.source.inputs[]',
+      ]);
+    });
+
+    it('does not report a collision for a genuinely different file', () => {
+      const result = ormConfigSection.validate({
+        ...validConfig(),
+        contract: {
+          source: { format: 'psl', inputs: ['./src/contract.prisma'], load: () => ({}) },
+          output: 'out/contract.json',
+        },
+      });
+
+      expect(result.ok).toBe(true);
+    });
   });
 
   describe('hostile input', () => {

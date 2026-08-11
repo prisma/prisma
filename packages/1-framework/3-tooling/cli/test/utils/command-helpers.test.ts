@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   maskConnectionUrl,
   resolveContractPath,
+  resolveMigrationPaths,
   sanitizeErrorMessage,
   toPathDecisionResult,
   toStructuralEdge,
@@ -194,6 +195,59 @@ describe('toPathDecisionResult', () => {
       'migrationHash',
       'to',
     ]);
+  });
+});
+
+describe('resolveMigrationPaths', () => {
+  describe('a relative --config naming a project other than the invocation directory', () => {
+    it('resolves the config path against cwd, not the process working directory', () => {
+      const paths = resolveMigrationPaths('../app/prisma-next.config.ts', {}, '/work/scratch');
+
+      expect(paths.migrationsDir).toBe('/work/app/migrations');
+      expect(paths.configPath).toBe('../app/prisma-next.config.ts');
+    });
+
+    it('anchors an explicit migrations dir on the config file directory', () => {
+      const paths = resolveMigrationPaths(
+        '../app/prisma-next.config.ts',
+        { migrations: { dir: 'db' } },
+        '/work/scratch',
+      );
+
+      expect(paths.migrationsDir).toBe('/work/app/db');
+    });
+  });
+
+  describe('an absolute --config', () => {
+    it('is unaffected by cwd', () => {
+      const paths = resolveMigrationPaths('/app/prisma-next.config.ts', {}, '/tmp');
+
+      expect(paths.migrationsDir).toBe('/app/migrations');
+    });
+  });
+
+  describe('no --config', () => {
+    it('anchors everything on cwd', () => {
+      const paths = resolveMigrationPaths(undefined, {}, '/work/app');
+
+      expect(paths).toMatchObject({
+        configPath: 'prisma-next.config.ts',
+        migrationsDir: '/work/app/migrations',
+        migrationsRelative: 'migrations',
+      });
+    });
+  });
+
+  describe('a migrations dir the config loader already made absolute', () => {
+    it('leaves it alone', () => {
+      const paths = resolveMigrationPaths(
+        undefined,
+        { migrations: { dir: '/app/migrations' } },
+        '/tmp',
+      );
+
+      expect(paths.migrationsDir).toBe('/app/migrations');
+    });
   });
 });
 

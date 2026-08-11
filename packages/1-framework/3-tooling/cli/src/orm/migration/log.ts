@@ -1,7 +1,7 @@
 import type { LedgerEntryRecord } from '@internal/contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import type { Presentations } from '@prisma/cli-engine';
-import { defineCommand, flag } from '@prisma/cli-engine';
+import { flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import type { MigrationLogResult } from '../../commands/json/schemas';
 import { createControlClient } from '../../control-api/client';
@@ -20,6 +20,7 @@ import {
 } from '../../utils/formatters/migration-log-table';
 import type { GlyphMode } from '../../utils/glyph-mode';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { normalizeError } from '../normalize-error';
 
@@ -52,7 +53,7 @@ function logLines(
   }).split('\n');
 }
 
-export const migrationLogCommand = defineCommand({
+export const migrationLogCommand = defineOrmCommand({
   help: {
     summary: 'Show executed migration history',
     description:
