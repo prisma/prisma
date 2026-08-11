@@ -24,10 +24,11 @@ export interface StructuredError extends Error {
 }
 
 export interface NextAction {
-  readonly kind: 'run-command' | 'user-choice' | 'edit-file' | 'done';
+  readonly kind: 'run-command' | 'open-url' | 'user-choice' | 'edit-file' | 'done';
   readonly label: string;
   readonly command?: string;
   readonly commands?: readonly string[];
+  readonly url?: string; // open-url only — a URL is not a command; putting one in `command` tells a consumer to execute it
   readonly reason?: string;
 }
 
@@ -115,7 +116,7 @@ The shared surface is a **convenience, not an enforcement mechanism**. Foundatio
 
 A command settles one of two ways. It **completes** — it ran to its end and has a result to report, and that result may be good news or bad news — or it **errors**, meaning it could not do its job at all. A command that completes reports what it found as `Diagnostic` values inside a completed envelope, each carrying the same dotted code an error would carry, alongside a documented per-command exit code. A command that errors produces a `StructuredError` on the error path. The test is one question: *was finding these problems the job?* If yes, they are diagnostics on a completed result. If no — the command could not reach a documented outcome — it is an error. `migration check` reporting eleven integrity violations completed successfully at its job; it did not fail.
 
-A `Diagnostic` is a recorded finding: pure data, never thrown, no stack. It carries the error envelope's fields with two deliberate differences, and they are exactly the differences serialization already imposes on an error: `summary` plays the role the error's `message` plays (required on both, one spelling per shape), and `cause` is absent because a diagnostic is wire-safe data — the serialized error envelope drops `cause` at the boundary for the same reason. A consumer therefore reads one shape on both settlement paths.
+A `Diagnostic` is a recorded finding: pure data, never thrown, no stack. It carries the error envelope's fields with three deliberate differences: `summary` plays the role the error's `message` plays (required on both, one spelling per shape); `cause` is absent because a diagnostic is wire-safe data — the serialized error envelope drops `cause` at the boundary for the same reason; and `severity` is required where the error's is optional, because an error has a default (`'error'`) and data carries no defaults — a diagnostic spells its severity out. A consumer therefore reads one shape on both settlement paths.
 
 Bugs are outside the scheme entirely. An invariant break throws an `InternalError`, which is never meant to be caught except at the outermost boundary for crash reporting. The distinction is the one drawn in [Error Handling.md](../../Error%20Handling.md): **failures and operational errors are structured envelopes; findings are diagnostics; bugs are `InternalError`.**
 
@@ -161,7 +162,7 @@ One module owns the shared shape. It exports:
 
 - `StructuredError` — the interface above. `code` and `nextActions` are the required fields beyond `Error`; `why` / `where` / `severity` / `meta` / `cause` / `docsUrl` are optional.
 - `NextAction` and `Diagnostic` — the two shapes above.
-- `isStructuredError(e): e is StructuredError` — structural predicate.
+- `isStructuredError(e): e is StructuredError` — structural predicate. It checks the identifying fields only (the code shape and a message); it is identification, not schema validation, so it deliberately does not probe `nextActions` or the optional fields. Completeness is the construction side's job: the factory always sets `nextActions`, and a boundary that rehydrates a serialized envelope normalizes a missing `nextActions` to `[]` before handing the value to typed consumers.
 - `structuredError(code, message, options?)` — the convenience factory. Brands a plain `Error` with the fields (via `Object.assign` + a non-enumerable `name`), returning `Error & StructuredError`. Usable as a throw target or a `Result` failure value.
 - `docsUrlFor(code)` — returns `` `${DOCS_BASE}#${code}` ``, where `DOCS_BASE` is `https://docs.prisma.io/docs/orm/next/reference/error-reference` — one errors page, the dotted code as the fragment (e.g. `…/error-reference#CONTRACT.MARKER_MISSING`). The version segment is a single token (`next`) that flips to `v8` when the RC ships; a factory may override `docsUrl` for a code with its own page. Centralizing the URL makes that flip a one-line edit. `scripts/list-error-codes.mjs` enumerates every published code from source and has a `--verify <page>` mode the docs site uses to prove the reference page lists all of them.
 
@@ -173,9 +174,9 @@ Remediation is a `nextActions` array, not a freeform sentence. `nextActions` is 
 
 The reason is the audience. A remediation string like ``'Update the ref with `prisma-next ref set <name> <valid-hash>` or delete it.'`` is two actions, a command, and an argument placeholder, all fused into one sentence that only a human can take apart. An agent has to parse English to find out that there is a command to run and what it is. A `NextAction` states it directly: a `kind` the caller can branch on, a `label` for display, and a `command` (or `commands`) that is executable as written. Human presentation loses nothing: the CLI renders each action as a `→` line under the error, label then command.
 
-The `kind` values are `run-command` (there is a command to run; it carries `command` or `commands`), `user-choice` (the user must decide between the listed options), `edit-file` (a file needs a human edit), and `done` (nothing further is required — used to close out a multi-step flow). The shape is deliberately flat rather than a per-kind discriminated union: it mirrors the CLI engine's wire protocol type, and a consumer branches on `kind` and reads the fields that kind documents. A `command` may contain an angle-bracket placeholder (`<valid-hash>`) when only the user can supply the value; everything outside angle brackets is literal and runnable.
+The `kind` values are `run-command` (there is a command to run — `command` for a single command, `commands` for an ordered sequence run first to last; the two are alternatives, never both), `open-url` (the user should visit `url` — a URL is not a command, and putting one in `command` would tell a consumer to execute it), `user-choice` (the user must decide between the listed options), `edit-file` (a file needs a human edit), and `done` (nothing further is required — used to close out a multi-step flow). The shape is deliberately flat rather than a per-kind discriminated union: it mirrors the CLI engine's wire protocol type, and a consumer branches on `kind` and reads the fields that kind documents. A `command` may contain an angle-bracket placeholder (`<valid-hash>`) when only the user can supply the value; everything outside angle brackets is literal and runnable.
 
-`Diagnostic` carries the same field for the same reason, and the two shapes stay identical field-for-field. That identity is the point: a consumer that can read a finding can read an error.
+`Diagnostic` carries the same field for the same reason, and the two shapes stay aligned field-for-field (the exact mapping is in the Decision section). That alignment is the point: a consumer that can read a finding can read an error.
 
 ## The severity scale
 
@@ -216,6 +217,26 @@ Two rules make the table unambiguous.
 **A severity-`error` diagnostic requires a non-zero exit code.** A command that completed while recording something it calls an error must say so in its exit code; otherwise a shell pipeline would read success. The converse does not hold — a documented non-zero code may accompany warnings only.
 
 Each command declares its `4`–`99` codes in a co-located exported module (`src/commands/<command>/exit-codes.ts`) and documents them in `--help`. The same number may mean different things in different commands; the dotted code on each diagnostic disambiguates within the class.
+
+**The envelope a settlement produces.** In JSON output both settlement paths share one envelope contract, discriminated by `ok`:
+
+```ts
+type CompletedEnvelope = {
+  ok: true;
+  result: unknown;                        // the command's own payload
+  exitCode: number;                       // 0 or a documented 4–99 code
+  diagnostics: readonly Diagnostic[];
+  nextActions: readonly NextAction[];
+};
+type ErroredEnvelope = {
+  ok: false;
+  error: Diagnostic;                      // the serialized StructuredError
+  diagnostics: readonly Diagnostic[];
+  nextActions: readonly NextAction[];     // copied from the primary error
+};
+```
+
+`nextActions` at the top level lets a consumer read remediation uniformly without knowing which path settled. A command whose JSON output predates this contract converges on it as it converts: a bespoke findings collection (for example a `failures` array) becomes `diagnostics`, a bespoke top-level summary moves into `result`, and the exit code appears on the envelope instead of living only in the process status.
 
 ## Banning bare throws
 
