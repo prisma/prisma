@@ -1,5 +1,6 @@
 import type { MountedTree } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
+import { timeouts } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
@@ -36,7 +37,7 @@ beforeAll(async () => {
   const cli = await import('../../src/orm/cli');
   commands = cli.BIN_COMMANDS;
   groups = cli.BIN_GROUPS;
-});
+}, timeouts.coldTransformImport);
 
 afterAll(() => {
   vi.doUnmock('../../src/control-api/client');

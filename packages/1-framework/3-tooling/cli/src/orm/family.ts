@@ -2,6 +2,7 @@ import { DOCS_BASE } from '@internal/utils/structured-error';
 import type { AnyCommand, RedirectSpec } from '@prisma/cli-engine';
 import { defineCommandFamily } from '@prisma/cli-engine';
 import { ormConfigSection } from './config-section';
+import { dbInitCommand } from './db/init';
 import { dbSchemaCommand } from './db/schema';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
@@ -15,6 +16,7 @@ import { migrationShowCommand } from './migration/show';
 const DOCS_BASE_URL = `${DOCS_BASE}/`;
 
 const commands: Readonly<Record<string, AnyCommand>> = {
+  'db init': dbInitCommand,
   'db schema': dbSchemaCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,

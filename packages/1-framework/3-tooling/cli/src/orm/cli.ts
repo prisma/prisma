@@ -2,6 +2,7 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine';
 import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
+import { dbInitCommand } from './db/init';
 import { dbSchemaCommand } from './db/schema';
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
@@ -30,6 +31,7 @@ export const BIN_GROUPS = {
 } as const;
 
 export const BIN_COMMANDS: MountedTree = {
+  'db init': dbInitCommand,
   'db schema': dbSchemaCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,

@@ -1,5 +1,4 @@
 import { ifDefined } from '@internal/utils/defined';
-import { assertNever } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { Command } from 'commander';
@@ -7,13 +6,9 @@ import {
   type RefAdvancementFields,
   resolveRefAdvancementFields,
 } from '../control-api/operations/ref-advancement';
-import type { DbInitFailure } from '../control-api/types';
 import {
   CliStructuredError,
   errorContractValidationFailed,
-  errorMigrationPlanningFailed,
-  errorRunnerFailed,
-  errorRuntime,
   errorUnexpected,
 } from '../utils/cli-errors';
 import type { MigrationCommandOptions } from '../utils/command-helpers';
@@ -24,6 +19,7 @@ import {
   setCommandDescriptions,
   setCommandExamples,
 } from '../utils/command-helpers';
+import { mapDbInitFailure } from '../utils/db-init-failure';
 import {
   formatMigrationApplyOutput,
   formatMigrationJson,
@@ -40,73 +36,6 @@ import { createTerminalUI, type TerminalUI } from '../utils/terminal-ui';
 
 interface DbInitOptions extends MigrationCommandOptions {
   readonly advanceRef?: string;
-}
-
-/**
- * Maps a DbInitFailure to a CliStructuredError for consistent error handling.
- */
-function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
-  if (failure.code === 'PLANNING_FAILED') {
-    return errorMigrationPlanningFailed({ conflicts: failure.conflicts ?? [] });
-  }
-
-  if (failure.code === 'MIGRATION.MARKER_ORIGIN_MISMATCH') {
-    const mismatchParts: string[] = [];
-    if (
-      failure.marker?.storageHash !== failure.destination?.storageHash &&
-      failure.marker?.storageHash &&
-      failure.destination?.storageHash
-    ) {
-      mismatchParts.push(
-        `storageHash (marker: ${failure.marker.storageHash}, destination: ${failure.destination.storageHash})`,
-      );
-    }
-    if (
-      failure.marker?.profileHash !== failure.destination?.profileHash &&
-      failure.marker?.profileHash &&
-      failure.destination?.profileHash
-    ) {
-      mismatchParts.push(
-        `profileHash (marker: ${failure.marker.profileHash}, destination: ${failure.destination.profileHash})`,
-      );
-    }
-
-    return errorRuntime(
-      'MIGRATION.MARKER_ORIGIN_MISMATCH',
-      `Existing database signature does not match plan destination.${mismatchParts.length > 0 ? ` Mismatch in ${mismatchParts.join(' and ')}.` : ''}`,
-      {
-        why: 'Database has an existing signature (marker) that does not match the target contract',
-        fix: 'If bootstrapping, drop/reset the database then re-run `prisma-next db init`; otherwise reconcile schema/marker using your migration workflow',
-        meta: {
-          ...ifDefined('markerStorageHash', failure.marker?.storageHash),
-          ...ifDefined('destinationStorageHash', failure.destination?.storageHash),
-          ...ifDefined('markerProfileHash', failure.marker?.profileHash),
-          ...ifDefined('destinationProfileHash', failure.destination?.profileHash),
-        },
-      },
-    );
-  }
-
-  if (failure.code === 'RUNNER_FAILED') {
-    const runnerCode =
-      typeof failure.meta?.['runnerErrorCode'] === 'string'
-        ? failure.meta['runnerErrorCode']
-        : undefined;
-    const fix =
-      runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
-        ? 'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `prisma-next db init` to recreate it with the current per-space schema.'
-        : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `prisma-next db init`';
-    return errorRunnerFailed(failure.summary, {
-      why: failure.why ?? 'Migration runner failed',
-      fix,
-      ...ifDefined('meta', failure.meta),
-      ...ifDefined('cause', failure.cause),
-    });
-  }
-
-  // Exhaustive check - TypeScript will error if a new code is added but not handled
-  const exhaustive: never = failure.code;
-  return assertNever(exhaustive, `Unhandled DbInitFailure code: ${String(exhaustive)}`);
 }
 
 /**
