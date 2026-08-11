@@ -5,7 +5,7 @@ import type {
 } from '@internal/migration-tools/aggregate';
 import type { RefEntry, Refs } from '@internal/migration-tools/refs';
 import { ifDefined } from '@internal/utils/defined';
-import type { Block, Presentations } from '@prisma/cli-engine';
+import type { Block, Presentations, Text } from '@prisma/cli-engine';
 import { defineCommand, flag } from '@prisma/cli-engine';
 import type { Diagnostic, Result } from '@prisma/cli-engine/protocol';
 import { CliStructuredError, notOk, ok } from '@prisma/cli-engine/protocol';
@@ -150,6 +150,22 @@ interface SpaceSection {
   readonly showHeading: boolean;
 }
 
+/**
+ * One space's section: its heading, where more than one space is in scope, on
+ * top of its tree. Heading and tree are one drawing so the heading stays a
+ * bare label — a `summary` would put a status glyph in front of it.
+ */
+function sectionBlock(section: SpaceSection): Block {
+  const heading: readonly Text[] = section.showHeading
+    ? [[{ text: `${section.space}:`, tone: 'heading' }]]
+    : [];
+  const body: readonly Text[] =
+    section.tree.length === 0
+      ? [[{ text: '(no migrations)', tone: 'muted' }]]
+      : toneDrawing(section.tree);
+  return { kind: 'drawing', lines: [...heading, ...body] };
+}
+
 function statusPresentations(inputs: {
   readonly document: MigrationStatusResult;
   readonly sections: readonly SpaceSection[];
@@ -176,14 +192,7 @@ function statusPresentations(inputs: {
         ],
       },
       ...(legend === undefined ? [] : [{ kind: 'drawing' as const, lines: toneDrawing(legend) }]),
-      ...inputs.sections.flatMap((section): readonly Block[] => [
-        ...(section.showHeading
-          ? [{ kind: 'summary' as const, status: 'info' as const, text: `${section.space}:` }]
-          : []),
-        section.tree.length === 0
-          ? { kind: 'summary', status: 'info', tone: 'muted', text: '(no migrations)' }
-          : { kind: 'drawing', lines: toneDrawing(section.tree) },
-      ]),
+      ...inputs.sections.map(sectionBlock),
       inputs.headline,
     ],
     json: () => inputs.document,

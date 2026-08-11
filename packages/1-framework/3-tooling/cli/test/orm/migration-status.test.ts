@@ -3,6 +3,7 @@ import { writeRef } from '@internal/migration-tools/refs';
 import type { MountedTree } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { createTestCli } from '@prisma/cli-engine/testing';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -46,7 +47,7 @@ beforeAll(async () => {
   const cli = await import('../../src/orm/cli');
   commands = cli.BIN_COMMANDS;
   groups = cli.BIN_GROUPS;
-});
+}, timeouts.coldTransformImport);
 
 afterAll(() => {
   vi.doUnmock('../../src/control-api/client');
