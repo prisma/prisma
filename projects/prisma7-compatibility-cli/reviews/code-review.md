@@ -135,6 +135,7 @@
 - After D4, the operator rejected the remaining package/identity/dispatcher unit and contract coverage as overtesting. D5 consolidated them to one scenario covering `prisma7/config` import/typechecking/config selection, `prisma7 --version`, `prisma7 generate`, and successful generated-client execution.
 - After D5, the operator correctly rejected the package-local Vitest subprocess scenario as not using Prisma's E2E harness. D6 moved the scenario under `packages/client/tests/e2e`, installed packed tarballs in the standard Docker fixture, and removed the prisma7 package-level test job and test-only dependencies.
 - D7 addresses current PR feedback only: simplify identity to `'prisma' | 'prisma7'`, use `prisma7 db push` instead of raw DDL in E2E, and guard chmod after esbuild errors. The `prepack` suggestion was rejected by the operator because root build precedes E2E packing; comments on deleted tests are obsolete.
+- After D9 review, regenerating the ignored type-benchmark clients with `pnpm --filter @prisma/type-benchmark-tests dev` cleared the local stale `@ts-expect-error` noise. The exact CI commands `pnpm tsc -p tsconfig.utils.typecheck.json` and `pnpm lint` then passed with no tracked changes.
 
 ## Findings log
 
