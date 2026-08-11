@@ -2,10 +2,14 @@ import { DOCS_BASE } from '@internal/utils/structured-error';
 import type { AnyCommand, RedirectSpec } from '@prisma/cli-engine';
 import { defineCommandFamily } from '@prisma/cli-engine';
 import { ormConfigSection } from './config-section';
+import { formatCommand } from './format';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
 import { migrationShowCommand } from './migration/show';
+import { refDeleteCommand } from './ref/delete';
+import { refListCommand } from './ref/list';
+import { refSetCommand } from './ref/set';
 
 /**
  * The engine derives each diagnostic's docs link from this base plus the
@@ -14,10 +18,14 @@ import { migrationShowCommand } from './migration/show';
 const DOCS_BASE_URL = `${DOCS_BASE}/`;
 
 const commands: Readonly<Record<string, AnyCommand>> = {
+  format: formatCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,
   'migration log': migrationLogCommand,
   'migration show': migrationShowCommand,
+  'ref delete': refDeleteCommand,
+  'ref list': refListCommand,
+  'ref set': refSetCommand,
 };
 
 /**

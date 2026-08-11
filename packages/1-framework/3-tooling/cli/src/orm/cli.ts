@@ -3,11 +3,15 @@ import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine'
 import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
 import { ormCommandFamily } from './family';
+import { formatCommand } from './format';
 import { loadOrmConfig } from './load-config';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
 import { migrationShowCommand } from './migration/show';
+import { refDeleteCommand } from './ref/delete';
+import { refListCommand } from './ref/list';
+import { refSetCommand } from './ref/set';
 import { resolveTelemetryHooks } from './telemetry/reporting';
 
 export const BIN_NAME = 'prisma-next';
@@ -19,13 +23,24 @@ export const BIN_GROUPS = {
       'Plan, apply, and scaffold on-disk migration packages. Migrations are\n' +
       'contract-to-contract edges stored as versioned directories under migrations/.',
   },
+  ref: {
+    brief: 'Named pointers at contracts',
+    description:
+      'Manage the named refs under migrations/app/refs/. A ref maps a logical\n' +
+      'environment name — staging, production — to a contract hash, so a command\n' +
+      'can name the environment instead of the hash.',
+  },
 } as const;
 
 export const BIN_COMMANDS: MountedTree = {
+  format: formatCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,
   'migration log': migrationLogCommand,
   'migration show': migrationShowCommand,
+  'ref delete': refDeleteCommand,
+  'ref list': refListCommand,
+  'ref set': refSetCommand,
 };
 
 export function createOrmCli(): Cli {
