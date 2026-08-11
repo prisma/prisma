@@ -502,7 +502,25 @@ Two consequences for a pack:
   A `Date` is the one authored value JSON has no notation for, so it is the one that arrives as itself.
 
 <!--
-PR #29910: `changes: []`. Binding internal mutation-reload filters and repairing Supabase runtime coverage after the driver SPI split require no downstream extension source translation.
+PR #29910: `changes:
+  - id: authored-check-constraints
+    summary: |
+      Packs gain two things. First, `sql.checkConstraint` is a new adapter-reported capability; an
+      adapter that supports CHECK constraint DDL should report it, and the `@@check` authoring
+      surface is gated on it. Second, a check is no longer "derived" merely by being wire-named:
+      derivation is now decided by whether the wire prefix is one derivation would produce for a
+      column of that table, because user-authored checks are wire-named too. A pack that inspected
+      `check.prefix !== undefined` to mean "Prisma Next generated this" must use the same
+      prefix-shape test (`derivedCheckPrefixes` from `@internal/sql-schema-ir/naming`). An authored
+      name that collides with a derived prefix shape is rejected at authoring
+      (`CONTRACT.CHECK_NAME_RESERVED`).
+    detection:
+      glob: "**/*.{ts,tsx}"
+      contains:
+        - 'checkConstraint'
+        - 'derivedCheckPrefixes'
+        - 'prefix'
+      anyMatch: true`. Binding internal mutation-reload filters and repairing Supabase runtime coverage after the driver SPI split require no downstream extension source translation.
 
 PR #29920: `changes: []`. Adds prepared-statement test coverage to the Supabase runtime suite (test-fixture codec registration only) and fixes a postgres direct-driver transaction defect; neither requires downstream extension source translation. The SPI split itself is recorded as `driver-spi-splits-query-and-execute` in the 0.17-to-8.0.0-rc.1 transition.
 

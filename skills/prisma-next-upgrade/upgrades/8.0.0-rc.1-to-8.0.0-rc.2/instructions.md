@@ -343,7 +343,27 @@ Convert each to the column's own type — `BigInt(value)` for a `bigint` column,
 Schema-written defaults need nothing. `BigInt @default(0)` still emits and still migrates: the JSON side of these codecs accepts a safe-integer number, because a schema language writes no `bigint` literal, and only the query-parameter side requires the exact type.
 
 <!--
-PR #29910: `changes: []`. The example changes repair test instrumentation and fixture/runtime isolation after the driver SPI split; they require no user API, contract, configuration, generated-artifact, or source translation.
+PR #29910: `changes:
+  - id: authored-check-constraints
+    summary: |
+      A CHECK constraint can now be declared in the contract: `@@check(expression: "…", name: "…")`
+      in PSL, `check({ expression, name })` in the TypeScript builder. `name:` is a wire-name
+      prefix — the physical constraint becomes `name_<8hex>`, hashed over the predicate, and is
+      compared by name, so Postgres reprinting the expression never causes drift. Use `map:`
+      instead to adopt a constraint that already exists under its own physical name; that form
+      compares the predicate byte-for-byte and warns if you hand-author the body, because your
+      text will not match the database's reprint. `contract infer` now writes the `map:` form for
+      you: pulling a database emits `@@check` for every live check Prisma Next did not derive, so a
+      hand-written constraint is declared from the first pull instead of reading as an undeclared
+      extra a destructive plan would drop. Nothing is required of an existing contract — the
+      surface is additive — but re-running `contract infer` against a database with hand-written
+      checks now captures them.
+    detection:
+      glob: "**/*.{prisma,ts}"
+      contains:
+        - '@@check'
+        - 'check('
+      anyMatch: true`. The example changes repair test instrumentation and fixture/runtime isolation after the driver SPI split; they require no user API, contract, configuration, generated-artifact, or source translation.
 PR #29902: `changes: []`. Generated contracts gain additive aggregate rows for new opt-in integer representation codecs, but existing schemas and source require no migration; users re-emit only when adopting the new target-scoped types.
 PR #29950: `changes: []`. The demo applications adopt the integer representation types and the precision-preserving aggregates on their own models, and the reference docs gain the matching examples; the diff is confined to example apps and documentation and requires no user API, contract, configuration, generated-artifact, or source translation.
 -->
