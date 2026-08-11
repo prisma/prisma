@@ -16,7 +16,12 @@ interface RaisedError {
   readonly where?: { readonly path?: string; readonly line?: number };
   readonly meta?: Record<string, unknown>;
   readonly docsUrl?: string;
-  readonly nextActions?: unknown;
+  /**
+   * Present only on the CLI package's own factories, which know the runnable
+   * invocation that fixes the failure. Library-raised errors carry `fix` prose
+   * and nothing else.
+   */
+  readonly nextActions?: readonly NextAction[];
 }
 
 function isRaisedError(error: unknown): error is Error & RaisedError {
@@ -31,11 +36,14 @@ function isRaisedError(error: unknown): error is Error & RaisedError {
 
 /**
  * Both classes name themselves `CliStructuredError`, so the engine's duck test
- * accepts prisma/prisma's too. What actually separates them is `nextActions`:
- * the engine's constructor always sets it, prisma/prisma's never does.
+ * accepts prisma/prisma's too, and a CLI factory carrying typed actions looks
+ * conformant without being one — its `toEnvelope` still writes `fix` and no
+ * `nextActions`. Only an error the engine itself built is already in protocol
+ * shape, and `@prisma/cli-engine` is an exact-pinned, unbundled dependency, so
+ * there is one module instance and identity holds.
  */
 function conformsToProtocol(error: unknown): error is CliStructuredError {
-  return CliStructuredError.is(error) && Array.isArray(error.nextActions);
+  return error instanceof CliStructuredError;
 }
 
 /**
@@ -62,7 +70,7 @@ export function toEngineDiagnostic(error: Error & RaisedError): Diagnostic {
     severity: error.severity ?? 'error',
     summary: error.message,
     ...ifDefined('why', error.why),
-    nextActions: actionsFromFix(error.fix),
+    nextActions: error.nextActions ?? actionsFromFix(error.fix),
     ...ifDefined('where', error.where),
     ...ifDefined('meta', error.meta),
     ...ifDefined('docsUrl', error.docsUrl),

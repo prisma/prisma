@@ -2,6 +2,7 @@ import { CliStructuredError } from '@internal/errors/control';
 import { CliStructuredError as EngineStructuredError } from '@prisma/cli-engine/protocol';
 import { describe, expect, it } from 'vitest';
 import { normalizeError, toEngineDiagnostic } from '../../src/orm/normalize-error';
+import { errorSpaceNotFound } from '../../src/utils/cli-errors';
 
 describe('normalizeError', () => {
   describe('a prisma/prisma error carrying fix prose', () => {
@@ -61,6 +62,26 @@ describe('normalizeError', () => {
       const raised = new CliStructuredError('CLI.UNEXPECTED', 'Something went wrong');
 
       expect(normalizeError(raised).nextActions).toEqual([]);
+    });
+  });
+
+  describe('a CLI factory carrying typed actions', () => {
+    const raised = errorSpaceNotFound('billing', ['app']);
+
+    it('keeps the typed actions instead of deriving them from the prose', () => {
+      expect(normalizeError(raised).nextActions).toEqual([
+        { kind: 'user-choice', label: 'Pick one of: app' },
+        {
+          kind: 'run-command',
+          label: "See every space's migrations",
+          command: 'prisma-next migration list',
+        },
+      ]);
+    });
+
+    it('drops the fix prose the commander shell still renders', () => {
+      expect(raised.fix).toBeDefined();
+      expect(normalizeError(raised).toEnvelope()).not.toHaveProperty('fix');
     });
   });
 
