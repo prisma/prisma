@@ -90,13 +90,18 @@ Same argument rules, same validation, same lowering — the two surfaces converg
 
 `stripDerivedChecksFromNonManagedTables` identifies a derived check as a wire-named one (`derived-checks.ts:149`: `checks.filter((check) => check.prefix === undefined)`), and its own comment says that test moves when an authoring surface exists. It moves now: an authored `name:` check is wire-named, so today's marker would **silently delete an explicitly authored constraint** from any non-`managed` table and recompute the storage hash as though it were never written.
 
-**Replacement:** a check is derived iff its physical name equals the name derivation would produce for some column of its table and some kind —
+**Replacement: the prefix-shape rule.** A check is derived iff its wire prefix is one derivation would produce for some column of its table:
 
 ```
-name === formatWireName(composeCheckWirePrefix(table, column, kind), computeCheckContentHash(renderedExpression))
+prefix ∈ { composeCheckWirePrefix(tableName, columnName, kind)
+           : columnName ∈ table.columns, kind ∈ ('membership', 'elementNotNull') }
 ```
 
-for some `column` of the table and `kind` in the kinds that column's shape derives. This is the predicate `contract infer` already computes (`infer-model-blocks.ts:285-300`); lifting it to a shared helper puts one derivation rule in one place and consumes it from three (build-time strip, infer emission, and the new authored/derived partition). The helper belongs beside the renderer in the Postgres pack, since it needs `postgresRenderCheckExpressions` to know the expression a kind renders.
+Not the full name-with-hash. The stronger test — recomputing `computeCheckContentHash` over the rendered expression, which is what `contract infer` does (`infer-model-blocks.ts:285-300`) — needs `postgresRenderCheckExpressions` to know what a kind renders, and the strip pass has no access to it: `applySqlSpecifierControlPolicy(contract, defaultControlPolicy, createNamespace)` receives no target descriptor, and threading one in to reach a duck-typed hook from a family-level funnel is a worse change than the problem. `composeCheckWirePrefix` lives in `@internal/sql-schema-ir/naming`, which `contract-ts` already depends on, so the prefix rule needs no new edge and no new argument.
+
+**The corner case, and how it is closed.** The prefix rule is weaker: an authored check on table `order` written as `name: "order_total_check"` composes to the same prefix a derived membership check on `order.total` would, so the strip would misclassify it as derived and delete it. Rather than accept that, make it unreachable — **an authored `name:` whose prefix matches the derived-prefix shape for any column of its table is an authoring error** (`CONTRACT.CHECK_NAME_RESERVED`; PSL diagnostic `PSL_CHECK_NAME_RESERVED`), telling the author to pick a different name. The check is cheap (a set membership against the table's own columns), it runs where the table's columns are already in hand, and it makes the classification exact by construction rather than probable.
+
+Infer keeps its existing full-hash computation — it has the renderer in-package and the stronger test costs it nothing.
 
 **Authored checks are emitted regardless of control policy.** The `derivesChecks` gate (`build-contract.ts:901-902, :1021`) governs *derivation* only; authored checks are added to `checksForTable` outside it. The reasoning that scoped derivation to `managed` was "the contract describes an external schema, it does not prescribe enforcement for it" — a derived check on an external table is a statement Prisma Next invented. An authored check is the author's own statement about a constraint they know exists, which is precisely what a description of an external schema should be able to say, and it is what makes infer round-tripping of `external` and pack-owned schemas work at all. The cost is that declaring a check that is not live on an `external` table fails verify with no remedy (`external` suppresses extras, not `declaredMissing`) — accepted, because unlike the derived case the author asked for it and can delete the line.
 
@@ -123,6 +128,7 @@ Mirroring `@@index` at every step:
 | authored `name:` prefix over the 54-byte wire budget | throw from `assertWireNamePrefixLength` (author can shorten it) |
 | `map:` with a hand-authored body | **warning** `PN_EXACT_NAME_BODY_COMPARISON`, not an error |
 | authored name collides with another check on the same table (authored or derived) | error — table-wide constraint-name uniqueness is already validated and stays |
+| authored `name:` prefix matches a derived-prefix shape for any column of the table | error `PSL_CHECK_NAME_RESERVED` / `CONTRACT.CHECK_NAME_RESERVED` — see § The derived-check marker |
 | `@@check` on a target without the capability | error `PSL_CHECK_UNSUPPORTED_TARGET` (see below) |
 
 ## SQLite
