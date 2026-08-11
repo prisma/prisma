@@ -8,11 +8,11 @@ import type { CliDistributionIdentity } from './utils/cli-distribution-identity'
 
 /** $ prisma platform status */
 export class Status implements Command {
-  static new(identity: CliDistributionIdentity = 'prisma'): Status {
+  static new(identity: CliDistributionIdentity): Status {
     return new Status(identity)
   }
 
-  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+  constructor(private readonly identity: CliDistributionIdentity) {}
 
   public help(error?: string): string | HelpError {
     if (error) {

@@ -13,14 +13,14 @@ export function printPpgInitOutput({
   projectId,
   environmentId,
   isExistingPrismaProject = false,
-  identity = 'prisma',
+  identity,
 }: {
   databaseUrl: string
   workspaceId: string
   projectId: string
   environmentId?: string
   isExistingPrismaProject?: boolean
-  identity?: CliDistributionIdentity
+  identity: CliDistributionIdentity
 }): string {
   const newPrismaProjectOutput = `
 We created an initial ${green('schema.prisma')} file and a ${green('.env')} file with your ${green(

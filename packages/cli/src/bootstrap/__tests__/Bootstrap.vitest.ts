@@ -124,18 +124,18 @@ function setupMockApiSuccess() {
 
 describe('Bootstrap command — help and validation', () => {
   test('shows help with --help flag', async () => {
-    const result = await Bootstrap.new().parse(['--help'], defaultTestConfig(), tmpDir)
+    const result = await Bootstrap.new('prisma').parse(['--help'], defaultTestConfig(), tmpDir)
     expect(result).toContain('prisma bootstrap')
   })
 
   test('returns error when --api-key is given without --database', async () => {
-    const result = await Bootstrap.new().parse(['--api-key', 'test_key'], defaultTestConfig(), tmpDir)
+    const result = await Bootstrap.new('prisma').parse(['--api-key', 'test_key'], defaultTestConfig(), tmpDir)
     expect(result).toBeInstanceOf(HelpError)
     expect((result as HelpError).message).toContain('--database')
   })
 
   test('validates database ID format', async () => {
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'invalid-id'],
       defaultTestConfig(),
       tmpDir,
@@ -145,7 +145,7 @@ describe('Bootstrap command — help and validation', () => {
   })
 
   test('rejects unknown --template name', async () => {
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123', '--template', 'unknown-framework'],
       defaultTestConfig(),
       tmpDir,
@@ -167,7 +167,7 @@ describe('Bootstrap command — new project flow', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
@@ -187,7 +187,7 @@ describe('Bootstrap command — new project flow', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123', '--template', 'nextjs'],
       defaultTestConfig(),
       tmpDir,
@@ -216,7 +216,7 @@ describe('Bootstrap command — new project flow', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123', '--template', 'nextjs'],
       defaultTestConfig(),
       tmpDir,
@@ -245,7 +245,7 @@ describe('Bootstrap command — new project flow', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123', '--template', 'nextjs'],
       defaultTestConfig(),
       tmpDir,
@@ -273,7 +273,7 @@ describe('Bootstrap command — existing project flow', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
@@ -307,7 +307,7 @@ model User { id Int @id }
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
@@ -346,7 +346,7 @@ describe('Bootstrap command — deps gate', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
@@ -379,7 +379,7 @@ describe('Bootstrap command — deps gate', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
@@ -411,7 +411,7 @@ describe('Bootstrap command — deps gate', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
@@ -449,7 +449,7 @@ describe('Bootstrap command — seed step', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
@@ -485,7 +485,7 @@ describe('Bootstrap command — seed step', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
@@ -524,7 +524,7 @@ describe('Bootstrap command — mixed consent gates', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
@@ -563,7 +563,7 @@ describe('Bootstrap command — mixed consent gates', () => {
 
     setupMockApiSuccess()
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'test_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,
@@ -586,7 +586,7 @@ describe('Bootstrap command — error handling', () => {
       error: { error: { code: 'unauthorized', message: 'Unauthorized' } },
     })
 
-    const result = await Bootstrap.new().parse(
+    const result = await Bootstrap.new('prisma').parse(
       ['--api-key', 'bad_key', '--database', 'db_abc123'],
       defaultTestConfig(),
       tmpDir,

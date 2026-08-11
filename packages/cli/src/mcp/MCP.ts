@@ -32,7 +32,7 @@ async function runCommand({
 }
 
 export class Mcp implements Command {
-  public static new(identity: CliDistributionIdentity = 'prisma'): Mcp {
+  public static new(identity: CliDistributionIdentity): Mcp {
     return new Mcp(identity)
   }
 

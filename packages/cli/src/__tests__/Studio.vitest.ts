@@ -108,7 +108,7 @@ describe('Studio URL validation', () => {
   test('accepts sqlserver:// URLs (semicolon-delimited, not valid WHATWG URLs)', async () => {
     const { Studio } = await import('../Studio')
 
-    const result = await Studio.new().parse(
+    const result = await Studio.new('prisma').parse(
       ['--browser', 'none', '--port', '5555', '--url', 'sqlserver://localhost;database=mydb;user=sa;password=secret'],
       defaultTestConfig(),
     )
@@ -121,7 +121,7 @@ describe('Studio URL validation', () => {
   test('rejects invalid non-sqlserver URLs', async () => {
     const { Studio } = await import('../Studio')
 
-    const result = await Studio.new().parse(
+    const result = await Studio.new('prisma').parse(
       ['--browser', 'none', '--port', '5555', '--url', 'not a valid url'],
       defaultTestConfig(),
     )
@@ -134,7 +134,7 @@ describe('Studio URL validation', () => {
   test('passes valid mysql:// URLs through unchanged', async () => {
     const { Studio } = await import('../Studio')
 
-    const result = await Studio.new().parse(
+    const result = await Studio.new('prisma').parse(
       ['--browser', 'none', '--port', '5555', '--url', 'mysql://user:password@aws.connect.psdb.cloud/db'],
       defaultTestConfig(),
     )
@@ -161,7 +161,7 @@ describe('Studio port selection', () => {
   test('checks for an available port on the loopback interface when no port is requested', async () => {
     const { Studio } = await import('../Studio')
 
-    await Studio.new().parse(
+    await Studio.new('prisma').parse(
       ['--browser', 'none', '--url', 'postgresql://user:password@localhost:5432/db'],
       defaultTestConfig(),
     )
@@ -177,7 +177,7 @@ describe('Studio port selection', () => {
   test('uses a requested port without probing for an available port', async () => {
     const { Studio } = await import('../Studio')
 
-    await Studio.new().parse(
+    await Studio.new('prisma').parse(
       ['--browser', 'none', '--port', '5555', '--url', 'postgresql://user:password@localhost:5432/db'],
       defaultTestConfig(),
     )
@@ -191,7 +191,7 @@ describe('Studio port selection', () => {
     async (port) => {
       const { Studio } = await import('../Studio')
 
-      const result = await Studio.new().parse(
+      const result = await Studio.new('prisma').parse(
         ['--browser', 'none', '--port', port, '--url', 'postgresql://user:password@localhost:5432/db'],
         defaultTestConfig(),
       )
@@ -218,7 +218,7 @@ describe('Studio MySQL URL compatibility', () => {
   test('converts sslaccept=strict to mysql2 ssl JSON', async () => {
     const { Studio } = await import('../Studio')
 
-    await Studio.new().parse(
+    await Studio.new('prisma').parse(
       [
         '--browser',
         'none',
@@ -241,7 +241,7 @@ describe('Studio MySQL URL compatibility', () => {
   test('maps connection_limit to mysql2 connectionLimit', async () => {
     const { Studio } = await import('../Studio')
 
-    await Studio.new().parse(
+    await Studio.new('prisma').parse(
       [
         '--browser',
         'none',
@@ -264,7 +264,7 @@ describe('Studio MySQL URL compatibility', () => {
   test('converts sslaccept=accept_invalid_certs to mysql2 ssl JSON', async () => {
     const { Studio } = await import('../Studio')
 
-    await Studio.new().parse(
+    await Studio.new('prisma').parse(
       [
         '--browser',
         'none',
@@ -701,7 +701,7 @@ async function startStudioBff(
 
   const { Studio } = await import('../Studio')
 
-  await Studio.new().parse(
+  await Studio.new('prisma').parse(
     ['--browser', 'none', '--port', String(port), '--url', 'postgresql://user:password@localhost:5432/db'],
     defaultTestConfig(),
   )

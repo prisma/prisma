@@ -60,7 +60,7 @@ export class SubCommand implements Command {
 
   constructor(
     pkg: string,
-    private readonly identity: CliDistributionIdentity = 'prisma',
+    private readonly identity: CliDistributionIdentity,
   ) {
     this.pkg = pkg
   }

@@ -22,11 +22,11 @@ import type { CliDistributionIdentity } from './utils/cli-distribution-identity'
  * $ prisma format
  */
 export class Format implements Command {
-  public static new(identity: CliDistributionIdentity = 'prisma'): Format {
+  public static new(identity: CliDistributionIdentity): Format {
     return new Format(identity)
   }
 
-  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+  constructor(private readonly identity: CliDistributionIdentity) {}
 
   public async parse(
     argv: string[],

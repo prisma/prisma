@@ -111,7 +111,7 @@ export const defaultEnv = async (
   url: string | undefined,
   debug = false,
   comments = true,
-  identity: CliDistributionIdentity = 'prisma',
+  identity: CliDistributionIdentity,
 ) => {
   if (url === undefined) {
     // TODO: bundle the CLI to ESM instead of CommonJS and make these module-level imports
@@ -229,10 +229,10 @@ type DefaultConfigInput = {
    * Currently, this is only used to customize the Bun experience.
    */
   runtime: 'bun' | 'other'
-  identity?: CliDistributionIdentity
+  identity: CliDistributionIdentity
 }
 
-export const defaultConfig = ({ prismaFolder, runtime, identity = 'prisma' }: DefaultConfigInput) => {
+export const defaultConfig = ({ prismaFolder, runtime, identity }: DefaultConfigInput) => {
   const configPackage = `${identity}/config`
   const schemaPath = path.relative(process.cwd(), path.join(prismaFolder, 'schema.prisma'))
   const migrationsPath = path.relative(process.cwd(), path.join(prismaFolder, 'migrations'))
@@ -277,11 +277,11 @@ export default defineConfig({
 }
 
 export class Init implements Command {
-  static new(identity: CliDistributionIdentity = 'prisma'): Init {
+  static new(identity: CliDistributionIdentity): Init {
     return new Init(identity)
   }
 
-  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+  constructor(private readonly identity: CliDistributionIdentity) {}
 
   async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {

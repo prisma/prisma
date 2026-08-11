@@ -5,7 +5,7 @@ function captureCompletionOutput(argv: string[]): { result: string | Error; outp
   const consoleLog = jest.spyOn(console, 'log').mockImplementation((value) => output.push(String(value)))
 
   try {
-    return { result: parseCompletionCommand(argv), output }
+    return { result: parseCompletionCommand(argv, 'prisma'), output }
   } finally {
     consoleLog.mockRestore()
   }

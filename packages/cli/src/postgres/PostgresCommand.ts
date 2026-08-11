@@ -6,7 +6,7 @@ import { bold, dim, red } from 'kleur/colors'
 import type { CliDistributionIdentity } from '../utils/cli-distribution-identity'
 
 export class PostgresCommand implements Command {
-  public static new(cmds: Commands, identity: CliDistributionIdentity = 'prisma'): PostgresCommand {
+  public static new(cmds: Commands, identity: CliDistributionIdentity): PostgresCommand {
     return new PostgresCommand(cmds, identity)
   }
 

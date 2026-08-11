@@ -41,13 +41,13 @@ function statusLabel(status: StepResult): string {
 
 export function formatBootstrapOutput(opts: {
   databaseId: string
-  identity?: CliDistributionIdentity
+  identity: CliDistributionIdentity
   isNewProject: boolean
   steps: BootstrapStepStatus
   hasModels: boolean
   pendingDepsInstall?: boolean
 }): string {
-  const cliCommand = opts.identity ?? 'prisma'
+  const cliCommand = opts.identity
   const lines: string[] = []
 
   lines.push('')

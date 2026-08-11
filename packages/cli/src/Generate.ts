@@ -42,7 +42,7 @@ import { handleSkillsOffer } from './utils/skills/skills-offer'
 
 type GenerateOptions = {
   getGlobalLocalVersionMismatchWarning?: (options: GlobalLocalVersionMismatchWarningOptions) => Promise<string | null>
-  identity?: CliDistributionIdentity
+  identity: CliDistributionIdentity
 }
 
 /**
@@ -59,16 +59,16 @@ export class Generate implements Command {
   constructor(
     surveyHandler: () => Promise<void> = handleNpsSurvey,
     skillsOfferHandler: () => Promise<{ prompted: boolean }> = handleSkillsOffer,
-    options: GenerateOptions = {},
+    options: GenerateOptions,
   ) {
     this.surveyHandler = surveyHandler
     this.skillsOfferHandler = skillsOfferHandler
-    this.identity = options.identity ?? 'prisma'
+    this.identity = options.identity
     this.getGlobalLocalVersionMismatchWarning =
       options.getGlobalLocalVersionMismatchWarning ?? getDefaultGlobalLocalVersionMismatchWarning
   }
 
-  public static new(identity: CliDistributionIdentity = 'prisma'): Generate {
+  public static new(identity: CliDistributionIdentity): Generate {
     return new Generate(handleNpsSurvey, handleSkillsOffer, { identity })
   }
 

@@ -10,7 +10,7 @@ type LocalPackageName = CliDistributionIdentity | '@prisma/client'
 export type GlobalLocalVersionMismatchWarningOptions = {
   cwd?: string
   globalVersion: string
-  identity?: CliDistributionIdentity
+  identity: CliDistributionIdentity
   isGlobalInstall?: () => 'npm' | false
   getInstalledPackageVersion?: (packageName: LocalPackageName, cwd: string) => Promise<string | null>
 }
@@ -38,7 +38,7 @@ export async function getGlobalLocalVersionMismatchWarning(
     return null
   }
 
-  const identity = options.identity ?? 'prisma'
+  const identity = options.identity
   const cwd = options.cwd ?? process.cwd()
   const getInstalledPackageVersion = options.getInstalledPackageVersion ?? getInstalledPackageVersionFromNodeModules
   const localVersions = await Promise.all(

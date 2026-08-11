@@ -29,11 +29,11 @@ const packageJson = require('../package.json')
  * $ prisma version
  */
 export class Version implements Command {
-  static new(identity: CliDistributionIdentity = 'prisma'): Version {
+  static new(identity: CliDistributionIdentity): Version {
     return new Version(identity)
   }
 
-  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+  constructor(private readonly identity: CliDistributionIdentity) {}
 
   public help(error?: string): string | HelpError {
     if (error) {

@@ -21,14 +21,14 @@ describe('prisma.config.ts', () => {
   it('should not require a datasource in the config by default', async () => {
     ctx.fixture('no-config')
 
-    const result = Generate.new().parse([], await ctx.config())
+    const result = Generate.new('prisma').parse([], await ctx.config())
     await expect(result).resolves.toBeDefined()
   })
 
   it('using `--sql` should require a datasource in the config', async () => {
     ctx.fixture('no-config')
 
-    const result = Generate.new().parse(['--sql'], await ctx.config())
+    const result = Generate.new('prisma').parse(['--sql'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"The datasource.url property is required in your Prisma config file when using prisma generate --sql."`,
     )
@@ -270,6 +270,7 @@ it('should hide hints with --no-hints', async () => {
 it('should still show the global/local version warning with --no-hints', async () => {
   ctx.fixture('example-project')
   const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
+    identity: 'prisma',
     getGlobalLocalVersionMismatchWarning: () => Promise.resolve('warn global/local version mismatch'),
   })
   const output = await generate.parse(['--no-hints'], await ctx.config())
@@ -282,6 +283,7 @@ it('should not fail generate when the global/local version warning lookup fails'
   ctx.fixture('example-project')
   const getGlobalLocalVersionMismatchWarning = jest.fn().mockRejectedValue(new Error('version lookup failed'))
   const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
+    identity: 'prisma',
     getGlobalLocalVersionMismatchWarning,
   })
   const output = stripAnsi((await generate.parse([], await ctx.config())).toString())
@@ -295,6 +297,7 @@ it('should check local package versions from the schema root directory', async (
   ctx.fixture('generate-from-parent-dir')
   const getGlobalLocalVersionMismatchWarning = jest.fn().mockResolvedValue(null)
   const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
+    identity: 'prisma',
     getGlobalLocalVersionMismatchWarning,
   })
 
@@ -310,6 +313,7 @@ it('should check local package versions from the schema root directory', async (
 it('should show the global/local version warning without a prisma-client-js generator', async () => {
   ctx.fixture('no-config')
   const generate = new Generate(jest.fn(), jest.fn().mockResolvedValue({ prompted: false }), {
+    identity: 'prisma',
     getGlobalLocalVersionMismatchWarning: () => Promise.resolve('warn global/local version mismatch'),
   })
   const output = await generate.parse([], await ctx.config())
@@ -328,7 +332,7 @@ it('should run the skills offer before the survey handler when hints are not dis
     calls.push('offer')
     return Promise.resolve({ prompted: false })
   })
-  const generate = new Generate(surveyHandler, offerHandler)
+  const generate = new Generate(surveyHandler, offerHandler, { identity: 'prisma' })
   await generate.parse([], await ctx.config())
   expect(calls).toEqual(['offer', 'survey'])
 })
@@ -337,7 +341,7 @@ it('should skip the survey handler when the skills offer prompted', async () => 
   ctx.fixture('example-project')
   const surveyHandler = jest.fn()
   const offerHandler = jest.fn().mockResolvedValue({ prompted: true })
-  const generate = new Generate(surveyHandler, offerHandler)
+  const generate = new Generate(surveyHandler, offerHandler, { identity: 'prisma' })
   await generate.parse([], await ctx.config())
   expect(offerHandler).toHaveBeenCalledTimes(1)
   expect(surveyHandler).not.toHaveBeenCalled()
@@ -347,7 +351,7 @@ it('should call neither the skills offer nor the survey handler when hints are d
   ctx.fixture('example-project')
   const surveyHandler = jest.fn()
   const offerHandler = jest.fn()
-  const generate = new Generate(surveyHandler, offerHandler)
+  const generate = new Generate(surveyHandler, offerHandler, { identity: 'prisma' })
   await generate.parse(['--no-hints'], await ctx.config())
   expect(offerHandler).not.toHaveBeenCalled()
   expect(surveyHandler).not.toHaveBeenCalled()
@@ -357,7 +361,7 @@ it('should call neither the skills offer nor the survey handler in watch mode', 
   ctx.fixture('example-project')
   const surveyHandler = jest.fn()
   const offerHandler = jest.fn()
-  const generate = new Generate(surveyHandler, offerHandler)
+  const generate = new Generate(surveyHandler, offerHandler, { identity: 'prisma' })
   await generate.parse(['--watch'], await ctx.config())
   expect(offerHandler).not.toHaveBeenCalled()
   expect(surveyHandler).not.toHaveBeenCalled()
@@ -385,7 +389,7 @@ it('should work with a custom generator', async () => {
 describe('prisma-client-ts validation', () => {
   it('should throw errors for an unknown compilerBuild', async () => {
     ctx.fixture('invalid-compiler-build')
-    const output = Generate.new().parse([], await ctx.config())
+    const output = Generate.new('prisma').parse([], await ctx.config())
     await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       Invalid compiler build: "invalid", expected one of: "fast", "small"
@@ -398,7 +402,7 @@ describe('prisma-client-ts validation', () => {
 describe('prisma-client-js validation', () => {
   it('should throw errors for an unknown compilerBuild', async () => {
     ctx.fixture('invalid-compiler-build-client-js')
-    const output = Generate.new().parse([], await ctx.config())
+    const output = Generate.new('prisma').parse([], await ctx.config())
     await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       Invalid compiler build: "invalid", expected one of: "fast", "small"
@@ -420,7 +424,7 @@ describe('--schema from project directory', () => {
   it('--schema relative path: should work', async () => {
     expect.assertions(1)
     ctx.fixture('generate-from-project-dir')
-    const result = await Generate.new().parse(['--schema=./schema.prisma'], await ctx.config())
+    const result = await Generate.new('prisma').parse(['--schema=./schema.prisma'], await ctx.config())
 
     expect(result).toMatchInlineSnapshot(`
       "
@@ -434,7 +438,7 @@ describe('--schema from project directory', () => {
 
   it('--schema relative path: should fail - invalid path', async () => {
     ctx.fixture('generate-from-project-dir')
-    const result = Generate.new().parse(['--schema=./doesnotexists.prisma'], await ctx.config())
+    const result = Generate.new('prisma').parse(['--schema=./doesnotexists.prisma'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Could not load \`--schema\` from provided path \`doesnotexists.prisma\`: file or directory not found"`,
     )
@@ -443,7 +447,7 @@ describe('--schema from project directory', () => {
   it('--schema absolute path: should work', async () => {
     ctx.fixture('generate-from-project-dir')
     const absoluteSchemaPath = path.resolve('./schema.prisma')
-    const output = await Generate.new().parse([`--schema=${absoluteSchemaPath}`], await ctx.config())
+    const output = await Generate.new('prisma').parse([`--schema=${absoluteSchemaPath}`], await ctx.config())
 
     expect(output).toMatchInlineSnapshot(`
       "
@@ -458,7 +462,7 @@ describe('--schema from project directory', () => {
   it('--schema absolute path: should fail - invalid path', async () => {
     ctx.fixture('generate-from-project-dir')
     const absoluteSchemaPath = path.resolve('./doesnotexists.prisma')
-    const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`], await ctx.config())
+    const result = Generate.new('prisma').parse([`--schema=${absoluteSchemaPath}`], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Could not load \`--schema\` from provided path \`doesnotexists.prisma\`: file or directory not found"`,
     )
@@ -466,7 +470,7 @@ describe('--schema from project directory', () => {
 
   it('should throw errors if schema does not exist at default path', async () => {
     ctx.fixture('empty')
-    const output = Generate.new().parse([], await ctx.config())
+    const output = Generate.new('prisma').parse([], await ctx.config())
     await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
@@ -495,7 +499,7 @@ describe('--schema from parent directory', () => {
   it('--schema relative path: should work', async () => {
     expect.assertions(1)
     ctx.fixture('generate-from-parent-dir')
-    const result = await Generate.new().parse(['--schema=./subdirectory/schema.prisma'], await ctx.config())
+    const result = await Generate.new('prisma').parse(['--schema=./subdirectory/schema.prisma'], await ctx.config())
 
     expect(result).toMatchInlineSnapshot(`
       "
@@ -510,7 +514,7 @@ describe('--schema from parent directory', () => {
   it('--schema relative path: should fail - invalid path', async () => {
     ctx.fixture('generate-from-parent-dir')
 
-    const result = Generate.new().parse(['--schema=./subdirectory/doesnotexists.prisma'], await ctx.config())
+    const result = Generate.new('prisma').parse(['--schema=./subdirectory/doesnotexists.prisma'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Could not load \`--schema\` from provided path \`subdirectory/doesnotexists.prisma\`: file or directory not found"`,
     )
@@ -520,7 +524,7 @@ describe('--schema from parent directory', () => {
     expect.assertions(1)
     ctx.fixture('generate-from-parent-dir')
     const absoluteSchemaPath = path.resolve('./subdirectory/schema.prisma')
-    const result = await Generate.new().parse([`--schema=${absoluteSchemaPath}`], await ctx.config())
+    const result = await Generate.new('prisma').parse([`--schema=${absoluteSchemaPath}`], await ctx.config())
 
     expect(result).toMatchInlineSnapshot(`
       "
@@ -536,7 +540,7 @@ describe('--schema from parent directory', () => {
     ctx.fixture('generate-from-parent-dir')
 
     const absoluteSchemaPath = path.resolve('./subdirectory/doesnotexists.prisma')
-    const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`], await ctx.config())
+    const result = Generate.new('prisma').parse([`--schema=${absoluteSchemaPath}`], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Could not load \`--schema\` from provided path \`subdirectory/doesnotexists.prisma\`: file or directory not found"`,
     )
@@ -545,7 +549,7 @@ describe('--schema from parent directory', () => {
   it('should load schema located next to a nested config', async () => {
     ctx.fixture('prisma-config-nested')
 
-    const result = await Generate.new().parse(
+    const result = await Generate.new('prisma').parse(
       ['--config=./config/prisma.config.ts'],
       await ctx.config(),
       path.join(process.cwd(), 'config'),
@@ -563,7 +567,7 @@ describe('--schema from parent directory', () => {
 
   it('--generator: should work - valid generator names', async () => {
     ctx.fixture('example-project')
-    const result = await Generate.new().parse(
+    const result = await Generate.new('prisma').parse(
       ['--schema=./prisma/multiple-generator.prisma', '--generator=client', '--generator=client_3'],
       await ctx.config(),
     )
@@ -584,7 +588,7 @@ describe('--schema from parent directory', () => {
     ctx.fixture('example-project')
 
     await expect(
-      Generate.new().parse(
+      Generate.new('prisma').parse(
         ['--schema=./prisma/multiple-generator.prisma', '--generator=client', '--generator=invalid_client'],
         await ctx.config(),
       ),
@@ -597,7 +601,7 @@ describe('--schema from parent directory', () => {
     ctx.fixture('example-project')
 
     await expect(
-      Generate.new().parse(
+      Generate.new('prisma').parse(
         [
           '--schema=./prisma/multiple-generator.prisma',
           '--generator=client',
@@ -615,7 +619,7 @@ describe('--schema from parent directory', () => {
 describe('with --sql', () => {
   it('should throw error on invalid sql', async () => {
     ctx.fixture('typed-sql-invalid')
-    await expect(Generate.new().parse(['--sql'], await ctx.config())).rejects.toMatchInlineSnapshot(`
+    await expect(Generate.new('prisma').parse(['--sql'], await ctx.config())).rejects.toMatchInlineSnapshot(`
       "Errors while reading sql files:
 
       In prisma/sql/invalidQuery.sql:
@@ -629,14 +633,14 @@ describe('with --sql', () => {
 
   it('throws error on mssql', async () => {
     ctx.fixture('typed-sql-invalid-mssql')
-    await expect(Generate.new().parse(['--sql'], await ctx.config())).rejects.toMatchInlineSnapshot(
+    await expect(Generate.new('prisma').parse(['--sql'], await ctx.config())).rejects.toMatchInlineSnapshot(
       `"Typed SQL is supported only for postgresql, cockroachdb, mysql, sqlite providers"`,
     )
   })
 
   it('throws error on mongo', async () => {
     ctx.fixture('typed-sql-invalid-mongo')
-    await expect(Generate.new().parse(['--sql'], await ctx.config())).rejects.toMatchInlineSnapshot(
+    await expect(Generate.new('prisma').parse(['--sql'], await ctx.config())).rejects.toMatchInlineSnapshot(
       `"Typed SQL is supported only for postgresql, cockroachdb, mysql, sqlite providers"`,
     )
   })

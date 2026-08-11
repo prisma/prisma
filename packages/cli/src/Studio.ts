@@ -203,11 +203,11 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
 }
 
 export class Studio implements Command {
-  static new(identity: CliDistributionIdentity = 'prisma'): Studio {
+  static new(identity: CliDistributionIdentity): Studio {
     return new Studio(identity)
   }
 
-  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+  constructor(private readonly identity: CliDistributionIdentity) {}
 
   help(error?: string): string | HelpError {
     if (error) {

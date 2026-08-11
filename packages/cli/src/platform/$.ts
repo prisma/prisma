@@ -9,7 +9,7 @@ import { createHelp } from './_lib/help'
 
 /** $ prisma platform */
 export class $ implements Command {
-  static new(cmds: Commands, identity: CliDistributionIdentity = 'prisma'): $ {
+  static new(cmds: Commands, identity: CliDistributionIdentity): $ {
     return new $(cmds, identity)
   }
 

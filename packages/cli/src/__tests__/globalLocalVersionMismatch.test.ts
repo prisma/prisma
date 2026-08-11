@@ -15,6 +15,7 @@ function buildWarning(
   return getGlobalLocalVersionMismatchWarning({
     cwd: '/tmp/project',
     globalVersion: GLOBAL_VERSION,
+    identity: 'prisma',
     isGlobalInstall: () => 'npm',
     getInstalledPackageVersion: () => Promise.resolve(null),
     ...options,

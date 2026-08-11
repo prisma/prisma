@@ -18,7 +18,7 @@ export class CLI implements Command {
     cmds: Commands,
     ensureBinaries: string[],
     download: (options: DownloadOptions) => Promise<BinaryPaths>,
-    identity: CliDistributionIdentity = 'prisma',
+    identity: CliDistributionIdentity,
   ): CLI {
     return new CLI(cmds, ensureBinaries, download, identity)
   }

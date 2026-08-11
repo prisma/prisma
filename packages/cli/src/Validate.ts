@@ -24,11 +24,11 @@ import type { CliDistributionIdentity } from './utils/cli-distribution-identity'
  * $ prisma validate
  */
 export class Validate implements Command {
-  public static new(identity: CliDistributionIdentity = 'prisma'): Validate {
+  public static new(identity: CliDistributionIdentity): Validate {
     return new Validate(identity)
   }
 
-  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+  constructor(private readonly identity: CliDistributionIdentity) {}
 
   public async parse(
     argv: string[],

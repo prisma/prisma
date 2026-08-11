@@ -55,11 +55,11 @@ function runLocalPrismaCommand(bin: string, args: string[], baseDir: string, ext
 }
 
 export class Bootstrap implements Command {
-  public static new(identity: CliDistributionIdentity = 'prisma'): Bootstrap {
+  public static new(identity: CliDistributionIdentity): Bootstrap {
     return new Bootstrap(identity)
   }
 
-  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+  constructor(private readonly identity: CliDistributionIdentity) {}
 
   public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {

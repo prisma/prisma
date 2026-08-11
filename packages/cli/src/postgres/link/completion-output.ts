@@ -5,7 +5,7 @@ import type { CliDistributionIdentity } from '../../utils/cli-distribution-ident
 import type { LinkResult } from './Link'
 import { formatEnvSummary } from './local-setup'
 
-export function formatCompletionOutput(opts: LinkResult, identity: CliDistributionIdentity = 'prisma'): string {
+export function formatCompletionOutput(opts: LinkResult, identity: CliDistributionIdentity): string {
   const cliCommand = identity
   const lines: string[] = []
 

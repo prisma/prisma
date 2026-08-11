@@ -3,7 +3,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command, CommandCompletion, CompletionOption } from '@prisma/internals'
 import { arg, HelpError, isError } from '@prisma/internals'
 
-import { type CliDistributionIdentity, getCliDistributionIdentity } from '../utils/cli-distribution-identity'
+import type { CliDistributionIdentity } from '../utils/cli-distribution-identity'
 import { ALL_COMPLETIONS, SUPPORTED_SHELLS } from './completion-definitions'
 
 function registerCompletion(descriptor: CommandCompletion): void {
@@ -42,21 +42,18 @@ function registerOption(command: ReturnType<typeof t.command>, option: Completio
 }
 
 export class Completions implements Command {
-  public static new(identity: CliDistributionIdentity = 'prisma'): Completions {
+  public static new(identity: CliDistributionIdentity): Completions {
     return new Completions(identity)
   }
 
-  private constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+  private constructor(private readonly identity: CliDistributionIdentity) {}
 
   public parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     return Promise.resolve(parseCompletionCommand(argv, this.identity))
   }
 }
 
-export function parseCompletionCommand(
-  argv: string[],
-  identity: CliDistributionIdentity = getCliDistributionIdentity(),
-): string | Error {
+export function parseCompletionCommand(argv: string[], identity: CliDistributionIdentity): string | Error {
   if (argv[0] === '--') {
     setupCompletions()
     try {

@@ -20,11 +20,11 @@ import type { CliDistributionIdentity } from './utils/cli-distribution-identity'
  * $ prisma debug
  */
 export class DebugInfo implements Command {
-  static new(identity: CliDistributionIdentity = 'prisma'): DebugInfo {
+  static new(identity: CliDistributionIdentity): DebugInfo {
     return new DebugInfo(identity)
   }
 
-  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+  constructor(private readonly identity: CliDistributionIdentity) {}
 
   public help(error?: string): string | HelpError {
     if (error) {

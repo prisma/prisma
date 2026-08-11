@@ -128,11 +128,11 @@ async function resolveProjectForDatabase(client: ManagementApiClient, databaseId
 }
 
 export class Link implements Command {
-  public static new(identity: CliDistributionIdentity = 'prisma'): Link {
+  public static new(identity: CliDistributionIdentity): Link {
     return new Link(identity)
   }
 
-  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+  constructor(private readonly identity: CliDistributionIdentity) {}
 
   public async parse(argv: string[], _config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
