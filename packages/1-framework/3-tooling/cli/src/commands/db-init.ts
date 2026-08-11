@@ -18,6 +18,7 @@ import {
 } from '../utils/cli-errors';
 import type { MigrationCommandOptions } from '../utils/command-helpers';
 import {
+  closeQuietly,
   resolveMigrationPaths,
   sanitizeErrorMessage,
   setCommandDescriptions,
@@ -237,7 +238,7 @@ async function executeDbInitCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

@@ -177,4 +177,28 @@ describe('migration log', () => {
       envelope: { ok: false, error: { code: 'CLI.UNEXPECTED' } },
     });
   });
+
+  describe('a close that fails on the way out', () => {
+    it('reports the connection failure rather than the failure to hang up', async () => {
+      mocks.connect.mockRejectedValue(new Error('ECONNREFUSED 127.0.0.1:5432'));
+      mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
+
+      const run = await harness(ormConfig()).run(['migration', 'log', '--json'], { cwd: '/tmp' });
+      const settled = JSON.stringify(run.json.at(-1));
+
+      expect(run.exitCode).toBe(2);
+      expect(settled).toContain('ECONNREFUSED 127.0.0.1:5432');
+      expect(settled).not.toContain('close on an unconnected client');
+    });
+
+    it('does not turn a successful read into a failure', async () => {
+      mocks.readLedger.mockResolvedValue([ledgerEntry()]);
+      mocks.close.mockRejectedValue(new Error('close failed'));
+
+      const run = await harness(ormConfig()).run(['migration', 'log', '--json'], { cwd: '/tmp' });
+
+      expect(run.exitCode).toBe(0);
+      expect(run.json.at(-1)).toMatchObject({ kind: 'result', envelope: { ok: true } });
+    });
+  });
 });

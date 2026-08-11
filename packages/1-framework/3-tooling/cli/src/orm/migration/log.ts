@@ -11,7 +11,11 @@ import {
   errorUnexpected,
   requireLiveDatabase,
 } from '../../utils/cli-errors';
-import { maskConnectionUrl, targetSupportsMigrations } from '../../utils/command-helpers';
+import {
+  closeQuietly,
+  maskConnectionUrl,
+  targetSupportsMigrations,
+} from '../../utils/command-helpers';
 import { createAnsiMigrationListStyler } from '../../utils/formatters/migration-list-styler';
 import {
   MIGRATION_LOG_EMPTY_MESSAGE,
@@ -119,7 +123,7 @@ export const migrationLogCommand = defineOrmCommand({
         ),
       );
     } finally {
-      await client.close();
+      await closeQuietly(client);
     }
 
     const records = serializeLedgerEntriesForJson(entries);
