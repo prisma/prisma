@@ -10,10 +10,13 @@ import {
 } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadOrmConfig, ormCommandFamily } from '@internal/cli';
 import type { Contract } from '@internal/contract/types';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import type { EngineEvent, MountedTree, PresentedResult, StreamEvent } from '@prisma/cli-engine';
+import { createTestCli } from '@prisma/cli-engine/testing';
 import { afterEach, beforeEach } from 'vitest';
 // Note: executeCommand and other test helpers are re-exported at the bottom of this file
 // They come from the CLI package's test utilities but are not exported from the package
@@ -26,6 +29,104 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // The fixture app can be used by any CLI test that needs to load config files
 export const fixtureAppDir = join(__dirname, '../fixtures/cli/cli-e2e-test-app');
 export const integrationFixtureAppDir = join(__dirname, '../fixtures/cli/cli-integration-test-app');
+
+/** What a command run through the engine's harness reports back. */
+export interface EngineRunResult {
+  readonly exitCode: number;
+  readonly stdout: string;
+  readonly stderr: string;
+  readonly events: readonly EngineEvent[];
+  readonly json: readonly StreamEvent[];
+  readonly presented: PresentedResult<unknown> | undefined;
+}
+
+export interface RunOnEngineOptions {
+  /** Simulate piped stdout (isTTY=false) to exercise the engine's json auto-selection. */
+  readonly isTTY?: boolean;
+  /**
+   * Run the config file through the engine's loader rather than pre-evaluating
+   * it, so a file that does not evaluate settles as the run's error instead of
+   * throwing here.
+   */
+  readonly settleConfigFailures?: boolean;
+}
+
+/**
+ * Every path segment the family's commands mount under. The shell owns the
+ * real group text; the harness only needs the names to exist.
+ */
+function groupsFor(commands: MountedTree): Record<string, { readonly brief: string }> {
+  const names = new Set<string>();
+  for (const path of Object.keys(commands)) {
+    const segments = path.split(' ');
+    for (let index = 1; index < segments.length; index++) {
+      names.add(segments.slice(0, index).join(' '));
+    }
+  }
+  return Object.fromEntries([...names].map((name) => [name, { brief: `${name} commands` }]));
+}
+
+/**
+ * Runs one CLI invocation through the engine's own harness.
+ *
+ * The harness takes config as an already-evaluated record and has no config
+ * option on `run()`, so the project's `prisma-next.config.ts` is evaluated here
+ * — through the same adapter the binary uses — and a fresh `TestCli` is built
+ * per run. That is what lets a step which writes or rewrites the config be
+ * picked up by the next one. The project directory is passed as `cwd` rather
+ * than chdir'ed into, so nothing about the run is process-global.
+ */
+export async function runOnEngine(
+  project: { readonly testDir: string; readonly configPath: string },
+  argv: readonly string[],
+  options?: RunOnEngineOptions,
+): Promise<EngineRunResult> {
+  const commands = ormCommandFamily.commands;
+  const spec = {
+    commandFamilies: [ormCommandFamily],
+    commands,
+    groups: groupsFor(commands),
+  };
+
+  const cli = options?.settleConfigFailures
+    ? createTestCli({
+        ...spec,
+        loadConfig: (configPath) =>
+          loadOrmConfig({
+            cwd: project.testDir,
+            configPath: configPath ?? project.configPath,
+          }),
+      })
+    : createTestCli({ ...spec, config: await evaluatedSections(project) });
+
+  const run = await cli.run(argv, {
+    cwd: project.testDir,
+    isTty: { stdout: options?.isTTY !== false, stderr: options?.isTTY !== false },
+  });
+
+  return {
+    exitCode: run.exitCode,
+    stdout: run.stdout,
+    stderr: run.stderr,
+    events: run.events,
+    json: run.json,
+    presented: run.presented,
+  };
+}
+
+async function evaluatedSections(project: {
+  readonly testDir: string;
+  readonly configPath: string;
+}): Promise<Readonly<Record<string, unknown>>> {
+  const loaded = await loadOrmConfig({ cwd: project.testDir, configPath: project.configPath });
+  const fileLevel = loaded.diagnostics.find((entry) => entry.section === null);
+  if (fileLevel !== undefined) {
+    throw new Error(
+      `runOnEngine: ${project.configPath} did not evaluate: ${fileLevel.diagnostic.code} — ${fileLevel.diagnostic.summary}`,
+    );
+  }
+  return loaded.sections;
+}
 
 /**
  * Pins a generated test project to the workspace import root.
