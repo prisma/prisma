@@ -103,6 +103,14 @@ Not the full name-with-hash. The stronger test — recomputing `computeCheckCont
 
 Infer keeps its existing full-hash computation — it has the renderer in-package and the stronger test costs it nothing.
 
+**Callers must pass the table's real, complete column set.** The rule reads `table.columns`; a caller that passes a partial or empty column map silently classifies every check as non-derived. Any consumer of the helper is responsible for handing it the columns the table actually has.
+
+**The residual ambiguity is accepted, and cannot be closed lower down.** D3's reserved-prefix error guards the two sanctioned authoring surfaces. It does not guard a contract that reaches storage another way — a hand-edited `contract.json`, or any assembly route that bypasses `build-contract`. Such a contract can carry a wire-named check whose prefix collides with a derived shape, and the strip will read it as derived and remove it.
+
+This cannot be fixed at the wire-schema or validation layer, and the reason is structural: **the contract carries no marker distinguishing an authored check from a derived one.** A wire-named check with a derived-shaped prefix is, in the contract's own vocabulary, exactly what a derived check looks like. A validator has no information to separate the two, so it could only reject *every* check with a derived-shaped prefix — which is every derived check. The ambiguity can therefore only be prevented before it exists, at authoring time, which is precisely what the reserved-prefix rule does.
+
+For a contract that creates the ambiguity anyway, the derived reading is the only defensible one: it is what the name says. Hand-editing emitted artefacts is already unsupported — `contract.json` is an emitted artefact and the documented instruction is to edit the source. Adding a marker field to the check node would close it, at the cost of the contract shape change this slice exists to avoid; that trade is available to a future slice if a real consumer ever appears.
+
 **Authored checks are emitted regardless of control policy.** The `derivesChecks` gate (`build-contract.ts:901-902, :1021`) governs *derivation* only; authored checks are added to `checksForTable` outside it. The reasoning that scoped derivation to `managed` was "the contract describes an external schema, it does not prescribe enforcement for it" — a derived check on an external table is a statement Prisma Next invented. An authored check is the author's own statement about a constraint they know exists, which is precisely what a description of an external schema should be able to say, and it is what makes infer round-tripping of `external` and pack-owned schemas work at all. The cost is that declaring a check that is not live on an `external` table fails verify with no remedy (`external` suppresses extras, not `declaredMissing`) — accepted, because unlike the derived case the author asked for it and can delete the line.
 
 ## Build pipeline (exact sites)
