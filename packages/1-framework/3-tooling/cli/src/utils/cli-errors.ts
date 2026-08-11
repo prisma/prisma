@@ -29,6 +29,7 @@ import type { RefResolutionError } from '@internal/migration-tools/ref-resolutio
 import { ifDefined } from '@internal/utils/defined';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import type { MigrateFailure } from '../control-api/types';
+import { chooseAction, runCommandAction } from './next-actions';
 
 export {
   ERROR_CODE_DESTRUCTIVE_CHANGES,
@@ -97,14 +98,6 @@ export class ActionableCliError extends CliStructuredError {
     super(code, summary, options);
     this.nextActions = options.nextActions;
   }
-}
-
-function runCommandAction(label: string, command: string): NextAction {
-  return { kind: 'run-command', label, command };
-}
-
-function chooseAction(label: string): NextAction {
-  return { kind: 'user-choice', label };
 }
 
 export function errorRefSetHashNotInGraph(

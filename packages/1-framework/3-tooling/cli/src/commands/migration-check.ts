@@ -194,7 +194,10 @@ export function createMigrationCheckCommand(): Command {
         } else {
           for (const f of result.failures) {
             ui.log(`✗ [${f.code}] ${f.where}: ${f.why}`);
-            ui.log(`  fix: ${f.fix}`);
+            for (const action of f.nextActions) {
+              const command = action.command === undefined ? '' : `: ${action.command}`;
+              ui.log(`  next: ${action.label}${command}`);
+            }
           }
           ui.log(`\n${result.summary}`);
         }
