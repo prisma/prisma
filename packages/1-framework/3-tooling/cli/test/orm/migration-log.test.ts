@@ -1,7 +1,8 @@
 import type { LedgerEntryRecord } from '@internal/contract/types';
+import type { MountedTree } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
 
 const mocks = vi.hoisted(() => ({
   connect: vi.fn(),
@@ -17,9 +18,20 @@ vi.mock('../../src/control-api/client', () => ({
   })),
 }));
 
+let commands: MountedTree;
+let groups: typeof BinGroups;
+
+// Repo-wide vitest runs with `isolate: false`, so whichever file loads
+// `src/orm/cli` first fixes the client this module tree is bound to. Import it
+// here, after the reset, so this file's mock is the one in force.
+beforeAll(async () => {
+  vi.resetModules();
+  const cli = await import('../../src/orm/cli');
+  commands = cli.BIN_COMMANDS;
+  groups = cli.BIN_GROUPS;
+});
+
 afterAll(() => {
-  // Repo-wide vitest runs with `isolate: false`, so the `vi.mock` leaks into
-  // the next file in the same worker; unmock to restore it.
   vi.doUnmock('../../src/control-api/client');
   vi.resetModules();
 });
@@ -69,7 +81,7 @@ function ledgerEntry(overrides: Partial<LedgerEntryRecord> = {}): LedgerEntryRec
 }
 
 function harness(config: Record<string, unknown>) {
-  return createTestCli({ commands: BIN_COMMANDS, groups: BIN_GROUPS, config: { orm: config } });
+  return createTestCli({ commands, groups, config: { orm: config } });
 }
 
 describe('migration log', () => {
