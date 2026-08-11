@@ -3,8 +3,8 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4
-- **AC scoreboard totals:** 33 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5
+- **AC scoreboard totals:** 38 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
 
@@ -62,6 +62,16 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 | D4-AC3 | The separately bundled completion entry resolves identity independently with no mutable cross-bundle transport.     | PASS   | `5ad733ced7`; `packages/cli/src/completions/completion-entry.ts` now passes `getCliDistributionIdentity()` directly into `parseCompletionCommand(...)`, and `parseCompletionCommand` also defaults from the same executable-derived helper. No environment marker, global, or other mutable transport was introduced. The focused test mutates only `process.argv[1]` and verifies the completion bundle emits `prisma7` independently.                                                                               |
 | D4-AC4 | Ordinary output stays unchanged and the added coverage is focused and proportionate.                                | PASS   | `5ad733ced7`; the pre-existing completion descriptor catalog in `packages/cli/src/completions/completion-definitions.ts` is untouched, and `completion-command.test.ts` still preserves the existing ordinary fish script assertion (`prisma complete -- ...`, `complete -c prisma`) alongside the unchanged top-level, nested-command, and option-value completion checks. The new coverage stays narrowly on shell setup, constructor forwarding, and separate-bundle inference without broad snapshot duplication. |
 | D4-AC5 | Reported gates are defensible and the mandatory transient-ID scan is clean.                                         | PASS   | The product diff is confined to `packages/cli/src/bin.ts` and `packages/cli/src/completions/**`. Reviewer reran `git diff --check 5ad733ced7^ 5ad733ced7`, which passed, and the mandatory transient-ID scan over the four touched files found no UUID, agent, subagent, session, or `projects/prisma7-compatibility-cli/` hits. No on-disk evidence contradicts the reported `pnpm --filter prisma tsc`, focused package runner with cached engine, Prettier, diff-check, and transient scan gates for `5ad733ced7`. |
+
+## cli-owned-distribution-identity D5 acceptance criteria scoreboard
+
+| AC ID  | Description (short)                                                                        | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------ | ------------------------------------------------------------------------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D5-AC1 | Compatibility identity gates the update path before checkpoint promise/request creation.   | PASS   | `59d3ee7a63`; `packages/cli/src/CLI.ts` now creates `checkResultPromise` only when `this.identity === 'prisma'`, so `prisma7` skips `runCheckpointClientCheck(...)` entirely instead of creating a promise and hiding only the later output. The untouched `packages/cli/src/utils/checkpoint.ts` still owns the checkpoint payload, so this round changes control flow only.                                                                                                                                                                      |
+| D5-AC2 | `prisma7` starts zero checkpoint work and prints zero update guidance.                     | PASS   | `packages/cli/src/__tests__/distribution-identity-update-check.test.ts` drives `CLI.parse(['validate'], ...)` under `prisma7` and asserts the delegated command still runs while both `runCheckpointClientCheck` and `printUpdateMessage` are never called. That proves compatibility invocation neither starts the request nor reaches the printing path.                                                                                                                                                                                         |
+| D5-AC3 | Ordinary `prisma` behavior stays unchanged, including the hidden-message environment path. | PASS   | The ordinary-identity tests in `distribution-identity-update-check.test.ts` assert one checkpoint call with the existing `{ schemaPathFromConfig, baseDir }` inputs and one `printUpdateMessage` call with the resolved result. A separate case sets `PRISMA_HIDE_UPDATE_MESSAGE=true` and still observes the same ordinary CLI call path. `packages/cli/src/utils/printUpdateMessage.ts` and `packages/cli/src/utils/checkpoint.ts` are untouched, so payload/telemetry and env-specific rendering behavior remain where they already lived.      |
+| D5-AC4 | Coverage is focused and non-tautological, and the seam/scope stay minimal.                 | PASS   | `59d3ee7a63` changes only `packages/cli/src/CLI.ts` plus one focused test file. The new tests exercise real `CLI.parse` control flow across both identities and the env toggle while mocking only the checkpoint/print boundaries; they do not snapshot broad help output or duplicate lower-level checkpoint implementation tests. No new identity abstraction, checkpoint product, or telemetry surface was introduced.                                                                                                                          |
+| D5-AC5 | Reported gates are defensible and the mandatory transient-ID scan is clean.                | PASS   | The product diff is confined to `packages/cli/src/CLI.ts` and `packages/cli/src/__tests__/distribution-identity-update-check.test.ts`. Reviewer reran `git diff --check 59d3ee7a63^ 59d3ee7a63`, which passed, and the mandatory transient-ID scan over those touched files found no UUID, agent, subagent, session, or `projects/prisma7-compatibility-cli/` hits. No on-disk evidence contradicts the reported `pnpm --filter prisma tsc`, focused CLI/update/checkpoint tests, Prettier, diff-check, and transient-scan gates for `59d3ee7a63`. |
 
 ## Subagent IDs
 
@@ -325,3 +335,15 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 **Findings:** none.
 
 **For orchestrator:** No addressable review findings remain for D4 R1.
+
+### cli-owned-distribution-identity D5 R1 — SATISFIED
+
+**Scope:** suppress Prisma 8 update consultation. Commit `59d3ee7a63`.
+
+**Tasks:** `CLI.parse` now creates the checkpoint promise only for ordinary `prisma`, compatibility invocations skip both checkpoint startup and update printing, and the ordinary path still flows through the unchanged checkpoint/print helpers including the hidden-message env case.
+
+**AC delta:** D5-AC1 through D5-AC5 PASS (commit `59d3ee7a63`, test `packages/cli/src/__tests__/distribution-identity-update-check.test.ts`; transient scan clean).
+
+**Findings:** none.
+
+**For orchestrator:** No addressable review findings remain for D5 R1.
