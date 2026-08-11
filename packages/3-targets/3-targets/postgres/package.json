@@ -102,6 +102,6 @@
     "directory": "packages/3-targets/3-targets/postgres"
   },
   "prismaNext": {
-    "minServerVersion": "17"
+    "minServerVersion": "15"
   }
 }

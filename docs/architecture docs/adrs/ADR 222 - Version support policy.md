@@ -1,6 +1,6 @@
 # ADR 222 — Version support policy for Prisma Next
 
-**Status:** Accepted
+**Status:** Accepted — PostgreSQL floor amended by [ADR 244](ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md)
 **Date:** 2026-05-31
 **Linear:** TML-1810, TML-1809
 
@@ -16,7 +16,7 @@ The ratified floor table:
 |---|---|---|
 | Node.js | `>=24` | `engines.node` on every publishable package |
 | TypeScript | `>=5.9` | optional `peerDependencies.typescript` on every publishable package + source-of-truth constant + drift test |
-| PostgreSQL (server) | `17` | `prismaNext.minServerVersion` on `@internal/target-postgres` + CLI mirror + `docker-compose.yaml` test image |
+| PostgreSQL (server) | `15` (lowered from `17` by [ADR 244](ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md)) | `prismaNext.minServerVersion` on `@internal/target-postgres` + CLI mirror + `postgres:15` CI service containers + `docker-compose.yaml` |
 | MongoDB (server) | `8.0` | `prismaNext.minServerVersion` on `@internal/target-mongo` + CLI mirror; MMS 11.x downloads 8.2.x by default |
 | Bun | `>=1.2` | documented; runtime detection already exists |
 | Deno | `>=2.0` | documented; runtime detection already exists |
@@ -80,7 +80,7 @@ The correct sequence for raising a DB floor:
 
 1. Update `prismaNext.minServerVersion` in the target package's `package.json`.
 2. Update `MIN_SERVER_VERSION` in `env.ts` to match.
-3. Update the test infrastructure (e.g., `docker-compose.yaml` image tag) to match the new floor.
+3. Update the test infrastructure — the Postgres service-container image tags in `.github/workflows/ci.yml` and the `docker-compose.yaml` image tag — to match the new floor.
 4. Run `pnpm --filter @internal/cli test` to verify the drift test passes.
 
 ---
