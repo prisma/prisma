@@ -188,19 +188,6 @@ describe('contract emit', () => {
     });
   });
 
-  it('emits into --output-path when the config declares no output', async () => {
-    const config = ormConfig({
-      contract: { source: { format: 'typescript', inputs: [], load: () => ({}) } },
-    });
-
-    const run = await harness(config).run(
-      ['contract', 'emit', '--output-path', OUTPUT_DIR, '--json'],
-      { cwd: PROJECT_DIR },
-    );
-
-    expect(run.exitCode).toBe(0);
-  });
-
   it('writes the emitted paths to stdout and the prose to stderr', async () => {
     const run = await harness().run(['contract', 'emit'], {
       cwd: PROJECT_DIR,
@@ -316,23 +303,6 @@ describe('contract emit', () => {
       severity: 'warn',
       text: 'sample dependency warning',
     });
-  });
-
-  it('errors when neither the config nor --output-path names an output', async () => {
-    const config = ormConfig({
-      contract: { source: { format: 'typescript', inputs: [], load: () => ({}) } },
-    });
-
-    const run = await harness(config).run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
-    const terminal = run.json.at(-1);
-    const envelope =
-      terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
-
-    expect(run.exitCode).toBe(2);
-    expect(envelope).toMatchObject({ ok: false, error: { code: 'CONFIG.CONTRACT_MISSING' } });
-    expect(envelope?.nextActions.length).toBeGreaterThan(0);
-    expect(envelope).not.toHaveProperty('fix');
-    expect(mocks.executeContractEmit).not.toHaveBeenCalled();
   });
 
   it('keeps the dotted code of an error the operation raised', async () => {

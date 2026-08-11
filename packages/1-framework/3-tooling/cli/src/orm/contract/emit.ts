@@ -8,7 +8,6 @@ import type { ContractEmitResult } from '../../control-api/types';
 import { ormConfigSection } from '../config-section';
 import { normalizeError } from '../normalize-error';
 import { controlProgressReporter } from '../progress';
-import { emittedArtifactPathsFor } from './paths';
 
 interface EmitDocument {
   readonly ok: true;
@@ -84,15 +83,6 @@ export const contractEmitCommand = defineCommand({
     const startedAt = Date.now();
     const outputPath =
       args.flags.outputPath === undefined ? undefined : resolve(ctx.cwd, args.flags.outputPath);
-
-    const artifacts = emittedArtifactPathsFor({
-      config: ctx.config,
-      cwd: ctx.cwd,
-      outputPath,
-    });
-    if (!artifacts.ok) {
-      return notOk(normalizeError(artifacts.failure));
-    }
 
     let result: ContractEmitResult;
     try {
