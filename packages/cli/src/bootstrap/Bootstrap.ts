@@ -17,6 +17,7 @@ import { Init } from '../Init'
 import { Link, type LinkResult } from '../postgres/link/Link'
 import { isAlreadyLinked } from '../postgres/link/local-setup'
 import { LinkApiError, sanitizeErrorMessage } from '../postgres/link/management-api'
+import type { CliDistributionIdentity } from '../utils/cli-distribution-identity'
 import { type BootstrapStepStatus, formatBootstrapOutput } from './completion-output'
 import { detectProjectState, getModelNames, getSeedCommand } from './project-state'
 import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, emitStepSkipped } from './telemetry'
@@ -54,36 +55,11 @@ function runLocalPrismaCommand(bin: string, args: string[], baseDir: string, ext
 }
 
 export class Bootstrap implements Command {
-  public static new(): Bootstrap {
-    return new Bootstrap()
+  public static new(identity: CliDistributionIdentity = 'prisma'): Bootstrap {
+    return new Bootstrap(identity)
   }
 
-  private static help = format(`
-Bootstrap a Prisma Postgres project from scratch or connect an existing one.
-
-${bold('Usage')}
-
-  ${dim('$')} prisma bootstrap [options]
-
-${bold('Options')}
-
-  --api-key      Workspace API key (CI / non-interactive)
-  --database     Database ID to link to (e.g. db_abc123)
-  --template     Starter template name (e.g. nextjs, express)
-  --force        Re-link even if already linked to Prisma Postgres
-  -h, --help     Display this help message
-
-${bold('Examples')}
-
-  Interactive (opens browser, guides you through setup)
-  ${dim('$')} prisma bootstrap
-
-  Non-interactive with explicit credentials
-  ${dim('$')} prisma bootstrap --api-key "<your-api-key>" --database "db_..."
-
-  With a starter template
-  ${dim('$')} prisma bootstrap --template nextjs
-`)
+  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
 
   public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
@@ -111,19 +87,19 @@ ${bold('Examples')}
 
     if (apiKey && !databaseId) {
       return new HelpError(
-        `\n${bold(red('!'))} Missing ${bold('--database')} flag.\n\nWhen using ${bold('--api-key')}, you must also provide ${bold('--database')}.\n${Bootstrap.help}`,
+        `\n${bold(red('!'))} Missing ${bold('--database')} flag.\n\nWhen using ${bold('--api-key')}, you must also provide ${bold('--database')}.\n${createHelp(this.identity)}`,
       )
     }
 
     if (databaseId && !databaseId.startsWith('db_')) {
       return new HelpError(
-        `\n${bold(red('!'))} Invalid database ID "${databaseId}" — expected format: ${bold('db_<id>')}\n${Bootstrap.help}`,
+        `\n${bold(red('!'))} Invalid database ID "${databaseId}" — expected format: ${bold('db_<id>')}\n${createHelp(this.identity)}`,
       )
     }
 
     if (templateName && !isValidTemplateName(templateName)) {
       return new HelpError(
-        `\n${bold(red('!'))} Unknown template "${templateName}". Available templates: nextjs, express, hono, fastify, nuxt, sveltekit, remix, react-router-7, astro, nest\n${Bootstrap.help}`,
+        `\n${bold(red('!'))} Unknown template "${templateName}". Available templates: nextjs, express, hono, fastify, nuxt, sveltekit, remix, react-router-7, astro, nest\n${createHelp(this.identity)}`,
       )
     }
 
@@ -242,7 +218,7 @@ ${bold('Examples')}
         const linkStart = performance.now()
 
         try {
-          const link = Link.new()
+          const link = Link.new(this.identity)
           const linkResult = await link.link(apiKey, databaseId, baseDir, { force })
 
           steps.link = 'completed'
@@ -472,7 +448,7 @@ ${bold('Examples')}
           if (useLocalBin && localPrismaBin) {
             runLocalPrismaCommand(localPrismaBin, ['generate'], baseDir, subprocessEnv)
           } else {
-            const generate = Generate.new()
+            const generate = Generate.new(this.identity)
             const generateResult = await generate.parse([], activeConfig)
 
             if (generateResult instanceof Error) {
@@ -620,7 +596,7 @@ ${bold('Examples')}
     const stepStart = performance.now()
 
     try {
-      const init = Init.new()
+      const init = Init.new(this.identity)
       const initArgs = ['--datasource-provider', 'postgresql']
       if (withModel) initArgs.push('--with-model')
       const initResult = await init.parse(initArgs, config)
@@ -643,8 +619,37 @@ ${bold('Examples')}
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Bootstrap.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${createHelp(this.identity)}`)
     }
-    return Bootstrap.help
+    return createHelp(this.identity)
   }
+}
+
+function createHelp(identity: CliDistributionIdentity): string {
+  return format(`
+Bootstrap a Prisma Postgres project from scratch or connect an existing one.
+
+${bold('Usage')}
+
+  ${dim('$')} ${identity} bootstrap [options]
+
+${bold('Options')}
+
+  --api-key      Workspace API key (CI / non-interactive)
+  --database     Database ID to link to (e.g. db_abc123)
+  --template     Starter template name (e.g. nextjs, express)
+  --force        Re-link even if already linked to Prisma Postgres
+  -h, --help     Display this help message
+
+${bold('Examples')}
+
+  Interactive (opens browser, guides you through setup)
+  ${dim('$')} ${identity} bootstrap
+
+  Non-interactive with explicit credentials
+  ${dim('$')} ${identity} bootstrap --api-key "<your-api-key>" --database "db_..."
+
+  With a starter template
+  ${dim('$')} ${identity} bootstrap --template nextjs
+`)
 }

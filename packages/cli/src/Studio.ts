@@ -19,6 +19,7 @@ import { runtime } from 'std-env'
 import packageJson from '../package.json' assert { type: 'json' }
 import { STUDIO_CSS_FILE_NAME, STUDIO_JS_FILE_NAME, type StudioAdapterType } from './studio-frontend-shared'
 import { startStudioServer, STUDIO_SERVER_HOST } from './studio-server'
+import type { CliDistributionIdentity } from './utils/cli-distribution-identity'
 import { UserFacingError } from './utils/errors'
 import { getPpgInfo } from './utils/ppgInfo'
 
@@ -202,54 +203,18 @@ Please use Node.js >=22.5, Deno >=2.2 or Bun >=1.0 or ensure you have the \`bett
 }
 
 export class Studio implements Command {
-  private static help = format(`
-Browse your data with Prisma Studio
-
-${bold('Usage')}
-
-  ${dim('$')} prisma studio [options]
-
-${bold('Options')}
-
-  -h, --help        Display this help message
-  -p, --port        Port to start Studio on
-  -b, --browser     Browser to open Studio in
-  --config          Custom path to your Prisma config file
-  --url             Database connection string (overrides the one in your Prisma config)
-
-${bold('Examples')}
-
-  Start Studio on the default port
-    ${dim('$')} prisma studio
-
-  Start Studio on a custom port
-    ${dim('$')} prisma studio --port 5555
-
-  Start Studio in a specific browser
-    ${dim('$')} prisma studio --port 5555 --browser firefox
-    ${dim('$')} BROWSER=firefox prisma studio --port 5555
-
-  Start Studio without opening in a browser
-    ${dim('$')} prisma studio --port 5555 --browser none
-    ${dim('$')} BROWSER=none prisma studio --port 5555
-
-  Specify a custom prisma config file
-    ${dim('$')} prisma studio --config=./prisma.config.ts
-
-  Specify a direct database connection string
-    ${dim('$')} prisma studio --url="postgresql://user:password@localhost:5432/dbname"
-`)
-
-  static new(): Studio {
-    return new Studio()
+  static new(identity: CliDistributionIdentity = 'prisma'): Studio {
+    return new Studio(identity)
   }
+
+  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
 
   help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Studio.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${createHelp(this.identity)}`)
     }
 
-    return Studio.help
+    return createHelp(this.identity)
   }
 
   /**
@@ -348,6 +313,46 @@ ${bold('Examples')}
 
     return ''
   }
+}
+
+function createHelp(identity: CliDistributionIdentity): string {
+  return format(`
+Browse your data with Prisma Studio
+
+${bold('Usage')}
+
+  ${dim('$')} ${identity} studio [options]
+
+${bold('Options')}
+
+  -h, --help        Display this help message
+  -p, --port        Port to start Studio on
+  -b, --browser     Browser to open Studio in
+  --config          Custom path to your Prisma config file
+  --url             Database connection string (overrides the one in your Prisma config)
+
+${bold('Examples')}
+
+  Start Studio on the default port
+    ${dim('$')} ${identity} studio
+
+  Start Studio on a custom port
+    ${dim('$')} ${identity} studio --port 5555
+
+  Start Studio in a specific browser
+    ${dim('$')} ${identity} studio --port 5555 --browser firefox
+    ${dim('$')} BROWSER=firefox ${identity} studio --port 5555
+
+  Start Studio without opening in a browser
+    ${dim('$')} ${identity} studio --port 5555 --browser none
+    ${dim('$')} BROWSER=none ${identity} studio --port 5555
+
+  Specify a custom prisma config file
+    ${dim('$')} ${identity} studio --config=./prisma.config.ts
+
+  Specify a direct database connection string
+    ${dim('$')} ${identity} studio --url="postgresql://user:password@localhost:5432/dbname"
+`)
 }
 
 function getUrlBasePath(url: string | undefined, configPath: string | null): string {

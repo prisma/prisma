@@ -6,6 +6,7 @@ import { arg, drawBox, format, HelpError, isError, link, unknownCommand } from '
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { runCheckpointClientCheck } from './utils/checkpoint'
+import type { CliDistributionIdentity } from './utils/cli-distribution-identity'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Version } from './Version'
 
@@ -17,14 +18,16 @@ export class CLI implements Command {
     cmds: Commands,
     ensureBinaries: string[],
     download: (options: DownloadOptions) => Promise<BinaryPaths>,
+    identity: CliDistributionIdentity = 'prisma',
   ): CLI {
-    return new CLI(cmds, ensureBinaries, download)
+    return new CLI(cmds, ensureBinaries, download, identity)
   }
 
   private constructor(
     private readonly cmds: Commands,
     private readonly ensureBinaries: string[],
     private readonly download: (options: DownloadOptions) => Promise<BinaryPaths>,
+    private readonly identity: CliDistributionIdentity,
   ) {}
 
   async parse(argv: string[], config: PrismaConfigInternal, baseDir: string = process.cwd()): Promise<string | Error> {
@@ -54,14 +57,14 @@ export class CLI implements Command {
       await ensureNeededBinariesExist({
         download: this.download,
       })
-      return Version.new().parse(argv, config, baseDir)
+      return Version.new(this.identity).parse(argv, config, baseDir)
     }
 
     // check if we have that subcommand
     const cmdName = args._[0]
     // Throw if "lift"
     if (cmdName === 'lift') {
-      throw new Error(`${red('prisma lift')} has been renamed to ${green('prisma migrate')}`)
+      throw new Error(`${red(`${this.identity} lift`)} has been renamed to ${green(`${this.identity} migrate`)}`)
     }
 
     const cmd = this.cmds[cmdName]
@@ -103,29 +106,31 @@ export class CLI implements Command {
 
   public help(error?: string) {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${CLI.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${createHelp(this.identity)}`)
     }
-    return CLI.help
+    return createHelp(this.identity)
   }
 
   private static tryPdpMessage = `Optimize performance through connection pooling and caching with Prisma Accelerate.
 Learn more at ${link('https://pris.ly/cli/pdp')}`
 
-  private static boxedTryPdpMessage = drawBox({
+  static readonly boxedTryPdpMessage = drawBox({
     height: this.tryPdpMessage.split('\n').length,
     width: 0, // calculated automatically
     str: this.tryPdpMessage,
     horizontalPadding: 2,
   })
+}
 
-  private static help = format(`
+function createHelp(identity: CliDistributionIdentity): string {
+  return format(`
     ${
       process.platform === 'win32' ? '' : bold(green('◭  '))
     }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${bold('Usage')}
 
-      ${dim('$')} prisma [command]
+      ${dim('$')} ${identity} [command]
 
     ${bold('Commands')}
 
@@ -150,41 +155,41 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
          --preview-feature   Run Preview Prisma commands
          --help, -h          Show additional information about a command
 
-${this.boxedTryPdpMessage}
+${CLI.boxedTryPdpMessage}
 
     ${bold('Examples')}
 
-      Set up a new local Prisma Postgres \`prisma dev\`-ready project
-      ${dim('$')} prisma init
+      Set up a new local Prisma Postgres \`${identity} dev\`-ready project
+      ${dim('$')} ${identity} init
 
       Start a local Prisma Postgres server for development
-      ${dim('$')} prisma dev
+      ${dim('$')} ${identity} dev
 
       Generate artifacts (e.g. Prisma Client)
-      ${dim('$')} prisma generate
+      ${dim('$')} ${identity} generate
 
       Browse your data
-      ${dim('$')} prisma studio
+      ${dim('$')} ${identity} studio
 
       Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
-      ${dim('$')} prisma migrate dev
+      ${dim('$')} ${identity} migrate dev
 
       Pull the schema from an existing database, updating the Prisma schema
-      ${dim('$')} prisma db pull
+      ${dim('$')} ${identity} db pull
 
       Push the Prisma schema state to the database
-      ${dim('$')} prisma db push
+      ${dim('$')} ${identity} db push
 
       Validate your Prisma schema
-      ${dim('$')} prisma validate
+      ${dim('$')} ${identity} validate
 
       Format your Prisma schema
-      ${dim('$')} prisma format
+      ${dim('$')} ${identity} format
 
       Display Prisma version info
-      ${dim('$')} prisma version
+      ${dim('$')} ${identity} version
 
       Display Prisma debug info
-      ${dim('$')} prisma debug
+      ${dim('$')} ${identity} debug
   `)
 }

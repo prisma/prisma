@@ -32,6 +32,7 @@ import { installSkills } from './init/skill-install'
 import { login } from './management-api/auth'
 import { createAuthenticatedManagementAPI } from './management-api/auth-client'
 import { FileTokenStorage } from './management-api/token-storage'
+import type { CliDistributionIdentity } from './utils/cli-distribution-identity'
 import { determineClientOutputPath } from './utils/client-output-path'
 import { printError } from './utils/prompt/utils/print'
 
@@ -269,55 +270,11 @@ export default defineConfig({
 }
 
 export class Init implements Command {
-  static new(): Init {
-    return new Init()
+  static new(identity: CliDistributionIdentity = 'prisma'): Init {
+    return new Init(identity)
   }
 
-  private static help = format(`
-  Set up a new Prisma project
-
-  ${bold('Usage')}
-
-    ${dim('$')} prisma init [options]
-
-  ${bold('Options')}
-
-             -h, --help   Display this help message
-                   --db   Provisions a fully managed Prisma Postgres database on the Prisma Data Platform.
-  --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
-   --generator-provider   Define the generator provider to use. Default: \`prisma-client\`
-      --preview-feature   Define a preview feature to use.
-               --output   Define Prisma Client generator output path to use.
-                  --url   Define a custom datasource url
-
-  ${bold('Flags')}
-
-           --with-model   Add example model to created schema file
-            --no-skills   Skip installing Prisma agent skills
-
-  ${bold('Examples')}
-
-  Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project
-    ${dim('$')} prisma init
-
-  Set up a new Prisma project and specify MySQL as the datasource provider to use
-    ${dim('$')} prisma init --datasource-provider mysql
-
-  Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project and specify \`prisma-client\` as the generator provider to use
-    ${dim('$')} prisma init --generator-provider prisma-client
-
-  Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project and specify \`x\` and \`y\` as the preview features to use
-    ${dim('$')} prisma init --preview-feature x --preview-feature y
-
-  Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project and specify \`./generated-client\` as the output path to use
-    ${dim('$')} prisma init --output ./generated-client
-
-  Set up a new Prisma project and specify the url that will be used
-    ${dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
-
-  Set up a new \`prisma dev\`-ready (local Prisma Postgres) Prisma project with an example model
-    ${dim('$')} prisma init --with-model
-  `)
+  constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
 
   async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
@@ -763,10 +720,58 @@ Learn more: ${link('https://pris.ly/getting-started')}
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Init.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${createHelp(this.identity)}`)
     }
-    return Init.help
+    return createHelp(this.identity)
   }
+}
+
+function createHelp(identity: CliDistributionIdentity): string {
+  return format(`
+  Set up a new Prisma project
+
+  ${bold('Usage')}
+
+    ${dim('$')} ${identity} init [options]
+
+  ${bold('Options')}
+
+             -h, --help   Display this help message
+                   --db   Provisions a fully managed Prisma Postgres database on the Prisma Data Platform.
+  --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
+   --generator-provider   Define the generator provider to use. Default: \`prisma-client\`
+      --preview-feature   Define a preview feature to use.
+               --output   Define Prisma Client generator output path to use.
+                  --url   Define a custom datasource url
+
+  ${bold('Flags')}
+
+           --with-model   Add example model to created schema file
+            --no-skills   Skip installing Prisma agent skills
+
+  ${bold('Examples')}
+
+  Set up a new \`${identity} dev\`-ready (local Prisma Postgres) Prisma project
+    ${dim('$')} ${identity} init
+
+  Set up a new Prisma project and specify MySQL as the datasource provider to use
+    ${dim('$')} ${identity} init --datasource-provider mysql
+
+  Set up a new \`${identity} dev\`-ready (local Prisma Postgres) Prisma project and specify \`prisma-client\` as the generator provider to use
+    ${dim('$')} ${identity} init --generator-provider prisma-client
+
+  Set up a new \`${identity} dev\`-ready (local Prisma Postgres) Prisma project and specify \`x\` and \`y\` as the preview features to use
+    ${dim('$')} ${identity} init --preview-feature x --preview-feature y
+
+  Set up a new \`${identity} dev\`-ready (local Prisma Postgres) Prisma project and specify \`./generated-client\` as the output path to use
+    ${dim('$')} ${identity} init --output ./generated-client
+
+  Set up a new Prisma project and specify the url that will be used
+    ${dim('$')} ${identity} init --url mysql://user:password@localhost:3306/mydb
+
+  Set up a new \`${identity} dev\`-ready (local Prisma Postgres) Prisma project with an example model
+    ${dim('$')} ${identity} init --with-model
+  `)
 }
 
 // order matters for the error message.
