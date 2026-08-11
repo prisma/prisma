@@ -2,7 +2,7 @@
 
 Status: **Accepted**
 
-Related: [ADR 239 — Errors are structural envelopes with dotted namespace codes](<./ADR 239 - Errors are structural envelopes with dotted namespace codes.md>) defines the envelope itself — the `CliStructuredError` shape, dotted `NAMESPACE.SUBCODE` codes, structural recognition, exit codes, and (as amended) the typed `nextActions` remediation field this ADR's examples use. This ADR governs how envelopes are **constructed and carried**: who creates them, where, and what shape they travel in. Composer records the same rules for its tree as its ADR-0043/ADR-0044; the duplicated foundation types interoperate because recognition is structural.
+Related: [ADR 239 — Errors are structural envelopes with dotted namespace codes](<./ADR 239 - Errors are structural envelopes with dotted namespace codes.md>) defines the envelope itself — the `CliStructuredError` shape, dotted `NAMESPACE.SUBCODE` codes, structural recognition, exit codes, and the typed `nextActions` remediation field this ADR's examples use. This ADR governs how envelopes are **constructed and carried**: who creates them, where, and what shape they travel in. The Composer repository records the same rules for its own tree in its ADR-0043/ADR-0044; the two codebases' duplicated foundation types interoperate because recognition is structural.
 
 ## The shape of a failure, end to end
 
@@ -57,7 +57,7 @@ A non-structured error reaching a process boundary is therefore, by definition, 
 
 - Structured data goes in `meta` — a subclass does not introduce a parallel field for it.
 - The subclass must **not** set `this.name`: ADR 239's structural predicate keys on `name`, and a renamed subclass would stop being recognized as a structured error at boundaries.
-- Its own predicate narrows structurally on top of the parent's (`CliStructuredError.is(e) && e.category === 'MIGRATION' && e.code.startsWith('MIGRATION.')`), so it survives duplicated copies and plane splits the same way the parent does.
+- Its own predicate narrows structurally on top of the parent's (`CliStructuredError.is(e) && e.category === 'MIGRATION' && e.code.startsWith('MIGRATION.')`), so it survives duplicated copies and plane splits the same way the parent does. (`category` is a constant class discriminant the predicate keys on, not structured data — the rule above still holds: data goes in `meta`.)
 - It passes through boundaries as itself. There are no mapper functions translating one error class into another; a subclass *is* the envelope.
 
 `cause` rides along for in-process consumers and logs — the constructor forwards it to `Error`, and `toEnvelope()` never serializes it. A wrap under rule 1 therefore preserves the full provenance chain from origin to renderer without leaking internals onto the wire.
