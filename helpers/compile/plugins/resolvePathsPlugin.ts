@@ -43,6 +43,10 @@ function resolvePathsConfig(options: TsConfig, cwd: string) {
  * tree-shaking. Note: `esbuild` has some support for this, though it is limited
  * in the amount of dependency nesting it supports.
  */
+function resolvePathTarget(target: string) {
+  return path.extname(target) === '' ? path.join(target, 'index.ts') : target
+}
+
 export const resolvePathsPlugin: esbuild.Plugin = {
   name: 'resolvePathsPlugin',
   setup(build) {
@@ -55,7 +59,7 @@ export const resolvePathsPlugin: esbuild.Plugin = {
         return { path: args.path, external: true }
       }
 
-      return { path: `${resolvedTsPaths[args.path][0]}/index.ts` }
+      return { path: resolvePathTarget(resolvedTsPaths[args.path][0]) }
     })
   },
 }

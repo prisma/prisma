@@ -36,7 +36,12 @@ import {
  * Returns the absolute path if found, null otherwise.
  */
 function findLocalPrismaBin(baseDir: string, identity: CliDistributionIdentity): string | null {
-  const candidate = path.join(baseDir, 'node_modules', '.bin', identity)
+  const candidate = path.join(
+    baseDir,
+    'node_modules',
+    '.bin',
+    process.platform === 'win32' ? `${identity}.cmd` : identity,
+  )
   return fs.existsSync(candidate) ? candidate : null
 }
 

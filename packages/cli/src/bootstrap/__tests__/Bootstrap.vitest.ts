@@ -266,7 +266,9 @@ describe('Bootstrap command — new project flow', () => {
 })
 
 describe('Bootstrap command — existing project flow', () => {
-  test('uses the selected local CLI binary for migrate and generate', async () => {
+  test('uses the selected local CLI binary for migrate and generate on Windows', async () => {
+    vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
+
     const prismaDir = path.join(tmpDir, 'prisma')
     fs.mkdirSync(prismaDir, { recursive: true })
     fs.writeFileSync(
@@ -276,7 +278,7 @@ describe('Bootstrap command — existing project flow', () => {
     )
     fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
     fs.mkdirSync(path.join(tmpDir, 'node_modules', '.bin'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, 'node_modules', '.bin', 'prisma7'), '', 'utf-8')
+    fs.writeFileSync(path.join(tmpDir, 'node_modules', '.bin', 'prisma7.cmd'), '', 'utf-8')
     fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
     fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma7'), { recursive: true })
     fs.mkdirSync(path.join(tmpDir, 'node_modules', '@prisma', 'client'), { recursive: true })
@@ -294,14 +296,14 @@ describe('Bootstrap command — existing project flow', () => {
 
     expect(result).not.toBeInstanceOf(Error)
     expect(execFileSync).toHaveBeenCalledWith(
-      path.join(tmpDir, 'node_modules', '.bin', 'prisma7'),
+      path.join(tmpDir, 'node_modules', '.bin', 'prisma7.cmd'),
       ['migrate', 'dev', '--name', 'init'],
-      expect.objectContaining({ cwd: tmpDir, shell: process.platform === 'win32', stdio: 'inherit' }),
+      expect.objectContaining({ cwd: tmpDir, shell: true, stdio: 'inherit' }),
     )
     expect(execFileSync).toHaveBeenCalledWith(
-      path.join(tmpDir, 'node_modules', '.bin', 'prisma7'),
+      path.join(tmpDir, 'node_modules', '.bin', 'prisma7.cmd'),
       ['generate'],
-      expect.objectContaining({ cwd: tmpDir, shell: process.platform === 'win32', stdio: 'inherit' }),
+      expect.objectContaining({ cwd: tmpDir, shell: true, stdio: 'inherit' }),
     )
   })
 
