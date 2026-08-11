@@ -79,9 +79,14 @@ const NO_DATABASE_STATE: DatabaseState = {
   ledgersBySpace: new Map(),
 };
 
+type ControlClient = ReturnType<typeof createControlClient>;
+
+/** Whatever the configured driver takes: a URL for Postgres, a record elsewhere. */
+type ConnectionInput = Parameters<ControlClient['connect']>[0];
+
 async function readDatabaseState(inputs: {
-  readonly client: ReturnType<typeof createControlClient>;
-  readonly connection: string;
+  readonly client: ControlClient;
+  readonly connection: ConnectionInput;
   readonly spaceIds: readonly string[];
 }): Promise<Result<DatabaseState, CliStructuredError>> {
   const { client } = inputs;
@@ -333,7 +338,7 @@ export const migrationStatusCommand = defineOrmCommand({
           ...ifDefined('driver', ctx.config.driver),
           extensions: ctx.config.extensions ?? [],
         }),
-        connection: String(dbConnection),
+        connection: dbConnection,
         spaceIds: scopedSpaces.map((entry) => entry.space),
       });
       if (!read.ok) {
