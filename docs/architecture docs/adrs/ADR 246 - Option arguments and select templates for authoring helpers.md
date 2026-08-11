@@ -1,4 +1,4 @@
-# ADR 239 — Option arguments and select templates for authoring helpers
+# ADR 246 — Option arguments and select templates for authoring helpers
 
 ## At a glance
 
