@@ -162,7 +162,7 @@ export function errorConfigVersionMarkerMissing(configPath?: string): CliStructu
     'Config is not a defineConfig result',
     {
       why: 'The config module evaluated, but its default export was not created by a current defineConfig',
-      fix: "Create the config with defineConfig (for example from '@prisma/orm-postgres/config') and export its return value directly",
+      fix: "Create the config with defineConfig (imported from your target's '/config' entrypoint) and export its return value directly",
       docsUrl: docsUrlFor('CONFIG.VERSION_MARKER_MISSING'),
       ...(configPath ? { where: { path: configPath } } : {}),
     },

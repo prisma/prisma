@@ -38,6 +38,12 @@ export const FIXTURE_MIGRATION_HASH =
 
 const FIXTURE_TIMESTAMP = '2026-01-01T00:00:00.000Z';
 
+/** Target id the default fixtures report; overridable per test. */
+export const FIXTURE_TARGET_ID = 'fixture-target';
+
+/** Family id the default fixtures report in emitted contract payloads. */
+export const FIXTURE_FAMILY_ID = 'fixture-family';
+
 /**
  * The value each {@link ControlClient} operation resolves to. Every key can be
  * replaced per test via `createFixtureControlClient(overrides)`.
@@ -80,7 +86,7 @@ export interface FixtureControlClient extends ControlClient {
 
 const fixtureOperation = {
   id: 'op-1',
-  label: 'CREATE TABLE "User"',
+  label: 'create User',
   operationClass: 'additive',
 } as const;
 
@@ -98,12 +104,12 @@ function fixtureMarker(): ContractMarkerRecord {
 }
 
 /**
- * Postgres-flavored defaults for every operation: a healthy database whose
+ * Target-neutral defaults for every operation: a healthy database whose
  * marker, ledger, and schema all match the fixture contract.
  */
 export function defaultControlClientFixtures(): ControlClientFixtures {
   const contract = { storageHash: FIXTURE_STORAGE_HASH, profileHash: FIXTURE_PROFILE_HASH };
-  const target = { expected: 'postgres', actual: 'postgres' };
+  const target = { expected: FIXTURE_TARGET_ID, actual: FIXTURE_TARGET_ID };
   const schemaVerify: VerifyDatabaseSchemaResult = {
     ok: true,
     summary: 'Schema satisfies contract',
@@ -191,7 +197,7 @@ export function defaultControlClientFixtures(): ControlClientFixtures {
         },
       ],
     }),
-    introspect: { tables: [] },
+    introspect: {},
     toSchemaView: undefined,
     inferPslContract: undefined,
     getPslBlockDescriptors: {},
@@ -199,8 +205,8 @@ export function defaultControlClientFixtures(): ControlClientFixtures {
     emit: ok({
       storageHash: FIXTURE_STORAGE_HASH,
       profileHash: FIXTURE_PROFILE_HASH,
-      contractJson: '{"targetFamily":"sql"}',
-      contractDts: 'export type Contract = { targetFamily: "sql" };',
+      contractJson: `{"targetFamily":"${FIXTURE_FAMILY_ID}"}`,
+      contractDts: `export type Contract = { targetFamily: "${FIXTURE_FAMILY_ID}" };`,
     }),
   };
 }

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createFixtureControlClient,
   FIXTURE_STORAGE_HASH,
+  FIXTURE_TARGET_ID,
 } from '../../../src/control-api/testing/fixture-client';
 
 describe('createFixtureControlClient', () => {
@@ -15,7 +16,7 @@ describe('createFixtureControlClient', () => {
     expect(verify).toMatchObject({
       ok: true,
       contract: { storageHash: FIXTURE_STORAGE_HASH },
-      target: { expected: 'postgres' },
+      target: { expected: FIXTURE_TARGET_ID },
     });
 
     const schemaVerify = await client.schemaVerify({ contract: {} });
