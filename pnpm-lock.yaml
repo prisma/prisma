@@ -4964,6 +4964,9 @@ importers:
       '@clack/prompts':
         specifier: ^1.7.0
         version: 1.7.0
+      '@prisma/cli-engine':
+        specifier: 0.0.3
+        version: 0.0.3
       '@prisma/orm-framework':
         specifier: workspace:8.0.0-rc.1
         version: link:../orm-framework
@@ -5291,6 +5294,9 @@ importers:
       '@internal/mongo-lowering':
         specifier: workspace:8.0.0-rc.1
         version: link:../../packages/2-mongo-family/6-transport/mongo-lowering
+      '@prisma/cli-engine':
+        specifier: 0.0.3
+        version: 0.0.3
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../utils

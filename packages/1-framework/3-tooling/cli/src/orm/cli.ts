@@ -4,10 +4,7 @@ import { version as CLI_VERSION } from '../../package.json' with { type: 'json' 
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
 import { migrationListCommand } from './migration/list';
-import { telemetryDisableCommand } from './telemetry/disable';
-import { telemetryEnableCommand } from './telemetry/enable';
 import { resolveTelemetryHooks } from './telemetry/reporting';
-import { telemetryStatusCommand } from './telemetry/status';
 
 export const BIN_NAME = 'prisma-next';
 
@@ -65,27 +62,12 @@ export const BIN_GROUPS = {
       'Plan, apply, and scaffold on-disk migration packages. Migrations are\n' +
       'contract-to-contract edges stored as versioned directories under migrations/.',
   },
-  telemetry: {
-    brief: 'Inspect and change anonymous CLI telemetry',
-    description:
-      'Show telemetry status, or enable / disable anonymous CLI usage data.\n' +
-      'Telemetry is on by default (opt-out); see https://prisma-next.dev/docs/cli/telemetry\n' +
-      'for what is collected and why.',
-  },
 } as const;
 
 export const BIN_COMMANDS: MountedTree = {
   'migration list': migrationListCommand,
-  'telemetry status': telemetryStatusCommand,
-  'telemetry enable': telemetryEnableCommand,
-  'telemetry disable': telemetryDisableCommand,
 };
 
-/**
- * `telemetry status|enable|disable` are commands of this bin, not members of
- * the `orm` family: the unified shell has its own, and these retire with the
- * binary at cutover.
- */
 export function createOrmCli(): Cli {
   return createCli({
     name: BIN_NAME,
