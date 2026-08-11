@@ -155,8 +155,9 @@ function toConfigLoadFailure(error: unknown, configPath?: string): CliStructured
  */
 export async function loadConfig(
   configPath?: string,
+  options?: { readonly cwd?: string },
 ): Promise<Result<LoadedConfig, CliStructuredError>> {
-  const cwd = process.cwd();
+  const cwd = options?.cwd ?? process.cwd();
   const resolvedConfigPath = configPath ? resolve(cwd, configPath) : undefined;
   const configCwd = resolvedConfigPath ? dirname(resolvedConfigPath) : cwd;
 
