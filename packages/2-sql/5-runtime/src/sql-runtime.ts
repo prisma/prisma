@@ -216,13 +216,14 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
    * with encoded parameters ready for the driver.
    *
    * Implementation note: SQL splits lower-then-encode across
-   * {@link lowerToDraft} + {@link encodeDraftParams} so the runtime
-   * can fire the `beforeExecute` middleware chain between them
-   * (cipherstash bulk-encrypt, for example, mutates pre-encode
-   * `ParamRef.value` slots). This protected hook composes the two
-   * back into the cross-family `lower()` shape `RuntimeCore` expects.
-   * The production operation methods use the split form so `beforeExecute`
-   * lands between the two halves.
+   * {@link lowerToDraft} + {@link encodeDraftParams} so the selected
+   * operation's middleware chain can run between them:
+   * {@link prepareQueryExecution} uses `runBeforeQueryChain` for `query()`,
+   * while {@link prepareExecuteExecution} uses `runBeforeExecuteChain` for
+   * `execute()` (cipherstash bulk-encrypt, for example, mutates pre-encode
+   * `ParamRef.value` slots). This protected hook composes the two back into
+   * the cross-family `lower()` shape `RuntimeCore` expects. The production
+   * operation methods use the matching split form before driver execution.
    *
    * `ctx: SqlCodecCallContext` is forwarded to `encodeParams` so
    * per-query cancellation reaches every codec body during parameter
@@ -238,21 +239,21 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   /**
-   * AST → pre-encode draft. The returned plan has `sql` rendered and
-   * `params` populated with the user-domain values the lowering site
-   * collected from `ParamRef` nodes. No codec encode has happened
-   * yet; consumers can mutate `params` via the `SqlParamRefMutator`
-   * before {@link encodeDraftParams} runs.
+   * AST → pre-encode draft for the selected `query()` or `execute()` operation.
+   * The returned plan has `sql` rendered and `params` populated with the
+   * user-domain values the lowering site collected from `ParamRef` nodes. No
+   * codec encode has happened yet; consumers can mutate `params` via the
+   * `SqlParamRefMutator` before {@link encodeDraftParams} runs.
    */
   private lowerToDraft(plan: SqlQueryPlan): SqlExecutionPlan {
     return lowerSqlPlan(this.adapter, this.contract, plan);
   }
 
   /**
-   * Encode a draft plan's params through the per-column codecs and
-   * freeze the result into the final `SqlExecutionPlan` the driver
-   * sees. Errors surface as `RUNTIME.ENCODE_FAILED` envelopes from
-   * {@link encodeParams}.
+   * Encode a draft plan's params for the selected `query()` or `execute()`
+   * operation through the per-column codecs and freeze the result into the
+   * final `SqlExecutionPlan` the driver sees. Errors surface as
+   * `RUNTIME.ENCODE_FAILED` envelopes from {@link encodeParams}.
    */
   private async encodeDraftParams(
     draft: SqlExecutionPlan,
