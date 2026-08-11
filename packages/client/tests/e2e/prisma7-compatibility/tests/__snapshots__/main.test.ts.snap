@@ -1,0 +1,417 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`prisma7 snapshots real CLI-owned identity surfaces and keeps the packed smoke green 1`] = `
+{
+  "completion": {
+    "stderr": "",
+    "stdout": "#compdef prisma7
+compdef _prisma7 prisma7
+
+# zsh completion for prisma7 -*- shell-script -*-
+
+__prisma7_debug() {
+    local file="$BASH_COMP_DEBUG_FILE"
+    if [[ -n \${file} ]]; then
+        echo "$*" >> "\${file}"
+    fi
+}
+
+_prisma7() {
+    local shellCompDirectiveError=1
+    local shellCompDirectiveNoSpace=2
+    local shellCompDirectiveNoFileComp=4
+    local shellCompDirectiveFilterFileExt=8
+    local shellCompDirectiveFilterDirs=16
+    local shellCompDirectiveKeepOrder=32
+
+    local lastParam lastChar flagPrefix requestComp out directive comp lastComp noSpace keepOrder
+    local -a completions
+
+    __prisma7_debug "\\n========= starting completion logic =========="
+    __prisma7_debug "CURRENT: \${CURRENT}, words[*]: \${words[*]}"
+
+    # The user could have moved the cursor backwards on the command-line.
+    # We need to trigger completion from the $CURRENT location, so we need
+    # to truncate the command-line ($words) up to the $CURRENT location.
+    # (We cannot use $CURSOR as its value does not work when a command is an alias.)
+    words=( "\${=words[1,CURRENT]}" )
+    __prisma7_debug "Truncated words[*]: \${words[*]},"
+
+    lastParam=\${words[-1]}
+    lastChar=\${lastParam[-1]}
+    __prisma7_debug "lastParam: \${lastParam}, lastChar: \${lastChar}"
+
+    # For zsh, when completing a flag with an = (e.g., prisma7 -n=<TAB>)
+    # completions must be prefixed with the flag
+    setopt local_options BASH_REMATCH
+    if [[ "\${lastParam}" =~ '-.*=' ]]; then
+        # We are dealing with a flag with an =
+        flagPrefix="-P \${BASH_REMATCH}"
+    fi
+
+    # Prepare the command to obtain completions, ensuring arguments are quoted for eval
+    local -a args_to_quote=("\${(@)words[2,-1]}")
+    if [ "\${lastChar}" = "" ] && [ "\${args_to_quote[-1]}" != "" ]; then
+        # If the last parameter is complete (there is a space following it)
+        # We add an extra empty parameter so we can indicate this to the go completion code.
+        __prisma7_debug "Adding extra empty parameter"
+        args_to_quote+=("")
+    fi
+
+    # Use Zsh's (q) flag to quote each argument safely for eval
+    local quoted_args=("\${(@q)args_to_quote}")
+
+    # Join the main command and the quoted arguments into a single string for eval
+    requestComp="prisma7 complete -- \${quoted_args[*]}"
+
+    __prisma7_debug "About to call: eval \${requestComp}"
+
+    # Use eval to handle any environment variables and such
+    out=$(eval \${requestComp} 2>/dev/null)
+    __prisma7_debug "completion output: \${out}"
+
+    # Extract the directive integer following a : from the last line
+    local lastLine
+    while IFS='
+' read -r line; do
+        lastLine=\${line}
+    done < <(printf "%s
+" "\${out[@]}")
+    __prisma7_debug "last line: \${lastLine}"
+
+    if [ "\${lastLine[1]}" = : ]; then
+        directive=\${lastLine[2,-1]}
+        # Remove the directive including the : and the newline
+        local suffix
+        (( suffix=\${#lastLine}+2))
+        out=\${out[1,-$suffix]}
+    else
+        # There is no directive specified.  Leave $out as is.
+        __prisma7_debug "No directive found.  Setting to default"
+        directive=0
+    fi
+
+    __prisma7_debug "directive: \${directive}"
+    __prisma7_debug "completions: \${out}"
+    __prisma7_debug "flagPrefix: \${flagPrefix}"
+
+    if [ $((directive & shellCompDirectiveError)) -ne 0 ]; then
+        __prisma7_debug "Completion received error. Ignoring completions."
+        return
+    fi
+
+    local activeHelpMarker="%"
+    local endIndex=\${#activeHelpMarker}
+    local startIndex=$((\${#activeHelpMarker}+1))
+    local hasActiveHelp=0
+    while IFS='
+' read -r comp; do
+        # Check if this is an activeHelp statement (i.e., prefixed with $activeHelpMarker)
+        if [ "\${comp[1,$endIndex]}" = "$activeHelpMarker" ];then
+            __prisma7_debug "ActiveHelp found: $comp"
+            comp="\${comp[$startIndex,-1]}"
+            if [ -n "$comp" ]; then
+                compadd -x "\${comp}"
+                __prisma7_debug "ActiveHelp will need delimiter"
+                hasActiveHelp=1
+            fi
+            continue
+        fi
+
+        if [ -n "$comp" ]; then
+            # If requested, completions are returned with a description.
+            # The description is preceded by a TAB character.
+            # For zsh's _describe, we need to use a : instead of a TAB.
+            # We first need to escape any : as part of the completion itself.
+            comp=\${comp//:/\\:}
+
+            local tab="$(printf '\\t')"
+            comp=\${comp//$tab/:}
+
+            __prisma7_debug "Adding completion: \${comp}"
+            completions+=\${comp}
+            lastComp=$comp
+        fi
+    done < <(printf "%s
+" "\${out[@]}")
+
+    # Add a delimiter after the activeHelp statements, but only if:
+    # - there are completions following the activeHelp statements, or
+    # - file completion will be performed (so there will be choices after the activeHelp)
+    if [ $hasActiveHelp -eq 1 ]; then
+        if [ \${#completions} -ne 0 ] || [ $((directive & shellCompDirectiveNoFileComp)) -eq 0 ]; then
+            __prisma7_debug "Adding activeHelp delimiter"
+            compadd -x "--"
+            hasActiveHelp=0
+        fi
+    fi
+
+    if [ $((directive & shellCompDirectiveNoSpace)) -ne 0 ]; then
+        __prisma7_debug "Activating nospace."
+        noSpace="-S ''"
+    fi
+
+    if [ $((directive & shellCompDirectiveKeepOrder)) -ne 0 ]; then
+        __prisma7_debug "Activating keep order."
+        keepOrder="-V"
+    fi
+
+    if [ $((directive & shellCompDirectiveFilterFileExt)) -ne 0 ]; then
+        # File extension filtering
+        local filteringCmd
+        filteringCmd='_files'
+        for filter in \${completions[@]}; do
+            if [ \${filter[1]} != '*' ]; then
+                # zsh requires a glob pattern to do file filtering
+                filter="\\*.$filter"
+            fi
+            filteringCmd+=" -g $filter"
+        done
+        filteringCmd+=" \${flagPrefix}"
+
+        __prisma7_debug "File filtering command: $filteringCmd"
+        _arguments '*:filename:'"$filteringCmd"
+    elif [ $((directive & shellCompDirectiveFilterDirs)) -ne 0 ]; then
+        # File completion for directories only
+        local subdir
+        subdir="\${completions[1]}"
+        if [ -n "$subdir" ]; then
+            __prisma7_debug "Listing directories in $subdir"
+            pushd "\${subdir}" >/dev/null 2>&1
+        else
+            __prisma7_debug "Listing directories in ."
+        fi
+
+        local result
+        _arguments '*:dirname:_files -/'" \${flagPrefix}"
+        result=$?
+        if [ -n "$subdir" ]; then
+            popd >/dev/null 2>&1
+        fi
+        return $result
+    else
+        __prisma7_debug "Calling _describe"
+        if eval _describe $keepOrder "completions" completions -Q \${flagPrefix} \${noSpace}; then
+            __prisma7_debug "_describe found some completions"
+
+            # Return the success of having called _describe
+            return 0
+        else
+            __prisma7_debug "_describe did not find completions."
+            __prisma7_debug "Checking if we should do file completion."
+            if [ $((directive & shellCompDirectiveNoFileComp)) -ne 0 ]; then
+                __prisma7_debug "deactivating file completion"
+
+                # Return 0 to indicate completion is finished and prevent zsh from
+                # trying other completion algorithms (which could cause hanging).
+                # We use NoFileComp directive to explicitly disable file completion.
+                return 0
+            else
+                # Perform file completion
+                __prisma7_debug "Activating file completion"
+
+                # We must return the result of this command, so it must be the
+                # last command, or else we must store its result to return it.
+                _arguments '*:filename:_files'" \${flagPrefix}"
+            fi
+        fi
+    fi
+}
+
+# don't run the completion function when being sourced or eval-ed
+if [ "\${funcstack[1]}" = "_prisma7" ]; then
+    _prisma7
+fi",
+  },
+  "help": {
+    "delegated": {
+      "stderr": "Loaded Prisma config from prisma.config.ts.",
+      "stdout": "
+Validate a Prisma schema.
+
+Usage
+
+  $ prisma7 validate [options]
+
+Options
+
+  -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
+    --schema   Custom path to your Prisma schema
+
+Examples
+
+  With an existing Prisma schema
+    $ prisma7 validate
+
+  With a Prisma config file
+    $ prisma7 validate --config=./prisma.config.ts
+
+  Or specify a Prisma schema path
+    $ prisma7 validate --schema=./schema.prisma",
+    },
+    "topLevel": {
+      "stderr": "Loaded Prisma config from prisma.config.ts.",
+      "stdout": "
+    ◭  Prisma is a modern DB toolkit to query, migrate and model your database (https://prisma.io)
+
+    Usage
+
+      $ prisma7 [command]
+
+    Commands
+
+                init   Set up Prisma for your app
+           bootstrap   Bootstrap a Prisma Postgres project
+                 dev   Start a local Prisma Postgres server for development
+            generate   Generate artifacts (e.g. Prisma Client)
+                  db   Manage your database schema and lifecycle
+             migrate   Migrate your database
+              studio   Browse your data with Prisma Studio
+            validate   Validate your Prisma schema
+              format   Format your Prisma schema
+             version   Displays Prisma version info
+               debug   Displays Prisma debug info
+            platform   Prisma Data Platform commands
+            postgres   Manage Prisma Postgres databases
+                 mcp   Starts an MCP server to use with AI development tools
+            complete   Generate shell completion scripts
+
+    Flags
+
+         --preview-feature   Run Preview Prisma commands
+         --help, -h          Show additional information about a command
+
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│  Optimize performance through connection pooling and caching with Prisma Accelerate.  │
+│  Learn more at https://pris.ly/cli/pdp                                                │
+└───────────────────────────────────────────────────────────────────────────────────────┘
+
+    Examples
+
+      Set up a new local Prisma Postgres \`prisma7 dev\`-ready project
+      $ prisma7 init
+
+      Start a local Prisma Postgres server for development
+      $ prisma7 dev
+
+      Generate artifacts (e.g. Prisma Client)
+      $ prisma7 generate
+
+      Browse your data
+      $ prisma7 studio
+
+      Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
+      $ prisma7 migrate dev
+
+      Pull the schema from an existing database, updating the Prisma schema
+      $ prisma7 db pull
+
+      Push the Prisma schema state to the database
+      $ prisma7 db push
+
+      Validate your Prisma schema
+      $ prisma7 validate
+
+      Format your Prisma schema
+      $ prisma7 format
+
+      Display Prisma version info
+      $ prisma7 version
+
+      Display Prisma debug info
+      $ prisma7 debug",
+    },
+  },
+  "init": {
+    "env": "# Environment variables declared in this file are NOT automatically loaded by Prisma.
+# Please add \`import "dotenv/config";\` to your \`prisma.config.ts\` file, or use the Prisma CLI with Bun
+# to load environment variables from .env files: https://pris.ly/prisma-config-env-vars.
+
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"",
+    "files": [
+      ".env",
+      ".gitignore",
+      "package.json",
+      "prisma",
+      "prisma.config.ts",
+    ],
+    "prismaConfig": "// This file was generated by Prisma, and assumes you have installed the following:
+// npm install --save-dev prisma7 dotenv
+import "dotenv/config";
+import { defineConfig } from "prisma7/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: process.env["DATABASE_URL"],
+  },
+});",
+    "prismaFiles": [
+      "schema.prisma",
+    ],
+    "stderr": "",
+    "stdout": "
+Initialized Prisma in your project
+
+  prisma/
+    schema.prisma
+  prisma.config.ts
+  .env
+  .gitignore
+
+Next, choose how you want to set up your database:
+
+CONNECT EXISTING DATABASE:
+  1. Configure your DATABASE_URL in prisma.config.ts
+  2. Run prisma7 db pull to introspect your database.
+
+CREATE NEW DATABASE:
+  Local: npx prisma7 dev (runs Postgres locally in your terminal)
+  Cloud: npx create-db (creates a free Prisma Postgres database)
+
+Then, define your models in prisma/schema.prisma and run prisma7 migrate dev to apply your schema.
+
+Learn more: https://pris.ly/getting-started",
+  },
+  "version": {
+    "json": {
+      "@prisma/client": "0.0.0",
+      "architecture": "arm64",
+      "default-engines-hash": "0edf323efd1d98336f3f0a68684b56f689b900d3",
+      "node.js": "v22.23.2",
+      "operating-system": "linux",
+      "prisma-cli-path": "<cwd>/node_modules/.pnpm/prisma@file+..+..+tmp+prisma-0.0.0.tgz_@types+react@19.2.18_better-sqlite3@12.11.1_reac_55ff5ae3a292f370145240e4cbfbb131/node_modules/prisma",
+      "prisma7": "0.0.0",
+      "psl": "@prisma/prisma-schema-wasm 7.10.0-4.0edf323efd1d98336f3f0a68684b56f689b900d3",
+      "query-compiler": "enabled",
+      "schema-engine": "schema-engine-cli 0edf323efd1d98336f3f0a68684b56f689b900d3 (at node_modules/.pnpm/@prisma+engines@file+..+..+tmp+prisma-engines-0.0.0.tgz/node_modules/@prisma/engines/schema-engine-linux-arm64-openssl-3.0.x)",
+      "studio": "0.33.0",
+      "typescript": "5.7.3",
+    },
+    "text": {
+      "stderr": "Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from project-models/non-default.prisma.",
+      "stdout": "prisma7              : 0.0.0
+@prisma/client       : 0.0.0
+Operating System     : linux
+Architecture         : arm64
+Node.js              : v22.23.2
+TypeScript           : 5.7.3
+Query Compiler       : enabled
+PSL                  : @prisma/prisma-schema-wasm 7.10.0-4.0edf323efd1d98336f3f0a68684b56f689b900d3
+Schema Engine        : schema-engine-cli 0edf323efd1d98336f3f0a68684b56f689b900d3 (at node_modules/.pnpm/@prisma+engines@file+..+..+tmp+prisma-engines-0.0.0.tgz/node_modules/@prisma/engines/schema-engine-linux-arm64-openssl-3.0.x)
+Default Engines Hash : 0edf323efd1d98336f3f0a68684b56f689b900d3
+Studio               : 0.33.0
+Prisma CLI Path      : <cwd>/node_modules/.pnpm/prisma@file+..+..+tmp+prisma-0.0.0.tgz_@types+react@19.2.18_better-sqlite3@12.11.1_reac_55ff5ae3a292f370145240e4cbfbb131/node_modules/prisma",
+    },
+  },
+}
+`;
