@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   assertWireNamePrefixLength,
+  composeCheckWirePrefix,
   computeCheckContentHash,
   computeIndexContentHash,
+  derivedCheckPrefixes,
   formatWireName,
   normalizeSqlBody,
   parseWireName,
@@ -140,6 +142,29 @@ describe('computeCheckContentHash', () => {
     expect(computeCheckContentHash(`"role" IN ('user')`)).not.toBe(
       computeCheckContentHash(`"role" IN ('admin')`),
     );
+  });
+});
+
+describe('derivedCheckPrefixes', () => {
+  it('crosses every column with every CheckKind', () => {
+    const prefixes = derivedCheckPrefixes('User', ['role', 'tags']);
+    expect(prefixes).toEqual(
+      new Set([
+        composeCheckWirePrefix('User', 'role', 'membership'),
+        composeCheckWirePrefix('User', 'role', 'elementNotNull'),
+        composeCheckWirePrefix('User', 'tags', 'membership'),
+        composeCheckWirePrefix('User', 'tags', 'elementNotNull'),
+      ]),
+    );
+  });
+
+  it('returns an empty set for a table with no columns', () => {
+    expect(derivedCheckPrefixes('User', [])).toEqual(new Set());
+  });
+
+  it('does not include a prefix no column of the table could produce', () => {
+    const prefixes = derivedCheckPrefixes('User', ['role', 'tags']);
+    expect(prefixes.has('User_status_active')).toBe(false);
   });
 });
 

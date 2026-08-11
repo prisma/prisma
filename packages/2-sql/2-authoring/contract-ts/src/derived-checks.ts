@@ -11,6 +11,7 @@ import {
   SqlStorage,
   StorageTable,
 } from '@internal/sql-contract/types';
+import { derivedCheckPrefixes } from '@internal/sql-schema-ir/naming';
 import { ifDefined } from '@internal/utils/defined';
 
 /**
@@ -41,13 +42,23 @@ export function applySqlSpecifierControlPolicy(
  * Removes generated enforcement checks from every table whose effective
  * control policy is not `managed`.
  *
- * A derived check is exactly a wire-named one — the ones authoring composes a
- * prefix and content hash for. The slice-3 opt-out surface (`@noCheck`)
- * re-examined this identification and it stands: the opt-out adds no producer
- * of checks — an opted-out check is never emitted — so wire-named remains
- * exactly "derived by authoring". The identification moves only when a
- * user-authored check surface exists (`@@check`, still a project non-goal),
- * at which point an authored check needs its own marker.
+ * A check is derived iff its wire prefix is one derivation would produce for
+ * some column of its table — {@link derivedCheckPrefixes} enumerates that
+ * set. Wire-naming alone no longer identifies derivation: an authored
+ * `name:` check (`@@check` / `check()`) is wire-named too, so a bare
+ * `check.prefix === undefined` test would delete an author's own constraint
+ * from every non-`managed` table. The prefix-shape rule tests against the
+ * table's own columns instead of the naming mode, so an authored check with
+ * an unrelated prefix survives.
+ *
+ * The rule is weaker than recomputing the content hash `contract infer`
+ * uses: that needs `postgresRenderCheckExpressions` to know what a kind
+ * renders, and this funnel has no target descriptor to reach it through. It
+ * can only ask whether some column could have produced a prefix of this
+ * shape, not whether this exact column produced this exact check. The gap
+ * that opens — an authored name that collides with a derived-prefix shape —
+ * is closed at authoring time instead: such a name is rejected
+ * (`CONTRACT.CHECK_NAME_RESERVED`) before it ever reaches storage.
  *
  * Why derivation stops at the namespace boundary: the contract *describes* an
  * external schema, it does not *prescribe* enforcement for it. Deriving a check
@@ -90,7 +101,7 @@ export function stripDerivedChecksFromNonManagedTables(
     const nextTables: Record<string, StorageTable> = {};
     for (const [tableName, table] of Object.entries(tables)) {
       const stripped = StorageTable.is(table)
-        ? withoutDerivedChecks(table, contract.defaultControlPolicy)
+        ? withoutDerivedChecks(tableName, table, contract.defaultControlPolicy)
         : table;
       if (stripped !== table) namespaceStripped = true;
       nextTables[tableName] = stripped;
@@ -139,6 +150,7 @@ function isSqlStorageShaped(x: unknown): x is SqlStorage {
 
 /** The table itself when it keeps every check, a rebuilt one when it does not. */
 function withoutDerivedChecks(
+  tableName: string,
   table: StorageTable,
   contractDefault: ControlPolicy | undefined,
 ): StorageTable {
@@ -146,7 +158,10 @@ function withoutDerivedChecks(
   if (checks === undefined || checks.length === 0) return table;
   if (effectiveControlPolicy(table.control, contractDefault) === 'managed') return table;
 
-  const kept = checks.filter((check) => check.prefix === undefined);
+  const derivedPrefixes = derivedCheckPrefixes(tableName, Object.keys(table.columns));
+  const kept = checks.filter(
+    (check) => check.prefix === undefined || !derivedPrefixes.has(check.prefix),
+  );
   if (kept.length === checks.length) return table;
 
   return new StorageTable({

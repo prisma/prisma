@@ -951,7 +951,7 @@ describe('check emission — a specifier-applied policy strips derived checks', 
     expect(stripDerivedChecksFromNonManagedTables(built, createTestSqlNamespace)).toBe(built);
   });
 
-  it('keeps an exact-named check, which no derivation produced', () => {
+  it('keeps an exact-named check and strips a wire-named one whose prefix matches a real column', () => {
     const built = buildManagedUser();
     const derived = '"tags" IS NOT NULL';
     const adopted = '"role" <> \'\'';
@@ -966,7 +966,9 @@ describe('check emission — a specifier-applied policy strips derived checks', 
             entries: {
               table: {
                 User: new StorageTableClass({
-                  columns: {},
+                  columns: {
+                    tags: { nativeType: 'text', codecId: 'pg/text@1', nullable: false, many: true },
+                  },
                   uniques: [],
                   indexes: [],
                   foreignKeys: [],
@@ -996,5 +998,60 @@ describe('check emission — a specifier-applied policy strips derived checks', 
     expect(flatten(checksOf(stripped))).toEqual([
       { name: 'User_hand_written', prefix: undefined, expression: adopted },
     ]);
+  });
+
+  // The regression test for the whole dispatch: slice 4 makes an authored
+  // `name:` check wire-named too, so identifying "derived" by wire-naming
+  // alone would delete an author's own constraint here. The prefix-shape
+  // rule must tell the two apart using the table's real columns.
+  it('keeps a wire-named check whose prefix matches no derived shape for the table', () => {
+    const built = buildManagedUser();
+    const authored = '"tags" IS NOT NULL AND "role" <> \'\'';
+    const withAuthored: Contract<SqlStorage> = {
+      ...built,
+      defaultControlPolicy: 'external',
+      storage: new SqlStorageClass({
+        storageHash: built.storage.storageHash,
+        namespaces: {
+          public: createTestSqlNamespace({
+            id: 'public',
+            entries: {
+              table: {
+                User: new StorageTableClass({
+                  columns: {
+                    id: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+                    role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+                    tags: { nativeType: 'text', codecId: 'pg/text@1', nullable: false, many: true },
+                  },
+                  uniques: [],
+                  indexes: [],
+                  foreignKeys: [],
+                  checks: [
+                    {
+                      naming: {
+                        kind: 'wire',
+                        prefix: 'User_tags_and_role',
+                        hash: computeCheckContentHash(authored),
+                      },
+                      expression: authored,
+                    },
+                  ],
+                }),
+              },
+            },
+          }),
+        },
+      }),
+    };
+
+    const stripped = stripDerivedChecksFromNonManagedTables(
+      withAuthored,
+      createTestSqlNamespace,
+    ) as Contract<SqlStorage>;
+
+    expect(flatten(checksOf(stripped))).toEqual([wire('User_tags_and_role', authored)]);
+    // Nothing was stripped, so the specifier funnel's reference-equality
+    // contract holds all the way up to the returned contract.
+    expect(stripped).toBe(withAuthored);
   });
 });
