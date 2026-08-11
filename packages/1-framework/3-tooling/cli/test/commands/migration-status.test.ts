@@ -6,6 +6,7 @@ import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { type } from 'arktype';
 import { join } from 'pathe';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
@@ -137,9 +138,8 @@ describe('migration status --json golden', () => {
     createdDirs.push(cwd);
     const contractPath = await writeContract(cwd, HASH_B);
     const { dirInit, dirNext } = await writeLinearMigrations(join(cwd, 'migrations'));
-    type LoadedConfig = Awaited<ReturnType<typeof configLoader.loadConfig>>;
-    vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(
-      baseConfig(contractPath) as unknown as LoadedConfig,
+    vi.spyOn(configLoader, 'loadConfigForSections').mockResolvedValue(
+      ok(baseConfig(contractPath) as unknown as configLoader.PrismaNextConfig),
     );
 
     mocks.connect.mockResolvedValue(undefined);
@@ -208,9 +208,8 @@ describe('migration status --json golden', () => {
       metadata,
       [ADDITIVE_OP],
     );
-    type LoadedConfig = Awaited<ReturnType<typeof configLoader.loadConfig>>;
-    vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(
-      baseConfig(contractPath) as unknown as LoadedConfig,
+    vi.spyOn(configLoader, 'loadConfigForSections').mockResolvedValue(
+      ok(baseConfig(contractPath) as unknown as configLoader.PrismaNextConfig),
     );
 
     mocks.connect.mockResolvedValue(undefined);
@@ -254,11 +253,12 @@ describe('migration status --json golden', () => {
       metadata,
       [ADDITIVE_OP],
     );
-    type LoadedConfig = Awaited<ReturnType<typeof configLoader.loadConfig>>;
-    vi.spyOn(configLoader, 'loadConfig').mockResolvedValue({
-      ...baseConfig(missingPath),
-      db: undefined,
-    } as unknown as LoadedConfig);
+    vi.spyOn(configLoader, 'loadConfigForSections').mockResolvedValue(
+      ok({
+        ...baseConfig(missingPath),
+        db: undefined,
+      } as unknown as configLoader.PrismaNextConfig),
+    );
 
     const options: MigrationStatusOptions = { config: missingPath, from: EMPTY_CONTRACT_HASH };
     const flags = parseGlobalFlags({ json: true, quiet: true });

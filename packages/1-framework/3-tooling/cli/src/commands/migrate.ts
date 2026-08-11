@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import { createControlStack } from '@internal/framework-components/control';
 import type { RefEntry } from '@internal/migration-tools/refs';
@@ -335,7 +335,20 @@ async function executeMigrateCommand(
   ui: TerminalUI,
   startTime: number,
 ): Promise<Result<MigrateResult, CliStructuredErrorType>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath, migrationsDir, appMigrationsRelative, refsDir } = resolveMigrationPaths(
     options.config,
     config,

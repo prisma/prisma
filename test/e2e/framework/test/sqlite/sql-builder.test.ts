@@ -29,6 +29,14 @@ function seedPostsWithGroupCounts(rawDb: DatabaseSync, groupCount: number): void
   rawDb.exec(`INSERT INTO posts (id, title, user_id, views) VALUES ${values.join(', ')}`);
 }
 
+/** Two rows whose `views` total leaves the safe integer range while staying a perfectly good SQLite integer. */
+function seedWideSum(rawDb: DatabaseSync): void {
+  rawDb.exec('DELETE FROM posts');
+  rawDb.exec(
+    "INSERT INTO posts (id, title, user_id, views) VALUES (1, 'a', 1, 9007199254740993), (2, 'b', 1, 2)",
+  );
+}
+
 describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, () => {
   describe('SELECT', () => {
     it('basic column projection', async () => {
@@ -268,14 +276,14 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
             .select('user_id')
             .select('cnt', (_f, fns) => fns.count())
             .groupBy('user_id')
-            .having((_f, fns) => fns.gt(fns.count(), 9n))
+            .having((_f, fns) => fns.gt(fns.count(), 9))
             .orderBy('user_id')
             .build(),
         );
         expect(rows).toEqual([
-          { user_id: 10, cnt: 10n },
-          { user_id: 11, cnt: 11n },
-          { user_id: 12, cnt: 12n },
+          { user_id: 10, cnt: 10 },
+          { user_id: 11, cnt: 11 },
+          { user_id: 12, cnt: 12 },
         ]);
       });
     });
@@ -295,16 +303,30 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
       });
     });
 
-    it('projects a sum past 2^53 through the bigint lowering', async () => {
+    it('projects a sumBigInt past 2^53 through the bigint lowering', async () => {
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime, rawDb }) => {
-        rawDb.exec('DELETE FROM posts');
-        rawDb.exec(
-          "INSERT INTO posts (id, title, user_id, views) VALUES (1, 'a', 1, 9007199254740993), (2, 'b', 1, 2)",
-        );
+        seedWideSum(rawDb);
         const rows = await runtime.execute(
-          db[UNBOUND_NAMESPACE_ID].posts.select('total', (f, fns) => fns.sum(f.views)).build(),
+          db[UNBOUND_NAMESPACE_ID].posts
+            .select('total', (f, fns) => fns.sumBigInt(f.views))
+            .build(),
         );
         expect(rows).toEqual([{ total: 9007199254740995n }]);
+      });
+    });
+
+    it('refuses a bare sum past 2^53 rather than rounding it', async () => {
+      await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime, rawDb }) => {
+        seedWideSum(rawDb);
+        await expect(
+          runtime.execute(
+            db[UNBOUND_NAMESPACE_ID].posts.select('total', (f, fns) => fns.sum(f.views)).build(),
+          ),
+        ).rejects.toMatchObject({
+          code: 'RUNTIME.DECODE_FAILED',
+          message:
+            'sqlite/bigintnumber@1 value must be an integer within the safe integer range, got 9007199254740995',
+        });
       });
     });
   });

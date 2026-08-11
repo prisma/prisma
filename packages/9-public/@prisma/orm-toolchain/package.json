@@ -19,7 +19,7 @@
   "dependencies": {
     "@clack/prompts": "^1.7.0",
     "@prisma/orm-framework": "workspace:8.0.0-rc.1",
-    "@vercel/detect-agent": "^1.2.3",
+    "@vercel/detect-agent": "^1.2.4",
     "arktype": "catalog:",
     "c12": "^3.3.4",
     "ci-info": "^4.3.1",
@@ -87,6 +87,7 @@
     "./cli/commands/telemetry": "./dist/cli__commands__telemetry.mjs",
     "./cli/config-types": "./dist/cli__config-types.mjs",
     "./cli/control-api": "./dist/cli__control-api.mjs",
+    "./cli/control-api/testing": "./dist/cli__control-api__testing.mjs",
     "./cli/init-output": "./dist/cli__init-output.mjs",
     "./cli/migration-cli": "./dist/cli__migration-cli.mjs",
     "./cli-telemetry": "./dist/cli-telemetry.mjs",

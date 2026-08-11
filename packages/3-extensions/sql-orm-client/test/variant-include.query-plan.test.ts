@@ -170,7 +170,9 @@ describe('variant-owned include child alias collisions', () => {
           JsonObjectExpr.fromEntries([
             JsonObjectExpr.entry(
               'value',
-              new CodecJsonValueProjection(AggregateExpr.count(), { codecId: 'pg/int8@1' }),
+              new CodecJsonValueProjection(AggregateExpr.count(), {
+                codecId: 'pg/int8number@1',
+              }),
             ),
           ]),
         ),

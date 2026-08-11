@@ -1,4 +1,4 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { MigrationGraph } from '@internal/migration-tools/graph';
 import { ifDefined } from '@internal/utils/defined';
 import { ok, type Result } from '@internal/utils/result';
@@ -85,7 +85,18 @@ export async function executeMigrationGraphCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<MigrationGraphResult, CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'extensions',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath, migrationsRelative, migrationsDir } = resolveMigrationPaths(
     options.config,
     config,

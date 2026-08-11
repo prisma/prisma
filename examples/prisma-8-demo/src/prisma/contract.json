@@ -154,6 +154,13 @@
                   "kind": "scalar"
                 }
               },
+              "impressionCount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int8@1",
+                  "kind": "scalar"
+                }
+              },
               "priority": {
                 "nullable": false,
                 "type": {
@@ -167,6 +174,13 @@
                   "plane": "domain"
                 }
               },
+              "reachScore": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/unboundedint@1",
+                  "kind": "scalar"
+                }
+              },
               "title": {
                 "nullable": false,
                 "type": {
@@ -178,6 +192,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "viewCount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int8number@1",
                   "kind": "scalar"
                 }
               }
@@ -238,14 +259,23 @@
                 "id": {
                   "column": "id"
                 },
+                "impressionCount": {
+                  "column": "impressionCount"
+                },
                 "priority": {
                   "column": "priority"
+                },
+                "reachScore": {
+                  "column": "reachScore"
                 },
                 "title": {
                   "column": "title"
                 },
                 "userId": {
                   "column": "userId"
+                },
+                "viewCount": {
+                  "column": "viewCount"
                 }
               },
               "namespaceId": "public",
@@ -752,6 +782,11 @@
                   "nativeType": "uuid",
                   "nullable": false
                 },
+                "impressionCount": {
+                  "codecId": "pg/int8@1",
+                  "nativeType": "int8",
+                  "nullable": true
+                },
                 "priority": {
                   "codecId": "pg/text@1",
                   "default": {
@@ -767,6 +802,11 @@
                     "plane": "storage"
                   }
                 },
+                "reachScore": {
+                  "codecId": "pg/unboundedint@1",
+                  "nativeType": "numeric",
+                  "nullable": true
+                },
                 "title": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -776,6 +816,11 @@
                   "codecId": "pg/uuid@1",
                   "nativeType": "uuid",
                   "nullable": false
+                },
+                "viewCount": {
+                  "codecId": "pg/int8number@1",
+                  "nativeType": "int8",
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -1077,7 +1122,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "0b4bec62f3ba6e3e85b4ca8601cfb71fdf8bba01baaf491f93ea7a7d96ce96d2",
+    "storageHash": "b18b261eb36b0a9960b7d1f5bc0176e9f189ca2620525c31cdf79b5b14de47cb",
     "types": {
       "Embedding1536": {
         "codecId": "pg/vector@1",
@@ -1159,6 +1204,29 @@
     }
   },
   "extensions": {
+    "demo/engagement-stats": {
+      "familyId": "sql",
+      "id": "demo/engagement-stats",
+      "kind": "extension",
+      "targetId": "postgres",
+      "types": {
+        "aggregateDescriptors": [
+          {
+            "input": {
+              "kind": "trait",
+              "trait": "numeric"
+            },
+            "nullable": true,
+            "operation": "stddev",
+            "output": {
+              "codecId": "pg/numeric@1",
+              "kind": "codec"
+            }
+          }
+        ]
+      },
+      "version": "0.0.1"
+    },
     "pgvector": {
       "capabilities": {
         "postgres": {

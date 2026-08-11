@@ -12,6 +12,7 @@ import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
+import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -21,7 +22,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 vi.mock('@internal/migration-tools/refs', async (importOriginal) => {
@@ -143,23 +144,25 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
         targetFamily: 'sql',
       }),
     );
-    mocks.loadConfig.mockResolvedValue({
-      family: {
-        familyId: 'sql',
-        create: vi.fn().mockReturnValue({
-          deserializeContract: (json: unknown) => json,
-        }),
-      },
-      target: {
-        id: 'postgres',
-        familyId: 'sql',
-        targetId: 'postgres',
-        kind: 'target',
-        migrations: {},
-      },
-      contract: { output: join(tempDir, 'contract.json') },
-      migrations: { dir: 'migrations' },
-    });
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        family: {
+          familyId: 'sql',
+          create: vi.fn().mockReturnValue({
+            deserializeContract: (json: unknown) => json,
+          }),
+        },
+        target: {
+          id: 'postgres',
+          familyId: 'sql',
+          targetId: 'postgres',
+          kind: 'target',
+          migrations: {},
+        },
+        contract: { output: join(tempDir, 'contract.json') },
+        migrations: { dir: 'migrations' },
+      }),
+    );
   });
 
   afterEach(async () => {

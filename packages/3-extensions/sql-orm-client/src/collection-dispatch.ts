@@ -33,7 +33,7 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
-import { resolveAggregateOutputCodec } from './aggregate-codecs';
+import { resolveAggregate } from './aggregate-codecs';
 import { emptyAggregateResult } from './aggregate-empty-result';
 import {
   isToOneCardinality,
@@ -634,9 +634,8 @@ function describeEnvelopeShape(value: unknown): string {
  *
  * Contract: the envelope is always either
  *   - a `{ value: <primitive> }` JSON object (the SQL path), or
- *   - `null` / `undefined` (the mutation read-back's
- *     `assignEmptyMutationIncludes` short-circuit before this decoder
- *     runs, for a parent absent from the read-back result).
+ *   - `null` / `undefined` (the mutation read-back's empty-include
+ *     short-circuit, for a parent absent from the read-back result).
  *
  * Any other shape — array, primitive, string that JSON-parses to
  * non-object — indicates a planner / decoder bug, so we throw
@@ -645,13 +644,13 @@ function describeEnvelopeShape(value: unknown): string {
  *
  * The value passes through its own codec — the one the planner projected it
  * under — because it arrived inside a JSON document, where a count past 2^53
- * would otherwise have been read as a rounded number. SQL semantics drive the
- * empty-relation case: `COUNT(*)` over an empty input set is `0`;
- * `SUM` / `AVG` / `MIN` / `MAX` over an empty input set return SQL
- * `NULL`, which surfaces as `null` here. The outer `raw === null`
- * fallback is defensive cover for an empty parent set; in single-query
- * dispatch the correlated subquery always produces a row, so the inner
- * envelope's `value` is always set by SQL.
+ * would otherwise have been read as a rounded number. Resolution mirrors
+ * planning — the same registry, operation, and column — so the empty-relation
+ * answer derives from the operation's declared row: NULL where the row is
+ * nullable, else the value that row declares. The outer `raw === null` fallback is
+ * defensive cover for an empty parent set; in single-query dispatch the
+ * correlated subquery always produces a row, so the inner envelope's `value`
+ * is always set by SQL.
  */
 function decodeScalarIncludePayload(
   contract: Contract<SqlStorage>,
@@ -660,8 +659,18 @@ function decodeScalarIncludePayload(
   scalar: IncludeScalar<unknown>,
   raw: unknown,
 ): unknown {
+  const resolved = resolveAggregate({
+    aggregates: context.aggregateDescriptors,
+    contract,
+    namespaceId: include.relatedNamespaceId,
+    tableName: include.relatedTableName,
+    fn: scalar.fn,
+    column: scalar.column,
+  });
+  const codec = context.contractCodecs.forCodecRef(resolved.codec);
+
   if (raw === null || raw === undefined) {
-    return emptyAggregateResult(scalar.fn);
+    return emptyAggregateResult(resolved, codec);
   }
   const parsed = parseIncludePayload(raw);
   if (!isPlainObjectEnvelope(parsed)) {
@@ -671,21 +680,12 @@ function decodeScalarIncludePayload(
   }
 
   const value = parsed['value'];
-  if (value === null || value === undefined) return emptyAggregateResult(scalar.fn);
-
-  const codecRef = resolveAggregateOutputCodec({
-    aggregates: context.aggregateDescriptors,
-    contract,
-    namespaceId: include.relatedNamespaceId,
-    tableName: include.relatedTableName,
-    fn: scalar.fn,
-    column: scalar.column,
-  });
+  if (value === null || value === undefined) return emptyAggregateResult(resolved, codec);
 
   return decodeIncludedJsonValue(
     { table: include.relatedTableName, column: include.relationName },
-    codecRef.codecId,
-    context.contractCodecs.forCodecRef(codecRef),
+    resolved.codec.codecId,
+    codec,
     value,
   );
 }

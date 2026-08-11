@@ -72,8 +72,8 @@
     "lint:publishability": "node scripts/lint-publishability.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.5",
-    "@cursor/sdk": "^1.0.24",
+    "@biomejs/biome": "2.5.6",
+    "@cursor/sdk": "^1.0.26",
     "@internal/framework-components": "workspace:8.0.0-rc.1",
     "@internal/migration-tools": "workspace:8.0.0-rc.1",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
@@ -85,7 +85,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.2.0",
     "pathe": "^2.0.3",
-    "pkg-pr-new": "0.0.80",
+    "pkg-pr-new": "0.0.86",
     "skills": "^1.5.20",
     "tslib": "^2.8.1",
     "tsx": "catalog:",

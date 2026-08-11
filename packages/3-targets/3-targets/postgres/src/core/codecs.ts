@@ -50,6 +50,8 @@ import { definePostgresCodecs, PostgresCodecDescriptor, postgresCodec } from './
 import {
   decimalTextBigintLiteral,
   type PgInterval,
+  pgBigintEncode,
+  pgBigintEncodeJson,
   pgByteaDecodeJson,
   pgByteaEncodeJson,
   pgDateDecode,
@@ -676,13 +678,13 @@ export class PgInt8Codec extends CodecImpl<
   bigint
 > {
   async encode(value: bigint, _ctx: CodecCallContext): Promise<string> {
-    return value.toString();
+    return pgBigintEncode(PG_INT8_CODEC_ID, value);
   }
   async decode(wire: string | number | bigint, _ctx: CodecCallContext): Promise<bigint> {
     return pgInt8Decode(wire);
   }
   encodeJson(value: bigint): JsonValue {
-    return value.toString();
+    return pgBigintEncodeJson(PG_INT8_CODEC_ID, value);
   }
   decodeJson(json: JsonValue): bigint {
     if (typeof json !== 'string') {
@@ -994,13 +996,13 @@ export class PgUnboundedIntCodec extends CodecImpl<
   bigint
 > {
   async encode(value: bigint, _ctx: CodecCallContext): Promise<string> {
-    return value.toString();
+    return pgBigintEncode(PG_UNBOUNDED_INT_CODEC_ID, value);
   }
   async decode(wire: string | number | bigint, _ctx: CodecCallContext): Promise<bigint> {
     return pgUnboundedIntDecode(wire);
   }
   encodeJson(value: bigint): JsonValue {
-    return value.toString();
+    return pgBigintEncodeJson(PG_UNBOUNDED_INT_CODEC_ID, value);
   }
   decodeJson(json: JsonValue): bigint {
     if (typeof json !== 'string') {

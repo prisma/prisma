@@ -41,6 +41,10 @@ A DB-connected command (`migrate`, `db init`, `db sign`, `db verify`, `db update
 
 A DB-connected command was run but `prisma-next.config.ts` has no control-plane `driver` entry (e.g. `driver: postgresDriver`). Raised by the migration command scaffold, `migrate`, `db sign`, `db verify`, and `inspect-live-schema`. Meta: none.
 
+### CONFIG.EVALUATION_FAILED
+
+The config module could not be evaluated at all — a syntax error in `prisma-next.config.ts`, or the module threw during import. Raised by the config loader for any command that needs config; loading fails outright (no per-section diagnostics are possible for a module that does not evaluate) and every command exits `2` with this error. The underlying evaluation error's message is carried in `why` and the original error in `cause` (in-process only). The path, when known, is carried in `where.path`. Meta: none.
+
 ### CONFIG.FAMILY_READ_MARKER_REQUIRED
 
 Reserved: `db verify` needs the family package to export `verify.readMarker()` and it is absent. Declared in the shared error factories but not raised by any command today.
@@ -59,7 +63,11 @@ Reserved: `db verify` needs `db.queryRunnerFactory` in `prisma-next.config.ts` a
 
 ### CONFIG.VALIDATION_FAILED
 
-`prisma-next.config.ts` loaded but failed validation: a required field is missing or malformed. Raised by the config loader and by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`; also raised by contract-path resolution when `config.contract.output` is absent. Meta: none.
+`prisma-next.config.ts` loaded but a config section is missing or malformed. The config loader validates the evaluated config and returns one diagnostic per problem, each tagged with the top-level config section it concerns (`meta.section`: `family`, `target`, `adapter`, `driver`, `extensions`, `db`, `contract`, `migrations`, or `formatter`); a command fails with the diagnostic (exit `2`) only when it reads that section. Also raised by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`, and by contract-path resolution when `config.contract.output` is absent (those sites carry no `section`). Meta: `field` (loader diagnostics), `section` (loader diagnostics; optional elsewhere).
+
+### CONFIG.VERSION_MARKER_MISSING
+
+The config module evaluated, but its default export was not created by the current `defineConfig` — a plain object export, a spread copy of a `defineConfig` result, or a config produced by a different `defineConfig` (for example a classic Prisma 7 config file). Raised by the config loader before validation; loading fails outright and every command exits `2` with this error. The fix is to create the config with `defineConfig` (imported from your target package's `/config` entrypoint, for example `@prisma/orm-postgres/config`) and export its return value directly. The path, when known, is carried in `where.path`. Meta: none.
 
 ## CLI
 
@@ -175,7 +183,7 @@ Two composed components contribute an aggregate descriptor for the same `(operat
 
 ### CONTRACT.AGGREGATE_DESCRIPTOR_INVALID
 
-A composed component contributes an aggregate descriptor whose shape the framework cannot read: a missing or empty `operation`, an `input` match that is not `none` / `any` / `codec` / `trait`, an `output` that is not `self` / `codec`, a non-boolean `nullable`, or a `self` output on a match that may carry no input to reuse. Raised while the control stack collects contributions (e.g. during `contract emit`); the runtime plane enforces the same rule as `RUNTIME.AGGREGATE_DESCRIPTOR_INVALID`. Meta: `contributedBy`, `descriptor`.
+A composed component contributes an aggregate descriptor whose shape the framework cannot read: a missing or empty `operation`, an `input` match that is not `none` / `any` / `codec` / `trait`, an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `nullable: false` descriptor with no `emptyResultJson` (a non-nullable result must declare the value it answers with over no result row), or a `self` output on a match that may carry no input to reuse. Raised while the control stack collects contributions (e.g. during `contract emit`); the runtime plane enforces the same rule as `RUNTIME.AGGREGATE_DESCRIPTOR_INVALID`. Meta: `contributedBy`, `descriptor`.
 
 ### CONTRACT.AGGREGATE_OUTPUT_CODEC_MISSING
 
@@ -184,6 +192,10 @@ The SQL emitter is asked to emit an aggregate result row whose declared result c
 ### CONTRACT.CODEC_DESCRIPTOR_MISSING
 
 The control plane resolves a codec referenced by the contract (a `CodecRef.codecId`) against the contract's pack stack and finds no registered codec descriptor for that id. Hit during control-plane operations (emit, migration tooling) when a contract references a codec no composed pack provides. Meta: `codecId`.
+
+### CONTRACT.CHECK_OPTOUT_INVALID
+
+A `@noCheck` / `.noCheck(...)` declaration is invalid. Either it does not apply to the column — the named kind is not derivable for the column's shape (`membership` on a column with no domain-enum value set, `elementNotNull` on a column that is not a list of scalars), or the bare form waives nothing because the column derives no generated checks — or the declaration is malformed: a kind is named twice, or `noCheck()` is called more than once on one field builder. Raised by both authoring paths (TS `defineContract` and PSL interpretation) on `managed` tables. Meta: `modelName`, `fieldName`, `reason`, and `kind` for per-kind failures.
 
 ### CONTRACT.COLLECTION_INVALID
 
@@ -389,6 +401,14 @@ An authored wire-name prefix (an index name, or an RLS policy prefix) exceeds th
 
 ## ORM
 
+### ORM.AGGREGATE_OPERATION_RESERVED
+
+A contributed aggregate operation carries a name a collection builder member already owns (`select`, `include`, `where`, `combine`, `aggregate`, …, or a collection instance field). Aggregate operations surface as reducer methods on the ORM collection, in one flat namespace with the query-builder members, so a same-named operation would shadow the member it collides with. Raised at ORM composition (`orm(...)`), where the collection surface is assembled. Rename the contributed operation. Meta: `operation`.
+
+### ORM.AGGREGATE_PROJECTION_ONLY
+
+An aggregate operation contributed from outside the closed SQL aggregate alphabet (`count`, `sum`, `avg`, `min`, `max`) was used in HAVING, ORDER BY, or another comparison position. Such an operation reaches SQL only through its descriptor's lowering hook — a rendering meant for the SELECT projection, where the value crosses the driver boundary. HAVING and ORDER BY compare the value inside the database, where that rendering would change SQL semantics (a textual rendering compares and sorts lexicographically), so the query builder refuses at authoring time. Project the aggregate in a select and filter or order on the projected value, or use an operation from the alphabet. Meta: `operation`.
+
 ### ORM.AGGREGATE_SELECTOR_INVALID
 
 An `aggregate()` or `groupBy().aggregate()` selector is not a valid aggregation descriptor, or an aggregate function that requires a column/field (e.g. sum, avg) was given none. Thrown when the ORM client builds the aggregate query plan. Meta: `method`, `model`, `alias`, `fn`.
@@ -501,7 +521,11 @@ An in-flight `execute()` was cancelled via the per-query `AbortSignal` passed as
 
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
-A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `any` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `self` output on an operation that consumes no input, or a non-callable `lower`. Raised while the execution context assembles the registry. Meta: `descriptor`.
+A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `any` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `nullable: false` descriptor with no `emptyResultJson`, a `self` output on an operation that consumes no input, or a non-callable `lower`. `emptyResultJson` is the value a non-nullable operation answers with when no result row reaches the caller, stated in the result codec's canonical JSON — `0` under `pg/int8number@1`, `'0'` under `pg/int8@1`. Raised while the execution context assembles the registry. Meta: `descriptor`.
+
+### RUNTIME.AGGREGATE_LOWERING_MISSING
+
+An aggregate descriptor declares an operation outside the closed SQL aggregate alphabet (`count`, `sum`, `avg`, `min`, `max`) and carries no `lower` hook. An alphabet operation lowers to a plain aggregate call by default; renderers know no other operation, so any other name must build its expression through a lowering hook from existing AST nodes. Raised while the execution context assembles the aggregate registry. Meta: `operation`, `key`.
 
 ### RUNTIME.AGGREGATE_OUTPUT_CODEC_MISSING
 
@@ -573,6 +597,8 @@ A codec's `decode` threw while converting a wire value into its output type duri
 
 Codecs also raise this code directly, as a structured envelope with `meta.codecId` and `meta.received`. The integer guards: `pg/int8number@1` and `sqlite/bigintnumber@1` (the `BigIntNumber` type) refuse a stored value outside the safe integer range ±(2^53 − 1) and any non-integral value rather than rounding it; `pg/int8@1`, `pg/unboundedint@1`, and `sqlite/bigint@1` refuse a wire or JSON value that is not a decimal integer. On a flat read the codec's envelope surfaces unchanged; on an `.include()` read the ORM client wraps it in a fresh `RUNTIME.DECODE_FAILED` carrying `table`, `column`, and `codec`, with the codec's envelope on `cause`. One SQLite caveat: on a flat read, `node:sqlite` itself refuses an INTEGER outside the safe range before any codec runs, so for an out-of-band stored value the structured envelope is guaranteed on the include/JSON path, not the flat path.
 
+**Aggregates reach the same guards.** `count()` and `sum()` over integers declare a number-flavoured result codec, so a tally or total past ±(2^53 − 1) raises this code — `pg/int8number@1 value must be an integer within the safe integer range, got 9007199254740992` — instead of returning a rounded value. It fires on the wire path and on the `.include()` path alike: the include projection is a JSON number, but the guard runs after `JSON.parse`, and rounding is monotone, so a value that was outside the range is still outside it. Where the magnitude is real rather than a bug, switch that call to the lossless variant beside it — `countBigInt()`, `sumBigInt()`, or `avgDecimal()`.
+
 ### RUNTIME.DUPLICATE_AGGREGATE_DESCRIPTOR
 
 Two components claim the same aggregate overload — the same `(operation, input)` pair, keyed as `sum:trait:numeric`, `sum:codec:pg/int8@1`, or `count:none`. Each overload resolves to exactly one result codec, so exactly one target, adapter, or extension may contribute it. Meta: `key`.
@@ -594,6 +620,10 @@ Two runtime stack contributors register a mutation default generator with the sa
 A codec's `encode` threw while converting a user-supplied parameter value to driver wire format during query execution (SQL param encoding, or Mongo param-ref resolution), with the original error attached as `cause`. Meta: `label`, `codec`; SQL path also `paramIndex`.
 
 Codecs also raise this code directly, as a structured envelope with `meta.codecId` and `meta.received`, which surfaces unchanged: writing a value outside ±(2^53 − 1), or a non-integral number, through `pg/int8number@1` or `sqlite/bigintnumber@1` (the `BigIntNumber` type) raises it before any SQL executes.
+
+The integer codecs also check the JS type of the value they are given, and report that separately from the range: `pg/int8number@1` and `sqlite/bigintnumber@1` read a `number`, while `pg/int8@1`, `pg/unboundedint@1`, and `sqlite/bigint@1` read a `bigint`. A value of the other type raises `<codec> value must be a <number|bigint>, got <type> <value>` with `meta.received` naming the type that arrived — the message you get from passing `9n` where a `number` is read, rather than a range complaint about a value plainly inside the range.
+
+The exact integer codecs make one exception, and only on the JSON side. `encodeJson` on `pg/int8@1`, `pg/unboundedint@1`, and `sqlite/bigint@1` also accepts a `number`, because a schema language writes no `bigint` literal — `BigInt @default(0)` arrives as the JSON number `0`. The number must be an integer within the safe range, and a value that is not raises `<codec> number literal must be an integer within the safe integer range, got <value>`: past that range the literal was already rounded before the codec saw it, so its digits no longer name the value that was written. `encode` — the wire path a query parameter travels — takes no such number; it requires the `bigint`.
 
 ### RUNTIME.ITERATOR_CONSUMED
 

@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import {
   APP_SPACE_ID,
@@ -91,7 +91,19 @@ async function executeMigrationShowCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<MigrationShowResult, CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath, migrationsDir, appMigrationsDir, appMigrationsRelative } =
     resolveMigrationPaths(options.config, config);
 

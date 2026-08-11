@@ -22,6 +22,8 @@ export type SqlAggregateLowering = (context: SqlAggregateLoweringContext) => Any
  * The SQL specialization of {@link AggregateDescriptor}: the same declarative `(operation, input) -> output codec + nullability` mapping, plus an optional hook that builds the expression.
  *
  * Targets and extensions contribute these through `types.aggregateDescriptors`; the runtime assembles them into a `SqlAggregateDescriptorRegistry` once at execution-context construction.
+ *
+ * Operation names are an open namespace, but the AST's `AggregateFn` alphabet is closed: an operation named in the alphabet lowers to a plain `AggregateExpr(operation, expr)` by default, while a descriptor for any other operation must carry `lower` — registry assembly rejects it otherwise with `RUNTIME.AGGREGATE_LOWERING_MISSING`.
  */
 export type SqlAggregateDescriptor = AggregateDescriptor & {
   readonly lower?: SqlAggregateLowering;

@@ -117,6 +117,9 @@ The demo includes ORM client examples under `src/orm-client/`:
 - `ormClientGetLatestUserPerKind(runtime)` — `distinctOn()` with deterministic ordering
 - `ormClientGetUserInsights(limit, runtime)` — `include().combine()` metrics and latest related row
 - `ormClientGetUserKindBreakdown(minUsers, runtime)` — `groupBy().having().aggregate()` breakdown
+- `ormClientGetPostEngagement(limit, runtime)` — the three engagement counters side by side, one per integer representation (`BigIntNumber`, `BigInt`, `UnboundedInt`)
+- `ormClientGetEngagementPrecision(runtime)` — `count`/`sum`/`avg` beside `countBigInt`/`sumBigInt`/`avgDecimal`, including the bare `sum` that raises rather than rounding
+- `ormClientGetEngagementSpread(runtime)` — an extension-contributed `stddev` aggregate, called like a built-in
 - `ormClientUpsertUser(data, runtime)` — `upsert()` for create-or-update by primary key
 - `ormClientFindUserByIdCached(id, runtime, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ ttl })` from `@internal/middleware-cache`
 - `ormClientGetUsersCached(limit, runtime, options?)` — opt-in cached `User.all()` listing, with optional explicit cache-key override
@@ -148,6 +151,10 @@ pnpm start -- repo-connect-post-tags <postId> <tagId>
 pnpm start -- repo-disconnect-post-tags <postId> <tagId>
 pnpm start -- repo-create-post-with-tags <newPostId> <userId> 'Title' label1 label2
 pnpm start -- repo-create-post-connect-tags <newPostId> <userId> 'Title' <tagId>
+# Integer representations and aggregate precision
+pnpm start -- integer-representations
+pnpm start -- aggregate-precision
+pnpm start -- aggregate-stddev
 ```
 
 ## Polymorphic Includes
@@ -242,6 +249,92 @@ The source files: `src/orm-client/get-post-tags.ts`, `get-tag-posts.ts`,
 `get-posts-by-tag-filter.ts`, `connect-post-tags.ts`, `disconnect-post-tags.ts`,
 `create-post-with-tags.ts`, and `create-post-connect-tags.ts`.
 
+## Integer Representations and Aggregate Precision
+
+`Post` carries three engagement counters, one per integer representation the
+PostgreSQL target offers. All three are integers in the database; each arrives
+in application code as a different JavaScript value.
+
+| Column | Type | Codec | Storage | Reads as |
+| --- | --- | --- | --- | --- |
+| `viewCount` | `BigIntNumber` | `pg/int8number@1` | `int8` | `number`, throwing outside ±(2^53 − 1) |
+| `impressionCount` | `BigInt` | `pg/int8@1` | `int8` | `bigint` |
+| `reachScore` | `UnboundedInt` | `pg/unboundedint@1` | unconstrained `numeric` | `bigint`, exact at any magnitude |
+
+```bash
+pnpm start -- integer-representations
+```
+
+```text
+First Post
+  viewCount        12500 (number)
+  impressionCount  4503599627370496n (bigint)
+  reachScore       18446744073709551616n (bigint)
+```
+
+Two of the seeded `reachScore` values are past 2^63, where an `int8` column
+would already have overflowed.
+
+### The guard, and the way round it
+
+The bare aggregate operations answer in the type a JavaScript developer
+expects. Where a total cannot be a `number`, the codec raises instead of
+handing back a rounded one, and the suffixed variants are the exact answers.
+
+The seed makes that concrete: no single `impressionCount` is near the
+safe-integer range, but the three of them total 2^53 + 1000.
+
+```bash
+pnpm start -- aggregate-precision
+```
+
+```text
+impressionCount — BigInt, and the total is 2^53 + 1000:
+  sum('impressionCount')        refused — this is the guard working:
+    RUNTIME.DECODE_FAILED: pg/int8number@1 value must be an integer within the safe integer range, got 9007199254741992
+    A number cannot hold that total exactly, so the codec raises rather
+    than rounding. Reach for the lossless variant instead:
+  sumBigInt('impressionCount')  9007199254741992n (bigint)
+
+reachScore — UnboundedInt, so even the bare sum is exact:
+  sum('reachScore')             27670116110564327467n (bigint)
+  sumBigInt('reachScore')       27670116110564327467n (bigint)
+```
+
+The guard is about the value the aggregate produces, not the values it read.
+`sum` over `reachScore` needs no guard at all: a column whose author already
+chose an exact representation keeps it.
+
+### An aggregate an extension contributed
+
+The aggregate vocabulary is a contribution, not a fixed list.
+`src/extensions/engagement-stats.ts` is a local extension whose whole content is
+one `stddev` descriptor: an input match, an output codec, and a `lower` hook
+that builds `stddev_samp(...)` because `stddev` is not one of the five names
+the SQL aggregate alphabet knows.
+
+It is composed on both planes — the control descriptor in
+`prisma-next.config.ts`, so `contract emit` writes the operation into the
+emitted types, and the runtime descriptor in `src/prisma/db.ts`, so the registry
+can resolve it. Nothing in the ORM client or the query lane knows the name.
+
+```bash
+pnpm start -- aggregate-stddev
+```
+
+```text
+  count()                       3 (number)
+  avg('viewCount')              8470.666666666666 (number)
+  stddev('viewCount')           '4833.113006472467' (string)
+  stddev('impressionCount')     '2600154457184077' (string)
+```
+
+The result is a decimal string because that is the codec the descriptor
+declares — the declared output is the only thing that says how a result reads.
+
+Reference: [integer representation types](../../docs/reference/integer-representation-types.md)
+and the [aggregate descriptor guide](../../docs/reference/aggregate-descriptor-guide.md).
+
 ## Cache Middleware Examples
 
 The demo wires `@internal/middleware-cache` into the Postgres client in `src/prisma/db.ts`. The cache middleware is **opt-in per query** — it only acts on plans whose `meta.annotations` carry a `cacheAnnotation` payload with a `ttl` set. Three CLI commands run a query twice and report the latency of each call so the cache hit is visible:
@@ -328,6 +421,7 @@ Run `pnpm dev` for the Vite app that visualizes the contract. It renders directl
 - `src/prisma-no-emit/runtime.ts` - Runtime factory (no-emit workflow)
 - `src/orm-client/client.ts` - ORM client + custom collection scopes
 - `src/orm-client/*.ts` - End-to-end ORM client query examples
+- `src/extensions/engagement-stats.ts` - Local extension contributing the `stddev` aggregate operation
 - `src/main.ts` - App entrypoint with arktype config validation (emit workflow)
 - `src/main-no-emit.ts` - App entrypoint with arktype config validation (no-emit workflow)
 - `src/app/` - React browser visualization (validates contract, renders from constructed Contract)

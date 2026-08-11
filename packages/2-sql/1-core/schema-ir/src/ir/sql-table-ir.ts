@@ -71,22 +71,13 @@ export class SqlTableIR extends SqlSchemaIRNode implements DiffableNode {
     this.uniques = Object.freeze(
       input.uniques.map((u) => (u instanceof SqlUniqueIR ? u : new SqlUniqueIR(u))),
     );
-    this.indexes = Object.freeze(
-      input.indexes.map((i) => (i instanceof SqlIndexIR ? i : new SqlIndexIR(i))),
-    );
+    this.indexes = Object.freeze(input.indexes.map(SqlIndexIR.from));
     if (input.primaryKey !== undefined) {
-      this.primaryKey =
-        input.primaryKey instanceof PrimaryKey
-          ? input.primaryKey
-          : new PrimaryKey(input.primaryKey);
+      this.primaryKey = PrimaryKey.from(input.primaryKey);
     }
     if (input.annotations !== undefined) this.annotations = input.annotations;
     if (input.checks !== undefined && input.checks.length > 0) {
-      this.checks = Object.freeze(
-        input.checks.map((c) =>
-          c instanceof SqlCheckConstraintIR ? c : new SqlCheckConstraintIR(c),
-        ),
-      );
+      this.checks = Object.freeze(input.checks.map(SqlCheckConstraintIR.from));
     }
     freezeNode(this);
   }

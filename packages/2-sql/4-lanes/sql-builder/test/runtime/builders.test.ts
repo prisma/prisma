@@ -20,9 +20,23 @@ import type { Contract } from '../fixtures/generated/contract';
 const emptyAggregateRegistry = {
   resolve: (operation: string) =>
     operation === 'count'
-      ? { operation, output: { codecId: 'pg/int8@1' }, nullable: false, lower: undefined }
+      ? {
+          operation,
+          output: { codecId: 'pg/int8@1' },
+          nullable: false as const,
+          emptyResultJson: '0',
+          lower: undefined,
+        }
       : undefined,
-  values: function* () {},
+  values: function* () {
+    yield {
+      operation: 'count',
+      input: { kind: 'any' as const },
+      output: { kind: 'codec' as const, codecId: 'pg/int8@1' },
+      nullable: false as const,
+      emptyResultJson: '0',
+    };
+  },
 };
 
 // ---------------------------------------------------------------------------

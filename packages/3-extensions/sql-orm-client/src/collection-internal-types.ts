@@ -1,5 +1,5 @@
 import type { Contract } from '@internal/contract/types';
-import type { SqlStorage } from '@internal/sql-contract/types';
+import type { ExtractAggregateTypes, SqlStorage } from '@internal/sql-contract/types';
 import type { AnyExpression } from '@internal/sql-relational-core/ast';
 import type { Collection } from './collection';
 import type {
@@ -67,7 +67,18 @@ export type IncludeRefinementTerminals =
   | 'deleteAndCount'
   | 'upsert';
 
-export type IncludeRefinementScalarMethods = 'count' | 'sum' | 'avg' | 'min' | 'max' | 'combine';
+/**
+ * The members a to-one refinement collection strips: the scalar reducers the
+ * contract's emitted aggregate map declares, plus `combine`. Both reduce a
+ * to-many relation; a to-one relation has nothing to reduce. A contract whose
+ * map is unknown carries no typed reducers, so only `combine` is stripped —
+ * subtracting the non-literal key set would strip the whole surface.
+ */
+export type IncludeRefinementScalarMethods<TContract extends Contract<SqlStorage>> =
+  | (string extends keyof ExtractAggregateTypes<TContract> & string
+      ? never
+      : keyof ExtractAggregateTypes<TContract> & string)
+  | 'combine';
 
 export type IncludeRefinementCollection<
   TContract extends Contract<SqlStorage>,
@@ -77,7 +88,8 @@ export type IncludeRefinementCollection<
   IsToMany extends boolean,
 > = Omit<
   Collection<TContract, ModelName, Row, State>,
-  IncludeRefinementTerminals | (IsToMany extends true ? never : IncludeRefinementScalarMethods)
+  | IncludeRefinementTerminals
+  | (IsToMany extends true ? never : IncludeRefinementScalarMethods<TContract>)
 >;
 
 export type IsToManyRelation<

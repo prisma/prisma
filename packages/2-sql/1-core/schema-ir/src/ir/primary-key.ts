@@ -52,6 +52,10 @@ export class PrimaryKey extends SqlSchemaIRNode implements DiffableNode {
     return [];
   }
 
+  static from(value: PrimaryKey | PrimaryKeyInput): PrimaryKey {
+    return value instanceof PrimaryKey ? value : new PrimaryKey(value);
+  }
+
   static is(node: SqlSchemaIRNode): node is PrimaryKey {
     return node.nodeKind === RelationalSchemaNodeKind.primaryKey;
   }

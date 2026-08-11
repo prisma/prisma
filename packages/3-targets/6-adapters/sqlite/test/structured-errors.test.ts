@@ -129,6 +129,8 @@ describe('structured error codes', () => {
       id: 'test/symbol@1',
       encode: async () => Symbol('wire'),
       decode: async (wire: unknown) => wire,
+      encodeJson: (value: unknown) => value,
+      decodeJson: (json: unknown) => json,
     } as unknown as Codec;
     const lookup: SqliteCodecRegistry = {
       ...createSqliteBuiltinCodecLookup(),

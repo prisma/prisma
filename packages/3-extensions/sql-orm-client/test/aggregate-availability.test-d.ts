@@ -15,6 +15,7 @@ import { expectTypeOf, test } from 'vitest';
 import { Collection } from '../src/collection';
 import type {
   AggregateBuilder,
+  AggregateIncludeReducers,
   AggregateSelector,
   HavingBuilder,
   IncludeScalar,
@@ -28,12 +29,20 @@ test('a declared textual extremum is admitted with its declared result type', ()
   expectTypeOf(agg.max('name')).toEqualTypeOf<AggregateSelector<string | null>>();
 });
 
-test('a declared numeric average reads its declared decimal-string result', () => {
-  expectTypeOf(agg.avg('id')).toEqualTypeOf<AggregateSelector<string | null>>();
+test('a declared numeric average reads its declared float result', () => {
+  expectTypeOf(agg.avg('id')).toEqualTypeOf<AggregateSelector<number | null>>();
+});
+
+test('avgDecimal reads the exact mean the same declaration surface offers', () => {
+  expectTypeOf(agg.avgDecimal('id')).toEqualTypeOf<AggregateSelector<string | null>>();
 });
 
 test('count() reads the declared without-input row', () => {
-  expectTypeOf(agg.count()).toEqualTypeOf<AggregateSelector<bigint>>();
+  expectTypeOf(agg.count()).toEqualTypeOf<AggregateSelector<number>>();
+});
+
+test('countBigInt() reads the lossless row beside it', () => {
+  expectTypeOf(agg.countBigInt()).toEqualTypeOf<AggregateSelector<bigint>>();
 });
 
 test('a pair the target never declared is unsayable', () => {
@@ -49,6 +58,8 @@ test('the HAVING surface admits the same declared fields', () => {
 
 type ContractSansAggregates = Omit<TestContract, TypeMapsPhantomKey>;
 declare const bareAgg: AggregateBuilder<ContractSansAggregates, 'User'>;
+declare const bareHaving: HavingBuilder<ContractSansAggregates, 'User'>;
+declare const bareReducers: AggregateIncludeReducers<ContractSansAggregates, 'Post'>;
 
 test('a contract emitted without aggregate types cannot invoke count()', () => {
   // @ts-expect-error — the contract declares no aggregate rows
@@ -58,6 +69,15 @@ test('a contract emitted without aggregate types cannot invoke count()', () => {
 test('a contract emitted without aggregate types cannot invoke field aggregates', () => {
   // @ts-expect-error — the contract declares no aggregate rows
   bareAgg.sum('id');
+});
+
+test('a contract emitted without aggregate types carries no index signature', () => {
+  // @ts-expect-error — an unknown map yields no index signature, so the name is a property error
+  bareAgg['whoops'];
+  // @ts-expect-error — an unknown map yields no index signature, so the name is a property error
+  bareHaving['whoops'];
+  // @ts-expect-error — an unknown map yields no index signature, so the name is a property error
+  bareReducers['whoops'];
 });
 
 // Same-named model and field in two namespaces, with different codecs: each
@@ -97,8 +117,8 @@ declare const publicAgg: AggregateBuilder<TwoNamespaceContract, 'User', 'public'
 declare const authAgg: AggregateBuilder<TwoNamespaceContract, 'User', 'auth'>;
 
 test('each namespace facet resolves its own column codec for the same field name', () => {
-  // public User.id is pg/int4@1, whose sum widens to pg/int8@1 (bigint).
-  expectTypeOf(publicAgg.sum('id')).toEqualTypeOf<AggregateSelector<bigint | null>>();
+  // public User.id is pg/int4@1, whose sum reads as pg/int8number@1 (number).
+  expectTypeOf(publicAgg.sum('id')).toEqualTypeOf<AggregateSelector<number | null>>();
   // auth User.id is pg/float8@1, whose sum stays pg/float8@1 (number).
   expectTypeOf(authAgg.sum('id')).toEqualTypeOf<AggregateSelector<number | null>>();
 });
@@ -119,11 +139,18 @@ test('include reducers admit a declared textual extremum with its declared resul
   });
 });
 
-test('include reducers read the declared widened result for a numeric sum', () => {
+test('include reducers read the declared result for a numeric sum', () => {
   users.include('posts', (posts) => {
-    // Post.views is pg/int4@1, whose sum widens to pg/int8@1 (bigint).
-    expectTypeOf(posts.sum('views')).toEqualTypeOf<IncludeScalar<bigint | null>>();
+    // Post.views is pg/int4@1, whose sum reads as pg/int8number@1 (number).
+    expectTypeOf(posts.sum('views')).toEqualTypeOf<IncludeScalar<number | null>>();
     return posts.sum('views');
+  });
+});
+
+test('include reducers offer the lossless sum beside the bare one', () => {
+  users.include('posts', (posts) => {
+    expectTypeOf(posts.sumBigInt('views')).toEqualTypeOf<IncludeScalar<bigint | null>>();
+    return posts.sumBigInt('views');
   });
 });
 

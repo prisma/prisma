@@ -5,7 +5,7 @@ import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { orm } from '../src/orm';
-import { createMockRuntime, type MockRuntime } from './helpers';
+import { createMockRuntime, getEmptyAggregates, type MockRuntime } from './helpers';
 
 function model(table: string, fieldColumns: Record<string, string>) {
   const fields: Record<string, { type: { kind: string; codecId: string } }> = {};
@@ -72,6 +72,7 @@ function setup(): { db: TwoNamespaceOrm; runtime: MockRuntime } {
         contract: twoNamespaceContract,
         applyMutationDefaults: () => [],
         codecDescriptors: { descriptorFor: () => ({ traits: ['equality'] }) },
+        aggregateDescriptors: getEmptyAggregates(),
       }),
     }),
   );

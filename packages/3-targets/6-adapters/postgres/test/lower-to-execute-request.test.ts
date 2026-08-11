@@ -31,6 +31,8 @@ const transformingCodec = {
   id: 'test/transform@1',
   encode: async (value: unknown) => `ENC:${String(value).toUpperCase()}`,
   decode: async (wire: unknown) => wire,
+  encodeJson: (value: unknown) => value,
+  decodeJson: (json: unknown) => json,
 } as unknown as Codec;
 
 const transformingCodecDescriptor: AnyCodecDescriptor = {

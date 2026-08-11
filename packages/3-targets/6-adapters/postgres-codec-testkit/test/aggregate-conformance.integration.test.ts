@@ -7,119 +7,54 @@
  * all, and — when it does — what type does it return? Both answers are compared
  * against what the aggregate registry resolves, so a descriptor claiming a
  * result codec PostgreSQL does not produce fails here, and so does a pair the
- * descriptors leave unclaimed that PostgreSQL would in fact aggregate.
+ * descriptors leave unclaimed that PostgreSQL would in fact aggregate. What the
+ * registry answers where no probe can settle it — which inputs a lossless
+ * variant is offered over, which overload wins a tie — is the sibling
+ * `aggregate-resolution.test.ts`, which needs no database.
  *
  * Result types are compared as `regtype`, which ignores type modifiers: what is
  * asserted is that `min` over a `numeric(10,3)` returns *a* numeric, not that it
  * returns one of the same precision.
+ *
+ * What each row runs is the expression its lowering builds, not a call named
+ * after the operation: `countBigInt`, `sumBigInt`, and `avgDecimal` compute with
+ * the SQL aggregate their bare namesakes use and differ in how the result is
+ * read, and `avg` over an integer casts its result. So every probe here renders
+ * the row's own lowering.
+ *
+ * Two rows declare a codec whose native type is not the type PostgreSQL
+ * computes — `sum` over a 64-bit integer, whose `numeric` total the
+ * number-flavoured codec reads and range-guards. They are named in
+ * `READS_A_COMPUTED_TYPE`, which the matrix measures against.
  *
  * The pairs PostgreSQL refuses, and which therefore carry no descriptor:
  * `sum`/`avg` over every non-numeric, non-temporal type (including `money`,
  * which has a `sum` but no `avg`, and no codec of its own in this target); and
  * `min`/`max` over `bool`, `uuid`, `bytea`, `bit`, `bit varying`, `json`, and
  * `jsonb` — all of which advertise `equality` or `order` and would have been
- * swept up by a trait fallback inferred from traits rather than probed.
+ * swept up by a trait fallback inferred from traits rather than probed. That
+ * measurement applies to the bare operations, whose SQL call is the operation's
+ * own name; where a lossless variant is offered is policy, and is pinned as
+ * such next door.
  */
 
-import type { JsonValue } from '@internal/contract/types';
 import postgresControlDriverDescriptor from '@internal/driver-postgres/control';
-import type { CodecRef } from '@internal/framework-components/codec';
 import { SqlQueryError } from '@internal/sql-errors';
-import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
-import { postgresAggregateDescriptors } from '@internal/target-postgres/aggregates';
-import {
-  postgresCodecDescriptorRegistry,
-  postgresCodecRegistry,
-} from '@internal/target-postgres/codecs';
-import { ifDefined } from '@internal/utils/defined';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-
-const registry = buildSqlAggregateDescriptorRegistry(
-  postgresAggregateDescriptors,
-  postgresCodecRegistry,
-);
-
-const OPERATIONS = ['count', 'sum', 'avg', 'min', 'max'] as const;
-
-const ENUM_TYPE = 'aggregate_conformance_enum';
-
-interface AggregateFixture {
-  readonly codecId: string;
-  readonly typeParams?: JsonValue;
-  /** Two SQL literals of the codec's native type, so every aggregate has something to fold. */
-  readonly samples: readonly [string, string];
-  /** SQL that must run before a column of this codec's native type can exist. */
-  readonly setupSql?: readonly string[];
-}
-
-/**
- * One fixture per built-in codec — enforced by a test below, so a codec added to
- * the target cannot skip the matrix.
- */
-const FIXTURES: readonly AggregateFixture[] = [
-  { codecId: 'sql/char@1', samples: ["'a'", "'b'"] },
-  { codecId: 'sql/varchar@1', samples: ["'a'", "'b'"] },
-  { codecId: 'sql/int@1', samples: ['1', '2'] },
-  { codecId: 'sql/float@1', samples: ['1.5', '2.5'] },
-  { codecId: 'sql/text@1', samples: ["'a'", "'b'"] },
-  { codecId: 'sql/timestamp@1', samples: ["'2024-01-01T10:00:00'", "'2024-02-01T10:00:00'"] },
-  { codecId: 'pg/text@1', samples: ["'a'", "'b'"] },
-  {
-    codecId: 'pg/enum@1',
-    typeParams: { typeName: ENUM_TYPE },
-    samples: ["'low'", "'high'"],
-    setupSql: [
-      `DROP TYPE IF EXISTS ${ENUM_TYPE}`,
-      `CREATE TYPE ${ENUM_TYPE} AS ENUM ('low', 'high')`,
-    ],
-  },
-  { codecId: 'pg/char@1', samples: ["'a'", "'b'"] },
-  { codecId: 'pg/varchar@1', samples: ["'a'", "'b'"] },
-  { codecId: 'pg/int@1', samples: ['1', '2'] },
-  { codecId: 'pg/float@1', samples: ['1.5', '2.5'] },
-  { codecId: 'pg/int4@1', samples: ['1', '2'] },
-  { codecId: 'pg/int2@1', samples: ['1', '2'] },
-  { codecId: 'pg/int8@1', samples: ['1', '2'] },
-  { codecId: 'pg/int8number@1', samples: ['1', '2'] },
-  { codecId: 'pg/float4@1', samples: ['1.5', '2.5'] },
-  { codecId: 'pg/float8@1', samples: ['1.5', '2.5'] },
-  { codecId: 'pg/numeric@1', samples: ['1.5', '2.5'] },
-  { codecId: 'pg/unboundedint@1', samples: ['1', '2'] },
-  { codecId: 'pg/date@1', samples: ["'2024-01-01'", "'2024-02-01'"] },
-  { codecId: 'pg/timestamp@1', samples: ["'2024-01-01T10:00:00'", "'2024-02-01T10:00:00'"] },
-  { codecId: 'pg/timestamptz@1', samples: ["'2024-01-01T10:00:00Z'", "'2024-02-01T10:00:00Z'"] },
-  { codecId: 'pg/time@1', samples: ["'10:00:00'", "'11:00:00'"] },
-  { codecId: 'pg/timetz@1', samples: ["'10:00:00+00'", "'11:00:00+00'"] },
-  { codecId: 'pg/bool@1', samples: ['true', 'false'] },
-  { codecId: 'pg/bit@1', samples: ["B'1'", "B'0'"] },
-  { codecId: 'pg/varbit@1', samples: ["B'101'", "B'1100'"] },
-  { codecId: 'pg/bytea@1', samples: ["'\\x01'", "'\\x02'"] },
-  {
-    codecId: 'pg/uuid@1',
-    samples: ["'11111111-1111-1111-1111-111111111111'", "'22222222-2222-2222-2222-222222222222'"],
-  },
-  { codecId: 'pg/inet@1', samples: ["'10.0.0.1'", "'10.0.0.2'"] },
-  { codecId: 'pg/interval@1', samples: ["'1 day'", "'2 days'"] },
-  { codecId: 'pg/json@1', samples: ['\'{"a":1}\'', '\'{"b":2}\''] },
-  { codecId: 'pg/jsonb@1', samples: ['\'{"a":1}\'', '\'{"b":2}\''] },
-  { codecId: 'pg/text-array@1', samples: ["ARRAY['a']", "ARRAY['b']"] },
-];
-
-const TABLE = 'aggregate_conformance';
-const COLUMN = 'value';
-
-function refOf(fixture: AggregateFixture): CodecRef {
-  return { codecId: fixture.codecId, ...ifDefined('typeParams', fixture.typeParams) };
-}
-
-function nativeTypeOf(ref: CodecRef): string {
-  const descriptor = postgresCodecDescriptorRegistry.descriptorFor(ref.codecId);
-  if (descriptor === undefined) {
-    throw new Error(`No PostgreSQL codec descriptor for '${ref.codecId}'.`);
-  }
-  return descriptor.nativeTypeFor(ref);
-}
+import {
+  type AggregateFixture,
+  BARE_OPERATIONS,
+  COLUMN,
+  computedTypeFor,
+  FIXTURES,
+  nativeTypeOf,
+  OPERATIONS,
+  refOf,
+  registry,
+  TABLE,
+} from './aggregate-matrix';
+import { aggregateSql } from './aggregate-sql';
 
 type Query = (sql: string) => Promise<ReadonlyArray<Record<string, unknown>>>;
 
@@ -127,18 +62,16 @@ type Query = (sql: string) => Promise<ReadonlyArray<Record<string, unknown>>>;
 const UNDEFINED_FUNCTION = '42883';
 
 /**
- * The result type PostgreSQL gives `operation` over the fixture's column, or
- * `undefined` when it has no such aggregate. Only `undefined_function` reads as
- * refusal — the harness driver normalizes SQLSTATE errors onto
- * `SqlQueryError.sqlState`, and anything else (a missing table's 42P01, a
- * dropped connection, a syntax slip) is rethrown: in the unclaimed direction a
- * swallowed infrastructure error would pass the matrix vacuously.
+ * The result type PostgreSQL gives the aggregate expression, or `undefined` when
+ * it has no such aggregate. Only `undefined_function` reads as refusal — the
+ * harness driver normalizes SQLSTATE errors onto `SqlQueryError.sqlState`, and
+ * anything else (a missing table's 42P01, a dropped connection, a syntax slip)
+ * is rethrown: in the unclaimed direction a swallowed infrastructure error would
+ * pass the matrix vacuously.
  */
-async function probeResultType(query: Query, operation: string): Promise<string | undefined> {
+async function probeResultType(query: Query, expression: string): Promise<string | undefined> {
   try {
-    const rows = await query(
-      `SELECT pg_typeof(${operation}("${COLUMN}"))::text AS result FROM "${TABLE}"`,
-    );
+    const rows = await query(`SELECT pg_typeof(${expression})::text AS result FROM "${TABLE}"`);
     return String(rows[0]?.['result']);
   } catch (error) {
     if (SqlQueryError.is(error) && error.sqlState === UNDEFINED_FUNCTION) return undefined;
@@ -146,14 +79,14 @@ async function probeResultType(query: Query, operation: string): Promise<string 
   }
 }
 
-/** Whether PostgreSQL considers the aggregate's result type and the declared codec's native type the same type, modifiers aside. */
-async function producesDeclaredType(
+/** Whether PostgreSQL considers the aggregate's result type and the expected native type the same type, modifiers aside. */
+async function producesExpectedType(
   query: Query,
-  operation: string,
-  declaredNativeType: string,
+  expression: string,
+  expectedNativeType: string,
 ): Promise<boolean> {
   const rows = await query(
-    `SELECT pg_typeof(${operation}("${COLUMN}")) = pg_typeof(NULL::${declaredNativeType}) AS agrees FROM "${TABLE}"`,
+    `SELECT pg_typeof(${expression}) = pg_typeof(NULL::${expectedNativeType}) AS agrees FROM "${TABLE}"`,
   );
   return rows[0]?.['agrees'] === true;
 }
@@ -192,15 +125,6 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
     return body();
   }
 
-  it('covers every built-in codec', () => {
-    const fixtured = new Set(FIXTURES.map((fixture) => fixture.codecId));
-    const uncovered = [...postgresCodecRegistry.values()]
-      .map((descriptor) => descriptor.codecId)
-      .filter((codecId) => !fixtured.has(codecId));
-
-    expect(uncovered).toEqual([]);
-  });
-
   it(
     'declares the result type PostgreSQL produces, for every aggregate it declares',
     async () => {
@@ -212,7 +136,14 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
             const resolved = registry.resolve(operation, refOf(fixture));
             if (resolved === undefined) continue;
 
-            const actual = await probeResultType(query, operation);
+            const expression = aggregateSql({
+              operation,
+              lower: resolved.lower,
+              inputCodec: refOf(fixture),
+              table: TABLE,
+              column: COLUMN,
+            });
+            const actual = await probeResultType(query, expression);
             if (actual === undefined) {
               disagreements.push({
                 operation,
@@ -222,12 +153,13 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
               });
               continue;
             }
-            const declaredNativeType = nativeTypeOf(resolved.output);
-            if (!(await producesDeclaredType(query, operation, declaredNativeType))) {
+            const expected =
+              computedTypeFor(operation, fixture.codecId) ?? nativeTypeOf(resolved.output);
+            if (!(await producesExpectedType(query, expression, expected))) {
               disagreements.push({
                 operation,
                 codecId: fixture.codecId,
-                declared: `${resolved.output.codecId} (${declaredNativeType})`,
+                declared: `${resolved.output.codecId} (${expected})`,
                 actual,
               });
             }
@@ -247,10 +179,10 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
 
       for (const fixture of FIXTURES) {
         await withFixtureTable(fixture, async () => {
-          for (const operation of OPERATIONS) {
+          for (const operation of BARE_OPERATIONS) {
             if (registry.resolve(operation, refOf(fixture)) !== undefined) continue;
 
-            const actual = await probeResultType(query, operation);
+            const actual = await probeResultType(query, `${operation}("${COLUMN}")`);
             if (actual !== undefined) {
               unclaimedButSupported.push({ operation, codecId: fixture.codecId, actual });
             }
@@ -263,123 +195,8 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
     timeouts.spinUpPpgDev,
   );
 
-  it('pins the breaking baseline', () => {
-    expect(registry.resolve('count')?.output).toEqual({ codecId: 'pg/int8@1' });
-    expect(registry.resolve('sum', { codecId: 'pg/int2@1' })?.output).toEqual({
-      codecId: 'pg/int8@1',
-    });
-    expect(registry.resolve('sum', { codecId: 'pg/int4@1' })?.output).toEqual({
-      codecId: 'pg/int8@1',
-    });
-    expect(registry.resolve('sum', { codecId: 'pg/int8@1' })?.output).toEqual({
-      codecId: 'pg/numeric@1',
-    });
-    expect(registry.resolve('avg', { codecId: 'pg/int4@1' })?.output).toEqual({
-      codecId: 'pg/numeric@1',
-    });
-    expect(registry.resolve('min', { codecId: 'pg/int4@1' })?.output).toEqual({
-      codecId: 'pg/int4@1',
-    });
-  });
-
-  it('resolves count with and without an input', () => {
-    expect(registry.resolve('count')).toEqual({
-      operation: 'count',
-      output: { codecId: 'pg/int8@1' },
-      nullable: false,
-      lower: undefined,
-    });
-    expect(registry.resolve('count', { codecId: 'pg/text@1' })?.output).toEqual({
-      codecId: 'pg/int8@1',
-    });
-  });
-
-  it('prefers the exact varchar overload over the textual fallback', () => {
-    expect(
-      registry.resolve('min', { codecId: 'pg/varchar@1', typeParams: { length: 10 } })?.output,
-    ).toEqual({ codecId: 'pg/text@1' });
-    expect(registry.resolve('min', { codecId: 'pg/text@1' })?.output).toEqual({
-      codecId: 'pg/text@1',
-    });
-    expect(
-      registry.resolve('max', { codecId: 'pg/char@1', typeParams: { length: 3 } })?.output,
-    ).toEqual({
-      codecId: 'pg/char@1',
-      typeParams: { length: 3 },
-    });
-  });
-
   it(
-    'sums int8number past the safe range into a numeric that arrives as decimal text',
-    async () => {
-      await withFixtureTable(
-        { codecId: 'pg/int8number@1', samples: ['9007199254740991', '9007199254740991'] },
-        async () => {
-          const rows = await query(`SELECT sum("${COLUMN}") AS total FROM "${TABLE}"`);
-          const wire = rows[0]?.['total'];
-          expect(wire).toBe('18014398509481982');
-
-          const resolved = registry.resolve('sum', { codecId: 'pg/int8number@1' });
-          expect(resolved?.output).toEqual({ codecId: 'pg/numeric@1' });
-
-          const numericCodec = postgresCodecRegistry
-            .descriptorFor('pg/numeric@1')!
-            .factory(undefined)({ name: 'aggregate-conformance' });
-          expect(await numericCodec.decode(wire, {})).toBe('18014398509481982');
-        },
-      );
-
-      expect(registry.resolve('avg', { codecId: 'pg/int8number@1' })?.output).toEqual({
-        codecId: 'pg/numeric@1',
-      });
-    },
-    timeouts.spinUpPpgDev,
-  );
-
-  it(
-    'sums unboundedint past 2^63 into an exact bigint through its own codec',
-    async () => {
-      await withFixtureTable(
-        { codecId: 'pg/unboundedint@1', samples: ['9223372036854775807', '1000'] },
-        async () => {
-          const rows = await query(`SELECT sum("${COLUMN}") AS total FROM "${TABLE}"`);
-          const wire = rows[0]?.['total'];
-          expect(wire).toBe('9223372036854776807');
-
-          const resolved = registry.resolve('sum', { codecId: 'pg/unboundedint@1' });
-          expect(resolved?.output).toEqual({ codecId: 'pg/unboundedint@1' });
-
-          const unboundedIntCodec = postgresCodecRegistry
-            .descriptorFor('pg/unboundedint@1')!
-            .factory(undefined)({ name: 'aggregate-conformance' });
-          expect(await unboundedIntCodec.decode(wire, {})).toBe(9223372036854776807n);
-        },
-      );
-
-      expect(registry.resolve('avg', { codecId: 'pg/unboundedint@1' })?.output).toEqual({
-        codecId: 'pg/numeric@1',
-      });
-    },
-    timeouts.spinUpPpgDev,
-  );
-
-  it('resolves min/max over the representation codecs through the numeric-trait fallback', () => {
-    expect(registry.resolve('min', { codecId: 'pg/int8number@1' })?.output).toEqual({
-      codecId: 'pg/int8number@1',
-    });
-    expect(registry.resolve('max', { codecId: 'pg/int8number@1' })?.output).toEqual({
-      codecId: 'pg/int8number@1',
-    });
-    expect(registry.resolve('min', { codecId: 'pg/unboundedint@1' })?.output).toEqual({
-      codecId: 'pg/unboundedint@1',
-    });
-    expect(registry.resolve('max', { codecId: 'pg/unboundedint@1' })?.output).toEqual({
-      codecId: 'pg/unboundedint@1',
-    });
-  });
-
-  it(
-    'declares the nullability an empty set produces',
+    'produces the empty-set answer the rows declare nullability for',
     async () => {
       await withFixtureTable({ codecId: 'pg/int4@1', samples: ['1', '2'] }, async () => {
         const rows = await query(
@@ -393,11 +210,6 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
           avg: row['a'] === null,
           min: row['m'] === null,
         }).toEqual({ count: true, sum: true, avg: true, min: true });
-
-        expect(registry.resolve('count')?.nullable).toBe(false);
-        expect(registry.resolve('sum', { codecId: 'pg/int4@1' })?.nullable).toBe(true);
-        expect(registry.resolve('avg', { codecId: 'pg/int4@1' })?.nullable).toBe(true);
-        expect(registry.resolve('min', { codecId: 'pg/int4@1' })?.nullable).toBe(true);
       });
     },
     timeouts.spinUpPpgDev,

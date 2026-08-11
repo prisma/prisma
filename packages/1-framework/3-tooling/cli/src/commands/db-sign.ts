@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type {
   SignDatabaseResult,
   VerifyDatabaseSchemaResult,
@@ -62,7 +62,20 @@ async function executeDbSignCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<SignDatabaseResult, DbSignFailure>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const configPath = options.config
     ? relative(process.cwd(), resolve(options.config))
     : 'prisma-next.config.ts';

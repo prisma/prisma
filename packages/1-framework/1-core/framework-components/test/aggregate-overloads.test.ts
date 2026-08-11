@@ -13,6 +13,7 @@ const countAnything: AggregateDescriptor = {
   input: { kind: 'any' },
   output: { kind: 'codec', codecId: 'lib/int8@1' },
   nullable: false,
+  emptyResultJson: '0',
 };
 
 const countRows: AggregateDescriptor = {
@@ -20,6 +21,7 @@ const countRows: AggregateDescriptor = {
   input: { kind: 'none' },
   output: { kind: 'codec', codecId: 'lib/int8@1' },
   nullable: false,
+  emptyResultJson: '0',
 };
 
 const sumNumeric: AggregateDescriptor = {
@@ -98,7 +100,13 @@ describe('settleAggregateOverloads', () => {
   });
 
   it('reports a second claim on one (operation, input) key beside ambiguities', () => {
-    const later = { ...sumInt8, nullable: false };
+    const later: AggregateDescriptor = {
+      operation: 'sum',
+      input: { kind: 'codec', codecId: 'lib/int8@1' },
+      output: { kind: 'self' },
+      nullable: false,
+      emptyResultJson: '0',
+    };
     const settled = settleAggregateOverloads([sumInt8, later], codecs);
 
     expect(settled.duplicates).toEqual([
@@ -107,14 +115,25 @@ describe('settleAggregateOverloads', () => {
   });
 
   it('settles the first claim on a duplicated key, not the later one', () => {
-    const later = { ...countRows, nullable: true };
+    const later: AggregateDescriptor = {
+      operation: 'count',
+      input: { kind: 'none' },
+      output: { kind: 'codec', codecId: 'lib/int8@1' },
+      nullable: true,
+    };
     const settled = settleAggregateOverloads([countRows, later], codecs);
 
     expect(operation(settled, 'count').noInput).toBe(countRows);
   });
 
   it('reports a duplicated trait overload as a duplicate, not an ambiguity', () => {
-    const later = { ...sumNumeric, nullable: false };
+    const later: AggregateDescriptor = {
+      operation: 'sum',
+      input: { kind: 'trait', trait: 'numeric' },
+      output: { kind: 'codec', codecId: 'lib/int8@1' },
+      nullable: false,
+      emptyResultJson: '0',
+    };
     const settled = settleAggregateOverloads([sumNumeric, later], codecs);
 
     expect(settled.duplicates).toEqual([

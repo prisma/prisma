@@ -3,7 +3,7 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import { getEmittedArtifactPaths } from '@internal/emitter';
 import { APP_SPACE_ID, createControlStack } from '@internal/framework-components/control';
@@ -53,7 +53,18 @@ export interface MigrationNewResult {
 export async function executeMigrationNewCommand(
   options: MigrationNewOptions,
 ): Promise<Result<MigrationNewResult, CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'extensions',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { migrationsDir, appMigrationsDir, appMigrationsRelative } = resolveMigrationPaths(
     options.config,
     config,

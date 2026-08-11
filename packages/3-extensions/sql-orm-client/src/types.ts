@@ -19,17 +19,17 @@ import {
   NullCheckExpr,
   OrderByItem,
   ParamRef,
+  type AggregateFn as SqlAggregateFn,
 } from '@internal/sql-relational-core/ast';
 import type { Expression } from '@internal/sql-relational-core/expression';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import type { ComputeColumnJsType, RuntimeScope } from '@internal/sql-relational-core/types';
 import type { RowSelection } from './collection-internal-types';
 
-export type AggregateFn = 'count' | 'sum' | 'avg' | 'min' | 'max';
-
 export interface IncludeScalar<Result> extends RowSelection<Result> {
   readonly kind: 'includeScalar';
-  readonly fn: AggregateFn;
+  /** An operation name from the contract's emitted aggregate map — an open vocabulary. */
+  readonly fn: string;
   readonly column?: string;
   readonly state: CollectionState;
 }
@@ -610,7 +610,8 @@ declare const aggregateResultBrand: unique symbol;
 
 export interface AggregateSelector<Result> {
   readonly kind: 'aggregate';
-  readonly fn: AggregateFn;
+  /** An operation name from the contract's emitted aggregate map — an open vocabulary. */
+  readonly fn: string;
   readonly column?: string;
   readonly [aggregateResultBrand]?: Result;
 }
@@ -620,18 +621,6 @@ export type AggregateSpec = Record<string, AggregateSelector<unknown>>;
 export type AggregateResult<Spec extends AggregateSpec> = {
   [K in keyof Spec]: Spec[K] extends AggregateSelector<infer Result> ? Result : never;
 };
-
-declare const aggregateUnavailable: unique symbol;
-
-/**
- * The impossible argument `count()` demands when the contract's aggregate map
- * declares no row for it — a contract emitted before aggregate types existed,
- * or a stack that contributes none. The call becomes a type error naming the
- * reason instead of a selector whose result no declaration types.
- */
-export interface AggregateUnavailable<Op extends string> {
-  readonly [aggregateUnavailable]: `the contract declares no '${Op}' aggregate for this call`;
-}
 
 /**
  * The model fields an aggregate operation admits, read from the contract's
@@ -659,58 +648,235 @@ export type AggregateFieldNames<
     : never;
 }[keyof DefaultModelRow<TContract, ModelName, NsId> & string];
 
-export interface AggregateBuilder<
+/** The operation names the contract's emitted aggregate map declares. */
+type AggregateOperationNames<TContract extends Contract<SqlStorage>> =
+  keyof ExtractAggregateTypes<TContract> & string;
+
+declare const aggregateOperationsUnavailable: unique symbol;
+
+/**
+ * The surface an aggregate-derived type resolves to for a contract whose emitted aggregate map is
+ * unknown. It declares no operation, and the optional symbol-keyed brand names the reason at the
+ * call site while leaving the members and the assignability of any surface it intersects with
+ * untouched.
+ */
+export interface AggregateOperationsUnavailable {
+  readonly [aggregateOperationsUnavailable]?: 'the contract declares no aggregate operations';
+}
+
+/** Whether the operation declares a row for a call carrying no input. */
+type HasZeroArgCall<TContract extends Contract<SqlStorage>, Op extends string> = [
+  AggregateRowFor<TContract, Op, never>,
+] extends [never]
+  ? false
+  : true;
+
+type FieldAggregateSelectorCall<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Op extends string,
+  NsId extends string,
+> = <FieldName extends AggregateFieldNames<TContract, ModelName, Op, NsId>>(
+  field: FieldName,
+) => AggregateSelector<AggregateFieldResultFor<TContract, ModelName, Op, FieldName, NsId>>;
+
+/**
+ * One derived aggregate selector method. Its arities are read off the
+ * operation's row presence in the aggregate map: a `withoutInput` row admits
+ * the zero-argument call (resolved through that row), and the field-taking
+ * call admits exactly the fields {@link AggregateFieldNames} reads off the
+ * `byCodec`/`anyInput` rows. An operation with both shapes carries both
+ * overloads; `count()` vs `count(field)` is one such data fact, not a
+ * special case.
+ */
+type AggregateSelectorMethod<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Op extends string,
+  NsId extends string,
+> =
+  HasZeroArgCall<TContract, Op> extends true
+    ? {
+        (): AggregateSelector<AggregateResultFor<TContract, Op>>;
+        <FieldName extends AggregateFieldNames<TContract, ModelName, Op, NsId>>(
+          field: FieldName,
+        ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, Op, FieldName, NsId>>;
+      }
+    : FieldAggregateSelectorCall<TContract, ModelName, Op, NsId>;
+
+/**
+ * The aggregate selector surface `aggregate()` and `groupBy().aggregate()`
+ * hand their callbacks: one method per operation the contract's emitted
+ * aggregate map declares, named by the map's keys. The method set, each
+ * method's arities, and each selector's result type all derive from the map —
+ * an operation the map does not declare is no method at all, and a contract
+ * whose map is unknown (no emitted aggregate types) declares no methods.
+ */
+export type AggregateBuilder<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string = never,
-> {
-  count(
-    ...args: AggregateRowFor<TContract, 'count', never> extends never
-      ? [AggregateUnavailable<'count'>]
-      : []
-  ): AggregateSelector<AggregateResultFor<TContract, 'count'>>;
-  sum<FieldName extends AggregateFieldNames<TContract, ModelName, 'sum', NsId>>(
-    field: FieldName,
-  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName, NsId>>;
-  avg<FieldName extends AggregateFieldNames<TContract, ModelName, 'avg', NsId>>(
-    field: FieldName,
-  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName, NsId>>;
-  min<FieldName extends AggregateFieldNames<TContract, ModelName, 'min', NsId>>(
-    field: FieldName,
-  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName, NsId>>;
-  max<FieldName extends AggregateFieldNames<TContract, ModelName, 'max', NsId>>(
-    field: FieldName,
-  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName, NsId>>;
-}
+> =
+  string extends AggregateOperationNames<TContract>
+    ? AggregateOperationsUnavailable
+    : {
+        readonly [Op in AggregateOperationNames<TContract>]: AggregateSelectorMethod<
+          TContract,
+          ModelName,
+          Op,
+          NsId
+        >;
+      };
+
+type FieldIncludeReducerCall<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Op extends string,
+  NsId extends string,
+> = <FieldName extends AggregateFieldNames<TContract, ModelName, Op, NsId>>(
+  field: FieldName,
+) => IncludeScalar<AggregateFieldResultFor<TContract, ModelName, Op, FieldName, NsId>>;
+
+/**
+ * One derived include-scalar reducer: it reduces a to-many relation to this operation's value over
+ * the related rows, so the parent row's relation field carries that value instead of an array.
+ * Valid only inside an `include(...)` refinement callback — a call elsewhere throws.
+ *
+ * Its arities are read off the operation's row presence in the aggregate map, exactly as
+ * {@link AggregateSelectorMethod}'s are, and so is each result's type: the bare operations over an
+ * integer column answer as a `number`, the suffixed ones answer losslessly, and a field-taking
+ * reducer answers a parent with no related rows with `null`.
+ *
+ * ```typescript
+ * await db.orm.User.include('posts', (posts) => posts.count()).all();
+ * // each row: { ...user, posts: number }
+ *
+ * await db.orm.User.include('posts', (posts) => posts.sum('views')).all();
+ * // each row: { ...user, posts: number | null }
+ *
+ * await db.orm.User.include('posts', (posts) => posts.sumBigInt('views')).all();
+ * // each row: { ...user, posts: bigint | null }
+ *
+ * await db.orm.User.include('posts', (posts) => posts.avg('views')).all();
+ * // each row: { ...user, posts: number | null }
+ *
+ * await db.orm.User.include('posts', (posts) => posts.min('views')).all();
+ * await db.orm.User.include('posts', (posts) => posts.max('views')).all();
+ * // each row: { ...user, posts: number | null }
+ * ```
+ */
+type IncludeReducerMethod<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Op extends string,
+  NsId extends string,
+> =
+  HasZeroArgCall<TContract, Op> extends true
+    ? {
+        (): IncludeScalar<AggregateResultFor<TContract, Op>>;
+        <FieldName extends AggregateFieldNames<TContract, ModelName, Op, NsId>>(
+          field: FieldName,
+        ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, Op, FieldName, NsId>>;
+      }
+    : FieldIncludeReducerCall<TContract, ModelName, Op, NsId>;
+
+/**
+ * The scalar reducers an `include(...)` refinement collection carries: one
+ * method per operation the contract's emitted aggregate map declares. Each
+ * reduces a to-many relation to that operation's value over the related rows
+ * — the parent row's relation field becomes that value instead of an array —
+ * with the same row-derived arities and result types as
+ * {@link AggregateBuilder}. Only valid inside an `include(...)` refinement
+ * callback; a call elsewhere throws. A contract whose map is unknown (no
+ * emitted aggregate types) contributes no reducers — the guard keeps an
+ * index signature off the collection surface.
+ */
+export type AggregateIncludeReducers<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string = never,
+> =
+  string extends AggregateOperationNames<TContract>
+    ? AggregateOperationsUnavailable
+    : {
+        readonly [Op in AggregateOperationNames<TContract>]: IncludeReducerMethod<
+          TContract,
+          ModelName,
+          Op,
+          NsId
+        >;
+      };
 
 export type HavingComparisonMethods<T> = Pick<
   ComparisonMethods<T, 'equality' | 'order'>,
   'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte'
 >;
 
-export interface HavingBuilder<
+/**
+ * The value a HAVING comparison accepts. The comparison happens inside the
+ * database, where the operand is an inlined numeric literal — so the
+ * comparand stays `number` regardless of the result's application
+ * representation. A field-taking metric compares as `number | null` — a
+ * grouped value's SQL domain includes NULL; a no-input metric reads
+ * nullability off its declared row, so `count()` compares as plain `number`.
+ */
+type HavingZeroArgComparand<Row> = Row extends {
+  readonly nullable: infer Nullable extends boolean;
+}
+  ? Nullable extends true
+    ? number | null
+    : number
+  : never;
+
+type FieldHavingCall<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Op extends string,
+  NsId extends string,
+> = <FieldName extends AggregateFieldNames<TContract, ModelName, Op, NsId>>(
+  field: FieldName,
+) => HavingComparisonMethods<number | null>;
+
+type HavingMethod<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Op extends string,
+  NsId extends string,
+> =
+  HasZeroArgCall<TContract, Op> extends true
+    ? {
+        (): HavingComparisonMethods<HavingZeroArgComparand<AggregateRowFor<TContract, Op, never>>>;
+        <FieldName extends AggregateFieldNames<TContract, ModelName, Op, NsId>>(
+          field: FieldName,
+        ): HavingComparisonMethods<number | null>;
+      }
+    : FieldHavingCall<TContract, ModelName, Op, NsId>;
+
+/**
+ * The metric surface `groupBy().having()` hands its callback, derived from
+ * the same aggregate map as {@link AggregateBuilder} — restricted to the
+ * closed SQL aggregate alphabet. HAVING compares the value inside the
+ * database, where only an operation's plain `AggregateExpr` form is sound; an
+ * operation outside the alphabet exists only in its descriptor-lowered form,
+ * a rendering for the driver boundary, so it carries no HAVING method. A
+ * contract whose map is unknown (no emitted aggregate types) declares no
+ * methods.
+ */
+export type HavingBuilder<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string = never,
-> {
-  count(
-    ...args: AggregateRowFor<TContract, 'count', never> extends never
-      ? [AggregateUnavailable<'count'>]
-      : []
-  ): HavingComparisonMethods<number>;
-  sum<FieldName extends AggregateFieldNames<TContract, ModelName, 'sum', NsId>>(
-    field: FieldName,
-  ): HavingComparisonMethods<number | null>;
-  avg<FieldName extends AggregateFieldNames<TContract, ModelName, 'avg', NsId>>(
-    field: FieldName,
-  ): HavingComparisonMethods<number | null>;
-  min<FieldName extends AggregateFieldNames<TContract, ModelName, 'min', NsId>>(
-    field: FieldName,
-  ): HavingComparisonMethods<number | null>;
-  max<FieldName extends AggregateFieldNames<TContract, ModelName, 'max', NsId>>(
-    field: FieldName,
-  ): HavingComparisonMethods<number | null>;
-}
+> =
+  string extends AggregateOperationNames<TContract>
+    ? AggregateOperationsUnavailable
+    : {
+        readonly [Op in AggregateOperationNames<TContract> & SqlAggregateFn]: HavingMethod<
+          TContract,
+          ModelName,
+          Op,
+          NsId
+        >;
+      };
 
 export type ShorthandWhereFilter<
   TContract extends Contract<SqlStorage>,

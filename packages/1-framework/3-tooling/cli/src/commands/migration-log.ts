@@ -1,4 +1,4 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { LedgerEntryRecord } from '@internal/contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -42,7 +42,19 @@ export async function executeMigrationLogCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<readonly LedgerEntryRecord[], CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath } = resolveMigrationPaths(options.config, config);
 
   const dbConnection = options.db ?? config.db?.connection;

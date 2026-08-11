@@ -2,7 +2,7 @@
  * Policy cores of the `ref set` / `ref delete` / `ref list` commands: load config, resolve the reference, and write or read the refs index.
  */
 
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import {
   contractSnapshotDir,
@@ -75,8 +75,19 @@ export async function executeRefSetCommand(
     return notOk(cliErrorInvalidRefName(name));
   }
 
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'extensions',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   try {
-    const config = await loadConfig(options.config);
     const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config);
     const loaded = await buildReadAggregate(config, { migrationsDir });
     if (!loaded.ok) {
@@ -144,9 +155,12 @@ export async function executeRefDeleteCommand(
   name: string,
   options: { config?: string },
 ): Promise<Result<RefDeleteResult, CliStructuredError>> {
+  const configResult = await loadConfigForSections(options.config, ['migrations']);
+  if (!configResult.ok) {
+    return configResult;
+  }
   try {
-    const config = await loadConfig(options.config);
-    const { refsDir } = resolveMigrationPaths(options.config, config);
+    const { refsDir } = resolveMigrationPaths(options.config, configResult.value);
     await deleteRef(refsDir, name);
     return ok({ ok: true as const, ref: name, deleted: true as const });
   } catch (error) {
@@ -158,9 +172,12 @@ export async function executeRefDeleteCommand(
 export async function executeRefListCommand(options: {
   config?: string;
 }): Promise<Result<RefListResult, CliStructuredError>> {
+  const configResult = await loadConfigForSections(options.config, ['migrations']);
+  if (!configResult.ok) {
+    return configResult;
+  }
   try {
-    const config = await loadConfig(options.config);
-    const { refsDir } = resolveMigrationPaths(options.config, config);
+    const { refsDir } = resolveMigrationPaths(options.config, configResult.value);
     const refs = await readRefs(refsDir);
     return ok({ ok: true as const, refs });
   } catch (error) {

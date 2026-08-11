@@ -5,6 +5,7 @@ import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
+import { ok } from '@internal/utils/result';
 import { type } from 'arktype';
 import { join } from 'pathe';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
@@ -18,7 +19,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 const TARGET = 'postgres';
@@ -136,7 +137,7 @@ describe('migration list --json golden', () => {
     const contractPath = await writeContract(cwd, HASH_55bada2);
     await mkdir(join(cwd, 'migrations', 'app'), { recursive: true });
     await writeSliceSpecPackages(join(cwd, 'migrations'));
-    mocks.loadConfig.mockResolvedValue(baseConfig(contractPath));
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig(contractPath)));
 
     const flags = parseGlobalFlags({ json: true, quiet: true });
     const ui = createTerminalUI(flags);
@@ -200,7 +201,7 @@ describe('migration list --json golden', () => {
         targetFamily: TARGET_FAMILY,
       }),
     );
-    mocks.loadConfig.mockResolvedValue(baseConfig(contractPath));
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig(contractPath)));
 
     const flags = parseGlobalFlags({ json: true, quiet: true });
     const ui = createTerminalUI(flags);

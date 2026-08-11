@@ -60,6 +60,10 @@ export class SqlCheckConstraintIR extends SqlSchemaIRNode implements DiffableNod
     return [];
   }
 
+  static from(value: SqlCheckConstraintIR | SqlCheckConstraintIRInput): SqlCheckConstraintIR {
+    return value instanceof SqlCheckConstraintIR ? value : new SqlCheckConstraintIR(value);
+  }
+
   static is(node: SqlSchemaIRNode): node is SqlCheckConstraintIR {
     return node.nodeKind === RelationalSchemaNodeKind.check;
   }

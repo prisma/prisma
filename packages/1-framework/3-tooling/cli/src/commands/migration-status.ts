@@ -1,4 +1,4 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { LedgerEntryRecord } from '@internal/contract/types';
 import type {
   AggregateContractSpace,
@@ -266,7 +266,20 @@ export async function executeMigrationStatusCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<MigrationStatusCommandResult, CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath, migrationsDir, migrationsRelative, refsDir } = resolveMigrationPaths(
     options.config,
     config,

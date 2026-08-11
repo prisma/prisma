@@ -1,5 +1,8 @@
 import type { CodecRef } from '@internal/framework-components/codec';
-import type { NamedAggregateOutput } from '@internal/framework-components/components';
+import type {
+  AggregateResultNullability,
+  NamedAggregateOutput,
+} from '@internal/framework-components/components';
 import {
   aggregateDescriptorKey,
   isAnyInputAggregateDescriptor,
@@ -11,6 +14,7 @@ import { structuredError } from '@internal/utils/structured-error';
 import type { SqlAggregateDescriptor } from './aggregate-descriptor';
 import { isSqlAggregateDescriptor } from './aggregate-descriptor';
 import { frozenCodecRef } from './ast/codec-types';
+import { aggregateFnNames, isAggregateFn } from './ast/types';
 import type {
   CodecDescriptorRegistry,
   ResolvedSqlAggregate,
@@ -33,10 +37,17 @@ function namedOutputRef(output: NamedAggregateOutput, input: CodecRef | undefine
   });
 }
 
+/** The descriptor's own answer for a result set carrying no row, carried into resolution unchanged. */
+function resultNullability(descriptor: SqlAggregateDescriptor): AggregateResultNullability {
+  return descriptor.nullable
+    ? { nullable: true }
+    : { nullable: false, emptyResultJson: descriptor.emptyResultJson };
+}
+
 /**
  * Validate every contributed aggregate descriptor and settle its matches against the composed codec set.
  *
- * Validation covers the descriptor's own shape, a second claim on one `(operation, input)` pair, and two trait descriptors that both claim a registered codec for one operation — the last of which only a composed stack can detect, which is why it is settled here rather than at contribution.
+ * Validation covers the descriptor's own shape, the lowering rule — an operation outside the closed SQL aggregate alphabet must carry a `lower` hook, there being no plain `AggregateExpr` form for it — a second claim on one `(operation, input)` pair, and two trait descriptors that both claim a registered codec for one operation — the last of which only a composed stack can detect, which is why it is settled here rather than at contribution.
  */
 export function buildSqlAggregateDescriptorRegistry(
   descriptors: ReadonlyArray<unknown>,
@@ -51,14 +62,25 @@ export function buildSqlAggregateDescriptorRegistry(
         'RUNTIME.AGGREGATE_DESCRIPTOR_INVALID',
         `Contributed value ${describeCandidate(candidate)} is not a valid SQL aggregate descriptor.`,
         {
-          why: 'Aggregate resolution reads a declared operation, input match, result codec, and nullability; a lowering hook, where present, must be callable.',
-          fix: 'Declare `operation`, `input` (`none` / `any` / `codec` / `trait`), `output` (`self` / `codec`), and `nullable` on the descriptor.',
+          why: 'Aggregate resolution reads a declared operation, input match, result codec, and nullability — plus, for a non-nullable result, the empty-result value; a lowering hook, where present, must be callable.',
+          fix: 'Declare `operation`, `input` (`none` / `any` / `codec` / `trait`), `output` (`self` / `codec`), and `nullable` on the descriptor, adding `emptyResultJson` where `nullable` is false.',
           meta: { descriptor: describeCandidate(candidate) },
         },
       );
     }
 
     const key = aggregateDescriptorKey(candidate);
+    if (!isAggregateFn(candidate.operation) && candidate.lower === undefined) {
+      throw structuredError(
+        'RUNTIME.AGGREGATE_LOWERING_MISSING',
+        `Aggregate descriptor '${key}' declares operation '${candidate.operation}', which is outside the SQL aggregate alphabet (${[...aggregateFnNames].join(', ')}) and carries no lowering hook.`,
+        {
+          why: 'An operation in the alphabet lowers to a plain aggregate call; renderers know no other operation, so any other name must build its expression through a `lower` hook from existing nodes.',
+          fix: 'Declare a `lower` hook on the descriptor, or use an operation name from the SQL aggregate alphabet.',
+          meta: { operation: candidate.operation, key },
+        },
+      );
+    }
     if (claimedKeys.has(key)) {
       throw structuredError(
         'RUNTIME.DUPLICATE_AGGREGATE_DESCRIPTOR',
@@ -142,7 +164,7 @@ export function buildSqlAggregateDescriptorRegistry(
           descriptor.output.kind === 'self'
             ? frozenCodecRef(input)
             : namedOutputRef(descriptor.output, input),
-        nullable: descriptor.nullable,
+        ...resultNullability(descriptor),
         lower: descriptor.lower,
       };
     },
@@ -166,7 +188,7 @@ function resolveWithoutInput(
   return {
     operation,
     output: namedOutputRef(descriptor.output, undefined),
-    nullable: descriptor.nullable,
+    ...resultNullability(descriptor),
     lower: descriptor.lower,
   };
 }

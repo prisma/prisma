@@ -17,8 +17,9 @@
  * 1. Detects whether the file is the direct entrypoint (no-op when imported).
  * 2. Parses CLI args (`--help`, `--dry-run`, `--config <path>`) via
  *    [clipanion](https://github.com/arcanis/clipanion).
- * 3. Loads the project's `prisma-next.config.ts` via the same `loadConfig`
- *    the CLI commands use, walking up from the migration file's directory.
+ * 3. Loads the project's `prisma-next.config.ts` via the same
+ *    `loadConfigForSections` the CLI commands use, walking up from the
+ *    migration file's directory.
  * 4. Probe-instantiates the migration class without a stack so it can read
  *    `targetId` and verify it matches `config.target.targetId`
  *    (`MIGRATION.TARGET_MISMATCH` on mismatch) before any stack-driven adapter
@@ -45,7 +46,7 @@
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import type { Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import {
   CliStructuredError,
   errorMigrationCliInvalidConfigArg,
@@ -543,7 +544,17 @@ async function runMigration(
   const migrationFile = fileURLToPath(importMetaUrl);
   const migrationDir = dirname(migrationFile);
 
-  const config = await loadConfig(parsed.config);
+  const configResult = await loadConfigForSections(parsed.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+  ]);
+  if (!configResult.ok) {
+    throw configResult.failure;
+  }
+  const config = configResult.value;
 
   // Probe-instantiate without a stack so we can read `targetId` before
   // any target-specific constructor side effects (e.g.

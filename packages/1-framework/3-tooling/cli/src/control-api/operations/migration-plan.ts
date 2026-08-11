@@ -3,7 +3,7 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import { getEmittedArtifactPaths } from '@internal/emitter';
 import {
@@ -250,7 +250,18 @@ async function executeMigrationPlanCommandInner(
     readonly onSeeded?: (record: ContractSpaceSeedPhaseRecord) => void;
   },
 ): Promise<Result<MigrationPlanResult, CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'extensions',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath, migrationsDir, appMigrationsDir, appMigrationsRelative } =
     resolveMigrationPaths(options.config, config);
 

@@ -9,6 +9,7 @@ import {
   type StorageTable,
   StorageTable as StorageTableClass,
 } from '@internal/sql-contract/types';
+import { validateStorage } from '@internal/sql-contract/validators';
 import {
   computeCheckContentHash,
   formatWireName,
@@ -495,6 +496,357 @@ describe('check emission — JSON round-trip', () => {
 
     expect(flatten(hydrated)).toEqual(flatten(checksOf(contract)));
     expect(hydrated).toHaveLength(2);
+  });
+});
+
+function columnOf(contract: Contract<SqlStorage>, columnName: string) {
+  const ns = contract.storage.namespaces['public'];
+  const table = ns !== undefined ? ns.entries.table?.['User'] : undefined;
+  return (table as StorageTable | undefined)?.columns[columnName];
+}
+
+describe('noCheck — enforcement opt-out', () => {
+  it('scalar domain enum + noCheck("membership") derives nothing and persists the flag', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), role: f.namedType(Role).noCheck('membership') },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(checksOf(contract)).toEqual([]);
+    const role = columnOf(contract, 'role');
+    expect(role?.valueSet).toBeDefined();
+    expect(role?.noCheck).toEqual(['membership']);
+  });
+
+  it('list domain enum + noCheck("membership") keeps exactly the elem_not_null check', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), roles: f.namedType(Role).many().noCheck('membership') },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(flatten(checksOf(contract))).toEqual([
+      wire('User_roles_elem_not_null', `array_position("roles", NULL) IS NULL`),
+    ]);
+    expect(columnOf(contract, 'roles')?.noCheck).toEqual(['membership']);
+  });
+
+  it('list domain enum + bare noCheck() derives nothing and persists the canonical kind order', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), roles: f.namedType(Role).many().noCheck() },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(checksOf(contract)).toEqual([]);
+    expect(columnOf(contract, 'roles')?.noCheck).toEqual(['elementNotNull', 'membership']);
+  });
+
+  it('plain list + noCheck("elementNotNull") derives nothing', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), tags: f.text().many().noCheck('elementNotNull') },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(checksOf(contract)).toEqual([]);
+    expect(columnOf(contract, 'tags')?.noCheck).toEqual(['elementNotNull']);
+  });
+});
+
+describe('noCheck — CONTRACT.CHECK_OPTOUT_INVALID', () => {
+  it('rejects membership on a column with no domain-enum value set', () => {
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', {
+                fields: { id: f.text().id(), name: f.text().noCheck('membership') },
+              }),
+            },
+          }) as const,
+      ),
+    ).toThrow(/noCheck\("membership"\) does not apply/);
+  });
+
+  it('rejects elementNotNull on a non-many column', () => {
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+          enums: { Role },
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', {
+                fields: { id: f.text().id(), role: f.namedType(Role).noCheck('elementNotNull') },
+              }),
+            },
+          }) as const,
+      ),
+    ).toThrow(/noCheck\("elementNotNull"\) does not apply/);
+  });
+
+  it('rejects bare noCheck() on a column that derives nothing', () => {
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), name: f.text().noCheck() } }),
+            },
+          }) as const,
+      ),
+    ).toThrow(/waives nothing/);
+  });
+
+  it('rejects duplicate kinds in one call', () => {
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+          enums: { Role },
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', {
+                fields: {
+                  id: f.text().id(),
+                  role: f.namedType(Role).noCheck('membership', 'membership'),
+                },
+              }),
+            },
+          }) as const,
+      ),
+    ).toThrow(/names the same kind twice/);
+  });
+
+  it('rejects calling noCheck() twice', () => {
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+          enums: { Role },
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', {
+                fields: {
+                  id: f.text().id(),
+                  role: f.namedType(Role).noCheck('membership').noCheck('membership'),
+                },
+              }),
+            },
+          }) as const,
+      ),
+    ).toThrow(/already called/);
+  });
+});
+
+describe('noCheck — non-managed tables tolerate the flag', () => {
+  it('a source-declared external table builds with a no-op flag', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), name: f.text().noCheck('membership') },
+            }).sql({ control: 'external' }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(checksOf(contract)).toEqual([]);
+    expect(columnOf(contract, 'name')?.noCheck).toBeUndefined();
+  });
+
+  it('a specifier-stamped policy leaves the flag and the strip pass unaffected', () => {
+    const built = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: {
+                id: f.text().id(),
+                role: f.namedType(Role),
+                tags: f.text().many().noCheck('elementNotNull'),
+              },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(checksOf(built).map((c) => c.prefix)).toEqual(['User_role_check']);
+    expect(columnOf(built, 'tags')?.noCheck).toEqual(['elementNotNull']);
+
+    const stamped = applySpecifierDefaultControlPolicy(built, 'external');
+    const stripped = stripDerivedChecksFromNonManagedTables(
+      stamped,
+      createTestSqlNamespace,
+    ) as Contract<SqlStorage>;
+
+    expect(checksOf(stripped)).toEqual([]);
+    expect(columnOf(stripped, 'tags')?.noCheck).toEqual(['elementNotNull']);
+  });
+});
+
+describe('noCheck — wire schema', () => {
+  function rawStorageWith(noCheck: unknown): unknown {
+    return {
+      storageHash: 'test',
+      namespaces: {
+        public: {
+          id: 'public',
+          kind: 'test-sql-namespace',
+          entries: {
+            table: {
+              User: {
+                columns: {
+                  tags: {
+                    nativeType: 'text',
+                    codecId: 'pg/text@1',
+                    nullable: false,
+                    many: true,
+                    ...(noCheck !== undefined ? { noCheck } : {}),
+                  },
+                },
+                uniques: [],
+                indexes: [],
+                foreignKeys: [],
+              },
+            },
+          },
+        },
+      },
+    };
+  }
+
+  it('an authored noCheck column round-trips: serialize → validate → hydrate → identical bytes', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), roles: f.namedType(Role).many().noCheck() },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    const serialized = JSON.stringify(contract.storage);
+    const parsed = JSON.parse(serialized) as unknown;
+    validateStorage(parsed);
+
+    const storedTable = (parsed as SqlStorage).namespaces['public']?.entries.table?.['User'] as
+      | (Omit<StorageTable, 'checks'> & {
+          readonly checks?: ReadonlyArray<{ name: string; prefix?: string; expression: string }>;
+        })
+      | undefined;
+    expect(storedTable).toBeDefined();
+    if (storedTable === undefined) return;
+
+    const hydrated = new StorageTableClass({
+      ...storedTable,
+      checks: (storedTable.checks ?? []).map(checkConstraintInputFromSerialized),
+    });
+    expect(hydrated.columns['roles']?.noCheck).toEqual(['elementNotNull', 'membership']);
+
+    const rehydrated = new StorageTableClass({
+      ...(JSON.parse(JSON.stringify(hydrated)) as typeof storedTable),
+      checks: [],
+    });
+    expect(JSON.stringify(rehydrated)).toBe(JSON.stringify(hydrated));
+  });
+
+  it.each([
+    ['unsorted', ['membership', 'elementNotNull']],
+    ['empty', []],
+    ['duplicate', ['membership', 'membership']],
+    ['unknown kind', ['bogus']],
+  ])('rejects a %s noCheck array', (_label, noCheck) => {
+    expect(() => validateStorage(rawStorageWith(noCheck))).toThrow();
   });
 });
 

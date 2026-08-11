@@ -4,7 +4,11 @@ _(Parent project `projects/codec-json-projections/`. Outcome this slice contribu
 
 ## At a glance
 
-Strictly behaviour-preserving. Opens the descriptor vocabulary's `operation` field from the closed `AggregateFn` union to `string`, and replaces the literal-named aggregate methods in sql-orm-client and the hardcoded aggregate functions in the sql-builder lane with surfaces derived from the contract's emitted `aggregateTypes` — typed by mapped types, dispatched generically by operation name. Emitted contracts, rendered SQL, fixtures, and observable results stay byte-identical.
+Behaviour-preserving but for two derived consequences, named below. Opens the descriptor vocabulary's `operation` field from the closed `AggregateFn` union to `string`, and replaces the literal-named aggregate methods in sql-orm-client and the hardcoded aggregate functions in the sql-builder lane with surfaces derived from the contract's emitted `aggregateTypes` — typed by mapped types, dispatched generically by operation name. Emitted contracts, rendered SQL, and fixtures stay byte-identical.
+
+**Observable change 1 — runtime** (amended 2026-08-07 from D3): PostgreSQL declares `count` with `input: { kind: 'any' }`, so its emitted rows carry both `withoutInput` and `anyInput`, and the row-presence rule gives ORM `count` both arities honestly. A `count(field)` call previously dropped its argument silently and rendered `COUNT(*)`; it now renders `COUNT(<column>)`. Compile-time gating for statically-typed contracts is unchanged (a relation name is still absent from `AggregateFieldNames`), so the change is reachable only through dynamic invocation — and it removes a recorded deviation from Prisma, flipping an `it.fails` port assertion green.
+
+**Observable change 2 — compile time, map-less contracts** (amended 2026-08-07 from slice review): for a contract whose `aggregateTypes` is unknown — an in-code `defineContract(...)`, or a contract emitted before aggregate types existed — the derived surfaces resolve to an empty guard type rather than the five literal methods. Calls that previously compiled (with an `as never` field argument, since `AggregateFieldNames` was already `never`) now need the builder itself cast; two integration tests in this slice show the shape. Statically-typed emitted contracts are unaffected. The earlier claim that "compile-time gating is unchanged" holds only for contracts carrying an aggregate map.
 
 ## Chosen design
 

@@ -1,7 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import {
-  AggregateExpr,
+  type AggregateExpr,
   AndExpr,
   type AnyExpression,
   BinaryExpr,
@@ -16,7 +16,7 @@ import {
 import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
-import { resolveAggregate } from './aggregate-codecs';
+import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
 import { tableSourceForContract } from './storage-resolution';
@@ -56,7 +56,7 @@ function toAggregateProjection(
   const expr =
     lower !== undefined
       ? lower({ expr: inputExpr, inputCodec })
-      : new AggregateExpr(selector.fn, inputExpr);
+      : plainAggregateExpr(selector.fn, inputExpr);
 
   return { expr, codec };
 }

@@ -14,6 +14,7 @@
     "lint": "biome check . --error-on-warnings",
     "lint:fix": "biome check --write .",
     "lint:fix:unsafe": "biome check --write --unsafe .",
+    "schemas:generate": "tsx scripts/generate-json-schema.ts && biome format --write schemas/data-contract-sql-v1.json",
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
@@ -34,7 +35,9 @@
     "@types/pg": "catalog:",
     "pg": "catalog:",
     "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "ajv": "catalog:",
     "tsdown": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

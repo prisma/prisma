@@ -1,12 +1,14 @@
+import type { CheckKind } from '@internal/sql-schema-ir/naming';
 import { invariant } from '@internal/utils/assertions';
 import { escapeLiteral, quoteIdentifier } from './sql-utils';
 
 /**
  * What a rendered check enforces. The contract builder turns this into the
  * wire-name prefix's trailing segment, so the kind stays readable in the
- * physical constraint name.
+ * physical constraint name. The vocabulary is the family's, so this names
+ * `CheckKind` rather than restating its members.
  */
-export type PostgresCheckKind = 'membership' | 'elementNotNull';
+export type PostgresCheckKind = CheckKind;
 
 /**
  * One column's shape, as the contract builder knows it. `memberValues` is

@@ -11,7 +11,7 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // agg.sum('age'), agg.avg('age').
 //
 // The `invalid *` tests assert BOTH a compile-time rejection (`@ts-expect-error`
-// on a non-numeric/relation field, or an argument to `count()`) AND a runtime
+// on a field the target declares no such aggregate over) AND a runtime
 // rejection. Ported faithfully with both assertions inline.
 //
 // 'multiple aggregations with where' in upstream uses _count: { email: true }
@@ -58,7 +58,7 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
     () =>
       withAggregations(async ({ db }) => {
         const result = await db.public.User.aggregate((agg) => ({ _sum: agg.sum('age') }));
-        expect(result).toEqual({ _sum: 188n });
+        expect(result).toEqual({ _sum: 188 });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -68,7 +68,7 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
     () =>
       withAggregations(async ({ db }) => {
         const result = await db.public.User.aggregate((agg) => ({ _count: agg.count() }));
-        expect(result).toEqual({ _count: 4n });
+        expect(result).toEqual({ _count: 4 });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -78,7 +78,7 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
     () =>
       withAggregations(async ({ db }) => {
         const result = await db.public.User.aggregate((agg) => ({ _count: agg.count() }));
-        expect(result).toEqual({ _count: 4n });
+        expect(result).toEqual({ _count: 4 });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -88,10 +88,7 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
     () =>
       withAggregations(async ({ db }) => {
         const result = await db.public.User.aggregate((agg) => ({ _avg: agg.avg('age') }));
-        // PostgreSQL's avg over an integer column is numeric, whose canonical
-        // form is a decimal string — the port's `number` was the driver's
-        // rounding, not the database's answer.
-        expect(result).toEqual({ _avg: '47.0000000000000000' });
+        expect(result).toEqual({ _avg: 47 });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -108,11 +105,11 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
           _sum: agg.sum('age'),
         }));
         expect(result).toEqual({
-          _avg: '47.0000000000000000',
-          _count: 4n,
+          _avg: 47,
+          _count: 4,
           _max: 63,
           _min: 20,
-          _sum: 188n,
+          _sum: 188,
         });
       }),
     timeouts.spinUpPpgDev,
@@ -130,11 +127,11 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
           _sum: agg.sum('age'),
         }));
         expect(result).toEqual({
-          _avg: '56.0000000000000000',
-          _count: 3n,
+          _avg: 56,
+          _count: 3,
           _max: 63,
           _min: 45,
-          _sum: 168n,
+          _sum: 168,
         });
       }),
     timeouts.spinUpPpgDev,
@@ -173,14 +170,13 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
     timeouts.spinUpPpgDev,
   );
 
-  // `count()` type-rejects a field argument (the @ts-expect-error holds), but at
-  // runtime prisma-next ignores the extra argument and returns COUNT(*) instead
-  // of throwing (Prisma validates and throws). Faithful port, marked it.fails.
-  it.fails(
+  // `count` admits a field argument — the target declares it over any input —
+  // but only a field the contract declares; a relation name is neither.
+  it(
     'invalid count',
     () =>
       withAggregations(async ({ db }) => {
-        // @ts-expect-error `count()` takes no field argument
+        // @ts-expect-error `posts` is a relation, not an aggregatable field
         const result = db.public.User.aggregate((agg) => ({ _count: agg.count('posts') }));
         await expect(result).rejects.toThrow();
       }),

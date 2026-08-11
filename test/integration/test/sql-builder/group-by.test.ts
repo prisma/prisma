@@ -15,9 +15,9 @@ describe('integration: GROUP BY / HAVING', { timeout: timeouts.databaseOperation
     );
     expect(rows.length).toBeGreaterThan(0);
     const alice = rows.find((r) => r.user_id === 1);
-    // The count reads through the codec its target declares for it — the
-    // roadmap's remaining aggregate: text off the wire, a bigint in hand.
-    expect(alice!.cnt).toBe(2n);
+    // The count reads through the codec its target declares for it: text off
+    // the wire, a number in hand, guarded against the safe range on the way.
+    expect(alice!.cnt).toBe(2);
   });
 
   // `count(x)` counts non-null values rather than rows, and resolves through
@@ -33,7 +33,7 @@ describe('integration: GROUP BY / HAVING', { timeout: timeouts.databaseOperation
         .build(),
     );
     const alice = rows.find((r) => r.user_id === 1);
-    expect(alice!.cnt).toBe(2n);
+    expect(alice!.cnt).toBe(2);
   });
 
   it('HAVING filters groups', async () => {
@@ -42,7 +42,7 @@ describe('integration: GROUP BY / HAVING', { timeout: timeouts.databaseOperation
         .public.posts.select('user_id')
         .select('cnt', (_f, fns) => fns.count())
         .groupBy('user_id')
-        .having((_f, fns) => fns.gt(fns.count(), 1n))
+        .having((_f, fns) => fns.gt(fns.count(), 1))
         .build(),
     );
     expect(rows).toHaveLength(1);
