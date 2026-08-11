@@ -285,6 +285,8 @@ export const indexModelSpec = modelAttribute('index', {
 export const PSL_CHECK_REQUIRES_NAME_OR_MAP: ContributedPslDiagnosticCode =
   'PSL_CHECK_REQUIRES_NAME_OR_MAP';
 export const PSL_CHECK_NAME_XOR_MAP: ContributedPslDiagnosticCode = 'PSL_CHECK_NAME_XOR_MAP';
+export const PSL_CHECK_EXPRESSION_EMPTY: ContributedPslDiagnosticCode =
+  'PSL_CHECK_EXPRESSION_EMPTY';
 
 export const checkModelSpec = modelAttribute('check', {
   named: {
@@ -294,6 +296,16 @@ export const checkModelSpec = modelAttribute('check', {
   },
   refine: (value, ctx, attributeNode) => {
     const diagnostics: PslDiagnostic[] = [];
+    if (value.expression.trim().length === 0) {
+      diagnostics.push(
+        leafDiagnostic(
+          ctx,
+          attributeNode,
+          '`@@check` expression must not be empty — an empty predicate is not a constraint',
+          PSL_CHECK_EXPRESSION_EMPTY,
+        ),
+      );
+    }
     if (value.name === undefined && value.map === undefined) {
       diagnostics.push(
         leafDiagnostic(

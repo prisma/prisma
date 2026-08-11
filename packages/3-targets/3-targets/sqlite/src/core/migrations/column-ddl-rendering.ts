@@ -11,6 +11,7 @@ import {
 import type { SqlColumnIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
+import { sqliteError } from '../errors';
 import type { SqliteColumnSpec } from './operations/shared';
 import { buildColumnDefaultSql, buildColumnTypeSql } from './planner-ddl-builders';
 
@@ -146,6 +147,12 @@ export function ddlColumnFromNode(column: SqlColumnIR, inline: boolean): DdlColu
  * Builds the table-level constraints (PK / unique / FK) for a `CreateTable`
  * path from the table node — the node-sourced sibling of the retired
  * contract-based `tableToDdlParts`'s constraint half.
+ *
+ * A check constraint on the table node throws rather than being dropped: the
+ * `sql.checkConstraint` capability gate rejects `@@check` / `check()` against
+ * SQLite at authoring time, so a check reaching this far means something
+ * bypassed that gate (a hand-edited contract, for instance). This is the
+ * safety net for that case, not the primary enforcement point.
  */
 export function tableConstraintsFromNode(
   table: SqlTableIR,
@@ -154,6 +161,13 @@ export function tableConstraintsFromNode(
   const constraints: DdlTableConstraint[] = [];
   if (table.primaryKey && !hasInlinePk) {
     constraints.push(new PrimaryKeyConstraint({ columns: table.primaryKey.columns }));
+  }
+  for (const check of table.checks ?? []) {
+    throw sqliteError(
+      'CONTRACT.CONSTRAINT_INVALID',
+      `SQLite does not support CHECK constraints (constraint "${check.name}" on table "${table.name}"). The "checkConstraint" capability is Postgres-only — remove the "@@check" / "check()" declaration, or target Postgres.`,
+      { meta: { constraintName: check.name, tableName: table.name } },
+    );
   }
   for (const u of table.uniques) {
     constraints.push(

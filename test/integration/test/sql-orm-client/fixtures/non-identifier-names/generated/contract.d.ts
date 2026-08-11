@@ -308,6 +308,7 @@ type ContractBase = Omit<
       readonly returning: true;
     };
     readonly sql: {
+      readonly checkConstraint: true;
       readonly defaultInInsert: true;
       readonly enums: true;
       readonly lateral: true;

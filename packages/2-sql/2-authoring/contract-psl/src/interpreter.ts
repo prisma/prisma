@@ -1029,6 +1029,15 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       if (node === undefined) {
         continue;
       }
+      if (input.capabilities['sql']?.['checkConstraint'] !== true) {
+        diagnostics.push({
+          code: 'PSL_CHECK_UNSUPPORTED_TARGET',
+          message: `Model "${model.name}" declares "@@check", but target "${input.targetId}" does not support check constraints (the adapter does not report the "checkConstraint" capability). Remove the check or author it against a target that supports check constraints.`,
+          sourceId,
+          span: modelAttribute.span,
+        });
+        continue;
+      }
       const parsed = interpretModelAttribute({
         node,
         spec: checkModelSpec,

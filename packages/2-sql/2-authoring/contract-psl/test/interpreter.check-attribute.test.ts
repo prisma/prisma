@@ -7,6 +7,8 @@ import {
   createBuiltinLikeControlMutationDefaults,
   postgresScalarTypeDescriptors,
   postgresTarget,
+  sqliteScalarColumnDescriptors,
+  sqliteTarget,
   symbolTableInputFromParseArgs,
   testEnumEntityContributions,
 } from './fixtures';
@@ -23,7 +25,7 @@ function interpret(schema: string) {
     composedExtensionContracts: new Map(),
     controlMutationDefaults: builtinControlMutationDefaults,
     createNamespace: createTestSqlNamespace,
-    capabilities: { sql: { scalarList: true } },
+    capabilities: { sql: { scalarList: true, checkConstraint: true } },
   });
 }
 
@@ -225,16 +227,101 @@ model Order {
     );
   });
 
-  it('rejects an empty expression — raised by the shared lowering layer, not PSL', () => {
-    expect(() =>
-      interpret(`
+  it('rejects an empty expression as a span-anchored PSL diagnostic', () => {
+    expectDiagnostic(
+      `
 model Order {
   id    Int     @id
   total Decimal
 
   @@check(expression: "", name: "order_total_positive")
 }
-`),
-    ).toThrow(expect.objectContaining({ code: 'CONTRACT.ARGUMENT_INVALID' }));
+`,
+      'PSL_CHECK_EXPRESSION_EMPTY',
+      /expression must not be empty/,
+    );
+  });
+
+  it('rejects a whitespace-only expression as a span-anchored PSL diagnostic', () => {
+    expectDiagnostic(
+      `
+model Order {
+  id    Int     @id
+  total Decimal
+
+  @@check(expression: "   ", name: "order_total_positive")
+}
+`,
+      'PSL_CHECK_EXPRESSION_EMPTY',
+      /expression must not be empty/,
+    );
+  });
+});
+
+describe('@@check capability gating', () => {
+  it('rejects @@check against a target whose adapter lacks the checkConstraint capability', () => {
+    const document = symbolTableInputFromParseArgs({
+      schema: `
+model Order {
+  id    Int     @id
+  total Decimal
+
+  @@check(expression: "total > 0", name: "order_total_positive")
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+
+    const result = interpretPslDocumentToSqlContract({
+      target: sqliteTarget,
+      scalarColumnDescriptors: sqliteScalarColumnDescriptors,
+      composedExtensionContracts: new Map(),
+      createNamespace: createTestSqlNamespace,
+      capabilities: { sql: {} },
+      ...document,
+      controlMutationDefaults: builtinControlMutationDefaults,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'PSL_CHECK_UNSUPPORTED_TARGET',
+          message:
+            'Model "Order" declares "@@check", but target "sqlite" does not support check constraints (the adapter does not report the "checkConstraint" capability). Remove the check or author it against a target that supports check constraints.',
+        }),
+      ]),
+    );
+  });
+
+  it('rejects @@check against an empty capability matrix (fail-closed)', () => {
+    const document = symbolTableInputFromParseArgs({
+      schema: `
+model Order {
+  id    Int     @id
+  total Decimal
+
+  @@check(expression: "total > 0", name: "order_total_positive")
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+
+    const result = interpretPslDocumentToSqlContract({
+      target: postgresTarget,
+      scalarColumnDescriptors: postgresScalarTypeDescriptors,
+      composedExtensionContracts: new Map(),
+      createNamespace: createTestSqlNamespace,
+      capabilities: {},
+      ...document,
+      controlMutationDefaults: builtinControlMutationDefaults,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'PSL_CHECK_UNSUPPORTED_TARGET' })]),
+    );
   });
 });
