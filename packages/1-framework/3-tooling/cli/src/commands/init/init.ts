@@ -962,8 +962,23 @@ async function runEmit(ctx: {
   spinner.start('Emitting contract...');
   try {
     const { executeContractEmit } = await import('../../control-api/operations/contract-emit');
+    const { loadConfigForSections } = await import('@internal/config-loader');
     const configFilePath = join(ctx.baseDir, 'prisma-next.config.ts');
-    await executeContractEmit({ configPath: configFilePath });
+    const configResult = await loadConfigForSections(configFilePath, [
+      'contract',
+      'family',
+      'target',
+      'adapter',
+      'extensions',
+    ]);
+    if (!configResult.ok) {
+      throw configResult.failure;
+    }
+    await executeContractEmit({
+      config: configResult.value,
+      cwd: process.cwd(),
+      configPath: configFilePath,
+    });
     spinner.stop('Contract emitted');
   } catch (err) {
     spinner.stop('Contract emission failed');

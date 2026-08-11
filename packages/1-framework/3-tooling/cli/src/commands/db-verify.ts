@@ -385,7 +385,11 @@ async function executeDbVerifyCommand(
   const setupResult = await resolveVerifySetup(paths, options, mode);
   if (!setupResult.ok) return setupResult;
   const { contractJson, dbConnection, contractPathAbsolute } = setupResult.value;
-  const { migrationsDir } = resolveMigrationPaths(options.config, setupResult.value.config);
+  const { migrationsDir } = resolveMigrationPaths(
+    options.config,
+    setupResult.value.config,
+    process.cwd(),
+  );
 
   const client = createVerifyClient(setupResult.value);
   const onProgress = createProgressAdapter({ ui, flags });
@@ -493,7 +497,11 @@ async function executeDbSchemaOnlyVerifyCommand(
   const setupResult = await resolveVerifySetup(paths, options, 'schema-only');
   if (!setupResult.ok) return setupResult;
   const { contractJson, dbConnection, contractPathAbsolute } = setupResult.value;
-  const { migrationsDir } = resolveMigrationPaths(options.config, setupResult.value.config);
+  const { migrationsDir } = resolveMigrationPaths(
+    options.config,
+    setupResult.value.config,
+    process.cwd(),
+  );
 
   const client = createVerifyClient(setupResult.value);
   const onProgress = createProgressAdapter({ ui, flags });

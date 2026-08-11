@@ -120,10 +120,14 @@ export function resolveContractPath(config: { contract?: { output?: string } }):
  *   this directory. Extensions own their own `migrations/<spaceId>/`.
  * - `refsDir` is the app's refs directory (`<appMigrationsDir>/refs/`).
  *   The framework does not maintain refs at the migrations root.
+ *
+ * `cwd` is the directory the command was invoked from; every relative path in
+ * the result is computed against it.
  */
 export function resolveMigrationPaths(
   configOption: string | undefined,
   config: { migrations?: { dir?: string } },
+  cwd: string,
 ): {
   configPath: string;
   migrationsDir: string;
@@ -132,16 +136,17 @@ export function resolveMigrationPaths(
   appMigrationsRelative: string;
   refsDir: string;
 } {
-  const configPath = configOption
-    ? relative(process.cwd(), resolve(configOption))
+  const resolvedConfigPath = configOption ? resolve(cwd, configOption) : undefined;
+  const configPath = resolvedConfigPath
+    ? relative(cwd, resolvedConfigPath)
     : 'prisma-next.config.ts';
   const migrationsDir = resolve(
-    configOption ? resolve(configOption, '..') : process.cwd(),
+    resolvedConfigPath ? resolve(resolvedConfigPath, '..') : cwd,
     config.migrations?.dir ?? 'migrations',
   );
-  const migrationsRelative = relative(process.cwd(), migrationsDir);
+  const migrationsRelative = relative(cwd, migrationsDir);
   const appMigrationsDir = spaceMigrationDirectory(migrationsDir, APP_SPACE_ID);
-  const appMigrationsRelative = relative(process.cwd(), appMigrationsDir);
+  const appMigrationsRelative = relative(cwd, appMigrationsDir);
   const refsDir = resolve(appMigrationsDir, 'refs');
   return {
     configPath,

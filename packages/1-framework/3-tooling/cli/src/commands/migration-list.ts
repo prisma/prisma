@@ -88,6 +88,7 @@ export async function executeMigrationListCommand(
   const { configPath, migrationsDir, migrationsRelative } = resolveMigrationPaths(
     options.config,
     config,
+    process.cwd(),
   );
 
   if (!flags.json && !flags.quiet) {

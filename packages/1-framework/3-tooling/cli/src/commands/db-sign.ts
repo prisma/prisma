@@ -106,7 +106,7 @@ async function executeDbSignCommand(
 
   if (effectiveContractArg) {
     try {
-      const { migrationsDir } = resolveMigrationPaths(options.config, config);
+      const { migrationsDir } = resolveMigrationPaths(options.config, config, process.cwd());
       const resolved = await resolveContractRefToSnapshot({
         config,
         migrationsDir,

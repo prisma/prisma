@@ -115,7 +115,20 @@ export function prismaVitePlugin(
         await updateWatchedFiles(server);
       }
 
+      const configResult = await loadConfigForSections(absoluteConfigPath, [
+        'contract',
+        'family',
+        'target',
+        'adapter',
+        'extensions',
+      ]);
+      if (!configResult.ok) {
+        throw configResult.failure;
+      }
+
       const result = await executeContractEmit({
+        config: configResult.value,
+        cwd: process.cwd(),
         configPath: absoluteConfigPath,
         signal,
       });

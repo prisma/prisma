@@ -105,7 +105,7 @@ async function executeMigrationShowCommand(
   }
   const config = configResult.value;
   const { configPath, migrationsDir, appMigrationsDir, appMigrationsRelative } =
-    resolveMigrationPaths(options.config, config);
+    resolveMigrationPaths(options.config, config, process.cwd());
 
   const contractPathAbsolute = resolveContractPath(config);
   const contractPath = relative(process.cwd(), contractPathAbsolute);

@@ -100,6 +100,7 @@ export async function executeMigrationGraphCommand(
   const { configPath, migrationsRelative, migrationsDir } = resolveMigrationPaths(
     options.config,
     config,
+    process.cwd(),
   );
 
   if (!flags.json && !flags.quiet) {

@@ -55,7 +55,7 @@ export async function executeMigrationLogCommand(
     return configResult;
   }
   const config = configResult.value;
-  const { configPath } = resolveMigrationPaths(options.config, config);
+  const { configPath } = resolveMigrationPaths(options.config, config, process.cwd());
 
   const dbConnection = options.db ?? config.db?.connection;
   const missingDb = requireLiveDatabase({
