@@ -3,10 +3,22 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7, D8, D9
-- **AC scoreboard totals:** 60 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7, D8, D9, D10
+- **AC scoreboard totals:** 65 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
+
+## cli-owned-distribution-identity D10 acceptance criteria scoreboard
+
+| AC ID   | Description (short)                                                                                     | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------- | ------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D10-AC1 | Identity-bearing packed command evidence is split into local inline snapshots and the old file is gone. | PASS   | `84401c2318`, `c244dd6669`; `packages/client/tests/e2e/prisma7-compatibility/tests/main.test.ts` now carries inline snapshots for top-level help, delegated help, text version projection, JSON version projection, generated `.env`, generated `prisma.config.ts`, and `init` stdout. `packages/client/tests/e2e/prisma7-compatibility/tests/__snapshots__/main.test.ts.snap` is deleted, so the old aggregate external snapshot no longer exists.                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| D10-AC2 | Completion identity stays on concise direct assertions rather than snapshotting the generated script.   | PASS   | `main.test.ts` keeps `complete zsh` coverage as direct string assertions only: positive `#compdef prisma7`, `compdef _prisma7 prisma7`, and `requestComp="prisma7 complete --` substring checks plus opposite-identity negatives. No completion script text is committed in any snapshot file because the external snapshot file is deleted and the inline snapshots cover only help/version/init artifacts.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| D10-AC3 | Bootstrap selects the Windows `.cmd` shim via one adapted narrow regression test.                       | PASS   | `packages/cli/src/bootstrap/Bootstrap.ts` now resolves `node_modules/.bin/${identity}.cmd` on Windows and the bare identity on Unix. The pre-existing focused `Bootstrap.vitest.ts` case was adapted in place to a Windows fixture (`vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')`) and asserts `execFileSync` receives `prisma7.cmd` for both `migrate dev` and `generate`; no new mock-heavy suite was introduced.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| D10-AC4 | Exact `prisma`/`prisma7` aliases work for tsc and bundling, including wildcard preservation.            | PASS   | `25e8174e1e`; `helpers/compile/plugins/resolvePathsPlugin.ts` now converts each tsconfig key into either an escaped exact matcher or a single-capture wildcard matcher, substitutes the captured subpath into the target, and only then applies `resolvePathTarget(...)`. The focused esbuild/Vitest coverage in `helpers/compile/plugins/resolvePathsPlugin.test.ts` proves exact `prisma -> packages/cli/src/types.ts`, exact `prisma7 -> packages/prisma7/src/index.ts`, wildcard `prisma/config -> packages/cli/src/config.ts`, wildcard `prisma7/config -> packages/prisma7/src/config.ts`, and exact external passthrough for `prisma/config`. That preserves exact-alias precedence, escapes regex metacharacters, performs one wildcard substitution, and keeps explicit-file versus directory target handling intact after substitution.                                                                               |
+| D10-AC5 | Required gates and transient scan are credible.                                                         | PASS   | Reviewer reran `pnpm exec vitest run helpers/compile/plugins/resolvePathsPlugin.test.ts`, `pnpm --filter prisma build`, `pnpm --filter prisma7 build`, `pnpm tsc -p tsconfig.utils.typecheck.json`, `pnpm exec vitest run src/bootstrap/__tests__/Bootstrap.vitest.ts` (from `packages/cli`), `git diff --check 25e8174e1e^..25e8174e1e`, and the mandatory transient-ID scan over the two touched tracked files; all passed. The D10 R2 diff touches only `helpers/compile/plugins/resolvePathsPlugin.{ts,test.ts}`, so the committed D10 R1 inline snapshot/completion evidence in `packages/client/tests/e2e/prisma7-compatibility/tests/main.test.ts` remains unchanged on disk. An exploratory rerun of `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility` timed out inside that unchanged packed test body after fixture install under Docker, so I do not score it as an R2 regression. |
+
+**Overall slice verdict:** SATISFIED. D10 R2 closes F7: wildcard tsconfig aliases now resolve in esbuild without regressing the committed D10 R1 snapshot/completion evidence or the Windows bootstrap fix.
 
 ## cli-owned-distribution-identity D9 acceptance criteria scoreboard
 
@@ -67,7 +79,7 @@
 
 **Overall slice verdict at D6 close:** SATISFIED. `cli-owned-distribution-identity` had reviewer-passed D1-D6 dispatches, zero open findings/escalations, and a met slice-specific done condition before the follow-up D7 feedback landed.
 
-**Current status after D9 R1:** CLOSED. D1-D9 are satisfied, and the slice stays closed after the CI/review follow-up: path mappings are typecheck-correct, generated Prisma7 forwarding artifacts are ignored like their CLI counterparts, Bootstrap now shells through the selected local binary, and the remaining review comments are either fixed or defensibly classified.
+**Current status after D10 R2:** SATISFIED. D1-D10 are satisfied again after the D10 R1 reopen; F7 is resolved by wildcard-aware alias matching in `resolvePathsPlugin`.
 
 ## cli-owned-distribution-identity D1 acceptance criteria scoreboard
 
@@ -121,8 +133,8 @@
 
 ## Subagent IDs
 
-- **Implementer:** `c00ab7bd-a02f-41f` — replacement Pi implementer established at `cli-owned-distribution-identity` D9 R1 after D7/D8 implementer `d50332d5-aa1d-47a` became inaccessible to resume.
-- **Reviewer:** `02edbde7-ca33-43a` — replacement Pi reviewer established at `cli-owned-distribution-identity` D9 R1 after D8 reviewer `8e5fbba6-5840-44a` became inaccessible to resume.
+- **Implementer:** `2228b575-da61-47d` — replacement Pi implementer established at `cli-owned-distribution-identity` D10 R2 after D10 R1 implementer `9e49991e-aaba-4d4` became inaccessible to resume.
+- **Reviewer:** `f2d350dd-9015-4b0` — replacement Pi reviewer established at `cli-owned-distribution-identity` D10 R2 after D10 R1 reviewer `e3bbbf24-874d-46b` became inaccessible to resume.
 
 ## Orchestrator notes
 
@@ -222,6 +234,20 @@
 **Recommended next action:** Keep the single packed scenario, but narrow or normalize the version snapshot to the identity-bearing fields only (for example package label plus selected command/help/config output), and strip environment-specific engine/platform/toolchain/path details that are not semantically required for this slice.
 
 **Status:** resolved (`37d7f251f9`) — `tests/main.test.ts` now projects version text/JSON into stable identity-bearing fields only, and the snapshot drops raw architecture, engine hash/path, runtime, toolchain, and peer-layout values while preserving package labels/versions, absence of ordinary `prisma`, metadata key/label sets, and stderr.
+
+### F7 — `resolvePathsPlugin` still drops wildcard alias matching
+
+**Severity:** must-fix
+
+**Where:** `helpers/compile/plugins/resolvePathsPlugin.ts:55-61`
+
+**What:** The new `resolvePathTarget()` helper correctly distinguishes explicit file targets from directory targets, but the plugin still builds its `packagesRegex` from raw tsconfig path keys. For wildcard entries that means the matcher is wrong: the literal regex fragment `prisma/*` does not match `prisma/config`, and `prisma7/*` does not match `prisma7/config`.
+
+**Why it matters:** D10's bundler contract is not just exact-root alias support. The review round explicitly requires the same `prisma`/`prisma7` alias family to work for both workspace typecheck and the bundler path resolver, with wildcard subpaths preserved. As written, the plugin only guarantees the exact-root half of that contract; subpath matching still depends on behavior outside the plugin.
+
+**Recommended next action:** Preserve wildcard aliases explicitly in `resolvePathsPlugin`: escape regex metacharacters in exact keys, convert `*` segments into capture groups, substitute captured wildcard text into the mapped target, and only append `/index.ts` for directory targets after substitution.
+
+**Status:** resolved (`25e8174e1e`) — `createPathAlias()` now escapes exact keys, turns wildcard keys into capture groups, substitutes the captured subpath into the mapped target, and the new focused esbuild test covers exact roots, wildcard `config` aliases, and exact external passthrough.
 
 ## Round notes
 
@@ -472,3 +498,31 @@
 **Verification:** `git diff --check 8ca24fe182^ 8ca24fe182` passed. The mandatory transient-ID scan over `.prettierignore`, `eslint.config.cjs`, `packages/cli/src/bootstrap/Bootstrap.ts`, `packages/cli/src/bootstrap/__tests__/Bootstrap.vitest.ts`, `packages/cli/src/platform/$.ts`, `packages/cli/src/platform/_lib/help.ts`, and `tsconfig.build.bundle.json` found no UUID, `agent_id`, `subagent`, `trace_id`, `session`, or `projects/prisma7-compatibility-cli/` hits. No product, test, planning, or workflow files were edited during review; only this review ledger and `wip/heartbeats/reviewer.txt` were written.
 
 **For orchestrator:** `cli-owned-distribution-identity` stays closed. The next planned work remains `downstream-actionable-guidance` unless the operator reprioritizes.
+
+### cli-owned-distribution-identity D10 R1 — ANOTHER ROUND NEEDED
+
+**Scope:** close the second review round over commits `84401c2318` and `c244dd6669`.
+
+**Tasks:** The packed E2E now keeps command-local inline evidence for help/version/init, the obsolete external snapshot file is gone, completion identity stays on concise direct assertions, and Bootstrap correctly selects `.cmd` shims on Windows via the existing narrow test. The remaining issue is the bundler-side alias contract: `resolvePathsPlugin` fixes exact file-vs-directory targets but still does not preserve wildcard alias matching for `prisma/*` and `prisma7/*`.
+
+**AC delta:** D10-AC1, D10-AC2, D10-AC3, and D10-AC5 PASS. D10-AC4 FAIL on `helpers/compile/plugins/resolvePathsPlugin.ts` (see F7).
+
+**Findings:** F7 (must-fix).
+
+**Verification:** `pnpm --filter prisma build`, `pnpm --filter prisma7 build`, `pnpm tsc -p tsconfig.utils.typecheck.json`, `pnpm exec vitest run src/bootstrap/__tests__/Bootstrap.vitest.ts` from `packages/cli`, `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility`, `pnpm lint`, `pnpm prettier-check`, and `git diff --check 84401c2318^..c244dd6669` passed. Independent probe evidence: a temporary esbuild build with `resolvePathsPlugin` resolved exact side-effect root imports `prisma -> packages/cli/src/types.ts` and `prisma7 -> packages/prisma7/src/index.ts`, while a direct regex check over the plugin's constructed matcher proved `prisma/config` and `prisma7/config` do not match the raw wildcard keys. No product, test, planning, or workflow files were edited during review; only this review ledger and `wip/heartbeats/reviewer.txt` were written.
+
+**For orchestrator:** Reopen `cli-owned-distribution-identity` only for the wildcard branch of the bundler alias contract. The next implementer pass should keep the current exact-root/file-target behavior, preserve wildcard substitution in `resolvePathsPlugin`, and rerun the same D10 gate set.
+
+### cli-owned-distribution-identity D10 R2 — SATISFIED
+
+**Scope:** close F7 over commit `25e8174e1e`.
+
+**Tasks:** `resolvePathsPlugin` now preserves wildcard alias matching/substitution for `prisma/*` and `prisma7/*` while keeping the exact-root, explicit-file, directory-target, external-alias, snapshot/completion, and Windows-bootstrap behaviors intact.
+
+**AC delta:** D10-AC4 FAIL → PASS. D10-AC1, D10-AC2, D10-AC3, and D10-AC5 remain PASS.
+
+**Findings:** F7 resolved (`25e8174e1e`). No new findings.
+
+**Verification:** `pnpm exec vitest run helpers/compile/plugins/resolvePathsPlugin.test.ts`, `pnpm --filter prisma build`, `pnpm --filter prisma7 build`, `pnpm tsc -p tsconfig.utils.typecheck.json`, `pnpm exec vitest run src/bootstrap/__tests__/Bootstrap.vitest.ts` from `packages/cli`, and `git diff --check 25e8174e1e^..25e8174e1e` passed. The mandatory transient-ID scan over `helpers/compile/plugins/resolvePathsPlugin.ts` and `helpers/compile/plugins/resolvePathsPlugin.test.ts` found no UUID, `agent_id`, `subagent`, `trace_id`, `session`, or `projects/prisma7-compatibility-cli/` hits. An exploratory rerun of `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility` timed out inside the unchanged packed `tests/main.test.ts` body after Docker fixture install, so I treated the committed `main.test.ts` diff staying empty plus the passing Bootstrap regression test as the proportional no-regression evidence for the D10 R1 snapshot/completion and Windows fixes.
+
+**For orchestrator:** `cli-owned-distribution-identity` is closed again. The next planned work remains `downstream-actionable-guidance` unless the operator reprioritizes.
