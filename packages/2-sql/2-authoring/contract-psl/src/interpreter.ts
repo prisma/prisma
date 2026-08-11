@@ -65,6 +65,7 @@ import type {
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
 import {
   buildSqlContractFromDefinition,
+  type CheckNode,
   type EnumTypeHandle,
   type FieldNode,
   type ForeignKeyNode,
@@ -108,6 +109,7 @@ import {
 } from './psl-relation-resolution';
 import {
   baseModelSpec,
+  checkModelSpec,
   controlModelSpec,
   discriminatorModelSpec,
   findModelAttributeNode,
@@ -829,6 +831,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       ...ifDefined('name', field.uniqueName),
     }));
   const indexNodes: IndexNode[] = [];
+  const checkNodes: CheckNode[] = [];
   const foreignKeyNodes: ForeignKeyNode[] = [];
 
   const modelAttributeNodes = Array.from(model.node.attributes());
@@ -1019,6 +1022,29 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
           options: parsed.options,
         }),
       );
+      continue;
+    }
+    if (modelAttribute.name === 'check') {
+      const node = modelAttributeNodes[attributeIndex];
+      if (node === undefined) {
+        continue;
+      }
+      const parsed = interpretModelAttribute({
+        node,
+        spec: checkModelSpec,
+        model,
+        sourceFile: input.sourceFile,
+        sourceId,
+        diagnostics,
+      });
+      if (parsed === undefined) {
+        continue;
+      }
+      checkNodes.push({
+        expression: parsed.expression,
+        name: parsed.name,
+        map: parsed.map,
+      });
       continue;
     }
     const contributedModelAttribute = input.modelAttributesByName.get(modelAttribute.name);
@@ -1448,6 +1474,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       ...ifDefined('id', primaryKey),
       ...(uniqueConstraints.length > 0 ? { uniques: uniqueConstraints } : {}),
       ...(indexNodes.length > 0 ? { indexes: indexNodes } : {}),
+      ...(checkNodes.length > 0 ? { checks: checkNodes } : {}),
       ...(foreignKeyNodes.length > 0 ? { foreignKeys: foreignKeyNodes } : {}),
       ...ifDefined('control', controlPolicy),
     },

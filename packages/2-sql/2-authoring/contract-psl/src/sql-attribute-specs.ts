@@ -279,6 +279,45 @@ export const indexModelSpec = modelAttribute('index', {
   },
 });
 
+// `@@check` cross-argument diagnostic codes — contributed by this package
+// through the family-neutral `ContributedPslDiagnosticCode` seam; the
+// framework union stays free of check vocabulary.
+export const PSL_CHECK_REQUIRES_NAME_OR_MAP: ContributedPslDiagnosticCode =
+  'PSL_CHECK_REQUIRES_NAME_OR_MAP';
+export const PSL_CHECK_NAME_XOR_MAP: ContributedPslDiagnosticCode = 'PSL_CHECK_NAME_XOR_MAP';
+
+export const checkModelSpec = modelAttribute('check', {
+  named: {
+    expression: str(),
+    name: optional(str()),
+    map: optional(str()),
+  },
+  refine: (value, ctx, attributeNode) => {
+    const diagnostics: PslDiagnostic[] = [];
+    if (value.name === undefined && value.map === undefined) {
+      diagnostics.push(
+        leafDiagnostic(
+          ctx,
+          attributeNode,
+          '`@@check` requires a `name` or `map` argument (a default name cannot be derived — a check has no column tuple to name itself after)',
+          PSL_CHECK_REQUIRES_NAME_OR_MAP,
+        ),
+      );
+    }
+    if (value.name !== undefined && value.map !== undefined) {
+      diagnostics.push(
+        leafDiagnostic(
+          ctx,
+          attributeNode,
+          '`@@check` takes at most one of `name` and `map`',
+          PSL_CHECK_NAME_XOR_MAP,
+        ),
+      );
+    }
+    return diagnostics;
+  },
+});
+
 export const controlModelSpec = modelAttribute('control', {
   positional: [
     {
