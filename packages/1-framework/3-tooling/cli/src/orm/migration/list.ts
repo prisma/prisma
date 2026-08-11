@@ -14,7 +14,7 @@ import type { MigrationListResult } from '../../utils/formatters/migration-list-
 import type { GlyphMode } from '../../utils/glyph-mode';
 import { ormConfigSection } from '../config-section';
 import { normalizeError } from '../normalize-error';
-import { migrationsDirFor } from './paths';
+import { displayPath, migrationsDirFor } from './paths';
 
 function listPresentations(inputs: {
   readonly list: MigrationListResult;
@@ -105,7 +105,7 @@ export const migrationListCommand = defineCommand({
         listPresentations({
           list: listed.value,
           lines,
-          migrationsDir,
+          migrationsDir: displayPath(migrationsDir, ctx.cwd),
           space: args.flags.space,
           legendLines,
         }),

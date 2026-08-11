@@ -35,7 +35,7 @@ import {
 } from '../../utils/migration-path-target';
 import { ormConfigSection } from '../config-section';
 import { normalizeError } from '../normalize-error';
-import { appMigrationsDirFor, contractPathFor, migrationsDirFor } from './paths';
+import { appMigrationsDirFor, contractPathFor, displayPath, migrationsDirFor } from './paths';
 
 function showPresentations(inputs: {
   readonly document: MigrationShowResult;
@@ -154,7 +154,7 @@ export const migrationShowCommand = defineCommand({
     }
     const migrationsDir = migrationsDirFor(ctx.config, ctx.cwd);
     const appMigrationsDir = appMigrationsDirFor(ctx.config, ctx.cwd);
-    const appMigrationsRelative = relative(ctx.cwd, appMigrationsDir);
+    const appMigrationsRelative = displayPath(appMigrationsDir, ctx.cwd);
 
     let contractJson: string;
     try {
@@ -250,7 +250,7 @@ export const migrationShowCommand = defineCommand({
         { data: document },
         showPresentations({
           document,
-          contractPath: relative(ctx.cwd, contractPath),
+          contractPath: displayPath(contractPath, ctx.cwd),
           appMigrationsRelative,
           target,
         }),

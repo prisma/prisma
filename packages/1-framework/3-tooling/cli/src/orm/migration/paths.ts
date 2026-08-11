@@ -1,7 +1,7 @@
 import type { PrismaNextConfig } from '@internal/config/config-types';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { spaceMigrationDirectory } from '@internal/migration-tools/spaces';
-import { resolve } from 'pathe';
+import { relative, resolve } from 'pathe';
 
 /**
  * Where migrations live for this project. Resolved against the invocation
@@ -25,4 +25,12 @@ export function appMigrationsDirFor(config: PrismaNextConfig, cwd: string): stri
 export function contractPathFor(config: PrismaNextConfig, cwd: string): string | undefined {
   const output = config.contract?.output;
   return output === undefined ? undefined : resolve(cwd, output);
+}
+
+/**
+ * The header's rendering of a path: relative to where the user invoked the
+ * CLI, as the commander shell rendered it against the config file.
+ */
+export function displayPath(path: string, cwd: string): string {
+  return relative(cwd, path);
 }
