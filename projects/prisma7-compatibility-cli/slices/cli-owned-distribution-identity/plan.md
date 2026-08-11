@@ -1,0 +1,49 @@
+## Dispatch plan
+
+### Dispatch 1: identity-aware CLI help
+
+- **Outcome:** Top-level and CLI-owned command help and examples render the selected executable name, with regression tests proving ordinary `prisma` output is unchanged.
+- **Builds on:** The merged executable-derived `CliDistributionIdentity` seam.
+- **Hands to:** An explicit primitive identity flow available to every CLI-owned renderer.
+- **Focus:** Write focused dual-identity tests first, then thread the primitive through `bin.ts`, `CLI`, and CLI-owned command help such as Init, Generate, Validate, Format, Studio, Version, DebugInfo, Status, bootstrap, platform, MCP, and postgres commands. Change executable/package references only; no generic template framework and no migrate-owned output.
+- **Validation gate:** `pnpm --filter prisma tsc`; focused CLI help tests through `pnpm --filter prisma test -- <affected test paths>`; `pnpm prettier-check`; `git diff --check`.
+
+### Dispatch 2: identity-correct project creation
+
+- **Outcome:** `prisma7 init`, bootstrap, and postgres setup generate `prisma7/config` imports and recommend, install, and reinvoke `prisma7`, while domain paths and package names remain stable.
+- **Builds on:** Dispatch 1's primitive identity flow through CLI-owned renderers.
+- **Hands to:** Correct generated config files, package instructions, and next-step commands for the compatibility invocation.
+- **Focus:** Add failing focused cases before changing `Init.defaultConfig`, Init output, `init/ppg-output.ts`, Bootstrap, `bootstrap/completion-output.ts`, and `postgres/link/completion-output.ts`. Keep `prisma.config.ts`, `prisma/schema.prisma`, Prisma Skills, URLs, and `@prisma/client` unchanged.
+- **Validation gate:** `pnpm --filter prisma tsc`; focused Init/Bootstrap/postgres tests through `pnpm --filter prisma test -- <affected test paths>`; `pnpm prettier-check`; `git diff --check`.
+
+### Dispatch 3: version and mismatch identity
+
+- **Outcome:** Text and JSON version output plus global/local mismatch diagnostics label and recommend `prisma7` under compatibility invocation, while ordinary Prisma and `@prisma/client` behavior remain unchanged.
+- **Builds on:** Dispatch 1's identity-aware CLI construction.
+- **Hands to:** Correct package/version diagnostics with the physical nested implementation path intentionally left visible.
+- **Focus:** Add dual-identity tests first, then update `Version` and `getGlobalLocalVersionMismatchWarning` composition. Verify local package lookup and the recommended generate command use the selected distribution without renaming domain packages.
+- **Validation gate:** `pnpm --filter prisma tsc`; focused Version, Generate, and global/local mismatch tests through `pnpm --filter prisma test -- <affected test paths>`; `pnpm prettier-check`; `git diff --check`.
+
+### Dispatch 4: completion identity
+
+- **Outcome:** `prisma7 complete <shell>` installs completion for `prisma7`, and generated fish, Bash, Zsh, and PowerShell scripts reinvoke `prisma7 complete` without changing completion descriptors.
+- **Builds on:** The executable-derived identity available independently in the completion bundle.
+- **Hands to:** Correct compatibility shell integration with ordinary Prisma output regression-pinned.
+- **Focus:** Write completion-generation cases first, then pass the primitive identity through `Completions`, `parseCompletionCommand`, and shell setup. Do not introduce cross-bundle mutable state.
+- **Validation gate:** `pnpm --filter prisma tsc`; focused completion tests through `pnpm --filter prisma test -- packages/cli/src/completions`; `pnpm prettier-check`; `git diff --check`.
+
+### Dispatch 5: suppress Prisma 8 update consultation
+
+- **Outcome:** Compatibility invocations neither start the checkpoint request nor print update guidance; ordinary Prisma performs the unchanged request and rendering path.
+- **Builds on:** Identity availability in `CLI.parse` from Dispatch 1.
+- **Hands to:** A Prisma 7 compatibility invocation isolated from the Prisma 8 release line.
+- **Focus:** Add control-flow tests first, then gate `runCheckpointClientCheck` before promise creation. Do not invent a Prisma 7 checkpoint product, mutate checkpoint payloads, or rely only on `PRISMA_HIDE_UPDATE_MESSAGE`.
+- **Validation gate:** `pnpm --filter prisma tsc`; focused CLI/update/checkpoint tests through `pnpm --filter prisma test -- <affected test paths>`; `pnpm prettier-check`; `git diff --check`.
+
+### Dispatch 6: packed CLI identity proof and audit
+
+- **Outcome:** The packed compatibility fixture proves CLI-owned help, version, completion, init config generation, and update suppression, and a repository audit classifies every remaining actionable `prisma` literal in `packages/cli/src`.
+- **Builds on:** Dispatches 1–5's complete CLI-owned identity behavior.
+- **Hands to:** A review-ready CLI-owned identity slice plus a concrete downstream inventory for `downstream-actionable-guidance`.
+- **Focus:** Extend the existing packed client Docker E2E rather than adding a second compatibility scenario; add only user-visible proof not already covered by focused tests. Record downstream/domain-stable audit results in the slice walkthrough or review artifact, not source comments.
+- **Validation gate:** `pnpm --filter prisma build`; `pnpm --filter prisma7 build`; focused Prisma tests; `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility`; `pnpm prettier-check`; root `pnpm lint`; `git diff --check`; mandatory transient-ID scan.
