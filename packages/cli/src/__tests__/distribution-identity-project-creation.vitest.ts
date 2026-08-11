@@ -7,7 +7,7 @@ import stripAnsi from 'strip-ansi'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { Bootstrap } from '../bootstrap/Bootstrap'
-import { Init } from '../Init'
+import { defaultEnv, Init } from '../Init'
 import { Link } from '../postgres/link/Link'
 import type { CliDistributionIdentity } from '../utils/cli-distribution-identity'
 
@@ -230,6 +230,24 @@ describe.each([
     expect(output).toContain(`run ${identity} migrate dev`)
     expect(output).not.toContain(`Local: npx ${otherIdentity} dev`)
     expect(output).not.toContain(`run ${otherIdentity} migrate dev`)
+  })
+
+  test('default env comments mention the selected local dev command', async () => {
+    const env = await defaultEnv('prisma+postgres://localhost:51213/?api_key=test', false, true, identity)
+
+    expect(env).toContain(`${identity} dev`)
+    expect(env).not.toContain(`${otherIdentity} dev`)
+  })
+
+  test('init appends the selected executable in the inserted env banner', async () => {
+    fs.writeFileSync(path.join(tmpDir, '.env'), 'SOMETHING="is here"', 'utf-8')
+
+    await Init.new(identity).parse(['--datasource-provider', 'postgresql', '--no-skills'], defaultTestConfig())
+
+    const env = fs.readFileSync(path.join(tmpDir, '.env'), 'utf-8')
+
+    expect(env).toContain(`# This was inserted by \`${identity} init\`:`)
+    expect(env).not.toContain(`# This was inserted by \`${otherIdentity} init\`:`)
   })
 
   test('prisma postgres init output keeps stable packages but switches executable guidance', async () => {

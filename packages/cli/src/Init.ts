@@ -107,7 +107,12 @@ model User {
   return schema
 }
 
-export const defaultEnv = async (url: string | undefined, debug = false, comments = true) => {
+export const defaultEnv = async (
+  url: string | undefined,
+  debug = false,
+  comments = true,
+  identity: CliDistributionIdentity = 'prisma',
+) => {
   if (url === undefined) {
     // TODO: bundle the CLI to ESM instead of CommonJS and make these module-level imports
     const [{ startPrismaDevServer }, { ServerState }] = await Promise.all([
@@ -148,7 +153,7 @@ export const defaultEnv = async (url: string | undefined, debug = false, comment
 ${
   url.startsWith('prisma+postgres:') && url.includes('localhost')
     ? `# The following \`prisma+postgres\` URL is similar to the URL produced by running a local Prisma Postgres
-# server with the \`prisma dev\` CLI command, when not choosing any non-default ports or settings. The API key, unlike the
+# server with the \`${identity} dev\` CLI command, when not choosing any non-default ports or settings. The API key, unlike the
 # one found in a remote Prisma Postgres URL, does not contain any sensitive information.\n\n`
     : ''
 }`
@@ -609,7 +614,7 @@ export class Init implements Command {
 
     const envPath = path.join(outputDir, '.env')
     if (!fs.existsSync(envPath)) {
-      writer.write(envPath, await defaultEnv(databaseUrl, args['--debug']))
+      writer.write(envPath, await defaultEnv(databaseUrl, args['--debug'], true, this.identity))
     } else {
       const envFile = fs.readFileSync(envPath, { encoding: 'utf8' })
       const config = dotenv.parse(envFile) // will return an object
@@ -622,7 +627,9 @@ export class Init implements Command {
       } else {
         fs.appendFileSync(
           envPath,
-          `\n\n` + '# This was inserted by `prisma init`:\n' + (await defaultEnv(databaseUrl, args['--debug'])),
+          `\n\n` +
+            `# This was inserted by \`${this.identity} init\`:\n` +
+            (await defaultEnv(databaseUrl, args['--debug'], true, this.identity)),
         )
       }
     }
