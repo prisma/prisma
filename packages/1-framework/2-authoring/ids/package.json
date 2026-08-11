@@ -20,7 +20,7 @@
     "@internal/contract": "workspace:8.0.0-rc.1",
     "@internal/framework-components": "workspace:8.0.0-rc.1",
     "@internal/utils": "workspace:8.0.0-rc.1",
-    "uniku": "^0.4.3"
+    "uniku": "^0.5.0"
   },
   "devDependencies": {
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
