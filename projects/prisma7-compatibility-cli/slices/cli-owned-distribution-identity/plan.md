@@ -55,3 +55,11 @@
 - **Hands to:** A smaller review surface whose compatibility evidence comes from shipped commands, with existing ordinary-Prisma regression tests left intact.
 - **Focus:** Delete the slice-added identity unit suites and additions to existing unit tests; extend the existing single packed fixture with a committed, normalized command-output snapshot for the representative help, version, completion, init/generated-file, warning, and update behavior that can be observed without mocks. Do not create a second scenario or a test-only production seam. If a contract cannot be observed from a real command, remove the mock assertion rather than simulating internals and record the resulting evidence boundary in review.
 - **Validation gate:** `pnpm --filter prisma build`; `pnpm --filter prisma7 build`; `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility`; existing ordinary-Prisma regression tests affected by production signatures; `pnpm prettier-check`; root `pnpm lint`; `git diff --check`; mandatory transient-ID scan.
+
+### Dispatch 8: require identity at CLI command boundaries
+
+- **Outcome:** Every CLI command/helper whose behavior depends on distribution identity requires an explicit `CliDistributionIdentity`; no constructor or renderer silently defaults to ordinary `prisma`.
+- **Builds on:** Dispatch 7's executable-boundary evidence, which no longer needs optional identity defaults for mock-driven tests.
+- **Hands to:** An explicit composition contract where normal and completion entrypoints select identity and all identity-sensitive command construction is mechanically auditable.
+- **Focus:** Remove default identity values from CLI command constructors/factories/helpers, update all production composition roots and existing ordinary-Prisma tests/callers to pass `'prisma'` explicitly, and add no replacement mock suites. Keep `getCliDistributionIdentity` defaulting only at actual executable-entry inference where `process.argv[1]` is the intended source.
+- **Validation gate:** `pnpm --filter prisma tsc`; `pnpm --filter prisma build`; `pnpm --filter prisma7 build`; existing affected ordinary-Prisma tests; packed compatibility E2E; `pnpm prettier-check`; root `pnpm lint`; `git diff --check`; mandatory transient-ID scan.
