@@ -6,7 +6,7 @@ import {
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { CheckConstraint, SqlStorage, type StorageTable } from '@internal/sql-contract/types';
-import { defineContract } from '@internal/sql-contract-ts/contract-builder';
+import { check, defineContract } from '@internal/sql-contract-ts/contract-builder';
 import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 import {
   PostgresDatabaseSchemaNode,
@@ -33,6 +33,10 @@ import {
 
 const FULL_POLICY: MigrationOperationPolicy = {
   allowedOperationClasses: ['additive', 'widening', 'destructive'],
+};
+
+const WIDENING_POLICY: MigrationOperationPolicy = {
+  allowedOperationClasses: ['additive', 'widening'],
 };
 
 // Minimal authoring packs for the defineContract-driven scenario: the family
@@ -187,6 +191,41 @@ const idColumn: ColumnSpec = { nativeType: 'text', codecId: 'pg/text@1', nullabl
 function declaredCheckNames(contract: Contract<SqlStorage>): readonly string[] {
   const table = contract.storage.namespaces[UNBOUND_NAMESPACE_ID]?.entries.table?.['Item'];
   return ((table as StorageTable | undefined)?.checks ?? []).map((c) => c.name);
+}
+
+/**
+ * Builds an `Item` contract carrying one authored check through the real
+ * `check()` builder / `defineContract`, rather than a hand-built `contractOf`
+ * fixture, so the authored-check lifecycle scenarios below exercise the
+ * authoring surface end to end.
+ */
+function itemContractWithCheck(input: {
+  readonly expression: string;
+  readonly name?: string;
+  readonly map?: string;
+}): Contract<SqlStorage> {
+  return defineContract(
+    {
+      family: authoringFamilyPack,
+      target: authoringTargetPack,
+      createNamespace: postgresCreateNamespace,
+    },
+    ({ field: f, model: m }) =>
+      ({
+        models: {
+          Item: m('Item', { fields: { id: f.text().id(), total: f.text() } }).sql({
+            checks: [check(input)],
+          }),
+        },
+      }) as const,
+  ) as Contract<SqlStorage>;
+}
+
+function itemCheckName(contract: Contract<SqlStorage>): string | undefined {
+  const table = contract.storage.namespaces['public']?.entries.table?.['Item'] as
+    | StorageTable
+    | undefined;
+  return table?.checks?.[0]?.name;
 }
 
 describe.sequential('check-constraint lifecycle', () => {
@@ -826,5 +865,92 @@ describe.sequential('check-constraint lifecycle', () => {
     await driver!.query(`INSERT INTO "Item" (id, tags) VALUES ('a', ARRAY['x',NULL])`);
     const rows = await driver!.query<{ id: string }>(`SELECT id FROM "Item"`);
     expect(rows.rows).toEqual([{ id: 'a' }]);
+  });
+
+  it('an authored check() constraint installs at CREATE TABLE, rejects a violating insert, and verifies clean', {
+    timeout: testTimeout,
+  }, async () => {
+    const contract = itemContractWithCheck({
+      expression: 'total::numeric > 0',
+      name: 'item_total_positive',
+    });
+    const checkName = itemCheckName(contract);
+    assertDefined(checkName, 'authored check must be named');
+    expect(checkName).toMatch(/^item_total_positive_[0-9a-f]{8}$/);
+
+    const { opIds } = await migrate(contract);
+
+    // Inline in the CREATE TABLE DDL, not a subsequent ALTER: creating the
+    // table fresh produces no separate checkConstraint op.
+    expect(opIds).toEqual(['table.Item']);
+    expect(await liveCheckNames()).toEqual([checkName]);
+
+    await driver!.query(`INSERT INTO "Item" (id, total) VALUES ('a', '5')`);
+    await expect(
+      driver!.query(`INSERT INTO "Item" (id, total) VALUES ('b', '-5')`),
+    ).rejects.toThrow(new RegExp(checkName));
+
+    expect((await verify(contract)).ok).toBe(true);
+  });
+
+  it('editing the check expression plans one drop and one add — the hash re-suffixes the name', {
+    timeout: testTimeout,
+  }, async () => {
+    const v1 = itemContractWithCheck({
+      expression: 'total::numeric > 0',
+      name: 'item_total_positive',
+    });
+    await migrate(v1);
+    const nameV1 = itemCheckName(v1);
+    assertDefined(nameV1, 'v1 check must be named');
+    expect(await liveCheckNames()).toEqual([nameV1]);
+
+    const v2 = itemContractWithCheck({
+      expression: 'total::numeric > 10',
+      name: 'item_total_positive',
+    });
+    const nameV2 = itemCheckName(v2);
+    assertDefined(nameV2, 'v2 check must be named');
+    expect(nameV2).not.toBe(nameV1);
+
+    const { ops } = await migrate(v2, { from: v1, policy: FULL_POLICY });
+    const checkOps = ops.filter((op) => op.id.includes('heckConstraint.'));
+    expect(checkOps.map((op) => op.id)).toEqual([
+      `dropCheckConstraint.Item.${nameV1}`,
+      `checkConstraint.Item.${nameV2}`,
+    ]);
+
+    expect(await liveCheckNames()).toEqual([nameV2]);
+    expect((await verify(v2)).ok).toBe(true);
+  });
+
+  it("editing only the check's name: prefix plans exactly one RENAME CONSTRAINT under a widening policy", {
+    timeout: testTimeout,
+  }, async () => {
+    const v1 = itemContractWithCheck({
+      expression: 'total::numeric > 0',
+      name: 'item_total_positive',
+    });
+    await migrate(v1);
+    const nameV1 = itemCheckName(v1);
+    assertDefined(nameV1, 'v1 check must be named');
+
+    const v2 = itemContractWithCheck({
+      expression: 'total::numeric > 0',
+      name: 'item_total_positive_v2',
+    });
+    const nameV2 = itemCheckName(v2);
+    assertDefined(nameV2, 'v2 check must be named');
+    expect(nameV2).not.toBe(nameV1);
+
+    const { ops } = await migrate(v2, { from: v1, policy: WIDENING_POLICY });
+
+    const checkOps = ops.filter((op) => op.id.includes('heckConstraint.'));
+    expect(checkOps).toHaveLength(1);
+    expect(checkOps[0]?.id).toMatch(new RegExp(`^checkConstraint\\..*Item\\.${nameV1}\\.rename$`));
+    expect(checkOps[0]?.operationClass).toBe('widening');
+
+    expect(await liveCheckNames()).toEqual([nameV2]);
+    expect((await verify(v2)).ok).toBe(true);
   });
 });
