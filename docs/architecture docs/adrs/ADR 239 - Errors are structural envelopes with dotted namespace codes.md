@@ -45,9 +45,11 @@ export interface Diagnostic {
 
 export function isStructuredError(e: unknown): e is StructuredError {
   return (
-    e instanceof Error &&
+    typeof e === 'object' &&
+    e !== null &&
     typeof (e as { code?: unknown }).code === 'string' &&
-    /^[A-Z][A-Z0-9]*\.[A-Z][A-Z0-9_]*$/.test((e as { code: string }).code)
+    /^[A-Z][A-Z0-9]*\.[A-Z][A-Z0-9_]*$/.test((e as { code: string }).code) &&
+    typeof (e as { message?: unknown }).message === 'string'
   );
 }
 ```
@@ -113,7 +115,7 @@ The shared surface is a **convenience, not an enforcement mechanism**. Foundatio
 
 A command settles one of two ways. It **completes** — it ran to its end and has a result to report, and that result may be good news or bad news — or it **errors**, meaning it could not do its job at all. A command that completes reports what it found as `Diagnostic` values inside a completed envelope, each carrying the same dotted code an error would carry, alongside a documented per-command exit code. A command that errors produces a `StructuredError` on the error path. The test is one question: *was finding these problems the job?* If yes, they are diagnostics on a completed result. If no — the command could not reach a documented outcome — it is an error. `migration check` reporting eleven integrity violations completed successfully at its job; it did not fail.
 
-A `Diagnostic` is a recorded finding: pure data, never thrown, no stack. It carries the same fields as the error envelope — `summary` and `severity` are required, and there is no `Error` machinery — so a consumer reads one shape on both settlement paths.
+A `Diagnostic` is a recorded finding: pure data, never thrown, no stack. It carries the error envelope's fields with two deliberate differences, and they are exactly the differences serialization already imposes on an error: `summary` plays the role the error's `message` plays (required on both, one spelling per shape), and `cause` is absent because a diagnostic is wire-safe data — the serialized error envelope drops `cause` at the boundary for the same reason. A consumer therefore reads one shape on both settlement paths.
 
 Bugs are outside the scheme entirely. An invariant break throws an `InternalError`, which is never meant to be caught except at the outermost boundary for crash reporting. The distinction is the one drawn in [Error Handling.md](../../Error%20Handling.md): **failures and operational errors are structured envelopes; findings are diagnostics; bugs are `InternalError`.**
 
@@ -171,7 +173,7 @@ Remediation is a `nextActions` array, not a freeform sentence. `nextActions` is 
 
 The reason is the audience. A remediation string like ``'Update the ref with `prisma-next ref set <name> <valid-hash>` or delete it.'`` is two actions, a command, and an argument placeholder, all fused into one sentence that only a human can take apart. An agent has to parse English to find out that there is a command to run and what it is. A `NextAction` states it directly: a `kind` the caller can branch on, a `label` for display, and a `command` (or `commands`) that is executable as written. Human presentation loses nothing: the CLI renders each action as a `→` line under the error, label then command.
 
-The `kind` values are `run-command` (there is a command to run), `user-choice` (the user must decide between the listed options), `edit-file` (a file needs a human edit), and `done` (nothing further is required — used to close out a multi-step flow).
+The `kind` values are `run-command` (there is a command to run; it carries `command` or `commands`), `user-choice` (the user must decide between the listed options), `edit-file` (a file needs a human edit), and `done` (nothing further is required — used to close out a multi-step flow). The shape is deliberately flat rather than a per-kind discriminated union: it mirrors the CLI engine's wire protocol type, and a consumer branches on `kind` and reads the fields that kind documents. A `command` may contain an angle-bracket placeholder (`<valid-hash>`) when only the user can supply the value; everything outside angle brackets is literal and runnable.
 
 `Diagnostic` carries the same field for the same reason, and the two shapes stay identical field-for-field. That identity is the point: a consumer that can read a finding can read an error.
 
@@ -228,7 +230,7 @@ Scope of the ban:
 
 The **taxonomy** — the namespace list, the naming conventions, and the crosswalk of every published code — froze at RC, validated against the entire throw surface so there are no namespace gaps. What grows afterwards is the **sweep**: codeless user-facing throws are converted plane by plane under the fixed conventions. Adding a code to a previously-codeless site is additive and non-breaking; only renames of already-published codes break consumers, and those are all recorded in the crosswalk.
 
-The `fix` → `nextActions` field migration trails the same way: the target shape is frozen here, and the call sites that still pass a `fix` string convert cluster by cluster under a ratchet. Freezing the shape before the sweep is what keeps `Diagnostic` and the error envelope field-for-field identical — converting first and settling the shape afterwards would let the two drift while half the tree used each spelling.
+The `fix` → `nextActions` field migration trails the same way: the target shape is frozen here, and the call sites that still pass a `fix` string convert cluster by cluster under a ratchet. The same trail carries the completed-envelope JSON shape — commands whose JSON output predates this ADR converge on the one contract (a `diagnostics` array and the documented exit code on the envelope) as they convert. Freezing the shape before the sweep is what keeps `Diagnostic` and the error envelope aligned — converting first and settling the shape afterwards would let the two drift while half the tree used each spelling.
 
 ## Crosswalk (retired → dotted)
 
@@ -253,7 +255,7 @@ The 46 numeric codes. Grouped by destination namespace; a `↦ merges` note mark
 |---|---|---|
 | PN-CLI-4004 | `errorFileNotFound` | `CLI.FILE_NOT_FOUND` |
 | PN-CLI-4008 | `errorJsonFormatNotSupported` | `CLI.JSON_FORMAT_UNSUPPORTED` |
-| PN-CLI-4012 | `errorMigrationCliInvalidConfigArg` | `CLI.CONFIG_ARG_MISSING_PATH` |
+| PN-CLI-4012 | `errorMigrationCliInvalidConfigArg` (`--config` given without a path) | `CLI.CONFIG_ARG_MISSING_PATH` |
 | PN-CLI-4013 | `errorMigrationCliUnknownFlag` | `CLI.UNKNOWN_FLAG` |
 | PN-CLI-4014 | `errorInvalidOutputFormat` | `CLI.INVALID_OUTPUT_FORMAT` |
 | PN-CLI-4015 | `errorOutputFormatMutex` | `CLI.OUTPUT_FORMAT_CONFLICT` |
@@ -303,7 +305,7 @@ The 46 numeric codes. Grouped by destination namespace; a `↦ merges` note mark
 
 ### Codes published outside the factory files
 
-Direct `CliStructuredError` constructions and sibling numeric schemes. Same crosswalk contract.
+Direct `CliStructuredError` constructions and sibling numeric schemes. Same crosswalk contract, with one caveat: `PN-CLI-4012` was published with two unrelated meanings, so it appears both in the CLI table above (the `--config` flag error) and below (`db verify`'s invalid `--mode`). A consumer migrating a match on that numeric code must split by producing command; every other retired code maps one-to-one.
 
 | Retired | Where | New |
 |---|---|---|
@@ -354,7 +356,7 @@ The `migration check` failure catalogue (`PN-MIG-CHECK-NNN`) converts to self-de
 - Recognition survives the control/execution split, the wire, and duplicate imports, because it is structural.
 - The same envelope serves a throw and a `Result` failure — no per-boundary conversion type.
 - A command that reports problems does not have to throw to do it. `migration check` returns its violations; the exit code says how it went; nothing on the path is an exception.
-- Remediation is executable. An agent reads `nextActions[0].command` instead of parsing a sentence, and the human rendering is the same `→` line it always was.
+- Remediation is executable. An agent branches on each action's `kind` and runs the `command` a `run-command` action carries, instead of parsing a sentence; the human rendering is the same `→` line it always was.
 - Codes live with the code that raises them; a new namespace is a new owning module, not an edit to a central registry.
 - The ratchet lets the taxonomy freeze while the mechanical sweep of the remaining throw sites trails safely.
 
