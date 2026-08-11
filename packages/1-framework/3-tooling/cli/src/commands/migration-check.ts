@@ -86,6 +86,7 @@ async function executeMigrationCheckCommand(
       ...(options.space !== undefined ? { spaceFilter: options.space } : {}),
       appMigrationsDir,
       appMigrationsRelative,
+      cwd: process.cwd(),
     });
   }
 

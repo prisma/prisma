@@ -4,6 +4,7 @@ import { version as CLI_VERSION } from '../../package.json' with { type: 'json' 
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
 import { migrationListCommand } from './migration/list';
+import { migrationShowCommand } from './migration/show';
 import { resolveTelemetryHooks } from './telemetry/reporting';
 
 export const BIN_NAME = 'prisma-next';
@@ -66,6 +67,7 @@ export const BIN_GROUPS = {
 
 export const BIN_COMMANDS: MountedTree = {
   'migration list': migrationListCommand,
+  'migration show': migrationShowCommand,
 };
 
 export function createOrmCli(): Cli {

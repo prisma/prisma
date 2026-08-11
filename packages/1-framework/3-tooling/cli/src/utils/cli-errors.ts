@@ -253,6 +253,32 @@ export function errorSpaceNotFound(
   });
 }
 
+/**
+ * A `migration show` target resolved to a directory or a graph node, but no
+ * on-disk package was loaded for it.
+ */
+export function errorMigrationPackageNotFound(why: string): ActionableCliError {
+  return new ActionableCliError('MIGRATION.PACKAGE_NOT_FOUND', 'Migration package not found', {
+    why,
+    fix: 'Pass a directory name, hash prefix, or path to an on-disk app-space migration package.',
+    nextActions: [
+      chooseAction(
+        'Pass a directory name, hash prefix, or path to an on-disk app-space migration package',
+      ),
+      runCommandAction('List what is on disk', 'prisma-next migration list'),
+    ],
+  });
+}
+
+/** The app space has no migration packages at all, so no target can resolve. */
+export function errorNoMigrations(appMigrationsRelative: string): ActionableCliError {
+  return new ActionableCliError('MIGRATION.NO_MIGRATIONS', 'No migrations found', {
+    why: `No migration packages found in ${appMigrationsRelative}`,
+    fix: 'Run `prisma-next migration plan` to create a migration first.',
+    nextActions: [runCommandAction('Create the first migration', 'prisma-next migration plan')],
+  });
+}
+
 export function errorRefSetBundleNotFound(hash: string): ActionableCliError {
   return new ActionableCliError(
     'MIGRATION.REF_SET_BUNDLE_NOT_FOUND',

@@ -370,6 +370,8 @@ export interface SingleTargetInputs {
   readonly spaceFilter?: string;
   readonly appMigrationsDir: string;
   readonly appMigrationsRelative: string;
+  /** Directory the command was invoked from; a path target resolves against it. */
+  readonly cwd: string;
 }
 
 /**
@@ -411,7 +413,7 @@ export async function checkSingleTarget(
   target: string,
   inputs: SingleTargetInputs,
 ): Promise<MigrationCheckOutcome> {
-  const { spaces, spaceFilter, appMigrationsDir, appMigrationsRelative } = inputs;
+  const { spaces, spaceFilter, appMigrationsDir, appMigrationsRelative, cwd } = inputs;
 
   if (spaceFilter !== undefined && !isValidSpaceId(spaceFilter)) {
     return { error: errorInvalidSpaceId(spaceFilter), exitCode: PRECONDITION };
@@ -430,7 +432,7 @@ export async function checkSingleTarget(
   let matchedPkg: OnDiskMigrationPackage | undefined;
 
   if (looksLikePath(target)) {
-    const resolvedPath = resolveTargetPathAcrossSpaces(target, scopedSpaces);
+    const resolvedPath = resolveTargetPathAcrossSpaces(cwd, target, scopedSpaces);
     if (resolvedPath !== null) {
       for (const space of scopedSpaces) {
         const found = findPackageByDirPath(space.packages, resolvedPath);
@@ -442,7 +444,7 @@ export async function checkSingleTarget(
       }
     } else {
       // Path outside every space dir — fall back to app-relative validation
-      const resolved = resolveAppTargetPath(target, appMigrationsDir, appMigrationsRelative);
+      const resolved = resolveAppTargetPath(cwd, target, appMigrationsDir, appMigrationsRelative);
       if (!resolved.ok) {
         return { error: resolved.failure, exitCode: PRECONDITION };
       }
