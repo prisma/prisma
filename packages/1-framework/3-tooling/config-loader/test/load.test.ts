@@ -410,7 +410,7 @@ describe('loadConfig', () => {
       expect(result.assertNotOk()).toMatchObject({
         name: 'CliStructuredError',
         code: 'CONFIG.VERSION_MARKER_MISSING',
-        where: { path: join(tempDir, 'prisma-next.config.ts') }
+        where: { path: join(tempDir, 'prisma-next.config.ts') },
       });
     },
     timeouts.typeScriptCompilation,
@@ -657,11 +657,15 @@ throw error;
       writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
       process.chdir(tempDir);
 
-      await expect(loadConfig()).rejects.toMatchObject({
-        name: 'CliStructuredError',
-        code: 'CONFIG.VALIDATION_FAILED',
-        why: 'artifact path failure',
-      });
+      const result = await loadConfig();
+
+      expect(result.assertOk().diagnostics).toContainEqual(
+        expect.objectContaining({
+          name: 'CliStructuredError',
+          code: 'CONFIG.VALIDATION_FAILED',
+          why: 'artifact path failure',
+        }),
+      );
     },
     timeouts.typeScriptCompilation,
   );

@@ -71,8 +71,8 @@ class MockRuntime extends RuntimeCore<MockPlan, MockExec, RuntimeMiddleware<Mock
     };
   }
 
-  protected async runExecute(): Promise<{ affectedRows: number }> {
-    return { affectedRows: 0 };
+  protected runExecute(): Promise<{ affectedRows: number }> {
+    return Promise.resolve({ affectedRows: 0 });
   }
 
   async close(): Promise<void> {
@@ -87,7 +87,6 @@ const ctx: RuntimeMiddlewareContext = {
   log: { info: () => {}, warn: () => {}, error: () => {} },
   contentHash: async () => 'mock-hash',
   scope: 'runtime',
-  operation: 'query',
   planExecutionId: 'test-fixture-plan-execution-id',
 };
 

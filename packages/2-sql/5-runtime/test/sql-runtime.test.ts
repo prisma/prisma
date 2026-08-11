@@ -531,8 +531,8 @@ describe('SqlRuntime', () => {
       middleware: [
         {
           name: 'statistics-cache',
-          async intercept() {
-            return { operation: 'execute', stats: { affectedRows: 12 } };
+          async interceptExecute() {
+            return { stats: { affectedRows: 12 } };
           },
           async afterExecute(_plan, result) {
             completions.push(result);
@@ -548,7 +548,6 @@ describe('SqlRuntime', () => {
     expect(driver.__spies.rootStats).not.toHaveBeenCalled();
     expect(completions).toEqual([
       expect.objectContaining({
-        operation: 'execute',
         completed: true,
         source: 'middleware',
         stats: { affectedRows: 12 },
@@ -670,12 +669,10 @@ describe('SqlRuntime', () => {
       stack: { target: targetDescriptor, adapter: adapterDescriptor, extensions: [] },
     });
 
-    const observedOperations: string[] = [];
     const rewriteA: SqlMiddleware = {
       name: 'rewriteA',
       familyId: 'sql',
-      async beforeCompile(draft, middlewareCtx) {
-        observedOperations.push(middlewareCtx.operation);
+      async beforeCompile(draft) {
         if (draft.ast.kind !== 'select') return undefined;
         return {
           ...draft,
@@ -718,7 +715,6 @@ describe('SqlRuntime', () => {
     expect(lowerSpy).toHaveBeenCalledTimes(1);
     expect(driver.__spies.rootStats).toHaveBeenCalledOnce();
     expect(driver.__spies.rootExecute).not.toHaveBeenCalled();
-    expect(observedOperations).toEqual(['execute']);
     const loweredAst = lowerSpy.mock.calls[0]?.[0] as SelectAst;
     expect(loweredAst.where?.kind).toBe('binary');
   });

@@ -1,7 +1,7 @@
 import type { PlanMeta } from '@internal/contract/types';
 import { describe, expect, it, vi } from 'vitest';
 import type { ExecutionPlan } from '../src/execution/query-plan';
-import { runExecuteWithMiddleware, runWithMiddleware } from '../src/execution/run-with-middleware';
+import { runExecuteWithMiddleware } from '../src/execution/run-with-middleware';
 import type {
   AfterExecuteResult,
   RuntimeMiddleware,
@@ -28,7 +28,6 @@ function makeCtx(): RuntimeMiddlewareContext {
     log: { info: () => {}, warn: () => {}, error: () => {} },
     contentHash: async () => 'mock-hash',
     scope: 'runtime',
-    operation: 'execute',
     planExecutionId: 'stats-execution',
   };
 }
@@ -47,11 +46,11 @@ describe('runExecuteWithMiddleware', () => {
       runExecuteWithMiddleware(exec, [middleware], makeCtx(), async () => ({ affectedRows: 4 })),
     ).resolves.toEqual({ affectedRows: 4 });
     expect(observed).toMatchObject({
-      operation: 'execute',
       completed: true,
       source: 'driver',
       stats: { affectedRows: 4 },
     });
+    expect(observed).not.toHaveProperty('operation');
     expect(observed?.latencyMs).toBeGreaterThanOrEqual(0);
   });
 
@@ -59,8 +58,8 @@ describe('runExecuteWithMiddleware', () => {
     const driver = vi.fn(async () => ({ affectedRows: 99 }));
     const middleware: RuntimeMiddleware<MockExec> = {
       name: 'interceptor',
-      async intercept() {
-        return { operation: 'execute', stats: { affectedRows: 7 } };
+      async interceptExecute() {
+        return { stats: { affectedRows: 7 } };
       },
     };
 
@@ -70,47 +69,19 @@ describe('runExecuteWithMiddleware', () => {
     expect(driver).not.toHaveBeenCalled();
   });
 
-  it('rejects a query-shaped intercept result instead of deriving statistics from rows', async () => {
-    let observed: AfterExecuteResult | undefined;
+  it('ignores query-only interception during statistics execution', async () => {
+    const driver = vi.fn(async () => ({ affectedRows: 1 }));
     const middleware: RuntimeMiddleware<MockExec> = {
-      name: 'wrong-result',
-      async intercept() {
-        return { operation: 'query', rows: [{ affectedRows: 100 }] };
-      },
-      async afterExecute(_plan, result) {
-        observed = result;
+      name: 'query-cache',
+      async interceptQuery() {
+        return { rows: [{ affectedRows: 100 }] };
       },
     };
 
-    await expect(
-      runExecuteWithMiddleware(exec, [middleware], makeCtx(), async () => ({ affectedRows: 1 })),
-    ).rejects.toMatchObject({ code: 'RUNTIME.MIDDLEWARE_RESULT_MISMATCH' });
-    expect(observed).toMatchObject({
-      operation: 'execute',
-      completed: false,
-      source: 'middleware',
+    await expect(runExecuteWithMiddleware(exec, [middleware], makeCtx(), driver)).resolves.toEqual({
+      affectedRows: 1,
     });
-    expect(observed).not.toHaveProperty('stats');
-  });
-
-  it('query execution rejects statistics-shaped intercept results', async () => {
-    const middleware: RuntimeMiddleware<MockExec> = {
-      name: 'wrong-result',
-      async intercept() {
-        return { operation: 'execute', stats: { affectedRows: 7 } };
-      },
-    };
-
-    await expect(
-      runWithMiddleware(
-        exec,
-        [middleware],
-        { ...makeCtx(), operation: 'query' },
-        async function* () {
-          yield { id: 1 };
-        },
-      ).toArray(),
-    ).rejects.toMatchObject({ code: 'RUNTIME.MIDDLEWARE_RESULT_MISMATCH' });
+    expect(driver).toHaveBeenCalledTimes(1);
   });
 
   it('propagates a success-path afterExecute error without invoking completion twice', async () => {

@@ -20,8 +20,8 @@ class FixtureRuntime extends RuntimeCore<FixturePlan, FixtureExec, RuntimeMiddle
       async *[Symbol.asyncIterator]() {},
     };
   }
-  protected async runExecute(): Promise<{ affectedRows: number }> {
-    return { affectedRows: 0 };
+  protected runExecute(): Promise<{ affectedRows: number }> {
+    return Promise.resolve({ affectedRows: 0 });
   }
   async close(): Promise<void> {}
 }
@@ -32,7 +32,7 @@ const meta: PlanMeta = {
   lane: 'raw-sql',
 };
 
-test('query and execute accept an optional second argument carrying { signal }', () => {
+test('query accepts an optional second argument carrying { signal }', () => {
   const runtime = new FixtureRuntime({
     middleware: [],
     ctx: {
@@ -42,7 +42,6 @@ test('query and execute accept an optional second argument carrying { signal }',
       log: { info: () => {}, warn: () => {}, error: () => {} },
       contentHash: async () => 'mock-hash',
       scope: 'runtime',
-      operation: 'query',
       planExecutionId: 'test-fixture-plan-execution-id',
     },
   });
@@ -52,20 +51,11 @@ test('query and execute accept an optional second argument carrying { signal }',
   void runtime.query(plan, undefined);
   void runtime.query(plan, {});
   void runtime.query(plan, { signal: new AbortController().signal });
-  void runtime.execute(plan);
-  void runtime.execute(plan, undefined);
-  void runtime.execute(plan, {});
-  void runtime.execute(plan, { signal: new AbortController().signal });
 });
 
-test('RuntimeExecutor operations accept options arg', () => {
+test('RuntimeExecutor.execute accepts options arg', () => {
   type Executor = RuntimeExecutor<FixturePlan>;
-  type QueryParams = Parameters<Executor['query']>;
   type ExecuteParams = Parameters<Executor['execute']>;
-  expectTypeOf<QueryParams[1]>().toEqualTypeOf<
-    | { readonly signal?: AbortSignal; readonly scope?: 'runtime' | 'connection' | 'transaction' }
-    | undefined
-  >();
   expectTypeOf<ExecuteParams[1]>().toEqualTypeOf<
     | { readonly signal?: AbortSignal; readonly scope?: 'runtime' | 'connection' | 'transaction' }
     | undefined

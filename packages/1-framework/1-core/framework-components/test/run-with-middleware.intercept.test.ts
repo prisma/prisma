@@ -29,7 +29,6 @@ function makeCtx(overrides?: Partial<RuntimeMiddlewareContext>): RuntimeMiddlewa
     log: { info: () => {}, warn: () => {}, error: () => {} },
     contentHash: async () => 'mock-hash',
     scope: 'runtime',
-    operation: 'query',
     planExecutionId: 'test-fixture-plan-execution-id',
     ...overrides,
   };
@@ -51,14 +50,14 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
         name: 'winner',
         async interceptQuery() {
           interceptQueryCalls.push('winner');
-          return { operation: 'query', rows: winnerRows };
+          return { rows: winnerRows };
         },
       };
       const loser: RuntimeMiddleware<MockExec> = {
         name: 'loser',
         async interceptQuery() {
           interceptQueryCalls.push('loser');
-          return { operation: 'query', rows: [{ id: 'should-not-appear' }] };
+          return { rows: [{ id: 'should-not-appear' }] };
         },
       };
 
@@ -93,7 +92,7 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
         name: 'B',
         async interceptQuery() {
           interceptQueryCalls.push('B');
-          return { operation: 'query', rows: winnerRows };
+          return { rows: winnerRows };
         },
       };
 
@@ -130,7 +129,7 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
         name: 'B',
         async interceptQuery() {
           events.push('B:interceptQuery');
-          return { operation: 'query', rows: [{ id: 1 }] };
+          return { rows: [{ id: 1 }] };
         },
         async afterQuery() {
           events.push('B:afterQuery');
@@ -166,7 +165,7 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
         name: 'interceptQueryor',
         async interceptQuery() {
           events.push('interceptQuery');
-          return { operation: 'query', rows: [{ id: 1 }, { id: 2 }, { id: 3 }] };
+          return { rows: [{ id: 1 }, { id: 2 }, { id: 3 }] };
         },
         async onRow() {
           events.push('onRow');
@@ -192,7 +191,6 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
       expect(events).toEqual(['interceptQuery', 'afterQuery']);
       expect(driverFactory).not.toHaveBeenCalled();
       expect(observedResult).toMatchObject({
-        operation: 'query',
         rowCount: 3,
         completed: true,
         source: 'middleware',
@@ -209,7 +207,7 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
       const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'cache',
         async interceptQuery() {
-          return { operation: 'query', rows: [{ id: 1 }] };
+          return { rows: [{ id: 1 }] };
         },
       };
 
@@ -238,14 +236,13 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
         log: { info: () => {}, warn: () => {}, error: () => {} },
         contentHash: async () => 'mock-hash',
         scope: 'runtime',
-        operation: 'query',
         planExecutionId: 'test-fixture-plan-execution-id',
       };
 
       const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'cache',
         async interceptQuery() {
-          return { operation: 'query', rows: [{ id: 1 }] };
+          return { rows: [{ id: 1 }] };
         },
       };
 
@@ -264,7 +261,7 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
       const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'array',
         async interceptQuery(): Promise<QueryInterceptResult> {
-          return { operation: 'query', rows: cached };
+          return { rows: cached };
         },
       };
 
@@ -287,7 +284,7 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
       const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'sync-gen',
         async interceptQuery(): Promise<QueryInterceptResult> {
-          return { operation: 'query', rows: syncGen() };
+          return { rows: syncGen() };
         },
       };
 
@@ -311,7 +308,7 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
       const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'async-gen',
         async interceptQuery(): Promise<QueryInterceptResult> {
-          return { operation: 'query', rows: asyncGen() };
+          return { rows: asyncGen() };
         },
       };
 
@@ -331,7 +328,7 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
       const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'counter',
         async interceptQuery() {
-          return { operation: 'query', rows: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }] };
+          return { rows: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }] };
         },
         async afterQuery(_plan, result) {
           observed = result;
@@ -346,7 +343,7 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
       );
 
       await result.toArray();
-      expect(observed).toMatchObject({ operation: 'query', rowCount: 4 });
+      expect(observed?.rowCount).toBe(4);
     });
   });
 
@@ -496,7 +493,6 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
       expect(events).toEqual(['interceptQuery', 'afterQuery']);
       expect(driverFactory).not.toHaveBeenCalled();
       expect(observed).toMatchObject({
-        operation: 'query',
         completed: false,
         source: 'middleware',
         rowCount: 0,
@@ -515,7 +511,7 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
       const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'bad-rows',
         async interceptQuery(): Promise<QueryInterceptResult> {
-          return { operation: 'query', rows: badRows() };
+          return { rows: badRows() };
         },
         async afterQuery(_plan, result) {
           observed = result;
@@ -532,7 +528,6 @@ describe('runQueryWithMiddleware — interceptQuery', () => {
       await expect(result.toArray()).rejects.toBe(boom);
 
       expect(observed).toMatchObject({
-        operation: 'query',
         completed: false,
         source: 'middleware',
         rowCount: 1, // one row was yielded before the throw

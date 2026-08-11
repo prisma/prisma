@@ -151,20 +151,6 @@ describe('SqlRuntime operation planExecutionId (ADR 220)', () => {
     // Across two queries: distinct IDs.
     expect(firstExecId).not.toBe(secondExecId);
   });
-
-  it('assigns distinct planExecutionIds to query and execute calls', async () => {
-    const log: Observation[] = [];
-    const { runtime } = createSetup([observerMiddleware(log)]);
-    const plan = buildSelectAllUsersPlan();
-
-    await runtime.query(plan).toArray();
-    await runtime.execute(plan);
-
-    expect(log).toHaveLength(4);
-    expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
-    expect(log[2]?.planExecutionId).toBe(log[3]?.planExecutionId);
-    expect(log[0]?.planExecutionId).not.toBe(log[2]?.planExecutionId);
-  });
 });
 
 describe('SqlRuntime.queryPrepared planExecutionId (ADR 220)', () => {

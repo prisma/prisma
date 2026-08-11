@@ -10,7 +10,6 @@ import type {
 
 test('framework ExecutionPlan satisfies RuntimeExecutor plan constraint', () => {
   type Executor = RuntimeExecutor<ExecutionPlan>;
-  expectTypeOf<Executor>().toHaveProperty('query');
   expectTypeOf<Executor>().toHaveProperty('execute');
   expectTypeOf<Executor>().toHaveProperty('close');
 });
@@ -21,7 +20,6 @@ test('SQL-shaped plan satisfies RuntimeExecutor plan constraint', () => {
     readonly params: readonly unknown[];
   }
   type SqlExecutor = RuntimeExecutor<SqlShapedPlan>;
-  expectTypeOf<SqlExecutor>().toHaveProperty('query');
   expectTypeOf<SqlExecutor>().toHaveProperty('execute');
   expectTypeOf<SqlExecutor>().toHaveProperty('close');
 });
@@ -32,7 +30,6 @@ test('MongoQueryPlan-shaped type satisfies RuntimeExecutor plan constraint', () 
     readonly command: unknown;
   }
   type MongoExecutor = RuntimeExecutor<MongoLikePlan>;
-  expectTypeOf<MongoExecutor>().toHaveProperty('query');
   expectTypeOf<MongoExecutor>().toHaveProperty('execute');
   expectTypeOf<MongoExecutor>().toHaveProperty('close');
 });
@@ -54,14 +51,10 @@ test('RuntimeMiddleware default plan parameter sees only QueryPlan fields', () =
     },
     async afterQuery(plan, result) {
       assertType<PlanMeta>(plan.meta);
+      assertType<number>(result.rowCount);
       assertType<number>(result.latencyMs);
       assertType<boolean>(result.completed);
       assertType<'driver' | 'middleware'>(result.source);
-      if (result.operation === 'query') {
-        assertType<number>(result.rowCount);
-      } else if (result.completed) {
-        assertType<number>(result.stats.affectedRows);
-      }
     },
   };
   void middleware;
@@ -113,7 +106,6 @@ test('RuntimeMiddleware.interceptQuery narrows the plan parameter alongside othe
 test('QueryInterceptResult.rows accepts Iterable, AsyncIterable, and arrays', () => {
   // Array (which is also Iterable) — common case for cached rows.
   const fromArray: QueryInterceptResult = {
-    operation: 'query',
     rows: [{ id: 1 }, { id: 2 }],
   };
   void fromArray;
@@ -123,7 +115,6 @@ test('QueryInterceptResult.rows accepts Iterable, AsyncIterable, and arrays', ()
     yield { id: 1 };
   }
   const fromSyncGen: QueryInterceptResult = {
-    operation: 'query',
     rows: syncGen(),
   };
   void fromSyncGen;
@@ -133,7 +124,6 @@ test('QueryInterceptResult.rows accepts Iterable, AsyncIterable, and arrays', ()
     yield { id: 1 };
   }
   const fromAsyncGen: QueryInterceptResult = {
-    operation: 'query',
     rows: asyncGen(),
   };
   void fromAsyncGen;
@@ -141,22 +131,7 @@ test('QueryInterceptResult.rows accepts Iterable, AsyncIterable, and arrays', ()
 
 test('QueryInterceptResult rejects rows whose elements are not Record<string, unknown>', () => {
   // @ts-expect-error - row elements must be Record<string, unknown>
-  const _bad: QueryInterceptResult = { operation: 'query', rows: [1, 2, 3] };
-});
-
-test('InterceptResult requires exactly one operation result shape', () => {
-  const stats: InterceptResult = {
-    operation: 'execute',
-    stats: { affectedRows: 3 },
-  };
-  void stats;
-
-  // @ts-expect-error - query results require rows
-  const _queryWithoutRows: InterceptResult = { operation: 'query' };
-  // @ts-expect-error - execute results require stats
-  const _executeWithoutStats: InterceptResult = { operation: 'execute' };
-  // @ts-expect-error - execute results cannot carry rows
-  const _executeWithRows: InterceptResult = { operation: 'execute', rows: [] };
+  const _bad: QueryInterceptResult = { rows: [1, 2, 3] };
 });
 
 test('RuntimeMiddleware narrowed to a SQL plan sees the SQL fields', () => {
@@ -174,7 +149,7 @@ test('RuntimeMiddleware narrowed to a SQL plan sees the SQL fields', () => {
   void middleware;
 });
 
-test('RuntimeMiddlewareContext has contract, mode, log, now, contentHash, scope, and operation', () => {
+test('RuntimeMiddlewareContext has contract, mode, log, now, contentHash, scope', () => {
   expectTypeOf<RuntimeMiddlewareContext>().toHaveProperty('contract');
   expectTypeOf<RuntimeMiddlewareContext>().toHaveProperty('mode');
   expectTypeOf<RuntimeMiddlewareContext>().toHaveProperty('log');
@@ -186,7 +161,6 @@ test('RuntimeMiddlewareContext has contract, mode, log, now, contentHash, scope,
   expectTypeOf<RuntimeMiddlewareContext['scope']>().toEqualTypeOf<
     'runtime' | 'connection' | 'transaction'
   >();
-  expectTypeOf<RuntimeMiddlewareContext['operation']>().toEqualTypeOf<'query' | 'execute'>();
 });
 
 test('RuntimeMiddleware familyId and targetId are optional', () => {
