@@ -84,6 +84,23 @@ describe('collectConfigIssues', () => {
     ]);
   });
 
+  it('reports one object-type issue per section holding a non-object', () => {
+    const issues = collectConfigIssues({
+      ...createValidRawConfig(),
+      family: 'sql',
+      target: 'postgres',
+      adapter: 42,
+      driver: true,
+    });
+
+    expect(issues).toEqual([
+      { section: 'family', field: 'family', message: 'Config.family must be an object' },
+      { section: 'target', field: 'target', message: 'Config.target must be an object' },
+      { section: 'adapter', field: 'adapter', message: 'Config.adapter must be an object' },
+      { section: 'driver', field: 'driver', message: 'Config.driver must be an object' },
+    ]);
+  });
+
   it('reports a broken family without hiding issues in other sections', () => {
     const issues = collectConfigIssues(
       createValidRawConfig({

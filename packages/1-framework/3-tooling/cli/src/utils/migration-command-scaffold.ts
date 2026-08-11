@@ -67,6 +67,7 @@ export async function prepareMigrationContext(
     'driver',
     'extensions',
     'db',
+    'migrations',
     'contract',
   ]);
   if (!configResult.ok) {

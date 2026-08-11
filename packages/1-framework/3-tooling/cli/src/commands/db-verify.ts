@@ -234,6 +234,7 @@ async function resolveVerifyPaths(
     'driver',
     'extensions',
     'db',
+    'migrations',
     'contract',
   ]);
   if (!configResult.ok) {

@@ -39,11 +39,15 @@ function validateFamily(
   config: Record<string, unknown>,
   issues: IssueCollector,
 ): string | undefined {
-  if (!config['family']) {
+  const family = config['family'];
+  if (!family) {
     issues.add('family', 'family');
     return undefined;
   }
-  const family = config['family'] as Record<string, unknown>;
+  if (!isObject(family)) {
+    issues.add('family', 'family', 'Config.family must be an object');
+    return undefined;
+  }
   if (family['kind'] !== 'family') {
     issues.add('family', 'family.kind', 'Config.family must have kind: "family"');
   }
@@ -120,11 +124,15 @@ function validateTarget(
   familyId: string | undefined,
   issues: IssueCollector,
 ): string | undefined {
-  if (!config['target']) {
+  const target = config['target'];
+  if (!target) {
     issues.add('target', 'target');
     return undefined;
   }
-  const target = config['target'] as Record<string, unknown>;
+  if (!isObject(target)) {
+    issues.add('target', 'target', 'Config.target must be an object');
+    return undefined;
+  }
   validateTargetLikeDescriptor(
     target,
     'target',
@@ -300,24 +308,32 @@ export function collectConfigIssues(
   const familyId = validateFamily(config, issues);
   const targetId = validateTarget(config, familyId, issues);
 
-  if (!config['adapter']) {
+  const adapter = config['adapter'];
+  if (!adapter) {
     issues.add('adapter', 'adapter');
+  } else if (!isObject(adapter)) {
+    issues.add('adapter', 'adapter', 'Config.adapter must be an object');
   } else {
     validateTargetLikeDescriptor(
-      config['adapter'] as Record<string, unknown>,
+      adapter,
       'adapter',
       { section: 'adapter', kind: 'adapter', label: 'Config.adapter', familyId, targetId },
       issues,
     );
   }
 
-  if (config['driver'] !== undefined) {
-    validateTargetLikeDescriptor(
-      config['driver'] as Record<string, unknown>,
-      'driver',
-      { section: 'driver', kind: 'driver', label: 'Config.driver', familyId, targetId },
-      issues,
-    );
+  const driver = config['driver'];
+  if (driver !== undefined) {
+    if (!isObject(driver)) {
+      issues.add('driver', 'driver', 'Config.driver must be an object');
+    } else {
+      validateTargetLikeDescriptor(
+        driver,
+        'driver',
+        { section: 'driver', kind: 'driver', label: 'Config.driver', familyId, targetId },
+        issues,
+      );
+    }
   }
 
   validateExtensions(config, familyId, targetId, issues);

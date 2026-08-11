@@ -144,6 +144,7 @@ async function executeMigrateShowCommand(
     'extensions',
     'db',
     'migrations',
+    'contract',
   ]);
   if (!configResult.ok) {
     return configResult;
@@ -358,6 +359,7 @@ async function executeMigrateCommand(
     'extensions',
     'db',
     'migrations',
+    'contract',
   ]);
   if (!configResult.ok) {
     return configResult;

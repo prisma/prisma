@@ -96,4 +96,8 @@ export class Index extends SqlNode {
     if (input.options !== undefined) this.options = input.options;
     freezeNode(this);
   }
+
+  static from(value: Index | IndexInput): Index {
+    return value instanceof Index ? value : new Index(value);
+  }
 }

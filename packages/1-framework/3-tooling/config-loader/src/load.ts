@@ -76,6 +76,7 @@ function collectArtifactCollisionDiagnostics(
   } catch (error) {
     return [
       errorConfigValidation('contract.output', {
+        /* v8 ignore next -- getEmittedArtifactPaths only ever throws an Error */
         why: error instanceof Error ? error.message : String(error),
         section: 'contract',
       }),
@@ -131,14 +132,12 @@ function toConfigLoadFailure(error: unknown, configPath?: string): CliStructured
     });
   }
 
+  // A config file that does not exist never reaches here: c12 resolves no
+  // config file and returns an empty config, which `loadConfig` maps to
+  // CONFIG.FILE_NOT_FOUND. Everything thrown out of c12 came from evaluating
+  // a file that does exist — including `Cannot find module` for a package the
+  // config imports, and ENOENT for a file the config itself reads.
   if (error instanceof Error) {
-    if (
-      error.message.includes('not found') ||
-      error.message.includes('Cannot find') ||
-      error.message.includes('ENOENT')
-    ) {
-      return errorConfigFileNotFound(resolvedPath, { why: error.message });
-    }
     return errorConfigEvaluationFailed(resolvedPath, { why: error.message, cause: error });
   }
   return errorConfigEvaluationFailed(resolvedPath, { why: String(error) });
@@ -184,11 +183,13 @@ export async function loadConfig(
   }
 
   // c12's merge drops non-enumerable properties, so the marker is read from
-  // the raw per-layer module exports rather than the merged config.
-  const markerCarrier = (result.layers ?? []).some((layer) =>
-    hasCurrentConfigFormatVersion(layer.config),
-  );
-  if (!markerCarrier && !hasCurrentConfigFormatVersion(result.config)) {
+  // the raw module export in c12's first layer — the requested config file.
+  // (`extends` bases and rc files follow it, and their markers must not vouch
+  // for a file that does not carry one itself.)
+  /* v8 ignore next -- c12 always returns layers for a config it evaluated */
+  const [requestedLayer] = result.layers ?? [];
+  if (!hasCurrentConfigFormatVersion(requestedLayer?.config)) {
+    /* v8 ignore next -- a config that evaluated always carries its resolved path */
     return notOk(errorConfigVersionMarkerMissing(result.configFile ?? resolvedConfigPath));
   }
 

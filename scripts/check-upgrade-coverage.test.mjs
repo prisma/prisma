@@ -183,9 +183,10 @@ describe('coverageTransitionChain', () => {
     );
   });
   it('a later base version with a reset RC counter is forward, not reversed', () => {
-    assert.deepEqual(coverageTransitionChain(parseVersion('8.0.1-rc.1'), parseVersion('8.0.0-rc.9')), [
-      '8.0.0-rc.9-to-8.0.1-rc.1',
-    ]);
+    assert.deepEqual(
+      coverageTransitionChain(parseVersion('8.0.1-rc.1'), parseVersion('8.0.0-rc.9')),
+      ['8.0.0-rc.9-to-8.0.1-rc.1'],
+    );
   });
   it('an earlier base version with a higher RC counter is reversed', () => {
     assert.throws(

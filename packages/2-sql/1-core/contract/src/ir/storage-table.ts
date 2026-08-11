@@ -44,25 +44,15 @@ export class StorageTable extends SqlNode {
     super();
     this.columns = Object.freeze(
       Object.fromEntries(
-        Object.entries(input.columns).map(([name, col]) => [
-          name,
-          col instanceof StorageColumn ? col : new StorageColumn(col),
-        ]),
+        Object.entries(input.columns).map(([name, col]) => [name, StorageColumn.from(col)]),
       ),
     );
     if (input.primaryKey !== undefined) {
-      this.primaryKey =
-        input.primaryKey instanceof PrimaryKey
-          ? input.primaryKey
-          : new PrimaryKey(input.primaryKey);
+      this.primaryKey = PrimaryKey.from(input.primaryKey);
     }
-    this.uniques = Object.freeze(
-      input.uniques.map((u) => (u instanceof UniqueConstraint ? u : new UniqueConstraint(u))),
-    );
-    this.indexes = Object.freeze(input.indexes.map((i) => (i instanceof Index ? i : new Index(i))));
-    this.foreignKeys = Object.freeze(
-      input.foreignKeys.map((fk) => (fk instanceof ForeignKey ? fk : new ForeignKey(fk))),
-    );
+    this.uniques = Object.freeze(input.uniques.map(UniqueConstraint.from));
+    this.indexes = Object.freeze(input.indexes.map(Index.from));
+    this.foreignKeys = Object.freeze(input.foreignKeys.map(ForeignKey.from));
     if (input.control !== undefined) this.control = input.control;
     if (input.checks !== undefined && input.checks.length > 0) {
       this.checks = Object.freeze(input.checks.map(CheckConstraint.from));

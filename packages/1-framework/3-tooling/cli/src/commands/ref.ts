@@ -60,6 +60,7 @@ function createRefSetCommand(): Command {
         'adapter',
         'extensions',
         'migrations',
+        'contract',
       ]);
       const result = operationOptions.ok
         ? await executeRefSetCommand(name, hash, operationOptions.value)
