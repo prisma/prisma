@@ -12,6 +12,7 @@ import {
   StorageTable,
 } from '@internal/sql-contract/types';
 import { derivedCheckPrefixes } from '@internal/sql-schema-ir/naming';
+import { invariant } from '@internal/utils/assertions';
 import { ifDefined } from '@internal/utils/defined';
 
 /**
@@ -158,7 +159,12 @@ function withoutDerivedChecks(
   if (checks === undefined || checks.length === 0) return table;
   if (effectiveControlPolicy(table.control, contractDefault) === 'managed') return table;
 
-  const derivedPrefixes = derivedCheckPrefixes(tableName, Object.keys(table.columns));
+  const columnNames = Object.keys(table.columns);
+  invariant(
+    columnNames.length > 0,
+    `withoutDerivedChecks: table "${tableName}" carries checks but its column map is empty. The caller must pass the table's real, complete column set — an empty or partial map makes every check misclassify as non-derived and survive the strip.`,
+  );
+  const derivedPrefixes = derivedCheckPrefixes(tableName, columnNames);
   const kept = checks.filter(
     (check) => check.prefix === undefined || !derivedPrefixes.has(check.prefix),
   );

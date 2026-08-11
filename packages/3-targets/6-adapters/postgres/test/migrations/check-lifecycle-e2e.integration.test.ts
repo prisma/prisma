@@ -40,9 +40,12 @@ const WIDENING_POLICY: MigrationOperationPolicy = {
 };
 
 // Minimal authoring packs for the defineContract-driven scenario: the family
-// contributes the `text` field preset and the target contributes the real
-// Postgres check renderer, so the built contract's checks (and the
-// `.noCheck()` opt-out) come from the production emission path.
+// contributes the `text` and `varchar` field presets and the target
+// contributes the real Postgres check renderer, so the built contract's
+// checks (and the `.noCheck()` opt-out) come from the production emission
+// path. `varchar` exists to reproduce the reprint hazard an authored check
+// exists to route around: Postgres reprints `IN (...)` against a
+// `character varying` column with an `ANY`-array cast, not verbatim.
 const authoringFamilyPack = {
   kind: 'family',
   id: 'sql',
@@ -53,6 +56,10 @@ const authoringFamilyPack = {
       text: {
         kind: 'fieldPreset',
         output: { codecId: 'pg/text@1', nativeType: 'text' },
+      },
+      varchar: {
+        kind: 'fieldPreset',
+        output: { codecId: 'pg/varchar@1', nativeType: 'character varying' },
       },
     },
   },
@@ -214,6 +221,34 @@ function itemContractWithCheck(input: {
       ({
         models: {
           Item: m('Item', { fields: { id: f.text().id(), total: f.text() } }).sql({
+            checks: [check(input)],
+          }),
+        },
+      }) as const,
+  ) as Contract<SqlStorage>;
+}
+
+/**
+ * The same shape as {@link itemContractWithCheck}, but with a `varchar`
+ * `status` column instead of `total` — for the membership-predicate reprint
+ * hazard, which only shows up against a `character varying` column (Postgres
+ * reprints `IN (...)` there as an `ANY`-array cast, not verbatim).
+ */
+function itemContractWithVarcharCheck(input: {
+  readonly expression: string;
+  readonly name?: string;
+  readonly map?: string;
+}): Contract<SqlStorage> {
+  return defineContract(
+    {
+      family: authoringFamilyPack,
+      target: authoringTargetPack,
+      createNamespace: postgresCreateNamespace,
+    },
+    ({ field: f, model: m }) =>
+      ({
+        models: {
+          Item: m('Item', { fields: { id: f.text().id(), status: f.varchar() } }).sql({
             checks: [check(input)],
           }),
         },
@@ -952,5 +987,52 @@ describe.sequential('check-constraint lifecycle', () => {
 
     expect(await liveCheckNames()).toEqual([nameV2]);
     expect((await verify(v2)).ok).toBe(true);
+  });
+
+  it('an authored varchar IN (...) membership predicate installs, rejects a violation, and verifies clean', {
+    timeout: testTimeout,
+  }, async () => {
+    const contract = itemContractWithVarcharCheck({
+      expression: "status IN ('active', 'inactive')",
+      name: 'item_status_valid',
+    });
+    const checkName = itemCheckName(contract);
+    assertDefined(checkName, 'authored check must be named');
+
+    await migrate(contract);
+
+    expect(await liveCheckNames()).toEqual([checkName]);
+
+    await driver!.query(`INSERT INTO "Item" (id, status) VALUES ('a', 'active')`);
+    await expect(
+      driver!.query(`INSERT INTO "Item" (id, status) VALUES ('b', 'archived')`),
+    ).rejects.toThrow(new RegExp(checkName));
+
+    expect((await verify(contract)).ok).toBe(true);
+  });
+
+  it('an authored composite AND predicate installs, rejects a violation on either side, and verifies clean', {
+    timeout: testTimeout,
+  }, async () => {
+    const contract = itemContractWithCheck({
+      expression: 'total::numeric > 0 AND total::numeric < 1000',
+      name: 'item_total_in_range',
+    });
+    const checkName = itemCheckName(contract);
+    assertDefined(checkName, 'authored check must be named');
+
+    await migrate(contract);
+
+    expect(await liveCheckNames()).toEqual([checkName]);
+
+    await driver!.query(`INSERT INTO "Item" (id, total) VALUES ('a', '500')`);
+    await expect(
+      driver!.query(`INSERT INTO "Item" (id, total) VALUES ('b', '-5')`),
+    ).rejects.toThrow(new RegExp(checkName));
+    await expect(
+      driver!.query(`INSERT INTO "Item" (id, total) VALUES ('c', '5000')`),
+    ).rejects.toThrow(new RegExp(checkName));
+
+    expect((await verify(contract)).ok).toBe(true);
   });
 });

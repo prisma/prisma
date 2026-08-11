@@ -835,6 +835,27 @@ function ensureUnboundNamespaceSlot(
   };
 }
 
+const DERIVABLE_CHECK_KINDS: readonly CheckKind[] = ['membership', 'elementNotNull'];
+
+/**
+ * Which of `columnNames` could have produced `prefix` for some
+ * {@link CheckKind} — the reverse of {@link derivedCheckPrefixes}, used only
+ * to name the collision in `CONTRACT.CHECK_NAME_RESERVED`'s message. Callers
+ * already know `prefix` is a member of `derivedCheckPrefixes(tableName,
+ * columnNames)`, so the result is never empty.
+ */
+function columnsProducingCheckPrefix(
+  tableName: string,
+  columnNames: readonly string[],
+  prefix: string,
+): readonly string[] {
+  return columnNames.filter((columnName) =>
+    DERIVABLE_CHECK_KINDS.some(
+      (kind) => composeCheckWirePrefix(tableName, columnName, kind) === prefix,
+    ),
+  );
+}
+
 export function buildSqlContractFromDefinition(
   definition: ContractDefinition,
   codecLookup?: CodecLookup,
@@ -1167,14 +1188,21 @@ export function buildSqlContractFromDefinition(
       // authored check is the author's own statement about a constraint they
       // know exists, and is emitted whatever the table's control policy.
       if (semanticModel.checks !== undefined && semanticModel.checks.length > 0) {
-        const reservedCheckPrefixes = derivedCheckPrefixes(tableName, Object.keys(columns));
+        const tableColumnNames = Object.keys(columns);
+        const reservedCheckPrefixes = derivedCheckPrefixes(tableName, tableColumnNames);
         for (const authoredCheck of semanticModel.checks) {
           const lowered = lowerAuthoredCheck(tableName, authoredCheck, authoringWarnings);
           if (lowered.naming.kind === 'wire' && reservedCheckPrefixes.has(lowered.naming.prefix)) {
+            const collidingColumns = columnsProducingCheckPrefix(
+              tableName,
+              tableColumnNames,
+              lowered.naming.prefix,
+            );
+            const columnList = collidingColumns.map((name) => `"${name}"`).join(', ');
             throw contractError(
               'CONTRACT.CHECK_NAME_RESERVED',
-              `Check "${lowered.naming.prefix}" on table "${tableName}": this name's prefix matches the shape a derived enforcement check would use for one of this table's columns, so it can't be told apart from one. Choose a different name.`,
-              { meta: { tableName, prefix: lowered.naming.prefix } },
+              `Check "${lowered.naming.prefix}" on table "${tableName}": this name's prefix matches the shape a derived enforcement check would use for column${collidingColumns.length === 1 ? '' : 's'} ${columnList} of this table, so it can't be told apart from one. Choose a different name.`,
+              { meta: { tableName, prefix: lowered.naming.prefix, collidingColumns } },
             );
           }
           checksForTable.push(new CheckConstraint(lowered));

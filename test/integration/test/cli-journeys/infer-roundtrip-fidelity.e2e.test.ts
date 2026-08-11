@@ -747,10 +747,11 @@ withTempDir(({ createTempDir }) => {
         const plan = parseJsonOutput<{
           readonly plan: { readonly operations: readonly { readonly id: string }[] };
         }>(dryRun);
+        const opIds = plan.plan.operations.map((op) => op.id);
         expect(
-          plan.plan.operations.map((op) => op.id),
-          'no dropCheckConstraint for the hand-written check',
-        ).not.toContain('dropCheckConstraint.users.users_tags_not_empty');
+          opIds.filter((id) => id.includes('CheckConstraint')),
+          'no check-constraint operations for the hand-written check',
+        ).toEqual([]);
       },
       timeouts.spinUpPpgDev,
     );

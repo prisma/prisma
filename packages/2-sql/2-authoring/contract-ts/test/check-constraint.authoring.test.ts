@@ -1212,7 +1212,8 @@ describe('check() — Validation table', () => {
     ).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.CHECK_NAME_RESERVED',
-        message: expect.stringContaining('User_tags_elem_not_null'),
+        message: expect.stringMatching(/column "tags" of this table/),
+        meta: expect.objectContaining({ collidingColumns: ['tags'] }),
       }),
     );
   });
