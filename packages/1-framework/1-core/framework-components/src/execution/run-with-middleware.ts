@@ -1,3 +1,4 @@
+import { blindCast } from '@internal/utils/casts';
 import { AsyncIterableResult } from './async-iterable-result';
 import type { ExecutionPlan } from './query-plan';
 import type {
@@ -30,7 +31,10 @@ export function runQueryWithMiddleware<TExec extends ExecutionPlan, Row>(
           continue;
         }
         ctx.log.debug?.({ event: 'middleware.interceptQuery', middleware: mw.name });
-        rowSource = result.rows as unknown as AsyncIterable<Row> | Iterable<Row>;
+        rowSource = blindCast<
+          AsyncIterable<Row> | Iterable<Row>,
+          'intercepted rows are supplied as the runtime operation row type'
+        >(result.rows);
         break;
       }
 
