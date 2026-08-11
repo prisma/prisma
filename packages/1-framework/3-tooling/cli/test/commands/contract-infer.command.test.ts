@@ -10,6 +10,7 @@ import {
   makePslNamespaceEntries,
   UNSPECIFIED_PSL_NAMESPACE_ID,
 } from '@internal/framework-components/psl-ast';
+import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -100,7 +101,7 @@ const mocks = vi.hoisted(() => {
 });
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfigMock,
+  loadConfigForSections: mocks.loadConfigMock,
 }));
 
 vi.mock('../../src/control-api/client', () => ({
@@ -165,7 +166,7 @@ describe('createContractInferCommand', () => {
     consoleErrors = commandMocks.consoleErrors;
     cleanupMocks = commandMocks.cleanup;
 
-    mocks.loadConfigMock.mockResolvedValue(baseConfig);
+    mocks.loadConfigMock.mockResolvedValue(ok(baseConfig));
     mocks.introspectMock.mockResolvedValue(schemaIR);
     mocks.toSchemaViewMock.mockReturnValue(undefined);
     mocks.inferPslContractMock.mockReturnValue(buildSyntheticUserAst());
@@ -273,10 +274,12 @@ describe('createContractInferCommand', () => {
 
   it('returns inspect errors without writing an inferred PSL file', async () => {
     process.chdir(testDir);
-    mocks.loadConfigMock.mockResolvedValue({
-      ...baseConfig,
-      driver: undefined,
-    });
+    mocks.loadConfigMock.mockResolvedValue(
+      ok({
+        ...baseConfig,
+        driver: undefined,
+      }),
+    );
 
     await expect(
       executeCommand(createContractInferCommand(), [
@@ -292,12 +295,14 @@ describe('createContractInferCommand', () => {
 
   it('returns a capability-based error when the family does not implement contract inference', async () => {
     process.chdir(testDir);
-    mocks.loadConfigMock.mockResolvedValue({
-      ...baseConfig,
-      family: { familyId: 'mongo' },
-      target: { targetId: 'mongo' },
-      db: { connection: 'mongodb://localhost:27017/test' },
-    });
+    mocks.loadConfigMock.mockResolvedValue(
+      ok({
+        ...baseConfig,
+        family: { familyId: 'mongo' },
+        target: { targetId: 'mongo' },
+        db: { connection: 'mongodb://localhost:27017/test' },
+      }),
+    );
     mocks.inferPslContractMock.mockReturnValue(undefined);
 
     await expect(

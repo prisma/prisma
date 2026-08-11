@@ -1,5 +1,5 @@
 import { mkdir } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import { emit, getEmittedArtifactPaths } from '@internal/emitter';
 import { createControlStack } from '@internal/framework-components/control';
@@ -163,7 +163,13 @@ export async function executeContractEmit(
   const { configPath, outputPath, signal = new AbortController().signal, onProgress } = options;
   const unlessAborted = abortable(signal);
 
-  const config = await unlessAborted(loadConfig(configPath));
+  const configResult = await unlessAborted(
+    loadConfigForSections(configPath, ['contract', 'family', 'target', 'adapter', 'extensions']),
+  );
+  if (!configResult.ok) {
+    throw configResult.failure;
+  }
+  const config = configResult.value;
 
   if (!config.contract) {
     throw errorContractConfigMissing({

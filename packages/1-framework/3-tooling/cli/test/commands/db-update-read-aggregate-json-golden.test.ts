@@ -5,6 +5,7 @@ import { writeContractSnapshot } from '@internal/migration-tools/contract-snapsh
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDbUpdateCommand } from '../../src/commands/db-update';
@@ -18,7 +19,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 vi.mock('../../src/control-api/client', () => ({
@@ -111,25 +112,27 @@ describe('db update read aggregate --json golden', () => {
     // MigrationToolsError raised inside the command (here MIGRATION.INVALID_REF_NAME
     // from --advance-ref validation) must surface byte-identical through --json.
     const { contractPath, dirNext } = await setupFixture();
-    mocks.loadConfig.mockResolvedValue({
-      family: {
-        familyId: 'sql',
-        create: vi.fn().mockReturnValue({
-          deserializeContract: (json: unknown) => json,
-        }),
-      },
-      target: {
-        id: 'postgres',
-        familyId: 'sql',
-        targetId: 'postgres',
-        kind: 'target',
-        migrations: {},
-      },
-      adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
-      driver: { kind: 'driver' },
-      db: { connection: 'postgres://localhost/db-update-golden' },
-      contract: { output: contractPath },
-    });
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        family: {
+          familyId: 'sql',
+          create: vi.fn().mockReturnValue({
+            deserializeContract: (json: unknown) => json,
+          }),
+        },
+        target: {
+          id: 'postgres',
+          familyId: 'sql',
+          targetId: 'postgres',
+          kind: 'target',
+          migrations: {},
+        },
+        adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
+        driver: { kind: 'driver' },
+        db: { connection: 'postgres://localhost/db-update-golden' },
+        contract: { output: contractPath },
+      }),
+    );
     mocks.dbUpdate.mockResolvedValue({
       ok: true,
       value: {
@@ -185,25 +188,27 @@ describe('db update read aggregate --json golden', () => {
 
   it('pins --json dry-run output when --to resolves via aggregate packages', async () => {
     const { contractPath, dirNext, endContract } = await setupFixture();
-    mocks.loadConfig.mockResolvedValue({
-      family: {
-        familyId: 'sql',
-        create: vi.fn().mockReturnValue({
-          deserializeContract: (json: unknown) => json,
-        }),
-      },
-      target: {
-        id: 'postgres',
-        familyId: 'sql',
-        targetId: 'postgres',
-        kind: 'target',
-        migrations: {},
-      },
-      adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
-      driver: { kind: 'driver' },
-      db: { connection: 'postgres://localhost/db-update-golden' },
-      contract: { output: contractPath },
-    });
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        family: {
+          familyId: 'sql',
+          create: vi.fn().mockReturnValue({
+            deserializeContract: (json: unknown) => json,
+          }),
+        },
+        target: {
+          id: 'postgres',
+          familyId: 'sql',
+          targetId: 'postgres',
+          kind: 'target',
+          migrations: {},
+        },
+        adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
+        driver: { kind: 'driver' },
+        db: { connection: 'postgres://localhost/db-update-golden' },
+        contract: { output: contractPath },
+      }),
+    );
 
     const dbUpdateValue = {
       ok: true as const,

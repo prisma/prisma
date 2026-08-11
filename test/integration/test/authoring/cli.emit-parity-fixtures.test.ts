@@ -86,8 +86,8 @@ describe('emit parity fixtures', () => {
       const testSetup = setupIntegrationTestDirectoryForAuthoringParityCase(fixtureCase);
 
       try {
-        const tsConfig = await loadConfig(testSetup.tsConfigPath);
-        const pslConfig = await loadConfig(testSetup.pslConfigPath);
+        const tsConfig = (await loadConfig(testSetup.tsConfigPath)).assertOk().config;
+        const pslConfig = (await loadConfig(testSetup.pslConfigPath)).assertOk().config;
 
         if (!tsConfig.contract || !pslConfig.contract || !tsConfig.driver || !pslConfig.driver) {
           throw new Error('Fixture parity tests require contract + driver in both configs');
@@ -253,7 +253,7 @@ describe('emit parity fixture diagnostics', () => {
           'utf-8',
         );
 
-        const pslConfig = await loadConfig(testSetup.pslConfigPath);
+        const pslConfig = (await loadConfig(testSetup.pslConfigPath)).assertOk().config;
         if (!pslConfig.contract) {
           throw new Error('PSL config contract is required for diagnostics fixture test');
         }

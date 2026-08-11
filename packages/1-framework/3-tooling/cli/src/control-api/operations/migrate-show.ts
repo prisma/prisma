@@ -2,7 +2,7 @@
  * Read-only preview core for `migrate --show`: computes the migration path through the same planSpacePath seam the real apply uses, stopping before any write boundary.
  */
 
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import {
   type AggregateContractSpace,
   type ContractSpaceAggregate,
@@ -81,7 +81,20 @@ export interface MigrateShowPlanSuccess {
 export async function executeMigrateShowPlan(
   options: ExecuteMigrateShowPlanOptions,
 ): Promise<Result<MigrateShowPlanSuccess, CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath, migrationsDir, migrationsRelative, refsDir } = resolveMigrationPaths(
     options.config,
     config,

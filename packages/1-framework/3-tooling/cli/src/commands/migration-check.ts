@@ -1,4 +1,4 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import { Command } from 'commander';
 import { buildReadAggregate } from '../control-api/operations/contract-space-aggregate-loader';
 import {
@@ -38,7 +38,18 @@ async function executeMigrationCheckCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<MigrationCheckOutcome> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'extensions',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return { error: configResult.failure, exitCode: PRECONDITION };
+  }
+  const config = configResult.value;
   const { configPath, migrationsDir, appMigrationsDir, appMigrationsRelative } =
     resolveMigrationPaths(options.config, config);
 

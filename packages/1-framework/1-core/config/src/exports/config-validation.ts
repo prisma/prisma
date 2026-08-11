@@ -1,1 +1,2 @@
-export { validateConfig } from '../config-validation';
+export type { ConfigSection, ConfigValidationIssue } from '../config-validation';
+export { collectConfigIssues } from '../config-validation';

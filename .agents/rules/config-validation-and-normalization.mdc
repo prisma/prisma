@@ -1,121 +1,57 @@
 ---
-description: Patterns for config validation and normalization using Arktype
-globs: ["packages/1-framework/3-tooling/cli/**", "**/prisma-next.config.ts"]
+description: Config validation and normalization responsibilities (defineConfig normalizes, loader validates into section diagnostics)
+globs: ["packages/1-framework/1-core/config/**", "packages/1-framework/3-tooling/config-loader/**", "packages/1-framework/3-tooling/cli/**", "**/prisma-next.config.ts"]
 alwaysApply: false
 ---
 
 # Config Validation and Normalization
 
-When implementing config files (e.g. `prisma-next.config.ts`), use Arktype for validation and
-normalization. This gives type safety, clear error messages, and sensible defaults.
+Responsibilities are split across exactly three places. Keep them there.
 
-## Pattern: Validate + Normalize in `defineConfig()`
+## `defineConfig()` — normalize and stamp, never throw
+
+`defineConfig` (in `@internal/config/config-types`) is the ONLY place normalization happens. It applies defaults (e.g. `contract.output`), stamps the non-enumerable config-format version marker, and returns the normalized config. It does NOT validate structure and never throws — a throw here happens at module-evaluation time, which would turn every structural problem into an all-commands-fail evaluation error and defeat per-section diagnostics.
+
+The marker does not survive spreads: configs must export the `defineConfig` result directly. The loader rejects unmarked configs with `CONFIG.VERSION_MARKER_MISSING`.
+
+## Loader — validate into per-section diagnostics
+
+`loadConfig` (in `@internal/config-loader`) returns `Result<{ config, diagnostics }, CliStructuredError>`:
+
+- Failures that prevent evaluation entirely are the `Result` failure: `CONFIG.FILE_NOT_FOUND`, `CONFIG.EVALUATION_FAILED`, `CONFIG.VERSION_MARKER_MISSING`. Every command fails early with these.
+- Structural problems inside an evaluated config never fail the load. `collectConfigIssues` (in `@internal/config/config-validation`) returns every problem, each tagged with the top-level section it concerns; the loader wraps them as `CONFIG.VALIDATION_FAILED` diagnostics with `meta.section` and `meta.field`.
+
+## Commands — declare the sections they read
+
+Commands access config only through `loadConfigForSections(configPath, sections)` (or `requireConfigSections` when they need the diagnostics list). A command fails (exit `2`, rendering the diagnostic) only when a diagnostic concerns a section it declared; broken unrelated sections don't block it.
 
 ```typescript
-import { type } from 'arktype';
-import { join, dirname } from 'node:path';
-
-const ConfigSchema = type({
-  required: 'string',
-  'optional?': 'string',
-  nested: type({ 'nestedOptional?': 'number' }),
-});
-
-export function defineConfig(config: ConfigInput): ConfigOutput {
-  // 1. Validate structure with Arktype
-  const validated = ConfigSchema(config);
-  if (validated instanceof type.errors) {
-    const messages = validated.map((p: { message: string }) => p.message).join('; ');
-    throw new Error(`Config validation failed: ${messages}`);
-  }
-  // 2. Normalize by applying defaults
-  const normalized: ConfigOutput = {
-    ...config,
-    optional: config.optional ?? 'default-value',
-    nested: { ...config.nested, nestedOptional: config.nested?.nestedOptional ?? 42 },
-  };
-  // 3. Return the normalized IR (not the raw input)
-  return normalized;
+const configResult = await loadConfigForSections(options.config, [
+  'family', 'target', 'adapter', 'driver', 'extensions', 'db',
+]);
+if (!configResult.ok) {
+  return configResult;
 }
+const config = configResult.value;
 ```
 
-Validation catches structural errors early with clear messages; normalization applies defaults in
-one place; Arktype keeps structure aligned with TypeScript types.
-
-## Normalization Responsibilities
-
-**`defineConfig()` is the ONLY place normalization happens.** It validates structure, applies
-defaults for optional fields, returns the normalized config IR, and throws on invalid structure. It
-should always output a fully normalized config. All other components assume configs are already
-normalized:
-
-- **Config loader — loading only.** Loads the config file (c12 or similar) and calls `defineConfig()`
-  to validate/normalize, then returns the result. Does NOT set defaults or normalize structure.
-- **Command handlers — using only.** Use normalized values directly, accessing fields without
-  checking for defaults. Do NOT set defaults or normalize structure.
-- **Validators.** Never normalize.
+Command handlers use normalized values directly — they do NOT set defaults or normalize structure.
 
 ## Default Path Resolution
 
-Use `join()` and `dirname()` so defaults handle relative/absolute paths, work cross-platform, and
-cover edge cases (paths without extensions, directory paths):
+`defineConfig` supplies a default `contract.output` as a config-relative string. The loader then makes every config-relative path absolute by resolving it against the directory of the config file it loaded, using `pathe` (never `node:path`) so the result is the same on every platform:
 
 ```typescript
-import { join, dirname } from 'node:path';
+import { dirname, resolve } from 'pathe';
 
-const output = config.contract.output ?? 'src/prisma/contract.json';
-const types = output.endsWith('.json')
-  ? output.slice(0, -5) + '.d.ts'
-  : join(dirname(output), 'contract.d.ts');
+const configDir = dirname(loadedConfigFile);
+const output = resolve(configDir, contract.output ?? `${DEFAULT_CONTRACT_SOURCE_DIR}/contract.json`);
 ```
 
-## Nested Config Structures
-
-When config has nested structures, validate and normalize each level:
-
-```typescript
-const NestedConfigSchema = type({ source: 'unknown', 'output?': 'string' });
-const ConfigSchema = type({
-  family: 'unknown',
-  target: 'unknown',
-  adapter: 'unknown',
-  'contract?': NestedConfigSchema,
-});
-
-export function defineConfig(config: ConfigInput): ConfigOutput {
-  const validated = ConfigSchema(config);
-  if (validated instanceof type.errors) throw new Error(/* ... */);
-  if (config.contract) {
-    return {
-      ...config,
-      contract: {
-        source: config.contract.source,
-        output: config.contract.output ?? 'src/prisma/contract.json',
-      },
-    };
-  }
-  return config;
-}
-```
-
-## Error Messages
-
-Provide clear, actionable messages; Arktype gives detailed errors, and joining multiple makes them
-all visible so users can fix issues quickly:
-
-```typescript
-if (validated instanceof type.errors) {
-  const messages = validated.map((p: { message: string }) => p.message).join('; ');
-  throw new Error(`Config validation failed: ${messages}`);
-}
-```
-
-Benefits: single responsibility (normalization in one place), predictable defaults, type safety,
-maintainability (default changes touch one function), and testability (normalization tested in
-isolation).
+Command handlers read the already-absolute value. They never re-resolve it and never substitute a default of their own.
 
 ## Related Patterns
 
 - `.cursor/rules/arktype-usage.mdc`: Arktype validation patterns
-- `.cursor/rules/contract-normalization-responsibilities.mdc`: Similar pattern for contracts
 - `.cursor/rules/declarative-config.mdc`: Declarative configuration patterns
+- `docs/reference/error-reference.md`: the `CONFIG.*` codes raised by the loader

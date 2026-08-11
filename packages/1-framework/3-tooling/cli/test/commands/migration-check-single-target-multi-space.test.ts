@@ -6,6 +6,7 @@ import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
+import { ok } from '@internal/utils/result';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeCommand, getExitCode, setupCommandMocks } from '../utils/test-helpers';
@@ -19,7 +20,7 @@ import { executeCommand, getExitCode, setupCommandMocks } from '../utils/test-he
  */
 
 const mocks = vi.hoisted(() => ({ loadConfig: vi.fn() }));
-vi.mock('@internal/config-loader', () => ({ loadConfig: mocks.loadConfig }));
+vi.mock('@internal/config-loader', () => ({ loadConfigForSections: mocks.loadConfig }));
 
 afterAll(() => {
   vi.doUnmock('@internal/config-loader');
@@ -144,7 +145,7 @@ describe('migration check <ref> — single-target multi-space resolution', () =>
     const commandMocks = setupCommandMocks();
     consoleOutput = commandMocks.consoleOutput;
     cleanup = commandMocks.cleanup;
-    mocks.loadConfig.mockResolvedValue(baseConfig());
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig()));
   });
 
   afterEach(async () => {
