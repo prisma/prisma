@@ -22,5 +22,5 @@ export type SqlOrmPlan<Row = unknown> = SqlExecutionPlan<Row> | SqlQueryPlan<Row
  */
 export interface RuntimeScope {
   query<Row>(plan: SqlOrmPlan<Row>, options?: RuntimeExecuteOptions): AsyncIterableResult<Row>;
-  execute(plan: SqlOrmPlan, options?: RuntimeExecuteOptions): Promise<SqlStatementStats>;
+  execute(plan: SqlExecutionPlan, options?: RuntimeExecuteOptions): Promise<SqlStatementStats>;
 }
