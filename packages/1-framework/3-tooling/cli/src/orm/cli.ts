@@ -4,6 +4,7 @@ import { version as CLI_VERSION } from '../../package.json' with { type: 'json' 
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
 import { migrationListCommand } from './migration/list';
+import { normalizeError } from './normalize-error';
 import { resolveTelemetryHooks } from './telemetry/reporting';
 
 export const BIN_NAME = 'prisma-next';
@@ -18,9 +19,12 @@ export interface StrippedConfigFlag {
 /**
  * Interim, pending the engine's own shell-level `--config`: the pinned engine
  * reserves no such flag and would reject it, so the bin reads it off argv and
- * removes it before the engine parses. A trailing `--config` with no value is
- * left in place so the engine reports it as an argument error. Arguments after
- * a bare `--` are positionals, never flags.
+ * removes it before the engine parses. Arguments after a bare `--` are positionals, never flags.
+ *
+ * A `--config` that names no usable path is left in argv rather than consumed, so the engine
+ * reports it as an argument error naming the flag. That covers a trailing `--config`, an empty
+ * `--config=`, and a `--config` whose next token is itself a flag — which would otherwise be
+ * swallowed as the path and silently dropped from the command.
  */
 export function stripConfigFlag(argv: readonly string[]): StrippedConfigFlag {
   const kept: string[] = [];
@@ -36,12 +40,17 @@ export function stripConfigFlag(argv: readonly string[]): StrippedConfigFlag {
       break;
     }
     if (argument.startsWith(`${CONFIG_FLAG}=`)) {
-      configPath = argument.slice(CONFIG_FLAG.length + 1);
+      const value = argument.slice(CONFIG_FLAG.length + 1);
+      if (value === '') {
+        kept.push(argument);
+        continue;
+      }
+      configPath = value;
       continue;
     }
     if (argument === CONFIG_FLAG) {
       const value = argv[index + 1];
-      if (value === undefined) {
+      if (value === undefined || value.startsWith('-')) {
         kept.push(argument);
         continue;
       }
@@ -119,13 +128,32 @@ export function runtimeFromProcess(proc: HostProcess, config: LoadedConfig): Run
   };
 }
 
+/** What the engine itself exits with for a failure it cannot attribute to a command. */
+const STARTUP_FAILURE_EXIT_CODE = 1;
+
+/**
+ * The engine settles everything that happens inside a run. What happens before one exists —
+ * reading the config, resolving telemetry, building the CLI — has no invocation to attach a
+ * diagnostic to, so a throw there would reach the user as a raw stack trace. This writes the
+ * same single line the engine writes in that position instead.
+ */
+function reportStartupFailure(proc: HostProcess, error: unknown): number {
+  const normalized = normalizeError(error);
+  proc.stderr.write(`✘ [${normalized.code}] ${normalized.message}\n`);
+  return STARTUP_FAILURE_EXIT_CODE;
+}
+
 /** Parses, executes and settles one invocation; returns the exit code. */
 export async function runOrmCli(proc: HostProcess): Promise<number> {
-  const { argv, configPath } = stripConfigFlag(proc.argv.slice(2));
-  const config = await loadOrmConfig({
-    cwd: proc.cwd(),
-    ...(configPath === undefined ? {} : { configPath }),
-  });
-  const hooks = resolveTelemetryHooks(proc);
-  return createOrmCli().run(argv, runtimeFromProcess(proc, config), hooks);
+  try {
+    const { argv, configPath } = stripConfigFlag(proc.argv.slice(2));
+    const config = await loadOrmConfig({
+      cwd: proc.cwd(),
+      ...(configPath === undefined ? {} : { configPath }),
+    });
+    const hooks = resolveTelemetryHooks(proc);
+    return await createOrmCli().run(argv, runtimeFromProcess(proc, config), hooks);
+  } catch (error) {
+    return reportStartupFailure(proc, error);
+  }
 }

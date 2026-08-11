@@ -136,9 +136,12 @@ export function resolveMigrationPaths(
   appMigrationsRelative: string;
   refsDir: string;
 } {
-  const configPath = configOption ? relative(cwd, resolve(configOption)) : 'prisma-next.config.ts';
+  const resolvedConfigPath = configOption ? resolve(cwd, configOption) : undefined;
+  const configPath = resolvedConfigPath
+    ? relative(cwd, resolvedConfigPath)
+    : 'prisma-next.config.ts';
   const migrationsDir = resolve(
-    configOption ? resolve(configOption, '..') : cwd,
+    resolvedConfigPath ? resolve(resolvedConfigPath, '..') : cwd,
     config.migrations?.dir ?? 'migrations',
   );
   const migrationsRelative = relative(cwd, migrationsDir);
