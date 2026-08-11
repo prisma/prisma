@@ -114,7 +114,7 @@ describe('migration plan', () => {
         ],
       },
       { kind: 'summary', status: 'ok', text: expect.any(String) },
-      { kind: 'tree', roots: [{ label: 'Create table "user"' }] },
+      { kind: 'tree', roots: [{ label: dir, children: [{ label: 'Create table "user"' }] }] },
       {
         kind: 'fields',
         rows: [
@@ -136,7 +136,15 @@ describe('migration plan', () => {
 
     expect(blocks[2]).toEqual({
       kind: 'tree',
-      roots: [{ label: 'Create table "user"' }, { label: 'Drop table "legacy"', status: 'warn' }],
+      roots: [
+        {
+          label: join('migrations', 'app', (await plannedDirs(project)).at(-1) ?? ''),
+          children: [
+            { label: 'Create table "user"' },
+            { label: 'Drop table "legacy"', status: 'warn' },
+          ],
+        },
+      ],
     });
     expect(blocks[3]).toEqual({
       kind: 'summary',

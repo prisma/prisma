@@ -63,7 +63,10 @@ function operationBlocks(result: MigrationPlanResult): readonly Block[] {
     (operation) => operation.operationClass === 'destructive',
   );
   return [
-    { kind: 'tree', roots: operationNodes(result) },
+    {
+      kind: 'tree',
+      roots: [{ label: result.dir ?? 'operations', children: operationNodes(result) }],
+    },
     ...(destructive
       ? [
           {
