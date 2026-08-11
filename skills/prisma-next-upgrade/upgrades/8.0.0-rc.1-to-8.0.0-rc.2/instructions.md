@@ -418,7 +418,7 @@ these constraints.
 
 Runtime operations state whether the caller expects rows or statement statistics. Do not apply a global `execute` → `query` replacement: an insert, update, or delete that does not return rows belongs on `execute`, while a select, a returning write, a Mongo command-result plan, or any plan whose result is iterated, awaited as an array, indexed, decoded, or otherwise read belongs on `query`.
 
-| Before 0.18 | 0.18 translation |
+| 8.0.0-rc.1 | 8.0.0-rc.2 |
 | --- | --- |
 | `await runtime.execute(rowPlan)` | `await runtime.query(rowPlan)` |
 | `runtime.execute(rowPlan).toArray()` | `runtime.query(rowPlan).toArray()` |
