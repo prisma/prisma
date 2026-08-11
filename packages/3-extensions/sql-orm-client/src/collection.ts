@@ -1645,7 +1645,7 @@ class CollectionImpl<
         mappedRows,
       ).map((plan) => mergeAnnotations(plan, annotationsMap));
       for (const plan of plans) {
-        await queryPlanRows<Record<string, unknown>>(this.ctx.runtime, plan).toArray();
+        await this.ctx.runtime.execute(plan);
       }
       return data.length;
     }
@@ -1654,7 +1654,7 @@ class CollectionImpl<
       compileInsertCount(this.contract, this.namespaceId, this.tableName, mappedRows),
       annotationsMap,
     );
-    await queryPlanRows<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
+    await this.ctx.runtime.execute(compiled);
     return data.length;
   }
 
@@ -2171,7 +2171,7 @@ class CollectionImpl<
           ),
           annotationsMap,
         );
-        await queryPlanRows<Record<string, unknown>>(scope, deletePlan).toArray();
+        await scope.execute(deletePlan);
         return rows;
       });
       for (const row of snapshot) {
