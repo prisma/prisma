@@ -153,3 +153,82 @@ describe('PrismaPgAdapterFactory', () => {
     await adapter.dispose()
   })
 })
+
+describe('query serialization', () => {
+  const query = (sql: string): SqlQuery => ({ sql, args: [], argTypes: [] })
+  const emptyResult = { rows: [], fields: [], rowCount: 0 }
+
+  function trackingQueryMock() {
+    let inFlight = 0
+    let maxInFlight = 0
+    const started: string[] = []
+    const mock = vi.fn(async ({ text }: { text: string }) => {
+      started.push(text)
+      maxInFlight = Math.max(maxInFlight, ++inFlight)
+      await new Promise((resolve) => setImmediate(resolve))
+      inFlight--
+      return emptyResult
+    })
+    return { mock, started, maxInFlight: () => maxInFlight }
+  }
+
+  async function connectedAdapter() {
+    const factory = new PrismaPgAdapterFactory('postgresql://test:test@localhost:5432/test')
+    return await factory.connect()
+  }
+
+  it('serializes concurrent queries on a transaction connection', async () => {
+    const adapter = await connectedAdapter()
+    const { mock, maxInFlight } = trackingQueryMock()
+    const mockConnection = { on: vi.fn(), removeListener: vi.fn(), query: mock, release: vi.fn() }
+    adapter['client'].connect = vi.fn().mockResolvedValue(mockConnection)
+
+    const transaction = await adapter.startTransaction()
+    await Promise.all([
+      transaction.queryRaw(query('SELECT 1')),
+      transaction.queryRaw(query('SELECT 2')),
+      transaction.queryRaw(query('SELECT 3')),
+    ])
+
+    // A pg.PoolClient is a single connection: queries must never overlap.
+    expect(maxInFlight()).toBe(1)
+    await transaction.commit()
+    await adapter.dispose()
+  })
+
+  it('does not serialize queries on the pool', async () => {
+    const adapter = await connectedAdapter()
+    const { mock, maxInFlight } = trackingQueryMock()
+    adapter['client'].query = mock
+
+    await Promise.all([
+      adapter.queryRaw(query('SELECT 1')),
+      adapter.queryRaw(query('SELECT 2')),
+      adapter.queryRaw(query('SELECT 3')),
+    ])
+
+    // The pool handles concurrency itself; serializing here would limit the
+    // whole application to one query at a time.
+    expect(maxInFlight()).toBe(3)
+    await adapter.dispose()
+  })
+
+  it('keeps serializing after a failed query', async () => {
+    const adapter = await connectedAdapter()
+    const mock = vi
+      .fn()
+      .mockResolvedValueOnce(emptyResult) // BEGIN
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValue(emptyResult)
+    const mockConnection = { on: vi.fn(), removeListener: vi.fn(), query: mock, release: vi.fn() }
+    adapter['client'].connect = vi.fn().mockResolvedValue(mockConnection)
+
+    const tx = await adapter.startTransaction()
+    const failing = tx.queryRaw(query('SELECT 1'))
+    const following = tx.queryRaw(query('SELECT 2'))
+
+    await expect(failing).rejects.toThrow()
+    await expect(following).resolves.toBeDefined()
+    await adapter.dispose()
+  })
+})

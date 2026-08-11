@@ -95,6 +95,47 @@ test('merges chunked query results without overflowing the stack', async () => {
   expect(result).toHaveLength(rowsPerLaterChunk)
 })
 
+// Loading sibling relations concurrently is intentional: adapters whose connection
+// cannot run queries concurrently (e.g. a single pg connection) are responsible for
+// serializing them in `performIO` (see https://github.com/prisma/prisma/issues/29407).
+// This pins the interpreter side of that contract so join loading stays parallel.
+test('loads join children in parallel', async () => {
+  let inFlight = 0
+  let maxInFlight = 0
+  const queryable: SqlQueryable = {
+    provider: 'postgres',
+    adapterName: 'test',
+    queryRaw: async () => {
+      maxInFlight = Math.max(maxInFlight, ++inFlight)
+      await new Promise((resolve) => setImmediate(resolve))
+      inFlight--
+      return userResultSet(1, 'Alice')
+    },
+    executeRaw: () => Promise.resolve(0),
+  }
+
+  const joinChild = (parentField: string) => ({
+    child: queryNode(`SELECT * FROM ${parentField}`),
+    on: [['id', 'id']] as [string, string][],
+    parentField,
+    isRelationUnique: true,
+  })
+
+  const queryPlan: QueryPlanNode = {
+    type: 'join',
+    args: {
+      parent: queryNode('SELECT * FROM users'),
+      children: [joinChild('posts'), joinChild('profile'), joinChild('settings')],
+      canAssumeStrictEquality: true,
+    },
+  }
+
+  const interpreter = QueryInterpreter.forSql({ tracingHelper: noopTracingHelper })
+  await interpreter.run(queryPlan, { queryable, transactionManager: { enabled: false }, scope: {} })
+
+  expect(maxInFlight).toBe(3)
+})
+
 class MockTransactionAdapter implements SqlDriverAdapter {
   adapterName = 'mock-adapter'
   provider = 'postgres' as const

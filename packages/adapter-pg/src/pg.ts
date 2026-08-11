@@ -32,6 +32,13 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
+  // `pg.Client` and `pg.PoolClient` are single connections and don't support
+  // concurrent queries (deprecated in pg@8, an error in pg@9), so queries must
+  // be serialized. `pg.Pool` handles concurrency itself and must not be
+  // serialized, or the whole pool would be limited to one query at a time.
+  protected readonly serializeQueries: boolean = true
+  #queryLock: Promise<unknown> = Promise.resolve()
+
   constructor(
     protected readonly client: ClientT,
     protected readonly pgOptions?: PrismaPgOptions,
@@ -99,6 +106,18 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
    * marked as unhealthy.
    */
   private async performIO(query: SqlQuery): Promise<pg.QueryArrayResult<any>> {
+    if (!this.serializeQueries) {
+      return this.#performIO(query)
+    }
+    const previous = this.#queryLock
+    const current = previous.then(() => this.#performIO(query))
+    // Keep the lock chain alive even if the query fails; the failure still
+    // propagates to the caller through `current`.
+    this.#queryLock = current.catch(() => {})
+    return current
+  }
+
+  async #performIO(query: SqlQuery): Promise<pg.QueryArrayResult<any>> {
     const { sql, args } = query
     const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
 
@@ -197,6 +216,8 @@ export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQu
 export type StatementNameGenerator = (query: SqlQuery) => string
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
+  protected override readonly serializeQueries = false
+
   constructor(
     client: StdClient,
     protected readonly pgOptions?: PrismaPgOptions,
