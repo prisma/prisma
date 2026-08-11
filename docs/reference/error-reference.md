@@ -553,7 +553,7 @@ A Mongo mutation method (e.g. update/delete variants) requires a prior `.where()
 
 ### RUNTIME.ABORTED
 
-An in-flight `execute()` was cancelled via the per-query `AbortSignal` passed as `execute(plan, { signal })`. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeQuery` / `beforeExecute` / `afterQuery` / `afterExecute` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Meta: `phase`.
+An in-flight `query()` or `execute()` operation was cancelled via the per-operation `AbortSignal` passed as the call's `{ signal }` option. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeQuery` / `beforeExecute` / `afterQuery` / `afterExecute` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Meta: `phase`.
 
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
@@ -667,7 +667,7 @@ A statistics execution completed without returning statement statistics. This in
 
 ### RUNTIME.ITERATOR_CONSUMED
 
-An `AsyncIterableResult` (the return value of `execute()`) was iterated a second time — each result can be consumed only once, whether via a `for await` loop or via `toArray()`/`await`. Store the array from `toArray()` if you need to reuse the rows. Meta: `consumedBy`, `suggestion`.
+An `AsyncIterableResult` (the return value of `query()`) was iterated a second time — each result can be consumed only once, whether via a `for await` loop or via `toArray()`/`await`. Store the array from `toArray()` if you need to reuse the rows. Meta: `consumedBy`, `suggestion`.
 
 ### RUNTIME.JSON_SCHEMA_VALIDATION_FAILED
 
@@ -765,7 +765,7 @@ A control-plane driver could not establish a database connection (`driver.create
 
 ### DRIVER.NOT_CONNECTED
 
-Using a driver, a target facade client, or the CLI control client before `connect(...)` has been called (or after it was closed) — surfaces from `execute`, `executePrepared`, `acquireConnection`, `query`, or `explain`, including lazily when iterating an execute result.
+Using a driver, a target facade client, or the CLI control client before `connect(...)` has been called (or after it was closed) — surfaces from `execute`, `executePrepared`, `acquireConnection`, `query`, or `explain`, including lazily when iterating a query result.
 
 ### DRIVER.PREPARE_FAILED
 
