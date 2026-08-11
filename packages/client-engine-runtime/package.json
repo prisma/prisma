@@ -34,7 +34,7 @@
     "@prisma/param-graph": "workspace:*",
     "@prisma/json-protocol": "workspace:*",
     "klona": "2.0.6",
-    "nanoid": "5.1.5",
+    "nanoid": "5.1.16",
     "ulid": "3.0.0",
     "uuid": "14.0.0"
   },
