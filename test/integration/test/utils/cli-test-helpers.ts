@@ -18,10 +18,6 @@ import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import type { EngineEvent, MountedTree, PresentedResult, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { afterEach, beforeEach } from 'vitest';
-// Note: executeCommand and other test helpers are re-exported at the bottom of this file
-// They come from the CLI package's test utilities but are not exported from the package
-// We import them directly from the source file
-import { executeCommand } from '../../../../packages/1-framework/3-tooling/cli/test/utils/test-helpers';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // Use a shared fixture package directory that has the necessary dependencies
@@ -414,17 +410,9 @@ export async function setupDbTestFixture(
   );
   const configPath = testSetup.configPath;
 
-  // Emit contract
-  const { createContractEmitCommand } = await import(
-    '../../../../packages/1-framework/3-tooling/cli/src/commands/contract-emit'
-  );
-  const emitCommand = createContractEmitCommand();
-  const originalCwd = process.cwd();
-  try {
-    process.chdir(testSetup.testDir);
-    await executeCommand(emitCommand, ['--config', configPath, '--no-color']);
-  } finally {
-    process.chdir(originalCwd);
+  const emit = await runOnEngine(testSetup, ['contract', 'emit']);
+  if (emit.exitCode !== 0) {
+    throw new Error(`setupDbTestFixture: contract emit exited ${emit.exitCode}\n${emit.stderr}`);
   }
 
   return { testSetup, configPath };
