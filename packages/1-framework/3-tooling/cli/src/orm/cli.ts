@@ -3,6 +3,7 @@ import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
+import { migrationListCommand } from './migration/list';
 import { telemetryDisableCommand } from './telemetry/disable';
 import { telemetryEnableCommand } from './telemetry/enable';
 import { resolveTelemetryHooks } from './telemetry/reporting';
@@ -58,6 +59,12 @@ export function stripConfigFlag(argv: readonly string[]): StrippedConfigFlag {
 }
 
 export const BIN_GROUPS = {
+  migration: {
+    brief: 'On-disk migration management commands',
+    description:
+      'Plan, apply, and scaffold on-disk migration packages. Migrations are\n' +
+      'contract-to-contract edges stored as versioned directories under migrations/.',
+  },
   telemetry: {
     brief: 'Inspect and change anonymous CLI telemetry',
     description:
@@ -68,6 +75,7 @@ export const BIN_GROUPS = {
 } as const;
 
 export const BIN_COMMANDS: MountedTree = {
+  'migration list': migrationListCommand,
   'telemetry status': telemetryStatusCommand,
   'telemetry enable': telemetryEnableCommand,
   'telemetry disable': telemetryDisableCommand,

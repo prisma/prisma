@@ -4,12 +4,20 @@ import { userConfigPath, writeUserConfig } from '@internal/cli-telemetry';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
 
 const inCI = vi.hoisted(() => ({ value: false }));
 vi.mock('../../src/utils/is-ci', () => ({ isCI: () => inCI.value }));
 
-const harness = { commands: BIN_COMMANDS, groups: BIN_GROUPS };
+/**
+ * The package's vitest config runs with `isolate: false`, so a module graph
+ * loaded by another file would carry the real CI detector. Re-importing per
+ * test binds these commands to the mock above.
+ */
+async function harness() {
+  vi.resetModules();
+  const { BIN_COMMANDS, BIN_GROUPS } = await import('../../src/orm/cli');
+  return createTestCli({ commands: BIN_COMMANDS, groups: BIN_GROUPS });
+}
 
 let configHome = '';
 let previousConfigHome: string | undefined;
@@ -36,7 +44,7 @@ function storedConfig(): Record<string, unknown> {
 
 describe('telemetry status', () => {
   it('reports the opt-out default as enabled without writing anything', async () => {
-    const cli = createTestCli(harness);
+    const cli = await harness();
 
     const run = await cli.run(['telemetry', 'status', '--json'], { env: {} });
 
@@ -52,7 +60,7 @@ describe('telemetry status', () => {
 
   it('reports CI as a hard disable', async () => {
     inCI.value = true;
-    const cli = createTestCli(harness);
+    const cli = await harness();
 
     const run = await cli.run(['telemetry', 'status', '--json'], { env: {} });
 
@@ -60,7 +68,7 @@ describe('telemetry status', () => {
   });
 
   it('reports an environment opt-out', async () => {
-    const cli = createTestCli(harness);
+    const cli = await harness();
 
     const run = await cli.run(['telemetry', 'status', '--json'], {
       env: { DO_NOT_TRACK: '1' },
@@ -71,7 +79,7 @@ describe('telemetry status', () => {
 
   it('never discloses the installation id itself', async () => {
     writeUserConfig({ installationId: 'secret-id-value' });
-    const cli = createTestCli(harness);
+    const cli = await harness();
 
     const run = await cli.run(['telemetry', 'status'], { env: {} });
 
@@ -80,7 +88,7 @@ describe('telemetry status', () => {
   });
 
   it('puts the payload lines on stdout and the same reading in blocks', async () => {
-    const cli = createTestCli(harness);
+    const cli = await harness();
 
     const run = await cli.run(['telemetry', 'status'], { env: {}, isTty: { stdout: true } });
 
@@ -104,7 +112,7 @@ describe('telemetry status', () => {
 
 describe('telemetry enable', () => {
   it('stores the opt-in and mints an installation id', async () => {
-    const cli = createTestCli(harness);
+    const cli = await harness();
 
     const run = await cli.run(['telemetry', 'enable'], { env: {} });
 
@@ -116,7 +124,7 @@ describe('telemetry enable', () => {
   });
 
   it('confirms on stdout and reports the decision as json', async () => {
-    const cli = createTestCli(harness);
+    const cli = await harness();
 
     const run = await cli.run(['telemetry', 'enable'], { env: {}, isTty: { stdout: true } });
 
@@ -129,7 +137,7 @@ describe('telemetry enable', () => {
 
 describe('telemetry disable', () => {
   it('stores the opt-out and mints nothing', async () => {
-    const cli = createTestCli(harness);
+    const cli = await harness();
 
     const run = await cli.run(['telemetry', 'disable'], { env: {} });
 

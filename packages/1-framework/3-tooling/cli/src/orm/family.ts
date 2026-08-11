@@ -2,6 +2,7 @@ import { DOCS_BASE } from '@internal/utils/structured-error';
 import type { AnyCommand } from '@prisma/cli-engine';
 import { defineCommandFamily } from '@prisma/cli-engine';
 import { ormConfigSection } from './config-section';
+import { migrationListCommand } from './migration/list';
 
 /**
  * The engine derives each diagnostic's docs link from this base plus the
@@ -9,7 +10,9 @@ import { ormConfigSection } from './config-section';
  */
 const DOCS_BASE_URL = `${DOCS_BASE}/`;
 
-const commands: Readonly<Record<string, AnyCommand>> = {};
+const commands: Readonly<Record<string, AnyCommand>> = {
+  'migration list': migrationListCommand,
+};
 
 /**
  * The unit the ORM contributes to a CLI: its config section, its commands by
