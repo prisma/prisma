@@ -72,10 +72,11 @@ changes:
       extension manages is visible for the first time: it verifies as an undeclared extra under
       `--strict` and becomes a `dropCheckConstraint` under a policy that allows `destructive`.
       If your extension installs checks out of band — through a raw-SQL migration step rather
-      than through the contract — there is no way to declare them in 8.0.0-rc.2 (checks have no
-      authoring surface, and derivation from column shape is not one). Keep the tables carrying
-      them under an additive-only policy — the checks survive, and only `--strict` verify
-      reports them — or expect the first destructive plan against an upgraded database to
+      than through the contract — declare them instead: `@@check(expression: "…", map: "<physical
+      name>")` adopts a constraint under the name it already carries. Until they are declared,
+      keep the tables carrying them under an additive-only policy — the checks survive, and only
+      `--strict` verify reports them — or expect the first destructive plan against an upgraded
+      database to
       offer to drop them. An authoring/opt-out surface is planned for a later release.
     detection:
       glob: "**/contract.json"
@@ -243,6 +244,23 @@ changes:
         - "encodeJson"
         - "decodeJson"
         - "codec.encode"
+      anyMatch: true
+  - id: authored-check-constraints
+    summary: |
+      Two things change for packs. `sql.checkConstraint` is a new adapter-reported capability: an
+      adapter whose target implements CHECK constraint DDL reports it, and the `@@check` authoring
+      surface is gated on it. And a check is no longer "derived" merely by being wire-named —
+      user-authored checks are wire-named too. Derivation is now decided by whether the wire prefix
+      is one derivation would produce for a column of that table. A pack that read
+      `check.prefix !== undefined` to mean "Prisma Next generated this" must use the same
+      prefix-shape test, `derivedCheckPrefixes` from `@internal/sql-schema-ir/naming`. An authored
+      name that collides with a derived prefix shape is rejected at authoring with
+      `CONTRACT.CHECK_NAME_RESERVED`.
+    detection:
+      glob: "**/*.{ts,tsx}"
+      contains:
+        - 'checkConstraint'
+        - 'derivedCheckPrefixes'
       anyMatch: true
 ---
 
@@ -502,25 +520,7 @@ Two consequences for a pack:
   A `Date` is the one authored value JSON has no notation for, so it is the one that arrives as itself.
 
 <!--
-PR #29910: `changes:
-  - id: authored-check-constraints
-    summary: |
-      Packs gain two things. First, `sql.checkConstraint` is a new adapter-reported capability; an
-      adapter that supports CHECK constraint DDL should report it, and the `@@check` authoring
-      surface is gated on it. Second, a check is no longer "derived" merely by being wire-named:
-      derivation is now decided by whether the wire prefix is one derivation would produce for a
-      column of that table, because user-authored checks are wire-named too. A pack that inspected
-      `check.prefix !== undefined` to mean "Prisma Next generated this" must use the same
-      prefix-shape test (`derivedCheckPrefixes` from `@internal/sql-schema-ir/naming`). An authored
-      name that collides with a derived prefix shape is rejected at authoring
-      (`CONTRACT.CHECK_NAME_RESERVED`).
-    detection:
-      glob: "**/*.{ts,tsx}"
-      contains:
-        - 'checkConstraint'
-        - 'derivedCheckPrefixes'
-        - 'prefix'
-      anyMatch: true`. Binding internal mutation-reload filters and repairing Supabase runtime coverage after the driver SPI split require no downstream extension source translation.
+PR #29910: `changes: []`. Binding internal mutation-reload filters and repairing Supabase runtime coverage after the driver SPI split require no downstream extension source translation.
 
 PR #29920: `changes: []`. Adds prepared-statement test coverage to the Supabase runtime suite (test-fixture codec registration only) and fixes a postgres direct-driver transaction defect; neither requires downstream extension source translation. The SPI split itself is recorded as `driver-spi-splits-query-and-execute` in the 0.17-to-8.0.0-rc.1 transition.
 
