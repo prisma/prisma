@@ -248,45 +248,48 @@ test('prisma7 snapshots real CLI-owned identity surfaces and keeps the packed sm
       projectVersion(versionText, versionJson),
       replacements,
     ) as VersionProjection
-    expect(normalizedVersion.text).toEqual({
-      clientLabel: '@prisma/client',
-      clientVersion: '0.0.0',
-      distributionLabel: 'prisma7',
-      distributionVersion: '0.0.0',
-      hasPrismaLabel: false,
-      metadataLabels: [
-        'Operating System',
-        'Architecture',
-        'Node.js',
-        'TypeScript',
-        'Query Compiler',
-        'PSL',
-        'Schema Engine',
-        'Default Engines Hash',
-        'Studio',
-        'Prisma CLI Path',
-      ],
-      stderr:
-        'Loaded Prisma config from prisma.config.ts.\n\nPrisma schema loaded from project-models/non-default.prisma.',
-    })
-    expect(normalizedVersion.json).toEqual({
-      clientVersion: '0.0.0',
-      distributionKey: 'prisma7',
-      distributionVersion: '0.0.0',
-      hasPrismaKey: false,
-      metadataKeys: [
-        'architecture',
-        'default-engines-hash',
-        'node.js',
-        'operating-system',
-        'prisma-cli-path',
-        'psl',
-        'query-compiler',
-        'schema-engine',
-        'studio',
-        'typescript',
-      ],
-    })
+    expect(normalizedVersion.text).toMatchInlineSnapshot(`
+{
+  "clientLabel": "@prisma/client",
+  "clientVersion": "0.0.0",
+  "distributionLabel": "prisma7",
+  "distributionVersion": "0.0.0",
+  "hasPrismaLabel": false,
+  "metadataLabels": [
+    "Operating System",
+    "Architecture",
+    "Node.js",
+    "TypeScript",
+    "Query Compiler",
+    "PSL",
+    "Schema Engine",
+    "Default Engines Hash",
+    "Studio",
+    "Prisma CLI Path",
+  ],
+  "stderr": "Loaded Prisma config from prisma.config.ts.\n\nPrisma schema loaded from project-models/non-default.prisma.",
+}
+    `)
+    expect(normalizedVersion.json).toMatchInlineSnapshot(`
+{
+  "clientVersion": "0.0.0",
+  "distributionKey": "prisma7",
+  "distributionVersion": "0.0.0",
+  "hasPrismaKey": false,
+  "metadataKeys": [
+    "architecture",
+    "default-engines-hash",
+    "node.js",
+    "operating-system",
+    "prisma-cli-path",
+    "psl",
+    "query-compiler",
+    "schema-engine",
+    "studio",
+    "typescript",
+  ],
+}
+    `)
 
     const normalizedCompletionZsh = normalizeValue(completionZsh, replacements) as CommandOutput
     expect(normalizedCompletionZsh.stderr).toBe('')
