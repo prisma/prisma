@@ -250,6 +250,46 @@ describe('executeContractEmit', () => {
     expect(emitContract).not.toBe(plainEnvelope);
   });
 
+  describe('the import root the emitted files are written against', () => {
+    async function emitInto(project: string, options: { readonly namesConfig: boolean }) {
+      const outputJsonPath = join(tmpDir, project, 'generated/contract.json');
+      await actualFs.mkdir(join(tmpDir, project), { recursive: true });
+      await actualFs.writeFile(
+        join(tmpDir, project, 'package.json'),
+        JSON.stringify({
+          name: project,
+          dependencies: { '@prisma/orm-postgres': '8.0.0-rc.1' },
+        }),
+        'utf-8',
+      );
+      mockedEmit.mockResolvedValueOnce(createEmitResult('specifiers'));
+
+      await executeContractEmit(
+        options.namesConfig
+          ? emitOptions(
+              createSuccessfulConfig(outputJsonPath),
+              join(tmpDir, project, 'prisma-next.config.ts'),
+            )
+          : { config: createSuccessfulConfig(outputJsonPath), cwd: tmpDir },
+      );
+
+      const resolveSpecifier = mockedEmit.mock.calls.at(-1)?.[3]?.resolveImportSpecifier;
+      return resolveSpecifier?.('@internal/target-postgres/runtime');
+    }
+
+    it('is the project the artifacts are written into, not the working directory', async () => {
+      expect(await emitInto('app-a', { namesConfig: false })).toBe(
+        '@prisma/orm-postgres/target/runtime',
+      );
+    });
+
+    it('is the project holding the config file when the caller names one', async () => {
+      expect(await emitInto('app-b', { namesConfig: true })).toBe(
+        '@prisma/orm-postgres/target/runtime',
+      );
+    });
+  });
+
   it('serializes overlapping emits per output path so the last submission wins on disk', async () => {
     const outputJsonPath = join(tmpDir, 'src/prisma/contract.json');
     const outputDtsPath = join(tmpDir, 'src/prisma/contract.d.ts');

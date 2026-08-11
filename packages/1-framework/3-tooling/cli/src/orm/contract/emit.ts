@@ -2,20 +2,13 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations } from '@prisma/cli-engine';
 import { defineCommand, flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
-import { dirname, join, relative, resolve } from 'pathe';
+import { dirname, relative, resolve } from 'pathe';
 import { executeContractEmit } from '../../control-api/operations/contract-emit';
 import type { ContractEmitResult } from '../../control-api/types';
 import { ormConfigSection } from '../config-section';
 import { normalizeError } from '../normalize-error';
 import { controlProgressReporter } from '../progress';
 import { emittedArtifactPathsFor } from './paths';
-
-/**
- * The file the bin's loader reads. The handler never sees `--config` — it is
- * an engine flag — so the project whose manifest decides the emitted import
- * specifiers is the one at the invocation directory.
- */
-const ORM_CONFIG_FILENAME = 'prisma-next.config.ts';
 
 interface EmitDocument {
   readonly ok: true;
@@ -106,7 +99,6 @@ export const contractEmitCommand = defineCommand({
       result = await executeContractEmit({
         config: ctx.config,
         cwd: ctx.cwd,
-        configPath: join(ctx.cwd, ORM_CONFIG_FILENAME),
         onProgress: controlProgressReporter(ctx.report),
         signal: ctx.signal,
         ...ifDefined('outputPath', outputPath),
