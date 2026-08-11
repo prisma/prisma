@@ -34,7 +34,7 @@ const ADDITIVE_OP = blindCast<
 >({
   id: 'schema.add_column',
   label: 'Add column',
-  operationClass: 'schema',
+  operationClass: 'additive',
 });
 
 const TEST_CONTRACT = createSqlContract({
@@ -136,10 +136,27 @@ describe('migration list', () => {
     });
 
     expect(run.presented?.presentation.stdout).toEqual([
-      'There are no migrations in migrations/app/ yet',
+      '○   4cb4256',
+      '│↑  20250101T0000_initial        ∅ → 4cb4256  1 ops',
+      '○   ∅',
+      '',
+      '1 migration(s) on disk',
     ]);
     expect(run.presented?.presentation.human).toEqual([
       { kind: 'fields', rows: [{ label: 'migrations', value: join(dir, 'migrations') }] },
+    ]);
+  });
+
+  it('renders the empty-project line when no migration is on disk', async () => {
+    const dir = await projectDir();
+
+    const run = await harness(ormConfig()).run(['migration', 'list'], {
+      cwd: dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.stdout).toEqual([
+      'There are no migrations in migrations/app/ yet',
     ]);
   });
 
