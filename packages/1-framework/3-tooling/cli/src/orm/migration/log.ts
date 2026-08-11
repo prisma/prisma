@@ -37,27 +37,27 @@ const HEADING_MIGRATION = 'Migration';
 const HEADING_CHANGE = 'Change';
 const HEADING_OPS = 'Ops';
 
-interface LogTable {
-  readonly columns: readonly Text[];
+interface LedgerGrid {
+  readonly headings: readonly Text[];
   readonly rows: ReadonlyArray<readonly Text[]>;
 }
 
 /**
- * The ledger as a table the engine sizes. The Space column appears only when
- * more than one contract space has run, as it does in the commander shell.
+ * The ledger laid out for the engine to size. The Space heading appears only
+ * when more than one contract space has run, as it does in the commander shell.
  */
-function logTable(
+function ledgerGrid(
   entries: readonly LedgerEntryRecord[],
   options: { readonly utc: boolean; readonly glyphMode: GlyphMode },
-): LogTable {
+): LedgerGrid {
   const styler = createToneMigrationListStyler();
   const sorted = sortLedgerEntries(entries);
   const showSpace = new Set(sorted.map((entry) => entry.space)).size > 1;
-  const columns: Text[] = [HEADING_APPLIED_AT];
+  const headings: Text[] = [HEADING_APPLIED_AT];
   if (showSpace) {
-    columns.push(HEADING_SPACE);
+    headings.push(HEADING_SPACE);
   }
-  columns.push(HEADING_MIGRATION, HEADING_CHANGE, HEADING_OPS);
+  headings.push(HEADING_MIGRATION, HEADING_CHANGE, HEADING_OPS);
 
   const rows = sorted.map((entry) => {
     const cells: Text[] = [formatLedgerAppliedAt(entry.appliedAt, options.utc ? 'utc' : 'local')];
@@ -72,15 +72,15 @@ function logTable(
     return cells;
   });
 
-  return { columns, rows };
+  return { headings, rows };
 }
 
 function logPresentations(inputs: {
   readonly document: MigrationLogResult;
-  readonly table: LogTable | undefined;
+  readonly grid: LedgerGrid | undefined;
   readonly database: string | undefined;
 }): Presentations {
-  const table = inputs.table;
+  const grid = inputs.grid;
   return {
     human: (): readonly Block[] => [
       ...(inputs.database === undefined
@@ -92,9 +92,9 @@ function logPresentations(inputs: {
               rows: [{ label: 'database', value: inputs.database }],
             },
           ]),
-      ...(table === undefined
+      ...(grid === undefined
         ? [{ kind: 'summary' as const, status: 'info' as const, text: MIGRATION_LOG_EMPTY_MESSAGE }]
-        : [{ kind: 'table' as const, columns: table.columns, rows: table.rows }]),
+        : [{ kind: 'table' as const, columns: grid.headings, rows: grid.rows }]),
     ],
     json: () => inputs.document,
   };
@@ -182,10 +182,10 @@ export const migrationLogCommand = defineOrmCommand({
         { data: document },
         logPresentations({
           document,
-          table:
+          grid:
             entries.length === 0
               ? undefined
-              : logTable(entries, { utc: args.flags.utc, glyphMode }),
+              : ledgerGrid(entries, { utc: args.flags.utc, glyphMode }),
           database: typeof dbConnection === 'string' ? maskConnectionUrl(dbConnection) : undefined,
         }),
       ),

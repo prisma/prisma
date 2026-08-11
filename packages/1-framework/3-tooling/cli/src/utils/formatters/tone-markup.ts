@@ -1,7 +1,7 @@
 import type { Span, Text, Tone } from '@prisma/cli-engine';
 
 /**
- * The drawing formatters compose one string per line, measuring column widths
+ * The drawing formatters compose one string per line, measuring display widths
  * with `string-width` as they go. To carry colour through that pipeline without
  * disturbing a single width, a tone is marked with an SGR escape sequence:
  * `string-width` and `strip-ansi` already treat those as zero-width, so every

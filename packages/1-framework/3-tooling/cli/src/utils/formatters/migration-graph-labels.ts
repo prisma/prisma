@@ -93,7 +93,7 @@ function rolePainter(
  *
  * - `onPath`: emphasized name, neutral hashes (the on-path lane glyphs are
  *   coloured by the grid renderer, not here).
- * - `offPath`: the off-path role reaches the name and the whole hash column.
+ * - `offPath`: the off-path role reaches the name and the whole hash field.
  *
  * To change the on-path / off-path label colour in future, edit this object.
  */
