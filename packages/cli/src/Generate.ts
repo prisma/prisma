@@ -225,6 +225,7 @@ Please run \`${this.identity} generate\` manually.`
           globalLocalVersionWarning = await this.getGlobalLocalVersionMismatchWarning({
             cwd: schemaContext.schemaRootDir,
             globalVersion: cliVersion,
+            identity: this.identity,
           })
         } catch {
           globalLocalVersionWarning = null

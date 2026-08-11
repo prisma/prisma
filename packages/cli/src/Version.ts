@@ -72,7 +72,7 @@ export class Version implements Command {
     const prismaCliPath = path.dirname(require.resolve('../package.json'))
 
     const rows = [
-      [packageJson.name, packageJson.version],
+      [this.identity, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
