@@ -122,14 +122,16 @@ Mirroring `@@index` at every step:
 
 | Situation | Outcome |
 | --- | --- |
-| neither `name:` nor `map:` | error `PSL_CHECK_REQUIRES_NAME_OR_MAP` (TS: `CONTRACT.CONSTRAINT_INVALID`), span-anchored |
-| both `name:` and `map:` | error `PSL_CHECK_NAME_XOR_MAP` |
-| empty or whitespace-only `expression` | error — an empty predicate is not a constraint |
+| neither `name:` nor `map:` | error `PSL_CHECK_REQUIRES_NAME_OR_MAP` (TS: `CONTRACT.ARGUMENT_INVALID`), span-anchored |
+| both `name:` and `map:` | error `PSL_CHECK_NAME_XOR_MAP` (TS: `CONTRACT.ARGUMENT_INVALID`) |
+| empty or whitespace-only `expression` | error `CONTRACT.ARGUMENT_INVALID` — an empty predicate is not a constraint |
 | authored `name:` prefix over the 54-byte wire budget | throw from `assertWireNamePrefixLength` (author can shorten it) |
 | `map:` with a hand-authored body | **warning** `PN_EXACT_NAME_BODY_COMPARISON`, not an error |
 | authored name collides with another check on the same table (authored or derived) | error — table-wide constraint-name uniqueness is already validated and stays |
 | authored `name:` prefix matches a derived-prefix shape for any column of the table | error `PSL_CHECK_NAME_RESERVED` / `CONTRACT.CHECK_NAME_RESERVED` — see § The derived-check marker |
 | `@@check` on a target without the capability | error `PSL_CHECK_UNSUPPORTED_TARGET` (see below) |
+
+**Error codes.** The naming/arity errors are raised in `@internal/sql-contract` (Core) and use `CONTRACT.ARGUMENT_INVALID`, matching `lowerAuthoredIndex`, which raises exactly the same two rules — name-xor-map and requires-a-name-or-map — under that code (`index-naming.ts:106-131`). Core's subcode union deliberately stays as it is; `CONTRACT.CONSTRAINT_INVALID` lives one layer up in `@internal/sql-contract-ts` and is not reachable from Core without inverting the layering. The one genuinely new code, `CONTRACT.CHECK_NAME_RESERVED`, belongs to that Authoring package beside `CONSTRAINT_INVALID`, because the reserved-prefix rule needs the table's columns and is raised in `build-contract`.
 
 ## SQLite
 

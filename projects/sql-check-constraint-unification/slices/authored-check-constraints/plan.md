@@ -37,7 +37,7 @@ Validation gates per dispatch are the team DoD floor ([`drive/calibration/dod.md
 
 **Outcome.** `check({ expression, name? , map? })` on a model's `.sql({ checks: [...] })` produces a contract carrying the authored check, with every Validation-table row enforced.
 
-**Files.** `CheckNode` + `ModelNode.checks` in `contract-definition.ts` (beside `IndexNode` `:81-90` / `:196`); `check()` in `contract-dsl.ts` (beside `index()` `:1051-1076`); call `lowerAuthoredCheck` from `build-contract.ts` near `:1133-1151`, merging into `checksForTable` before `:1182` **outside** the `derivesChecks` guard; new error subcodes `CONTRACT.CHECK_NAME_RESERVED` (+ reuse `CONTRACT.CONSTRAINT_INVALID` for arity/empty-expression) in `contract-errors.ts`; **add the matching `docs/reference/error-reference.md` entry in this dispatch** — `pnpm check:error-reference` is a Lint-job gate.
+**Files.** `CheckNode` + `ModelNode.checks` in `contract-definition.ts` (beside `IndexNode` `:81-90` / `:196`); `check()` in `contract-dsl.ts` (beside `index()` `:1051-1076`); call `lowerAuthoredCheck` from `build-contract.ts` near `:1133-1151`, merging into `checksForTable` before `:1182` **outside** the `derivesChecks` guard; new error subcode `CONTRACT.CHECK_NAME_RESERVED` in the **Authoring** package's `contract-errors.ts` (arity/empty-expression already raise `CONTRACT.ARGUMENT_INVALID` from Core in D1 — see spec § Validation); **add the matching `docs/reference/error-reference.md` entry in this dispatch** — `pnpm check:error-reference` is a Lint-job gate.
 
 **Completed when.** Every Validation row is covered by a test; an authored check reaches `table.checks` on both `managed` and `external` tables; `pnpm fixtures:check` clean (no contract shape change).
 
