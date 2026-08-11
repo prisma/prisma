@@ -167,7 +167,7 @@ export function tableConstraintsFromNode(
   for (const check of table.checks ?? []) {
     throw sqliteError(
       'CONTRACT.CONSTRAINT_INVALID',
-      `SQLite does not support CHECK constraints (constraint "${check.name}" on table "${table.name}"). The "checkConstraint" capability is Postgres-only — remove the "@@check" / "check()" declaration, or target Postgres.`,
+      `The SQLite target does not support CHECK constraints (constraint "${check.name}" on table "${table.name}"). The "checkConstraint" capability is Postgres-only — remove the "@@check" / "check()" declaration, or target Postgres.`,
       { meta: { constraintName: check.name, tableName: table.name } },
     );
   }

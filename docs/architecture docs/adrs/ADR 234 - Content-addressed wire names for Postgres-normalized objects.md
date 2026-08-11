@@ -153,7 +153,7 @@ The naming format (`<prefix>_<8 hex SHA-256>`), the normalizer (internal whitesp
 
 - The per-kind hash input tuple (analogous to the RLS list above).
 - Whether the rename signal (matching suffix, different prefix) needs a kind-specific planner action (e.g. `ALTER POLICY ... RENAME TO`).
-- What happens when the prefix overruns the length bound. (**Amended:** added with [ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>). Indexes and policies throw, because their author can shorten the name they typed; a check's prefix is derived with no authoring surface, so it truncates instead.)
+- What happens when the prefix overruns the length bound. (**Amended:** added with [ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>). Indexes and policies throw, because their author can shorten the name they typed. A *derived* check's prefix has no authoring surface, so it truncates instead; an *authored* check's `name:` prefix does have one, so it throws too, same as indexes and policies.)
 
 Whether to apply content-addressing to a given object kind is a separate decision per kind. Indexes have the widest DBA-visible surface — DBAs reference index names in `REINDEX`, `DROP INDEX`, query plans, and Postgres error messages — so the "ugly suffix" trade-off is the most prominent there. The cost of plain naming has to outweigh the cost of suffix-visibility before the pattern is worth applying to a new object kind.
 
