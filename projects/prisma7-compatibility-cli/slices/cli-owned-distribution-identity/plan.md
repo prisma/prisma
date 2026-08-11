@@ -71,3 +71,11 @@
 - **Hands to:** A pushed PR with green local reproductions of the failed CI jobs and no valid unaddressed review comment.
 - **Focus:** Correct source-path mappings for `prisma` root/config imports used by `packages/prisma7`; exclude generated root forwarding artifacts from lint/Prettier consistently with `packages/cli`; make Bootstrap resolve the selected local CLI binary; remove the two redundant platform comments. Treat the deleted-test comment as obsolete and reject package-manager guidance comments that misapply contributor tooling rules to user-facing CLI output.
 - **Validation gate:** reproduce CI with `pnpm tsc -p tsconfig.utils.typecheck.json` after the required workspace dev build; run root `pnpm lint` and `pnpm prettier-check` without deleting generated Prisma7 package artifacts; run focused Bootstrap tests and packed compatibility E2E; `git diff --check`; mandatory transient-ID scan.
+
+### Dispatch 10: close second review round
+
+- **Outcome:** The packed E2E presents command-local inline evidence without snapshotting the generated completion script, Bootstrap selects Windows `.cmd` shims, and bundler path resolution supports the exact Prisma package aliases introduced for workspace typecheck.
+- **Builds on:** Dispatch 9's green CI run and the four current unresolved review threads.
+- **Hands to:** A pushed PR where each current thread is fixed with focused evidence and the obsolete aggregate snapshot is removed.
+- **Focus:** Split the aggregate external snapshot into inline snapshots for each identity-bearing command output; retain concise assertions, not a script snapshot, for completion identity. Preserve one narrow Bootstrap regression test by adapting it to a `.cmd`-only Windows fixture. Represent exact path aliases as directory or explicit-file targets and make `resolvePathsPlugin` honor explicit file targets rather than blindly appending `/index.ts`.
+- **Validation gate:** focused Bootstrap test; Prisma and Prisma7 builds; exact workspace typecheck; packed compatibility E2E with snapshots validated; root lint and Prettier; `git diff --check`; mandatory transient-ID scan.
