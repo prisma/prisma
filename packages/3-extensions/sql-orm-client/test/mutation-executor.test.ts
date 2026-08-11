@@ -732,8 +732,8 @@ describe('mutation-executor', () => {
       targetColumns: ['id'],
     });
     const runtime = createMockRuntime();
-    const query = runtime.query.bind(runtime);
-    vi.spyOn(runtime, 'query').mockImplementation((plan) => {
+    const execute = runtime.execute.bind(runtime);
+    vi.spyOn(runtime, 'execute').mockImplementation((plan) => {
       const ast = (plan as { ast?: { kind: string; table?: { name: string } } }).ast;
       if (ast?.kind === 'insert' && ast.table?.name === 'parent_child') {
         throw new SqlQueryError(
@@ -743,7 +743,7 @@ describe('mutation-executor', () => {
           },
         );
       }
-      return query(plan);
+      return execute(plan);
     });
     runtime.setNextResults([[{ id: 1 }], [{ id: 10 }], [{ id: 10 }]]);
 
@@ -772,8 +772,8 @@ describe('mutation-executor', () => {
       targetColumns: ['id'],
     });
     const runtime = createMockRuntime();
-    const query = runtime.query.bind(runtime);
-    vi.spyOn(runtime, 'query').mockImplementation((plan) => {
+    const execute = runtime.execute.bind(runtime);
+    vi.spyOn(runtime, 'execute').mockImplementation((plan) => {
       const ast = (plan as { ast?: { kind: string; table?: { name: string } } }).ast;
       if (ast?.kind === 'insert' && ast.table?.name === 'parent_child') {
         // Drivers normalize a NOT NULL violation to sqlState 23502, not the
@@ -782,7 +782,7 @@ describe('mutation-executor', () => {
           sqlState: '23502',
         });
       }
-      return query(plan);
+      return execute(plan);
     });
     runtime.setNextResults([[{ id: 1 }], [{ id: 10 }], [{ id: 10 }]]);
 
@@ -809,15 +809,15 @@ describe('mutation-executor', () => {
       targetColumns: ['id'],
     });
     const runtime = createMockRuntime();
-    const query = runtime.query.bind(runtime);
-    vi.spyOn(runtime, 'query').mockImplementation((plan) => {
+    const execute = runtime.execute.bind(runtime);
+    vi.spyOn(runtime, 'execute').mockImplementation((plan) => {
       const ast = (plan as { ast?: { kind: string; table?: { name: string } } }).ast;
       if (ast?.kind === 'insert' && ast.table?.name === 'parent_child') {
         // Opaque message: recognition rides on the normalized sqlState alone,
         // so a primary-key violation (which drivers map to 23505) still wraps.
         throw new SqlQueryError('constraint violation', { sqlState: UNIQUE_VIOLATION_SQLSTATE });
       }
-      return query(plan);
+      return execute(plan);
     });
     runtime.setNextResults([[{ id: 1 }], [{ id: 10 }], [{ id: 10 }]]);
 

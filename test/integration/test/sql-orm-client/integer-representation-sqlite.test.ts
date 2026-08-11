@@ -58,6 +58,9 @@ describe('integration/integer representation type on sqlite', () => {
     db = orm({
       context: client.context,
       runtime: {
+        query(plan) {
+          return runtime.query(plan);
+        },
         execute(plan) {
           return runtime.execute(plan);
         },

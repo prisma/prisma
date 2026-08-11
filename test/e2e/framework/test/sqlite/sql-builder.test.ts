@@ -319,7 +319,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime, rawDb }) => {
         seedWideSum(rawDb);
         await expect(
-          runtime.execute(
+          runtime.query(
             db[UNBOUND_NAMESPACE_ID].posts.select('total', (f, fns) => fns.sum(f.views)).build(),
           ),
         ).rejects.toMatchObject({
