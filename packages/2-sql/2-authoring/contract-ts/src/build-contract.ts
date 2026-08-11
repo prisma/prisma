@@ -39,6 +39,7 @@ import {
 } from '@internal/framework-components/authoring';
 import type { CodecLookup, ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { lowerAuthoredCheck } from '@internal/sql-contract/authored-check-naming';
 import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
 import { tableEntityKind, valueSetEntityKind } from '@internal/sql-contract/entity-kinds';
 import {
@@ -71,6 +72,7 @@ import {
   type CheckKind,
   composeCheckWirePrefix,
   computeCheckContentHash,
+  derivedCheckPrefixes,
 } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -1149,6 +1151,25 @@ export function buildSqlContractFromDefinition(
           authoringWarnings,
         ),
       );
+      // Authored checks are lowered and merged into `checksForTable`
+      // unconditionally — outside the `derivesChecks` guard above. A derived
+      // check is a Prisma Next prescription, scoped to tables it manages; an
+      // authored check is the author's own statement about a constraint they
+      // know exists, and is emitted whatever the table's control policy.
+      if (semanticModel.checks !== undefined && semanticModel.checks.length > 0) {
+        const reservedCheckPrefixes = derivedCheckPrefixes(tableName, Object.keys(columns));
+        for (const authoredCheck of semanticModel.checks) {
+          const lowered = lowerAuthoredCheck(tableName, authoredCheck, authoringWarnings);
+          if (lowered.naming.kind === 'wire' && reservedCheckPrefixes.has(lowered.naming.prefix)) {
+            throw contractError(
+              'CONTRACT.CHECK_NAME_RESERVED',
+              `Check "${lowered.naming.prefix}" on table "${tableName}": this name's prefix matches the shape a derived enforcement check would use for one of this table's columns, so it can't be told apart from one. Choose a different name.`,
+              { meta: { tableName, prefix: lowered.naming.prefix } },
+            );
+          }
+          checksForTable.push(new CheckConstraint(lowered));
+        }
+      }
       const primaryKey = semanticModel.id
         ? { columns: semanticModel.id.columns, ...ifDefined('name', semanticModel.id.name) }
         : undefined;
