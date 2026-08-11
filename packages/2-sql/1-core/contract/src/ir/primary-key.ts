@@ -19,4 +19,8 @@ export class PrimaryKey extends SqlNode {
     if (input.name !== undefined) this.name = input.name;
     freezeNode(this);
   }
+
+  static from(value: PrimaryKey | PrimaryKeyInput): PrimaryKey {
+    return value instanceof PrimaryKey ? value : new PrimaryKey(value);
+  }
 }

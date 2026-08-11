@@ -41,17 +41,15 @@ export class ForeignKey extends SqlNode {
 
   constructor(input: ForeignKeyInput) {
     super();
-    this.source =
-      input.source instanceof ForeignKeyReference
-        ? input.source
-        : new ForeignKeyReference(input.source);
-    this.target =
-      input.target instanceof ForeignKeyReference
-        ? input.target
-        : new ForeignKeyReference(input.target);
+    this.source = ForeignKeyReference.from(input.source);
+    this.target = ForeignKeyReference.from(input.target);
     if (input.name !== undefined) this.name = input.name;
     if (input.onDelete !== undefined) this.onDelete = input.onDelete;
     if (input.onUpdate !== undefined) this.onUpdate = input.onUpdate;
     freezeNode(this);
+  }
+
+  static from(value: ForeignKey | ForeignKeyInput): ForeignKey {
+    return value instanceof ForeignKey ? value : new ForeignKey(value);
   }
 }
