@@ -252,7 +252,7 @@ describe('migrate', () => {
       kind: 'fields',
       rail: true,
       rows: [
-        { label: 'migrations', value: join('migrations', 'app') },
+        { label: 'migrations', value: 'migrations' },
         { label: 'database', value: 'postgres://****:****@localhost:5432/appdb' },
       ],
     });
@@ -490,7 +490,7 @@ describe('migrate', () => {
         kind: 'fields',
         rail: true,
         rows: [
-          { label: 'migrations', value: join('migrations', 'app') },
+          { label: 'migrations', value: 'migrations' },
           { label: 'from', value: C1 },
           { label: 'to', value: C2 },
         ],

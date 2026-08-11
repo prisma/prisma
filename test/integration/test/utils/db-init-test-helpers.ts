@@ -33,19 +33,17 @@ function splitConfigPath(args: readonly string[]): {
   const rest: string[] = [];
   let configPath: string | undefined;
   for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
+    const arg = args[i] ?? '';
     if (arg === '--config') {
       configPath = args[i + 1];
       i += 1;
       continue;
     }
-    if (arg !== undefined && arg.startsWith('--config=')) {
+    if (arg.startsWith('--config=')) {
       configPath = arg.slice('--config='.length);
       continue;
     }
-    if (arg !== undefined) {
-      rest.push(arg);
-    }
+    rest.push(arg);
   }
   return { configPath, rest };
 }

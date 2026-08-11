@@ -40,7 +40,7 @@ import { perSpaceBlocks } from './db/migration-blocks';
 import { prepareMigrationRun } from './db/prepare';
 import { defineOrmCommand } from './define-command';
 import { dbFlag } from './flags';
-import { appMigrationsDirFor, displayPath } from './migration/paths';
+import { displayPath, migrationsDirFor } from './migration/paths';
 import { normalizeError } from './normalize-error';
 import { controlProgressReporter } from './progress';
 
@@ -226,7 +226,9 @@ export const migrateCommand = defineOrmCommand({
   },
   needs: { config: ormConfigSection },
   handler: async (args, ctx) => {
-    const appMigrationsRelative = displayPath(appMigrationsDirFor(ctx.config, ctx.cwd), ctx.cwd);
+    // `migrate` walks every contract space, so the header names the root they
+    // all live under rather than the app subspace.
+    const migrationsRelative = displayPath(migrationsDirFor(ctx.config, ctx.cwd), ctx.cwd);
 
     if (args.flags.show) {
       const planned = await executeMigrateShowPlan({
@@ -260,7 +262,7 @@ export const migrateCommand = defineOrmCommand({
             document,
             graph: rendering.graphOutput,
             runList: migrateShowRunListRows(plan.migrations, rendering, paint),
-            migrationsDir: appMigrationsRelative,
+            migrationsDir: migrationsRelative,
             database:
               args.flags.from === undefined && typeof dbConnection === 'string'
                 ? maskConnectionUrl(dbConnection)
@@ -453,7 +455,7 @@ export const migrateCommand = defineOrmCommand({
         { data: document },
         applyPresentations({
           document,
-          migrationsDir: appMigrationsRelative,
+          migrationsDir: migrationsRelative,
           database: prepared.value.database,
           to: args.flags.to,
         }),
