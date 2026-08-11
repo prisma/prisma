@@ -51,6 +51,7 @@ import {
   resolveAppTargetPath,
   resolveTargetPathAcrossSpaces,
 } from '../../utils/migration-path-target';
+import { chooseAction, runCommandAction } from '../../utils/next-actions';
 
 function migrationPathRelative(cwd: string, dirPath: string): string {
   return relative(cwd, dirPath);
@@ -72,7 +73,9 @@ function checkFileExists(
       code: 'MIGRATION.CHECK_FILE_MISSING',
       where: migrationFileRelative(space.cwd, dirPath, fileName),
       why: `${fileName} is missing from ${dirName}`,
-      fix: 'Re-emit the migration package or restore from version control.',
+      nextActions: [
+        chooseAction('Re-emit the migration package, or restore it from version control'),
+      ],
     };
   }
   return null;
@@ -101,7 +104,11 @@ async function checkSnapshotConsistency(
       code: 'MIGRATION.CHECK_SNAPSHOT_UNPARSEABLE',
       where: migrationPathRelative(space.cwd, pkg.dirPath),
       why: `Migration "${pkg.dirName}" declares to="${pkg.metadata.to}", which is not a well-formed contract snapshot hash.`,
-      fix: 'Re-emit the migration package so migration.json declares a valid 64-hex to-hash.',
+      nextActions: [
+        chooseAction(
+          'Re-emit the migration package so migration.json declares a valid 64-hex to-hash',
+        ),
+      ],
     };
   }
 
@@ -117,7 +124,12 @@ async function checkSnapshotConsistency(
       code: 'MIGRATION.CHECK_SNAPSHOT_UNPARSEABLE',
       where: migrationPathRelative(space.cwd, pkg.dirPath),
       why: `Migration "${pkg.dirName}" has an unparseable contract snapshot at ${snapshotDir}/contract.json.`,
-      fix: 'Restore migrations/snapshots/ from version control, or re-run the command that produced this migration to regenerate its snapshot.',
+      nextActions: [
+        chooseAction('Restore migrations/snapshots/ from version control'),
+        chooseAction(
+          'Or re-run the command that produced this migration to regenerate its snapshot',
+        ),
+      ],
     };
   }
   const record = raw !== null && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
@@ -129,7 +141,11 @@ async function checkSnapshotConsistency(
       code: 'MIGRATION.CHECK_SNAPSHOT_HASH_MISMATCH',
       where: migrationPathRelative(space.cwd, pkg.dirPath),
       why: `Migration "${pkg.dirName}" declares to=${pkg.metadata.to} but its contract snapshot has storageHash=${snapshotHash}`,
-      fix: 'Re-emit the migration package so migration.json and its contract snapshot agree.',
+      nextActions: [
+        chooseAction(
+          'Re-emit the migration package so migration.json and its contract snapshot agree',
+        ),
+      ],
     };
   }
   return null;
@@ -232,7 +248,10 @@ function checkReachability(space: CheckSpace): readonly CheckFailure[] {
         code: 'MIGRATION.CHECK_UNREACHABLE_MIGRATION',
         where: migrationPathRelative(space.cwd, pkg.dirPath),
         why: `Migration "${pkg.dirName}" starts from ${pkg.metadata.from} which no other migration produces`,
-        fix: 'This migration is unreachable in the graph. Delete it or re-emit a connecting migration.',
+        nextActions: [
+          chooseAction('Delete the unreachable migration'),
+          chooseAction('Or re-emit a migration that connects it to the graph'),
+        ],
       });
     }
   }
@@ -248,7 +267,13 @@ function checkDanglingRefs(space: CheckSpace): readonly CheckFailure[] {
         code: 'MIGRATION.CHECK_DANGLING_REF',
         where: relative(space.cwd, join(space.refsDir, `${name}.json`)),
         why: `Ref "${name}" points at ${entry.hash} which does not exist in the migration graph`,
-        fix: `Update the ref with \`prisma-next ref set ${name} <valid-hash>\` or delete it.`,
+        nextActions: [
+          runCommandAction(
+            'Point the ref at a graph node',
+            `prisma-next ref set ${name} <valid-hash>`,
+          ),
+          chooseAction('Or delete the ref'),
+        ],
       });
     }
   }
@@ -345,6 +370,8 @@ export interface SingleTargetInputs {
   readonly spaceFilter?: string;
   readonly appMigrationsDir: string;
   readonly appMigrationsRelative: string;
+  /** Directory the command was invoked from; a path target resolves against it. */
+  readonly cwd: string;
 }
 
 /**
@@ -386,7 +413,7 @@ export async function checkSingleTarget(
   target: string,
   inputs: SingleTargetInputs,
 ): Promise<MigrationCheckOutcome> {
-  const { spaces, spaceFilter, appMigrationsDir, appMigrationsRelative } = inputs;
+  const { spaces, spaceFilter, appMigrationsDir, appMigrationsRelative, cwd } = inputs;
 
   if (spaceFilter !== undefined && !isValidSpaceId(spaceFilter)) {
     return { error: errorInvalidSpaceId(spaceFilter), exitCode: PRECONDITION };
@@ -405,7 +432,7 @@ export async function checkSingleTarget(
   let matchedPkg: OnDiskMigrationPackage | undefined;
 
   if (looksLikePath(target)) {
-    const resolvedPath = resolveTargetPathAcrossSpaces(target, scopedSpaces);
+    const resolvedPath = resolveTargetPathAcrossSpaces(cwd, target, scopedSpaces);
     if (resolvedPath !== null) {
       for (const space of scopedSpaces) {
         const found = findPackageByDirPath(space.packages, resolvedPath);
@@ -417,7 +444,7 @@ export async function checkSingleTarget(
       }
     } else {
       // Path outside every space dir — fall back to app-relative validation
-      const resolved = resolveAppTargetPath(target, appMigrationsDir, appMigrationsRelative);
+      const resolved = resolveAppTargetPath(cwd, target, appMigrationsDir, appMigrationsRelative);
       if (!resolved.ok) {
         return { error: resolved.failure, exitCode: PRECONDITION };
       }
@@ -498,7 +525,9 @@ export async function checkSingleTarget(
       code: 'MIGRATION.CHECK_HASH_MISMATCH',
       where: migrationFileRelative(matchedSpace.cwd, matchedPkg.dirPath, 'migration.json'),
       why: `Stored hash ${verification.storedHash} does not match recomputed hash ${verification.computedHash}`,
-      fix: 'Re-emit the migration package or restore from version control.',
+      nextActions: [
+        chooseAction('Re-emit the migration package, or restore it from version control'),
+      ],
     });
   }
 

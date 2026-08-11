@@ -8,9 +8,12 @@ import type { MigrateFailure } from '../src/control-api/types';
 import {
   errorDriverRequired,
   errorFamilyReadMarkerSqlRequired,
+  errorMarkerMismatch,
   errorPathUnreachable,
   errorRefSetEmptySentinel,
   errorRefSetHashNotInGraph,
+  errorSpaceNotFound,
+  mapRefResolutionError,
 } from '../src/utils/cli-errors';
 
 describe('CliStructuredError.toEnvelope()', () => {
@@ -177,5 +180,104 @@ describe('errorRefSetEmptySentinel', () => {
     const envelope = errorRefSetEmptySentinel('empty').toEnvelope();
     expect(envelope.code).toBe('MIGRATION.REF_SET_EMPTY_SENTINEL');
     expect(envelope.summary).toContain('empty-database sentinel');
+  });
+});
+
+describe('typed next actions on the CLI factories', () => {
+  it('spells the ref-set remediation as a runnable command', () => {
+    const error = errorRefSetHashNotInGraph('x'.repeat(64), ['a'.repeat(64)], 'a'.repeat(64));
+
+    expect(error.nextActions).toEqual([
+      { kind: 'user-choice', label: `Set the ref to a graph-node hash such as ${'a'.repeat(64)}` },
+      {
+        kind: 'run-command',
+        label: 'Extend the migration graph',
+        command: 'prisma-next migration plan',
+      },
+    ]);
+  });
+
+  it('offers the listing command when a space id does not exist', () => {
+    const error = errorSpaceNotFound('billing', ['app', 'pgvector']);
+
+    expect(error.nextActions).toEqual([
+      { kind: 'user-choice', label: 'Pick one of: app, pgvector' },
+      {
+        kind: 'run-command',
+        label: "See every space's migrations",
+        command: 'prisma-next migration list',
+      },
+    ]);
+  });
+
+  it('turns each marker-mismatch remedy into its own action', () => {
+    const markerHash = 'c'.repeat(64);
+    const graphTip = 'd'.repeat(64);
+
+    const error = errorMarkerMismatch(markerHash, [graphTip], graphTip);
+
+    expect(error.nextActions).toEqual([
+      {
+        kind: 'run-command',
+        label: 'Catch the on-disk graph up to the live marker',
+        command: `prisma-next migration plan --from ${graphTip}`,
+      },
+      {
+        kind: 'run-command',
+        label: 'Point the local db ref at the live marker',
+        command: `prisma-next ref set db ${markerHash}`,
+      },
+      {
+        kind: 'user-choice',
+        label: 'Investigate whether the database was migrated by an out-of-band process',
+      },
+    ]);
+  });
+
+  it('keeps the plan-then-apply sequence in order as two run-command actions', () => {
+    const targetHash = 'a'.repeat(64);
+    const fromHash = 'b'.repeat(64);
+    const failure: MigrateFailure = {
+      code: 'MIGRATION_PATH_NOT_FOUND',
+      summary: 'Current contract has no planned migration path',
+      why: 'Cannot reach target.',
+      meta: { spaceId: 'app', kind: 'pathUnreachable', fromHash, targetHash },
+    };
+
+    const actions = errorPathUnreachable(failure).nextActions;
+
+    expect(actions.slice(0, 2)).toEqual([
+      {
+        kind: 'run-command',
+        label: 'Plan the missing edge',
+        command: `prisma-next migration plan --from ${fromHash} --to ${targetHash} --name <slug>`,
+      },
+      {
+        kind: 'run-command',
+        label: 'Apply it',
+        command: `prisma-next migrate --to ${targetHash}`,
+      },
+    ]);
+  });
+
+  it('carries the resolver fix through as an action', () => {
+    const error = mapRefResolutionError({
+      kind: 'wrong-grammar',
+      input: 'head',
+      expectedGrammar: 'migration',
+      message: '"head" is a contract reference, not a migration reference',
+      fix: 'Pass a migration directory name or migration hash.',
+    });
+
+    expect(error.nextActions).toEqual([
+      { kind: 'user-choice', label: 'Pass a migration directory name or migration hash.' },
+    ]);
+  });
+
+  it('keeps the fix prose alongside the typed actions while the commander shell renders it', () => {
+    const error = errorSpaceNotFound('billing', []);
+
+    expect(error.fix).toBeDefined();
+    expect(error.nextActions.length).toBeGreaterThan(0);
   });
 });

@@ -1,0 +1,238 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { blindCast } from '@internal/utils/casts';
+import { createTestCli } from '@prisma/cli-engine/testing';
+import { createSqlContract } from '@repo/test-utils';
+import { join } from 'pathe';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+
+const HASH_A = `4cb4256${'0'.repeat(57)}`;
+const MIGRATION_DIR = '20250101T0000_initial';
+
+const dirs: string[] = [];
+
+async function projectDir(): Promise<string> {
+  const dir = await mkdtemp(join(tmpdir(), 'orm-graph-'));
+  dirs.push(dir);
+  return dir;
+}
+
+afterEach(async () => {
+  for (const dir of dirs.splice(0)) {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+const ADDITIVE_OP = blindCast<
+  MigrationPlanOperation,
+  'Only the operation count and class are read by the graph renderer'
+>({
+  id: 'schema.add_column',
+  label: 'Add column',
+  operationClass: 'additive',
+});
+
+const TEST_CONTRACT = createSqlContract({
+  target: 'postgres',
+  storage: {
+    namespaces: {
+      [UNBOUND_NAMESPACE_ID]: {
+        id: UNBOUND_NAMESPACE_ID,
+        entries: { table: { user: { columns: { id: {} } } } },
+      },
+    },
+  },
+});
+
+function ormConfig(): Record<string, unknown> {
+  return {
+    family: {
+      kind: 'family',
+      id: 'sql',
+      familyId: 'sql',
+      version: '1.0.0',
+      emission: {},
+      create: () => ({}),
+    },
+    target: {
+      kind: 'target',
+      id: 'postgres',
+      familyId: 'sql',
+      targetId: 'postgres',
+      version: '1.0.0',
+      create: () => ({}),
+    },
+    adapter: {
+      kind: 'adapter',
+      id: 'pg',
+      familyId: 'sql',
+      targetId: 'postgres',
+      version: '1.0.0',
+      create: () => ({}),
+    },
+    contract: {
+      source: { format: 'typescript', inputs: [], load: async () => TEST_CONTRACT },
+      output: 'output/contract.json',
+    },
+  };
+}
+
+async function seedMigration(migrationsDir: string): Promise<void> {
+  const base = blindCast<
+    Omit<MigrationMetadata, 'migrationHash'>,
+    'The graph renderer reads from/to, createdAt and providedInvariants'
+  >({ from: null, to: HASH_A, providedInvariants: [], createdAt: '2025-01-01T00:00:00.000Z' });
+  const ops = [ADDITIVE_OP];
+  const metadata: MigrationMetadata = { ...base, migrationHash: computeMigrationHash(base, ops) };
+  await writeMigrationPackage(join(migrationsDir, 'app', MIGRATION_DIR), metadata, ops);
+}
+
+function harness(config: Record<string, unknown>) {
+  return createTestCli({ commands: BIN_COMMANDS, groups: BIN_GROUPS, config: { orm: config } });
+}
+
+describe('migration graph', () => {
+  it('settles as a completed envelope carrying the graph document', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--json'], { cwd: dir });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.json.at(-1)).toMatchObject({ kind: 'result', envelope: { ok: true, exitCode: 0 } });
+    expect(run.presented?.data).toMatchObject({
+      ok: true,
+      summary: expect.stringContaining('space(s)'),
+      spaces: [{ space: 'app', migrations: [{ name: MIGRATION_DIR, toContract: HASH_A }] }],
+    });
+  });
+
+  it('ships the tree as the stdout presentation and the header as blocks', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'graph'], {
+      cwd: dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.stdout?.join('\n')).toContain(MIGRATION_DIR);
+    expect(run.presented?.presentation.human).toEqual([
+      { kind: 'fields', rows: [{ label: 'migrations', value: 'migrations' }] },
+    ]);
+  });
+
+  it('puts the DOT text on stdout in human mode', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--dot'], {
+      cwd: dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.presentation.stdout?.[0]).toBe('digraph migrations {');
+    expect(run.presented?.presentation.stdout?.join('\n')).toContain(MIGRATION_DIR);
+  });
+
+  it('carries the DOT text on the json result alongside the graph document', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--dot', '--json'], {
+      cwd: dir,
+    });
+    const document = run.presented?.data as { dot: string; spaces: readonly unknown[] };
+
+    expect(run.exitCode).toBe(0);
+    expect(document.dot).toContain('digraph migrations {');
+    expect(document.spaces).toHaveLength(1);
+    expect(run.presented?.presentation.stdout).toEqual([]);
+  });
+
+  it('leaves the json document without a dot field when --dot is absent', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--json'], { cwd: dir });
+
+    expect(run.presented?.data).not.toHaveProperty('dot');
+  });
+
+  it('rejects --legend with --dot', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(
+      ['migration', 'graph', '--dot', '--legend', '--json'],
+      {
+        cwd: dir,
+      },
+    );
+    const terminal = run.json.at(-1);
+    const envelope =
+      terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+
+    expect(run.exitCode).toBe(2);
+    expect(envelope).toMatchObject({
+      ok: false,
+      error: { code: 'MIGRATION.LEGEND_HUMAN_ONLY', meta: { conflictingFlag: '--dot' } },
+    });
+    expect(envelope?.nextActions.length).toBeGreaterThan(0);
+  });
+
+  it('adds the glyph key as a block when --legend is passed', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--legend'], {
+      cwd: dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.human.at(-1)?.kind).toBe('list');
+  });
+
+  it('errors with the dotted code when the space does not exist', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(
+      ['migration', 'graph', '--space', 'nope', '--json'],
+      { cwd: dir },
+    );
+
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: { ok: false, error: { code: 'MIGRATION.SPACE_NOT_FOUND' } },
+    });
+  });
+
+  it('names the narrowed space in the human header', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--space', 'app'], {
+      cwd: dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.human).toEqual([
+      {
+        kind: 'fields',
+        rows: [
+          { label: 'migrations', value: 'migrations' },
+          { label: 'space', value: 'app' },
+        ],
+      },
+    ]);
+  });
+});

@@ -143,7 +143,7 @@ describe('migration list', () => {
       '1 migration(s) on disk',
     ]);
     expect(run.presented?.presentation.human).toEqual([
-      { kind: 'fields', rows: [{ label: 'migrations', value: join(dir, 'migrations') }] },
+      { kind: 'fields', rows: [{ label: 'migrations', value: 'migrations' }] },
     ]);
   });
 
@@ -185,7 +185,7 @@ describe('migration list', () => {
       {
         kind: 'fields',
         rows: [
-          { label: 'migrations', value: join(dir, 'migrations') },
+          { label: 'migrations', value: 'migrations' },
           { label: 'space', value: 'app' },
         ],
       },
@@ -264,10 +264,10 @@ describe('migration list', () => {
     );
 
     expect(runFirst.presented?.presentation.human).toEqual([
-      { kind: 'fields', rows: [{ label: 'migrations', value: join(first, 'migrations') }] },
+      { kind: 'fields', rows: [{ label: 'migrations', value: 'migrations' }] },
     ]);
     expect(runSecond.presented?.presentation.human).toEqual([
-      { kind: 'fields', rows: [{ label: 'migrations', value: join(second, 'db') }] },
+      { kind: 'fields', rows: [{ label: 'migrations', value: 'db' }] },
     ]);
   });
 });

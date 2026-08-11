@@ -27,11 +27,8 @@ import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
 import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
 import { createMigrateCommand } from '@internal/cli/commands/migrate';
 import { createMigrationCheckCommand } from '@internal/cli/commands/migration-check';
-import { createMigrationGraphCommand } from '@internal/cli/commands/migration-graph';
-import { createMigrationLogCommand } from '@internal/cli/commands/migration-log';
 import { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
 import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
-import { createMigrationShowCommand } from '@internal/cli/commands/migration-show';
 import { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
 import { createRefCommand } from '@internal/cli/commands/ref';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
@@ -485,15 +482,17 @@ export async function runMigrationStatus(
 export async function runMigrationShow(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationShowCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'show', ...extraArgs], options);
 }
 
 export async function runMigrationLog(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationLogCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'log', ...extraArgs], options);
 }
 
 export async function runMigrationList(
@@ -508,8 +507,8 @@ export async function runMigrationGraph(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
   options?: RunCommandOptions,
-): Promise<CommandResult> {
-  return runCommand(createMigrationGraphCommand(), ctx, extraArgs, options);
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'graph', ...extraArgs], options);
 }
 
 export async function runMigrationCheck(

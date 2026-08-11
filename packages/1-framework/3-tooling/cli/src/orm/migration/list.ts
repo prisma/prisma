@@ -1,9 +1,7 @@
-import type { PrismaNextConfig } from '@internal/config/config-types';
 import { ifDefined } from '@internal/utils/defined';
 import type { Presentations } from '@prisma/cli-engine';
 import { flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
-import { resolve } from 'pathe';
 import { buildReadAggregate } from '../../control-api/operations/contract-space-aggregate-loader';
 import {
   migrationSpaceListEntriesFromAggregate,
@@ -17,15 +15,7 @@ import type { GlyphMode } from '../../utils/glyph-mode';
 import { ormConfigSection } from '../config-section';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
-
-/**
- * Where migrations live for this project. Resolved against the invocation
- * directory, which is also the config file's directory for every default
- * invocation.
- */
-export function migrationsDirFor(config: PrismaNextConfig, cwd: string): string {
-  return resolve(cwd, config.migrations?.dir ?? 'migrations');
-}
+import { displayPath, migrationsDirFor } from './paths';
 
 function listPresentations(inputs: {
   readonly list: MigrationListResult;
@@ -116,7 +106,7 @@ export const migrationListCommand = defineOrmCommand({
         listPresentations({
           list: listed.value,
           lines,
-          migrationsDir,
+          migrationsDir: displayPath(migrationsDir, ctx.cwd),
           space: args.flags.space,
           legendLines,
         }),

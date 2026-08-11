@@ -6,7 +6,6 @@ import { Command } from 'commander';
 import { buildReadAggregate } from '../control-api/operations/contract-space-aggregate-loader';
 import { buildMigrationSpaceGraphEntries } from '../control-api/operations/migration-graph';
 import {
-  listRefsByContractHash,
   migrationSpaceListEntriesFromAggregate,
   runMigrationList,
 } from '../control-api/operations/migration-list';
@@ -20,11 +19,11 @@ import {
 } from '../utils/command-helpers';
 import { renderMigrationGraphLegend } from '../utils/formatters/migration-graph-labels';
 import {
-  computeGlobalMaxDirNameWidth,
-  computeGlobalMaxEdgeTreePrefixWidth,
-  indentMigrationGraphTreeBlock,
-  renderMigrationGraphSpaceTree,
-} from '../utils/formatters/migration-graph-space-render';
+  buildMigrationGraphTreeSections,
+  type MigrationGraphTreeSection,
+  renderMigrationGraphDot,
+  renderMigrationGraphSections,
+} from '../utils/formatters/migration-graph-sections';
 import { formatStyledHeader } from '../utils/formatters/styled';
 import type { CommonCommandOptions } from '../utils/global-flags';
 import { type GlobalFlags, parseGlobalFlagsOrExit } from '../utils/global-flags';
@@ -39,12 +38,6 @@ interface MigrationGraphOptions extends CommonCommandOptions {
   readonly space?: string;
   readonly ascii?: boolean;
   readonly legend?: boolean;
-}
-
-export interface MigrationGraphTreeSection {
-  readonly space: string;
-  readonly tree: string;
-  readonly showHeading: boolean;
 }
 
 export interface MigrationGraphResult {
@@ -64,20 +57,7 @@ function computeGraphSummary(spaces: readonly MigrationSpaceGraphEntry[]): strin
 }
 
 export function formatMigrationGraphHumanOutput(result: MigrationGraphResult): string {
-  const sections: string[] = [];
-  for (const section of result.treeSections) {
-    if (section.showHeading) {
-      sections.push(`${section.space}:`);
-    }
-    if (section.tree.length > 0) {
-      sections.push(section.tree);
-    } else {
-      sections.push('(no migrations)');
-    }
-    sections.push('');
-  }
-  sections.push(result.summary);
-  return sections.join('\n').trimEnd();
+  return renderMigrationGraphSections(result.treeSections, result.summary);
 }
 
 export async function executeMigrationGraphCommand(
@@ -144,56 +124,14 @@ export async function executeMigrationGraphCommand(
   }
 
   const scopedSpaces = listResult.value.spaces;
-  const showSpaceHeadings = scopedSpaces.length > 1;
-  const glyphMode = ui.resolveGlyphMode(options.ascii === true);
-  const colorize = flags.color !== false;
+  const treeSections = buildMigrationGraphTreeSections({
+    aggregate,
+    scopedSpaces,
+    liveContractHash,
+    glyphMode: ui.resolveGlyphMode(options.ascii === true),
+    colorize: flags.color !== false,
+  });
 
-  const globalLayoutInputs = showSpaceHeadings
-    ? scopedSpaces
-        .filter((spaceEntry) => spaceEntry.migrations.length > 0)
-        .map((spaceEntry) => ({
-          graph: aggregate.space(spaceEntry.space)!.graph(),
-          liveContractHash,
-        }))
-    : [];
-  const globalMaxEdgeTreePrefixWidth =
-    globalLayoutInputs.length > 0
-      ? computeGlobalMaxEdgeTreePrefixWidth(globalLayoutInputs)
-      : undefined;
-  const globalMaxDirNameWidth =
-    globalLayoutInputs.length > 0 ? computeGlobalMaxDirNameWidth(globalLayoutInputs) : undefined;
-
-  const treeSections: MigrationGraphTreeSection[] = [];
-  for (const spaceEntry of scopedSpaces) {
-    const space = aggregate.space(spaceEntry.space);
-    if (space === undefined) {
-      continue;
-    }
-    const graph = space.graph();
-    const isAppSpace = spaceEntry.space === aggregate.app.spaceId;
-    const refsByHash = listRefsByContractHash(space);
-    const tree =
-      spaceEntry.migrations.length === 0
-        ? ''
-        : renderMigrationGraphSpaceTree({
-            graph,
-            migrations: spaceEntry.migrations,
-            liveContractHash,
-            glyphMode,
-            colorize,
-            isAppSpace,
-            refsByHash,
-            ...(globalMaxEdgeTreePrefixWidth !== undefined ? { globalMaxEdgeTreePrefixWidth } : {}),
-            ...(globalMaxDirNameWidth !== undefined ? { globalMaxDirNameWidth } : {}),
-          });
-    const displayTree =
-      showSpaceHeadings && tree.length > 0 ? indentMigrationGraphTreeBlock(tree, '  ') : tree;
-    treeSections.push({
-      space: spaceEntry.space,
-      tree: displayTree,
-      showHeading: showSpaceHeadings,
-    });
-  }
   const spaces: MigrationSpaceGraphEntry[] = [
     ...buildMigrationSpaceGraphEntries({ aggregate, scopedSpaces }),
   ];
@@ -248,14 +186,7 @@ export function createMigrationGraphCommand(): Command {
       const result = await executeMigrationGraphCommand(options, flags, ui);
       const exitCode = handleResult(result, flags, ui, (graphResult) => {
         if (options.dot) {
-          const lines = ['digraph migrations {'];
-          for (const edge of graphResult.graph.migrationByHash.values()) {
-            const from = edge.from.slice(0, 12);
-            const to = edge.to.slice(0, 12);
-            lines.push(`  "${from}" -> "${to}" [label="${edge.dirName}"];`);
-          }
-          lines.push('}');
-          ui.output(lines.join('\n'));
+          ui.output(renderMigrationGraphDot(graphResult.graph));
         } else if (flags.json) {
           const jsonResult: MigrationGraphJsonResult = {
             ok: true,
