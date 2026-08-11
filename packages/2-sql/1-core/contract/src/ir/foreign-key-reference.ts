@@ -50,4 +50,8 @@ export class ForeignKeyReference extends SqlNode {
     if (input.spaceId !== undefined) this.spaceId = input.spaceId;
     freezeNode(this);
   }
+
+  static from(value: ForeignKeyReference | ForeignKeyReferenceInput): ForeignKeyReference {
+    return value instanceof ForeignKeyReference ? value : new ForeignKeyReference(value);
+  }
 }

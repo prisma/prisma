@@ -19,4 +19,8 @@ export class UniqueConstraint extends SqlNode {
     if (input.name !== undefined) this.name = input.name;
     freezeNode(this);
   }
+
+  static from(value: UniqueConstraint | UniqueConstraintInput): UniqueConstraint {
+    return value instanceof UniqueConstraint ? value : new UniqueConstraint(value);
+  }
 }

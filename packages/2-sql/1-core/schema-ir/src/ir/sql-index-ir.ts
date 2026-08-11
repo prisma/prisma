@@ -135,6 +135,10 @@ export class SqlIndexIR extends SqlSchemaIRNode implements DiffableNode {
     return [];
   }
 
+  static from(value: SqlIndexIR | SqlIndexIRInput): SqlIndexIR {
+    return value instanceof SqlIndexIR ? value : new SqlIndexIR(value);
+  }
+
   static is(node: SqlSchemaIRNode): node is SqlIndexIR {
     return node.nodeKind === RelationalSchemaNodeKind.index;
   }

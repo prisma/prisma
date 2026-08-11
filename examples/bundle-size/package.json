@@ -41,6 +41,6 @@
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
-    "wrangler": "4.114.0"
+    "wrangler": "4.116.0"
   }
 }

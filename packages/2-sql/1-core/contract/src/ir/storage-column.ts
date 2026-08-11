@@ -67,4 +67,8 @@ export class StorageColumn extends SqlNode {
     if (input.valueSet !== undefined) this.valueSet = input.valueSet;
     freezeNode(this);
   }
+
+  static from(value: StorageColumn | StorageColumnInput): StorageColumn {
+    return value instanceof StorageColumn ? value : new StorageColumn(value);
+  }
 }
