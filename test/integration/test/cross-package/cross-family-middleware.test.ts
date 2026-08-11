@@ -66,7 +66,7 @@ function collectingObserver() {
         lane: plan.meta.lane,
         target: plan.meta.target,
         storageHash: plan.meta.storageHash,
-        ...(result.operation === 'query' ? { rowCount: result.rowCount } : {}),
+        rowCount: result.rowCount,
         completed: result.completed,
         source: result.source,
       });
@@ -206,7 +206,6 @@ const sqlCtx: RuntimeMiddlewareContext = {
   log: { info: () => {}, warn: () => {}, error: () => {} },
   contentHash: async () => 'mock-hash',
   scope: 'runtime',
-  operation: 'query',
   planExecutionId: 'test-fixture-plan-execution-id',
 };
 
@@ -336,7 +335,7 @@ describe('cross-family middleware proof', () => {
       name: 'mock-interceptQueryor',
       async interceptQuery(plan) {
         interceptQueryCalls.push(plan.meta.target);
-        return { operation: 'query', rows: [{ interceptQueryed: true }] };
+        return { rows: [{ interceptQueryed: true }] };
       },
     };
 

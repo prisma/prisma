@@ -365,7 +365,7 @@ describe('integration: middleware-cache against real Postgres', {
           events.push({
             phase: 'afterQuery',
             source: result.source,
-            ...(result.operation === 'query' ? { rowCount: result.rowCount } : {}),
+            rowCount: result.rowCount,
             latencyMs: result.latencyMs,
             completed: result.completed,
           });
@@ -408,6 +408,7 @@ describe('integration: middleware-cache against real Postgres', {
       const missAfter = missEvents.find((e) => e.phase === 'afterQuery');
       expect(missAfter).toBeDefined();
       expect(missAfter!.source).toBe('driver');
+      expect(missAfter!.rowCount).toBe(4);
 
       events.length = 0;
       driverQuerySpy.mockClear();
@@ -423,6 +424,7 @@ describe('integration: middleware-cache against real Postgres', {
       const hitAfter = events.find((e) => e.phase === 'afterQuery');
       expect(hitAfter).toBeDefined();
       expect(hitAfter!.source).toBe('middleware');
+      expect(hitAfter!.rowCount).toBe(4);
       expect(driverQuerySpy.mock.calls.length).toBe(0);
     });
 
