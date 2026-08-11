@@ -30,15 +30,6 @@
       "notes": "Recovery requires either reorganising coverage scopes (so integration tests count toward this package's report) or adding equivalent unit-level tests inside the package that don't need pgvector fixtures."
     },
     {
-      "package": "1-framework/2-authoring/contract",
-      "reason": "M9 target-extensible-IR refactor introduced composed-helpers-scaffolding.ts (currently 0%) — module-level scaffolding exercised through composed authoring flows in target packages rather than direct unit tests at the framework layer. Per-module unit coverage tracked as a follow-up before 0.9 release.",
-      "addedDate": "2026-05-16",
-      "expiryDays": 90,
-      "assignee": null,
-      "linear": "TML-2521",
-      "notes": "Coverage will recover once dedicated unit tests for the scaffolding helpers land; meanwhile composed-helpers behaviour is verified end-to-end in target-pack integration tests."
-    },
-    {
       "package": "2-sql/1-core/contract",
       "reason": "M9 target-extensible-IR refactor introduced new SQL Contract IR classes (postgres-enum-storage-entry.ts, sql-storage.ts, storage-column.ts, storage-table.ts, storage-type-instance.ts, unique-constraint.ts) and grew validators.ts to handle polymorphic storage type entries. IR classes are exercised through integration paths (contract-ts builder, family serializer round-trips, target-postgres hydration); per-class direct unit tests and additional validator branch coverage tracked as a follow-up before 0.9 release.",
       "addedDate": "2026-05-16",
