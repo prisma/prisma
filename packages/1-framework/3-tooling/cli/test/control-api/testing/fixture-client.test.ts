@@ -5,6 +5,7 @@ import {
   createFixtureControlClient,
   FIXTURE_STORAGE_HASH,
   FIXTURE_TARGET_ID,
+  type FixtureControlClient,
 } from '../../../src/control-api/testing/fixture-client';
 
 describe('createFixtureControlClient', () => {
@@ -94,6 +95,7 @@ describe('createFixtureControlClient', () => {
       dbInit: failure,
       readMarker: null,
     });
+    await client.connect('postgres://fixture');
 
     const dbInit = await client.dbInit({ contract: {}, mode: 'plan', migrationsDir: 'migrations' });
     expect(dbInit.assertNotOk().summary).toBe('planner exploded');
@@ -105,11 +107,14 @@ describe('createFixtureControlClient', () => {
 
   it('records every operation call with its options for assertions', async () => {
     const client = createFixtureControlClient();
+    await client.connect('postgres://fixture');
 
     await client.dbInit({ contract: {}, mode: 'plan', migrationsDir: 'moves' });
     await client.readLedger('app');
 
     expect(client.calls).toEqual([
+      { operation: 'init', options: undefined },
+      { operation: 'connect', options: 'postgres://fixture' },
       {
         operation: 'dbInit',
         options: expect.objectContaining({ mode: 'plan', migrationsDir: 'moves' }),
@@ -125,5 +130,80 @@ describe('createFixtureControlClient', () => {
     expect(client.connected).toBe(true);
     await client.close();
     expect(client.connected).toBe(false);
+  });
+
+  it('initializes once, from connect or from an explicit init', async () => {
+    const client = createFixtureControlClient();
+    client.init();
+    client.init();
+    await client.connect('postgres://fixture');
+
+    expect(client.calls).toEqual([
+      { operation: 'init', options: undefined },
+      { operation: 'connect', options: 'postgres://fixture' },
+    ]);
+  });
+
+  describe('operations that the real client runs against a driver', () => {
+    const requireConnection: ReadonlyArray<
+      [string, (c: FixtureControlClient) => Promise<unknown>]
+    > = [
+      ['verify', (c) => c.verify({ contract: {} })],
+      ['schemaVerify', (c) => c.schemaVerify({ contract: {} })],
+      ['sign', (c) => c.sign({ contract: {} })],
+      ['dbInit', (c) => c.dbInit({ contract: {}, mode: 'plan', migrationsDir: 'migrations' })],
+      ['dbUpdate', (c) => c.dbUpdate({ contract: {}, mode: 'plan', migrationsDir: 'migrations' })],
+      [
+        'dbVerify',
+        (c) =>
+          c.dbVerify({
+            contract: {} as never,
+            migrationsDir: 'migrations',
+            strict: false,
+            skipSchema: false,
+            skipMarker: false,
+          }),
+      ],
+      ['readMarker', (c) => c.readMarker()],
+      ['readAllMarkers', (c) => c.readAllMarkers()],
+      ['readLedger', (c) => c.readLedger()],
+      ['migrate', (c) => c.migrate({ contract: {}, migrationsDir: 'migrations' })],
+      ['introspect', (c) => c.introspect()],
+    ];
+
+    it.each(requireConnection)('%s rejects before connect()', async (_name, run) => {
+      const client = createFixtureControlClient();
+
+      await expect(run(client)).rejects.toMatchObject({
+        name: 'CliStructuredError',
+        code: 'DRIVER.NOT_CONNECTED',
+      });
+      expect(client.calls).toEqual([]);
+    });
+
+    it.each(requireConnection)('%s rejects again after close()', async (_name, run) => {
+      const client = createFixtureControlClient();
+      await client.connect('postgres://fixture');
+      await client.close();
+
+      await expect(run(client)).rejects.toMatchObject({ code: 'DRIVER.NOT_CONNECTED' });
+    });
+  });
+
+  it('serves the driver-free operations without a connection', async () => {
+    const client = createFixtureControlClient();
+
+    expect(client.toSchemaView({})).toBeUndefined();
+    expect(client.inferPslContract({})).toBeUndefined();
+    expect(client.getPslBlockDescriptors()).toEqual({});
+    expect(client.toOperationPreview([])).toBeUndefined();
+    const emit = await client.emit({
+      contractConfig: {
+        source: { load: async () => notOk({ summary: '', diagnostics: [] }) },
+        output: 'contract.json',
+      },
+    });
+
+    expect(emit.assertOk().storageHash).toBe(FIXTURE_STORAGE_HASH);
   });
 });

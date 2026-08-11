@@ -1,4 +1,5 @@
 import type { ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
+import { CliStructuredError } from '@internal/errors/control';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
 import type {
   CoreSchemaView,
@@ -75,7 +76,8 @@ export interface FixtureControlClientCall {
 /**
  * A {@link ControlClient} test double. Behaves like the real client's surface
  * but resolves every operation from fixtures instead of a database, and
- * records each call for assertions.
+ * records each call for assertions. Operations the real client runs against a
+ * driver reject with `DRIVER.NOT_CONNECTED` until `connect()` is awaited.
  */
 export interface FixtureControlClient extends ControlClient {
   /** Every operation invocation in order, with the options it received. */
@@ -215,6 +217,7 @@ class FixtureControlClientImpl implements FixtureControlClient {
   readonly calls: FixtureControlClientCall[] = [];
   connected = false;
 
+  private initialized = false;
   private readonly fixtures: ControlClientFixtures;
 
   constructor(overrides?: Partial<ControlClientFixtures>) {
@@ -222,15 +225,35 @@ class FixtureControlClientImpl implements FixtureControlClient {
   }
 
   private record<T>(operation: string, options: unknown, value: T): T {
+    this.init();
     this.calls.push({ operation, options });
     return value;
   }
 
+  /**
+   * Records an operation the real client runs against a driver, so a caller
+   * that skipped `connect()` fails here exactly as it would in production.
+   */
+  private recordConnected<T>(operation: string, options: unknown, value: T): T {
+    if (!this.connected) {
+      throw new CliStructuredError(
+        'DRIVER.NOT_CONNECTED',
+        'Not connected. Call connect(connection) first.',
+      );
+    }
+    return this.record(operation, options, value);
+  }
+
   init(): void {
+    if (this.initialized) {
+      return;
+    }
+    this.initialized = true;
     this.calls.push({ operation: 'init', options: undefined });
   }
 
   async connect(connection?: unknown): Promise<void> {
+    this.init();
     this.calls.push({ operation: 'connect', options: connection });
     this.connected = true;
   }
@@ -241,47 +264,47 @@ class FixtureControlClientImpl implements FixtureControlClient {
   }
 
   async verify(options: VerifyOptions): Promise<VerifyDatabaseResult> {
-    return this.record('verify', options, this.fixtures.verify);
+    return this.recordConnected('verify', options, this.fixtures.verify);
   }
 
   async schemaVerify(options: SchemaVerifyOptions): Promise<VerifyDatabaseSchemaResult> {
-    return this.record('schemaVerify', options, this.fixtures.schemaVerify);
+    return this.recordConnected('schemaVerify', options, this.fixtures.schemaVerify);
   }
 
   async sign(options: SignOptions): Promise<SignDatabaseResult> {
-    return this.record('sign', options, this.fixtures.sign);
+    return this.recordConnected('sign', options, this.fixtures.sign);
   }
 
   async dbInit(options: DbInitOptions): Promise<DbInitResult> {
-    return this.record('dbInit', options, this.fixtures.dbInit);
+    return this.recordConnected('dbInit', options, this.fixtures.dbInit);
   }
 
   async dbUpdate(options: DbUpdateOptions): Promise<DbUpdateResult> {
-    return this.record('dbUpdate', options, this.fixtures.dbUpdate);
+    return this.recordConnected('dbUpdate', options, this.fixtures.dbUpdate);
   }
 
   async dbVerify(options: DbVerifyOptions): Promise<ExecuteDbVerifyResult> {
-    return this.record('dbVerify', options, this.fixtures.dbVerify);
+    return this.recordConnected('dbVerify', options, this.fixtures.dbVerify);
   }
 
   async readMarker(): Promise<ContractMarkerRecord | null> {
-    return this.record('readMarker', undefined, this.fixtures.readMarker);
+    return this.recordConnected('readMarker', undefined, this.fixtures.readMarker);
   }
 
   async readAllMarkers(): Promise<ReadonlyMap<string, ContractMarkerRecord>> {
-    return this.record('readAllMarkers', undefined, this.fixtures.readAllMarkers);
+    return this.recordConnected('readAllMarkers', undefined, this.fixtures.readAllMarkers);
   }
 
   async readLedger(space?: string): Promise<readonly LedgerEntryRecord[]> {
-    return this.record('readLedger', space, this.fixtures.readLedger);
+    return this.recordConnected('readLedger', space, this.fixtures.readLedger);
   }
 
   async migrate(options: MigrateOptions): Promise<MigrateResult> {
-    return this.record('migrate', options, this.fixtures.migrate);
+    return this.recordConnected('migrate', options, this.fixtures.migrate);
   }
 
   async introspect(options?: IntrospectOptions): Promise<unknown> {
-    return this.record('introspect', options, this.fixtures.introspect);
+    return this.recordConnected('introspect', options, this.fixtures.introspect);
   }
 
   toSchemaView(schemaIR: unknown): CoreSchemaView | undefined {
