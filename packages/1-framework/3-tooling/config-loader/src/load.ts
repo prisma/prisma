@@ -18,7 +18,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { dirname, join, resolve } from 'pathe';
-import { finalizeConfig } from './finalize-config';
+import { finalizeContractConfig } from './finalize-config';
 
 const CONFIG_FILENAME = 'prisma-next.config.ts';
 
@@ -109,11 +109,9 @@ function buildLoadedConfig(rawConfig: Record<string, unknown>, configDir: string
     return { config, diagnostics };
   }
 
-  const finalized = finalizeConfig(config, configDir);
-  if (finalized.contract !== undefined) {
-    diagnostics.push(...collectArtifactCollisionDiagnostics(finalized.contract));
-  }
-  return { config: finalized, diagnostics };
+  const contract = finalizeContractConfig(config.contract, configDir);
+  diagnostics.push(...collectArtifactCollisionDiagnostics(contract));
+  return { config: { ...config, contract }, diagnostics };
 }
 
 function toConfigLoadFailure(error: unknown, configPath?: string): CliStructuredError {

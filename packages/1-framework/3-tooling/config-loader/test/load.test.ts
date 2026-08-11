@@ -461,4 +461,126 @@ describe('loadConfig', () => {
     },
     timeouts.typeScriptCompilation,
   );
+
+  it(
+    'maps a config module that throws during discovery from the cwd to CONFIG.EVALUATION_FAILED without a path',
+    async () => {
+      writeFileSync(
+        join(tempDir, 'prisma-next.config.ts'),
+        "throw new Error('config module exploded');",
+        'utf-8',
+      );
+      process.chdir(tempDir);
+
+      const failure = (await loadConfig()).assertNotOk();
+
+      expect(failure.code).toBe('CONFIG.EVALUATION_FAILED');
+      expect(failure.where).toBeUndefined();
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'maps a config module that throws a non-Error value to CONFIG.EVALUATION_FAILED carrying its string form',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(configPath, "throw 'config module string failure';", 'utf-8');
+
+      const failure = (await loadConfig(configPath)).assertNotOk();
+
+      expect(failure.code).toBe('CONFIG.EVALUATION_FAILED');
+      expect(failure.why).toContain('config module string failure');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'maps an unresolvable import inside the config to CONFIG.FILE_NOT_FOUND',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(configPath, "import 'prisma-next-no-such-package';\n", 'utf-8');
+
+      const failure = (await loadConfig(configPath)).assertNotOk();
+
+      expect(failure.code).toBe('CONFIG.FILE_NOT_FOUND');
+      expect(failure.where?.path).toBe(configPath);
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'passes a CliStructuredError thrown by the config module through unchanged',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(
+        configPath,
+        `
+const error = new Error('driver descriptor rejected the connection');
+Object.defineProperty(error, 'name', { value: 'CliStructuredError' });
+error.code = 'CONFIG.VALIDATION_FAILED';
+error.toEnvelope = () => ({ ok: false, code: error.code });
+throw error;
+`,
+        'utf-8',
+      );
+
+      const failure = (await loadConfig(configPath)).assertNotOk();
+
+      expect(failure.code).toBe('CONFIG.VALIDATION_FAILED');
+      expect(failure.message).toBe('driver descriptor rejected the connection');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'rewraps a plain structured error thrown by the config module, keeping its code and cause',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(
+        configPath,
+        `
+const error = new Error('extension pack refused to load');
+error.code = 'EXTENSION.LOAD_FAILED';
+error.why = 'the pack entrypoint is missing';
+error.fix = 'reinstall the extension package';
+error.where = { path: 'extensions/pack.ts' };
+error.meta = { pack: 'demo' };
+throw error;
+`,
+        'utf-8',
+      );
+
+      const failure = (await loadConfig(configPath)).assertNotOk();
+
+      expect(failure).toMatchObject({
+        name: 'CliStructuredError',
+        code: 'EXTENSION.LOAD_FAILED',
+        message: 'extension pack refused to load',
+        why: 'the pack entrypoint is missing',
+        fix: 'reinstall the extension package',
+        where: { path: 'extensions/pack.ts' },
+        meta: { pack: 'demo' },
+      });
+      expect(failure.cause).toBeDefined();
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'reports no collision diagnostics when the contract declares no inputs',
+    async () => {
+      const noInputsSource = VALID_CONFIG_SOURCE.replace(
+        "      inputs: ['./schema.prisma'],\n",
+        '',
+      );
+      writeFileSync(join(tempDir, 'prisma-next.config.ts'), noInputsSource);
+      process.chdir(tempDir);
+
+      const { config, diagnostics } = (await loadConfig()).assertOk();
+
+      expect(diagnostics).toEqual([]);
+      expect(config.contract?.source.inputs).toBeUndefined();
+    },
+    timeouts.typeScriptCompilation,
+  );
 });

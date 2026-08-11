@@ -19,20 +19,27 @@ function finalizeContractSource(
   };
 }
 
+type ContractConfig = NonNullable<PrismaNextConfig['contract']>;
+
+/** Normalizes a contract section and resolves its paths against `configDir`. */
+export function finalizeContractConfig(
+  contract: ContractConfig,
+  configDir: string,
+): ContractConfig {
+  const normalized = normalizeContractConfig(contract);
+  return {
+    ...normalized,
+    source: finalizeContractSource(normalized.source, configDir),
+    output: resolve(configDir, normalized.output),
+  };
+}
+
 export function finalizeConfig(config: PrismaNextConfig, configDir: string): PrismaNextConfig {
   if (!config.contract) {
     return config;
   }
-  const contract = normalizeContractConfig(config.contract);
-  const source = finalizeContractSource(contract.source, configDir);
-  const output = resolve(configDir, contract.output);
-
   return {
     ...config,
-    contract: {
-      ...contract,
-      source,
-      output,
-    },
+    contract: finalizeContractConfig(config.contract, configDir),
   };
 }
