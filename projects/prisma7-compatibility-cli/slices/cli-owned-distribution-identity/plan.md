@@ -47,3 +47,11 @@
 - **Hands to:** A review-ready CLI-owned identity slice plus a concrete downstream inventory for `downstream-actionable-guidance`.
 - **Focus:** Extend the existing packed client Docker E2E rather than adding a second compatibility scenario; add only user-visible proof not already covered by focused tests. Record downstream/domain-stable audit results in the slice walkthrough or review artifact, not source comments.
 - **Validation gate:** `pnpm --filter prisma build`; `pnpm --filter prisma7 build`; focused Prisma tests; `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility`; `pnpm prettier-check`; root `pnpm lint`; `git diff --check`; mandatory transient-ID scan.
+
+### Dispatch 7: replace mocked identity tests with command snapshots
+
+- **Outcome:** The slice's mock-heavy unit coverage is removed and one packed E2E snapshots deterministic output from real `prisma7` command invocations across the CLI-owned identity behaviors.
+- **Builds on:** Dispatch 6's packed compatibility fixture and the operator's PR feedback that command behavior should be proven at the executable boundary rather than through constructor/helper mocks.
+- **Hands to:** A smaller review surface whose compatibility evidence comes from shipped commands, with existing ordinary-Prisma regression tests left intact.
+- **Focus:** Delete the slice-added identity unit suites and additions to existing unit tests; extend the existing single packed fixture with a committed, normalized command-output snapshot for the representative help, version, completion, init/generated-file, warning, and update behavior that can be observed without mocks. Do not create a second scenario or a test-only production seam. If a contract cannot be observed from a real command, remove the mock assertion rather than simulating internals and record the resulting evidence boundary in review.
+- **Validation gate:** `pnpm --filter prisma build`; `pnpm --filter prisma7 build`; `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility`; existing ordinary-Prisma regression tests affected by production signatures; `pnpm prettier-check`; root `pnpm lint`; `git diff --check`; mandatory transient-ID scan.
