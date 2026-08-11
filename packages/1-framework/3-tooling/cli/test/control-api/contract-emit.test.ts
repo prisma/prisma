@@ -274,18 +274,18 @@ describe('executeContractEmit', () => {
       );
 
       const resolveSpecifier = mockedEmit.mock.calls.at(-1)?.[3]?.resolveImportSpecifier;
-      return resolveSpecifier?.('@internal/target-postgres/runtime');
+      return resolveSpecifier?.('@internal/contract/types');
     }
 
     it('is the project the artifacts are written into, not the working directory', async () => {
       expect(await emitInto('app-a', { namesConfig: false })).toBe(
-        '@prisma/orm-postgres/target/runtime',
+        '@prisma/orm-postgres/contract/types',
       );
     });
 
     it('is the project holding the config file when the caller names one', async () => {
       expect(await emitInto('app-b', { namesConfig: true })).toBe(
-        '@prisma/orm-postgres/target/runtime',
+        '@prisma/orm-postgres/contract/types',
       );
     });
   });
