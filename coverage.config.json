@@ -48,15 +48,6 @@
       "notes": "Direct branch-coverage tests for the new authoring helpers tracked as a follow-up before 0.9 release."
     },
     {
-      "package": "2-sql/3-tooling/emitter",
-      "reason": "M9 target-extensible-IR refactor added emitter-side handling for target-contributed entity types. src/index.ts coverage dropped marginally (91.84% statements / 89.47% branches against 97/93 thresholds) — exercised end-to-end through emitter-hook fixtures.",
-      "addedDate": "2026-05-16",
-      "expiryDays": 90,
-      "assignee": null,
-      "linear": "TML-2521",
-      "notes": "Direct emitter-index branch tests tracked as a follow-up."
-    },
-    {
       "package": "2-sql/4-lanes/relational-core",
       "reason": "M9 target-extensible-IR refactor touched codec-ref-for-column.ts, expression.ts, and middleware/param-ref-mutator.ts with small coverage drops (1-7% below threshold). Behaviour verified through downstream SQL builder and runtime integration tests.",
       "addedDate": "2026-05-16",
