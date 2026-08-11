@@ -80,7 +80,7 @@
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "^4.1.10",
     "arktype": "catalog:",
-    "dependency-cruiser": "^17.4.3",
+    "dependency-cruiser": "^18.1.0",
     "gray-matter": "catalog:",
     "husky": "^9.1.7",
     "lint-staged": "^17.2.0",
