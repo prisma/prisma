@@ -63,3 +63,11 @@
 - **Hands to:** An explicit composition contract where normal and completion entrypoints select identity and all identity-sensitive command construction is mechanically auditable.
 - **Focus:** Remove default identity values from CLI command constructors/factories/helpers, update all production composition roots and existing ordinary-Prisma tests/callers to pass `'prisma'` explicitly, and add no replacement mock suites. Keep `getCliDistributionIdentity` defaulting only at actual executable-entry inference where `process.argv[1]` is the intended source.
 - **Validation gate:** `pnpm --filter prisma tsc`; `pnpm --filter prisma build`; `pnpm --filter prisma7 build`; existing affected ordinary-Prisma tests; packed compatibility E2E; `pnpm prettier-check`; root `pnpm lint`; `git diff --check`; mandatory transient-ID scan.
+
+### Dispatch 9: close CI and current review findings
+
+- **Outcome:** Workspace typecheck and lint pass after a full build, and every current PR review comment is either fixed or explicitly classified against current code.
+- **Builds on:** Dispatch 8's explicit identity contract and CI evidence showing unresolved workspace path mappings plus generated Prisma7 forwarding artifacts entering lint.
+- **Hands to:** A pushed PR with green local reproductions of the failed CI jobs and no valid unaddressed review comment.
+- **Focus:** Correct source-path mappings for `prisma` root/config imports used by `packages/prisma7`; exclude generated root forwarding artifacts from lint/Prettier consistently with `packages/cli`; make Bootstrap resolve the selected local CLI binary; remove the two redundant platform comments. Treat the deleted-test comment as obsolete and reject package-manager guidance comments that misapply contributor tooling rules to user-facing CLI output.
+- **Validation gate:** reproduce CI with `pnpm tsc -p tsconfig.utils.typecheck.json` after the required workspace dev build; run root `pnpm lint` and `pnpm prettier-check` without deleting generated Prisma7 package artifacts; run focused Bootstrap tests and packed compatibility E2E; `git diff --check`; mandatory transient-ID scan.
