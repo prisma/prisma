@@ -17,8 +17,8 @@ export interface MigrationGraphTreeSection {
 }
 
 /**
- * One tree per in-scope contract space. Column widths are computed across every
- * space first so multi-space sections align with each other.
+ * One tree per in-scope contract space. Widths are computed across every space
+ * first so multi-space sections align with each other.
  */
 export function buildMigrationGraphTreeSections(inputs: {
   readonly aggregate: ContractSpaceAggregate;

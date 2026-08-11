@@ -440,6 +440,11 @@ export function errorMarkerMismatch(
   );
 }
 
+const ROLLBACK_IS_DESTRUCTIVE =
+  'A rollback (reverse) plan is expected to contain destructive (DROP) operations — review them before applying';
+const NARROWER_CASES_NEED_A_HINT =
+  'Narrower cases (rename inference, re-adding a required field without a safe default, or a type change that needs data) may additionally need a hint in the planned migration';
+
 export function errorPathUnreachable(failure: MigrateFailure): ActionableCliError {
   const meta = failure.meta ?? {};
   const fromHashMeta = typeof meta['fromHash'] === 'string' ? meta['fromHash'] : null;
@@ -494,19 +499,15 @@ export function errorPathUnreachable(failure: MigrateFailure): ActionableCliErro
       'Plan the missing edge, then apply it:',
       `  1. ${planCommand}`,
       `  2. ${applyCommand}`,
-      'A rollback (reverse) plan is expected to contain destructive (DROP) operations — review them before applying.',
-      'Narrower cases (rename inference, re-adding a required field without a safe default, or a type change that needs data) may additionally need a hint in the planned migration.',
+      `${ROLLBACK_IS_DESTRUCTIVE}.`,
+      `${NARROWER_CASES_NEED_A_HINT}.`,
       'Inspect the on-disk graph with `prisma-next migration list`, or `prisma-next migration show <bundle>` for any bundle in the path you expected.',
     ].join('\n'),
     nextActions: [
       runCommandAction('Plan the missing edge', planCommand),
       runCommandAction('Apply it', applyCommand),
-      chooseAction(
-        'A rollback (reverse) plan is expected to contain destructive (DROP) operations — review them before applying',
-      ),
-      chooseAction(
-        'Narrower cases (rename inference, re-adding a NOT NULL column without a safe default, or a type change that needs data) may additionally need a hint in the planned migration',
-      ),
+      chooseAction(ROLLBACK_IS_DESTRUCTIVE),
+      chooseAction(NARROWER_CASES_NEED_A_HINT),
       runCommandAction('Inspect the on-disk graph', 'prisma-next migration list'),
     ],
     meta: {
