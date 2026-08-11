@@ -125,4 +125,27 @@ describe.each([
     expect(output).toContain(`warning:[${identity}]`)
     expect(output).not.toContain(`warning:[${otherIdentity}]`)
   })
+
+  test('generate mismatch hint labels the selected CLI package', async () => {
+    getGeneratorsMock.mockResolvedValueOnce([
+      {
+        generate: vi.fn(() => Promise.resolve()),
+        getPrettyName: vi.fn(() => 'Prisma Client'),
+        getProvider: vi.fn(() => 'prisma-client-js'),
+        stop: vi.fn(),
+        manifest: { version: '7.4.0' },
+        options: { generator: { provider: { fromEnvVar: null, value: 'prisma-client-js' } } },
+      },
+    ])
+
+    const generate = new Generate(vi.fn(), vi.fn().mockResolvedValue({ prompted: false }), {
+      identity,
+      getGlobalLocalVersionMismatchWarning: vi.fn(() => Promise.resolve(null)),
+    })
+
+    const output = stripAnsi((await generate.parse([], defaultTestConfig(), '/tmp/project')) as string)
+
+    expect(output).toContain(`Versions of ${identity}@0.0.0 and @prisma/client@7.4.0 don't match.`)
+    expect(output).not.toContain(`Versions of ${otherIdentity}@0.0.0 and @prisma/client@7.4.0 don't match.`)
+  })
 })

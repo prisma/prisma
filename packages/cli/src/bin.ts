@@ -132,7 +132,7 @@ async function main(): Promise<number> {
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(identity),
       complete: Completions.new(identity),
-      dev: new SubCommand('@prisma/cli-dev'),
+      dev: new SubCommand('@prisma/cli-dev', identity),
       studio: Studio.new(identity),
       platform: Platform.$.new({ status: Status.new(identity) }, identity),
     },

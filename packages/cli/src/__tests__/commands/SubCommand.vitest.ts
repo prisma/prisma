@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { defaultTestConfig } from '@prisma/config'
 import * as execa from 'execa'
 import { copy } from 'fs-extra'
-import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { SubCommand } from '../../SubCommand'
 
@@ -126,12 +126,22 @@ test('autoinstall', async () => {
   consoleLogSpy.mockRestore()
 })
 
-test('aborts on deno', async () => {
-  globalThis.Deno = { version: '2.0.0' } // fake being Deno
+describe.each([
+  { identity: 'prisma' as const, otherIdentity: 'prisma7' as const },
+  { identity: 'prisma7' as const, otherIdentity: 'prisma' as const },
+])('deno guidance for $identity', ({ identity, otherIdentity }) => {
+  test('aborts on deno with the selected executable guidance', async () => {
+    globalThis.Deno = { version: '2.0.0' } // fake being Deno
 
-  const cmd = new SubCommand('sub-command')
+    const cmd = new SubCommand('sub-command', identity)
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-  await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
+    await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
 
-  expect(execa.default).not.toHaveBeenCalled()
+    expect(execa.default).not.toHaveBeenCalled()
+    expect(consoleLogSpy.mock.calls[0]?.[0]).toContain(`npx ${identity} <cmd>`)
+    expect(consoleLogSpy.mock.calls[0]?.[0]).not.toContain(`npx ${otherIdentity} <cmd>`)
+
+    consoleLogSpy.mockRestore()
+  })
 })

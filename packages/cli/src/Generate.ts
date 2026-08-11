@@ -249,7 +249,7 @@ ${breakingChangesMessage}`
         const versionsOutOfSync = clientGeneratorVersion && cliVersion !== clientGeneratorVersion
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
-            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${cliVersion}`)} and ${bold(
+            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`${this.identity}@${cliVersion}`)} and ${bold(
                 `@prisma/client@${clientGeneratorVersion}`,
               )} don't match.
 This might lead to unexpected behavior.
