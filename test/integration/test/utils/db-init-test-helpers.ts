@@ -1,5 +1,6 @@
 import { loadOrmConfig, ormCommandFamily } from '@internal/cli';
 import { ifDefined } from '@internal/utils/defined';
+import type { StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import type { setupTestDirectoryFromFixtures } from './cli-test-helpers';
 import { setupDbTestFixture } from './cli-test-helpers';
@@ -49,15 +50,39 @@ function splitConfigPath(args: readonly string[]): {
   return { configPath, rest };
 }
 
+/** What one `db init` run reported. */
+export interface DbInitRun {
+  readonly exitCode: number;
+  readonly stdout: string;
+  readonly stderr: string;
+  /** Parsed stream (events plus the terminal result) in json mode. */
+  readonly json: readonly StreamEvent[];
+  /**
+   * The command's own document: the envelope's `result` when it completed and
+   * its `error` when it did not. Undefined for a run that never settled a
+   * command, and in human mode, where no frame is written.
+   */
+  readonly document: unknown;
+}
+
+function terminalDocument(json: readonly StreamEvent[]): unknown {
+  const terminal = json.at(-1);
+  if (terminal === undefined || terminal.kind !== 'result') {
+    return undefined;
+  }
+  return terminal.envelope.ok ? terminal.envelope.result : terminal.envelope.error;
+}
+
 /**
- * Runs `db init` through the engine and returns its exit code. The step's
- * directory is passed as `cwd` rather than chdir'ed into, so nothing about the
- * run is process-global.
+ * Runs `db init` through the engine. The step's directory is passed as `cwd`
+ * rather than chdir'ed into, so nothing about the run is process-global — which
+ * also means its output is on the returned streams rather than in whatever the
+ * caller has mocked the console with.
  */
 export async function runDbInit(
   testSetup: DbInitTestSetup,
   args: readonly string[],
-): Promise<number> {
+): Promise<DbInitRun> {
   const { configPath, rest } = splitConfigPath(args);
   const loaded = await loadOrmConfig({
     cwd: testSetup.testDir,
@@ -72,8 +97,19 @@ export async function runDbInit(
     },
     config: loaded.sections,
   });
-  const run = await cli.run(['db', 'init', ...rest], { cwd: testSetup.testDir });
-  return run.exitCode;
+  // Format auto-selection is the engine's: json off a TTY. A step that asks for
+  // human output has to say its streams are terminals, as the journey harness does.
+  const run = await cli.run(['db', 'init', ...rest], {
+    cwd: testSetup.testDir,
+    isTty: { stdout: true, stderr: true },
+  });
+  return {
+    exitCode: run.exitCode,
+    stdout: run.stdout,
+    stderr: run.stderr,
+    json: run.json,
+    document: terminalDocument(run.json),
+  };
 }
 
 /**
