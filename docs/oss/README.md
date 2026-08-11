@@ -11,6 +11,7 @@ These pages are written for maintainers and curious contributors who want to und
 | A would-be contributor | [`CONTRIBUTING.md`](../../CONTRIBUTING.md) |
 | Reporting a vulnerability | [`SECURITY.md`](../../SECURITY.md) |
 | A current or prospective maintainer | [Governance](./governance.md) |
+| Triaging incoming contributor PRs | [PR triage](./pr-triage.md) |
 | Curious about supply-chain hygiene | [Supply chain](./supply-chain.md) |
 | Wondering how PR CI is structured for cost | [PR CI pipeline](./ci-pipeline.md) |
 | Reasoning about the version contract (consumer or extension author) | [Versioning](./versioning.md) |
@@ -21,4 +22,5 @@ These pages are written for maintainers and curious contributors who want to und
 - [`governance.md`](./governance.md) — Maintainer team, decision-making model, DCO basis, ADR pointer.
 - [`supply-chain.md`](./supply-chain.md) — License declarations, NOTICE audit, npm provenance, Dependabot soak window.
 - [`ci-pipeline.md`](./ci-pipeline.md) — How PR CI builds once, caches deterministic tasks, and skips heavy work on inert diffs.
+- [`pr-triage.md`](./pr-triage.md) — Criteria for triaging external contributor PRs: fork-CI safety, version-line scope, direction fit, staleness, and the verdict vocabulary.
 - [`versioning.md`](./versioning.md) — Pre-1.0 cadence and breaking-change policy, lockstep contract (and what it means for skill/extension authors), dist-tag convention, release procedure.
