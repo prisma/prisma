@@ -13,8 +13,8 @@ catalogs:
       specifier: 26.1.2
       version: 26.1.2
     '@types/pg':
-      specifier: 8.20.3
-      version: 8.20.3
+      specifier: 8.20.4
+      version: 8.20.4
     ajv:
       specifier: ^8.20.0
       version: 8.20.0
@@ -236,7 +236,7 @@ importers:
         version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
@@ -288,7 +288,7 @@ importers:
         version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       esbuild:
         specifier: ^0.28.1
         version: 0.28.1
@@ -448,7 +448,7 @@ importers:
         version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       tsx:
         specifier: 'catalog:'
         version: 4.23.12
@@ -485,7 +485,7 @@ importers:
         version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       tsx:
         specifier: 'catalog:'
         version: 4.23.12
@@ -546,7 +546,7 @@ importers:
         version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       '@types/react':
         specifier: ^19.2.18
         version: 19.2.18
@@ -644,7 +644,7 @@ importers:
         version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       '@types/react':
         specifier: ^19.2.18
         version: 19.2.18
@@ -708,7 +708,7 @@ importers:
         version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       '@types/react':
         specifier: ^19.2.18
         version: 19.2.18
@@ -832,7 +832,7 @@ importers:
         version: link:../../packages/9-public/@prisma/orm-postgres
       jose:
         specifier: ^6
-        version: 6.2.4
+        version: 6.2.8
       pg:
         specifier: 'catalog:'
         version: 8.22.0
@@ -848,7 +848,7 @@ importers:
         version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       tsx:
         specifier: 'catalog:'
         version: 4.23.12
@@ -2413,7 +2413,7 @@ importers:
         version: link:../../../0-config/tsdown
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       ajv:
         specifier: 'catalog:'
         version: 8.20.0
@@ -2649,7 +2649,7 @@ importers:
         version: link:../../0-config/tsdown
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       pg:
         specifier: 'catalog:'
         version: 8.22.0
@@ -3205,7 +3205,7 @@ importers:
         version: link:../../1-framework/0-foundation/utils
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
@@ -3306,7 +3306,7 @@ importers:
         version: link:../../0-config/tsdown
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       pg:
         specifier: 'catalog:'
         version: 8.22.0
@@ -3457,13 +3457,13 @@ importers:
         version: 1.1.0
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
       jose:
         specifier: ^6
-        version: 6.2.4
+        version: 6.2.8
       pg:
         specifier: 'catalog:'
         version: 8.22.0
@@ -4175,7 +4175,7 @@ importers:
         version: link:../../../1-framework/0-foundation/utils
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -4452,13 +4452,13 @@ importers:
         version: 1.1.0
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
       jose:
         specifier: ^6
-        version: 6.2.4
+        version: 6.2.8
       pg:
         specifier: 'catalog:'
         version: 8.22.0
@@ -4751,7 +4751,7 @@ importers:
         version: link:../orm-toolchain
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
@@ -4874,7 +4874,7 @@ importers:
         version: 1.1.0
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -5094,7 +5094,7 @@ importers:
         version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       pg:
         specifier: 'catalog:'
         version: 8.22.0
@@ -5293,7 +5293,7 @@ importers:
         version: link:../../packages/0-config/tsconfig
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       commander:
         specifier: ^15.0.0
         version: 15.0.0
@@ -5537,7 +5537,7 @@ importers:
         version: link:../../packages/0-config/tsdown
       '@types/pg':
         specifier: 'catalog:'
-        version: 8.20.3
+        version: 8.20.4
       pg:
         specifier: 'catalog:'
         version: 8.22.0
@@ -8308,8 +8308,8 @@ packages:
   '@types/pg-cursor@2.7.2':
     resolution: {integrity: sha512-m3xT8bVFCvx98LuzbvXyuCdT/Hjdd/v8ml4jL4K1QF70Y8clOfCFdgoaEB1FWdcSwcpoFYZTJQaMD9/GQ27efQ==}
 
-  '@types/pg@8.20.3':
-    resolution: {integrity: sha512-4Tvg+HO6+oQaAkpT8GTYoSExzpGGZz532GXgbbCElWJQeQdMozBWxEKNBhJJpHFjWXsMxqPbyypvj/89FWNoSQ==}
+  '@types/pg@8.20.4':
+    resolution: {integrity: sha512-Jz7UDOlIiFJuacC0TlBoLyNtmwlA/wpIyPDd3tvUqlRM+HzkWy2xUgpFpaXtbfTAFF6sIGq5lsCDBdJnhky1Xg==}
 
   '@types/pluralize@0.0.33':
     resolution: {integrity: sha512-JOqsl+ZoCpP4e8TDke9W79FDcSgPAR0l6pixx2JHkhnRjvShyYiAYw2LVsnA7K08Y6DeOnaU6ujmENO4os/cYg==}
@@ -9402,8 +9402,8 @@ packages:
     resolution: {integrity: sha512-6xwYfHbajpoF0xLW+iwLkhwgvLoZDfjYfoFNu8ftMoXINzwuymNLd9u/KmwtdT2GbR+/Cz66otEGEVVUHX9QLQ==}
     engines: {node: '>=10.13.0'}
 
-  ip-address@10.4.0:
-    resolution: {integrity: sha512-oSK96Grm3aP6OrS263xVxbNDGVL7rzBtYdpGqlDG8iQdoenDoTs/nkki+DflYbAEE8Xl6o5YxhxlrKvI3nqKXQ==}
+  ip-address@10.5.0:
+    resolution: {integrity: sha512-R5SnVLJmgYYvf2F2ZgwSBnelz5G4q5AxIC277GDfUaNbrZKNANcBC7RHqYYePlszf4kBolVkJauG0ZjHHFh55g==}
     engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
@@ -9458,8 +9458,8 @@ packages:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
 
-  jose@6.2.4:
-    resolution: {integrity: sha512-N8acGzVsQy6M/fjFcxtysNc4Q379TcM5dM/qKkNtsHFji88yANnXTr7BLeP75iPnFwBfQzM/jg2BZ9+HZrHCZA==}
+  jose@6.2.8:
+    resolution: {integrity: sha512-Bsdjwm3Qsd/P0jR+BHDe3LytDfY7WBq2HmCCLIwuVRHMuEC9ae7/R474GIUdF1NgCyZjzVo/A9DOiOBtXq8ZoQ==}
 
   js-tokens@10.0.0:
     resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
@@ -13443,9 +13443,9 @@ snapshots:
   '@types/pg-cursor@2.7.2':
     dependencies:
       '@types/node': 26.1.1
-      '@types/pg': 8.20.3
+      '@types/pg': 8.20.4
 
-  '@types/pg@8.20.3':
+  '@types/pg@8.20.4':
     dependencies:
       '@types/node': 26.1.2
       pg-protocol: 1.15.0
@@ -14470,7 +14470,7 @@ snapshots:
 
   interpret@3.1.1: {}
 
-  ip-address@10.4.0:
+  ip-address@10.5.0:
     optional: true
 
   ipaddr.js@1.9.1: {}
@@ -14513,7 +14513,7 @@ snapshots:
 
   jiti@2.7.0: {}
 
-  jose@6.2.4: {}
+  jose@6.2.8: {}
 
   js-tokens@10.0.0: {}
 
@@ -15559,7 +15559,7 @@ snapshots:
 
   socks@2.8.9:
     dependencies:
-      ip-address: 10.4.0
+      ip-address: 10.5.0
       smart-buffer: 4.2.0
     optional: true
 
