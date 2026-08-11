@@ -32,11 +32,11 @@ import {
 } from './template-scaffold'
 
 /**
- * Locates the user's locally installed `prisma` binary in node_modules.
+ * Locates the user's locally installed CLI binary in node_modules.
  * Returns the absolute path if found, null otherwise.
  */
-function findLocalPrismaBin(baseDir: string): string | null {
-  const candidate = path.join(baseDir, 'node_modules', '.bin', 'prisma')
+function findLocalPrismaBin(baseDir: string, identity: CliDistributionIdentity): string | null {
+  const candidate = path.join(baseDir, 'node_modules', '.bin', identity)
   return fs.existsSync(candidate) ? candidate : null
 }
 
@@ -387,7 +387,7 @@ export class Bootstrap implements Command {
       // migrate/seed run with the user's own Prisma version and configuration. We only fall
       // back to in-process execution for fresh projects where `init` just scaffolded Prisma 7
       // files and no local binary exists yet.
-      const localPrismaBin = findLocalPrismaBin(baseDir)
+      const localPrismaBin = findLocalPrismaBin(baseDir, this.identity)
       const useLocalBin = localPrismaBin !== null && (initialState.hasSchemaFile || templateScaffolded)
 
       if (updatedState.hasModels) {

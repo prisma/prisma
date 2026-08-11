@@ -7,7 +7,6 @@ import type { CliDistributionIdentity } from '../utils/cli-distribution-identity
 import { dispatchToSubCommand } from './_lib/cli/dispatch-to-sub-command'
 import { createHelp } from './_lib/help'
 
-/** $ prisma platform */
 export class $ implements Command {
   static new(cmds: Commands, identity: CliDistributionIdentity): $ {
     return new $(cmds, identity)

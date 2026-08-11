@@ -8,7 +8,6 @@ interface HelpOptions {
   examples: string[]
 }
 
-/** Generates formatted help text for a platform subcommand group. */
 export function createHelp(identity: CliDistributionIdentity, { subcommands, examples }: HelpOptions): string {
   const maxNameLen = Math.max(...subcommands.map(([name]) => name.length))
   const subcommandLines = subcommands.map(([name, desc]) => `    ${name.padEnd(maxNameLen)}   ${desc}`).join('\n')

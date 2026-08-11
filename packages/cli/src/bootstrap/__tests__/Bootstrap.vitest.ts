@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -7,6 +8,10 @@ import { HelpError } from '@prisma/internals'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { Bootstrap } from '../Bootstrap'
+
+vi.mock('node:child_process', () => ({
+  execFileSync: vi.fn(),
+}))
 
 vi.mock('@prisma/management-api-sdk', () => {
   class AuthErrorMock extends Error {
@@ -96,6 +101,7 @@ let tmpDir: string
 
 beforeEach(() => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prisma-bootstrap-'))
+  vi.mocked(execFileSync).mockReset()
   mockSdkClient.GET.mockReset()
   mockSdkClient.POST.mockReset()
 })
@@ -260,6 +266,45 @@ describe('Bootstrap command — new project flow', () => {
 })
 
 describe('Bootstrap command — existing project flow', () => {
+  test('uses the selected local CLI binary for migrate and generate', async () => {
+    const prismaDir = path.join(tmpDir, 'prisma')
+    fs.mkdirSync(prismaDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(prismaDir, 'schema.prisma'),
+      'datasource db { provider = "postgresql" }\nmodel User { id Int @id }',
+      'utf-8',
+    )
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', '.bin'), { recursive: true })
+    fs.writeFileSync(path.join(tmpDir, 'node_modules', '.bin', 'prisma7'), '', 'utf-8')
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma7'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', '@prisma', 'client'), { recursive: true })
+
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm).mockResolvedValue(true)
+
+    setupMockApiSuccess()
+
+    const result = await Bootstrap.new('prisma7').parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123'],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).not.toBeInstanceOf(Error)
+    expect(execFileSync).toHaveBeenCalledWith(
+      path.join(tmpDir, 'node_modules', '.bin', 'prisma7'),
+      ['migrate', 'dev', '--name', 'init'],
+      expect.objectContaining({ cwd: tmpDir, shell: process.platform === 'win32', stdio: 'inherit' }),
+    )
+    expect(execFileSync).toHaveBeenCalledWith(
+      path.join(tmpDir, 'node_modules', '.bin', 'prisma7'),
+      ['generate'],
+      expect.objectContaining({ cwd: tmpDir, shell: process.platform === 'win32', stdio: 'inherit' }),
+    )
+  })
+
   test('skips init and template when schema already exists', async () => {
     const prismaDir = path.join(tmpDir, 'prisma')
     fs.mkdirSync(prismaDir, { recursive: true })
