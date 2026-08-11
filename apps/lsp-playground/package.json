@@ -37,7 +37,7 @@
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "@types/node": "catalog:",
     "@types/ws": "^8.5.13",
-    "puppeteer-core": "^25.3.0",
+    "puppeteer-core": "^25.4.0",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vite": "^6.3.5"
