@@ -300,6 +300,13 @@ model Bug {
 }
 `);
     expect(result.ok, result.ok ? '' : JSON.stringify(result.failure.diagnostics)).toBe(true);
+    if (!result.ok) return;
+
+    const storage = result.value.storage as unknown as SqlStorage;
+    const bugTable = storage.namespaces['public']?.entries.table?.['bug'];
+    expect(bugTable?.checks?.map((c) => c.name)).toEqual([
+      expect.stringMatching(/^bug_severity_present_[0-9a-f]{8}$/),
+    ]);
   });
 });
 
