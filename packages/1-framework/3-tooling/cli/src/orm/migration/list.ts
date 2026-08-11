@@ -1,5 +1,5 @@
 import { ifDefined } from '@internal/utils/defined';
-import type { Presentations } from '@prisma/cli-engine';
+import type { Block, Presentations } from '@prisma/cli-engine';
 import { defineCommand, flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { buildReadAggregate } from '../../control-api/operations/contract-space-aggregate-loader';
@@ -8,9 +8,11 @@ import {
   runMigrationList,
 } from '../../control-api/operations/migration-list';
 import { renderMigrationGraphLegend } from '../../utils/formatters/migration-graph-labels';
+import { TONE_MIGRATION_GRAPH_PALETTE } from '../../utils/formatters/migration-graph-palette';
 import { renderMigrationListWithStyle } from '../../utils/formatters/migration-list-render';
-import { createAnsiMigrationListStyler } from '../../utils/formatters/migration-list-styler';
+import { createToneMigrationListStyler } from '../../utils/formatters/migration-list-styler';
 import type { MigrationListResult } from '../../utils/formatters/migration-list-types';
+import { toneDrawing } from '../../utils/formatters/tone-markup';
 import type { GlyphMode } from '../../utils/glyph-mode';
 import { ormConfigSection } from '../config-section';
 import { normalizeError } from '../normalize-error';
@@ -18,25 +20,25 @@ import { displayPath, migrationsDirFor } from './paths';
 
 function listPresentations(inputs: {
   readonly list: MigrationListResult;
-  readonly lines: readonly string[];
+  readonly tree: string;
   readonly migrationsDir: string;
   readonly space: string | undefined;
-  readonly legendLines: readonly string[];
+  readonly legend: string | undefined;
 }): Presentations {
+  const legend = inputs.legend;
   return {
-    human: () => [
+    human: (): readonly Block[] => [
       {
         kind: 'fields',
+        rail: true,
         rows: [
           { label: 'migrations', value: inputs.migrationsDir },
           ...(inputs.space === undefined ? [] : [{ label: 'space', value: inputs.space }]),
         ],
       },
-      ...(inputs.legendLines.length === 0
-        ? []
-        : [{ kind: 'list' as const, items: [...inputs.legendLines] }]),
+      { kind: 'drawing', lines: toneDrawing(inputs.tree) },
+      ...(legend === undefined ? [] : [{ kind: 'drawing' as const, lines: toneDrawing(legend) }]),
     ],
-    stdout: () => inputs.lines,
     json: () => inputs.list,
   };
 }
@@ -83,31 +85,33 @@ export const migrationListCommand = defineCommand({
     }
 
     const glyphMode: GlyphMode = args.flags.ascii ? 'ascii' : 'unicode';
-    const lines = renderMigrationListWithStyle(
-      listed.value,
-      createAnsiMigrationListStyler({ useColor: false }),
-      glyphMode,
-      {
-        colorize: false,
-        liveContractHash,
-        graphForSpace: (spaceId) => aggregate.space(spaceId)?.graph(),
-        appSpaceId: aggregate.app.spaceId,
-      },
-    ).split('\n');
+    const styler = createToneMigrationListStyler();
+    const tree = renderMigrationListWithStyle(listed.value, styler, glyphMode, {
+      colorize: true,
+      palette: TONE_MIGRATION_GRAPH_PALETTE,
+      liveContractHash,
+      graphForSpace: (spaceId) => aggregate.space(spaceId)?.graph(),
+      appSpaceId: aggregate.app.spaceId,
+    });
 
-    const legendLines = args.flags.legend
-      ? renderMigrationGraphLegend({ colorize: false, glyphMode }).split('\n')
-      : [];
+    const legend = args.flags.legend
+      ? renderMigrationGraphLegend({
+          colorize: true,
+          glyphMode,
+          styler,
+          palette: TONE_MIGRATION_GRAPH_PALETTE,
+        })
+      : undefined;
 
     return ok(
       ctx.present(
         { data: listed.value },
         listPresentations({
           list: listed.value,
-          lines,
+          tree,
           migrationsDir: displayPath(migrationsDir, ctx.cwd),
           space: args.flags.space,
-          legendLines,
+          legend,
         }),
       ),
     );

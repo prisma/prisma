@@ -1,7 +1,11 @@
 import { loadConfig } from '@internal/config-loader';
 import type { LoadedConfig } from '@prisma/cli-engine';
+import { resolve } from 'pathe';
 import { ORM_CONFIG_SECTION_NAME } from './config-section';
 import { toEngineDiagnostic } from './normalize-error';
+
+/** The file the ORM's loader reads when `--config` names none. */
+const ORM_CONFIG_FILENAME = 'prisma-next.config.ts';
 
 export interface LoadOrmConfigOptions {
   /** Where the CLI was invoked. Config discovery starts and ends here. */
@@ -25,12 +29,18 @@ export interface LoadOrmConfigOptions {
  * config. Structural verdicts belong to the section validator.
  */
 export async function loadOrmConfig(options: LoadOrmConfigOptions): Promise<LoadedConfig> {
+  const path = resolve(options.cwd, options.configPath ?? ORM_CONFIG_FILENAME);
   const loaded = await loadConfig(options.configPath, { cwd: options.cwd });
   if (!loaded.ok) {
     return {
+      path,
       sections: {},
       diagnostics: [{ section: null, diagnostic: toEngineDiagnostic(loaded.failure) }],
     };
   }
-  return { sections: { [ORM_CONFIG_SECTION_NAME]: loaded.value.config }, diagnostics: [] };
+  return {
+    path,
+    sections: { [ORM_CONFIG_SECTION_NAME]: loaded.value.config },
+    diagnostics: [],
+  };
 }

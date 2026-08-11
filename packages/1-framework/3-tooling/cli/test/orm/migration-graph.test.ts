@@ -9,6 +9,7 @@ import { blindCast } from '@internal/utils/casts';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { createSqlContract } from '@repo/test-utils';
 import { join } from 'pathe';
+import stripAnsi from 'strip-ansi';
 import { afterEach, describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
 
@@ -113,19 +114,41 @@ describe('migration graph', () => {
     });
   });
 
-  it('ships the tree as the stdout presentation and the header as blocks', async () => {
+  it('draws the tree as a toned drawing and puts nothing on stdout', async () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
     const run = await harness(ormConfig()).run(['migration', 'graph'], {
       cwd: dir,
-      isTty: { stdout: true },
+      isTty: { stdout: true, stderr: true },
     });
+    const blocks = run.presented?.presentation.human ?? [];
+    const drawing = blocks.at(-1);
 
-    expect(run.presented?.presentation.stdout?.join('\n')).toContain(MIGRATION_DIR);
-    expect(run.presented?.presentation.human).toEqual([
-      { kind: 'fields', rows: [{ label: 'migrations', value: 'migrations' }] },
-    ]);
+    expect(blocks[0]).toEqual({
+      kind: 'fields',
+      rail: true,
+      rows: [{ label: 'migrations', value: 'migrations' }],
+    });
+    expect(drawing?.kind).toBe('drawing');
+    expect(JSON.stringify(drawing)).toContain(MIGRATION_DIR);
+    expect(run.presented?.presentation.stdout).toEqual([]);
+    expect(run.stdout).toBe('');
+  });
+
+  it('paints the drawing, keeping the tree aligned once colour is stripped', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'graph'], {
+      cwd: dir,
+      isTty: { stdout: true, stderr: true },
+    });
+    const rendered = stripAnsi(run.stderr).split('\n');
+
+    expect(run.stderr).toContain('\u001B[');
+    expect(rendered).toContain('○   4cb4256');
+    expect(rendered).toContain(`│↑  ${MIGRATION_DIR}        ∅ → 4cb4256  1 ops`);
   });
 
   it('puts the DOT text on stdout in human mode', async () => {
@@ -188,16 +211,17 @@ describe('migration graph', () => {
     expect(envelope?.nextActions.length).toBeGreaterThan(0);
   });
 
-  it('adds the glyph key as a block when --legend is passed', async () => {
+  it('draws the glyph key when --legend is passed', async () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
     const run = await harness(ormConfig()).run(['migration', 'graph', '--legend'], {
       cwd: dir,
-      isTty: { stdout: true },
+      isTty: { stdout: true, stderr: true },
     });
 
-    expect(run.presented?.presentation.human.at(-1)?.kind).toBe('list');
+    expect(run.presented?.presentation.human.at(-1)?.kind).toBe('drawing');
+    expect(stripAnsi(run.stderr).split('\n')).toContain('Legend:');
   });
 
   it('errors with the dotted code when the space does not exist', async () => {
@@ -225,14 +249,13 @@ describe('migration graph', () => {
       isTty: { stdout: true },
     });
 
-    expect(run.presented?.presentation.human).toEqual([
-      {
-        kind: 'fields',
-        rows: [
-          { label: 'migrations', value: 'migrations' },
-          { label: 'space', value: 'app' },
-        ],
-      },
-    ]);
+    expect(run.presented?.presentation.human[0]).toEqual({
+      kind: 'fields',
+      rail: true,
+      rows: [
+        { label: 'migrations', value: 'migrations' },
+        { label: 'space', value: 'app' },
+      ],
+    });
   });
 });

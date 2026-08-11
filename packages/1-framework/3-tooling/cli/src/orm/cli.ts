@@ -1,4 +1,5 @@
-import type { Cli, HostProcess, LoadedConfig, MountedTree, Runtime } from '@prisma/cli-engine';
+import { ifDefined } from '@internal/utils/defined';
+import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine';
 import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
 import { ormCommandFamily } from './family';
@@ -10,53 +11,6 @@ import { migrationShowCommand } from './migration/show';
 import { resolveTelemetryHooks } from './telemetry/reporting';
 
 export const BIN_NAME = 'prisma-next';
-
-const CONFIG_FLAG = '--config';
-
-export interface StrippedConfigFlag {
-  readonly argv: readonly string[];
-  readonly configPath: string | undefined;
-}
-
-/**
- * Interim, pending the engine's own shell-level `--config`: the pinned engine
- * reserves no such flag and would reject it, so the bin reads it off argv and
- * removes it before the engine parses. A trailing `--config` with no value is
- * left in place so the engine reports it as an argument error. Arguments after
- * a bare `--` are positionals, never flags.
- */
-export function stripConfigFlag(argv: readonly string[]): StrippedConfigFlag {
-  const kept: string[] = [];
-  let configPath: string | undefined;
-
-  for (let index = 0; index < argv.length; index++) {
-    const argument = argv[index];
-    if (argument === undefined) {
-      continue;
-    }
-    if (argument === '--') {
-      kept.push(...argv.slice(index));
-      break;
-    }
-    if (argument.startsWith(`${CONFIG_FLAG}=`)) {
-      configPath = argument.slice(CONFIG_FLAG.length + 1);
-      continue;
-    }
-    if (argument === CONFIG_FLAG) {
-      const value = argv[index + 1];
-      if (value === undefined) {
-        kept.push(argument);
-        continue;
-      }
-      configPath = value;
-      index += 1;
-      continue;
-    }
-    kept.push(argument);
-  }
-
-  return { argv: kept, configPath };
-}
 
 export const BIN_GROUPS = {
   migration: {
@@ -96,10 +50,15 @@ function packageManagerFrom(
  * Everything environmental the engine is given, adapted from the host process
  * once. The engine owns signal policy; the bin is dumb wiring.
  */
-export function runtimeFromProcess(proc: HostProcess, config: LoadedConfig): Runtime {
+export function runtimeFromProcess(proc: HostProcess): Runtime {
   return {
     stdout: { write: (text) => void proc.stdout.write(text) },
-    stderr: { write: (text) => void proc.stderr.write(text) },
+    // The terminal width the drawings get to use, read once with everything
+    // else the runtime carries.
+    stderr: {
+      write: (text) => void proc.stderr.write(text),
+      ...ifDefined('columns', proc.stderr.columns),
+    },
     stdin: proc.stdin,
     cwd: proc.cwd(),
     env: proc.env,
@@ -119,7 +78,8 @@ export function runtimeFromProcess(proc: HostProcess, config: LoadedConfig): Run
         proc.off('SIGTERM', onTerminate);
       };
     },
-    config,
+    loadConfig: (configPath) =>
+      loadOrmConfig({ cwd: proc.cwd(), ...ifDefined('configPath', configPath) }),
     managementApi: { baseUrl: 'https://api.prisma.io' },
     packageManager: packageManagerFrom(proc.env),
   };
@@ -127,11 +87,6 @@ export function runtimeFromProcess(proc: HostProcess, config: LoadedConfig): Run
 
 /** Parses, executes and settles one invocation; returns the exit code. */
 export async function runOrmCli(proc: HostProcess): Promise<number> {
-  const { argv, configPath } = stripConfigFlag(proc.argv.slice(2));
-  const config = await loadOrmConfig({
-    cwd: proc.cwd(),
-    ...(configPath === undefined ? {} : { configPath }),
-  });
   const hooks = resolveTelemetryHooks(proc);
-  return createOrmCli().run(argv, runtimeFromProcess(proc, config), hooks);
+  return createOrmCli().run(proc.argv.slice(2), runtimeFromProcess(proc), hooks);
 }

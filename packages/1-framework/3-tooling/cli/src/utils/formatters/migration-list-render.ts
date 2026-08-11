@@ -2,6 +2,7 @@ import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { MigrationEdge, MigrationGraph } from '@internal/migration-tools/graph';
 import type { GlyphMode } from '../glyph-mode';
 import type { MigrationEdgeAnnotation } from './migration-graph-labels';
+import type { MigrationGraphPalette } from './migration-graph-palette';
 import {
   computeGlobalMaxDirNameWidth,
   computeGlobalMaxEdgeTreePrefixWidth,
@@ -124,19 +125,36 @@ function formatEmptyStateLine(spaceId: string, style: MigrationListStyler): stri
   return style.emptyState(`There are no migrations in migrations/${spaceId}/ yet`);
 }
 
-function renderSpaceTreeBlock(
-  spaceId: string,
-  migrations: readonly MigrationListEntry[],
-  multiSpace: boolean,
-  glyphMode: GlyphMode,
-  style: MigrationListStyler,
-  colorize: boolean,
-  liveContractHash: string,
-  graphForSpace: (spaceId: string) => MigrationGraph | undefined,
-  appSpaceId: string | undefined,
-  globalMaxEdgeTreePrefixWidth?: number,
-  globalMaxDirNameWidth?: number,
-): readonly string[] {
+interface SpaceTreeBlockInput {
+  readonly spaceId: string;
+  readonly migrations: readonly MigrationListEntry[];
+  readonly multiSpace: boolean;
+  readonly glyphMode: GlyphMode;
+  readonly style: MigrationListStyler;
+  readonly colorize: boolean;
+  readonly liveContractHash: string;
+  readonly graphForSpace: (spaceId: string) => MigrationGraph | undefined;
+  readonly appSpaceId: string | undefined;
+  readonly palette: MigrationGraphPalette | undefined;
+  readonly globalMaxEdgeTreePrefixWidth: number | undefined;
+  readonly globalMaxDirNameWidth: number | undefined;
+}
+
+function renderSpaceTreeBlock(input: SpaceTreeBlockInput): readonly string[] {
+  const {
+    spaceId,
+    migrations,
+    multiSpace,
+    glyphMode,
+    style,
+    colorize,
+    liveContractHash,
+    graphForSpace,
+    appSpaceId,
+    palette,
+    globalMaxEdgeTreePrefixWidth,
+    globalMaxDirNameWidth,
+  } = input;
   if (migrations.length === 0) {
     const emptyLine = formatEmptyStateLine(spaceId, style);
     if (!multiSpace) {
@@ -155,6 +173,7 @@ function renderSpaceTreeBlock(
     colorize,
     refsByHash: buildRefsByHashFromListEntries(migrations),
     styler: style,
+    ...(palette !== undefined ? { palette } : {}),
     ...(isAppSpace !== undefined ? { isAppSpace } : {}),
     ...(globalMaxEdgeTreePrefixWidth !== undefined ? { globalMaxEdgeTreePrefixWidth } : {}),
     ...(globalMaxDirNameWidth !== undefined ? { globalMaxDirNameWidth } : {}),
@@ -179,6 +198,8 @@ export interface RenderMigrationListWithStyleOptions {
    * for every space), which is safe for single-space callers.
    */
   readonly appSpaceId?: string;
+  /** Where the tree gets its colour. Defaults to the ANSI palette. */
+  readonly palette?: MigrationGraphPalette;
 }
 
 /**
@@ -222,9 +243,9 @@ export function renderMigrationListWithStyle(
       lines.push('');
     }
     lines.push(
-      ...renderSpaceTreeBlock(
-        space.space,
-        space.migrations,
+      ...renderSpaceTreeBlock({
+        spaceId: space.space,
+        migrations: space.migrations,
         multiSpace,
         glyphMode,
         style,
@@ -232,9 +253,10 @@ export function renderMigrationListWithStyle(
         liveContractHash,
         graphForSpace,
         appSpaceId,
+        palette: options.palette,
         globalMaxEdgeTreePrefixWidth,
         globalMaxDirNameWidth,
-      ),
+      }),
     );
   }
 

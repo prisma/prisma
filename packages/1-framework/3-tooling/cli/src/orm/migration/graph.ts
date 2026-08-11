@@ -1,5 +1,5 @@
 import { ifDefined } from '@internal/utils/defined';
-import type { Presentations } from '@prisma/cli-engine';
+import type { Block, Presentations } from '@prisma/cli-engine';
 import { defineCommand, flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import type {
@@ -14,11 +14,14 @@ import {
 } from '../../control-api/operations/migration-list';
 import { errorLegendHumanOnly } from '../../utils/cli-errors';
 import { renderMigrationGraphLegend } from '../../utils/formatters/migration-graph-labels';
+import { TONE_MIGRATION_GRAPH_PALETTE } from '../../utils/formatters/migration-graph-palette';
 import {
   buildMigrationGraphTreeSections,
   renderMigrationGraphDot,
   renderMigrationGraphSections,
 } from '../../utils/formatters/migration-graph-sections';
+import { createToneMigrationListStyler } from '../../utils/formatters/migration-list-styler';
+import { toneDrawing } from '../../utils/formatters/tone-markup';
 import type { GlyphMode } from '../../utils/glyph-mode';
 import { ormConfigSection } from '../config-section';
 import { normalizeError } from '../normalize-error';
@@ -33,27 +36,33 @@ interface MigrationGraphDotResult extends MigrationGraphJsonResult {
   readonly dot: string;
 }
 
+/**
+ * The tree is a drawing for a reader; the DOT document is a graph description
+ * for another program, so it is the one thing here that belongs on stdout.
+ */
 function graphPresentations(inputs: {
   readonly document: MigrationGraphJsonResult | MigrationGraphDotResult;
-  readonly lines: readonly string[];
+  readonly tree: string | undefined;
+  readonly dot: string | undefined;
   readonly migrationsDir: string;
   readonly space: string | undefined;
-  readonly legendLines: readonly string[];
+  readonly legend: string | undefined;
 }): Presentations {
+  const { tree, dot, legend } = inputs;
   return {
-    human: () => [
+    human: (): readonly Block[] => [
       {
         kind: 'fields',
+        rail: true,
         rows: [
           { label: 'migrations', value: inputs.migrationsDir },
           ...(inputs.space === undefined ? [] : [{ label: 'space', value: inputs.space }]),
         ],
       },
-      ...(inputs.legendLines.length === 0
-        ? []
-        : [{ kind: 'list' as const, items: [...inputs.legendLines] }]),
+      ...(tree === undefined ? [] : [{ kind: 'drawing' as const, lines: toneDrawing(tree) }]),
+      ...(legend === undefined ? [] : [{ kind: 'drawing' as const, lines: toneDrawing(legend) }]),
     ],
-    stdout: () => inputs.lines,
+    ...(dot === undefined ? {} : { stdout: () => dot.split('\n') }),
     json: () => inputs.document,
   };
 }
@@ -119,7 +128,8 @@ export const migrationGraphCommand = defineCommand({
 
     const dot = args.flags.dot ? renderMigrationGraphDot(aggregate.app.graph()) : undefined;
     const document = dot === undefined ? graphDocument : { ...graphDocument, dot };
-    const lines =
+    const styler = createToneMigrationListStyler();
+    const tree =
       dot === undefined
         ? renderMigrationGraphSections(
             buildMigrationGraphTreeSections({
@@ -127,25 +137,33 @@ export const migrationGraphCommand = defineCommand({
               scopedSpaces,
               liveContractHash,
               glyphMode,
-              colorize: false,
+              colorize: true,
+              styler,
+              palette: TONE_MIGRATION_GRAPH_PALETTE,
             }),
-            summary,
-          ).split('\n')
-        : dot.split('\n');
+            styler.summary(summary),
+          )
+        : undefined;
 
-    const legendLines = args.flags.legend
-      ? renderMigrationGraphLegend({ colorize: false, glyphMode }).split('\n')
-      : [];
+    const legend = args.flags.legend
+      ? renderMigrationGraphLegend({
+          colorize: true,
+          glyphMode,
+          styler,
+          palette: TONE_MIGRATION_GRAPH_PALETTE,
+        })
+      : undefined;
 
     return ok(
       ctx.present(
         { data: document },
         graphPresentations({
           document,
-          lines,
+          tree,
+          dot,
           migrationsDir: displayPath(migrationsDir, ctx.cwd),
           space: args.flags.space,
-          legendLines,
+          legend,
         }),
       ),
     );

@@ -1255,8 +1255,8 @@ importers:
         specifier: workspace:8.0.0-rc.1
         version: link:../../0-foundation/utils
       '@prisma/cli-engine':
-        specifier: 0.0.3
-        version: 0.0.3
+        specifier: 0.0.8
+        version: 0.0.8(magicast@0.5.3)
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -4965,8 +4965,8 @@ importers:
         specifier: ^1.7.0
         version: 1.7.0
       '@prisma/cli-engine':
-        specifier: 0.0.3
-        version: 0.0.3
+        specifier: 0.0.8
+        version: 0.0.8(magicast@0.5.3)
       '@prisma/orm-framework':
         specifier: workspace:8.0.0-rc.1
         version: link:../orm-framework
@@ -5295,8 +5295,8 @@ importers:
         specifier: workspace:8.0.0-rc.1
         version: link:../../packages/2-mongo-family/6-transport/mongo-lowering
       '@prisma/cli-engine':
-        specifier: 0.0.3
-        version: 0.0.3
+        specifier: 0.0.8
+        version: 0.0.8(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../utils
@@ -7140,8 +7140,8 @@ packages:
   '@poppinss/exception@1.2.3':
     resolution: {integrity: sha512-dCED+QRChTVatE9ibtoaxc+WkdzOSjYTKi/+uacHWIsfodVfpsueo3+DKpgU5Px8qXjgmXkSvhXvSCz3fnP9lw==}
 
-  '@prisma/cli-engine@0.0.3':
-    resolution: {integrity: sha512-8qefJFTi0+/b0OHpZYbuB7utD7KlltF5FgH/xUNCh+EOtajPtAItS/+oXJR2oujysWozPsiqA2MZzb7Gf/35gw==}
+  '@prisma/cli-engine@0.0.8':
+    resolution: {integrity: sha512-+h18UzOA+jG0E2w68byWqADmOROf++6LSR2/Ssi+wFVXu9cBFQTLOZdgFYGHD6mSM+P8QmurT0jw0US9aRAmdA==}
     engines: {node: '>=22.12.0'}
 
   '@prisma/compute-sdk@0.38.0':
@@ -12547,11 +12547,16 @@ snapshots:
 
   '@poppinss/exception@1.2.3': {}
 
-  '@prisma/cli-engine@0.0.3':
+  '@prisma/cli-engine@0.0.8(magicast@0.5.3)':
     dependencies:
       '@clack/prompts': 1.5.0
       '@prisma/management-api-sdk': 1.55.0
       '@stricli/core': 1.3.0
+      c12: 3.3.4(magicast@0.5.3)
+      colorette: 2.0.20
+      string-width: 8.2.2
+    transitivePeerDependencies:
+      - magicast
 
   '@prisma/compute-sdk@0.38.0(@prisma/management-api-sdk@1.53.0)(encoding@0.1.13)(rollup@4.59.0)':
     dependencies:

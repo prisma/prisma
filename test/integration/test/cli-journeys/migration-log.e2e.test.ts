@@ -75,11 +75,13 @@ withTempDir(({ createTempDir }) => {
         // The ledger records the chain, so each edge starts where the last ended.
         expect(document.records[1]?.fromContract).toBe(document.records[0]?.toContract);
 
-        // Human mode draws the table on stdout; json mode keeps stdout a frame
-        // stream and the table never appears on it.
+        // Human mode draws the table for the reader on stderr; stdout carries
+        // the frame stream alone, in either mode.
         const human = await runMigrationLog(ctx);
-        expect(human.stdout).toContain('initial');
+        expect(human.stderr).toContain('initial');
+        expect(human.stdout).toBe('');
         expect(human.presented?.presentation.human?.[0]).toMatchObject({ kind: 'fields' });
+        expect(human.presented?.presentation.human?.[1]).toMatchObject({ kind: 'table' });
         expect(log.presented?.presentation.stdout).toEqual([]);
         for (const line of log.stdout.split('\n').filter((entry) => entry.length > 0)) {
           expect(() => JSON.parse(line)).not.toThrow();

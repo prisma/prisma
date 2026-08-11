@@ -352,17 +352,6 @@ interface MigrationShowResult {
   readonly migration: MigrationShowPresent;
 }
 
-/**
- * The lines `migration show` puts on stdout: metadata, the operation tree, and
- * the statement preview.
- */
-export function renderMigrationShowLines(
-  space: MigrationShowPresent,
-  options: { readonly colorize: boolean },
-): readonly string[] {
-  return formatSpaceShowBlock(space, options.colorize);
-}
-
 function formatSpaceShowBlock(space: MigrationShowPresent, useColor: boolean): readonly string[] {
   const formatGreen = createColorFormatter(useColor, green);
   const formatYellow = createColorFormatter(useColor, yellow);

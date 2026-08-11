@@ -1,48 +1,59 @@
+import type { LoadedConfig } from '@prisma/cli-engine';
+import { createTestCli } from '@prisma/cli-engine/testing';
 import { describe, expect, it } from 'vitest';
-import { createOrmCli, stripConfigFlag } from '../../src/orm/cli';
+import { BIN_COMMANDS, BIN_GROUPS, createOrmCli } from '../../src/orm/cli';
 import { ormCommandFamily } from '../../src/orm/family';
 
-describe('stripConfigFlag', () => {
-  it('takes the path from a separated --config and removes both tokens', () => {
-    expect(stripConfigFlag(['migration', 'list', '--config', 'custom.ts', '--json'])).toEqual({
-      argv: ['migration', 'list', '--json'],
-      configPath: 'custom.ts',
-    });
+function recordingLoader(): {
+  readonly asked: string[];
+  readonly loadConfig: (configPath?: string) => Promise<LoadedConfig>;
+} {
+  const asked: string[] = [];
+  return {
+    asked,
+    loadConfig: (configPath) => {
+      asked.push(configPath ?? '(none)');
+      return Promise.resolve({
+        path: configPath ?? 'prisma-next.config.ts',
+        sections: {},
+        diagnostics: [],
+      });
+    },
+  };
+}
+
+function harness(loadConfig: (configPath?: string) => Promise<LoadedConfig>) {
+  return createTestCli({
+    commandFamilies: [ormCommandFamily],
+    commands: BIN_COMMANDS,
+    groups: BIN_GROUPS,
+    loadConfig,
+  });
+}
+
+describe('the --config flag', () => {
+  it('hands the separated path to the loader', async () => {
+    const loader = recordingLoader();
+
+    await harness(loader.loadConfig).run(['migration', 'list', '--config', 'custom.ts']);
+
+    expect(loader.asked).toEqual(['custom.ts']);
   });
 
-  it('takes the path from an attached --config=<path>', () => {
-    expect(stripConfigFlag(['--config=/abs/custom.ts', 'format'])).toEqual({
-      argv: ['format'],
-      configPath: '/abs/custom.ts',
-    });
+  it('hands the attached --config=<path> to the loader', async () => {
+    const loader = recordingLoader();
+
+    await harness(loader.loadConfig).run(['migration', 'list', '--config=/abs/custom.ts']);
+
+    expect(loader.asked).toEqual(['/abs/custom.ts']);
   });
 
-  it('reports no path when the flag is absent', () => {
-    expect(stripConfigFlag(['migration', 'list'])).toEqual({
-      argv: ['migration', 'list'],
-      configPath: undefined,
-    });
-  });
+  it('asks for the default file when no path is given', async () => {
+    const loader = recordingLoader();
 
-  it('keeps the last --config when it is given more than once', () => {
-    expect(stripConfigFlag(['--config', 'a.ts', '--config', 'b.ts'])).toEqual({
-      argv: [],
-      configPath: 'b.ts',
-    });
-  });
+    await harness(loader.loadConfig).run(['migration', 'list']);
 
-  it('leaves a valueless trailing --config for the engine to reject', () => {
-    expect(stripConfigFlag(['format', '--config'])).toEqual({
-      argv: ['format', '--config'],
-      configPath: undefined,
-    });
-  });
-
-  it('treats everything after a bare -- as positionals', () => {
-    expect(stripConfigFlag(['ref', 'set', '--', '--config', 'x.ts'])).toEqual({
-      argv: ['ref', 'set', '--', '--config', 'x.ts'],
-      configPath: undefined,
-    });
+    expect(loader.asked).toEqual(['(none)']);
   });
 });
 
@@ -54,10 +65,42 @@ describe('the orm command family', () => {
   it('publishes a docs base the engine can append a code to', () => {
     expect(ormCommandFamily.docsBaseUrl?.endsWith('/')).toBe(true);
   });
+
+  it('retires the two removed migration verbs, naming the binary as {bin}', () => {
+    expect(
+      ormCommandFamily.redirects.map(({ from, flag, replacement }) => ({
+        from,
+        flag,
+        replacement,
+      })),
+    ).toEqual([
+      {
+        from: 'migration apply',
+        flag: undefined,
+        replacement: '{bin} migrate --to <contract>',
+      },
+      { from: 'migration ref', flag: undefined, replacement: '{bin} ref set|list|delete' },
+    ]);
+  });
 });
 
 describe('createOrmCli', () => {
   it('constructs without a collision, unknown group or reserved-flag violation', () => {
     expect(() => createOrmCli()).not.toThrow();
+  });
+});
+
+describe('a retired invocation', () => {
+  it('is answered with its replacement rather than a spelling suggestion', async () => {
+    const loader = recordingLoader();
+
+    const run = await harness(loader.loadConfig).run(['migration', 'apply', '--json']);
+
+    expect(run.exitCode).not.toBe(0);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: { ok: false },
+    });
+    expect(JSON.stringify(run.json)).toContain('migrate --to <contract>');
   });
 });

@@ -7,6 +7,7 @@ import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { blindCast } from '@internal/utils/casts';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { join } from 'pathe';
+import stripAnsi from 'strip-ansi';
 import { afterEach, describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
 
@@ -140,20 +141,49 @@ describe('migration show', () => {
       },
     );
 
-    expect(run.presented?.presentation.stdout?.[0]).toContain(MIGRATION_DIR);
     expect(run.presented?.presentation.human).toEqual([
       {
         kind: 'fields',
+        rail: true,
         rows: [
           { label: 'contract', value: 'contract.json' },
           { label: 'migrations', value: join('migrations', 'app') },
           { label: 'target', value: MIGRATION_DIR },
         ],
       },
+      { kind: 'summary', status: 'ok', text: [{ text: MIGRATION_DIR, tone: 'emphasis' }] },
+      {
+        kind: 'fields',
+        rows: [
+          { label: 'from', value: [{ text: '(baseline)', tone: 'muted' }] },
+          { label: 'to', value: [{ text: HASH_A, tone: 'identifier' }] },
+          { label: 'hash', value: [{ text: expect.any(String), tone: 'identifier' }] },
+          { label: 'created', value: [{ text: '2025-01-01T00:00:00.000Z', tone: 'muted' }] },
+        ],
+      },
+      {
+        kind: 'tree',
+        roots: [{ label: '1 operation(s)', children: [{ label: 'Add column' }] }],
+      },
     ]);
+    expect(run.presented?.presentation.stdout).toEqual([]);
   });
 
-  it('drops the rendered detail in json mode so stdout stays a frame stream', async () => {
+  it('renders the operation tree under its heading', async () => {
+    const dir = await projectDir();
+    await seedProject(dir);
+
+    const run = await harness(ormConfig('contract.json')).run(
+      ['migration', 'show', MIGRATION_DIR],
+      { cwd: dir, isTty: { stdout: true, stderr: true } },
+    );
+    const rendered = stripAnsi(run.stderr).split('\n');
+
+    expect(rendered).toContain('1 operation(s)');
+    expect(rendered.some((line) => line.includes('Add column'))).toBe(true);
+  });
+
+  it('keeps stdout a frame stream in json mode', async () => {
     const dir = await projectDir();
     await seedProject(dir);
 

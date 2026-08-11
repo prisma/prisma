@@ -1,6 +1,6 @@
 import type { LedgerEntryRecord } from '@internal/contract/types';
 import { ifDefined } from '@internal/utils/defined';
-import type { Presentations } from '@prisma/cli-engine';
+import type { Block, Presentations, Text } from '@prisma/cli-engine';
 import { defineCommand, flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import type { MigrationLogResult } from '../../commands/json/schemas';
@@ -12,44 +12,87 @@ import {
   requireLiveDatabase,
 } from '../../utils/cli-errors';
 import { maskConnectionUrl, targetSupportsMigrations } from '../../utils/command-helpers';
-import { createAnsiMigrationListStyler } from '../../utils/formatters/migration-list-styler';
+import { createToneMigrationListStyler } from '../../utils/formatters/migration-list-styler';
 import {
+  formatLedgerAppliedAt,
   MIGRATION_LOG_EMPTY_MESSAGE,
-  renderMigrationLogTable,
   serializeLedgerEntriesForJson,
+  sortLedgerEntries,
+  styleHashTransition,
 } from '../../utils/formatters/migration-log-table';
+import { toneSpans } from '../../utils/formatters/tone-markup';
 import type { GlyphMode } from '../../utils/glyph-mode';
 import { ormConfigSection } from '../config-section';
 import { dbFlag } from '../flags';
 import { normalizeError } from '../normalize-error';
 
-function logPresentations(inputs: {
-  readonly document: MigrationLogResult;
-  readonly lines: readonly string[];
-  readonly database: string | undefined;
-}): Presentations {
-  return {
-    human: () =>
-      inputs.database === undefined
-        ? []
-        : [{ kind: 'fields', rows: [{ label: 'database', value: inputs.database }] }],
-    stdout: () => inputs.lines,
-    json: () => inputs.document,
-  };
+const HEADING_APPLIED_AT = 'Applied at';
+const HEADING_SPACE = 'Space';
+const HEADING_MIGRATION = 'Migration';
+const HEADING_CHANGE = 'Change';
+const HEADING_OPS = 'Ops';
+
+interface LogTable {
+  readonly columns: readonly Text[];
+  readonly rows: ReadonlyArray<readonly Text[]>;
 }
 
-function logLines(
+/**
+ * The ledger as a table the engine sizes. The Space column appears only when
+ * more than one contract space has run, as it does in the commander shell.
+ */
+function logTable(
   entries: readonly LedgerEntryRecord[],
   options: { readonly utc: boolean; readonly glyphMode: GlyphMode },
-): readonly string[] {
-  if (entries.length === 0) {
-    return [MIGRATION_LOG_EMPTY_MESSAGE];
+): LogTable {
+  const styler = createToneMigrationListStyler();
+  const sorted = sortLedgerEntries(entries);
+  const showSpace = new Set(sorted.map((entry) => entry.space)).size > 1;
+  const columns: Text[] = [HEADING_APPLIED_AT];
+  if (showSpace) {
+    columns.push(HEADING_SPACE);
   }
-  return renderMigrationLogTable(entries, {
-    utc: options.utc,
-    styler: createAnsiMigrationListStyler({ useColor: false }),
-    glyphMode: options.glyphMode,
-  }).split('\n');
+  columns.push(HEADING_MIGRATION, HEADING_CHANGE, HEADING_OPS);
+
+  const rows = sorted.map((entry) => {
+    const cells: Text[] = [formatLedgerAppliedAt(entry.appliedAt, options.utc ? 'utc' : 'local')];
+    if (showSpace) {
+      cells.push(entry.space);
+    }
+    cells.push(
+      toneSpans(styler.dirName(entry.migrationName)),
+      toneSpans(styleHashTransition(entry.from, entry.to, styler, options.glyphMode)),
+      `${entry.operationCount} ops`,
+    );
+    return cells;
+  });
+
+  return { columns, rows };
+}
+
+function logPresentations(inputs: {
+  readonly document: MigrationLogResult;
+  readonly table: LogTable | undefined;
+  readonly database: string | undefined;
+}): Presentations {
+  const table = inputs.table;
+  return {
+    human: (): readonly Block[] => [
+      ...(inputs.database === undefined
+        ? []
+        : [
+            {
+              kind: 'fields' as const,
+              rail: true,
+              rows: [{ label: 'database', value: inputs.database }],
+            },
+          ]),
+      ...(table === undefined
+        ? [{ kind: 'summary' as const, status: 'info' as const, text: MIGRATION_LOG_EMPTY_MESSAGE }]
+        : [{ kind: 'table' as const, columns: table.columns, rows: table.rows }]),
+    ],
+    json: () => inputs.document,
+  };
 }
 
 export const migrationLogCommand = defineCommand({
@@ -134,7 +177,10 @@ export const migrationLogCommand = defineCommand({
         { data: document },
         logPresentations({
           document,
-          lines: logLines(entries, { utc: args.flags.utc, glyphMode }),
+          table:
+            entries.length === 0
+              ? undefined
+              : logTable(entries, { utc: args.flags.utc, glyphMode }),
           database: typeof dbConnection === 'string' ? maskConnectionUrl(dbConnection) : undefined,
         }),
       ),

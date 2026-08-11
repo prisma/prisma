@@ -14,9 +14,11 @@
  */
 
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
-import { bold, createColors, green, yellow } from 'colorette';
 import type { GlyphMode } from '../glyph-mode';
-import { laneColorizer } from './migration-graph-occlusion-render';
+import {
+  ANSI_MIGRATION_GRAPH_PALETTE,
+  type MigrationGraphPalette,
+} from './migration-graph-palette';
 import type { ClassifiedEdge } from './migration-graph-rows';
 import {
   MIGRATION_LIST_HASH_WIDTH,
@@ -30,6 +32,7 @@ import {
   CONTRACT_MARKER_NAME,
   createAnsiMigrationListStyler,
   formatContractNodeOverlays,
+  type MigrationListStylerWithMarkers,
 } from './migration-list-styler';
 
 /**
@@ -66,37 +69,50 @@ export interface MigrationGraphLabelOptions {
   readonly colorize: boolean;
   readonly glyphMode?: GlyphMode;
   readonly styler?: MigrationListStyler;
+  /** Where a label's colour comes from. Defaults to the ANSI palette. */
+  readonly palette?: MigrationGraphPalette;
 }
 
-/**
- * Forced-color functions that always emit ANSI regardless of the ambient TTY
- * environment (NO_COLOR, piped output). Used so on-path green / off-path dim are
- * deterministically emitted in tests that request colour while NO_COLOR is set.
- */
-const { dim: forcedDim } = createColors({ useColor: true });
-const { greenBright: forcedGreen } = createColors({ useColor: true });
+function paletteFor(opts: MigrationGraphLabelOptions): MigrationGraphPalette {
+  return opts.palette ?? ANSI_MIGRATION_GRAPH_PALETTE;
+}
+
+const identity = (text: string) => text;
+
+/** A palette painter bound to a path role, or a no-op when colour is off. */
+function rolePainter(
+  palette: MigrationGraphPalette,
+  colorize: boolean,
+  role: 'on-path' | 'off-path',
+): (text: string) => string {
+  return colorize ? (text) => palette.role(role, text) : identity;
+}
 
 /**
  * The two label styles used in `migrate --show` path-highlight mode.
  *
- * - `onPath`: bold name, neutral hashes (the on-path lane glyphs are coloured
- *   green by the grid renderer, not here).
- * - `offPath`: uniform dim grey on the name and the whole hash column.
+ * - `onPath`: emphasized name, neutral hashes (the on-path lane glyphs are
+ *   coloured by the grid renderer, not here).
+ * - `offPath`: the off-path role reaches the name and the whole hash column.
  *
  * To change the on-path / off-path label colour in future, edit this object.
  */
 export const PATH_HIGHLIGHT_STYLES = {
-  onPath: (_style: MigrationListStyler, colorize: boolean) => ({
-    lane: colorize ? forcedGreen : (text: string) => text,
-    arrow: (text: string) => text,
-    dirName: (text: string) => bold(text),
+  onPath: (
+    _style: MigrationListStyler,
+    colorize: boolean,
+    palette: MigrationGraphPalette = ANSI_MIGRATION_GRAPH_PALETTE,
+  ) => ({
+    lane: rolePainter(palette, colorize, 'on-path'),
+    arrow: identity,
+    dirName: (text: string) => palette.emphasis(text),
     hashOverride: undefined,
   }),
-  offPath: (colorize: boolean) => ({
-    lane: colorize ? forcedDim : (text: string) => text,
-    arrow: colorize ? forcedDim : (text: string) => text,
-    dirName: colorize ? forcedDim : (text: string) => text,
-    hashOverride: colorize ? forcedDim : undefined,
+  offPath: (colorize: boolean, palette: MigrationGraphPalette = ANSI_MIGRATION_GRAPH_PALETTE) => ({
+    lane: rolePainter(palette, colorize, 'off-path'),
+    arrow: rolePainter(palette, colorize, 'off-path'),
+    dirName: rolePainter(palette, colorize, 'off-path'),
+    hashOverride: colorize ? rolePainter(palette, colorize, 'off-path') : undefined,
   }),
 } as const;
 
@@ -146,10 +162,13 @@ export function createLabelStyler(opts: MigrationGraphLabelOptions): MigrationLi
   if (!opts.colorize || activeRefName === undefined) {
     return base;
   }
+  const palette = paletteFor(opts);
   return {
     ...base,
     refs: (names) => {
-      const styledNames = names.map((name) => (name === activeRefName ? bold(name) : name));
+      const styledNames = names.map((name) =>
+        name === activeRefName ? palette.emphasis(name) : name,
+      );
       return base.refs(styledNames);
     },
   };
@@ -187,8 +206,7 @@ function formatEdgeAnnotationSuffix(
     if (!opts.colorize) {
       segments.push(`${glyph} ${label}`);
     } else {
-      const styler = status === 'applied' ? green : yellow;
-      segments.push(styler(`${glyph} ${label}`));
+      segments.push(paletteFor(opts).status(status, `${glyph} ${label}`));
     }
   }
   if (annotation.pathHighlight === 'on-path') {
@@ -199,7 +217,7 @@ function formatEdgeAnnotationSuffix(
     return '';
   }
   const suffix = `  ${segments.join('  ')}`;
-  return opts.colorize && isOffPath ? forcedDim(suffix) : suffix;
+  return opts.colorize && isOffPath ? paletteFor(opts).role('off-path', suffix) : suffix;
 }
 
 /**
@@ -254,12 +272,13 @@ export function formatNodeLabel(
   const overlays = overlayNamesForContract(contractHash, opts);
   const hasOverlays = overlays.markers.length > 0 || overlays.refs.length > 0;
   const offPath = nodeHighlight === 'off-path' && opts.colorize;
+  const dimmed = (text: string) => paletteFor(opts).role('off-path', text);
   // The baseline's label is the ∅ empty-source token (the gutter draws ○ for
   // every node, including the baseline); a real contract's label is its hash.
   const hashText =
     contractHash === EMPTY_CONTRACT_HASH
-      ? (offPath ? forcedDim : style.glyph)(emptySource)
-      : (offPath ? forcedDim : style.sourceHash)(
+      ? (offPath ? dimmed : style.glyph)(emptySource)
+      : (offPath ? dimmed : style.sourceHash)(
           abbreviateHash(contractHash, hashLength, emptySource),
         );
   if (!hasOverlays) return hashText;
@@ -286,21 +305,22 @@ export function formatMigrationLabel(
   const hashLength = opts.hashLength ?? MIGRATION_LIST_HASH_WIDTH;
   const glyphMode = opts.glyphMode ?? 'unicode';
   const highlight = opts.edgeAnnotationsByHash?.get(edge.migrationHash)?.pathHighlight;
+  const palette = paletteFor(opts);
 
   let dirNameStyler: (text: string) => string;
   let hashOverride: ((text: string) => string) | undefined;
   if (highlight === 'on-path') {
     // On-path: tint the name with the on-path green (matching the route's green
     // glyphs in the gutter), not bolded.
-    dirNameStyler = opts.colorize ? forcedGreen : (text) => text;
+    dirNameStyler = rolePainter(palette, opts.colorize, 'on-path');
     hashOverride = undefined;
   } else if (highlight === 'off-path') {
-    dirNameStyler = opts.colorize ? forcedDim : style.dirName;
-    hashOverride = opts.colorize ? forcedDim : undefined;
+    dirNameStyler = opts.colorize ? rolePainter(palette, true, 'off-path') : style.dirName;
+    hashOverride = opts.colorize ? rolePainter(palette, true, 'off-path') : undefined;
   } else if (opts.colorize && lane !== undefined) {
     // Flat mode: tint the name with the lane hue (matching the lane's
     // node/edge/arrow colour in the gutter), not bolded.
-    dirNameStyler = (text) => laneColorizer(lane)(text);
+    dirNameStyler = (text) => palette.lane(lane, text);
     hashOverride = undefined;
   } else {
     dirNameStyler = style.dirName;
@@ -351,6 +371,10 @@ export function formatOnPathMigrationRow(
 export interface RenderMigrationGraphLegendOptions {
   readonly colorize: boolean;
   readonly glyphMode?: GlyphMode;
+  /** Decorates the legend's own sample tokens. Defaults to the ANSI styler. */
+  readonly styler?: MigrationListStylerWithMarkers;
+  /** Where the applied/pending glyphs get their colour. */
+  readonly palette?: MigrationGraphPalette;
 }
 
 function legendGlyphs(mode: GlyphMode): {
@@ -364,14 +388,6 @@ function legendGlyphs(mode: GlyphMode): {
     : { node: '○', forward: '↑', rollback: '↓', self: '⟲' };
 }
 
-function formatLegendExampleMarkers(colorize: boolean): string {
-  if (!colorize) {
-    return '@contract @db';
-  }
-  const sigil = green('@');
-  return `${sigil + bold(green('contract'))} ${sigil}${green('db')}`;
-}
-
 /**
  * A compact key for the tree visual language: the contract node glyph, the
  * in-lane direction arrows, the empty baseline, the system-marker `@…` and
@@ -379,17 +395,22 @@ function formatLegendExampleMarkers(colorize: boolean): string {
  */
 export function renderMigrationGraphLegend(opts: RenderMigrationGraphLegendOptions): string {
   const glyphMode = opts.glyphMode ?? 'unicode';
-  const style = createAnsiMigrationListStyler({ useColor: opts.colorize });
+  const style = opts.styler ?? createAnsiMigrationListStyler({ useColor: opts.colorize });
+  const palette = opts.palette ?? ANSI_MIGRATION_GRAPH_PALETTE;
   const glyphs = legendGlyphs(glyphMode);
   const emptySource = migrationListEmptySource(glyphMode);
   const forwardArrow = migrationListForwardArrow(glyphMode);
   const sampleArrow = `${style.sourceHash('aaaaaa')} ${style.glyph(forwardArrow)} ${style.destHash('bbbbbb')}`;
   const statusGlyphs = overlayStatusGlyphs(glyphMode);
-  const appliedPending = opts.colorize
-    ? `  ${green(statusGlyphs.applied)} ${style.summary('applied')}   ${yellow(statusGlyphs.pending)} ${style.summary('pending')}`
-    : `  ${statusGlyphs.applied} ${style.summary('applied')}   ${statusGlyphs.pending} ${style.summary('pending')}`;
-  const exampleMarkers = formatLegendExampleMarkers(opts.colorize);
-  const exampleRefs = opts.colorize ? style.refs(['prod', 'staging']) : '(prod, staging)';
+  const appliedGlyph = opts.colorize
+    ? palette.status('applied', statusGlyphs.applied)
+    : statusGlyphs.applied;
+  const pendingGlyph = opts.colorize
+    ? palette.status('pending', statusGlyphs.pending)
+    : statusGlyphs.pending;
+  const appliedPending = `  ${appliedGlyph} ${style.summary('applied')}   ${pendingGlyph} ${style.summary('pending')}`;
+  const exampleMarkers = style.markers([CONTRACT_MARKER_NAME, DB_MARKER_NAME]);
+  const exampleRefs = style.refs(['prod', 'staging']);
   const lines = [
     'Legend:',
     `  ${style.kind(glyphs.node)} ${style.summary('contract')}   ${style.kind(glyphs.forward)} ${style.summary('forward')}   ${style.kind(glyphs.rollback)} ${style.summary('rollback')}`,

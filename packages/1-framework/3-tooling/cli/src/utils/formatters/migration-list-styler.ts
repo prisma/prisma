@@ -1,5 +1,6 @@
 import { bold, cyan, cyanBright, dim, green, yellow } from 'colorette';
 import { IDENTITY_MIGRATION_LIST_STYLER, type MigrationListStyler } from './migration-list-render';
+import { toned } from './tone-markup';
 
 export type MigrationListStylerWithMarkers = MigrationListStyler & {
   markers(names: readonly string[]): string;
@@ -100,5 +101,39 @@ export function createAnsiMigrationListStyler(opts: {
     spaceHeading: (text) => bold(text),
     summary: (text) => dim(text),
     emptyState: (text) => dim(text),
+  };
+}
+
+/**
+ * The same vocabulary, said as meaning rather than as colour: each token is
+ * marked with the tone it carries and the CLI engine chooses the bytes.
+ *
+ * Two distinctions the ANSI styler draws by shade do not survive, because a
+ * span carries exactly one tone: the source and destination hashes are both
+ * `identifier` (the ANSI styler dims the source and brightens the
+ * destination), and the `contract` marker is `emphasis` rather than bold
+ * green, which is what tells it apart from a plain marker such as `db`.
+ */
+export function createToneMigrationListStyler(): MigrationListStylerWithMarkers {
+  return {
+    kind: (text) => text,
+    dirName: (text) => toned('emphasis', text),
+    sourceHash: (text) => toned('identifier', text),
+    destHash: (text) => toned('identifier', text),
+    glyph: (text) => toned('structure', text),
+    lane: (text) => toned('structure', text),
+    invariants: (ids) => toned('warn', `{${ids.join(', ')}}`),
+    markers: (names) =>
+      names
+        .map(
+          (name) =>
+            toned('ref', '@') +
+            (name === CONTRACT_MARKER_NAME ? toned('emphasis', name) : toned('ref', name)),
+        )
+        .join(' '),
+    refs: (names) => toned('ref', `(${names.join(', ')})`),
+    spaceHeading: (text) => toned('heading', text),
+    summary: (text) => toned('muted', text),
+    emptyState: (text) => toned('muted', text),
   };
 }
