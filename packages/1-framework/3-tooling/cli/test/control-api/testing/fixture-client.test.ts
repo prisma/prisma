@@ -188,6 +188,23 @@ describe('createFixtureControlClient', () => {
 
       await expect(run(client)).rejects.toMatchObject({ code: 'DRIVER.NOT_CONNECTED' });
     });
+
+    it('connects from an operation-level connection, as the real client does', async () => {
+      const client = createFixtureControlClient();
+
+      const verified = await client.dbVerify({
+        contract: {} as never,
+        migrationsDir: 'migrations',
+        strict: false,
+        skipSchema: false,
+        skipMarker: false,
+        connection: 'postgres://fixture',
+      });
+
+      expect(verified.assertOk()).toBeDefined();
+      expect(client.connected).toBe(true);
+      expect(client.calls.map((call) => call.operation)).toEqual(['init', 'connect', 'dbVerify']);
+    });
   });
 
   it('serves the driver-free operations without a connection', async () => {

@@ -235,6 +235,13 @@ class FixtureControlClientImpl implements FixtureControlClient {
    * that skipped `connect()` fails here exactly as it would in production.
    */
   private recordConnected<T>(operation: string, options: unknown, value: T): T {
+    const supplied: unknown =
+      typeof options === 'object' && options !== null
+        ? Reflect.get(options, 'connection')
+        : undefined;
+    if (supplied !== undefined) {
+      this.markConnected(supplied);
+    }
     if (!this.connected) {
       throw new CliStructuredError(
         'DRIVER.NOT_CONNECTED',
@@ -252,10 +259,14 @@ class FixtureControlClientImpl implements FixtureControlClient {
     this.calls.push({ operation: 'init', options: undefined });
   }
 
-  async connect(connection?: unknown): Promise<void> {
+  private markConnected(connection: unknown): void {
     this.init();
     this.calls.push({ operation: 'connect', options: connection });
     this.connected = true;
+  }
+
+  async connect(connection?: unknown): Promise<void> {
+    this.markConnected(connection);
   }
 
   async close(): Promise<void> {
