@@ -17,7 +17,7 @@ blockExoticSubdeps: true
 catalog:
   '@prisma/dev': 0.25.1
   '@types/node': 26.1.2
-  '@types/pg': 8.20.3
+  '@types/pg': 8.20.4
   ajv: ^8.20.0
   arktype: ^2.2.2
   gray-matter: ^4.0.3
