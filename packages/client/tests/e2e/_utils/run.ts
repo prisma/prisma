@@ -70,7 +70,7 @@ async function main() {
     await $`pnpm -r exec cp package.json package.copy.json`
 
     // we prepare to replace references to local packages with their tarballs names
-    const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma/${p}`), 'prisma']
+    const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma/${p}`), 'prisma', 'prisma7']
     const allPackageFolders = allPackageFolderNames.map((p) => path.join(monorepoRoot, 'packages', p))
     const allPkgJsonPaths = allPackageFolders.map((p) => path.join(p, 'package.json'))
     const allPkgJson = allPkgJsonPaths.map((p) => require(p))
@@ -122,9 +122,10 @@ async function main() {
   const dockerVolume = (source: string, target: string) => `${source}:${target}${dockerVolumeOptions}`
   const dockerVolumes = [
     dockerVolume(`${prismaTmpDir}/prisma-0.0.0.tgz`, '/tmp/prisma-0.0.0.tgz'), // hardcoded because folder doesn't match name
-    ...allPackageFolderNames.map((p) =>
-      dockerVolume(`${prismaTmpDir}/prisma-${p}-0.0.0.tgz`, `/tmp/prisma-${p}-0.0.0.tgz`),
-    ),
+    dockerVolume(`${prismaTmpDir}/prisma7-0.0.0.tgz`, '/tmp/prisma7-0.0.0.tgz'),
+    ...allPackageFolderNames
+      .filter((p) => p !== 'prisma7')
+      .map((p) => dockerVolume(`${prismaTmpDir}/prisma-${p}-0.0.0.tgz`, `/tmp/prisma-${p}-0.0.0.tgz`)),
     dockerVolume(path.join(monorepoRoot, 'packages', 'engines'), '/engines'),
     dockerVolume(path.join(monorepoRoot, 'packages', 'client'), '/client'),
     dockerVolume(e2eRoot, '/e2e'),
