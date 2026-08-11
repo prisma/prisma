@@ -19,14 +19,14 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 ## When to Use
 
 - User wants to add, change, or remove a model / field / relation.
-- User wants to add an index, unique constraint, enum, or value object (composite type).
+- User wants to add an index, unique constraint, check constraint, enum, or value object (composite type).
 - User wants to add a namespace block (Postgres schema) or a cross-contract foreign key.
 - User wants to set `@@control` on a model or configure `defaultControlPolicy`.
 - User wants to use a custom type from an extension (`pgvector.Vector(length: 1536)`, `cipherstash.EncryptedString({...})`).
 - User wants to install or configure an extension via `extensions: [...]` in `prisma-next.config.ts`, including `@internal/extension-supabase`.
 - User is migrating between authoring sources (PSL ↔ TypeScript builder).
 - User received `PN-CLI-4002`, `PN-CLI-4003`, or `PN-CLI-4011` from `contract emit`.
-- User mentions: *schema, fields, models, attributes, prisma schema, PSL, contract.prisma, contract.ts, contract.json, contract.d.ts, contract emit, façade imports, `@internal/postgres/config`, `@internal/postgres/contract-builder`, extensions, pgvector, cipherstash, postgis, paradedb, supabase, namespaces, cross-space FK, `@@control`, enums, value objects, validations, callbacks, soft delete, paranoid, scopes*. (The last cluster routes to *What Prisma Next doesn't do yet* below.)
+- User mentions: *schema, fields, models, attributes, prisma schema, PSL, contract.prisma, contract.ts, contract.json, contract.d.ts, contract emit, façade imports, `@internal/postgres/config`, `@internal/postgres/contract-builder`, extensions, pgvector, cipherstash, postgis, paradedb, supabase, namespaces, cross-space FK, `@@control`, enums, check constraints, `@@check`, value objects, validations, callbacks, soft delete, paranoid, scopes*. (The last cluster routes to *What Prisma Next doesn't do yet* below.)
 
 ## When Not to Use
 
@@ -265,6 +265,29 @@ model User {
 **Waiving enforcement (`@noCheck`).** A field can decline the generated CHECK constraints for its column: bare `@noCheck` waives every kind the column's shape derives; `@noCheck(membership)` and `@noCheck(elementNotNull)` waive one kind (`membership` is the enum value-set check; `elementNotNull` is the no-NULL-elements check every list column gets). The TS authoring equivalent is `.noCheck(...)` on the field builder. Declared types do not change: the field still types as the enum union, and a list still types with non-null elements — once enforcement is waived, runtime values may diverge from what the types claim. That divergence is the author's accepted risk, and it is scoped to the kinds actually waived: waiving `membership` stops the database rejecting out-of-set values, waiving `elementNotNull` stops it rejecting NULL elements. A list that waives only `membership` still rejects NULL elements. `contract infer` emits `@noCheck(elementNotNull)` automatically for list columns whose source database does not carry the generated check.
 
 Canonical worked example: `examples/prisma-8-demo/src/prisma/contract.prisma`.
+
+## Workflow — CHECK constraints (`@@check`)
+
+The concept: `@@check` declares a hand-written CHECK constraint on a model — a rule you want the database to enforce, on top of whatever generated checks the model's enums and list columns already get (see *Workflow — Enums* above). Without it, a constraint you added by hand had no way into the contract, so it looked like an undeclared extra a destructive migration could drop.
+
+```prisma
+model Order {
+  id    Int     @id
+  total Decimal
+
+  // name: is a prefix — the physical constraint becomes order_total_positive_<8-hex hash>.
+  @@check(expression: "total > 0", name: "order_total_positive")
+}
+```
+
+`expression` is the raw predicate — the text that goes inside `CHECK (...)` — and it is never parsed, so get it right; Prisma Next does not validate SQL syntax. Exactly one of `name:` or `map:` is required, and they're mutually exclusive:
+
+- **`name:`** — declaring a new rule. Prisma Next picks the physical constraint name and future plans compare by that name, so Postgres's own reprint of your predicate (which rarely matches what you typed byte-for-byte) never causes false drift.
+- **`map:`** — adopting a rule that already exists. Give the constraint's exact physical name and Prisma Next compares the predicate byte-for-byte against what's live. This is the form `contract infer` writes for you (see *Workflow — Brownfield introspection* below) when it finds a hand-written check in the database. Writing `map:` yourself with your own predicate text works but warns (`PN_EXACT_NAME_BODY_COMPARISON`), because your text and Postgres's reprint of it can drift apart silently — prefer `name:` for anything you're authoring fresh, and reserve `map:` for adopting what's already there.
+
+A model can carry any number of `@@check` attributes. The TS builder mirrors this with `check({ expression, name })` / `check({ expression, map })` on a model's `.sql({ checks: [...] })`, next to `index()`.
+
+Check constraints need the target's `checkConstraint` capability. Postgres has it; SQLite does not. `@@check` on a SQLite contract is rejected at authoring time; `check()` on a SQLite contract isn't caught until migration DDL is rendered, but either way you get a refusal, never a silently-dropped constraint.
 
 ## Workflow — Namespaces (Postgres schemas)
 

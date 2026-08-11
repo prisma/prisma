@@ -383,7 +383,7 @@ Aggregate contract validation failed: structural validation of the contract JSON
 
 ### CONTRACT.WIRE_NAME_PREFIX_TOO_LONG
 
-An authored wire-name prefix (an index name, or an RLS policy prefix) exceeds the 54-character maximum — Postgres identifiers cap at 63 characters and the wire name appends a 9-character `_<8hex>` content-hash suffix. Raised at contract lowering. Meta: `prefix`, `maxLength`.
+An authored wire-name prefix (an index name, an RLS policy prefix, or a check's `name:` prefix) exceeds the 54-byte maximum — Postgres identifiers cap at 63 bytes and the wire name appends a 9-byte `_<8hex>` content-hash suffix. Raised at contract lowering. Meta: `prefix`, `maxBytes`.
 
 ## PSL
 
