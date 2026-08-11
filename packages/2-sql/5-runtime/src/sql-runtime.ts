@@ -37,6 +37,7 @@ import {
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { CodecDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import type { RuntimeScope } from '@internal/sql-relational-core/types';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { buildDecodeContext, type DecodeContext, decodeRow } from './codecs/decoding';
 import { deriveParamMetadata, encodeParams, encodeParamsWithMetadata } from './codecs/encoding';
@@ -181,7 +182,13 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       now: () => Date.now(),
       log: log ?? noopLog,
       // ctx is only invoked by operation-specific middleware runner with execs this runtime lowered; the framework parameter type is the cross-family base.
-      contentHash: (exec) => computeSqlContentHash(exec as SqlExecutionPlan),
+      contentHash: (exec) =>
+        computeSqlContentHash(
+          blindCast<
+            SqlExecutionPlan,
+            'SQL operation middleware receives lowered SQL execution plans'
+          >(exec),
+        ),
       scope: 'runtime',
       // Placeholder satisfying the required field on the cross-family base. The
       // stored ctx is a runtime-level template; `createQueryContexts` spreads it
