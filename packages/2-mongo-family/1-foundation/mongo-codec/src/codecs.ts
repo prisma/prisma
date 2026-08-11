@@ -54,7 +54,7 @@ export function mongoCodec<
   } & JsonRoundTripConfig<TInput>,
 ): MongoCodec<Id, TTraits, TWire, TInput> {
   const identity = (v: unknown) => v;
-  // The runtime allocates one `CodecCallContext` per `runtime.query()` call (no caller-supplied `signal` produces `{}` instead of `undefined`) and threads it as a non-optional reference to every codec call. The author surface keeps the second parameter optional so single-arg `(value) => …` authors continue to satisfy the signature via TypeScript's bivariance for trailing parameters.
+  // The runtime allocates one `CodecCallContext` per `runtime.query()` or `runtime.execute()` call (no caller-supplied `signal` produces `{}` instead of `undefined`) and threads it as a non-optional reference to every codec call. The author surface keeps the second parameter optional so single-arg `(value) => …` authors continue to satisfy the signature via TypeScript's bivariance for trailing parameters.
   const userEncode = config.encode;
   const userDecode = config.decode;
   const widenedConfig = config as {
