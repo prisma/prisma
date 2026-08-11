@@ -355,27 +355,24 @@ describe('F-relfk: cross-space belongsTo().sql({ fk }) produces a cross-space FK
   });
 
   it('constraint and index decide what the table carries, rather than riding on the FK node', () => {
-    const withIndex = profileWithFkOptions({ constraint: true, index: true });
-    const withoutIndex = profileWithFkOptions({ constraint: true, index: false });
-    const withoutConstraint = profileWithFkOptions({ constraint: false, index: false });
+    const shape = (options: { readonly constraint: boolean; readonly index: boolean }) => {
+      const table = profileWithFkOptions(options);
+      return {
+        foreignKeys: table?.foreignKeys.length,
+        indexes: table?.indexes.map((index) => index.columns),
+      };
+    };
 
     expect({
-      indexed: {
-        foreignKeys: withIndex?.foreignKeys.length,
-        indexes: withIndex?.indexes.map((index) => index.columns),
-      },
-      unindexed: {
-        foreignKeys: withoutIndex?.foreignKeys.length,
-        indexes: withoutIndex?.indexes.length,
-      },
-      unconstrained: {
-        foreignKeys: withoutConstraint?.foreignKeys.length,
-        indexes: withoutConstraint?.indexes.length,
-      },
+      both: shape({ constraint: true, index: true }),
+      constraintOnly: shape({ constraint: true, index: false }),
+      indexOnly: shape({ constraint: false, index: true }),
+      neither: shape({ constraint: false, index: false }),
     }).toEqual({
-      indexed: { foreignKeys: 1, indexes: [['userId']] },
-      unindexed: { foreignKeys: 1, indexes: 0 },
-      unconstrained: { foreignKeys: 0, indexes: 0 },
+      both: { foreignKeys: 1, indexes: [['userId']] },
+      constraintOnly: { foreignKeys: 1, indexes: [] },
+      indexOnly: { foreignKeys: 0, indexes: [['userId']] },
+      neither: { foreignKeys: 0, indexes: [] },
     });
   });
 });
