@@ -3,10 +3,22 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7
-- **AC scoreboard totals:** 49 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7, D8
+- **AC scoreboard totals:** 54 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
+
+## cli-owned-distribution-identity D8 acceptance criteria scoreboard
+
+| AC ID  | Description (short)                                                                                                        | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------ | -------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D8-AC1 | All identity-sensitive CLI command constructors, factories, and helpers require explicit identity with no fallback.        | PASS   | `46c4cdc1c7`; the commit removes default/optional identity plumbing from every touched CLI-owned boundary: `CLI.new`, `DebugInfo.new`/constructor, `Format.new`/constructor, `GenerateOptions.identity` plus `Generate.new`, `defaultEnv`, `defaultConfig`, `Init.new`/constructor, `Status.new`/constructor, `Studio.new`/constructor, `SubCommand` constructor, `Validate.new`/constructor, `Version.new`/constructor, `Bootstrap.new`/constructor, `formatBootstrapOutput`, `Completions.new`, `parseCompletionCommand`, `printPpgInitOutput`, `Mcp.new`, `Platform.$.new`, `PostgresCommand.new`, `Link.new`/constructor, `formatCompletionOutput`, and `getGlobalLocalVersionMismatchWarning`. The reviewer audit over the touched surfaces found zero remaining `identity?:`, `identity ?? 'prisma'`, or `= 'prisma'` fallbacks at those boundaries.                                |
+| D8-AC2 | Production roots and nested composition pass the selected identity explicitly, while ordinary scripts/tests pass `prisma`. | PASS   | `packages/cli/src/bin.ts` resolves `const identity = getCliDistributionIdentity()` once and passes it into every identity-sensitive CLI-owned constructor, including `CLI.new(...)`, `PostgresCommand.new(...)`, `Completions.new(identity)`, and `Platform.$.new(..., identity)`. The separate completion entrypoint independently passes `getCliDistributionIdentity()` into `parseCompletionCommand(...)` in `packages/cli/src/completions/completion-entry.ts`. Nested composition remains explicit in `packages/cli/src/bootstrap/Bootstrap.ts` (`Link.new(this.identity)`, `Generate.new(this.identity)`, `Init.new(this.identity)`), while ordinary call sites intentionally pass `'prisma'` in `scripts/run-studio.ts` and the updated existing CLI test suites (`CLI.test.ts`, `Generate.test.ts`, `Init.vitest.ts`, `PostgresCommand.vitest.ts`, `completion-command.test.ts`). |
+| D8-AC3 | Executable inference defaults only at the true executable boundary.                                                        | PASS   | After `46c4cdc1c7`, the only remaining defaulted inference is `getCliDistributionIdentity(executedScript = process.argv[1])` in `packages/cli/src/utils/cli-distribution-identity.ts`. `bin.ts` and `completions/completion-entry.ts` are the only product call sites using that getter directly, and `parseCompletionCommand(...)` no longer falls back to it internally. No other touched constructor/helper defaults identity from `process.argv`, nullish coalescing, or an optional parameter.                                                                                                                                                                                                                                                                                                                                                                                       |
+| D8-AC4 | No lower-package/backcompat scope was added, and no new identity mock suite or reexport/overload was introduced.           | PASS   | `git diff --name-status 46c4cdc1c7^ 46c4cdc1c7` shows only modifications under `packages/cli/src/**` plus `scripts/run-studio.ts`; no lower-package files, reexports, or compatibility overload shims were added. The commit adds no new files at all, so there is no replacement identity mock suite; instead it updates existing ordinary-Prisma tests and helper call sites to pass `'prisma'` explicitly.                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| D8-AC5 | The reported gates, audit, and transient scan are defensible, and the Generate-failure classification is honest.           | PASS   | `git diff --check 46c4cdc1c7^ 46c4cdc1c7` passed. The mandatory transient scan over the touched files found no UUID, `agent_id`, `subagent`, `trace_id`, or `projects/prisma7-compatibility-cli/` strings; the only `session` match is the pre-existing semantic `Session expired...` wording in Postgres link code/tests, not a transient identifier. No on-disk evidence contradicts the reported `pnpm --filter prisma tsc`, Prisma/Prisma7 builds, affected ordinary tests, packed compatibility E2E, Prettier, lint, or diff-check gates. The broader Generate-suite failure remains honestly classified as unrelated Nix/OpenSSL noise: this commit only hardens explicit identity plumbing, updates the affected Generate coverage to pass `'prisma'`, and does not touch the known engine/download surfaces behind the previously documented NixOS failure mode.                  |
+
+**Overall slice verdict:** SATISFIED. D1-D8 are satisfied, and D8 closes the slice with explicit identity requirements at CLI command boundaries while keeping executable inference confined to the real entrypoints.
 
 ## cli-owned-distribution-identity D7 acceptance criteria scoreboard
 
@@ -42,7 +54,7 @@
 
 **Overall slice verdict at D6 close:** SATISFIED. `cli-owned-distribution-identity` had reviewer-passed D1-D6 dispatches, zero open findings/escalations, and a met slice-specific done condition before the follow-up D7 feedback landed.
 
-**Current status after D7 R2:** CLOSED. D1-D7 are satisfied, and the packed snapshot evidence is now deterministic and reviewable enough to keep the slice closed.
+**Current status after D8 R1:** CLOSED. D1-D8 are satisfied, and the slice now stays closed with explicit identity requirements at CLI command boundaries while executable inference remains confined to the real entrypoints.
 
 ## cli-owned-distribution-identity D1 acceptance criteria scoreboard
 
@@ -97,7 +109,7 @@
 ## Subagent IDs
 
 - **Implementer:** `d50332d5-aa1d-47a` — replacement Pi implementer established at `cli-owned-distribution-identity` D7 R1 after D2–D6 implementer `becc7679-cf83-4ce` became inaccessible to resume.
-- **Reviewer:** `f6926f02-f2f0-4e2` — replacement Pi reviewer established at `cli-owned-distribution-identity` D7 R1 after D6 reviewer `8e6830c2-c6d4-40a` became inaccessible to resume.
+- **Reviewer:** `8e5fbba6-5840-44a` — replacement Pi reviewer established at `cli-owned-distribution-identity` D8 R1 after D7 reviewer `f6926f02-f2f0-4e2` became inaccessible to resume.
 
 ## Orchestrator notes
 
@@ -418,3 +430,17 @@
 **Findings:** none.
 
 **For orchestrator:** Root Prettier remains blocked only by this review ledger edit. No further implementer action is required for D7.
+
+### cli-owned-distribution-identity D8 R1 — SATISFIED
+
+**Scope:** require explicit distribution identity at CLI command boundaries. Commit `46c4cdc1c7`.
+
+**Tasks:** Identity defaults and optional identity plumbing are removed from CLI-owned constructors/helpers, the production entry and separate completion entrypoint pass identity explicitly, nested CLI-owned composition stays explicit, and ordinary scripts/tests intentionally pass `'prisma'` without introducing any replacement mock suite.
+
+**AC delta:** D8-AC1 through D8-AC5 PASS (commit `46c4cdc1c7`; audit over touched product/test/script surfaces; transient scan clean).
+
+**Findings:** none.
+
+**Verification:** `git diff --check 46c4cdc1c7^ 46c4cdc1c7` passed. The reviewer audit found the only remaining defaulted identity inference in `getCliDistributionIdentity(executedScript = process.argv[1])`, consumed by `bin.ts` and `completions/completion-entry.ts`; all other touched CLI-owned boundaries now require explicit identity. No product, test, planning, or workflow files were edited during review; only this review ledger and `wip/heartbeats/reviewer.txt` were written.
+
+**For orchestrator:** `cli-owned-distribution-identity` remains closed. The next planned work is `downstream-actionable-guidance` unless the operator reprioritizes.
