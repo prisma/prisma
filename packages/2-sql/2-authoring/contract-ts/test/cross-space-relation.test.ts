@@ -307,6 +307,46 @@ describe('F-relfk: cross-space belongsTo().sql({ fk }) produces a cross-space FK
     expect(fks[0]!.target.spaceId).toBe('supabase');
     expect(fks[0]!.onDelete).toBe('cascade');
   });
+
+  it('relation-derived FK carries every declared fk option', () => {
+    const ExtUser = buildSyntheticSupabaseAuthUser();
+
+    const Profile = model('Profile', {
+      fields: {
+        id: field.column(int4Column).id(),
+        userId: field.column(int4Column),
+      },
+    }).relations({
+      user: rel.belongsTo(ExtUser, { from: 'userId', to: 'id' }).sql({
+        fk: {
+          name: 'profile_user_fk',
+          onDelete: 'restrict',
+          onUpdate: 'cascade',
+          constraint: true,
+          index: false,
+        },
+      }),
+    });
+
+    const contract = defineContract({
+      family: bareFamilyPack,
+      target: postgresTargetPack,
+      createNamespace: createTestSqlNamespace,
+      extensions: { supabase: supabasePack },
+      models: { Profile },
+    });
+
+    const profileTable = Object.values(contract.storage.namespaces)
+      .flatMap((ns) => Object.values(ns.entries.table ?? {}))
+      .find((t) => t !== undefined);
+
+    expect(profileTable?.foreignKeys[0]).toMatchObject({
+      name: 'profile_user_fk',
+      onDelete: 'restrict',
+      onUpdate: 'cascade',
+      target: { spaceId: 'supabase', namespaceId: 'auth' },
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
