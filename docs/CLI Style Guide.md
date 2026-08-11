@@ -88,12 +88,12 @@ The CLI checks `process.stdout.isTTY` once at startup to determine the output mo
 - Human layout (TTY):
   - First line: `✖` concise summary + code
   - Why: one line cause
-  - Fix: one line next step
+  - Next: one `→` line per entry in `nextActions`, label first, command after it
   - Where: `file:line` when applicable
   - More: hint to rerun with `-v`/`--trace`; docs link by code (`docs.prisma.io/docs/orm/next/reference/error-reference#<CODE>`)
-- JSON schema (single object): `{ code, severity, summary, why, fix, where: { path, line }, meta, docsUrl }`.
-- Exit code: a structured failure exits `2` (precondition; see [Exit Codes](#exit-codes)), except a user-declined prompt which exits `3`. Only an internal bug or uncaught error exits `1`.
-- **Missing-input failures**: when a command fails because required flags are missing in non-interactive mode, the envelope MUST set `meta.missingFlags: string[]` listing each missing flag's long form (e.g. `["--target", "--authoring"]`) so callers can react programmatically. The `fix:` text SHOULD list the same flags in canonical CLI form, copy-pasteable.
+- JSON schema (single object): `{ code, severity, summary, why, nextActions, where: { path, line }, meta, docsUrl }`. `nextActions` is always present and is `[]` when there is nothing to suggest; each entry is `{ kind: 'run-command' | 'user-choice' | 'edit-file' | 'done', label, command?, commands?, reason? }`. It replaces the freeform `fix` string — see [ADR 239](architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md#remediation-is-typed-not-prose).
+- Exit code: a structured failure exits `2` (precondition; see [Exit Codes](#exit-codes)), except a user-declined prompt which exits `3`. Only an internal bug or uncaught error exits `1`. A command that **ran to its end and found problems** is not a failure: its findings are diagnostics on a completed result with a documented `4`–`99` exit code, never a thrown error.
+- **Missing-input failures**: when a command fails because required flags are missing in non-interactive mode, the envelope MUST set `meta.missingFlags: string[]` listing each missing flag's long form (e.g. `["--target", "--authoring"]`) so callers can react programmatically. `nextActions` SHOULD carry a `run-command` action whose `command` is the same invocation with those flags supplied, copy-pasteable.
 
 ## Plans (Rendering)
 - Summary header: target, storageHash/profileHash, op count, affected tables, estimated rows.
@@ -124,7 +124,7 @@ This is a deliberate divergence from clig.dev §Arguments §Confirmation. AI age
 
 - A command that performs a destructive action MUST prompt for confirmation in interactive mode AND require `--force` to skip the prompt or to run the action non-interactively.
 - The prompt MUST list the destructive operations (or describe them concretely, e.g. "this will overwrite all generated files") so the user can decline knowing what's at stake.
-- In non-interactive mode (piped stdout, closed stdin, `--no-interactive`, `--json`) without `--force`: no prompt is shown; the command fails with a structured precondition error (exit code `2`) whose `fix:` names `--force`.
+- In non-interactive mode (piped stdout, closed stdin, `--no-interactive`, `--json`) without `--force`: no prompt is shown; the command fails with a structured precondition error (exit code `2`) whose `nextActions` carry the same invocation with `--force` added.
 - `-y`/`--yes` MUST NOT be a substitute for `--force`. A non-interactive invocation with `-y` but without `--force` against a destructive operation MUST still fail.
 - The internal control API retains a programmatic equivalent (e.g. `acceptDataLoss: boolean`) for consumers that drive the planner directly; `--force` is the user-facing CLI flag.
 
@@ -156,9 +156,9 @@ These codes have a fixed meaning across every Prisma Next CLI command. Specific 
 
 | Code | Name | Meaning |
 |---|---|---|
-| `0` | `OK` | Command succeeded. |
+| `0` | `OK` | The command completed and found nothing to report. |
 | `1` | `INTERNAL_ERROR` | Unexpected internal failure, crash, or bug. The command did not reach a documented outcome. Reserved for "this should not have happened". |
-| `2` | `PRECONDITION` | Usage / configuration / precondition error: bad flags, missing required input, conflicting flags, missing prerequisite file. "Your invocation was wrong, fix it and try again." Matches commander.js and Linux convention (`misuse of shell builtin`). |
+| `2` | `PRECONDITION` | The command could not do its job: bad flags, missing required input, conflicting flags, missing prerequisite file. "Your invocation was wrong, fix it and try again." Matches commander.js and Linux convention (`misuse of shell builtin`). Never used for problems the command was asked to look for — those are findings; see [Completed with findings](#completed-with-findings). |
 | `3` | `USER_ABORTED` | The user explicitly declined an interactive prompt (e.g. did not consent to a destructive overwrite). Distinct from signal-based interruption. |
 | `130` | — | Interrupted by SIGINT (Ctrl+C). POSIX convention (`128 + 2`). |
 | `143` | — | Terminated by SIGTERM. POSIX convention (`128 + 15`). |
@@ -174,6 +174,20 @@ Codes `4`–`99` are available for command-specific outcome codes. Each command:
 The same numeric value MAY mean different things in different commands (e.g. `init`'s `4 = INSTALL_FAILED` is unrelated to `migration check`'s `4 = INTEGRITY_FAILED`). Exit codes are always interpreted in the context of the command that produced them; the error code disambiguates within the class.
 
 Codes `100` and above are reserved for runtime-environment signals (POSIX `128 + N`) and MUST NOT be claimed by a command.
+
+### Completed with findings
+
+A command settles one of two ways: it **completes** — it ran to its end and has a result, good news or bad — or it **errors**, meaning it could not do its job. The `4`–`99` band belongs to the first case.
+
+When a command was asked to look for problems and found some, those problems are its **result**, not an error. `migration check` finding integrity violations, `db verify` finding drift, a lint pass finding hits — each of these completes, exits its own documented code in the `4`–`99` band, and carries the individual problems as **diagnostics** in the completed envelope. A diagnostic has the same fields as an error envelope (dotted `code`, `severity`, `summary`, `why`, `nextActions`, `where`, `meta`, `docsUrl`) minus `ok`. It is pure data: never thrown, no stack.
+
+Rules:
+
+- A command MUST NOT throw to report a finding, and MUST NOT exit `2` for one. `2` is reserved for "I could not do my job" — `migration check` exits `2` when it cannot resolve the migration reference you named, not when the graph it checked has a dangling ref.
+- A `severity: 'error'` diagnostic MUST come with a non-zero exit code, so a shell pipeline does not read a clean `0` over a reported error. Warnings alone MAY exit `0`.
+- Scripts that need to know *which* problem was found MUST match on the diagnostic's dotted code. The exit code says only which class of outcome occurred.
+
+The taxonomy behind this — errors, findings, and bugs — is [ADR 239](architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md#exit-codes).
 
 ### Promoting a command-specific code to CLI-wide
 

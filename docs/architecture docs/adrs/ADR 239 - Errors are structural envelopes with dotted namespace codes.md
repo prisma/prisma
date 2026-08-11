@@ -6,6 +6,8 @@ Supersedes: [ADR 027 — Error Envelope & Stable Codes](ADR%20027%20-%20Error%20
 
 Related: [Error Handling: Failures, Operational Errors, and Bugs](../../Error%20Handling.md).
 
+> **Amended 2026-08-11.** Two changes, both folded into the text below rather than appended. **(1) Completed with findings.** A command that ran to its end and found problems — `migration check` finding integrity violations, `db verify` finding drift — reports those findings as **diagnostics inside a completed envelope** with a documented per-command exit code in the `4`–`99` band. Findings are data; they are never thrown and never travel the error path. The original text classified them as structured failures exiting `2`, which conflated "I could not do my job" with "doing my job turned up bad news". **(2) `fix` → `nextActions`.** The freeform `fix?: string` prose field is replaced by a typed `nextActions: readonly NextAction[]`. The severity scale is unchanged at `'error' | 'warn' | 'info'`; the evidence is recorded under [The severity scale](#the-severity-scale). The shape freezes here; the code sweep trails, exactly as the bare-throw ban does.
+
 ## Decision
 
 Every user-facing error in Prisma Next is a **structural envelope** identified by a dotted `NAMESPACE.SUBCODE` code. It is recognized by a **structural type predicate** — a field-shape check, never `instanceof` and never a shared prototype — so the same value is recognizable when thrown, when carried as a `Result` failure, and after it has crossed a network boundary or been imported through two copies of the library in a monorepo.
@@ -13,6 +15,10 @@ Every user-facing error in Prisma Next is a **structural envelope** identified b
 The shared surface is a **convenience, not an enforcement mechanism**. Foundation provides one interface (`StructuredError`), one predicate (`isStructuredError`), one factory (`structuredError`), and one docs-URL helper. It standardizes structure and behavior; it does **not** enumerate the codes. Each namespace's codes are declared as a typed union in the single module that owns that namespace, and that module's factories brand their envelopes. A code the owning module hasn't declared is a compile error *there*; nothing polices codes globally at runtime, deliberately.
 
 Bugs are not this scheme. An invariant break throws an `InternalError`, which is never meant to be caught except at the outermost boundary for crash reporting. The distinction is the one already drawn in [Error Handling.md](../../Error%20Handling.md): **failures and operational errors are structured envelopes; bugs are `InternalError`.**
+
+Neither are **findings**. A command settles one of two ways. It **completes** — it ran to its end and has a result to report, and that result may be good news or bad news — or it **errors**, meaning it could not do its job at all. A command that completes reports what it found as `Diagnostic` values inside a completed envelope, each carrying the same dotted code an error would carry, alongside a documented per-command exit code. A command that errors produces a `StructuredError` on the error path. The test is one question: *was finding these problems the job?* If yes, they are diagnostics on a completed result. If no — the command could not reach a documented outcome — it is an error. `migration check` reporting eleven integrity violations completed successfully at its job; it did not fail.
+
+A `Diagnostic` is a recorded finding: pure data, never thrown, no stack. It is field-for-field the error envelope minus `ok`, same severity scale included, so a consumer reads one shape on both settlement paths.
 
 The `PN-DOMAIN-NNNN` numeric codes are retired. A published-code crosswalk (below) maps every one to its dotted name. **Error codes freeze at RC**; the crosswalk is the compatibility contract for the rename.
 
@@ -23,11 +29,31 @@ The `PN-DOMAIN-NNNN` numeric codes are retired. A published-code crosswalk (belo
 export interface StructuredError extends Error {
   readonly code: `${string}.${string}`; // NAMESPACE.SUBCODE
   readonly why?: string;
-  readonly fix?: string;
+  readonly nextActions: readonly NextAction[]; // always present; empty when there are none
   readonly where?: { readonly path?: string; readonly line?: number };
   readonly severity?: 'error' | 'warn' | 'info';
   readonly meta?: Record<string, unknown>;
   readonly cause?: unknown;
+  readonly docsUrl?: string;
+}
+
+export interface NextAction {
+  readonly kind: 'run-command' | 'user-choice' | 'edit-file' | 'done';
+  readonly label: string;
+  readonly command?: string;
+  readonly commands?: readonly string[];
+  readonly reason?: string;
+}
+
+// a finding: the same fields, no stack, never thrown
+export interface Diagnostic {
+  readonly code: `${string}.${string}`;
+  readonly severity: 'error' | 'warn' | 'info';
+  readonly summary: string;
+  readonly why?: string;
+  readonly nextActions: readonly NextAction[];
+  readonly where?: { readonly path?: string; readonly line?: number };
+  readonly meta?: Record<string, unknown>;
   readonly docsUrl?: string;
 }
 
@@ -48,7 +74,10 @@ type MigrationSubcode = 'FILE_MISSING' | 'HASH_MISMATCH' | 'DESTRUCTIVE_CHANGES'
 export function errorMigrationFileMissing(dir: string): StructuredError {
   return structuredError('MIGRATION.FILE_MISSING', 'Migration file not found', {
     why: `No migration.ts under "${dir}".`,
-    fix: 'Run `prisma-next migration create` or check the path.',
+    nextActions: [
+      { kind: 'run-command', label: 'Create the migration', command: 'prisma-next migration new' },
+      { kind: 'edit-file', label: 'Point the config at the right migrations directory', reason: `"${dir}" does not exist.` },
+    ],
     meta: { dir },
   });
 }
@@ -59,6 +88,25 @@ The same envelope is throwable and is a valid `Result` failure value — no wrap
 ```ts
 throw errorMigrationFileMissing(dir);                 // internal fast-abort
 return notOk(errorMigrationFileMissing(dir));         // boundary Result failure
+```
+
+A finding is neither. It is returned as data on the completed path, with the exit code the command documents:
+
+```ts
+// `migration check` ran to its end; the integrity violations it found are its result
+return {
+  exitCode: INTEGRITY_FAILED, // 4, documented by this command
+  diagnostics: danglingRefs.map((ref) => ({
+    code: 'MIGRATION.CHECK_DANGLING_REF',
+    severity: 'error',
+    summary: `Ref "${ref.name}" points at a hash no migration produces`,
+    where: { path: ref.path },
+    nextActions: [
+      { kind: 'run-command', label: 'Repoint the ref', command: `prisma-next ref set ${ref.name} <valid-hash>` },
+      { kind: 'run-command', label: 'Or delete it', command: `prisma-next ref delete ${ref.name}` },
+    ],
+  })),
+};
 ```
 
 Bugs take the other path:
@@ -117,12 +165,29 @@ The split between "CLI presentation error" and "runtime error" is historical, no
 
 One module owns the shared shape. It exports:
 
-- `StructuredError` — the interface above. `code` is the only required field beyond `Error`; `why` / `fix` / `where` / `severity` / `meta` / `cause` / `docsUrl` are optional.
+- `StructuredError` — the interface above. `code` and `nextActions` are the required fields beyond `Error`; `why` / `where` / `severity` / `meta` / `cause` / `docsUrl` are optional.
+- `NextAction` and `Diagnostic` — the two shapes above. `Diagnostic` is the finding form: the envelope's fields minus `ok`, with `severity` and `summary` required and no stack.
 - `isStructuredError(e): e is StructuredError` — structural predicate.
 - `structuredError(code, message, options?)` — the convenience factory. Brands a plain `Error` with the fields (via `Object.assign` + a non-enumerable `name`), returning `Error & StructuredError`. Usable as a throw target or a `Result` failure value.
 - `docsUrlFor(code)` — returns `` `${DOCS_BASE}#${code}` ``, where `DOCS_BASE` is `https://docs.prisma.io/docs/orm/next/reference/error-reference` — one errors page, the dotted code as the fragment (e.g. `…/error-reference#CONTRACT.MARKER_MISSING`). The version segment is a single token (`next`) that flips to `v8` when the RC ships; a factory may override `docsUrl` for a code with its own page. Centralizing it makes the version cut and the package rename one-line edits, not 46 string changes. `scripts/list-error-codes.mjs` enumerates every published code from source (JSON or a markdown skeleton) and has a `--verify <page>` mode the docs site uses to prove the reference page lists all of them.
 
 **Fields carried forward from ADR 027.** `severity` (`error` | `warn` | `info`, default `error`) and `cause` (provenance chain — driver `sqlState`, origin, wrapped error) are kept: `cause` is what the driver-error mapping (below) populates. ADR 027's **redaction is a policy, not a field** — there was never a `redaction` field; `meta`/`details` must be redaction-safe and secrets are excluded. That policy is retained; no field is added.
+
+## Remediation is typed, not prose
+
+Remediation is a `nextActions` array, not a `fix` sentence. `nextActions` is always present and is empty when there is nothing to suggest, so a consumer never has to distinguish "no remediation" from "field absent".
+
+The reason is the audience. A `fix` string like ``'Update the ref with `prisma-next ref set <name> <valid-hash>` or delete it.'`` is two actions, a command, and an argument placeholder, all fused into one sentence that only a human can take apart. An agent has to parse English to find out that there is a command to run and what it is. A `NextAction` states it directly: a `kind` the caller can branch on, a `label` for display, and a `command` (or `commands`) that is executable as written. Human presentation loses nothing: the CLI renders each action as a `→` line under the error, label then command.
+
+The `kind` values are `run-command` (there is a command to run), `user-choice` (the user must decide between the listed options), `edit-file` (a file needs a human edit), and `done` (nothing further is required — used to close out a multi-step flow).
+
+`Diagnostic` carries the same field for the same reason, and the two shapes stay identical field-for-field. That identity is the point: a consumer that can read a finding can read an error.
+
+## The severity scale
+
+`severity` stays at three values, `'error' | 'warn' | 'info'`, on both `StructuredError` and `Diagnostic`.
+
+The narrower `'error' | 'warn'` scale was considered on the theory that `'info'` had no producers. It has. `errorInitUserAborted()` — the `CLI.INIT_USER_ABORTED` envelope raised when a user cancels an `init` prompt — is a shipped `CliStructuredError` constructed with `severity: 'info'`, and it is the right value: nothing went wrong, the user changed their mind, and rendering that in red as an error would misreport it. The migration-status diagnostics (`CONTRACT.UNREADABLE`, `MIGRATION.MARKER_NOT_IN_HISTORY`, `MIGRATION.MISSING_INVARIANTS`) are typed `'warn' | 'info'` and publish that union in their JSON schema, so `'info'` is already part of the machine-readable surface a consumer matches on. Trimming the scale would be a breaking change to that surface with a live producer on the other side.
 
 ## User-facing versus internal
 
@@ -131,6 +196,7 @@ One module owns the shared shape. It exports:
 - **Failure** (expected: bad input, builder misuse, capability gating, policy block) → `StructuredError`.
 - **Operational error** (expected external fault: connection refused, driver error) → `StructuredError`, populated from the driver via `cause`.
 - **Bug** (invariant break, impossible branch, post-validation type break) → `InternalError`.
+- **Finding** (the command's own output: an integrity violation, schema drift, a lint hit) → `Diagnostic` on a completed result. Not thrown, not converted to a failure at any boundary.
 
 `InternalError extends Error` lives in foundation with a doc comment stating the contract: *never catch this except at the outermost boundary; it is a bug in Prisma Next, not a user error.* It carries a structural marker (`isInternalError(e)` predicate) so the CLI top-level handler recognizes it — again structurally, not by `instanceof` — and prints "internal error, please report" with the stack, distinct from both a structured envelope and a bare uncaught throw.
 
@@ -138,13 +204,26 @@ One module owns the shared shape. It exports:
 
 ## Exit codes
 
-Exit codes follow the reserved table in [CLI Style Guide § Exit Codes](../../CLI%20Style%20Guide.md#exit-codes) — they key off the *kind* of error, not a namespace whitelist:
+Exit codes follow the reserved table in [CLI Style Guide § Exit Codes](../../CLI%20Style%20Guide.md#exit-codes). They key off how the command *settled* — completed or errored — and, within "completed", off what the command documents:
 
-- `InternalError` and uncaught throws → **1** (`INTERNAL_ERROR` — "this should not have happened").
-- Expected `StructuredError` failures (usage, config, precondition, verify, runner) → **2** (`PRECONDITION` — "your invocation or state was wrong; fix and retry"). Commands may still return a command-specific code for finer classification.
-- User-declined prompt → **3** (`USER_ABORTED`).
+| Code | Settlement | Meaning |
+|---|---|---|
+| `0` | completed | The command ran to its end and found nothing to report. |
+| `1` | errored | `InternalError` or an uncaught throw — a bug in Prisma Next. Nothing else ever exits `1`. |
+| `2` | errored | An expected `StructuredError`: the command could not do its job. Usage, config, missing prerequisite. |
+| `3` | errored | The user declined an interactive prompt (`USER_ABORTED`). |
+| `4`–`99` | completed | A documented per-command outcome. The command ran to its end and its findings are diagnostics in the completed envelope. |
+| `130`, `143` | — | Delivered signals: SIGINT and SIGTERM (POSIX `128 + N`). |
 
-This corrects the current mapping, which sends every non-CLI structured error to `1` — colliding with `1`'s reserved meaning of *internal error*. Under this ADR, `1` means a bug; an expected failure never exits `1`.
+Two rules make the table unambiguous.
+
+**Findings never exit `2`.** `2` means the command could not do its job. `migration check` finding integrity violations did its job; it exits its documented `4` (`INTEGRITY_FAILED`) and carries the violations as diagnostics. It exits `2` only when it could not run the check at all — an unresolvable migration reference, an unknown `--space`. `db verify` follows the same split: drift found is a documented completed code, an unreachable database is an error.
+
+**A severity-`error` diagnostic requires a non-zero exit code.** A command that completed while recording something it calls an error must say so in its exit code; otherwise a shell pipeline would read success. The converse does not hold — a documented non-zero code may accompany warnings only.
+
+Each command declares its `4`–`99` codes in a co-located exported module (`src/commands/<command>/exit-codes.ts`) and documents them in `--help`. The same number means different things in different commands; the dotted code on each diagnostic disambiguates within the class.
+
+This corrects two mappings. Structured errors used to land on `1`, colliding with `1`'s reserved meaning of *internal error*; under this ADR `1` means a bug and nothing else. And completed-with-findings results used to be modeled as structured failures on the error path, which forced a command to throw in order to report the very thing it was asked to look for.
 
 ## Banning bare throws
 
@@ -158,6 +237,8 @@ Scope of the ban:
 ## Adoption and freeze scope
 
 The **taxonomy** — namespace list, naming conventions, and the crosswalk of every already-published code — is finalized and ratified here, at RC. It is validated against the entire throw surface so there are no namespace gaps. What grows after RC is the **sweep**: the ~250 currently-codeless user-facing throws and the internal tail are converted plane by plane, each adding codes under the fixed conventions (additive, non-breaking) and ratcheting the ban down. Only *renames of already-published codes* break consumers, and those are all in the crosswalk and freeze now; adding a code to a previously-codeless site is non-breaking and may trail.
+
+The `fix` → `nextActions` migration trails the same way. The target shape is frozen here; the several hundred call sites that pass a `fix` string convert cluster by cluster under a ratchet, exactly as the bare-throw ban converts. Freezing the shape before the sweep is what keeps `Diagnostic` and the error envelope field-for-field identical — the alternative, converting first and settling the shape afterwards, would let the two drift while half the tree used each spelling.
 
 Relational-core's `PLAN.INVALID` / `PLAN.UNSUPPORTED` factories have no production callers and are deleted rather than migrated. System 5's runner enum values become `MIGRATION.*` codes on the `Result` failure (the failure already carries a summary and details; only the code string changes).
 
@@ -246,7 +327,7 @@ Direct `CliStructuredError` constructions and sibling numeric schemes, discovere
 | PN-CLI-5009 | `init` invalid output document | `CLI.INIT_INVALID_OUTPUT_DOCUMENT` |
 | PN-SCHEMA-0001 | SQL schema-verify failure (`SCHEMA` domain's only producer) | `CONTRACT.SCHEMA_VERIFICATION_FAILED` |
 
-The `migration check` failure catalogue (`PN-MIG-CHECK-NNN`) converts to self-describing `MIGRATION.CHECK_*` codes. `PN-MIG-CHECK-002` covered two unrelated violation kinds; the dotted split separates them.
+The `migration check` failure catalogue (`PN-MIG-CHECK-NNN`) converts to self-describing `MIGRATION.CHECK_*` codes. `PN-MIG-CHECK-002` covered two unrelated violation kinds; the dotted split separates them. These are **diagnostic** codes: they ride in the completed envelope alongside `migration check`'s documented exit code, not on the error path. The code space is the same one errors draw from — that is the point of one code space — but the carrier is a finding.
 
 | Retired | New |
 |---|---|
@@ -283,6 +364,8 @@ The `migration check` failure catalogue (`PN-MIG-CHECK-NNN`) converts to self-de
 - One code space: consumers, dashboards, and CI match errors by dotted code, not brittle strings; the crosswalk is the single rename record.
 - Recognition survives the control/execution split, the wire, and duplicate imports, because it is structural.
 - The same envelope serves a throw and a `Result` failure — no per-boundary conversion type.
+- A command that reports problems does not have to throw to do it. `migration check` returns its violations; the exit code says how it went; nothing on the path is an exception.
+- Remediation is executable. An agent reads `nextActions[0].command` instead of parsing a sentence, and the human rendering is the same `→` line it always was.
 - Codes live with the code that raises them; a new namespace is a new owning module, not an edit to a central registry.
 - The ratchet lets the taxonomy freeze at RC while the mechanical sweep of 700+ throw sites trails safely.
 
@@ -290,7 +373,9 @@ The `migration check` failure catalogue (`PN-MIG-CHECK-NNN`) converts to self-de
 
 - No global compile-time guarantee that every code is unique across namespaces — uniqueness is a convention checked by the crosswalk + review, not the type system. (A namespace's own union is enforced locally.)
 - The structural predicate accepts any object of the right shape, including a hand-rolled look-alike; this is the deliberate cost of prototype-independence.
-- `severity` is retained though nearly every error is `error` today; the `warn`/`info` values earn their place only for advisory lint/budget surfaces.
+- `severity` is retained though nearly every error is `error` today; the `warn`/`info` values earn their place on advisory lint, budget, and status surfaces, and on the user-abort envelope.
+- Two settlement paths mean a command author has a judgement call to make at every return site. The rule ("was finding these problems the job?") is a sentence, not a type, and the only mechanical check is the runtime one: a severity-`error` diagnostic must come with a non-zero exit code.
+- `nextActions` is more work to write than a `fix` sentence — three fields instead of a clause. That cost is paid once per factory and recovered by every agent that would otherwise parse the prose.
 
 ## Alternatives considered
 
@@ -301,5 +386,13 @@ The `migration check` failure catalogue (`PN-MIG-CHECK-NNN`) converts to self-de
 **Keep numeric `PN-DOMAIN-NNNN` codes.** Rejected per the settled scheme decision: dotted names are self-describing, already have 2:1 adoption in the code, and fix the over-broad `RUN` domain. Numeric codes force a lookup table to read any log line.
 
 **One physical union module listing every code.** Rejected: it would have to sit in a low foundation package yet name codes owned by high packages (sql, targets, extensions), inverting the layering that `pnpm lint:deps` enforces. The per-namespace union keeps each code with its owner; the "central registry" is this ADR's crosswalk (documentation), not a type.
+
+**Findings as structured failures exiting `2`.** Rejected: it makes a command throw in order to report what it was asked to find, and it puts "the check found eleven violations" in the same exit-code bucket as "you passed an unknown flag". A shell pipeline cannot tell those apart, and the command has to invent a wrapper failure whose only content is a list of findings. Exit `2` is reserved for a command that could not do its job.
+
+**A separate `Finding` shape, unrelated to the error envelope.** Rejected: two shapes means two renderers, two JSON schemas, and two things for a consumer to learn, for a distinction that is about *carrier*, not content. A dangling ref is the same information whether the command aborted on it or listed it. `Diagnostic` is the envelope minus `ok` precisely so the two never drift.
+
+**Keep `fix` alongside `nextActions`.** Rejected: it guarantees they disagree. Every factory would have to keep a sentence and a structured list in sync by hand, and consumers would have to decide which one wins when they differ. If prose is wanted around an action, it is that action's `reason`.
+
+**Trim severity to `'error' | 'warn'`.** Rejected on evidence: `CLI.INIT_USER_ABORTED` ships with `severity: 'info'`, and the migration-status diagnostics publish `'warn' | 'info'` in their JSON schema. See [The severity scale](#the-severity-scale).
 
 **Convert all 700+ throw sites before RC.** Rejected: it is not one coherent review, and it collides with the RC freeze. Only the *codes* must freeze at RC; the conversion is ratcheted down afterward, plane by plane.
