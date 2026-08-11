@@ -2,6 +2,8 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine';
 import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
+import { contractEmitCommand } from './contract/emit';
+import { contractInferCommand } from './contract/infer';
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
 import { migrationGraphCommand } from './migration/graph';
@@ -13,6 +15,13 @@ import { resolveTelemetryHooks } from './telemetry/reporting';
 export const BIN_NAME = 'prisma-next';
 
 export const BIN_GROUPS = {
+  contract: {
+    brief: 'Contract management commands',
+    description:
+      'Define and emit your application data contract. The contract describes your\n' +
+      'schema as a declarative data structure that can be signed and verified\n' +
+      'against your database.',
+  },
   migration: {
     brief: 'On-disk migration management commands',
     description:
@@ -22,6 +31,8 @@ export const BIN_GROUPS = {
 } as const;
 
 export const BIN_COMMANDS: MountedTree = {
+  'contract emit': contractEmitCommand,
+  'contract infer': contractInferCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,
   'migration log': migrationLogCommand,
