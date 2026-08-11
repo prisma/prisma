@@ -39,11 +39,16 @@ Command handlers use normalized values directly — they do NOT set defaults or 
 
 ## Default Path Resolution
 
-Use `join()` and `dirname()` (from `pathe`) so defaults handle relative/absolute paths and cross-platform edge cases:
+`defineConfig` supplies a default `contract.output` as a config-relative string. The loader then makes every config-relative path absolute by resolving it against the directory of the config file it loaded, using `pathe` (never `node:path`) so the result is the same on every platform:
 
 ```typescript
-const output = config.contract.output ?? 'src/prisma/contract.json';
+import { dirname, resolve } from 'pathe';
+
+const configDir = dirname(loadedConfigFile);
+const output = resolve(configDir, contract.output ?? `${DEFAULT_CONTRACT_SOURCE_DIR}/contract.json`);
 ```
+
+Command handlers read the already-absolute value. They never re-resolve it and never substitute a default of their own.
 
 ## Related Patterns
 

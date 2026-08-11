@@ -3,7 +3,11 @@ import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import type { PrismaNextConfig } from '@internal/config-loader';
 import * as configLoader from '@internal/config-loader';
-import { type CliStructuredError, errorUnexpected } from '@internal/errors/control';
+import {
+  type CliStructuredError,
+  errorConfigValidation,
+  errorUnexpected,
+} from '@internal/errors/control';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
 import type { ControlStack } from '@internal/framework-components/control';
 import * as control from '@internal/framework-components/control';
@@ -16,12 +20,15 @@ import { resolveConfigInputs } from '../src/config-resolution';
 vi.mock('@internal/config-loader', { spy: true });
 vi.mock('@internal/framework-components/control', { spy: true });
 
-function mockLoadedConfig(config: PrismaNextConfig): void {
-  vi.spyOn(configLoader, 'loadConfigForSections').mockResolvedValue(ok(config));
+function mockLoadedConfig(
+  config: PrismaNextConfig,
+  diagnostics: readonly CliStructuredError[] = [],
+): void {
+  vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(ok({ config, diagnostics }));
 }
 
 function mockLoadFailure(failure: CliStructuredError): void {
-  vi.spyOn(configLoader, 'loadConfigForSections').mockResolvedValue(notOk(failure));
+  vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(notOk(failure));
 }
 
 function loadedConfig(format: string, inputs: readonly string[]): PrismaNextConfig {
@@ -90,12 +97,12 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
     });
   });
 
-  it('rejects when the config is invalid', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'pn-lsp-badconfig-'));
+  it('rejects when the contract section the project needs is invalid', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'pn-lsp-badcontract-'));
     const configPath = join(root, 'prisma-next.config.ts');
     await writeFile(
       configPath,
-      'const config = { family: {} };\n' +
+      "const config = { contract: { source: { format: 'psl', inputs: ['./schema.psl'] }, output: './contract.json' } };\n" +
         "Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), { value: 1, enumerable: false });\n" +
         'export default config;\n',
     );
@@ -104,6 +111,24 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
       name: 'CliStructuredError',
       code: 'CONFIG.VALIDATION_FAILED',
     });
+  });
+
+  it('resolves a typescript contract project whose control sections are invalid', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'pn-lsp-tscontract-'));
+    const configPath = join(root, 'prisma-next.config.ts');
+    await writeFile(
+      configPath,
+      'const config = {\n' +
+        '  family: {},\n' +
+        "  contract: { source: { format: 'typescript', inputs: ['./contract.ts'], load: async () => ({}) }, output: './contract.json' },\n" +
+        '};\n' +
+        "Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), { value: 1, enumerable: false });\n" +
+        'export default config;\n',
+    );
+
+    const result = await resolveConfigInputs(configPath);
+
+    expect(result.controlStack).toEqual({ scalarTypes: [], pslBlockDescriptors: {} });
   });
 
   it('rejects a config that was not created by defineConfig', async () => {
@@ -125,6 +150,47 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
     await expect(resolveConfigInputs(configPath)).rejects.toMatchObject({
       name: 'CliStructuredError',
       code: 'CLI.UNEXPECTED',
+    });
+  });
+
+  it('resolves a typescript contract project despite a diagnostic on a control section', async () => {
+    mockLoadedConfig(loadedConfig('typescript', ['/abs/contract.ts']), [
+      errorConfigValidation('target.targetId', {
+        why: 'Config.target must have targetId: string',
+        section: 'target',
+      }),
+    ]);
+
+    const result = await resolveConfigInputs('/abs/prisma-next.config.ts');
+
+    expect(result.controlStack).toEqual({ scalarTypes: [], pslBlockDescriptors: {} });
+  });
+
+  it('rejects a psl project carrying the same control-section diagnostic', async () => {
+    mockLoadedConfig(loadedConfig('psl', ['/abs/schema.psl']), [
+      errorConfigValidation('target.targetId', {
+        why: 'Config.target must have targetId: string',
+        section: 'target',
+      }),
+    ]);
+
+    await expect(resolveConfigInputs('/abs/prisma-next.config.ts')).rejects.toMatchObject({
+      name: 'CliStructuredError',
+      code: 'CONFIG.VALIDATION_FAILED',
+    });
+  });
+
+  it('rejects a typescript contract project carrying a contract-section diagnostic', async () => {
+    mockLoadedConfig(loadedConfig('typescript', ['/abs/contract.ts']), [
+      errorConfigValidation('contract.source.load', {
+        why: 'Config.contract.source.load must be a function',
+        section: 'contract',
+      }),
+    ]);
+
+    await expect(resolveConfigInputs('/abs/prisma-next.config.ts')).rejects.toMatchObject({
+      name: 'CliStructuredError',
+      code: 'CONFIG.VALIDATION_FAILED',
     });
   });
 
