@@ -48,15 +48,6 @@
       "notes": "Direct branch-coverage tests for the new authoring helpers tracked as a follow-up before 0.9 release."
     },
     {
-      "package": "2-sql/4-lanes/relational-core",
-      "reason": "M9 target-extensible-IR refactor touched codec-ref-for-column.ts, expression.ts, and middleware/param-ref-mutator.ts with small coverage drops (1-7% below threshold). Behaviour verified through downstream SQL builder and runtime integration tests.",
-      "addedDate": "2026-05-16",
-      "expiryDays": 90,
-      "assignee": null,
-      "linear": "TML-2521",
-      "notes": "Direct unit tests for the new branches tracked as a follow-up before 0.9 release."
-    },
-    {
       "package": "3-mongo-target/1-mongo-target",
       "reason": "M9 target-extensible-IR refactor formed the target-mongo package alongside its family residence. Per-target unit coverage is not yet present; the target is exercised through mongo-family integration tests and the retail-store/mongo-blog-leaderboard examples.",
       "addedDate": "2026-05-16",

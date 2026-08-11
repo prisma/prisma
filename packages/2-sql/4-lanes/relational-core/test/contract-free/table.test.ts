@@ -330,4 +330,19 @@ describe('table().select()', () => {
     const ast = tbl.select(tbl.id).where(tbl.id.eq(5)).build();
     expect(ast.where?.kind).toBe('binary');
   });
+
+  it('.orderBy() defaults to ascending and accumulates in call order', () => {
+    const ast = tbl.select(tbl.id).orderBy(tbl.name).orderBy(tbl.id, 'desc').build();
+
+    expect(ast.orderBy?.map((item) => item.dir)).toEqual(['asc', 'desc']);
+  });
+
+  it('.orderBy() composes with .where()', () => {
+    const ast = tbl.select(tbl.id).where(tbl.id.eq(5)).orderBy(tbl.id, 'desc').build();
+
+    expect({ where: ast.where?.kind, order: ast.orderBy?.length }).toEqual({
+      where: 'binary',
+      order: 1,
+    });
+  });
 });
