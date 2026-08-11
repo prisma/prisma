@@ -81,6 +81,7 @@ export async function executeRefSetCommand(
     'adapter',
     'extensions',
     'migrations',
+    'contract',
   ]);
   if (!configResult.ok) {
     return configResult;

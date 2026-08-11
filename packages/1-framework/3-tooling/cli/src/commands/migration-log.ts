@@ -49,6 +49,7 @@ export async function executeMigrationLogCommand(
     'driver',
     'extensions',
     'db',
+    'migrations',
   ]);
   if (!configResult.ok) {
     return configResult;

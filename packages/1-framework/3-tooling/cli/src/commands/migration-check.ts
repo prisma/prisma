@@ -44,6 +44,7 @@ async function executeMigrationCheckCommand(
     'adapter',
     'extensions',
     'migrations',
+    'contract',
   ]);
   if (!configResult.ok) {
     return { error: configResult.failure, exitCode: PRECONDITION };

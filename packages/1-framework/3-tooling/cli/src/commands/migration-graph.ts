@@ -91,6 +91,7 @@ export async function executeMigrationGraphCommand(
     'adapter',
     'extensions',
     'migrations',
+    'contract',
   ]);
   if (!configResult.ok) {
     return configResult;

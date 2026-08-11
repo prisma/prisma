@@ -79,6 +79,7 @@ export async function executeMigrationListCommand(
     'adapter',
     'extensions',
     'migrations',
+    'contract',
   ]);
   if (!configResult.ok) {
     return configResult;

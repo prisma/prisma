@@ -343,6 +343,7 @@ async function executeMigrateCommand(
     'extensions',
     'db',
     'migrations',
+    'contract',
   ]);
   if (!configResult.ok) {
     return configResult;

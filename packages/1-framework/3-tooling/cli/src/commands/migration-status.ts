@@ -274,6 +274,7 @@ export async function executeMigrationStatusCommand(
     'extensions',
     'db',
     'migrations',
+    'contract',
   ]);
   if (!configResult.ok) {
     return configResult;

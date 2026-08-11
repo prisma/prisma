@@ -89,6 +89,7 @@ export async function executeMigrateShowPlan(
     'extensions',
     'db',
     'migrations',
+    'contract',
   ]);
   if (!configResult.ok) {
     return configResult;

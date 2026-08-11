@@ -69,6 +69,7 @@ async function executeDbSignCommand(
     'driver',
     'extensions',
     'db',
+    'migrations',
     'contract',
   ]);
   if (!configResult.ok) {
