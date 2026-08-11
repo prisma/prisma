@@ -3,10 +3,23 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6
-- **AC scoreboard totals:** 43 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7
+- **AC scoreboard totals:** 49 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
+
+## cli-owned-distribution-identity D7 acceptance criteria scoreboard
+
+| AC ID  | Description (short)                                                                                                  | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------ | -------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D7-AC1 | Slice-added mock-heavy identity suites/assertions are removed while pre-existing ordinary tests stay coherent.       | PASS   | `09de26b02d`; the four slice-added `distribution-identity-*` suites are deleted, and the slice-added identity assertions are removed from `packages/cli/src/completions/completion-command.test.ts` and `packages/cli/src/__tests__/commands/SubCommand.vitest.ts`. Those two files still retain their pre-existing ordinary-Prisma coverage (`parseCompletionCommand(['fish'])`, unsupported-shell rejection, and Deno abort-without-install), and no production files are touched.                              |
+| D7-AC2 | Exactly one packed compatibility scenario snapshots representative real-command identity behavior deterministically. | PASS   | `37d7f251f9`; `packages/client/tests/e2e/prisma7-compatibility/tests/main.test.ts` still uses the single packed scenario and real installed commands, but now projects version output into stable identity-bearing evidence via `projectVersion(...)`: `prisma7`/`@prisma/client` labels and versions, absence of an ordinary `prisma` key/label, metadata key/label sets, and stderr. The snapshot no longer hardcodes architecture, engine hashes/paths, runtime/toolchain versions, or peer-layout paths.      |
+| D7-AC3 | Normalization hides only dynamic noise and the snapshot stays reviewable rather than an opaque churn-prone dump.     | PASS   | `37d7f251f9`; the raw help/completion/init snapshots remain intact, while version evidence is reduced to a concise projection that still proves identity semantics: `distributionKey`/`distributionLabel` are `prisma7`, `hasPrismaKey`/`hasPrismaLabel` are false, both distribution and client versions are captured, metadata is represented as key/label sets only, and stderr preserves the config/schema-load proof. The result is reviewable without churn from host-specific values.                      |
+| D7-AC4 | Existing generate/db push/client smoke remains and no second scenario or test-only production seam was added.        | PASS   | `tests/main.test.ts` still runs `pnpm exec tsc --noEmit`, `pnpm exec prisma7 generate`, `pnpm exec prisma7 db push --force-reset`, TypeScript-compiles `smoke.ts`, and executes `tsx smoke.ts` after the snapshot assertion. `_steps.ts` still keeps a single packed scenario (`pnpm install` then `pnpm exec vitest run`), and the diff adds no production code or new seam.                                                                                                                                     |
+| D7-AC5 | Update/mismatch evidence boundaries are honest and no fake mock replacement remains.                                 | PASS   | The removed suites include the old mock-only update-check and mismatch tests; the new packed scenario does not pretend to observe checkpoint suppression or mismatch internals from one executable-boundary run. The remaining evidence is honestly limited to command-visible help/version/completion/init behavior plus the existing packed generate/db push/client smoke, which matches the dispatch plan's stated boundary for unobservable internals.                                                        |
+| D7-AC6 | Reported gates/transient scan are defensible and no production behavior changed.                                     | PASS   | The commit changes only tests plus the e2e fixture lockfile/package manifest; there is no product-code diff. No on-disk evidence contradicts the reported builds, affected tests, packed E2E, Prettier, lint, diff-check, or transient-scan gates. Reviewer reran the mandatory transient-ID scan over the changed test/lockfile surfaces: no UUID, `subagent`, `session`, or `projects/prisma7-compatibility-cli/` hits were found; the only bare `agent` string is the lockfile dependency name `tunnel-agent`. |
+
+**Overall slice verdict:** SATISFIED. D1-D6 remain satisfied, and D7 now closes with a deterministic packed snapshot projection that preserves the CLI-identity proof without host-specific churn.
 
 ## cli-owned-distribution-identity D6 acceptance criteria scoreboard
 
@@ -27,7 +40,9 @@
   - **Non-product occurrences:** comments and tests.
 - **Net result:** no unclassified actionable CLI-owned distribution literal remains in `packages/cli/src`; the remaining actionable identity propagation called out by the slice spec lives in later slices outside this package boundary.
 
-**Overall slice verdict:** SATISFIED. `cli-owned-distribution-identity` now has reviewer-passed D1-D6 dispatches, zero open findings/escalations, and a met slice-specific done condition. Remaining work is intentionally limited to `downstream-actionable-guidance` and the later release slice.
+**Overall slice verdict at D6 close:** SATISFIED. `cli-owned-distribution-identity` had reviewer-passed D1-D6 dispatches, zero open findings/escalations, and a met slice-specific done condition before the follow-up D7 feedback landed.
+
+**Current status after D7 R2:** CLOSED. D1-D7 are satisfied, and the packed snapshot evidence is now deterministic and reviewable enough to keep the slice closed.
 
 ## cli-owned-distribution-identity D1 acceptance criteria scoreboard
 
@@ -81,8 +96,8 @@
 
 ## Subagent IDs
 
-- **Implementer:** `becc7679-cf83-4ce` — persistent Pi implementer established at `cli-owned-distribution-identity` D2 R1 after prior Cursor and foreground Pi sessions became inaccessible.
-- **Reviewer:** `8e6830c2-c6d4-40a` — replacement Pi reviewer established at `cli-owned-distribution-identity` D6 R1 after D4/D5 reviewer `dfe5af26-1b23-4fe` became inaccessible to resume.
+- **Implementer:** `d50332d5-aa1d-47a` — replacement Pi implementer established at `cli-owned-distribution-identity` D7 R1 after D2–D6 implementer `becc7679-cf83-4ce` became inaccessible to resume.
+- **Reviewer:** `f6926f02-f2f0-4e2` — replacement Pi reviewer established at `cli-owned-distribution-identity` D7 R1 after D6 reviewer `8e6830c2-c6d4-40a` became inaccessible to resume.
 
 ## Orchestrator notes
 
@@ -167,6 +182,20 @@
 **Recommended next action:** Thread the primitive identity into `.env` comment generation so compatibility init emits `prisma7 dev` and `prisma7 init` while ordinary Prisma output stays byte-for-byte stable, and add focused coverage for the default local-Postgres init path plus the existing-`.env` append path.
 
 **Status:** resolved (`c526edd56d`) — `defaultEnv()` now accepts the primitive identity, local Prisma Postgres `.env` comments render `${identity} dev`, the appended banner renders `${identity} init`, and `packages/cli/src/__tests__/distribution-identity-project-creation.vitest.ts` covers both identities for both comment surfaces.
+
+### F6 — Packed snapshot hardcodes environment-specific version metadata
+
+**Severity:** must-fix
+
+**Where:** `packages/client/tests/e2e/prisma7-compatibility/tests/main.test.ts:66-113`; `packages/client/tests/e2e/prisma7-compatibility/tests/__snapshots__/main.test.ts.snap:387-413`
+
+**What:** The new single-scenario snapshot normalizes cwd/temp-path/ANSI/CRLF noise, but it keeps host-specific version fields and paths verbatim. The committed snapshot hardcodes `architecture: "arm64"`, the `schema-engine-linux-arm64-openssl-3.0.x` binary path, `default-engines-hash`, the PSL hash, `Node.js v22.23.2`, `TypeScript 5.7.3`, and a peer-suffixed `prisma-cli-path`. Those values are not part of the CLI-owned identity contract this dispatch is trying to prove.
+
+**Why it matters:** D7's contract is one readable deterministic packed proof. With the current snapshot, unrelated engine rolls, toolchain bumps, peer-layout changes, or a different runner architecture will churn or fail the snapshot even when `prisma7` identity behavior is unchanged. That makes the review surface noisy and undermines the operator's explicit request to replace mocks with honest executable-boundary evidence rather than with a brittle dump.
+
+**Recommended next action:** Keep the single packed scenario, but narrow or normalize the version snapshot to the identity-bearing fields only (for example package label plus selected command/help/config output), and strip environment-specific engine/platform/toolchain/path details that are not semantically required for this slice.
+
+**Status:** resolved (`37d7f251f9`) — `tests/main.test.ts` now projects version text/JSON into stable identity-bearing fields only, and the snapshot drops raw architecture, engine hash/path, runtime, toolchain, and peer-layout values while preserving package labels/versions, absence of ordinary `prisma`, metadata key/label sets, and stderr.
 
 ## Round notes
 
@@ -365,3 +394,27 @@
 **Findings:** none.
 
 **For orchestrator:** `cli-owned-distribution-identity` is review-complete; the next remaining work is the planned `downstream-actionable-guidance` slice.
+
+### cli-owned-distribution-identity D7 R1 — ANOTHER ROUND NEEDED
+
+**Scope:** replace mocked identity coverage with one packed executable-boundary snapshot. Commit `09de26b02d`.
+
+**Tasks:** The branch correctly deletes the slice-added mock-heavy suites, keeps the single packed compatibility scenario, uses the installed `node_modules/.bin/prisma7` binary for `init`, and preserves the pre-existing generate/db push/client smoke. The remaining issue is that the committed snapshot still hardcodes environment-specific version metadata and peer-layout paths instead of isolating durable identity behavior.
+
+**AC delta:** D7-AC1, D7-AC4, D7-AC5, and D7-AC6 PASS. D7-AC2 and D7-AC3 FAIL on `packages/client/tests/e2e/prisma7-compatibility/tests/main.test.ts` and `tests/__snapshots__/main.test.ts.snap` (see F6).
+
+**Findings:** F6 (must-fix).
+
+**For orchestrator:** Ask the implementer to keep the single packed scenario but trim/normalize the version snapshot so it stops encoding architecture, engine hashes/paths, toolchain versions, and peer-suffixed CLI paths. No product-code follow-up is required; this is a test-evidence correction only.
+
+### cli-owned-distribution-identity D7 R2 — SATISFIED
+
+**Scope:** stabilize the packed version snapshot without widening the scenario. Commit `37d7f251f9`.
+
+**Tasks:** The single packed scenario remains intact, and the version evidence is now projected from the real `--version` text/JSON into stable identity-bearing fields only. The snapshot still proves `prisma7` distribution labeling, `@prisma/client` labeling, absence of ordinary `prisma`, semantic metadata key/label sets, and config/schema-load stderr, while the raw architecture/hash/path/runtime/toolchain values are removed.
+
+**AC delta:** D7-AC2 and D7-AC3 FAIL → PASS on `packages/client/tests/e2e/prisma7-compatibility/tests/main.test.ts` and `tests/__snapshots__/main.test.ts.snap`; F6 resolved (`37d7f251f9`). D7-AC1, D7-AC4, D7-AC5, and D7-AC6 remain PASS.
+
+**Findings:** none.
+
+**For orchestrator:** Root Prettier remains blocked only by this review ledger edit. No further implementer action is required for D7.
