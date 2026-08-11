@@ -1,47 +1,24 @@
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
 import { timeouts } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  executeCommand,
-  setupCommandMocks,
-  setupTestDirectoryFromFixtures,
-  withTempDir,
-} from './utils/cli-test-helpers';
+import { describe, expect, it } from 'vitest';
+import { runOnEngine, setupTestDirectoryFromFixtures, withTempDir } from './utils/cli-test-helpers';
 
 const fixtureSubdir = 'emit';
 
 withTempDir(({ createTempDir }) => {
   describe('contract emit: output path (integration)', () => {
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      const mocks = setupCommandMocks();
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     it(
       '--output-path redirects artifacts into the given directory with byte-identical JSON content',
       async () => {
-        const originalCwd = process.cwd();
-
         // Run 1: default output path (config has output: 'output/contract.json')
         const defaultSetup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
           'prisma-next.config.emit.ts',
         );
-        try {
-          process.chdir(defaultSetup.testDir);
-          await executeCommand(createContractEmitCommand(), ['--config', 'prisma-next.config.ts']);
-        } finally {
-          process.chdir(originalCwd);
-        }
+        const defaultRun = await runOnEngine(defaultSetup, ['contract', 'emit']);
+        expect(defaultRun.exitCode).toBe(0);
 
         const defaultJsonPath = join(defaultSetup.outputDir, 'contract.json');
         const defaultDtsPath = join(defaultSetup.outputDir, 'contract.d.ts');
@@ -61,17 +38,13 @@ withTempDir(({ createTempDir }) => {
         const customJsonPath = join(customDir, 'contract.json');
         const customDtsPath = join(customDir, 'contract.d.ts');
 
-        try {
-          process.chdir(overrideSetup.testDir);
-          await executeCommand(createContractEmitCommand(), [
-            '--config',
-            'prisma-next.config.ts',
-            '--output-path',
-            'custom-out',
-          ]);
-        } finally {
-          process.chdir(originalCwd);
-        }
+        const overrideRun = await runOnEngine(overrideSetup, [
+          'contract',
+          'emit',
+          '--output-path',
+          'custom-out',
+        ]);
+        expect(overrideRun.exitCode).toBe(0);
 
         // Artifacts land inside the override directory with canonical filenames
         expect(existsSync(customJsonPath)).toBe(true);
@@ -93,19 +66,14 @@ withTempDir(({ createTempDir }) => {
     it(
       'config output field routes artifacts to the configured directory',
       async () => {
-        const originalCwd = process.cwd();
         const setup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
           'prisma-next.config.emit.ts',
         );
 
-        try {
-          process.chdir(setup.testDir);
-          await executeCommand(createContractEmitCommand(), ['--config', 'prisma-next.config.ts']);
-        } finally {
-          process.chdir(originalCwd);
-        }
+        const run = await runOnEngine(setup, ['contract', 'emit']);
+        expect(run.exitCode).toBe(0);
 
         // The fixture config has output: 'output/contract.json'
         expect(existsSync(join(setup.outputDir, 'contract.json'))).toBe(true);
