@@ -76,8 +76,8 @@ changes:
       name>")` adopts a constraint under the name it already carries. Until they are declared,
       keep the tables carrying them under an additive-only policy — the checks survive, and only
       `--strict` verify reports them — or expect the first destructive plan against an upgraded
-      database to
-      offer to drop them. An authoring/opt-out surface is planned for a later release.
+      database to offer to drop them. Declaring them is the durable fix; see
+      `authored-check-constraints` in this transition.
     detection:
       glob: "**/contract.json"
       contains:
@@ -560,4 +560,5 @@ not possible in 8.0.0-rc.2: a contract space derives checks from column shape (e
 list element-non-null) and has no surface for an arbitrary hand-written predicate. Document
 that the tables carrying it stay under an additive-only policy — the check survives, plain
 `db verify` tolerates it, and only `--strict` reports it — or accept the drop under a
-destructive plan. An authoring/opt-out surface for checks is planned for a later release.
+destructive plan. The durable fix is to declare it — see `authored-check-constraints` in this
+transition.
