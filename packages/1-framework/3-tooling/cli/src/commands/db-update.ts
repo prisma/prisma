@@ -107,7 +107,7 @@ async function executeDbUpdateCommand(
   const { client, config, dbConnection, onProgress, contractPathAbsolute } = ctxResult.value;
   let { contractJson } = ctxResult.value;
   let contractJsonPathForSnapshot = contractPathAbsolute;
-  const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config);
+  const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config, process.cwd());
 
   if (options.to) {
     const resolved = await resolveContractRefToSnapshot({

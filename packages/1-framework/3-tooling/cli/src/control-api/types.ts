@@ -1,6 +1,7 @@
 import type {
   ContractSourceDiagnostics,
   ContractSourceProvider,
+  PrismaNextConfig,
 } from '@internal/config/config-types';
 import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
@@ -723,8 +724,16 @@ export type MigrateResult = Result<MigrateSuccess, MigrateFailure>;
  * a FIFO queue; concurrent calls for distinct outputs run in parallel.
  */
 export interface ContractEmitOptions {
-  /** Path to the prisma-next.config.ts file */
-  readonly configPath: string;
+  /** The already-loaded config. Callers own loading; this operation never reads it from disk. */
+  readonly config: PrismaNextConfig;
+  /** Directory the caller was invoked from. */
+  readonly cwd: string;
+  /**
+   * Path to the prisma-next.config.ts file. Used to find the project manifest
+   * whose dependencies decide the import specifiers in emitted files; the
+   * config itself is never read from it.
+   */
+  readonly configPath?: string;
   /**
    * Directory to write contract artifacts into. When set, `contract.json` and
    * `contract.d.ts` are written inside this directory, taking precedence over

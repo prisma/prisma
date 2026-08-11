@@ -3,7 +3,7 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { loadConfigForSections } from '@internal/config-loader';
+import type { PrismaNextConfig } from '@internal/config/config-types';
 import type { Contract } from '@internal/contract/types';
 import { getEmittedArtifactPaths } from '@internal/emitter';
 import { APP_SPACE_ID, createControlStack } from '@internal/framework-components/control';
@@ -37,9 +37,13 @@ import { createProjectSpecifierResolver } from '../../utils/project-import-root'
 import { refusePackageCorruptionOnAggregate } from './contract-space-aggregate-loader';
 
 export interface MigrationNewOptions extends CommonCommandOptions {
+  readonly config: PrismaNextConfig;
+  /** Directory the command was invoked from. */
+  readonly cwd: string;
+  /** `--config` as the user wrote it, used only to locate project paths and for display. */
+  readonly configPath?: string;
   readonly name?: string;
   readonly from?: string;
-  readonly config?: string;
 }
 
 export interface MigrationNewResult {
@@ -53,21 +57,12 @@ export interface MigrationNewResult {
 export async function executeMigrationNewCommand(
   options: MigrationNewOptions,
 ): Promise<Result<MigrationNewResult, CliStructuredError>> {
-  const configResult = await loadConfigForSections(options.config, [
-    'family',
-    'target',
-    'adapter',
-    'extensions',
-    'migrations',
-    'contract',
-  ]);
-  if (!configResult.ok) {
-    return configResult;
-  }
-  const config = configResult.value;
+  const config = options.config;
+  const cwd = options.cwd;
   const { migrationsDir, appMigrationsDir, appMigrationsRelative } = resolveMigrationPaths(
-    options.config,
+    options.configPath,
     config,
+    cwd,
   );
 
   // Construct the family instance up-front so the on-disk contract read
@@ -201,7 +196,7 @@ export async function executeMigrationNewCommand(
     // Before any write: an unreadable or contradictory project manifest fails
     // the command outright rather than after a half-scaffolded migration
     // directory is already on disk.
-    const resolveSpecifier = createProjectSpecifierResolver(options.config);
+    const resolveSpecifier = createProjectSpecifierResolver(options.configPath);
 
     await writeMigrationPackage(packageDir, metadata, []);
     const destinationArtifacts = getEmittedArtifactPaths(contractPathAbsolute);
@@ -229,10 +224,10 @@ export async function executeMigrationNewCommand(
 
     return ok({
       ok: true as const,
-      dir: relative(process.cwd(), packageDir),
+      dir: relative(cwd, packageDir),
       from: fromHash,
       to: toStorageHash,
-      summary: `Scaffolded migration at ${relative(process.cwd(), packageDir)}`,
+      summary: `Scaffolded migration at ${relative(cwd, packageDir)}`,
     });
   } catch (error) {
     if (CliStructuredError.is(error)) {

@@ -50,7 +50,7 @@ async function executeMigrationCheckCommand(
   }
   const config = configResult.value;
   const { configPath, migrationsDir, appMigrationsDir, appMigrationsRelative } =
-    resolveMigrationPaths(options.config, config);
+    resolveMigrationPaths(options.config, config, process.cwd());
 
   if (!flags.json && !flags.quiet) {
     const details: Array<{ label: string; value: string }> = [
@@ -74,7 +74,11 @@ async function executeMigrationCheckCommand(
     return { error: loadedAggregate.failure, exitCode: PRECONDITION };
   }
 
-  const spaces = await enumerateCheckSpaces(loadedAggregate.value.aggregate, migrationsDir);
+  const spaces = await enumerateCheckSpaces(
+    loadedAggregate.value.aggregate,
+    migrationsDir,
+    process.cwd(),
+  );
 
   if (target) {
     return await checkSingleTarget(target, {

@@ -829,7 +829,7 @@ describe('migration read-verb missing-DB error shape parity (D2 lock)', () => {
 describe('migration check multi-space parity (D6 lock)', () => {
   it('no-arg check validates all spaces from the multi-space fixture', async () => {
     const { aggregate, migrationsDir } = await buildMultiSpaceFixture();
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir, process.cwd());
     const spaceIds = spaces.map((s) => s.spaceId);
     expect(spaceIds).toContain('app');
     expect(spaceIds).toContain('postgis');
@@ -843,7 +843,7 @@ describe('migration check multi-space parity (D6 lock)', () => {
 
   it('--space app narrows to only the app space', async () => {
     const { aggregate, migrationsDir } = await buildMultiSpaceFixture();
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir, process.cwd());
 
     const result = await runMigrationCheck({ spaces, spaceFilter: 'app' });
     expect(result.ok).toBe(true);
@@ -855,7 +855,7 @@ describe('migration check multi-space parity (D6 lock)', () => {
 
   it('--space <unknown> emits a structured error (not a bare array)', async () => {
     const { aggregate, migrationsDir } = await buildMultiSpaceFixture();
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir, process.cwd());
 
     const result = await runMigrationCheck({ spaces, spaceFilter: 'nonexistent' });
     expect(result.ok).toBe(false);

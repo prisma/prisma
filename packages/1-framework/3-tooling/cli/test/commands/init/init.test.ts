@@ -47,6 +47,13 @@ vi.mock('../../../src/control-api/operations/contract-emit', () => ({
   })),
 }));
 
+// init loads the config it just scaffolded before handing it to the emit
+// operation; the scaffolded project's dependencies are not installed here.
+vi.mock('@internal/config-loader', async () => {
+  const { ok } = await import('@internal/utils/result');
+  return { loadConfigForSections: vi.fn(async () => ok({ contract: {} })) };
+});
+
 import { execFile } from 'node:child_process';
 import * as clack from '@clack/prompts';
 import { detectPnpmCatalogOverrides } from '../../../src/commands/init/detect-pnpm-catalog';

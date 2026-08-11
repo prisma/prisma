@@ -136,8 +136,23 @@ async function executeMigrateShowCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<MigrateShowResult, CliStructuredErrorType>> {
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+
   const planResult = await executeMigrateShowPlan({
-    ...ifDefined('config', options.config),
+    config: configResult.value,
+    cwd: process.cwd(),
+    ...ifDefined('configPath', options.config),
     ...ifDefined('db', options.db),
     ...ifDefined('to', options.to),
     ...ifDefined('from', options.from),
@@ -351,6 +366,7 @@ async function executeMigrateCommand(
   const { configPath, migrationsDir, appMigrationsRelative, refsDir } = resolveMigrationPaths(
     options.config,
     config,
+    process.cwd(),
   );
 
   const dbConnection = options.db ?? config.db?.connection;

@@ -134,7 +134,7 @@ async function executeDbInitCommand(
   // per-space precheck + marker-check helpers are no longer needed at
   // this surface. Marker-vs-on-disk drift surfaces through the planner's
   // graph-walk strategy.
-  const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config);
+  const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config, process.cwd());
 
   try {
     await client.connect(dbConnection);

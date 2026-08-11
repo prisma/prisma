@@ -282,6 +282,7 @@ export async function executeMigrationStatusCommand(
   const { configPath, migrationsDir, migrationsRelative, refsDir } = resolveMigrationPaths(
     options.config,
     config,
+    process.cwd(),
   );
 
   const dbConnection = options.db ?? config.db?.connection;

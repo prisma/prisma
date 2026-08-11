@@ -12,20 +12,51 @@
  * `contract emit` hands to the emitter (ADR 242).
  */
 
+import { loadConfigForSections } from '@internal/config-loader';
+import { ifDefined } from '@internal/utils/defined';
+import type { Result } from '@internal/utils/result';
 import { Command } from 'commander';
-import {
-  executeMigrationNewCommand,
-  type MigrationNewOptions,
-} from '../control-api/operations/migration-new';
+import type { MigrationNewResult } from '../control-api/operations/migration-new';
+import { executeMigrationNewCommand } from '../control-api/operations/migration-new';
+import type { CliStructuredError } from '../utils/cli-errors';
 import {
   addGlobalOptions,
   setCommandDescriptions,
   setCommandExamples,
 } from '../utils/command-helpers';
 import { formatStyledHeader } from '../utils/formatters/styled';
+import type { CommonCommandOptions } from '../utils/global-flags';
 import { parseGlobalFlagsOrExit } from '../utils/global-flags';
 import { handleResult } from '../utils/result-handler';
 import { createTerminalUI } from '../utils/terminal-ui';
+
+interface MigrationNewCommandOptions extends CommonCommandOptions {
+  readonly name?: string;
+  readonly from?: string;
+  readonly config?: string;
+}
+
+async function runMigrationNew(
+  options: MigrationNewCommandOptions,
+): Promise<Result<MigrationNewResult, CliStructuredError>> {
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'extensions',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  return executeMigrationNewCommand({
+    ...options,
+    config: configResult.value,
+    cwd: process.cwd(),
+    ...ifDefined('configPath', options.config),
+  });
+}
 
 export function createMigrationNewCommand(): Command {
   const command = new Command('new');
@@ -44,7 +75,7 @@ export function createMigrationNewCommand(): Command {
     .option('--name <slug>', 'Migration name (used in directory name)')
     .option('--from <hash>', 'Starting contract hash (default: latest migration target)')
     .option('--config <path>', 'Path to prisma-next.config.ts')
-    .action(async (options: MigrationNewOptions) => {
+    .action(async (options: MigrationNewCommandOptions) => {
       const flags = parseGlobalFlagsOrExit(options);
       const ui = createTerminalUI(flags);
 
@@ -58,7 +89,7 @@ export function createMigrationNewCommand(): Command {
         ui.stderr(header);
       }
 
-      const result = await executeMigrationNewCommand(options);
+      const result = await runMigrationNew(options);
 
       const exitCode = handleResult(result, flags, ui, (value) => {
         if (flags.json) {
