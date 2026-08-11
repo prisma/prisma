@@ -3,8 +3,8 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7
-- **AC scoreboard totals:** 13 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1
+- **AC scoreboard totals:** 18 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
 
@@ -23,15 +23,27 @@
 
 The slice intentionally leaves exhaustive identity branding and update-prompt suppression to `identity-complete-prisma7`, as recorded in the slice spec; D6 verifies invocation and generation, not those later-slice behaviors.
 
+## cli-owned-distribution-identity D1 acceptance criteria scoreboard
+
+| AC ID  | Description (short)                                                                                                               | Status | Evidence                                                                                                                                                                                                                                                                                       |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1-AC1 | Top-level and CLI-owned help/examples render the selected executable, including delegated, unknown-command, and error help paths. | PASS   | `c944253750`; `packages/cli/src/__tests__/distribution-identity-help.test.ts` covers top-level CLI help, delegated `validate --help`, `lift` rename guidance, per-command help/examples, unknown-command paths, and help-error wrappers for both identities.                                   |
+| D1-AC2 | Ordinary `prisma` help remains unchanged and focused tests cover both identities non-tautologically.                              | PASS   | `c944253750`; the new suite runs the same assertions under both `'prisma'` and `'prisma7'` via `describe.each(...)` and uses `not.toContain(...)` checks against the opposite identity, while constructors/defaults still fall back to `'prisma'` in `CLI.ts` and the touched command classes. |
+| D1-AC3 | Identity stays the minimal `'prisma' \| 'prisma7'` seam with no object/map/global/env framework or lower-package spillover.       | PASS   | `c944253750`; `packages/cli/src/bin.ts` resolves one primitive via `getCliDistributionIdentity()` and threads it into CLI-owned constructors, while the diff stays inside `packages/cli/src/**` plus the focused test file.                                                                    |
+| D1-AC4 | Remaining actionable CLI literals are surfaced/classified; no D1 help literal silently remains in the changed CLI-owned surfaces. | PASS   | `c944253750`; targeted literal checks over the touched files leave the remaining executable-specific runtime strings in `packages/cli/src/Init.ts` and `packages/cli/src/bootstrap/Bootstrap.ts` project-creation flows, while the D1 help renderers are parameterized.                        |
+| D1-AC5 | Reported gates are defensible and the mandatory transient-ID scan is clean.                                                       | PASS   | No on-disk evidence contradicts the reported focused `prisma` CLI tests / `pnpm --filter prisma tsc` / Prettier / diff-check gates for `c944253750`; the mandatory transient-ID scan over `c944253750^..c944253750` produced zero token or `projects/prisma7-compatibility-cli/` hits.         |
+
 ## Subagent IDs
 
-- **Implementer:** `da05b30d-8bbb-4c7` — active from `side-by-side-wrapper` D7 R1 after D6 was satisfied. Earlier replacements and model-tier corrections are recorded in prior round context.
-- **Reviewer:** `51dd7158-75b7-486` — active from `side-by-side-wrapper` D7 R1 after D6 was satisfied. Earlier replacements are recorded in prior round context.
+- **Implementer:** Prior Cursor implementer `da05b30d-8bbb-4c7` is inaccessible in the current Pi harness. D1 used replacement Pi general-purpose sessions whose foreground agent handles were not resumable; establish a resumable persistent implementer at D2 R1.
+- **Reviewer:** Prior Cursor reviewer `51dd7158-75b7-486` is inaccessible in the current Pi harness. D1 used replacement Pi reviewer session `019ff054-afbe-73d1-bc19-c0177eb39947`; establish a resumable persistent reviewer at D2 R1.
 
 ## Orchestrator notes
 
 - Linear synchronization was explicitly waived by the operator for this project.
 - Drive trace emission is unavailable because the canonical emitter cannot resolve its `arktype` dependency; no hand-authored trace events will substitute for validated events.
+- Before implementation resumed, the planned `identity-complete-prisma7` slice failed slice-Small during grounded planning and was split into `cli-owned-distribution-identity` followed by `downstream-actionable-guidance`; release work remains last.
+- D1 required two replacement implementer sessions because foreground Pi agent handles were unavailable for resume. Validation was initially blocked by missing build tools; the operator authorized using the full Nix shell, and Nix-provided GNU Make plus GCC restored the formal gates without changing Node.
 - After D2, the operator authorized replacing marker/global-symbol identity transport with normalized `process.argv[1]` stem inference. The supporting package-manager probe and scope are recorded in `design-decisions.md`; D3 was reviewer-SATISFIED.
 - After D3, the operator rejected the production-only `delegateToPrismaCli` test seam as unnecessary indirection. D4 inlined the dependency load and was independently SATISFIED.
 - After D4, the operator rejected the remaining package/identity/dispatcher unit and contract coverage as overtesting. D5 consolidated them to one scenario covering `prisma7/config` import/typechecking/config selection, `prisma7 --version`, `prisma7 generate`, and successful generated-client execution.
@@ -209,3 +221,15 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 **Findings:** none. All current human and CodeRabbit feedback is addressed, obsolete, withdrawn, or explicitly rejected; no further action is required for D7 R1.
 
 **Verification notes:** Product/tests/planning remain unedited during review. Only this ledger and `wip/heartbeats/reviewer.txt` were written. The E2E generated ignored logs/artifacts and a lockfile refresh during execution; generated artifacts were cleaned and the tracked lockfile was restored before this verdict.
+
+### cli-owned-distribution-identity D1 R1 — SATISFIED
+
+**Scope:** Dispatch 1 identity-aware CLI help. Commit `c944253750`; planning-only context `284f3496d7`, `e8e778161b`.
+
+**Tasks:** Top-level/delegated/error help identity flow, constructor/default plumbing, and focused dual-identity coverage are clean. Remaining executable-specific literals observed in the touched files stay confined to Init/Bootstrap project-creation output for later dispatches.
+
+**AC delta:** D1-AC1 through D1-AC5 PASS (commit `c944253750`, test `packages/cli/src/__tests__/distribution-identity-help.test.ts`; transient-ID scan clean).
+
+**Findings:** none.
+
+**For orchestrator:** none.
