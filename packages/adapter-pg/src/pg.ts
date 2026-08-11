@@ -42,6 +42,9 @@ type StdClient = {
     queryConfig: pg.QueryArrayConfig | pg.QueryConfig | string,
     values?: unknown[],
   ): Promise<pg.QueryResult<any> | pg.QueryArrayResult<any>>
+  // `pg.Pool#query` is overloaded (callback + promise styles); the adapter only
+  // awaits the promise-returning form, so this structural type intentionally
+  // captures just that overload rather than mirroring pg.Pool exactly.
   end(): Promise<void>
   on(event: string, listener: (...args: any[]) => void): unknown
   removeListener(event: string, listener: (...args: any[]) => void): unknown
@@ -62,9 +65,24 @@ function isPgPoolLike(poolOrConfig: unknown): poolOrConfig is StdClient {
   }
   const candidate = poolOrConfig as Record<string, unknown>
   return (
+    // The full surface the adapter exercises: the query/connect/end trio plus
+    // the EventEmitter members (`on`, `removeListener`, `emit`,
+    // `listenerCount`) and an `options` config object. Requiring the
+    // EventEmitter surface makes it very unlikely a plain `PoolConfig` object
+    // is mistaken for a pool — a config that happens to carry a couple of
+    // pg.Pool-ish keys (e.g. `{ connect: someFn, options: {...} }`, or even
+    // `{ query, connect, end, options }`) would still lack most of these and
+    // be treated as config, not adopted as the pool.
     typeof candidate.query === 'function' &&
     typeof candidate.connect === 'function' &&
-    typeof candidate.end === 'function'
+    typeof candidate.end === 'function' &&
+    typeof candidate.on === 'function' &&
+    typeof candidate.removeListener === 'function' &&
+    typeof candidate.emit === 'function' &&
+    typeof candidate.listenerCount === 'function' &&
+    // The adapter reads `pool.options` (pg.PoolConfig) directly.
+    typeof candidate.options === 'object' &&
+    candidate.options !== null
   )
 }
 
