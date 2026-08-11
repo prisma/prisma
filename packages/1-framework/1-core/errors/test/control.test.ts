@@ -120,11 +120,13 @@ describe('CliStructuredError', () => {
       expect(error.toEnvelope().nextActions).toEqual(nextActions);
     });
 
-    it('omits nextActions from the error and the envelope when not provided', () => {
+    it('leaves nextActions off the raised error but normalizes the envelope to []', () => {
       const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error');
+      const envelope = error.toEnvelope();
 
       expect(error.nextActions).toBeUndefined();
-      expect(Object.keys(error.toEnvelope())).not.toContain('nextActions');
+      expect(Object.keys(envelope)).toContain('nextActions');
+      expect(envelope.nextActions).toEqual([]);
     });
 
     it('keeps fix alongside nextActions — both survive the transition', () => {

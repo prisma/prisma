@@ -6,6 +6,11 @@ import { docsUrlFor } from '@internal/utils/structured-error';
  * CLI error envelope for output formatting.
  * This is the serialized form of a CliStructuredError.
  *
+ * `nextActions` is required here even though it is optional on the raised
+ * error: a consumer reading a serialized envelope must never have to tell
+ * "no remediation" apart from "field absent". See
+ * [ADR 239](../../../../../docs/architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md#which-surface-guarantees-nextactions).
+ *
  * A `command` inside `nextActions` still carries the `{bin}` placeholder here;
  * the surface that renders the envelope substitutes the running binary's name.
  */
@@ -16,7 +21,7 @@ export interface CliErrorEnvelope {
   readonly summary: string;
   readonly why?: string;
   readonly fix?: string;
-  readonly nextActions?: readonly NextAction[];
+  readonly nextActions: readonly NextAction[];
   readonly where?: { readonly path?: string; readonly line?: number };
   readonly meta?: Record<string, unknown>;
   readonly docsUrl?: string;
@@ -86,6 +91,9 @@ export class CliStructuredError extends Error implements StructuredError {
 
   /**
    * Converts this error to a CLI error envelope for output formatting.
+   *
+   * This is the boundary that emits the envelope, so it is where a missing
+   * `nextActions` becomes `[]`.
    */
   toEnvelope(): CliErrorEnvelope {
     return {
@@ -95,7 +103,7 @@ export class CliStructuredError extends Error implements StructuredError {
       summary: this.message,
       ...ifDefined('why', this.why),
       ...ifDefined('fix', this.fix),
-      ...ifDefined('nextActions', this.nextActions),
+      nextActions: this.nextActions ?? [],
       ...ifDefined('where', this.where),
       ...ifDefined('meta', this.meta),
       ...ifDefined('docsUrl', this.docsUrl),

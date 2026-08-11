@@ -3,7 +3,7 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import packageJson from '../package.json' with { type: 'json' };
 import { BIN_NAME } from '../src/utils/bin-name';
-import type { CliErrorEnvelope } from '../src/utils/cli-errors';
+import { type CliErrorEnvelope, CliStructuredError } from '../src/utils/cli-errors';
 import {
   formatErrorJson,
   formatErrorOutput,
@@ -94,12 +94,13 @@ describe('resolveBinPlaceholder', () => {
     );
   });
 
-  it('leaves an envelope without nextActions untouched', () => {
+  it('leaves an envelope with no actions untouched', () => {
     const envelope: CliErrorEnvelope = {
       ok: false,
       code: 'CLI.UNEXPECTED',
       severity: 'error',
       summary: 'Boom',
+      nextActions: [],
     };
 
     expect(resolveBinPlaceholder(envelope, 'prisma-next')).toEqual(envelope);
@@ -130,6 +131,34 @@ describe('formatErrorJson', () => {
     );
 
     expect(JSON.parse(json).fix).toBe('Create the ref with: prisma-next ref set staging <hash>');
+  });
+
+  it('carries nextActions as [] when the raised error has none, so no consumer sees a missing field', () => {
+    const json = formatErrorJson(
+      new CliStructuredError('CLI.UNEXPECTED', 'Boom', { why: 'Something failed.' }).toEnvelope(),
+    );
+    const parsed = JSON.parse(json);
+
+    expect(Object.hasOwn(parsed, 'nextActions')).toBe(true);
+    expect(parsed.nextActions).toEqual([]);
+  });
+
+  it('carries the actions the raised error was given', () => {
+    const json = formatErrorJson(
+      new CliStructuredError('MIGRATION.UNKNOWN_REF', 'Unknown ref "staging"', {
+        nextActions: [
+          { kind: 'run-command', label: 'Create the ref', command: '{bin} ref set staging <hash>' },
+        ],
+      }).toEnvelope(),
+    );
+
+    expect(JSON.parse(json).nextActions).toEqual([
+      {
+        kind: 'run-command',
+        label: 'Create the ref',
+        command: `${BIN_NAME} ref set staging <hash>`,
+      },
+    ]);
   });
 });
 

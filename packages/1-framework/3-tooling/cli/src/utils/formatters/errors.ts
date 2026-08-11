@@ -24,9 +24,6 @@ export function resolveBinPlaceholder(
   envelope: CliErrorEnvelope,
   binName: string,
 ): CliErrorEnvelope {
-  if (envelope.nextActions === undefined) {
-    return envelope;
-  }
   const substitute = (command: string) => command.replaceAll(BIN_PLACEHOLDER, binName);
   const resolved: readonly NextAction[] = envelope.nextActions.map((action) => ({
     ...action,
