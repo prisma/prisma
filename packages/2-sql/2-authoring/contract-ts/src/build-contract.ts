@@ -1126,7 +1126,17 @@ export function buildSqlContractFromDefinition(
 
     // STI variants share the base table: their columns are already
     // materialised onto the base `ModelNode`, so the variant builds a domain
-    // model (below) but no storage table of its own.
+    // model (below) but no storage table of its own — which leaves an
+    // authored check nowhere to attach. Refuse it here as a backstop; the
+    // PSL surface refuses it earlier, at interpretation, with a
+    // span-anchored diagnostic that names the base model.
+    if (semanticModel.sharesBaseTable && semanticModel.checks && semanticModel.checks.length > 0) {
+      throw contractError(
+        'CONTRACT.CHECK_ON_STI_VARIANT',
+        `Model "${semanticModel.modelName}" declares a check constraint but shares its base model's storage table (single-table inheritance) and has no table of its own to declare it on. Declare the check on the base model instead.`,
+        { meta: { tableName, modelName: semanticModel.modelName } },
+      );
+    }
     if (!semanticModel.sharesBaseTable) {
       const uniques = (semanticModel.uniques ?? []).map((u) => ({
         columns: u.columns,

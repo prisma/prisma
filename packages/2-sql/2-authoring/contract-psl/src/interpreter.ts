@@ -116,6 +116,7 @@ import {
   idModelSpec,
   indexModelSpec,
   interpretModelAttribute,
+  PSL_CHECK_ON_STI_VARIANT,
   uniqueModelSpec,
 } from './sql-attribute-specs';
 
@@ -2502,6 +2503,31 @@ export function interpretPslDocumentToSqlContract(
       variantMapping?.model.attributes.some((attr) => attr.name === 'map') ?? false;
     if (!hasExplicitMap) {
       stiVariantNames.add(variantName);
+    }
+  }
+
+  // An STI variant shares its base model's storage table (see
+  // `materializeStiVariantStorageColumns` below) and never gets a table of
+  // its own, so a check declared on it has nowhere to attach — silently
+  // dropping it at build time would defeat the whole point of `@@check`.
+  // Catch it here, while the PSL source still has the `@@check` attribute's
+  // span and the base model's name in hand.
+  for (const variantName of stiVariantNames) {
+    const variantMapping = modelMappings.get(variantName);
+    if (variantMapping === undefined) continue;
+    const baseDecl = baseDeclarations.get(variantName);
+    invariant(
+      baseDecl !== undefined,
+      `stiVariantNames is derived from baseDeclarations.keys(), so "${variantName}" must have a base declaration`,
+    );
+    for (const attribute of variantMapping.model.node.attributes()) {
+      if (attribute.name()?.isSimpleName('check') !== true) continue;
+      diagnostics.push({
+        code: PSL_CHECK_ON_STI_VARIANT,
+        message: `Model "${variantName}" declares "@@check", but it shares its base model "${baseDecl.baseName}"'s storage table (single-table inheritance via @@base) and has no table of its own to declare a check constraint on. Declare the check on "${baseDecl.baseName}" instead.`,
+        sourceId,
+        span: nodePslSpan(attribute.syntax, sourceFile),
+      });
     }
   }
 

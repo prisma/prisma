@@ -287,6 +287,14 @@ export const PSL_CHECK_REQUIRES_NAME_OR_MAP: ContributedPslDiagnosticCode =
 export const PSL_CHECK_NAME_XOR_MAP: ContributedPslDiagnosticCode = 'PSL_CHECK_NAME_XOR_MAP';
 export const PSL_CHECK_EXPRESSION_EMPTY: ContributedPslDiagnosticCode =
   'PSL_CHECK_EXPRESSION_EMPTY';
+/**
+ * A single-table-inheritance variant (`@@base` with no own `@@map`) shares
+ * its base model's storage table and has no table of its own to declare a
+ * check on — raised from {@link interpretPslDocumentToSqlContract}, not from
+ * this spec's own `refine`, because the rule needs the model's `@@base`
+ * declaration, which a single attribute's `refine` cannot see.
+ */
+export const PSL_CHECK_ON_STI_VARIANT: ContributedPslDiagnosticCode = 'PSL_CHECK_ON_STI_VARIANT';
 
 export const checkModelSpec = modelAttribute('check', {
   named: {

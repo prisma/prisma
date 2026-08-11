@@ -256,6 +256,51 @@ model Order {
       /expression must not be empty/,
     );
   });
+
+  it('rejects @@check on a single-table-inheritance variant, naming the base model', () => {
+    expectDiagnostic(
+      `
+model Task {
+  id    Int    @id
+  title String
+  type  String
+
+  @@discriminator(type)
+}
+
+model Bug {
+  severity String
+
+  @@base(Task, "bug")
+  @@check(expression: "severity <> ''", name: "bug_severity_present")
+}
+`,
+      'PSL_CHECK_ON_STI_VARIANT',
+      /shares its base model "Task"/,
+    );
+  });
+
+  it('does not reject @@check on a multi-table-inheritance variant (its own @@map gives it a table)', () => {
+    const result = interpret(`
+model Task {
+  id    Int    @id
+  title String
+  type  String
+
+  @@discriminator(type)
+}
+
+model Bug {
+  id       Int    @id
+  severity String
+
+  @@base(Task, "bug")
+  @@map("bug")
+  @@check(expression: "severity <> ''", name: "bug_severity_present")
+}
+`);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.failure.diagnostics)).toBe(true);
+  });
 });
 
 describe('@@check capability gating', () => {
