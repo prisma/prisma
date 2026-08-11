@@ -36,7 +36,7 @@ There is no `runtime` / `kind` / equivalent async marker on the interface and no
 
 ### Codec call context (`ctx`)
 
-Codecs receive a second `ctx` options argument; you may ignore it. The runtime allocates one `CodecCallContext` per `execute()` call and threads the same reference to every codec dispatch site as a non-optional argument — when no `signal` is supplied the runtime still threads an empty `{}`, never `undefined`. The framework `CodecCallContext` is signal-only:
+Codecs receive a second `ctx` options argument; you may ignore it. The runtime allocates one `CodecCallContext` per `query()` or `execute()` call and threads the same reference to every codec dispatch site as a non-optional argument — when no `signal` is supplied the runtime still threads an empty `{}`, never `undefined`. The framework `CodecCallContext` is signal-only:
 
 ```ts
 export interface CodecCallContext {
