@@ -308,7 +308,13 @@ describe('F-relfk: cross-space belongsTo().sql({ fk }) produces a cross-space FK
     expect(fks[0]!.onDelete).toBe('cascade');
   });
 
-  it('relation-derived FK carries every declared fk option', () => {
+  const profileWithFkOptions = (fk: {
+    readonly name?: string;
+    readonly onDelete?: 'restrict';
+    readonly onUpdate?: 'cascade';
+    readonly constraint?: boolean;
+    readonly index?: boolean;
+  }) => {
     const ExtUser = buildSyntheticSupabaseAuthUser();
 
     const Profile = model('Profile', {
@@ -317,15 +323,7 @@ describe('F-relfk: cross-space belongsTo().sql({ fk }) produces a cross-space FK
         userId: field.column(int4Column),
       },
     }).relations({
-      user: rel.belongsTo(ExtUser, { from: 'userId', to: 'id' }).sql({
-        fk: {
-          name: 'profile_user_fk',
-          onDelete: 'restrict',
-          onUpdate: 'cascade',
-          constraint: true,
-          index: false,
-        },
-      }),
+      user: rel.belongsTo(ExtUser, { from: 'userId', to: 'id' }).sql({ fk }),
     });
 
     const contract = defineContract({
@@ -336,15 +334,48 @@ describe('F-relfk: cross-space belongsTo().sql({ fk }) produces a cross-space FK
       models: { Profile },
     });
 
-    const profileTable = Object.values(contract.storage.namespaces)
-      .flatMap((ns) => Object.values(ns.entries.table ?? {}))
-      .find((t) => t !== undefined);
+    return Object.values(contract.storage.namespaces)
+      .flatMap((ns) => Object.entries(ns.entries.table ?? {}))
+      .find(([name]) => name === 'Profile')?.[1];
+  };
+
+  it('relation-derived FK carries the declared name and referential actions', () => {
+    const profileTable = profileWithFkOptions({
+      name: 'profile_user_fk',
+      onDelete: 'restrict',
+      onUpdate: 'cascade',
+    });
 
     expect(profileTable?.foreignKeys[0]).toMatchObject({
       name: 'profile_user_fk',
       onDelete: 'restrict',
       onUpdate: 'cascade',
       target: { spaceId: 'supabase', namespaceId: 'auth' },
+    });
+  });
+
+  it('constraint and index decide what the table carries, rather than riding on the FK node', () => {
+    const withIndex = profileWithFkOptions({ constraint: true, index: true });
+    const withoutIndex = profileWithFkOptions({ constraint: true, index: false });
+    const withoutConstraint = profileWithFkOptions({ constraint: false, index: false });
+
+    expect({
+      indexed: {
+        foreignKeys: withIndex?.foreignKeys.length,
+        indexes: withIndex?.indexes.map((index) => index.columns),
+      },
+      unindexed: {
+        foreignKeys: withoutIndex?.foreignKeys.length,
+        indexes: withoutIndex?.indexes.length,
+      },
+      unconstrained: {
+        foreignKeys: withoutConstraint?.foreignKeys.length,
+        indexes: withoutConstraint?.indexes.length,
+      },
+    }).toEqual({
+      indexed: { foreignKeys: 1, indexes: [['userId']] },
+      unindexed: { foreignKeys: 1, indexes: 0 },
+      unconstrained: { foreignKeys: 0, indexes: 0 },
     });
   });
 });

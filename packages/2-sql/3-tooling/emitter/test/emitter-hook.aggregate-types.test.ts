@@ -123,8 +123,12 @@ describe('emitted AggregateTypes', () => {
       codecDescriptors: CONTRIBUTED,
     });
 
-    expect(emitted.indexOf('readonly count:')).toBeLessThan(emitted.indexOf('readonly min:'));
-    expect(emitted.indexOf('readonly min:')).toBeLessThan(emitted.indexOf('readonly sum:'));
+    const positions = ['readonly count:', 'readonly min:', 'readonly sum:'].map((key) =>
+      emitted.indexOf(key),
+    );
+
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect(positions).toEqual([...positions].sort((left, right) => left - right));
   });
 
   it('refuses to emit a result type for a codec two traits both claim', () => {

@@ -220,7 +220,11 @@ describe('getStorageTypeExports', () => {
       }),
     );
 
-    expect(exports).toContain('readonly role:');
-    expect(exports).not.toContain('"user" | "admin"');
+    expect(exports).toBe(
+      [
+        'export type StorageColumnTypes = { readonly app: { readonly user: { readonly role: CodecTypes["pg/text@1"]["output"] } } };',
+        'export type StorageColumnInputTypes = { readonly app: { readonly user: { readonly role: CodecTypes["pg/text@1"]["input"] } } };',
+      ].join('\n'),
+    );
   });
 });

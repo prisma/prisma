@@ -334,7 +334,15 @@ describe('table().select()', () => {
   it('.orderBy() defaults to ascending and accumulates in call order', () => {
     const ast = tbl.select(tbl.id).orderBy(tbl.name).orderBy(tbl.id, 'desc').build();
 
-    expect(ast.orderBy?.map((item) => item.dir)).toEqual(['asc', 'desc']);
+    expect(
+      ast.orderBy?.map((item) => ({
+        column: (item.expr as unknown as ColumnRef).column,
+        dir: item.dir,
+      })),
+    ).toEqual([
+      { column: 'name', dir: 'asc' },
+      { column: 'id', dir: 'desc' },
+    ]);
   });
 
   it('.orderBy() composes with .where()', () => {
