@@ -17,6 +17,22 @@ export function appMigrationsDirFor(config: PrismaNextConfig, cwd: string): stri
   return spaceMigrationDirectory(migrationsDirFor(config, cwd), APP_SPACE_ID);
 }
 
+/** The app space's refs directory. The framework keeps no refs at the root. */
+export function appRefsDirFor(config: PrismaNextConfig, cwd: string): string {
+  return resolve(appMigrationsDirFor(config, cwd), 'refs');
+}
+
+/**
+ * The config file an operation should anchor its project paths on. The engine
+ * loads the config and hands a handler the value but not the path, and
+ * `--config` is an engine flag the handler never sees, so a handler names the
+ * invocation directory's file. That equals the loaded file for every
+ * invocation whose config sits in the invocation directory.
+ */
+export function projectConfigPathFor(cwd: string): string {
+  return resolve(cwd, 'prisma-next.config.ts');
+}
+
 /**
  * The emitted contract. The config loader has already resolved
  * `contract.output` against the config file's directory, so this only has an

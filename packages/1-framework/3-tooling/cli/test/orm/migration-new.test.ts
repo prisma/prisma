@@ -1,0 +1,263 @@
+import { readdir, readFile } from 'node:fs/promises';
+import { createTestCli } from '@prisma/cli-engine/testing';
+import { join } from 'pathe';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import {
+  createOfflineProject,
+  type OfflineProject,
+  offlineConfig,
+  removeOfflineProjects,
+  seedMigrationPackage,
+} from './fixtures/offline-project';
+
+const HASH_TO = `c0ffee${'0'.repeat(58)}`;
+const HASH_FROM = `beef${'1'.repeat(60)}`;
+
+afterEach(removeOfflineProjects);
+
+function harness(project: OfflineProject, overrides: Record<string, unknown> = {}) {
+  return createTestCli({
+    commands: BIN_COMMANDS,
+    groups: BIN_GROUPS,
+    config: { orm: { ...offlineConfig({ project }), ...overrides } },
+  });
+}
+
+async function scaffoldedDirs(project: OfflineProject): Promise<readonly string[]> {
+  return (await readdir(project.appMigrationsDir)).filter((entry) => entry !== 'refs').sort();
+}
+
+describe('migration new', () => {
+  it('settles as a completed envelope carrying the scaffold document', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    const run = await harness(project).run(['migration', 'new', '--name', 'split-name'], {
+      cwd: project.dir,
+    });
+    const dirs = await scaffoldedDirs(project);
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.data).toEqual({
+      ok: true,
+      dir: join('migrations', 'app', dirs[0] ?? ''),
+      from: null,
+      to: HASH_TO,
+      summary: `Scaffolded migration at ${join('migrations', 'app', dirs[0] ?? '')}`,
+    });
+    expect(run.presented?.diagnostics).toEqual([]);
+  });
+
+  it('writes the package, its stub and the destination snapshot', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    await harness(project).run(['migration', 'new'], { cwd: project.dir });
+    const [dirName] = await scaffoldedDirs(project);
+    const packageDir = join(project.appMigrationsDir, dirName ?? '');
+
+    expect(dirName).toMatch(/_migration$/);
+    expect(await readFile(join(packageDir, 'migration.ts'), 'utf-8')).toBe('// empty migration\n');
+    expect(JSON.parse(await readFile(join(packageDir, 'ops.json'), 'utf-8'))).toEqual([]);
+    expect(
+      await readFile(join(project.migrationsDir, 'snapshots', HASH_TO, 'contract.json'), 'utf-8'),
+    ).toContain(HASH_TO);
+  });
+
+  it('presents the scaffold as a header, a confirmation and the contract edge', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    const run = await harness(project).run(['migration', 'new'], {
+      cwd: project.dir,
+      isTty: { stdout: true },
+    });
+    const [dirName] = await scaffoldedDirs(project);
+    const dir = join('migrations', 'app', dirName ?? '');
+
+    expect(run.presented?.presentation.human).toEqual([
+      {
+        kind: 'fields',
+        rail: true,
+        rows: [
+          { label: 'contract', value: join('output', 'contract.json') },
+          { label: 'migrations', value: join('migrations', 'app') },
+        ],
+      },
+      { kind: 'summary', status: 'ok', text: `Scaffolded migration at ${dir}` },
+      {
+        kind: 'fields',
+        rows: [
+          { label: 'from', value: [{ text: '(baseline)', tone: 'muted' }] },
+          { label: 'to', value: [{ text: HASH_TO, tone: 'identifier' }] },
+        ],
+      },
+    ]);
+  });
+
+  it('names editing and running the stub as the typed next actions', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    const run = await harness(project).run(['migration', 'new'], {
+      cwd: project.dir,
+      isTty: { stdout: true },
+    });
+    const [dirName] = await scaffoldedDirs(project);
+    const migrationTs = join('migrations', 'app', dirName ?? '', 'migration.ts');
+
+    expect(run.presented?.presentation.next).toEqual([
+      { kind: 'edit-file', label: `Write the migration body in ${migrationTs}` },
+      {
+        kind: 'run-command',
+        label: 'Run it to self-emit ops.json and attest the package',
+        command: `node "${migrationTs}"`,
+      },
+    ]);
+  });
+
+  it('writes nothing to stdout in human mode', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    const run = await harness(project).run(['migration', 'new'], {
+      cwd: project.dir,
+      isTty: { stdout: true, stderr: true },
+    });
+
+    expect(run.stdout).toBe('');
+    expect(run.presented?.presentation.stdout).toEqual([]);
+  });
+
+  it('takes the latest migration as the origin when --from is absent', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260101T0000_initial',
+      from: null,
+      to: HASH_FROM,
+    });
+
+    const run = await harness(project).run(['migration', 'new', '--json'], { cwd: project.dir });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.data).toMatchObject({ from: HASH_FROM, to: HASH_TO });
+  });
+
+  it('matches --from against a migration target by prefix', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260101T0000_initial',
+      from: null,
+      to: HASH_FROM,
+    });
+
+    const run = await harness(project).run(['migration', 'new', '--from', 'beef1', '--json'], {
+      cwd: project.dir,
+    });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.data).toMatchObject({ from: HASH_FROM });
+  });
+
+  it('errors when --from matches no migration target', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260101T0000_initial',
+      from: null,
+      to: HASH_FROM,
+    });
+
+    const run = await harness(project).run(['migration', 'new', '--from', 'nope', '--json'], {
+      cwd: project.dir,
+    });
+
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: { ok: false, error: { code: 'MIGRATION.HASH_NOT_IN_GRAPH' } },
+    });
+  });
+
+  it('refuses when the contract already matches the latest migration', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260101T0000_initial',
+      from: null,
+      to: HASH_TO,
+    });
+
+    const run = await harness(project).run(['migration', 'new', '--json'], { cwd: project.dir });
+
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: { ok: false, error: { code: 'MIGRATION.NO_CHANGES' } },
+    });
+  });
+
+  it('scaffolds on the current hash when --from names it explicitly', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260101T0000_initial',
+      from: null,
+      to: HASH_TO,
+    });
+
+    const run = await harness(project).run(['migration', 'new', '--from', HASH_TO, '--json'], {
+      cwd: project.dir,
+    });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.data).toMatchObject({ from: HASH_TO, to: HASH_TO });
+  });
+
+  it('errors when the contract has not been emitted', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    const run = await harness(project, {
+      contract: {
+        source: { format: 'typescript', inputs: [], load: async () => ({}) },
+        output: join(project.dir, 'output', 'missing.json'),
+      },
+    }).run(['migration', 'new', '--json'], { cwd: project.dir });
+
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: { ok: false, error: { code: 'CLI.FILE_NOT_FOUND' } },
+    });
+  });
+
+  it('errors when the target ships no migration support', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    const run = await harness(project, {
+      ...offlineConfig({ project, targetSupportsMigrations: false }),
+    }).run(['migration', 'new', '--json'], { cwd: project.dir });
+
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: { ok: false, error: { code: 'MIGRATION.TARGET_UNSUPPORTED' } },
+    });
+  });
+
+  it('settles every error with typed next actions and no fix prose', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260101T0000_initial',
+      from: null,
+      to: HASH_TO,
+    });
+
+    const run = await harness(project).run(['migration', 'new', '--json'], { cwd: project.dir });
+    const terminal = run.json.at(-1);
+    const envelope =
+      terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+
+    expect(envelope?.nextActions.length).toBeGreaterThan(0);
+    expect(envelope).not.toHaveProperty('fix');
+  });
+});
