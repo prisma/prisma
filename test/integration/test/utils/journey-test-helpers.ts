@@ -374,7 +374,10 @@ export async function runOnEngine(
   const cli = createTestCli({
     commandFamilies: [ormCommandFamily],
     commands: ormCommandFamily.commands,
-    groups: { migration: { brief: 'On-disk migration management commands' } },
+    groups: {
+      db: { brief: 'Live database commands' },
+      migration: { brief: 'On-disk migration management commands' },
+    },
     config: loaded.sections,
   });
 
