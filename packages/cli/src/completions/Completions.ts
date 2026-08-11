@@ -3,6 +3,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command, CommandCompletion, CompletionOption } from '@prisma/internals'
 import { arg, HelpError, isError } from '@prisma/internals'
 
+import { type CliDistributionIdentity, getCliDistributionIdentity } from '../utils/cli-distribution-identity'
 import { ALL_COMPLETIONS, SUPPORTED_SHELLS } from './completion-definitions'
 
 function registerCompletion(descriptor: CommandCompletion): void {
@@ -41,16 +42,21 @@ function registerOption(command: ReturnType<typeof t.command>, option: Completio
 }
 
 export class Completions implements Command {
-  public static new(): Completions {
-    return new Completions()
+  public static new(identity: CliDistributionIdentity = 'prisma'): Completions {
+    return new Completions(identity)
   }
 
+  private constructor(private readonly identity: CliDistributionIdentity = 'prisma') {}
+
   public parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
-    return Promise.resolve(parseCompletionCommand(argv))
+    return Promise.resolve(parseCompletionCommand(argv, this.identity))
   }
 }
 
-export function parseCompletionCommand(argv: string[]): string | Error {
+export function parseCompletionCommand(
+  argv: string[],
+  identity: CliDistributionIdentity = getCliDistributionIdentity(),
+): string | Error {
   if (argv[0] === '--') {
     setupCompletions()
     try {
@@ -72,7 +78,7 @@ export function parseCompletionCommand(argv: string[]): string | Error {
   if (firstArg && (SUPPORTED_SHELLS as readonly string[]).includes(firstArg)) {
     setupCompletions()
     try {
-      t.setup('prisma', 'prisma', firstArg)
+      t.setup(identity, identity, firstArg)
       return ''
     } catch (e) {
       return new Error(`Failed to setup completions: ${e}`)
