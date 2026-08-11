@@ -5,6 +5,7 @@ import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from './utils/cli-test-helpers';
 import {
+  engineError,
   getMigrationDirs,
   type JourneyContext,
   parseJsonOutput,
@@ -67,9 +68,6 @@ interface PlanJsonResult {
   readonly dir?: string;
   readonly baselineDir?: string;
   readonly noOp?: boolean;
-  readonly code?: string;
-  readonly why?: string;
-  readonly fix?: string;
 }
 
 function appMigrationsDir(ctx: JourneyContext): string {
@@ -369,9 +367,9 @@ withTempDir(({ createTempDir }) => {
 
             const plan = await runMigrationPlan(ctx, ['--json']);
             expect(plan.exitCode).toBe(2);
-            const err = parseJsonOutput<PlanJsonResult>(plan);
-            expect(err.code).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
-            expect(err.fix).toMatch(/--from/);
+            const err = engineError(plan);
+            expect(err?.code).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
+            expect(JSON.stringify(err?.nextActions)).toMatch(/--from/);
           });
         });
       },
@@ -388,10 +386,10 @@ withTempDir(({ createTempDir }) => {
 
             const plan = await runMigrationPlan(ctx, ['--json']);
             expect(plan.exitCode).toBe(2);
-            const err = parseJsonOutput<PlanJsonResult>(plan);
-            expect(err.code).toBe('CLI.FILE_NOT_FOUND');
-            expect(err.why).toMatch(/missing its contract snapshot/);
-            expect(err.fix).toMatch(/migrations\/snapshots/);
+            const err = engineError(plan);
+            expect(err?.code).toBe('CLI.FILE_NOT_FOUND');
+            expect(err?.why).toMatch(/missing its contract snapshot/);
+            expect(JSON.stringify(err?.nextActions)).toMatch(/migrations\/snapshots/);
           });
         });
       },

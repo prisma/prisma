@@ -11,7 +11,6 @@
  *   - apply --ref production fails (no backward edge from C2 to C1)
  */
 
-import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
@@ -103,10 +102,10 @@ withTempDir(({ createTempDir }) => {
 
         // N.02: status --ref production reports ahead-of-ref condition
         const statusProdAfter = await runMigrationStatus(ctx, ['--to', 'production', '--json']);
-        const prodAfterOutput = stripAnsi(statusProdAfter.stdout);
-        expect(prodAfterOutput, 'N.02: production status indicates ahead-of-ref condition').toMatch(
-          /ahead|no.*path|mismatch|cannot reach/i,
-        );
+        expect(
+          parseMigrationStatusJson(statusProdAfter).summary,
+          'N.02: production status indicates ahead-of-ref condition',
+        ).toMatch(/ahead|no.*path|mismatch|cannot reach/i);
       },
       timeouts.spinUpPpgDev,
     );

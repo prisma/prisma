@@ -27,12 +27,10 @@ import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
 import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
 import { createMigrateCommand } from '@internal/cli/commands/migrate';
 import { createMigrationCheckCommand } from '@internal/cli/commands/migration-check';
-import { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
-import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
-import { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
 import { createRefCommand } from '@internal/cli/commands/ref';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { EngineEvent, PresentedResult, StreamEvent } from '@prisma/cli-engine';
+import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import type { Command } from 'commander';
@@ -450,19 +448,21 @@ export async function runDbSchema(
 export async function runMigrationPlan(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(
-    createMigrationPlanCommand(),
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(
     ctx,
-    appendImplicitMigrationPlanFrom(ctx.testDir, extraArgs),
+    ['migration', 'plan', ...appendImplicitMigrationPlanFrom(ctx.testDir, extraArgs)],
+    options,
   );
 }
 
 export async function runMigrationNew(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationNewCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'new', ...extraArgs], options);
 }
 
 export async function runMigrate(
@@ -475,8 +475,9 @@ export async function runMigrate(
 export async function runMigrationStatus(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationStatusCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'status', ...extraArgs], options);
 }
 
 export async function runMigrationShow(
@@ -697,7 +698,19 @@ export async function runDbVerifyWithDb(
  * Parses the JSON output from a --json command result.
  * Extracts the last valid JSON object from stdout (in case decoration preceded it).
  */
-export function parseJsonOutput<T = Record<string, unknown>>(result: CommandResult): T {
+/**
+ * The `--json` document a step produced. A step run through the engine already
+ * carries it as the presented result — the engine's json mode writes NDJSON
+ * frames rather than the bare document, so the document is read from the run
+ * rather than parsed back out of stdout.
+ */
+export function parseJsonOutput<T = Record<string, unknown>>(
+  result: CommandResult | EngineCommandResult,
+): T {
+  const presented = 'presented' in result ? result.presented : undefined;
+  if (presented !== undefined) {
+    return (presented.presentation.json ?? presented.data) as T;
+  }
   const output = result.stdout.trim();
   // JSON output goes to stdout. Try parsing the full output first.
   try {
@@ -753,6 +766,19 @@ export function readEmittedContractStorageHash(ctx: JourneyContext): string {
     storage: { storageHash: string };
   };
   return contractJson.storage.storageHash;
+}
+
+/**
+ * The primary error an errored engine run settled with. An errored run
+ * presents nothing, so its envelope is read from the terminal stream frame
+ * rather than from a presented document.
+ */
+export function engineError(result: EngineCommandResult): Diagnostic | undefined {
+  const terminal = result.json.at(-1);
+  if (terminal === undefined || terminal.kind !== 'result' || terminal.envelope.ok) {
+    return undefined;
+  }
+  return terminal.envelope.error;
 }
 
 export function parseMigrationStatusJson(result: CommandResult): MigrationStatusJson {

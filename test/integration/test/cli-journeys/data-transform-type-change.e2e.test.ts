@@ -77,7 +77,7 @@ withTempDir(({ createTempDir }) => {
         expect(emit1.exitCode, `emit int: ${emit1.stderr}`).toBe(0);
 
         const planResult = await runMigrationPlan(ctx, ['--name', 'retype-score-to-int']);
-        expect(planResult.exitCode, `plan: ${planResult.stdout}\n${planResult.stderr}`).toBe(0);
+        expect(planResult.exitCode, `plan: ${planResult.stderr}\n${planResult.stderr}`).toBe(0);
 
         const migrationsDir = join(ctx.testDir, 'migrations', 'app');
         const migrationDirs = readdirSync(migrationsDir)
