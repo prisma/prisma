@@ -124,7 +124,7 @@ Mirroring `@@index` at every step:
 5. **Naming + lowering** — `lowerAuthoredCheck`, a new sibling of `packages/2-sql/1-core/contract/src/index-naming.ts` (`lowerAuthoredIndex`, `:101-177`), applying the naming rules above and minting the warning on the `map:`-with-body path.
 6. **Build** — called from `packages/2-sql/2-authoring/contract-ts/src/build-contract.ts` near the index lowering (`:1133-1151`), merged into `checksForTable` before the table is assembled (`:1182`), **outside** the `derivesChecks` guard.
 
-**No contract shape change.** `StorageTable.checks` already exists, already canonicalizes sorted by physical name (`canonicalization-hooks.ts:49`), and already validates (`storage-entry-schemas.ts:147`). The check node gains no field — a test pins that `StorageTableSchema` rejects unknown keys on a check (`check-constraint.test.ts:135-193`), and this slice keeps that true. Existing fixtures do not regenerate.
+**No contract shape change.** `StorageTable.checks` already exists, already canonicalizes sorted by physical name (`canonicalization-hooks.ts:49`), and already validates (`storage-entry-schemas.ts:147`). The check node gains no field — a test pins that `StorageTableSchema` rejects unknown keys on a check (`check-constraint.test.ts:135-193`), and this slice keeps that true. Existing fixtures do regenerate — every emitted contract gains the additive `sql.checkConstraint` capability line the SQLite gating work adds — but no existing check node's own shape changes.
 
 ## Validation
 

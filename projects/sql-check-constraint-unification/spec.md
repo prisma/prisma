@@ -57,7 +57,7 @@ The `roles` check is also a bug fix: today authoring emits a check for enum arra
 
 ## Non-goals
 
-- **A user-facing authoring surface for arbitrary checks** (e.g. `@@check` in PSL). Only generated checks (enum membership, element-non-null) are emitted; the representation is deliberately general so such a surface can be added later without another contract change.
+- ~~**A user-facing authoring surface for arbitrary checks** (e.g. `@@check` in PSL). Only generated checks (enum membership, element-non-null) are emitted~~ — **delivered by slice 4** ([`authored-check-constraints`](./slices/authored-check-constraints/spec.md)): `@@check` / `check()` now declares a hand-written CHECK constraint. Listed here only because it was a non-goal for slices 1–3; the representation stayed general enough (see Locked Decisions) to add the surface later without another contract change, which is exactly what happened.
 - **`contract infer` adoption of checks into PSL.** Inference continues not to emit check attributes; generated checks are derived from column shape, so round-tripping a pulled schema re-emits them. (Pre-existing gap: a live enum-membership check does not infer back into `enumType()`; unchanged here.)
 - **SQLite checks.** SQLite's planner continues to refuse check DDL as a capability decision; the Postgres authoring hook is the only check emitter, so SQLite contracts carry no checks.
 - **Numeric-enum membership checks.** Still unsupported; the guard moves to authoring-time expression rendering.
