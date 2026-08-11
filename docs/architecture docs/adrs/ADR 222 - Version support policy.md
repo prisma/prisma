@@ -42,7 +42,7 @@ The guiding insight: **lowering a floor is backwards-compatible; raising one is 
 
 **TypeScript 5.9**: The latest GA release at the time this policy was ratified, and the version pinned in the workspace catalog. TypeScript peer declarations are optional because TypeScript is a dev-time tool — plain-JS consumers must not be forced to install it. The optional peer allows type-checking consumers to get type information without requiring it universally.
 
-**PostgreSQL 17**: Released September 2024. Version 14 (our previous floor) reached end-of-life in November 2024. The integration test `docker-compose.yaml` runs Postgres, so the floor is directly tied to what CI exercises.
+**PostgreSQL 15**: The floor was ratified at 17 (the latest GA release at the time, superseding our previous floor of 14) and lowered to 15 by [ADR 244](ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md), which records the feature audit and market context behind the change. The floor is exercised by the `postgres:15` service containers in `.github/workflows/ci.yml`, so it is directly tied to what CI runs.
 
 **MongoDB 8.0**: Released August 2024. Our test infra uses `mongodb-memory-server` 11.x (catalog-pinned at 11.1.0), which downloads MongoDB 8.2.x by default. The floor is therefore honest — it reflects the exact major version our integration tests run against. The `mongodb` npm driver v7 supports server 8.0; no driver upgrade is required.
 
@@ -87,7 +87,7 @@ The correct sequence for raising a DB floor:
 
 ## Consequences
 
-- The `prisma-next init` scaffold's `.env.example` and the "Requirements" section of `prisma-next.md` now reflect accurate, tested server floors (PostgreSQL 17, MongoDB 8.0) rather than the out-of-date values that preceded this ADR.
-- Consumers running PostgreSQL 14–16 or MongoDB 6.x–7.x are no longer in our supported range. Given that PostgreSQL 14 is end-of-life and MongoDB 6.x is well behind the current release, this is an acceptable trade-off.
+- The `prisma-next init` scaffold's `.env.example` and the "Requirements" section of `prisma-next.md` reflect accurate, tested server floors (PostgreSQL 15 per [ADR 244](ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md), MongoDB 8.0) rather than the out-of-date values that preceded this ADR.
+- Consumers running PostgreSQL 14 or older, or MongoDB 6.x–7.x, are outside our supported range; PostgreSQL 15 and 16 are supported. Given that PostgreSQL 14 reaches end of life in November 2026 and MongoDB 6.x is well behind the current release, this is an acceptable trade-off.
 - The TypeScript optional peer declaration allows downstream tooling (IDEs, LSPs, type-checking pipelines) to surface correct minimum version requirements without forcing a hard install dependency.
 - Raising any floor in the future requires updating the corresponding source-of-truth field (see the sequences above). The drift tests make silent drift impossible in CI.
