@@ -3,8 +3,8 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2
-- **AC scoreboard totals:** 23 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3
+- **AC scoreboard totals:** 28 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
 
@@ -43,10 +43,20 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 | D2-AC4 | Identity remains the minimal primitive seam with no object/map/global/env framework or out-of-scope package change.                    | PASS   | `f18a6738d5`; the implementation continues to thread the existing `'prisma' \| 'prisma7'` primitive through CLI-owned renderers only. The product diff stays in `packages/cli/src/**` plus the focused test file, with no new lower-package identity framework or package-surface churn.                                                                                                       |
 | D2-AC5 | Reported gates are defensible and the mandatory transient-ID scan is clean.                                                            | PASS   | No on-disk evidence contradicts the reported `pnpm --filter prisma tsc`, focused project-creation Vitest suite, changed-file Prettier, diff-check, and transient-ID scan gates for `c526edd56d`. The mandatory reviewer rerun over `f18a6738d5..c526edd56d` produced zero plan-ID and `projects/prisma7-compatibility-cli/` hits in the round's added source/test diff.                        |
 
+## cli-owned-distribution-identity D3 acceptance criteria scoreboard
+
+| AC ID  | Description (short)                                                                                                             | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D3-AC1 | Text and JSON version output use the selected distribution label while ordinary `prisma` output remains unchanged.              | PASS   | `648c07ff6a`; `packages/cli/src/Version.ts` now renders `[this.identity, packageJson.version]` while leaving the rest of the table untouched. `packages/cli/src/__tests__/distribution-identity-version-mismatch.vitest.ts` exercises both identities and asserts the text table plus JSON key switch between `prisma` and `prisma7` without disturbing `@prisma/client`.                                                                                                                                                                                                                                                                                                                                   |
+| D3-AC2 | Mismatch lookup, labels, and the recommended command use the selected distribution while preserving `@prisma/client` semantics. | PASS   | `648c07ff6a`; `packages/cli/src/utils/global-local-version-mismatch.ts` now compares local `[identity, '@prisma/client']`, formats `${identity}@${globalVersion}`, and recommends `npx ${identity} generate`; `packages/cli/src/Generate.ts` forwards the selected identity into that helper. The packed compatibility fixture lockfile at `packages/client/tests/e2e/prisma7-compatibility/pnpm-lock.yaml` still records `prisma7` resolving its nested exact `prisma` tarball, so intentionally ignoring the project's direct `prisma` package is correct for side-by-side wrapper topology.                                                                                                              |
+| D3-AC3 | Tests are focused, non-tautological, and behavior is not weakened.                                                              | PASS   | `648c07ff6a`; the new Vitest file adds six dual-identity assertions across version text, version JSON, mismatch lookup, negative opposite-identity checks, and Generate plumbing without cloning broad snapshots. Reviewer reran `src/__tests__/distribution-identity-version-mismatch.vitest.ts` (6/6 passed) and `src/__tests__/globalLocalVersionMismatch.test.ts` (9/9 passed).                                                                                                                                                                                                                                                                                                                         |
+| D3-AC4 | The change preserves the minimal seam, layering, and dispatch scope.                                                            | PASS   | `648c07ff6a`; the product diff stays inside `packages/cli/src/Version.ts`, `packages/cli/src/Generate.ts`, and `packages/cli/src/utils/global-local-version-mismatch.ts`, plus one focused test file. The only new seam is an optional existing-helper `identity?: CliDistributionIdentity` parameter; no lower-package changes, identity framework, or wider refactor was introduced.                                                                                                                                                                                                                                                                                                                      |
+| D3-AC5 | Formal gates are defensible, exploratory failures are honestly classified, and the mandatory transient-ID scan is clean.        | PASS   | Reviewer reran `pnpm --filter prisma tsc`, `pnpm exec vitest run src/__tests__/distribution-identity-version-mismatch.vitest.ts`, `pnpm exec jest --silent --runInBand src/__tests__/globalLocalVersionMismatch.test.ts`, and `git diff --check`; all passed. The mandatory transient scan over the D3 product/test diff was clean. A targeted rerun of the older Jest `src/__tests__/commands/Version.test.ts` failed before assertions on this NixOS shell because engine resolution fell into existing libssl/checksum download warnings and a `linux-nixos/schema-engine.sha256` 404, which matches the implementer's exploratory-only classification rather than a regression introduced by this diff. |
+
 ## Subagent IDs
 
 - **Implementer:** `becc7679-cf83-4ce` — persistent Pi implementer established at `cli-owned-distribution-identity` D2 R1 after prior Cursor and foreground Pi sessions became inaccessible.
-- **Reviewer:** `2eb959d7-d051-424` — persistent Pi reviewer established at `cli-owned-distribution-identity` D2 R1 after prior Cursor and foreground Pi sessions became inaccessible.
+- **Reviewer:** `16ecb380-aabb-471` — replacement Pi reviewer established at `cli-owned-distribution-identity` D3 R1 after D2 reviewer `2eb959d7-d051-424` became inaccessible to resume.
 
 ## Orchestrator notes
 
@@ -281,3 +291,15 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 **Findings:** none.
 
 **For orchestrator:** Root Prettier remains blocked only by this review ledger's uncommitted edits; format/commit the ledger after verdict.
+
+### cli-owned-distribution-identity D3 R1 — SATISFIED
+
+**Scope:** version output and global/local mismatch identity. Commit `648c07ff6a`.
+
+**Tasks:** `Version` now labels the first row with the selected distribution, mismatch lookup/labels/recommendation use the selected identity, and `Generate` forwards that identity into the mismatch helper. The focused dual-identity Vitest is proportionate and exercises positive plus negative cases for both `prisma` and `prisma7`.
+
+**AC delta:** D3-AC1 through D3-AC5 PASS (commit `648c07ff6a`, tests `packages/cli/src/__tests__/distribution-identity-version-mismatch.vitest.ts` and `packages/cli/src/__tests__/globalLocalVersionMismatch.test.ts`; transient scan clean).
+
+**Findings:** none.
+
+**For orchestrator:** Reviewer reran the old Jest `packages/cli/src/__tests__/commands/Version.test.ts` only as exploratory evidence; it failed before assertions on this NixOS shell with existing libssl/checksum download warnings and a `linux-nixos/schema-engine.sha256` 404, so that failure remains environment-only noise rather than an in-PR regression.
