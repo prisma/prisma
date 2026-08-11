@@ -62,7 +62,7 @@ export interface TelemetryReportingOptions {
  * Resolves the telemetry decision once per process and returns the hook to
  * attach, or nothing at all when telemetry is off — a disabled run carries no
  * hook. The first-run disclosure prints here, before the command runs, so the
- * user learns about collection before any output.
+ * user learns what telemetry records before any output.
  *
  * The event fires from `onSettled`, after settlement, so it carries the exit
  * code. A run killed before settlement, and a run that never reaches a mounted

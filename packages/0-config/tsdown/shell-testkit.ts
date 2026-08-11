@@ -138,8 +138,13 @@ export function tryInstallShells(
     const scalar = /^(true|false|\d+)$/.test(value) ? value : JSON.stringify(value);
     return `${camelKey}: ${scalar}`;
   });
+  // The repo's release-age cooldown reaches this scratch project through the
+  // outer workspace, but its exemption list does not, so a first-party pin
+  // published today fails the install. These projects only ever resolve the
+  // dependencies the repo has already vetted, so the cooldown is off here.
   const workspaceYaml = [
     ...(overrideLines.length > 0 ? ['overrides:', ...overrideLines] : []),
+    'minimumReleaseAge: 0',
     ...settingLines,
   ];
   writeFileSync(
