@@ -228,7 +228,7 @@ model Reading {
             amounts: ParamRef.of(amounts, { codec: amountsRef }),
           },
         ]);
-        await runtime.query(planFromAst(insert, contract)).toArray();
+        await runtime.execute(planFromAst(insert, contract));
 
         const select = SelectAst.from(table)
           .withProjection([
@@ -313,7 +313,7 @@ model Reading {
             scores: ParamRef.of(scores, { codec: scoresRef }),
           },
         ]);
-        await runtime.query(planFromAst(insert, contract)).toArray();
+        await runtime.execute(planFromAst(insert, contract));
 
         const select = SelectAst.from(table)
           .withProjection([

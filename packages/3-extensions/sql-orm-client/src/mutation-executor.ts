@@ -1043,7 +1043,7 @@ async function insertJunctionLink(
     junctionRow,
   ]);
   try {
-    await queryPlanRows<Record<string, unknown>>(scope, compiled).toArray();
+    await scope.execute(compiled);
   } catch (error) {
     // The junction PK is the common unique constraint here, but the table may
     // carry others — say a unique constraint was violated rather than
@@ -1089,7 +1089,7 @@ async function deleteJunctionLink(
   const compiled = compileDeleteCount(context.contract, through.namespaceId, through.table, [
     where,
   ]);
-  await queryPlanRows<Record<string, unknown>>(scope, compiled).toArray();
+  await scope.execute(compiled);
 }
 
 function readParentColumnValues(
@@ -1260,7 +1260,7 @@ async function executeUpdateCount(
   filters: readonly AnyExpression[],
 ): Promise<void> {
   const compiled = compileUpdateCount(contract, namespaceId, tableName, setValues, filters);
-  await queryPlanRows<Record<string, unknown>>(scope, compiled).toArray();
+  await scope.execute(compiled);
 }
 
 const relationDefsCache = new WeakMap<object, Map<string, RelationDefinition[]>>();
