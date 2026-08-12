@@ -64,6 +64,11 @@ describe('lsp', () => {
       stdin: `${initialize}${initialized}${shutdown}${exit}`,
     });
 
+    // Two frames, not the three a real editor sees: the harness ends stdin
+    // with the whole script, so by the time `initialized` is dispatched the
+    // connection is closed and the server's "no watched-file registration"
+    // warning has nowhere to go. Against a client that stays connected the
+    // same exchange also carries that `window/logMessage`.
     const frames = parseFrames(run.stdout);
     expect(frames).toHaveLength(2);
     const parsed: { readonly id: number; readonly result: { readonly capabilities: unknown } } =
@@ -94,9 +99,43 @@ describe('lsp', () => {
     expect(run.exitCode).toBe(0);
   });
 
+  // A recorded gap, not a decision: `vscode-languageclient` appends this to
+  // every server it spawns, and neither shell accepts it. Declaring the flag
+  // is not enough on its own — see the note on the command.
+  it('refuses the parent process id the standard editor client appends', async () => {
+    const run = await harness().run(['lsp', '--stdio', `--clientProcessId=${process.pid}`], {
+      stdin: `${initialize}${shutdown}${exit}`,
+    });
+
+    expect(parseFrames(run.stdout)).toEqual([]);
+    expect(run.exitCode).toBe(2);
+  });
+
+  describe('when a signal ends the run', () => {
+    it('reports 143 for SIGTERM', async () => {
+      const host = new AbortController();
+      host.abort('SIGTERM');
+
+      const run = await harness().run(['lsp'], { stdin: initialize, abort: host.signal });
+
+      expect(run.exitCode).toBe(143);
+    });
+
+    it('reports 130 for an interrupt', async () => {
+      const host = new AbortController();
+      host.abort('SIGINT');
+
+      const run = await harness().run(['lsp'], { stdin: initialize, abort: host.signal });
+
+      expect(run.exitCode).toBe(130);
+    });
+  });
+
   it('presents nothing of its own on the streams the client owns', async () => {
     const run = await harness().run(['lsp'], { stdin: `${initialize}${shutdown}${exit}` });
 
+    // The frame count above is the harness's; this asserts the stronger thing
+    // it can: every byte on stdout belongs to a frame.
     const frames = parseFrames(run.stdout);
     const framedBytes = frames.reduce(
       (total, frame) =>
