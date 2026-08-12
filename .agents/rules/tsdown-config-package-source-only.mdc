@@ -1,0 +1,19 @@
+---
+description: Keep @repo/tsdown source-only exports
+alwaysApply: false
+---
+
+# @repo/tsdown source-only policy
+
+The package `packages/0-config/tsdown` is source-only and must not add emitted JavaScript artifacts to work around runtime config loading.
+
+## Rules
+
+- Do not add `base.js` (or other transpiled JS siblings) in `packages/0-config/tsdown`.
+- Do not change `packages/0-config/tsdown/package.json` exports to point to `.js` files.
+- Keep the export source-only (currently `./base.ts`).
+
+## Rationale
+
+- This package is an internal config helper and should remain canonical TypeScript source.
+- Workarounds for runtime loading must be solved in consumers/tooling, not by emitting parallel JS files here.

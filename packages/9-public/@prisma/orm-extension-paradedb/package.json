@@ -1,0 +1,51 @@
+{
+  "name": "@prisma/orm-extension-paradedb",
+  "version": "8.0.0-rc.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "ParadeDB BM25 full-text search indexes and operators for Prisma Next",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "lint": "biome check . --error-on-warnings",
+    "clean": "rm -rf dist src-gen"
+  },
+  "dependencies": {
+    "@prisma/orm-family-sql": "workspace:8.0.0-rc.1",
+    "@prisma/orm-framework": "workspace:8.0.0-rc.1",
+    "@prisma/orm-toolchain": "workspace:8.0.0-rc.1",
+    "arktype": "^2.2.2"
+  },
+  "devDependencies": {
+    "@internal/extension-paradedb": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "@prisma/orm-target-postgres": "workspace:8.0.0-rc.1",
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "exports": {
+    "./control": "./dist/control.mjs",
+    "./index-types": "./dist/index-types.mjs",
+    "./operation-types": "./dist/operation-types.mjs",
+    "./pack": "./dist/pack.mjs",
+    "./runtime": "./dist/runtime.mjs",
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/9-public/@prisma/orm-extension-paradedb"
+  }
+}

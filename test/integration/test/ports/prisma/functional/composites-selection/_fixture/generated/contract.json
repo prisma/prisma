@@ -1,0 +1,216 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "mongo",
+  "target": "mongo",
+  "profileHash": "251b3ce23f6c9f561892e7c1af9d2cc941a13d64ba1aa7226b90036b09568cc3",
+  "roots": {
+    "user": {
+      "model": "User",
+      "namespace": "__unbound__"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "__unbound__": {
+        "models": {
+          "User": {
+            "fields": {
+              "_id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
+              },
+              "profile": {
+                "nullable": false,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Profile"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "collection": "user"
+            }
+          }
+        },
+        "valueObjects": {
+          "Name": {
+            "fields": {
+              "firstName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              }
+            }
+          },
+          "Profile": {
+            "fields": {
+              "alternateName": {
+                "nullable": true,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Name"
+                }
+              },
+              "favoriteThings": {
+                "many": true,
+                "nullable": false,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Thing"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Name"
+                }
+              },
+              "url": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              }
+            }
+          },
+          "Thing": {
+            "fields": {
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "__unbound__": {
+        "entries": {
+          "collection": {
+            "user": {
+              "kind": "mongo-collection",
+              "validator": {
+                "jsonSchema": {
+                  "additionalProperties": false,
+                  "bsonType": "object",
+                  "properties": {
+                    "_id": {
+                      "bsonType": "objectId"
+                    },
+                    "profile": {
+                      "additionalProperties": false,
+                      "bsonType": "object",
+                      "properties": {
+                        "alternateName": {
+                          "oneOf": [
+                            {
+                              "bsonType": "null"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "bsonType": "object",
+                              "properties": {
+                                "firstName": {
+                                  "bsonType": "string"
+                                },
+                                "lastName": {
+                                  "bsonType": "string"
+                                }
+                              },
+                              "required": [
+                                "firstName",
+                                "lastName"
+                              ]
+                            }
+                          ]
+                        },
+                        "favoriteThings": {
+                          "bsonType": "array",
+                          "items": {
+                            "additionalProperties": false,
+                            "bsonType": "object",
+                            "properties": {
+                              "name": {
+                                "bsonType": "string"
+                              }
+                            },
+                            "required": [
+                              "name"
+                            ]
+                          }
+                        },
+                        "name": {
+                          "additionalProperties": false,
+                          "bsonType": "object",
+                          "properties": {
+                            "firstName": {
+                              "bsonType": "string"
+                            },
+                            "lastName": {
+                              "bsonType": "string"
+                            }
+                          },
+                          "required": [
+                            "firstName",
+                            "lastName"
+                          ]
+                        },
+                        "url": {
+                          "bsonType": "string"
+                        }
+                      },
+                      "required": [
+                        "favoriteThings",
+                        "name",
+                        "url"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "_id",
+                    "profile"
+                  ]
+                },
+                "kind": "mongo-validator",
+                "validationAction": "error",
+                "validationLevel": "strict"
+              }
+            }
+          }
+        },
+        "id": "__unbound__",
+        "kind": "mongo-database"
+      }
+    },
+    "storageHash": "50c7e480b0d0d6850a19a52ebe53ad54ca00fe4ffc1d9149172bc774c7b1d3b0"
+  },
+  "capabilities": {},
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}

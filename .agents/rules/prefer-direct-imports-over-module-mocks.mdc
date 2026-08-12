@@ -1,0 +1,100 @@
+---
+description: Prefer extracting a testable core over vi.mock / vi.resetModules when unit tests need to reach production logic entangled with config, env, or singletons.
+alwaysApply: false
+globs: ["**/test/**/*.ts", "**/test/**/*.tsx"]
+---
+
+# Prefer direct unit imports over module mocks in tests
+
+When you reach for `vi.mock` / `vi.hoisted` / `vi.resetModules` / `vi.setConfig` to make a piece of production code testable, stop and ask: **can the production code be factored so the test imports the unit it cares about directly?**
+
+The usual symptoms that you're about to write the wrong shape:
+
+- A test file with `vi.mock('../../src/some-helper')` because the unit under test calls `some-helper` as a side effect.
+- A test file with `vi.resetModules()` in `beforeEach` to force re-evaluation of a module whose state leaks across tests.
+- A test file with `vi.setConfig({ testTimeout, hookTimeout })` at module scope because cold-importing the unit on every test is too slow.
+- A test file with `await import('…')` inside a helper "so the mock is wired before module evaluation" — `vi.mock` is hoisted by vitest; a top-level static import sees the mock just fine. This pattern is almost always a misconception.
+
+These are all signals that the production code has an entanglement (typically: config loading, environment access, time, or a stateful singleton) that's making the testable core hard to reach.
+
+## The fix
+
+Extract a pure-ish core from the entangled wrapper:
+
+- **Pure-ish core function** — takes the resolved inputs directly (e.g. `{ migrationsDir, spaceFilter }`, not `await loadConfig()`), returns a result object or throws structured errors. No side effects beyond what the test's tmpdir or fixture owns.
+- **Thin wrapper** — the CLI command builder / HTTP handler / scheduler hook — calls the entanglement (`loadConfig`, `process.env`, `Date.now()`, the singleton getter), resolves inputs, delegates to the core. One screen of code, no branching.
+
+Tests import the core directly. Zero `vi.*` plumbing. If the wrapper is genuinely just resolve-inputs-and-call-core, you can skip wrapper tests entirely — the build closes the gap.
+
+## When module mocks are legitimately the right tool
+
+Some entanglements can't be cleanly extracted:
+
+- Mocking time (`vi.useFakeTimers()`).
+- Mocking network for end-to-end tests where the network call is the unit under test.
+- Mocking modules whose side effect on import is the thing being tested.
+
+These are real cases. The rule isn't "never mock." It's "don't reach for the mock without first checking whether the production code can be factored to make the mock unnecessary." In the cases above, the answer is yes, the mock is right — proceed. In the common case (unit under test is entangled with config loading, env access, or a service locator), the answer is no, factor first.
+
+## Worked example
+
+**Before** — entangled command + module-mocked test:
+
+```ts
+// src/commands/my-command.ts
+export function createMyCommand() {
+  return new Command().action(async () => {
+    const config = await loadConfig();
+    const result = doTheWork(config.someField);
+    console.log(result);
+  });
+}
+
+// test/commands/my-command.test.ts
+vi.mock('../../src/config-loader', () => ({
+  loadConfig: vi.fn().mockResolvedValue({ someField: 'test-value' }),
+}));
+vi.resetModules();  // ← red flag
+vi.setConfig({ testTimeout: 5000 });  // ← red flag
+```
+
+**After** — extracted core + direct-import test:
+
+```ts
+// src/commands/my-command.ts
+export function runMyCommand({ someField }: { someField: string }): string {
+  return doTheWork(someField);
+}
+
+export function createMyCommand() {
+  return new Command().action(async () => {
+    const config = await loadConfig();
+    console.log(runMyCommand({ someField: config.someField }));
+  });
+}
+
+// test/commands/my-command.test.ts
+import { runMyCommand } from '../../src/commands/my-command';
+
+it('produces the expected result for someField=foo', () => {
+  expect(runMyCommand({ someField: 'foo' })).toBe('expected output');
+});
+```
+
+No `vi.mock`, no `vi.resetModules`, no `vi.setConfig`, no lazy import. The core's tests carry the load; the wrapper is obviously-correct one-screen wiring.
+
+## Never mock our own runtime/class constructor
+
+A specific, recurring smell: a facade test that does `vi.mock('../src/runtime/foo-runtime', …)` to replace **our own** `FooRuntimeImpl` constructor with a stub, so the test can assert "the factory called the constructor" or hand back a fake runtime. This is the worst case of the above — the test proves nothing about behaviour, it asserts that a line of code we wrote calls a constructor we wrote, and it breaks the moment the constructor signature changes (it also forces ugly `class { constructor() { return {...} } }` delegating mocks once vitest rejects `mockReturnValue` on a `new` call).
+
+The fix is to test against **real objects over a fake boundary**, not a mocked self:
+
+- Run the real factory / facade / runtime and mock only the **third-party boundary** — e.g. `vi.mock('pg', …)` with a fake `Pool`/`Client`, or a hand-written recording `SqlDriver` fake the real runtime executes against. Assert observable behaviour (which SQL was issued, which pool was closed, what rows came back), not "the constructor was invoked."
+- For an in-memory-capable target, prefer the real thing: a real `:memory:` SQLite driver makes the test honest with no mocks at all.
+- To assert a surface *doesn't* expose something (e.g. a role-bound `Db` has no `connection()`), use a behavioural check plus a type-level `*.test-d.ts` assertion — not a constructor spy.
+
+If you find yourself needing to mock your own constructor to make a test pass, the test isn't worth keeping in that shape — rewrite it against real objects + a fake driver, or delete it. (Reference: PR #792 / TML-2502 rewrote the postgres/sqlite/supabase facade suites this way — real factories over a fake `pg` and real `:memory:` sqlite; the recording-fake-driver pattern lives in `packages/2-sql/5-runtime/test/`.)
+
+## Repo precedent
+
+The `migration list` command's test file (`packages/1-framework/3-tooling/cli/test/commands/migration-list.test.ts`) is the canonical example in this repo. It tests `runMigrationList({ migrationsDir, spaceFilter })` directly against tmpdir migration trees; zero `vi.*` calls.

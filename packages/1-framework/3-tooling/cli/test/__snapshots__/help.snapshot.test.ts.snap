@@ -1,0 +1,295 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`help text snapshots > formats contract emit help 1`] = `
+"prisma-next emit → Emit your contract artifacts
+│
+│ --format <pretty|json>  Output format (default: pretty, or json when stdout is
+│                       not a TTY)
+│ --json                Output as JSON (alias for --format json)
+│ -q, --quiet           Quiet mode: errors only
+│ -v, --verbose         Verbose output: debug info, timings
+│ --trace               Trace output: deep internals, stack traces
+│ --color               Force color output
+│ --no-color            Disable color output
+│ --interactive         Force interactive mode
+│ --no-interactive      Disable interactive prompts
+│ -y, --yes             Auto-accept prompts
+│ --config <path>       Path to prisma-next.config.ts
+│ --output-path <dir>   Directory to write contract.json and contract.d.ts into
+│
+│ Examples:
+│   $ prisma-next contract emit
+│   $ prisma-next contract emit --config ./custom-config.ts
+│   $ prisma-next contract emit --output-path ./generated
+│
+│ Reads your contract source (TypeScript or Prisma schema) and emits
+│ contract.json and
+│ contract.d.ts. The contract.json contains the canonical contract structure,
+│ and
+│ contract.d.ts provides TypeScript types for type-safe query building.
+└
+"
+`;
+
+exports[`help text snapshots > formats contract emit help with no color 1`] = `
+"prisma-next emit → Emit your contract artifacts
+│
+│ --format <pretty|json>  Output format (default: pretty, or json when stdout is
+│                       not a TTY)
+│ --json                Output as JSON (alias for --format json)
+│ -q, --quiet           Quiet mode: errors only
+│ -v, --verbose         Verbose output: debug info, timings
+│ --trace               Trace output: deep internals, stack traces
+│ --color               Force color output
+│ --no-color            Disable color output
+│ --interactive         Force interactive mode
+│ --no-interactive      Disable interactive prompts
+│ -y, --yes             Auto-accept prompts
+│ --config <path>       Path to prisma-next.config.ts
+│ --output-path <dir>   Directory to write contract.json and contract.d.ts into
+│
+│ Examples:
+│   $ prisma-next contract emit
+│   $ prisma-next contract emit --config ./custom-config.ts
+│   $ prisma-next contract emit --output-path ./generated
+│
+│ Reads your contract source (TypeScript or Prisma schema) and emits
+│ contract.json and
+│ contract.d.ts. The contract.json contains the canonical contract structure,
+│ and
+│ contract.d.ts provides TypeScript types for type-safe query building.
+└
+"
+`;
+
+exports[`help text snapshots > formats contract infer help 1`] = `
+"prisma-next infer → Infer a PSL contract from the live database schema
+│
+│ --format <pretty|json>  Output format (default: pretty, or json when stdout is
+│                       not a TTY)
+│ --json                Output as JSON (alias for --format json)
+│ -q, --quiet           Quiet mode: errors only
+│ -v, --verbose         Verbose output: debug info, timings
+│ --trace               Trace output: deep internals, stack traces
+│ --color               Force color output
+│ --no-color            Disable color output
+│ --interactive         Force interactive mode
+│ --no-interactive      Disable interactive prompts
+│ -y, --yes             Auto-accept prompts
+│ --db <url>            Database connection string
+│ --config <path>       Path to prisma-next.config.ts
+│ --output <path>       Write the inferred PSL contract to the specified path
+│
+│ Examples:
+│   $ prisma-next contract infer --db $DATABASE_URL
+│   $ prisma-next contract infer --db $DATABASE_URL --output ./src/prisma/contract.prisma
+│   $ prisma-next contract infer --db $DATABASE_URL --json
+│
+│ Reads the live database schema and writes an inferred PSL contract to disk.
+│ This command stops at \`contract.prisma\`; follow it with \`contract emit\` and
+│ \`db sign\` as separate steps.
+└
+"
+`;
+
+exports[`help text snapshots > formats db schema help 1`] = `
+"prisma-next schema → Inspect the live database schema
+│
+│ --format <pretty|json>  Output format (default: pretty, or json when stdout is
+│                       not a TTY)
+│ --json                Output as JSON (alias for --format json)
+│ -q, --quiet           Quiet mode: errors only
+│ -v, --verbose         Verbose output: debug info, timings
+│ --trace               Trace output: deep internals, stack traces
+│ --color               Force color output
+│ --no-color            Disable color output
+│ --interactive         Force interactive mode
+│ --no-interactive      Disable interactive prompts
+│ -y, --yes             Auto-accept prompts
+│ --db <url>            Database connection string
+│ --config <path>       Path to prisma-next.config.ts
+│
+│ Examples:
+│   $ prisma-next db schema --db $DATABASE_URL
+│   $ prisma-next db schema --db $DATABASE_URL --json
+│   $ prisma-next db schema --db $DATABASE_URL --json > schema.json
+│
+│ Reads the live database schema and prints it as a tree by default or as JSON
+│ with
+│ --json. This command is always read-only and never writes files. To save
+│ machine-
+│ readable output, use shell redirection, for example \`prisma-next db schema
+│ --json > schema.json\`.
+└
+"
+`;
+
+exports[`help text snapshots > formats db update help 1`] = `
+"prisma-next update → Update your database schema to match your contract
+│
+│ --format <pretty|json>  Output format (default: pretty, or json when stdout is
+│                       not a TTY)
+│ --json                Output as JSON (alias for --format json)
+│ -q, --quiet           Quiet mode: errors only
+│ -v, --verbose         Verbose output: debug info, timings
+│ --trace               Trace output: deep internals, stack traces
+│ --color               Force color output
+│ --no-color            Disable color output
+│ --interactive         Force interactive mode
+│ --no-interactive      Disable interactive prompts
+│ -y, --yes             Auto-accept prompts
+│ --db <url>            Database connection string
+│ --config <path>       Path to prisma-next.config.ts
+│ --dry-run             Preview planned operations without applying
+│                       default: false
+│ --to <contract>       Target contract reference (hash, prefix, ref name,
+│                       migration dir name, <dir>^, or ./path)
+│ --advance-ref <name>  Ref to advance to the post-command contract hash
+│
+│ Examples:
+│   $ prisma-next db update --db $DATABASE_URL
+│   $ prisma-next db update --db $DATABASE_URL --dry-run
+│
+│ Compares your database schema to the emitted contract and applies the
+│ necessary
+│ changes. Works on any database, whether or not it has been initialized with
+│ \`db init\`.
+│ Destructive operations prompt for confirmation in interactive mode. Use -y to
+│ auto-accept or --dry-run to preview first.
+└
+"
+`;
+
+exports[`help text snapshots > formats db verify help 1`] = `
+"prisma-next verify → Check whether the database marker and live schema match your contract
+│
+│ --format <pretty|json>  Output format (default: pretty, or json when stdout is
+│                       not a TTY)
+│ --json                Output as JSON (alias for --format json)
+│ -q, --quiet           Quiet mode: errors only
+│ -v, --verbose         Verbose output: debug info, timings
+│ --trace               Trace output: deep internals, stack traces
+│ --color               Force color output
+│ --no-color            Disable color output
+│ --interactive         Force interactive mode
+│ --no-interactive      Disable interactive prompts
+│ -y, --yes             Auto-accept prompts
+│ --db <url>            Database connection string
+│ --config <path>       Path to prisma-next.config.ts
+│ --marker-only         Skip schema verification and only check the database
+│                       marker
+│ --schema-only         Skip marker verification and only check whether the live
+│                       schema satisfies the contract
+│ --strict              Strict mode: schema elements not present in the contract
+│                       are considered an error
+│                       default: false
+│
+│ Examples:
+│   $ prisma-next db verify --db $DATABASE_URL
+│   $ prisma-next db verify --db $DATABASE_URL --strict
+│   $ prisma-next db verify --db $DATABASE_URL --schema-only
+│   $ prisma-next db verify --db $DATABASE_URL --schema-only --strict
+│   $ prisma-next db verify --db $DATABASE_URL --marker-only
+│   $ prisma-next db verify --db $DATABASE_URL --json
+│
+│ Verifies the database marker first, then checks the database schema matches
+│ your contract.
+│ Use \`--marker-only\` for marker-only verification, \`--schema-only\` to skip
+│ marker checks and
+│ inspect only the live schema, and \`--strict\` to fail if the database includes
+│ elements
+│ not present in the contract.
+└
+"
+`;
+
+exports[`help text snapshots > formats init help 1`] = `
+"prisma-next init → Initialize a new Prisma Next project
+│
+│ --format <pretty|json>  Output format (default: pretty, or json when stdout is
+│                       not a TTY)
+│ --json                Output as JSON (alias for --format json)
+│ -q, --quiet           Quiet mode: errors only
+│ -v, --verbose         Verbose output: debug info, timings
+│ --trace               Trace output: deep internals, stack traces
+│ --color               Force color output
+│ --no-color            Disable color output
+│ --interactive         Force interactive mode
+│ --no-interactive      Disable interactive prompts
+│ -y, --yes             Auto-accept prompts
+│ --target <db>         Database target: postgres or mongodb
+│ --authoring <style>   Schema authoring style: psl or typescript
+│ --schema-path <path>  Where to write the starter schema (default:
+│                       src/prisma/contract.prisma)
+│ --force               Overwrite an existing scaffold without prompting
+│ --write-env           Write a .env file from .env.example (gitignored;
+│                       default: only .env.example)
+│ --probe-db            Connect to DATABASE_URL once and check the server
+│                       version against the target minimum (opt-in; off by
+│                       default)
+│ --strict-probe        Treat a failed --probe-db as fatal (no-op without
+│                       --probe-db; init is offline-by-default)
+│ --no-install          Skip dependency installation and contract emission
+│ --no-skill            Skip Prisma Next skills install (air-gapped CI,
+│                       restricted registries, etc.)
+│
+│ Examples:
+│   $ prisma-next init
+│   $ prisma-next init --yes --target postgres --authoring psl
+│   $ prisma-next init --yes --target mongodb --authoring typescript --json
+│   $ prisma-next init --yes --force --target postgres --authoring psl  # overwrite an existing scaffold
+│   $ prisma-next init --no-install                                       # skip pnpm/npm install + emit
+│   $ prisma-next init --no-skill                                         # skip the skills install (air-gapped / restricted env)
+│
+│ Scaffolds config, schema, and runtime files, installs dependencies,
+│ and emits the contract. Gets you from zero to typed queries in one step.
+│ Run interactively for a guided experience, or supply --target / --authoring
+│ and --yes for a fully scriptable run (CI, AI coding agents, automation).
+│ Exit codes (see CLI Style Guide § Exit Codes):
+│ 0   OK                    Init succeeded.
+│ 1   INTERNAL_ERROR        Unexpected bug in prisma-next (please report).
+│ 2   PRECONDITION          Bad flags / missing prerequisite (e.g. no
+│ package.json).
+│ 3   USER_ABORTED          User cancelled an interactive prompt.
+│ 4   INSTALL_FAILED        Dependency installation failed (init-specific).
+│ 5   EMIT_FAILED           \`contract emit\` failed after install
+│ (init-specific).
+│ 6   SKILL_INSTALL_FAILED  Agent-skill install failed (re-run with --no-skill
+│ to skip).
+└
+"
+`;
+
+exports[`help text snapshots > formats root help 1`] = `
+"prisma-next Manage your data layer
+│
+│ ├─ contract         
+│ │  ├─ emit            Emit your contract artifacts
+│ │  └─ infer           Infer a PSL contract from the live database schema
+│ └─ db               
+│ │  ├─ schema          Inspect the live database schema
+│    └─ verify          Check whether the database marker and live schema match your contract
+│
+│ Use Prisma Next to define your data layer as a contract. Sign your database
+│ and application with the same contract to guarantee compatibility. Plan and
+│ apply migrations to safely evolve your schema.
+└
+"
+`;
+
+exports[`help text snapshots > formats root help with no color 1`] = `
+"prisma-next Manage your data layer
+│
+│ ├─ contract         
+│ │  ├─ emit            Emit your contract artifacts
+│ │  └─ infer           Infer a PSL contract from the live database schema
+│ └─ db               
+│ │  ├─ schema          Inspect the live database schema
+│    └─ verify          Check whether the database marker and live schema match your contract
+│
+│ Use Prisma Next to define your data layer as a contract. Sign your database
+│ and application with the same contract to guarantee compatibility. Plan and
+│ apply migrations to safely evolve your schema.
+└
+"
+`;

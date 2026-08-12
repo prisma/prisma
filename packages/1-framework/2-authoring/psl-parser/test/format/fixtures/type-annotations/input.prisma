@@ -1,0 +1,14 @@
+model Annotations {
+plain String
+list String[]
+optional String?
+optionalList String[]?
+spaceQualified space:Type
+nsQualified ns.Type
+spaceAndNs supabase:auth.AuthUser
+ctor Vector(1536)
+ctorList Vector(1536)[]
+}
+types {
+Vec = Vector(1536)[]?
+}

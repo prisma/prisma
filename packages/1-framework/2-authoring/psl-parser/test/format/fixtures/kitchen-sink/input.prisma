@@ -1,0 +1,37 @@
+// the primary user record
+model User {
+  // the surrogate key
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  displayName String?
+  role        Role     @default(USER)
+  address     Address?
+
+  @@index([email])
+  @@map("users")
+}
+
+type Address {
+  streetAndNumber String
+  city            String
+  postalCode      String?
+}
+
+enum Role {
+  @@type("pg/text@1")
+  USER
+  ADMIN
+}
+
+types {
+  Embedding = Vector(1536)[]?
+}
+
+namespace billing {
+  model Invoice {
+    id     Int @id
+    amount Int
+    // a closing note
+  }
+}
+// end of file

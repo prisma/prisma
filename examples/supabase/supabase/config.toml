@@ -1,0 +1,6 @@
+# Minimal stock Supabase CLI config — everything not listed here uses the
+# CLI's defaults, so `supabase start` brings up the same stack a fresh
+# `supabase init` would. Used by the CI acceptance job (ci.yml
+# supabase-acceptance) and for running test/real-supabase.acceptance.test.ts
+# locally; see README.md.
+project_id = "prisma-next-supabase-example"

@@ -1,0 +1,15 @@
+model User {
+id Int @id
+
+
+
+@@map("user")
+}
+model Tagless {
+@@map("tagless")
+}
+model Documented {
+id Int @id
+// the table name
+@@map("documented")
+}

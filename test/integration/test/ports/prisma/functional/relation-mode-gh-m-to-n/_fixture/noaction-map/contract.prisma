@@ -1,0 +1,31 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/relationMode-in-separate-gh-action
+// _schema_m_to_n.ts (manyToManySQLExplicit branch, isSchemaUsingMap=true).
+// Variant: noaction-map
+// relationMode=foreignKeys with @map/@@map physical name overrides.
+
+model PostManyToMany {
+  id          String                        @id
+  categories  CategoriesOnPostsManyToMany[]
+  published   Boolean?                      @map("published_AtMap")
+
+  @@map("PostManyToMany_AtAtMap")
+}
+
+model CategoryManyToMany {
+  id          String                        @id @map("id_AtMap")
+  posts       CategoriesOnPostsManyToMany[]
+  published   Boolean?                      @map("published_AtMap")
+
+  @@map("CategoryManyToMany_AtAtMap")
+}
+
+model CategoriesOnPostsManyToMany {
+  post        PostManyToMany     @relation(fields: [postId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  postId      String             @map("postId_AtMap")
+  category    CategoryManyToMany @relation(fields: [categoryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  categoryId  String             @map("categoryId_AtMap")
+
+  @@id([postId, categoryId])
+  @@map("CategoriesOnPostsManyToMany_AtAtMap")
+}

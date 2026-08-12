@@ -1,0 +1,35 @@
+// Recognise `throw new Error(...)` statements and skip test files.
+//
+// Anchored on the `JsThrowStatement` node whose `argument` is a
+// `JsNewExpression` with callee text exactly `Error`, rather than a loose
+// text/regex match on `new Error(`. A text-level match would also catch
+// `new TypeError(`, `new RangeError(`, and `new InternalError(` — every one of
+// those class names ends in the substring `Error(`, so a suffix-style pattern
+// produces false positives on exactly the throw kinds this plugin must leave
+// alone (see ADR 239, "Banning bare throws": `TypeError`/`RangeError` are
+// legitimate JS semantics and stay unbanned; `InternalError` is already a
+// labeled bug, not an unrecognizable string). Requiring `$callee`'s full text
+// to equal `Error` (biome's regex matching is a full match, so `^Error$`
+// rejects `TypeError`/`RangeError`/`InternalError` despite the shared
+// suffix) means only a direct `new Error(...)` call is flagged; `throw
+// someVariable`, `throw structuredError(...)`, and `throw new NS.Error(...)`
+// never satisfy `JsNewExpression(callee=$callee)` with callee text `Error`.
+//
+// `$filename` is biome's built-in current-file path. The three
+// file-exclusion regexes mirror no-bare-cast.grit / biome's test-file
+// override includes (`**/*.test.ts`, `**/*.test-d.ts`, `**/test/**/*.ts`).
+//
+// Severity is "info" so the plugin runs repo-wide without breaking existing
+// builds (thousands of pre-existing bare throws). The CI ratchet
+// (scripts/lint-throws.mjs) enforces the gate by counting these diagnostics
+// from biome's JSON reporter; "info" entries still appear there with the
+// distinctive `no-bare-throw: ` prefix.
+language js
+
+JsThrowStatement(argument=$arg) as $throw where {
+  $arg <: JsNewExpression(callee=$callee),
+  $callee <: r"^Error$",
+  not $filename <: r".*\.(?:test|test-d)\.ts",
+  not $filename <: r".*/test/.*\.ts",
+  register_diagnostic(span=$throw, message="no-bare-throw: bare `throw new Error(...)`; use structuredError(...) for user-facing errors, or InternalError/assertNever for bugs", severity="info")
+}

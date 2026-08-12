@@ -1,0 +1,57 @@
+packages:
+  - packages/**
+  - examples/*
+  - apps/*
+  - test/**
+  - '!**/dist-*'
+
+allowBuilds:
+  '@prisma/client@6.18.0': true
+  '@prisma/engines@6.18.0': true
+  esbuild@0.25.11 || 0.27.2: true
+  mongodb-memory-server@10.4.3: true
+  prisma@6.18.0: true
+
+blockExoticSubdeps: true
+
+catalog:
+  '@prisma/dev': 0.25.1
+  '@types/node': 26.1.2
+  '@types/pg': 8.20.4
+  ajv: ^8.20.0
+  arktype: ^2.2.2
+  gray-matter: ^4.0.3
+  mongodb: ^7.4.0
+  mongodb-memory-server: 11.2.0
+  pg: 8.22.0
+  tsdown: 0.22.14
+  tsx: ^4.23.5
+  typescript: 5.9.3
+  vite: 8.1.4
+  vitest: 4.1.10
+  vscode-languageserver: 10.1.0
+  vscode-languageserver-textdocument: 1.0.12
+
+cleanupUnusedCatalogs: true
+
+minimumReleaseAge: 1440
+
+# First-party Prisma packages: the release-age cooldown defends against
+# compromised third-party releases, so we exempt @prisma/dev (and its
+# @prisma/streams-local dependency) to adopt fixes promptly — e.g. the
+# WAL-teardown crash fix completed in @prisma/dev 0.24.12.
+minimumReleaseAgeExclude:
+  - '@prisma/cli-engine'
+  - '@prisma/dev'
+  - '@prisma/streams-local'
+
+trustPolicy: no-downgrade
+
+trustPolicyExclude:
+  - chokidar@4.0.3
+  - evlog@1.9.0
+  - semver@6.3.1
+  # Dev-only: pulled transitively by @cursor/sdk (→ @connectrpc/connect-node).
+  # Newer undici publishes dropped provenance attestation; 5.29.0 is a
+  # legitimate Node.js-team release, not a known compromise.
+  - undici@5.29.0

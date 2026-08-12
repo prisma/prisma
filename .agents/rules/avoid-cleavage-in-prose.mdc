@@ -1,0 +1,19 @@
+---
+description: Don't use the word "cleavage" in docs, ADRs, specs, plans, READMEs, or commit messages
+alwaysApply: true
+---
+
+# Avoid the word "cleavage" in prose
+
+Don't use **"cleavage"** as a metaphor for a split, boundary, or division in any prose: docs, ADRs, specs, plans, READMEs, PR descriptions, commit messages, or code comments. The word is technically correct in the geological / structural sense but reads weirdly in technical writing because of its other common meaning, and the alternatives are clearer anyway.
+
+Prefer the natural English alternative for the context:
+
+| Instead of                           | Prefer                       |
+|--------------------------------------|------------------------------|
+| "the natural cleavage between X and Y" | "the natural split between X and Y" / "the natural distinction between X and Y" |
+| "the cleavage is precise:"           | "the split is precise:" / "the boundary is precise:" |
+| "the cleavage between Project 1 and Project 2" | "the boundary between Project 1 and Project 2" |
+| "predicate / non-predicate cleavage" | "predicate / non-predicate split" |
+
+Use whichever of "split", "boundary", "distinction", or "divide" reads most naturally in the surrounding sentence.

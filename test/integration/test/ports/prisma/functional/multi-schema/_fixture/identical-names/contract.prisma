@@ -1,0 +1,45 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/multi-schema (postgres matrix entry, mapTable = 'IDENTICAL_NAMES').
+//
+// Upstream schema (postgres, @@map with SAME table name in both schemas):
+//
+//   model User {
+//     id       String  @id @default(cuid())
+//     email    String
+//     posts    Post[]
+//     @@schema("base")
+//     @@map("some_table")
+//   }
+//
+//   model Post {
+//     id       String  @id @default(cuid())
+//     title    String
+//     authorId String
+//     author   User?   @relation(fields: [authorId], references: [id])
+//     @@schema("transactional")
+//     @@map("some_table")
+//   }
+//
+// Both models map to "some_table" but in different postgres schemas, which is
+// valid in multi-schema postgres (base.some_table vs transactional.some_table).
+
+namespace base {
+  model User {
+    id       String  @id @default(cuid(2))
+    email    String
+    posts    transactional.Post[]
+
+    @@map("some_table")
+  }
+}
+
+namespace transactional {
+  model Post {
+    id       String  @id @default(cuid(2))
+    title    String
+    authorId String
+    author   base.User? @relation(fields: [authorId], references: [id])
+
+    @@map("some_table")
+  }
+}

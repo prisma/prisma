@@ -1,0 +1,66 @@
+{
+  "name": "@internal/cli-telemetry",
+  "private": true,
+  "version": "8.0.0-rc.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "CLI telemetry client for Prisma Next: detached subprocess sender, gating resolution, user-config store, and consent surface",
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write .",
+    "lint:fix:unsafe": "biome check --write --unsafe .",
+    "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
+  },
+  "dependencies": {
+    "@internal/config": "workspace:8.0.0-rc.1",
+    "@internal/utils": "workspace:8.0.0-rc.1",
+    "@vercel/detect-agent": "^1.2.4",
+    "arktype": "catalog:",
+    "c12": "^3.3.4",
+    "pathe": "^2.0.3"
+  },
+  "devDependencies": {
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/exports/index.d.mts",
+      "import": "./dist/exports/index.mjs"
+    },
+    "./sender": {
+      "types": "./dist/sender.d.mts",
+      "import": "./dist/sender.mjs"
+    }
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/1-framework/3-tooling/cli-telemetry"
+  }
+}

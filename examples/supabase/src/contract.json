@@ -1,0 +1,243 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "profile": {
+      "model": "Profile",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Profile": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "username": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "AuthUser",
+                  "namespace": "auth",
+                  "space": "supabase"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "userId": {
+                  "column": "userId"
+                },
+                "username": {
+                  "column": "username"
+                }
+              },
+              "namespaceId": "public",
+              "table": "profile"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "policy": {
+            "profile_owner_read": {
+              "kind": "policy",
+              "name": "profile_owner_read_9f8e536e",
+              "namespaceId": "public",
+              "operation": "select",
+              "permissive": true,
+              "prefix": "profile_owner_read",
+              "roles": [
+                "authenticated"
+              ],
+              "tableName": "profile",
+              "using": "\"userId\"::uuid = auth.uid()"
+            },
+            "profile_owner_write": {
+              "kind": "policy",
+              "name": "profile_owner_write_b674cdea",
+              "namespaceId": "public",
+              "operation": "update",
+              "permissive": true,
+              "prefix": "profile_owner_write",
+              "roles": [
+                "authenticated"
+              ],
+              "tableName": "profile",
+              "using": "\"userId\"::uuid = auth.uid()",
+              "withCheck": "\"userId\"::uuid = auth.uid()"
+            },
+            "profile_public_read": {
+              "kind": "policy",
+              "name": "profile_public_read_16dd15e0",
+              "namespaceId": "public",
+              "operation": "select",
+              "permissive": true,
+              "prefix": "profile_public_read",
+              "roles": [
+                "anon"
+              ],
+              "tableName": "profile",
+              "using": "true"
+            }
+          },
+          "rls": {
+            "profile": {
+              "kind": "rls",
+              "namespaceId": "public",
+              "tableName": "profile"
+            }
+          },
+          "table": {
+            "profile": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                },
+                "username": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "profile"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "auth",
+                    "spaceId": "supabase",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "userId"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "0ece7234355212824d22f84bec13c6030bde28bba977e52270807a375f8bbc21"
+  },
+  "execution": {
+    "executionHash": "5079bd5e0c8e64383c627062a19a0c2299f3729197bfa1d49761e26d082fe72b",
+    "mutations": {
+      "defaults": [
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "profile"
+          }
+        }
+      ]
+    }
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "checkConstraint": true,
+      "defaultInInsert": true,
+      "enums": true,
+      "lateral": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {
+    "supabase": {
+      "familyId": "sql",
+      "id": "supabase",
+      "kind": "extension",
+      "targetId": "postgres",
+      "version": "8.0.0-rc.1"
+    }
+  },
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}

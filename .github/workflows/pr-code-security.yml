@@ -1,0 +1,57 @@
+name: PR Code Security
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  secret-detection:
+    name: Secret Detection
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read # Permission to read repository contents
+      pull-requests: write # Permission for posting comments
+    uses: prisma/.github/.github/workflows/secret_detection.yml@main
+    secrets: inherit
+  code-scanning:
+    name: Code Scanning / semgrep
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:1.147.0
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]')
+    permissions:
+      contents: read # Permission to read repository contents
+      pull-requests: write # Permission for posting comments
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # Required to scan git diff/history
+
+      - name: Perform Semgrep Analysis
+        run: |
+          BASELINE_ARG=""
+          if [ -n "${{ github.event.pull_request.base.sha }}" ]; then
+            BASELINE_ARG="--baseline-commit ${{ github.event.pull_request.base.sha }}"
+          fi
+          semgrep scan --severity ERROR --error --sarif --config auto --exclude-rule javascript.express.security.express-wkhtml-injection.express-wkhtmltoimage-injection --exclude-rule javascript.express.security.audit.remote-property-injection.remote-property-injection . --output=semgrep-results.sarif $BASELINE_ARG
+
+      - name: Save SARIF results as artifact
+        if: always() && github.event.pull_request != null && hashFiles('semgrep-results.sarif') != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: semgrep-results.sarif
+          path: semgrep-results.sarif
+
+      - name: Setup Reviewdog
+        if: always() && github.event.pull_request != null
+        uses: reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f # v1.5.0
+
+      - name: Post SARIF to PR
+        if: always() && github.event.pull_request != null && hashFiles('semgrep-results.sarif') != ''
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat semgrep-results.sarif | reviewdog -f=sarif -reporter=github-pr-review

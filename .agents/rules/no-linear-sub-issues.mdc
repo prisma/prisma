@@ -1,0 +1,15 @@
+---
+description: Never use Linear's sub-issue (`parentId`) feature; use standalone issues with projects, milestones, relations, and labels instead.
+alwaysApply: false
+---
+
+# No Linear sub-issues
+
+**Never** use Linear's sub-issue (`parentId`) feature when creating issues.
+
+Instead, use **standalone issues** and organize them with:
+- **Projects** and **milestones** for grouping
+- **Relations** (`relatedTo`, `blocks`, `blockedBy`) for dependencies
+- **Labels** for categorization
+
+Sub-issues create deeply nested hierarchies that are hard to triage, filter, and track in Linear's views. Flat issues with explicit relations are easier to work with.

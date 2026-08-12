@@ -1,0 +1,529 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "comment": {
+      "model": "Comment",
+      "namespace": "public"
+    },
+    "downVote": {
+      "model": "DownVote",
+      "namespace": "public"
+    },
+    "upVote": {
+      "model": "UpVote",
+      "namespace": "public"
+    },
+    "user": {
+      "model": "User",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Comment": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "downVotedUsers": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "commentId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "userId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "commentId"
+                  ],
+                  "table": "downVote",
+                  "targetColumns": [
+                    "uid"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "upVotedUsers": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "commentId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "userId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "commentId"
+                  ],
+                  "table": "upVote",
+                  "targetColumns": [
+                    "uid"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "comment"
+            }
+          },
+          "DownVote": {
+            "fields": {
+              "commentId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "comment": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "commentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Comment",
+                  "namespace": "public"
+                }
+              },
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "uid"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "commentId": {
+                  "column": "commentId"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "downVote"
+            }
+          },
+          "UpVote": {
+            "fields": {
+              "commentId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "comment": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "commentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Comment",
+                  "namespace": "public"
+                }
+              },
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "uid"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "commentId": {
+                  "column": "commentId"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "upVote"
+            }
+          },
+          "User": {
+            "fields": {
+              "uid": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "downVotedComments": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "uid"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "commentId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "userId"
+                  ],
+                  "table": "downVote",
+                  "targetColumns": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Comment",
+                  "namespace": "public"
+                }
+              },
+              "upVotedComments": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "uid"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "commentId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "userId"
+                  ],
+                  "table": "upVote",
+                  "targetColumns": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Comment",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "uid": {
+                  "column": "uid"
+                }
+              },
+              "namespaceId": "public",
+              "table": "user"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "table": {
+            "comment": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "downVote": {
+              "columns": {
+                "commentId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "commentId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "downVote"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "comment"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "downVote"
+                  },
+                  "target": {
+                    "columns": [
+                      "uid"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "commentId"
+                  ],
+                  "name": "downVote_commentId_idx_b5a4f615",
+                  "prefix": "downVote_commentId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "downVote_userId_idx_a489d58a",
+                  "prefix": "downVote_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "commentId",
+                  "userId"
+                ]
+              },
+              "uniques": []
+            },
+            "upVote": {
+              "columns": {
+                "commentId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "commentId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "upVote"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "comment"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "upVote"
+                  },
+                  "target": {
+                    "columns": [
+                      "uid"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "commentId"
+                  ],
+                  "name": "upVote_commentId_idx_b5a4f615",
+                  "prefix": "upVote_commentId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "upVote_userId_idx_a489d58a",
+                  "prefix": "upVote_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "commentId",
+                  "userId"
+                ]
+              },
+              "uniques": []
+            },
+            "user": {
+              "columns": {
+                "uid": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "uid"
+                ]
+              },
+              "uniques": []
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "5ee4271de58d510d3800d53a22d1b252e0733525c9411c46d35663d24e129881"
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "defaultInInsert": true,
+      "enums": true,
+      "lateral": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}

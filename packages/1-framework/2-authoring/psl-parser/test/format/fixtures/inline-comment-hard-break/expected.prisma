@@ -1,0 +1,5 @@
+model M {
+  id Int //comment
+    @id
+    @default(autoincrement())
+}

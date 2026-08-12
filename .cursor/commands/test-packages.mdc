@@ -1,0 +1,7 @@
+---
+description: Run tests for packages only
+---
+```bash
+pnpm test:packages
+```
+

@@ -1,0 +1,125 @@
+---
+description: Prefer assertions over defensive checks when data is guaranteed to be valid
+globs: ["packages/**/*.ts", "test/**/*.ts", "examples/**/*.ts"]
+alwaysApply: false
+---
+
+# Prefer Assertions Over Defensive Checks
+
+**CRITICAL**: When data has already been validated, use assertions instead of defensive checks. This
+eliminates unrealistic test scenarios and makes invalid states unrepresentable.
+
+## The Problem
+
+Defensive checks with optional chaining create code paths that are impossible in practice — and
+force tests that bypass TypeScript to exercise impossible states (coverage padding), break when
+types are tightened, and add maintenance burden.
+
+```typescript
+// ❌ WRONG: Defensive check after validation
+if (!contractTable.columns[columnName]) {
+  errorUnknownColumn(columnName, tableName);
+}
+const columnMeta = contractTable.columns[columnName];
+const codecId = columnMeta?.codecId; // Optional chaining unnecessary
+if (codecId && paramName) paramCodecs[paramName] = codecId;
+paramDescriptors.push({
+  ...(codecId ? { type: codecId } : {}),
+  ...(columnMeta?.nullable !== undefined ? { nullable: columnMeta.nullable } : {}),
+});
+```
+
+```typescript
+// ✅ CORRECT: Use assertions after validation
+if (!contractTable.columns[columnName]) {
+  errorUnknownColumn(columnName, tableName);
+}
+const columnMeta = contractTable.columns[columnName]!; // assert existence
+const codecId = columnMeta.codecId;                    // required property, no optional chaining
+if (paramName) paramCodecs[paramName] = codecId;
+paramDescriptors.push({ type: codecId, nullable: columnMeta.nullable }); // required, no optional check
+```
+
+## When to use assertions
+
+- **Data has been validated**: you've already checked it exists/is valid (e.g. after
+  `if (!contractTable.columns[columnName])` use `columnMeta!`; after `if (!model)` use `model!`).
+- **Type system guarantees it**: TypeScript types require the property.
+- **Contract validation ensures it**: runtime validation (e.g. `validateContract`) guarantees the
+  structure, so access required properties directly.
+
+## When NOT to use assertions
+
+- **Data is truly optional**: the property might legitimately be missing.
+- **External input**: data from user input, APIs, or files that hasn't been validated.
+- **Unvalidated contracts**: contract data that hasn't been validated yet.
+
+Benefits: eliminates unrealistic tests, better type inference (no optional chaining), clearer intent
+(data is guaranteed to exist), less test maintenance, and fail-fast errors if assumptions break.
+
+## Test Cleanup
+
+After refactoring to assertions, remove tests that use type assertions
+(`as SqlContract<SqlStorage>`) to bypass type checking, test impossible states (missing required
+properties), or exist solely for coverage:
+
+```typescript
+// ❌ Remove: tests an impossible state — StorageColumn requires 'codecId'
+it('builds plan without codecId when column codecId is missing', () => {
+  const contractWithoutCodecId = {
+    ...contract,
+    storage: { tables: { user: { columns: {
+      email: { nativeType: 'text', nullable: true } as { nativeType: string; nullable: true; codecId?: string },
+    } } } },
+  } as SqlContract<SqlStorage>; // type assertion bypasses validation
+});
+```
+
+## Schema Validation Redundancy
+
+**CRITICAL**: Don't re-validate structural properties already validated by schema validators (e.g.
+Arktype).
+
+```typescript
+// ❌ WRONG: re-validating properties Arktype's StorageColumnSchema already validates as required
+for (const [colName, col] of Object.entries(table.columns)) {
+  if (typeof col.nullable !== 'boolean') throw new Error(`Column "${colName}" missing "nullable"`);
+  if (!col.nativeType) throw new Error(`Column "${colName}" missing "nativeType"`);
+  if (!col.codecId) throw new Error(`Column "${colName}" missing "codecId"`);
+}
+```
+
+These checks create impossible code paths (contracts that pass Arktype but fail these checks),
+require awkward type-bypassing tests, and add maintenance burden when the schema changes. Instead,
+focus on **logical** validation schema validators can't do:
+
+```typescript
+// ✅ CORRECT: validate logical consistency (references, relationships) — not structure
+for (const [tableName, table] of Object.entries(storage.tables)) {
+  const columnNames = new Set(Object.keys(table.columns));
+  for (const fk of table.foreignKeys) {
+    for (const colName of fk.columns) {
+      if (!columnNames.has(colName)) throw new Error(`ForeignKey references non-existent column "${colName}"`);
+    }
+    if (!tableNames.has(fk.references.table)) throw new Error(`ForeignKey references non-existent table "${fk.references.table}"`);
+  }
+}
+```
+
+**Responsibility separation:**
+
+- **Schema validators (Arktype)**: structural properties — required fields, types, shapes.
+- **Logical validators (`validateStructure`)**: logical consistency — references, relationships,
+  constraint consistency (e.g. primary-key columns exist).
+
+So add validation checks for references (foreign keys, model references), relationships
+(model-to-table mappings), and constraint consistency — **not** for structural properties already
+validated by schema validators. This keeps concerns separate, removes redundant code/tests, and
+surfaces structural issues early in one place.
+
+## Related Rules
+
+- `.cursor/rules/use-ast-factories.mdc`: Use factory functions for AST nodes
+- `.cursor/rules/typescript-patterns.mdc`: TypeScript best practices
+- `.cursor/rules/arktype-usage.mdc`: Arktype validation patterns
+- `docs/Testing Guide.md`: Testing best practices

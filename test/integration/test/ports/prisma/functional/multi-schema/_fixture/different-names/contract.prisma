@@ -1,0 +1,42 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/multi-schema (postgres matrix entry, mapTable = 'DIFFERENT_NAMES').
+//
+// Upstream schema (postgres, @@map with DIFFERENT table names):
+//
+//   model User {
+//     id       String  @id @default(cuid())
+//     email    String
+//     posts    Post[]
+//     @@schema("base")
+//     @@map("some_table_user")
+//   }
+//
+//   model Post {
+//     id       String  @id @default(cuid())
+//     title    String
+//     authorId String
+//     author   User?   @relation(fields: [authorId], references: [id])
+//     @@schema("transactional")
+//     @@map("some_table_post")
+//   }
+
+namespace base {
+  model User {
+    id       String  @id @default(cuid(2))
+    email    String
+    posts    transactional.Post[]
+
+    @@map("some_table_user")
+  }
+}
+
+namespace transactional {
+  model Post {
+    id       String  @id @default(cuid(2))
+    title    String
+    authorId String
+    author   base.User? @relation(fields: [authorId], references: [id])
+
+    @@map("some_table_post")
+  }
+}

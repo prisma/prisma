@@ -1,0 +1,6 @@
+// use prisma-next
+
+model Document {
+  id Int @id
+  embedding pgvector.Vector(1536)
+}

@@ -1,0 +1,5 @@
+// use prisma-next
+
+model User {
+  id Char(26) @id @default(ulid())
+}

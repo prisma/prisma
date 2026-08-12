@@ -1,0 +1,109 @@
+---
+description: Use factory functions for creating ContractIR objects instead of manual object creation
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# Use Factory Functions for ContractIR
+
+**CRITICAL**: When creating `ContractIR` objects in tests, use factory functions instead of manual object creation.
+
+## The Problem
+
+Manual ContractIR creation:
+- Duplicates contract structure definitions
+- Is error-prone (easy to miss required fields like `capabilities`, `meta`, `sources`)
+- Makes refactoring harder (changes to ContractIR structure require updates in many places)
+- Doesn't ensure all required fields are present with proper defaults
+
+## The Solution
+
+**❌ WRONG: Manual ContractIR creation**
+
+```typescript
+const ir: ContractIR = {
+  schemaVersion: '1',
+  targetFamily: 'sql',
+  target: 'postgres',
+  models: {},
+  relations: {},
+  storage: { tables: {} },
+  extensions: {},
+  capabilities: {},
+  meta: {},
+  sources: {},
+};
+```
+
+**✅ CORRECT: Use factory functions**
+
+```typescript
+import { createContractIR } from './utils'; // or from '@internal/emitter' if exported
+
+const ir = createContractIR({
+  storage: {
+    tables: {
+      user: {
+        columns: {
+          id: { type: 'pg/int4@1', nullable: false },
+        },
+      },
+    },
+  },
+});
+```
+
+## Available Factory Functions
+
+From test utilities:
+- `createContractIR(overrides?)` - Creates a `ContractIR` with sensible defaults
+
+**Note**: This factory function is currently in test utilities but may be moved to production code in the future for use when loading contracts from JSON or constructing contracts programmatically.
+
+## When to Use Factory Functions
+
+Use factory functions when:
+- ✅ Creating `ContractIR` objects in tests
+- ✅ Constructing contracts from parsed JSON (ensures all required fields are present)
+- ✅ Creating minimal contracts programmatically
+
+**Exception**: When using the contract builder (`defineContract()`), the builder handles normalization and you don't need the factory function.
+
+## Required Fields
+
+All `ContractIR` fields are required (non-optional). The factory function ensures all fields are present:
+- `schemaVersion`: string
+- `targetFamily`: string
+- `target`: string
+- `models`: Record<string, unknown> (can be empty `{}`)
+- `relations`: Record<string, unknown> (can be empty `{}`)
+- `storage`: Record<string, unknown> (must have `tables` for SQL contracts)
+- `extensions`: Record<string, unknown> (can be empty `{}`)
+- `capabilities`: Record<string, Record<string, boolean>> (can be empty `{}`)
+- `meta`: Record<string, unknown> (can be empty `{}`)
+- `sources`: Record<string, unknown> (can be empty `{}`)
+
+## Type Notes
+
+- `capabilities` is typed as `Record<string, Record<string, boolean>>`, not `Record<string, unknown>`
+- `ExtensionPack` requires both `manifest` and `path` properties
+
+## Benefits
+
+- **Consistency**: All ContractIR objects created the same way
+- **Type safety**: Factory functions ensure correct structure
+- **Maintainability**: Changes to ContractIR structure only need updates in factory functions
+- **Less duplication**: No need to repeat all required fields in every test
+- **Default values**: Factory provides sensible defaults for all required fields
+
+## Examples from Codebase
+
+**Good patterns:**
+- Using `createContractIR({ storage: {...} })` instead of manually constructing the full object
+- Using `createContractIR()` for minimal contracts
+- Overriding specific fields: `createContractIR({ target: 'mysql' })`
+
+**Bad patterns (to avoid):**
+- Manual object creation for ContractIR in tests
+- Duplicating ContractIR structure definitions in tests
+- Creating ContractIR objects with incomplete structure (missing required fields)

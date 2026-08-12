@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "mongo",
+  "target": "mongo",
+  "profileHash": "251b3ce23f6c9f561892e7c1af9d2cc941a13d64ba1aa7226b90036b09568cc3",
+  "roots": {
+    "comments_optional": {
+      "model": "CommentOptional",
+      "namespace": "__unbound__"
+    },
+    "comments_required": {
+      "model": "CommentRequired",
+      "namespace": "__unbound__"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "__unbound__": {
+        "models": {
+          "CommentOptional": {
+            "fields": {
+              "_id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
+              },
+              "content": {
+                "nullable": true,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "CommentContent"
+                }
+              },
+              "country": {
+                "nullable": true,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "collection": "comments_optional"
+            }
+          },
+          "CommentRequired": {
+            "fields": {
+              "_id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
+              },
+              "content": {
+                "nullable": false,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "CommentContent"
+                }
+              },
+              "country": {
+                "nullable": true,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "collection": "comments_required"
+            }
+          }
+        },
+        "valueObjects": {
+          "CommentContent": {
+            "fields": {
+              "text": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "upvotes": {
+                "many": true,
+                "nullable": false,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "CommentContentUpvotes"
+                }
+              }
+            }
+          },
+          "CommentContentUpvotes": {
+            "fields": {
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "vote": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/bool@1",
+                  "kind": "scalar"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "__unbound__": {
+        "entries": {
+          "collection": {
+            "comments_optional": {
+              "kind": "mongo-collection",
+              "validator": {
+                "jsonSchema": {
+                  "additionalProperties": false,
+                  "bsonType": "object",
+                  "properties": {
+                    "_id": {
+                      "bsonType": "objectId"
+                    },
+                    "content": {
+                      "oneOf": [
+                        {
+                          "bsonType": "null"
+                        },
+                        {
+                          "additionalProperties": false,
+                          "bsonType": "object",
+                          "properties": {
+                            "text": {
+                              "bsonType": "string"
+                            },
+                            "upvotes": {
+                              "bsonType": "array",
+                              "items": {
+                                "additionalProperties": false,
+                                "bsonType": "object",
+                                "properties": {
+                                  "userId": {
+                                    "bsonType": "string"
+                                  },
+                                  "vote": {
+                                    "bsonType": "bool"
+                                  }
+                                },
+                                "required": [
+                                  "userId",
+                                  "vote"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "text",
+                            "upvotes"
+                          ]
+                        }
+                      ]
+                    },
+                    "country": {
+                      "bsonType": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "_id"
+                  ]
+                },
+                "kind": "mongo-validator",
+                "validationAction": "error",
+                "validationLevel": "strict"
+              }
+            },
+            "comments_required": {
+              "kind": "mongo-collection",
+              "validator": {
+                "jsonSchema": {
+                  "additionalProperties": false,
+                  "bsonType": "object",
+                  "properties": {
+                    "_id": {
+                      "bsonType": "objectId"
+                    },
+                    "content": {
+                      "additionalProperties": false,
+                      "bsonType": "object",
+                      "properties": {
+                        "text": {
+                          "bsonType": "string"
+                        },
+                        "upvotes": {
+                          "bsonType": "array",
+                          "items": {
+                            "additionalProperties": false,
+                            "bsonType": "object",
+                            "properties": {
+                              "userId": {
+                                "bsonType": "string"
+                              },
+                              "vote": {
+                                "bsonType": "bool"
+                              }
+                            },
+                            "required": [
+                              "userId",
+                              "vote"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "upvotes"
+                      ]
+                    },
+                    "country": {
+                      "bsonType": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "_id",
+                    "content"
+                  ]
+                },
+                "kind": "mongo-validator",
+                "validationAction": "error",
+                "validationLevel": "strict"
+              }
+            }
+          }
+        },
+        "id": "__unbound__",
+        "kind": "mongo-database"
+      }
+    },
+    "storageHash": "95ba06155628a6148dd6c81cf187f68d1e0d09c7289de3530bbd4b58ac311fcd"
+  },
+  "capabilities": {},
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}

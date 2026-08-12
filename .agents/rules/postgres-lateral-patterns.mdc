@@ -1,0 +1,71 @@
+---
+description: PostgreSQL LATERAL and json_agg rendering patterns
+globs: ["packages/3-targets/**", "packages/2-sql/**"]
+alwaysApply: false
+---
+
+# PostgreSQL LATERAL Join Patterns
+
+## Identifier Quoting
+
+**Don't quote identifiers early in functions.** Quote them only when needed in SQL generation to avoid double-quoting issues.
+
+**❌ Wrong:**
+```typescript
+function renderInclude(include: IncludeAst): string {
+  const alias = quoteIdentifier(include.alias);  // Already quoted: "posts"
+  // Later: quoteIdentifier(alias) would produce """posts""" (triple quotes)
+  return `... AS ${quoteIdentifier(alias)} ...`;
+}
+```
+
+**✅ Correct:**
+```typescript
+function renderInclude(include: IncludeAst): string {
+  const alias = include.alias;  // Unquoted: posts
+  // Quote only when needed in SQL
+  return `... AS ${quoteIdentifier(alias)} ...`;  // Produces: "posts"
+}
+```
+
+## LATERAL Join Column Selection
+
+When using LATERAL joins in PostgreSQL adapters, use different aliases for the table alias and column alias to avoid ambiguity:
+
+- **Table alias**: Use `{alias}_lateral` (e.g., `posts_lateral`)
+- **Column alias**: Use `{alias}` (e.g., `posts`)
+- **Selection**: Select using `table_alias.column_alias` (e.g., `"posts_lateral"."posts"`)
+
+**Example:**
+```typescript
+// In adapter lowering
+const tableAlias = `${alias}_lateral`;  // e.g., "posts_lateral"
+return `LEFT JOIN LATERAL ${subquery} AS ${quoteIdentifier(tableAlias)} ON true`;
+
+// In projection rendering
+return `${quoteIdentifier(tableAlias)}.${quoteIdentifier(item.expr.alias)} AS ${quoteIdentifier(item.alias)}`;
+// Results in: "posts_lateral"."posts" AS "posts"
+```
+
+This pattern prevents PostgreSQL from getting confused when both the table and column have the same name.
+
+## ORDER BY with LIMIT in Subqueries
+
+When both ORDER BY and LIMIT are present in a LATERAL subquery, wrap the query in an inner SELECT that projects individual columns with aliases, then use `json_agg(row_to_json(sub.*))` on the result:
+
+**Pattern:**
+```sql
+SELECT json_agg(row_to_json(sub.*)) AS "posts"
+FROM (
+  SELECT "post"."id" AS "id", "post"."title" AS "title"
+  FROM "post"
+  WHERE ...
+  ORDER BY "id" ASC  -- Use column alias, not table.column
+  LIMIT 1
+) sub
+```
+
+**Key points:**
+- Use column aliases in ORDER BY when the column is in the SELECT list
+- Map column references to their aliases before generating ORDER BY clause
+- Wrap in subquery to avoid GROUP BY issues with aggregates

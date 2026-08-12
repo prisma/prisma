@@ -1,0 +1,95 @@
+/**
+ * `migration graph --dot` under the engine.
+ *
+ * DOT is not a `--format` value — the engine reserves that flag — so `--dot`
+ * stays a command-owned boolean and the old precedence quirk goes away: in
+ * human mode the DOT text is the command's stdout payload, and in json mode
+ * (which a non-TTY stdout selects) the result carries the DOT alongside the
+ * graph document instead of replacing it.
+ */
+
+import { describe, expect, it } from 'vitest';
+import { withTempDir } from '../utils/cli-test-helpers';
+import {
+  type JourneyContext,
+  runContractEmit,
+  runMigrationGraph,
+  runMigrationPlanAndEmit,
+  setupJourney,
+  timeouts,
+} from '../utils/journey-test-helpers';
+
+withTempDir(({ createTempDir }) => {
+  describe('migration graph — DOT output', () => {
+    it(
+      'puts DOT on stdout in human mode and on the result in json mode',
+      async () => {
+        const ctx: JourneyContext = setupJourney({ createTempDir });
+
+        const emit = await runContractEmit(ctx);
+        expect(emit.exitCode, 'emit').toBe(0);
+        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        expect(plan.exitCode, 'plan').toBe(0);
+
+        const human = await runMigrationGraph(ctx, ['--dot']);
+        expect(human.exitCode, 'graph exit code').toBe(0);
+        expect(human.presented?.presentation.stdout?.[0], 'DOT preamble').toBe(
+          'digraph migrations {',
+        );
+        expect(human.stdout, 'DOT reaches stdout').toContain('digraph migrations {');
+
+        // Piping selects json, and the DOT rides the result rather than
+        // shadowing it: a caller that asked for json never receives DOT where
+        // json was promised.
+        const json = await runMigrationGraph(ctx, ['--dot'], { isTTY: false });
+        const document = json.presented?.data as { dot: string; spaces: readonly unknown[] };
+        expect(json.exitCode, 'graph json exit code').toBe(0);
+        expect(document.dot, 'result carries the DOT').toContain('digraph migrations {');
+        expect(document.spaces, 'result still carries the graph document').not.toHaveLength(0);
+        expect(json.presented?.presentation.stdout, 'no raw DOT on the frame stream').toEqual([]);
+      },
+      timeouts.typeScriptCompilation,
+    );
+
+    it(
+      'omits the dot field when --dot is absent',
+      async () => {
+        const ctx: JourneyContext = setupJourney({ createTempDir });
+
+        const emit = await runContractEmit(ctx);
+        expect(emit.exitCode, 'emit').toBe(0);
+        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        expect(plan.exitCode, 'plan').toBe(0);
+
+        const graph = await runMigrationGraph(ctx, [], { isTTY: false });
+
+        expect(graph.exitCode, 'graph exit code').toBe(0);
+        expect(graph.presented?.data).not.toHaveProperty('dot');
+        expect(graph.presented?.data).toMatchObject({ ok: true });
+      },
+      timeouts.typeScriptCompilation,
+    );
+
+    it(
+      'refuses --legend alongside --dot',
+      async () => {
+        const ctx: JourneyContext = setupJourney({ createTempDir });
+
+        const emit = await runContractEmit(ctx);
+        expect(emit.exitCode, 'emit').toBe(0);
+
+        const graph = await runMigrationGraph(ctx, ['--dot', '--legend'], { isTTY: false });
+        const terminal = graph.json.at(-1);
+        const envelope =
+          terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+
+        expect(graph.exitCode, 'graph exit code').toBe(2);
+        expect(envelope).toMatchObject({
+          ok: false,
+          error: { code: 'MIGRATION.LEGEND_HUMAN_ONLY' },
+        });
+      },
+      timeouts.typeScriptCompilation,
+    );
+  });
+});

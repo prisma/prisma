@@ -1,0 +1,45 @@
+---
+description: Keep documentation and READMEs accurate and updated
+globs:
+alwaysApply: true
+---
+
+- Whenever you receive a correction or correct a mistake, make sure it's documented in .cursor/rules either by updating an existing doc or adding a new one
+- **An ADR records the *decision*; the subsystem/reference doc records the *current shape*. They are separate obligations.** When a change alters a documented system shape or contract (IR shape, emitted-type surface, render path, public type alias), update the relevant doc under `docs/architecture docs/subsystems/` (and any worked examples it contains) in the same change — not only the ADR. Landing the ADR does **not** discharge the obligation to refresh the reference docs a fresh contributor reads; a subsystem doc that still shows the pre-change shape is actively misleading even when the ADR is correct.
+- Whenever you make changes to a package, make sure its docs stay up to date.
+  - **User-facing packages**: keep `README.md` focused on what the package does, when to use it, and a few concrete examples. Avoid internal implementation detail unless it materially affects usage.
+  - **Contributor details**: put responsibilities/dependencies/architecture diagrams/internal exports in `DEVELOPING.md` (or `CONTRIBUTING.md`) within that package, and add a short link from `README.md`.
+- Docs must not link to transient project artifacts under `projects/` (link to durable `docs/` or package READMEs instead)
+- **Source-code comments, ADRs, package READMEs, and test names must not reference transient project artefacts.** This includes:
+  - `projects/<x>/...` paths
+  - Milestone / project labels (e.g. "Project 1", "Project 2", "M1", "Milestone 2")
+  - Task or round IDs (e.g. `T1.7`, `T2.5.3`, `R4 design choice`, `R8B`, `(T7)`)
+  - Spec decision IDs (e.g. `(D1)`, `(D6)`, `spec D7`, `(FR6)`)
+  - Milestone-named acceptance criteria (e.g. `AM12`, `AC-13`, `AC-E2E-BIGINT`, `AC-MW1`, `AC-DEC2`)
+  - File names that encode acceptance-criteria IDs (e.g. `ac-e2e-bigint.test.ts` — drop the `ac-` prefix)
+  - Prose attributions like "the spec calls out", "the spec wording mentions", "the spec promises", "per spec", "out of scope per spec", "M2 review", "sub-spec § 4", "sub-spec OQ3"
+
+  When a comment needs to explain *why* something is the way it is, describe the constraint or behaviour itself; do not attribute it to the transient project artefact that introduced it.
+
+  Stable references that **are** fine: Linear ticket IDs (e.g. `TML-2397`), ADR numbers (e.g. `ADR 211`), and links to durable docs under `docs/architecture docs/`.
+
+  **Worked example.** Bad:
+
+  ```ts
+  // Per-envelope plaintext is forwarded as `unknown` (D1) — the
+  // SDK sees the original JS plaintext untouched. Pins AC-MW1.
+  ```
+
+  Good:
+
+  ```ts
+  // Per-envelope plaintext is forwarded to the SDK as `unknown`
+  // — the SDK sees the original JS plaintext untouched.
+  ```
+
+  Before opening a PR, scan the branch diff for these patterns:
+
+  ```bash
+  rg 'Project [12]|\bD[1-9]\b|\(FR[0-9]+\)|\(T[0-9]+\)|AC-[A-Z][A-Z0-9-]*|\bR[0-9]+B?\b|\bF[1-7]\b|\bM[12]\b|per spec|the spec\b|spec calls|spec wording|spec promises|sub-spec|milestone' -- ':!projects/' ':!*.generated.*'
+  ```
+- If you establish a new design decision, update the architecture docs in `docs/architecture docs`

@@ -1,0 +1,25 @@
+// Faithful translation of prisma/prisma functional suite `multiple-types`
+// (packages/client/tests/functional/multiple-types, postgres matrix entry):
+//
+//   model TestModel {
+//     id     String   @id @default(cuid())
+//     string String?
+//     int    Int?
+//     bInt   BigInt?
+//     float  Float?
+//     bytes  Bytes?
+//     bool   Boolean?
+//     dt     DateTime?
+//     dec    Decimal?
+//   }
+model TestModel {
+  id     String    @id @default(cuid(2))
+  string String?
+  int    Int?
+  bInt   BigInt?
+  float  Float?
+  bytes  Bytes?
+  bool   Boolean?
+  dt     DateTime?
+  dec    Decimal?
+}

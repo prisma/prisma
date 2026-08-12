@@ -1,0 +1,27 @@
+---
+description: Name built-and-lowered SQL units "queries", not "asts"
+alwaysApply: true
+---
+
+# In the SQL query surface, the things you build and lower are queries, not "asts"
+
+When you build a node (or a list of nodes) that will be handed to `adapter.lower()` / `family.lowerAst()` and executed against the driver, that deliverable is a **query**. Name methods, functions, variables, and parameters accordingly:
+
+- `bootstrapControlTableQueries()`, `bootstrapSignMarkerQueries()` — **not** `*Asts`.
+- `buildControlTableBootstrapQueries()`, `buildSignMarkerBootstrapQueries()` — **not** `*Asts`.
+- Local variables: `const queries = …`, `for (const query of queries)`, `schemaQuery`, `tableQueries` — **not** `asts` / `ast` / `schemaAst` / `tableAsts`.
+
+"AST" is the structural noun for the tree shape (`DdlNode`, `AnyQueryAst`, the abstract-syntax-tree machinery, a `*Visitor`). It is **not** the name for the unit a caller constructs and executes. A function that returns `readonly DdlNode[]` for the runner to lower is returning **queries**, even though each element is a node.
+
+## Why
+
+- The codebase's ubiquitous language calls the executed unit a *query*. Calling collections of them "asts" leaks an implementation noun into surfaces that are about *what gets run*.
+- This is a repeat correction. Defaulting to `*Asts` for builder/return names has been flagged more than once in review; pick the right noun at authoring time.
+
+## Quick check before staging
+
+```bash
+git diff --cached -- '*.ts' | rg '^\+' | rg -i '\bbootstrap\w*Asts\b|\bbuild\w*Asts\b|\b\w+Asts\b\s*\(|\bschemaAst\b|\btableAsts\b'
+```
+
+Output should be empty. Structural names (`DdlNode`, `AnyQueryAst`, `DdlVisitor`, `accept`) are fine and expected.

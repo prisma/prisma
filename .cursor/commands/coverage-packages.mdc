@@ -1,0 +1,7 @@
+---
+description: Run coverage for packages only
+---
+```bash
+pnpm coverage:packages
+```
+

@@ -1,0 +1,7 @@
+{
+  "slug": "spike-first-flaky-test",
+  "title": "Intermittently failing integration test, unknown root cause (spike-first)",
+  "shape": "spike-first",
+  "recommended_model": "claude-4.6-sonnet-high-thinking",
+  "summary": "An integration test fails intermittently with no known cause. A correct run triages to a TIME-BOXED SPIKE to find the root cause before committing to a fix shape, rather than guessing a fix or quarantining the test blindly."
+}

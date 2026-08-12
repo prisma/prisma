@@ -1,0 +1,7 @@
+---
+description: Read AGENTS.md for repo entrypoint and high-level constraints
+globs:
+alwaysApply: true
+---
+
+Read `AGENTS.md`.

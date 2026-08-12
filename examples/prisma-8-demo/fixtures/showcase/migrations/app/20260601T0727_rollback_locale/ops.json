@@ -1,0 +1,34 @@
+[
+  {
+    "id": "dropColumn.account.locale",
+    "label": "Drop column \"locale\" from \"account\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "locale",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"locale\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'locale'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"locale\"",
+        "sql": "ALTER TABLE \"account\" DROP COLUMN \"locale\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"locale\" does not exist",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'locale'\n)"
+      }
+    ]
+  }
+]

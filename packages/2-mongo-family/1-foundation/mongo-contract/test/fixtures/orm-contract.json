@@ -1,0 +1,303 @@
+{
+  "targetFamily": "mongo",
+  "storageHash": "fixture-hash",
+  "roots": {
+    "tasks": {
+      "model": "Task",
+      "namespace": "__unbound__"
+    },
+    "users": {
+      "model": "User",
+      "namespace": "__unbound__"
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "__unbound__": {
+        "id": "__unbound__",
+        "entries": {
+          "collection": {
+            "tasks": {},
+            "users": {}
+          }
+        }
+      }
+    }
+  },
+  "target": "mongo",
+  "domain": {
+    "namespaces": {
+      "__unbound__": {
+        "models": {
+          "Task": {
+            "storage": {
+              "collection": "tasks",
+              "relations": {
+                "comments": {
+                  "field": "comments"
+                }
+              }
+            },
+            "fields": {
+              "_id": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/objectId@1"
+                },
+                "nullable": false
+              },
+              "title": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "type": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "assigneeId": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/objectId@1"
+                },
+                "nullable": false
+              }
+            },
+            "relations": {
+              "assignee": {
+                "to": {
+                  "model": "User",
+                  "namespace": "__unbound__"
+                },
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": ["assigneeId"],
+                  "targetFields": ["_id"]
+                }
+              },
+              "comments": {
+                "to": {
+                  "model": "Comment",
+                  "namespace": "__unbound__"
+                },
+                "cardinality": "1:N"
+              }
+            },
+            "discriminator": {
+              "field": "type"
+            },
+            "variants": {
+              "Bug": {
+                "value": "bug"
+              },
+              "Feature": {
+                "value": "feature"
+              }
+            }
+          },
+          "Bug": {
+            "storage": {
+              "collection": "tasks"
+            },
+            "fields": {
+              "severity": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              }
+            },
+            "relations": {},
+            "base": {
+              "model": "Task",
+              "namespace": "__unbound__"
+            }
+          },
+          "Feature": {
+            "storage": {
+              "collection": "tasks"
+            },
+            "fields": {
+              "priority": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "targetRelease": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              }
+            },
+            "relations": {},
+            "base": {
+              "model": "Task",
+              "namespace": "__unbound__"
+            }
+          },
+          "User": {
+            "storage": {
+              "collection": "users",
+              "relations": {
+                "addresses": {
+                  "field": "addresses"
+                }
+              }
+            },
+            "fields": {
+              "_id": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/objectId@1"
+                },
+                "nullable": false
+              },
+              "name": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "email": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "loginCount": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/int32@1"
+                },
+                "nullable": false
+              },
+              "tags": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false,
+                "many": true
+              },
+              "homeAddress": {
+                "type": {
+                  "kind": "valueObject",
+                  "name": "HomeAddress"
+                },
+                "nullable": true
+              }
+            },
+            "relations": {
+              "addresses": {
+                "to": {
+                  "model": "Address",
+                  "namespace": "__unbound__"
+                },
+                "cardinality": "1:N"
+              },
+              "tasks": {
+                "to": {
+                  "model": "Task",
+                  "namespace": "__unbound__"
+                },
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": ["_id"],
+                  "targetFields": ["assigneeId"]
+                }
+              }
+            }
+          },
+          "Address": {
+            "storage": {},
+            "fields": {
+              "street": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "city": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "zip": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              }
+            },
+            "relations": {},
+            "owner": "User"
+          },
+          "Comment": {
+            "storage": {},
+            "fields": {
+              "_id": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/objectId@1"
+                },
+                "nullable": false
+              },
+              "text": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "createdAt": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/date@1"
+                },
+                "nullable": false
+              }
+            },
+            "relations": {},
+            "owner": "Task"
+          }
+        },
+        "valueObjects": {
+          "HomeAddress": {
+            "fields": {
+              "city": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "country": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

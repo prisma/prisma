@@ -1,0 +1,45 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/relationMode-17255-mixed-actions
+// (postgres matrix entry, relationMode=foreignKeys).
+//
+// The schema is hardcoded with MIXED referential actions — it does NOT
+// vary with the matrix action. `Main.alice` is SetNull-on-delete /
+// Cascade-on-update; `Bob.main` is Cascade-on-delete / Cascade-on-update.
+//
+// Upstream schema (prisma/_schema_mixed_actions.ts):
+//   model Main {
+//     id String @id
+//     alice   Alice?  @relation(fields: [aliceId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+//     aliceId String?
+//     bob Bob?
+//   }
+//   model Alice {
+//     id String @id
+//     manyMains Main[]
+//   }
+//   model Bob {
+//     id String @id
+//     main   Main   @relation(fields: [mainId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//     mainId String @unique
+//   }
+
+model Main {
+  id String @id
+
+  alice   Alice?  @relation(fields: [aliceId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  aliceId String?
+
+  bob Bob?
+}
+
+model Alice {
+  id        String @id
+  manyMains Main[]
+}
+
+model Bob {
+  id String @id
+
+  main   Main   @relation(fields: [mainId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  mainId String @unique
+}

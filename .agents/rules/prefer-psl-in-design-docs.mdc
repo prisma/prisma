@@ -1,0 +1,21 @@
+---
+description: Lead with PSL examples in design docs; TS authoring surface mirrors or extends PSL
+alwaysApply: true
+---
+
+# Prefer PSL examples in design docs
+
+PSL is the default authoring surface (most users come from Prisma 1.x/2.x); the TS contract builder is secondary. Design docs (specs, ADRs, architecture docs, READMEs) should reflect that ordering.
+
+- **Lead with PSL** when illustrating a feature that exists in both surfaces.
+- **Use TS only when the content is about the TS surface itself** — model-handle brands, function-form predicates with `ref(modelHandle)`, type-level inference, or any capability PSL's grammar cannot express.
+- A TS example that just restates the PSL one is noise — drop it; equivalence is implied.
+- Surface-neutral prose should avoid TS-only or PSL-only phrasing where the capability exists in both.
+
+PSL code blocks **must use the `prisma` language tag, never `psl`** — only `prisma` is registered with the highlighters (GitHub, VSCode, docs site); `psl` renders as plain text. (The surface is colloquially "PSL" in prose, but the fence says `prisma`.)
+
+## Why it matters for design
+
+The TS surface is by design a **superset** of PSL: it can express everything PSL can, plus TS-only capabilities (function-form `using`/`withCheck`, richer constraint overrides, closure-scoped helpers). It is never a subset. So **PSL is where the difficult limitations bite** — a static text parser constrains the grammar, and new design pressure surfaces in PSL first. Design a new authoring capability against PSL first; the TS surface follows by mirroring or extending. A design doc that only shows TS also fails to surface the harder design problem.
+
+Runtime code (`db.asUser(jwt)`, `session.sql.from(...)`, middleware, config objects) has no PSL form and stays in TS — this rule covers **authoring** examples (contracts, models, fields, relations, policies), not runtime usage.

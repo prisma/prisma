@@ -1,0 +1,29 @@
+---
+description: TypeScript and architecture patterns for this codebase
+globs: ["packages/**/*.ts", "packages/**/*.tsx", "examples/**/*.ts", "examples/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"]
+alwaysApply: false
+---
+
+# TypeScript and Architecture Patterns
+
+This rulecard is intentionally short. For deeper examples, see `docs/reference/typescript-patterns.md`.
+
+## Focused rulecards
+
+- `.cursor/rules/generic-parameters.mdc` — Generic parameter defaults
+- `.cursor/rules/interface-factory-pattern.mdc` — Interface-based design + factory functions
+- `.cursor/rules/type-predicates.mdc` — Replace blind casts with type predicates
+- `.cursor/rules/test-mocking-patterns.mdc` — Type assertions and mocking patterns in tests
+
+## Quick reminders
+
+- **No blind casts in production**: `as unknown as X` is forbidden outside tests. Prefer type predicates or fix the type surface.
+- **Export interfaces; construct via factories**: keep classes as private implementation details.
+- **No generic defaults unless meaningful**: defaults are semantics, not “flexibility”.
+- **Test-only escapes**: `@ts-expect-error` and double casts are acceptable only in test files, with a short explanation.
+
+## Related rules
+
+- `.cursor/rules/no-inline-imports.mdc`
+- `.cursor/rules/object-hasown.mdc`
+- `.cursor/rules/prefer-assertions-over-defensive-checks.mdc`

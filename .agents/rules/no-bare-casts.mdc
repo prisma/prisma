@@ -1,0 +1,57 @@
+---
+description: No bare `as` casts in production TypeScript. Use blindCast<T, "Reason">(value) from @internal/utils/casts as the auditable escape hatch, castAs<T>(value) for declarative-only assertions, or rewrite to eliminate the cast. as const is exempt. Test files are exempt.
+alwaysApply: false
+globs: ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"]
+---
+
+# No bare `as` casts in production TypeScript
+
+Bare `as` type casts (`value as Foo`, `x as unknown as Bar`) are forbidden in production code. The `no-bare-cast` Biome plugin (TML-2685) fires on every bare `as` token in production files. The CI ratchet rejects per-PR cast-count increases. Every bare cast must be replaced by one of the three accepted forms or eliminated by a code rewrite.
+
+## Three accepted forms
+
+| Form | When to use |
+|---|---|
+| `blindCast<T, "Reason">(value)` | The value is genuinely opaque or unrelated to the target type. The `Reason` literal documents the compromise at the call site. |
+| `castAs<T>(value)` | The value already satisfies `T`; the assertion is purely declarative (widening from a subtype, or providing an annotation the type-checker cannot infer). |
+| `as const` | A different semantic — produces a readonly literal type, not a type assertion. Always fine; the rule does not fire on `as const`. |
+
+Both helpers live in `@internal/utils/casts`:
+
+```typescript
+import { blindCast, castAs } from '@internal/utils/casts';
+```
+
+## Rewrite first; cast as last resort; reviewer validates the justification
+
+When an author reaches for `blindCast`, the first action is to ask whether the code can be rewritten so the cast becomes unnecessary. Only when no rewrite is feasible does the cast happen, and the `Reason` literal must articulate the compromise in language a reviewer can evaluate. An unconvincing `Reason` is the reviewer's signal to push back — and the author's signal to go solve the underlying type-system problem properly. `blindCast` is **not** a sanctioned tool to reach for; it is the auditable escape hatch when everything else has been tried.
+
+Rewrite options to exhaust before reaching for `blindCast`:
+
+- **Tighten an input type** so the cast becomes unnecessary.
+- **Add a runtime check** that narrows via a type predicate (`if (isUser(x)) { … }`).
+- **Restructure a generic** so the bound carries the needed information.
+- **Use `satisfies`** when the goal is type-checking *without* coercion — `expr satisfies T` is unaffected by this rule.
+- **Use `castAs<T>(value)`** when the value already satisfies the target type.
+
+## The `Reason` literal
+
+The second type argument to `blindCast` must be a string literal that names the specific compromise in language a reviewer can evaluate.
+
+```typescript
+// ✅  Acceptable — reason names the constraint
+blindCast<User, "deserialized from JSON; contract validator has already checked shape">(raw)
+
+// ❌  Unacceptable — reason adds no information
+blindCast<User, "it works">(raw)
+```
+
+A vague reason is the reviewer's signal to push back and the author's signal to revisit the type design.
+
+## "Convert when you touch"
+
+Any time you touch a file that contains a bare `as` cast — even as part of unrelated work — convert it to one of the accepted forms or eliminate it. The CI ratchet enforces no per-PR count increases; converting on contact is how the total comes down over time.
+
+## Test code is exempt
+
+The rule does not fire on test files (`**/*.test.ts`, `**/*.test-d.ts`, `**/test/**/*.ts`). Tests routinely use `as` for stubbing, narrowing, and negative type assertions; the exemption is encoded in the Biome plugin itself.

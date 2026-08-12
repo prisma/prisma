@@ -1,0 +1,12 @@
+model User {
+
+id Int @id
+
+
+
+name String
+
+
+@@map("user")
+
+}

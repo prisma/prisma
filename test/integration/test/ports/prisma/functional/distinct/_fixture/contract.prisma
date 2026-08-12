@@ -1,0 +1,16 @@
+// Faithful translation of prisma/prisma functional suite `distinct`
+// (packages/client/tests/functional/distinct, postgres matrix entry):
+//
+//   model User {
+//     id        String @id @default(cuid())
+//     firstName String
+//     lastName  String
+//   }
+//
+// The cuid default is irrelevant to distinct semantics; rows are seeded with
+// explicit ids. Prisma maps model/field names verbatim (no snake_case).
+model User {
+  id        String @id
+  firstName String
+  lastName  String
+}

@@ -1,0 +1,16 @@
+// use prisma-next
+
+model Team {
+  id Int @id @map("team_id")
+  @@map("org_team")
+}
+
+model Member {
+  id Int @id @map("member_id")
+  teamId Int @map("team_ref")
+  team Team @relation(fields: [teamId], references: [id], map: "team_member_team_ref_fkey", onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("team_member")
+  @@index([teamId])
+  @@unique([teamId, id])
+}

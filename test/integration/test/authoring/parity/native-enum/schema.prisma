@@ -1,0 +1,27 @@
+// use prisma-next
+
+namespace public {
+  native_enum Role {
+    user = "user"
+    admin = "admin"
+  }
+
+  model Account {
+    id Int @id @default(autoincrement())
+    role pg.enum(Role)
+  }
+}
+
+namespace auth {
+  native_enum AalLevel {
+    aal1 = "aal1"
+    aal2 = "aal2"
+    aal3 = "aal3"
+    @@map("aal_level")
+  }
+
+  model Session {
+    id Int @id @default(autoincrement())
+    aal pg.enum(AalLevel)?
+  }
+}

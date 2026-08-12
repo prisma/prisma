@@ -1,0 +1,10 @@
+// PSL contract source for the internal `audit` contract-space package.
+// See ../README.md for the emit + migration-authoring workflow.
+
+model AuditEvent {
+  id     String @id
+  actor  String
+  action String
+
+  @@map("audit_event")
+}

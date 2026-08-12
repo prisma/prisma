@@ -1,0 +1,134 @@
+// Real emitted fixture for the sql-orm-client polymorphism integration tests.
+//
+// It carries two polymorphic hierarchies plus the parent/relation models the
+// include tests exercise, so `Collection` / `.variant()` / `.include()` drive
+// through the real static contract types instead of runtime-patched stand-ins.
+//
+//   Task (base, table `tasks`, discriminator `type`)
+//     Bug     — single-table inheritance (own field `severity`, no `@@map`)
+//     Feature — multi-table inheritance (`@@map("features")`, field `priority`)
+//     Epic    — multi-table inheritance (`@@map("epics")`, field `scope`)
+//   User (base, table `users`, discriminator `kind`)
+//     Admin   — single-table inheritance (own field `role`)
+//     Regular — single-table inheritance (own field `plan`)
+//
+// Parent / relation models:
+//   Account  --members(1:N)--> User
+//   Project  --tasks(1:N)--> Task
+//   Ticket   --owner(N:1)--> User
+//   Person   <--reporter(N:1)-- Task
+//   Person   <--assignee(N:1)-- Bug (STI) / Feature (MTI)
+//   TaskComment <--comments(1:N)-- Task
+
+model Task {
+  id         Int    @id @default(autoincrement())
+  title      String
+  type       String
+  projectId  Int?   @map("project_id")
+  reporterId Int?   @map("reporter_id")
+
+  project  Project?     @relation(fields: [projectId], references: [id])
+  reporter Person?      @relation(fields: [reporterId], references: [id])
+  comments TaskComment[]
+
+  @@discriminator(type)
+  @@map("tasks")
+}
+
+model Bug {
+  severity   String
+  assigneeId Int?   @map("bug_assignee_person_id")
+
+  assignee Person? @relation(fields: [assigneeId], references: [id])
+
+  @@base(Task, "bug")
+}
+
+model Feature {
+  priority   Int
+  assigneeId Int? @map("feature_assignee_person_id")
+
+  assignee Person? @relation(fields: [assigneeId], references: [id])
+
+  @@base(Task, "feature")
+  @@map("features")
+}
+
+model Epic {
+  scope String
+
+  @@base(Task, "epic")
+  @@map("epics")
+}
+
+model User {
+  id        Int    @id @default(autoincrement())
+  name      String
+  email     String
+  kind      String
+  accountId Int?   @map("account_id")
+
+  account Account? @relation(fields: [accountId], references: [id])
+
+  @@discriminator(kind)
+  @@map("users")
+}
+
+model Admin {
+  role String
+
+  @@base(User, "admin")
+}
+
+model Regular {
+  plan String?
+
+  @@base(User, "regular")
+}
+
+model Account {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  members User[]
+
+  @@map("accounts")
+}
+
+model Project {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  tasks Task[]
+
+  @@map("projects_tbl")
+}
+
+model Ticket {
+  id      Int    @id @default(autoincrement())
+  subject String
+  ownerId Int?   @map("owner_id")
+
+  owner User? @relation(fields: [ownerId], references: [id])
+
+  @@map("tickets")
+}
+
+model Person {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  tasks Task[]
+
+  @@map("people")
+}
+
+model TaskComment {
+  id     Int    @id @default(autoincrement())
+  body   String
+  taskId Int?   @map("task_id")
+
+  task Task? @relation(fields: [taskId], references: [id])
+
+  @@map("task_comments")
+}

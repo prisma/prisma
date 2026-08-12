@@ -1,0 +1,27 @@
+{
+  "name": "@repo/tsdown",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "version": "8.0.0-rc.1",
+  "description": "Base tsdown configuration for the monorepo",
+  "license": "MIT",
+  "devDependencies": {
+    "@internal/publish-surface": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "es-module-lexer": "^2.3.1",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "scripts": {
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write .",
+    "lint:fix:unsafe": "biome check --write --unsafe .",
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    ".": "./base.ts",
+    "./shell-build": "./shell-build.ts",
+    "./shell-testkit": "./shell-testkit.ts"
+  }
+}

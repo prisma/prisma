@@ -1,0 +1,14 @@
+// use prisma-next
+
+model user {
+  id    Char(36)  @id @default(uuid())
+  email String
+  phone String?
+  bio String?
+  posts String?
+  avatar String?
+  comments String?
+  tags String?
+  category String?
+  settings String?
+}

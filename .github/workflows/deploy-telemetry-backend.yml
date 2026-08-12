@@ -1,0 +1,78 @@
+name: Deploy telemetry-backend
+
+# Publishes `apps/telemetry-backend` to Prisma Compute and applies any
+# pending migrations against the production database first.
+#
+# Triggers:
+#   - workflow_dispatch        — manual deploy from any branch.
+#   - push to `main` filtered  — only when changes touch the telemetry-backend
+#                                source or this workflow itself.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "apps/telemetry-backend/**"
+      - ".github/workflows/deploy-telemetry-backend.yml"
+      - "pnpm-lock.yaml"
+
+# Serialize deploys: never let two runs race on the same service / database.
+# `cancel-in-progress: false` so an in-flight migrate+deploy completes before
+# the next one starts, rather than being aborted mid-promote.
+concurrency:
+  group: deploy-telemetry-backend
+  cancel-in-progress: false
+
+# Declare the minimal permissions for GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Migrate + deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Node version comes from `.tool-versions` at the repo root (matches CI).
+      - name: Setup mise (Node)
+        uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
+        with:
+          cache: true
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      # Re-install after build so pnpm relinks workspace bins now that
+      # their target files exist (mirrors `ci.yml`'s `fixtures` job).
+      - name: Link built binaries
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations
+        working-directory: apps/telemetry-backend
+        env:
+          DATABASE_URL: ${{ secrets.TELEMETRY_DATABASE_URL_PRODUCTION }}
+        run: pnpm run migrate
+
+      - name: Deploy to Prisma Compute
+        working-directory: apps/telemetry-backend
+        env:
+          TELEMETRY_DEPLOY_PROJECT_ID: ${{ secrets.TELEMETRY_DEPLOY_PROJECT_ID }}
+          TELEMETRY_DEPLOY_SERVICE_ID: ${{ secrets.TELEMETRY_DEPLOY_SERVICE_ID }}
+          TELEMETRY_DEPLOY_SERVICE_TOKEN: ${{ secrets.TELEMETRY_DEPLOY_SERVICE_TOKEN }}
+        run: pnpm run deploy

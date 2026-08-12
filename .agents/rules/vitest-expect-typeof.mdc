@@ -1,0 +1,51 @@
+---
+description: When writing type tests
+globs: ["**/*.test-d.ts"]
+alwaysApply: false
+---
+# Vitest expectTypeOf API
+
+## Deprecated: `toMatchTypeOf`
+
+The `toMatchTypeOf()` matcher has been deprecated in Vitest's `expectTypeOf` API.
+
+**Do not use:**
+```typescript
+expectTypeOf(plan).toMatchTypeOf<Plan<Row>>();
+```
+
+## Use `toExtend()` instead
+
+Use `toExtend()` to verify that a type extends or matches another type:
+
+**Correct usage:**
+```typescript
+expectTypeOf(plan).toExtend<Plan<Row>>();
+```
+
+## When to use `toExtend()` vs `toEqualTypeOf()`
+
+- `toExtend<T>()`: Verifies that the type extends `T` (allows subtypes). Use when checking that a value's type matches or is a subtype of the expected type.
+- `toEqualTypeOf<T>()`: Verifies exact type equality. Use when checking for exact type matches.
+
+For most cases where you're verifying that a plan or object has the correct type structure, `toExtend()` is the appropriate choice.
+
+## Anti-pattern: Manual type checks with conditional types
+
+**Do not use manual type checking patterns with conditional types:**
+
+```typescript
+// ❌ WRONG: Manual type check pattern
+const _textTypeIdCheck: TextTypeId extends 'pg/text@1' ? true : false = true;
+const _intTypeIdCheck: IntTypeId extends 'pg/int4@1' ? true : false = true;
+```
+
+**Use Vitest's `expectTypeOf` instead:**
+
+```typescript
+// ✅ CORRECT: Use Vitest type helpers
+expectTypeOf<TextTypeId>().toEqualTypeOf<'pg/text@1'>();
+expectTypeOf<IntTypeId>().toEqualTypeOf<'pg/int4@1'>();
+```
+
+The manual pattern creates unnecessary variables and is less readable. Vitest's `expectTypeOf` provides clear, declarative type assertions that integrate with the test framework.

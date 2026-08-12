@@ -1,0 +1,10 @@
+// use prisma-next
+
+types {
+  Embedding1536 = pgvector.Vector(1536)
+}
+
+model Document {
+  id Int @id @default(autoincrement())
+  embedding Embedding1536
+}

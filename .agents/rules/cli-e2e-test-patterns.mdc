@@ -1,0 +1,18 @@
+---
+description: Patterns for CLI e2e tests using shared fixture app
+globs: ["test/e2e/**", "test/integration/**", "packages/1-framework/3-tooling/cli/**"]
+alwaysApply: false
+---
+
+# CLI E2E Test Fixture Patterns
+
+This rulecard is intentionally short. For full fixture layout and examples, see `docs/reference/cli-e2e-test-patterns.md`.
+
+## Key points
+
+- Prefer the shared fixture app directory for reliable workspace resolution.
+- Tests must clean up their own ephemeral directories.
+
+## Related rules
+
+- `.cursor/rules/cli-error-handling.mdc`

@@ -1,0 +1,17 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/12572 (postgres matrix entry).
+//
+// Upstream schema:
+//   model User {
+//     id        String   @id @default(cuid())
+//     createdAt DateTime @default(now())
+//     updatedAt DateTime @updatedAt
+//   }
+//
+// prisma-next: @updatedAt maps to temporal.updatedAt().
+
+model User {
+  id        String   @id @default(cuid(2))
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+}

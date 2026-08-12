@@ -1,0 +1,107 @@
+---
+description: When writing tests
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# Test Database Limitations
+
+## Overview
+
+Test databases created via `withDevDatabase()` from `@repo/test-utils` use **pglite** (an in-memory PostgreSQL implementation via `@prisma/dev`). Pglite does **not support PostgreSQL extensions** like `pgvector`, `pg_trgm`, etc.
+
+## The Problem
+
+When writing tests that use features requiring PostgreSQL extensions:
+
+**❌ WRONG: Trying to use extensions in pglite**
+
+```typescript
+await withClient(connectionString, async (client) => {
+  await client.query('create extension if not exists vector');  // ❌ Fails: extension not available
+  await client.query('create table post (embedding vector(1536))');  // ❌ Fails: vector type doesn't exist
+});
+```
+
+**Error:** `extension "vector" is not available` or `type "vector" does not exist`
+
+## Solutions
+
+### Option 1: Avoid Extension Features in Tests (Recommended for Non-Extension Tests)
+
+If your test is **not specifically testing extension functionality**, avoid selecting or using extension-dependent columns:
+
+**✅ CORRECT: Don't select extension columns in non-extension tests**
+
+```typescript
+// Test is about ORM includes, not vector operations
+const plan = orm
+  .user()
+  .include.posts((child) =>
+    child
+      .select((m) => ({
+        id: m.id,
+        title: m.title,
+        createdAt: m.createdAt,
+        // ✅ Don't select embedding - test is about includes, not vectors
+      }))
+  )
+  .select((u) => ({ id: u.id, posts: true }))
+  .findMany();
+```
+
+**Why?** The test focuses on the feature being tested (includes), not the extension functionality. Extension functionality should be tested separately.
+
+### Option 2: Use Real PostgreSQL Database
+
+If you **must test extension functionality**, use a real PostgreSQL database instead of `withDevDatabase()`:
+
+**✅ CORRECT: Use real PostgreSQL for extension tests**
+
+```typescript
+// Connect to real PostgreSQL database (not pglite)
+const connectionString = process.env['DATABASE_URL']; // Real PostgreSQL
+const client = new Client({ connectionString });
+await client.connect();
+
+try {
+  await client.query('create extension if not exists vector');
+  await client.query('create table post (embedding vector(1536))');
+  // ... test extension functionality
+} finally {
+  await client.end();
+}
+```
+
+**Note:** This requires a real PostgreSQL instance with the extension installed, which may not be available in all CI environments.
+
+## Extension Test Strategy
+
+**Current approach in codebase:**
+
+1. **Unit tests** (`packages/extensions/pgvector/test/*.test.ts`): Test codec registry, operation signatures, and manifest loading. These don't require a database.
+
+2. **Integration tests** (`test/integration/test/pgvector.integration.test.ts`): Test pack loading and registration. These don't require a database.
+
+3. **No database execution tests**: There are currently no tests that execute queries with pgvector against a real database. This is acceptable because:
+   - Lowering tests verify SQL generation is correct
+   - Codec tests verify encode/decode logic
+   - The extension is tested in production use cases (e.g., `examples/prisma-8-demo/scripts/seed.ts`)
+
+## When to Use Each Approach
+
+**Use Option 1 (avoid extension features)** when:
+- ✅ Testing features that don't require extensions (e.g., ORM includes, relation filters)
+- ✅ The test focuses on core functionality, not extension-specific behavior
+- ✅ You want fast, reliable tests that work in all environments
+
+**Use Option 2 (real PostgreSQL)** when:
+- ✅ Specifically testing extension functionality end-to-end
+- ✅ You need to verify extension behavior in a real database
+- ✅ You have access to a PostgreSQL instance with the extension installed
+
+## Related Patterns
+
+- `docs/Testing Guide.md`: Testing best practices
+- `test/utils/README.md`: Test database utilities documentation
+- `packages/extensions/pgvector/README.md`: pgvector extension documentation

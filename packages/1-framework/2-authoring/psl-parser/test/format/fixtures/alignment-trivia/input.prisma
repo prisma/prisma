@@ -1,0 +1,8 @@
+model M {
+identifier Int @id
+// a separator
+x Int @unique
+
+id Int @id // pk
+name String // label
+}

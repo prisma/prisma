@@ -1,0 +1,48 @@
+{
+  "name": "prisma-8-postgis-demo",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "emit": "prisma-next contract emit",
+    "emit:check": "pnpm emit && git diff --exit-code src/prisma/contract.json src/prisma/contract.d.ts",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down --volumes",
+    "db:init": "prisma-next db init",
+    "db:drop": "tsx scripts/drop-db.ts",
+    "seed": "tsx scripts/seed.ts",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings"
+  },
+  "dependencies": {
+    "@prisma/orm-extension-postgis": "workspace:8.0.0-rc.1",
+    "@prisma/orm-postgres": "workspace:8.0.0-rc.1",
+    "arktype": "^2.2.2",
+    "dotenv": "^17.4.2",
+    "leaflet": "^1.9.4",
+    "next": "^16.2.12",
+    "pg": "catalog:",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-leaflet": "^5.0.0"
+  },
+  "devDependencies": {
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "version": "8.0.0-rc.1"
+}

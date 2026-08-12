@@ -1,0 +1,28 @@
+{
+  "extends": ["@repo/tsconfig/base"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "@react-router/node"],
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "rootDirs": [".", "./.react-router/types"],
+    "paths": {
+      "~/*": ["./app/*"]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "prisma-next.config.ts",
+    "react-router.config.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    ".react-router/types/**/*"
+  ],
+  "exclude": ["dist", "build", "node_modules"]
+}

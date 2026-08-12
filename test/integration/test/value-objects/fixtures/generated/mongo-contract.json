@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "mongo",
+  "target": "mongo",
+  "profileHash": "vo-test-profile-hash",
+  "roots": {
+    "shop": {
+      "model": "Shop",
+      "namespace": "__unbound__"
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "__unbound__": {
+        "id": "__unbound__",
+        "kind": "mongo-namespace",
+        "entries": {
+          "collection": {
+            "shops": {
+              "kind": "mongo-collection"
+            }
+          }
+        }
+      }
+    },
+    "storageHash": "vo-test-storage-hash"
+  },
+  "capabilities": {},
+  "extensions": {},
+  "meta": {},
+  "domain": {
+    "namespaces": {
+      "__unbound__": {
+        "models": {
+          "Shop": {
+            "fields": {
+              "_id": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/objectId@1"
+                },
+                "nullable": false
+              },
+              "name": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "location": {
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Location"
+                },
+                "nullable": false
+              },
+              "notes": {
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Location"
+                },
+                "nullable": true
+              }
+            },
+            "relations": {},
+            "storage": {
+              "collection": "shops"
+            }
+          }
+        },
+        "valueObjects": {
+          "Location": {
+            "fields": {
+              "street": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "city": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              },
+              "zip": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

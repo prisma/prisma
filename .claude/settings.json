@@ -1,0 +1,64 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $CLAUDE_PROJECT_DIR/.claude/scripts/enforce-tools.mjs"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $CLAUDE_PROJECT_DIR/.claude/scripts/format-ts.mjs"
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $CLAUDE_PROJECT_DIR/.claude/scripts/worktree-create.mjs"
+          }
+        ]
+      }
+    ],
+    "Stop": []
+  },
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(wc:*)",
+      "Bash(cat:*)",
+      "Bash(jq:*)",
+      "Skill(bumping-biome)",
+      "Bash(pnpm list:*)",
+      "mcp__ide__getDiagnostics",
+      "Skill(tsdown-package)",
+      "Bash(ls:*)",
+      "Bash(pnpm build*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm test:packages:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm lint:deps:*)",
+      "Bash(gh pr view:*)",
+      "Bash(pnpm --filter * build*)",
+      "Bash(pnpm --filter * typecheck*)",
+      "Bash(pnpm --filter * test*)",
+      "Bash(pnpm --filter * lint*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

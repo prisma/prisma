@@ -1,0 +1,48 @@
+{
+  "name": "react-router-demo",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "react-router dev",
+    "build": "react-router build",
+    "start": "react-router-serve ./build/server/index.js",
+    "emit": "prisma-next contract emit",
+    "emit:psl": "PRISMA_NEXT_CONTRACT_SOURCE=psl prisma-next contract emit",
+    "emit:ts": "PRISMA_NEXT_CONTRACT_SOURCE=ts prisma-next contract emit",
+    "db:init": "prisma-next db init",
+    "test": "vitest run",
+    "typecheck": "react-router typegen && tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write ."
+  },
+  "dependencies": {
+    "@prisma/orm-postgres": "workspace:8.0.0-rc.1",
+    "@react-router/node": "^8.1.0",
+    "@react-router/serve": "^8.1.0",
+    "dotenv": "^17.4.2",
+    "isbot": "^5.2.0",
+    "pg": "catalog:",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "^8.1.0"
+  },
+  "devDependencies": {
+    "@prisma/dev": "catalog:",
+    "@react-router/dev": "^8.1.0",
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "pathe": "^2.0.3",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "catalog:"
+  },
+  "version": "8.0.0-rc.1"
+}

@@ -1,0 +1,224 @@
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Verify passes after recovery [updated to v2, marker matches]
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Verify passes after recovery [updated to v2, marker matches]
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Verify passes after recovery [updated to v2, marker matches]
+> prisma-next db verify
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Verify passes after recovery [updated to v2, marker matches]
+> prisma-next db verify
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Verify passes after recovery [updated to v2, marker matches]
+> prisma-next db verify
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Verify passes after recovery [updated to v2, marker matches]
+> prisma-next db verify
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+prisma-next db verify → Check whether the database marker and live schema match your contract
+│
+│ config:               prisma-next.config.ts
+│ contract:             contract.json
+│ mode:                 full (marker + schema, tolerant)
+│
+│ Read more             https://pris.ly/db-verify
+└
+
+│
+│  ✔ Database marker and schema match contract
+│    verification: marker + schema (tolerant)
+│    storageHash: sha256:c23b00e523af965bf6c5df54b9eabc6d4d8564fda90ab1cd41d79e5ca567ceb0
+│    profileHash: sha256:a9868829161d6f7e3a139d8cf9f42d59e0503281d26342ddf900d9b054a51b98
+>
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

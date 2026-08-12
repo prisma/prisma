@@ -1,0 +1,34 @@
+[
+  {
+    "id": "column.account.verified",
+    "label": "Add column \"verified\" to \"account\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "verified",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"verified\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'verified'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"verified\"",
+        "sql": "ALTER TABLE \"account\" ADD COLUMN \"verified\" bool DEFAULT true NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"verified\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'verified'\n)"
+      }
+    ]
+  }
+]

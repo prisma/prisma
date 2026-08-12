@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Production",
+  "extends": ["./base.json"],
+  "compilerOptions": {
+    "composite": false,
+    "incremental": false,
+
+    // see `base.json`'s `outDir` comment.
+    // this is a separate folder to avoid conflicts when someone runs `tsc` directly.
+    // so we could compare `tsc` outputs between prod and dev builds when needed.
+    "outDir": "${configDir}/dist-tsc-prod",
+    "rootDir": "${configDir}"
+  },
+  // exclude test files from production builds to tighten DTS generation scope.
+  // packages that export test utilities (emitter, sql-runtime) override this locally.
+  "exclude": ["test", "dist", "dist-tsc", "dist-tsc-prod", "coverage"]
+}

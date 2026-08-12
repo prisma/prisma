@@ -1,0 +1,127 @@
+---
+description: Control plane descriptor and instance implementation patterns
+globs: ["packages/**", "**/prisma-next.config.ts"]
+alwaysApply: false
+---
+
+# Control Plane Descriptors Pattern
+
+## Overview
+
+Control plane components (families, targets, adapters, drivers, extensions) use a consistent descriptor + instance pattern defined in ADR 151. All legacy descriptor types have been removed and replaced with `Control*Descriptor` types.
+
+## Pattern: Control*Descriptor + Control*Instance
+
+**CRITICAL**: Always use `Control*Descriptor` types. Legacy types (`FamilyDescriptor`, `TargetDescriptor`, `AdapterDescriptor`, `DriverDescriptor`, `ExtensionDescriptor`, `ControlPlaneDriver`) have been completely removed.
+
+### Descriptor Types
+
+All control plane descriptors follow this pattern:
+
+```typescript
+// Family descriptor
+ControlFamilyDescriptor<TFamilyId, TFamilyInstance>
+
+// Target descriptor
+ControlTargetDescriptor<TFamilyId, TTargetId, TTargetInstance>
+
+// Adapter descriptor
+ControlAdapterDescriptor<TFamilyId, TTargetId, TAdapterInstance>
+
+// Driver descriptor
+ControlDriverDescriptor<TFamilyId, TTargetId, TDriverInstance>
+
+// Extension descriptor
+ControlExtensionDescriptor<TFamilyId, TTargetId, TExtensionInstance>
+```
+
+### Required Properties
+
+All descriptors must have:
+- `kind`: Discriminator (`'family' | 'target' | 'adapter' | 'driver' | 'extension'`)
+- `id`: String identifier
+- `familyId`: Literal type (e.g., `'sql'`)
+- `targetId`: Literal type (e.g., `'postgres'`) - required for target, adapter, driver, extension
+- `manifest`: `ExtensionPackManifest`
+- `create()`: Factory method that returns an instance
+
+### Instance Types
+
+Base instance interfaces:
+- `ControlFamilyInstance<TFamilyId>`
+- `ControlTargetInstance<TFamilyId, TTargetId>`
+- `ControlAdapterInstance<TFamilyId, TTargetId>`
+- `ControlDriverInstance<TTargetId>` (replaces `ControlPlaneDriver`)
+- `ControlExtensionInstance<TFamilyId, TTargetId>`
+
+**Note**: `FamilyInstance` is retained for CLI command handlers that need the full method set (`validateContractIR`, `verify`, `schemaVerify`, `introspect`, `emitContract`, `toSchemaView`). It uses `ControlDriverInstance` internally.
+
+### Driver Requirement
+
+**CRITICAL**: `ControlFamilyDescriptor.create()` requires a `driver` parameter, even for commands that don't use it (e.g., `contract emit`). This is a design decision to ensure consistent descriptor patterns across all commands.
+
+```typescript
+// ✅ CORRECT: Always pass driver to family.create()
+const familyInstance = config.family.create({
+  target: config.target,
+  adapter: config.adapter,
+  driver: config.driver!, // Required even if not used
+  extensions: config.extensions ?? [],
+});
+
+// ❌ WRONG: Don't conditionally omit driver
+const familyInstance = config.family.create({
+  target: config.target,
+  adapter: config.adapter,
+  // Missing driver - will fail type check
+  extensions: config.extensions ?? [],
+});
+```
+
+### Config File Pattern
+
+```typescript
+import { defineConfig } from '@internal/cli/config-types';
+import sql from '@internal/family-sql/control';
+import postgres from '@internal/target-postgres/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresDriver from '@internal/driver-postgres/control';
+
+export default defineConfig({
+  family: sql, // ControlFamilyDescriptor<'sql'>
+  target: postgres, // ControlTargetDescriptor<'sql', 'postgres'>
+  adapter: postgresAdapter, // ControlAdapterDescriptor<'sql', 'postgres'>
+  driver: postgresDriver, // ControlDriverDescriptor<'sql', 'postgres'> - required
+  extensions: [],
+});
+```
+
+### Type-Level Compatibility
+
+`defineConfig` enforces type-level compatibility:
+- Family, target, adapter, driver, and extension must have matching `familyId` and `targetId`
+- Mis-wiring (e.g., Postgres adapter with MySQL target) is a compile-time error
+- All descriptors must implement the `Control*Descriptor` interface
+
+### Entry Points
+
+Control plane entry points export default descriptors:
+
+- `@internal/family-sql/control` → `ControlFamilyDescriptor<'sql'>`
+- `@internal/target-postgres/control` → `ControlTargetDescriptor<'sql', 'postgres'>`
+- `@internal/adapter-postgres/control` → `ControlAdapterDescriptor<'sql', 'postgres'>`
+- `@internal/driver-postgres/control` → `ControlDriverDescriptor<'sql', 'postgres'>`
+- `@internal/extensions-*/control` → `ControlExtensionDescriptor<'sql', 'postgres'>`
+
+### Migration Notes
+
+- Legacy types (`FamilyDescriptor`, `TargetDescriptor`, etc.) have been completely removed
+- All code must use `Control*Descriptor` types
+- `ControlPlaneDriver` has been replaced by `ControlDriverInstance`
+- Adapters no longer have a `control` property - the descriptor itself IS the control adapter descriptor
+
+## Related Documentation
+
+- `docs/architecture docs/adrs/ADR 151 - Control Plane Descriptors and Instances.md`: Complete ADR specification
+- `.cursor/rules/multi-plane-packages.mdc`: Multi-plane package structure
+- `.cursor/rules/config-validation-and-normalization.mdc`: Config validation patterns

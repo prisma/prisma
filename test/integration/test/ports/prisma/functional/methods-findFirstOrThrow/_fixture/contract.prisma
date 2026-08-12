@@ -1,0 +1,28 @@
+// Faithful translation of prisma/prisma functional suite `methods/findFirstOrThrow`
+// (packages/client/tests/functional/methods/findFirstOrThrow, postgres matrix entry):
+//
+//   model User {
+//     id    String @id @default(cuid())
+//     email String
+//     posts Post[]
+//   }
+//
+//   model Post {
+//     id       String @id @default(cuid())
+//     title    String
+//     author   User   @relation(fields: [authorId], references: [id])
+//     authorId String
+//   }
+
+model User {
+  id    String @id @default(cuid(2))
+  email String
+  posts Post[]
+}
+
+model Post {
+  id       String @id @default(cuid(2))
+  title    String
+  author   User   @relation(fields: [authorId], references: [id])
+  authorId String
+}

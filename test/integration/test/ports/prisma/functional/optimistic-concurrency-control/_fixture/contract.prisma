@@ -1,0 +1,26 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/optimistic-concurrency-control (postgres matrix entry).
+//
+// Upstream schema:
+//   model Resource {
+//     id       String @id @default(cuid())
+//     occStamp Int    @default(0) @unique
+//     child    Child?
+//   }
+//   model Child {
+//     id       String   @id @default(cuid())
+//     parent   Resource @relation(fields: [parentId], references: [id], onDelete: Cascade)
+//     parentId String   @unique
+//   }
+
+model Resource {
+  id       String @id @default(cuid(2))
+  occStamp Int    @default(0) @unique
+  child    Child?
+}
+
+model Child {
+  id       String   @id @default(cuid(2))
+  parent   Resource @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parentId String   @unique
+}

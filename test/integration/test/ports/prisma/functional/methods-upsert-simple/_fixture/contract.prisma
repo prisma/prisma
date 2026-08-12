@@ -1,0 +1,12 @@
+// Faithful translation of prisma/prisma functional suite `methods/upsert/simple`
+// (packages/client/tests/functional/methods/upsert/simple, postgres matrix entry):
+//
+//   model User {
+//     id   String @id @default(cuid())
+//     name String @unique
+//   }
+
+model User {
+  id   String @id @default(cuid(2))
+  name String @unique
+}

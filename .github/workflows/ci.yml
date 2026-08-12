@@ -1,0 +1,391 @@
+name: CI (PR)
+
+on:
+  pull_request:
+  merge_group:
+
+# Least-privilege GITHUB_TOKEN: only repo checkout needs a scope here. The
+# pnpm/Turbo caches (actions/cache) use the runner's cache runtime token, not
+# GITHUB_TOKEN, so no `actions` scope is required.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  # Classifies the PR diff as "inert" (touches only files that cannot affect
+  # build/test/fixture results) so heavy jobs can skip their expensive steps.
+  # Fail-safe: a diff is inert only if *every* changed file matches the
+  # allow-list below; any unrecognized path forces a full run. Required jobs
+  # still launch and report (Pattern 1), so the branch ruleset stays satisfied
+  # on docs-only PRs while the Postgres-backed work is skipped.
+  changes:
+    name: Detect inert diff
+    runs-on: ubuntu-latest
+    outputs:
+      inert: ${{ steps.detect.outputs.inert }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: detect
+        uses: ./.github/actions/detect-inert-diff
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
+      - name: Check working tree is clean
+        run: pnpm check:clean-tree
+
+  typecheck:
+    name: Type Check
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm --filter prisma-orm-demo prisma:generate
+      - name: Build packages (restored from Turbo cache)
+        run: pnpm build
+      - name: Type check packages
+        run: pnpm typecheck:packages
+      - name: Type check examples
+        run: pnpm typecheck:examples
+
+  lint:
+    name: Lint
+    # Depends on build only for cache coherence: build is the single writer of
+    # the shared Turbo/pnpm caches, so every other job restores an exact-key
+    # hit and skips saving. The build step below just restores that cache.
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # `check:upgrade-coverage` diffs HEAD against `origin/main`; needs
+          # enough history for `git diff origin/main..HEAD` to resolve.
+          fetch-depth: 0
+      - name: Fetch base branch (origin/main)
+        run: git fetch --no-tags origin main:refs/remotes/origin/main
+      - uses: ./.github/actions/setup
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build packages (restored from Turbo cache)
+        run: pnpm build
+      - name: Lint dependencies
+        run: pnpm lint:deps
+      - name: Lint code shape
+        run: pnpm lint:code
+      - name: Lint packages
+        run: pnpm lint:packages
+      - name: Lint examples
+        run: pnpm lint:examples
+      - name: Validate rules
+        run: pnpm lint:rules
+      - name: Validate rule symlinks
+        run: pnpm lint:rules:symlinks
+      - name: Validate skills
+        run: pnpm lint:skills
+      - name: Check rules footprint
+        run: pnpm lint:rules:footprint
+      - name: Validate package READMEs
+        run: pnpm lint:docs
+      - name: Validate package manifests (license declarations)
+        run: pnpm lint:manifests
+      - name: Lint workflow triggers (forbid Pwn Request pattern)
+        run: pnpm lint:workflows
+      - name: Test scripts/
+        run: pnpm test:scripts
+      - name: Lint casts
+        run: pnpm lint:casts
+      - name: Lint throws
+        run: pnpm lint:throws
+      - name: Lint framework vocabulary
+        run: pnpm lint:framework-vocabulary
+      - name: Lint consumer internal imports
+        run: pnpm lint:consumer-internal-imports
+      - name: Lint the legacy product name
+        run: pnpm lint:legacy-name
+
+      - name: Lint publishability matches the directory layout
+        run: pnpm lint:publishability
+      - name: Check upgrade-instruction coverage
+        run: pnpm check:upgrade-coverage --mode pr
+      - name: Check error-reference completeness
+        run: pnpm check:error-reference
+      - name: Check release notes
+        run: pnpm check:release-notes --mode pr
+
+  fixtures:
+    name: Fixtures
+    needs: [build, changes]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Install dependencies
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Build (restored from Turbo cache)
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm build
+      - name: Link built binaries
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Check fixtures are up to date
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm fixtures:check
+
+  test:
+    name: Test
+    needs: [build, changes]
+    runs-on: ubuntu-latest
+    env:
+      TEST_TIMEOUT_MULTIPLIER: 2
+      # Used by examples/prisma-8-cloudflare-worker's vitest-pool-workers
+      # integration test. Mirrors the .env.example pattern; the container is
+      # brought up by `pnpm db:up` below (docker-compose, not a service
+      # container, because GitHub Actions service containers can't override
+      # the postgres CMD to enable shared_preload_libraries=pg_stat_statements).
+      WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgres://postgres:postgres@127.0.0.1:5433/prisma_next_cloudflare_worker
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Install dependencies (skip bin linking)
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Build packages (restored from Turbo cache; needed for bin linking)
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm build
+      - name: Link bins
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Start cloudflare-worker Postgres (5433, pg_stat_statements)
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm --filter prisma-8-cloudflare-worker db:up
+      - name: Test packages
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm test:packages
+      - name: Test examples
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm test:examples
+      - name: Check working tree is clean
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm check:clean-tree
+
+  test-e2e:
+    name: E2E Tests
+    needs: [build, changes]
+    runs-on: ubuntu-latest
+    env:
+      TEST_TIMEOUT_MULTIPLIER: 2
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Install dependencies
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Build (restored from Turbo cache)
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm build
+      - name: Run E2E tests
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm test:e2e
+      - name: Check working tree is clean
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm check:clean-tree
+
+  test-integration:
+    name: Integration Tests
+    needs: [build, changes]
+    runs-on: ubuntu-latest
+    env:
+      TEST_TIMEOUT_MULTIPLIER: 2
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Install dependencies
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Build (restored from Turbo cache)
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm build
+      - name: Run Integration tests
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm test:integration
+      - name: Check working tree is clean
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm check:clean-tree
+
+  # Runs the real-Supabase acceptance harness against a live local Supabase
+  # stack (`supabase start`), so the extension's role/grant/JWT behaviour is
+  # proven against real platform defaults on every PR — the hermetic shim
+  # alone let fidelity bugs ship (TML-3035 findings §5/§6/§8). Skips its
+  # steps only on inert (docs-only) diffs; any change under packages/** or
+  # examples/** is non-inert, so extension-supabase, examples/supabase, and
+  # postgres target/adapter changes always run it.
+  supabase-acceptance:
+    name: Supabase Acceptance
+    needs: [build, changes]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TEST_TIMEOUT_MULTIPLIER: 2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      # Installed from the pinned release binary rather than
+      # supabase/setup-cli: the org allowlists actions, and only the
+      # repositories already used by this workflow are on it. Bumping the
+      # CLI is a two-line change (version + sha, both from the release's
+      # supabase_<version>_checksums.txt).
+      - name: Install Supabase CLI (pinned release binary)
+        if: needs.changes.outputs.inert != 'true'
+        env:
+          SUPABASE_CLI_VERSION: 2.95.4
+          SUPABASE_CLI_SHA256: 01a3b8f5861d108a934937cae88e8d503093c3f7d3aa32d959f69b099b4f9ef3
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/supabase.tar.gz" \
+            "https://github.com/supabase/cli/releases/download/v${SUPABASE_CLI_VERSION}/supabase_linux_amd64.tar.gz"
+          echo "$SUPABASE_CLI_SHA256  $RUNNER_TEMP/supabase.tar.gz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf "$RUNNER_TEMP/supabase.tar.gz" -C "$RUNNER_TEMP/bin" supabase
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - name: Install dependencies
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Build (restored from Turbo cache)
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm build
+      - name: Start local Supabase stack
+        if: needs.changes.outputs.inert != 'true'
+        working-directory: examples/supabase
+        run: supabase start
+      - name: Export stack credentials for the acceptance harness
+        if: needs.changes.outputs.inert != 'true'
+        working-directory: examples/supabase
+        run: |
+          set -euo pipefail
+          supabase status -o env > "$RUNNER_TEMP/supabase-status.env"
+          set -a
+          # shellcheck disable=SC1091
+          . "$RUNNER_TEMP/supabase-status.env"
+          set +a
+          {
+            echo "DATABASE_URL=$DB_URL"
+            echo "SUPABASE_JWT_SECRET=$JWT_SECRET"
+            echo "SUPABASE_URL=$API_URL"
+            echo "SUPABASE_ANON_KEY=$ANON_KEY"
+          } >> "$GITHUB_ENV"
+      - name: Run the real-Supabase acceptance harness
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm --filter supabase-example test test/real-supabase.acceptance.test.ts
+
+  coverage:
+    name: Coverage
+    needs: [build, changes]
+    runs-on: ubuntu-latest
+    env:
+      TEST_TIMEOUT_MULTIPLIER: 2
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Install dependencies
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Build (restored from Turbo cache)
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm build
+      - name: Generate coverage and report
+        if: needs.changes.outputs.inert != 'true'
+        run: node scripts/coverage-report.mjs
+      - name: Check working tree is clean
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm check:clean-tree

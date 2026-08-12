@@ -1,0 +1,224 @@
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Preview planned ADD COLUMN operation [initialized with base, contract is v2]
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Preview planned ADD COLUMN operation [initialized with base, contract is v2]
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Preview planned ADD COLUMN operation [initialized with base, contract is v2]
+> prisma-next db update --dry-run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Preview planned ADD COLUMN operation [initialized with base, contract is v2]
+> prisma-next db update --dry-run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Preview planned ADD COLUMN operation [initialized with base, contract is v2]
+> prisma-next db update --dry-run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Preview planned ADD COLUMN operation [initialized with base, contract is v2]
+> prisma-next db update --dry-run
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+prisma-next db update → Update your database schema to match your contract
+│
+│ config:               prisma-next.config.ts
+│ contract:             contract.json
+│ mode:                 dry run
+│
+│ Read more             https://pris.ly/db-update
+└
+
+│
+│  ✔ Planned 1 operation(s)
+│  │
+│  └─ Add column name to user [additive]
+│
+│  Destination hash: sha256:c23b00e523af965bf6c5df54b9eabc6d4d8564fda90ab1cd41d79e5ca567ceb0
+│
+│  DDL preview
+│
+│  ALTER TABLE "public"."user" ADD COLUMN "name" text;
+│
+│  This is a dry run. No changes were applied.
+│  Run without --dry-run to apply changes.
+>
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,37 @@
+{
+  "name": "paradedb-demo",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "emit": "prisma-next contract emit",
+    "db:init": "prisma-next db init",
+    "db:drop": "tsx scripts/drop-db.ts",
+    "seed": "tsx scripts/seed.ts",
+    "start": "tsx src/main.ts",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down -v",
+    "test": "vitest run",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings"
+  },
+  "dependencies": {
+    "@prisma/orm-extension-paradedb": "workspace:8.0.0-rc.1",
+    "@prisma/orm-postgres": "workspace:8.0.0-rc.1",
+    "arktype": "^2.2.2",
+    "dotenv": "^17.4.2",
+    "pg": "catalog:"
+  },
+  "devDependencies": {
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "version": "8.0.0-rc.1"
+}

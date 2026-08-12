@@ -1,0 +1,68 @@
+---
+description: Use expect().toThrow() instead of manual try/catch blocks in tests
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# Prefer `toThrow` Over Manual try/catch
+
+Use `expect(() => ...).toThrow(...)` to assert errors instead of manual try/catch blocks.
+
+## Don't
+
+```typescript
+// ❌ Manual try/catch — verbose, easy to forget the "did it throw?" check
+let caughtError: unknown;
+try {
+  doSomething();
+} catch (error) {
+  caughtError = error;
+}
+expect(caughtError).toBeInstanceOf(MyError);
+expect(caughtError).toMatchObject({
+  code: 'SOME_CODE',
+  message: 'something went wrong',
+});
+```
+
+```typescript
+// ❌ Calling the function twice — once with toThrow, once with try/catch
+expect(() => doSomething()).toThrow(MyError);
+
+let caughtError: unknown;
+try {
+  doSomething();
+} catch (error) {
+  caughtError = error;
+}
+expect((caughtError as MyError).code).toBe('SOME_CODE');
+```
+
+## Do
+
+```typescript
+// ✅ Single toThrow with expect.objectContaining for structured errors
+expect(() => doSomething()).toThrow(
+  expect.objectContaining({
+    code: 'SOME_CODE',
+    message: 'something went wrong',
+    details: expect.objectContaining({ table: 'user' }),
+  }),
+);
+```
+
+```typescript
+// ✅ Simple class check when you only need to verify the error type
+expect(() => doSomething()).toThrow(MyError);
+```
+
+```typescript
+// ✅ Message substring match
+expect(() => doSomething()).toThrow('something went wrong');
+```
+
+## Why
+
+- **Single invocation**: the function under test runs exactly once.
+- **Fail-safe**: if the function does not throw, vitest fails the test automatically. Manual try/catch silently passes when the throw is missing unless you add extra `expect.assertions(n)` bookkeeping.
+- **Less noise**: no `let caughtError`, no `as MyError` cast, no separate `toBeInstanceOf` check.

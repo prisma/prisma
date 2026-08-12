@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "org_team": {
+      "model": "Team",
+      "namespace": "public"
+    },
+    "team_member": {
+      "model": "Member",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Member": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "teamId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "team": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": ["teamId"],
+                  "targetFields": ["id"]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "member_id"
+                },
+                "teamId": {
+                  "column": "team_ref"
+                }
+              },
+              "namespaceId": "public",
+              "table": "team_member"
+            }
+          },
+          "Team": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "team_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "org_team"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "table": {
+            "org_team": {
+              "columns": {
+                "team_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": ["team_id"]
+              },
+              "uniques": []
+            },
+            "team_member": {
+              "columns": {
+                "member_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "team_ref": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "team_member_team_ref_fkey",
+                  "onDelete": "cascade",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": ["team_ref"],
+                    "namespaceId": "public",
+                    "tableName": "team_member"
+                  },
+                  "target": {
+                    "columns": ["team_id"],
+                    "namespaceId": "public",
+                    "tableName": "org_team"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": ["team_ref"],
+                  "name": "team_member_team_ref_idx_a6fcaafa",
+                  "prefix": "team_member_team_ref_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": ["member_id"]
+              },
+              "uniques": [
+                {
+                  "columns": ["team_ref", "member_id"]
+                }
+              ]
+            }
+          }
+        },
+        "id": "public"
+      }
+    },
+    "storageHash": "79956063a45496197760e927b15dc94e848a753280a630e0660c7c95362ea07f"
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "checkConstraint": true,
+      "defaultInInsert": true,
+      "enums": true,
+      "lateral": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}

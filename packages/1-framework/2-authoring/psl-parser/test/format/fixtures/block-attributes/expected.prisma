@@ -1,0 +1,8 @@
+model Post {
+  id       Int    @id
+  title    String
+  authorId Int
+
+  @@index([authorId])
+  @@map("posts")
+}

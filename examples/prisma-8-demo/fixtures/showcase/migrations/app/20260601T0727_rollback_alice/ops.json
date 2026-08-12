@@ -1,0 +1,66 @@
+[
+  {
+    "id": "dropColumn.account.name",
+    "label": "Drop column \"name\" from \"account\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "name",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"name\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'name'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"name\"",
+        "sql": "ALTER TABLE \"account\" DROP COLUMN \"name\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"name\" does not exist",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'name'\n)"
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.account.phone",
+    "label": "Drop column \"phone\" from \"account\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "phone",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"phone\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'phone'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"phone\"",
+        "sql": "ALTER TABLE \"account\" DROP COLUMN \"phone\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"phone\" does not exist",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'phone'\n)"
+      }
+    ]
+  }
+]

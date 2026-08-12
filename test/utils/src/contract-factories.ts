@@ -1,0 +1,134 @@
+import type { PreserveEmptyPredicate, StorageSort } from '@internal/contract/hashing';
+import {
+  computeExecutionHash,
+  computeProfileHash,
+  computeStorageHash,
+} from '@internal/contract/hashing';
+import type {
+  Contract,
+  ContractEnum,
+  ContractModel,
+  ContractValueObject,
+  CrossReference,
+  ExecutionSection,
+  ProfileHashBase,
+  StorageBase,
+} from '@internal/contract/types';
+import { coreHash, UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
+import { ifDefined } from '@internal/utils/defined';
+
+type ContractOverrides<TStorage extends StorageBase = StorageBase> = {
+  target?: string;
+  targetFamily?: string;
+  roots?: Record<string, CrossReference>;
+  models?: Record<string, ContractModel>;
+  storage?: Omit<TStorage, 'storageHash'>;
+  valueObjects?: Record<string, ContractValueObject>;
+  enum?: Record<string, ContractEnum>;
+  capabilities?: Record<string, Record<string, boolean>>;
+  extensions?: Record<string, unknown>;
+  execution?: Omit<ExecutionSection, 'executionHash'>;
+  profileHash?: ProfileHashBase<string>;
+  meta?: Record<string, unknown>;
+  shouldPreserveEmpty?: PreserveEmptyPredicate;
+  sortStorage?: StorageSort;
+};
+
+const DUMMY_HASH = coreHash('test');
+
+const DEFAULT_FRAMEWORK_STORAGE = { namespaces: {} } as const;
+
+const UNBOUND_NAMESPACE_ID = '__unbound__' as const;
+
+const DEFAULT_SQL_STORAGE = {
+  namespaces: {
+    [UNBOUND_NAMESPACE_ID]: {
+      id: UNBOUND_NAMESPACE_ID,
+      entries: { table: {} },
+    },
+  },
+} as const;
+
+export function createContract<TStorage extends StorageBase = StorageBase>(
+  overrides: ContractOverrides<TStorage> = {},
+): Contract<TStorage> {
+  const target = overrides.target ?? 'postgres';
+  const targetFamily = overrides.targetFamily ?? 'sql';
+  const capabilities = overrides.capabilities ?? {};
+
+  const rawStorage = overrides.storage ?? DEFAULT_FRAMEWORK_STORAGE;
+
+  const storageHash = computeStorageHash({
+    target,
+    targetFamily,
+    storage: rawStorage as Record<string, unknown>,
+    ...ifDefined('shouldPreserveEmpty', overrides.shouldPreserveEmpty),
+    ...ifDefined('sortStorage', overrides.sortStorage),
+  });
+
+  const storage = {
+    ...rawStorage,
+    storageHash,
+  } as TStorage;
+
+  const computedProfileHash =
+    overrides.profileHash ?? computeProfileHash({ target, targetFamily, capabilities });
+
+  return {
+    target,
+    targetFamily,
+    roots: overrides.roots ?? {},
+    domain: {
+      namespaces: {
+        [UNBOUND_DOMAIN_NAMESPACE_ID]: {
+          models: overrides.models ?? {},
+          ...ifDefined('valueObjects', overrides.valueObjects),
+          ...ifDefined('enum', overrides.enum),
+        },
+      },
+    },
+    storage,
+    capabilities,
+    extensions: overrides.extensions ?? {},
+    ...(overrides.execution !== undefined
+      ? {
+          execution: {
+            ...overrides.execution,
+            executionHash: computeExecutionHash({
+              target,
+              targetFamily,
+              execution: overrides.execution,
+            }),
+          },
+        }
+      : {}),
+    profileHash: computedProfileHash,
+    meta: overrides.meta ?? {},
+  };
+}
+
+type SqlStorageLike = StorageBase & {
+  readonly namespaces: Readonly<
+    Record<
+      string,
+      {
+        readonly id: string;
+        readonly entries: Readonly<{ readonly table?: Readonly<Record<string, unknown>> }>;
+      }
+    >
+  >;
+  readonly types?: Record<string, unknown>;
+};
+
+export function createSqlContract(
+  overrides: ContractOverrides<SqlStorageLike> = {},
+): Contract<SqlStorageLike> {
+  return createContract<SqlStorageLike>({
+    ...overrides,
+    target: overrides.target ?? 'postgres',
+    targetFamily: overrides.targetFamily ?? 'sql',
+    storage: overrides.storage ?? DEFAULT_SQL_STORAGE,
+  });
+}
+
+export { DUMMY_HASH };

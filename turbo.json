@@ -1,0 +1,85 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "migrations/**",
+        "package.json",
+        "tsconfig.json",
+        "tsconfig.prod.json",
+        "tsdown.config.ts",
+        "$TURBO_ROOT$/packages/0-config/tsdown/*.ts"
+      ],
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "test/**", "dist/**"],
+      "env": ["TEST_TIMEOUT_MULTIPLIER"],
+      "passThroughEnv": [
+        "WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE",
+        "CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE"
+      ]
+    },
+    "test:journeys": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "test/**", "dist/**"],
+      "env": ["TEST_TIMEOUT_MULTIPLIER"]
+    },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "test/**", "dist/**"],
+      "outputs": ["coverage/**"],
+      "env": ["TEST_TIMEOUT_MULTIPLIER"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "test/**", "tsconfig.json"]
+    },
+    "lint": {
+      "inputs": ["src/**", "test/**"]
+    },
+    "record": {
+      "dependsOn": ["build"],
+      "inputs": ["scripts/record.ts", "recordings/config.ts", "recordings/fixtures/**"],
+      "outputs": ["recordings/svgs/**", "recordings/ascii/**"]
+    },
+    "clean": {
+      "cache": false
+    },
+    "@internal/sql-builder#emit": {
+      "dependsOn": ["@internal/cli#build"]
+    },
+    "@prisma/orm-framework#test": {
+      "dependsOn": [
+        "build",
+        "^build",
+        "@prisma/orm-toolchain#build",
+        "@prisma/orm-family-sql#build",
+        "@prisma/orm-family-mongo#build",
+        "@prisma/orm-target-postgres#build",
+        "@prisma/orm-target-sqlite#build",
+        "@prisma/orm-target-mongo#build"
+      ],
+      "inputs": ["test/**", "dist/**", "vitest.config.ts"]
+    },
+    "@prisma/orm-target-postgres#test": {
+      "dependsOn": ["build", "^build"],
+      "inputs": ["test/**", "dist/**", "vitest.config.ts"]
+    },
+    "@prisma/orm-postgres#test": {
+      "dependsOn": ["build", "^build"],
+      "inputs": ["test/**", "dist/**", "vitest.config.ts"]
+    },
+    "@prisma/orm-extension-pgvector#test": {
+      "dependsOn": ["build", "^build", "@prisma/orm-postgres#build"],
+      "inputs": ["test/**", "dist/**", "vitest.config.ts"]
+    }
+  }
+}

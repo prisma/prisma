@@ -1,0 +1,29 @@
+---
+description: Forbid encoding transient project planning IDs (T1.1, TC-7, AC4, P3 R2, CKPT-2, etc.) in source code, comments, test names, identifiers, or hash fixtures.
+alwaysApply: true
+---
+# No transient project planning IDs in code
+
+Source code, comments, test names, identifier strings, and hash fixtures must **never** reference transient project planning artefacts. Plans/specs are scratch documents deleted at close-out; encoding their IDs makes the code lie the moment the plan is rewritten or removed.
+
+**Transient (forbidden in code)** — anything under `projects/<x>/` or in a plan/spec/review doc:
+
+- Task IDs (`T1.1`, `D7`, `M3.2`), test-case IDs (`TC-1`, `TC18`), AC/FR/NFR IDs (`AC1`, `FR2`, `NFR5`), phase/round/checkpoint IDs (`P3 R2`, `CKPT-2`, `M2 review`)
+- Prose attributions to the plan ("out of scope per the spec", "sub-spec § 4", "deferred per project plan")
+- `projects/<x>/...` paths anywhere in source (incl. JSDoc `@link`s and string literals)
+- Hash fixtures named after IDs (`'tc12-ext-contract'`)
+
+**Allowed (durable):** Linear ticket IDs (`TML-2408`), ADR numbers (`ADR 211`), PR numbers (`PR #494`), permanent doc paths (`docs/...`), durable source paths (`packages/...`, `test/...`, `examples/...`).
+
+## How to comply
+
+Describe the constraint or behaviour itself, not its plan row. Say "the runner skips ops with already-satisfied postchecks", not "see T3.4's postcheck-skip rule". Test names pin the property (`it('runs both spaces in caller order')`), not the coverage-table row. JSDoc cross-refs point at durable artefacts, never into `projects/`. Name fixtures/constants after their role (`'mongo-ext-contract'`), not the introducing test-case ID.
+
+Before committing, scan your `+` diff for token-shaped IDs:
+
+```bash
+git diff --cached -- '*.ts' '*.tsx' '*.js' '*.mjs' | grep -E '^\+' \
+  | grep -oE '\b(T[0-9]+\.[0-9]+|TC-?[0-9]+|AC-?[0-9]+|FR[0-9]+|NFR[0-9]+|CKPT-[0-9]+|M[0-9]+\.[0-9]+|P[0-9]+ R[0-9]+)\b' | sort -u
+```
+
+Output should be empty. Freeform prose attributions ("per spec", "deferred per project plan") aren't token-catchable — scan manually. Companion to `doc-maintenance.mdc`, which covers the broader transient-artefact surface; this rule narrows to plan IDs left in source.

@@ -1,0 +1,10 @@
+{
+  "failureSummary": "PSL to SQL contract interpretation failed",
+  "diagnostics": [
+    {
+      "code": "PSL_UNSUPPORTED_FIELD_ATTRIBUTE",
+      "sourceId": "./schema.prisma",
+      "startLine": 5
+    }
+  ]
+}

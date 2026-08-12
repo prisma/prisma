@@ -1,0 +1,21 @@
+---
+description: A review comment names a class of defect, not a point-fix. Sweep the whole diff for the class before replying; fix every instance in one round.
+alwaysApply: true
+---
+
+# Fix the class, not the instance
+
+When a reviewer flags a defect, the flagged line is an *example*, not the scope. Treating it as a point-fix makes the reviewer re-find the same defect in the next round at review cost — the most expensive possible linter.
+
+## Required response to any review comment
+
+1. **Name the class.** State the general rule the instance violates ("SQL vocabulary on a framework type", "strategy encoded as a string enum", "logic in a shared-types module").
+2. **Sweep the entire PR diff for the class** before replying — grep plus reading, not just the flagged file. Include surface the PR *added to* pre-existing types, not only new types.
+3. **Fix every instance in one round.** If an instance is genuinely out of scope (pre-existing, not touched by this PR), say so explicitly with evidence and a tracking ticket — and remember grandfathering never covers surface this PR authored.
+4. **The reply states the sweep**: what class, what was searched, what was found and fixed, what was excluded and why.
+
+## Don't
+
+- Don't fix the flagged line and re-ship — the next round finding the same class elsewhere in the diff is a process failure, not a new finding.
+- Don't treat design as settled because a doc or an earlier round blessed it. Design is never settled; a reviewer comment that invalidates a design invalidates every consequence of it, and the sweep must chase those consequences.
+- Don't have a reviewer subagent inherit the author's framing. Review-pass briefs state the class-sweep duty and the relevant layer/vocabulary audits explicitly (for framework-touching diffs: every added line under `packages/1-framework` justified against the family-blindness test).

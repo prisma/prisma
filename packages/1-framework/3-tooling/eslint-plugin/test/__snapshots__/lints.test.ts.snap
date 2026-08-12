@@ -1,0 +1,80 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ESLint Plugin Rule Validation > should handle 'ignored' case: 'mock-sql-builder.ts' > ignored-mock-sql-builder 1`] = `
+{
+  "errorCount": 0,
+  "filePath": "mock-sql-builder.ts",
+  "messages": [],
+  "warningCount": 0,
+}
+`;
+
+exports[`ESLint Plugin Rule Validation > should handle 'invalid' case: 'query-with-large-limit.ts' > invalid-query-with-large-limit 1`] = `
+{
+  "errorCount": 1,
+  "filePath": "query-with-large-limit.ts",
+  "messages": [
+    {
+      "column": 1,
+      "line": 12,
+      "message": "Query build() call has a limit() value that exceeds the maximum allowed of 1000.",
+      "ruleId": "@internal/lint-build-call",
+      "severity": 2,
+    },
+  ],
+  "warningCount": 0,
+}
+`;
+
+exports[`ESLint Plugin Rule Validation > should handle 'invalid' case: 'select-without-limit.ts' > invalid-select-without-limit 1`] = `
+{
+  "errorCount": 1,
+  "filePath": "select-without-limit.ts",
+  "messages": [
+    {
+      "column": 1,
+      "line": 12,
+      "message": "Query build() call may result in unbounded query. Consider adding .limit() to prevent fetching too many rows.",
+      "ruleId": "@internal/lint-build-call",
+      "severity": 2,
+    },
+  ],
+  "warningCount": 0,
+}
+`;
+
+exports[`ESLint Plugin Rule Validation > should handle 'valid' case: 'delete-query.ts' > valid-delete-query 1`] = `
+{
+  "errorCount": 0,
+  "filePath": "delete-query.ts",
+  "messages": [],
+  "warningCount": 0,
+}
+`;
+
+exports[`ESLint Plugin Rule Validation > should handle 'valid' case: 'insert-query.ts' > valid-insert-query 1`] = `
+{
+  "errorCount": 0,
+  "filePath": "insert-query.ts",
+  "messages": [],
+  "warningCount": 0,
+}
+`;
+
+exports[`ESLint Plugin Rule Validation > should handle 'valid' case: 'select-with-limit.ts' > valid-select-with-limit 1`] = `
+{
+  "errorCount": 0,
+  "filePath": "select-with-limit.ts",
+  "messages": [],
+  "warningCount": 0,
+}
+`;
+
+exports[`ESLint Plugin Rule Validation > should handle 'valid' case: 'update-query.ts' > valid-update-query 1`] = `
+{
+  "errorCount": 0,
+  "filePath": "update-query.ts",
+  "messages": [],
+  "warningCount": 0,
+}
+`;

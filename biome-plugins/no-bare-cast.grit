@@ -1,0 +1,29 @@
+// Recognise value-level `as` casts and skip `as const` + test files.
+//
+// Anchored on the `TsAsExpression` node (the AST node for a value-level
+// `expr as Type` assertion) rather than a bare `$x as $t` token pattern. The
+// token pattern also matched the `as` in import-specifier / re-export aliases
+// (`import type { Contract as End }`, `export { X as Y }`), which are NOT
+// type-assertion casts. The migration-scaffold generator (TML-2892) emits
+// `import type { Contract as End }` / `as Start`, so the token pattern produced
+// false positives that tripped the CI cast ratchet (scripts/lint-casts.mjs).
+// `TsAsExpression` only matches real casts, so import aliases are not counted.
+//
+// `$ty` is the target-type child; `as const` is excluded by the `^const$`
+// guard. `$filename` is biome's built-in current-file path; biome's GritQL
+// regex matching is anchored full-match, so patterns need a `.*` prefix. The
+// three file-exclusion regexes mirror biome's test-file override includes
+// (`**/*.test.ts`, `**/*.test-d.ts`, `**/test/**/*.ts`).
+//
+// Severity is "info" so the plugin runs repo-wide without breaking existing
+// builds (thousands of pre-existing casts). The CI ratchet enforces the gate by
+// counting these diagnostics from biome's JSON reporter; "info" entries still
+// appear there with the distinctive `no-bare-cast: ` prefix.
+language js
+
+TsAsExpression(ty=$ty) as $cast where {
+  not $ty <: r"^const$",
+  not $filename <: r".*\.(?:test|test-d)\.ts",
+  not $filename <: r".*/test/.*\.ts",
+  register_diagnostic(span=$cast, message="no-bare-cast: bare `as` cast; replace with blindCast(...) or castAs(value), or rewrite to eliminate the cast", severity="info")
+}

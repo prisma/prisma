@@ -1,0 +1,224 @@
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Marker-only verification still passes when the marker row is unchanged [email column dropped, marker still matches contract]
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Marker-only verification still passes when the marker row is unchanged [email column dropped, marker still matches contract]
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Marker-only verification still passes when the marker row is unchanged [email column dropped, marker still matches contract]
+> prisma-next db verify --marker-only
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Marker-only verification still passes when the marker row is unchanged [email column dropped, marker still matches contract]
+> prisma-next db verify --marker-only
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Marker-only verification still passes when the marker row is unchanged [email column dropped, marker still matches contract]
+> prisma-next db verify --marker-only
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+> # Marker-only verification still passes when the marker row is unchanged [email column dropped, marker still matches contract]
+> prisma-next db verify --marker-only
+bash: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8): No such file or directory
+prisma-next db verify → Check whether the database marker matches your contract
+│
+│ config:               prisma-next.config.ts
+│ contract:             contract.json
+│ mode:                 marker only
+│
+│ Read more             https://pris.ly/db-verify
+└
+
+│
+│  ✔ Database marker matches contract
+│    verification: marker only (--marker-only)
+│    storageHash: sha256:95060eda0d8ef9b30439212a41756c15066733defdde81ee7118f955be7361d1
+│    profileHash: sha256:a9868829161d6f7e3a139d8cf9f42d59e0503281d26342ddf900d9b054a51b98
+│
+│  ⚠ Schema verification skipped because --marker-only was provided
+>
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

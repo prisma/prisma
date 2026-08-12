@@ -1,0 +1,17 @@
+// use prisma-next
+
+namespace public {
+  model User {
+    id       Int @id
+    tenantId Int @map("tenant_id")
+
+    @@map("user")
+    @@rls
+  }
+
+  policy_select tenant_read {
+    target = User
+    roles  = [app_user]
+    using  = "(tenant_id = 1)"
+  }
+}

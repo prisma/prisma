@@ -1,0 +1,9 @@
+---
+description: Read the architecture overview first
+globs:
+alwaysApply: true
+---
+
+Read the architecture overview in docs/Architecture%20Overview.md before writing code.
+
+Consider reading the subsystem doc related to your current task and/or any referenced ADRs.

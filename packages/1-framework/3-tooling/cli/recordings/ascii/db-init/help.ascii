@@ -1,0 +1,266 @@
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db init help
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db init help
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db init help
+> prisma-next db init --help
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db init help
+> prisma-next db init --help
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db init help
+> prisma-next db init --help
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db init help
+> prisma-next db init --help
+prisma-next db init → Bootstrap a database to match the current contract and sign it
+│
+│ --json                Output as JSON
+│ -q, --quiet           Quiet mode: errors only
+│ -v, --verbose         Verbose output: debug info, timings
+│ --trace               Trace output: deep internals, stack traces
+│ --color               Force color output
+│ --no-color            Disable color output
+│ --interactive         Force interactive mode
+│ --no-interactive      Disable interactive prompts
+│ -y, --yes             Auto-accept prompts
+│ --db <url>            Database connection string
+│ --config <path>       Path to prisma-next.config.ts
+│ --dry-run             Preview planned operations without applying
+│                       default: false
+│
+│ Examples:
+│   $ prisma-next db init --db $DATABASE_URL
+│   $ prisma-next db init --db $DATABASE_URL --dry-run
+│
+│ Initializes a database to match your emitted contract using additive-only operations.
+│ Creates any missing tables, columns, indexes, and constraints defined in your contract.
+│ Leaves existing compatible structures in place, surfaces conflicts when destructive changes
+│ would be required, and signs the database to track contract state. Use --dry-run to
+│ preview changes without applying.
+└
+>
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

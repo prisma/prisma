@@ -1,0 +1,107 @@
+[
+  {
+    "id": "table.cafe",
+    "label": "Create table \"cafe\"",
+    "summary": "Creates table \"cafe\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "cafe"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"cafe\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": ["\"public\".\"cafe\""]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"cafe\"",
+        "sql": "CREATE TABLE \"public\".\"cafe\" (\n  \"id\" character(36) NOT NULL,\n  \"location\" geometry(Geometry,4326) NOT NULL,\n  \"name\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"cafe\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": ["\"public\".\"cafe\""]
+      }
+    ]
+  },
+  {
+    "id": "table.neighborhood",
+    "label": "Create table \"neighborhood\"",
+    "summary": "Creates table \"neighborhood\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "neighborhood"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"neighborhood\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": ["\"public\".\"neighborhood\""]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"neighborhood\"",
+        "sql": "CREATE TABLE \"public\".\"neighborhood\" (\n  \"boundary\" geometry(Geometry,4326) NOT NULL,\n  \"id\" character(36) NOT NULL,\n  \"name\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"neighborhood\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": ["\"public\".\"neighborhood\""]
+      }
+    ]
+  },
+  {
+    "id": "table.route",
+    "label": "Create table \"route\"",
+    "summary": "Creates table \"route\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "route"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"route\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": ["\"public\".\"route\""]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"route\"",
+        "sql": "CREATE TABLE \"public\".\"route\" (\n  \"id\" character(36) NOT NULL,\n  \"name\" text NOT NULL,\n  \"path\" geometry(Geometry,4326) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"route\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": ["\"public\".\"route\""]
+      }
+    ]
+  }
+]

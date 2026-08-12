@@ -1,0 +1,22 @@
+---
+description: Validate emitted column default values
+globs: ["**/contract.ts"]
+alwaysApply: false
+---
+
+# Contract Default Values
+
+## Key points
+
+- When adding column defaults, re-emit the contract and verify the emitted JSON includes the full default payload.
+- Add the corresponding `defaults.*` capability when using function defaults like `autoincrement()` or `now()`.
+
+## CLI output: tree vs JSON
+
+Column defaults are handled differently depending on output format:
+
+- **Tree output** (`db introspect`): Labels show only type and nullability, e.g. `id: int4 (not nullable)`. Defaults are omitted from labels to keep tree output concise.
+- **JSON output** (`db introspect --json`): Full default information is preserved in the schema IR.
+- **Programmatic access**: Defaults are always available in `SchemaTreeNode.meta.default` for tooling that needs them.
+
+This separation keeps human-readable tree output clean while preserving full data for automation.

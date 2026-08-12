@@ -1,0 +1,16 @@
+{
+  "slug": "slice-dedupe-generated-imports",
+  "title": "Deduplicate repeated type imports in generated contract files",
+  "shape": "slice",
+  "recommended_model": "claude-4.6-sonnet-high-thinking",
+  "summary": "Generated contract files (`prisma-next contract emit`) repeat the same module across separate `import type` lines instead of aggregating them onto one statement. Collapse the duplicates. Drawn from real history: TML-2714 / PR #614 — one coherent PR, spec + plan + one build loop.",
+  "source": {
+    "linear": "TML-2714",
+    "prs": [614],
+    "merge_shas": [
+      "0b027171cba9ce49983036cb5676fcfe3bb6e10c",
+      "034ac56fc1f54f302846f9e9e19980830e707f65"
+    ]
+  },
+  "base_sha": "485d437978ba2b558e273a84c42e811cde1a9e97"
+}

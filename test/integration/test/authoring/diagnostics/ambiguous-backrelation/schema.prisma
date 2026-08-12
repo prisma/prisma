@@ -1,0 +1,14 @@
+// use prisma-next
+
+model User {
+  id Int @id
+  posts Post[]
+}
+
+model Post {
+  id Int @id
+  primaryUserId Int
+  secondaryUserId Int
+  primaryUser User @relation(fields: [primaryUserId], references: [id])
+  secondaryUser User @relation(fields: [secondaryUserId], references: [id])
+}

@@ -1,0 +1,15 @@
+// Real emitted fixture for the scalar-list ORM round-trip integration test.
+//
+// A single model with two native scalar-list columns: `tags String[]` and
+// `scores Int[]`. The postgres emitter lowers these to array storage columns
+// (`pg/text@1` / `pg/int4@1`, `many: true`) rather than the jsonb fallback,
+// and types each field as `ReadonlyArray<...>` in the generated contract.d.ts.
+// The integration test migrates this contract onto a real Postgres database,
+// writes a row through the typed ORM, and reads it back — proving `many` list
+// columns infer as arrays end-to-end through the strongly-typed accessors.
+
+model Item {
+  id     Int      @id
+  tags   String[]
+  scores Int[]
+}

@@ -1,0 +1,84 @@
+name: Regenerate CLI Recordings
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  record:
+    name: Record CLI demos
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
+        with:
+          cache: true
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # VHS runtime dependencies: ttyd (terminal multiplexer) and a browser
+      # (Chrome is pre-installed on ubuntu-latest runners).
+      - name: Install ttyd
+        run: |
+          curl -fsSL https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64 \
+            -o /usr/local/bin/ttyd
+          chmod +x /usr/local/bin/ttyd
+
+      # agentstation/vhs fork adds native SVG output support.
+      - name: Install VHS (agentstation fork)
+        env:
+          VHS_VERSION: "0.11.1"
+        run: |
+          curl -fsSL "https://github.com/agentstation/vhs/releases/download/v${VHS_VERSION}/vhs_${VHS_VERSION}_linux_x86_64.tar.gz" \
+            | tar xz -C /usr/local/bin vhs
+
+      - name: Install JetBrains Mono font
+        run: |
+          mkdir -p ~/.local/share/fonts
+          curl -fsSL https://github.com/JetBrains/JetBrainsMono/releases/download/v2.304/JetBrainsMono-2.304.zip \
+            -o /tmp/jbmono.zip
+          unzip -oq /tmp/jbmono.zip -d /tmp/jbmono
+          find /tmp/jbmono -name '*.ttf' -exec cp {} ~/.local/share/fonts/ \;
+          fc-cache -f
+
+      - name: Record per-command demos
+        run: pnpm --filter @internal/cli record --no-cache
+
+      - name: Record journey demos
+        run: pnpm --filter @internal/cli record --no-cache --all-journeys
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "chore(cli): regenerate recordings"
+          title: "chore(cli): regenerate CLI recordings"
+          body: |
+            Automated regeneration of CLI terminal recordings (SVG + ASCII).
+
+            Triggered by `workflow_dispatch` on `${{ github.ref_name }}`.
+          branch: chore/regenerate-cli-recordings
+          delete-branch: true

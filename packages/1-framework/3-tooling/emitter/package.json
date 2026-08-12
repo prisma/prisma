@@ -1,0 +1,75 @@
+{
+  "name": "@internal/emitter",
+  "private": true,
+  "version": "8.0.0-rc.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write .",
+    "lint:fix:unsafe": "biome check --write --unsafe .",
+    "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
+  },
+  "dependencies": {
+    "@internal/contract": "workspace:8.0.0-rc.1",
+    "@internal/framework-components": "workspace:8.0.0-rc.1",
+    "@internal/operations": "workspace:8.0.0-rc.1",
+    "@internal/ts-render": "workspace:8.0.0-rc.1",
+    "@internal/utils": "workspace:8.0.0-rc.1",
+    "arktype": "^2.2.2",
+    "prettier": "^3.9.6"
+  },
+  "devDependencies": {
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@internal/publish-surface": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@types/node": "catalog:",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/exports/index.d.mts",
+      "import": "./dist/exports/index.mjs"
+    },
+    "./domain-type-generation": {
+      "types": "./dist/domain-type-generation.d.mts",
+      "import": "./dist/domain-type-generation.mjs"
+    },
+    "./type-expression-safety": {
+      "types": "./dist/type-expression-safety.d.mts",
+      "import": "./dist/type-expression-safety.mjs"
+    },
+    "./test/utils": {
+      "types": "./dist/test/utils.d.mts",
+      "import": "./dist/test/utils.mjs"
+    }
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/1-framework/3-tooling/emitter"
+  }
+}

@@ -1,0 +1,224 @@
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify marker + schema (JSON output for CI/agents) [initialized, marker matches contract]
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify marker + schema (JSON output for CI/agents) [initialized, marker matches contract]
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify marker + schema (JSON output for CI/agents) [initialized, marker matches contract]
+> prisma-next db verify --json
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify marker + schema (JSON output for CI/agents) [initialized, marker matches contract]
+> prisma-next db verify --json
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify marker + schema (JSON output for CI/agents) [initialized, marker matches contract]
+> prisma-next db verify --json
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify marker + schema (JSON output for CI/agents) [initialized, marker matches contract]
+> prisma-next db verify --json
+{
+  "ok": true,
+  "summary": "Database marker and schema match contract",
+  "mode": "full",
+  "contract": {
+    "storageHash": "sha256:95060eda0d8ef9b30439212a41756c15066733defdde81ee7118f955be7361d1",
+    "profileHash": "sha256:a9868829161d6f7e3a139d8cf9f42d59e0503281d26342ddf900d9b054a51b98"
+  },
+  "marker": {
+    "storageHash": "sha256:95060eda0d8ef9b30439212a41756c15066733defdde81ee7118f955be7361d1",
+    "profileHash": "sha256:a9868829161d6f7e3a139d8cf9f42d59e0503281d26342ddf900d9b054a51b98"
+  },
+  "target": {
+    "expected": "postgres"
+  },
+  "codecCoverageSkipped": true,
+  "schema": {
+    "summary": "Database schema satisfies contract",
+    "counts": {
+      "pass": 6,
+      "warn": 0,
+      "fail": 0,
+      "totalNodes": 6
+    },
+    "strict": false
+  },
+  "meta": {
+    "contractPath": "",
+    "schemaVerification": "performed"
+────────────────────────────────────────────────────────────────────────────────

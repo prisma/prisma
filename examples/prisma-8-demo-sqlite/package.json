@@ -1,0 +1,29 @@
+{
+  "name": "prisma-8-demo-sqlite",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "emit": "prisma-next contract emit",
+    "emit:check": "pnpm emit && git diff --exit-code src/prisma/contract.json src/prisma/contract.d.ts",
+    "db:init": "prisma-next db init",
+    "seed": "tsx scripts/seed.ts",
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings"
+  },
+  "dependencies": {
+    "@prisma/orm-sqlite": "workspace:8.0.0-rc.1",
+    "arktype": "^2.2.2",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  },
+  "version": "8.0.0-rc.1"
+}

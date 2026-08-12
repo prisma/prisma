@@ -1,0 +1,24 @@
+---
+description: Wrap JSDoc / block-comment prose at the same line width as the biome formatter (currently 100). Markdown is exempt — see the markdown-no-artificial-line-wraps skill.
+alwaysApply: false
+---
+
+# JSDoc / block-comment prose — wrap at the biome line width
+
+When adding or editing **prose** in `/** ... */` or long `//` documentation:
+
+1. **Wrap at biome's `lineWidth`** — Wrap prose at the line width configured in `biome.jsonc` (`formatter.lineWidth`, currently **100**). Source of truth: read `biome.jsonc` rather than hard-coding the number; if it changes, this rule changes with it.
+
+2. **No fixed-column wraps below the biome width** — Do not break mid-sentence to stay under ~72 or ~80 characters. Editors soft-wrap; arbitrary narrow wraps make diffs noisy and conflict-prone.
+
+3. **Bullet lists and tagged blocks**
+   - **Bullets** (`*` / `-`): keep each bullet's prose on one line up to the biome width before wrapping; wrap continuation lines aligned with the bullet text.
+   - **Tagged blocks** (`@param`, `@returns`, `@example`): follow normal JSDoc conventions; the same line-width rule applies to the sentence text.
+
+4. **Orphaned blocks** — A doc comment must document the declaration that immediately follows it (after optional blank lines only before `import` / file headers). Do not leave a standalone `/** ... */` between imports and the next export with no attached symbol; merge into the relevant declaration's doc or delete redundancy.
+
+5. **Markdown is exempt** — Do not apply this rule to `.md` files (READMEs, ADRs, PR bodies, rulecards, and any other Markdown). Markdown prose stays on one continuous line per paragraph; see `.agents/skills/markdown-no-artificial-line-wraps/SKILL.md`.
+
+6. **Rationale** — Wrapping at the same width that the formatter uses keeps doc-comment prose visually consistent with surrounding code, avoids both "one giant line" and "narrow 1990s terminal" extremes, and produces stable diffs because the wrap width is anchored to the formatter rather than picked per-author.
+
+Related: `.agents/skills/markdown-no-artificial-line-wraps/SKILL.md` (Markdown files).

@@ -1,0 +1,39 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/default-selection (postgres matrix entry).
+//
+// Upstream schema (postgres branch):
+//   model Model {
+//     id       String @id @default(cuid())
+//     value    String
+//     otherId  String @unique
+//     relation Other  @relation(fields: [otherId], references: [id])
+//     list     String[]
+//     enum     Enum
+//     enumList Enum[]
+//   }
+//   model Other { id String @id }
+//   enum Enum { A B }
+//
+// MongoDB `composite` field is mongo-only — not ported (separate mongo ORM).
+// `cuid()` default is preserved.
+
+enum Enum {
+  @@type("pg/text@1")
+  A = "A"
+  B = "B"
+}
+
+model Model {
+  id       String @id
+  value    String
+  otherId  String @unique
+  relation Other  @relation(fields: [otherId], references: [id])
+  list     String[]
+  enum     Enum
+  enumList Enum[]
+}
+
+model Other {
+  id    String  @id
+  model Model?
+}

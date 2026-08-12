@@ -1,0 +1,730 @@
+// use prisma-next
+// Contract inferred from the live database schema. Edit as needed, then run `prisma-next contract emit`.
+
+types {
+  CreatedAt = Timestamp
+  EmailChangeConfirmStatus = SmallInt
+  Hash = VarChar(40)
+  Id = Uuid
+  IpAddress = Inet
+  IpAddress2 = VarChar(64)
+  Name = VarChar(100)
+  Parent = VarChar(255)
+  Payload = Json
+}
+
+namespace auth {
+  model AuditLogEntries {
+    id         Id         @id(map: "audit_log_entries_pkey")
+    instanceId Id?        @map("instance_id")
+    payload    Payload?
+    createdAt  DateTime?  @map("created_at")
+    ipAddress  IpAddress2 @default("") @map("ip_address")
+
+    @@index([instanceId], map: "audit_logs_instance_id_idx")
+    @@rls
+    @@map("audit_log_entries")
+  }
+
+  model AuthUser {
+    id                       Id                        @id(map: "users_pkey")
+    instanceId               Id?                       @map("instance_id")
+    aud                      Parent?
+    role                     Parent?
+    email                    Parent?
+    encryptedPassword        Parent?                   @map("encrypted_password")
+    emailConfirmedAt         DateTime?                 @map("email_confirmed_at")
+    invitedAt                DateTime?                 @map("invited_at")
+    confirmationToken        Parent?                   @map("confirmation_token")
+    confirmationSentAt       DateTime?                 @map("confirmation_sent_at")
+    recoveryToken            Parent?                   @map("recovery_token")
+    recoverySentAt           DateTime?                 @map("recovery_sent_at")
+    emailChangeTokenNew      Parent?                   @map("email_change_token_new")
+    emailChange              Parent?                   @map("email_change")
+    emailChangeSentAt        DateTime?                 @map("email_change_sent_at")
+    lastSignInAt             DateTime?                 @map("last_sign_in_at")
+    rawAppMetaData           Jsonb?                    @map("raw_app_meta_data")
+    rawUserMetaData          Jsonb?                    @map("raw_user_meta_data")
+    isSuperAdmin             Boolean?                  @map("is_super_admin")
+    createdAt                DateTime?                 @map("created_at")
+    updatedAt                DateTime?                 @map("updated_at")
+    phone                    String?                   @unique(map: "users_phone_key")
+    phoneConfirmedAt         DateTime?                 @map("phone_confirmed_at")
+    phoneChange              String?                   @default("") @map("phone_change")
+    phoneChangeToken         Parent?                   @default("") @map("phone_change_token")
+    phoneChangeSentAt        DateTime?                 @map("phone_change_sent_at")
+    confirmedAt              DateTime?                 @map("confirmed_at")
+    emailChangeTokenCurrent  Parent?                   @default("") @map("email_change_token_current")
+    emailChangeConfirmStatus EmailChangeConfirmStatus? @default(0) @map("email_change_confirm_status")
+    bannedUntil              DateTime?                 @map("banned_until")
+    reauthenticationToken    Parent?                   @default("") @map("reauthentication_token")
+    reauthenticationSentAt   DateTime?                 @map("reauthentication_sent_at")
+    isSsoUser                Boolean                   @default(false) @map("is_sso_user")
+    deletedAt                DateTime?                 @map("deleted_at")
+    isAnonymous              Boolean                   @default(false) @map("is_anonymous")
+    identities               AuthIdentity[]
+    mfaFactors               MfaFactors[]
+    oauthAuthorizations      OauthAuthorizations[]
+    oauthConsents            OauthConsents[]
+    oneTimeTokens            OneTimeTokens[]
+    sessions                 AuthSession[]
+    webauthnChallenges       WebauthnChallenges[]
+    webauthnCredentials      WebauthnCredentials[]
+
+    @@index([confirmationToken], map: "confirmation_token_idx", where: "((confirmation_token)::text !~ '^[0-9 ]*$'::text)", unique: true)
+    @@index([emailChangeTokenCurrent], map: "email_change_token_current_idx", where: "((email_change_token_current)::text !~ '^[0-9 ]*$'::text)", unique: true)
+    @@index([emailChangeTokenNew], map: "email_change_token_new_idx", where: "((email_change_token_new)::text !~ '^[0-9 ]*$'::text)", unique: true)
+    @@index([reauthenticationToken], map: "reauthentication_token_idx", where: "((reauthentication_token)::text !~ '^[0-9 ]*$'::text)", unique: true)
+    @@index([recoveryToken], map: "recovery_token_idx", where: "((recovery_token)::text !~ '^[0-9 ]*$'::text)", unique: true)
+    @@index([email], map: "users_email_partial_key", where: "(is_sso_user = false)", unique: true)
+    @@index(expression: "instance_id, lower(email::text)", map: "users_instance_id_email_idx")
+    @@index([instanceId], map: "users_instance_id_idx")
+    @@index([isAnonymous], map: "users_is_anonymous_idx")
+    @@rls
+    @@map("users")
+  }
+
+  model AuthIdentity {
+    id           Id        @id(map: "identities_pkey") @default(dbgenerated("gen_random_uuid()"))
+    providerId   String    @map("provider_id")
+    userId       Id        @map("user_id")
+    identityData Jsonb     @map("identity_data")
+    provider     String
+    lastSignInAt DateTime? @map("last_sign_in_at")
+    createdAt    DateTime? @map("created_at")
+    updatedAt    DateTime? @map("updated_at")
+    email        String?
+    user         AuthUser  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "identities_user_id_fkey")
+
+    @@unique([providerId, provider], map: "identities_provider_id_provider_unique")
+    @@index([email], map: "identities_email_idx")
+    @@index([userId], map: "identities_user_id_idx")
+    @@rls
+    @@map("identities")
+  }
+
+  model OauthClients {
+    id                      Id                             @id(map: "oauth_clients_pkey")
+    clientSecretHash        String?                        @map("client_secret_hash")
+    registrationType        pg.enum(OauthRegistrationType) @map("registration_type")
+    redirectUris            String                         @map("redirect_uris")
+    grantTypes              String                         @map("grant_types")
+    clientName              String?                        @map("client_name")
+    clientUri               String?                        @map("client_uri")
+    logoUri                 String?                        @map("logo_uri")
+    createdAt               DateTime                       @default(now()) @map("created_at")
+    updatedAt               DateTime                       @default(now()) @map("updated_at")
+    deletedAt               DateTime?                      @map("deleted_at")
+    clientType              pg.enum(OauthClientType)       @default(dbgenerated("'confidential'::auth.oauth_client_type")) @map("client_type")
+    tokenEndpointAuthMethod String                         @map("token_endpoint_auth_method")
+    oauthAuthorizations     OauthAuthorizations[]
+    oauthConsents           OauthConsents[]
+    sessions                AuthSession[]
+
+    @@index([deletedAt], map: "oauth_clients_deleted_at_idx")
+    @@map("oauth_clients")
+  }
+
+  model AuthSession {
+    id                  Id                 @id(map: "sessions_pkey")
+    userId              Id                 @map("user_id")
+    createdAt           DateTime?          @map("created_at")
+    updatedAt           DateTime?          @map("updated_at")
+    factorId            Id?                @map("factor_id")
+    aal                 pg.enum(AalLevel)?
+    notAfter            DateTime?          @map("not_after")
+    refreshedAt         CreatedAt?         @map("refreshed_at")
+    userAgent           String?            @map("user_agent")
+    ip                  IpAddress?
+    tag                 String?
+    oauthClientId       Id?                @map("oauth_client_id")
+    refreshTokenHmacKey String?            @map("refresh_token_hmac_key")
+    refreshTokenCounter BigInt?            @map("refresh_token_counter")
+    scopes              String?
+    mfaAmrClaims        MfaAmrClaims[]
+    refreshTokens       RefreshTokens[]
+    oauthClient         OauthClients?      @relation(fields: [oauthClientId], references: [id], onDelete: Cascade, map: "sessions_oauth_client_id_fkey")
+    user                AuthUser           @relation(fields: [userId], references: [id], onDelete: Cascade, map: "sessions_user_id_fkey")
+
+    @@index([notAfter], map: "sessions_not_after_idx")
+    @@index([oauthClientId], map: "sessions_oauth_client_id_idx")
+    @@index([userId], map: "sessions_user_id_idx")
+    @@index([userId, createdAt], map: "user_id_created_at_idx")
+    @@rls
+    @@map("sessions")
+  }
+
+  model CustomOauthProviders {
+    id                  Id        @id(map: "custom_oauth_providers_pkey") @default(dbgenerated("gen_random_uuid()"))
+    providerType        String    @map("provider_type")
+    identifier          String    @unique(map: "custom_oauth_providers_identifier_key")
+    name                String
+    clientId            String    @map("client_id")
+    clientSecret        String    @map("client_secret")
+    acceptableClientIds String[]  @default([]) @map("acceptable_client_ids")
+    scopes              String[]  @default([])
+    pkceEnabled         Boolean   @default(true) @map("pkce_enabled")
+    attributeMapping    Jsonb     @default(dbgenerated("'{}'::jsonb")) @map("attribute_mapping")
+    authorizationParams Jsonb     @default(dbgenerated("'{}'::jsonb")) @map("authorization_params")
+    enabled             Boolean   @default(true)
+    emailOptional       Boolean   @default(false) @map("email_optional")
+    issuer              String?
+    discoveryUrl        String?   @map("discovery_url")
+    skipNonceCheck      Boolean   @default(false) @map("skip_nonce_check")
+    cachedDiscovery     Jsonb?    @map("cached_discovery")
+    discoveryCachedAt   DateTime? @map("discovery_cached_at")
+    authorizationUrl    String?   @map("authorization_url")
+    tokenUrl            String?   @map("token_url")
+    userinfoUrl         String?   @map("userinfo_url")
+    jwksUri             String?   @map("jwks_uri")
+    createdAt           DateTime  @default(now()) @map("created_at")
+    updatedAt           DateTime  @default(now()) @map("updated_at")
+
+    @@index([createdAt], map: "custom_oauth_providers_created_at_idx")
+    @@index([enabled], map: "custom_oauth_providers_enabled_idx")
+    @@index([identifier], map: "custom_oauth_providers_identifier_idx")
+    @@index([providerType], map: "custom_oauth_providers_provider_type_idx")
+    @@map("custom_oauth_providers")
+  }
+
+  model FlowState {
+    id                   Id                            @id(map: "flow_state_pkey")
+    userId               Id?                           @map("user_id")
+    authCode             String?                       @map("auth_code")
+    codeChallengeMethod  pg.enum(CodeChallengeMethod)? @map("code_challenge_method")
+    codeChallenge        String?                       @map("code_challenge")
+    providerType         String                        @map("provider_type")
+    providerAccessToken  String?                       @map("provider_access_token")
+    providerRefreshToken String?                       @map("provider_refresh_token")
+    createdAt            DateTime?                     @map("created_at")
+    updatedAt            DateTime?                     @map("updated_at")
+    authenticationMethod String                        @map("authentication_method")
+    authCodeIssuedAt     DateTime?                     @map("auth_code_issued_at")
+    inviteToken          String?                       @map("invite_token")
+    referrer             String?
+    oauthClientStateId   Id?                           @map("oauth_client_state_id")
+    linkingTargetId      Id?                           @map("linking_target_id")
+    emailOptional        Boolean                       @default(false) @map("email_optional")
+    samlRelayStates      SamlRelayStates[]
+
+    @@index([createdAt], map: "flow_state_created_at_idx")
+    @@index([authCode], map: "idx_auth_code")
+    @@index([userId, authenticationMethod], map: "idx_user_id_auth_method")
+    @@rls
+    @@map("flow_state")
+  }
+
+  model Instances {
+    id            Id        @id(map: "instances_pkey")
+    uuid          Id?
+    rawBaseConfig String?   @map("raw_base_config")
+    createdAt     DateTime? @map("created_at")
+    updatedAt     DateTime? @map("updated_at")
+
+    @@rls
+    @@map("instances")
+  }
+
+  model MfaAmrClaims {
+    id                   Id          @id(map: "amr_id_pk")
+    sessionId            Id          @map("session_id")
+    createdAt            DateTime    @map("created_at")
+    updatedAt            DateTime    @map("updated_at")
+    authenticationMethod String      @map("authentication_method")
+    session              AuthSession @relation(fields: [sessionId], references: [id], onDelete: Cascade, map: "mfa_amr_claims_session_id_fkey", index: false)
+
+    @@unique([sessionId, authenticationMethod], map: "mfa_amr_claims_session_id_authentication_method_pkey")
+    @@rls
+    @@map("mfa_amr_claims")
+  }
+
+  model MfaFactors {
+    id                        Id                    @id(map: "mfa_factors_pkey")
+    userId                    Id                    @map("user_id")
+    friendlyName              String?               @map("friendly_name")
+    factorType                pg.enum(FactorType)   @map("factor_type")
+    status                    pg.enum(FactorStatus)
+    createdAt                 DateTime              @map("created_at")
+    updatedAt                 DateTime              @map("updated_at")
+    secret                    String?
+    phone                     String?
+    lastChallengedAt          DateTime?             @unique(map: "mfa_factors_last_challenged_at_key") @map("last_challenged_at")
+    webAuthnCredential        Jsonb?                @map("web_authn_credential")
+    webAuthnAaguid            Id?                   @map("web_authn_aaguid")
+    lastWebauthnChallengeData Jsonb?                @map("last_webauthn_challenge_data")
+    mfaChallenges             MfaChallenges[]
+    user                      AuthUser              @relation(fields: [userId], references: [id], onDelete: Cascade, map: "mfa_factors_user_id_fkey")
+
+    @@index([userId, createdAt], map: "factor_id_created_at_idx")
+    @@index([friendlyName, userId], map: "mfa_factors_user_friendly_name_unique", where: "(TRIM(BOTH FROM friendly_name) <> ''::text)", unique: true)
+    @@index([userId], map: "mfa_factors_user_id_idx")
+    @@index([userId, phone], map: "unique_phone_factor_per_user", unique: true)
+    @@rls
+    @@map("mfa_factors")
+  }
+
+  model MfaChallenges {
+    id                  Id         @id(map: "mfa_challenges_pkey")
+    factorId            Id         @map("factor_id")
+    createdAt           DateTime   @map("created_at")
+    verifiedAt          DateTime?  @map("verified_at")
+    ipAddress           IpAddress  @map("ip_address")
+    otpCode             String?    @map("otp_code")
+    webAuthnSessionData Jsonb?     @map("web_authn_session_data")
+    factor              MfaFactors @relation(fields: [factorId], references: [id], onDelete: Cascade, map: "mfa_challenges_auth_factor_id_fkey", index: false)
+
+    @@index([createdAt], map: "mfa_challenge_created_at_idx")
+    @@rls
+    @@map("mfa_challenges")
+  }
+
+  model OauthAuthorizations {
+    id                  Id                                @id(map: "oauth_authorizations_pkey")
+    authorizationId     String                            @unique(map: "oauth_authorizations_authorization_id_key") @map("authorization_id")
+    clientId            Id                                @map("client_id")
+    userId              Id?                               @map("user_id")
+    redirectUri         String                            @map("redirect_uri")
+    scope               String
+    state               String?
+    resource            String?
+    codeChallenge       String?                           @map("code_challenge")
+    codeChallengeMethod pg.enum(CodeChallengeMethod)?     @map("code_challenge_method")
+    responseType        pg.enum(OauthResponseType)        @default(dbgenerated("'code'::auth.oauth_response_type")) @map("response_type")
+    status              pg.enum(OauthAuthorizationStatus) @default(dbgenerated("'pending'::auth.oauth_authorization_status"))
+    authorizationCode   String?                           @unique(map: "oauth_authorizations_authorization_code_key") @map("authorization_code")
+    createdAt           DateTime                          @default(now()) @map("created_at")
+    expiresAt           DateTime                          @default(dbgenerated("(now() + '00:03:00'::interval)")) @map("expires_at")
+    approvedAt          DateTime?                         @map("approved_at")
+    nonce               String?
+    client              OauthClients                      @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "oauth_authorizations_client_id_fkey", index: false)
+    user                AuthUser?                         @relation(fields: [userId], references: [id], onDelete: Cascade, map: "oauth_authorizations_user_id_fkey", index: false)
+
+    @@index([expiresAt], map: "oauth_auth_pending_exp_idx", where: "(status = 'pending'::auth.oauth_authorization_status)")
+    @@map("oauth_authorizations")
+  }
+
+  model OauthClientStates {
+    id           Id       @id(map: "oauth_client_states_pkey")
+    providerType String   @map("provider_type")
+    codeVerifier String?  @map("code_verifier")
+    createdAt    DateTime @map("created_at")
+
+    @@index([createdAt], map: "idx_oauth_client_states_created_at")
+    @@map("oauth_client_states")
+  }
+
+  model OauthConsents {
+    id        Id           @id(map: "oauth_consents_pkey")
+    userId    Id           @map("user_id")
+    clientId  Id           @map("client_id")
+    scopes    String
+    grantedAt DateTime     @default(now()) @map("granted_at")
+    revokedAt DateTime?    @map("revoked_at")
+    client    OauthClients @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "oauth_consents_client_id_fkey", index: false)
+    user      AuthUser     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "oauth_consents_user_id_fkey", index: false)
+
+    @@unique([userId, clientId], map: "oauth_consents_user_client_unique")
+    @@index([clientId], map: "oauth_consents_active_client_idx", where: "(revoked_at IS NULL)")
+    @@index([userId, clientId], map: "oauth_consents_active_user_client_idx", where: "(revoked_at IS NULL)")
+    @@index([userId, grantedAt], map: "oauth_consents_user_order_idx")
+    @@map("oauth_consents")
+  }
+
+  model OneTimeTokens {
+    id        Id                        @id(map: "one_time_tokens_pkey")
+    userId    Id                        @map("user_id")
+    tokenType pg.enum(OneTimeTokenType) @map("token_type")
+    tokenHash String                    @map("token_hash")
+    relatesTo String                    @map("relates_to")
+    createdAt CreatedAt                 @default(now()) @map("created_at")
+    updatedAt CreatedAt                 @default(now()) @map("updated_at")
+    user      AuthUser                  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "one_time_tokens_user_id_fkey", index: false)
+
+    @@index([relatesTo], map: "one_time_tokens_relates_to_hash_idx", type: "hash")
+    @@index([tokenHash], map: "one_time_tokens_token_hash_hash_idx", type: "hash")
+    @@index([userId, tokenType], map: "one_time_tokens_user_id_token_type_key", unique: true)
+    @@rls
+    @@map("one_time_tokens")
+  }
+
+  model RefreshTokens {
+    id         BigInt       @id(map: "refresh_tokens_pkey") @default(autoincrement())
+    instanceId Id?          @map("instance_id")
+    token      Parent?      @unique(map: "refresh_tokens_token_unique")
+    userId     Parent?      @map("user_id")
+    revoked    Boolean?
+    createdAt  DateTime?    @map("created_at")
+    updatedAt  DateTime?    @map("updated_at")
+    parent     Parent?
+    sessionId  Id?          @map("session_id")
+    session    AuthSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade, map: "refresh_tokens_session_id_fkey", index: false)
+
+    @@index([instanceId], map: "refresh_tokens_instance_id_idx")
+    @@index([instanceId, userId], map: "refresh_tokens_instance_id_user_id_idx")
+    @@index([parent], map: "refresh_tokens_parent_idx")
+    @@index([sessionId, revoked], map: "refresh_tokens_session_id_revoked_idx")
+    @@index([updatedAt], map: "refresh_tokens_updated_at_idx")
+    @@rls
+    @@map("refresh_tokens")
+  }
+
+  model SsoProviders {
+    id              Id                @id(map: "sso_providers_pkey")
+    resourceId      String?           @map("resource_id")
+    createdAt       DateTime?         @map("created_at")
+    updatedAt       DateTime?         @map("updated_at")
+    disabled        Boolean?
+    samlProviders   SamlProviders[]
+    samlRelayStates SamlRelayStates[]
+    ssoDomains      SsoDomains[]
+
+    @@index(expression: "lower(resource_id)", map: "sso_providers_resource_id_idx", unique: true)
+    @@index([resourceId], map: "sso_providers_resource_id_pattern_idx")
+    @@rls
+    @@map("sso_providers")
+  }
+
+  model SamlProviders {
+    id               Id           @id(map: "saml_providers_pkey")
+    ssoProviderId    Id           @map("sso_provider_id")
+    entityId         String       @unique(map: "saml_providers_entity_id_key") @map("entity_id")
+    metadataXml      String       @map("metadata_xml")
+    metadataUrl      String?      @map("metadata_url")
+    attributeMapping Jsonb?       @map("attribute_mapping")
+    createdAt        DateTime?    @map("created_at")
+    updatedAt        DateTime?    @map("updated_at")
+    nameIdFormat     String?      @map("name_id_format")
+    ssoProvider      SsoProviders @relation(fields: [ssoProviderId], references: [id], onDelete: Cascade, map: "saml_providers_sso_provider_id_fkey")
+
+    @@index([ssoProviderId], map: "saml_providers_sso_provider_id_idx")
+    @@rls
+    @@map("saml_providers")
+  }
+
+  model SamlRelayStates {
+    id            Id           @id(map: "saml_relay_states_pkey")
+    ssoProviderId Id           @map("sso_provider_id")
+    requestId     String       @map("request_id")
+    forEmail      String?      @map("for_email")
+    redirectTo    String?      @map("redirect_to")
+    createdAt     DateTime?    @map("created_at")
+    updatedAt     DateTime?    @map("updated_at")
+    flowStateId   Id?          @map("flow_state_id")
+    flowState     FlowState?   @relation(fields: [flowStateId], references: [id], onDelete: Cascade, map: "saml_relay_states_flow_state_id_fkey", index: false)
+    ssoProvider   SsoProviders @relation(fields: [ssoProviderId], references: [id], onDelete: Cascade, map: "saml_relay_states_sso_provider_id_fkey")
+
+    @@index([createdAt], map: "saml_relay_states_created_at_idx")
+    @@index([forEmail], map: "saml_relay_states_for_email_idx")
+    @@index([ssoProviderId], map: "saml_relay_states_sso_provider_id_idx")
+    @@rls
+    @@map("saml_relay_states")
+  }
+
+  model SchemaMigrations {
+    version Parent @id(map: "schema_migrations_pkey")
+
+    @@rls
+    @@map("schema_migrations")
+  }
+
+  model SsoDomains {
+    id            Id           @id(map: "sso_domains_pkey")
+    ssoProviderId Id           @map("sso_provider_id")
+    domain        String
+    createdAt     DateTime?    @map("created_at")
+    updatedAt     DateTime?    @map("updated_at")
+    ssoProvider   SsoProviders @relation(fields: [ssoProviderId], references: [id], onDelete: Cascade, map: "sso_domains_sso_provider_id_fkey")
+
+    @@index(expression: "lower(domain)", map: "sso_domains_domain_idx", unique: true)
+    @@index([ssoProviderId], map: "sso_domains_sso_provider_id_idx")
+    @@rls
+    @@map("sso_domains")
+  }
+
+  model WebauthnChallenges {
+    id            Id        @id(map: "webauthn_challenges_pkey") @default(dbgenerated("gen_random_uuid()"))
+    userId        Id?       @map("user_id")
+    challengeType String    @map("challenge_type")
+    sessionData   Jsonb     @map("session_data")
+    createdAt     DateTime  @default(now()) @map("created_at")
+    expiresAt     DateTime  @map("expires_at")
+    user          AuthUser? @relation(fields: [userId], references: [id], onDelete: Cascade, map: "webauthn_challenges_user_id_fkey")
+
+    @@index([expiresAt], map: "webauthn_challenges_expires_at_idx")
+    @@index([userId], map: "webauthn_challenges_user_id_idx")
+    @@map("webauthn_challenges")
+  }
+
+  model WebauthnCredentials {
+    id              Id        @id(map: "webauthn_credentials_pkey") @default(dbgenerated("gen_random_uuid()"))
+    userId          Id        @map("user_id")
+    credentialId    Bytes     @map("credential_id")
+    publicKey       Bytes     @map("public_key")
+    attestationType String    @default("") @map("attestation_type")
+    aaguid          Id?
+    signCount       BigInt    @default(0) @map("sign_count")
+    transports      Jsonb     @default(dbgenerated("'[]'::jsonb"))
+    backupEligible  Boolean   @default(false) @map("backup_eligible")
+    backedUp        Boolean   @default(false) @map("backed_up")
+    friendlyName    String    @default("") @map("friendly_name")
+    createdAt       DateTime  @default(now()) @map("created_at")
+    updatedAt       DateTime  @default(now()) @map("updated_at")
+    lastUsedAt      DateTime? @map("last_used_at")
+    user            AuthUser  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "webauthn_credentials_user_id_fkey")
+
+    @@index([credentialId], map: "webauthn_credentials_credential_id_key", unique: true)
+    @@index([userId], map: "webauthn_credentials_user_id_idx")
+    @@map("webauthn_credentials")
+  }
+
+  native_enum AalLevel {
+    aal1 = "aal1"
+    aal2 = "aal2"
+    aal3 = "aal3"
+    @@map("aal_level")
+  }
+
+  native_enum CodeChallengeMethod {
+    s256 = "s256"
+    plain = "plain"
+    @@map("code_challenge_method")
+  }
+
+  native_enum FactorStatus {
+    unverified = "unverified"
+    verified = "verified"
+    @@map("factor_status")
+  }
+
+  native_enum FactorType {
+    totp = "totp"
+    webauthn = "webauthn"
+    phone = "phone"
+    @@map("factor_type")
+  }
+
+  native_enum OauthAuthorizationStatus {
+    pending = "pending"
+    approved = "approved"
+    denied = "denied"
+    expired = "expired"
+    @@map("oauth_authorization_status")
+  }
+
+  native_enum OauthClientType {
+    public = "public"
+    confidential = "confidential"
+    @@map("oauth_client_type")
+  }
+
+  native_enum OauthRegistrationType {
+    dynamic = "dynamic"
+    manual = "manual"
+    @@map("oauth_registration_type")
+  }
+
+  native_enum OauthResponseType {
+    code = "code"
+    @@map("oauth_response_type")
+  }
+
+  native_enum OneTimeTokenType {
+    confirmation_token = "confirmation_token"
+    reauthentication_token = "reauthentication_token"
+    recovery_token = "recovery_token"
+    email_change_token_new = "email_change_token_new"
+    email_change_token_current = "email_change_token_current"
+    phone_change_token = "phone_change_token"
+    @@map("one_time_token_type")
+  }
+}
+
+namespace storage {
+  model BucketsAnalytics {
+    id                Id                  @id(map: "buckets_analytics_pkey") @default(dbgenerated("gen_random_uuid()"))
+    name              String
+    _type             pg.enum(Buckettype) @default(dbgenerated("'ANALYTICS'::storage.buckettype")) @map("type")
+    format            String              @default("ICEBERG")
+    createdAt         DateTime            @default(now()) @map("created_at")
+    updatedAt         DateTime            @default(now()) @map("updated_at")
+    deletedAt         DateTime?           @map("deleted_at")
+    icebergNamespaces IcebergNamespaces[]
+    icebergTables     IcebergTables[]
+
+    @@index([name], map: "buckets_analytics_unique_name_idx", where: "(deleted_at IS NULL)", unique: true)
+    @@rls
+    @@map("buckets_analytics")
+  }
+
+  model BucketsVectors {
+    id            String              @id(map: "buckets_vectors_pkey")
+    _type         pg.enum(Buckettype) @default(dbgenerated("'VECTOR'::storage.buckettype")) @map("type")
+    createdAt     DateTime            @default(now()) @map("created_at")
+    updatedAt     DateTime            @default(now()) @map("updated_at")
+    vectorIndexes VectorIndexes[]
+
+    @@rls
+    @@map("buckets_vectors")
+  }
+
+  model IcebergNamespaces {
+    id            Id               @id(map: "iceberg_namespaces_pkey") @default(dbgenerated("gen_random_uuid()"))
+    bucketName    String           @map("bucket_name")
+    name          String
+    createdAt     DateTime         @default(now()) @map("created_at")
+    updatedAt     DateTime         @default(now()) @map("updated_at")
+    metadata      Jsonb            @default(dbgenerated("'{}'::jsonb"))
+    catalogId     Id               @map("catalog_id")
+    icebergTables IcebergTables[]
+    catalog       BucketsAnalytics @relation(fields: [catalogId], references: [id], onDelete: Cascade, map: "iceberg_namespaces_catalog_id_fkey", index: false)
+
+    @@index([catalogId, name], map: "idx_iceberg_namespaces_bucket_id", unique: true)
+    @@rls
+    @@map("iceberg_namespaces")
+  }
+
+  model IcebergTables {
+    id            Id                @id(map: "iceberg_tables_pkey") @default(dbgenerated("gen_random_uuid()"))
+    namespaceId   Id                @map("namespace_id")
+    bucketName    String            @map("bucket_name")
+    name          String
+    location      String
+    createdAt     DateTime          @default(now()) @map("created_at")
+    updatedAt     DateTime          @default(now()) @map("updated_at")
+    remoteTableId String?           @map("remote_table_id")
+    shardKey      String?           @map("shard_key")
+    shardId       String?           @map("shard_id")
+    catalogId     Id                @map("catalog_id")
+    catalog       BucketsAnalytics  @relation(fields: [catalogId], references: [id], onDelete: Cascade, map: "iceberg_tables_catalog_id_fkey", index: false)
+    namespace     IcebergNamespaces @relation(fields: [namespaceId], references: [id], onDelete: Cascade, map: "iceberg_tables_namespace_id_fkey", index: false)
+
+    @@index([location], map: "idx_iceberg_tables_location", unique: true)
+    @@index([catalogId, namespaceId, name], map: "idx_iceberg_tables_namespace_id", unique: true)
+    @@rls
+    @@map("iceberg_tables")
+  }
+
+  model Migrations {
+    id         Int        @id(map: "migrations_pkey")
+    name       Name       @unique(map: "migrations_name_key")
+    hash       Hash
+    executedAt CreatedAt? @default(now()) @map("executed_at")
+
+    @@rls
+    @@map("migrations")
+  }
+
+  model StorageBucket {
+    id                      String                    @id(map: "buckets_pkey")
+    name                    String
+    owner                   Id?
+    createdAt               DateTime?                 @default(now()) @map("created_at")
+    updatedAt               DateTime?                 @default(now()) @map("updated_at")
+    public                  Boolean?                  @default(false)
+    avifAutodetection       Boolean?                  @default(false) @map("avif_autodetection")
+    fileSizeLimit           BigInt?                   @map("file_size_limit")
+    ownerId                 String?                   @map("owner_id")
+    _type                   pg.enum(Buckettype)       @default(dbgenerated("'STANDARD'::storage.buckettype")) @map("type")
+    objects                 StorageObject[]
+    s3MultipartUploads      S3MultipartUploads[]
+    s3MultipartUploadsParts S3MultipartUploadsParts[]
+
+    @@index([name], map: "bname", unique: true)
+    @@rls
+    @@map("buckets")
+  }
+
+  model S3MultipartUploads {
+    id                      String                    @id(map: "s3_multipart_uploads_pkey")
+    inProgressSize          BigInt                    @default(0) @map("in_progress_size")
+    uploadSignature         String                    @map("upload_signature")
+    bucketId                String                    @map("bucket_id")
+    key                     String
+    version                 String
+    ownerId                 String?                   @map("owner_id")
+    createdAt               DateTime                  @default(now()) @map("created_at")
+    userMetadata            Jsonb?                    @map("user_metadata")
+    metadata                Jsonb?
+    s3MultipartUploadsParts S3MultipartUploadsParts[]
+    bucket                  StorageBucket             @relation(fields: [bucketId], references: [id], map: "s3_multipart_uploads_bucket_id_fkey", index: false)
+
+    @@index([bucketId, key, createdAt], map: "idx_multipart_uploads_list")
+    @@rls
+    @@map("s3_multipart_uploads")
+  }
+
+  model S3MultipartUploadsParts {
+    id         Id                 @id(map: "s3_multipart_uploads_parts_pkey") @default(dbgenerated("gen_random_uuid()"))
+    uploadId   String             @map("upload_id")
+    size       BigInt             @default(0)
+    partNumber Int                @map("part_number")
+    bucketId   String             @map("bucket_id")
+    key        String
+    etag       String
+    ownerId    String?            @map("owner_id")
+    version    String
+    createdAt  DateTime           @default(now()) @map("created_at")
+    bucket     StorageBucket      @relation(fields: [bucketId], references: [id], map: "s3_multipart_uploads_parts_bucket_id_fkey", index: false)
+    upload     S3MultipartUploads @relation(fields: [uploadId], references: [id], onDelete: Cascade, map: "s3_multipart_uploads_parts_upload_id_fkey", index: false)
+
+    @@rls
+    @@map("s3_multipart_uploads_parts")
+  }
+
+  model StorageObject {
+    id             Id             @id(map: "objects_pkey") @default(dbgenerated("gen_random_uuid()"))
+    bucketId       String?        @map("bucket_id")
+    name           String?
+    owner          Id?
+    createdAt      DateTime?      @default(now()) @map("created_at")
+    updatedAt      DateTime?      @default(now()) @map("updated_at")
+    lastAccessedAt DateTime?      @default(now()) @map("last_accessed_at")
+    metadata       Jsonb?
+    version        String?
+    ownerId        String?        @map("owner_id")
+    userMetadata   Jsonb?         @map("user_metadata")
+    bucket         StorageBucket? @relation(fields: [bucketId], references: [id], map: "objects_bucketId_fkey", index: false)
+
+    @@index([bucketId, name], map: "bucketid_objname", unique: true)
+    @@index([bucketId, name], map: "idx_objects_bucket_id_name")
+    @@index(expression: "bucket_id, lower(name)", map: "idx_objects_bucket_id_name_lower")
+    @@index([name], map: "name_prefix_search")
+    @@rls
+    @@map("objects")
+  }
+
+  model VectorIndexes {
+    id                    String         @id(map: "vector_indexes_pkey") @default(dbgenerated("gen_random_uuid()"))
+    name                  String
+    bucketId              String         @map("bucket_id")
+    dataType              String         @map("data_type")
+    dimension             Int
+    distanceMetric        String         @map("distance_metric")
+    metadataConfiguration Jsonb?         @map("metadata_configuration")
+    createdAt             DateTime       @default(now()) @map("created_at")
+    updatedAt             DateTime       @default(now()) @map("updated_at")
+    bucket                BucketsVectors @relation(fields: [bucketId], references: [id], map: "vector_indexes_bucket_id_fkey", index: false)
+
+    @@index([name, bucketId], map: "vector_indexes_name_bucket_id_idx", unique: true)
+    @@rls
+    @@map("vector_indexes")
+  }
+
+  native_enum Buckettype {
+    STANDARD = "STANDARD"
+    ANALYTICS = "ANALYTICS"
+    VECTOR = "VECTOR"
+    @@map("buckettype")
+  }
+}
+
+namespace unbound {
+  role anon {
+  }
+
+  role authenticated {
+  }
+
+  role service_role {
+  }
+}

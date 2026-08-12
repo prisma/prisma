@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bundle-size-worker-no-emit",
+  "main": "src/postgres-worker/worker.ts",
+  "compatibility_date": "2025-07-18",
+  "compatibility_flags": ["nodejs_compat"]
+}

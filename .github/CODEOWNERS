@@ -1,0 +1,11 @@
+# Code owners for prisma-next.
+#
+# Every PR auto-routes to @prisma/ORM-TS-Maintain for review. Branch
+# protection on `main` requires at least one approving review from a
+# code owner before merge (see CONTRIBUTING.md).
+#
+# This is intentionally a flat ownership rule: until the maintainer
+# group is large enough to warrant subsystem-level routing, a single
+# rule is easier to keep current than per-directory rules that drift.
+
+* @prisma/ORM-TS-Maintain

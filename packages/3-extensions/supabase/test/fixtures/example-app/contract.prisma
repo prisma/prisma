@@ -1,0 +1,33 @@
+namespace public {
+  model Profile {
+    id       Uuid   @id @default(uuid())
+    username String
+    userId   Uuid   @unique
+    user     supabase:auth.AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+    @@map("profile")
+    @@rls
+  }
+
+  // authenticated may read only their own profile.
+  policy_select profile_owner_read {
+    target = Profile
+    roles  = [authenticated]
+    using  = "\"userId\"::uuid = auth.uid()"
+  }
+
+  // anon may read every profile (a public directory listing).
+  policy_select profile_public_read {
+    target = Profile
+    roles  = [anon]
+    using  = "true"
+  }
+
+  // authenticated may update only their own profile (USING), and may not
+  // reassign it to another owner (WITH CHECK) — the classic UPDATE-own policy.
+  policy_update profile_owner_write {
+    target    = Profile
+    roles     = [authenticated]
+    using     = "\"userId\"::uuid = auth.uid()"
+    withCheck = "\"userId\"::uuid = auth.uid()"
+  }
+}

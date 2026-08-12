@@ -1,0 +1,10 @@
+{
+  "name": "@repo/skill-github-review-iteration",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Iterative review orchestration package for github-review-iteration skill",
+  "scripts": {
+    "iterate": "node scripts/review-iterate.mjs"
+  }
+}

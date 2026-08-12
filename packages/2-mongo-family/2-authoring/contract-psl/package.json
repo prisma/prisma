@@ -1,0 +1,64 @@
+{
+  "name": "@internal/mongo-contract-psl",
+  "private": true,
+  "version": "8.0.0-rc.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "PSL-to-Mongo ContractIR interpreter for Prisma Next",
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write .",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@internal/config": "workspace:8.0.0-rc.1",
+    "@internal/contract": "workspace:8.0.0-rc.1",
+    "@internal/contract-authoring": "workspace:8.0.0-rc.1",
+    "@internal/errors": "workspace:8.0.0-rc.1",
+    "@internal/framework-components": "workspace:8.0.0-rc.1",
+    "@internal/mongo-contract": "workspace:8.0.0-rc.1",
+    "@internal/mongo-value": "workspace:8.0.0-rc.1",
+    "@internal/psl-parser": "workspace:8.0.0-rc.1",
+    "@internal/utils": "workspace:8.0.0-rc.1",
+    "mongodb": "catalog:",
+    "pathe": "^2.0.3"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./provider": "./dist/exports/provider.mjs",
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/2-mongo-family/2-authoring/contract-psl"
+  }
+}

@@ -1,0 +1,85 @@
+---
+description: Git commit best practices - avoid git add -A, stage files explicitly, always sign off
+alwaysApply: true
+---
+# Git Commit Best Practices
+
+## Never Use `git add -A` or `git add .`
+
+**CRITICAL**: Do not use `git add -A`, `git add .`, or `git add --all` when staging changes. These commands stage all changes including unrelated or untracked files.
+
+## Correct Approach
+
+Always stage files explicitly:
+
+```bash
+# Stage specific files
+git add path/to/file1.ts path/to/file2.ts
+
+# Stage modified files only (doesn't add untracked files)
+git add -u
+
+# Stage files matching a pattern (be specific)
+git add packages/1-framework/1-core/*/package.json
+```
+
+## Always Sign Off Commits
+
+**CRITICAL**: Every `git commit` you author MUST include a `Signed-off-by:` trailer. Pass `-s` (or `--signoff`) on every commit.
+
+```bash
+# Correct
+git commit -s -m 'fix(foo): correct null handling in bar'
+
+# Correct (with HEREDOC for multi-line messages)
+git commit -s -m "$(cat <<'EOF'
+fix(foo): correct null handling in bar
+
+Explains why ...
+EOF
+)"
+
+# WRONG — no signoff trailer
+git commit -m 'fix(foo): correct null handling in bar'
+```
+
+Common pitfalls:
+
+- The `format.signoff=true` git config option **only affects `git format-patch`**, not `git commit`. Do not assume the user's global config will add the trailer.
+- There is no `commit.signoff` git config option. The trailer must be added explicitly per commit, or via a `prepare-commit-msg` hook owned by the user.
+- When using `git commit --amend` (rare — see "Never Amend Pushed Commits" below), pass `--signoff` to ensure the trailer is present after the amend.
+- When rebasing with `--exec` or `--signoff`, ensure the trailer is preserved.
+
+Verify before pushing:
+
+```bash
+# Last commit must show a Signed-off-by line under the message body
+git log -1 --format='%B' | tail -3
+```
+
+## Never Amend Pushed Commits
+
+Do not use `git commit --amend` on commits that have already been pushed to the remote. This rewrites history and causes problems for anyone else working with the branch.
+
+Instead, create a new commit with the fix.
+
+## Best Practices
+
+1. **Review before staging**: Run `git status` to see what will be staged
+2. **Stage explicitly**: List the specific files or use `-u` for modified files only
+3. **Verify before committing**: Run `git diff --cached` to review staged changes
+4. **Sign off every commit**: Pass `-s` to every `git commit` invocation
+5. **Keep commits focused**: Each commit should contain related changes only
+6. **Don't amend pushed commits**: Only amend commits that haven't been pushed yet
+
+## Shell-safe commit messages
+
+When using `git commit -m`, avoid shell interpolation pitfalls:
+- Prefer **single quotes** around `-m` message strings.
+- Don’t use backticks in commit messages (they can trigger command substitution in some shells).
+
+A good commit:
+
+- Represents one logical step (a coherent unit of change)
+- Explains intent ("why"), not just mechanics ("what")
+- Is reviewable on its own (small diff, focused scope)

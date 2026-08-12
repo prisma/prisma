@@ -1,0 +1,49 @@
+---
+description: Extract TypeScript types from contract.d.ts and helpers
+globs: ["packages/**", "examples/**", "test/**"]
+alwaysApply: false
+---
+
+# Type Extraction from Contract
+
+## Pattern
+
+`CodecTypes` and `OperationTypes` are carried via **TypeMaps** (type-only, not runtime keys).
+
+- **Emitted workflow**: `contract.d.ts` exports `Contract` and `TypeMaps` separately. Use `CodecTypesOf<TypeMaps>` and `OperationTypesOf<TypeMaps>` for explicit threading.
+- **No-emit workflow**: `defineContract().build()` returns `ContractWithTypeMaps<Contract, TypeMaps>`. Use `ExtractCodecTypes` / `ExtractOperationTypes` which extract from the phantom key.
+
+```typescript
+// Emitted: import TypeMaps, use CodecTypesOf<TypeMaps>
+import type { Contract, TypeMaps } from './contract';
+type CodecTypes = CodecTypesOf<TypeMaps>;
+
+// No-emit: ExtractCodecTypes works with ContractWithTypeMaps
+type CodecTypes = ExtractCodecTypes<typeof contract>;
+```
+
+## Helper Types
+
+- `CodecTypesOf<TTypeMaps>`: Extracts `codecTypes` from TypeMaps
+- `OperationTypesOf<TTypeMaps>`: Extracts `operationTypes` from TypeMaps
+- `ExtractTypeMapsFromContract<T>`: Extracts TypeMaps from contract (`TypeMapsPhantomKey` → extract, or `never` for emitted)
+- `ExtractCodecTypes<T>`: Extracts from ContractWithTypeMaps (no-emit), fallback `Record<string, never>`
+- `ExtractOperationTypes<T>`: Same for operation types
+
+## Lane APIs with Explicit TypeMaps
+
+`schema`, `sql`, and `orm` accept optional `TTypeMaps` (defaults to `ExtractTypeMapsFromContract<TContract>`):
+
+```typescript
+// No-emit: infers from ContractWithTypeMaps
+const schemaHandle = schema<Contract>(context);
+
+// Emitted: pass TypeMaps explicitly
+const schemaHandle = schema<Contract, TypeMaps>(context);
+```
+
+## Important
+
+- Codec/operation type maps do **not** exist at runtime on `contract.mappings`
+- Runtime contract values include only structural mappings (modelToTable, tableToModel, fieldToColumn, columnToField)
+- Generated `Contract` type (emitted) has no phantom keys; TypeMaps is a separate export

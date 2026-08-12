@@ -1,0 +1,41 @@
+{
+  "name": "mongo-demo",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "emit": "prisma-next contract emit",
+    "migration:plan": "prisma-next migration plan",
+    "migration:apply": "prisma-next migration apply",
+    "db:seed": "tsx scripts/seed.ts",
+    "dev:api": "tsx src/server.ts",
+    "dev": "vite",
+    "test": "vitest run",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings"
+  },
+  "dependencies": {
+    "@prisma/orm-extension-middleware-cache": "workspace:8.0.0-rc.1",
+    "@prisma/orm-mongo": "workspace:8.0.0-rc.1",
+    "mongodb": "catalog:",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@types/node": "catalog:",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react-swc": "^4.3.2",
+    "mongodb-memory-server": "catalog:",
+    "pathe": "^2.0.3",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "version": "8.0.0-rc.1"
+}

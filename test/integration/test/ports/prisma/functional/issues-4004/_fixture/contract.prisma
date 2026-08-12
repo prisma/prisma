@@ -1,0 +1,41 @@
+// Faithful translation of prisma/prisma functional suite `issues/4004`
+// (packages/client/tests/functional/issues/4004, postgres matrix entry):
+//
+//   model Student {
+//     id           String @id
+//     name         String
+//     StudentClass StudentClass[]
+//   }
+//   model Class {
+//     id           String @id
+//     name         String
+//     StudentClass StudentClass[]
+//   }
+//   model StudentClass {
+//     id        String @id
+//     studentId String
+//     classId   String
+//     student   Student @relation(fields: [studentId], references: [id])
+//     class     Class   @relation(fields: [classId], references: [id])
+//   }
+//
+// Upstream idForProvider(postgresql) = String @id.
+model Student {
+  id           String         @id
+  name         String
+  StudentClass StudentClass[]
+}
+
+model Class {
+  id           String         @id
+  name         String
+  StudentClass StudentClass[]
+}
+
+model StudentClass {
+  id        String  @id @default(cuid(2))
+  studentId String
+  classId   String
+  student   Student @relation(fields: [studentId], references: [id])
+  class     Class   @relation(fields: [classId], references: [id])
+}

@@ -1,0 +1,36 @@
+---
+description: Avoid tautological tests that only restate fixture input
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# Avoid Tautological Tests
+
+Tests must verify behavior, not mirror object shape passed by the test itself.
+
+## Rule
+
+- Prefer assertions that validate transformation, branching, integration behavior, error handling, or side effects.
+- Do not add tests that only confirm an object still contains fields copied directly from the test input.
+- If coverage pressure encourages low-value assertions, tune coverage configuration instead of adding meaningless tests.
+
+## Examples
+
+**❌ Avoid**
+
+```typescript
+const value = makeThing({ a: 1, b: 2 });
+expect(value).toMatchObject({ a: 1, b: 2 });
+```
+
+When `makeThing()` only stores the same input fields, this adds little signal and mostly tests fixture setup.
+
+**✅ Prefer**
+
+```typescript
+const value = makeThing({ precision: 12 });
+expect(value.normalize()).toBe('numeric(12)');
+expect(() => makeThing({ precision: -1 })).toThrow();
+```
+
+These assertions validate behavior and error paths that can actually regress.

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "index.posts.create(authorId:1)",
+    "label": "Create index on posts (authorId:1)",
+    "operationClass": "additive",
+    "precheck": [
+      {
+        "description": "index does not already exist on posts",
+        "source": {
+          "kind": "listIndexes",
+          "collection": "posts"
+        },
+        "filter": {
+          "kind": "field",
+          "field": "key",
+          "op": "$eq",
+          "value": {
+            "authorId": 1
+          }
+        },
+        "expect": "notExists"
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index on posts",
+        "command": {
+          "kind": "createIndex",
+          "collection": "posts",
+          "keys": [
+            {
+              "direction": 1,
+              "field": "authorId"
+            }
+          ],
+          "name": "authorId_1"
+        }
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "index exists on posts",
+        "source": {
+          "kind": "listIndexes",
+          "collection": "posts"
+        },
+        "filter": {
+          "kind": "field",
+          "field": "key",
+          "op": "$eq",
+          "value": {
+            "authorId": 1
+          }
+        },
+        "expect": "exists"
+      }
+    ]
+  },
+  {
+    "id": "index.posts.create(createdAt:-1,authorId:1)",
+    "label": "Create index on posts (createdAt:-1, authorId:1)",
+    "operationClass": "additive",
+    "precheck": [
+      {
+        "description": "index does not already exist on posts",
+        "source": {
+          "kind": "listIndexes",
+          "collection": "posts"
+        },
+        "filter": {
+          "kind": "field",
+          "field": "key",
+          "op": "$eq",
+          "value": {
+            "createdAt": -1,
+            "authorId": 1
+          }
+        },
+        "expect": "notExists"
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index on posts",
+        "command": {
+          "kind": "createIndex",
+          "collection": "posts",
+          "keys": [
+            {
+              "direction": -1,
+              "field": "createdAt"
+            },
+            {
+              "direction": 1,
+              "field": "authorId"
+            }
+          ],
+          "name": "createdAt_-1_authorId_1"
+        }
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "index exists on posts",
+        "source": {
+          "kind": "listIndexes",
+          "collection": "posts"
+        },
+        "filter": {
+          "kind": "field",
+          "field": "key",
+          "op": "$eq",
+          "value": {
+            "createdAt": -1,
+            "authorId": 1
+          }
+        },
+        "expect": "exists"
+      }
+    ]
+  }
+]

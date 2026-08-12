@@ -1,0 +1,14 @@
+model A {
+  id Int @id
+}
+
+enum Role {
+  @@type("pg/text@1")
+  USER
+  ADMIN
+}
+
+// b leads the next model
+model B {
+  id Int @id
+}

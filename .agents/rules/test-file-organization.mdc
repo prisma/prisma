@@ -1,0 +1,96 @@
+---
+description: Test file organization and splitting guidelines
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# Test File Organization
+
+## File Size Limit
+
+**Maximum file size: 500 lines.** Keep test files under 500 lines for readability and navigability;
+split when a file exceeds it.
+
+## Splitting Strategy
+
+**When to split:** the file exceeds 500 lines, contains multiple distinct concerns that separate
+logically, or has multiple top-level `describe` blocks splittable by functionality.
+
+**How to split:**
+
+- **Identify logical groupings** — by functionality (`basic`, `errors`, `structure`, `generation`),
+  feature area (`joins`, `projections`, `includes`), or test type (`unit`, `integration`,
+  `edge-cases`). **Integration tests that depend on multiple packages** belong in
+  `integration-tests` to avoid cyclic dependencies (e.g. tests using both
+  `sql-contract-ts` and `sql-query`).
+- **Use descriptive names** — suffix by category (`.basic.test.ts`, `.errors.test.ts`,
+  `.structure.test.ts`), prefix by feature area (`runtime.joins.test.ts`), keep the base name
+  consistent (`codecs.registry.test.ts`, `codecs.encoding.test.ts`).
+- **Split at natural boundaries** — by `describe` block (distinct concerns), test category (basic vs
+  advanced, success vs error), or feature area. Never split arbitrarily by line count
+  (`codecs.part1.test.ts`, `part2`…) — that makes related tests hard to find.
+- **Ensure each file is complete** — all necessary imports and setup/teardown, independently
+  runnable.
+
+```typescript
+// ✅ Split by functionality
+// codecs.registry.test.ts
+describe('codec registry', () => { it('registers codec', () => {}); it('gets codec by id', () => {}); });
+// codecs.encoding.test.ts
+describe('codec encoding', () => { it('encodes string value', () => {}); it('handles null values', () => {}); });
+
+// ✅ Split by feature area
+// runtime.joins.test.ts
+describe('runtime joins', () => { it('executes inner join', () => {}); it('executes left join', () => {}); });
+// runtime.projections.test.ts
+describe('runtime projections', () => { it('executes nested projection', () => {}); });
+```
+
+## Test Assertion Patterns
+
+### Prefer object comparison over property-by-property checks
+
+```typescript
+// ✅ CORRECT
+expect(rows[0]).toEqual({ id: 1, name: 'Test User', email: 'test@example.com' });
+expect(rows[0]).toMatchObject({ id: expect.any(Number), email: expect.any(String) }); // partial
+expect(rows[0]).not.toMatchObject({ deletedAt: expect.anything() });                   // absence
+
+// ❌ WRONG: brittle, hard to maintain, breaks with type changes
+expect(rows[0]).toHaveProperty('id');
+expect(typeof rows[0]?.['id']).toBe('number');
+```
+
+Object comparison is more maintainable (one assertion), more readable (shows expected structure),
+type-safe, and less brittle than piece-by-piece checks.
+
+### Plan structure assertions
+
+Compare entire plan structures rather than picking individual fields — full comparison verifies all
+AST fields are present and correct, not just a subset:
+
+```typescript
+// ✅ CORRECT
+expect(plan.ast?.joins).toEqual([
+  { kind: 'join', joinType: 'inner', table: { kind: 'table', name: 'post' },
+    on: { kind: 'eqCol',
+      left: { kind: 'col', table: 'user', column: 'id' },
+      right: { kind: 'col', table: 'post', column: 'userId' } } },
+]);
+
+// ❌ WRONG: doesn't verify the complete structure
+expect(plan.ast?.joins?.length).toBe(1);
+expect(plan.ast?.joins?.[0]?.joinType).toBe('inner');
+```
+
+## File Naming Conventions
+
+**Pattern:** `{base}.{category}.test.ts` — base name is the subject under test (`codecs`, `runtime`,
+`driver`), category is the test category (`basic`, `errors`, `structure`, `generation`, `joins`,
+`projections`), extension is always `.test.ts`. Examples: `codecs.registry.test.ts`,
+`runtime.joins.test.ts`, `driver.errors.test.ts`.
+
+## Verification
+
+After splitting, verify every file is under 500 lines, has all necessary imports, is independently
+runnable, has clear/descriptive test descriptions, and follows the naming convention.

@@ -1,0 +1,72 @@
+name: Bug report
+description: Report something that doesn't work as expected.
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report.
+
+        Before filing, please check that:
+
+        - You are on the **latest minor version** of Prisma Next. While we are pre-1.0, only the latest minor receives fixes — older minors are not supported. If you are on an older minor, please upgrade and re-verify before filing.
+        - You are not reporting a security issue. **Do not file public issues for security reports** — use [Private Vulnerability Reporting](https://github.com/prisma/prisma/security/advisories/new) instead.
+
+  - type: input
+    id: package-and-version
+    attributes:
+      label: Package and version
+      description: Which `@internal/*` package (or the umbrella `prisma-next`) and version are you using?
+      placeholder: "e.g. @internal/postgres@0.5.2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: |
+        The smaller, the better. A failing test, a tiny repo, or a self-contained code snippet is far easier to triage than a description of behaviour in a larger app. If your reproduction depends on a database, please include schema + a small dataset.
+      placeholder: |
+        ```ts
+        // schema.psl + the query that fails + the contract.json (if relevant)
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        Node version, OS, package manager, target database (Postgres / SQLite / Mongo) + version, anything else relevant.
+      placeholder: |
+        - Node: 24.5.0
+        - OS: macOS 15.1 / Ubuntu 24.04 / Windows 11
+        - Package manager: pnpm 10.27.0
+        - Database: Postgres 17.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Anything else that would help diagnose — logs, stack traces, related issues, screenshots.
+    validations:
+      required: false

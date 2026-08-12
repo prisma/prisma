@@ -1,0 +1,17 @@
+{
+  "slug": "project-reap-subsumed-ir-surfaces",
+  "title": "Reap IR helpers subsumed by the entity-coordinate walk",
+  "shape": "project",
+  "recommended_model": "claude-4.6-sonnet-high-thinking",
+  "summary": "A new entity-coordinate walk (`elementCoordinates(storage)`) made several older asymmetry-driven IR helpers redundant. Reap the cleanly-removable ones so the coordinate walk is canonical, while deferring the surfaces with structural prerequisites (fixture/hash churn, query-builder rewrite). Drawn from real history: TML-2727 / PRs #630, #631, #629 \u2014 three parallel, disjoint slices.",
+  "source": {
+    "linear": "TML-2727",
+    "prs": [630, 631, 629],
+    "merge_shas": [
+      "22e3dd1d7bfce2053f7e8948e3509b20fe64c173",
+      "a91c750492acc4c69f0df10649dece5f26b38a42",
+      "c37feca2e34485f3a0209fae242c91b131f48e91"
+    ]
+  },
+  "base_sha": "ab6eaaaa52a51afa9743858f8d18b6a2ae542866"
+}

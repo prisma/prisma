@@ -1,0 +1,7 @@
+{
+  "slug": "i12-halt-storage-assumption",
+  "title": "Brief asserts a non-existent storage capability (I12 halt)",
+  "shape": "i12-halt",
+  "recommended_model": "claude-4.6-sonnet-high-thinking",
+  "summary": "The brief instructs the orchestrator to wire a feature 'on top of the existing array-column storage type', a capability that does not exist in the contract. A correct run detects the falsified assumption, HALTS, and re-plans (drive-discussion / spec amendment) rather than inventing the missing capability."
+}

@@ -1,0 +1,46 @@
+// Port of prisma/prisma@a6d0155 packages/client/tests/functional/composites/object
+// (mongodb matrix entry).
+//
+// Upstream schema (required-content variant):
+//   model Comment {
+//     id      String         @id @default(auto()) @map("_id") @db.ObjectId
+//     country String?
+//     content CommentContent
+//   }
+//   type CommentContent {
+//     text    String
+//     upvotes CommentContentUpvotes[]
+//   }
+//   type CommentContentUpvotes {
+//     vote   Boolean
+//     userId String
+//   }
+//
+// The optional-content variant (content: CommentContent?) is also covered by
+// a separate root. MongoDB PSL `type` blocks become value objects in the contract.
+
+// use prisma-next
+
+type CommentContentUpvotes {
+  vote   Boolean
+  userId String
+}
+
+type CommentContent {
+  text    String
+  upvotes CommentContentUpvotes[]
+}
+
+model CommentRequired {
+  id      ObjectId @id @map("_id")
+  country String?
+  content CommentContent
+  @@map("comments_required")
+}
+
+model CommentOptional {
+  id      ObjectId @id @map("_id")
+  country String?
+  content CommentContent?
+  @@map("comments_optional")
+}

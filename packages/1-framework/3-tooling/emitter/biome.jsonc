@@ -1,0 +1,17 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
+  "extends": "//",
+  "javascript": {
+    "globals": ["console", "process", "__dirname", "__filename", "URL"]
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "noNonNullAssertion": "off"
+      },
+      "complexity": {
+        "useLiteralKeys": "off"
+      }
+    }
+  }
+}

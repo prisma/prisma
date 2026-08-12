@@ -1,0 +1,137 @@
+---
+description: Pattern for creating shared plane packages that serve both migration and runtime planes
+globs: ["packages/**", "architecture.config.json"]
+alwaysApply: false
+---
+
+# Shared Plane Packages
+
+## Overview
+
+Shared plane packages contain side-effect-free code (types, validators, factories) that can be safely imported by both migration-plane (authoring, emitter, targets) and runtime-plane (lanes, runtime, adapters) packages. This pattern allows runtime-plane packages to import type definitions without violating plane boundaries.
+
+## When to Create a Shared Plane Package
+
+Create a shared plane package when:
+
+1. **Types are needed by both planes**: Type definitions that are used by both migration-plane (e.g., emitter, authoring) and runtime-plane (e.g., lanes, runtime) packages
+2. **Validators are pure**: Arktype validators that perform structural validation without side effects
+3. **Factories are pure**: Factory functions that construct data structures without IO or external dependencies
+4. **No migration-specific logic**: The package contains no code that depends on migration-plane concerns (file I/O, pack loading, emitter hooks)
+
+## Examples
+
+### SQL Contract Types (`@internal/sql-contract`)
+
+Located at `packages/sql/contract/` (shared plane):
+- **Types**: `SqlContract`, `SqlStorage`, `StorageTable`, `ModelDefinition`
+- **Validators**: Arktype validators for contract structures
+- **Factories**: Pure factory functions for constructing contract IR
+
+Used by:
+- Migration plane: authoring, emitter (for validation and IR construction)
+- Runtime plane: lanes, runtime (for type definitions)
+
+### SQL Operations Types (planned: `@internal/sql-operations`)
+
+When moved to shared plane at `packages/sql/operations/`:
+- **Types**: `LoweringSpec`, `OperationSignature`
+- **Assembly**: Pure function `assembleOperationRegistry(manifests)` that takes plain manifest objects
+- **Validators**: (optional) Arktype validators for operation manifests
+
+Used by:
+- Migration plane: emitter (for assembling operations from extension packs)
+- Runtime plane: lanes, runtime (for operation type definitions)
+
+## Package Structure
+
+Shared plane packages follow this structure:
+
+```
+packages/{domain}/{package-name}/
+├── package.json          # sideEffects: false, plane: shared
+├── src/
+│   ├── types.ts         # Type definitions
+│   ├── validators.ts    # (optional) Arktype validators
+│   ├── factories.ts    # (optional) Factory functions
+│   └── exports/
+│       ├── types.ts     # Re-export types
+│       ├── validators.ts # (optional) Re-export validators
+│       └── factories.ts # (optional) Re-export factories
+├── test/                # Tests for validators/factories
+└── README.md            # Documents package purpose and usage
+```
+
+## Architecture Config
+
+Register shared plane packages in `architecture.config.json`:
+
+```json
+{
+  "glob": "packages/sql/contract/**",
+  "domain": "sql",
+  "layer": "core",
+  "plane": "shared"
+}
+```
+
+## Dependencies
+
+Shared plane packages should:
+- **Depend on**: Framework core packages (`@internal/contract`, `@internal/operations`), validation libraries (Arktype)
+- **NOT depend on**: Migration-plane packages (emitter, CLI), runtime-plane packages (lanes, runtime), or packages with side effects
+
+## Exports Pattern
+
+Use explicit export paths following the pattern:
+
+```json
+{
+  "exports": {
+    "./types": {
+      "types": "./dist/exports/types.d.ts",
+      "import": "./dist/exports/types.js"
+    },
+    "./validators": {
+      "types": "./dist/exports/validators.d.ts",
+      "import": "./dist/exports/validators.js"
+    }
+  }
+}
+```
+
+Import using package name and export identifier (not `/exports/` paths):
+
+```typescript
+// ✅ CORRECT
+import type { SqlContract } from '@internal/sql-contract/types';
+import { validateSqlContract } from '@internal/sql-contract/validators';
+
+// ❌ WRONG
+import type { SqlContract } from '@internal/sql-contract/exports/types';
+```
+
+## Migration from Migration Plane
+
+When moving a package from migration plane to shared plane:
+
+1. **Remove migration-specific dependencies**: Remove imports of `@internal/emitter`, file I/O, pack loading
+2. **Extract pure functions**: Keep only pure functions that take plain data structures
+3. **Move tooling logic**: Move pack reading/resolution to emitter/CLI (migration plane)
+4. **Update architecture.config.json**: Change plane from `migration` to `shared`
+5. **Update imports**: Runtime-plane imports remain the same (package name doesn't change)
+6. **Update dependency cruiser**: Remove runtime→migration exceptions for this package
+
+## Testing
+
+Shared plane packages should have:
+- Unit tests for validators (structural validation)
+- Unit tests for factories (object construction)
+- Type tests for exported types (if applicable)
+- No integration tests that require migration or runtime plane packages
+
+## Related Patterns
+
+- **Contract-first architecture**: Shared plane packages align with contract-first design by providing type-safe, verifiable surfaces
+- **Thin core, fat targets**: Shared plane packages provide common vocabulary while adapters handle target-specific logic
+- **Package layering**: Shared plane packages sit at the `core` layer, allowing both migration and runtime planes to depend on them

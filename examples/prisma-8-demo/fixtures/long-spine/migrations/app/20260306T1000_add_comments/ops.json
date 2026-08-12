@@ -1,0 +1,34 @@
+[
+  {
+    "id": "column.user.comments",
+    "label": "Add column \"comments\" to \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "comments",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"comments\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'comments'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"comments\"",
+        "sql": "ALTER TABLE \"user\" ADD COLUMN \"comments\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"comments\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'comments'\n)"
+      }
+    ]
+  }
+]

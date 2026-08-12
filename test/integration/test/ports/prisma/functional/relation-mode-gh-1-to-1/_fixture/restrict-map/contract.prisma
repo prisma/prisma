@@ -1,0 +1,26 @@
+model UserOneToOne {
+  id              String @id @map("id_AtMap")
+  profile         ProfileOneToOne?
+  profileOptional ProfileOptionalOneToOne?
+  enabled         Boolean? @map("enabled_AtMap")
+
+  @@map("UserOneToOne_AtAtMap")
+}
+
+model ProfileOneToOne {
+  id      String            @id @map("id_AtMap")
+  user    UserOneToOne      @relation(fields: [userId], references: [id], onUpdate: Restrict, onDelete: Restrict)
+  userId  String            @unique @map("userId_AtMap")
+  enabled Boolean?          @map("enabled_AtMap")
+
+  @@map("ProfileOneToOne_AtAtMap")
+}
+
+model ProfileOptionalOneToOne {
+  id      String            @id
+  user    UserOneToOne?     @relation(fields: [userId], references: [id], onUpdate: Restrict, onDelete: Restrict)
+  userId  String?           @unique @map("userId_AtMap")
+  enabled Boolean?          @map("enabled_AtMap")
+
+  @@map("ProfileOptionalOneToOne_AtAtMap")
+}

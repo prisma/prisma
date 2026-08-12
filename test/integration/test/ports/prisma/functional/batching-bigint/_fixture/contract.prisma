@@ -1,0 +1,13 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/batching-bigint (postgres matrix entry).
+//
+// Upstream schema (postgres branch):
+//   model Resource {
+//     id     String @id @default(cuid())
+//     bigint BigInt @unique
+//   }
+
+model Resource {
+  id     String @id
+  bigint BigInt @unique
+}

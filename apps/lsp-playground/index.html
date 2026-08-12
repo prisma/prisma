@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PSL Playground</title>
+    <style>
+      html, body { margin: 0; height: 100%; font-family: ui-sans-serif, system-ui, sans-serif; }
+      body { display: flex; flex-direction: column; }
+      #header {
+        padding: 8px 12px;
+        background: #1e1e2e;
+        color: #cdd6f4;
+        font-size: 13px;
+        border-bottom: 1px solid #313244;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      #header .actions { display: flex; align-items: center; gap: 12px; min-width: 0; }
+      #header .path { opacity: 0.7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      #format-document {
+        border: 1px solid #45475a;
+        border-radius: 4px;
+        background: #313244;
+        color: #cdd6f4;
+        cursor: pointer;
+        font: inherit;
+        padding: 3px 8px;
+      }
+      #format-document:hover { background: #45475a; }
+      /* Monaco editor container */
+      #editor {
+        flex: 1;
+        min-height: 0;
+        position: relative;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header">
+      <span>PSL Playground — live diagnostics from <code>prisma-next lsp</code></span>
+      <div class="actions">
+        <button type="button" id="format-document">Format</button>
+        <span class="path" id="schema-path"></span>
+      </div>
+    </div>
+    <div id="editor"></div>
+    <script type="module" src="/src/client/main.ts"></script>
+  </body>
+</html>

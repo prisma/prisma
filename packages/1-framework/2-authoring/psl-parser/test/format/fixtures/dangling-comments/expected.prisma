@@ -1,0 +1,11 @@
+model User {
+  id Int @id
+
+  // first
+  // second
+  /// dangling doc
+}
+
+model Empty {
+  // only a comment
+}

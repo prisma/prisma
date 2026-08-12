@@ -1,0 +1,34 @@
+[
+  {
+    "id": "column.widget.count",
+    "label": "Add column \"count\" to \"widget\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "count",
+        "table": "widget"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"count\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'widget'\n    AND column_name = 'count'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"count\"",
+        "sql": "ALTER TABLE \"widget\" ADD COLUMN \"count\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"count\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'widget'\n    AND column_name = 'count'\n)"
+      }
+    ]
+  }
+]

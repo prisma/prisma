@@ -1,0 +1,15 @@
+{
+  "cSpell.words": ["arktype", "codegen", "Lowerer", "pgvector"],
+  "editor.defaultFormatter": "biomejs.biome",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "files.associations": {
+    "**/packages/0-config/tsconfig/base.json": "jsonc",
+    "**/packages/0-config/tsconfig/prod.json": "jsonc"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
+}

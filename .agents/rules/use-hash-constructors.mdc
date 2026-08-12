@@ -1,0 +1,44 @@
+---
+description: Use coreHash() and profileHash() constructors instead of 'as never' casts for branded hash types
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# Use Hash Constructors for Branded Hash Types
+
+When creating `CoreHashBase` or `ProfileHashBase` values in tests, use the `coreHash()` and `profileHash()` constructors from `@internal/contract/types`.
+
+## The Problem
+
+`CoreHashBase` and `ProfileHashBase` are branded types (`string & Brand<'CoreHash'>`). Plain strings don't satisfy the brand, so tests historically used `as never` casts to bypass the type system:
+
+```typescript
+// ❌ WRONG: unsafe cast, hides the branded type from the reader
+coreHash: 'test' as never,
+profileHash: 'test-profile' as never,
+```
+
+## The Solution
+
+```typescript
+import { coreHash, profileHash } from '@internal/contract/types';
+
+// ✅ CORRECT: type-safe, preserves literal type via const type parameter
+coreHash: coreHash('test'),
+profileHash: profileHash('test-profile'),
+```
+
+The constructors use `const` type parameters so `coreHash('test')` returns `CoreHashBase<'test'>`, not `CoreHashBase<string>`.
+
+## Available Constructors
+
+From `@internal/contract/types`:
+- `coreHash<const T extends string>(value: T): CoreHashBase<T>`
+- `profileHash<const T extends string>(value: T): ProfileHashBase<T>`
+
+## When to Use
+
+- ✅ Any test or test utility that constructs an `SqlContract` or `ContractBase` literal
+- ✅ Test helper functions that accept optional hash strings and need to produce branded values
+
+Do **not** use these in production emission code — the emitter computes hashes via `computeCoreHash()` and returns plain strings that are consumed at the type level through `contract.d.ts`.

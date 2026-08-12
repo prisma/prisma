@@ -1,0 +1,53 @@
+{
+  "name": "@prisma/orm-extension-arktype-json",
+  "version": "8.0.0-rc.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "Arktype-validated JSON columns for Prisma Next",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "lint": "biome check . --error-on-warnings",
+    "clean": "rm -rf dist src-gen"
+  },
+  "dependencies": {
+    "@prisma/orm-family-sql": "workspace:8.0.0-rc.1",
+    "@prisma/orm-framework": "workspace:8.0.0-rc.1",
+    "@standard-schema/spec": "^1.1.0",
+    "arktype": "~2.2.2"
+  },
+  "devDependencies": {
+    "@internal/extension-arktype-json": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "@prisma/orm-target-postgres": "workspace:8.0.0-rc.1",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "@prisma/orm-target-postgres": "workspace:8.0.0-rc.1",
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "exports": {
+    "./codec-types": "./dist/codec-types.mjs",
+    "./codecs": "./dist/codecs.mjs",
+    "./column-types": "./dist/column-types.mjs",
+    "./control": "./dist/control.mjs",
+    "./pack": "./dist/pack.mjs",
+    "./runtime": "./dist/runtime.mjs",
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/9-public/@prisma/orm-extension-arktype-json"
+  }
+}

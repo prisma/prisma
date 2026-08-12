@@ -1,0 +1,6 @@
+# These fingerprints suppress historical-diff findings for the fake HMAC test-fixture value
+# `test-secret-that-is-long-enough-for-hs256` (formerly `supabase-test-secret-that-is-long-enough-for-hs256`),
+# which appeared in supabase-facade.test.ts before being renamed to `fixtureJwt` / `fixtureJwtSigningKey`.
+# The value never existed in a real secret; these commits never reach main (squash-merge PR).
+841c301b6872ba949d081fcaa4450d08d212627b:packages/3-extensions/supabase/test/supabase-facade.test.ts:generic-api-key:49
+580534eb8f69b7da2d69828e2da8bb291df5002f:packages/3-extensions/supabase/test/supabase-facade.test.ts:generic-api-key:81

@@ -1,0 +1,38 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`live schema CLI commands (e2e) > contract infer > writes a full PSL snapshot to output/contract.prisma 1`] = `
+"// use prisma-next
+// Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
+
+model User {
+  id    Int     @id(map: "user_pkey") @default(autoincrement())
+  email String
+  name  String?
+
+  @@map("user")
+}
+"
+`;
+
+exports[`live schema CLI commands (e2e) > db schema > prints the live schema tree without writing files 1`] = `
+"prisma-next db schema → Inspect the live database schema
+│ config:               prisma-next.config.ts
+│ database:             postgres://****:****@127.0.0.1:XXXXX/template1?sslmode=disable
+│ Read more             https://pris.ly/db-schema
+└
+
+│  database
+│  ├─ table post
+│  │  ├─ columns
+│  │  │  ├─ id: int4 (not nullable)
+│  │  │  ├─ title: text (not nullable)
+│  │  │  └─ userId: int4 (nullable)
+│  │  └─ primary key: id
+│  └─ table user
+│     ├─ columns
+│     │  ├─ id: int4 (not nullable)
+│     │  ├─ email: text (not nullable)
+│     │  └─ name: text (nullable)
+│     ├─ primary key: id
+│     └─ unique index user_email_unique"
+`;

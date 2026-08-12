@@ -1,0 +1,128 @@
+# Dependabot configuration.
+#
+# Two ecosystems are watched:
+#   - npm: the workspace root, which covers all package.json manifests
+#     in the pnpm workspace (Dependabot resolves the workspace from the
+#     root pnpm-workspace.yaml automatically).
+#   - github-actions: the .github/workflows/ directory, where every
+#     action is pinned to a specific commit SHA. Dependabot bumps the
+#     pin (and the trailing version comment) when an upstream tag moves.
+#
+# Cadence is weekly to keep PR volume bounded. Updates are grouped so
+# that one PR per ecosystem per week is the common case; we rely on
+# Dependabot's grouping to coalesce non-major bumps. Major bumps are
+# emitted as separate PRs so they are visible and reviewable.
+#
+# All Dependabot PRs target `main`, are signed off automatically by
+# the GitHub Dependabot bot to satisfy DCO, and route to
+# @prisma/ORM-TS-Maintain via CODEOWNERS.
+#
+# Cooldown ("soak time") delays each non-security update so the wider
+# ecosystem has a chance to surface bad releases before we ingest them.
+# This defends against compromised-maintainer releases
+# (xz-utils / ua-parser-js style), accidentally-broken patches, and
+# floods of churny patch versions during upstream release frenzies.
+# Security updates are CVE-driven and bypass the cooldown — we do not
+# trade off CVE response time. Majors get the longest soak because they
+# carry the most breakage risk and rarely need same-day uptake.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    target-branch: main
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 10
+      semver-major-days: 28
+      semver-minor-days: 10
+      semver-patch-days: 6
+      include: ["*"]
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: scope
+    labels:
+      - dependencies
+    groups:
+      runtime-deps:
+        dependency-type: production
+        update-types:
+          - patch
+          - minor
+      dev-deps:
+        dependency-type: development
+        update-types:
+          - patch
+          - minor
+    ignore:
+      # Major version bumps for these are coordinated by hand; let Dependabot
+      # surface patch/minor only and we'll do major bumps deliberately.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      # vite majors are coordinated by hand too. The repo takes vite from the
+      # catalog, so a major moves every package at once.
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      # apps/lsp-playground is a private dev tool: a Monaco editor wired to the
+      # language server, started by hand when working on PSL diagnostics. It
+      # ships to nobody, and its dependency churn is pure noise — the
+      # @codingame/monaco-vscode-* family alone opened two unmergeable major
+      # PRs in one week (#29942, #29943).
+      #
+      # Dependabot cannot exclude a workspace path, so the packages that only
+      # this app uses are ignored by name instead. Upgrade them by hand if the
+      # playground ever needs it. Two things to know before trying: the whole
+      # @codingame/monaco-vscode-* family shares one major version, and
+      # monaco-languageclient depends on 31 of those packages directly, so it
+      # decides which major the app can use. Its compatibility table records
+      # the major each release pins:
+      # https://github.com/TypeFox/monaco-languageclient/blob/main/docs/versions-and-history.md
+      - dependency-name: "@codingame/monaco-vscode-*"
+      - dependency-name: "monaco-editor"
+      - dependency-name: "monaco-languageclient"
+      - dependency-name: "vscode"
+      - dependency-name: "vscode-jsonrpc"
+      - dependency-name: "vscode-languageclient"
+      - dependency-name: "vscode-languageserver-protocol"
+      - dependency-name: "vscode-ws-jsonrpc"
+      - dependency-name: "ws"
+      - dependency-name: "@types/ws"
+      - dependency-name: "puppeteer-core"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    target-branch: main
+    open-pull-requests-limit: 3
+    # GitHub Actions tags are not SemVer-typed by Dependabot, so the
+    # semver-*-days fields are rejected for this ecosystem. We use the
+    # single default soak window instead.
+    cooldown:
+      default-days: 10
+      include: ["*"]
+    commit-message:
+      prefix: "chore(actions)"
+      include: scope
+    labels:
+      - dependencies
+      - github-actions
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - patch
+          - minor
+          - major

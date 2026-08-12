@@ -1,0 +1,54 @@
+---
+description: Single package exposing migration/runtime/shared entrypoints via subpaths
+globs: ["packages/**", "architecture.config.json"]
+alwaysApply: false
+---
+
+# Multi‑Plane Entrypoints in a Single Package
+
+Sometimes a single installable package must serve both migration and runtime planes with distinct entrypoints (e.g., adapter `/control` for control plane and `/runtime` for execution) while sharing a core implementation. This rule encodes how to do that without violating plane boundaries.
+
+## Pattern
+
+- Keep one NPM package (e.g., `@internal/adapter-postgres`).
+- Split sources by plane inside the package:
+  - `src/core/**` — shared plane only
+  - `src/exports/control.ts` — migration plane entrypoint (control plane)
+  - `src/exports/runtime.ts` — runtime plane entrypoint
+- Export entrypoints from `package.json`:
+
+```json
+{
+  "exports": {
+    "./adapter": { "types": "./dist/exports/adapter.d.ts", "import": "./dist/exports/adapter.js" },
+    "./control": { "types": "./dist/exports/control.d.ts", "import": "./dist/exports/control.js" },
+    "./runtime": { "types": "./dist/exports/runtime.d.ts", "import": "./dist/exports/runtime.js" }
+  }
+}
+```
+
+## Architecture Mapping
+
+Register subpaths as separate globs in `architecture.config.json` to map planes:
+
+```json
+{ "glob": "packages/targets/postgres-adapter/src/core/**", "domain": "targets", "layer": "adapters", "plane": "shared" }
+{ "glob": "packages/targets/postgres-adapter/src/exports/control.ts", "domain": "targets", "layer": "adapters", "plane": "migration" }
+{ "glob": "packages/targets/postgres-adapter/src/exports/runtime.ts", "domain": "targets", "layer": "adapters", "plane": "runtime" }
+```
+
+This lets dependency guards treat a single package as three plane‑scoped module groups, so imports remain plane‑safe.
+
+## Do’s and Don’ts
+
+- Do keep `src/core/**` free of migration/runtime imports; depend only on shared‑plane packages.
+- Do import control plane/tooling only from `src/exports/control.ts`.
+- Do import runtime/driver only from `src/exports/runtime.ts`.
+- Don't add plane‑crossing imports inside `src/core/**`.
+- Don't export plane‑specific files via the wrong entrypoint.
+- **Naming convention**: Migration plane entrypoints use `control.ts` (not `cli.ts`) and export as `./control` (not `./cli`).
+
+## Rationale
+
+This pattern keeps a single installable artifact with tree‑shakeable, plane‑specific entrypoints while maintaining strict plane boundaries enforced by dependency‑cruiser.
+

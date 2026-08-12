@@ -1,0 +1,34 @@
+[
+  {
+    "id": "column.user.tags",
+    "label": "Add column \"tags\" to \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "tags",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"tags\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'tags'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"tags\"",
+        "sql": "ALTER TABLE \"user\" ADD COLUMN \"tags\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"tags\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'tags'\n)"
+      }
+    ]
+  }
+]

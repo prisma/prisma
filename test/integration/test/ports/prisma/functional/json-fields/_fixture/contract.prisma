@@ -1,0 +1,13 @@
+// Faithful translation of prisma/prisma functional suite `json-fields`
+// (packages/client/tests/functional/json-fields, postgres matrix entry):
+//
+//   model Entry {
+//     id   String @id
+//     json Json
+//   }
+//
+// idForProvider(postgresql) is `String @id`.
+model Entry {
+  id   String @id
+  json Json
+}

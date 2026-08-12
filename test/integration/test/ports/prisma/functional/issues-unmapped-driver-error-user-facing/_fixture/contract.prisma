@@ -1,0 +1,15 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/unmapped-driver-error-user-facing (postgres only).
+//
+// Upstream schema (postgres):
+//   model User { id String @id; email String @unique; name String? }
+//
+// The test drops the unique index on email to trigger Postgres 42P10
+// ("no unique or exclusion constraint matching ON CONFLICT specification")
+// on a subsequent upsert.
+
+model User {
+  id    String  @id
+  email String  @unique
+  name  String?
+}

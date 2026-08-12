@@ -1,0 +1,30 @@
+---
+description: Test-only type assertions and mocking patterns (avoid brittle mocks)
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# Test Mocking Patterns
+
+## Type assertions in tests
+
+**Allowed in tests only**:
+- `@ts-expect-error` (with a short reason)
+- Double casts (`as unknown as X`) for mocks / dynamic proxies
+
+Prefer `unknown` over `any` to keep the unsafe boundary explicit.
+
+## Mocking class instances
+
+**Rule**: Don’t spread (`{ ...instance }`) class instances in tests — you’ll lose prototype methods.
+
+```typescript
+const mocked = Object.create(Object.getPrototypeOf(original));
+Object.assign(mocked, original, { verify: mockedVerify });
+```
+
+## When a test mock needs a cast
+
+- Keep the mock shape minimal (only fields you need)
+- Put the cast at the boundary (return statement), not sprinkled throughout the test
+

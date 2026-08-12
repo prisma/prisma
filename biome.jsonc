@@ -1,0 +1,102 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/dist-*",
+      "!**/coverage",
+      "!**/node_modules",
+      "!**/.prisma",
+      "!**/*.d.ts",
+      "!**/*.svg",
+      "!**/contract.json",
+      "!**/sql-contract.json",
+      "!**/mongo-contract.json",
+      "!**/migrations/*/*/migration.json",
+      "!**/migrations/*/*/ops.json"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+  "plugins": [
+    "./biome-plugins/no-bare-cast.grit",
+    "./biome-plugins/no-bare-throw.grit",
+    "./biome-plugins/no-family-vocabulary.grit"
+  ],
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "error"
+      },
+      "style": {
+        "useImportType": "error",
+        "noParameterAssign": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error",
+        "noUselessElse": "error"
+      },
+      "complexity": {
+        "useLiteralKeys": "off"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    },
+    "globals": []
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "**/*.test-d.ts", "**/test/**/*.ts"],
+      "javascript": {
+        "globals": ["console", "process", "__dirname", "__filename", "URL"]
+      },
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          },
+          "complexity": {
+            "useLiteralKeys": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.config.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "warn"
+          }
+        }
+      }
+    }
+  ]
+}

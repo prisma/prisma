@@ -1,0 +1,13 @@
+// Faithful translation of prisma/prisma functional suite `large-floats`
+// (packages/client/tests/functional/large-floats, postgres matrix entry):
+//
+//   model Floats {
+//     id    String @id
+//     value Float
+//   }
+//
+// idForProvider(postgresql) is `String @id`; no autoincrement needed.
+model Floats {
+  id    String @id
+  value Float
+}

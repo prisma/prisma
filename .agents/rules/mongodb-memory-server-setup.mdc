@@ -1,0 +1,53 @@
+---
+description: mongodb-memory-server (MMS) version pinning via the pnpm catalog, mandatory vitest timeouts, and the new-package checklist.
+alwaysApply: false
+---
+
+# mongodb-memory-server setup
+
+When adding `mongodb-memory-server` (MMS) to a package or writing tests that use it, follow these rules to prevent CI failures.
+
+## Version: use the pnpm catalog
+
+MMS is pinned to an exact version in `pnpm-workspace.yaml`'s `catalog:` section. All consumers must reference it via `"mongodb-memory-server": "catalog:"` in `package.json`.
+
+Never use a `^` range or inline version — version drift between packages can cause one package's download to corrupt the shared binary cache used by another.
+
+## Vitest config: mandatory timeouts
+
+Every package that depends on MMS **must** configure its `vitest.config.ts` with:
+
+```typescript
+import { timeouts } from '@repo/test-utils';
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    testTimeout: timeouts.spinUpMongoMemoryServer,
+    hookTimeout: timeouts.spinUpMongoMemoryServer,
+    fileParallelism: false,
+  },
+});
+```
+
+### Why this matters
+
+MMS downloads, extracts, and caches the `mongod` binary on first use. On CI this happens in the `beforeAll` hook. If the hook times out mid-download/extraction:
+
+1. The partially-written binary is left in the shared MMS cache (`~/.cache/mongodb-binaries/`).
+2. Every subsequent test package that starts MMS executes the **corrupted binary**.
+3. The corrupted binary crashes with `SIGSEGV`, causing cascading failures across the entire CI run.
+
+The `spinUpMongoMemoryServer` timeout (60s × `TEST_TIMEOUT_MULTIPLIER`) is sized to survive a cold-cache download on CI. The default vitest timeout (10s) is not.
+
+### `fileParallelism: false`
+
+MMS instances within the same package must not start concurrently — parallel replica set startups compete for resources and can cause flaky timeouts.
+
+## Checklist for adding MMS to a new package
+
+1. Add `"mongodb-memory-server": "catalog:"` to `devDependencies`
+2. Add `"@repo/test-utils": "workspace:*"` to `devDependencies`
+3. Configure `vitest.config.ts` as shown above
+4. Use `timeouts.spinUpMongoMemoryServer` for any `describe()` / `beforeAll()` / `afterAll()` timeout overrides in test files
+5. Run `pnpm install` to update the lockfile

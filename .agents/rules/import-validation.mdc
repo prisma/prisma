@@ -1,0 +1,101 @@
+---
+description: Import validation and package layering rules
+globs: ["architecture.config.json", "dependency-cruiser.config.mjs", "packages/**"]
+alwaysApply: false
+---
+
+# Import Validation
+
+The repo uses a domain/layer/plane package layering architecture with unidirectional dependencies
+enforced by Dependency Cruiser, driven by data from `architecture.config.json`.
+
+## Domain/Layer/Plane Structure
+
+Packages are organized by:
+
+- **Domains**: framework (target-agnostic) and target families (sql, document, etc.).
+- **Layers**: dependencies flow inward (toward core) within a domain —
+  `core → authoring → targets → lanes → runtime → adapters`.
+- **Planes**: migration (authoring, tooling, targets), runtime (lanes, runtime, adapters), and
+  shared (cross-plane code and prebuilt artifacts safe for both).
+
+## Configuration (`architecture.config.json`)
+
+`dependency-cruiser.config.mjs` reads data-driven config:
+
+1. **Package configs** map a glob to domain/layer/plane:
+   ```json
+   { "glob": "packages/framework/core-plan/**", "domain": "framework", "layer": "core", "plane": "shared" }
+   ```
+2. **Layer order** defines dependency direction per domain:
+   ```json
+   { "layerOrder": { "sql": ["core", "authoring", "targets", "lanes", "runtime", "adapters"] } }
+   ```
+3. **Rules** define allowed/denied patterns:
+   ```json
+   { "rules": { "sameLayer": "allow", "downward": "allow", "upward": "deny",
+     "crossDomain": "denyExceptFramework", "migrationToRuntime": "deny",
+     "runtimeToMigration": "allowArtifactsOnly" } }
+   ```
+4. **Plane rules** declare per-plane `allow`/`forbid` plus `exceptions`:
+   ```json
+   { "planeRules": {
+     "shared":    { "allow": ["shared"],            "forbid": ["migration", "runtime"], "exceptions": [] },
+     "migration": { "allow": ["shared", "migration"], "forbid": ["runtime"],            "exceptions": [] },
+     "runtime":   { "allow": ["shared", "runtime"],   "forbid": ["migration"],           "exceptions": [] } } }
+   ```
+
+## Rules
+
+- **Same-layer imports allowed** — e.g. `orm-lane` may import `sql-relational-core` (both `lanes`):
+  ```typescript
+  import { schema } from '@internal/sql-relational-core/schema';
+  ```
+- **Cross-layer: import only from inner layers** (closer to core). Outer layers cannot be imported
+  by inner ones:
+  ```typescript
+  // ✅ lanes importing core
+  import { planInvalid } from '@internal/plan';
+  // ❌ core importing lanes
+  import { sql } from '@internal/sql-lane';
+  ```
+
+### Plane rules and exceptions
+
+Each plane specifies `allow`, `forbid`, and `exceptions` (glob patterns with `from`, `to`, `reason`).
+When a package must temporarily import across plane boundaries (e.g. during refactoring), add an
+exception to the relevant plane rule. Exceptions must: include a clear `reason` explaining why they
+exist, reference the relevant brief or issue in the reason, be removed once the refactoring is
+complete, and use glob patterns matching the package paths in `architecture.config.json`.
+
+## Adding New Packages
+
+1. **Add to `architecture.config.json`** — a package config entry with glob, domain, layer, plane:
+   ```json
+   { "glob": "packages/framework/tooling/new-tool/**", "domain": "framework", "layer": "tooling", "plane": "migration" }
+   ```
+2. **Update `tsconfig.base.json`** — add project references if needed.
+3. **Update `pnpm-workspace.yaml`** — add the package glob if needed.
+4. **Run `pnpm lint:deps`** — verify no violations.
+
+## Running Import Validation
+
+```bash
+pnpm lint:deps
+```
+
+It scans all TypeScript files in `packages/`, validates imports against domain/layer/plane rules, and
+reports violations with detailed context (locally or in CI). Dependency Cruiser enforces: same-layer
+allowed; downward (toward core) allowed; upward (away from core) denied; cross-domain denied except
+the framework domain; and plane boundaries via declarative `planeRules` (shared can't import
+migration/runtime; migration can't import runtime; runtime can't import migration, with documented
+exceptions).
+
+## Common Issues
+
+- **Package not found in config**: treated as a legacy package (allows all imports). Add it to the
+  config to enforce proper dependency rules.
+- **Path matching**: Dependency Cruiser uses regex (derived from the globs in
+  `architecture.config.json`) to find the most specific package match.
+
+See `architecture.config.json` for the complete plane rule definitions.

@@ -1,0 +1,48 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/relationMode-17255-same-actions
+// (`prisma/_schema_same_actions.ts`), Cascade / relationMode=foreignKeys entry.
+//
+// Upstream schema (with `referentialActionLine` = `, onUpdate: Cascade, onDelete: Cascade`
+// applied identically to both relations, and `id String @id`):
+//
+//   model Main {
+//     id String @id
+//     alice   Alice?  @relation(fields: [aliceId], references: [id] <actionLine>)
+//     aliceId String?
+//     bob Bob?
+//   }
+//   model Alice {
+//     id String @id
+//     manyMains Main[]
+//   }
+//   model Bob {
+//     id String @id
+//     main   Main   @relation(fields: [mainId], references: [id] <actionLine>)
+//     mainId String @unique
+//   }
+//
+// Only the Cascade / foreignKeys entry is materialised because it is the only
+// matrix entry with a *portable* test: the nested-disconnect case (Test 4).
+// The nested-delete cases (Tests 1-3) are non-ported — prisma-next's nested
+// update mutators are create/connect/disconnect only, with no nested `delete`.
+
+model Main {
+  id String @id
+
+  alice   Alice?  @relation(fields: [aliceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  aliceId String?
+
+  bob Bob?
+}
+
+model Alice {
+  id        String @id
+  manyMains Main[]
+}
+
+model Bob {
+  id String @id
+
+  main   Main   @relation(fields: [mainId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  mainId String @unique
+}

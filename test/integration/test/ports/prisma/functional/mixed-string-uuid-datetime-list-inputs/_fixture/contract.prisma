@@ -1,0 +1,19 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/mixed-string-uuid-datetime-list-inputs
+// (postgres matrix entry only; mongodb and cockroachdb skipped).
+//
+// Upstream schema (postgres):
+//   model Post {
+//     id    String   @id @default(cuid())
+//     words String[]
+//   }
+//
+// Context: https://github.com/prisma/prisma/issues/9248
+// Verifies that a String[] field correctly round-trips values whose text
+// content resembles ISO-8601 datetimes or UUIDs — the pg driver must not
+// attempt to coerce those strings to other types.
+
+model Post {
+  id    String   @id @default(cuid(2))
+  words String[]
+}

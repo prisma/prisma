@@ -1,0 +1,24 @@
+---
+description: Prefer pathe over node:path in TypeScript files.
+alwaysApply: false
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.mts"
+  - "**/*.cts"
+---
+# Use pathe for path operations
+
+Use `pathe` instead of `node:path` for path manipulation:
+
+- Consistent behavior across Windows/macOS/Linux
+- Works in non-Node runtimes (Deno, Bun, edge)
+- Drop-in replacement with identical API
+
+```typescript
+// Good
+import { dirname, join, resolve } from 'pathe';
+
+// Avoid
+import { dirname, join, resolve } from 'node:path';
+```

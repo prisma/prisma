@@ -1,0 +1,21 @@
+---
+description: Enforce omitting "should" in test descriptions
+globs: ["**/*.test.ts", "**/*.test.js", "**/*.spec.ts", "**/*.spec.js"]
+alwaysApply: true
+---
+
+When writing unit tests, omit the word "should" in test descriptions. Write concise, direct descriptions instead.
+
+Good examples:
+- it("equals 1")
+- it("returns the correct value")
+- it("handles null input")
+- it("throws an error when invalid")
+
+Avoid:
+- it("should equal 1")
+- it("should return the correct value")
+- it("should handle null input")
+- it("should throw an error when invalid")
+
+This makes test descriptions more concise and easier to read.

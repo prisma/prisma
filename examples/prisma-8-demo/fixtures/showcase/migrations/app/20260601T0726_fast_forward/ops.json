@@ -1,0 +1,98 @@
+[
+  {
+    "id": "column.account.avatar",
+    "label": "Add column \"avatar\" to \"account\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "avatar",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"avatar\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'avatar'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"avatar\"",
+        "sql": "ALTER TABLE \"account\" ADD COLUMN \"avatar\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"avatar\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'avatar'\n)"
+      }
+    ]
+  },
+  {
+    "id": "column.account.name",
+    "label": "Add column \"name\" to \"account\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "name",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"name\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'name'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"name\"",
+        "sql": "ALTER TABLE \"account\" ADD COLUMN \"name\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"name\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'name'\n)"
+      }
+    ]
+  },
+  {
+    "id": "column.account.phone",
+    "label": "Add column \"phone\" to \"account\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "phone",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"phone\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'phone'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"phone\"",
+        "sql": "ALTER TABLE \"account\" ADD COLUMN \"phone\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"phone\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'phone'\n)"
+      }
+    ]
+  }
+]

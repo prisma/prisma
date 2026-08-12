@@ -1,0 +1,69 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/blog-update (postgres matrix entry).
+//
+// Upstream schema:
+//   model User {
+//     id          String    @id @default(cuid())
+//     email       String    @unique
+//     name        String?
+//     posts       Post[]
+//     profile     Profile?
+//     wakesUpAt   DateTime? @default(now())
+//     lastLoginAt DateTime? @default(now())
+//   }
+//   model Profile {
+//     id             String    @id @default(cuid())
+//     bio            String?
+//     notrequired    String?
+//     user           User      @relation(fields: [userId], references: [id])
+//     userId         String    @unique
+//     goesToBedAt    DateTime? @default(now())
+//     goesToOfficeAt DateTime? @default(now())
+//   }
+//   model Post {
+//     id             String    @id @default(cuid())
+//     createdAt      DateTime  @default(now())
+//     updatedAt      DateTime  @updatedAt
+//     published      Boolean
+//     title          String
+//     content        String?
+//     optional       String?
+//     authorId       String?   @map("author")
+//     author         User?     @relation(fields: [authorId], references: [id])
+//     lastReviewedAt  DateTime? @default(now())
+//     lastPublishedAt DateTime? @default(now())
+//   }
+
+model User {
+  id          String    @id @default(cuid(2))
+  email       String    @unique
+  name        String?
+  posts       Post[]
+  profile     Profile?
+  wakesUpAt   DateTime? @default(now())
+  lastLoginAt DateTime? @default(now())
+}
+
+model Profile {
+  id             String    @id @default(cuid(2))
+  bio            String?
+  notrequired    String?
+  user           User      @relation(fields: [userId], references: [id])
+  userId         String    @unique
+  goesToBedAt    DateTime? @default(now())
+  goesToOfficeAt DateTime? @default(now())
+}
+
+model Post {
+  id              String    @id @default(cuid(2))
+  createdAt       DateTime  @default(now())
+  updatedAt       temporal.updatedAt()
+  published       Boolean
+  title           String
+  content         String?
+  optional        String?
+  authorId        String?   @map("author")
+  author          User?     @relation(fields: [authorId], references: [id])
+  lastReviewedAt  DateTime? @default(now())
+  lastPublishedAt DateTime? @default(now())
+}

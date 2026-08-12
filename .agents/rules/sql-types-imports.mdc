@@ -1,0 +1,51 @@
+---
+description: Canonical import paths for SQL types
+globs: ["packages/2-sql/**", "packages/3-targets/**", "examples/**", "test/**"]
+alwaysApply: false
+---
+
+# SQL Types Import Path
+
+**CRITICAL**: SQL-specific contract types (`SqlContract`, `SqlStorage`, `SqlMappings`, etc.) should be imported from `@internal/sql-contract/types` (shared plane package).
+
+## Current Import Strategy
+
+All packages should import SQL contract types from the shared plane:
+
+```typescript
+// ✅ CORRECT: Import SQL types from sql-contract (shared plane)
+import type { SqlContract, SqlStorage, SqlMappings } from '@internal/sql-contract/types';
+```
+
+## Package Structure
+
+- **`@internal/contract`**: Core contract types (`ContractBase`, `Source`) and document family types (`DocumentContract`)
+- **`@internal/sql-contract`**: SQL-specific contract types (`SqlContract`, `SqlStorage`, `SqlMappings`, `ModelDefinition`, `StorageTable`, `StorageColumn`, etc.) - **canonical source** (shared plane)
+- **`@internal/sql-operations`**: SQL-specific operations (`OperationSignature`, `LoweringSpec`, `assembleOperationRegistry`) - **canonical source** (shared plane, see brief 18)
+- **`@internal/sql-contract-emitter`**: SQL emitter hook (`sqlTargetFamilyHook`) - **canonical source**
+- **`@internal/operations`**: Target-neutral operations (`OperationRegistry`, `ArgSpec`, `ReturnSpec`, `createOperationRegistry`) - **canonical source**
+
+## When to Use Each Package
+
+- **`@internal/contract/types`**: Core contract types (`ContractBase`, `Source`) or document family types (`DocumentContract`)
+- **`@internal/sql-contract/types`**: SQL-specific contract types (canonical source, shared plane)
+- **`@internal/sql-contract/validators`**: SQL contract validators (shared plane)
+- **`@internal/sql-contract/factories`**: SQL contract IR factories (shared plane)
+- **`@internal/sql-operations`**: SQL-specific operations (canonical source, shared plane, use directly)
+- **`@internal/sql-contract-emitter`**: SQL emitter hook (canonical source, use directly)
+- **`@internal/operations`**: Target-neutral operations (canonical source, use directly)
+
+## Migration Notes
+
+- **All packages**: Should import SQL contract types from `@internal/sql-contract/types` (shared plane)
+- **Runtime and Lanes**: Can safely import from `@internal/sql-contract/types` as it's in the shared plane
+- **Authoring and Emitter**: Import from `@internal/sql-contract/types` for types, `@internal/sql-contract/validators` for validation
+- **Test files**: Use `@internal/sql-contract/types` and `@internal/sql-contract/factories` for test fixtures
+
+## Common Mistakes
+
+If you see TypeScript errors like:
+- `"@internal/contract/types" has no exported member named 'SqlContract'`
+- `Module '"@internal/contract/types"' has no exported member 'SqlStorage'`
+
+This means you're importing SQL types from the wrong package. Change the import to use `@internal/sql-contract/types`.

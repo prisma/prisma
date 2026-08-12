@@ -1,0 +1,27 @@
+{
+  "name": "multi-extension-monorepo",
+  "version": "8.0.0-rc.1",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "description": "Worked example: monorepo with two internal contract-space packages and an aggregating app. Exercises the framework's per-space planner/runner/verifier with multiple extensions in one application.",
+  "scripts": {
+    "emit": "pnpm build:contract-spaces",
+    "build:contract-spaces": "cd packages/audit && prisma-next contract emit && cd ../feature-flags && prisma-next contract emit && cd ../../app && prisma-next contract emit",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings"
+  },
+  "dependencies": {
+    "@prisma/orm-postgres": "workspace:8.0.0-rc.1"
+  },
+  "devDependencies": {
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

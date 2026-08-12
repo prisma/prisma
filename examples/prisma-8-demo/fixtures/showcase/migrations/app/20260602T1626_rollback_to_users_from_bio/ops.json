@@ -1,0 +1,98 @@
+[
+  {
+    "id": "dropColumn.account.avatar",
+    "label": "Drop column \"avatar\" from \"account\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "avatar",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"avatar\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'avatar'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"avatar\"",
+        "sql": "ALTER TABLE \"account\" DROP COLUMN \"avatar\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"avatar\" does not exist",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'avatar'\n)"
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.account.bio",
+    "label": "Drop column \"bio\" from \"account\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "bio",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"bio\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'bio'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"bio\"",
+        "sql": "ALTER TABLE \"account\" DROP COLUMN \"bio\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"bio\" does not exist",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'bio'\n)"
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.account.phone",
+    "label": "Drop column \"phone\" from \"account\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "phone",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"phone\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'phone'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"phone\"",
+        "sql": "ALTER TABLE \"account\" DROP COLUMN \"phone\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"phone\" does not exist",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'phone'\n)"
+      }
+    ]
+  }
+]

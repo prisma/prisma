@@ -1,0 +1,31 @@
+{
+  "name": "mongo-blog-leaderboard",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "emit": "prisma-next contract emit",
+    "migration:plan": "prisma-next migration plan",
+    "migration:apply": "prisma-next migration apply",
+    "db:seed": "tsx scripts/seed.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings"
+  },
+  "dependencies": {
+    "@prisma/orm-mongo": "workspace:8.0.0-rc.1",
+    "mongodb": "catalog:"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@types/node": "catalog:",
+    "mongodb-memory-server": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "version": "8.0.0-rc.1"
+}

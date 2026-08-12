@@ -1,0 +1,8 @@
+// the primary user record
+model User {
+// the surrogate key
+id Int @id
+email String @unique // the login identifier
+name String?
+// a closing note about this model
+}

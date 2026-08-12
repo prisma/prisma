@@ -1,0 +1,31 @@
+# Local Postgres origin for the Cloudflare Worker example.
+#
+# Port 5433 (not the default 5432) so this doesn't clash with
+# `examples/prisma-8-demo`'s Postgres.app expectation on the standard port.
+#
+# Bring it up with `pnpm db:up`. Schema/seed via `pnpm db:init && pnpm seed`.
+# The matching connection string for `.env` is in `.env.example`.
+services:
+  postgres:
+    image: postgres:16
+    container_name: prisma-8-cloudflare-worker-pg
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: prisma_next_cloudflare_worker
+    # pg_stat_statements lets the cursor integration test assert how many
+    # rows the server transmitted per logical statement — the only signal
+    # that distinguishes cursor-streamed from buffered execution from the
+    # test side. Loaded in shared_preload_libraries here so the extension
+    # can be CREATEd in test/global-setup.ts.
+    command: postgres -c shared_preload_libraries=pg_stat_statements
+    ports:
+      - '5433:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d prisma_next_cloudflare_worker']
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    tmpfs:
+      # Keep data ephemeral (faster restarts; tests are seed-from-empty anyway).
+      - /var/lib/postgresql/data

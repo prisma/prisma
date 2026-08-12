@@ -1,0 +1,115 @@
+---
+description: Use typed Contract from fixtures in integration tests
+globs: ["**/test/**/*.integration.test.ts", "**/test/**/*.e2e.test.ts"]
+alwaysApply: false
+---
+
+# Use Typed Contract in Integration Tests
+
+## Rule
+
+**Integration tests should import the typed `Contract` from `fixtures/contract.d.ts`** instead of using the generic `SqlContract<SqlStorage>` type. This provides proper type inference for tables, columns, and query results.
+
+## The Problem
+
+Using generic contract types loses type information:
+
+```typescript
+// ❌ WRONG: Generic type loses inference
+import type { SqlContract, SqlStorage } from '@internal/sql-contract/types';
+
+function loadContractFixture(): SqlContract<SqlStorage> {
+  // ...
+}
+
+// Later in tests:
+const tables = schema(context).tables;
+const userTable = tables['user']!;  // Needs non-null assertion
+const userColumns = userTable.columns;
+const plan = sql({ context })
+  .from(userTable)
+  .select({ id: userColumns['id']!, email: userColumns['email']! })  // Needs bracket access + assertions
+  .build({ params: { cursor: 5 } });
+
+const rows = await executePlanAndCollect(runtime, plan);
+expect(rows.map((r) => r['id'] as number)).toEqual([6, 7, 8, 9, 10]);  // Needs type cast
+```
+
+## The Solution
+
+Import the typed `Contract` from the fixtures directory:
+
+```typescript
+// ✅ CORRECT: Typed contract provides full inference
+import type { Contract } from './fixtures/contract.d';
+
+function loadContractFixture(): Contract {
+  const fixtureDir = dirname(fileURLToPath(import.meta.url));
+  const contractPath = join(fixtureDir, 'fixtures/contract.json');
+  const json = readFileSync(contractPath, 'utf8');
+  const contractJson = JSON.parse(json) as unknown;
+  return validateContract<Contract>(contractJson);
+}
+
+// Later in tests:
+const { user } = schema(context).tables;  // Destructure directly
+const plan = sql({ context })
+  .from(user)
+  .select({ id: user.columns.id, email: user.columns.email })  // Direct property access
+  .where(user.columns.id.gt(param('cursor')))
+  .build({ params: { cursor: 5 } });
+
+const rows = await executePlanAndCollect(runtime, plan);
+expect(rows.map((r) => r.id)).toEqual([6, 7, 8, 9, 10]);  // r.id is typed as number
+```
+
+## Benefits
+
+1. **No non-null assertions** - Table and column access is type-safe
+2. **Direct property access** - Use `user.columns.id` instead of `userColumns['id']!`
+3. **Typed query results** - Result rows have proper types (e.g., `r.id` is `number`)
+4. **Better IDE support** - Autocomplete for table names, column names, and result fields
+5. **Compile-time errors** - Typos in table/column names are caught at compile time
+
+## Contract Type Definition
+
+The `fixtures/contract.d.ts` file should define the full contract type matching the JSON fixture:
+
+```typescript
+import type { SqlContract } from '@internal/sql-contract/types';
+
+type CodecTypes = {
+  readonly 'pg/int4@1': { output: number };
+  readonly 'pg/text@1': { output: string };
+  readonly 'pg/timestamptz@1': { output: string };
+};
+
+export type Contract = SqlContract<
+  {
+    readonly tables: {
+      readonly user: {
+        readonly columns: {
+          readonly id: {
+            readonly nativeType: 'int4';
+            readonly codecId: 'pg/int4@1';
+            readonly nullable: false;
+          };
+          // ... other columns
+        };
+        // ... primaryKey, uniques, indexes, foreignKeys
+      };
+    };
+  },
+  // ... models, extensions, mappings
+>;
+
+export type { CodecTypes };
+```
+
+## When to Apply
+
+- ✅ Integration tests with contract fixtures
+- ✅ E2E tests with contract fixtures  
+- ✅ Example app tests (e.g., `prisma-8-demo/test/`)
+- ❌ Unit tests that create contracts inline (use test-utils column helpers instead)
+- ❌ Tests that intentionally test generic contract handling

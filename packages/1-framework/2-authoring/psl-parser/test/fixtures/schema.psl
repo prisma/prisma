@@ -1,0 +1,29 @@
+// use prisma-next
+
+types {
+  Email = String
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email Email @unique
+  role Role
+  createdAt DateTime @default(now())
+  isActive Boolean @default(true)
+  profile Json?
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+  userId Int
+  title String
+  rating Float?
+  author User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@index([userId])
+  @@unique([title, userId])
+}

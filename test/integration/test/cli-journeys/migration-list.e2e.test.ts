@@ -1,0 +1,120 @@
+import { timeouts } from '@repo/test-utils';
+import { describe, expect, it } from 'vitest';
+import { withTempDir } from '../utils/cli-test-helpers';
+import {
+  type JourneyContext,
+  runContractEmit,
+  runMigrationList,
+  runMigrationPlanAndEmit,
+  setupJourney,
+  swapContract,
+} from '../utils/journey-test-helpers';
+
+/**
+ * `migration list` is the first command running on the engine, so this journey
+ * is also the proof that the harness works against a real project on disk: a
+ * real `prisma-next.config.ts`, evaluated through the same adapter the binary
+ * uses, with the step's directory passed as `cwd` instead of chdir'ed into.
+ */
+withTempDir(({ createTempDir }) => {
+  describe('journey: listing on-disk migrations', () => {
+    async function projectWithTwoMigrations(): Promise<JourneyContext> {
+      const ctx = setupJourney({ createTempDir });
+      await runContractEmit(ctx);
+      await runMigrationPlanAndEmit(ctx, ['--name', 'initial']);
+      swapContract(ctx, 'contract-additive');
+      await runContractEmit(ctx);
+      await runMigrationPlanAndEmit(ctx, ['--name', 'add-name']);
+      return ctx;
+    }
+
+    it(
+      'settles as a completed envelope naming every migration on disk',
+      async () => {
+        const ctx = await projectWithTwoMigrations();
+
+        const listed = await runMigrationList(ctx, ['--json']);
+        const terminal = listed.json.at(-1);
+
+        expect(listed.exitCode).toBe(0);
+        expect(terminal).toMatchObject({ kind: 'result', envelope: { ok: true, exitCode: 0 } });
+        const list = listed.presented?.data as {
+          spaces: ReadonlyArray<{ space: string; migrations: ReadonlyArray<{ name: string }> }>;
+        };
+        expect(list.spaces.map((space) => space.space)).toEqual(['app']);
+        expect(list.spaces[0]?.migrations.map((migration) => migration.name)).toEqual([
+          expect.stringContaining('initial'),
+          expect.stringContaining('add_name'),
+        ]);
+      },
+      timeouts.typeScriptCompilation,
+    );
+
+    it(
+      'draws the tree for the reader on stderr and keeps stdout a frame stream',
+      async () => {
+        const ctx = await projectWithTwoMigrations();
+
+        const human = await runMigrationList(ctx);
+        const json = await runMigrationList(ctx, ['--json']);
+
+        expect(human.stderr).toContain('initial');
+        expect(human.stdout).toBe('');
+        expect(human.presented?.presentation.human.at(-1)?.kind).toBe('drawing');
+        expect(json.presented?.presentation.stdout).toEqual([]);
+        for (const line of json.stdout.split('\n').filter((entry) => entry.length > 0)) {
+          expect(() => JSON.parse(line)).not.toThrow();
+        }
+      },
+      timeouts.typeScriptCompilation,
+    );
+
+    it(
+      'narrows to one contract space',
+      async () => {
+        const ctx = await projectWithTwoMigrations();
+
+        const listed = await runMigrationList(ctx, ['--space', 'app', '--json']);
+        const list = listed.presented?.data as { spaces: ReadonlyArray<{ space: string }> };
+
+        expect(listed.exitCode).toBe(0);
+        expect(list.spaces.map((space) => space.space)).toEqual(['app']);
+      },
+      timeouts.typeScriptCompilation,
+    );
+
+    it(
+      'errors with the dotted code and typed next actions for an unknown space',
+      async () => {
+        const ctx = await projectWithTwoMigrations();
+
+        const listed = await runMigrationList(ctx, ['--space', 'nope', '--json']);
+        const terminal = listed.json.at(-1);
+        const envelope =
+          terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+
+        expect(listed.exitCode).toBe(2);
+        expect(envelope).toMatchObject({
+          ok: false,
+          error: { code: 'MIGRATION.SPACE_NOT_FOUND' },
+        });
+        expect(envelope?.nextActions.length).toBeGreaterThan(0);
+        expect(envelope).not.toHaveProperty('fix');
+      },
+      timeouts.typeScriptCompilation,
+    );
+
+    it(
+      'reports an empty project without failing',
+      async () => {
+        const ctx = setupJourney({ createTempDir });
+
+        const listed = await runMigrationList(ctx, ['--json']);
+
+        expect(listed.exitCode).toBe(0);
+        expect(listed.presented?.data).toMatchObject({ ok: true });
+      },
+      timeouts.typeScriptCompilation,
+    );
+  });
+});

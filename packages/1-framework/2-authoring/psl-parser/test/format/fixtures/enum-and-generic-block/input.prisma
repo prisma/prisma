@@ -1,0 +1,11 @@
+client app {
+provider = "custom-client"
+output = "../generated"
+}
+
+enum Role {
+@@type("pg/text@1")
+USER
+ADMIN
+GUEST
+}

@@ -1,0 +1,12 @@
+// Faithful translation of prisma/prisma functional suite `create-default-date`
+// (packages/client/tests/functional/create-default-date, postgres matrix entry):
+//
+//   model Visit {
+//     id        Int      @id @default(autoincrement())
+//     visitTime DateTime @default(now())
+//   }
+
+model Visit {
+  id        Int      @id @default(autoincrement())
+  visitTime DateTime @default(now())
+}

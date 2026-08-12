@@ -1,0 +1,70 @@
+---
+description: Prefer object matchers over multiple individual expect().toBe() calls
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# Prefer Object Matchers Over Multiple Individual Assertions
+
+**CRITICAL**: When checking multiple related values in a test, use a single object matcher instead of multiple individual `expect().toBe()` calls.
+
+## The Problem
+
+Multiple individual `expect().toBe()` calls for related values:
+- Create visual clutter
+- Make it harder to see the expected state at a glance
+- Are harder to maintain when adding or removing checks
+- Don't clearly show the relationship between values
+
+## The Solution
+
+**❌ WRONG: Multiple individual `expect().toBe()` calls**
+
+```typescript
+expect(alias1).toBe('user_id');
+expect(alias2).toBe('user_email');
+expect(tracker.has('user_id')).toBe(true);
+expect(tracker.has('user_email')).toBe(true);
+```
+
+**✅ CORRECT: Single object matcher**
+
+```typescript
+expect({
+  alias1,
+  alias2,
+  has1: tracker.has('user_id'),
+  has2: tracker.has('user_email'),
+}).toMatchObject({
+  alias1: 'user_id',
+  alias2: 'user_email',
+  has1: true,
+  has2: true,
+});
+```
+
+## When to Use Object Matchers
+
+Use object matchers when:
+- ✅ You have 2+ related `expect().toBe()` calls checking different values
+- ✅ The values are logically related (e.g., multiple aliases, multiple properties)
+- ✅ The checks are part of the same test assertion
+
+**Exception**: Single `expect().toBe()` calls are fine when checking a single isolated value.
+
+## Benefits
+
+- **Better readability**: All expected values are visible in one place
+- **Easier maintenance**: Add or remove checks by modifying the object
+- **Clearer intent**: Shows the expected state as a cohesive unit
+- **Less verbose**: Reduces test code size
+
+## Examples from Codebase
+
+**Good patterns:**
+- Single object matcher with `toMatchObject`
+- Combined related assertions into one object
+
+**Bad patterns (to avoid):**
+- Multiple `expect().toBe()` calls for related values
+- Scattered assertions that could be combined

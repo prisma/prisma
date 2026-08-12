@@ -1,0 +1,32 @@
+---
+description: Never add pull_request_target to GitHub Actions workflows; CI lint enforces it via scripts/lint-workflow-triggers.mjs.
+alwaysApply: false
+---
+
+# Forbidden: `pull_request_target`
+
+**Do not introduce the `pull_request_target` event trigger** in any workflow under `.github/workflows/`. CI enforces this via `scripts/lint-workflow-triggers.mjs`, which fails the `Lint` job if the token appears anywhere in a workflow file outside a YAML comment.
+
+## Why
+
+`pull_request_target` runs in the **base repository's trust context** — it has secrets and a writable `GITHUB_TOKEN` — but it fires for PRs from forks. If such a workflow ever executes the PR's code, directly or transitively (e.g. via a shared cache restored from a fork-PR run, or a third-party action that interpolates PR metadata into a shell command), fork-controlled code runs with the base repo's permissions. This is GitHub's "Pwn Request" pattern.
+
+It was the entry point of the May 2026 TanStack supply-chain compromise that published 84 malicious npm versions across 42 `@tanstack/*` packages.
+
+- TanStack postmortem: <https://tanstack.com/blog/npm-supply-chain-compromise-postmortem>
+- GitHub Security Lab on Pwn Requests: <https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/>
+
+## What to use instead
+
+- `pull_request` — runs with a read-only `GITHUB_TOKEN` and zero secrets when the PR comes from a fork (GitHub default; we rely on it).
+- For commenting on PRs from a privileged side, prefer the `workflow_run` trigger paired with strict input validation, *or* schedule a job that reads PR metadata via the API rather than running the PR's code.
+
+## If you genuinely need it
+
+Don't paper over the lint with a per-file override. Open a PR that:
+
+1. Justifies the use case to code owners.
+2. Demonstrates that the workflow does not check out, build, install, or otherwise execute fork-controlled content.
+3. Updates `scripts/lint-workflow-triggers.mjs` to reflect the new policy (e.g. an explicit allow-list keyed on filename and event declaration shape).
+
+See `docs/oss/supply-chain.md` for the broader fork-PR posture.

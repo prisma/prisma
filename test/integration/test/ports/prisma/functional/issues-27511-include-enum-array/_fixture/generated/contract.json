@@ -1,0 +1,394 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "workspace_member": {
+      "model": "workspace_member",
+      "namespace": "public"
+    },
+    "workspace_member_role": {
+      "model": "workspace_member_role",
+      "namespace": "public"
+    },
+    "workspace_role": {
+      "model": "workspace_role",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "enum": {
+          "workspace_permission": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "HELLO",
+                "value": "HELLO"
+              },
+              {
+                "name": "WORLD",
+                "value": "WORLD"
+              }
+            ]
+          }
+        },
+        "models": {
+          "workspace_member": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 30
+                  }
+                }
+              }
+            },
+            "relations": {
+              "roles": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "memberId"
+                  ]
+                },
+                "to": {
+                  "model": "workspace_member_role",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "workspace_member"
+            }
+          },
+          "workspace_member_role": {
+            "fields": {
+              "memberId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "roleId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "member": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "memberId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "workspace_member",
+                  "namespace": "public"
+                }
+              },
+              "role": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "roleId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "workspace_role",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "memberId": {
+                  "column": "memberId"
+                },
+                "roleId": {
+                  "column": "roleId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "workspace_member_role"
+            }
+          },
+          "workspace_role": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 30
+                  }
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "permissions": {
+                "many": true,
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "members": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "roleId"
+                  ]
+                },
+                "to": {
+                  "model": "workspace_member_role",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "permissions": {
+                  "column": "permissions"
+                }
+              },
+              "namespaceId": "public",
+              "table": "workspace_role"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "table": {
+            "workspace_member": {
+              "columns": {
+                "id": {
+                  "codecId": "sql/varchar@1",
+                  "nativeType": "character varying",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 30
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "workspace_member_role": {
+              "columns": {
+                "memberId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "roleId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "memberId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "workspace_member_role"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "workspace_member"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "roleId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "workspace_member_role"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "workspace_role"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "memberId"
+                  ],
+                  "name": "workspace_member_role_memberId_idx_76b3c263",
+                  "prefix": "workspace_member_role_memberId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "roleId"
+                  ],
+                  "name": "workspace_member_role_roleId_idx_ffccc9a4",
+                  "prefix": "workspace_member_role_roleId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "memberId",
+                  "roleId"
+                ]
+              },
+              "uniques": []
+            },
+            "workspace_role": {
+              "checks": [
+                {
+                  "expression": "\"permissions\"::text[] <@ ARRAY['HELLO', 'WORLD']::text[]",
+                  "name": "workspace_role_permissions_check_f45c4d4b",
+                  "prefix": "workspace_role_permissions_check"
+                },
+                {
+                  "expression": "array_position(\"permissions\", NULL) IS NULL",
+                  "name": "workspace_role_permissions_elem_not_null_318e2952",
+                  "prefix": "workspace_role_permissions_elem_not_null"
+                }
+              ],
+              "columns": {
+                "id": {
+                  "codecId": "sql/varchar@1",
+                  "nativeType": "character varying",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 30
+                  }
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "permissions": {
+                  "codecId": "pg/text@1",
+                  "many": true,
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "workspace_permission",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            }
+          },
+          "valueSet": {
+            "workspace_permission": {
+              "kind": "valueSet",
+              "values": [
+                "HELLO",
+                "WORLD"
+              ]
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "8beb060aa674cb67f64b19e1f5b5803bb39b87bbad4ef05b861e794aeb39a9ac"
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "defaultInInsert": true,
+      "enums": true,
+      "lateral": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}

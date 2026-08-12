@@ -1,0 +1,262 @@
+{
+  "$id": "https://prisma.dev/schemas/data-contract-document-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Prisma Next Data Contract Document v1",
+  "description": "Schema for Prisma Next contract.json files for Document target family (mongo, firestore, etc.)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this JSON schema for IDE validation"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1"],
+      "description": "Contract schema version"
+    },
+    "target": {
+      "type": "string",
+      "description": "Database target identifier (e.g., 'mongo', 'firestore')"
+    },
+    "targetFamily": {
+      "type": "string",
+      "enum": ["document"],
+      "description": "Target family classification"
+    },
+    "storageHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hash of the storage section (DB-satisfied expectations)"
+    },
+    "profileHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hash of the pinned capability profile (capability keys/variants and adapter pins)"
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Capability flags declared by the contract",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "boolean"
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Extension packs and their configuration",
+      "additionalProperties": true
+    },
+    "meta": {
+      "type": "object",
+      "description": "Non-semantic metadata (excluded from hashing)",
+      "additionalProperties": true
+    },
+    "sources": {
+      "type": "object",
+      "description": "Read-only sources (views, etc.) available for querying",
+      "additionalProperties": {
+        "$ref": "#/$defs/Source"
+      }
+    },
+    "storage": {
+      "type": "object",
+      "description": "Storage layout definition",
+      "additionalProperties": false,
+      "properties": {
+        "document": {
+          "type": "object",
+          "description": "Document storage definition",
+          "additionalProperties": false,
+          "properties": {
+            "collections": {
+              "type": "object",
+              "description": "Collection definitions keyed by collection name",
+              "additionalProperties": {
+                "$ref": "#/$defs/DocCollection"
+              }
+            }
+          },
+          "required": ["collections"]
+        }
+      },
+      "required": ["document"]
+    }
+  },
+  "required": ["schemaVersion", "target", "targetFamily", "storageHash", "storage"],
+  "$defs": {
+    "DocCollection": {
+      "type": "object",
+      "description": "Document collection definition with fields and indexes",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Logical collection name"
+        },
+        "id": {
+          "type": "object",
+          "description": "ID generation strategy",
+          "additionalProperties": false,
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "enum": ["auto", "client", "uuid", "objectId"],
+              "description": "ID generation strategy"
+            }
+          }
+        },
+        "fields": {
+          "type": "object",
+          "description": "Field definitions keyed by field name",
+          "additionalProperties": {
+            "$ref": "#/$defs/FieldType"
+          }
+        },
+        "indexes": {
+          "type": "array",
+          "description": "Index definitions",
+          "items": {
+            "$ref": "#/$defs/DocIndex"
+          }
+        },
+        "readOnly": {
+          "type": "boolean",
+          "description": "Whether mutations are disallowed (mirrors views concept)"
+        }
+      },
+      "required": ["name", "fields"]
+    },
+    "DocIndex": {
+      "type": "object",
+      "description": "Document index definition with keys and optional predicate",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Index name"
+        },
+        "keys": {
+          "type": "object",
+          "description": "Field keys and sort order",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["asc", "desc"]
+          }
+        },
+        "unique": {
+          "type": "boolean",
+          "description": "Whether the index enforces uniqueness"
+        },
+        "where": {
+          "$ref": "#/$defs/Expr",
+          "description": "Optional predicate expression for partial indexes"
+        }
+      },
+      "required": ["name", "keys"]
+    },
+    "Expr": {
+      "type": "object",
+      "description": "Portable predicate expression AST",
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["eq"]
+            },
+            "path": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Field path as array of strings"
+            },
+            "value": {
+              "description": "Comparison value"
+            }
+          },
+          "required": ["kind", "path", "value"]
+        },
+        {
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["exists"]
+            },
+            "path": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Field path as array of strings"
+            }
+          },
+          "required": ["kind", "path"]
+        }
+      ]
+    },
+    "FieldType": {
+      "type": "object",
+      "description": "Neutral field type definition for sources and document fields",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Field type identifier (e.g., 'int4', 'text', 'bool', 'object', 'array', 'date', 'bytes', 'id')"
+        },
+        "nullable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the field allows null values"
+        },
+        "items": {
+          "$ref": "#/$defs/FieldType",
+          "description": "Item type for array fields"
+        },
+        "properties": {
+          "type": "object",
+          "description": "Property definitions for object fields",
+          "additionalProperties": {
+            "$ref": "#/$defs/FieldType"
+          }
+        }
+      },
+      "required": ["type", "nullable"]
+    },
+    "Source": {
+      "type": "object",
+      "description": "Read-only source definition for views and other queryable sources",
+      "additionalProperties": false,
+      "properties": {
+        "readOnly": {
+          "type": "boolean",
+          "description": "Whether mutations (INSERT/UPDATE/DELETE) are disallowed"
+        },
+        "projection": {
+          "type": "object",
+          "description": "Field projection mapping column/field name to FieldType",
+          "additionalProperties": {
+            "$ref": "#/$defs/FieldType"
+          }
+        },
+        "origin": {
+          "type": "object",
+          "description": "Provenance link to pack-owned block (e.g., view, enum)",
+          "additionalProperties": true
+        },
+        "capabilities": {
+          "type": "object",
+          "description": "Feature flags relevant to this source",
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        }
+      },
+      "required": ["readOnly", "projection"]
+    }
+  }
+}

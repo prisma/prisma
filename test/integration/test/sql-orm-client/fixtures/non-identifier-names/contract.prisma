@@ -1,0 +1,16 @@
+// Real emitted fixture for the non-identifier-name ORM round-trip integration test.
+//
+// `@map`/`@@map` accept physical names that are legal quoted SQL identifiers
+// but not bare TypeScript identifiers. Those names reach `contract.d.ts` as
+// property keys, so they have to be emitted quoted or the generated types are
+// a syntax error — https://github.com/prisma/prisma-next/issues/981. The
+// integration test migrates this contract onto a real Postgres database and
+// round-trips a row through the typed ORM, proving the emitted types both
+// typecheck and drive real SQL.
+
+model DataRow {
+  id          Int     @id
+  spacedValue String? @map("has space")
+
+  @@map("data rows")
+}

@@ -1,0 +1,62 @@
+{
+  "name": "@internal/mongo-contract-ts",
+  "private": true,
+  "version": "8.0.0-rc.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "Mongo-specific TypeScript contract authoring surface for Prisma Next",
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write .",
+    "lint:fix:unsafe": "biome check --write --unsafe .",
+    "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
+  },
+  "dependencies": {
+    "@internal/config": "workspace:8.0.0-rc.1",
+    "@internal/contract": "workspace:8.0.0-rc.1",
+    "@internal/contract-authoring": "workspace:8.0.0-rc.1",
+    "@internal/errors": "workspace:8.0.0-rc.1",
+    "@internal/framework-components": "workspace:8.0.0-rc.1",
+    "@internal/mongo-contract": "workspace:8.0.0-rc.1",
+    "@internal/utils": "workspace:8.0.0-rc.1",
+    "pathe": "^2.0.3"
+  },
+  "devDependencies": {
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    "./config-types": "./dist/config-types.mjs",
+    "./contract-builder": "./dist/contract-builder.mjs",
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/2-mongo-family/2-authoring/contract-ts"
+  }
+}

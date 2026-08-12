@@ -1,0 +1,66 @@
+[
+  {
+    "id": "dropColumn.user.bio",
+    "label": "Drop column \"bio\" from \"user\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "bio",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"bio\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'bio'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"bio\"",
+        "sql": "ALTER TABLE \"user\" DROP COLUMN \"bio\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"bio\" does not exist",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'bio'\n)"
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.user.posts",
+    "label": "Drop column \"posts\" from \"user\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "posts",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"posts\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'posts'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"posts\"",
+        "sql": "ALTER TABLE \"user\" DROP COLUMN \"posts\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"posts\" does not exist",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'posts'\n)"
+      }
+    ]
+  }
+]

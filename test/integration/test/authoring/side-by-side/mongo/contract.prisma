@@ -1,0 +1,21 @@
+// use prisma-next
+
+model User {
+  id    ObjectId @id @map("_id")
+  name  String
+  email String
+  bio   String?
+  posts Post[]
+
+  @@map("users")
+}
+
+model Post {
+  id          ObjectId @id @map("_id")
+  authorId    ObjectId
+  title       String
+  publishedAt DateTime?
+  author      User     @relation(fields: [authorId], references: [id])
+
+  @@map("posts")
+}

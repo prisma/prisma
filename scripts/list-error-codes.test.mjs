@@ -1,0 +1,99 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+const SCRIPT = join(fileURLToPath(new URL('.', import.meta.url)), 'list-error-codes.mjs');
+
+function makeFixtureRepo() {
+  const root = mkdtempSync(join(tmpdir(), 'list-error-codes-'));
+  const git = (...args) => execFileSync('git', args, { cwd: root, stdio: 'pipe' });
+  git('init', '-q');
+  git('config', 'user.email', 'test@example.invalid');
+  git('config', 'user.name', 'test');
+
+  const srcDir = join(root, 'packages', 'pkg-a', 'src');
+  mkdirSync(srcDir, { recursive: true });
+  writeFileSync(
+    join(srcDir, 'errors.ts'),
+    `export const a = 'CONFIG.FILE_NOT_FOUND';
+export const b = 'MIGRATION.CHECK_DANGLING_REF';
+export const notACode = 'NOT_A_NAMESPACE.SUBCODE';
+export const lowercase = 'config.file_not_found';
+`,
+  );
+  writeFileSync(join(srcDir, 'errors.test.ts'), `export const t = 'DRIVER.NOT_CONNECTED';\n`);
+  const testDir = join(root, 'packages', 'pkg-a', 'test');
+  mkdirSync(testDir, { recursive: true });
+  writeFileSync(join(testDir, 'x.ts'), `export const t = 'BUDGET.ROWS_EXCEEDED';\n`);
+  git('add', '.');
+  git('commit', '-q', '-m', 'fixture');
+  return root;
+}
+
+function run(args) {
+  try {
+    const stdout = execFileSync('node', [SCRIPT, ...args], { encoding: 'utf-8', stdio: 'pipe' });
+    return { code: 0, stdout, stderr: '' };
+  } catch (err) {
+    return { code: err.status, stdout: err.stdout ?? '', stderr: err.stderr ?? '' };
+  }
+}
+
+test('extracts closed-namespace literals from production src only', () => {
+  const root = makeFixtureRepo();
+  try {
+    const { code, stdout } = run(['--root', root]);
+    assert.equal(code, 0);
+    const entries = JSON.parse(stdout);
+    assert.deepEqual(
+      entries.map((e) => e.code),
+      ['CONFIG.FILE_NOT_FOUND', 'MIGRATION.CHECK_DANGLING_REF'],
+    );
+    assert.deepEqual(entries[0].files, ['packages/pkg-a/src/errors.ts']);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('markdown mode groups by namespace with one heading per code', () => {
+  const root = makeFixtureRepo();
+  try {
+    const { code, stdout } = run(['--root', root, '--format', 'markdown']);
+    assert.equal(code, 0);
+    assert.match(stdout, /## CONFIG\n\n### CONFIG\.FILE_NOT_FOUND/);
+    assert.match(stdout, /## MIGRATION\n\n### MIGRATION\.CHECK_DANGLING_REF/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('verify passes when the page lists every code', () => {
+  const root = makeFixtureRepo();
+  const page = join(root, 'page.md');
+  try {
+    writeFileSync(page, 'CONFIG.FILE_NOT_FOUND and MIGRATION.CHECK_DANGLING_REF\n');
+    const { code, stdout } = run(['--root', root, '--verify', page]);
+    assert.equal(code, 0);
+    assert.match(stdout, /lists all 2 known codes/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('verify fails listing the missing codes', () => {
+  const root = makeFixtureRepo();
+  const page = join(root, 'page.md');
+  try {
+    writeFileSync(page, 'CONFIG.FILE_NOT_FOUND only\n');
+    const { code, stderr } = run(['--root', root, '--verify', page]);
+    assert.equal(code, 1);
+    assert.match(stderr, /missing 1 of 2 known codes/);
+    assert.match(stderr, /MIGRATION\.CHECK_DANGLING_REF/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

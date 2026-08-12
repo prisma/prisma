@@ -1,0 +1,16 @@
+services:
+  postgis:
+    image: imresamu/postgis:16-3.4-alpine
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: postgis_demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgis_demo"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    tmpfs:
+      - /var/lib/postgresql/data

@@ -1,0 +1,5 @@
+// use prisma-next
+
+model User {
+  id String @id @default(slugid())
+}

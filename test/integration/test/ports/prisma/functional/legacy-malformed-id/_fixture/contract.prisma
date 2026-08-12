@@ -1,0 +1,16 @@
+// use prisma-next
+// Port of prisma/prisma@a6d0155
+// packages/client/tests/functional/0-legacy-ports/malformed-id (mongodb matrix entry).
+//
+// Upstream schema (mongodb):
+//   model User {
+//     id   String   @id @default(auto()) @map("_id") @db.ObjectId
+//     name String?
+//     ids  String[] @db.ObjectId
+//   }
+
+model User {
+  id   ObjectId   @id @map("_id")
+  name String?
+  ids  ObjectId[]
+}

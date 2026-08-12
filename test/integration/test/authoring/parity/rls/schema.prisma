@@ -1,0 +1,72 @@
+// use prisma-next
+
+namespace public {
+  model Profile {
+    id     Int    @id
+    userId String
+
+    @@map("profile")
+    @@rls
+  }
+
+  model AuditLog {
+    id Int @id
+
+    @@map("audit_log")
+    @@rls
+  }
+
+  policy_select profile_owner_read {
+    target = Profile
+    roles  = [authenticated]
+    using  = "\"userId\"::uuid = auth.uid()"
+  }
+
+  policy_select profile_public_read {
+    target = Profile
+    roles  = [anon]
+    using  = "true"
+  }
+
+  policy_update profile_owner_write {
+    target    = Profile
+    roles     = [authenticated]
+    using     = "\"userId\"::uuid = auth.uid()"
+    withCheck = "\"userId\"::uuid = auth.uid()"
+  }
+
+  policy_insert profile_owner_insert {
+    target    = Profile
+    roles     = [authenticated]
+    withCheck = "\"userId\"::uuid = auth.uid()"
+  }
+
+  policy_delete profile_owner_delete {
+    target = Profile
+    roles  = [authenticated]
+    using  = "\"userId\"::uuid = auth.uid()"
+  }
+
+  policy_all profile_admin_all {
+    target    = Profile
+    roles     = [anon, authenticated]
+    using     = "true"
+    withCheck = "true"
+  }
+
+  policy_update profile_touch_write {
+    target = Profile
+    roles  = [authenticated]
+    using  = "\"userId\"::uuid = auth.uid()"
+  }
+
+  policy_select audit_read {
+    target = AuditLog
+    roles  = [authenticated]
+    using  = "true"
+  }
+}
+
+namespace unbound {
+  role app_role {}
+}

@@ -1,0 +1,3 @@
+test/fixtures/cli/cli-e2e-test-app/test-*/**
+test/fixtures/cli/cli-e2e-test-app/fixtures/vite-plugin/output/
+test/fixtures/cli/cli-integration-test-app/test-*/**

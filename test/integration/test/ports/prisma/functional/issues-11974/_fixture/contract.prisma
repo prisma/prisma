@@ -1,0 +1,53 @@
+// Faithful translation of prisma/prisma functional suite `issues/11974`
+// (packages/client/tests/functional/issues/11974, postgres matrix entry).
+//
+// Upstream schema (implicit many-to-many with two named relations):
+//
+//   model Comment {
+//     id String @id
+//     upVotedUsers   User[] @relation("upVotes")
+//     downVotedUsers User[] @relation("downVotes")
+//   }
+//   model User {
+//     uid String @id
+//     upVotedComments   Comment[] @relation("upVotes")
+//     downVotedComments Comment[] @relation("downVotes")
+//   }
+//
+// Prisma uses implicit many-to-many join tables (_upVotes, _downVotes).
+// Prisma-next PSL requires explicit junction models. We author two explicit
+// junction models — one per named relation — with composite @@id on the
+// FK pair. The backrelation list fields on Comment and User reference the
+// junction via the same named relations.
+
+model Comment {
+  id             String        @id
+  upVotedUsers   User[]        @relation("upVotes")
+  downVotedUsers User[]        @relation("downVotes")
+}
+
+model User {
+  uid               String    @id
+  upVotedComments   Comment[] @relation("upVotes")
+  downVotedComments Comment[] @relation("downVotes")
+}
+
+model UpVote {
+  commentId String
+  userId    String
+
+  comment Comment @relation("upVotes", fields: [commentId], references: [id])
+  user    User    @relation("upVotes", fields: [userId], references: [uid])
+
+  @@id([commentId, userId])
+}
+
+model DownVote {
+  commentId String
+  userId    String
+
+  comment Comment @relation("downVotes", fields: [commentId], references: [id])
+  user    User    @relation("downVotes", fields: [userId], references: [uid])
+
+  @@id([commentId, userId])
+}

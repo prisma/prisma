@@ -1,0 +1,56 @@
+---
+description: Prefer whole-result-shape assertions with explicit select projections in sql-orm-client tests
+globs: ["packages/3-extensions/sql-orm-client/**/*.test.ts", "test/integration/test/sql-orm-client/**/*.test.ts"]
+alwaysApply: false
+---
+
+# Assert the whole result shape, with explicit projections
+
+In `sql-orm-client` tests (unit and integration), assert the **entire** result with `toEqual`
+(or an inline/file snapshot), and pin the projected columns with explicit varargs `.select(...)`
+(`.select('id', 'name')`) on the root collection **and** on every included relation. Order
+deterministically with a **base-table** column — `.orderBy((c) => c.<baseColumn>.asc())` (typically
+`id`; don't order by a variant table's column unless that path is under test) — so `toEqual` on
+arrays is reliable.
+
+## Why
+
+- Partial matchers (`toMatchObject`, `toHaveProperty`/`not.toHaveProperty`, lone single-field
+  `toBe`/`toEqual`) pass silently on wrong shapes — extra fields, a sibling-variant field that
+  should have been dropped, a misspelled key elsewhere. The result's shape is the contract.
+- `toEqual` on a full model row with **no** `select` couples every test to the full model field
+  set, so adding one field breaks tests far from the change. `select` + `toEqual` is both complete
+  (catches extra/missing/wrong fields in the projected shape) and stable (immune to model growth).
+
+## Good
+
+```ts
+const rows = await db.orm.Account
+  .select('id', 'name')
+  .orderBy((a) => a.id.asc())
+  .include('members', (m) => m.select('id', 'kind', 'role', 'plan').orderBy((u) => u.id.asc()))
+  .all();
+
+expect(rows).toEqual([
+  { id: 1, name: 'Acme', members: [
+    { id: 1, kind: 'admin', role: 'superadmin' }, // polymorphic: variant fields surface per row's
+    { id: 2, kind: 'regular', plan: 'free' },      // variant — pin them to lock the per-variant shape
+  ] },
+  { id: 2, name: 'Empty', members: [] },
+]);
+```
+
+## Notes
+
+- **Implicit-default-projection tests are the deliberate exception:** a test whose explicit purpose
+  is to verify the default projection (no `.select(...)`) should assert the full default row shape
+  with `toEqual`; name it as such. Everywhere else, `toEqual` on a full row with no `select` is the
+  brittleness this rule warns against.
+- **Snapshots** (`toMatchInlineSnapshot`) are an acceptable alternative to a hand-written `toEqual`,
+  but still pair them with explicit `select` so the snapshot is stable.
+- Asserting a single scalar (a count, a thrown error code, a boolean) with `toBe`/`expect().rejects`
+  is fine and expected.
+- **Relationship to `prefer-object-matcher.mdc`:** this is the stricter, sql-orm-client
+  specialization of that rule for *query results* — assert the result row completely with
+  `toEqual` + `select` rather than partially. `toMatchObject` stays fine for the non-result,
+  constructed-object cases `prefer-object-matcher` targets.

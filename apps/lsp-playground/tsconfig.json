@@ -1,0 +1,9 @@
+{
+  "extends": ["@repo/tsconfig/base"],
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "dist-tsc", "node_modules"]
+}

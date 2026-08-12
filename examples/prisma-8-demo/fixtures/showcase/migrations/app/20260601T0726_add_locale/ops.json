@@ -1,0 +1,34 @@
+[
+  {
+    "id": "column.account.locale",
+    "label": "Add column \"locale\" to \"account\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "locale",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"locale\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'locale'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"locale\"",
+        "sql": "ALTER TABLE \"account\" ADD COLUMN \"locale\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"locale\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'locale'\n)"
+      }
+    ]
+  }
+]

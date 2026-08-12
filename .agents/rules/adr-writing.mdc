@@ -1,0 +1,15 @@
+---
+description: ADR writing guidelines (clarity, flow, examples)
+globs:
+  - "docs/architecture docs/adrs/**/*.md"
+alwaysApply: false
+---
+
+- **Lead with the decision and a grounding example.** Open with a representative code/usage sample and the decision itself, *then* build up **why → how → consequences**, and put **alternatives considered last**. Don't front-load context/problem/rejected designs — a reader should see what the decision *is* before the information being made irrelevant. (Context still belongs in the doc; it just doesn't lead.)
+- **ADRs are long-lived — no transient references.** No PR numbers, and no "before this refactor / earlier implementation / as-shipped / what we used to do" preceding-state framing. The shape you replaced is a legitimate *alternative considered*, stated timelessly — not narrated as a project event. (Ticket / milestone / task IDs are already banned in ADRs by `no-transient-project-ids-in-code.mdc`.)
+- Keep responsibility splits explicit (e.g. adapter lowering vs codec encode/decode vs driver transport/normalization)
+- If an ADR discusses capabilities, follow `.cursor/rules/capabilities-ownership.mdc` for wording
+- If you need to describe sequencing (order of operations), keep it **short** and place it near the responsibilities/decision; avoid long procedural sections that read out-of-place
+- Use fenced code blocks for SQL (` ```sql `) and TS (` ```ts `); avoid nested backticks inside inline code
+- Worked examples should be end-to-end and make it obvious which layer owns each step (lane, adapter, codec, driver, runtime)
+- If the decision instantiates a structural pattern recorded in [`docs/architecture docs/patterns/`](../../docs/architecture%20docs/patterns/README.md), link forward to the pattern entry from the ADR (existing ADRs are not retroactively edited)

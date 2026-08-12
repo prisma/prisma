@@ -1,0 +1,49 @@
+name: Setup
+description: >
+  Install the toolchain (mise, pnpm) and prime the caches shared across CI jobs:
+  the pnpm content-addressable store and Turbo's local cache. Does not check out
+  the repository or run `pnpm install` — callers control those so they can set
+  fetch-depth and install flags per job.
+
+runs:
+  using: composite
+  steps:
+    - uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+      with:
+        cache: true
+    - uses: pnpm/action-setup@91ab88e2619ed1f46221f0ba42d1492c02baf788 # v6.0.6
+
+    # Pin Turbo's local cache to a known directory so the cache step below
+    # targets it deterministically and every job agrees on the location.
+    # `.turbo` is already gitignored, so the working-tree-clean check ignores it.
+    - name: Configure Turbo cache directory
+      shell: bash
+      run: echo "TURBO_CACHE_DIR=${{ github.workspace }}/.turbo/cache" >> "$GITHUB_ENV"
+
+    - name: Resolve pnpm store directory
+      id: pnpm-store
+      shell: bash
+      run: echo "dir=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache pnpm store
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: ${{ steps.pnpm-store.outputs.dir }}
+        key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: |
+          pnpm-${{ runner.os }}-
+
+    # Single-writer Turbo cache. The `build` job runs first and is the only
+    # job whose key is a miss, so it is the sole writer; every other job
+    # `needs: build`, restores this exact key, and skips saving (documented
+    # actions/cache behaviour on an exact-key hit). Their `pnpm build` becomes
+    # a cache hit instead of a rebuild. The restore-key warms the cache from
+    # previous runs. Because only the build job ever writes, the cache contains
+    # build outputs only — test/coverage results never enter it.
+    - name: Cache Turbo
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: .turbo
+        key: turbo-${{ runner.os }}-${{ github.sha }}
+        restore-keys: |
+          turbo-${{ runner.os }}-

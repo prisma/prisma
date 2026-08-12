@@ -1,0 +1,224 @@
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify schema satisfies contract without marker checks [initialized, schema matches contract]
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify schema satisfies contract without marker checks [initialized, schema matches contract]
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify schema satisfies contract without marker checks [initialized, schema matches contract]
+> prisma-next db verify --schema-only
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify schema satisfies contract without marker checks [initialized, schema matches contract]
+> prisma-next db verify --schema-only
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify schema satisfies contract without marker checks [initialized, schema matches contract]
+> prisma-next db verify --schema-only
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Verify schema satisfies contract without marker checks [initialized, schema matches contract]
+> prisma-next db verify --schema-only
+prisma-next db verify → Check whether the live database schema matches your contract
+│
+│ config:               prisma-next.config.ts
+│ contract:             contract.json
+│ mode:                 schema only (tolerant)
+│
+│ Read more             https://pris.ly/db-verify
+└
+
+│
+│  ✔ contract
+│  └─ ✔ table user
+│     ├─ ✔ columns
+│     │  ├─ ✔ email: text (pg/text@1) (not nullable)
+│     │  └─ ✔ id: int4 (pg/int4@1) (not nullable)
+│     └─ ✔ primary key: id
+│
+│  ✔ Database schema satisfies contract
+>
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

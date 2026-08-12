@@ -1,0 +1,161 @@
+import {
+  createExecutionStack,
+  type ExecutionStack,
+  type RuntimeAdapterDescriptor,
+  type RuntimeAdapterInstance,
+  type RuntimeDriverDescriptor,
+  type RuntimeDriverInstance,
+  type RuntimeExtensionDescriptor,
+  type RuntimeExtensionInstance,
+  type RuntimeTargetDescriptor,
+  type RuntimeTargetInstance,
+} from '@internal/framework-components/execution';
+import { runtimeError } from '@internal/framework-components/runtime';
+import type { MongoCodec } from '@internal/mongo-codec';
+import { type MongoCodecRegistry, newMongoCodecRegistry } from '@internal/mongo-codec';
+import type { MongoAdapter } from '@internal/mongo-lowering';
+
+/**
+ * Mongo-specific static contributions a runtime descriptor declares.
+ *
+ * Mirrors `SqlStaticContributions` in shape: a `codecs()` getter that yields a `MongoCodecRegistry` populated with this contributor's codecs. The registry is then walked by `createMongoExecutionContext` and folded into the single per-execution registry the runtime reads from at decode time.
+ */
+export interface MongoStaticContributions {
+  readonly codecs: () => MongoCodecRegistry;
+}
+
+export interface MongoRuntimeTargetDescriptor<
+  TTargetId extends string = 'mongo',
+  TTargetInstance extends RuntimeTargetInstance<'mongo', TTargetId> = RuntimeTargetInstance<
+    'mongo',
+    TTargetId
+  >,
+> extends RuntimeTargetDescriptor<'mongo', TTargetId, TTargetInstance>,
+    MongoStaticContributions {}
+
+export interface MongoRuntimeAdapterInstance<TTargetId extends string = 'mongo'>
+  extends RuntimeAdapterInstance<'mongo', TTargetId>,
+    MongoAdapter {}
+
+export interface MongoRuntimeAdapterDescriptor<
+  TTargetId extends string = 'mongo',
+  TAdapterInstance extends RuntimeAdapterInstance<
+    'mongo',
+    TTargetId
+  > = MongoRuntimeAdapterInstance<TTargetId>,
+> extends RuntimeAdapterDescriptor<'mongo', TTargetId, TAdapterInstance>,
+    MongoStaticContributions {}
+
+export interface MongoRuntimeExtensionInstance<TTargetId extends string = 'mongo'>
+  extends RuntimeExtensionInstance<'mongo', TTargetId> {}
+
+export interface MongoRuntimeExtensionDescriptor<TTargetId extends string = 'mongo'>
+  extends RuntimeExtensionDescriptor<'mongo', TTargetId, MongoRuntimeExtensionInstance<TTargetId>>,
+    MongoStaticContributions {
+  create(): MongoRuntimeExtensionInstance<TTargetId>;
+}
+
+/**
+ * The Mongo execution stack: target + adapter + optional driver + extension packs. Mirrors `SqlExecutionStack`. Constructed via `createMongoExecutionStack`.
+ */
+export interface MongoExecutionStack<TTargetId extends string = 'mongo'> {
+  readonly target: MongoRuntimeTargetDescriptor<TTargetId>;
+  readonly adapter: MongoRuntimeAdapterDescriptor<TTargetId>;
+  readonly driver:
+    | RuntimeDriverDescriptor<
+        'mongo',
+        TTargetId,
+        unknown,
+        RuntimeDriverInstance<'mongo', TTargetId>
+      >
+    | undefined;
+  readonly extensions: readonly MongoRuntimeExtensionDescriptor<TTargetId>[];
+}
+
+export function createMongoExecutionStack<TTargetId extends string = 'mongo'>(options: {
+  readonly target: MongoRuntimeTargetDescriptor<TTargetId>;
+  readonly adapter: MongoRuntimeAdapterDescriptor<TTargetId>;
+  readonly driver?:
+    | RuntimeDriverDescriptor<
+        'mongo',
+        TTargetId,
+        unknown,
+        RuntimeDriverInstance<'mongo', TTargetId>
+      >
+    | undefined;
+  readonly extensions?: readonly MongoRuntimeExtensionDescriptor<TTargetId>[] | undefined;
+}): MongoExecutionStack<TTargetId> {
+  const stack = createExecutionStack({
+    target: options.target,
+    adapter: options.adapter,
+    driver: options.driver,
+    extensions: options.extensions,
+  });
+  return stack as ExecutionStack<'mongo', TTargetId> as MongoExecutionStack<TTargetId>;
+}
+
+/**
+ * Read-only view of the codec registry exposed on `MongoExecutionContext`.
+ *
+ * Hides `register()` and the iterator from public surface — users do not mutate the per-execution codec registry. Internal aggregation in `createMongoExecutionContext` keeps using the full `MongoCodecRegistry` (it needs `register()`).
+ */
+export interface MongoCodecLookup {
+  get(id: string): MongoCodec<string> | undefined;
+  has(id: string): boolean;
+}
+
+/**
+ * Per-execution context aggregated from a `MongoExecutionStack`.
+ *
+ * Carries the user's contract, a read-only lookup over the codec registry composed from every stack contributor, and a back-reference to the stack itself so the runtime can reach the adapter without users threading it explicitly.
+ *
+ * Mirrors SQL's `ExecutionContext` in role; Mongo's flavour is leaner because there are no parameterised codecs, JSON-schema validators, or mutation-default generators in scope yet.
+ */
+export interface MongoExecutionContext<TContract = unknown, TTargetId extends string = 'mongo'> {
+  readonly contract: TContract;
+  readonly codecs: MongoCodecLookup;
+  readonly stack: MongoExecutionStack<TTargetId>;
+}
+
+export function createMongoExecutionContext<
+  TContract = unknown,
+  TTargetId extends string = 'mongo',
+>(options: {
+  readonly contract: TContract;
+  readonly stack: MongoExecutionStack<TTargetId>;
+}): MongoExecutionContext<TContract, TTargetId> {
+  const registry = newMongoCodecRegistry();
+  const owners = new Map<string, string>();
+
+  const contributors: ReadonlyArray<MongoStaticContributions & { readonly id: string }> = [
+    options.stack.target,
+    options.stack.adapter,
+    ...options.stack.extensions,
+  ];
+
+  for (const contributor of contributors) {
+    const contributed = contributor.codecs();
+    for (const codec of iterateCodecs(contributed)) {
+      const existingOwner = owners.get(codec.id);
+      if (existingOwner !== undefined) {
+        throw runtimeError(
+          'RUNTIME.DUPLICATE_CODEC',
+          `Duplicate Mongo codec id '${codec.id}' contributed by '${contributor.id}' (already registered by '${existingOwner}').`,
+          { codecId: codec.id, existingOwner, incomingOwner: contributor.id },
+        );
+      }
+      registry.register(codec);
+      owners.set(codec.id, contributor.id);
+    }
+  }
+
+  return Object.freeze({
+    contract: options.contract,
+    codecs: registry,
+    stack: options.stack,
+  });
+}
+
+function* iterateCodecs(registry: MongoCodecRegistry): Iterable<MongoCodec<string>> {
+  yield* registry.values();
+}

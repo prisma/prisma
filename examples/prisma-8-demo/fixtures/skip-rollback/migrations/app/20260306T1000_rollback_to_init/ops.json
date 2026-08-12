@@ -1,0 +1,66 @@
+[
+  {
+    "id": "dropColumn.user.bio",
+    "label": "Drop column \"bio\" from \"user\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "bio",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"bio\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'bio'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"bio\"",
+        "sql": "ALTER TABLE \"user\" DROP COLUMN \"bio\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"bio\" does not exist",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'bio'\n)"
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.user.phone",
+    "label": "Drop column \"phone\" from \"user\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "phone",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"phone\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'phone'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"phone\"",
+        "sql": "ALTER TABLE \"user\" DROP COLUMN \"phone\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"phone\" does not exist",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'user'\n    AND column_name = 'phone'\n)"
+      }
+    ]
+  }
+]

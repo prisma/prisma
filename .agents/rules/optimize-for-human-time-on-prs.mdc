@@ -1,0 +1,41 @@
+---
+description: Don't open one-line / chore PRs on their own; batch ancillary work into in-flight PRs
+alwaysApply: true
+---
+
+# Optimize for human time when opening PRs
+
+The golden rule: **PRs have enormous human-time overhead.** Every PR costs the reviewer context-switch time, the merge-coordinator time, CI/wait-time on the operator's queue, and Linear/notification noise. A one-line PR is not "small" — its review burden has the same fixed overhead as a large PR.
+
+Default to **fewer, larger PRs**, not more, smaller ones.
+
+## Concrete defaults
+
+- **Never open a one-line / one-commit / "chore" PR on its own.** If the change can ride along on an in-flight PR's branch, push it there. The reviewer is already holding the context; the extra commit costs them nothing additional to look at. A separate PR costs them a full second review-cycle from scratch.
+- **Never split an existing branch into multiple PRs because the commits "feel separable."** That value judgment belongs to the operator, who is the one paying the review cost. Same-branch / same-PR is the default; split only on explicit operator instruction.
+- **Ancillary work that surfaces during a slice** (skill amendments, rule additions, follow-up doc tweaks, small fixes) goes on the **same branch** as the slice it surfaced from. Push to the existing PR. Do not create a new branch, do not rebase the ancillary commit onto `main`, do not open a new PR.
+- **If there is no in-flight PR to ride along on**, and the change is genuinely a one-liner with no companion work, **batch it.** Stash the change locally, work on it next to whatever non-trivial work comes next, and land them together. Don't open a PR just to land the one-liner alone.
+
+## Override triggers (explicit only)
+
+Open a new / separate PR only when the operator has explicitly said so. Examples that count as explicit:
+
+- "open a PR for X"
+- "this should be its own PR"
+- "land X separately from Y"
+- "don't include the skill change in the TML-XXXX PR"
+
+These do **not** count as triggers:
+
+- The change "feels like a separable concern" to the agent.
+- The change touches "a different surface area."
+- The change "would be cleaner on its own."
+- The agent thinks the operator "would probably want it split" without having been told so.
+
+## When in doubt, ask
+
+If you genuinely believe a separate PR is warranted (e.g. the change would block the in-flight PR's CI for unrelated reasons, or the operator has clearly expressed time pressure on the in-flight PR), **ask the operator in one line** before acting. Asking costs ~5 seconds of the operator's attention; a wrongly-opened PR costs ~30 minutes.
+
+## Why this is a golden rule
+
+Code quality is fungible — a slightly messier PR can be tidied in review. Human time is not fungible. Every additional PR opened against the operator's queue is a non-refundable charge against their day. The agent's instinct toward "clean separation" is almost always a net loss when measured in the reviewer's actual time-cost.

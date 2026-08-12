@@ -1,0 +1,42 @@
+// use prisma-next
+
+type Address {
+  street  String
+  city    String
+  zip     String?
+  country String
+}
+
+model User {
+  id      ObjectId @id @map("_id")
+  name    String
+  email   String
+  bio     String?
+  address Address?
+  posts   Post[]
+  @@map("users")
+}
+
+model Post {
+  id        ObjectId @id @map("_id")
+  title     String
+  content   String
+  kind      String
+  authorId  ObjectId
+  createdAt DateTime
+  author    User @relation(fields: [authorId], references: [id])
+  @@discriminator(kind)
+  @@map("posts")
+}
+
+model Article {
+  summary   String
+  @@base(Post, "article")
+  @@unique([summary])
+}
+
+model Tutorial {
+  difficulty String
+  duration   Int
+  @@base(Post, "tutorial")
+}

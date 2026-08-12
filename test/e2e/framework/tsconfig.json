@@ -1,0 +1,9 @@
+{
+  "extends": ["@repo/tsconfig/base"],
+  "compilerOptions": {
+    "outDir": "./dist",
+    "types": ["vitest/globals", "node"]
+  },
+  "include": ["test/**/*", "vitest.config.ts", "scripts/**/*"],
+  "exclude": ["**/node_modules", "dist"]
+}

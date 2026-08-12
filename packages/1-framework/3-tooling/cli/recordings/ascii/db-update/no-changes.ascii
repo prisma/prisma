@@ -1,0 +1,224 @@
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # No changes when database matches contract
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # No changes when database matches contract
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # No changes when database matches contract
+> prisma-next db update --dry-run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # No changes when database matches contract
+> prisma-next db update --dry-run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # No changes when database matches contract
+> prisma-next db update --dry-run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # No changes when database matches contract
+> prisma-next db update --dry-run
+prisma-next db update → Update your database schema to match your contract
+│
+│ config:               prisma-next.config.ts
+│ contract:             contract.json
+│ mode:                 dry run
+│
+│ Read more             https://pris.ly/db-update
+└
+
+│
+│  ✔ Planned 0 operation(s)
+│
+│  Destination hash: sha256:95060eda0d8ef9b30439212a41756c15066733defdde81ee7118f955be7361d1
+│
+│  DDL preview
+│  No DDL operations.
+│
+│  This is a dry run. No changes were applied.
+│  Run without --dry-run to apply changes.
+>
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,7 @@
+---
+description: Run the Todo example end-to-end demo
+---
+```bash
+cd examples/todo-app && pnpm demo
+```
+

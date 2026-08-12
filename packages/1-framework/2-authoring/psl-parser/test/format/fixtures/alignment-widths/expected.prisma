@@ -1,0 +1,22 @@
+model A {
+  shortName Int @id
+  x         Int
+}
+
+model B {
+  id            Int @id
+  verboseColumn Int
+}
+
+model Widths {
+  id      Int                  @id @default(autoincrement())
+  related SomeVeryLongTypeName
+  name    String
+}
+
+enum Role {
+  @@type("pg/text@1")
+  USER
+  ADMINISTRATOR
+  GUEST
+}

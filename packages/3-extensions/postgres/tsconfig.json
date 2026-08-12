@@ -1,0 +1,10 @@
+{
+  "extends": ["@repo/tsconfig/base"],
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "lib": ["ES2022", "ESNext.Disposable"]
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["dist"]
+}

@@ -1,0 +1,48 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/methods/upsert/native-atomic (postgres matrix entry).
+//
+// Upstream schema (postgres branch):
+//   model User {
+//     id    String @id @default(cuid())
+//     name  String @unique
+//     posts Post[]
+//   }
+//   model Post {
+//     id       String  @id @default(cuid())
+//     title    String  @unique
+//     author   User?   @relation(fields: [authorId], references: [id])
+//     authorId String
+//   }
+//   model Compound {
+//     id1    Int
+//     id2    String
+//     field1 Int
+//     field2 String
+//     val    Int
+//     @@unique([field1, field2])
+//     @@id([id1, id2])
+//   }
+
+model User {
+  id    String @id
+  name  String @unique
+  posts Post[]
+}
+
+model Post {
+  id       String  @id @default(cuid(2))
+  title    String  @unique
+  author   User?   @relation(fields: [authorId], references: [id])
+  authorId String
+}
+
+model Compound {
+  id1    Int
+  id2    String
+  field1 Int
+  field2 String
+  val    Int
+
+  @@unique([field1, field2])
+  @@id([id1, id2])
+}

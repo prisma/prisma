@@ -1,0 +1,11 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
+  // Example apps use a standalone biome config rather than extending the root
+  // config, to keep example-specific settings self-contained (matches mongo-demo).
+  "extends": "//",
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  }
+}

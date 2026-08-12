@@ -1,0 +1,10 @@
+model User { // a user
+id Int @id      // squished
+name String
+@@map("user") // table name
+} // end of model
+namespace App {
+model Account {
+id Int @id
+} // end Account
+}

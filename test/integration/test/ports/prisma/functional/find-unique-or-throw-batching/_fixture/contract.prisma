@@ -1,0 +1,10 @@
+// Faithful translation of prisma/prisma functional suite `find-unique-or-throw-batching`
+// (packages/client/tests/functional/find-unique-or-throw-batching, postgres matrix entry).
+//
+// Upstream schema (postgres branch):
+//   model User {
+//     id String @id @default(cuid())
+//   }
+model User {
+  id String @id
+}

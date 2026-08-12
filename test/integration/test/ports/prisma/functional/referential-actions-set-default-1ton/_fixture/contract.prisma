@@ -1,0 +1,48 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/referentialActions-setDefault (postgres matrix entry).
+//
+// Upstream schema (from _schema_1_to_1.ts and _schema_1_to_n.ts, defaultUserId=3):
+//
+//   model UserOneToOne {
+//     id      Int              @id
+//     profile ProfileOneToOne?
+//   }
+//
+//   model ProfileOneToOne {
+//     id     Int           @id
+//     user   UserOneToOne? @relation(fields: [userId], references: [id], onUpdate: SetDefault, onDelete: SetDefault)
+//     userId Int?          @default(3) @unique
+//   }
+//
+//   model UserOneToMany {
+//     id    Int             @id
+//     posts PostOneToMany[]
+//   }
+//
+//   model PostOneToMany {
+//     id     Int            @id
+//     user   UserOneToMany? @relation(fields: [userId], references: [id], onUpdate: SetDefault, onDelete: SetDefault)
+//     userId Int?           @default(3)
+//   }
+
+model UserOneToOne {
+  id      Int              @id
+  profile ProfileOneToOne?
+}
+
+model ProfileOneToOne {
+  id     Int           @id
+  user   UserOneToOne? @relation(fields: [userId], references: [id], onUpdate: SetDefault, onDelete: SetDefault)
+  userId Int?          @default(3) @unique
+}
+
+model UserOneToMany {
+  id    Int             @id
+  posts PostOneToMany[]
+}
+
+model PostOneToMany {
+  id     Int            @id
+  user   UserOneToMany? @relation(fields: [userId], references: [id], onUpdate: SetDefault, onDelete: SetDefault)
+  userId Int?           @default(3)
+}

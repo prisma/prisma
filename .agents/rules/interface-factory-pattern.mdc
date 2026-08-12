@@ -1,0 +1,42 @@
+---
+description: Interface-based design with factory functions (keep classes private)
+globs: ["packages/**/*.ts", "packages/**/*.tsx", "examples/**/*.ts", "examples/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"]
+alwaysApply: false
+---
+
+# Interface-Based Design with Factory Functions
+
+**Pattern**: Export interfaces and factory functions. Keep classes as private implementation details.
+
+## Do
+
+```typescript
+export interface CodecRegistry {
+  get(id: string): unknown | undefined;
+  register(codec: unknown): void;
+}
+
+export function createCodecRegistry(): CodecRegistry {
+  return new CodecRegistryImpl();
+}
+
+class CodecRegistryImpl implements CodecRegistry {
+  // ...
+}
+```
+
+## Avoid
+
+```typescript
+// Avoid exporting concrete classes as the primary surface.
+export class CodecRegistry {
+  // ...
+}
+```
+
+## Why this matters
+
+- Keeps public APIs stable while allowing private implementation changes
+- Makes mocking/testing easier (tests can target interfaces)
+- Encourages “thin core, fat targets” and clean layering
+

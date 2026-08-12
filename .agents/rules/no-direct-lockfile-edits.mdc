@@ -1,0 +1,13 @@
+---
+description: Never edit the pnpm lockfile manually; use pnpm install
+globs: []
+alwaysApply: true
+---
+
+# Lockfile Updates
+
+**CRITICAL**: Never edit `pnpm-lock.yaml` by hand.
+
+When dependency declarations change, run `pnpm install` to update `pnpm-lock.yaml` and `node_modules` together.
+
+If the lockfile changed without running `pnpm install`, run it before continuing.

@@ -1,0 +1,10 @@
+namespace public {
+  model Profile {
+    id       Uuid   @id @default(uuid())
+    username String
+    userId   Uuid   @unique
+    user     supabase:auth.AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+    @@map("profile")
+    @@rls
+  }
+}

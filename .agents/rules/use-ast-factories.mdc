@@ -1,0 +1,75 @@
+---
+description: Use factory functions for creating AST nodes instead of manual object creation
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# Use Factory Functions for AST Nodes
+
+**CRITICAL**: When creating AST nodes in tests, use factory functions instead of manual object creation.
+
+## The Problem
+
+Manual AST node creation:
+- Duplicates AST structure definitions
+- Is error-prone (easy to miss required fields or use wrong values)
+- Makes refactoring harder (changes to AST structure require updates in many places)
+- Doesn't benefit from factory function validation
+
+## The Solution
+
+**❌ WRONG: Manual AST node creation**
+
+```typescript
+const colRef: ColumnRef = { kind: 'col', table: 'user', column: 'id' };
+const paramRef: ParamRef = { kind: 'param', index: 1, name: 'userId' };
+const literalExpr: LiteralExpr = { kind: 'literal', value: 'test' };
+```
+
+**✅ CORRECT: Use factory functions**
+
+```typescript
+import { createColumnRef, createParamRef, createLiteralExpr } from '@internal/sql-relational-core/ast';
+
+const colRef: ColumnRef = createColumnRef('user', 'id');
+const paramRef: ParamRef = createParamRef(1, 'userId');
+const literalExpr: LiteralExpr = createLiteralExpr('test');
+```
+
+## Available Factory Functions
+
+From `@internal/sql-relational-core/ast`:
+- `createColumnRef(table, column)` - Creates a `ColumnRef`
+- `createParamRef(index, name?)` - Creates a `ParamRef`
+- `createLiteralExpr(value)` - Creates a `LiteralExpr`
+- `createTableRef(name)` - Creates a `TableRef`
+- `createBinaryExpr(op, left, right)` - Creates a `BinaryExpr` (from `ast/predicate`)
+
+## When to Use Factory Functions
+
+Use factory functions when:
+- ✅ Creating `ColumnRef`, `ParamRef`, `LiteralExpr`, `TableRef` in tests
+- ✅ Creating `BinaryExpr` in tests
+- ✅ Any AST node that has a factory function available
+
+**Exception**: `OperationExpr` objects are complex and don't have a factory function (the `createOperationExpr` function just returns the operation as-is). Manual creation is acceptable for `OperationExpr` in tests.
+
+## Benefits
+
+- **Consistency**: All AST nodes created the same way
+- **Type safety**: Factory functions ensure correct structure
+- **Maintainability**: Changes to AST structure only need updates in factory functions
+- **Less duplication**: No need to repeat AST structure in tests
+- **Validation**: Factory functions can validate inputs
+
+## Examples from Codebase
+
+**Good patterns:**
+- Using `createColumnRef('user', 'id')` instead of `{ kind: 'col', table: 'user', column: 'id' }`
+- Using `createParamRef(1, 'userId')` instead of `{ kind: 'param', index: 1, name: 'userId' }`
+- Using `createLiteralExpr('test')` instead of `{ kind: 'literal', value: 'test' }`
+
+**Bad patterns (to avoid):**
+- Manual object creation for AST nodes that have factory functions
+- Duplicating AST structure definitions in tests
+- Creating AST nodes with incomplete or incorrect structure

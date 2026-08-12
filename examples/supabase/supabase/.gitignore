@@ -1,0 +1,3 @@
+# Transient Supabase CLI state
+.temp/
+.branches/

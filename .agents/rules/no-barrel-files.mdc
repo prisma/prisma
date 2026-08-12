@@ -1,0 +1,82 @@
+---
+description: Avoid barrel files and unnecessary re-exports
+globs: ["packages/**"]
+alwaysApply: false
+---
+
+# Avoid Barrel Files and Re-exports
+
+## Core Principle
+
+Always avoid barrel files (`index.ts` files that only re-export from other modules) and prefer explicit, direct imports. This improves build performance, reduces bundle size, and makes dependencies clearer.
+
+## Guidelines
+
+### 1. No Barrel Files
+- Never create `index.ts` files that only contain `export * from './other-module'`
+- Never create `index.ts` files that only contain `export { something } from './other-module'`
+- Prefer explicit imports: `import { connect } from '@prisma/runtime/connection'`
+
+### 2. Explicit Exports Only
+- Only create `index.ts` files when they contain actual implementation code
+- Use `exports/index.ts` pattern only for explicit, intentional API surfaces
+- Each package should have a clear, minimal public API
+
+### 3. Direct Imports
+- Import directly from the specific module: `import { sql } from '@prisma/sql/builder'`
+- Avoid: `import { sql } from '@prisma/sql'` (barrel import)
+- This makes dependencies explicit and improves tree-shaking
+
+### 4. Package Structure
+- Each package should expose specific subpaths in `package.json` exports
+- Example: `"./builder": { "types": "./dist/builder.d.ts", "import": "./dist/builder.js" }`
+- Consumers import from specific subpaths, not from barrel files
+
+### 5. Benefits
+- **Build Performance**: Faster builds due to fewer re-export chains
+- **Bundle Size**: Better tree-shaking and smaller bundles
+- **Dependency Clarity**: Clear understanding of what each module depends on
+- **IDE Performance**: Faster IntelliSense and type checking
+- **Debugging**: Easier to trace where code comes from
+
+### 6. Examples
+
+**BAD - Barrel file:**
+```typescript
+// packages/sql/src/index.ts
+export { sql } from './builder';
+export { makeT } from './maket';
+export { compileToSQL } from './compiler';
+export * from './types';
+```
+
+**GOOD - Direct imports:**
+```typescript
+// Consumer code
+import { sql } from '@prisma/sql/builder';
+import { makeT } from '@prisma/sql/maket';
+import { compileToSQL } from '@prisma/sql/compiler';
+```
+
+**GOOD - Explicit exports only:**
+```typescript
+// packages/runtime/src/exports/index.ts
+// This is OK because it's an explicit API surface, not a barrel
+export { connect } from '../connection';
+export { verifyContract, assertContract } from '../contract-verifier';
+```
+
+### 7. Implementation Strategy
+1. Remove all barrel `index.ts` files that only re-export
+2. Update `package.json` exports to point to specific modules
+3. Update build configs to build from specific entry points
+4. Update imports throughout codebase to use direct imports
+5. Document the public API surface clearly
+
+## Exceptions
+
+- CLI entry points (`packages/framework/tooling/cli/src/index.ts`) - these contain actual implementation
+- Main package functions (`packages/schema-emitter/src/index.ts`) - these contain actual implementation
+- Explicit API surfaces (`packages/runtime/src/exports/index.ts`) - these are intentional public APIs
+
+The key is: if the file contains actual implementation code, it's fine. If it only re-exports, remove it.

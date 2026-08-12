@@ -1,0 +1,11 @@
+{
+  "extends": ["@repo/tsconfig/base"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "lib": ["ES2024"],
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["dist"]
+}

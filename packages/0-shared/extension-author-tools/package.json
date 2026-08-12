@@ -1,0 +1,38 @@
+{
+  "name": "@internal/extension-author-tools",
+  "private": true,
+  "version": "8.0.0-rc.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "CLI tools that pair with the prisma-8-extension-upgrade agent skill — including `prisma-8-check-pins`, the CI guard that asserts every `@internal/*` peerDep on an extension package is exact-version-pinned. Future tools for extension authors employing the upgrade skill ship from this package.",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "bin": {
+    "prisma-8-check-pins": "./bin/prisma-8-check-pins.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "files": [
+    "README.md",
+    "bin"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/0-shared/extension-author-tools"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  }
+}

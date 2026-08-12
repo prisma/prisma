@@ -1,0 +1,43 @@
+name: Auto Close Stale Discussions
+
+# Repository-level automation: it acts on the repository's Q&A discussions, not
+# on the code of any one branch. Scheduled workflows only ever run from the
+# default branch, so this lives here rather than alongside the code line it was
+# written for.
+on:
+  schedule:
+    # Offset from the top of the hour: GitHub delays or drops scheduled runs
+    # queued on the hour, where load across the platform concentrates.
+    - cron: '17 0 * * *'
+  workflow_dispatch: # Enables manual run from the Actions tab
+
+permissions:
+  contents: read
+  discussions: write
+
+jobs:
+  close-discussions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .tool-versions
+
+      - name: Close stale Q&A discussions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOSING_MESSAGE: |
+            Hi,
+
+            As we have not heard back from you, we are closing this discussion to keep our discussions organized.
+
+            Feel free to start a new discussion if this remains relevant.
+
+            Thank you for being part of the community!
+        run: node ./.github/workflows/scripts/auto-close-github-discussions.mjs

@@ -1,0 +1,22 @@
+---
+description: Use codec-owned storage-type hooks for control-plane type behavior
+globs: ["packages/2-sql/**", "packages/3-targets/**"]
+alwaysApply: false
+---
+
+# Storage Type Control Hooks
+
+**Use codec-owned control hooks for storage type behavior.** Contract-defined storage types must be handled by codec owners (adapter/extension), not by adding enum-specific fields to shared IR.
+
+## Do
+
+- Represent custom storage types via `storage.types` and column `typeRef`
+- Implement planning/verification/introspection in codec-owned hooks
+- Use schema annotations for target-specific introspection data
+- Prefer adapter `format_type()` output when expanding parameterized native types
+
+## Avoid
+
+- Adding enum-specific fields to `SqlSchemaIR`
+- Framework-level enum abstractions or codecId branching in shared SQL layers
+- Treating missing type parameters as a successful match when the contract declares them

@@ -1,0 +1,96 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`verbatim-coloured command output > ascii glyph mode renders corners in ASCII 1`] = `
+"*     c0ffee0  @contract
+
+*     fork_tr
+|^    20260606T1701_trunk_feature  fork_ro -> fork_tr  1 ops
+| *   fork_al
+| |^  20260606T1702_alt_feature    fork_ro -> fork_al  1 ops
+|-/
+*     fork_ro
+|^    20260606T1700_init                 - -> fork_ro  1 ops
+*     -"
+`;
+
+exports[`verbatim-coloured command output > flat graph with multiple lanes (renderMigrationGraphSpaceTree) 1`] = `
+"[37m○[39m     c0ffee0  @contract
+
+[37m○[39m     fork_tr
+[37m│[39m[37m↑[39m    [37m20260606T1701_trunk_feature[39m  fork_ro → fork_tr  1 ops
+[37m│[39m [36m○[39m   fork_al
+[37m│[39m [36m│[39m[36m↑[39m  [36m20260606T1702_alt_feature[39m    fork_ro → fork_al  1 ops
+[37m│[39m[36m─[39m[36m╯[39m
+[37m○[39m     fork_ro
+[37m│[39m[37m↑[39m    [37m20260606T1700_init[39m                 ∅ → fork_ro  1 ops
+[37m○[39m     ∅"
+`;
+
+exports[`verbatim-coloured command output > graph with @db/@contract markers and user refs (renderMigrationGraphSpaceTree) 1`] = `
+"[37m○[39m   c0ffee0  @contract (prod)
+[37m│[39m[37m↑[39m  [37m20260606T1704_add_users[39m     ov_a → c0ffee0  1 ops
+[37m○[39m   ov_a  @db (staging)
+[37m│[39m[37m↑[39m  [37m20260606T1703_init[39m             ∅ → ov_a  1 ops
+[37m○[39m   ∅"
+`;
+
+exports[`verbatim-coloured command output > migrate --show focus: on-path green, off-path dim (renderMigrationGraphCommand) 1`] = `
+"[92m○[39m     c0ffee0  @contract
+[92m│[39m[92m↑[39m    [92m20260606T1707_on_path[39m   show_ro → c0ffee0  ↑ will run
+[92m│[39m [2m○[22m   [2mshow_al[22m
+[92m│[39m [2m│[22m[2m↑[22m  [2m20260606T1708_off_path[22m  [2mshow_ro[22m [2m→[22m [2mshow_al[22m
+[92m│[39m[2m─[22m[2m╯[22m
+[92m○[39m     show_ro
+[92m│[39m[92m↑[39m    [92m20260606T1706_init[39m            ∅ → show_ro  ↑ will run
+[92m○[39m     ∅"
+`;
+
+exports[`verbatim-coloured command output > multi-space graph with per-space headings (formatMigrationGraphHumanOutput) 1`] = `
+"app:
+[37m○[39m     c0ffee0  @contract
+
+[37m○[39m     fork_tr
+[37m│[39m[37m↑[39m    [37m20260606T1701_trunk_feature[39m  fork_ro → fork_tr  1 ops
+[37m│[39m [36m○[39m   fork_al
+[37m│[39m [36m│[39m[36m↑[39m  [36m20260606T1702_alt_feature[39m    fork_ro → fork_al  1 ops
+[37m│[39m[36m─[39m[36m╯[39m
+[37m○[39m     fork_ro
+[37m│[39m[37m↑[39m    [37m20260606T1700_init[39m                 ∅ → fork_ro  1 ops
+[37m○[39m     ∅
+
+pgvector:
+[37m○[39m   ext_hea
+[37m│[39m[37m↑[39m  [37m20260606T1705_install_extension[39m        ∅ → ext_hea  1 ops
+[37m○[39m   ∅
+
+2 space(s), 4 contract(s), 4 migration(s)"
+`;
+
+exports[`verbatim-coloured command output > rollback back-arc renders aligned with the rollback arrow on its label row 1`] = `
+"[37m○[39m[36m─[39m[36m╮[39m   c0ffee0  @contract
+[37m│[39m [36m│[39m[36m↓[39m  [36m20260606T1710_rollback_all[39m  c0ffee0 → rb_a  1 ops
+[37m│[39m[37m↑[39m[36m│[39m   [37m20260606T1702_add_posts[39m        rb_b → c0ffee0  1 ops
+[37m○[39m [36m│[39m   rb_b
+[37m│[39m[37m↑[39m[36m│[39m   [37m20260606T1701_add_users[39m        rb_a → rb_b  1 ops
+[37m○[39m[36m◂[39m[36m╯[39m   rb_a
+[37m│[39m[37m↑[39m    [37m20260606T1700_init[39m                ∅ → rb_a  1 ops
+[37m○[39m     ∅"
+`;
+
+exports[`verbatim-coloured command output > wide multi-branch fold renders aligned with unified lane colour 1`] = `
+"[37m○[39m       c0ffee0  @contract
+[37m│[39m[36m─[39m[36m╮[39m[33m─[39m[33m╮[39m
+[37m│[39m[37m↑[39m[36m│[39m [33m│[39m   [37m20260606T1710_merge_one[39m     wide_f1 → c0ffee0  1 ops
+[37m│[39m [36m│[39m[36m↑[39m[33m│[39m   [36m20260606T1711_merge_two[39m     wide_f2 → c0ffee0  1 ops
+[37m│[39m [36m│[39m [33m│[39m[33m↑[39m  [33m20260606T1712_merge_three[39m   wide_f3 → c0ffee0  1 ops
+[37m○[39m [36m│[39m [33m│[39m   wide_f1
+[37m│[39m[37m↑[39m[36m│[39m [33m│[39m   [37m20260606T1701_branch_one[39m    wide_ba → wide_f1  1 ops
+[37m│[39m [36m○[39m [33m│[39m   wide_f2
+[37m│[39m [36m│[39m[36m↑[39m[33m│[39m   [36m20260606T1702_branch_two[39m    wide_ba → wide_f2  1 ops
+[37m│[39m [36m│[39m [33m○[39m   wide_f3
+[37m│[39m [36m│[39m [33m│[39m[33m↑[39m  [33m20260606T1703_branch_three[39m  wide_ba → wide_f3  1 ops
+[37m│[39m[36m─[39m[36m╯[39m[33m─[39m[33m╯[39m
+[37m○[39m       wide_ba
+[37m│[39m[37m↑[39m      [37m20260606T1700_init[39m                ∅ → wide_ba  1 ops
+[37m○[39m       ∅"
+`;

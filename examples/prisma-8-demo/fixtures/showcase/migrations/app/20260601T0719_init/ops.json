@@ -1,0 +1,34 @@
+[
+  {
+    "id": "table.account",
+    "label": "Create table \"account\"",
+    "summary": "Creates table \"account\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "table",
+        "name": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"account\" does not exist",
+        "sql": "SELECT to_regclass('\"account\"') IS NULL"
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"account\"",
+        "sql": "CREATE TABLE \"account\" (\n  \"email\" text NOT NULL,\n  \"id\" character(36) NOT NULL,\n  PRIMARY KEY (\"id\")\n)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"account\" exists",
+        "sql": "SELECT to_regclass('\"account\"') IS NOT NULL"
+      }
+    ]
+  }
+]

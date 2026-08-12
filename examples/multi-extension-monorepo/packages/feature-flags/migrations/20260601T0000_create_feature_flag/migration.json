@@ -1,0 +1,7 @@
+{
+  "from": null,
+  "to": "7d110d82b575662c90102339516066ae91f9633527a9fa7c2f2769b714234a98",
+  "providedInvariants": ["feature-flags:create-feature_flag-v1"],
+  "createdAt": "2026-05-09T04:27:33.360Z",
+  "migrationHash": "3c5d8d2ec72e3d3bb5bbd218a1e97decc3a23bcacadd4537a3d4bc4d4b99222b"
+}

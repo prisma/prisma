@@ -1,0 +1,15 @@
+---
+description: "Cannot find module '@internal/*' (ERR_MODULE_NOT_FOUND) is a build/install-state issue, not a code bug — verify with require.resolve (pnpm links per-consumer, not repo root), then pnpm build (stale dist) / pnpm install (new dep)"
+globs: []
+alwaysApply: true
+---
+
+# A missing `@internal/*` package is a build/install state issue, not a code bug
+
+Don't chase it as an import/tsconfig/deps bug.
+
+1. **Verify — a repo-root check lies.** pnpm links workspace packages into the *consumer's* `node_modules`: `node -e "require.resolve('@internal/<pkg>', { paths: ['packages/<consumer-dir>'] })"`.
+2. **Resolves but still fails → stale `dist`** (tsdown packages export `dist/`): run `pnpm build`.
+3. **Unresolved → new dep:** run `pnpm install` (commit the lockfile; never hand-edit it).
+
+After any `git merge`/`rebase`/`pull`, run `pnpm install && pnpm build` before calling a "module not found" or test failure a real regression.

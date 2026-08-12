@@ -1,0 +1,4 @@
+# Non-ported — issues-15204-conversion-error
+
+- `packages/client/tests/functional/issues/15204-conversion-error/tests.ts` › `should return a descriptive error` (fieldType=Int) — SQLite out-of-range value in an `Int` column produces a descriptive `P2023` conversion error — SQLite-only (`_matrix.ts`: `{ provider: Providers.SQLITE }` with `fieldType` matrix `[Int, BigInt]`; `optOut.from: ['mysql', 'mongodb', 'sqlserver', 'postgresql', 'cockroachdb']`). SQLite target is pre-GA with no integration harness per spec.
+- `packages/client/tests/functional/issues/15204-conversion-error/tests.ts` › `should return a descriptive error` (fieldType=BigInt) — SQLite out-of-range value in a `BigInt` column produces a descriptive `P2023` conversion error — SQLite-only (same matrix/optOut as above). SQLite target is pre-GA with no integration harness per spec.

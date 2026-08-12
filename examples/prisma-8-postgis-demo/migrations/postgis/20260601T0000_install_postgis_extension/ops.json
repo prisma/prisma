@@ -1,0 +1,36 @@
+[
+  {
+    "id": "postgis.install-postgis-extension",
+    "label": "Enable extension \"postgis\"",
+    "operationClass": "additive",
+    "invariantId": "postgis:install-postgis-v1",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "dependency",
+        "name": "postgis"
+      }
+    },
+    "precheck": [
+      {
+        "description": "verify extension \"postgis\" is not already enabled",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_extension\" WHERE \"extname\" = $1) AS \"result\"",
+        "params": ["postgis"]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create extension \"postgis\"",
+        "sql": "CREATE EXTENSION IF NOT EXISTS postgis"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "confirm extension \"postgis\" is enabled",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_extension\" WHERE \"extname\" = $1) AS \"result\"",
+        "params": ["postgis"]
+      }
+    ]
+  }
+]

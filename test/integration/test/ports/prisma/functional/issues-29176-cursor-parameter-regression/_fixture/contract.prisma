@@ -1,0 +1,22 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/29176-cursor-parameter-regression
+// (postgres matrix entry; allProviders — we port postgres).
+//
+// Upstream schema (postgres branch):
+//   idForProvider(postgresql) → String @id @default(cuid(2))
+//   model ListResult {
+//     id              String @id @default(cuid())
+//     connection_uuid String
+//     query_ref       String
+//     result_index    Int
+//     @@unique([connection_uuid, query_ref, result_index])
+//   }
+
+model ListResult {
+  id              String @id @default(cuid(2))
+  connection_uuid String
+  query_ref       String
+  result_index    Int
+
+  @@unique([connection_uuid, query_ref, result_index])
+}

@@ -1,0 +1,91 @@
+---
+description: Prefer declarative configuration over hardcoded logic
+globs: ["architecture.config.json", "dependency-cruiser.config.mjs", "turbo.json", "scripts/**/*.mjs"]
+alwaysApply: false
+---
+
+# Declarative Configuration
+
+## Overview
+
+When implementing validation rules, constraints, or configuration logic, prefer declarative data structures over hardcoded conditionals. This makes rules explicit, easier to maintain, and easier to track for removal.
+
+## Pattern
+
+**❌ WRONG: Hardcoded logic in config generator**
+
+```javascript
+// dependency-cruiser.config.mjs
+const createPlaneRules = () => {
+  for (const sourceGroup of moduleGroups) {
+    if (sourceGroup.plane === 'migration') {
+      for (const targetGroup of moduleGroups) {
+        if (targetGroup.plane === 'runtime') {
+          // Hardcoded exception check
+          if (isCompatPrismaToSql(sourceGroup, targetGroup)) {
+            continue;
+          }
+          pushRule(...);
+        }
+      }
+    }
+  }
+};
+```
+
+**✅ CORRECT: Declarative configuration**
+
+```json
+// architecture.config.json
+{
+  "planeRules": {
+    "migration": {
+      "forbid": ["runtime"],
+      "exceptions": []
+    }
+  }
+}
+```
+
+```javascript
+// dependency-cruiser.config.mjs
+const createPlaneRules = () => {
+  for (const [sourcePlaneName, planeRule] of Object.entries(planeRules)) {
+    for (const forbiddenPlaneName of planeRule.forbid) {
+      // Read from config, check exceptions declaratively
+      const isException = planeRule.exceptions?.some((exception) => {
+        return matchesGlobPattern(sourceGroup, exception.from) &&
+               matchesGlobPattern(targetGroup, exception.to);
+      });
+      if (isException) continue;
+      pushRule(...);
+    }
+  }
+};
+```
+
+## Benefits
+
+1. **Explicit**: Rules and exceptions are visible in the config file
+2. **Maintainable**: Easy to add/remove exceptions without code changes
+3. **Trackable**: Exceptions include reasons and can be tracked for removal
+4. **Testable**: Config can be validated independently of the generator logic
+
+## When to Use
+
+- Validation rules with exceptions
+- Constraint definitions (e.g., plane boundaries, layer rules)
+- Configuration that changes frequently
+- Rules that need to be documented and tracked
+
+## When Not to Use
+
+- Simple, stable logic that doesn't need exceptions
+- Performance-critical code where indirection adds overhead
+- Logic that's inherently algorithmic (e.g., graph traversal)
+
+## Examples in Codebase
+
+- `architecture.config.json` → `planeRules`: Declarative plane import constraints
+- `architecture.config.json` → `layerOrder`: Declarative layer dependency direction
+- Future: Cross-domain rules, driver access rules, etc.

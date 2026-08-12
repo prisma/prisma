@@ -1,0 +1,10 @@
+{
+  "extends": ["@repo/tsconfig/base"],
+  "compilerOptions": {
+    "rootDir": "../../..",
+    "outDir": "dist",
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["dist"]
+}

@@ -1,0 +1,67 @@
+---
+description: CLI package export patterns and import conventions
+globs: ["packages/1-framework/3-tooling/cli/**"]
+alwaysApply: false
+---
+
+# CLI Package Exports
+
+## Export Structure
+
+The `@internal/cli` package exports several subpaths:
+
+- **`@internal/cli`** (main export): Exports `loadContractFromTs` and `createContractEmitCommand`
+- **`@internal/cli/config-types`**: Exports `defineConfig` and config types
+- **`@internal/cli/commands/*`**: Exports command factory functions (e.g., `createDbIntrospectCommand`, `createDbVerifyCommand`)
+- **`@internal/cli/config-loader`**: Exports `loadConfig` function
+- **`@internal/cli/control-api`**: Exports control-plane API surface used by tooling
+
+## Import Patterns
+
+**✅ CORRECT: Import from correct subpath**
+
+```typescript
+// loadContractFromTs is exported from the main package
+import { loadContractFromTs } from '@internal/cli';
+
+// Commands are exported from their specific subpaths
+import { createDbIntrospectCommand } from '@internal/cli/commands/db-introspect';
+import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
+
+// Config loader is exported from its subpath
+import { loadConfig } from '@internal/cli/config-loader';
+```
+
+**❌ WRONG: Importing from wrong subpath**
+
+```typescript
+// ❌ WRONG: Commands are not exported from main package
+import { createDbIntrospectCommand } from '@internal/cli';
+```
+
+## Why This Structure?
+
+- **Main package** (`@internal/cli`): Exports high-level utilities used by consumers
+- **Subpaths**: Export specific functionality for testing or advanced use cases
+- **Commands**: Each command has its own subpath to allow selective imports and testing
+
+## Adding New Exports
+
+When adding new exports to the CLI package:
+
+1. **Add entry point to `tsdown.config.ts`**: Add/adjust the `entry` mapping for the new subpath.
+2. **Generate exports**: Run `pnpm --filter @internal/cli build` to regenerate `package.json#exports`.
+3. **Commit generated exports**: Commit the resulting `package.json` changes.
+4. **Update this rule**: Document the new export and its intended usage.
+
+Manual `package.json#exports` editing is an exception-only path. Use it only if auto-generation cannot represent the required export shape.
+
+Example:
+```typescript
+// tsdown.config.ts
+export default defineConfig({
+  entry: {
+    'commands/new-command': 'src/commands/new-command.ts',
+  },
+})
+```

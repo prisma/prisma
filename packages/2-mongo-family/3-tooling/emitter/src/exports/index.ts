@@ -1,0 +1,1 @@
+export { mongoEmission } from '../index';

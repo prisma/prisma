@@ -1,0 +1,15 @@
+{
+  "name": "@repo/skill-review-fetch-phase",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Fetch phase package for review-framework skill",
+  "scripts": {
+    "fetch": "node scripts/fetch-review-state.mjs",
+    "render": "node scripts/render-review-state.mjs",
+    "summarize": "node scripts/summarize-review-state.mjs",
+    "validate": "node scripts/validate-review-state.mjs",
+    "targets": "node scripts/extract-review-targets.mjs",
+    "guard-ignored": "node scripts/guard-review-artifacts-ignored.mjs"
+  }
+}

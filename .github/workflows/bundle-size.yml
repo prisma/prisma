@@ -1,0 +1,59 @@
+name: Bundle Size
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect inert diff
+    runs-on: ubuntu-latest
+    outputs:
+      inert: ${{ steps.detect.outputs.inert }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: detect
+        uses: ./.github/actions/detect-inert-diff
+
+  size:
+    name: Size Limit
+    needs: changes
+    if: needs.changes.outputs.inert != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      # merge_group: the size-limit action requires a PR context to post a
+      # comment, so run size-limit directly instead.
+      - name: Install dependencies (merge queue)
+        if: github.event_name == 'merge_group'
+        run: pnpm install --frozen-lockfile
+      - name: Check size limits (merge queue)
+        if: github.event_name == 'merge_group'
+        working-directory: examples/bundle-size
+        run: pnpm size:build && pnpm exec size-limit
+      - name: Check size and post PR comment
+        if: github.event_name == 'pull_request'
+        uses: andresz1/size-limit-action@94bc357df29c36c8f8d50ea497c3e225c3c95d1d # v1.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directory: examples/bundle-size
+          build_script: size:build
+          script: pnpm exec size-limit --json
+          package_manager: pnpm

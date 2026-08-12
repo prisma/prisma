@@ -1,0 +1,5 @@
+types {
+WgsGeometry = postgis.Geometry(4326)
+Email = String
+Vec = Vector(1536)[]?
+}

@@ -1,0 +1,30 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/17005-args-type-conflict
+// (postgres matrix entry).
+//
+// Upstream schema: Post, Media, and PostMedia (explicit junction).
+// The upstream schema uses foreignKeyForProvider for FK fields (String).
+// Upstream's issue: field names "postId"/"mediaId" conflicted with generated
+// Prisma args types (PostMedia model used "postId"/"mediaId" as both FK columns
+// and the generated args type names). prisma-next uses structural types with no
+// codegen naming conflicts.
+
+model Post {
+  id    String      @id @default(cuid(2))
+  media PostMedia[]
+}
+
+model Media {
+  id    String      @id @default(cuid(2))
+  posts PostMedia[]
+}
+
+model PostMedia {
+  id      String @id @default(cuid(2))
+  post    Post   @relation(fields: [postId], references: [id])
+  media   Media  @relation(fields: [mediaId], references: [id])
+  postId  String
+  mediaId String
+
+  @@unique([postId, mediaId])
+}

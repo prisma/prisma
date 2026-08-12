@@ -1,0 +1,13 @@
+services:
+  paradedb:
+    image: paradedb/paradedb:latest
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d:ro
+    tmpfs:
+      - /var/lib/postgresql

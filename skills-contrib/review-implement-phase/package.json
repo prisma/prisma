@@ -1,0 +1,12 @@
+{
+  "name": "@repo/skill-review-implement-phase",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Implement phase package for review-framework skill",
+  "scripts": {
+    "check-github-admin-ready": "node scripts/check-github-admin-ready.mjs",
+    "post-review-thread-reply": "node scripts/post-review-thread-reply.mjs",
+    "resolve-review-thread": "node scripts/resolve-review-thread.mjs"
+  }
+}

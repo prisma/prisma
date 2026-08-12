@@ -1,0 +1,9 @@
+model A {
+id Int
+}
+
+
+
+model B {
+id Int
+}

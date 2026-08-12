@@ -1,0 +1,10 @@
+{
+  "failureSummary": "PSL to SQL contract interpretation failed",
+  "diagnostics": [
+    {
+      "code": "PSL_ORPHANED_BACKRELATION",
+      "sourceId": "./schema.prisma",
+      "startLine": 5
+    }
+  ]
+}

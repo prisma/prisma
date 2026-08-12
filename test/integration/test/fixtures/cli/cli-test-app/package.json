@@ -1,0 +1,18 @@
+{
+  "name": "cli-test-app",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@internal/adapter-postgres": "workspace:8.0.0-rc.1",
+    "@internal/cli": "workspace:8.0.0-rc.1",
+    "@internal/family-sql": "workspace:8.0.0-rc.1",
+    "@internal/sql-contract-ts": "workspace:8.0.0-rc.1",
+    "@internal/target-postgres": "workspace:8.0.0-rc.1",
+    "@prisma/orm-extension-pgvector": "workspace:8.0.0-rc.1",
+    "@prisma/orm-mongo": "workspace:8.0.0-rc.1",
+    "@prisma/orm-postgres": "workspace:8.0.0-rc.1",
+    "@prisma/orm-toolchain": "workspace:8.0.0-rc.1",
+    "pg": "catalog:"
+  },
+  "version": "8.0.0-rc.1"
+}

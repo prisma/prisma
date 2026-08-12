@@ -1,0 +1,63 @@
+{
+  "name": "@prisma/orm-target-mongo",
+  "version": "8.0.0-rc.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "Prisma Next MongoDB target: target descriptor, adapter, driver",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "lint": "biome check . --error-on-warnings",
+    "clean": "rm -rf dist src-gen"
+  },
+  "dependencies": {
+    "@prisma/orm-family-mongo": "workspace:8.0.0-rc.1",
+    "@prisma/orm-framework": "workspace:8.0.0-rc.1",
+    "@prisma/orm-toolchain": "workspace:8.0.0-rc.1",
+    "arktype": "catalog:",
+    "bson": "^7.3.1"
+  },
+  "devDependencies": {
+    "@internal/adapter-mongo": "workspace:8.0.0-rc.1",
+    "@internal/driver-mongo": "workspace:8.0.0-rc.1",
+    "@internal/target-mongo": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "mongodb": "^7.0.0",
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "exports": {
+    "./adapter": "./dist/adapter.mjs",
+    "./adapter/codec-ids": "./dist/adapter__codec-ids.mjs",
+    "./adapter/codec-types": "./dist/adapter__codec-types.mjs",
+    "./adapter/codecs": "./dist/adapter__codecs.mjs",
+    "./adapter/control": "./dist/adapter__control.mjs",
+    "./adapter/runtime": "./dist/adapter__runtime.mjs",
+    "./driver": "./dist/driver.mjs",
+    "./driver/control": "./dist/driver__control.mjs",
+    "./target": "./dist/target.mjs",
+    "./target/codec-types": "./dist/target__codec-types.mjs",
+    "./target/control": "./dist/target__control.mjs",
+    "./target/migration": "./dist/target__migration.mjs",
+    "./target/pack": "./dist/target__pack.mjs",
+    "./target/runtime": "./dist/target__runtime.mjs",
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/9-public/@prisma/orm-target-mongo"
+  }
+}

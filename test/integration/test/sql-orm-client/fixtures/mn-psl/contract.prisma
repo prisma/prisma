@@ -1,0 +1,44 @@
+// Real emitted fixture for the sql-orm-client PSL many-to-many parity tests.
+//
+// It mirrors the TS-builder fixture's `User ↔ Tag` many-to-many (through the
+// `user_tags` junction) authored in PSL: an explicit junction model whose
+// composite `@@id` columns are exactly the FK columns of its two N:1
+// relations, plus bare backrelation list fields on both side models. The
+// interpreter lowers each list field to a navigable `cardinality: 'N:M'`
+// relation with a populated `through` descriptor — the same contract shape
+// `rel.manyToMany` emits — so the M:N ORM API (include, some/none/every,
+// nested connect/disconnect/create) drives through a real emitted PSL
+// contract.
+//
+// Tables intentionally match the base sql-orm-client integration schema
+// (`users` / `tags` / `user_tags`) so the shared seed helpers apply.
+
+model User {
+  id    Int    @id
+  name  String
+  email String @unique
+
+  tags Tag[]
+
+  @@map("users")
+}
+
+model Tag {
+  id   String @id
+  name String @unique
+
+  users User[]
+
+  @@map("tags")
+}
+
+model UserTag {
+  userId Int    @map("user_id")
+  tagId  String @map("tag_id")
+
+  user User @relation(fields: [userId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([userId, tagId])
+  @@map("user_tags")
+}

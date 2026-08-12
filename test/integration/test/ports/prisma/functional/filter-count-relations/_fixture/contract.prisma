@@ -1,0 +1,63 @@
+// Faithful translation of prisma/prisma functional suite `filter-count-relations`
+// (packages/client/tests/functional/filter-count-relations, postgres matrix entry):
+//
+// Upstream schema (postgres branch):
+//   model User {
+//     id      String  @id
+//     email   String
+//     blocked Boolean @default(false)
+//     balance Int
+//     posts   Post[]
+//     groups  Group[] (implicit M2M)
+//   }
+//   model Group {
+//     id    String @id
+//     title String
+//     users User[] (implicit M2M)
+//   }
+//   model Post {
+//     id        String  @id
+//     published Boolean
+//     upvotes   Int
+//     authorId  String
+//     author    User @relation(fields: [authorId], references: [id])
+//   }
+//
+// Prisma uses an implicit M:N join table. Prisma-next PSL requires an explicit
+// junction model. We author UserGroup with composite @@id on the FK pair, and
+// add bare backrelation list fields (`groups Group[]` on User, `users User[]`
+// on Group) so the interpreter lowers those relations with cardinality 'N:M'
+// and a `through` descriptor — matching the pattern in
+// test/integration/test/sql-orm-client/fixtures/mn-psl/contract.prisma.
+
+model User {
+  id       String  @id
+  email    String
+  blocked  Boolean @default(false)
+  balance  Int
+  posts    Post[]
+  groups   Group[]
+}
+
+model Group {
+  id    String  @id
+  title String
+  users User[]
+}
+
+model UserGroup {
+  userId  String
+  groupId String
+  user    User  @relation(fields: [userId], references: [id])
+  group   Group @relation(fields: [groupId], references: [id])
+
+  @@id([userId, groupId])
+}
+
+model Post {
+  id        String  @id
+  published Boolean
+  upvotes   Int
+  authorId  String
+  author    User    @relation(fields: [authorId], references: [id])
+}

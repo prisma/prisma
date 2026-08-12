@@ -1,0 +1,16 @@
+---
+description: When you would otherwise reach for Zod, use Arktype. Read this any time you need to work with Arktype
+globs: ["packages/**", "test/**", "examples/**"]
+alwaysApply: false
+---
+
+# Arktype Usage Guidelines
+
+This rulecard is intentionally short. For examples and edge cases, see `docs/reference/arktype-usage.md`.
+
+## Rules of thumb
+
+- Use optional keys via `'key?'` (not `string | undefined`).
+- Use `type({ '[string]': Schema })` for records.
+- Use `Schema.array()` for arrays (avoid tuple mistakes).
+

@@ -1,0 +1,127 @@
+{
+  "name": "@internal/migration-tools",
+  "private": true,
+  "version": "8.0.0-rc.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "On-disk migration persistence, hash verification, and chain reconstruction for Prisma Next",
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write .",
+    "lint:fix:unsafe": "biome check --write --unsafe .",
+    "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
+  },
+  "dependencies": {
+    "@internal/contract": "workspace:8.0.0-rc.1",
+    "@internal/errors": "workspace:8.0.0-rc.1",
+    "@internal/framework-components": "workspace:8.0.0-rc.1",
+    "@internal/utils": "workspace:8.0.0-rc.1",
+    "arktype": "catalog:",
+    "pathe": "^2.0.3",
+    "prettier": "^3.9.6"
+  },
+  "devDependencies": {
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    "./metadata": {
+      "types": "./dist/exports/metadata.d.mts",
+      "import": "./dist/exports/metadata.mjs"
+    },
+    "./package": {
+      "types": "./dist/exports/package.d.mts",
+      "import": "./dist/exports/package.mjs"
+    },
+    "./graph": {
+      "types": "./dist/exports/graph.d.mts",
+      "import": "./dist/exports/graph.mjs"
+    },
+    "./errors": {
+      "types": "./dist/exports/errors.d.mts",
+      "import": "./dist/exports/errors.mjs"
+    },
+    "./io": {
+      "types": "./dist/exports/io.d.mts",
+      "import": "./dist/exports/io.mjs"
+    },
+    "./contract-snapshot-store": {
+      "types": "./dist/exports/contract-snapshot-store.d.mts",
+      "import": "./dist/exports/contract-snapshot-store.mjs"
+    },
+    "./hash": {
+      "types": "./dist/exports/hash.d.mts",
+      "import": "./dist/exports/hash.mjs"
+    },
+    "./invariants": {
+      "types": "./dist/exports/invariants.d.mts",
+      "import": "./dist/exports/invariants.mjs"
+    },
+    "./migration-graph": {
+      "types": "./dist/exports/migration-graph.d.mts",
+      "import": "./dist/exports/migration-graph.mjs"
+    },
+    "./refs": {
+      "types": "./dist/exports/refs.d.mts",
+      "import": "./dist/exports/refs.mjs"
+    },
+    "./ref-resolution": {
+      "types": "./dist/exports/ref-resolution.d.mts",
+      "import": "./dist/exports/ref-resolution.mjs"
+    },
+    "./constants": {
+      "types": "./dist/exports/constants.d.mts",
+      "import": "./dist/exports/constants.mjs"
+    },
+    "./ledger-origin": {
+      "types": "./dist/exports/ledger-origin.d.mts",
+      "import": "./dist/exports/ledger-origin.mjs"
+    },
+    "./migration-ts": {
+      "types": "./dist/exports/migration-ts.d.mts",
+      "import": "./dist/exports/migration-ts.mjs"
+    },
+    "./migration": {
+      "types": "./dist/exports/migration.d.mts",
+      "import": "./dist/exports/migration.mjs"
+    },
+    "./spaces": {
+      "types": "./dist/exports/spaces.d.mts",
+      "import": "./dist/exports/spaces.mjs"
+    },
+    "./aggregate": {
+      "types": "./dist/exports/aggregate.d.mts",
+      "import": "./dist/exports/aggregate.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/1-framework/3-tooling/migration"
+  }
+}

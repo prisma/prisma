@@ -1,0 +1,70 @@
+---
+description: Never patch raw contract data in tests; use real emitted fixtures or a user-facing authoring surface
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# No Contract Data Patching in Tests
+
+## Rule
+
+**Never, under any circumstances, patch or hand-author raw contract data structures in tests.** This is a HARD rule — hard as obsidian — not a guideline, suggestion, or default you may trade away under time pressure. Use real emitted fixtures. If a test really has to generate a contract at runtime, it may only generate it from a high-level representation made with a user-facing authoring surface (contract builder DSL, PSL) — never by writing, or worse, patching, the raw contract data structure.
+
+A hand-built object literal that "happens" to match the contract shape is **not** a contract — it is a bag of random data that incidentally coincides with a real contract today and will diverge tomorrow given the velocity of this repo. Tests built on it are vacuous.
+
+### No cast-smuggling
+
+Constructing a contract value at runtime and forcing it through the type system with `as unknown as FrameworkContract<...>`, `as unknown as Contract`, `blindCast`/`castAs`, or any equivalent escape is **strictly forbidden** — that cast is the tell that you are hand-authoring raw contract data. Do not refactor unrelated `as` casts to `blindCast`/`castAs` to slip such a value past review. There is no acceptable variant of this workaround.
+
+### If you cannot satisfy this rule
+
+Stop. A workaround is never acceptable — it invalidates the rest of the work and is treated as a total failure of the task, not a partial success.
+
+- **Working unattended:** stop and fix whatever prevents you from satisfying the rule (e.g. add the missing emitted fixture, or extend the authoring surface) before continuing.
+- **Working interactively:** stop and flag it to the operator.
+
+## Why
+
+Patched contracts drift from anything the emitter can produce: they skip authoring-time validation, encode shapes no user can reach, and silently keep passing when the real contract format changes. Tests then assert behavior for contracts that cannot exist.
+
+## Don't
+
+```typescript
+// ❌ WRONG: spreading/overriding raw contract internals
+const contract = withPatchedDomainModels(getTestContract(), (models) => ({
+  ...models,
+  Project: {
+    ...project,
+    relations: {
+      ...project.relations,
+      related: { ...related, through: { ...related.through, targetColumns: ['tenant_id'] } },
+    },
+  },
+}));
+```
+
+## Do
+
+```typescript
+// ✅ Use the real emitted fixture (test/fixtures/generated/contract.json + contract.d.ts)
+const contract = getTestContract();
+
+// ✅ Or generate at runtime from a user-facing authoring surface
+const contract = defineContract({ models: { User, Post } });
+
+// ✅ If the scenario cannot be authored (e.g. malformed metadata rejected at
+// authoring time), test the defensive guard directly with its own typed inputs
+expect(() =>
+  buildPairedColumnExprs('project_links', ['dst_tenant_id', 'dst_id'], 'projects', ['tenant_id']),
+).toThrow(/mismatched join column counts/);
+```
+
+## Notes
+
+- Capability overrides via a dedicated typed helper (e.g. `withCapabilities`) that swaps a whole well-typed top-level slot are acceptable; reaching into domain models, storage entries, or relation metadata is not.
+- When an existing test relies on a patched contract, migrate it to an emitted fixture or a direct unit test of the code the patch was trying to reach.
+
+## Related rules
+
+- `.agents/rules/typed-contract-in-tests.mdc`
+- `.agents/rules/as-contract-cast-smell.mdc`

@@ -1,0 +1,38 @@
+---
+description: Use Object.hasOwn() instead of hasOwnProperty()
+globs: ["packages/**/*.ts", "packages/**/*.tsx", "examples/**/*.ts", "examples/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"]
+alwaysApply: false
+---
+
+# Use Object.hasOwn() Instead of hasOwnProperty()
+
+**CRITICAL**: Always use `Object.hasOwn()` instead of `hasOwnProperty()` to check for own properties.
+
+## Why?
+
+- `Object.hasOwn()` is the modern, recommended API (ES2022)
+- `hasOwnProperty()` can be overridden or shadowed
+- Biome lint rule `noPrototypeBuiltins` enforces this
+
+## Examples
+
+**❌ WRONG: Using hasOwnProperty()**
+```typescript
+if (obj.hasOwnProperty('key')) { /* ... */ }
+if (meta.annotations?.codecs?.hasOwnProperty('id')) { /* ... */ }
+```
+
+**✅ CORRECT: Using Object.hasOwn()**
+```typescript
+if (Object.hasOwn(obj, 'key')) { /* ... */ }
+if (Object.hasOwn(meta.annotations?.codecs ?? {}, 'id')) { /* ... */ }
+```
+
+**Note**: When using optional chaining, provide a fallback object:
+```typescript
+// ❌ WRONG
+Object.hasOwn(meta.annotations?.codecs, 'id')  // May pass undefined
+
+// ✅ CORRECT
+Object.hasOwn(meta.annotations?.codecs ?? {}, 'id')
+```

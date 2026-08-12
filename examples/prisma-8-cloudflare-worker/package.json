@@ -1,0 +1,40 @@
+{
+  "name": "prisma-8-cloudflare-worker",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "emit": "prisma-next contract emit",
+    "emit:check": "pnpm emit && git diff --exit-code src/prisma/contract.json src/prisma/contract.d.ts",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down -v",
+    "db:reset": "pnpm db:down && pnpm db:up && pnpm db:init && pnpm seed",
+    "db:init": "tsx scripts/setup-schema.ts",
+    "seed": "tsx scripts/seed.ts",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:dry-run": "wrangler deploy --dry-run --outdir dist",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings"
+  },
+  "dependencies": {
+    "@prisma/orm-postgres": "workspace:8.0.0-rc.1",
+    "arktype": "catalog:",
+    "pg": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.20.1",
+    "@cloudflare/workers-types": "4.20260702.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "^4.1.10",
+    "wrangler": "4.118.0"
+  },
+  "version": "8.0.0-rc.1"
+}

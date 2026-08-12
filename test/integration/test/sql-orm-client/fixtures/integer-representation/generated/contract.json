@@ -1,0 +1,256 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "int_repr_meters": {
+      "model": "Meter",
+      "namespace": "public"
+    },
+    "int_repr_samples": {
+      "model": "Sample",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Meter": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "lifetime": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/unboundedint@1",
+                  "kind": "scalar"
+                }
+              },
+              "peak": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int8number@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "samples": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "meterId"
+                  ]
+                },
+                "to": {
+                  "model": "Sample",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "lifetime": {
+                  "column": "lifetime"
+                },
+                "peak": {
+                  "column": "peak"
+                }
+              },
+              "namespaceId": "public",
+              "table": "int_repr_meters"
+            }
+          },
+          "Sample": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "meterId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "reading": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int8number@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "meter": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "meterId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Meter",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "meterId": {
+                  "column": "meter_id"
+                },
+                "reading": {
+                  "column": "reading"
+                }
+              },
+              "namespaceId": "public",
+              "table": "int_repr_samples"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "table": {
+            "int_repr_meters": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "lifetime": {
+                  "codecId": "pg/unboundedint@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "peak": {
+                  "codecId": "pg/int8number@1",
+                  "nativeType": "int8",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "int_repr_samples": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "meter_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "reading": {
+                  "codecId": "pg/int8number@1",
+                  "nativeType": "int8",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "meter_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "int_repr_samples"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "int_repr_meters"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "meter_id"
+                  ],
+                  "name": "int_repr_samples_meter_id_idx_d5ebf9ae",
+                  "prefix": "int_repr_samples_meter_id_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "4fd3adfc6d6b3912e188d78624c3b652a5315a4c5763284696a16a62ed187bd0"
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "checkConstraint": true,
+      "defaultInInsert": true,
+      "enums": true,
+      "lateral": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}

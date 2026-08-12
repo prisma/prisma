@@ -1,0 +1,273 @@
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db update help
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db update help
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db update help
+> prisma-next db update --help
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db update help
+> prisma-next db update --help
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db update help
+> prisma-next db update --help
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Show db update help
+> prisma-next db update --help
+prisma-next db update → Update your database schema to match your contract
+│
+│ --json                Output as JSON
+│ -q, --quiet           Quiet mode: errors only
+│ -v, --verbose         Verbose output: debug info, timings
+│ --trace               Trace output: deep internals, stack traces
+│ --color               Force color output
+│ --no-color            Disable color output
+│ --interactive         Force interactive mode
+│ --no-interactive      Disable interactive prompts
+│ -y, --yes             Auto-accept prompts
+│ --db <url>            Database connection string
+│ --config <path>       Path to prisma-next.config.ts
+│ --dry-run             Preview planned operations without applying
+│                       default: false
+│
+│ Read more             https://pris.ly/db-update
+│
+│ Examples:
+│   $ prisma-next db update --db $DATABASE_URL
+│   $ prisma-next db update --db $DATABASE_URL --dry-run
+│
+│ Compares your database schema to the emitted contract and applies the necessary
+│ changes. Works on any database, whether or not it has been initialized with `db init`.
+│ Destructive operations prompt for confirmation in interactive mode. Use -y to
+│ auto-accept or --dry-run to preview first.
+└
+>
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

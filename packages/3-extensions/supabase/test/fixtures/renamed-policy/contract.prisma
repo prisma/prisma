@@ -1,0 +1,32 @@
+namespace public {
+  model Profile {
+    id       Uuid   @id @default(uuid())
+    username String
+    userId   Uuid   @unique
+    user     supabase:auth.AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+    @@map("profile")
+    @@rls
+  }
+
+  // Same body as the base `profile_owner_read`, renamed prefix → same content
+  // hash, new wire name (an ALTER POLICY … RENAME TO, not drop+create). The
+  // other two policies are unchanged, so the plan is exactly one rename.
+  policy_select profile_owner_read_v2 {
+    target = Profile
+    roles  = [authenticated]
+    using  = "\"userId\"::uuid = auth.uid()"
+  }
+
+  policy_select profile_public_read {
+    target = Profile
+    roles  = [anon]
+    using  = "true"
+  }
+
+  policy_update profile_owner_write {
+    target    = Profile
+    roles     = [authenticated]
+    using     = "\"userId\"::uuid = auth.uid()"
+    withCheck = "\"userId\"::uuid = auth.uid()"
+  }
+}

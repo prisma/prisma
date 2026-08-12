@@ -1,0 +1,22 @@
+---
+description: Test import patterns and conventions
+globs: ["**/*.test.ts", "**/*.test-d.ts", "test/**", "packages/**/test/**", "examples/**/test/**"]
+alwaysApply: false
+---
+
+# Test Import Patterns
+
+This rulecard is intentionally short. For more examples, see `docs/reference/test-import-patterns.md`.
+
+## Within-package tests
+
+- **Import from source** (`../src/...`), not from package exports.
+
+## Cross-package / integration tests
+
+- **Import from package exports** (`@internal/...`) to verify the public API.
+
+## Related rules
+
+- `.cursor/rules/test-file-organization.mdc`
+- `.cursor/rules/test-fixture-typechecking.mdc`

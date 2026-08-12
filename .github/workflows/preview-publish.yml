@@ -1,0 +1,85 @@
+name: Preview Release
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  push:
+    branches:
+      - main
+    tags:
+      - "!**"
+
+concurrency:
+  group: preview-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  # Skip the whole preview build+publish on inert (docs-only) PRs — there is no
+  # publishable package change to preview. "Publish preview" is not a required
+  # status check, so skipping the job does not wedge the merge ruleset. On
+  # push-to-main the detector reports non-inert, so previews still publish.
+  changes:
+    name: Detect inert diff
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      inert: ${{ steps.detect.outputs.inert }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: detect
+        uses: ./.github/actions/detect-inert-diff
+
+  preview:
+    name: Publish preview
+    needs: changes
+    if: needs.changes.outputs.inert != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # Required for pkg.pr.new to post PR comments
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup mise
+        uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
+        with:
+          cache: true
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Collect publishable packages
+        id: packages
+        run: |
+          PACKAGES=$(node scripts/list-publishable-packages.mjs)
+          # Use heredoc to safely write to GITHUB_OUTPUT (prevents injection)
+          {
+            echo "list<<EOF"
+            echo "$PACKAGES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "Packages to publish:"
+          echo "$PACKAGES" | tr ' ' '\n'
+
+      - name: Publish to pkg.pr.new
+        # Pin matches root devDependency pkg-pr-new; see https://github.com/stackblitz-labs/pkg.pr.new/tags
+        # --compact requires repository field in the *published* npm manifest;
+        # add it back after the next npm publish includes the repository field.
+        run: pnpm exec pkg-pr-new publish --pnpm --comment=update ${{ steps.packages.outputs.list }}

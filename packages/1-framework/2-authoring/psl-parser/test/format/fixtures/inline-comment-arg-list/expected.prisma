@@ -1,0 +1,6 @@
+model M {
+  id Int @id
+
+  @@index([a, // note on a
+    b])
+}

@@ -1,0 +1,15 @@
+/// docs for User
+
+model User {
+// first
+// second
+id Int @id
+//no-leading-space  extra   spaces
+name String
+}
+enum Role {
+@@type("pg/text@1")
+// the privileged role
+ADMIN
+USER
+}

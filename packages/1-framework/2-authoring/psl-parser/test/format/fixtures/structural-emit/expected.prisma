@@ -1,0 +1,21 @@
+enum B {
+  @@type("pg/text@1")
+  X
+}
+
+model User {
+  id    Int    @id @default(autoincrement())
+  name  String @map(name: "user_name", length: 255)
+  token Uuid
+}
+
+type Address {
+  street String
+  city   String
+}
+
+namespace billing {
+  model Invoice {
+    id Int @id
+  }
+}

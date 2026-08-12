@@ -1,0 +1,21 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/prisma/prisma/security/advisories/new
+    about: |
+      Please report security issues privately via GitHub Private Vulnerability Reporting.
+      Do NOT file a public issue for security reports. See SECURITY.md for the full policy
+      and the 5-business-day acknowledgement SLA.
+
+  - name: Question or open-ended discussion
+    url: https://pris.ly/discord
+    about: |
+      For questions, design feedback, or "is this the intended way to do X" conversations,
+      please use the Prisma Discord. The issue tracker is reserved for concrete bug reports
+      and feature requests.
+
+  - name: Contributing guide
+    url: https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md
+    about: |
+      First time contributing? Read CONTRIBUTING.md for setup, the test command set,
+      DCO signoff, and PR expectations.

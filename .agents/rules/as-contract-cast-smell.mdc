@@ -1,0 +1,64 @@
+---
+description: `as Contract` casts in production code bypass the serializer seam — use familyInstance.deserializeContract
+globs: ["packages/**/src/**"]
+alwaysApply: false
+---
+
+# `as Contract` casts are a serializer-bypass smell
+
+## The smell
+
+```typescript
+// ❌ WRONG — bypasses the family ContractSerializer seam
+const contract = JSON.parse(raw) as Contract;
+const contract = JSON.parse(raw) as Contract<SqlStorage>;
+```
+
+Casting `JSON.parse(...)` directly to `Contract` looks innocent in review — `Contract` is a structural interface, so the cast compiles cleanly. The runtime cost is silent: structural arktype validation, IR-class hydration, and polymorphic-slot discriminator dispatch are all skipped, and the program proceeds with a JSON envelope masquerading as a hydrated `Contract`. That hides the class of bugs TML-2536 surfaced (untagged `storage.types` entries that crashed downstream consumers).
+
+## The fix
+
+Route every on-disk contract read through the family `ContractSerializer` seam:
+
+```typescript
+// ✅ CORRECT — crosses the family deserializer seam
+const raw = await readFile(path, 'utf-8');
+const familyInstance = config.family.create(createControlStack(config));
+const contract = familyInstance.deserializeContract(JSON.parse(raw) as unknown);
+```
+
+The `as unknown` half is the explicit `JSON.parse → unknown` step — `JSON.parse` is typed `any` in TS today and the unknown narrowing makes the deserializer call the only place where structural assumptions get checked. This matches the pattern documented in [`typed-contract-in-tests.mdc`](mdc:.cursor/rules/typed-contract-in-tests.mdc).
+
+In production code that already has a `Contract` value validated upstream and just needs to pass it along, no cast is needed — the existing typing carries through.
+
+## Lint scope
+
+The `lint:no-contract-cast` workspace script enforces the cast-keyword variant of this smell (`as Contract` and `as Contract<...>` outside the allowlist). Structural-assignment variants — e.g. `const c: Contract = JSON.parse(raw)`, or passing a `JSON.parse`'d value into a function whose parameter is annotated `Contract` — are NOT lint-enforced, because TypeScript's structural typing makes complete coverage arbitrarily hard. The seam-of-record is the lint *plus* the convention: every on-disk contract read must be a `familyInstance.deserializeContract(...)` call at the read site, reviewed in PR.
+
+## Where the cast is allowed (allowlist)
+
+The grep-based lint (`pnpm lint:no-contract-cast`) walks `packages/**/src/**` and fails on `as Contract\b` / `as Contract<` hits **outside** these paths:
+
+- `**/*.test.ts`, `**/*.test-d.ts` — test files may cast to set up fixtures cheaply.
+- The serializer implementation files themselves:
+  - `packages/2-sql/9-family/src/core/ir/sql-contract-serializer-base.ts`
+  - `packages/2-sql/9-family/src/core/ir/sql-contract-serializer.ts`
+  - `packages/2-sql/9-family/src/core/control-instance.ts`
+  - `packages/3-targets/3-targets/postgres/src/core/postgres-contract-serializer.ts`
+  - `packages/2-mongo-family/9-family/src/core/ir/mongo-contract-serializer.ts`
+
+Adding a new allowlisted file requires three things, kept in sync:
+
+1. A comment at the call site explaining why the seam can't be used (typically: the file *is* the seam).
+2. The path added to the allowlist array in [`scripts/lint-no-contract-cast.mjs`](mdc:scripts/lint-no-contract-cast.mjs) so `pnpm lint:no-contract-cast` keeps passing.
+3. The path appended to the bulleted list above so this rule reflects the lint's allowlist.
+
+Updating only one of the two locations is the common drift mode; both must move together.
+
+## Related rules
+
+- [`type-predicates.mdc`](mdc:.cursor/rules/type-predicates.mdc) — `as unknown as X` is the documented blind-cast pattern; `as Contract` alone is the cast that bypasses validation.
+
+## Related tickets
+
+- `TML-2536` — original bug surfaced by an `as Contract` bypass in `readPredecessorEndContract`. The CLI + serializer + lint changes that fix it are the durable record of why this rule exists.

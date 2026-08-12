@@ -1,0 +1,32 @@
+[
+  {
+    "name": "postgres / no-emit",
+    "path": "dist/postgres-no-emit.bundle.min.mjs",
+    "gzip": true
+  },
+  {
+    "name": "postgres / emit",
+    "path": "dist/postgres-emit.bundle.min.mjs",
+    "gzip": true
+  },
+  {
+    "name": "mongo / no-emit",
+    "path": "dist/mongo-no-emit.bundle.min.mjs",
+    "gzip": true
+  },
+  {
+    "name": "mongo / emit",
+    "path": "dist/mongo-emit.bundle.min.mjs",
+    "gzip": true
+  },
+  {
+    "name": "cf-worker / no-emit",
+    "path": "dist/cf-worker-no-emit.worker.min.mjs",
+    "gzip": true
+  },
+  {
+    "name": "cf-worker / emit",
+    "path": "dist/cf-worker-emit.worker.min.mjs",
+    "gzip": true
+  }
+]

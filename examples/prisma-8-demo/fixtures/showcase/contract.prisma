@@ -1,0 +1,14 @@
+// use prisma-next
+
+model account {
+  id       Char(36)  @id @default(uuid())
+  email    String
+  name     String?
+  phone    String?
+  avatar   String?
+  bio      String?
+  locale   String?
+  verified Boolean @default(true)
+
+  @@map("account")
+}

@@ -1,0 +1,13 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/batching-bytes (postgres matrix entry).
+//
+// Upstream schema (postgres branch):
+//   model Resource {
+//     id    String @id @default(cuid())
+//     bytes Bytes  @unique
+//   }
+
+model Resource {
+  id    String @id
+  bytes Bytes  @unique
+}

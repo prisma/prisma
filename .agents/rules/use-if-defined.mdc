@@ -1,0 +1,44 @@
+---
+description: Use ifDefined() for conditional object spreads
+globs: ["packages/**/*.ts", "packages/**/*.tsx", "examples/**/*.ts", "examples/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"]
+alwaysApply: false
+---
+
+# Use ifDefined() for Conditional Object Spreads
+
+**CRITICAL**: Use `ifDefined` from `@internal/utils/defined` instead of inline conditional spread patterns.
+
+## Why?
+
+- Cleaner, more readable syntax
+- Explicit about which properties are optional
+- Satisfies `exactOptionalPropertyTypes`
+- Preserves falsy values (0, '', false, null) — only excludes `undefined`
+
+## Examples
+
+**❌ WRONG: Inline conditional spread**
+```typescript
+const obj = {
+  required: 'value',
+  ...(options.default ? { default: options.default } : {}),
+  ...(options.name !== undefined ? { name: options.name } : {}),
+};
+```
+
+**✅ CORRECT: Using ifDefined**
+```typescript
+import { ifDefined } from '@internal/utils/defined';
+
+const obj = {
+  required: 'value',
+  ...ifDefined('default', options.default),
+  ...ifDefined('name', options.name),
+};
+```
+
+## Behavior
+
+- `ifDefined('key', value)` returns `{ key: value }` when `value !== undefined`
+- `ifDefined('key', undefined)` returns `{}`
+- Falsy values like `0`, `''`, `false`, and `null` are preserved

@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Rules Footprint Config",
+  "description": "Configuration for the rules-footprint.mjs script thresholds",
+  "type": "object",
+  "properties": {
+    "thresholds": {
+      "type": "object",
+      "description": "Threshold values for --check mode",
+      "properties": {
+        "alwaysApplyLines": {
+          "type": "integer",
+          "description": "Maximum lines for alwaysApply rulecards",
+          "default": 500
+        },
+        "alwaysApplyBytes": {
+          "type": "integer",
+          "description": "Maximum bytes for alwaysApply rulecards",
+          "default": 20000
+        },
+        "agentsLines": {
+          "type": "integer",
+          "description": "Maximum lines for AGENTS.md",
+          "default": 200
+        },
+        "agentsBytes": {
+          "type": "integer",
+          "description": "Maximum bytes for AGENTS.md",
+          "default": 10000
+        },
+        "totalRulesLines": {
+          "type": "integer",
+          "description": "Maximum total lines for all rules",
+          "default": 5000
+        },
+        "totalRulesBytes": {
+          "type": "integer",
+          "description": "Maximum total bytes for all rules",
+          "default": 200000
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

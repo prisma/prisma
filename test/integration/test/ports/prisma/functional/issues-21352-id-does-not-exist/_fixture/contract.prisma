@@ -1,0 +1,49 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/21352-id-does-not-exist (postgres matrix entry).
+//
+// Upstream schema (idForProvider(postgresql) = "String @id @default(cuid())",
+// foreignKeyForProvider(postgresql) = "String"):
+//
+//   model User1 {
+//     email     String @id @default(cuid())
+//     relation1 Relation1[]
+//   }
+//   model Relation1 {
+//     id    String @id @default(cuid())
+//     user  User1  @relation(fields: [email], references: [email])
+//     email String
+//   }
+//   model User2 {
+//     id        String @id @default(cuid())
+//     relation2 Relation2[]
+//   }
+//   model Relation2 {
+//     field String @id @default(cuid())
+//     user  User2  @relation(fields: [email], references: [id])
+//     email String
+//   }
+//
+// The upstream test verifies that a findMany with a relation-join where-clause does
+// not emit "column j1.id does not exist" — the regression was in the SQL generator
+// selecting the wrong join alias column.
+model User1 {
+  email     String      @id
+  relation1 Relation1[]
+}
+
+model Relation1 {
+  id    String @id
+  user  User1  @relation(fields: [email], references: [email])
+  email String
+}
+
+model User2 {
+  id        String      @id
+  relation2 Relation2[]
+}
+
+model Relation2 {
+  field String @id
+  user  User2  @relation(fields: [email], references: [id])
+  email String
+}

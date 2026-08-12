@@ -1,0 +1,810 @@
+{
+  "packages": [
+    {
+      "glob": "packages/1-framework/0-foundation/**",
+      "domain": "framework",
+      "layer": "foundation",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/config/**",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/operations/**",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/shared/**",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/control/**",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/execution/**",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/exports/authoring.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/exports/codec.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/exports/components.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/exports/control.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/exports/emission.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/exports/execution.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/exports/psl-ast.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/src/exports/runtime.ts",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/1-framework/1-core/framework-components/test/**",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/1-core/errors/**",
+      "domain": "framework",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/1-framework/2-authoring/**",
+      "domain": "framework",
+      "layer": "authoring",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/2-authoring/ids/**",
+      "domain": "framework",
+      "layer": "authoring",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/3-tooling/cli/**",
+      "domain": "framework",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/3-tooling/config-loader/**",
+      "domain": "framework",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/3-tooling/emitter/**",
+      "domain": "framework",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/3-tooling/language-server/**",
+      "domain": "framework",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/3-tooling/eslint-plugin/**",
+      "domain": "framework",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/3-tooling/migration/**",
+      "domain": "framework",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/9-public/prisma-next/**",
+      "domain": "framework",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/3-tooling/vite-plugin-contract-emit/**",
+      "domain": "framework",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/1-framework/3-tooling/cli-telemetry/**",
+      "domain": "framework",
+      "layer": "tooling",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-sql/1-core/**",
+      "domain": "sql",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-sql/1-core/errors/**",
+      "domain": "sql",
+      "layer": "core",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-sql/2-authoring/**",
+      "domain": "sql",
+      "layer": "authoring",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/2-sql/3-tooling/emitter/**",
+      "domain": "sql",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/2-sql/9-family/src/core/**",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-sql/9-family/src/exports/control.ts",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/2-sql/9-family/src/exports/runtime.ts",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/2-sql/9-family/src/exports/pack.ts",
+      "domain": "sql",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-sql/4-lanes/**",
+      "domain": "sql",
+      "layer": "lanes",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/2-sql/5-runtime/**",
+      "domain": "sql",
+      "layer": "runtime",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/middleware-cache/**",
+      "domain": "extensions",
+      "layer": "integrations",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/sql-orm-client/**",
+      "domain": "extensions",
+      "layer": "integrations",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/3-targets/postgres/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/3-targets/postgres/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/postgres/src/core/**",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/postgres/src/exports/control.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/postgres/src/exports/runtime.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/postgres-codec-testkit/src/**",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/7-drivers/postgres/src/exports/control.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/7-drivers/postgres/src/exports/runtime.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/postgres/src/config/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgres/src/exports/config.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgres/src/runtime/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/postgres/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/postgres/src/exports/contract-builder.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgres/src/exports/migration.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-extensions/postgres/src/exports/family.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/postgres/src/exports/target.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/mongo/src/config/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/mongo/src/exports/config.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/mongo/src/runtime/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/mongo/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/sqlite/src/config/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/sqlite/src/exports/config.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/sqlite/src/contract/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/sqlite/src/exports/contract-builder.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/sqlite/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-extensions/sqlite/src/exports/migration.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-extensions/mongo/src/exports/bson.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/mongo/src/exports/contract-builder.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/mongo/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-extensions/mongo/src/contract/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/mongo/src/exports/family.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/mongo/src/exports/target.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/3-targets/sqlite/src/core/**",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/3-targets/sqlite/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/3-targets/sqlite/src/exports/pack.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/3-targets/sqlite/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/sqlite/src/core/**",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/sqlite/src/exports/adapter.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/sqlite/src/exports/codec-types.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/sqlite/src/exports/column-types.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/sqlite/src/exports/control.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/sqlite/src/exports/runtime.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/sqlite/src/exports/types.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/6-adapters/sqlite-codec-testkit/src/**",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/7-drivers/sqlite/src/core/**",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-targets/7-drivers/sqlite/src/exports/control.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-targets/7-drivers/sqlite/src/exports/runtime.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/sqlite/src/runtime/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/sqlite/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/paradedb/src/core/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/paradedb/src/types/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/paradedb/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-extensions/paradedb/src/exports/index-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/paradedb/src/exports/pack.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/pgvector/src/core/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/pgvector/src/types/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/pgvector/src/exports/control.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-extensions/pgvector/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/pgvector/src/exports/codec-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/pgvector/src/exports/operation-types.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/supabase/src/pack/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/supabase/src/exports/pack.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/supabase/src/runtime/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/supabase/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-extensions/supabase/src/contract/**",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-extensions/supabase/src/exports/contract.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-mongo-family/1-foundation/**",
+      "domain": "mongo",
+      "layer": "foundation",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-mongo-family/2-authoring/**",
+      "domain": "mongo",
+      "layer": "authoring",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-mongo-family/3-tooling/emitter/**",
+      "domain": "mongo",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/2-mongo-family/3-tooling/mongo-schema-ir/**",
+      "domain": "mongo",
+      "layer": "tooling",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/2-mongo-family/4-query/**",
+      "domain": "mongo",
+      "layer": "query",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-mongo-family/5-query-builders/orm/**",
+      "domain": "mongo",
+      "layer": "query-builders",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/2-mongo-family/5-query-builders/pipeline-builder/**",
+      "domain": "mongo",
+      "layer": "query-builders",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/2-mongo-family/6-transport/**",
+      "domain": "mongo",
+      "layer": "transport",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-mongo-family/7-runtime/**",
+      "domain": "mongo",
+      "layer": "runtime",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/2-mongo-family/9-family/src/core/**",
+      "domain": "mongo",
+      "layer": "family",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/2-mongo-family/9-family/src/exports/control.ts",
+      "domain": "mongo",
+      "layer": "family",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-mongo-target/1-mongo-target/src/exports/pack.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-mongo-target/1-mongo-target/src/exports/runtime.ts",
+      "domain": "extensions",
+      "layer": "targets",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-mongo-target/2-mongo-adapter/src/core/**",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-mongo-target/2-mongo-adapter/src/exports/control.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "migration"
+    },
+    {
+      "glob": "packages/3-mongo-target/2-mongo-adapter/src/exports/index.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-mongo-target/2-mongo-adapter/src/exports/runtime.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
+      "glob": "packages/3-mongo-target/2-mongo-adapter/src/exports/codec-types.ts",
+      "domain": "targets",
+      "layer": "adapters",
+      "plane": "shared"
+    },
+    {
+      "glob": "packages/3-mongo-target/3-mongo-driver/**",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "runtime"
+    }
+  ],
+  "rules": {
+    "sameLayer": "allow",
+    "downward": "allow",
+    "upward": "deny",
+    "crossDomain": "directional",
+    "migrationToRuntime": "deny",
+    "runtimeToMigration": "allowArtifactsOnly"
+  },
+  "crossDomainRules": {
+    "framework": {
+      "mayImportFrom": [],
+      "reason": "Framework domain is the innermost/core domain and may not import from any other domain"
+    },
+    "sql": {
+      "mayImportFrom": ["framework"],
+      "reason": "SQL domain may import only from framework domain"
+    },
+    "mongo": {
+      "mayImportFrom": ["framework"],
+      "reason": "Mongo domain may import only from framework domain"
+    },
+    "targets": {
+      "mayImportFrom": ["framework", "sql", "mongo"],
+      "reason": "Targets domain may import from framework, sql, and mongo domains"
+    },
+    "extensions": {
+      "mayImportFrom": ["framework", "sql", "mongo", "targets", "extensions"],
+      "reason": "Extensions domain may import from any domain"
+    }
+  },
+  "planeRules": {
+    "shared": {
+      "allow": ["shared"],
+      "forbid": ["migration", "runtime"],
+      "exceptions": []
+    },
+    "migration": {
+      "allow": ["shared", "migration"],
+      "forbid": ["runtime"],
+      "exceptions": []
+    },
+    "runtime": {
+      "allow": ["shared", "runtime"],
+      "forbid": ["migration"],
+      "exceptions": []
+    }
+  },
+  "crossDomainExceptions": [],
+  "layerOrder": {
+    "framework": ["foundation", "core", "authoring", "tooling"],
+    "sql": ["core", "authoring", "tooling", "lanes", "runtime", "adapters", "drivers", "family"],
+    "mongo": [
+      "foundation",
+      "authoring",
+      "tooling",
+      "query",
+      "query-builders",
+      "transport",
+      "runtime",
+      "family"
+    ]
+  }
+}

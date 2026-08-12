@@ -1,0 +1,8 @@
+settings db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+client {
+  output = "./client"
+}

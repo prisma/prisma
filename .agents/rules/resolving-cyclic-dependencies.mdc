@@ -1,0 +1,74 @@
+---
+description: How to resolve cyclic dependencies when moving types or refactoring packages
+globs: ["packages/**/package.json"]
+alwaysApply: false
+---
+
+# Resolving Cyclic Dependencies
+
+## Overview
+
+When resolving dependency violations by moving types or refactoring packages, always check for unused dependencies that might create cycles. Cyclic dependencies can be broken by removing unused dependencies rather than restructuring code.
+
+## The Problem
+
+When moving types to resolve dependency violations, you may discover that the target package already depends on the source package, creating a cycle:
+
+```
+Package A → Package B (needs types)
+Package B → Package A (unused dependency)
+```
+
+## The Solution
+
+**Before restructuring code, check if the cycle can be broken by removing unused dependencies:**
+
+1. **Check for unused dependencies**: Use `grep` to verify if Package B actually imports anything from Package A
+2. **Remove unused dependencies**: If Package B doesn't use Package A, remove it from `package.json`
+3. **Verify**: Run `pnpm install` and `pnpm typecheck` to ensure nothing breaks
+
+## Pattern
+
+**✅ CORRECT: Remove unused dependency to break cycle**
+
+```bash
+# Check if package actually uses the dependency
+grep -r "@internal/package-a" packages/framework/core-package-b/src
+
+# If no matches, remove from package.json
+# Then verify
+pnpm install
+pnpm --filter @internal/package-b typecheck
+```
+
+**❌ WRONG: Restructure code when unused dependency exists**
+
+```typescript
+// Don't restructure types or create workarounds
+// when the cycle can be broken by removing unused dependencies
+```
+
+## Example
+
+When moving `TypesImportSpec` from `@internal/emitter` to `@internal/contract`:
+
+1. **Discovered cycle**: `@internal/contract` → `@internal/operations` (needs `OperationRegistry`)
+   - `@internal/operations` → `@internal/contract` (unused dependency)
+
+2. **Verified unused**: `grep` showed `@internal/operations` doesn't import from `@internal/contract`
+
+3. **Removed dependency**: Removed `@internal/contract` from `@internal/operations/package.json`
+
+4. **Verified fix**: `pnpm install` and typechecks passed
+
+## When to Use This Pattern
+
+- When resolving dependency violations by moving types
+- When `pnpm install` reports cyclic dependency warnings
+- When refactoring package dependencies
+- Before restructuring code to work around cycles
+
+## Related Patterns
+
+- `.cursor/rules/import-validation.mdc`: Import validation and package layering rules
+- `.cursor/rules/shared-plane-packages.mdc`: When to create shared plane packages

@@ -1,0 +1,28 @@
+---
+description: Use MongoDB `aggregate` instead of the obsolete `find`/`findOne` commands.
+alwaysApply: false
+---
+
+# MongoDB: no obsolete commands
+
+MongoDB's `find` and `findOne` are legacy commands from older MongoDB versions. The MongoDB product team considers them obsolete.
+
+## Use `aggregate` instead of `find`/`findOne`
+
+```typescript
+// BAD — obsolete command
+const doc = await db.collection('foo').findOne({ _id: id });
+
+// GOOD — modern aggregate pipeline
+const docs = await db
+  .collection('foo')
+  .aggregate([{ $match: { _id: id } }, { $limit: 1 }])
+  .toArray();
+const doc = docs[0] ?? null;
+```
+
+For multiple documents, use `aggregate` with `$match` (and `$sort`, `$skip`, `$limit` as needed) instead of `find().sort().skip().limit()`.
+
+## `insertOne`, `findOneAndUpdate`, `findOneAndDelete` are fine
+
+These are standard CRUD operations and are **not** obsolete. Continue using them directly.

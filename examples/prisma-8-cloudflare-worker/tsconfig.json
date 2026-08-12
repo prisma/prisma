@@ -1,0 +1,19 @@
+{
+  "extends": ["@repo/tsconfig/base"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "lib": ["ES2022", "ESNext.Disposable", "WebWorker"],
+    "types": ["@cloudflare/workers-types", "node"],
+    "moduleResolution": "bundler"
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "test/**/*.d.ts",
+    "scripts/**/*.ts",
+    "prisma/**/*.ts",
+    "prisma-next.config.ts",
+    "vitest.config.ts"
+  ],
+  "exclude": ["dist"]
+}

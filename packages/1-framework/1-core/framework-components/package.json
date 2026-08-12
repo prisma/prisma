@@ -1,0 +1,64 @@
+{
+  "name": "@internal/framework-components",
+  "private": true,
+  "version": "8.0.0-rc.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "Framework component types, assembly logic, and stack creation for Prisma Next",
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings",
+    "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage"
+  },
+  "dependencies": {
+    "@internal/contract": "workspace:8.0.0-rc.1",
+    "@internal/operations": "workspace:8.0.0-rc.1",
+    "@internal/ts-render": "workspace:8.0.0-rc.1",
+    "@internal/utils": "workspace:8.0.0-rc.1",
+    "@standard-schema/spec": "^1.1.0",
+    "arktype": "catalog:"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    "./authoring": "./dist/authoring.mjs",
+    "./codec": "./dist/codec.mjs",
+    "./components": "./dist/components.mjs",
+    "./control": "./dist/control.mjs",
+    "./emission": "./dist/emission.mjs",
+    "./execution": "./dist/execution.mjs",
+    "./ir": "./dist/ir.mjs",
+    "./psl-ast": "./dist/psl-ast.mjs",
+    "./runtime": "./dist/runtime.mjs",
+    "./utils": "./dist/utils.mjs",
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/1-framework/1-core/framework-components"
+  }
+}

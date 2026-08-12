@@ -1,0 +1,28 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/28151-broken-nested-set (postgres matrix entry;
+// allProviders).
+//
+// Upstream schema (idForProvider(postgresql) = "String @id @default(cuid())",
+// foreignKeyForProvider(postgresql, { optional: true }) = "String?"):
+//
+//   model User {
+//     id    String @id @default(cuid())
+//     posts Post[]
+//   }
+//   model Post {
+//     id       String @id @default(cuid())
+//     author   User?  @relation(fields: [authorId], references: [id])
+//     authorId String?
+//   }
+//
+// Subject: nested `set` on a one-to-many relation produces all expected relation links.
+model User {
+  id    String @id @default(cuid(2))
+  posts Post[]
+}
+
+model Post {
+  id       String  @id @default(cuid(2))
+  author   User?   @relation(fields: [authorId], references: [id])
+  authorId String?
+}

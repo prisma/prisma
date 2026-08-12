@@ -1,0 +1,130 @@
+[
+  {
+    "id": "column.account.bio",
+    "label": "Add column \"bio\" to \"account\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "bio",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"bio\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'bio'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"bio\"",
+        "sql": "ALTER TABLE \"account\" ADD COLUMN \"bio\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"bio\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'bio'\n)"
+      }
+    ]
+  },
+  {
+    "id": "column.account.locale",
+    "label": "Add column \"locale\" to \"account\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "locale",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"locale\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'locale'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"locale\"",
+        "sql": "ALTER TABLE \"account\" ADD COLUMN \"locale\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"locale\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'locale'\n)"
+      }
+    ]
+  },
+  {
+    "id": "column.account.phone",
+    "label": "Add column \"phone\" to \"account\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "phone",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"phone\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'phone'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"phone\"",
+        "sql": "ALTER TABLE \"account\" ADD COLUMN \"phone\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"phone\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'phone'\n)"
+      }
+    ]
+  },
+  {
+    "id": "column.account.verified",
+    "label": "Add column \"verified\" to \"account\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "__unbound__",
+        "objectType": "column",
+        "name": "verified",
+        "table": "account"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"verified\" is missing",
+        "sql": "SELECT NOT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'verified'\n)"
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"verified\"",
+        "sql": "ALTER TABLE \"account\" ADD COLUMN \"verified\" bool DEFAULT true NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"verified\" exists",
+        "sql": "SELECT EXISTS (\n  SELECT 1\n  FROM information_schema.columns\n  WHERE table_schema = current_schema()\n    AND table_name = 'account'\n    AND column_name = 'verified'\n)"
+      }
+    ]
+  }
+]

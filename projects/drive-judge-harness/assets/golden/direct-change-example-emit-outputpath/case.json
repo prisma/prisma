@@ -1,0 +1,13 @@
+{
+  "slug": "direct-change-example-emit-outputpath",
+  "title": "Example emit writes generated contract to the wrong directory",
+  "shape": "direct-change",
+  "recommended_model": "claude-4.6-sonnet-high-thinking",
+  "summary": "Two example apps import their generated contract from src/prisma/, but `prisma-next contract emit` writes to prisma/, so emit leaves stray untracked files and never regenerates the tracked copies. Align the emit output with the tracked location. Drawn from real history: TML-2722 / PR #618.",
+  "source": {
+    "linear": "TML-2722",
+    "prs": [618],
+    "merge_shas": ["9787be39a248f3299f085c7d18a812a7120c748a"]
+  },
+  "base_sha": "e15220bbf673c75a2410aed0de2cf0cacce215f9"
+}

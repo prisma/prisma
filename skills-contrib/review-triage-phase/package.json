@@ -1,0 +1,12 @@
+{
+  "name": "@repo/skill-review-triage-phase",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Triage phase package for review-framework skill",
+  "scripts": {
+    "bootstrap-actions": "node scripts/bootstrap-review-actions.mjs",
+    "validate-actions": "node scripts/validate-review-actions.mjs",
+    "render-actions": "node scripts/render-review-actions.mjs"
+  }
+}

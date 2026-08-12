@@ -1,0 +1,60 @@
+// Faithful translation of prisma/prisma functional suite `extended-where`
+// (packages/client/tests/functional/extended-where, postgres matrix entry):
+//
+//   model User {
+//     id        String   @id @default(cuid())
+//     posts     Post[]
+//     profile   Profile?
+//     referralId String  @unique
+//     payment   Payment? @relation(fields: [paymentId], references: [id])
+//     paymentId String   @unique
+//   }
+//   model Profile {
+//     id        String   @id @default(cuid())
+//     user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+//     userId    String   @unique
+//     email     String   @unique
+//     alias     String   @unique
+//     createdAt DateTime @default(now())
+//   }
+//   model Post {
+//     id       String  @id @default(cuid())
+//     title    String  @unique
+//     author   User?   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+//     authorId String?
+//   }
+//   model Payment {
+//     id    String @id @default(cuid())
+//     ccn   String @unique @default(cuid())
+//     author User?
+//   }
+model User {
+  id         String   @id
+  posts      Post[]
+  profile    Profile?
+  referralId String   @unique
+  payment    Payment? @relation(fields: [paymentId], references: [id])
+  paymentId  String   @unique
+}
+
+model Profile {
+  id        String   @id @default(cuid(2))
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+  email     String   @unique
+  alias     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id       String  @id
+  title    String  @unique
+  author   User?   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String?
+}
+
+model Payment {
+  id     String @id @default(cuid(2))
+  ccn    String @unique
+  author User?
+}

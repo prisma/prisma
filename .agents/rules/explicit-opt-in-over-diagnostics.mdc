@@ -1,0 +1,46 @@
+---
+description: Prefer requiring explicit opt-in over emitting diagnostics on intentional user paths
+alwaysApply: true
+---
+
+# Explicit opt-in over noisy diagnostics
+
+When designing a feature where a user choice has a non-obvious consequence (footgun, lifecycle leak, performance cliff, surprising blast radius), prefer **requiring the user to explicitly opt in to the risky behaviour** over **permitting it by default and emitting a diagnostic** on every use.
+
+The principle:
+
+- A diagnostic on an intentional user path is **noise**. The user already declared intent by writing the code; warning them every build adds friction without adding signal.
+- An explicit opt-in (a flag, a method name, a config key) **encodes the intent at the call site**, where future readers can see it. The audit trail is the code itself; no diagnostic is needed because the choice is documented in place.
+- This trades a one-time authoring cost (the user has to type the opt-in) for ongoing review clarity (every reader sees the deliberate choice).
+
+## When to use which
+
+**Explicit opt-in, no diagnostic** — the right answer when:
+
+- The behaviour is *valid* for some users (i.e., not a bug we want to discourage universally).
+- The user can reasonably be expected to know what they're doing if they opt in.
+- The opt-in is itself self-documenting (e.g., `onDelete: 'cascade'`, `allowCrossSchemaCascade: true`, `dangerouslyAllowX`).
+- The diagnostic would fire on every build for a path the user already chose intentionally.
+
+**Diagnostic, no opt-in** — the right answer when:
+
+- The behaviour is almost certainly a bug (e.g., shadowed variable, dead code).
+- The user has no realistic path to "yes, I meant that" — the diagnostic is the only signalling mechanism.
+- The cost of a false positive is low (one-time fix or suppression).
+
+**Both opt-in and diagnostic** — rare, and usually wrong:
+
+- Only justified when the opt-in itself can be expressed correctly in many places but only intended in some (and even then, prefer narrowing the opt-in's scope so it can't be over-applied).
+- Default to dropping one of the two. If the user has to opt in, the opt-in is the audit trail; a diagnostic on top is double-charging the user for the same decision.
+
+## Examples
+
+- **`onDelete: 'cascade'` on a foreign key targeting an externally-managed table.** Permitted; no diagnostic. The user explicitly wrote `cascade` — that is the audit trail. Adding a planner warning would fire every build on a path the user committed to deliberately.
+- **`dangerouslyAllowAnyRole` on an RLS policy.** Permitted; no diagnostic. The word "dangerously" in the API name is the audit trail. A separate diagnostic would be noise.
+- **Unresolved field reference in a relation.** Diagnostic, no opt-in — there is no legitimate path through "yes, I meant to reference a field that doesn't exist."
+
+## Why this matters
+
+Tools that emit warnings on intentional user paths erode the signal-to-noise ratio of the diagnostics surface. Users start ignoring warnings wholesale because most of them are about deliberate choices. When a real bug appears, the diagnostic that fires gets lost in the noise.
+
+Forcing the user to opt in moves the "this is deliberate" check **into the source code itself**, where it lives forever as documentation, instead of into a transient diagnostic that fires once per build and gets dismissed.

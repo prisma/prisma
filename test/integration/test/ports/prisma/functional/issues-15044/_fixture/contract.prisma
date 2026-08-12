@@ -1,0 +1,44 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/15044 (postgres matrix entry; allProviders).
+//
+// Upstream schema (postgres branch):
+//   idForProvider(postgresql) → String @id @default(cuid(2))
+//   model User {
+//     id         String  @id @default(cuid())
+//     name       String
+//     walletLink WalletLink[]
+//   }
+//   model Wallet {
+//     id         String  @id @default(cuid())
+//     name       String
+//     walletLink WalletLink[]
+//   }
+//   model WalletLink {
+//     id       String @id @default(cuid())
+//     name     String
+//     wallet   Wallet @relation(fields: [walletId], references: [id])
+//     user     User   @relation(fields: [userId], references: [id])
+//     walletId String
+//     userId   String
+//   }
+
+model User {
+  id         String       @id @default(cuid(2))
+  name       String
+  walletLink WalletLink[]
+}
+
+model Wallet {
+  id         String       @id @default(cuid(2))
+  name       String
+  walletLink WalletLink[]
+}
+
+model WalletLink {
+  id       String @id @default(cuid(2))
+  name     String
+  wallet   Wallet @relation(fields: [walletId], references: [id])
+  user     User   @relation(fields: [userId], references: [id])
+  walletId String
+  userId   String
+}

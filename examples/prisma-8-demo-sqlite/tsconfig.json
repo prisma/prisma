@@ -1,0 +1,15 @@
+{
+  "extends": ["@repo/tsconfig/base"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "lib": ["ES2022"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "scripts/**/*.ts",
+    "prisma/**/*.ts",
+    "prisma-next.config.ts"
+  ],
+  "exclude": ["dist"]
+}

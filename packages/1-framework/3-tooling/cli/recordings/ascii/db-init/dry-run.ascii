@@ -1,0 +1,224 @@
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Preview changes on empty database
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Preview changes on empty database
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Preview changes on empty database
+> prisma-next db init --dry-run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Preview changes on empty database
+> prisma-next db init --dry-run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Preview changes on empty database
+> prisma-next db init --dry-run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> # Preview changes on empty database
+> prisma-next db init --dry-run
+prisma-next db init → Bootstrap a database to match the current contract
+│
+│ config:               prisma-next.config.ts
+│ contract:             contract.json
+│ mode:                 dry run
+│
+│ Read more             https://pris.ly/db-init
+└
+
+│
+│  ✔ Planned 1 operation(s)
+│  │
+│  └─ Create table user [additive]
+│
+│  Destination hash: sha256:95060eda0d8ef9b30439212a41756c15066733defdde81ee7118f955be7361d1
+│
+│  This is a dry run. No changes were applied.
+│  Run without --dry-run to apply changes.
+>
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

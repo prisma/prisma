@@ -1,0 +1,31 @@
+[
+  {
+    "id": "data_migration.verify-account-verified",
+    "label": "Data transform: verify-account-verified",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [
+      {
+        "description": "check whether any accounts have verified=false",
+        "sql": "SELECT EXISTS (SELECT 1 FROM \"account\" WHERE \"verified\" = false) AS ok",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set verified=true for any accounts that lack it",
+        "sql": "UPDATE \"account\" SET \"verified\" = true WHERE \"verified\" = false",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "confirm all accounts have verified=true",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM \"account\" WHERE \"verified\" = false) AS ok",
+        "params": []
+      }
+    ]
+  }
+]

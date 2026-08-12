@@ -1,0 +1,20 @@
+---
+description: Patterns for refactoring large monolithic files into modular structures
+globs: ["packages/**/*.ts", "packages/**/*.tsx"]
+alwaysApply: false
+---
+
+# Modular Refactoring Patterns
+
+This rulecard is intentionally short. For step-by-step patterns and larger examples, see `docs/reference/modular-refactoring-patterns.md`.
+
+## Default approach
+
+- Extract **pure helpers** first (no I/O, no global state)
+- Extract **types** next (reduce import cycles)
+- Keep **public API** stable while moving internals
+
+## Related rules
+
+- `.cursor/rules/resolving-cyclic-dependencies.mdc`
+- `.cursor/rules/no-barrel-files.mdc`

@@ -1,0 +1,36 @@
+---
+description: Replace blind casts with type predicates (type guards)
+globs: ["packages/**/*.ts", "packages/**/*.tsx", "examples/**/*.ts", "examples/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"]
+alwaysApply: false
+---
+
+# Type Predicates (Replace Blind Casts)
+
+**Rule**: Blind casts like `as unknown as X` are **forbidden** in production code.
+
+Prefer:
+- Type predicates (`value is X`) / type guards
+- Refactoring the type surface so the compiler can do the narrowing
+
+## Example
+
+```typescript
+type ColumnBuilder = { kind: 'column'; table: string; column: string };
+
+export function isColumnBuilder(value: unknown): value is ColumnBuilder {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'kind' in value &&
+    (value as { kind: unknown }).kind === 'column'
+  );
+}
+```
+
+## Tests-only exception
+
+In `*.test.ts` / `*.test-d.ts`, double casts can be acceptable for mocks/dynamic proxies, but:
+- Use `unknown` (not `any`)
+- Keep the cast local and explained
+- Don’t copy the pattern into production code
+

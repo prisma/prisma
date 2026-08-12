@@ -1,0 +1,10 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
+  "extends": "//",
+  "linter": {
+    "rules": {
+      // `any` is an important tool when building type-safe APIs.
+      "suspicious": "info"
+    }
+  }
+}

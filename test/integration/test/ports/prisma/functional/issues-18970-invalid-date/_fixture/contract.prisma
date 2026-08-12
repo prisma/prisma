@@ -1,0 +1,12 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/18970-invalid-date (postgres matrix entry).
+//
+// Upstream schema:
+//   model User { id String @id; date DateTime? }
+//
+// idForProvider(postgresql) = String @id
+
+model User {
+  id   String    @id @default(cuid(2))
+  date DateTime?
+}

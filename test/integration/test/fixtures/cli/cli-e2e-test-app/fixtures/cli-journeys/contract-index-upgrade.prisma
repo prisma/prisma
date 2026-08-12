@@ -1,0 +1,18 @@
+// use prisma-next
+
+model User {
+  id    Int    @id
+  email String
+  posts Post[]
+
+  @@index([email])
+  @@map("user")
+}
+
+model Post {
+  id     Int  @id
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  @@map("post")
+}

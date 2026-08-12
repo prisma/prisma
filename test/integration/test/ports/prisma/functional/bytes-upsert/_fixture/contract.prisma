@@ -1,0 +1,14 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/bytes-upsert (postgres matrix entry;
+// sqlserver opted out — does not support bytes IDs).
+//
+// Upstream schema (postgres branch):
+//   model TestByteId {
+//     id    String @id @default(cuid())
+//     bytes Bytes  @unique
+//   }
+
+model TestByteId {
+  id    String @id @default(cuid(2))
+  bytes Bytes  @unique
+}

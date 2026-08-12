@@ -1,0 +1,362 @@
+:root {
+  --bg: #0f0f12;
+  --surface: #1a1a22;
+  --surface-hover: #22222e;
+  --border: #2a2a38;
+  --text: #e4e4ef;
+  --text-dim: #8888a0;
+  --accent: #6366f1;
+  --bug: #ef4444;
+  --bug-bg: #1c1215;
+  --feature: #3b82f6;
+  --feature-bg: #111525;
+  --critical: #ef4444;
+  --medium: #f59e0b;
+  --low: #22c55e;
+  --radius: 8px;
+  --font: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+header {
+  margin-bottom: 2rem;
+}
+
+header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: var(--text-dim);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Generic section heading; declared before `.error h2` so the more
+   specific selector below can override the cascade as intended. */
+section h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text-dim);
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.error h2 {
+  color: var(--bug);
+  margin-bottom: 0.5rem;
+}
+
+.hint {
+  color: var(--text-dim);
+  margin-top: 1rem;
+}
+
+.hint code {
+  background: var(--surface);
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.tabs button {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.tabs button:hover {
+  color: var(--text);
+}
+
+.tabs button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* Cards */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+
+.card-article {
+  border-left: 3px solid var(--feature);
+  background: var(--feature-bg);
+}
+
+.card-tutorial {
+  border-left: 3px solid var(--low);
+  background: #111d15;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.card-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.type-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.type-article {
+  background: var(--feature);
+  color: white;
+}
+
+.type-tutorial {
+  background: var(--low);
+  color: white;
+}
+
+.card-summary {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+.badge-difficulty {
+  color: var(--medium);
+  border-color: color-mix(in srgb, var(--medium) 30%, transparent);
+  text-transform: capitalize;
+}
+
+.badge-duration {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* Badges */
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.badge-critical {
+  color: var(--critical);
+  border-color: color-mix(in srgb, var(--critical) 30%, transparent);
+}
+
+.badge-medium {
+  color: var(--medium);
+  border-color: color-mix(in srgb, var(--medium) 30%, transparent);
+}
+
+.badge-low {
+  color: var(--low);
+  border-color: color-mix(in srgb, var(--low) 30%, transparent);
+}
+
+.badge-release {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.badge-assignee {
+  color: var(--text);
+}
+
+/* Comments (embedded documents) */
+.comments {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.comments h4 {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+.comment {
+  padding: 0.5rem 0.75rem;
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
+  border-radius: 4px;
+  margin-bottom: 0.375rem;
+}
+
+.comment p {
+  font-size: 0.85rem;
+}
+
+.comment time {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+/* Users */
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.email {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.addresses {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.addresses h4 {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+.address {
+  padding: 0.375rem 0.75rem;
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.no-data {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+/* Sections */
+section {
+  margin-bottom: 2rem;
+}
+
+.user-list h2 {
+  margin-bottom: 0.75rem;
+}
+
+/* Footer */
+footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.legend h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.legend ul {
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.legend li {
+  margin-bottom: 0.375rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.legend li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+.legend code {
+  background: var(--surface);
+  padding: 0.0625rem 0.375rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+.legend strong {
+  color: var(--text);
+}

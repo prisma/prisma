@@ -1,0 +1,41 @@
+---
+description: Generic parameter defaults (avoid pointless defaults)
+globs: ["packages/**/*.ts", "packages/**/*.tsx", "examples/**/*.ts", "examples/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"]
+alwaysApply: false
+---
+
+# Generic Parameter Defaults
+
+**Rule**: Don’t add generic defaults unless the type is meaningfully usable with the default.
+
+## Good defaults
+
+Defaults are fine when they represent a real “no-specialization” mode:
+
+```typescript
+interface EventEmitter<T = unknown> {
+  emit(event: string, data: T): void;
+}
+```
+
+## Bad defaults
+
+If the type is pointless without concrete generics, defaults create a false “optional” API:
+
+```typescript
+interface ColumnBuilderState<
+  Name extends string,
+  Nullable extends boolean,
+  Type extends string,
+> {
+  readonly name: Name;
+  readonly nullable: Nullable;
+  readonly type: Type;
+}
+```
+
+## Why this matters
+
+- Avoids accidental “too-wide” types (`string`, `boolean`) leaking into core surfaces
+- Makes intent clear: the generic is required for correctness, not flexibility
+

@@ -1,0 +1,13 @@
+// Faithful translation of prisma/prisma functional suite `issues/5952-decimal-batch`
+// (postgres matrix entry):
+//
+//   model Resource {
+//     id      String  @id @default(cuid())
+//     decimal Decimal @unique
+//   }
+//
+// idForProvider(postgresql) is `String @id @default(cuid(2))`.
+model Resource {
+  id      String  @id @default(cuid(2))
+  decimal Decimal @unique
+}
