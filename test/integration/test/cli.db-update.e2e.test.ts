@@ -1,19 +1,14 @@
 import { copyFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  executeCommand,
-  fixtureAppDir,
-  setupCommandMocks,
-  withTempDir,
-} from './utils/cli-test-helpers';
+import { describe, expect, it } from 'vitest';
+import { fixtureAppDir, runOnEngine, withTempDir } from './utils/cli-test-helpers';
 import { replaceInFileOrThrow } from './utils/contract-fixture-editing';
 import { runDbInit } from './utils/db-init-test-helpers';
 import {
   consentTokenFor,
+  type DbUpdateTestSetup,
   runDbUpdate,
   runDbUpdateAllowFailure,
   setupDbUpdateFixture,
@@ -29,20 +24,13 @@ function addNicknameColumnToContract(testDir: string): void {
   );
 }
 
+async function emitContract(testSetup: DbUpdateTestSetup): Promise<void> {
+  const run = await runOnEngine(testSetup, ['contract', 'emit']);
+  expect(run.exitCode).toBe(0);
+}
+
 withTempDir(({ createTempDir }) => {
   describe('db update command (e2e)', () => {
-    let cleanupMocks: () => void;
-
-    // The contract emit steps still run on the commander shell, whose output
-    // goes to the console this keeps out of the test log.
-    beforeEach(() => {
-      cleanupMocks = setupCommandMocks().cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     it(
       'is a no-op when database already matches current contract',
       async () => {
@@ -80,14 +68,7 @@ withTempDir(({ createTempDir }) => {
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
 
           addNicknameColumnToContract(testSetup.testDir);
-          const emitCommand = createContractEmitCommand();
-          const originalCwd = process.cwd();
-          try {
-            process.chdir(testSetup.testDir);
-            await executeCommand(emitCommand, ['--config', configPath, '--no-color']);
-          } finally {
-            process.chdir(originalCwd);
-          }
+          await emitContract(testSetup);
 
           const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
           const planOutput = stripAnsi(plan.stderr);
@@ -125,15 +106,7 @@ withTempDir(({ createTempDir }) => {
 
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
           addNicknameColumnToContract(testSetup.testDir);
-
-          const emitCommand = createContractEmitCommand();
-          const originalCwd = process.cwd();
-          try {
-            process.chdir(testSetup.testDir);
-            await executeCommand(emitCommand, ['--config', configPath, '--no-color']);
-          } finally {
-            process.chdir(originalCwd);
-          }
+          await emitContract(testSetup);
 
           const run = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--json']);
           const payload = run.document as Record<string, unknown>;
@@ -178,38 +151,21 @@ const projectSlugVariantFixture = 'contract-add-project-slug.ts';
  * Switches the baseline scenario contract to the additive project slug variant,
  * then re-emits the contract.
  */
-async function switchToProjectSlugVariant(testDir: string, configPath: string): Promise<void> {
+async function switchToProjectSlugVariant(testSetup: DbUpdateTestSetup): Promise<void> {
   const variantSource = join(
     fixtureAppDir,
     'fixtures',
     scenarioFixtureSubdir,
     projectSlugVariantFixture,
   );
-  const contractDest = join(testDir, 'contract.ts');
+  const contractDest = join(testSetup.testDir, 'contract.ts');
   copyFileSync(variantSource, contractDest);
 
-  const emitCommand = createContractEmitCommand();
-  const originalCwd = process.cwd();
-  try {
-    process.chdir(testDir);
-    await executeCommand(emitCommand, ['--config', configPath, '--no-color']);
-  } finally {
-    process.chdir(originalCwd);
-  }
+  await emitContract(testSetup);
 }
 
 withTempDir(({ createTempDir }) => {
   describe('db update scenarios', () => {
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      cleanupMocks = setupCommandMocks().cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     // Scenario 1: Fresh database without prior db init
     it(
       'succeeds on a fresh database without prior db init',
@@ -241,7 +197,7 @@ withTempDir(({ createTempDir }) => {
           );
 
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
-          await switchToProjectSlugVariant(testSetup.testDir, configPath);
+          await switchToProjectSlugVariant(testSetup);
 
           const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
           const planOutput = stripAnsi(plan.stderr);
@@ -278,7 +234,7 @@ withTempDir(({ createTempDir }) => {
           );
 
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
-          await switchToProjectSlugVariant(testSetup.testDir, configPath);
+          await switchToProjectSlugVariant(testSetup);
 
           const apply = await runDbUpdate(testSetup, ['--config', configPath]);
           const applyOutput = stripAnsi(apply.stderr);
@@ -390,7 +346,7 @@ withTempDir(({ createTempDir }) => {
       timeouts.spinUpPpgDev,
     );
 
-    // Scenario 7a: Destructive changes gate
+    // Scenario 7a: Destructive changes require explicit consent
     it(
       'fails with DESTRUCTIVE_CHANGES when destructive ops are not confirmed',
       async () => {
@@ -417,7 +373,8 @@ withTempDir(({ createTempDir }) => {
           expect(run.exitCode).toBe(2);
           expect(stripAnsi(run.stderr)).toMatch(/CONSENT_REQUIRED/);
 
-          // Verify the confirmation gate actually blocked the update — drift column must still exist
+          // Verify the confirmation requirement actually blocked the update —
+          // the drift column must still exist
           await withClient(connectionString, async (client) => {
             const result = await client.query(
               `SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'project' AND column_name = 'legacy_notes'`,
@@ -479,7 +436,7 @@ withTempDir(({ createTempDir }) => {
           );
 
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
-          await switchToProjectSlugVariant(testSetup.testDir, configPath);
+          await switchToProjectSlugVariant(testSetup);
 
           const run = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--json']);
           const payload = run.document as Record<string, unknown>;

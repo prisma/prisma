@@ -1,7 +1,5 @@
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
-import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
 import type { Contract } from '@internal/contract/types';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
@@ -10,14 +8,12 @@ import { emitContractSpaceArtifacts } from '@internal/migration-tools/spaces';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { seedTestMarker } from '@internal/sql-runtime/test/utils';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import testContractSpaceExtension from './contract-space-fixture/control';
 import { bootstrapPostgresSignMarkerTables } from './postgres-bootstrap';
 import {
-  executeCommand,
-  getExitCode,
   loadContractFromDisk,
-  setupCommandMocks,
+  runOnEngine,
   setupTestDirectoryFromFixtures,
   withTempDir,
 } from './utils/cli-test-helpers';
@@ -54,7 +50,7 @@ async function writePinnedExtensionDir(testDir: string): Promise<string> {
 
   // The on-disk head ref's `invariants` and the migration package's
   // `providedInvariants` must both round-trip through
-  // `deriveProvidedInvariants` (M2.5b loader integrity gate, error
+  // `deriveProvidedInvariants` (M2.5b loader integrity check, error
   // MIGRATION.CONTRACT_SPACE_VIOLATION). The test extension's baseline op carries an
   // `invariantId`, so the derivation produces `[TEST_BASELINE_INVARIANT_ID]`
   // — match that on disk for both the head ref and migration metadata.
@@ -68,7 +64,7 @@ async function writePinnedExtensionDir(testDir: string): Promise<string> {
   for (const pkg of extMigrations) {
     const ops = [...pkg.ops];
     // Recompute the hash because the synthetic placeholder hash on the
-    // in-memory fixture's metadata won't satisfy the loader's hash gate.
+    // in-memory fixture's metadata won't satisfy the loader's hash check.
     const migrationHash = computeMigrationHash(pkg.metadata, ops);
     await materialiseMigrationPackage(spaceDir, {
       dirName: pkg.dirName,
@@ -82,19 +78,6 @@ async function writePinnedExtensionDir(testDir: string): Promise<string> {
 
 withTempDir(({ createTempDir }) => {
   describe('db verify command - aggregate schema verification (F23)', () => {
-    let consoleOutput: string[] = [];
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     it(
       'returns zero schema issues when app and extension both claim live tables',
       async () => {
@@ -105,7 +88,7 @@ withTempDir(({ createTempDir }) => {
             'prisma-next.config.with-db.ts',
             { '{{DB_URL}}': connectionString },
           );
-          const { testDir, configPath } = testSetup;
+          const { testDir } = testSetup;
 
           // Pre-emit pinned migrations for the test extension so the
           // aggregate loader's layout / integrity checks pass.
@@ -114,14 +97,8 @@ withTempDir(({ createTempDir }) => {
           // Emit the app contract so `db verify` has a contract.json to
           // compare against. The fixture's `contract.output` points at
           // `src/prisma/contract.json`.
-          const emitCommand = createContractEmitCommand();
-          const originalCwd = process.cwd();
-          try {
-            process.chdir(testDir);
-            await executeCommand(emitCommand, ['--config', configPath, '--no-color']);
-          } finally {
-            process.chdir(originalCwd);
-          }
+          const emit = await runOnEngine(testSetup, ['contract', 'emit']);
+          expect(emit.exitCode).toBe(0);
 
           const appContractPath = join(testDir, 'src/prisma/contract.json');
           const appContract = loadContractFromDisk<Contract<SqlStorage>>(appContractPath);
@@ -162,31 +139,16 @@ withTempDir(({ createTempDir }) => {
             });
           });
 
-          consoleOutput.length = 0;
+          const run = await runOnEngine(testSetup, ['db', 'verify', '--json']);
+          expect(run.exitCode).toBe(0);
 
-          const command = createDbVerifyCommand();
-          const verifyCwd = process.cwd();
-          try {
-            process.chdir(testDir);
-            await executeCommand(command, ['--config', configPath, '--json', '--no-color']);
-          } finally {
-            process.chdir(verifyCwd);
-          }
-
-          expect(getExitCode()).toBe(0);
-
-          const joined = consoleOutput.join('\n');
-          const start = joined.indexOf('{');
-          const end = joined.lastIndexOf('}');
-          expect(start).toBeGreaterThanOrEqual(0);
-          const parsed = JSON.parse(joined.slice(start, end + 1)) as Record<string, unknown>;
-
-          expect(parsed).toMatchObject({
+          expect(run.presented?.data).toMatchObject({
             ok: true,
             mode: 'full',
+            schema: {
+              summary: 'Database schema satisfies contract',
+            },
           });
-          const schema = parsed['schema'] as { summary?: string } | undefined;
-          expect(schema?.summary).toBe('Database schema satisfies contract');
         });
       },
       timeouts.spinUpPpgDev,
