@@ -2,8 +2,11 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine';
 import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
+import { dbInitCommand } from './db/init';
+import { dbSchemaCommand } from './db/schema';
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
+import { migrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
@@ -14,6 +17,12 @@ import { resolveTelemetryHooks } from './telemetry/reporting';
 export const BIN_NAME = 'prisma-next';
 
 export const BIN_GROUPS = {
+  db: {
+    brief: 'Live database commands',
+    description:
+      'Inspect, bootstrap and sign the live database against the emitted\n' +
+      'contract. Every command in this group needs a database connection.',
+  },
   migration: {
     brief: 'On-disk migration management commands',
     description:
@@ -23,6 +32,9 @@ export const BIN_GROUPS = {
 } as const;
 
 export const BIN_COMMANDS: MountedTree = {
+  'db init': dbInitCommand,
+  'db schema': dbSchemaCommand,
+  migrate: migrateCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,
   'migration log': migrationLogCommand,
