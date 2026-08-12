@@ -1,10 +1,12 @@
 import { readdir } from 'node:fs/promises';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
 import {
   ADDITIVE_OP,
+  contractJson,
   createOfflineProject,
   DESTRUCTIVE_OP,
   type FakePlannerScript,
@@ -201,6 +203,69 @@ describe('migration plan', () => {
     expect(run.presented?.data).toMatchObject({
       baselineDir: join('migrations', 'app', dirs[0] ?? ''),
       dir: join('migrations', 'app', dirs[1] ?? ''),
+    });
+  });
+
+  it('renders extension-space dirs under the configured migrations directory', async () => {
+    const EXT_HASH = `f00d${'3'.repeat(60)}`;
+    const extMetadataBase = {
+      from: null,
+      to: EXT_HASH,
+      providedInvariants: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    };
+    const extMetadata = {
+      ...extMetadataBase,
+      migrationHash: computeMigrationHash(extMetadataBase, []),
+    };
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    const migrationsDir = join(project.dir, 'db-migrations');
+    const appMigrationsDir = join(migrationsDir, 'app');
+    await seedMigrationPackage({
+      appMigrationsDir,
+      dirName: '20260101T0000_initial',
+      from: null,
+      to: HASH_FROM,
+    });
+    await seedContractSnapshot({ migrationsDir, storageHash: HASH_FROM });
+    await seedDbRef({ appMigrationsDir, storageHash: HASH_FROM });
+
+    const run = await harness(project, {
+      overrides: {
+        migrations: { dir: 'db-migrations' },
+        extensions: [
+          {
+            kind: 'extension',
+            id: 'cipherstash',
+            familyId: 'sql',
+            targetId: 'postgres',
+            version: '1.0.0',
+            create: () => ({}),
+            contractSpace: {
+              contractJson: contractJson(EXT_HASH),
+              headRef: { hash: EXT_HASH, invariants: [] },
+              migrations: [{ dirName: '0001_seed', metadata: extMetadata, ops: [] }],
+            },
+          },
+        ],
+      },
+    }).run(['migration', 'plan', '--name', 'add-users'], {
+      cwd: project.dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.data).toMatchObject({
+      emittedExtensionDirs: [{ spaceId: 'cipherstash', dirName: '0001_seed' }],
+    });
+    const extensionDir = join('db-migrations', 'cipherstash', '0001_seed');
+    const fieldRows = (run.presented?.presentation.human ?? []).flatMap((block) =>
+      block.kind === 'fields' ? block.rows : [],
+    );
+    expect(fieldRows).toContainEqual({ label: 'space cipherstash', value: extensionDir });
+    expect(run.presented?.presentation.next?.at(0)).toMatchObject({
+      kind: 'edit-file',
+      label: expect.stringContaining(extensionDir),
     });
   });
 

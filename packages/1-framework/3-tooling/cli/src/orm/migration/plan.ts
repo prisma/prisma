@@ -12,7 +12,13 @@ import { runCommandAction } from '../../utils/next-actions';
 import { ormConfigSection } from '../config-section';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
-import { appMigrationsDirFor, contractPathFor, displayPath, projectConfigPathFor } from './paths';
+import {
+  appMigrationsDirFor,
+  contractPathFor,
+  displayPath,
+  migrationsDirFor,
+  projectConfigPathFor,
+} from './paths';
 
 function hashRow(label: string, hash: string | null): { label: string; value: Text } {
   return {
@@ -29,7 +35,7 @@ function hashRow(label: string, hash: string | null): { label: string; value: Te
  * it wrote — the app-space package, the auto-baseline package that precedes it,
  * and any extension-space package the seed phase materialised.
  */
-function outcomeFields(result: MigrationPlanResult): Block {
+function outcomeFields(result: MigrationPlanResult, migrationsRelative: string): Block {
   return {
     kind: 'fields',
     rows: [
@@ -41,7 +47,7 @@ function outcomeFields(result: MigrationPlanResult): Block {
       ...(result.dir === undefined ? [] : [{ label: 'app space', value: result.dir }]),
       ...result.emittedExtensionDirs.map((entry) => ({
         label: `space ${entry.spaceId}`,
-        value: join('migrations', entry.spaceId, entry.dirName),
+        value: join(migrationsRelative, entry.spaceId, entry.dirName),
       })),
     ],
   };
@@ -98,22 +104,26 @@ function previewBlocks(result: MigrationPlanResult): readonly Block[] {
   ];
 }
 
-function planBlocks(result: MigrationPlanResult): readonly Block[] {
+function planBlocks(result: MigrationPlanResult, migrationsRelative: string): readonly Block[] {
+  const outcome = outcomeFields(result, migrationsRelative);
   if (result.noOp) {
-    return [{ kind: 'summary', status: 'ok', text: 'No changes detected' }, outcomeFields(result)];
+    return [{ kind: 'summary', status: 'ok', text: 'No changes detected' }, outcome];
   }
   if (result.pendingPlaceholders === true) {
-    return [{ kind: 'summary', status: 'warn', text: result.summary }, outcomeFields(result)];
+    return [{ kind: 'summary', status: 'warn', text: result.summary }, outcome];
   }
   return [
     { kind: 'summary', status: 'ok', text: result.summary },
     ...operationBlocks(result),
-    outcomeFields(result),
+    outcome,
     ...previewBlocks(result),
   ];
 }
 
-function planNextActions(result: MigrationPlanResult): readonly NextAction[] {
+function planNextActions(
+  result: MigrationPlanResult,
+  migrationsRelative: string,
+): readonly NextAction[] {
   if (result.pendingPlaceholders === true) {
     const migrationTs = join(result.dir ?? '<dir>', 'migration.ts');
     return [
@@ -130,7 +140,9 @@ function planNextActions(result: MigrationPlanResult): readonly NextAction[] {
   const written = [
     ...(result.baselineDir === undefined ? [] : [result.baselineDir]),
     ...(result.dir === undefined ? [] : [result.dir]),
-    ...result.emittedExtensionDirs.map((entry) => join('migrations', entry.spaceId, entry.dirName)),
+    ...result.emittedExtensionDirs.map((entry) =>
+      join(migrationsRelative, entry.spaceId, entry.dirName),
+    ),
   ];
   if (written.length === 0) {
     return [];
@@ -145,6 +157,7 @@ function planPresentations(inputs: {
   readonly document: MigrationPlanResult;
   readonly contractPath: string;
   readonly appMigrationsRelative: string;
+  readonly migrationsRelative: string;
   readonly from: string | undefined;
   readonly to: string | undefined;
   readonly name: string | undefined;
@@ -162,10 +175,10 @@ function planPresentations(inputs: {
           ...(inputs.name === undefined ? [] : [{ label: 'name', value: inputs.name }]),
         ],
       },
-      ...planBlocks(inputs.document),
+      ...planBlocks(inputs.document, inputs.migrationsRelative),
     ],
     json: () => inputs.document,
-    next: () => planNextActions(inputs.document),
+    next: () => planNextActions(inputs.document, inputs.migrationsRelative),
   };
 }
 
@@ -246,6 +259,7 @@ export const migrationPlanCommand = defineOrmCommand({
           document: planned.value,
           contractPath: contractPath === undefined ? '(unset)' : displayPath(contractPath, ctx.cwd),
           appMigrationsRelative: displayPath(appMigrationsDirFor(ctx.config, ctx.cwd), ctx.cwd),
+          migrationsRelative: displayPath(migrationsDirFor(ctx.config, ctx.cwd), ctx.cwd),
           from: args.flags.from,
           to: args.flags.to,
           name: args.flags.name,
