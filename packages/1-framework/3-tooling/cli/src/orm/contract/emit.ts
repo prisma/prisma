@@ -1,12 +1,11 @@
 import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations } from '@prisma/cli-engine';
-import { defineCommand, flag } from '@prisma/cli-engine';
-import { notOk, ok } from '@prisma/cli-engine/protocol';
+import { flag } from '@prisma/cli-engine';
+import { ok } from '@prisma/cli-engine/protocol';
 import { dirname, relative, resolve } from 'pathe';
 import { executeContractEmit } from '../../control-api/operations/contract-emit';
-import type { ContractEmitResult } from '../../control-api/types';
 import { ormConfigSection } from '../config-section';
-import { normalizeError } from '../normalize-error';
+import { defineOrmCommand } from '../define-command';
 import { controlProgressReporter } from '../progress';
 
 interface EmitDocument {
@@ -60,7 +59,7 @@ function emitPresentations(inputs: {
   };
 }
 
-export const contractEmitCommand = defineCommand({
+export const contractEmitCommand = defineOrmCommand({
   help: {
     summary: 'Emit your contract artifacts',
     description:
@@ -84,18 +83,13 @@ export const contractEmitCommand = defineCommand({
     const outputPath =
       args.flags.outputPath === undefined ? undefined : resolve(ctx.cwd, args.flags.outputPath);
 
-    let result: ContractEmitResult;
-    try {
-      result = await executeContractEmit({
-        config: ctx.config,
-        cwd: ctx.cwd,
-        onProgress: controlProgressReporter(ctx.report),
-        signal: ctx.signal,
-        ...ifDefined('outputPath', outputPath),
-      });
-    } catch (error) {
-      return notOk(normalizeError(error));
-    }
+    const result = await executeContractEmit({
+      config: ctx.config,
+      cwd: ctx.cwd,
+      onProgress: controlProgressReporter(ctx.report),
+      signal: ctx.signal,
+      ...ifDefined('outputPath', outputPath),
+    });
 
     if (result.validationWarning !== undefined) {
       ctx.report({ kind: 'message', severity: 'warn', text: result.validationWarning });

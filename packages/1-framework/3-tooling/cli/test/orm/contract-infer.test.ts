@@ -1,6 +1,7 @@
 import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { MountedTree } from '@prisma/cli-engine';
+import { CliStructuredError } from '@internal/errors/control';
+import type { ErroredEnvelope, MountedTree, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
@@ -106,6 +107,14 @@ function ormConfig(dir: string, overrides: Record<string, unknown> = {}): Record
 
 function harness(config: Record<string, unknown>) {
   return createTestCli({ commands, groups, config: { orm: config } });
+}
+
+function erroredEnvelope(run: { readonly json: readonly StreamEvent[] }): ErroredEnvelope {
+  const terminal = run.json.at(-1);
+  if (terminal === undefined || terminal.kind !== 'result' || terminal.envelope.ok) {
+    throw new Error('the run did not settle as an errored envelope');
+  }
+  return terminal.envelope;
 }
 
 describe('contract infer', () => {
@@ -289,5 +298,47 @@ describe('contract infer', () => {
     expect(mocks.close).toHaveBeenCalled();
     expect(envelope).toMatchObject({ ok: false, error: { code: 'CLI.UNEXPECTED' } });
     expect(JSON.stringify(envelope)).not.toContain('secret');
+  });
+
+  /**
+   * The handler's own catch wraps the introspection; a `close()` that rejects
+   * on the way out throws from the `finally` and escapes it. `defineOrmCommand`
+   * catches at the top of the handler instead. Without it the engine settles
+   * the throw itself: it accepts prisma/prisma's `CliStructuredError` on the
+   * name alone and emits the non-protocol `fix` field, and it settles anything
+   * else as an engine bug at exit 1.
+   */
+  describe('the ORM error boundary', () => {
+    it('turns a prisma/prisma structured error into a protocol envelope', async () => {
+      const dir = await projectDir();
+      mocks.close.mockRejectedValue(
+        new CliStructuredError('DRIVER.NOT_CONNECTED', 'The client was not connected', {
+          fix: 'Check the database is reachable and re-run',
+        }),
+      );
+
+      const run = await harness(ormConfig(dir)).run(['contract', 'infer', '--json'], { cwd: dir });
+      const envelope = erroredEnvelope(run);
+
+      expect(run.exitCode).toBe(2);
+      expect(envelope.error).toMatchObject({ code: 'DRIVER.NOT_CONNECTED' });
+      expect(envelope.error).not.toHaveProperty('fix');
+      expect(envelope.nextActions).toEqual([
+        { kind: 'user-choice', label: 'Check the database is reachable and re-run' },
+      ]);
+    });
+
+    it('settles a bare throw as CLI.UNEXPECTED at exit 2, not an engine bug at exit 1', async () => {
+      const dir = await projectDir();
+      mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
+
+      const run = await harness(ormConfig(dir)).run(['contract', 'infer', '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(2);
+      expect(erroredEnvelope(run).error).toMatchObject({
+        code: 'CLI.UNEXPECTED',
+        summary: 'close on an unconnected client',
+      });
+    });
   });
 });

@@ -1,4 +1,5 @@
-import type { LoadedConfig, MountedTree } from '@prisma/cli-engine';
+import { CliStructuredError } from '@internal/errors/control';
+import type { ErroredEnvelope, LoadedConfig, MountedTree, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
@@ -95,6 +96,14 @@ function ormConfig(overrides: Record<string, unknown> = {}): Record<string, unkn
 
 function harness(config: Record<string, unknown> = ormConfig()) {
   return createTestCli({ commands, groups, config: { orm: config } });
+}
+
+function erroredEnvelope(run: { readonly json: readonly StreamEvent[] }): ErroredEnvelope {
+  const terminal = run.json.at(-1);
+  if (terminal === undefined || terminal.kind !== 'result' || terminal.envelope.ok) {
+    throw new Error('the run did not settle as an errored envelope');
+  }
+  return terminal.envelope;
 }
 
 /** A loader that records every call, so a second config load is visible. */
@@ -327,5 +336,43 @@ describe('contract emit', () => {
     expect(envelope?.nextActions).toEqual([
       { kind: 'user-choice', label: 'Fix the contract source and re-run' },
     ]);
+  });
+
+  /**
+   * `defineOrmCommand` catches at the top of the handler. Without it the engine
+   * settles the throw itself: it accepts prisma/prisma's `CliStructuredError`
+   * on the name alone and emits the non-protocol `fix` field, and it settles
+   * anything else as an engine bug at exit 1.
+   */
+  describe('the ORM error boundary', () => {
+    it('turns a prisma/prisma structured error into a protocol envelope', async () => {
+      mocks.executeContractEmit.mockRejectedValue(
+        new CliStructuredError('CONTRACT.SOURCE_LOAD_FAILED', 'Failed to resolve contract source', {
+          fix: 'Fix the contract source and re-run',
+        }),
+      );
+
+      const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
+      const envelope = erroredEnvelope(run);
+
+      expect(run.exitCode).toBe(2);
+      expect(envelope.error).toMatchObject({ code: 'CONTRACT.SOURCE_LOAD_FAILED' });
+      expect(envelope.error).not.toHaveProperty('fix');
+      expect(envelope.nextActions).toEqual([
+        { kind: 'user-choice', label: 'Fix the contract source and re-run' },
+      ]);
+    });
+
+    it('settles a bare throw as CLI.UNEXPECTED at exit 2, not an engine bug at exit 1', async () => {
+      mocks.executeContractEmit.mockRejectedValue(new Error('the emitter crashed'));
+
+      const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
+
+      expect(run.exitCode).toBe(2);
+      expect(erroredEnvelope(run).error).toMatchObject({
+        code: 'CLI.UNEXPECTED',
+        summary: 'the emitter crashed',
+      });
+    });
   });
 });

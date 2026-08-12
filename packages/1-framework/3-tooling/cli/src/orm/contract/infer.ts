@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { printPsl } from '@internal/psl-printer';
 import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations } from '@prisma/cli-engine';
-import { defineCommand, flag } from '@prisma/cli-engine';
+import { flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { relative } from 'pathe';
 import { createControlClient } from '../../control-api/client';
@@ -16,6 +16,7 @@ import {
 import { maskConnectionUrl, sanitizeErrorMessage } from '../../utils/command-helpers';
 import { publishTextArtifact } from '../../utils/publish-text-artifact';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { normalizeError } from '../normalize-error';
 import { controlProgressReporter } from '../progress';
@@ -56,7 +57,7 @@ function inferPresentations(inputs: {
   };
 }
 
-export const contractInferCommand = defineCommand({
+export const contractInferCommand = defineOrmCommand({
   help: {
     summary: 'Infer a PSL contract from the live database schema',
     description:
