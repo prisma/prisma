@@ -25,6 +25,8 @@ const LEFT_COLUMN_WIDTH = 20;
 
 Then lower the threshold by one. A suppression naming the wrong plugin does not suppress and is reported as `suppressions/unused`, so a stale one cannot rot silently.
 
+The forbidden terms live in the plugin, not the config — GritQL cannot read JSON, and a second copy nothing reads would drift. To add one, edit `biome-plugins/no-family-vocabulary.grit` and re-baseline the threshold. The config carries only the scanned path and the threshold.
+
 ## Do
 
 - Keep framework mechanisms family-blind: registries, opaque payloads (`object | undefined` narrowed by the consuming family), merge/collision plumbing.
