@@ -556,10 +556,9 @@ whose control policy allows `destructive`.
 
 For an extension this matters in one specific case — a check your extension installs through a
 raw-SQL migration step rather than deriving in its contract space. That constraint used to be
-invisible and is now drop-eligible against any database the extension manages. Declaring it is
-not possible in 8.0.0-rc.2: a contract space derives checks from column shape (enum membership,
-list element-non-null) and has no surface for an arbitrary hand-written predicate. Document
-that the tables carrying it stay under an additive-only policy — the check survives, plain
-`db verify` tolerates it, and only `--strict` reports it — or accept the drop under a
-destructive plan. The durable fix is to declare it — see `authored-check-constraints` in this
-transition.
+invisible and is now drop-eligible against any database the extension manages. Declare it:
+`@@check(expression: "…", map: "<its physical name>")` in the contract space adopts the
+constraint under the name it already carries, after which it is owned rather than extra and no
+plan drops it — see `authored-check-constraints` in this transition. Until you do, keep the
+tables carrying it under an additive-only policy: the check survives, plain `db verify`
+tolerates it, and only `--strict` reports it.

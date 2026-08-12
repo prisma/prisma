@@ -1,3 +1,4 @@
+import { PrimaryKey, SqlForeignKeyIR, SqlUniqueIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { tableConstraintsFromNode } from '../../src/core/migrations/column-ddl-rendering';
 import { checkConstraint, expectedColumn, table } from './node-issue-helpers';
@@ -43,10 +44,27 @@ describe('tableConstraintsFromNode — checks', () => {
     const orderTable = table({
       name: 'order',
       columns: {
+        id: expectedColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }),
+        email: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
         total: expectedColumn({ name: 'total', nativeType: 'NUMERIC', nullable: false }),
       },
+      primaryKey: new PrimaryKey({ columns: ['id'] }),
+      uniques: [new SqlUniqueIR({ columns: ['email'] })],
+      foreignKeys: [
+        new SqlForeignKeyIR({
+          columns: ['id'],
+          referencedTable: 'customer',
+          referencedColumns: ['id'],
+        }),
+      ],
     });
 
-    expect(() => tableConstraintsFromNode(orderTable, false)).not.toThrow();
+    const constraints = tableConstraintsFromNode(orderTable, false);
+
+    expect(constraints.map((c) => c.constructor.name)).toEqual([
+      'PrimaryKeyConstraint',
+      'UniqueConstraint',
+      'ForeignKeyConstraint',
+    ]);
   });
 });

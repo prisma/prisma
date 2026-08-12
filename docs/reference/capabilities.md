@@ -58,7 +58,7 @@ Postgres adapters should always report `sql.lateral: true` and `sql.returning: t
 Postgres (example):
 ```json
 {
-  "sql": { "lateral": true, "returning": true, "jsonAgg": true, "enums": true, "foreignKeys": true, "autoIndexesForeignKeys": false },
+  "sql": { "lateral": true, "returning": true, "jsonAgg": true, "enums": true, "foreignKeys": true, "checkConstraint": true, "autoIndexesForeignKeys": false },
   "postgres": { "partialIndex": true, "transactionalDDL": true, "explainFormat": "json" }
 }
 ```
@@ -225,6 +225,7 @@ Canonical capability keys with descriptions, typical implementers, and ADR refer
 | sql.returning | RETURNING support for DML | adapters that support RETURNING | ADR 065 |
 | sql.jsonAgg | JSON aggregation support | adapters that support JSON aggregation | ADR 065 |
 | sql.foreignKeys | FK constraint DDL support | adapters that support FOREIGN KEY | ADR 161 |
+| sql.checkConstraint | CHECK constraint DDL support; gates `@@check` | adapters that support CHECK | ADR 244 |
 | sql.autoIndexesForeignKeys | DB auto-indexes FKs | adapters where DB auto-creates FK indexes | ADR 161 |
 | sql.defaultInInsert | Supports DEFAULT in multi-row INSERT VALUES | adapters that support DEFAULT keyword as a value | — |
 | postgres.partialIndex | Partial/filtered index support | postgres adapter | ADR 065 |
