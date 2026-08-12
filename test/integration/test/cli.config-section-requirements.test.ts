@@ -3,25 +3,13 @@
  * section surfaces as a config error instead of leaking into execution as a
  * downstream failure (an unreadable contract, a bad migrations path).
  */
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { createDbInitCommand } from '@internal/cli/commands/db-init';
-import { createDbSignCommand } from '@internal/cli/commands/db-sign';
-import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
-import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
-import { createMigrateCommand } from '@internal/cli/commands/migrate';
-import { createMigrationCheckCommand } from '@internal/cli/commands/migration-check';
-import { createMigrationGraphCommand } from '@internal/cli/commands/migration-graph';
-import { createMigrationListCommand } from '@internal/cli/commands/migration-list';
-import { createMigrationLogCommand } from '@internal/cli/commands/migration-log';
-import { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
+import { rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { timeouts } from '@repo/test-utils';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { executeCommand, setupCommandMocks } from './utils/cli-test-helpers';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { createTestDir, runOnEngine } from './utils/cli-test-helpers';
 
-type CliCommand = Parameters<typeof executeCommand>[0];
-
-// The temp-dir fixture cannot import @internal/config, so it stamps the
+// The fixture cannot import @internal/config, so it stamps the
 // config-format marker the same way defineConfig does.
 function markedConfig(brokenSection: string): string {
   return `
@@ -41,80 +29,64 @@ export default config;
 `;
 }
 
-let tempDir: string;
+let testDir: string;
 let brokenContractConfig: string;
 let brokenMigrationsConfig: string;
 
 beforeAll(() => {
-  tempDir = realpathSync(mkdtempSync(`${tmpdir()}/cli-config-sections-`));
-  brokenContractConfig = `${tempDir}/broken-contract.config.ts`;
-  brokenMigrationsConfig = `${tempDir}/broken-migrations.config.ts`;
+  testDir = createTestDir();
+  brokenContractConfig = join(testDir, 'broken-contract.config.ts');
+  brokenMigrationsConfig = join(testDir, 'broken-migrations.config.ts');
   writeFileSync(brokenContractConfig, markedConfig('  contract: { source: {} },'));
   writeFileSync(brokenMigrationsConfig, markedConfig("  migrations: 'not-an-object',"));
 });
 
 afterAll(() => {
-  rmSync(tempDir, { recursive: true, force: true });
+  rmSync(testDir, { recursive: true, force: true });
 });
 
-const readsContract: ReadonlyArray<[string, () => CliCommand, string[]]> = [
-  ['migration status', createMigrationStatusCommand, []],
-  ['migration list', createMigrationListCommand, []],
-  ['migration graph', createMigrationGraphCommand, []],
-  ['migration check', createMigrationCheckCommand, []],
-  ['migrate', createMigrateCommand, ['--to', 'HEAD']],
-  ['db init', createDbInitCommand, []],
-  ['db update', createDbUpdateCommand, []],
-  ['db sign', createDbSignCommand, []],
-  ['db verify', createDbVerifyCommand, []],
+const readsContract: ReadonlyArray<[string, readonly string[]]> = [
+  ['migration status', ['migration', 'status']],
+  ['migration list', ['migration', 'list']],
+  ['migration graph', ['migration', 'graph']],
+  ['migration check', ['migration', 'check']],
+  ['migrate', ['migrate', '--to', 'HEAD']],
+  ['db init', ['db', 'init']],
+  ['db update', ['db', 'update']],
+  ['db sign', ['db', 'sign']],
+  ['db verify', ['db', 'verify']],
 ];
 
-const readsMigrations: ReadonlyArray<[string, () => CliCommand, string[]]> = [
-  ['migration log', createMigrationLogCommand, []],
-  ['db init', createDbInitCommand, []],
-  ['db update', createDbUpdateCommand, []],
-  ['db sign', createDbSignCommand, []],
-  ['db verify', createDbVerifyCommand, []],
+const readsMigrations: ReadonlyArray<[string, readonly string[]]> = [
+  ['migration log', ['migration', 'log']],
+  ['db init', ['db', 'init']],
+  ['db update', ['db', 'update']],
+  ['db sign', ['db', 'sign']],
+  ['db verify', ['db', 'verify']],
 ];
 
 describe('commands declare the config sections they read', () => {
-  let consoleOutput: string[] = [];
-  let cleanupMocks: () => void;
-
-  beforeEach(() => {
-    const mocks = setupCommandMocks({ isTTY: false });
-    consoleOutput = mocks.consoleOutput;
-    cleanupMocks = mocks.cleanup;
-  });
-
-  afterEach(() => {
-    cleanupMocks();
-  });
-
-  async function envelopeFor(
-    create: () => CliCommand,
-    configPath: string,
-    extraArgs: string[],
-  ): Promise<Record<string, unknown>> {
-    await executeCommand(create(), [
-      '--config',
-      configPath,
-      '--json',
-      '--no-color',
-      ...extraArgs,
-    ]).catch(() => undefined);
-    const json = consoleOutput.find((line) => line.includes('CONFIG.'));
-    return JSON.parse(json ?? '{}');
-  }
-
   it.each(readsContract)(
     '%s reports a malformed contract section as a config error',
-    async (_name, create, extraArgs) => {
-      const envelope = await envelopeFor(create, brokenContractConfig, extraArgs);
+    async (_name, argv) => {
+      const run = await runOnEngine(
+        { testDir, configPath: brokenContractConfig },
+        [...argv, '--json'],
+        { settleConfigFailures: true },
+      );
 
-      expect(envelope).toMatchObject({
-        code: 'CONFIG.VALIDATION_FAILED',
-        meta: { section: 'contract' },
+      expect(run.exitCode).toBe(2);
+      expect(run.json.at(-1)).toMatchObject({
+        kind: 'result',
+        envelope: {
+          ok: false,
+          diagnostics: expect.arrayContaining([
+            expect.objectContaining({
+              code: 'CONFIG.VALIDATION_FAILED',
+              meta: expect.objectContaining({ section: 'contract' }),
+            }),
+          ]),
+        },
       });
     },
     timeouts.typeScriptCompilation,
@@ -122,12 +94,25 @@ describe('commands declare the config sections they read', () => {
 
   it.each(readsMigrations)(
     '%s reports a malformed migrations section as a config error',
-    async (_name, create, extraArgs) => {
-      const envelope = await envelopeFor(create, brokenMigrationsConfig, extraArgs);
+    async (_name, argv) => {
+      const run = await runOnEngine(
+        { testDir, configPath: brokenMigrationsConfig },
+        [...argv, '--json'],
+        { settleConfigFailures: true },
+      );
 
-      expect(envelope).toMatchObject({
-        code: 'CONFIG.VALIDATION_FAILED',
-        meta: { section: 'migrations' },
+      expect(run.exitCode).toBe(2);
+      expect(run.json.at(-1)).toMatchObject({
+        kind: 'result',
+        envelope: {
+          ok: false,
+          diagnostics: expect.arrayContaining([
+            expect.objectContaining({
+              code: 'CONFIG.VALIDATION_FAILED',
+              meta: expect.objectContaining({ section: 'migrations' }),
+            }),
+          ]),
+        },
       });
     },
     timeouts.typeScriptCompilation,

@@ -1,10 +1,9 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { executeCommand, getExitCode, setupCommandMocks } from '../../../../utils/cli-test-helpers';
+import { type EngineRunResult, runOnEngine } from '../../../../utils/cli-test-helpers';
 
 // Port of prisma/prisma@a6d0155
 //   packages/client/tests/functional/relationMode-in-separate-gh-action/tests_m-to-n.ts
@@ -40,43 +39,18 @@ import { executeCommand, getExitCode, setupCommandMocks } from '../../../../util
 
 const MAP_VARIANTS = ['default-map', 'cascade-map', 'noaction-map', 'restrict-map'] as const;
 
-interface EmitOutcome {
-  readonly exitCode: number;
-  readonly json: { ok?: boolean; code?: string; why?: string } | undefined;
-}
-
-async function emitVariant(variant: (typeof MAP_VARIANTS)[number]): Promise<EmitOutcome> {
-  const { consoleOutput, cleanup } = setupCommandMocks({ isTTY: false });
+async function emitVariant(variant: (typeof MAP_VARIANTS)[number]): Promise<EngineRunResult> {
   const outputPath = mkdtempSync(join(tmpdir(), 'mton-map-emit-'));
-  const originalCwd = process.cwd();
-  let exitCode = 0;
+  const testDir = join(import.meta.dirname, '_fixture', variant);
   try {
-    process.chdir(
-      join(originalCwd, 'test/ports/prisma/functional/relation-mode-gh-m-to-n/_fixture', variant),
-    );
-    try {
-      await executeCommand(createContractEmitCommand(), [
-        '--config',
-        'prisma-next.config.ts',
-        '--output-path',
-        outputPath,
-        '--json',
-      ]);
-      exitCode = getExitCode() ?? 0;
-    } catch {
-      exitCode = getExitCode() ?? 1;
-    }
-    const raw = consoleOutput.join('\n').trim();
-    let json: EmitOutcome['json'];
-    try {
-      json = raw ? JSON.parse(raw) : undefined;
-    } catch {
-      json = undefined;
-    }
-    return { exitCode, json };
+    return await runOnEngine({ testDir, configPath: join(testDir, 'prisma-next.config.ts') }, [
+      'contract',
+      'emit',
+      '--output-path',
+      outputPath,
+      '--json',
+    ]);
   } finally {
-    process.chdir(originalCwd);
-    cleanup();
     rmSync(outputPath, { recursive: true, force: true });
   }
 }
@@ -87,12 +61,19 @@ describe('ports/prisma/functional/relationMode-gh-m-to-n › [emit @map] (index-
       it(
         'today fails specifically on the 54-byte index-name-length limit',
         async () => {
-          const { exitCode, json } = await emitVariant(variant);
-          expect(exitCode).not.toBe(0);
-          expect(json?.ok).toBe(false);
-          expect(json?.why ?? '').toContain(
-            'index prefix "CategoriesOnPostsManyToMany_AtAtMap_categoryId_AtMap_idx" exceeds the 54-byte maximum',
-          );
+          const run = await emitVariant(variant);
+          expect(run.exitCode).not.toBe(0);
+          expect(run.json.at(-1)).toMatchObject({
+            kind: 'result',
+            envelope: {
+              ok: false,
+              error: {
+                why: expect.stringContaining(
+                  'index prefix "CategoriesOnPostsManyToMany_AtAtMap_categoryId_AtMap_idx" exceeds the 54-byte maximum',
+                ),
+              },
+            },
+          });
         },
         timeouts.typeScriptCompilation,
       );
@@ -100,9 +81,9 @@ describe('ports/prisma/functional/relationMode-gh-m-to-n › [emit @map] (index-
       it.fails(
         'emitting the faithful @map contract succeeds (flips green once prisma-next truncates/hashes long index names)',
         async () => {
-          const { exitCode, json } = await emitVariant(variant);
-          expect(exitCode).toBe(0);
-          expect(json?.ok).toBe(true);
+          const run = await emitVariant(variant);
+          expect(run.exitCode).toBe(0);
+          expect(run.presented?.data).toMatchObject({ ok: true });
         },
         timeouts.typeScriptCompilation,
       );
