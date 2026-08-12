@@ -4,13 +4,10 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Prisma Next dev/build tooling: CLI (bin), emitter, config-loader, language server, telemetry, vite plugin",
+  "description": "Prisma Next dev/build tooling: the ORM command family, emitter, config-loader, language server, telemetry, vite plugin",
   "files": [
     "dist"
   ],
-  "bin": {
-    "prisma-next": "./dist/bin__prisma-next.mjs"
-  },
   "scripts": {
     "build": "tsdown",
     "lint": "biome check . --error-on-warnings",
@@ -66,26 +63,7 @@
     }
   },
   "exports": {
-    "./bin/prisma-next": "./dist/bin__prisma-next.mjs",
     "./cli": "./dist/cli.mjs",
-    "./cli/commands/contract-emit": "./dist/cli__commands__contract-emit.mjs",
-    "./cli/commands/contract-infer": "./dist/cli__commands__contract-infer.mjs",
-    "./cli/commands/db-init": "./dist/cli__commands__db-init.mjs",
-    "./cli/commands/db-schema": "./dist/cli__commands__db-schema.mjs",
-    "./cli/commands/db-sign": "./dist/cli__commands__db-sign.mjs",
-    "./cli/commands/db-update": "./dist/cli__commands__db-update.mjs",
-    "./cli/commands/db-verify": "./dist/cli__commands__db-verify.mjs",
-    "./cli/commands/migrate": "./dist/cli__commands__migrate.mjs",
-    "./cli/commands/migration-check": "./dist/cli__commands__migration-check.mjs",
-    "./cli/commands/migration-graph": "./dist/cli__commands__migration-graph.mjs",
-    "./cli/commands/migration-list": "./dist/cli__commands__migration-list.mjs",
-    "./cli/commands/migration-log": "./dist/cli__commands__migration-log.mjs",
-    "./cli/commands/migration-new": "./dist/cli__commands__migration-new.mjs",
-    "./cli/commands/migration-plan": "./dist/cli__commands__migration-plan.mjs",
-    "./cli/commands/migration-show": "./dist/cli__commands__migration-show.mjs",
-    "./cli/commands/migration-status": "./dist/cli__commands__migration-status.mjs",
-    "./cli/commands/ref": "./dist/cli__commands__ref.mjs",
-    "./cli/commands/telemetry": "./dist/cli__commands__telemetry.mjs",
     "./cli/config-types": "./dist/cli__config-types.mjs",
     "./cli/control-api": "./dist/cli__control-api.mjs",
     "./cli/control-api/testing": "./dist/cli__control-api__testing.mjs",

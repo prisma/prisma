@@ -99,7 +99,7 @@ So `@prisma/orm-family-sql` is a shell whose entrypoints map 1:1 onto the intern
 | `packages/2-sql/5-runtime` | `@prisma/orm-family-sql/runtime` |
 | `packages/3-targets/6-adapters/postgres` | `@prisma/orm-target-postgres/adapter` |
 | `packages/3-targets/7-drivers/postgres` | `@prisma/orm-target-postgres/driver` |
-| `packages/1-framework/3-tooling/cli` | `@prisma/orm-toolchain/cli` (+ `bin`) |
+| `packages/1-framework/3-tooling/cli` | `@prisma/orm-toolchain/cli` |
 
 (The complete mapping lives in `docs/reference/Package Naming Conventions.md`.)
 

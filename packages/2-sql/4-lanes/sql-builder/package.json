@@ -8,7 +8,7 @@
   "description": "SQL builder lane for Prisma Next",
   "scripts": {
     "build": "tsdown",
-    "emit": "cd ../../../../test/integration && node ../../packages/1-framework/3-tooling/cli/dist/cli.js contract emit --config test/sql-builder/fixtures/prisma-next.config.ts && cp test/sql-builder/fixtures/generated/contract.json test/sql-builder/fixtures/generated/contract.d.ts ../../packages/2-sql/4-lanes/sql-builder/test/fixtures/generated/",
+    "emit": "cd ../../../../test/integration && node ../../packages/1-framework/3-tooling/cli/dist/bin.mjs contract emit --config test/sql-builder/fixtures/prisma-next.config.ts && cp test/sql-builder/fixtures/generated/contract.json test/sql-builder/fixtures/generated/contract.d.ts ../../packages/2-sql/4-lanes/sql-builder/test/fixtures/generated/",
     "emit:check": "pnpm emit && git diff --exit-code test/fixtures/generated/",
     "test": "vitest run --passWithNoTests",
     "~test:coverage": "vitest run --coverage --passWithNoTests",

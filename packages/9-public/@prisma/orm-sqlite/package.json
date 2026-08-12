@@ -44,7 +44,6 @@
     "./adapter/runtime": "./dist/adapter__runtime.mjs",
     "./adapter/sql-renderer": "./dist/adapter__sql-renderer.mjs",
     "./adapter/types": "./dist/adapter__types.mjs",
-    "./bin/prisma-next": "./dist/bin__prisma-next.mjs",
     "./builder": "./dist/builder.mjs",
     "./builder/runtime": "./dist/builder__runtime.mjs",
     "./builder/types": "./dist/builder__types.mjs",
@@ -161,9 +160,6 @@
     "./utils/types": "./dist/utils__types.mjs",
     "./vite-plugin-contract-emit": "./dist/vite-plugin-contract-emit.mjs",
     "./package.json": "./package.json"
-  },
-  "bin": {
-    "prisma-next": "./dist/bin__prisma-next.mjs"
   },
   "repository": {
     "type": "git",

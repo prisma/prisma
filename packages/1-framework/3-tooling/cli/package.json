@@ -6,10 +6,10 @@
   "type": "module",
   "sideEffects": false,
   "bin": {
-    "prisma-next": "./dist/cli.js"
+    "prisma-next": "./dist/bin.mjs"
   },
   "scripts": {
-    "build": "tsdown && node ./scripts/write-cli-js-compat.mjs",
+    "build": "tsdown",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --project tsconfig.json --noEmit && tsc --project tsconfig.test.json --noEmit",
@@ -88,78 +88,6 @@
     "./init-output": {
       "types": "./dist/exports/init-output.d.mts",
       "import": "./dist/exports/init-output.mjs"
-    },
-    "./commands/db-init": {
-      "types": "./dist/commands/db-init.d.mts",
-      "import": "./dist/commands/db-init.mjs"
-    },
-    "./commands/db-update": {
-      "types": "./dist/commands/db-update.d.mts",
-      "import": "./dist/commands/db-update.mjs"
-    },
-    "./commands/db-schema": {
-      "types": "./dist/commands/db-schema.d.mts",
-      "import": "./dist/commands/db-schema.mjs"
-    },
-    "./commands/db-sign": {
-      "types": "./dist/commands/db-sign.d.mts",
-      "import": "./dist/commands/db-sign.mjs"
-    },
-    "./commands/db-verify": {
-      "types": "./dist/commands/db-verify.d.mts",
-      "import": "./dist/commands/db-verify.mjs"
-    },
-    "./commands/contract-emit": {
-      "types": "./dist/commands/contract-emit.d.mts",
-      "import": "./dist/commands/contract-emit.mjs"
-    },
-    "./commands/contract-infer": {
-      "types": "./dist/commands/contract-infer.d.mts",
-      "import": "./dist/commands/contract-infer.mjs"
-    },
-    "./commands/migration-new": {
-      "types": "./dist/commands/migration-new.d.mts",
-      "import": "./dist/commands/migration-new.mjs"
-    },
-    "./commands/migration-plan": {
-      "types": "./dist/commands/migration-plan.d.mts",
-      "import": "./dist/commands/migration-plan.mjs"
-    },
-    "./commands/migration-show": {
-      "types": "./dist/commands/migration-show.d.mts",
-      "import": "./dist/commands/migration-show.mjs"
-    },
-    "./commands/migration-status": {
-      "types": "./dist/commands/migration-status.d.mts",
-      "import": "./dist/commands/migration-status.mjs"
-    },
-    "./commands/migration-log": {
-      "types": "./dist/commands/migration-log.d.mts",
-      "import": "./dist/commands/migration-log.mjs"
-    },
-    "./commands/migration-list": {
-      "types": "./dist/commands/migration-list.d.mts",
-      "import": "./dist/commands/migration-list.mjs"
-    },
-    "./commands/migration-graph": {
-      "types": "./dist/commands/migration-graph.d.mts",
-      "import": "./dist/commands/migration-graph.mjs"
-    },
-    "./commands/migration-check": {
-      "types": "./dist/commands/migration-check.d.mts",
-      "import": "./dist/commands/migration-check.mjs"
-    },
-    "./commands/migrate": {
-      "types": "./dist/commands/migrate.d.mts",
-      "import": "./dist/commands/migrate.mjs"
-    },
-    "./commands/ref": {
-      "types": "./dist/commands/ref.d.mts",
-      "import": "./dist/commands/ref.mjs"
-    },
-    "./commands/telemetry": {
-      "types": "./dist/commands/telemetry/index.d.mts",
-      "import": "./dist/commands/telemetry/index.mjs"
     },
     "./migration-cli": {
       "types": "./dist/migration-cli.d.mts",

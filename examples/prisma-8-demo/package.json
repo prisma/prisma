@@ -32,6 +32,7 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@internal/cli": "workspace:8.0.0-rc.1",
     "@prisma/dev": "catalog:",
     "@repo/test-utils": "workspace:8.0.0-rc.1",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",

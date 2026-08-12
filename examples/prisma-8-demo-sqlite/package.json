@@ -20,6 +20,7 @@
     "dotenv": "^17.4.2"
   },
   "devDependencies": {
+    "@internal/cli": "workspace:8.0.0-rc.1",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "@types/node": "catalog:",
     "tsx": "catalog:",

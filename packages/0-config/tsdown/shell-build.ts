@@ -26,6 +26,7 @@ interface InternalPackage {
   readonly absDir: string;
   readonly entry: string;
   readonly published: boolean;
+  readonly subpaths: readonly string[] | undefined;
   readonly shell: ShellName;
   readonly exports: Record<string, unknown>;
   readonly dependencies: Record<string, string>;
@@ -89,11 +90,30 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
     // resolution below still treats it as internal to this shell, but it
     // names no entrypoint.
     if (!pkg.published) continue;
+    // A declared subpath list publishes exactly those names ('.' is the
+    // package's root export) and synthesizes no aggregate. Validate the list
+    // against the package's real exports so a rename there fails the build
+    // instead of silently dropping published surface.
+    if (pkg.subpaths !== undefined) {
+      const available = new Set(
+        Object.keys(pkg.exports)
+          .filter((subpath) => subpath === '.' || subpath.startsWith('./'))
+          .map(publishedSubpathName),
+      );
+      const missing = pkg.subpaths.filter((subpath) => !available.has(subpath));
+      if (missing.length > 0) {
+        throw new ShellConfigError(
+          `${shellName} publishes ${pkg.name} subpath(s) ${missing.join(', ')}, which that package does not export`,
+        );
+      }
+    }
     const aggregated: { specifier: string; distFile: string }[] = [];
     let hasRootExport = false;
     for (const [subpath, value] of Object.entries(pkg.exports)) {
       if (subpath === './package.json') continue;
       if (excludedSubpaths.some((pattern) => pattern.test(subpath))) continue;
+      if (pkg.subpaths !== undefined && !pkg.subpaths.includes(publishedSubpathName(subpath)))
+        continue;
       const distFile = resolveExportTarget(value);
       if (distFile === undefined) {
         throw new ShellConfigError(
@@ -113,7 +133,7 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
     // when it has one, the root export already owns the name. A package
     // occupying the shell's own namespace is the shell, so there is no
     // package-level name to synthesize.
-    if (pkg.entry !== '' && !hasRootExport && aggregated.length > 0) {
+    if (pkg.entry !== '' && !hasRootExport && aggregated.length > 0 && pkg.subpaths === undefined) {
       const expected = new Map<string, string[]>();
       for (const { specifier, distFile } of aggregated) {
         for (const name of moduleExports(specifier, distFile)) {
@@ -186,19 +206,6 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
     }
   }
 
-  const binFiles = new Set<string>();
-  for (const [binName, binFile] of Object.entries(shell.bins ?? {})) {
-    const binPath = resolve(repoRoot, binFile);
-    binFiles.add(binPath);
-    const entryFile = addEntry(`bin/${binName}`, `bin/${binName}.mjs`);
-    writeFileSync(entryFile, `import '${binPath}';\n`);
-  }
-  for (const [binName, specifier] of Object.entries(shell.forwardedBins ?? {})) {
-    const entryFile = addEntry(`bin/${binName}`, `bin/${binName}.mjs`);
-    writeFileSync(entryFile, `import '${specifier}';\n`);
-  }
-  const binNames = [...Object.keys(shell.bins ?? {}), ...Object.keys(shell.forwardedBins ?? {})];
-
   validateShellManifest(shellName, shell, shellDir, internals, lookup);
 
   return defineConfig({
@@ -210,22 +217,12 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
     exports: {
       enabled: 'local-only',
       customExports: shellExports,
-      bin:
-        binNames.length > 0
-          ? Object.fromEntries(
-              binNames.map((binName) => [binName, `./src-gen/bin__${binName}.mjs`]),
-            )
-          : false,
+      bin: false,
     },
-    plugins: [crossShellRewritePlugin(shellName), binSideEffectsPlugin(binFiles)],
+    plugins: [crossShellRewritePlugin(shellName)],
     hooks: {
       'build:done': () => assertAggregatesComplete(shellName, shellDir, aggregates),
     },
-    outputOptions: (options) => ({
-      ...options,
-      banner: (chunk: { name: string }) =>
-        chunk.name.startsWith('bin__') ? '#!/usr/bin/env node\n' : '',
-    }),
   });
 }
 
@@ -235,6 +232,11 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
  * root export becomes the shell's root export (`index`, which tsdown
  * renders as `"."`).
  */
+/** The name a package export subpath takes in a `subpaths` list: `'.'` for the root, `'x/y'` for `'./x/y'`. */
+function publishedSubpathName(subpath: string): string {
+  return subpath === '.' ? '.' : subpath.slice(2);
+}
+
 function shellEntryName(entry: string, subpath: string): string {
   const tail = subpath === '.' ? '' : subpath.slice(2);
   if (entry === '') return tail === '' ? 'index' : tail;
@@ -243,9 +245,7 @@ function shellEntryName(entry: string, subpath: string): string {
 
 /**
  * Expand the flat `__`-separated output names back into `/`-separated public
- * subpaths. Bin entries keep an entrypoint (`./bin/<name>`) alongside the
- * `bin` field so a facade can forward the command without shipping a second
- * copy of the program.
+ * subpaths.
  */
 function shellExports(exports: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -359,21 +359,6 @@ function crossShellRewritePlugin(shellName: ShellName) {
   };
 }
 
-/**
- * Bin dist files run the program via top-level side effects, but the internal
- * packages declare `sideEffects: false`, so without this the bundle
- * tree-shakes the whole CLI away.
- */
-function binSideEffectsPlugin(binFiles: ReadonlySet<string>) {
-  return {
-    name: 'prisma-public-shell-bin-side-effects',
-    resolveId(source: string) {
-      if (!binFiles.has(source)) return null;
-      return { id: source, moduleSideEffects: 'no-treeshake' as const };
-    },
-  };
-}
-
 function readAllInternalPackages(repoRoot: string): Map<string, InternalPackage> {
   const lookup = new Map<string, InternalPackage>();
   for (const [shellName, shell] of publicShells) {
@@ -403,6 +388,7 @@ function readAllInternalPackages(repoRoot: string): Map<string, InternalPackage>
         absDir,
         entry: mapping.entry,
         published: mapping.published !== false,
+        subpaths: mapping.subpaths,
         shell: shellName,
         exports: recordField(manifest, 'exports'),
         dependencies: stringRecordField(manifest, 'dependencies'),
@@ -479,10 +465,6 @@ function validateShellManifest(
     if (source !== undefined && source.shell !== shellName) {
       expectedDeps.set(source.shell, `workspace:${version}`);
     }
-  }
-  for (const specifier of Object.values(shell.forwardedBins ?? {})) {
-    const [scope, name] = specifier.split('/');
-    expectedDeps.set(`${scope}/${name}`, `workspace:${version}`);
   }
   // A shell that declares a peer shell must not also depend on it: the
   // point of the peer is that the installer supplies the one copy everyone

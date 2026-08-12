@@ -28,10 +28,11 @@
     "pg": "catalog:"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "4.20260702.1",
+    "@internal/cli": "workspace:8.0.0-rc.1",
+    "@prisma/dev": "catalog:",
     "@repo/test-utils": "workspace:8.0.0-rc.1",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
-    "@prisma/dev": "catalog:",
-    "@cloudflare/workers-types": "4.20260702.1",
     "@size-limit/file": "^12.1.0",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
