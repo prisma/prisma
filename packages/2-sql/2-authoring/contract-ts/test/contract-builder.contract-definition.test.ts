@@ -483,6 +483,39 @@ describe('shared contract definition lowering', () => {
       /Contract semantic validation failed:.*primary key column "id".*primary key columns must be NOT NULL/,
     );
   });
+
+  it('rejects a check on a model that shares its base table (STI variant backstop)', () => {
+    expect(() =>
+      buildSqlContractFromDefinition({
+        warnings: undefined,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        models: [
+          {
+            modelName: 'Bug',
+            tableName: 'task',
+            sharesBaseTable: true,
+            fields: [
+              {
+                fieldName: 'severity',
+                columnName: 'severity',
+                descriptor: { codecId: 'pg/text@1', nativeType: 'text' },
+                nullable: true,
+              },
+            ],
+            checks: [
+              { expression: "severity <> ''", name: 'bug_severity_present', map: undefined },
+            ],
+          },
+        ],
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.CHECK_ON_STI_VARIANT',
+        meta: { tableName: 'task', modelName: 'Bug' },
+      }),
+    );
+  });
 });
 
 describe('M:N through descriptor lowering', () => {

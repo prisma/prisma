@@ -364,7 +364,7 @@ export function mapNodeIssueToCall(
       return notOk(
         issueConflict(
           'unsupportedOperation',
-          `SQLite does not support CHECK constraint DDL: ${issue.path.join('/')}`,
+          `The SQLite target does not support CHECK constraint DDL: ${issue.path.join('/')}`,
         ),
       );
     default:

@@ -507,6 +507,10 @@ describe('Postgres adapter', () => {
     expect(adapter.profile.capabilities['sql']).toMatchObject({ scalarList: true });
   });
 
+  it('postgres adapter reports sql.checkConstraint capability', () => {
+    expect(adapter.profile.capabilities['sql']).toMatchObject({ checkConstraint: true });
+  });
+
   it('readMarker returns no-table when the information_schema probe yields no rows', async () => {
     const calls: Array<{ sql: string; params: readonly unknown[] | undefined }> = [];
     const queryable: SqlQueryable = {

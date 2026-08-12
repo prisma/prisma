@@ -80,6 +80,14 @@ export function errorMigrationFileMissing(dir: string): CliStructuredError {
   return new CliStructuredError('MIGRATION.FILE_MISSING', 'migration.ts not found', {
     why: `No migration.ts file was found at "${dir}"`,
     fix: 'Scaffold one with `prisma-next migration new` or `prisma-next migration plan`.',
+    nextActions: [
+      { kind: 'run-command', label: 'Scaffold an empty migration', command: '{bin} migration new' },
+      {
+        kind: 'run-command',
+        label: 'Scaffold a migration from a contract diff',
+        command: '{bin} migration plan',
+      },
+    ],
     meta: { dir },
   });
 }

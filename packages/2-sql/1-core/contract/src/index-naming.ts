@@ -49,21 +49,24 @@ const EXACT_NAME_BODY_PREAMBLE =
   "Drift detection compares the authored SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the text was captured by contract infer.";
 
 /**
- * Per-subject remediation: an index moves to wire naming via `name:`;
- * a policy has no such parameter — dropping `@@map` makes the block's head
- * the wire prefix.
+ * Per-subject remediation: an index or check moves to wire naming via
+ * `name:`; a policy has no such parameter — dropping `@@map` makes the
+ * block's head the wire prefix.
  */
 const EXACT_NAME_BODY_REMEDIATION = {
   index:
     'For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted object to wire naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
   policy:
     "For hand-authored definitions, drop @@map and let the policy block's head name the policy; to migrate an adopted policy to wire naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
+  check:
+    'For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted check to wire naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
 } as const;
 
-/** What the user actually wrote, per subject: index `map:`, policy `@@map`. */
+/** What the user actually wrote, per subject: index and check `map:`, policy `@@map`. */
 const EXACT_NAME_FEATURE = {
   index: 'map:',
   policy: '@@map',
+  check: 'map:',
 } as const;
 
 const EXACT_NAME_BODY_WARNING_CODE = 'PN_EXACT_NAME_BODY_COMPARISON';
@@ -71,13 +74,13 @@ const EXACT_NAME_BODY_WARNING_CODE = 'PN_EXACT_NAME_BODY_COMPARISON';
 /**
  * Mints the exact-name body-comparison warning for a `map:`-named object
  * carrying a hand-authorable SQL body — fully formed, so the transport and
- * the flush stay generic. `subject` is `index` here and `policy` where
- * policies mint the same warning; the feature name and the remediation are
- * subject-specific end to end, so a batched summary (grouped on
- * code + summary) is true of every object it covers.
+ * the flush stay generic. `subject` distinguishes the index, policy, and
+ * check callers that mint this same warning; the feature name and the
+ * remediation are subject-specific end to end, so a batched summary
+ * (grouped on code + summary) is true of every object it covers.
  */
 export function exactNameBodyWarning(
-  subject: 'index' | 'policy',
+  subject: 'index' | 'policy' | 'check',
   exactName: string,
 ): AuthoringWarning {
   const item = `${subject} "${exactName}"`;

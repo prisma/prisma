@@ -173,6 +173,39 @@ export function composeCheckWirePrefix(
   return truncateToWireNamePrefixBytes(`${tableName}_${columnName}_${CHECK_KIND_SUFFIX[kind]}`);
 }
 
+/**
+ * Every {@link CheckKind} value, read off {@link CHECK_KIND_SUFFIX}'s own keys
+ * so the enumeration can never drift out of step with it.
+ */
+const CHECK_KINDS: readonly CheckKind[] = Object.keys(CHECK_KIND_SUFFIX).filter(
+  (kind): kind is CheckKind => kind in CHECK_KIND_SUFFIX,
+);
+
+/**
+ * The wire-name prefixes derivation could produce for `tableName`: every
+ * {@link composeCheckWirePrefix} result crossing each of `columnNames` with
+ * each {@link CheckKind}. A check is derived iff its prefix is a member of
+ * this set.
+ *
+ * This is the prefix SHAPE only, not the full name-with-hash: it does not
+ * know which kind a specific column's type would actually derive (that needs
+ * the target's `renderCheckExpressions` hook, which callers of this function
+ * do not have in hand), so every column is conservatively treated as capable
+ * of producing every kind.
+ */
+export function derivedCheckPrefixes(
+  tableName: string,
+  columnNames: Iterable<string>,
+): ReadonlySet<string> {
+  const prefixes = new Set<string>();
+  for (const columnName of columnNames) {
+    for (const kind of CHECK_KINDS) {
+      prefixes.add(composeCheckWirePrefix(tableName, columnName, kind));
+    }
+  }
+  return prefixes;
+}
+
 export interface IndexContentHashParts {
   readonly expression?: string;
   readonly where?: string;

@@ -279,6 +279,65 @@ export const indexModelSpec = modelAttribute('index', {
   },
 });
 
+// `@@check` cross-argument diagnostic codes — contributed by this package
+// through the family-neutral `ContributedPslDiagnosticCode` seam; the
+// framework union stays free of check vocabulary.
+export const PSL_CHECK_REQUIRES_NAME_OR_MAP: ContributedPslDiagnosticCode =
+  'PSL_CHECK_REQUIRES_NAME_OR_MAP';
+export const PSL_CHECK_NAME_XOR_MAP: ContributedPslDiagnosticCode = 'PSL_CHECK_NAME_XOR_MAP';
+export const PSL_CHECK_EXPRESSION_EMPTY: ContributedPslDiagnosticCode =
+  'PSL_CHECK_EXPRESSION_EMPTY';
+/**
+ * A single-table-inheritance variant (`@@base` with no own `@@map`) shares
+ * its base model's storage table and has no table of its own to declare a
+ * check on — raised from {@link interpretPslDocumentToSqlContract}, not from
+ * this spec's own `refine`, because the rule needs the model's `@@base`
+ * declaration, which a single attribute's `refine` cannot see.
+ */
+export const PSL_CHECK_ON_STI_VARIANT: ContributedPslDiagnosticCode = 'PSL_CHECK_ON_STI_VARIANT';
+
+export const checkModelSpec = modelAttribute('check', {
+  named: {
+    expression: str(),
+    name: optional(str()),
+    map: optional(str()),
+  },
+  refine: (value, ctx, attributeNode) => {
+    const diagnostics: PslDiagnostic[] = [];
+    if (value.expression.trim().length === 0) {
+      diagnostics.push(
+        leafDiagnostic(
+          ctx,
+          attributeNode,
+          '`@@check` expression must not be empty — an empty predicate is not a constraint',
+          PSL_CHECK_EXPRESSION_EMPTY,
+        ),
+      );
+    }
+    if (value.name === undefined && value.map === undefined) {
+      diagnostics.push(
+        leafDiagnostic(
+          ctx,
+          attributeNode,
+          '`@@check` requires a `name` or `map` argument (a default name cannot be derived — a check has no column tuple to name itself after)',
+          PSL_CHECK_REQUIRES_NAME_OR_MAP,
+        ),
+      );
+    }
+    if (value.name !== undefined && value.map !== undefined) {
+      diagnostics.push(
+        leafDiagnostic(
+          ctx,
+          attributeNode,
+          '`@@check` takes at most one of `name` and `map`',
+          PSL_CHECK_NAME_XOR_MAP,
+        ),
+      );
+    }
+    return diagnostics;
+  },
+});
+
 export const controlModelSpec = modelAttribute('control', {
   positional: [
     {
