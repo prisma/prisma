@@ -47,6 +47,8 @@ Your telemetry preference and the installation UUID live in a single per-user JS
 - **Unix (Linux, macOS):** `$XDG_CONFIG_HOME/prisma-next/config.json`, defaulting to `~/.config/prisma-next/config.json` when `$XDG_CONFIG_HOME` is unset. This follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/latest/).
 - **Windows:** `%APPDATA%\prisma-next\config.json`, falling back to `%USERPROFILE%\AppData\Roaming\prisma-next\config.json`.
 
+The CLI writes this file for you: `prisma-next telemetry enable` / `disable` set the preference, and `prisma-next telemetry status` prints the resolved path along with what's currently in effect. The rest of this section describes what the file contains so you can read it; [changing it](#how-to-opt-out-or-back-in) is what those commands are for.
+
 After the first enabled run, the file looks like this:
 
 ```json
@@ -55,7 +57,7 @@ After the first enabled run, the file looks like this:
 }
 ```
 
-The first enabled run mints the `installationId` but does **not** write an `enableTelemetry` field — leaving it absent is what keeps telemetry on by default. If you make an explicit choice (`prisma-next telemetry enable` / `disable`, or a hand edit), the file also carries an explicit `enableTelemetry` value:
+The first enabled run mints the `installationId` but does **not** write an `enableTelemetry` field — leaving it absent is what keeps telemetry on by default. Once you make an explicit choice with `prisma-next telemetry enable` / `disable`, the file also carries an explicit `enableTelemetry` value:
 
 ```json
 {
@@ -66,14 +68,14 @@ The first enabled run mints the `installationId` but does **not** write an `enab
 
 Two fields matter to the CLI:
 
-- **`enableTelemetry`** (`boolean`, optional) — your explicit choice. `true` enables telemetry; `false` disables it; **absent means "on" (the opt-out default)**. The CLI only writes this field when you make an explicit choice (`prisma-next telemetry enable` / `disable`, or a hand edit); the default-on path never writes it.
+- **`enableTelemetry`** (`boolean`, optional) — your explicit choice. `true` enables telemetry; `false` disables it; **absent means "on" (the opt-out default)**. The CLI writes this field only when you make an explicit choice with `prisma-next telemetry enable` / `disable`; the default-on path never writes it.
 - **`installationId`** (`string`) — a v4 random UUID, minted locally on the first command that sends an event (the first enabled send). The CLI never rotates it on its own.
 
 Any other fields are tolerated and preserved across writes, so future Prisma Next versions can add new settings here without losing your existing data.
 
 ### Flipping your choice
 
-To turn telemetry off (or back on), run `prisma-next telemetry disable` / `prisma-next telemetry enable`, or edit the file in any text editor and change the `enableTelemetry` value. Either way the change takes effect on the next CLI invocation.
+To turn telemetry off (or back on), run `prisma-next telemetry disable` / `prisma-next telemetry enable`. The command writes the `enableTelemetry` value for you and the change takes effect on the next CLI invocation. `prisma-next telemetry status` reports what is in effect and why.
 
 ### Fully resetting
 
@@ -87,7 +89,7 @@ rm ~/.config/prisma-next/config.json
 Remove-Item "$env:APPDATA\prisma-next\config.json"
 ```
 
-Deleting the file returns you to the default (telemetry on). The next enabled command will reprint the one-time first-run notice and mint a fresh `installationId`. If your intent is to stay opted out, don't delete the file — run `prisma-next telemetry disable` (or keep `"enableTelemetry": false` in it), or use an [environment-variable opt-out](#1-environment-variables-runtime-only).
+Deleting the file returns you to the default (telemetry on). The next enabled command will reprint the one-time first-run notice and mint a fresh `installationId`. If your intent is to stay opted out, don't delete the file — run `prisma-next telemetry disable`, or use an [environment-variable opt-out](#1-environment-variables-runtime-only).
 
 ## How to opt out (or back in)
 
@@ -95,7 +97,7 @@ Telemetry can be disabled several independent ways. Any one is sufficient.
 
 ### The `prisma-next telemetry` command
 
-The friendliest path is the built-in command:
+The command exists so you never have to touch the config file yourself:
 
 ```bash
 prisma-next telemetry disable   # stores "enableTelemetry": false
@@ -103,7 +105,7 @@ prisma-next telemetry enable    # stores "enableTelemetry": true (mints an insta
 prisma-next telemetry status    # reports whether telemetry is on, why, the config path, and whether an ID is stored
 ```
 
-`disable` and `enable` write the stored preference described in [The stored preference](#2-the-stored-preference) for you. `status` is read-only — it emits no event, mints no ID, and does not print your installation ID (only whether one exists). The `telemetry` command is itself exempt from telemetry, so running it never emits a usage event.
+`disable` and `enable` write the [stored preference](#2-the-stored-preference) for you — atomically, preserving every other field already in the file. `status` is read-only — it emits no event, mints no ID, and does not print your installation ID (only whether one exists). The `telemetry` command is itself exempt from telemetry, so running it never emits a usage event.
 
 ### 1. Environment variables (runtime-only)
 
@@ -123,7 +125,7 @@ Export them in your shell profile if you want them to apply to every Prisma Next
 
 ### 2. The stored preference
 
-`prisma-next telemetry disable` writes this for you; you can also set `enableTelemetry` to `false` in your `config.json` by hand:
+`prisma-next telemetry disable` records the choice in your `config.json`:
 
 ```json
 {
@@ -131,9 +133,9 @@ Export them in your shell profile if you want them to apply to every Prisma Next
 }
 ```
 
-This disables telemetry on every invocation until you change it back. Storing `false` does not mint an `installationId`, and if one was already minted on a prior enabled run it is left in place (deleting the file is the way to clear it).
+This disables telemetry on every invocation until `prisma-next telemetry enable` changes it back. Storing `false` does not mint an `installationId`, and if one was already minted on a prior enabled run it is left in place (deleting the file is the way to clear it).
 
-You can write this file before ever running the CLI — drop a `config.json` containing `{ "enableTelemetry": false }` at the path above and the CLI will never send an event or print the first-run notice.
+To opt out on a machine where the CLI has never run — a fresh image, a provisioning script, a container build — set one of the [environment variables](#1-environment-variables-runtime-only) instead. No config file has to exist first: with telemetry disabled the CLI sends nothing and prints no first-run notice.
 
 ## Disclosure
 

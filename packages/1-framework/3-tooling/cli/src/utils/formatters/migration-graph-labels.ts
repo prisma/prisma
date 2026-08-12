@@ -105,7 +105,7 @@ export const PATH_HIGHLIGHT_STYLES = {
   ) => ({
     lane: rolePainter(palette, colorize, 'on-path'),
     arrow: identity,
-    dirName: (text: string) => palette.emphasis(text),
+    dirName: colorize ? (text: string) => palette.emphasis(text) : identity,
     hashOverride: undefined,
   }),
   offPath: (colorize: boolean, palette: MigrationGraphPalette = ANSI_MIGRATION_GRAPH_PALETTE) => ({

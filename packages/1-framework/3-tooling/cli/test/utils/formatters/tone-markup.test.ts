@@ -78,6 +78,15 @@ describe('a marked string', () => {
   it('drops an escape sequence it does not recognise rather than passing it on', () => {
     expect(toneSpans('\u001B[31mred\u001B[39m')).toEqual([{ text: 'red' }]);
   });
+
+  it('drops an escape sequence carrying several parameters', () => {
+    expect(toneSpans('\u001B[1;31mred\u001B[0m')).toEqual([{ text: 'red' }]);
+  });
+
+  it('drops 256-colour and truecolor sequences', () => {
+    expect(toneSpans('\u001B[38;5;208morange\u001B[39m')).toEqual([{ text: 'orange' }]);
+    expect(toneSpans('\u001B[38;2;255;0;0mred\u001B[39m')).toEqual([{ text: 'red' }]);
+  });
 });
 
 describe('a marked block as drawing lines', () => {
