@@ -31,3 +31,11 @@
 - **Hands to:** A complete unpublished Prisma7 artifact ready for `release-mirroring-and-package-proof`, plus reviewable evidence and an explicit classification of intentional ordinary-Prisma references.
 - **Focus:** Real-command evidence over new mock-heavy identity suites; command-local inline snapshots or concise assertions as appropriate; retain the existing packed generate/db-push/client smoke; classify stable domain names, inactive/generated-runtime surfaces, comments, and low-level paths. Fix only audit escapees inside the slice contract.
 - **Validation gate:** Prisma, Prisma7, migrate, internals, client-generator-registry, and client-generator-js builds; exact workspace typecheck; affected package tests; packed `prisma7-compatibility` E2E; root lint, dependency lint, and Prettier; `git diff --check`; mandatory transient-ID scan.
+
+### Dispatch 5: close full-suite constructor migration
+
+- **Outcome:** Full migrate and cross-platform package suites use the required `DbPull` executable contract instead of constructing instances with an undefined runtime identity.
+- **Builds on:** Dispatch 1's required factories and CI evidence that legacy tests bypassed the private TypeScript constructor at runtime.
+- **Hands to:** Green Migrate jobs on all Node versions and green macOS/Windows package suites without weakening the required production API.
+- **Focus:** Mechanically migrate every direct `new DbPull()` test/helper call to `DbPull.new('prisma')`; audit all other required migrate command classes for direct-constructor bypasses; preserve existing ordinary snapshots and do not add a fallback/default merely to accommodate tests.
+- **Validation gate:** exhaustive direct-constructor grep; full `@prisma/migrate` test command with available databases/engines; affected cross-platform package tests where locally reproducible; migrate/CLI builds and exact workspace typecheck; Prettier; `git diff --check`; mandatory transient-ID scan.
