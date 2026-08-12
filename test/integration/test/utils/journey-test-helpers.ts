@@ -711,7 +711,8 @@ export function parseJsonOutput<T = Record<string, unknown>>(result: CommandResu
   if (parsed === undefined) {
     throw new Error(`Failed to parse JSON from command output:\n${output}`);
   }
-  return (engineDocument(parsed) ?? parsed) as T;
+  const document = engineDocument(parsed);
+  return (document === undefined ? parsed : document) as T;
 }
 
 function lastJsonValue(output: string): unknown {
