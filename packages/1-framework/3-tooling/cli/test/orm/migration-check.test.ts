@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -107,6 +107,22 @@ async function seedMigration(
 /** A directory the loader skips, whose manifest files are therefore missing. */
 async function seedUnloadableDirectory(migrationsDir: string): Promise<void> {
   await mkdir(join(migrationsDir, 'app', '20250102T0000_broken'), { recursive: true });
+}
+
+/**
+ * Rewrites a package's stored `migrationHash` so it disagrees with the hash
+ * recomputed from the package contents.
+ */
+async function corruptStoredHash(packageDir: string): Promise<void> {
+  const manifestPath = join(packageDir, 'migration.json');
+  const manifest = blindCast<Record<string, unknown>, 'the manifest this test just wrote'>(
+    JSON.parse(await readFile(manifestPath, 'utf-8')),
+  );
+  await writeFile(
+    manifestPath,
+    JSON.stringify({ ...manifest, migrationHash: HASH_UNPRODUCED }, null, 2),
+    'utf-8',
+  );
 }
 
 async function seedDanglingRef(migrationsDir: string, name: string): Promise<void> {
@@ -277,6 +293,40 @@ describe('migration check', () => {
       expect(JSON.stringify(document)).not.toContain('"fix"');
     });
 
+    it('names the migration package on the line the human renderer prints', async () => {
+      const dir = await projectDir();
+      const packageDir = await seedMigration(join(dir, 'migrations'));
+      await corruptStoredHash(packageDir);
+
+      const run = await harness(ormConfig()).run(['migration', 'check', '20250101T0000_initial'], {
+        cwd: dir,
+        isTty: { stdout: true },
+      });
+
+      expect(run.exitCode).toBe(4);
+      expect(run.stderr).toContain('migrations/app/20250101T0000_initial/migration.json');
+      expect(run.stderr).toContain('MIGRATION.CHECK_HASH_MISMATCH');
+    });
+
+    it('keeps the path in the diagnostic summary, where a hash mismatch has no other name', async () => {
+      const dir = await projectDir();
+      const packageDir = await seedMigration(join(dir, 'migrations'));
+      await corruptStoredHash(packageDir);
+
+      const run = await harness(ormConfig()).run(
+        ['migration', 'check', '20250101T0000_initial', '--json'],
+        { cwd: dir },
+      );
+
+      expect(diagnosticsOf(run)[0]).toMatchObject({
+        code: 'MIGRATION.CHECK_HASH_MISMATCH',
+        summary: expect.stringContaining(
+          `migrations/app/20250101T0000_initial/migration.json: Stored hash ${HASH_UNPRODUCED} does not match recomputed hash`,
+        ),
+        where: { path: 'migrations/app/20250101T0000_initial/migration.json' },
+      });
+    });
+
     it('says how many failures it found in the human summary', async () => {
       const dir = await projectDir();
       await seedMigration(join(dir, 'migrations'));
@@ -409,6 +459,14 @@ describe('migration check', () => {
       expect(envelope?.nextActions.length).toBeGreaterThan(0);
       expect(envelope).not.toHaveProperty('fix');
     });
+  });
+
+  it('spells its exit codes in --help, which does not render the exitCodes map', async () => {
+    const dir = await projectDir();
+
+    const run = await harness(ormConfig()).run(['migration', 'check', '--help'], { cwd: dir });
+
+    expect(`${run.stdout}${run.stderr}`).toContain('4 = integrity failure(s) found');
   });
 
   it('narrows to one space when --space is given', async () => {

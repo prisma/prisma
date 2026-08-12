@@ -1,4 +1,6 @@
 import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import { isStructuredErrorCode } from '@internal/utils/structured-error';
 import type { Block, Presentations } from '@prisma/cli-engine';
 import { flag, positional } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
@@ -26,29 +28,33 @@ import { appMigrationsDirFor, displayPath, migrationsDirFor } from './paths';
  */
 const FINDINGS_EXIT_CODE = 4;
 
-const DOTTED_CODE = /^[^.]+\.[^.]+$/;
-
-function isDottedCode(code: string): code is `${string}.${string}` {
-  return DOTTED_CODE.test(code);
-}
-
 /**
  * One integrity failure as an envelope diagnostic. `error` is the honest
  * severity: nothing about the artifacts is merely worth a look, and exit 4
  * makes it legal — the engine refuses a severity-`error` diagnostic only on a
  * run that exits 0.
+ *
+ * The summary leads with the path because the engine's diagnostic renderer
+ * prints `code`, `summary`, `why` and the next actions and never prints
+ * `where`. Several failure texts name no package on their own — a hash
+ * mismatch reads "Stored hash X does not match recomputed hash Y" — so
+ * without the path a project with fifty migrations cannot be told which one
+ * is broken. `where` still carries the path on its own for a `--json`
+ * consumer.
  */
 function failureDiagnostic(failure: CheckFailure): Diagnostic {
+  if (!isStructuredErrorCode(failure.code)) {
+    throw new InternalError(
+      `migration check produced the failure code "${failure.code}", which is not a dotted NAMESPACE.SUBCODE.`,
+    );
+  }
   return {
-    code: isDottedCode(failure.code) ? failure.code : 'CLI.UNEXPECTED',
+    code: failure.code,
     severity: 'error',
-    summary: failure.why,
+    summary: `${failure.where}: ${failure.why}`,
     nextActions: failure.nextActions,
     where: { path: failure.where },
-    meta: {
-      space: failure.space,
-      ...(isDottedCode(failure.code) ? {} : { code: failure.code }),
-    },
+    meta: { space: failure.space },
   };
 }
 
@@ -90,7 +96,9 @@ export const migrationCheckCommand = defineOrmCommand({
       'every contract space by default; pass --space <id> to narrow to one. A\n' +
       'migration reference checks a single package, resolved across all contract\n' +
       'spaces (narrow with --space; an ambiguous reference cannot be checked).\n' +
-      'Offline — does not consult the database.',
+      'Offline — does not consult the database.\n' +
+      'Exit codes: 0 = all checks passed, 2 = precondition failed (unresolved\n' +
+      'target or unknown --space), 4 = integrity failure(s) found.',
     examples: [
       'migration check',
       'migration check --space app',
