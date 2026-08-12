@@ -55,12 +55,10 @@ function noRefFilesUnder(refsDir: string): boolean {
 
 withTempDir(({ createTempDir }) => {
   describe('db init ref advancement (e2e)', () => {
-    let consoleOutput: string[] = [];
     let cleanupMocks: () => void;
 
     beforeEach(() => {
       const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
       cleanupMocks = mocks.cleanup;
     });
 
@@ -177,14 +175,15 @@ withTempDir(({ createTempDir }) => {
             fixtureSubdir,
           );
           const refsDir = appRefsDir(testSetup.testDir);
-          const outputStart = consoleOutput.length;
+          const run = await runDbInit(testSetup, [
+            '--config',
+            configPath,
+            '--dry-run',
+            '--json',
+            '--no-color',
+          ]);
 
-          await runDbInit(testSetup, ['--config', configPath, '--dry-run', '--json', '--no-color']);
-
-          const parsed = parseJsonObjectFromCliCapture(consoleOutput.slice(outputStart)) as Record<
-            string,
-            unknown
-          >;
+          const parsed = run.document as Record<string, unknown>;
           expect(parsed['plannedAdvanceRef']).toEqual(
             expect.objectContaining({ name: 'db', hash: expect.any(String) }),
           );
@@ -204,14 +203,9 @@ withTempDir(({ createTempDir }) => {
             createTempDir,
             fixtureSubdir,
           );
-          const outputStart = consoleOutput.length;
+          const run = await runDbInit(testSetup, ['--config', configPath, '--json', '--no-color']);
 
-          await runDbInit(testSetup, ['--config', configPath, '--json', '--no-color']);
-
-          const parsed = parseJsonObjectFromCliCapture(consoleOutput.slice(outputStart)) as Record<
-            string,
-            unknown
-          >;
+          const parsed = run.document as Record<string, unknown>;
           expect(parsed['advancedRef']).toEqual(
             expect.objectContaining({ name: 'db', hash: expect.any(String) }),
           );
@@ -256,9 +250,7 @@ withTempDir(({ createTempDir }) => {
             createTempDir,
             fixtureSubdir,
           );
-          const outputStart = consoleOutput.length;
-
-          const exitCode = await runDbInitAllowFailure(testSetup, [
+          const run = await runDbInitAllowFailure(testSetup, [
             '--config',
             configPath,
             '--advance-ref',
@@ -267,11 +259,8 @@ withTempDir(({ createTempDir }) => {
             '--no-color',
           ]);
 
-          expect(exitCode).not.toBe(0);
-          const parsed = parseJsonObjectFromCliCapture(consoleOutput.slice(outputStart)) as Record<
-            string,
-            unknown
-          >;
+          expect(run.exitCode).not.toBe(0);
+          const parsed = run.document as Record<string, unknown>;
           expect(parsed['code']).toBe('MIGRATION.INVALID_REF_NAME');
         });
       },
@@ -448,8 +437,6 @@ withTempDir(({ createTempDir }) => {
             fixtureSubdir,
           );
           const refsDir = appRefsDir(testSetup.testDir);
-          const outputStart = consoleOutput.length;
-
           await runDbInit(testSetup, [
             '--config',
             configPath,
@@ -457,6 +444,8 @@ withTempDir(({ createTempDir }) => {
             connectionString,
             '--no-color',
           ]);
+          const outputStart = consoleOutput.length;
+
           await runDbUpdate(testSetup, [
             '--config',
             configPath,
@@ -488,8 +477,6 @@ withTempDir(({ createTempDir }) => {
             createTempDir,
             fixtureSubdir,
           );
-          const outputStart = consoleOutput.length;
-
           await runDbInit(testSetup, [
             '--config',
             configPath,
@@ -497,6 +484,8 @@ withTempDir(({ createTempDir }) => {
             connectionString,
             '--no-color',
           ]);
+          const outputStart = consoleOutput.length;
+
           await runDbUpdate(testSetup, ['--config', configPath, '--json', '--no-color']);
 
           const parsed = parseJsonObjectFromCliCapture(consoleOutput.slice(outputStart)) as Record<
