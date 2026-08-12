@@ -58,6 +58,7 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
     // else the runtime carries.
     stderr: {
       write: (text) => void proc.stderr.write(text),
+      // biome-ignore lint/plugin/no-family-vocabulary: the terminal's width in characters, not storage
       ...ifDefined('columns', proc.stderr.columns),
     },
     stdin: proc.stdin,
