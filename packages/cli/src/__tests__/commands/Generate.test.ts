@@ -33,6 +33,20 @@ describe('prisma.config.ts', () => {
       `"The datasource.url property is required in your Prisma config file when using prisma generate --sql."`,
     )
   })
+
+  it('renders no-generator guidance with the selected executable', async () => {
+    ctx.fixture('no-generator')
+
+    const generate = new Generate(
+      () => Promise.resolve(),
+      () => Promise.resolve({ prompted: false }),
+      { identity: 'prisma7' },
+    )
+    const result = await generate.parse([], await ctx.config())
+
+    expect(result).toContain('$ prisma7 generate')
+    expect(result).not.toContain('$ prisma generate')
+  })
 })
 
 describe('using cli', () => {

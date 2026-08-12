@@ -1,4 +1,4 @@
-import { defaultRegistry } from '@prisma/client-generator-registry'
+import { createDefaultRegistry } from '@prisma/client-generator-registry'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
 import { SqlQueryOutput } from '@prisma/generator'
@@ -146,7 +146,7 @@ export class Generate implements Command {
 
     let typedSqlData: { validatedConfig: PrismaConfigWithDatasource; typedSql: SqlQueryOutput[] } | undefined
     if (args['--sql']) {
-      const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd: 'generate --sql' })
+      const validatedConfig = validatePrismaConfigWithDatasource({ config, command: `${this.identity} generate --sql` })
       const typedSql = await introspectSql(validatedConfig, baseDir, schemaContext)
       typedSqlData = {
         validatedConfig,
@@ -162,11 +162,12 @@ export class Generate implements Command {
         generatorNames: args['--generator'],
         typedSql: typedSqlData?.typedSql,
         allowNoModels,
-        registry: defaultRegistry.toInternal(),
+        registry: createDefaultRegistry(this.identity).toInternal(),
+        cliCommand: this.identity,
       })
 
       if (!generators || generators.length === 0) {
-        this.logText += `${missingGeneratorMessage}\n`
+        this.logText += `${missingGeneratorMessage(this.identity)}\n`
       } else {
         // Only used for CLI output, ie Go client doesn't want JS example output
         const jsClient = generators.find(
@@ -319,11 +320,12 @@ ${breakingChangesStr}${versionsWarning}${globalLocalVersionWarningStr}`
             version: enginesVersion,
             generatorNames: args['--generator'],
             typedSql: typedSqlData?.typedSql,
-            registry: defaultRegistry.toInternal(),
+            registry: createDefaultRegistry(this.identity).toInternal(),
+            cliCommand: this.identity,
           })
 
           if (!generatorsWatch || generatorsWatch.length === 0) {
-            this.logText += `${missingGeneratorMessage}\n`
+            this.logText += `${missingGeneratorMessage(this.identity)}\n`
           } else {
             logUpdate(`\n${green('Building...')}\n\n${this.logText}`)
             try {

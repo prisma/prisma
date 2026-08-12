@@ -21,7 +21,7 @@ function createCLI(download = jest.fn()) {
       // db: DbCommand.new({
       //   pull: DbPull.new(),
       //   push: DbPush.new(),
-      //   // drop: DbDrop.new(),
+      //   // drop: DbDrop.new('prisma'),
       //   seed: DbSeed.new(),
       // }),
       // dev: Dev.new(),

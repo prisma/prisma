@@ -37,17 +37,13 @@ import { createSpinner } from '../utils/spinner'
 
 const debug = Debug('prisma:db:pull')
 
-export class DbPull implements Command {
-  public static new(): DbPull {
-    return new DbPull()
-  }
-
-  private static help = format(`
+function renderHelp(cliCommand: string): string {
+  return format(`
 Pull the state from the database to the Prisma schema using introspection
 
 ${bold('Usage')}
 
-  ${dim('$')} prisma db pull [flags/options]
+  ${dim('$')} ${cliCommand} db pull [flags/options]
 
   The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
@@ -69,21 +65,29 @@ ${bold('Options')}
 ${bold('Examples')}
 
 With an existing Prisma schema
-  ${dim('$')} prisma db pull
+  ${dim('$')} ${cliCommand} db pull
 
 Or specify a Prisma schema path
-  ${dim('$')} prisma db pull --schema=./schema.prisma
+  ${dim('$')} ${cliCommand} db pull --schema=./schema.prisma
 
 Instead of saving the result to the filesystem, you can also print it to stdout
-  ${dim('$')} prisma db pull --print
+  ${dim('$')} ${cliCommand} db pull --print
 
 Overwrite the current schema with the introspected schema instead of enriching it
-  ${dim('$')} prisma db pull --force
+  ${dim('$')} ${cliCommand} db pull --force
 
 Set composite types introspection depth to 2 levels
-  ${dim('$')} prisma db pull --composite-type-depth=2
+  ${dim('$')} ${cliCommand} db pull --composite-type-depth=2
 
 `)
+}
+
+export class DbPull implements Command {
+  public static new(cliCommand: string): DbPull {
+    return new DbPull(cliCommand)
+  }
+
+  private constructor(private readonly cliCommand: string) {}
 
   public async parse(
     argv: string[],
@@ -133,10 +137,10 @@ Set composite types introspection depth to 2 levels
       }
     }
 
-    const cmd = 'db pull'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, cmd })
+    const cmd = `${this.cliCommand} db pull`
+    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, command: cmd })
 
-    checkUnsupportedDataProxy({ cmd, validatedConfig })
+    checkUnsupportedDataProxy({ command: cmd, validatedConfig })
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
@@ -165,7 +169,7 @@ Set composite types introspection depth to 2 levels
     if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
       throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
 You can explicitly ignore and override your current local schema file with ${green(
-        getCommandWithExecutor('prisma db pull --force'),
+        getCommandWithExecutor(`${this.cliCommand} db pull --force`),
       )}
 Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
         'https://github.com/prisma/prisma/issues/9585',
@@ -214,10 +218,10 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
         /* P4001: The introspected database was empty */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database was empty:')}
 
-${bold('prisma db pull')} could not create any models in your ${bold(
+${bold(`${this.cliCommand} db pull`)} could not create any models in your ${bold(
           'schema.prisma',
         )} file and you will not be able to generate Prisma Client with the ${bold(
-          getCommandWithExecutor('prisma generate'),
+          getCommandWithExecutor(`${this.cliCommand} generate`),
         )} command.
 
 ${bold('To fix this, you have two options:')}
@@ -227,16 +231,16 @@ ${bold('To fix this, you have two options:')}
           'schema.prisma',
         )} points to a database that is not empty (it must contain at least one table).
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
+Then you can run ${green(getCommandWithExecutor(`${this.cliCommand} db pull`))} again.
 `)
       } else if (e.code === 'P1003') {
         /* P1003: Database does not exist */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')}
 
-${bold('prisma db pull')} could not create any models in your ${bold(
+${bold(`${this.cliCommand} db pull`)} could not create any models in your ${bold(
           'schema.prisma',
         )} file and you will not be able to generate Prisma Client with the ${bold(
-          getCommandWithExecutor('prisma generate'),
+          getCommandWithExecutor(`${this.cliCommand} generate`),
         )} command.
 
 ${bold('To fix this, you have two options:')}
@@ -246,7 +250,7 @@ ${bold('To fix this, you have two options:')}
           'schema.prisma',
         )} points to an existing database.
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
+Then you can run ${green(getCommandWithExecutor(`${this.cliCommand} db pull`))} again.
 `)
       } else if (e.code === 'P1012') {
         /* P1012: Schema parsing error */
@@ -258,7 +262,7 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 Introspection failed as your current Prisma schema file is invalid
 
 Please fix your current schema manually (using either ${green(
-          getCommandWithExecutor('prisma validate'),
+          getCommandWithExecutor(`${this.cliCommand} validate`),
         )} or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
 Or run this command with the ${green(
           '--force',
@@ -304,7 +308,7 @@ Or run this command with the ${green(
         path.relative(process.cwd(), introspectedSchemaPath),
       )} in ${bold(formatms(Math.round(performance.now()) - before))}
       ${yellow(introspectionWarningsMessage)}
-${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
+${`Run ${green(getCommandWithExecutor(`${this.cliCommand} generate`))} to generate Prisma Client.`}`)
     }
 
     return ''
@@ -320,8 +324,8 @@ ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Cl
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbPull.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${renderHelp(this.cliCommand)}`)
     }
-    return DbPull.help
+    return renderHelp(this.cliCommand)
   }
 }

@@ -104,21 +104,27 @@ async function main(): Promise<number> {
       bootstrap: Bootstrap.new(identity),
       init: Init.new(identity),
       mcp: Mcp.new(identity),
-      migrate: MigrateCommand.new({
-        dev: MigrateDev.new(),
-        status: MigrateStatus.new(),
-        resolve: MigrateResolve.new(),
-        reset: MigrateReset.new(),
-        deploy: MigrateDeploy.new(),
-        diff: MigrateDiff.new(),
-      }),
-      db: DbCommand.new({
-        execute: DbExecute.new(),
-        pull: DbPull.new(),
-        push: DbPush.new(),
-        // drop: DbDrop.new(),
-        seed: DbSeed.new(),
-      }),
+      migrate: MigrateCommand.new(
+        {
+          dev: MigrateDev.new(identity),
+          status: MigrateStatus.new(identity),
+          resolve: MigrateResolve.new(identity),
+          reset: MigrateReset.new(identity),
+          deploy: MigrateDeploy.new(identity),
+          diff: MigrateDiff.new(identity),
+        },
+        identity,
+      ),
+      db: DbCommand.new(
+        {
+          execute: DbExecute.new(identity),
+          pull: DbPull.new(identity),
+          push: DbPush.new(identity),
+          // drop: DbDrop.new('prisma'),
+          seed: DbSeed.new(identity),
+        },
+        identity,
+      ),
       postgres: PostgresCommand.new(
         {
           link: PostgresLink.new(identity),

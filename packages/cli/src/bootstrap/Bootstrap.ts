@@ -413,7 +413,7 @@ export class Bootstrap implements Command {
             if (useLocalBin && localPrismaBin) {
               runLocalPrismaCommand(localPrismaBin, ['migrate', 'dev', '--name', 'init'], baseDir, subprocessEnv)
             } else {
-              const migrateDev = MigrateDev.new()
+              const migrateDev = MigrateDev.new(this.identity)
               const migrateResult = await migrateDev.parse(['--name', 'init'], activeConfig, baseDir)
 
               if (migrateResult instanceof Error) {
@@ -496,7 +496,7 @@ export class Bootstrap implements Command {
             if (useLocalBin && localPrismaBin) {
               runLocalPrismaCommand(localPrismaBin, ['db', 'seed'], baseDir, subprocessEnv)
             } else {
-              const dbSeed = DbSeed.new()
+              const dbSeed = DbSeed.new(this.identity)
               const seedResult = await dbSeed.parse([], activeConfig)
 
               if (seedResult instanceof Error) {

@@ -311,7 +311,7 @@ export class Init implements Command {
 
     if (urlArg) {
       checkUnsupportedDataProxy({
-        cmd: 'init',
+        command: `${this.identity} init`,
         validatedConfig: { datasource: { url: urlArg } },
       })
     }

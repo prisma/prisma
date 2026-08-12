@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
@@ -10,8 +10,14 @@ const prisma7Bin = path.join(rootDir, 'node_modules', '.bin', 'prisma7')
 const ansiPattern = new RegExp(String.raw`\u001B\[[0-9;]*m`, 'g')
 
 type CommandOutput = {
+  status: number | null
   stderr: string
   stdout: string
+}
+
+type ProjectFiles = {
+  prismaConfig: string
+  schema: string
 }
 
 type VersionProjection = {
@@ -94,37 +100,188 @@ function projectVersion(versionText: CommandOutput, versionJson: Record<string, 
   }
 }
 
-function run(command: string, args: string[], cwd = rootDir): CommandOutput {
+function execute(
+  command: string,
+  args: string[],
+  cwd = rootDir,
+  envOverrides: Record<string, string | undefined> = {},
+): CommandOutput {
   const result = spawnSync(command, args, {
     cwd,
     encoding: 'utf8',
     env: {
       ...process.env,
       NO_COLOR: '1',
+      ...envOverrides,
     },
   })
+
+  return {
+    status: result.status,
+    stdout: result.stdout,
+    stderr: result.stderr,
+  }
+}
+
+function run(
+  command: string,
+  args: string[],
+  cwd = rootDir,
+  envOverrides: Record<string, string | undefined> = {},
+): CommandOutput {
+  const result = execute(command, args, cwd, envOverrides)
 
   expect(
     result.status,
     `${command} ${args.join(' ')} failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   ).toBe(0)
 
-  return {
-    stdout: result.stdout,
-    stderr: result.stderr,
-  }
+  return result
+}
+
+function runExpectFailure(
+  command: string,
+  args: string[],
+  cwd = rootDir,
+  envOverrides: Record<string, string | undefined> = {},
+): CommandOutput {
+  const result = execute(command, args, cwd, envOverrides)
+
+  expect(
+    result.status,
+    `${command} ${args.join(' ')} unexpectedly succeeded\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
+  ).not.toBe(0)
+
+  return result
+}
+
+function combinedOutput(output: CommandOutput, replacements: ReadonlyArray<readonly [string, string]>): string {
+  return normalizeText(`${output.stdout}\n${output.stderr}`, replacements)
+}
+
+async function writeProject(dir: string, files: ProjectFiles): Promise<void> {
+  await mkdir(path.join(dir, 'prisma'), { recursive: true })
+  await writeFile(path.join(dir, 'package.json'), '{"private":true}\n')
+  await writeFile(path.join(dir, 'prisma.config.ts'), files.prismaConfig)
+  await writeFile(path.join(dir, 'prisma', 'schema.prisma'), files.schema)
 }
 
 test('prisma7 snapshots real CLI-owned identity surfaces and keeps the packed smoke green', async () => {
   const initProjectDir = await mkdtemp(path.join(os.tmpdir(), 'prisma7-init-'))
+  const migrateProjectDir = await mkdtemp(path.join(os.tmpdir(), 'prisma7-migrate-'))
+  const dbPushProjectDir = await mkdtemp(path.join(os.tmpdir(), 'prisma7-db-push-'))
+  const noGeneratorProjectDir = await mkdtemp(path.join(os.tmpdir(), 'prisma7-no-generator-'))
+  const noModelsProjectDir = await mkdtemp(path.join(os.tmpdir(), 'prisma7-no-models-'))
+  const missingClientProjectDir = await mkdtemp(path.join(os.tmpdir(), 'prisma7-missing-client-'))
   const replacements = [
     [rootDir, '<cwd>'],
     [initProjectDir, '<init-project>'],
+    [migrateProjectDir, '<migrate-project>'],
+    [dbPushProjectDir, '<db-push-project>'],
+    [noGeneratorProjectDir, '<no-generator-project>'],
+    [noModelsProjectDir, '<no-models-project>'],
+    [missingClientProjectDir, '<missing-client-project>'],
     [prisma7Bin, '<prisma7-bin>'],
   ] as const
 
   try {
     await writeFile(path.join(initProjectDir, 'package.json'), '{"private":true}\n')
+
+    await writeProject(migrateProjectDir, {
+      prismaConfig: `import { defineConfig } from 'prisma7/config'
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  datasource: {},
+})
+`,
+      schema: `datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id Int @id @default(autoincrement())
+}
+`,
+    })
+
+    await writeProject(dbPushProjectDir, {
+      prismaConfig: `import { defineConfig } from 'prisma7/config'
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  datasource: {
+    url: 'file:./dev.db',
+  },
+})
+`,
+      schema: `datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  name  String
+}
+`,
+    })
+
+    await writeProject(noGeneratorProjectDir, {
+      prismaConfig: `import { defineConfig } from 'prisma7/config'
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+})
+`,
+      schema: `datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id Int @id @default(autoincrement())
+}
+`,
+    })
+
+    await writeProject(noModelsProjectDir, {
+      prismaConfig: `import { defineConfig } from 'prisma7/config'
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+})
+`,
+      schema: `generator client {
+  provider = "prisma-client"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+`,
+    })
+
+    await writeProject(missingClientProjectDir, {
+      prismaConfig: `import { defineConfig } from 'prisma7/config'
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+})
+`,
+      schema: `generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id Int @id @default(autoincrement())
+}
+`,
+    })
 
     const topLevelHelp = run('pnpm', ['exec', 'prisma7', '--help'])
     const delegatedHelp = run('pnpm', ['exec', 'prisma7', 'validate', '--help'])
@@ -135,13 +292,35 @@ test('prisma7 snapshots real CLI-owned identity surfaces and keeps the packed sm
     >
     const completionZsh = run('pnpm', ['exec', 'prisma7', 'complete', 'zsh'])
     const init = run(prisma7Bin, ['init', '--datasource-provider', 'postgresql', '--no-skills'], initProjectDir)
+    const migrateStatus = runExpectFailure(prisma7Bin, ['migrate', 'status'], migrateProjectDir)
+    const firstDbPush = run(prisma7Bin, ['db', 'push', '--force-reset'], dbPushProjectDir)
+
+    await writeFile(
+      path.join(dbPushProjectDir, 'insert.sql'),
+      'INSERT INTO "User" ("email", "name") VALUES (\'a@b.c\', \'Ada\');\n',
+    )
+    run(prisma7Bin, ['db', 'execute', '--file', 'insert.sql'], dbPushProjectDir)
+
+    await writeFile(
+      path.join(dbPushProjectDir, 'prisma', 'schema.prisma'),
+      `datasource db {
+  provider = "sqlite"
+}
+`,
+    )
+
+    const dbPushDataLoss = runExpectFailure(prisma7Bin, ['db', 'push'], dbPushProjectDir, { GITHUB_ACTIONS: '1' })
+    const noGenerator = run(prisma7Bin, ['generate'], noGeneratorProjectDir)
+    const noModels = runExpectFailure(prisma7Bin, ['generate', '--require-models'], noModelsProjectDir)
+    const missingClient = runExpectFailure(prisma7Bin, ['generate'], missingClientProjectDir)
 
     const initFiles = (await readdir(initProjectDir)).sort()
     const prismaFiles = (await readdir(path.join(initProjectDir, 'prisma'))).sort()
     const prismaConfig = await readFile(path.join(initProjectDir, 'prisma.config.ts'), 'utf8')
     const env = await readFile(path.join(initProjectDir, '.env'), 'utf8')
 
-    expect(normalizeValue(topLevelHelp, replacements)).toMatchInlineSnapshot(`
+    expect(normalizeValue({ stdout: topLevelHelp.stdout, stderr: topLevelHelp.stderr }, replacements))
+      .toMatchInlineSnapshot(`
       {
         "stderr": "Loaded Prisma config from prisma.config.ts.",
         "stdout": "
@@ -215,7 +394,8 @@ test('prisma7 snapshots real CLI-owned identity surfaces and keeps the packed sm
             $ prisma7 debug",
       }
     `)
-    expect(normalizeValue(delegatedHelp, replacements)).toMatchInlineSnapshot(`
+    expect(normalizeValue({ stdout: delegatedHelp.stdout, stderr: delegatedHelp.stderr }, replacements))
+      .toMatchInlineSnapshot(`
       {
         "stderr": "Loaded Prisma config from prisma.config.ts.",
         "stdout": "
@@ -353,6 +533,30 @@ test('prisma7 snapshots real CLI-owned identity surfaces and keeps the packed sm
       Learn more: https://pris.ly/getting-started"
     `)
 
+    expect(combinedOutput(migrateStatus, replacements)).toContain(
+      'The datasource.url property is required in your Prisma config file when using prisma7 migrate status.',
+    )
+    expect(combinedOutput(migrateStatus, replacements)).not.toContain('when using prisma migrate status.')
+
+    expect(normalizeText(firstDbPush.stdout, replacements)).toContain(
+      'Your database is now in sync with your Prisma schema',
+    )
+    expect(combinedOutput(dbPushDataLoss, replacements)).toContain(
+      'Use the --accept-data-loss flag to ignore the data loss warnings like prisma7 db push --accept-data-loss',
+    )
+    expect(combinedOutput(dbPushDataLoss, replacements)).not.toContain(
+      'Use the --accept-data-loss flag to ignore the data loss warnings like prisma db push --accept-data-loss',
+    )
+
+    expect(combinedOutput(noGenerator, replacements)).toContain('$ prisma7 generate')
+    expect(combinedOutput(noGenerator, replacements)).not.toContain('$ prisma generate')
+
+    expect(combinedOutput(noModels, replacements)).toContain('$ prisma7 generate')
+    expect(combinedOutput(noModels, replacements)).not.toContain('$ prisma generate')
+
+    expect(combinedOutput(missingClient, replacements)).toContain('rerun npx "prisma7 generate"')
+    expect(combinedOutput(missingClient, replacements)).not.toContain('rerun npx "prisma generate"')
+
     run('pnpm', ['exec', 'tsc', '--noEmit'])
     run('pnpm', ['exec', 'prisma7', 'generate'])
     run('pnpm', ['exec', 'prisma7', 'db', 'push', '--force-reset'])
@@ -371,5 +575,10 @@ test('prisma7 snapshots real CLI-owned identity surfaces and keeps the packed sm
     run('tsx', ['smoke.ts'])
   } finally {
     await rm(initProjectDir, { recursive: true, force: true })
+    await rm(migrateProjectDir, { recursive: true, force: true })
+    await rm(dbPushProjectDir, { recursive: true, force: true })
+    await rm(noGeneratorProjectDir, { recursive: true, force: true })
+    await rm(noModelsProjectDir, { recursive: true, force: true })
+    await rm(missingClientProjectDir, { recursive: true, force: true })
   }
 }, 120_000)

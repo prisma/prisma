@@ -43,7 +43,7 @@ describe('artificial-panic introspection', () => {
     expect.assertions(4)
     process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
 
-    const command = new DbPull()
+    const command = DbPull.new('prisma')
     try {
       await command.parse(['--print'], await ctx.config())
     } catch (e) {
