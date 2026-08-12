@@ -1,11 +1,11 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import type { PackageManagerRunner } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 let projectDir: string;
 let calls: Array<{ readonly file: string; readonly args: readonly string[] }>;
@@ -16,7 +16,7 @@ const runner: PackageManagerRunner = async (request) => {
 };
 
 beforeEach(() => {
-  projectDir = mkdtempSync(join(tmpdir(), 'orm-init-scaffold-'));
+  projectDir = createTestProjectDir('orm-init-scaffold');
   calls = [];
 });
 

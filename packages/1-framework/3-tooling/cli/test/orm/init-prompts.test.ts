@@ -1,10 +1,10 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
 import { basename, join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 /**
  * `init` reaches its package-manager capability only when it installs; every
@@ -16,7 +16,7 @@ const NO_PACKAGE_WORK = ['--skip-install', '--skip-skills'] as const;
 let projectDir: string;
 
 beforeEach(() => {
-  projectDir = mkdtempSync(join(tmpdir(), 'orm-init-prompts-'));
+  projectDir = createTestProjectDir('orm-init-prompts');
 });
 
 afterEach(() => {

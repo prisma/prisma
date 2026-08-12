@@ -1,10 +1,10 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
 import { basename, dirname, join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 /**
  * Every case here re-scaffolds over files that are already on disk, which is
@@ -20,7 +20,7 @@ const HAND_WRITTEN_CONFIG = 'export default {}\n';
 let projectDir: string;
 
 beforeEach(() => {
-  projectDir = mkdtempSync(join(tmpdir(), 'orm-init-reinit-'));
+  projectDir = createTestProjectDir('orm-init-reinit');
 });
 
 afterEach(() => {

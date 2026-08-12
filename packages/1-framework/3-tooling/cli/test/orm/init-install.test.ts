@@ -1,11 +1,11 @@
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { rmSync } from 'node:fs';
 import type { MountedTree, PackageManagerId, PackageManagerRunner } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const mocks = vi.hoisted(() => ({ emit: vi.fn() }));
 
@@ -51,7 +51,7 @@ const PNPM_WORKSPACE_LEAK =
   'ERR_PNPM_WORKSPACE_PKG_NOT_FOUND  In : "@prisma/orm-postgres@workspace:*" is in the dependencies but no package named "@prisma/orm-postgres" is present in the workspace';
 
 beforeEach(() => {
-  projectDir = mkdtempSync(join(tmpdir(), 'orm-init-install-'));
+  projectDir = createTestProjectDir('orm-init-install');
   calls = [];
   script = [];
   mocks.emit.mockReset().mockResolvedValue(undefined);
