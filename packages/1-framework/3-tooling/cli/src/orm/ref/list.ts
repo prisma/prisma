@@ -49,21 +49,27 @@ function listPresentations(document: RefListResult): Presentations {
   };
 }
 
-export const refListCommand = defineOrmCommand({
-  help: {
-    summary: 'List every named ref',
-    description:
-      'Reads migrations/app/refs/ and reports each ref with the contract hash it\n' +
-      'points at and the invariants recorded against it. Offline — does not\n' +
-      'consult the database.',
-    examples: ['ref list', 'ref list --json'],
-  },
-  needs: { config: ormConfigSection },
-  handler: async (_args, ctx) => {
-    const result = await executeRefListCommand({ config: ctx.config, cwd: ctx.cwd });
-    if (!result.ok) {
-      return notOk(normalizeError(result.failure));
-    }
-    return ok(ctx.present({ data: result.value }, listPresentations(result.value)));
-  },
-});
+export function createRefListCommand(
+  execute: typeof executeRefListCommand = executeRefListCommand,
+) {
+  return defineOrmCommand({
+    help: {
+      summary: 'List every named ref',
+      description:
+        'Reads migrations/app/refs/ and reports each ref with the contract hash it\n' +
+        'points at and the invariants recorded against it. Offline — does not\n' +
+        'consult the database.',
+      examples: ['ref list', 'ref list --json'],
+    },
+    needs: { config: ormConfigSection },
+    handler: async (_args, ctx) => {
+      const result = await execute({ config: ctx.config, cwd: ctx.cwd });
+      if (!result.ok) {
+        return notOk(normalizeError(result.failure));
+      }
+      return ok(ctx.present({ data: result.value }, listPresentations(result.value)));
+    },
+  });
+}
+
+export const refListCommand = createRefListCommand();

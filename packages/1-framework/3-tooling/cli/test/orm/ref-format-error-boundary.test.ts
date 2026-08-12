@@ -1,54 +1,36 @@
 import { CliStructuredError } from '@internal/errors/control';
 import type { ErroredEnvelope, MountedTree, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
-import { timeouts } from '@repo/test-utils';
 import type { Mock } from 'vitest';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { executeFormat } from '../../src/control-api/operations/format';
+import type {
+  executeRefDeleteCommand,
+  executeRefListCommand,
+  executeRefSetCommand,
+} from '../../src/control-api/operations/ref';
+import { BIN_GROUPS } from '../../src/orm/cli';
+import { createFormatCommand } from '../../src/orm/format';
+import { createRefDeleteCommand } from '../../src/orm/ref/delete';
+import { createRefListCommand } from '../../src/orm/ref/list';
+import { createRefSetCommand } from '../../src/orm/ref/set';
 
-const mocks = vi.hoisted(() => ({
-  executeFormat: vi.fn(),
-  executeRefDeleteCommand: vi.fn(),
-  executeRefListCommand: vi.fn(),
-  executeRefSetCommand: vi.fn(),
-}));
+const operations = {
+  executeFormat: vi.fn<typeof executeFormat>(),
+  executeRefDeleteCommand: vi.fn<typeof executeRefDeleteCommand>(),
+  executeRefListCommand: vi.fn<typeof executeRefListCommand>(),
+  executeRefSetCommand: vi.fn<typeof executeRefSetCommand>(),
+};
 
-vi.mock('../../src/control-api/operations/format', () => ({
-  executeFormat: mocks.executeFormat,
-}));
-
-vi.mock('../../src/control-api/operations/ref', () => ({
-  executeRefDeleteCommand: mocks.executeRefDeleteCommand,
-  executeRefListCommand: mocks.executeRefListCommand,
-  executeRefSetCommand: mocks.executeRefSetCommand,
-}));
-
-/**
- * The command tree is imported after the module registry is reset, so the
- * mocked operations are the ones these commands close over. Repo-wide vitest
- * runs with `isolate: false`, and another file that loaded the command tree
- * first would otherwise have baked the real operations into it.
- */
-let commands: MountedTree;
-let groups: typeof BinGroups;
-
-beforeAll(async () => {
-  vi.resetModules();
-  const cli = await import('../../src/orm/cli');
-  commands = cli.BIN_COMMANDS;
-  groups = cli.BIN_GROUPS;
-}, timeouts.coldTransformImport);
-
-afterAll(() => {
-  // The `vi.mock` leaks into the next file in the same worker; unmock and
-  // reset so the next file loads the real operations.
-  vi.doUnmock('../../src/control-api/operations/format');
-  vi.doUnmock('../../src/control-api/operations/ref');
-  vi.resetModules();
-});
+const commands: MountedTree = {
+  format: createFormatCommand(operations.executeFormat),
+  'ref delete': createRefDeleteCommand(operations.executeRefDeleteCommand),
+  'ref list': createRefListCommand(operations.executeRefListCommand),
+  'ref set': createRefSetCommand(operations.executeRefSetCommand),
+};
 
 beforeEach(() => {
-  for (const operation of Object.values(mocks)) {
+  for (const operation of Object.values(operations)) {
     operation.mockReset();
   }
 });
@@ -63,7 +45,7 @@ const DESCRIPTOR = {
 function harness() {
   return createTestCli({
     commands,
-    groups,
+    groups: BIN_GROUPS,
     config: {
       orm: {
         family: {
@@ -114,17 +96,17 @@ interface BoundaryCase {
 const HASH = `4cb4256${'0'.repeat(57)}`;
 
 const CASES: readonly BoundaryCase[] = [
-  { command: 'format', argv: ['format'], operation: mocks.executeFormat },
+  { command: 'format', argv: ['format'], operation: operations.executeFormat },
   {
     command: 'ref delete',
     argv: ['ref', 'delete', 'staging'],
-    operation: mocks.executeRefDeleteCommand,
+    operation: operations.executeRefDeleteCommand,
   },
-  { command: 'ref list', argv: ['ref', 'list'], operation: mocks.executeRefListCommand },
+  { command: 'ref list', argv: ['ref', 'list'], operation: operations.executeRefListCommand },
   {
     command: 'ref set',
     argv: ['ref', 'set', 'staging', HASH],
-    operation: mocks.executeRefSetCommand,
+    operation: operations.executeRefSetCommand,
   },
 ];
 
