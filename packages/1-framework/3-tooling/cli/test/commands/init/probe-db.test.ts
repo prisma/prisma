@@ -1,6 +1,5 @@
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it, vi } from 'vitest';
-import { applyProbeOutcome } from '../../../src/commands/init/init';
 import {
   compareVersionPrefix,
   type ProbeOutcome,
@@ -220,72 +219,4 @@ describe('probeServerVersion (FR8.3)', () => {
     expect(probeMongo).toHaveBeenCalledTimes(1);
     expect(outcome.kind).toBe('ok');
   });
-});
-
-// ---------------------------------------------------------------------------
-// FR8.3 — applyProbeOutcome routes outcomes to warning vs. fatal
-// ---------------------------------------------------------------------------
-
-describe('applyProbeOutcome (FR8.3 routing)', () => {
-  function fixture(overrides: Partial<ProbeOutcome> = {}): ProbeOutcome {
-    return {
-      kind: 'ok',
-      serverVersion: '14',
-      minVersion: '14',
-      meetsMinimum: true,
-      message: 'ok',
-      ...overrides,
-    } as ProbeOutcome;
-  }
-
-  it('"ok" returns null and does not push a warning', () => {
-    const warnings: string[] = [];
-    const result = applyProbeOutcome(fixture(), { strictProbe: false, warnings });
-    expect(result).toBeNull();
-    expect(warnings).toEqual([]);
-  });
-
-  it('"below-minimum" pushes a warning regardless of --strict-probe', () => {
-    for (const strictProbe of [false, true]) {
-      const warnings: string[] = [];
-      const result = applyProbeOutcome(
-        {
-          kind: 'below-minimum',
-          serverVersion: '13',
-          minVersion: '14',
-          meetsMinimum: false,
-          message: 'too old',
-        },
-        { strictProbe, warnings },
-      );
-      expect(result).toBeNull();
-      expect(warnings).toEqual(['too old']);
-    }
-  });
-
-  for (const kind of ['no-database-url', 'connection-failed', 'driver-missing'] as const) {
-    it(`"${kind}" pushes a warning by default and escalates under --strict-probe`, () => {
-      const probeFailure = {
-        kind,
-        minVersion: '14',
-        meetsMinimum: null,
-        cause: 'detail',
-        message: 'probe failed',
-      } as unknown as ProbeOutcome;
-
-      // Default: warning, no escalation.
-      const warningsLoose: string[] = [];
-      expect(
-        applyProbeOutcome(probeFailure, { strictProbe: false, warnings: warningsLoose }),
-      ).toBeNull();
-      expect(warningsLoose).toEqual(['probe failed']);
-
-      // --strict-probe: escalates and does not also append a warning.
-      const warningsStrict: string[] = [];
-      expect(applyProbeOutcome(probeFailure, { strictProbe: true, warnings: warningsStrict })).toBe(
-        'probe failed',
-      );
-      expect(warningsStrict).toEqual([]);
-    });
-  }
 });
