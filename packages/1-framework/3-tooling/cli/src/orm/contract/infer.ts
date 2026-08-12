@@ -13,7 +13,7 @@ import {
   errorRuntime,
   errorUnexpected,
 } from '../../utils/cli-errors';
-import { maskConnectionUrl, sanitizeErrorMessage } from '../../utils/command-helpers';
+import { closeQuietly, maskConnectionUrl, sanitizeErrorMessage } from '../../utils/command-helpers';
 import { publishTextArtifact } from '../../utils/publish-text-artifact';
 import { ormConfigSection } from '../config-section';
 import { defineOrmCommand } from '../define-command';
@@ -151,7 +151,7 @@ export const contractInferCommand = defineOrmCommand({
         ),
       );
     } finally {
-      await client.close();
+      await closeQuietly(client);
     }
 
     const outputPath = inferredContractPathFor({
