@@ -12,7 +12,7 @@ The one package a MongoDB application installs. It wires the framework, the Mong
 ├── @prisma/orm-framework      contracts, components, runtime core
 ├── @prisma/orm-family-mongo   Mongo contract, query builders, runtime
 ├── @prisma/orm-target-mongo   target descriptor + adapter + driver
-└── @prisma/orm-toolchain      CLI (installs the `prisma-next` command), emitter, config loader
+└── @prisma/orm-toolchain      ORM command family for the `prisma` CLI, emitter, config loader
 ```
 
 `mongodb` is a peer dependency: the driver is the application's, so a single connection pool and a single BSON implementation serve both Prisma Next and any direct `mongodb` use in the same process.
@@ -41,9 +41,9 @@ Generated contract files import their types from the facade, so an application n
 
 These forward; they do not copy. `@prisma/orm-mongo/contract/types` and `@prisma/orm-framework/contract/types` are the same module, so shared registries and `instanceof` checks hold across the boundary.
 
-## The `prisma-next` command
+## The CLI
 
-Installing this package puts `prisma-next` on the project's `PATH`. It runs the toolchain's single published copy of the CLI — the facade carries a launcher, not a second copy of the program.
+This package ships no bin. The ORM commands run inside the unified `prisma` CLI, which mounts the command family published at `@prisma/orm-toolchain/cli`.
 
 ## Responsibilities
 
