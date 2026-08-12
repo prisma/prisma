@@ -17,7 +17,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { promisify } from 'node:util';
-import { loadOrmConfig, ormCommandFamily } from '@internal/cli';
+import { destructiveConsentToken, loadOrmConfig, ormCommandFamily } from '@internal/cli';
 import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
 import { createContractInferCommand } from '@internal/cli/commands/contract-infer';
 import { createDbSignCommand } from '@internal/cli/commands/db-sign';
@@ -428,19 +428,14 @@ export async function runDbUpdate(
 }
 
 /**
- * What `db update` asks the user to type before it destroys anything: the
- * database named by the connection it resolved. A journey that means to accept
- * data loss passes it as `--confirm`, because `--yes` cannot grant a consent.
+ * What `db update` asks the user to type before it destroys anything, derived by
+ * the command's own rule rather than a second copy of it. A journey that means
+ * to accept data loss passes it as `--confirm`, because `--yes` cannot grant a
+ * consent. The journeys all run against Postgres, so `postgres` is the target id
+ * the rule would fall back to.
  */
 export function consentTokenFor(connectionString: string): string {
-  const segments = new URL(connectionString).pathname
-    .split('/')
-    .filter((segment) => segment.length > 0);
-  const database = segments.at(-1);
-  if (database === undefined) {
-    throw new Error(`consentTokenFor: ${connectionString} names no database`);
-  }
-  return database;
+  return destructiveConsentToken(connectionString, 'postgres');
 }
 
 export async function runDbVerify(
