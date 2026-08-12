@@ -1,5 +1,6 @@
 import { CliStructuredError } from '@internal/errors/control';
 import { ifDefined } from '@internal/utils/defined';
+import type { NextAction } from '@internal/utils/structured-error';
 import { basename, dirname, relative } from 'pathe';
 import type { MigrationGraph } from './graph';
 
@@ -47,6 +48,7 @@ export class MigrationToolsError extends CliStructuredError {
     options: {
       readonly why: string;
       readonly fix: string;
+      readonly nextActions?: readonly NextAction[];
       readonly meta?: Record<string, unknown>;
       readonly cause?: unknown;
     },
@@ -296,6 +298,18 @@ export function errorInvalidRefValue(value: string): MigrationToolsError {
   return new MigrationToolsError('MIGRATION.INVALID_REF_VALUE', 'Invalid ref value', {
     why: `Ref value "${value}" is not a valid contract hash. Values must be a 64-character hex digest or "empty".`,
     fix: 'Use a valid storage hash from `prisma-next contract emit` output or an existing migration.',
+    nextActions: [
+      {
+        kind: 'run-command',
+        label: 'Emit the contract to obtain a valid storage hash',
+        command: '{bin} contract emit',
+      },
+      {
+        kind: 'run-command',
+        label: 'List existing migrations to reuse one of their hashes',
+        command: '{bin} migration list',
+      },
+    ],
     meta: { value },
   });
 }
@@ -458,6 +472,22 @@ export function errorRefNotResolvable(refName: string): MigrationToolsError {
     {
       why: `Ref "${refName}" has no pointer file, and the hash being resolved is not a node in the migration graph either — there is nothing to materialize a contract from.`,
       fix: `Create the ref with "prisma-next ref set ${refName} <hash>" (or advance it via "prisma-next db update --advance-ref ${refName}"), or pass a hash that is a node in the migration graph.`,
+      nextActions: [
+        {
+          kind: 'run-command',
+          label: `Create the ref "${refName}"`,
+          command: `{bin} ref set ${refName} <hash>`,
+        },
+        {
+          kind: 'run-command',
+          label: `Advance the ref "${refName}" as part of an update`,
+          command: `{bin} db update --advance-ref ${refName}`,
+        },
+        {
+          kind: 'user-choice',
+          label: 'Pass a hash that is already a node in the migration graph',
+        },
+      ],
       meta: { refName, identifier: refName },
     },
   );
@@ -503,6 +533,19 @@ export function errorHashNotInGraph(hash: string, graph: MigrationGraph): Migrat
     {
       why: `The migration graph contains nodes ${reachableList}; "${hash}" isn't one of them.`,
       fix: `Pass a hash that's the from-or-to of an on-disk migration bundle, use --from with a graph-node hash, or run "prisma-next migration plan" to introduce it.`,
+      nextActions: [
+        {
+          kind: 'user-choice',
+          label:
+            'Pass a hash that is the from-or-to of an on-disk migration bundle, or use --from with a graph-node hash',
+          reason: `Graph nodes: ${reachableList}.`,
+        },
+        {
+          kind: 'run-command',
+          label: `Introduce "${hash}" by planning a migration for it`,
+          command: '{bin} migration plan',
+        },
+      ],
       meta: { hash, reachableHashes },
     },
   );
@@ -518,6 +561,21 @@ export function errorContractSnapshotMissing(
     {
       why: `Expected a contract snapshot for ${storageHash} at "${expectedPath}" but the file does not exist.`,
       fix: "Re-emit the contract snapshot by re-running the command that authored the migration referencing this hash (`prisma-next migration plan` for app-space migrations; the extension's contract-space build for extension spaces), or restore migrations/snapshots/ from version control.",
+      nextActions: [
+        {
+          kind: 'run-command',
+          label: 'Re-emit the snapshot for an app-space migration',
+          command: '{bin} migration plan',
+        },
+        {
+          kind: 'user-choice',
+          label: "For an extension space, re-run that extension's contract-space build instead",
+        },
+        {
+          kind: 'user-choice',
+          label: 'Restore migrations/snapshots/ from version control',
+        },
+      ],
       meta: { storageHash, expectedPath },
     },
   );

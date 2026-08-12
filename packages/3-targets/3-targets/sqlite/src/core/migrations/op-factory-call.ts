@@ -103,8 +103,7 @@ function renderDdlConstraintAsTsCall(constraint: DdlTableConstraint): string {
     case 'check-expression':
       throw sqliteError(
         'CONTRACT.CONSTRAINT_INVALID',
-        `SQLite does not support expression CHECK constraints (constraint "${constraint.name}"). ` +
-          'Scalar-array columns and their element-non-null checks are Postgres-only.',
+        `The SQLite target does not support CHECK constraints (constraint "${constraint.name}"). The "checkConstraint" capability is Postgres-only — remove the "@@check" / "check()" declaration, or target Postgres.`,
         { meta: { constraintName: constraint.name } },
       );
   }

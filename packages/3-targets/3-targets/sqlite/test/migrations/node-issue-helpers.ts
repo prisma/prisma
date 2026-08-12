@@ -141,6 +141,7 @@ export function table(input: {
   readonly foreignKeys?: readonly SqlForeignKeyIR[];
   readonly uniques?: readonly SqlUniqueIR[];
   readonly indexes?: readonly SqlIndexIR[];
+  readonly checks?: readonly SqlCheckConstraintIR[];
 }): SqlTableIR {
   return new SqlTableIR({
     name: input.name,
@@ -149,6 +150,7 @@ export function table(input: {
     foreignKeys: input.foreignKeys ?? [],
     uniques: input.uniques ?? [],
     indexes: input.indexes ?? [],
+    ...(input.checks !== undefined ? { checks: input.checks } : {}),
   });
 }
 
