@@ -105,18 +105,28 @@ export function createServer(connection: Connection): LanguageServer {
   let clientCapabilities = noClientCapabilities;
   let disposed = false;
 
-  function sendDiagnostics(params: PublishDiagnosticsParams): void {
+  /**
+   * The client can go away between the check and the send — the transport
+   * closing closes the connection under us — and sending on a dead connection
+   * throws. There is nowhere left to report that to.
+   */
+  function whileConnected(send: () => void): void {
     if (disposed) {
       return;
     }
-    void connection.sendDiagnostics(params);
+    try {
+      send();
+    } catch {
+      // The connection is already gone.
+    }
+  }
+
+  function sendDiagnostics(params: PublishDiagnosticsParams): void {
+    whileConnected(() => void connection.sendDiagnostics(params));
   }
 
   function logWarn(message: string): void {
-    if (disposed) {
-      return;
-    }
-    connection.console.warn(message);
+    whileConnected(() => connection.console.warn(message));
   }
 
   async function publish(uri: string): Promise<void> {
@@ -368,18 +378,9 @@ export function createServer(connection: Connection): LanguageServer {
 
   function publishSafely(uri: string): void {
     void publish(uri).catch((error: unknown) => {
-      if (disposed) {
-        return;
-      }
-      // The connection can die between the `disposed` check and this log call
-      // (e.g. the client tears down the transport before `dispose()` runs);
-      // `console.error` sends a notification, which then throws on the dead
-      // connection. Swallow it — there is nowhere left to report to.
-      try {
-        connection.console.error(error instanceof Error ? error.message : String(error));
-      } catch {
-        // Connection already disposed; nothing to do.
-      }
+      whileConnected(() =>
+        connection.console.error(error instanceof Error ? error.message : String(error)),
+      );
     });
   }
 
@@ -516,17 +517,20 @@ export function createServer(connection: Connection): LanguageServer {
 
   connection.onInitialized(() => {
     if (clientCapabilities.watchedFilesRegistration) {
-      void connection
-        .sendRequest(RegistrationRequest.type, {
-          registrations: [
-            {
-              id: 'prisma-8-config-watcher',
-              method: DidChangeWatchedFilesNotification.type.method,
-              registerOptions: { watchers: [{ globPattern: watchedConfigGlob }] },
-            },
-          ],
-        })
-        .catch(() => undefined);
+      whileConnected(
+        () =>
+          void connection
+            .sendRequest(RegistrationRequest.type, {
+              registrations: [
+                {
+                  id: 'prisma-8-config-watcher',
+                  method: DidChangeWatchedFilesNotification.type.method,
+                  registerOptions: { watchers: [{ globPattern: watchedConfigGlob }] },
+                },
+              ],
+            })
+            .catch(() => undefined),
+      );
     } else {
       logWarn(
         'Client does not support dynamic file-watcher registration; Prisma Next config changes will not be picked up without a restart.',
@@ -558,10 +562,9 @@ export function createServer(connection: Connection): LanguageServer {
     if (
       clientCapabilities.pullDiagnostics &&
       clientCapabilities.diagnosticsRefresh &&
-      changedConfigPaths.size > 0 &&
-      !disposed
+      changedConfigPaths.size > 0
     ) {
-      void connection.languages.diagnostics.refresh().catch(() => undefined);
+      whileConnected(() => void connection.languages.diagnostics.refresh().catch(() => undefined));
     }
   });
 

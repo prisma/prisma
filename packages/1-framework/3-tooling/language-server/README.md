@@ -46,7 +46,9 @@ Supported capabilities are intentionally narrow: parse diagnostics, whole-docume
 - `completion-context.ts` — pure cursor classifier for PSL completion contexts, currently routing model field type positions, descriptor-backed generic block parameter-key positions, and declaration keyword positions while marking everything outside slice scope unsupported.
 - `completion-provider.ts` — pure completion item provider for supported model field type, generic block parameter, and declaration keyword contexts.
 - `server.ts` — `createServer(connection)` wires diagnostics, whole-document formatting, folding ranges, semantic-token handlers, completion, config watching, and project-artifact access onto an injected connection.
-- `start-server.ts` — `startServer()` creates a stdio connection and starts the server. This is what the CLI delegates to.
+- `start-server.ts` — `startServer(streams?)` starts the server and resolves with an exit code. This is what the CLI delegates to. With no argument it builds its own stdio connection from the process arguments, and `vscode-languageserver/node` then ends the process itself on disconnect, so the promise never settles. With the host's streams it runs over those instead.
+- `stream-server.ts` — runs the server over an injected stream pair and resolves with the exit code the client's departure implies: 0 after a `shutdown`, 1 otherwise. Nothing here ends the process — the host owns it.
+- `stdio-transport.ts` — the byte adapter between a host's streams (`AsyncIterable<Uint8Array>` in, `write(text: string)` out) and the Node streams `vscode-languageserver`'s reader and writer want. Output is decoded with a `StringDecoder` so a UTF-8 sequence split across writes cannot change a message's `Content-Length`.
 
 ## Package Location
 
