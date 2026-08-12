@@ -51,7 +51,7 @@ export interface RunOnEngineOptions {
  * Every path segment the family's commands mount under. The shell owns the
  * real group text; the harness only needs the names to exist.
  */
-function groupsFor(commands: MountedTree): Record<string, { readonly brief: string }> {
+export function groupsFor(commands: MountedTree): Record<string, { readonly brief: string }> {
   const names = new Set<string>();
   for (const path of Object.keys(commands)) {
     const segments = path.split(' ');

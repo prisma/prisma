@@ -3,7 +3,7 @@ import { ifDefined } from '@internal/utils/defined';
 import type { StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import type { setupTestDirectoryFromFixtures } from './cli-test-helpers';
-import { setupDbTestFixture } from './cli-test-helpers';
+import { groupsFor, setupDbTestFixture } from './cli-test-helpers';
 
 export type DbInitTestSetup = ReturnType<typeof setupTestDirectoryFromFixtures>;
 
@@ -57,10 +57,7 @@ export async function runDbInit(
   const cli = createTestCli({
     commandFamilies: [ormCommandFamily],
     commands: ormCommandFamily.commands,
-    groups: {
-      db: { brief: 'Live database commands' },
-      migration: { brief: 'On-disk migration management commands' },
-    },
+    groups: groupsFor(ormCommandFamily.commands),
     // The engine parses `--config` itself and hands the path to this loader,
     // exactly as the real runtime does.
     loadConfig: (configPath) =>
