@@ -26,8 +26,20 @@ export * from './nullTypes'
  * https://github.com/prisma/prisma/issues/29882
  */
 export class Decimal extends DecimalJS {
-  [Symbol.toPrimitive](hint: 'default' | 'number' | 'string'): number | string {
-    if (hint === 'number') return Number(this.toString())
+  [Symbol.toPrimitive](hint: 'default' | 'number' | 'string'): number | bigint | string {
+    if (hint === 'number') {
+      const numeric = Number(this.toString())
+      // Number() is a double: it rounds integers beyond Number.MAX_SAFE_INTEGER
+      // (9007199254740992 and 9007199254740993 collapse to the same double) and
+      // overflows to Infinity past ~1.8e308 (1e1000 and 1e1001 both become
+      // Infinity). For those integers return an exact BigInt instead — JS
+      // relational operators compare Number/BigInt operands exactly, so
+      // `<`/`>`/`<=`/`>=` stay correct for large values too.
+      if (this.isInteger() && !Number.isSafeInteger(numeric)) {
+        return BigInt(this.toFixed(0))
+      }
+      return numeric
+    }
     return this.toString()
   }
 }
