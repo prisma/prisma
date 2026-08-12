@@ -2177,7 +2177,98 @@ export class RawSqlExpr extends QueryAst {
   }
 }
 
-export type AnyQueryAst = SelectAst | InsertAst | UpdateAst | DeleteAst | RawSqlExpr;
+/**
+ * One column of a raw query's declared result row: the codec that decodes the
+ * column and whether it may carry `null`. Structurally identical to the
+ * contract-free lane's `ColumnDescriptor`, so a spec written for one reads as
+ * a spec for the other.
+ */
+export interface RawQueryColumn {
+  readonly codecId: string;
+  readonly nullable: boolean;
+}
+
+/**
+ * What a raw statement yields: rows decoded against a declared column set, or
+ * the number of rows the statement affected.
+ */
+export type RawQueryResult =
+  | { readonly kind: 'rows'; readonly columns: Readonly<Record<string, RawQueryColumn>> }
+  | { readonly kind: 'affected-count' };
+
+function frozenRawQueryResult(result: RawQueryResult): RawQueryResult {
+  if (result.kind === 'affected-count') {
+    return Object.freeze({ kind: 'affected-count' as const });
+  }
+  const columns: Record<string, RawQueryColumn> = {};
+  for (const [name, column] of Object.entries(result.columns)) {
+    columns[name] = Object.freeze({ codecId: column.codecId, nullable: column.nullable });
+  }
+  return Object.freeze({ kind: 'rows' as const, columns: Object.freeze(columns) });
+}
+
+/**
+ * Raw-SQL statement AST node: a whole query authored as a template, carrying
+ * the same `parts` representation as {@link RawExpr} (literal SQL fragments
+ * interleaved with interpolated expressions and `ParamRef`s) plus the result
+ * the author declared for it.
+ *
+ * The shared `parts` shape is what lets a row-returning raw query be spliced
+ * into another raw template: the inner parts are concatenated into the outer
+ * list, so parameters keep their template order and lowering walks one flat
+ * sequence.
+ */
+export class RawQueryAst extends QueryAst {
+  readonly kind = 'raw-query' as const;
+  readonly parts: ReadonlyArray<string | AnyExpression>;
+  readonly result: RawQueryResult;
+
+  constructor(options: {
+    readonly parts: ReadonlyArray<string | AnyExpression>;
+    readonly result: RawQueryResult;
+  }) {
+    super();
+    this.parts = frozenArrayCopy(options.parts);
+    this.result = frozenRawQueryResult(options.result);
+    this.freeze();
+  }
+
+  static rows(
+    parts: ReadonlyArray<string | AnyExpression>,
+    columns: Readonly<Record<string, RawQueryColumn>>,
+  ): RawQueryAst {
+    return new RawQueryAst({ parts, result: { kind: 'rows', columns } });
+  }
+
+  static affectedCount(parts: ReadonlyArray<string | AnyExpression>): RawQueryAst {
+    return new RawQueryAst({ parts, result: { kind: 'affected-count' } });
+  }
+
+  rewrite(rewriter: AstRewriter): RawQueryAst {
+    return new RawQueryAst({
+      parts: this.parts.map((part) =>
+        typeof part === 'string' ? part : rewriteComparable(part, rewriter),
+      ),
+      result: this.result,
+    });
+  }
+
+  override collectParamRefs(): AnyParamRef[] {
+    const refs: AnyParamRef[] = [];
+    for (const part of this.parts) {
+      if (typeof part !== 'string') {
+        refs.push(...part.collectParamRefs());
+      }
+    }
+    return refs;
+  }
+
+  override toQueryAst(): AnyQueryAst {
+    return this;
+  }
+}
+
+export type AnyQueryAst = SelectAst | InsertAst | UpdateAst | DeleteAst | RawSqlExpr | RawQueryAst;
 export type AnyFromSource = TableSource | DerivedTableSource | FunctionSource;
 export type AnyExpression =
   | ColumnRef
@@ -2213,6 +2304,7 @@ export const queryAstKinds: ReadonlySet<string> = new Set<AnyQueryAst['kind']>([
   'update',
   'delete',
   'raw-sql',
+  'raw-query',
 ]);
 export const whereExprKinds: ReadonlySet<string> = new Set<AnyExpression['kind']>([
   'binary',
