@@ -8,6 +8,7 @@ import {
 import { buildGrid } from './migration-graph-grid-layout';
 import type { MigrationEdgeAnnotation } from './migration-graph-labels';
 import type { Highlight } from './migration-graph-model';
+import type { MigrationGraphPalette } from './migration-graph-palette';
 import { buildMigrationGraphRows } from './migration-graph-rows';
 import {
   buildEdgeAnnotationsByHashFromListEntries,
@@ -61,6 +62,8 @@ export interface RenderMigrationGraphSpaceTreeInput {
   readonly statusOverlayByHash?: ReadonlyMap<string, MigrationEdgeAnnotation>;
   readonly dbHash?: string;
   readonly styler?: MigrationListStyler;
+  /** Where the tree gets its colour. Defaults to the ANSI palette. */
+  readonly palette?: MigrationGraphPalette;
   /**
    * Cross-space override for the gutter→label column (the widest gutter across
    * sibling space sections, plus the label gap). Named for historical
@@ -141,6 +144,7 @@ function renderMigrationGraphSpaceTreeInternal(input: RenderMigrationGraphSpaceT
     refsByHash: input.refsByHash ?? buildRefsByHashFromListEntries(input.migrations),
     ...(input.dbHash !== undefined ? { dbHash: input.dbHash } : {}),
     ...(input.styler !== undefined ? { styler: input.styler } : {}),
+    ...(input.palette !== undefined ? { palette: input.palette } : {}),
     ...(input.globalMaxEdgeTreePrefixWidth !== undefined
       ? { globalLabelColumn: input.globalMaxEdgeTreePrefixWidth }
       : {}),

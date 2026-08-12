@@ -1,5 +1,4 @@
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { rm } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
@@ -9,15 +8,17 @@ import { blindCast } from '@internal/utils/casts';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { createSqlContract } from '@repo/test-utils';
 import { join } from 'pathe';
+import stripAnsi from 'strip-ansi';
 import { afterEach, describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const HASH_A = `4cb4256${'0'.repeat(57)}`;
 
 const dirs: string[] = [];
 
 async function projectDir(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'orm-list-'));
+  const dir = createTestProjectDir('orm-list');
   dirs.push(dir);
   return dir;
 }
@@ -126,7 +127,7 @@ describe('migration list', () => {
     expect(list.spaces.map((entry) => entry.space)).toEqual(['app']);
   });
 
-  it('ships the rendered table as the stdout presentation, not as blocks', async () => {
+  it('draws the tree as toned spans rather than a pre-coloured string', async () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
@@ -135,16 +136,63 @@ describe('migration list', () => {
       isTty: { stdout: true },
     });
 
-    expect(run.presented?.presentation.stdout).toEqual([
-      '○   4cb4256',
-      '│↑  20250101T0000_initial        ∅ → 4cb4256  1 ops',
-      '○   ∅',
-      '',
-      '1 migration(s) on disk',
-    ]);
     expect(run.presented?.presentation.human).toEqual([
-      { kind: 'fields', rows: [{ label: 'migrations', value: 'migrations' }] },
+      {
+        kind: 'fields',
+        rail: true,
+        rows: [{ label: 'migrations', value: 'migrations' }],
+      },
+      {
+        kind: 'drawing',
+        lines: [
+          [
+            { text: '○', tone: 'color-1' },
+            { text: '   ' },
+            { text: '4cb4256', tone: 'identifier' },
+          ],
+          [
+            { text: '│↑', tone: 'color-1' },
+            { text: '  ' },
+            { text: '20250101T0000_initial', tone: 'color-1' },
+            { text: '        ' },
+            { text: '∅', tone: 'structure' },
+            { text: ' ' },
+            { text: '→', tone: 'structure' },
+            { text: ' ' },
+            { text: '4cb4256', tone: 'identifier' },
+            { text: '  1 ops' },
+          ],
+          [{ text: '○', tone: 'color-1' }, { text: '   ' }, { text: '∅', tone: 'structure' }],
+          '',
+          [{ text: '1 migration(s) on disk', tone: 'muted' }],
+        ],
+      },
     ]);
+  });
+
+  it('carries no escape sequence of its own into the drawing', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'list'], {
+      cwd: dir,
+      isTty: { stdout: true },
+    });
+
+    expect(JSON.stringify(run.presented?.presentation.human)).not.toContain('\\u001b');
+  });
+
+  it('leaves stdout empty, having no machine-consumable lines to put there', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'list'], {
+      cwd: dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.stdout).toEqual([]);
+    expect(run.stdout).toBe('');
   });
 
   it('renders the empty-project line when no migration is on disk', async () => {
@@ -155,9 +203,10 @@ describe('migration list', () => {
       isTty: { stdout: true },
     });
 
-    expect(run.presented?.presentation.stdout).toEqual([
-      'There are no migrations in migrations/app/ yet',
-    ]);
+    expect(run.presented?.presentation.human.at(-1)).toEqual({
+      kind: 'drawing',
+      lines: [[{ text: 'There are no migrations in migrations/app/ yet', tone: 'muted' }]],
+    });
   });
 
   it('drops the rendered table in json mode so stdout stays a frame stream', async () => {
@@ -181,28 +230,30 @@ describe('migration list', () => {
       isTty: { stdout: true },
     });
 
-    expect(run.presented?.presentation.human).toEqual([
-      {
-        kind: 'fields',
-        rows: [
-          { label: 'migrations', value: 'migrations' },
-          { label: 'space', value: 'app' },
-        ],
-      },
-    ]);
+    expect(run.presented?.presentation.human[0]).toEqual({
+      kind: 'fields',
+      rail: true,
+      rows: [
+        { label: 'migrations', value: 'migrations' },
+        { label: 'space', value: 'app' },
+      ],
+    });
   });
 
-  it('adds the glyph key as a block when --legend is passed', async () => {
+  it('draws the glyph key when --legend is passed, with no bullet glued on', async () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
     const run = await harness(ormConfig()).run(['migration', 'list', '--legend'], {
       cwd: dir,
-      isTty: { stdout: true },
+      isTty: { stdout: true, stderr: true },
     });
-    const blocks = run.presented?.presentation.human ?? [];
+    const rendered = stripAnsi(run.stderr).split('\n');
 
-    expect(blocks.at(-1)?.kind).toBe('list');
+    expect(run.presented?.presentation.human.at(-1)?.kind).toBe('drawing');
+    expect(rendered).toContain('Legend:');
+    expect(rendered).toContain('  ○ contract   ↑ forward   ↓ rollback');
+    expect(rendered.filter((line) => line.startsWith('- '))).toEqual([]);
   });
 
   it('errors with the dotted code when the space does not exist', async () => {
@@ -246,7 +297,7 @@ describe('migration list', () => {
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
       kind: 'result',
-      envelope: { ok: false, error: { code: 'CLI.CONFIG_INVALID' } },
+      envelope: { ok: false, error: { code: 'CLI.CONFIG_SECTION_INVALID' } },
     });
   });
 
@@ -263,11 +314,15 @@ describe('migration list', () => {
       { cwd: second, isTty: { stdout: true } },
     );
 
-    expect(runFirst.presented?.presentation.human).toEqual([
-      { kind: 'fields', rows: [{ label: 'migrations', value: 'migrations' }] },
-    ]);
-    expect(runSecond.presented?.presentation.human).toEqual([
-      { kind: 'fields', rows: [{ label: 'migrations', value: 'db' }] },
-    ]);
+    expect(runFirst.presented?.presentation.human[0]).toEqual({
+      kind: 'fields',
+      rail: true,
+      rows: [{ label: 'migrations', value: 'migrations' }],
+    });
+    expect(runSecond.presented?.presentation.human[0]).toEqual({
+      kind: 'fields',
+      rail: true,
+      rows: [{ label: 'migrations', value: 'db' }],
+    });
   });
 });

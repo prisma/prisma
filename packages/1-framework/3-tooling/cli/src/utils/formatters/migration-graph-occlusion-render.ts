@@ -5,10 +5,9 @@
  * look up its glyph, apply colour from the line's lane or role. Lower-plane
  * lines are occluded (not drawn).
  *
- * Colour is forced via createColors({ useColor: true }) regardless of NO_COLOR.
+ * Colour comes from the palette the caller hands in; see migration-graph-palette.
  */
 
-import { createColors } from 'colorette';
 import {
   type Cell,
   type CellLine,
@@ -17,48 +16,13 @@ import {
   type Grid,
   type PathRole,
 } from './migration-graph-model';
+import {
+  ANSI_MIGRATION_GRAPH_PALETTE,
+  type MigrationGraphPalette,
+  PLAIN_MIGRATION_GRAPH_PALETTE,
+} from './migration-graph-palette';
 
-// ---------------------------------------------------------------------------
-// Force-colour seam — always emits ANSI regardless of NO_COLOR.
-// Same technique as gallery-cells.ts.
-// ---------------------------------------------------------------------------
-const palette = createColors({ useColor: true });
-
-// Lane colour palette: lane N → colour N+1 (lane0=white, lane1=cyan, …).
-// No red (reads as an error). The on-path highlight uses greenBright (SGR 92),
-// distinct from flat-lane green (SGR 32).
 type Colorizer = (text: string) => string;
-
-const LANE_COLORIZERS: Colorizer[] = [
-  palette.white,
-  palette.cyan,
-  palette.yellow,
-  palette.blueBright,
-  palette.magenta,
-  palette.green,
-];
-
-function laneColor(lane: number): Colorizer {
-  return LANE_COLORIZERS[lane % LANE_COLORIZERS.length] ?? ((t) => t);
-}
-
-/**
- * The colourizer for a lane's hue (lane0 = white, lane1 = cyan, …). Exported
- * so the per-row LABEL renderer can tint a migration name in its lane's colour,
- * matching the node `○`, the edges, and the arrows drawn in the gutter — one
- * colour per lane across glyph and text.
- */
-export function laneColorizer(lane: number): (text: string) => string {
-  return laneColor(lane);
-}
-
-// ---------------------------------------------------------------------------
-// Focus colour: on-path → green, off-path → dim. Read straight off the line's
-// role; a defined role always overrides the lane rotation.
-// ---------------------------------------------------------------------------
-function roleColor(role: PathRole): Colorizer {
-  return role === 'on-path' ? palette.greenBright : palette.dim;
-}
 
 // ---------------------------------------------------------------------------
 // Glyph alphabet — unicode and ASCII variants.
@@ -134,19 +98,27 @@ function glyphFor(dirs: ReadonlySet<Direction>, alphabet: GraphGlyphAlphabet): s
 // renderCell — project one cell to a coloured string fragment.
 // ---------------------------------------------------------------------------
 
-const NO_COLOR: Colorizer = (t) => t;
+/** A line or node is painted by its path role when it has one, else by its lane. */
+function paintByRoleOrLane(
+  palette: MigrationGraphPalette,
+  role: PathRole | undefined,
+  lane: number,
+): Colorizer {
+  return role === undefined
+    ? (text) => palette.lane(lane, text)
+    : (text) => palette.role(role, text);
+}
 
-function renderCell(cell: Cell, colorEnabled: boolean, alphabet: GraphGlyphAlphabet): string {
-  // Node marker overrides everything
-  if (cell.node !== undefined) {
+function renderCell(
+  cell: Cell,
+  palette: MigrationGraphPalette,
+  alphabet: GraphGlyphAlphabet,
+): string {
+  const node = cell.node;
+  if (node !== undefined) {
     // Every node uses ○ — the ∅ identifier is only used as the label, not as a
     // glyph, per the golden colour model. Colour by role (focus) or lane (flat).
-    const colorize = !colorEnabled
-      ? NO_COLOR
-      : cell.node.role !== undefined
-        ? roleColor(cell.node.role)
-        : laneColor(cell.node.lane);
-    return colorize(alphabet.node);
+    return paintByRoleOrLane(palette, node.role, node.lane)(alphabet.node);
   }
 
   if (cell.lines.length === 0) {
@@ -170,12 +142,7 @@ function renderCell(cell: Cell, colorEnabled: boolean, alphabet: GraphGlyphAlpha
       : topLine.landingArrow === true
         ? alphabet.landingArrow
         : glyphFor(topLine.directions, alphabet);
-  const colorize = !colorEnabled
-    ? NO_COLOR
-    : topLine.line.role !== undefined
-      ? roleColor(topLine.line.role)
-      : laneColor(topLine.line.lane);
-  return colorize(glyph);
+  return paintByRoleOrLane(palette, topLine.line.role, topLine.line.lane)(glyph);
 }
 
 // ---------------------------------------------------------------------------
@@ -186,6 +153,8 @@ export interface RenderGridOptions {
   readonly colorize?: boolean;
   readonly colsPerLane?: number;
   readonly glyphMode?: GraphGlyphMode;
+  /** Where the gutter's colour comes from. Defaults to the ANSI palette. */
+  readonly palette?: MigrationGraphPalette;
 }
 
 // ---------------------------------------------------------------------------
@@ -229,7 +198,10 @@ export function renderGridRow(
   // Extend to the next even column boundary (connector col of the current lane)
   // so that connector columns are always present for active lane ranges.
   const colsPerLane = opts.colsPerLane ?? DEFAULT_COLS_PER_LANE;
-  const colorEnabled = opts.colorize ?? true;
+  const palette =
+    (opts.colorize ?? true)
+      ? (opts.palette ?? ANSI_MIGRATION_GRAPH_PALETTE)
+      : PLAIN_MIGRATION_GRAPH_PALETTE;
   const alphabet = alphabetFor(opts.glyphMode ?? 'unicode');
   const lastLane = Math.floor(lastNonEmpty / colsPerLane);
   const lastConnectorCol = lastLane * colsPerLane + (colsPerLane - 1);
@@ -238,7 +210,7 @@ export function renderGridRow(
   let line = '';
   for (let col = 0; col <= Math.min(renderThrough, row.length - 1); col++) {
     const cell = row[col];
-    line += cell === undefined ? ' ' : renderCell(cell, colorEnabled, alphabet);
+    line += cell === undefined ? ' ' : renderCell(cell, palette, alphabet);
   }
   return line;
 }
