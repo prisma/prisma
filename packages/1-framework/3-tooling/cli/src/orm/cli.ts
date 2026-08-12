@@ -4,6 +4,7 @@ import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
 import { dbInitCommand } from './db/init';
 import { dbSchemaCommand } from './db/schema';
+import { dbUpdateCommand } from './db/update';
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
 import { migrateCommand } from './migrate';
@@ -34,6 +35,7 @@ export const BIN_GROUPS = {
 export const BIN_COMMANDS: MountedTree = {
   'db init': dbInitCommand,
   'db schema': dbSchemaCommand,
+  'db update': dbUpdateCommand,
   migrate: migrateCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,

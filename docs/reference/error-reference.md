@@ -847,7 +847,7 @@ Runner-level failure during apply (`db init`, `db update`, `migrate`): the plan'
 
 ### MIGRATION.DESTRUCTIVE_CHANGES
 
-The planned operations include destructive changes (e.g. DROP) and the command was run without explicit confirmation. Re-run with `-y`/`--yes` to apply, or `--dry-run` to preview.
+The planned operations include destructive changes (e.g. DROP) and the command was run without explicit consent. `db update` asks for that consent instead of failing: interactively it asks you to type the database name, and outside an interactive terminal it is granted by `--confirm <database>` (`--yes` accepts declared prompt defaults and never grants consent). A run with nobody to ask and no `--confirm` settles as `CLI.CONSENT_REQUIRED` at exit 2; a run whose prompt is cancelled settles as `CLI.PROMPT_CANCELLED` at exit 3. Use `--dry-run` to preview the operations first.
 
 ### MIGRATION.DIR_EXISTS
 
