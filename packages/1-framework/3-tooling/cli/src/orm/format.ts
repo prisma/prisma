@@ -1,10 +1,10 @@
 import type { Block, Presentations } from '@prisma/cli-engine';
-import { defineCommand } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { relative } from 'pathe';
 import type { FormatOperationResult } from '../control-api/operations/format';
 import { executeFormat } from '../control-api/operations/format';
 import { ormConfigSection } from './config-section';
+import { defineOrmCommand } from './define-command';
 import { normalizeError } from './normalize-error';
 
 const NOTHING_TO_FORMAT = 'Nothing to format (contract source is not PSL).';
@@ -26,7 +26,7 @@ function formatPresentations(document: FormatOperationResult, cwd: string): Pres
   };
 }
 
-export const formatCommand = defineCommand({
+export const formatCommand = defineOrmCommand({
   help: {
     summary: 'Format your PSL contract source',
     description:

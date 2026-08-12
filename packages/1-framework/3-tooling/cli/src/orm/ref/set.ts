@@ -1,9 +1,10 @@
 import type { Block, Presentations } from '@prisma/cli-engine';
-import { defineCommand, positional } from '@prisma/cli-engine';
+import { positional } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import type { RefSetResult } from '../../control-api/operations/ref';
 import { executeRefSetCommand } from '../../control-api/operations/ref';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 
 function setPresentations(document: RefSetResult): Presentations {
@@ -24,7 +25,7 @@ function setPresentations(document: RefSetResult): Presentations {
   };
 }
 
-export const refSetCommand = defineCommand({
+export const refSetCommand = defineOrmCommand({
   help: {
     summary: 'Point a ref at a contract',
     description:

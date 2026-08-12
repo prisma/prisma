@@ -1,9 +1,10 @@
 import type { Block, Presentations } from '@prisma/cli-engine';
-import { defineCommand, positional } from '@prisma/cli-engine';
+import { positional } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import type { RefDeleteResult } from '../../control-api/operations/ref';
 import { executeRefDeleteCommand } from '../../control-api/operations/ref';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 
 function deletePresentations(document: RefDeleteResult): Presentations {
@@ -19,7 +20,7 @@ function deletePresentations(document: RefDeleteResult): Presentations {
   };
 }
 
-export const refDeleteCommand = defineCommand({
+export const refDeleteCommand = defineOrmCommand({
   help: {
     summary: 'Delete a ref',
     description:
