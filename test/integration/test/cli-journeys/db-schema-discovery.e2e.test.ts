@@ -44,8 +44,8 @@ withTempDir(({ createTempDir }) => {
 
         const schemaTree = await runDbSchema(ctx);
         expect(schemaTree.exitCode, 'AA.01: db schema').toBe(0);
-        expect(stripAnsi(schemaTree.stdout), 'AA.01: shows user table').toContain('table user');
-        expect(stripAnsi(schemaTree.stdout), 'AA.01: shows email column').toContain('email');
+        expect(stripAnsi(schemaTree.stderr), 'AA.01: shows user table').toContain('table user');
+        expect(stripAnsi(schemaTree.stderr), 'AA.01: shows email column').toContain('email');
         expect(
           existsSync(join(ctx.testDir, 'output/contract.json')),
           'AA.01: no contract json',

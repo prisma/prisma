@@ -157,7 +157,7 @@ withTempDir(({ createTempDir }) => {
         // check-driven skip path (spec AC4.2 idempotency half).
         const reapply = await runMigrate(ctx);
         expect(reapply.exitCode, `reapply: ${reapply.stdout}\n${reapply.stderr}`).toBe(0);
-        expect(reapply.stdout).toContain('Already up to date');
+        expect(reapply.stderr).toContain('Already up to date');
       },
       timeouts.spinUpPpgDev,
     );

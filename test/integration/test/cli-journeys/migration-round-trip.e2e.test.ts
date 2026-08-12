@@ -87,7 +87,7 @@ withTempDir(({ createTempDir }) => {
         // -----------------------------------------------------------
         const reapply0 = await runMigrate(ctx);
         expect(reapply0.exitCode, `reapply initial: ${reapply0.stderr}`).toBe(0);
-        expect(reapply0.stdout).toContain('Already up to date');
+        expect(reapply0.stderr).toContain('Already up to date');
 
         // -----------------------------------------------------------
         // Step 3: swap to the contract that adds a NOT NULL `name`
@@ -199,7 +199,7 @@ MigrationCLI.run(import.meta.url, M);
         // -----------------------------------------------------------
         const reapply1 = await runMigrate(ctx);
         expect(reapply1.exitCode, `reapply second: ${reapply1.stderr}`).toBe(0);
-        expect(reapply1.stdout).toContain('Already up to date');
+        expect(reapply1.stderr).toContain('Already up to date');
       },
       timeouts.spinUpPpgDev,
     );

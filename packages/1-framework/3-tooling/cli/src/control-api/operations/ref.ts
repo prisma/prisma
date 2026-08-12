@@ -34,20 +34,20 @@ import {
 import { resolveMigrationPaths } from '../../utils/command-helpers';
 import { buildReadAggregate } from './contract-space-aggregate-loader';
 
-interface RefSetResult {
+export interface RefSetResult {
   readonly ok: true;
   readonly ref: string;
   readonly hash: string;
   readonly invariants: readonly string[];
 }
 
-interface RefDeleteResult {
+export interface RefDeleteResult {
   readonly ok: true;
   readonly ref: string;
   readonly deleted: true;
 }
 
-interface RefListResult {
+export interface RefListResult {
   readonly ok: true;
   readonly refs: Record<string, RefEntry>;
 }

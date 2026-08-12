@@ -2,8 +2,14 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine';
 import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
+import { createControlClient } from '../control-api/client';
+import type { CreateControlClient } from '../control-api/types';
+import { createDbInitCommand } from './db/init';
+import { createDbSchemaCommand } from './db/schema';
 import { ormCommandFamily } from './family';
+import { formatCommand } from './format';
 import { loadOrmConfig } from './load-config';
+import { createMigrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
@@ -12,28 +18,59 @@ import { migrationPlanCommand } from './migration/plan';
 import { migrationShowCommand } from './migration/show';
 import { migrationStatusCommand } from './migration/status';
 import { normalizeError } from './normalize-error';
+import { refDeleteCommand } from './ref/delete';
+import { refListCommand } from './ref/list';
+import { refSetCommand } from './ref/set';
 import { resolveTelemetryHooks } from './telemetry/reporting';
 
 export const BIN_NAME = 'prisma-next';
 
 export const BIN_GROUPS = {
+  db: {
+    brief: 'Live database commands',
+    description:
+      'Inspect, bootstrap and sign the live database against the emitted\n' +
+      'contract. Every command in this group needs a database connection.',
+  },
   migration: {
     brief: 'On-disk migration management commands',
     description:
       'Plan, apply, and scaffold on-disk migration packages. Migrations are\n' +
       'contract-to-contract edges stored as versioned directories under migrations/.',
   },
+  ref: {
+    brief: 'Named pointers at contracts',
+    description:
+      'Manage the named refs under migrations/app/refs/. A ref maps a logical\n' +
+      'environment name — staging, production — to a contract hash, so a command\n' +
+      'can name the environment instead of the hash.',
+  },
 } as const;
 
-export const BIN_COMMANDS: MountedTree = {
-  'migration graph': migrationGraphCommand,
-  'migration list': migrationListCommand,
-  'migration log': migrationLogCommand,
-  'migration new': migrationNewCommand,
-  'migration plan': migrationPlanCommand,
-  'migration show': migrationShowCommand,
-  'migration status': migrationStatusCommand,
-};
+/**
+ * The command tree with its client factory injected, so tests can mount the
+ * same tree over a control-client double instead of mocking modules.
+ */
+export function createBinCommands(createClient: CreateControlClient): MountedTree {
+  return {
+    'db init': createDbInitCommand(createClient),
+    'db schema': createDbSchemaCommand(createClient),
+    format: formatCommand,
+    migrate: createMigrateCommand(createClient),
+    'migration graph': migrationGraphCommand,
+    'migration list': migrationListCommand,
+    'migration log': migrationLogCommand,
+    'migration new': migrationNewCommand,
+    'migration plan': migrationPlanCommand,
+    'migration show': migrationShowCommand,
+    'migration status': migrationStatusCommand,
+    'ref delete': refDeleteCommand,
+    'ref list': refListCommand,
+    'ref set': refSetCommand,
+  };
+}
+
+export const BIN_COMMANDS: MountedTree = createBinCommands(createControlClient);
 
 export function createOrmCli(): Cli {
   return createCli({

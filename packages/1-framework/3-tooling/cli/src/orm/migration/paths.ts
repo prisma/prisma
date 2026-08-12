@@ -17,11 +17,6 @@ export function appMigrationsDirFor(config: PrismaNextConfig, cwd: string): stri
   return spaceMigrationDirectory(migrationsDirFor(config, cwd), APP_SPACE_ID);
 }
 
-/** The app space's refs directory. The framework keeps no refs at the root. */
-export function appRefsDirFor(config: PrismaNextConfig, cwd: string): string {
-  return resolve(appMigrationsDirFor(config, cwd), 'refs');
-}
-
 /**
  * The config file an operation should anchor its project paths on. The engine
  * loads the config and hands a handler the value but not the path, and
@@ -31,6 +26,14 @@ export function appRefsDirFor(config: PrismaNextConfig, cwd: string): string {
  */
 export function projectConfigPathFor(cwd: string): string {
   return resolve(cwd, 'prisma-next.config.ts');
+}
+
+/**
+ * Where refs live. The framework keeps them under the app subspace rather than
+ * at the migrations root.
+ */
+export function appRefsDirFor(config: PrismaNextConfig, cwd: string): string {
+  return resolve(appMigrationsDirFor(config, cwd), 'refs');
 }
 
 /**
