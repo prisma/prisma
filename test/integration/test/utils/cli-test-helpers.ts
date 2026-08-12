@@ -489,16 +489,6 @@ export function clearDbRefForGreenfieldPlan(testDir: string): void {
   }
 }
 
-// Re-export framework-agnostic helpers from CLI package
-// Note: These are imported directly from source since they're not exported from the package
-export {
-  executeCommand,
-  getExitCode,
-  parseJsonObjectFromCliCapture,
-  resetExitCode,
-  setupCommandMocks,
-} from '../../../../packages/1-framework/3-tooling/cli/test/utils/test-helpers';
-
 /**
  * Decorator that wraps test suites to automatically manage temporary directory cleanup.
  * Creates directories within the fixture app directory so jiti can resolve workspace packages.

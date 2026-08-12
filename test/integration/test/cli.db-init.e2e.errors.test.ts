@@ -1,28 +1,13 @@
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  setupCommandMocks,
-  setupTestDirectoryFromFixtures,
-  withTempDir,
-} from './utils/cli-test-helpers';
+import { describe, expect, it } from 'vitest';
+import { setupTestDirectoryFromFixtures, withTempDir } from './utils/cli-test-helpers';
 import { runDbInit, setupDbInitFixture } from './utils/db-init-test-helpers';
 
 const fixtureSubdir = 'db-init';
 
 withTempDir(({ createTempDir }) => {
   describe('db init command (e2e) - errors', () => {
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      const mocks = setupCommandMocks();
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     describe('error handling', () => {
       it(
         'handles missing contract file',
