@@ -1,5 +1,4 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import type { PrismaNextConfig } from '@internal/config/config-types';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import {
@@ -16,6 +15,7 @@ import {
   type ResolveContractRefToSnapshotOptions,
   resolveContractRefToSnapshot,
 } from '../../src/control-api/operations/contract-snapshot-resolution';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const HASH_A = `${'a'.repeat(64)}`;
 const HASH_FLOAT = `${'f'.repeat(64)}`;
@@ -62,10 +62,7 @@ describe('resolveContractRefToSnapshot', () => {
   }
 
   beforeEach(async () => {
-    tempDir = join(
-      tmpdir(),
-      `snapshot-resolution-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    );
+    tempDir = createTestProjectDir('snapshot-resolution');
     migrationsDir = join(tempDir, 'migrations');
     appMigrationsDir = join(migrationsDir, 'app');
     refsDir = join(appMigrationsDir, 'refs');

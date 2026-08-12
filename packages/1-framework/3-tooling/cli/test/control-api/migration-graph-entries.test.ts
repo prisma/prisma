@@ -1,5 +1,4 @@
 import { mkdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import type { Contract } from '@internal/contract/types';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -13,6 +12,7 @@ import { createSqlContract } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildMigrationSpaceGraphEntries } from '../../src/control-api/operations/migration-graph';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const HASH_A = `${'a'.repeat(64)}`;
 
@@ -36,10 +36,7 @@ describe('buildMigrationSpaceGraphEntries', () => {
   let migrationsDir: string;
 
   beforeEach(async () => {
-    migrationsDir = join(
-      tmpdir(),
-      `migration-graph-entries-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    );
+    migrationsDir = createTestProjectDir('migration-graph-entries');
     await mkdir(join(migrationsDir, 'app'), { recursive: true });
   });
 

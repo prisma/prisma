@@ -1,21 +1,21 @@
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadOrmConfig } from '../../src/orm/load-config';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const created: string[] = [];
 
 function projectDir(): string {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'orm-config-')));
+  const dir = realpathSync(createTestProjectDir('orm-config'));
   created.push(dir);
   return dir;
 }
 
 /**
- * Written without importing the workspace, so the fixture evaluates from a
- * throwaway directory that has no `node_modules`. The version marker is the
- * same non-enumerable symbol `defineConfig` stamps.
+ * Written without importing the workspace, so what the loader reads is exactly
+ * what these tests write and nothing resolves out of the fixture package. The
+ * version marker is the same non-enumerable symbol `defineConfig` stamps.
  */
 function configModule(body: string): string {
   return [

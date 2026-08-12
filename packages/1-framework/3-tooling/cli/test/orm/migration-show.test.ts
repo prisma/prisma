@@ -1,5 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { rm, writeFile } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
@@ -10,6 +9,7 @@ import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterEach, describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const HASH_A = `4cb4256${'0'.repeat(57)}`;
 const MIGRATION_DIR = '20250101T0000_initial';
@@ -17,7 +17,7 @@ const MIGRATION_DIR = '20250101T0000_initial';
 const dirs: string[] = [];
 
 async function projectDir(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'orm-show-'));
+  const dir = createTestProjectDir('orm-show');
   dirs.push(dir);
   return dir;
 }
