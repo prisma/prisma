@@ -172,7 +172,7 @@ The driver does not auto-detect topology. Auto-detection is unreliable (greeting
 
 ## Middleware
 
-Three of the four SQL middleware hooks fire on the prepared path; one fires earlier than on the ad-hoc path:
+All five SQL middleware hooks fire on the prepared path; `beforeCompile` fires earlier than the per-query hooks:
 
 - `beforeCompile` runs **once at `prepare` time**. AST rewrites change the lowered SQL, so they have to be baked in before the SQL is frozen on the `PreparedStatement`. Re-running per query would defeat the cache — every query would have to re-lower.
 - `beforeQuery`, `interceptQuery`, `onRow`, and `afterQuery` run **per `.query()` call**. They observe params and rows, which differ per query, and never see the lowered SQL changing.
