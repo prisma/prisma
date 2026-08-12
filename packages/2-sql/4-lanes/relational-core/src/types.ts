@@ -341,16 +341,6 @@ export interface RawFunctionOptions extends RawTemplateOptions {
   readonly params: ReadonlyArray<unknown>;
 }
 
-export type RawTemplateFactory = (
-  strings: TemplateStringsArray,
-  ...values: readonly unknown[]
-) => SqlExecutionPlan;
-
-export interface RawFactory extends RawTemplateFactory {
-  (text: string, options: RawFunctionOptions): SqlExecutionPlan;
-  with(options: RawTemplateOptions): RawTemplateFactory;
-}
-
 export interface BuildParamsMap {
   readonly [name: string]: unknown;
 }
