@@ -1,10 +1,10 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import { MigrationToolsError } from '@internal/migration-tools/errors';
 import { readRefs } from '@internal/migration-tools/refs';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { readMigrationRefs } from '../../src/control-api/operations/refs';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const HASH_A = `${'a'.repeat(64)}`;
 
@@ -13,10 +13,7 @@ describe('readMigrationRefs', () => {
   let refsDir: string;
 
   beforeEach(() => {
-    tempDir = join(
-      tmpdir(),
-      `test-read-migration-refs-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    );
+    tempDir = createTestProjectDir('read-migration-refs');
     refsDir = join(tempDir, 'refs');
   });
 
