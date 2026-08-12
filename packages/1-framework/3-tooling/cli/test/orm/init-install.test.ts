@@ -2,34 +2,19 @@ import { rmSync } from 'node:fs';
 import type { MountedTree, PackageManagerId, PackageManagerRunner } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createInitCommand } from '../../src/orm/init';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
-const mocks = vi.hoisted(() => ({ emit: vi.fn() }));
+const emit = vi.fn();
 
-vi.mock('../../src/orm/init-emit', () => ({ emitScaffoldedContract: mocks.emit }));
-
-/**
- * The command tree is imported after the module registry is reset, so the
- * mocked emit is the one `init` closes over. The package runs with
- * `isolate: false`, so a file that loaded the tree first would otherwise have
- * baked the real emit into it.
- */
-let commands: MountedTree;
-let groups: typeof BinGroups;
-
-beforeAll(async () => {
-  vi.resetModules();
-  const cli = await import('../../src/orm/cli');
-  commands = cli.BIN_COMMANDS;
-  groups = cli.BIN_GROUPS;
-}, timeouts.coldTransformImport);
-
-afterAll(() => {
-  vi.doUnmock('../../src/orm/init-emit');
-  vi.resetModules();
-});
+/** The production tree, with `init` rebuilt around the injected fake emit. */
+const commands: MountedTree = {
+  ...BIN_COMMANDS,
+  init: createInitCommand({ emitScaffoldedContract: emit }),
+};
+const groups = BIN_GROUPS;
 
 interface RunnerCall {
   readonly file: string;
@@ -53,7 +38,7 @@ beforeEach(() => {
   projectDir = createTestProjectDir('orm-init-install');
   calls = [];
   script = [];
-  mocks.emit.mockReset().mockResolvedValue(undefined);
+  emit.mockReset().mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -108,7 +93,7 @@ describe('init installs', () => {
           cwd: projectDir,
         },
       ]);
-      expect(mocks.emit).toHaveBeenCalledWith({ cwd: projectDir });
+      expect(emit).toHaveBeenCalledWith({ cwd: projectDir });
       expect(run.presented?.data).toMatchObject({
         packagesInstalled: {
           status: 'installed',
@@ -150,7 +135,7 @@ describe('init installs', () => {
         exitCode: 4,
         diagnostics: [{ code: 'CLI.INIT_INSTALL_FAILED', severity: 'error' }],
       });
-      expect(mocks.emit).not.toHaveBeenCalled();
+      expect(emit).not.toHaveBeenCalled();
       expect(skillCalls()).toEqual([]);
     },
     timeouts.coldTransformImport,
@@ -180,7 +165,7 @@ describe('init installs', () => {
   it(
     'completes at exit 5 when the contract emit fails after a good install',
     async () => {
-      mocks.emit.mockRejectedValue(new Error('contract source is not readable'));
+      emit.mockRejectedValue(new Error('contract source is not readable'));
 
       const run = await harness().run(scaffoldArgv(), { cwd: projectDir });
 
@@ -374,7 +359,7 @@ describe('init installs', () => {
 
         expect(run.exitCode).toBe(0);
         expect(calls).toEqual([]);
-        expect(mocks.emit).not.toHaveBeenCalled();
+        expect(emit).not.toHaveBeenCalled();
         expect(run.presented?.data).toMatchObject({
           packagesInstalled: { status: 'skipped', deps: [], devDeps: [] },
           contractEmitted: false,
