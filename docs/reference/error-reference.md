@@ -835,6 +835,10 @@ A `migration check` failure row: a contract space's declared database target dif
 
 A `migration check` failure row: a migration's `from` hash is not produced by any other migration (and is not the empty state), so the migration is unreachable in the graph. Delete it or re-emit a connecting migration.
 
+### MIGRATION.CONSENT_PLAN_MISMATCH
+
+An apply carrying consent was refused because the plan recomputed for it is not the plan that was consented to. `db update` recomputes the plan at apply time and compares its hash against the one the consent was given for; a mismatch means the schema, the contract, or the database moved in between, so applying would carry out operations nobody agreed to. Re-run the command and review the freshly planned operations before consenting again. Meta: `consentedPlanHash`, `planHash`.
+
 ### MIGRATION.CONTRACT_DESERIALIZATION_FAILED
 
 A contract JSON on disk failed to deserialize into a valid contract: either a snapshot-store entry read while migration tooling resolved a contract at a ref or hash, or the emitted `contract.json` read as the fallback source by `db sign` / `db update --to` (invalid JSON, or a value that is not a JSON object). Re-emit the owning migration package (or re-run `prisma-next contract emit` for the emitted contract), or restore the file from version control. Meta: `filePath`, `message`. Also raised by `migration new` when the emitted `contract.json` fails to deserialize; that site has no meta and attaches the deserialization failure as `cause`.
