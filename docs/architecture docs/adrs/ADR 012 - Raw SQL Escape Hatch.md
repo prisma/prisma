@@ -1,5 +1,7 @@
 # ADR 012 — Raw SQL escape hatch with required annotations
 
+> **Update — plan construction superseded by [ADR 247](ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md):** a whole-query raw statement is an AST node (`raw-query`) in `AnyQueryAst`, so its plan carries `ast` and declares its result columns through a row spec. The "Plan construction" section below — `ast` omitted, `meta.lane = 'raw-sql'`, optional `meta.refs` / `meta.projection` / `meta.codecs` — describes a shape the SQL family no longer builds. The minimal annotation schema (`intent`, `isMutation`, `hasWhere`, `hasLimit`) and the decision not to parse SQL in the runtime are unchanged and carry into ADR 247. See ADR 247 for what replaces the construction model.
+
 > **Update — retired by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md):** the optional structured-annotations branch (`refs`, `projection`, `codecs` / `paramDescriptors`) on raw plans has been removed. The minimal annotation schema below (`intent`, `isMutation`, `hasWhere`, `hasLimit`) is unchanged and continues to drive policy routing and lint dispatch. Raw plans now pass parameters to the driver as supplied by the caller and surface wire-level row values back without codec-based transformation; the unindexed-predicate lint and the refs-based row-count budget heuristic only apply to AST-backed plans. See ADR 205 for rationale.
 
 ## Context
