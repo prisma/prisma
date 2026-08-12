@@ -14,13 +14,13 @@ function scaffoldTree(document: InitOutput): Block {
   ];
   if (document.filesDeleted.length > 0) {
     roots.push({
-      label: 'removed (stale contract artifacts)',
+      label: 'removed (stale artifacts and retired skill directories)',
       tone: 'heading',
       children: fileNodes(document.filesDeleted),
     });
   }
   const installed = document.packagesInstalled;
-  if (!installed.skipped) {
+  if (installed.status === 'installed') {
     roots.push({
       label: 'installed',
       tone: 'heading',

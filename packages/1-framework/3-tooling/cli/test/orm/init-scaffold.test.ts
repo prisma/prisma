@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import type { PackageManagerRunner } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
@@ -126,6 +126,76 @@ describe('init scaffold', () => {
         expect(readFileSync(join(projectDir, 'README.md'), 'utf-8')).toBe('# mine\n');
         expect(run.presented?.data).toMatchObject({
           warnings: expect.arrayContaining([expect.stringContaining('README.md already exists')]),
+        });
+      },
+      timeouts.coldTransformImport,
+    );
+  });
+
+  describe('the files it removes', () => {
+    it(
+      'deletes a retired agent-skill directory even on a first run',
+      async () => {
+        const retired = join(projectDir, '.claude/skills/prisma-next-queries');
+        mkdirSync(retired, { recursive: true });
+        writeFileSync(join(retired, 'SKILL.md'), '# stale\n', 'utf-8');
+
+        const run = await harness().run(scaffoldArgv(...SKIP_ALL), { cwd: projectDir });
+
+        expect(run.exitCode).toBe(0);
+        expect(run.presented?.data).toMatchObject({
+          filesDeleted: ['.claude/skills/prisma-next-queries'],
+        });
+        expect(existsSync(retired)).toBe(false);
+      },
+      timeouts.coldTransformImport,
+    );
+
+    it(
+      'calls the removed paths what they are, not stale contract artifacts',
+      async () => {
+        mkdirSync(join(projectDir, '.agents/skills/prisma-next-runtime'), { recursive: true });
+
+        const run = await harness().run(scaffoldArgv(...SKIP_ALL), {
+          cwd: projectDir,
+          isTty: { stdout: true },
+        });
+        const tree = (run.presented?.presentation.human ?? []).find(
+          (block) => block.kind === 'tree',
+        );
+
+        expect(JSON.stringify(tree)).not.toContain('stale contract artifacts');
+        expect(JSON.stringify(tree)).toContain('.agents/skills/prisma-next-runtime');
+      },
+      timeouts.coldTransformImport,
+    );
+  });
+
+  describe('a write that fails midway', () => {
+    it(
+      'names the files it had already written',
+      async () => {
+        // A directory where a file belongs is the portable way to make one
+        // write fail: `writeFileSync` raises EISDIR whatever the permissions.
+        mkdirSync(join(projectDir, '.env.example'), { recursive: true });
+
+        const run = await harness().run(scaffoldArgv(...SKIP_ALL), { cwd: projectDir });
+
+        expect(run.exitCode).toBe(2);
+        expect(envelopeOf(run)).toMatchObject({
+          ok: false,
+          error: {
+            code: 'CLI.INIT_WRITE_FAILED',
+            meta: {
+              path: '.env.example',
+              filesWritten: [
+                'src/prisma/contract.prisma',
+                'prisma-next.config.ts',
+                'src/prisma/db.ts',
+                'prisma-next.md',
+              ],
+            },
+          },
         });
       },
       timeouts.coldTransformImport,

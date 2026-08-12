@@ -1,3 +1,4 @@
+import { ifDefined } from '@internal/utils/defined';
 import { version as cliVersion } from '../../../package.json' with { type: 'json' };
 import type { PackageManager } from './detect-package-manager';
 
@@ -132,12 +133,14 @@ export function formatSkillInstallCommand(args: {
   readonly pm: PackageManager;
   readonly source: SkillSource;
   readonly agents?: readonly SkillAgent[];
+  /** The environment the base override is read from; the engine command has its own. */
+  readonly env?: SkillInstallEnv;
 }): string {
   const agents = args.agents ?? DEFAULT_SKILL_AGENTS;
   const cliArgs = [
     'skills@latest',
     'add',
-    formatSkillSourceUrl(args.source),
+    formatSkillSourceUrl(args.source, args.env),
     '--agent',
     ...agents,
     '--skill',
@@ -148,10 +151,17 @@ export function formatSkillInstallCommand(args: {
 }
 
 /**
- * Ordered skill-install commands for one init run. Exported for unit tests.
+ * Ordered skill-install commands for one init run. This is both what the
+ * commander shell runs and what either shell tells the user to run when the
+ * install is skipped or fails — the commands need no scaffold and no `init`.
  */
-export function resolveProjectSkillInstallCommands(pm: PackageManager): readonly string[] {
-  return DEFAULT_SKILL_SOURCES.map((source) => formatSkillInstallCommand({ pm, source }));
+export function resolveProjectSkillInstallCommands(
+  pm: PackageManager,
+  env?: SkillInstallEnv,
+): readonly string[] {
+  return DEFAULT_SKILL_SOURCES.map((source) =>
+    formatSkillInstallCommand({ pm, source, ...ifDefined('env', env) }),
+  );
 }
 
 function formatPackageManagerCommand(pm: PackageManager, args: readonly string[]): string {

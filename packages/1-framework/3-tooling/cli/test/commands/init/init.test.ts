@@ -66,12 +66,7 @@ import {
   INIT_EXIT_PRECONDITION,
   INIT_EXIT_USER_ABORTED,
 } from '../../../src/commands/init/exit-codes';
-import {
-  exitCodeForError,
-  hasDirectDep,
-  redactSecrets,
-  runInit,
-} from '../../../src/commands/init/init';
+import { exitCodeForError, hasDirectDep, runInit } from '../../../src/commands/init/init';
 import type { InitFlagOptions } from '../../../src/commands/init/inputs';
 import { isRecognisedPnpmResolutionError } from '../../../src/commands/init/pnpm-fallback';
 import type { ProbeOverrides } from '../../../src/commands/init/probe-db';
@@ -1634,7 +1629,7 @@ describe('runInit (--json output, FR1.5 / FR10.2)', { timeout: timeouts.database
     expect(parsed['schemaPath']).toBe('src/prisma/contract.prisma');
     expect(Array.isArray(parsed['filesWritten'])).toBe(true);
     expect((parsed['filesWritten'] as string[]).length).toBeGreaterThan(0);
-    expect(parsed['packagesInstalled']).toMatchObject({ skipped: true });
+    expect(parsed['packagesInstalled']).toMatchObject({ status: 'skipped' });
     // The `nextSteps` array is part of the documented `--json` contract.
     // Agents and CI are expected to surface these strings to the user
     // verbatim, so we lock the canonical anchor tokens (DATABASE_URL,
@@ -1780,9 +1775,9 @@ describe('runInit pnpm → npm install fallback (FR7.2)', {
 
       const parsed = JSON.parse(writes.join('').trim()) as {
         warnings: string[];
-        packagesInstalled: { skipped: boolean };
+        packagesInstalled: { status: string };
       };
-      expect(parsed.packagesInstalled.skipped).toBe(false);
+      expect(parsed.packagesInstalled.status).toBe('installed');
       expect(parsed.warnings.join('\n')).toMatch(/Falling back to `npm install`/);
     } finally {
       restore();
@@ -1897,36 +1892,6 @@ describe('runInit emit failure (F02 / F07)', { timeout: timeouts.databaseOperati
     } finally {
       spy.mockRestore();
     }
-  });
-});
-
-describe('redactSecrets (F09)', () => {
-  it('redacts userinfo from URLs in stderr', () => {
-    expect(redactSecrets('failed: https://user:pass@registry.example.com/foo')).toBe(
-      'failed: https://***@registry.example.com/foo',
-    );
-  });
-
-  it('redacts a bare token URL', () => {
-    expect(redactSecrets('npm error: https://npm-token-123@registry.npmjs.org/')).toBe(
-      'npm error: https://***@registry.npmjs.org/',
-    );
-  });
-
-  it('leaves URLs without userinfo untouched', () => {
-    expect(redactSecrets('ENOTFOUND https://registry.npmjs.org/')).toBe(
-      'ENOTFOUND https://registry.npmjs.org/',
-    );
-  });
-
-  it('handles empty input', () => {
-    expect(redactSecrets('')).toBe('');
-  });
-
-  it('redacts even when the URL is in the middle of a longer line', () => {
-    expect(
-      redactSecrets('GET https://alice:secret@registry.example.com/foo failed: 401 Unauthorized'),
-    ).toBe('GET https://***@registry.example.com/foo failed: 401 Unauthorized');
   });
 });
 

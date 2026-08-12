@@ -112,7 +112,7 @@ describe('init installs', () => {
       expect(mocks.emit).toHaveBeenCalledWith({ cwd: projectDir });
       expect(run.presented?.data).toMatchObject({
         packagesInstalled: {
-          skipped: false,
+          status: 'installed',
           deps: ['@prisma/orm-postgres', 'dotenv'],
           devDeps: ['prisma-next', '@types/node'],
         },
@@ -153,6 +153,27 @@ describe('init installs', () => {
       });
       expect(mocks.emit).not.toHaveBeenCalled();
       expect(skillCalls()).toEqual([]);
+    },
+    timeouts.coldTransformImport,
+  );
+
+  it(
+    'writes a document that says the install failed, not that it was skipped',
+    async () => {
+      script = [{ exitCode: 1, stderr: 'ENOTFOUND registry.npmjs.org' }];
+
+      const run = await harness().run(scaffoldArgv(), { cwd: projectDir });
+
+      expect(run.presented?.data).toMatchObject({
+        ok: true,
+        packagesInstalled: { status: 'failed', deps: [], devDeps: [] },
+        contractEmitted: false,
+      });
+      expect(run.presented?.presentation.json).toMatchObject({
+        nextSteps: expect.arrayContaining([
+          expect.stringMatching(/Install the project dependencies.*failed/),
+        ]),
+      });
     },
     timeouts.coldTransformImport,
   );
@@ -199,6 +220,31 @@ describe('init installs', () => {
   );
 
   it(
+    'sends a failed skill install to the skill commands, never back through init',
+    async () => {
+      script = [
+        { exitCode: 0, stderr: '' },
+        { exitCode: 0, stderr: '' },
+        { exitCode: 1, stderr: 'skills: registry unreachable' },
+      ];
+
+      const run = await harness().run(scaffoldArgv(), { cwd: projectDir });
+      const finding = envelopeOf(run)?.diagnostics?.[0];
+
+      expect(finding?.nextActions).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'run-command',
+            command: expect.stringContaining('skills@latest add'),
+          }),
+        ]),
+      );
+      expect(JSON.stringify(finding?.nextActions)).not.toContain('prisma-next init');
+    },
+    timeouts.coldTransformImport,
+  );
+
+  it(
     'runs one skill install per source, naming the skill and the agents',
     async () => {
       await harness().run(scaffoldArgv(), { cwd: projectDir });
@@ -234,9 +280,31 @@ describe('init installs', () => {
           expect.objectContaining({
             kind: 'message',
             severity: 'warn',
-            text: expect.stringContaining('npm'),
+            text: expect.stringContaining('package-lock.json'),
           }),
         );
+      },
+      timeouts.coldTransformImport,
+    );
+
+    it(
+      'keeps registry credentials out of the fallback warning',
+      async () => {
+        script = [
+          {
+            exitCode: 1,
+            stderr: `${PNPM_WORKSPACE_LEAK} https://alice:hunter2@registry.example.com/ //registry.npmjs.org/:_authToken=npm_realsecret`,
+          },
+        ];
+
+        const run = await harness('pnpm').run(scaffoldArgv('--skip-skills'), { cwd: projectDir });
+        const warnings = run.presented?.data;
+
+        expect(JSON.stringify(warnings)).not.toContain('hunter2');
+        expect(JSON.stringify(warnings)).not.toContain('npm_realsecret');
+        expect(warnings).toMatchObject({
+          warnings: expect.arrayContaining([expect.stringContaining('ERR_PNPM_WORKSPACE')]),
+        });
       },
       timeouts.coldTransformImport,
     );
@@ -310,7 +378,7 @@ describe('init installs', () => {
         expect(calls).toEqual([]);
         expect(mocks.emit).not.toHaveBeenCalled();
         expect(run.presented?.data).toMatchObject({
-          packagesInstalled: { skipped: true, deps: [], devDeps: [] },
+          packagesInstalled: { status: 'skipped', deps: [], devDeps: [] },
           contractEmitted: false,
         });
         expect(run.presented?.presentation.next).toContainEqual(
@@ -332,14 +400,19 @@ describe('init installs', () => {
     );
 
     it(
-      'warns about the skipped skills under --skip-skills',
+      'warns about the skipped skills under --skip-skills, naming the install commands',
       async () => {
         const run = await harness().run(scaffoldArgv('--skip-skills'), { cwd: projectDir });
+        const warnings = run.presented?.presentation.json;
 
         expect(skillCalls()).toEqual([]);
-        expect(run.presented?.data).toMatchObject({
-          warnings: expect.arrayContaining([expect.stringContaining('--skip-skills')]),
+        expect(warnings).toMatchObject({
+          warnings: expect.arrayContaining([
+            expect.stringContaining('--skip-skills'),
+            expect.stringContaining('skills@latest add'),
+          ]),
         });
+        expect(JSON.stringify(warnings)).not.toContain('prisma-next init --skip-install');
       },
       timeouts.coldTransformImport,
     );

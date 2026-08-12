@@ -6,8 +6,14 @@ import { CliStructuredError, notOk, ok } from '@prisma/cli-engine/protocol';
 import { type } from 'arktype';
 import { buildCatalogWarnings } from '../commands/init/catalog-warnings';
 import { errorInitProbeFailed } from '../commands/init/errors';
-import { buildNextSteps, type InitOutput, InitOutputSchema } from '../commands/init/output';
+import {
+  buildNextSteps,
+  type InitOutput,
+  InitOutputSchema,
+  type InstallStatus,
+} from '../commands/init/output';
 import { type ProbeOutcome, probeServerVersion } from '../commands/init/probe-db';
+import { resolveProjectSkillInstallCommands } from '../commands/init/skill-sources';
 import { targetPackageName } from '../commands/init/templates/code-templates';
 import { MIN_SERVER_VERSION } from '../commands/init/templates/env';
 import { chooseAction } from '../utils/next-actions';
@@ -74,6 +80,7 @@ export const initCommand = defineOrmCommand({
       'init --target mongodb --authoring typescript --json',
       'init --skip-install',
       'init --skip-skills',
+      'init --target postgres --keep-previous-facade',
     ],
   },
   args: {
@@ -137,11 +144,12 @@ export const initCommand = defineOrmCommand({
     const findings: Diagnostic[] = [];
     const extraActions: NextAction[] = [];
     let installedManager: PackageManagerId | undefined;
-    let installed = false;
+    let packagesInstalled: InstallStatus = 'skipped';
     let contractEmitted = false;
     let skillRegistered = false;
 
     const settle = (exitCode: 0 | 4 | 5 | 6) => {
+      const installed = packagesInstalled === 'installed';
       const document: InitOutput = {
         ok: true,
         target: inputs.target === 'mongo' ? 'mongodb' : 'postgres',
@@ -150,13 +158,14 @@ export const initCommand = defineOrmCommand({
         filesWritten: scaffold.filesWritten,
         filesDeleted: scaffold.filesDeleted,
         packagesInstalled: {
-          skipped: !installed,
+          status: packagesInstalled,
           deps: installed ? deps : [],
           devDeps: installed ? devDeps : [],
         },
         contractEmitted,
         nextSteps: buildNextSteps({
           target: inputs.target === 'mongo' ? 'mongodb' : 'postgres',
+          packagesInstalled,
           contractEmitted,
           emitCommand: EMIT_COMMAND,
           schemaPath: inputs.schemaPath,
@@ -212,10 +221,11 @@ export const initCommand = defineOrmCommand({
         warn(warning);
       }
       if (outcome.failure !== undefined) {
+        packagesInstalled = 'failed';
         findings.push(installFailedFinding(outcome.failure, scaffold.filesWritten));
         return settle(4);
       }
-      installed = true;
+      packagesInstalled = 'installed';
       installedManager = outcome.manager;
 
       const emitStep = 'Emit the contract';
@@ -262,6 +272,15 @@ export const initCommand = defineOrmCommand({
       }
     }
 
+    // The skills install through the same manager the dependencies did, and
+    // needs no scaffold, so the commands stand alone: whether it is skipped or
+    // fails, what the user is told to run is the install itself — never `init`
+    // again, which would re-scaffold over the schema they have since written.
+    const skillCommands = resolveProjectSkillInstallCommands(
+      installedManager ?? packageManager,
+      ctx.env,
+    );
+
     if (inputs.installProjectSkill) {
       const failure = await installAgentSkills({
         packages: ctx.packages,
@@ -270,13 +289,13 @@ export const initCommand = defineOrmCommand({
         manager: installedManager,
       });
       if (failure !== undefined) {
-        findings.push(skillInstallFailedFinding(failure, scaffold.filesWritten));
+        findings.push(skillInstallFailedFinding(failure, scaffold.filesWritten, skillCommands));
         return settle(6);
       }
       skillRegistered = true;
     } else {
       warn(
-        'Skipped the Prisma Next agent-skill install (--skip-skills). Re-run `prisma-next init --skip-install` to install them later.',
+        `Skipped the Prisma Next agent-skill install (--skip-skills). To install them later, run: ${skillCommands.map((command) => `\`${command}\``).join(' && ')}`,
       );
     }
 

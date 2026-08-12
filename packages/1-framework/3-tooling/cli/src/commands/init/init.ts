@@ -47,10 +47,12 @@ import {
   formatInitJson,
   type InitOutput,
   InitOutputSchema,
+  type InstallStatus,
   renderInitOutro,
 } from './output';
 import { isRecognisedPnpmResolutionError } from './pnpm-fallback';
 import { type ProbeOutcome, type ProbeOverrides, probeServerVersion } from './probe-db';
+import { redactSecrets } from './redact-secrets';
 import { findStaleArtifacts, removeDependency } from './reinit-cleanup';
 import { runProjectLevelSkillInstall } from './skill-install';
 import { DEFAULT_SKILL_SOURCES, formatSkillInstallCommand, legacySkillDirs } from './skill-sources';
@@ -529,6 +531,9 @@ export async function runInit(
     }
   }
 
+  // This shell raises a structured error on a failed install rather than
+  // reporting one, so the document it writes never carries `failed`.
+  const packagesInstalled: InstallStatus = install.skipped ? 'skipped' : 'installed';
   const output: InitOutput = {
     ok: true,
     target: inputs.target === 'mongo' ? 'mongodb' : 'postgres',
@@ -537,13 +542,14 @@ export async function runInit(
     filesWritten,
     filesDeleted,
     packagesInstalled: {
-      skipped: install.skipped,
+      status: packagesInstalled,
       deps: [...install.deps],
       devDeps: [...install.devDeps],
     },
     contractEmitted,
     nextSteps: buildNextSteps({
       target: inputs.target === 'mongo' ? 'mongodb' : 'postgres',
+      packagesInstalled,
       contractEmitted,
       emitCommand,
       schemaPath: inputs.schemaPath,
@@ -868,23 +874,6 @@ function readChildStderr(err: unknown): string {
     return String((err as { stderr: string }).stderr ?? '');
   }
   return '';
-}
-
-/**
- * Redacts userinfo (`user:password@`) from any URL-shaped substring inside
- * package-manager stderr before we surface it in a warning or error
- * meta. pnpm and npm both include the offending registry URL in resolve
- * errors, and that URL can carry an auth token (e.g. corporate registry
- * mirrors that bake `_authToken` into the URL). The Style Guide
- * (Testing & Accessibility — "Security: never print secrets") requires
- * we never surface those.
- *
- * Exported for unit tests.
- */
-export function redactSecrets(stderr: string): string {
-  if (!stderr) return stderr;
-  // Match `scheme://userinfo@host…` and replace the userinfo with `***`.
-  return stderr.replace(/([a-zA-Z][a-zA-Z0-9+.-]*:\/\/)([^/@\s]+)@/g, '$1***@');
 }
 
 /**

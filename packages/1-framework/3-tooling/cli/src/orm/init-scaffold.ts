@@ -4,7 +4,11 @@ import { detect } from 'package-manager-detector/detect';
 import { basename, dirname, isAbsolute, join } from 'pathe';
 import type { PackageManager } from '../commands/init/detect-package-manager';
 import { formatRunCommand } from '../commands/init/detect-package-manager';
-import { errorInitInvalidManifest, errorInitInvalidTsconfig } from '../commands/init/errors';
+import {
+  errorInitInvalidManifest,
+  errorInitInvalidTsconfig,
+  errorInitWriteFailed,
+} from '../commands/init/errors';
 import {
   mergeGitattributes,
   requiredGitattributesLines,
@@ -38,6 +42,25 @@ interface FileEntry {
   readonly content: string;
   /** Said after the file is written, where a merge is worth reporting. */
   readonly note?: string;
+}
+
+const CONFIG_FILE = 'prisma-next.config.ts';
+const QUICK_REFERENCE_FILE = 'prisma-next.md';
+const ENV_EXAMPLE_FILE = '.env.example';
+
+/**
+ * The generated files a run replaces outright, in the order it writes them.
+ * Everything else the scaffold touches it merges (`tsconfig.json`,
+ * `package.json`, the git files) or keeps (`.env`, `README.md`), so replacing
+ * one of these is the destructive act consent is asked for.
+ *
+ * `.env.example` is written the same way but deliberately left out: it is a
+ * conventional filename in projects that have never seen Prisma Next, and a
+ * consent token demanded for it would fire on first runs. The scaffold warns
+ * when it replaces one instead.
+ */
+export function generatedFilesInitReplaces(schemaPath: string): readonly string[] {
+  return [schemaPath, CONFIG_FILE, join(dirname(schemaPath), 'db.ts'), QUICK_REFERENCE_FILE];
 }
 
 const MANAGERS: ReadonlySet<string> = new Set<PackageManager>([
@@ -163,12 +186,12 @@ function planScaffold(ctx: {
       content: starterSchema(inputs.target, inputs.authoring, resolveImportSpecifier),
     },
     {
-      path: 'prisma-next.config.ts',
+      path: CONFIG_FILE,
       content: configFile(inputs.target, configContractPath, resolveImportSpecifier),
     },
     { path: join(schemaDir, 'db.ts'), content: dbFile(inputs.target, resolveImportSpecifier) },
     {
-      path: 'prisma-next.md',
+      path: QUICK_REFERENCE_FILE,
       content: quickReferenceMd(
         inputs.target,
         inputs.authoring,
@@ -177,8 +200,14 @@ function planScaffold(ctx: {
         resolveImportSpecifier,
       ),
     },
-    { path: '.env.example', content: envExampleContent(inputs.target) },
+    { path: ENV_EXAMPLE_FILE, content: envExampleContent(inputs.target) },
   ];
+
+  if (existsSync(join(cwd, ENV_EXAMPLE_FILE))) {
+    warnings.push(
+      `${ENV_EXAMPLE_FILE} already existed and was replaced with the Prisma Next template.`,
+    );
+  }
 
   const filesToDelete = inputs.reinit ? [...findStaleArtifacts(cwd, schemaDir)] : [];
   const dirsToDelete = legacySkillDirs().filter((rel) => existsSync(join(cwd, rel)));
@@ -316,7 +345,8 @@ function planScaffold(ctx: {
 /**
  * Plans every write, then performs them. Everything that can fail on the
  * user's existing files fails during planning, so a failure leaves the project
- * as it was; after the first write, the scaffold is on disk to keep.
+ * as it was; after the first write, the scaffold is on disk to keep, and a
+ * write that fails partway names the files that already landed.
  */
 export function scaffoldProject(ctx: {
   readonly cwd: string;
@@ -332,8 +362,16 @@ export function scaffoldProject(ctx: {
 
   for (const file of plan.files) {
     const target = join(ctx.cwd, file.path);
-    mkdirSync(dirname(target), { recursive: true });
-    writeFileSync(target, file.content, 'utf-8');
+    try {
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, file.content, 'utf-8');
+    } catch (error) {
+      throw errorInitWriteFailed({
+        path: file.path,
+        cause: error instanceof Error ? error.message : String(error),
+        filesWritten,
+      });
+    }
     filesWritten.push(file.path);
     if (file.note !== undefined) {
       notes.push(file.note);

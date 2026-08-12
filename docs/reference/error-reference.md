@@ -139,7 +139,11 @@ During `prisma-next init`, the project-level skills install (`skills add prisma/
 
 The user cancelled an interactive `prisma-next init` prompt (Ctrl-C, escape, or declining a selection) before all required inputs were supplied. No files were modified. Severity is `info`, not `error`; maps to init exit code 3 (USER_ABORTED). Meta: none.
 
-Raised by the commander `prisma-next init`. On the engine-hosted `init` a cancelled prompt is the engine's own `CLI.PROMPT_CANCELLED`, which exits 3 for every command rather than only this one.
+Raised by the commander `prisma-next init`. On the engine-hosted `init` a cancelled prompt is the engine's own `CLI.PROMPT_CANCELLED`, which exits 3 for every command rather than only this one; the engine-hosted `init` keeps this code for a consent the user declines, which settles as an errored envelope at exit 2 like every other structured failure there. Because that command's consent declares a token, the engine answers a wrong or absent answer with `CLI.PROMPT_INVALID` or `CLI.CONSENT_REQUIRED` before a decline can be expressed, so the code is the refusal that runs if a future consent drops its token.
+
+### CLI.INIT_WRITE_FAILED
+
+`prisma-next init` could not write one of the files it scaffolds — a directory sitting where the file goes, permissions, a full disk. Everything that can be read and parsed is checked before the first write, so this is the failure that survives that check; the files written before it are already on disk and are listed so a follow-up run or agent knows the state it is resuming from. Maps to init exit code 2 (PRECONDITION). Meta: `path`, `cause`, `filesWritten`.
 
 ### CLI.INVALID_OUTPUT_FORMAT
 

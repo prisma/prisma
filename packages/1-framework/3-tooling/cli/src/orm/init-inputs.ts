@@ -1,7 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs';
 import type { PromptSurface } from '@prisma/cli-engine';
 import { basename, join } from 'pathe';
-import { errorInitMissingFlags, errorInitStrictProbeWithoutProbe } from '../commands/init/errors';
+import {
+  errorInitMissingFlags,
+  errorInitStrictProbeWithoutProbe,
+  errorInitUserAborted,
+} from '../commands/init/errors';
 import { resolveAuthoring, resolveTarget, validateSchemaPath } from '../commands/init/input-values';
 import {
   type AuthoringId,
@@ -11,6 +15,7 @@ import {
   targetLabel,
   targetPackageName,
 } from '../commands/init/templates/code-templates';
+import { generatedFilesInitReplaces } from './init-scaffold';
 
 /** The flag values `init` reads, after the engine has parsed them. */
 export interface InitFlagValues {
@@ -34,6 +39,7 @@ export interface ResolvedInitInputs {
   readonly writeEnv: boolean;
   readonly probeDb: boolean;
   readonly strictProbe: boolean;
+  /** True when this run replaces generated files a previous one wrote. */
   readonly reinit: boolean;
   /**
    * The facade package a previous run installed for the other target, when the
@@ -44,10 +50,21 @@ export interface ResolvedInitInputs {
   readonly installProjectSkill: boolean;
 }
 
-const CONSENT_QUESTION =
-  'This project is already initialized. Re-initializing overwrites every generated file.';
-
 const REQUIRED_FLAG_PROMPTS = new Set(['target', 'authoring']);
+
+function formatFileList(files: readonly string[]): string {
+  const last = files.at(-1) ?? '';
+  return files.length <= 1 ? last : `${files.slice(0, -1).join(', ')} and ${last}`;
+}
+
+/**
+ * Names the files at stake rather than the category they belong to: the user
+ * knows `contract.prisma`, not "every generated file".
+ */
+function consentQuestion(replaced: readonly string[]): string {
+  const written = replaced.length === 1 ? 'it' : 'them';
+  return `Re-initializing replaces ${formatFileList(replaced)} with a fresh scaffold, losing anything you wrote in ${written}.`;
+}
 
 /**
  * The engine raises this when a prompt has no default and the session cannot
@@ -62,10 +79,13 @@ function isPromptRequired(error: unknown): boolean {
  * `--confirm` matches a token, so the token has to be something the user can
  * see and type. The working directory's name is it; a directory with no name
  * of its own (the filesystem root) falls back to its path.
+ *
+ * Trimmed, because the engine compares the typed answer trimmed: an untrimmed
+ * token from a directory named `my app ` is one no keystroke sequence matches.
  */
 export function consentToken(cwd: string): string {
-  const name = basename(cwd);
-  return name.length > 0 ? name : cwd;
+  const name = basename(cwd).trim();
+  return name.length > 0 ? name : cwd.trim();
 }
 
 async function askTarget(prompt: PromptSurface): Promise<TargetId> {
@@ -147,8 +167,13 @@ async function resolveRemovePreviousFacade(ctx: {
 
 /**
  * Resolves every input from the flags and, where a flag is absent, from the
- * engine's prompt surface. Consent for a re-scaffold comes first: nothing else
- * is worth asking about a project the user may not want overwritten.
+ * engine's prompt surface.
+ *
+ * Order matters twice. Every flag value is validated before anything is asked,
+ * so a typo costs a typo rather than a typed consent token. And consent comes
+ * as soon as the schema path is known, because that is the point at which the
+ * question can name the files it is about — and before any question whose
+ * answer only matters if the run proceeds.
  */
 export async function resolveInitInputs(ctx: {
   readonly cwd: string;
@@ -159,11 +184,6 @@ export async function resolveInitInputs(ctx: {
 
   if (flags.strictProbe && !flags.probeDb) {
     throw errorInitStrictProbeWithoutProbe();
-  }
-
-  const reinit = existsSync(join(cwd, 'prisma-next.config.ts'));
-  if (reinit) {
-    await prompt.consent(CONSENT_QUESTION, { token: consentToken(cwd) });
   }
 
   const flagTarget = resolveTarget(flags.target);
@@ -192,6 +212,17 @@ export async function resolveInitInputs(ctx: {
     flags.schemaPath !== undefined
       ? validateSchemaPath(flags.schemaPath, authoring)
       : await askSchemaPath(prompt, authoring);
+
+  const replaced = generatedFilesInitReplaces(schemaPath).filter((relative) =>
+    existsSync(join(cwd, relative)),
+  );
+  const reinit = replaced.length > 0;
+  if (reinit) {
+    const granted = await prompt.consent(consentQuestion(replaced), { token: consentToken(cwd) });
+    if (!granted) {
+      throw errorInitUserAborted();
+    }
+  }
 
   const writeEnv =
     flags.writeEnv ||
