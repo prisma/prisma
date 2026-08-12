@@ -18,6 +18,7 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  consentTokenFor,
   type JourneyContext,
   runContractEmit,
   runDbInit,
@@ -74,7 +75,7 @@ withTempDir(({ createTempDir }) => {
 
         // M.05: db update recovers by re-adding the NOT NULL column with a temporary default,
         // then dropping that default so future inserts must provide an explicit value.
-        const update = await runDbUpdate(ctx, ['-y']);
+        const update = await runDbUpdate(ctx, ['--confirm', consentTokenFor(db.connectionString)]);
         expect(update.exitCode, 'M.05: db update recovers dropped column drift').toBe(0);
 
         // M.06: db verify passes after reconciliation
@@ -153,9 +154,12 @@ withTempDir(({ createTempDir }) => {
         const update = await runDbUpdate(ctx, ['--no-interactive']);
         expect(update.exitCode, 'N.06: --no-interactive rejects destructive').toBe(2);
 
-        // N.07: db update -y explicitly accepts the destructive plan
-        const updateY = await runDbUpdate(ctx, ['-y']);
-        expect(updateY.exitCode, 'N.07: db update -y accepts').toBe(0);
+        // N.07: db update --confirm <database> explicitly accepts the destructive plan
+        const updateConfirmed = await runDbUpdate(ctx, [
+          '--confirm',
+          consentTokenFor(db.connectionString),
+        ]);
+        expect(updateConfirmed.exitCode, 'N.07: db update --confirm accepts').toBe(0);
 
         // N.08: db verify --schema-only tolerant (passes — all contract columns present; 'age' tolerated as extra)
         const tolerantAfter = await runDbVerify(ctx, ['--schema-only']);

@@ -4270,6 +4270,9 @@ importers:
       '@internal/utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../1-framework/0-foundation/utils
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
     devDependencies:
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
@@ -4957,6 +4960,9 @@ importers:
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
     devDependencies:
       '@internal/adapter-sqlite':
         specifier: workspace:8.0.0-rc.1

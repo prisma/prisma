@@ -12,6 +12,7 @@ import type { DbUpdateFailure } from '../control-api/types';
 import {
   CliStructuredError,
   ERROR_CODE_DESTRUCTIVE_CHANGES,
+  errorConsentPlanMismatch,
   errorContractValidationFailed,
   errorDestructiveChanges,
   errorMigrationPlanningFailed,
@@ -79,7 +80,23 @@ function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError {
     return errorDestructiveChanges(failure.summary, {
       ...ifDefined('why', failure.why),
       fix: 'Re-run with `-y` to apply destructive changes, or use `--dry-run` to preview first',
-      ...ifDefined('meta', failure.meta),
+      ...(failure.destructiveChanges
+        ? {
+            meta: {
+              destructiveOperations: failure.destructiveChanges.destructiveOperations,
+              databaseName: failure.destructiveChanges.databaseName,
+              planHash: failure.destructiveChanges.planHash,
+            },
+          }
+        : {}),
+    });
+  }
+
+  if (failure.code === 'CONSENT_PLAN_MISMATCH') {
+    return errorConsentPlanMismatch({
+      consentedPlanHash: failure.consentPlanMismatch?.consentedPlanHash ?? '',
+      planHash: failure.consentPlanMismatch?.planHash ?? '',
+      ...ifDefined('why', failure.why),
     });
   }
 

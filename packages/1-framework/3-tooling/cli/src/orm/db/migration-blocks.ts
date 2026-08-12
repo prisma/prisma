@@ -119,6 +119,21 @@ function previewBlocks(preview: OperationPreview | undefined): readonly Block[] 
     : [header, { kind: 'drawing', lines: statements }];
 }
 
+/**
+ * What the planner flagged without refusing to plan it. Only `db update`
+ * produces these — the additive-only policies cannot reach the branch.
+ */
+function plannerWarningBlocks(result: MigrationCommandResult): readonly Block[] {
+  const warnings = result.warnings ?? [];
+  if (warnings.length === 0) {
+    return [];
+  }
+  return [
+    { kind: 'summary', status: 'warn', text: 'Planner warnings' },
+    { kind: 'list', items: warnings.map((warning) => warning.summary) },
+  ];
+}
+
 function planSummaryText(result: MigrationCommandResult): string {
   const operations = result.plan.operations.length;
   const spaces = result.perSpace?.length ?? 0;
@@ -141,6 +156,7 @@ function planBlocks(result: MigrationCommandResult): readonly Block[] {
   const planned = result.plannedAdvanceRef;
   return [
     { kind: 'summary', status: 'ok', text: planSummaryText(result) },
+    ...plannerWarningBlocks(result),
     ...operationBlocks(result),
     {
       kind: 'fields',
@@ -204,6 +220,7 @@ function applyBlocks(result: MigrationCommandResult): readonly Block[] {
   const advanced = result.advancedRef;
   return [
     { kind: 'summary', status: 'ok', text: applySummaryText(result) },
+    ...plannerWarningBlocks(result),
     ...operationBlocks(result),
     ...fallbackMarkerBlocks(result),
     ...(advanced === null || advanced === undefined

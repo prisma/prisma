@@ -234,10 +234,18 @@ export interface DbUpdateOptions {
    * When true, allows applying plans that contain destructive operations
    * (e.g., DROP TABLE, DROP COLUMN, ALTER TYPE).
    * When false (default), the operation returns a failure if the plan
-   * includes destructive operations, prompting the user to confirm interactively
-   * or re-run with -y/--yes.
+   * includes destructive operations, which `db update` turns into its consent
+   * prompt: the user types the database name, or passes `--confirm <database>`
+   * where there is nobody to ask.
    */
   readonly acceptDataLoss?: boolean;
+  /**
+   * Consent to the destructive plan a prior `DESTRUCTIVE_CHANGES` refusal
+   * named, identified by that refusal's `planHash`. The apply recomputes its
+   * plan and refuses with `CONSENT_PLAN_MISMATCH` when the fresh plan is not
+   * the one that was consented to.
+   */
+  readonly consent?: { readonly planHash: string };
   /**
    * On-disk migrations directory. Always required — every `db update`
    * routes through the per-space flow, which reads on-disk
@@ -482,7 +490,40 @@ export interface DbUpdateSuccess {
 /**
  * Failure codes for dbUpdate operation.
  */
-export type DbUpdateFailureCode = 'PLANNING_FAILED' | 'RUNNER_FAILED' | 'DESTRUCTIVE_CHANGES';
+export type DbUpdateFailureCode =
+  | 'PLANNING_FAILED'
+  | 'RUNNER_FAILED'
+  | 'DESTRUCTIVE_CHANGES'
+  | 'CONSENT_PLAN_MISMATCH';
+
+/** One planned operation whose class is destructive, as the refusal names it. */
+export interface DestructivePlanOperation {
+  readonly id: string;
+  readonly label: string;
+}
+
+/**
+ * The verdict a `DESTRUCTIVE_CHANGES` refusal carries: what the plan would
+ * destroy, the database it would destroy it in, and the identity of the plan
+ * that was refused. Consent is granted against `planHash` — the caller passes
+ * it back as `DbUpdateOptions.consent`.
+ */
+export interface DestructiveChangesVerdict {
+  readonly destructiveOperations: ReadonlyArray<DestructivePlanOperation>;
+  /** The connected database's name, when the driver can name it. */
+  readonly databaseName: string | undefined;
+  /** Content hash of the refused plan. */
+  readonly planHash: string;
+}
+
+/**
+ * Why an apply carrying consent was refused: the plan recomputed for the
+ * apply is not the plan that was consented to.
+ */
+export interface ConsentPlanMismatchVerdict {
+  readonly consentedPlanHash: string;
+  readonly planHash: string;
+}
 
 /**
  * Failure details for dbUpdate operation.
@@ -494,6 +535,10 @@ export interface DbUpdateFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
+  /** Present exactly when `code` is `'DESTRUCTIVE_CHANGES'`. */
+  readonly destructiveChanges?: DestructiveChangesVerdict;
+  /** Present exactly when `code` is `'CONSENT_PLAN_MISMATCH'`. */
+  readonly consentPlanMismatch?: ConsentPlanMismatchVerdict;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }

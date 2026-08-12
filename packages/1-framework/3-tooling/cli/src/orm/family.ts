@@ -6,6 +6,7 @@ import { contractEmitCommand } from './contract/emit';
 import { contractInferCommand } from './contract/infer';
 import { dbInitCommand } from './db/init';
 import { dbSchemaCommand } from './db/schema';
+import { dbUpdateCommand } from './db/update';
 import { formatCommand } from './format';
 import { migrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
@@ -27,6 +28,7 @@ const commands: Readonly<Record<string, AnyCommand>> = {
   'contract infer': contractInferCommand,
   'db init': dbInitCommand,
   'db schema': dbSchemaCommand,
+  'db update': dbUpdateCommand,
   format: formatCommand,
   migrate: migrateCommand,
   'migration graph': migrationGraphCommand,

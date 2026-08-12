@@ -8,6 +8,7 @@ import { contractEmitCommand } from './contract/emit';
 import { contractInferCommand } from './contract/infer';
 import { createDbInitCommand } from './db/init';
 import { createDbSchemaCommand } from './db/schema';
+import { createDbUpdateCommand } from './db/update';
 import { ormCommandFamily } from './family';
 import { formatCommand } from './format';
 import { loadOrmConfig } from './load-config';
@@ -63,6 +64,7 @@ export function createBinCommands(createClient: CreateControlClient): MountedTre
     'contract infer': contractInferCommand,
     'db init': createDbInitCommand(createClient),
     'db schema': createDbSchemaCommand(createClient),
+    'db update': createDbUpdateCommand(createClient),
     format: formatCommand,
     migrate: createMigrateCommand(createClient),
     'migration graph': migrationGraphCommand,

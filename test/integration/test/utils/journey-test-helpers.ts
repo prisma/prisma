@@ -18,7 +18,6 @@ import {
 } from 'node:fs';
 import { promisify } from 'node:util';
 import { createDbSignCommand } from '@internal/cli/commands/db-sign';
-import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
 import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
 import { createMigrationCheckCommand } from '@internal/cli/commands/migration-check';
 import { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
@@ -368,8 +367,24 @@ export async function runDbInit(
 export async function runDbUpdate(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbUpdateCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'update', ...extraArgs], options);
+}
+
+/**
+ * What `db update` asks the user to type before it destroys anything: the name
+ * of the connected database, which for these Postgres-backed tests is the
+ * database segment of the connection URL. A run that means to accept data loss
+ * passes it as `--confirm`, because `--yes` cannot grant a consent.
+ */
+export function consentTokenFor(connectionString: string): string {
+  const parsed = new URL(connectionString);
+  const name = parsed.pathname.split('/').filter((segment) => segment.length > 0)[0];
+  if (name === undefined) {
+    throw new Error(`Connection URL names no database: ${connectionString}`);
+  }
+  return decodeURIComponent(name);
 }
 
 export async function runDbVerify(

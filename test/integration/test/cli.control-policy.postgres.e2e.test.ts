@@ -251,8 +251,7 @@ withTempDir(({ createTempDir }) => {
             await client.query('ALTER TABLE public.audit_log ADD COLUMN note text');
           });
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--no-color']);
+          await runDbUpdate(testSetup, ['--config', configPath]);
           expect(await columnExists(connectionString, 'public', 'audit_log', 'note')).toBe(true);
 
           let outputStartIndex = consoleOutput.length;
@@ -372,23 +371,15 @@ withTempDir(({ createTempDir }) => {
             createTempDir,
           );
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const dryRunOutput = stripAnsi(consoleOutput.join('\n'));
-          expect(dryRunOutput).toContain('Warnings:');
+          const dryRun = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          const dryRunOutput = stripAnsi(dryRun.stderr);
+          expect(dryRunOutput).toContain('Planner warnings');
           expect(dryRunOutput).toContain('control policy suppressed: table "auth.sessions"');
 
-          consoleOutput.length = 0;
-          const applyStartIndex = consoleOutput.length;
-          const applyExitCode = await runDbUpdateAllowFailure(testSetup, [
-            '--config',
-            configPath,
-            '--no-color',
-          ]);
-          const applyOutput = stripAnsi(consoleOutput.slice(applyStartIndex).join('\n'));
-          expect(applyOutput).toContain('Warnings:');
+          const apply = await runDbUpdateAllowFailure(testSetup, ['--config', configPath]);
+          const applyOutput = stripAnsi(apply.stderr);
           expect(applyOutput).toContain('control policy suppressed: table "auth.sessions"');
-          expect(applyExitCode).not.toBe(0);
+          expect(apply.exitCode).not.toBe(0);
           expect(await tableExists(connectionString, 'auth', 'sessions')).toBe(false);
         });
       },

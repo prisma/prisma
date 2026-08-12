@@ -33,6 +33,7 @@ function markerRecord(fields: {
 function createMockDriver() {
   return {
     close: vi.fn(),
+    databaseName: async () => 'appdb',
   } as unknown as ControlDriverInstance<'sql', 'postgres'>;
 }
 
@@ -509,10 +510,71 @@ describe('executeDbUpdate', () => {
       if (!result.ok) {
         expect(result.failure.code).toBe('DESTRUCTIVE_CHANGES');
         expect(result.failure.summary).toContain('destructive');
-        expect(result.failure.meta).toMatchObject({
+        expect(result.failure.destructiveChanges).toEqual({
           destructiveOperations: [
             { id: 'dropColumn.user.nickname', label: 'Drop column nickname from user' },
           ],
+          databaseName: 'appdb',
+          planHash: expect.stringMatching(/^[0-9a-f]{64}$/),
+        });
+      }
+    });
+
+    it('applies when the consent names the refused plan', async () => {
+      const sharedInputs = () => ({
+        driver: createMockDriver(),
+        adapter: STUB_ADAPTER,
+        familyInstance: createMockFamilyInstance({
+          readAllMarkers: async () => new Map([['app', markerRecord({ storageHash: 'origin' })]]),
+        }),
+        contract: dummyContract,
+        mode: 'apply' as const,
+        migrations: createDestructiveMigrations(),
+        frameworkComponents: [],
+        migrationsDir: FAKE_MIGRATIONS_DIR,
+        targetId: 'postgres' as const,
+      });
+
+      const refused = await executeDbUpdate(sharedInputs());
+      expect(refused.ok).toBe(false);
+      const planHash = !refused.ok ? refused.failure.destructiveChanges?.planHash : undefined;
+      expect(planHash).toBeDefined();
+
+      const result = await executeDbUpdate({
+        ...sharedInputs(),
+        consent: { planHash: planHash as string },
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.mode).toBe('apply');
+        expect(result.value.execution).toBeDefined();
+      }
+    });
+
+    it('refuses a consent naming a plan it is no longer about to apply', async () => {
+      const consentedPlanHash = 'f'.repeat(64);
+      const result = await executeDbUpdate({
+        driver: createMockDriver(),
+        adapter: STUB_ADAPTER,
+        familyInstance: createMockFamilyInstance({
+          readAllMarkers: async () => new Map([['app', markerRecord({ storageHash: 'origin' })]]),
+        }),
+        contract: dummyContract,
+        mode: 'apply',
+        consent: { planHash: consentedPlanHash },
+        migrations: createDestructiveMigrations(),
+        frameworkComponents: [],
+        migrationsDir: FAKE_MIGRATIONS_DIR,
+        targetId: 'postgres',
+      });
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.failure.code).toBe('CONSENT_PLAN_MISMATCH');
+        expect(result.failure.consentPlanMismatch).toEqual({
+          consentedPlanHash,
+          planHash: expect.stringMatching(/^[0-9a-f]{64}$/),
         });
       }
     });
