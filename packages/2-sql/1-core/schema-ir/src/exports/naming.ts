@@ -5,6 +5,7 @@ export {
   computeCheckContentHash,
   computeIndexContentHash,
   defaultIndexName,
+  derivedCheckPrefixes,
   formatWireName,
   type IndexContentHashParts,
   nameOf,

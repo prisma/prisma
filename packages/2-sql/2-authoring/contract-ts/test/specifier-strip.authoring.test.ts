@@ -1,9 +1,9 @@
 import { fileURLToPath } from 'node:url';
 import type { ContractSourceContext } from '@internal/config/config-types';
-import type { Contract, ControlPolicy } from '@internal/contract/types';
+import { type Contract, type ControlPolicy, coreHash, profileHash } from '@internal/contract/types';
 import type { FamilyPackRef } from '@internal/framework-components/components';
-import type { CheckConstraint, SqlStorage, StorageTable } from '@internal/sql-contract/types';
-import { timeouts } from '@repo/test-utils';
+import { type CheckConstraint, SqlStorage, type StorageTable } from '@internal/sql-contract/types';
+import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
@@ -148,6 +148,42 @@ describe('applySqlSpecifierControlPolicy', () => {
   it('returns the contract by reference when the specifier stamps no policy', () => {
     const built = buildUser();
     expect(applySqlSpecifierControlPolicy(built, undefined, createTestSqlNamespace)).toBe(built);
+  });
+
+  it('throws rather than silently keeping every check when a table carries checks but its column map is empty', () => {
+    const contract: Contract<SqlStorage> = {
+      target: 'postgres',
+      targetFamily: 'sql',
+      profileHash: profileHash('column-map-invariant'),
+      storage: new SqlStorage({
+        storageHash: coreHash('column-map-invariant'),
+        namespaces: {
+          public: createTestSqlNamespace({
+            id: 'public',
+            entries: {
+              table: {
+                User: {
+                  columns: {},
+                  uniques: [],
+                  indexes: [],
+                  foreignKeys: [],
+                  checks: [{ name: 'legacy_check', expression: 'true' }],
+                },
+              },
+            },
+          }),
+        },
+      }),
+      roots: {},
+      domain: applicationDomainOf({ models: {} }),
+      capabilities: {},
+      extensions: {},
+      meta: {},
+    };
+
+    expect(() =>
+      applySqlSpecifierControlPolicy(contract, 'external', createTestSqlNamespace),
+    ).toThrow(/column map is empty/);
   });
 });
 

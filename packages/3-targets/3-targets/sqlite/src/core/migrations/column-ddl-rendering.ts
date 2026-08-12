@@ -11,6 +11,7 @@ import {
 import type { SqlColumnIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
+import { sqliteError } from '../errors';
 import type { SqliteColumnSpec } from './operations/shared';
 import { buildColumnDefaultSql, buildColumnTypeSql } from './planner-ddl-builders';
 
@@ -146,6 +147,14 @@ export function ddlColumnFromNode(column: SqlColumnIR, inline: boolean): DdlColu
  * Builds the table-level constraints (PK / unique / FK) for a `CreateTable`
  * path from the table node — the node-sourced sibling of the retired
  * contract-based `tableToDdlParts`'s constraint half.
+ *
+ * A check constraint on the table node throws rather than being dropped.
+ * `@@check` is refused earlier, by the `sql.checkConstraint` capability gate in
+ * PSL interpretation. The TS `check()` builder is not gated there — capabilities
+ * are adapter-reported and reach the contract only after it is built — so a
+ * `check()` declared against SQLite arrives here, and this is where it is
+ * refused. It is the primary enforcement point for that surface, and the safety
+ * net for a contract that reached storage some other way.
  */
 export function tableConstraintsFromNode(
   table: SqlTableIR,
@@ -154,6 +163,13 @@ export function tableConstraintsFromNode(
   const constraints: DdlTableConstraint[] = [];
   if (table.primaryKey && !hasInlinePk) {
     constraints.push(new PrimaryKeyConstraint({ columns: table.primaryKey.columns }));
+  }
+  for (const check of table.checks ?? []) {
+    throw sqliteError(
+      'CONTRACT.CONSTRAINT_INVALID',
+      `The SQLite target does not support CHECK constraints (constraint "${check.name}" on table "${table.name}"). The "checkConstraint" capability is Postgres-only — remove the "@@check" / "check()" declaration, or target Postgres.`,
+      { meta: { constraintName: check.name, tableName: table.name } },
+    );
   }
   for (const u of table.uniques) {
     constraints.push(

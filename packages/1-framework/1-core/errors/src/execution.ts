@@ -3,6 +3,7 @@ import type {
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
+import type { NextAction } from '@internal/utils/structured-error';
 import { CliStructuredError } from './control';
 
 // ============================================================================
@@ -16,6 +17,9 @@ export function errorMarkerMissing(options?: { readonly why?: string }): CliStru
   return new CliStructuredError('CONTRACT.MARKER_MISSING', 'Database not signed', {
     why: options?.why ?? 'No database signature (marker) found',
     fix: 'Run `prisma-next db sign --db <url>` to sign the database',
+    nextActions: [
+      { kind: 'run-command', label: 'Sign the database', command: '{bin} db sign --db <url>' },
+    ],
   });
 }
 
@@ -75,6 +79,14 @@ export function errorMarkerRowCorrupt(options: {
     {
       why: options.why,
       fix: `The ${options.markerLocation} row for space "${options.space}" contains invalid data. Delete the row, then run \`prisma-next db sign --db <url>\` to write a fresh marker.`,
+      nextActions: [
+        {
+          kind: 'run-command',
+          label: 'Write a fresh marker',
+          command: '{bin} db sign --db <url>',
+          reason: `Delete the invalid ${options.markerLocation} row for space "${options.space}" first — this command then writes a valid one.`,
+        },
+      ],
       meta: { space: options.space },
       ...ifDefined('cause', options.cause),
     },
@@ -130,6 +142,14 @@ function errorLegacyMarkerShape(options: {
     {
       why: options.why,
       fix: 'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `prisma-next db init` to recreate it with the current per-space schema.',
+      nextActions: [
+        {
+          kind: 'run-command',
+          label: 'Reinitialise the marker table from a clean baseline',
+          command: '{bin} db init',
+          reason: `Drop \`${options.markerLocation}\` first — it has the legacy shape (no \`space\` column) and this command recreates it with the current per-space schema.`,
+        },
+      ],
       meta: { runnerErrorCode: 'MIGRATION.LEGACY_MARKER_SHAPE' },
       ...ifDefined('cause', options.cause),
     },
@@ -197,10 +217,14 @@ export function parseMarkerRowSafely<T>(
 export function errorMarkerRequired(options?: {
   readonly why?: string;
   readonly fix?: string;
+  readonly nextActions?: readonly NextAction[];
 }): CliStructuredError {
   return new CliStructuredError('CONTRACT.MARKER_REQUIRED', 'Database must be signed first', {
     why: options?.why ?? 'No database signature (marker) found',
     fix: options?.fix ?? 'Run `prisma-next db init` first to sign the database',
+    nextActions: options?.nextActions ?? [
+      { kind: 'run-command', label: 'Sign the database', command: '{bin} db init' },
+    ],
   });
 }
 
@@ -216,6 +240,10 @@ export function errorSchemaVerificationFailed(options: {
   return new CliStructuredError('CONTRACT.SCHEMA_VERIFICATION_FAILED', options.summary, {
     why: 'Database schema does not satisfy the contract',
     fix: 'Run `prisma-next db update` to reconcile, or adjust your contract to match the database',
+    nextActions: [
+      { kind: 'run-command', label: 'Reconcile the database', command: '{bin} db update' },
+      { kind: 'edit-file', label: 'Adjust your contract to match the database' },
+    ],
     meta: {
       verificationResult: options.verificationResult,
       ...ifDefined('issues', options.issues),
@@ -231,6 +259,7 @@ export function errorRunnerFailed(
   options?: {
     readonly why?: string;
     readonly fix?: string;
+    readonly nextActions?: readonly NextAction[];
     readonly meta?: Record<string, unknown>;
     readonly cause?: unknown;
   },
@@ -238,6 +267,7 @@ export function errorRunnerFailed(
   return new CliStructuredError('MIGRATION.RUNNER_FAILED', summary, {
     why: options?.why ?? 'Migration runner failed',
     fix: options?.fix ?? 'Inspect the reported conflict and reconcile schema drift',
+    ...ifDefined('nextActions', options?.nextActions),
     ...(options?.meta ? { meta: options.meta } : {}),
     ...ifDefined('cause', options?.cause),
   });
