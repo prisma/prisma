@@ -15,7 +15,7 @@ describeMatrix({ providers: { d1: true } }, 'D1', () => {
   test('should succeed with listLocalDatabases() when a single local Cloudflare D1 database exists', async () => {
     ctx.fixture('cloudflare-d1-one-db')
 
-    const introspect = new DbPull()
+    const introspect = DbPull.new('prisma')
     const result = introspect.parse(['--print'], await ctx.config(), ctx.configDir())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
@@ -55,7 +55,7 @@ describeMatrix({ providers: { d1: true } }, 'D1', () => {
   test('should succeed when reintrospecting with listLocalDatabases() when a single local Cloudflare D1 database exists', async () => {
     ctx.fixture('re-introspection/sqlite/cloudflare-d1-one-db')
 
-    const introspect = new DbPull()
+    const introspect = DbPull.new('prisma')
     const result = introspect.parse([], await ctx.config(), ctx.configDir())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
@@ -74,7 +74,7 @@ describeMatrix({ providers: { d1: true } }, 'D1', () => {
 describeMatrix(sqliteOnly, 'common/sqlite', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlite')
-    const introspect = new DbPull()
+    const introspect = DbPull.new('prisma')
     const result = introspect.parse(['--print'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
@@ -118,7 +118,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
   test('introspection --force', async () => {
     ctx.fixture('introspection/sqlite')
-    const introspect = new DbPull()
+    const introspect = DbPull.new('prisma')
     const result = introspect.parse(['--print', '--force'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
@@ -167,7 +167,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
         url: 'file:./dev.db',
       })
 
-      const introspect = new DbPull()
+      const introspect = DbPull.new('prisma')
       const result = introspect.parse(['--print'], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toBe('')
 
@@ -215,7 +215,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
         url: 'withoutfileprefix.db',
       })
 
-      const introspect = new DbPull()
+      const introspect = DbPull.new('prisma')
       const result = introspect.parse(['--print'], await ctx.config(), ctx.configDir())
 
       // TODO: this error is not entirely correct: the invalid URL is in the config file,
@@ -240,7 +240,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
         url: 'file:./other.db',
       })
 
-      const introspect = new DbPull()
+      const introspect = DbPull.new('prisma')
       const result = introspect.parse(['--print', '--url=file:./dev.db'], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toBe('')
 
@@ -285,7 +285,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     test('--url works when no datasource exists in config', async () => {
       ctx.fixture('introspection/sqlite')
 
-      const introspect = new DbPull()
+      const introspect = DbPull.new('prisma')
       const result = introspect.parse(['--print', '--url=file:./dev.db'], await ctx.config(), ctx.configDir())
       await expect(result).resolves.toBe('')
 

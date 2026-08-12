@@ -46,7 +46,7 @@ describeMatrix(postgresOnly, 'postgresql', () => {
 
   test('basic introspection', async () => {
     ctx.fixture('introspection/postgresql')
-    const introspect = new DbPull()
+    const introspect = DbPull.new('prisma')
     const result = introspect.parse(['--print'], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
@@ -88,7 +88,7 @@ describeMatrix(postgresOnly, 'postgresql', () => {
   describe('empty or incomplete schema', () => {
     test('basic introspection config + empty schema', async () => {
       ctx.fixture('empty-schema')
-      const introspect = new DbPull()
+      const introspect = DbPull.new('prisma')
       const result = introspect.parse(['--print'], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toMatchInlineSnapshot(`"Schema must contain a datasource block"`)
 
@@ -98,7 +98,7 @@ describeMatrix(postgresOnly, 'postgresql', () => {
 
     test('basic introspection config + schema with no linebreak after generator block', async () => {
       ctx.fixture('generator-only')
-      const introspect = new DbPull()
+      const introspect = DbPull.new('prisma')
       const result = introspect.parse(['--print'], await ctx.config(), ctx.configDir())
       await expect(result).rejects.toMatchInlineSnapshot(`"Schema must contain a datasource block"`)
 
