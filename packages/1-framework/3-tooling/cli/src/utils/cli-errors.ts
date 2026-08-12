@@ -81,7 +81,7 @@ export {
  * settles the engine's envelope.
  */
 export class ActionableCliError extends CliStructuredError {
-  readonly nextActions: readonly NextAction[];
+  override readonly nextActions: readonly NextAction[];
 
   constructor(
     code: `${string}.${string}`,

@@ -86,6 +86,7 @@
     "./family/runtime": "./dist/family__runtime.mjs",
     "./family/verify": "./dist/family__verify.mjs",
     "./family-contract": "./dist/family-contract.mjs",
+    "./family-contract/authored-check-naming": "./dist/family-contract__authored-check-naming.mjs",
     "./family-contract/canonicalization-hooks": "./dist/family-contract__canonicalization-hooks.mjs",
     "./family-contract/contract-view": "./dist/family-contract__contract-view.mjs",
     "./family-contract/entity-handle-lowering-hook": "./dist/family-contract__entity-handle-lowering-hook.mjs",

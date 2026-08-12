@@ -11,6 +11,7 @@ const baseError: CliErrorEnvelope = {
   summary: 'Migration planning failed',
   why: 'Conflicts detected',
   fix: 'Resolve conflicts',
+  nextActions: [],
 };
 
 const createConflicts = (): readonly CliErrorConflict[] => [

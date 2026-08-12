@@ -1,11 +1,37 @@
 import type { MigrationPlannerConflict } from '@internal/framework-components/control';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import type { NextAction } from '@internal/utils/structured-error';
 import { red } from 'colorette';
 
+import { BIN_NAME } from '../bin-name';
 import type { CliErrorConflict, CliErrorEnvelope } from '../cli-errors';
 import type { GlobalFlags } from '../global-flags';
 import { createColorFormatter, formatDim, isVerbose } from './helpers';
 import { formatPlannerWarningsBlock } from './migrations';
+
+const BIN_PLACEHOLDER = '{bin}';
+
+/**
+ * Rewrite the `{bin}` placeholder in every next-action command to `binName`.
+ *
+ * Library-layer error factories cannot know which binary the user invoked, so
+ * they write `{bin} ref set <name> <hash>`. Every surface that renders or
+ * serializes an envelope resolves the placeholder first, so a consumer only
+ * ever sees a command that is runnable as written.
+ */
+export function resolveBinPlaceholder(
+  envelope: CliErrorEnvelope,
+  binName: string,
+): CliErrorEnvelope {
+  const substitute = (command: string) => command.replaceAll(BIN_PLACEHOLDER, binName);
+  const resolved: readonly NextAction[] = envelope.nextActions.map((action) => ({
+    ...action,
+    ...ifDefined('command', action.command?.replaceAll(BIN_PLACEHOLDER, binName)),
+    ...ifDefined('commands', action.commands?.map(substitute)),
+  }));
+  return { ...envelope, nextActions: resolved };
+}
 
 /**
  * The display label for a schema-diff issue in the shared error envelope,
@@ -118,5 +144,5 @@ export function formatErrorOutput(error: CliErrorEnvelope, flags: GlobalFlags): 
  * Formats error output as JSON.
  */
 export function formatErrorJson(error: CliErrorEnvelope): string {
-  return JSON.stringify(error, null, 2);
+  return JSON.stringify(resolveBinPlaceholder(error, BIN_NAME), null, 2);
 }

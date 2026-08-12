@@ -65,6 +65,7 @@ import type {
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
 import {
   buildSqlContractFromDefinition,
+  type CheckNode,
   type EnumTypeHandle,
   type FieldNode,
   type ForeignKeyNode,
@@ -108,12 +109,14 @@ import {
 } from './psl-relation-resolution';
 import {
   baseModelSpec,
+  checkModelSpec,
   controlModelSpec,
   discriminatorModelSpec,
   findModelAttributeNode,
   idModelSpec,
   indexModelSpec,
   interpretModelAttribute,
+  PSL_CHECK_ON_STI_VARIANT,
   uniqueModelSpec,
 } from './sql-attribute-specs';
 
@@ -829,6 +832,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       ...ifDefined('name', field.uniqueName),
     }));
   const indexNodes: IndexNode[] = [];
+  const checkNodes: CheckNode[] = [];
   const foreignKeyNodes: ForeignKeyNode[] = [];
 
   const modelAttributeNodes = Array.from(model.node.attributes());
@@ -1019,6 +1023,38 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
           options: parsed.options,
         }),
       );
+      continue;
+    }
+    if (modelAttribute.name === 'check') {
+      const node = modelAttributeNodes[attributeIndex];
+      if (node === undefined) {
+        continue;
+      }
+      if (input.capabilities['sql']?.['checkConstraint'] !== true) {
+        diagnostics.push({
+          code: 'PSL_CHECK_UNSUPPORTED_TARGET',
+          message: `Model "${model.name}" declares "@@check", but target "${input.targetId}" does not support check constraints (the adapter does not report the "checkConstraint" capability). Remove the check or author it against a target that supports check constraints.`,
+          sourceId,
+          span: modelAttribute.span,
+        });
+        continue;
+      }
+      const parsed = interpretModelAttribute({
+        node,
+        spec: checkModelSpec,
+        model,
+        sourceFile: input.sourceFile,
+        sourceId,
+        diagnostics,
+      });
+      if (parsed === undefined) {
+        continue;
+      }
+      checkNodes.push({
+        expression: parsed.expression,
+        name: parsed.name,
+        map: parsed.map,
+      });
       continue;
     }
     const contributedModelAttribute = input.modelAttributesByName.get(modelAttribute.name);
@@ -1448,6 +1484,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       ...ifDefined('id', primaryKey),
       ...(uniqueConstraints.length > 0 ? { uniques: uniqueConstraints } : {}),
       ...(indexNodes.length > 0 ? { indexes: indexNodes } : {}),
+      ...(checkNodes.length > 0 ? { checks: checkNodes } : {}),
       ...(foreignKeyNodes.length > 0 ? { foreignKeys: foreignKeyNodes } : {}),
       ...ifDefined('control', controlPolicy),
     },
@@ -2466,6 +2503,31 @@ export function interpretPslDocumentToSqlContract(
       variantMapping?.model.attributes.some((attr) => attr.name === 'map') ?? false;
     if (!hasExplicitMap) {
       stiVariantNames.add(variantName);
+    }
+  }
+
+  // An STI variant shares its base model's storage table (see
+  // `materializeStiVariantStorageColumns` below) and never gets a table of
+  // its own, so a check declared on it has nowhere to attach — silently
+  // dropping it at build time would defeat the whole point of `@@check`.
+  // Catch it here, while the PSL source still has the `@@check` attribute's
+  // span and the base model's name in hand.
+  for (const variantName of stiVariantNames) {
+    const variantMapping = modelMappings.get(variantName);
+    if (variantMapping === undefined) continue;
+    const baseDecl = baseDeclarations.get(variantName);
+    invariant(
+      baseDecl !== undefined,
+      `stiVariantNames is derived from baseDeclarations.keys(), so "${variantName}" must have a base declaration`,
+    );
+    for (const attribute of variantMapping.model.node.attributes()) {
+      if (attribute.name()?.isSimpleName('check') !== true) continue;
+      diagnostics.push({
+        code: PSL_CHECK_ON_STI_VARIANT,
+        message: `Model "${variantName}" declares "@@check", but it shares its base model "${baseDecl.baseName}"'s storage table (single-table inheritance via @@base) and has no table of its own to declare a check constraint on. Declare the check on "${baseDecl.baseName}" instead.`,
+        sourceId,
+        span: nodePslSpan(attribute.syntax, sourceFile),
+      });
     }
   }
 

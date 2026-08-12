@@ -1,3 +1,4 @@
+import type { NextAction } from '@internal/utils/structured-error';
 import { docsUrlFor } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
@@ -105,6 +106,40 @@ describe('CliStructuredError', () => {
 
     expect(error.fix).toBeUndefined();
     expect(envelope.fix).toBeUndefined();
+  });
+
+  describe('nextActions', () => {
+    const nextActions: readonly NextAction[] = [
+      { kind: 'run-command', label: 'Create the config', command: '{bin} init' },
+    ];
+
+    it('carries nextActions onto the error and the envelope, {bin} left unsubstituted', () => {
+      const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error', { nextActions });
+
+      expect(error.nextActions).toEqual(nextActions);
+      expect(error.toEnvelope().nextActions).toEqual(nextActions);
+    });
+
+    it('leaves nextActions off the raised error but normalizes the envelope to []', () => {
+      const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error');
+      const envelope = error.toEnvelope();
+
+      expect(error.nextActions).toBeUndefined();
+      expect(Object.keys(envelope)).toContain('nextActions');
+      expect(envelope.nextActions).toEqual([]);
+    });
+
+    it('keeps fix alongside nextActions — both survive the transition', () => {
+      const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error', {
+        why: 'No config file',
+        fix: "Run 'prisma-next init' to create a config file",
+        nextActions,
+      });
+      const envelope = error.toEnvelope();
+
+      expect(envelope.fix).toBe("Run 'prisma-next init' to create a config file");
+      expect(envelope.nextActions).toEqual(nextActions);
+    });
   });
 
   describe('is() type guard', () => {
