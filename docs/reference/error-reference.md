@@ -4,7 +4,9 @@ Every user-facing Prisma Next error is a structured envelope identified by a dot
 
 Recognize an error programmatically with `isStructuredError` from `@internal/utils/structured-error` and match on `error.code` — never `instanceof`. Envelopes carry `message`, and optionally `why`, `fix`, `where`, `meta`, `cause`, and `docsUrl`.
 
-Exit codes (CLI): an expected structured failure exits `2`, a user abort exits `3`, and `1` is reserved for internal errors (bugs). Errors with codes on this page exit `2` unless noted.
+Exit codes (CLI): an expected structured failure exits `2`, a user abort exits `3`, and `1` is reserved for internal errors (bugs). Codes on this page exit `2` unless the entry says otherwise.
+
+Some codes are not failures to run at all. `db verify`, `db sign` and `migration check` answer a question about the project, and a bad answer is still an answer: they finish, report their findings as diagnostics on a successful envelope, and exit `4`. Exit `2` is reserved for the cases where those commands could not do the job — an unknown `--space`, a migration reference that resolves to nothing, an unreachable database, a contract that has not been emitted. Every entry whose code can arrive on one of those runs says so and names the command. Which numbers a command can exit with is declared on the command itself and shown by `--help`.
 
 Codes that predate the dotted scheme were renamed at 0.16; the full old→new crosswalk (`PN-DOMAIN-NNNN` → `NAMESPACE.SUBCODE`) is in [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md).
 
@@ -74,6 +76,10 @@ The config module evaluated, but its default export was not created by the curre
 ### CLI.CONFIG_ARG_MISSING_PATH
 
 The migration-file CLI (`prisma-next migration`) received `--config` without a path argument — either a bare trailing `--config`, or `--config` immediately followed by another flag (e.g. `--config --dry-run`). The CLI fails fast instead of consuming the next flag as the config path or silently falling back to default config discovery. Meta: `nextToken` (present only when another flag followed `--config`).
+
+### CLI.CONTRACT_ARG_CONFLICT
+
+`prisma-next db sign` was given a contract reference twice — once as the positional argument and once as `--contract` — and there is no rule for which one wins. Pass it once. Meta: `positional`, `flag`.
 
 ### CLI.FILE_NOT_FOUND
 
@@ -263,11 +269,11 @@ Introspection read an unrecognized or malformed database shape — an unknown re
 
 ### CONTRACT.MARKER_MISMATCH
 
-The contract hash does not match the marker (signature) stored in the database. Surfaces from verify-style CLI commands as a hard failure, and from the SQL runtime as a warning during startup marker verification. Fix path: migrate the database or re-sign if the divergence is intentional. Meta: `expected`, `actual`.
+The contract hash does not match the marker (signature) stored in the database. `db verify` reports it as an `error` diagnostic on a completed run that exits `4`; the SQL runtime reports it as a warning during startup marker verification. Fix path: migrate the database or re-sign if the divergence is intentional. Meta: `expected`, `actual`.
 
 ### CONTRACT.MARKER_MISSING
 
-No contract marker (database signature) is found in the database at all. Surfaces from verify-style CLI operations, and as a runtime warning during startup marker verification. Fix path: `prisma-next db sign`. Meta: none notable.
+No contract marker (database signature) is found in the database at all. `db verify` reports it as an `error` diagnostic on a completed run that exits `4`; the runtime reports it as a warning during startup marker verification. Fix path: `prisma-next db sign`. Meta: none notable.
 
 ### CONTRACT.MARKER_READ_FAILED
 
@@ -275,7 +281,7 @@ A driver-level failure occurred while reading the contract marker table — conn
 
 ### CONTRACT.MARKER_REQUIRED
 
-A command that requires a pre-signed database (marker present) as a precondition found none; also the default failure code stamped onto a non-ok verify result when no more specific code applies. Fix path: run `prisma-next db init` first. Meta: none notable.
+A command that requires a pre-signed database (marker present) as a precondition found none; also the default failure code stamped onto a non-ok verify result when no more specific code applies, which is how `db verify --strict` reports a database holding elements no contract declares. On `db verify` it is an `error` diagnostic on a completed run that exits `4`; everywhere else it is a precondition failure at exit `2`. Fix path: run `prisma-next db init` first, or declare the extra elements in a contract. Meta: none notable.
 
 ### CONTRACT.MARKER_ROW_CORRUPT
 
@@ -347,7 +353,7 @@ A role entity is declared more than once in the entities list, or a role name is
 
 ### CONTRACT.SCHEMA_VERIFICATION_FAILED
 
-Schema verification found that the live database schema does not satisfy the contract — missing/extra/mismatched tables, columns, or other elements. Produced by `verify`-family CLI operations; the full verification result rides in meta. Fix path: `prisma-next db update` or adjust the contract. Meta: `verificationResult`, `issues`.
+Schema verification found that the live database schema does not satisfy the contract — missing/extra/mismatched tables, columns, or other elements. `db verify` and `db sign` both report it as an `error` diagnostic on a completed run that exits `4`: for `db verify` that is the drift verdict, and for `db sign` it is the reason no signature was written. `db verify` raises one such diagnostic per contract space whose schema failed. Fix path: `prisma-next db update` or adjust the contract. Meta: `space` (the contract space, on `db verify`), `issues` (the drifted element paths); the underlying operation result also carries `verificationResult`.
 
 ### CONTRACT.SOURCE_IMPORT_DISALLOWED
 
@@ -367,7 +373,7 @@ A foreign key or index references a table name that disagrees with the table the
 
 ### CONTRACT.TARGET_MISMATCH
 
-The contract's target does not match the target configured in `prisma-next.config.ts` (e.g. a Postgres contract with a SQLite config). Surfaces from verify-style CLI operations. Meta: `expected`, `actual`.
+The contract's target does not match the target configured in `prisma-next.config.ts` (e.g. a Postgres contract with a SQLite config). `db verify` reports it as an `error` diagnostic on a completed run that exits `4`. Meta: `expected`, `actual`.
 
 ### CONTRACT.TYPE_UNKNOWN
 
@@ -383,7 +389,7 @@ Aggregate contract validation failed: structural validation of the contract JSON
 
 ### CONTRACT.VERIFY_FAILED
 
-`db verify` failed for a reason the verify result did not classify under a more specific code (marker, target, or schema-verification codes). The summary carries the verify result's own text. Meta: none.
+`db verify` failed for a reason the verify result did not classify under a more specific code (marker, target, or schema-verification codes). Reported as an `error` diagnostic on a completed run that exits `4`, with the verify result's own text as the summary. Meta: none.
 
 ### CONTRACT.WIRE_NAME_PREFIX_TOO_LONG
 
@@ -735,75 +741,75 @@ A hash resolves to a node in the migration graph, but no on-disk migration packa
 
 ### MIGRATION.CHECK_CONTRACT_UNREADABLE
 
-A `migration check` failure row: the `contract.json` for a contract space cannot be read or validated. Re-emit the extension contract artifacts or fix the descriptor producing the invalid contract.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: the `contract.json` for a contract space cannot be read or validated. Re-emit the extension contract artifacts or fix the descriptor producing the invalid contract.
 
 ### MIGRATION.CHECK_DANGLING_REF
 
-A `migration check` failure row: a ref file points at a contract hash that does not exist in the space's migration graph. Update the ref with `prisma-next ref set <name> <valid-hash>` or delete it.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a ref file points at a contract hash that does not exist in the space's migration graph. Update the ref with `prisma-next ref set <name> <valid-hash>` or delete it.
 
 ### MIGRATION.CHECK_DECLARED_BUT_UNMIGRATED
 
-A `migration check` failure row: an extension is declared in `extensions` but has no on-disk migrations directory under `migrations/`. Re-emit the extension's contract-space artifacts, or remove the extension from `extensions`.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: an extension is declared in `extensions` but has no on-disk migrations directory under `migrations/`. Re-emit the extension's contract-space artifacts, or remove the extension from `extensions`.
 
 ### MIGRATION.CHECK_DUPLICATE_MIGRATION_HASH
 
-A `migration check` failure row: multiple migration packages in the same contract space share the same `migrationHash`, so the packages are not uniquely content-addressed. Re-emit one of the conflicting packages.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: multiple migration packages in the same contract space share the same `migrationHash`, so the packages are not uniquely content-addressed. Re-emit one of the conflicting packages.
 
 ### MIGRATION.CHECK_FILE_MISSING
 
-A `migration check` failure row: a required file (`migration.json` or `ops.json`) is missing from a migration package directory. Re-emit the package or restore it from version control.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a required file (`migration.json` or `ops.json`) is missing from a migration package directory. Re-emit the package or restore it from version control.
 
 ### MIGRATION.CHECK_HASH_MISMATCH
 
-A `migration check` failure row: the `migrationHash` stored in `migration.json` does not match the hash recomputed from the package contents — the package was edited or partially written since emit. Re-emit the package or restore it from version control.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: the `migrationHash` stored in `migration.json` does not match the hash recomputed from the package contents — the package was edited or partially written since emit. Re-emit the package or restore it from version control.
 
 ### MIGRATION.CHECK_HEAD_REF_MISSING
 
-A `migration check` failure row: a contract space has no `refs/head.json`. Re-emit the contract-space migrations and head-ref artifacts, or restore the file from version control.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a contract space has no `refs/head.json`. Re-emit the contract-space migrations and head-ref artifacts, or restore the file from version control.
 
 ### MIGRATION.CHECK_HEAD_REF_NOT_IN_GRAPH
 
-A `migration check` failure row: the hash in a space's `refs/head.json` is not a node in that space's migration graph. Re-emit the space's migrations or restore the missing migration package.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: the hash in a space's `refs/head.json` is not a node in that space's migration graph. Re-emit the space's migrations or restore the missing migration package.
 
 ### MIGRATION.CHECK_NOOP_SELF_EDGE
 
-A `migration check` failure row: a migration has identical source and target hashes and declares no data invariant — a true no-op self-edge. Add a data operation if it was meant to carry one, or delete the migration.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a migration has identical source and target hashes and declares no data invariant — a true no-op self-edge. Add a data operation if it was meant to carry one, or delete the migration.
 
 ### MIGRATION.CHECK_ORPHAN_SPACE_DIR
 
-A `migration check` failure row: a contract-space directory exists under `migrations/` but no declared extension claims it. Remove the directory or declare the extension in `extensions`.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a contract-space directory exists under `migrations/` but no declared extension claims it. Remove the directory or declare the extension in `extensions`.
 
 ### MIGRATION.CHECK_PACKAGE_UNLOADABLE
 
-A `migration check` failure row: a migration package directory exists but could not be loaded (parse or validation failure); the row's detail names the underlying cause. Re-emit the package or restore it from version control.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a migration package directory exists but could not be loaded (parse or validation failure); the row's detail names the underlying cause. Re-emit the package or restore it from version control.
 
 ### MIGRATION.CHECK_PROVIDED_INVARIANTS_MISMATCH
 
-A `migration check` failure row: the `providedInvariants` list stored in `migration.json` disagrees with the one derived from `ops.json`. Re-emit the package so the two files agree.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: the `providedInvariants` list stored in `migration.json` disagrees with the one derived from `ops.json`. Re-emit the package so the two files agree.
 
 ### MIGRATION.CHECK_REF_UNREADABLE
 
-A `migration check` failure row: a ref file in a space's `refs/` directory cannot be read or parsed. Repair or remove the corrupt ref file.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a ref file in a space's `refs/` directory cannot be read or parsed. Repair or remove the corrupt ref file.
 
 ### MIGRATION.CHECK_SNAPSHOT_HASH_MISMATCH
 
-A `migration check` failure row: a migration declares a destination hash `to` but the contract snapshot stored for that hash has a different inner `storage.storageHash`. Re-emit the package so `migration.json` and its snapshot agree.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a migration declares a destination hash `to` but the contract snapshot stored for that hash has a different inner `storage.storageHash`. Re-emit the package so `migration.json` and its snapshot agree.
 
 ### MIGRATION.CHECK_SNAPSHOT_UNPARSEABLE
 
-A `migration check` failure row: either the migration's `to` value is not a well-formed 64-hex hash, or the contract snapshot stored for it exists but cannot be parsed. Re-emit the package, or restore `migrations/snapshots/` from version control.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: either the migration's `to` value is not a well-formed 64-hex hash, or the contract snapshot stored for it exists but cannot be parsed. Re-emit the package, or restore `migrations/snapshots/` from version control.
 
 ### MIGRATION.CHECK_SPACE_DISJOINTNESS_VIOLATION
 
-A `migration check` failure row: a storage element (table/collection) is claimed by more than one contract space. Update the contracts so each storage element is owned by exactly one space.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a storage element (table/collection) is claimed by more than one contract space. Update the contracts so each storage element is owned by exactly one space.
 
 ### MIGRATION.CHECK_TARGET_MISMATCH
 
-A `migration check` failure row: a contract space's declared database target differs from the project's configured target. Update the extension to target the configured database, or change the project target.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a contract space's declared database target differs from the project's configured target. Update the extension to target the configured database, or change the project target.
 
 ### MIGRATION.CHECK_UNREACHABLE_MIGRATION
 
-A `migration check` failure row: a migration's `from` hash is not produced by any other migration (and is not the empty state), so the migration is unreachable in the graph. Delete it or re-emit a connecting migration.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a migration's `from` hash is not produced by any other migration (and is not the empty state), so the migration is unreachable in the graph. Delete it or re-emit a connecting migration.
 
 ### MIGRATION.CONTRACT_DESERIALIZATION_FAILED
 
@@ -987,7 +993,7 @@ A Mongo migration check uses a filter feature the check evaluator does not suppo
 
 ### MIGRATION.PACKAGE_NOT_FOUND
 
-`migration show` resolved its target (a directory path, or a migration reference) but no loaded on-disk migration package matches it — either no package lives at the given path, or the resolved migration's package failed to load. Pass a directory name, hash prefix, or path to an on-disk app-space migration package, or inspect the migrations directory for corruption. Meta: none.
+`migration show` or `migration check` resolved its target (a directory path, or a migration reference) but no loaded on-disk migration package matches it — either no package lives at the given path, or the resolved migration's package failed to load. `migration check` raises it at exit `2`: it could not run the check at all, which is different from running it and finding something. Pass a directory name, hash prefix, or path to an on-disk migration package, or inspect the migrations directory for corruption. Meta: none.
 
 ### MIGRATION.PATH_UNREACHABLE
 
