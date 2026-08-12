@@ -2,7 +2,6 @@ import { rmSync } from 'node:fs';
 import type { MountedTree, PackageManagerId, PackageManagerRunner } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
-import { join } from 'pathe';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
 import { createTestProjectDir } from '../utils/test-project-dir';
