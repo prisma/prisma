@@ -148,6 +148,44 @@ describe('entities namespace — synthetic pack exemplar', () => {
     });
   });
 
+  it('rejects a contributed entity type that would shadow a built-in helper', () => {
+    const collidingPack = {
+      ...demoEntitiesExtensionPack,
+      authoring: {
+        entityTypes: {
+          model: {
+            kind: 'entity',
+            discriminator: 'demo-entity',
+            output: { factory: (input: DemoEntityInput): DemoEntity => new DemoEntity(input) },
+          },
+        },
+      },
+    } as unknown as ExtensionPackRef<'sql', 'postgres'>;
+
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+          extensions: { demo: collidingPack },
+        },
+        (helpers) => ({
+          models: {
+            Marker: helpers.model('Marker', { fields: { id: helpers.field.text() } }),
+          },
+        }),
+      ),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message: expect.stringContaining(
+          '"model" collide with the reserved built-in helper key(s)',
+        ),
+      }),
+    );
+  });
+
   it('omitting the contributing pack removes the helper from the helpers surface', () => {
     defineContract(
       {

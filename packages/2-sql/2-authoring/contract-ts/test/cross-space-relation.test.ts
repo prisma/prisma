@@ -307,6 +307,74 @@ describe('F-relfk: cross-space belongsTo().sql({ fk }) produces a cross-space FK
     expect(fks[0]!.target.spaceId).toBe('supabase');
     expect(fks[0]!.onDelete).toBe('cascade');
   });
+
+  const profileWithFkOptions = (fk: {
+    readonly name?: string;
+    readonly onDelete?: 'restrict';
+    readonly onUpdate?: 'cascade';
+    readonly constraint?: boolean;
+    readonly index?: boolean;
+  }) => {
+    const ExtUser = buildSyntheticSupabaseAuthUser();
+
+    const Profile = model('Profile', {
+      fields: {
+        id: field.column(int4Column).id(),
+        userId: field.column(int4Column),
+      },
+    }).relations({
+      user: rel.belongsTo(ExtUser, { from: 'userId', to: 'id' }).sql({ fk }),
+    });
+
+    const contract = defineContract({
+      family: bareFamilyPack,
+      target: postgresTargetPack,
+      createNamespace: createTestSqlNamespace,
+      extensions: { supabase: supabasePack },
+      models: { Profile },
+    });
+
+    return Object.values(contract.storage.namespaces)
+      .flatMap((ns) => Object.entries(ns.entries.table ?? {}))
+      .find(([name]) => name === 'Profile')?.[1];
+  };
+
+  it('relation-derived FK carries the declared name and referential actions', () => {
+    const profileTable = profileWithFkOptions({
+      name: 'profile_user_fk',
+      onDelete: 'restrict',
+      onUpdate: 'cascade',
+    });
+
+    expect(profileTable?.foreignKeys[0]).toMatchObject({
+      name: 'profile_user_fk',
+      onDelete: 'restrict',
+      onUpdate: 'cascade',
+      target: { spaceId: 'supabase', namespaceId: 'auth' },
+    });
+  });
+
+  it('constraint and index decide what the table carries, rather than riding on the FK node', () => {
+    const shape = (options: { readonly constraint: boolean; readonly index: boolean }) => {
+      const table = profileWithFkOptions(options);
+      return {
+        foreignKeys: table?.foreignKeys.length,
+        indexes: table?.indexes.map((index) => index.columns),
+      };
+    };
+
+    expect({
+      both: shape({ constraint: true, index: true }),
+      constraintOnly: shape({ constraint: true, index: false }),
+      indexOnly: shape({ constraint: false, index: true }),
+      neither: shape({ constraint: false, index: false }),
+    }).toEqual({
+      both: { foreignKeys: 1, indexes: [['userId']] },
+      constraintOnly: { foreignKeys: 1, indexes: [] },
+      indexOnly: { foreignKeys: 0, indexes: [['userId']] },
+      neither: { foreignKeys: 0, indexes: [] },
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

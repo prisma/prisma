@@ -166,6 +166,45 @@ describe('SqlIndexIR', () => {
         }),
       ).toBe(true);
     });
+
+    it("columnPresence 'matching' compares the tuple when both sides carry columns", () => {
+      const email = wireNamed({ name: NAME, columns: ['email'] });
+      const strictness = { columnPresence: 'matching', bodies: 'ignored' } as const;
+
+      expect({
+        sameTuple: email.contentEquals(exact({ name: NAME, columns: ['email'] }), strictness),
+        differentTuple: email.contentEquals(exact({ name: NAME, columns: ['name'] }), strictness),
+      }).toEqual({ sameTuple: true, differentTuple: false });
+    });
+
+    it("columnPresence 'matching' pairs two expression nodes on their bodies", () => {
+      const expression = exact({ name: 'expr_idx', expression: 'lower(email)' });
+      const strictness = { columnPresence: 'matching', bodies: 'verbatim' } as const;
+
+      expect({
+        sameBody: expression.contentEquals(
+          exact({ name: 'expr_idx', expression: 'lower(email)' }),
+          strictness,
+        ),
+        differentBody: expression.contentEquals(
+          exact({ name: 'expr_idx', expression: 'upper(email)' }),
+          strictness,
+        ),
+      }).toEqual({ sameBody: true, differentBody: false });
+    });
+
+    it('option bags with different key sets are unequal', () => {
+      const oneOption = wireNamed({ name: NAME, columns: ['email'], options: { fillfactor: 70 } });
+
+      expect({
+        extraKey: oneOption.isEqualTo(
+          exact({ name: NAME, columns: ['email'], options: { fillfactor: 70, fastupdate: true } }),
+        ),
+        renamedKey: oneOption.isEqualTo(
+          exact({ name: NAME, columns: ['email'], options: { deduplicate_items: 70 } }),
+        ),
+      }).toEqual({ extraKey: false, renamedKey: false });
+    });
   });
 
   describe('isEqualTo — both modes (structural attributes)', () => {

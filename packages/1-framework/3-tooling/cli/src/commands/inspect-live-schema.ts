@@ -11,7 +11,7 @@ import {
   errorDriverRequired,
   errorUnexpected,
 } from '../utils/cli-errors';
-import { maskConnectionUrl, sanitizeErrorMessage } from '../utils/command-helpers';
+import { closeQuietly, maskConnectionUrl, sanitizeErrorMessage } from '../utils/command-helpers';
 import { formatStyledHeader } from '../utils/formatters/styled';
 import type { CommonCommandOptions, GlobalFlags } from '../utils/global-flags';
 import { createProgressAdapter } from '../utils/progress-adapter';
@@ -178,6 +178,6 @@ export async function inspectLiveSchema(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }

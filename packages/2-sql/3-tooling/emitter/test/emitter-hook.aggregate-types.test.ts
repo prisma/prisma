@@ -117,6 +117,20 @@ describe('emitted AggregateTypes', () => {
     expect(emitted).not.toContain('pg/varchar@1');
   });
 
+  it('emits several operations in name order', () => {
+    const emitted = aggregateTypesFor({
+      aggregateDescriptors: [SUM_INT2, COUNT, MIN_TEXTUAL],
+      codecDescriptors: CONTRIBUTED,
+    });
+
+    const positions = ['readonly count:', 'readonly min:', 'readonly sum:'].map((key) =>
+      emitted.indexOf(key),
+    );
+
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect(positions).toEqual([...positions].sort((left, right) => left - right));
+  });
+
   it('refuses to emit a result type for a codec two traits both claim', () => {
     expect(() =>
       aggregateTypesFor({

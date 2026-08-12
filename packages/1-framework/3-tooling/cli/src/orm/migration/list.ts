@@ -1,6 +1,6 @@
 import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations } from '@prisma/cli-engine';
-import { defineCommand, flag } from '@prisma/cli-engine';
+import { flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { buildReadAggregate } from '../../control-api/operations/contract-space-aggregate-loader';
 import {
@@ -15,6 +15,7 @@ import type { MigrationListResult } from '../../utils/formatters/migration-list-
 import { toneDrawing } from '../../utils/formatters/tone-markup';
 import type { GlyphMode } from '../../utils/glyph-mode';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { displayPath, migrationsDirFor } from './paths';
 
@@ -43,7 +44,7 @@ function listPresentations(inputs: {
   };
 }
 
-export const migrationListCommand = defineCommand({
+export const migrationListCommand = defineOrmCommand({
   help: {
     summary: 'List on-disk migrations per contract space',
     description:

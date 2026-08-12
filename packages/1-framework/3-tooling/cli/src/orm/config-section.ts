@@ -6,6 +6,7 @@ import { blindCast } from '@internal/utils/casts';
 import type { SectionValidation } from '@prisma/cli-engine';
 import { defineConfigSection } from '@prisma/cli-engine';
 import type { Diagnostic, NextAction } from '@prisma/cli-engine/protocol';
+import { normalize } from 'pathe';
 
 /**
  * The single config section the `orm` command family owns. The whole Prisma
@@ -111,8 +112,10 @@ function collectArtifactCollisionIssues(
     ];
   }
 
-  const emittedPaths = new Set([emitted.jsonPath, emitted.dtsPath]);
-  if (!inputs.some((input) => typeof input === 'string' && emittedPaths.has(input))) {
+  // `./out/contract.json` and `out/contract.json` are the same file, so the
+  // comparison is between normalized spellings rather than raw strings.
+  const emittedPaths = new Set([normalize(emitted.jsonPath), normalize(emitted.dtsPath)]);
+  if (!inputs.some((input) => typeof input === 'string' && emittedPaths.has(normalize(input)))) {
     return [];
   }
   return [

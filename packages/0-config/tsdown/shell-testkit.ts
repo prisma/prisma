@@ -7,6 +7,18 @@ import { init as initLexer, parse as parseModule } from 'es-module-lexer';
 /** A tarball-install smoke-test failure with the offending command output attached. */
 class ShellTestError extends Error {}
 
+/**
+ * The supply-chain cooldown a scratch project installs under. Kept in step with
+ * `minimumReleaseAge` / `minimumReleaseAgeExclude` in the repo's pnpm-workspace.yaml, which a
+ * scratch project outside the workspace does not inherit.
+ */
+const MINIMUM_RELEASE_AGE_MINUTES = 1440;
+const MINIMUM_RELEASE_AGE_EXCLUDE = [
+  '@prisma/cli-engine',
+  '@prisma/dev',
+  '@prisma/streams-local',
+] as const;
+
 export interface PackedShell {
   readonly name: string;
   readonly tarball: string;
@@ -140,11 +152,14 @@ export function tryInstallShells(
   });
   // The repo's release-age cooldown reaches this scratch project through the
   // outer workspace, but its exemption list does not, so a first-party pin
-  // published today fails the install. These projects only ever resolve the
-  // dependencies the repo has already vetted, so the cooldown is off here.
+  // published today fails the install. Restate both: the cooldown still
+  // defends every third-party dependency, and only the first-party packages
+  // pnpm-workspace.yaml already exempts are allowed past it.
   const workspaceYaml = [
     ...(overrideLines.length > 0 ? ['overrides:', ...overrideLines] : []),
-    'minimumReleaseAge: 0',
+    `minimumReleaseAge: ${MINIMUM_RELEASE_AGE_MINUTES}`,
+    'minimumReleaseAgeExclude:',
+    ...MINIMUM_RELEASE_AGE_EXCLUDE.map((name) => `  - ${JSON.stringify(name)}`),
     ...settingLines,
   ];
   writeFileSync(

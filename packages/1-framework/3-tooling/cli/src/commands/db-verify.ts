@@ -29,6 +29,7 @@ import {
 import { type CombinedVerifyResult, combineVerifyResults } from '../utils/combine-verify-results';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveContractPath,
   resolveMigrationPaths,
@@ -480,7 +481,7 @@ async function executeDbVerifyCommand(
   } catch (error) {
     return wrapVerifyError(error, contractPathAbsolute, 'db verify');
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 
@@ -529,7 +530,7 @@ async function executeDbSchemaOnlyVerifyCommand(
   } catch (error) {
     return wrapVerifyError(error, contractPathAbsolute, 'db verify --schema-only');
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

@@ -40,6 +40,7 @@ import {
 } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveContractPath,
   resolveMigrationPaths,
@@ -136,11 +137,15 @@ async function executeMigrateShowCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<MigrateShowResult, CliStructuredErrorType>> {
+  // `--from <ref>` plans offline and never touches config.driver, so a broken
+  // driver section must not fail the command. `--from @db` still resolves
+  // against the live marker, so it does need one.
+  const readsLiveMarker = options.from === undefined || options.from === '@db';
   const configResult = await loadConfigForSections(options.config, [
     'family',
     'target',
     'adapter',
-    'driver',
+    ...(readsLiveMarker ? (['driver'] as const) : []),
     'extensions',
     'db',
     'migrations',
@@ -627,7 +632,7 @@ async function executeMigrateCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

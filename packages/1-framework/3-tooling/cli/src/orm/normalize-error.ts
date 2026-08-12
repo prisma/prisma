@@ -1,10 +1,12 @@
 import { ifDefined } from '@internal/utils/defined';
+import { isStructuredError } from '@internal/utils/structured-error';
 import type { Diagnostic, NextAction } from '@prisma/cli-engine/protocol';
 import { CliStructuredError } from '@prisma/cli-engine/protocol';
 
 /**
- * The shape prisma/prisma's own `CliStructuredError` presents to this module.
- * Reading it structurally keeps the conversion working across module
+ * The shape prisma/prisma's structured errors present to this module. Two kinds carry it: the
+ * `CliStructuredError` class, and the plain values `structuredError()` builds, which have no
+ * `toEnvelope` method. Reading them structurally keeps the conversion working across module
  * boundaries, where `instanceof` does not.
  */
 interface RaisedError {
@@ -24,14 +26,27 @@ interface RaisedError {
   readonly nextActions?: readonly NextAction[];
 }
 
+/**
+ * `isStructuredError` is the repo's own check, and it is the one that matters here: it holds the
+ * regular expression for a dotted `NAMESPACE.SUBCODE`, so only a code the protocol accepts
+ * reaches `Diagnostic['code']`.
+ */
 function isRaisedError(error: unknown): error is Error & RaisedError {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-  return (
-    typeof Reflect.get(error, 'code') === 'string' &&
-    typeof Reflect.get(error, 'toEnvelope') === 'function'
-  );
+  return error instanceof Error && isStructuredError(error);
+}
+
+/**
+ * The fallback for anything that is not a structured error: a bare throw, and also an error whose
+ * `code` is not a dotted one — a Node `ENOENT`, say. The rejected code survives in `meta` rather
+ * than in `code`, where it would produce a docs link to a page that does not exist.
+ */
+function toUnexpected(error: unknown): CliStructuredError {
+  const summary = error instanceof Error ? error.message : String(error);
+  const rejectedCode = error instanceof Error ? Reflect.get(error, 'code') : undefined;
+  return new CliStructuredError('CLI.UNEXPECTED', summary, {
+    ...ifDefined('meta', typeof rejectedCode === 'string' ? { code: rejectedCode } : undefined),
+    cause: error,
+  });
 }
 
 /**
@@ -88,8 +103,7 @@ export function normalizeError(error: unknown): CliStructuredError {
     return error;
   }
   if (!isRaisedError(error)) {
-    const summary = error instanceof Error ? error.message : String(error);
-    return new CliStructuredError('CLI.UNEXPECTED', summary, { cause: error });
+    return toUnexpected(error);
   }
 
   const diagnostic = toEngineDiagnostic(error);
