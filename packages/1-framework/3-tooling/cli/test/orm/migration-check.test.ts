@@ -405,7 +405,13 @@ describe('migration check', () => {
       expect(run.exitCode).toBe(2);
       expect(run.json.at(-1)).toMatchObject({
         kind: 'result',
-        envelope: { ok: false, error: { code: 'MIGRATION.REF_NOT_FOUND' } },
+        envelope: {
+          ok: false,
+          error: {
+            code: 'MIGRATION.REF_NOT_FOUND',
+            meta: { input: 'nope', grammar: 'migration' },
+          },
+        },
       });
     });
   });
