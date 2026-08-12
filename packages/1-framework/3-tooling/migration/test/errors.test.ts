@@ -258,7 +258,7 @@ describe('MigrationToolsError base type', () => {
     expect(MigrationToolsError.is(err)).toBe(true);
   });
 
-  it('exposes toEnvelope() with code, summary, why, fix, and meta', () => {
+  it('exposes toEnvelope() with code, summary, why, fix, nextActions, and meta', () => {
     const err = errorDirectoryExists('/tmp/m/20260101_init');
     expect(err.toEnvelope()).toEqual({
       ok: false,
@@ -267,6 +267,7 @@ describe('MigrationToolsError base type', () => {
       summary: 'Migration directory already exists',
       why: err.why,
       fix: err.fix,
+      nextActions: [],
       meta: { dir: '/tmp/m/20260101_init' },
     });
   });

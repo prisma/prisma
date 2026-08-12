@@ -7,6 +7,7 @@ import {
   computeCheckContentHash,
   computeIndexContentHash,
   defaultIndexName,
+  derivedCheckPrefixes,
   formatWireName,
   nameOf,
   namingOf,
@@ -252,6 +253,56 @@ describe('computeCheckContentHash', () => {
     expect(computeCheckContentHash(`"role" IN ('user')`)).not.toBe(
       computeCheckContentHash(`"role" IN ('admin')`),
     );
+  });
+});
+
+describe('derivedCheckPrefixes', () => {
+  it('crosses every column with every CheckKind', () => {
+    const prefixes = derivedCheckPrefixes('User', ['role', 'tags']);
+    expect(prefixes).toEqual(
+      new Set([
+        composeCheckWirePrefix('User', 'role', 'membership'),
+        composeCheckWirePrefix('User', 'role', 'elementNotNull'),
+        composeCheckWirePrefix('User', 'tags', 'membership'),
+        composeCheckWirePrefix('User', 'tags', 'elementNotNull'),
+      ]),
+    );
+  });
+
+  it('returns an empty set for a table with no columns', () => {
+    expect(derivedCheckPrefixes('User', [])).toEqual(new Set());
+  });
+
+  it('does not include a prefix no column of the table could produce', () => {
+    const prefixes = derivedCheckPrefixes('User', ['role', 'tags']);
+    expect(prefixes.has('User_status_active')).toBe(false);
+  });
+
+  it('truncates a composed prefix that overruns the byte budget (literal expected value)', () => {
+    // The ADR 244 worked example: a 22-character table name plus a
+    // 21-character column name pushes the `elem_not_null`-suffixed prefix to
+    // 58 bytes, 4 over budget, so it truncates to exactly 54 — cutting into
+    // the kind marker itself (`_elem_not_` with `null` gone).
+    const prefixes = derivedCheckPrefixes('custom_oauth_providers', ['acceptable_client_ids']);
+    expect(prefixes).toEqual(
+      new Set([
+        'custom_oauth_providers_acceptable_client_ids_check',
+        'custom_oauth_providers_acceptable_client_ids_elem_not_',
+      ]),
+    );
+  });
+
+  it('dedups two columns whose composed prefixes collide after truncation', () => {
+    // Both column names share their first 60 bytes and differ only in the
+    // last character — a difference the 54-byte truncation cuts away before
+    // it, and before either kind suffix, ever survives. The non-injective
+    // case ADR 244's "Truncation is safe because identity does not live in
+    // the prefix" argument depends on: two different columns, four nominal
+    // (column x kind) prefixes, one surviving entry.
+    const columnA = `${'a'.repeat(60)}A`;
+    const columnB = `${'a'.repeat(60)}B`;
+    const prefixes = derivedCheckPrefixes('t', [columnA, columnB]);
+    expect(prefixes).toEqual(new Set([`t_${'a'.repeat(52)}`]));
   });
 });
 

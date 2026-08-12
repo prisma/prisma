@@ -54,6 +54,7 @@
     "./builder/runtime": "./dist/builder__runtime.mjs",
     "./builder/types": "./dist/builder__types.mjs",
     "./contract": "./dist/contract.mjs",
+    "./contract/authored-check-naming": "./dist/contract__authored-check-naming.mjs",
     "./contract/canonicalization-hooks": "./dist/contract__canonicalization-hooks.mjs",
     "./contract/contract-view": "./dist/contract__contract-view.mjs",
     "./contract/entity-handle-lowering-hook": "./dist/contract__entity-handle-lowering-hook.mjs",

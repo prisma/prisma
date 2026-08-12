@@ -199,6 +199,14 @@ The SQL emitter is asked to emit an aggregate result row whose declared result c
 
 The control plane resolves a codec referenced by the contract (a `CodecRef.codecId`) against the contract's pack stack and finds no registered codec descriptor for that id. Hit during control-plane operations (emit, migration tooling) when a contract references a codec no composed pack provides. Meta: `codecId`.
 
+### CONTRACT.CHECK_NAME_RESERVED
+
+An authored `@@check` / `check()`'s `name:` prefix matches the shape a derived enforcement check would use for a column of the same table (`<table>_<column>_check` or `<table>_<column>_elem_not_null`), so it cannot be told apart from a derived check once a non-`managed` table strips those. The message and `collidingColumns` meta name the column(s) whose derived-check shape the prefix matches. Raised while building a SQL contract, once the table's real columns are in hand. The fix is to choose a different `name:`. Meta: `tableName`, `prefix`, `collidingColumns`.
+
+### CONTRACT.CHECK_ON_STI_VARIANT
+
+A model declares `@@check` / `check()` but is a single-table-inheritance variant (`@@base` with no own `@@map`), so it shares its base model's storage table and has no table of its own to declare the check on. Raised while building a SQL contract, as a backstop for the TS authoring path — the PSL surface refuses this earlier, at interpretation, with a span-anchored `PSL_CHECK_ON_STI_VARIANT` diagnostic naming the base model. The fix is to declare the check on the base model instead. Meta: `tableName`, `modelName`.
+
 ### CONTRACT.CHECK_OPTOUT_INVALID
 
 A `@noCheck` / `.noCheck(...)` declaration is invalid. Either it does not apply to the column — the named kind is not derivable for the column's shape (`membership` on a column with no domain-enum value set, `elementNotNull` on a column that is not a list of scalars), or the bare form waives nothing because the column derives no generated checks — or the declaration is malformed: a kind is named twice, or `noCheck()` is called more than once on one field builder. Raised by both authoring paths (TS `defineContract` and PSL interpretation) on `managed` tables. Meta: `modelName`, `fieldName`, `reason`, and `kind` for per-kind failures.
@@ -209,7 +217,7 @@ A Mongo model's collection attachment is wrong: the model declares `indexes`, `c
 
 ### CONTRACT.CONSTRAINT_INVALID
 
-A model declares an empty unique constraint (a unique with no fields). Raised during SQL contract lowering. Meta: `modelName`.
+A model declares an empty unique constraint (a unique with no fields), raised during SQL contract lowering (meta: `modelName`). Also raised when a CHECK constraint reaches SQLite migration DDL rendering — the SQLite target does not support CHECK constraints, and `sql.checkConstraint` is a Postgres-only capability. A `@@check` is refused earlier, by the PSL capability gate; a `check()` declared through the TypeScript builder is not, because capabilities reach the contract only after it is built, so this is where a SQLite `check()` is refused (meta: `constraintName`, and `tableName` where available).
 
 ### CONTRACT.DEFAULT_INVALID
 
@@ -393,7 +401,7 @@ Aggregate contract validation failed: structural validation of the contract JSON
 
 ### CONTRACT.WIRE_NAME_PREFIX_TOO_LONG
 
-An authored wire-name prefix (an index name, or an RLS policy prefix) exceeds the 54-character maximum — Postgres identifiers cap at 63 characters and the wire name appends a 9-character `_<8hex>` content-hash suffix. Raised at contract lowering. Meta: `prefix`, `maxLength`.
+An authored wire-name prefix (an index name, an RLS policy prefix, or a check's `name:` prefix) exceeds the 54-byte maximum — Postgres identifiers cap at 63 bytes and the wire name appends a 9-byte `_<8hex>` content-hash suffix. Raised at contract lowering. Meta: `prefix`, `maxBytes`.
 
 ## PSL
 
