@@ -26,23 +26,26 @@ interface RuntimeMiddlewareContext {
 sequenceDiagram
     participant Caller
     participant Runtime
-    participant BE as beforeExecute
+    participant Hooks as Middleware hooks
     participant Driver
-    participant AE as afterExecute
 
-    Caller->>Runtime: execute(plan)
+    Caller->>Runtime: query(plan)
     Runtime->>Runtime: planExecutionId = crypto.randomUUID()
     Runtime->>Runtime: ctx = { ...baseCtx, signal, scope, planExecutionId }
-    Runtime->>BE: (plan, ctx, params?)  ctx.planExecutionId = X
-    BE->>Driver: query
-    Driver-->>BE: rows
-    BE-->>AE: (plan, result, ctx)  ctx.planExecutionId = X
+    Runtime->>Hooks: beforeQuery(plan, ctx, params?)
+    Hooks-->>Runtime: continue
+    Runtime->>Hooks: interceptQuery(plan, ctx, params?)
+    Hooks-->>Runtime: no interception
+    Runtime->>Driver: query(plan, params?)
+    Driver-->>Runtime: rows
+    Runtime->>Hooks: afterQuery(plan, rows, ctx); ctx.planExecutionId = X
+    Hooks-->>Runtime: completion observed
+    Runtime-->>Caller: rows
 
-    Note over Caller,AE: Second execute(plan) — same plan instance, new ctx, new ID
-    Caller->>Runtime: execute(plan)
-    Runtime->>Runtime: planExecutionId = crypto.randomUUID()  [different]
-    Runtime->>BE: (plan, ctx, params?)  ctx.planExecutionId = Y
-    BE-->>AE: (plan, result, ctx)  ctx.planExecutionId = Y
+    Note over Caller,Driver: prepared statement query uses the same query hooks; execute uses corresponding execute hooks and returns statistics, not rows.
+    Caller->>Runtime: query(plan) again
+    Runtime->>Runtime: new ctx with planExecutionId = Y
+    Runtime-->>Caller: rows; Y differs from X
 ```
 
 ### Semantics
