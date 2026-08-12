@@ -214,6 +214,7 @@ describe('init scaffold', () => {
 
         const run = await harness().run(scaffoldArgv('--skip-skills'), { cwd: projectDir });
 
+        expect(envelopeOf(run)).toMatchObject({ ok: true });
         expect(run.exitCode).toBe(0);
         expect(calls[1]).toEqual({ file: 'npm', args: ['add', '-D', 'prisma-next'] });
       },
