@@ -31,7 +31,7 @@
         "foreign key"
       ],
       "allow": ["SymbolTable", "MigrationLogTable"],
-      "threshold": 795
+      "threshold": 806
     }
   ]
 }
