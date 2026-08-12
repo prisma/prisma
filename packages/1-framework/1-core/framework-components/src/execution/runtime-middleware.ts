@@ -94,14 +94,15 @@ export interface RuntimeMiddlewareContext {
 interface AfterResultBase {
   readonly latencyMs: number;
   /**
-   * Indicates where the result observed during this execution came from.
+   * Indicates which execution path was selected.
    *
    * - `'driver'` — the default. The result came from the underlying driver via
    *   `runDriver` / `runQueryWithMiddleware` or
    *   `runExecuteWithMiddleware`'s normal path.
    * - `'middleware'` — a `RuntimeMiddleware.interceptQuery` or
-   *   `RuntimeMiddleware.interceptExecute` hook short-circuited execution and
-   *   supplied the result directly. The driver was not invoked.
+   *   `RuntimeMiddleware.interceptExecute` hook selected the middleware
+   *   interception path. This includes both supplying the result directly and
+   *   completing with an interceptor error; the driver was not invoked.
    *
    * Observers (telemetry, lints, budgets) that need to distinguish between
    * driver-served and middleware-served executions read this field.
