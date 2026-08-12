@@ -318,6 +318,11 @@ describe('init installs', () => {
         expect(envelopeOf(run)).toMatchObject({
           diagnostics: [{ code: 'CLI.INIT_INSTALL_FAILED' }],
         });
+        expect(run.presented?.data).toMatchObject({
+          warnings: expect.arrayContaining([
+            expect.stringContaining('ERR_PNPM_WORKSPACE_PKG_NOT_FOUND'),
+          ]),
+        });
       },
       timeouts.coldTransformImport,
     );

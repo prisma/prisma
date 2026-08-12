@@ -20,16 +20,21 @@ export const runPackageManager: PackageManagerRunner = (request) =>
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
+    // Bounded while the child runs, not just at settlement — a manager with
+    // runaway diagnostics must not grow the buffer without limit.
     let stderr = '';
+    const keepTail = (chunk: string): void => {
+      stderr = (stderr + chunk).slice(-STDERR_TAIL_BYTES);
+    };
     const settle = (exitCode: number): void => {
-      resolve({ exitCode, stderr: stderr.slice(-STDERR_TAIL_BYTES) });
+      resolve({ exitCode, stderr });
     };
 
     child.stdout?.setEncoding('utf-8');
     child.stdout?.on('data', (chunk: string) => request.onOutput('data', chunk));
     child.stderr?.setEncoding('utf-8');
     child.stderr?.on('data', (chunk: string) => {
-      stderr += chunk;
+      keepTail(chunk);
       request.onOutput('diagnostic', chunk);
     });
 
@@ -37,7 +42,7 @@ export const runPackageManager: PackageManagerRunner = (request) =>
     // the operation did not succeed — which is a resolved failure, never a
     // rejection, because the engine settles on the exit code.
     child.on('error', (error: Error) => {
-      stderr += error.message;
+      keepTail(error.message);
       settle(LAUNCH_FAILURE_EXIT_CODE);
     });
     child.on('close', (code) => settle(code ?? LAUNCH_FAILURE_EXIT_CODE));

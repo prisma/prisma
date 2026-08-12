@@ -41,6 +41,12 @@ describe('redactSecrets', () => {
       ).toBe('//nexus.internal/repo/:_auth=*** and :_password=***');
     });
 
+    it('redacts a top-level setting with no registry scope', () => {
+      expect(redactSecrets('config _authToken=npm_abc123DEF and _password=hunter2')).toBe(
+        'config _authToken=*** and _password=***',
+      );
+    });
+
     it('leaves a setting with no credential in it alone', () => {
       expect(redactSecrets('//registry.npmjs.org/:always-auth=true')).toBe(
         '//registry.npmjs.org/:always-auth=true',

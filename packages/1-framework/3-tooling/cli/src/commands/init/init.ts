@@ -640,6 +640,7 @@ export function exitCodeForError(error: { readonly code: string }): number {
     case 'CLI.INIT_INVALID_TSCONFIG': // invalid tsconfig (unparseable JSONC) — precondition
     case 'CLI.INIT_PROBE_FAILED': // probe failed under --strict-probe — precondition
     case 'CLI.INIT_AUTHORING_SCHEMA_PATH_MISMATCH': // --authoring / --schema-path extension mismatch — precondition
+    case 'CLI.INIT_WRITE_FAILED': // a scaffold file could not be written — precondition
       return INIT_EXIT_PRECONDITION;
     case 'CLI.INIT_USER_ABORTED': // user aborted interactive prompt
       return INIT_EXIT_USER_ABORTED;

@@ -69,7 +69,7 @@ export interface InitCommandDependencies {
   readonly emitScaffoldedContract: typeof emitScaffoldedContract;
 }
 
-export const createInitCommand = (deps: InitCommandDependencies) =>
+export const createInitCommand = (injected: InitCommandDependencies) =>
   defineOrmCommand({
     help: {
       summary: 'Initialize a new Prisma Next project',
@@ -240,7 +240,7 @@ export const createInitCommand = (deps: InitCommandDependencies) =>
         const emitStep = 'Emit the contract';
         ctx.report({ kind: 'step-started', step: emitStep });
         try {
-          await deps.emitScaffoldedContract({ cwd: ctx.cwd });
+          await injected.emitScaffoldedContract({ cwd: ctx.cwd });
           contractEmitted = true;
           ctx.report({ kind: 'step-finished', step: emitStep, outcome: 'ok' });
         } catch (error) {

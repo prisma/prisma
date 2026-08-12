@@ -2352,6 +2352,7 @@ describe('exitCodeForError', () => {
       'CLI.INIT_INVALID_TSCONFIG',
       'CLI.INIT_PROBE_FAILED',
       'CLI.INIT_AUTHORING_SCHEMA_PATH_MISMATCH',
+      'CLI.INIT_WRITE_FAILED',
     ]) {
       expect(exitCodeForError({ code })).toBe(INIT_EXIT_PRECONDITION);
     }

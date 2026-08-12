@@ -58,6 +58,17 @@ function fallbackWarning(failure: CliStructuredError): string {
     .join('\n');
 }
 
+/** The pnpm failure the npm retry was meant to recover from, kept alongside the npm one. */
+function retriedWarning(failure: CliStructuredError): string {
+  const firstLine = redactSecrets(metaString(failure, 'stderrTail')).trim().split('\n')[0] ?? '';
+  return [
+    'pnpm failed first with a leaked `workspace:*` or `catalog:` specifier, so init retried with npm.',
+    firstLine === '' ? '' : `  pnpm error: ${firstLine}`,
+  ]
+    .filter((line) => line !== '')
+    .join('\n');
+}
+
 /**
  * Adds the runtime and development dependencies through the engine's package
  * manager. The retry is `init`'s alone: the engine spells and runs the
@@ -99,7 +110,10 @@ export async function installProjectDependencies(ctx: {
 
   const retryFailure = await pair('npm');
   if (retryFailure !== undefined) {
-    return { failure: retryFailure, manager: undefined, warnings: [] };
+    // The npm failure is the one raised, but the pnpm failure that triggered
+    // the retry is why npm ran at all — without it the user sees an npm error
+    // with no trace of the first attempt.
+    return { failure: retryFailure, manager: undefined, warnings: [retriedWarning(failure)] };
   }
   // npm bypassed pnpm's resolver, so the workspace catalog is not what ended
   // up installed — saying otherwise alongside the fallback would contradict it.

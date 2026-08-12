@@ -129,7 +129,7 @@ The code is raised by the commander `prisma-next init`, whose consent flag is `-
 
 ### CLI.INIT_SKILL_INSTALL_FAILED
 
-During `prisma-next init`, the project-level skills install (`skills add prisma/prisma#v<version>`, run through the project's package manager) failed after a successful dependency install and emit. The project itself is complete without the skills; the user can fix the underlying issue (network, registry, PATH) and install manually, or re-run with `--skip-skills`. `init` completes with this as a finding and exits 6. Meta: `filesWritten`, plus `skillInstall` (the attempted command, the manager, its exit code and the tail of its stderr).
+During `prisma-next init`, the project-level skills install failed after a successful dependency install and emit. Init runs one `skills add` per default skill through the project's package manager — e.g. `pnpm dlx skills@latest add prisma/prisma/skills#v<version> --agent cursor claude-code codex windsurf --skill prisma-8 -y` — for the `prisma-8`, `prisma-next-upgrade`, and `prisma-8-extension-upgrade` skills. The project itself is complete without the skills; the user can fix the underlying issue (network, registry, PATH) and install manually, or re-run with `--skip-skills`. `init` completes with this as a finding and exits 6. Meta: `filesWritten`, plus `skillInstall` (the attempted command, the manager, its exit code and the tail of its stderr).
 
 ### CLI.INIT_STRICT_PROBE_WITHOUT_PROBE
 
