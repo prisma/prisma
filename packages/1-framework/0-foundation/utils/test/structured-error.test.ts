@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { NextAction } from '../src/structured-error';
 import { docsUrlFor, isStructuredError, structuredError } from '../src/structured-error';
 
 describe('isStructuredError', () => {
@@ -59,10 +60,43 @@ describe('structuredError', () => {
     const error = structuredError('CONTRACT.MARKER_MISSING', 'Marker missing');
     expect('why' in error).toBe(false);
     expect('fix' in error).toBe(false);
+    expect('nextActions' in error).toBe(false);
     expect('where' in error).toBe(false);
     expect('severity' in error).toBe(false);
     expect('meta' in error).toBe(false);
     expect('docsUrl' in error).toBe(false);
+  });
+
+  it('carries nextActions through unmodified, including the {bin} placeholder', () => {
+    const nextActions: readonly NextAction[] = [
+      {
+        kind: 'run-command',
+        label: 'Sign the database',
+        command: '{bin} db sign --db <url>',
+        reason: 'Writes a fresh contract marker.',
+      },
+    ];
+    const error = structuredError('CONTRACT.MARKER_MISSING', 'Marker missing', { nextActions });
+
+    expect(error.nextActions).toEqual(nextActions);
+  });
+
+  it('accepts every NextAction kind and carries commands, url, and reason', () => {
+    const nextActions: readonly NextAction[] = [
+      { kind: 'run-command', label: 'Run one', command: '{bin} db init' },
+      {
+        kind: 'run-command',
+        label: 'Run in order',
+        commands: ['{bin} db init', '{bin} db verify'],
+      },
+      { kind: 'open-url', label: 'Read the docs', url: 'https://example.com/docs' },
+      { kind: 'user-choice', label: 'Pick a target', reason: 'Two targets match.' },
+      { kind: 'edit-file', label: 'Fill in the placeholder' },
+      { kind: 'done', label: 'Nothing further to do' },
+    ];
+    const error = structuredError('CONTRACT.MARKER_MISSING', 'Marker missing', { nextActions });
+
+    expect(error.nextActions).toEqual(nextActions);
   });
 
   it('sets cause when passed', () => {

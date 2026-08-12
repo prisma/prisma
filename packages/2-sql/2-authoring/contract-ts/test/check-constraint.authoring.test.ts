@@ -17,9 +17,9 @@ import {
   WIRE_NAME_PREFIX_MAX_BYTES,
 } from '@internal/sql-schema-ir/naming';
 import { ifDefined } from '@internal/utils/defined';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
-import { defineContract } from '../src/contract-builder';
+import { check, defineContract } from '../src/contract-builder';
 import { stripDerivedChecksFromNonManagedTables } from '../src/derived-checks';
 import { enumType, member } from '../src/enum-type';
 
@@ -951,7 +951,7 @@ describe('check emission — a specifier-applied policy strips derived checks', 
     expect(stripDerivedChecksFromNonManagedTables(built, createTestSqlNamespace)).toBe(built);
   });
 
-  it('keeps an exact-named check, which no derivation produced', () => {
+  it('keeps an exact-named check and strips a wire-named one whose prefix matches a real column', () => {
     const built = buildManagedUser();
     const derived = '"tags" IS NOT NULL';
     const adopted = '"role" <> \'\'';
@@ -966,7 +966,9 @@ describe('check emission — a specifier-applied policy strips derived checks', 
             entries: {
               table: {
                 User: new StorageTableClass({
-                  columns: {},
+                  columns: {
+                    tags: { nativeType: 'text', codecId: 'pg/text@1', nullable: false, many: true },
+                  },
                   uniques: [],
                   indexes: [],
                   foreignKeys: [],
@@ -996,5 +998,400 @@ describe('check emission — a specifier-applied policy strips derived checks', 
     expect(flatten(checksOf(stripped))).toEqual([
       { name: 'User_hand_written', prefix: undefined, expression: adopted },
     ]);
+  });
+
+  // The regression test for the whole dispatch: slice 4 makes an authored
+  // `name:` check wire-named too, so identifying "derived" by wire-naming
+  // alone would delete an author's own constraint here. The prefix-shape
+  // rule must tell the two apart using the table's real columns.
+  it('keeps a wire-named check whose prefix matches no derived shape for the table', () => {
+    const built = buildManagedUser();
+    const authored = '"tags" IS NOT NULL AND "role" <> \'\'';
+    const withAuthored: Contract<SqlStorage> = {
+      ...built,
+      defaultControlPolicy: 'external',
+      storage: new SqlStorageClass({
+        storageHash: built.storage.storageHash,
+        namespaces: {
+          public: createTestSqlNamespace({
+            id: 'public',
+            entries: {
+              table: {
+                User: new StorageTableClass({
+                  columns: {
+                    id: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+                    role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+                    tags: { nativeType: 'text', codecId: 'pg/text@1', nullable: false, many: true },
+                  },
+                  uniques: [],
+                  indexes: [],
+                  foreignKeys: [],
+                  checks: [
+                    {
+                      naming: {
+                        kind: 'wire',
+                        prefix: 'User_tags_and_role',
+                        hash: computeCheckContentHash(authored),
+                      },
+                      expression: authored,
+                    },
+                  ],
+                }),
+              },
+            },
+          }),
+        },
+      }),
+    };
+
+    const stripped = stripDerivedChecksFromNonManagedTables(
+      withAuthored,
+      createTestSqlNamespace,
+    ) as Contract<SqlStorage>;
+
+    expect(flatten(checksOf(stripped))).toEqual([wire('User_tags_and_role', authored)]);
+    // Nothing was stripped, so the specifier funnel's reference-equality
+    // contract holds all the way up to the returned contract.
+    expect(stripped).toBe(withAuthored);
+  });
+});
+
+describe('check() — Validation table', () => {
+  it('rejects a check with neither name nor map', () => {
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
+                checks: [check({ expression: 'total > 0' })],
+              }),
+            },
+          }) as const,
+      ),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.ARGUMENT_INVALID' }));
+  });
+
+  it('rejects a check with both name and map', () => {
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
+                checks: [check({ expression: 'total > 0', name: 'a', map: 'b' })],
+              }),
+            },
+          }) as const,
+      ),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.ARGUMENT_INVALID' }));
+  });
+
+  it('rejects an empty expression', () => {
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
+                checks: [check({ expression: '', name: 'user_total_positive' })],
+              }),
+            },
+          }) as const,
+      ),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.ARGUMENT_INVALID' }));
+  });
+
+  it('rejects an authored name prefix over the wire-name byte budget', () => {
+    const overBudget = 'a'.repeat(60);
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
+                checks: [check({ expression: 'total > 0', name: overBudget })],
+              }),
+            },
+          }) as const,
+      ),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.WIRE_NAME_PREFIX_TOO_LONG' }));
+  });
+
+  it('map: with a body mints the exact-name body warning, not an error', () => {
+    const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+    try {
+      const contract = defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
+                checks: [check({ expression: 'total > 0', map: 'legacy_total_check' })],
+              }),
+            },
+          }) as const,
+      ) as Contract<SqlStorage>;
+
+      expect(flatten(checksOf(contract))).toEqual([
+        { name: 'legacy_total_check', prefix: undefined, expression: 'total > 0' },
+      ]);
+      expect(emitWarning).toHaveBeenCalledTimes(1);
+      expect(String(emitWarning.mock.calls[0]?.[0])).toContain(
+        'check "legacy_total_check" uses map: with a SQL body.',
+      );
+    } finally {
+      emitWarning.mockRestore();
+    }
+  });
+
+  it('rejects two authored checks that collide on physical name — table-wide constraint-name uniqueness', () => {
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
+                checks: [
+                  check({ expression: 'total > 0', map: 'dup' }),
+                  check({ expression: 'total < 1000', map: 'dup' }),
+                ],
+              }),
+            },
+          }) as const,
+      ),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.VALIDATION_FAILED' }));
+  });
+
+  it('rejects an authored name whose prefix matches a derived-prefix shape for a real column', () => {
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), tags: f.text().many() } }).sql({
+                checks: [check({ expression: 'true', name: 'User_tags_elem_not_null' })],
+              }),
+            },
+          }) as const,
+      ),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.CHECK_NAME_RESERVED',
+        message: expect.stringMatching(/column "tags" of this table/),
+        meta: expect.objectContaining({ collidingColumns: ['tags'] }),
+      }),
+    );
+  });
+});
+
+// An authored check must reach `table.checks` whatever the table's control
+// policy. `derivesChecks` governs derivation only; it must not gate authored
+// checks too.
+describe('check() — authored checks are emitted regardless of control policy', () => {
+  it('reaches table.checks on a managed table', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
+              checks: [check({ expression: 'total > 0', name: 'user_total_positive' })],
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(flatten(checksOf(contract))).toEqual([wire('user_total_positive', 'total > 0')]);
+  });
+
+  it('reaches table.checks on an external (source-declared) table', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
+              control: 'external',
+              checks: [check({ expression: 'total > 0', name: 'user_total_positive' })],
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(flatten(checksOf(contract))).toEqual([wire('user_total_positive', 'total > 0')]);
+  });
+
+  it('an authored check on a specifier-stamped external table survives the strip that removes derived checks', () => {
+    const built = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', { fields: { id: f.text().id(), role: f.namedType(Role) } }).sql({
+              checks: [check({ expression: 'true', name: 'user_extra_rule' })],
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(
+      checksOf(built)
+        .map((c) => c.prefix)
+        .sort(),
+    ).toEqual(['User_role_check', 'user_extra_rule'].sort());
+
+    const stamped = applySpecifierDefaultControlPolicy(built, 'external');
+    const stripped = stripDerivedChecksFromNonManagedTables(
+      stamped,
+      createTestSqlNamespace,
+    ) as Contract<SqlStorage>;
+
+    expect(flatten(checksOf(stripped))).toEqual([wire('user_extra_rule', 'true')]);
+  });
+});
+
+describe('check() — coexists with derived checks on the same table', () => {
+  it('keeps both, and both survive a JSON round-trip (canonical sort still holds)', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', { fields: { id: f.text().id(), role: f.namedType(Role) } }).sql({
+              checks: [check({ expression: 'true', name: 'user_extra_rule' })],
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name);
+    const built = [...flatten(checksOf(contract))].sort(byName);
+    expect(built).toEqual(
+      [
+        wire('User_role_check', `"role" IN ('user', 'admin')`),
+        wire('user_extra_rule', 'true'),
+      ].sort(byName),
+    );
+
+    const json = JSON.parse(JSON.stringify(contract)) as {
+      storage: {
+        namespaces: Record<
+          string,
+          {
+            entries: {
+              table: Record<
+                string,
+                { checks: ReadonlyArray<{ name: string; prefix?: string; expression: string }> }
+              >;
+            };
+          }
+        >;
+      };
+    };
+    const stored = json.storage.namespaces['public']?.entries.table['User']?.checks ?? [];
+    expect(stored.map((c) => c.name).sort()).toEqual(built.map((c) => c.name).sort());
+    expect(typeof contract.storage.storageHash).toBe('string');
+  });
+});
+
+describe('check() — wire vs exact naming, through the built contract', () => {
+  it('name: yields name_<8hex>, hashed over the expression', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
+              checks: [check({ expression: 'total > 0', name: 'user_total_positive' })],
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(flatten(checksOf(contract))).toEqual([wire('user_total_positive', 'total > 0')]);
+  });
+
+  it('map: yields the verbatim physical name with no suffix', () => {
+    const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+    try {
+      const contract = defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
+                checks: [check({ expression: '(total > (0)::numeric)', map: 'positive_total' })],
+              }),
+            },
+          }) as const,
+      ) as Contract<SqlStorage>;
+
+      expect(flatten(checksOf(contract))).toEqual([
+        { name: 'positive_total', prefix: undefined, expression: '(total > (0)::numeric)' },
+      ]);
+    } finally {
+      emitWarning.mockRestore();
+    }
   });
 });

@@ -9,6 +9,7 @@ export type {
 export {
   buildBoundContract,
   buildSqlContractFromDefinition,
+  check,
   defineContract,
   extensionModel,
   field,
@@ -17,6 +18,7 @@ export {
 } from '../contract-builder';
 export type {
   AttachedEntities,
+  CheckNode,
   ContractDefinition,
   FieldNode,
   ForeignKeyNode,
