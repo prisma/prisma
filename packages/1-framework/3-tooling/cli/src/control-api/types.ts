@@ -737,7 +737,9 @@ export interface ContractEmitOptions {
   /**
    * Path to the prisma-next.config.ts file. Used to find the project manifest
    * whose dependencies decide the import specifiers in emitted files; the
-   * config itself is never read from it.
+   * config itself is never read from it. Omit it and the manifest is looked up
+   * from the directory the artifacts are written to, which is the package that
+   * will import them.
    */
   readonly configPath?: string;
   /**
