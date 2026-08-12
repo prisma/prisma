@@ -25,7 +25,6 @@
  *     the live database.
  */
 
-import { execFile } from 'node:child_process';
 import {
   copyFileSync,
   mkdirSync,
@@ -35,75 +34,25 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { rm } from 'node:fs/promises';
-import { basename, isAbsolute, join, resolve } from 'node:path';
-import { promisify } from 'node:util';
+import { basename, join } from 'node:path';
 import { storageHashHex } from '@prisma/orm-mongo/components/control';
 import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { fixtureAppDir } from '../utils/cli-test-helpers';
 import {
-  createContractEmitCommand,
-  createMigrateCommand,
-  createMigrationNewCommand,
-  createMigrationPlanCommand,
-} from '../utils/cli-commands';
-import {
-  executeCommand,
-  fixtureAppDir,
-  getExitCode,
-  setupCommandMocks,
-} from '../utils/cli-test-helpers';
-
-const execFileAsync = promisify(execFile);
-const TSX_BIN = resolve(import.meta.dirname, '../../../../node_modules/.bin/tsx');
-
-interface JourneyCtx {
-  testDir: string;
-  configPath: string;
-  outputDir: string;
-}
+  type JourneyContext,
+  runContractEmit,
+  runMigrate,
+  runMigrationEmit,
+  runMigrationNew,
+  runMigrationPlan,
+} from '../utils/journey-test-helpers';
 
 const FIXTURES_DIR = join(fixtureAppDir, 'fixtures/mongo-cli-journeys');
 
-interface RunResult {
-  exitCode: number;
-  stdout: string;
-  stderr: string;
-}
-
-async function runCli(
-  command: ReturnType<typeof createMigrationPlanCommand>,
-  testDir: string,
-  args: readonly string[],
-): Promise<RunResult> {
-  const mocks = setupCommandMocks({ isTTY: true });
-  const originalCwd = process.cwd();
-  try {
-    process.chdir(testDir);
-    try {
-      await executeCommand(command, ['--no-color', ...args]);
-      return {
-        exitCode: 0,
-        stdout: mocks.consoleOutput.join('\n'),
-        stderr: mocks.consoleErrors.join('\n'),
-      };
-    } catch (error) {
-      const exitCode = getExitCode();
-      if (exitCode == null) throw error;
-      return {
-        exitCode,
-        stdout: mocks.consoleOutput.join('\n'),
-        stderr: mocks.consoleErrors.join('\n'),
-      };
-    }
-  } finally {
-    process.chdir(originalCwd);
-    mocks.cleanup();
-  }
-}
-
-function setupMongoJourney(connectionString: string | undefined): JourneyCtx {
+function setupMongoJourney(connectionString: string | undefined): JourneyContext {
   const testDir = join(
     fixtureAppDir,
     `test-mongo-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -145,50 +94,11 @@ function setupMongoJourney(connectionString: string | undefined): JourneyCtx {
   return { testDir, configPath, outputDir };
 }
 
-function swapToAdditive(ctx: JourneyCtx): void {
+function swapToAdditive(ctx: JourneyContext): void {
   copyFileSync(join(FIXTURES_DIR, 'contract-additive.ts'), join(ctx.testDir, 'contract.ts'));
 }
 
-async function emitContract(ctx: JourneyCtx): Promise<RunResult> {
-  return runCli(createContractEmitCommand(), ctx.testDir, ['--config', ctx.configPath]);
-}
-
-async function migrationPlan(ctx: JourneyCtx, args: readonly string[] = []): Promise<RunResult> {
-  return runCli(createMigrationPlanCommand(), ctx.testDir, ['--config', ctx.configPath, ...args]);
-}
-
-async function migrationNew(ctx: JourneyCtx, args: readonly string[] = []): Promise<RunResult> {
-  return runCli(createMigrationNewCommand(), ctx.testDir, ['--config', ctx.configPath, ...args]);
-}
-
-async function migrationEmit(ctx: JourneyCtx, args: readonly string[] = []): Promise<RunResult> {
-  const rest = [...args];
-  const dirIdx = rest.indexOf('--dir');
-  if (dirIdx < 0 || dirIdx === rest.length - 1) {
-    throw new Error('migrationEmit requires --dir <migration-dir>');
-  }
-  const dirArg = rest[dirIdx + 1]!;
-  rest.splice(dirIdx, 2);
-
-  const migrationTs = isAbsolute(dirArg)
-    ? join(dirArg, 'migration.ts')
-    : join(ctx.testDir, dirArg, 'migration.ts');
-  try {
-    const { stdout, stderr } = await execFileAsync(TSX_BIN, [migrationTs, ...rest], {
-      cwd: ctx.testDir,
-    });
-    return { exitCode: 0, stdout, stderr };
-  } catch (error) {
-    const e = error as { stdout?: string; stderr?: string; code?: number };
-    return { exitCode: e.code ?? 1, stdout: e.stdout ?? '', stderr: e.stderr ?? '' };
-  }
-}
-
-async function migrationApply(ctx: JourneyCtx, args: readonly string[] = []): Promise<RunResult> {
-  return runCli(createMigrateCommand(), ctx.testDir, ['--config', ctx.configPath, ...args]);
-}
-
-function getLatestMigrationDir(ctx: JourneyCtx): string {
+function getLatestMigrationDir(ctx: JourneyContext): string {
   const migrationsDir = join(ctx.testDir, 'migrations', 'app');
   const dirs = readdirSync(migrationsDir).filter((d) => !d.startsWith('.'));
   if (dirs.length === 0) throw new Error('No migration directory found');
@@ -217,7 +127,7 @@ function buildMongoUri(baseUri: string, dbName: string): string {
   return query ? `${trimmedHost}${dbName}?${query}` : `${trimmedHost}${dbName}`;
 }
 
-function findMigrationDirBySlug(ctx: JourneyCtx, slugFragment: string): string {
+function findMigrationDirBySlug(ctx: JourneyContext, slugFragment: string): string {
   const migrationsDir = join(ctx.testDir, 'migrations', 'app');
   const dirs = readdirSync(migrationsDir)
     .filter((d) => !d.startsWith('.') && d.includes(slugFragment))
@@ -231,14 +141,14 @@ function findMigrationDirBySlug(ctx: JourneyCtx, slugFragment: string): string {
 
 /** Path to a `migrations/snapshots/<hex>/contract.{json,d.ts}` store entry. */
 function contractSnapshotPath(
-  ctx: JourneyCtx,
+  ctx: JourneyContext,
   storageHash: string,
   file: 'contract.json' | 'contract.d.ts',
 ): string {
   return join(ctx.testDir, 'migrations', 'snapshots', storageHashHex(storageHash), file);
 }
 
-// Journey tests shell out to the CLI binary, which easily exceeds the
+// Journey tests run multi-step CLI flows, which easily exceed the
 // integration-suite default `it` timeout of 100ms.
 describe('Journey: Mongo migration authoring (offline)', { timeout: timeouts.spinUpPpgDev }, () => {
   const created = new Set<string>();
@@ -254,10 +164,10 @@ describe('Journey: Mongo migration authoring (offline)', { timeout: timeouts.spi
     const ctx = setupMongoJourney(undefined);
     created.add(ctx.testDir);
 
-    const emit0 = await emitContract(ctx);
+    const emit0 = await runContractEmit(ctx);
     expect(emit0.exitCode, `contract emit: ${emit0.stderr}`).toBe(0);
 
-    const plan = await migrationPlan(ctx, ['--name', 'initial']);
+    const plan = await runMigrationPlan(ctx, ['--name', 'initial']);
     expect(plan.exitCode, `migration plan: ${plan.stdout}\n${plan.stderr}`).toBe(0);
 
     const migrationDir = getLatestMigrationDir(ctx);
@@ -287,7 +197,7 @@ describe('Journey: Mongo migration authoring (offline)', { timeout: timeouts.spi
 
     // Plan leaves a draft migration; self-emit via `tsx migration.ts` to
     // produce `ops.json` and the attested `migration.json`.
-    const emit = await migrationEmit(ctx, ['--dir', `migrations/app/${basename(migrationDir)}`]);
+    const emit = await runMigrationEmit(ctx, ['--dir', `migrations/app/${basename(migrationDir)}`]);
     expect(emit.exitCode, `migration emit: ${emit.stdout}\n${emit.stderr}`).toBe(0);
 
     const ops = JSON.parse(readFileSync(join(migrationDir, 'ops.json'), 'utf-8')) as ReadonlyArray<{
@@ -311,17 +221,17 @@ describe('Journey: Mongo migration authoring (offline)', { timeout: timeouts.spi
     const ctx = setupMongoJourney(undefined);
     created.add(ctx.testDir);
 
-    const emit0 = await emitContract(ctx);
+    const emit0 = await runContractEmit(ctx);
     expect(emit0.exitCode, `contract emit base: ${emit0.stderr}`).toBe(0);
 
-    const plan = await migrationPlan(ctx, ['--name', 'initial']);
+    const plan = await runMigrationPlan(ctx, ['--name', 'initial']);
     expect(plan.exitCode, `seed initial migration: ${plan.stderr}`).toBe(0);
 
     swapToAdditive(ctx);
-    const emit1 = await emitContract(ctx);
+    const emit1 = await runContractEmit(ctx);
     expect(emit1.exitCode, `contract emit additive: ${emit1.stderr}`).toBe(0);
 
-    const newResult = await migrationNew(ctx, ['--name', 'add-name-index']);
+    const newResult = await runMigrationNew(ctx, ['--name', 'add-name-index']);
     expect(newResult.exitCode, `migration new: ${newResult.stdout}\n${newResult.stderr}`).toBe(0);
 
     const migrationDir = findMigrationDirBySlug(ctx, 'add_name_index');
@@ -407,13 +317,13 @@ describe('Journey: Mongo migration authoring (live database)', {
     const ctx = setupMongoJourney(connectionString);
     created.add(ctx.testDir);
 
-    const emit0 = await emitContract(ctx);
+    const emit0 = await runContractEmit(ctx);
     expect(emit0.exitCode, `contract emit: ${emit0.stderr}`).toBe(0);
 
-    const plan0 = await migrationPlan(ctx, ['--name', 'initial']);
+    const plan0 = await runMigrationPlan(ctx, ['--name', 'initial']);
     expect(plan0.exitCode, `migration plan initial: ${plan0.stdout}\n${plan0.stderr}`).toBe(0);
 
-    const emitInit = await migrationEmit(ctx, [
+    const emitInit = await runMigrationEmit(ctx, [
       '--dir',
       `migrations/app/${basename(getLatestMigrationDir(ctx))}`,
     ]);
@@ -422,7 +332,7 @@ describe('Journey: Mongo migration authoring (live database)', {
       `migration emit initial: ${emitInit.stdout}\n${emitInit.stderr}`,
     ).toBe(0);
 
-    const apply0 = await migrationApply(ctx);
+    const apply0 = await runMigrate(ctx);
     expect(apply0.exitCode, `migration apply initial: ${apply0.stdout}\n${apply0.stderr}`).toBe(0);
 
     const collections = await client.db(dbName).listCollections({ name: 'users' }).toArray();
@@ -438,10 +348,10 @@ describe('Journey: Mongo migration authoring (live database)', {
       ]);
 
     swapToAdditive(ctx);
-    const emit1 = await emitContract(ctx);
+    const emit1 = await runContractEmit(ctx);
     expect(emit1.exitCode, `contract emit additive: ${emit1.stderr}`).toBe(0);
 
-    const newResult = await migrationNew(ctx, ['--name', 'normalize-names']);
+    const newResult = await runMigrationNew(ctx, ['--name', 'normalize-names']);
     expect(newResult.exitCode, `migration new: ${newResult.stdout}\n${newResult.stderr}`).toBe(0);
 
     const migrationDir = findMigrationDirBySlug(ctx, 'normalize_names');
@@ -506,7 +416,7 @@ MigrationCLI.run(import.meta.url, M);
 `;
     writeFileSync(migrationTsPath, handAuthored);
 
-    const emitResult = await migrationEmit(ctx, ['--dir', migrationDir]);
+    const emitResult = await runMigrationEmit(ctx, ['--dir', migrationDir]);
     expect(emitResult.exitCode, `migration emit: ${emitResult.stdout}\n${emitResult.stderr}`).toBe(
       0,
     );
@@ -525,7 +435,7 @@ MigrationCLI.run(import.meta.url, M);
     };
     expect(manifest.migrationHash).toMatch(/^[a-f0-9]{64}$/);
 
-    const apply1 = await migrationApply(ctx);
+    const apply1 = await runMigrate(ctx);
     expect(apply1.exitCode, `migration apply additive: ${apply1.stdout}\n${apply1.stderr}`).toBe(0);
 
     const users = await client
@@ -547,7 +457,7 @@ MigrationCLI.run(import.meta.url, M);
 
     // Re-apply: the runner postcheck sees all names are already lower-case,
     // so the data transform is skipped. Data must be byte-identical.
-    const apply2 = await migrationApply(ctx);
+    const apply2 = await runMigrate(ctx);
     expect(apply2.exitCode, `re-apply: ${apply2.stdout}\n${apply2.stderr}`).toBe(0);
 
     const usersAfterReApply = await client

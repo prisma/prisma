@@ -12,7 +12,6 @@
  * pre-check, and NO_INVARIANT_PATH on a divergent graph.
  */
 
-import { execFile } from 'node:child_process';
 import {
   copyFileSync,
   mkdirSync,
@@ -22,77 +21,30 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { rm } from 'node:fs/promises';
-import { basename, isAbsolute, join, resolve } from 'node:path';
-import { promisify } from 'node:util';
+import { basename, join } from 'node:path';
 import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { fixtureAppDir } from '../utils/cli-test-helpers';
 import {
-  createContractEmitCommand,
-  createMigrateCommand,
-  createMigrationNewCommand,
-  createMigrationPlanCommand,
-  createMigrationStatusCommand,
-} from '../utils/cli-commands';
-import {
-  executeCommand,
-  fixtureAppDir,
-  getExitCode,
-  setupCommandMocks,
-} from '../utils/cli-test-helpers';
-import { migrationStatusAppSpace, parseMigrationStatusJson } from '../utils/journey-test-helpers';
-
-const execFileAsync = promisify(execFile);
-const TSX_BIN = resolve(import.meta.dirname, '../../../../node_modules/.bin/tsx');
+  engineError,
+  type JourneyContext,
+  migrationStatusAppSpace,
+  parseJsonOutput,
+  parseMigrationStatusJson,
+  runContractEmit,
+  runMigrate,
+  runMigrationEmit,
+  runMigrationNew,
+  runMigrationPlan,
+  runMigrationStatus,
+} from '../utils/journey-test-helpers';
 
 const FIXTURES_DIR = join(fixtureAppDir, 'fixtures/mongo-cli-journeys');
 const INVARIANT_ID = 'lowercase-user-name';
 
-interface JourneyCtx {
-  testDir: string;
-  configPath: string;
-  outputDir: string;
-}
-
-interface RunResult {
-  exitCode: number;
-  stdout: string;
-  stderr: string;
-}
-
-async function runCli(
-  command: ReturnType<typeof createMigrationPlanCommand>,
-  testDir: string,
-  args: readonly string[],
-): Promise<RunResult> {
-  const mocks = setupCommandMocks({ isTTY: true });
-  const originalCwd = process.cwd();
-  try {
-    process.chdir(testDir);
-    try {
-      await executeCommand(command, ['--no-color', ...args]);
-      return {
-        exitCode: 0,
-        stdout: mocks.consoleOutput.join('\n'),
-        stderr: mocks.consoleErrors.join('\n'),
-      };
-    } catch (error) {
-      const exitCode = getExitCode();
-      if (exitCode == null) throw error;
-      return {
-        exitCode,
-        stdout: mocks.consoleOutput.join('\n'),
-        stderr: mocks.consoleErrors.join('\n'),
-      };
-    }
-  } finally {
-    process.chdir(originalCwd);
-    mocks.cleanup();
-  }
-}
-
-function setupMongoJourney(connectionString: string): JourneyCtx {
+function setupMongoJourney(connectionString: string): JourneyContext {
   const testDir = join(
     fixtureAppDir,
     `test-mongo-invariants-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -129,58 +81,15 @@ function setupMongoJourney(connectionString: string): JourneyCtx {
   return { testDir, configPath, outputDir };
 }
 
-function swapToAdditive(ctx: JourneyCtx): void {
+function swapToAdditive(ctx: JourneyContext): void {
   copyFileSync(join(FIXTURES_DIR, 'contract-additive.ts'), join(ctx.testDir, 'contract.ts'));
 }
 
-function swapToBranchB(ctx: JourneyCtx): void {
+function swapToBranchB(ctx: JourneyContext): void {
   copyFileSync(join(FIXTURES_DIR, 'contract-branch-b.ts'), join(ctx.testDir, 'contract.ts'));
 }
 
-async function emitContract(ctx: JourneyCtx): Promise<RunResult> {
-  return runCli(createContractEmitCommand(), ctx.testDir, ['--config', ctx.configPath]);
-}
-
-async function migrationPlan(ctx: JourneyCtx, args: readonly string[] = []): Promise<RunResult> {
-  return runCli(createMigrationPlanCommand(), ctx.testDir, ['--config', ctx.configPath, ...args]);
-}
-
-async function migrationNew(ctx: JourneyCtx, args: readonly string[] = []): Promise<RunResult> {
-  return runCli(createMigrationNewCommand(), ctx.testDir, ['--config', ctx.configPath, ...args]);
-}
-
-async function migrationApply(ctx: JourneyCtx, args: readonly string[] = []): Promise<RunResult> {
-  return runCli(createMigrateCommand(), ctx.testDir, ['--config', ctx.configPath, ...args]);
-}
-
-async function migrationStatus(ctx: JourneyCtx, args: readonly string[] = []): Promise<RunResult> {
-  return runCli(createMigrationStatusCommand(), ctx.testDir, ['--config', ctx.configPath, ...args]);
-}
-
-async function migrationEmit(ctx: JourneyCtx, args: readonly string[] = []): Promise<RunResult> {
-  const rest = [...args];
-  const dirIdx = rest.indexOf('--dir');
-  if (dirIdx < 0 || dirIdx === rest.length - 1) {
-    throw new Error('migrationEmit requires --dir <migration-dir>');
-  }
-  const dirArg = rest[dirIdx + 1]!;
-  rest.splice(dirIdx, 2);
-
-  const migrationTs = isAbsolute(dirArg)
-    ? join(dirArg, 'migration.ts')
-    : join(ctx.testDir, dirArg, 'migration.ts');
-  try {
-    const { stdout, stderr } = await execFileAsync(TSX_BIN, [migrationTs, ...rest], {
-      cwd: ctx.testDir,
-    });
-    return { exitCode: 0, stdout, stderr };
-  } catch (error) {
-    const e = error as { stdout?: string; stderr?: string; code?: number };
-    return { exitCode: e.code ?? 1, stdout: e.stdout ?? '', stderr: e.stderr ?? '' };
-  }
-}
-
-function getLatestMigrationDir(ctx: JourneyCtx): string {
+function getLatestMigrationDir(ctx: JourneyContext): string {
   const migrationsDir = join(ctx.testDir, 'migrations', 'app');
   const dirs = readdirSync(migrationsDir).filter((d) => {
     if (d.startsWith('.')) return false;
@@ -201,7 +110,7 @@ function getLatestMigrationDir(ctx: JourneyCtx): string {
   return join(migrationsDir, newest);
 }
 
-function findMigrationDirBySlug(ctx: JourneyCtx, slugFragment: string): string {
+function findMigrationDirBySlug(ctx: JourneyContext, slugFragment: string): string {
   const migrationsDir = join(ctx.testDir, 'migrations', 'app');
   const dirs = readdirSync(migrationsDir)
     .filter((d) => !d.startsWith('.') && d.includes(slugFragment))
@@ -220,7 +129,7 @@ function buildMongoUri(baseUri: string, dbName: string): string {
 }
 
 function writeRefFile(
-  ctx: JourneyCtx,
+  ctx: JourneyContext,
   name: string,
   hash: string,
   invariants: readonly string[],
@@ -324,22 +233,6 @@ MigrationCLI.run(import.meta.url, M);
 `;
 }
 
-function parseJsonOutput<T>(result: RunResult): T {
-  const output = result.stdout.trim();
-  try {
-    return JSON.parse(output) as T;
-  } catch {
-    const lines = output.split('\n');
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const candidate = lines.slice(i).join('\n').trim();
-      try {
-        return JSON.parse(candidate) as T;
-      } catch {}
-    }
-    throw new Error(`Failed to parse JSON from command output:\n${output}`);
-  }
-}
-
 describe('Journey: Mongo invariant-aware ref routing (live database)', {
   timeout: timeouts.spinUpMongoMemoryServer,
 }, () => {
@@ -384,18 +277,20 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     created.add(ctx.testDir);
 
     // Mongo-O.01: emit base + plan + apply init (creates `users` collection + email index).
-    expect((await emitContract(ctx)).exitCode, 'Mongo-O.01: emit base').toBe(0);
-    expect((await migrationPlan(ctx, ['--name', 'initial'])).exitCode, 'Mongo-O.01: plan').toBe(0);
+    expect((await runContractEmit(ctx)).exitCode, 'Mongo-O.01: emit base').toBe(0);
+    expect((await runMigrationPlan(ctx, ['--name', 'initial'])).exitCode, 'Mongo-O.01: plan').toBe(
+      0,
+    );
     expect(
       (
-        await migrationEmit(ctx, [
+        await runMigrationEmit(ctx, [
           '--dir',
           `migrations/app/${basename(getLatestMigrationDir(ctx))}`,
         ])
       ).exitCode,
       'Mongo-O.01: emit init',
     ).toBe(0);
-    expect((await migrationApply(ctx)).exitCode, 'Mongo-O.01: apply init').toBe(0);
+    expect((await runMigrate(ctx)).exitCode, 'Mongo-O.01: apply init').toBe(0);
 
     // Mongo-O.02: seed a row whose `name` needs lower-casing.
     await client
@@ -408,9 +303,9 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
 
     // Mongo-O.03: swap to additive (adds `name` index), emit, scaffold a hand-authored migration.
     swapToAdditive(ctx);
-    expect((await emitContract(ctx)).exitCode, 'Mongo-O.03: emit additive').toBe(0);
+    expect((await runContractEmit(ctx)).exitCode, 'Mongo-O.03: emit additive').toBe(0);
     expect(
-      (await migrationNew(ctx, ['--name', 'normalize-names'])).exitCode,
+      (await runMigrationNew(ctx, ['--name', 'normalize-names'])).exitCode,
       'Mongo-O.03: migration new',
     ).toBe(0);
 
@@ -427,9 +322,10 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
         invariantId: INVARIANT_ID,
       }),
     );
-    expect((await migrationEmit(ctx, ['--dir', migrationDir])).exitCode, 'Mongo-O.04: emit').toBe(
-      0,
-    );
+    expect(
+      (await runMigrationEmit(ctx, ['--dir', migrationDir])).exitCode,
+      'Mongo-O.04: emit',
+    ).toBe(0);
 
     // Mongo-O.05: confirm migration.json carries providedInvariants.
     const manifestAfter = JSON.parse(readFileSync(join(migrationDir, 'migration.json'), 'utf-8'));
@@ -443,7 +339,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     writeRefFile(ctx, 'prod', c2Hash, [INVARIANT_ID]);
 
     // Mongo-O.07: apply --ref prod — routes through the invariant edge.
-    const applyRef = await migrationApply(ctx, ['--to', 'prod', '--json']);
+    const applyRef = await runMigrate(ctx, ['--to', 'prod', '--json']);
     expect(
       applyRef.exitCode,
       `Mongo-O.07: apply --ref prod: ${applyRef.stdout}\n${applyRef.stderr}`,
@@ -485,7 +381,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
 
     // Mongo-O.09: status --ref prod surfaces the three invariant sets and
     // proves the marker doc accumulated the invariant via $setUnion.
-    const statusRef = await migrationStatus(ctx, ['--to', 'prod', '--json']);
+    const statusRef = await runMigrationStatus(ctx, ['--to', 'prod', '--json']);
     expect(statusRef.exitCode, 'Mongo-O.09: status --ref prod').toBe(0);
     const statusResult = parseMigrationStatusJson(statusRef);
     expect(
@@ -501,7 +397,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     // Mongo-O.10: re-apply is a noop. The CLI's marker subtraction empties
     // the required set; the Mongo runner additionally short-circuits via
     // its own `incomingIsSubsetOfExisting` guard.
-    const reapply = await migrationApply(ctx, ['--to', 'prod', '--json']);
+    const reapply = await runMigrate(ctx, ['--to', 'prod', '--json']);
     expect(reapply.exitCode, 'Mongo-O.10: re-apply').toBe(0);
     const reapplyResult = parseJsonOutput<{
       ok: boolean;
@@ -513,25 +409,27 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     expect(reapplyResult.summary, 'Mongo-O.10: noop summary').toMatch(/up to date/i);
   });
 
-  it('Mongo P: apply and status both exit 1 with MIGRATION.UNKNOWN_INVARIANT before any DB activity', async () => {
+  it('Mongo P: apply and status both exit with MIGRATION.UNKNOWN_INVARIANT before any DB activity', async () => {
     const ctx = setupMongoJourney(buildMongoUri(replSet.getUri(), dbName));
     created.add(ctx.testDir);
 
     // Mongo-P.01: stand up an init migration on disk; no invariant declared.
-    expect((await emitContract(ctx)).exitCode, 'Mongo-P.01: emit base').toBe(0);
-    expect((await migrationPlan(ctx, ['--name', 'initial'])).exitCode, 'Mongo-P.01: plan').toBe(0);
+    expect((await runContractEmit(ctx)).exitCode, 'Mongo-P.01: emit base').toBe(0);
+    expect((await runMigrationPlan(ctx, ['--name', 'initial'])).exitCode, 'Mongo-P.01: plan').toBe(
+      0,
+    );
     const initDir = getLatestMigrationDir(ctx);
     expect(
-      (await migrationEmit(ctx, ['--dir', `migrations/app/${basename(initDir)}`])).exitCode,
+      (await runMigrationEmit(ctx, ['--dir', `migrations/app/${basename(initDir)}`])).exitCode,
       'Mongo-P.01: emit init',
     ).toBe(0);
-    expect((await migrationApply(ctx)).exitCode, 'Mongo-P.01: apply init').toBe(0);
+    expect((await runMigrate(ctx)).exitCode, 'Mongo-P.01: apply init').toBe(0);
 
     // Mongo-P.02: hand-author an additive migration with INVARIANT_ID.
     swapToAdditive(ctx);
-    expect((await emitContract(ctx)).exitCode, 'Mongo-P.02: emit additive').toBe(0);
+    expect((await runContractEmit(ctx)).exitCode, 'Mongo-P.02: emit additive').toBe(0);
     expect(
-      (await migrationNew(ctx, ['--name', 'normalize-names'])).exitCode,
+      (await runMigrationNew(ctx, ['--name', 'normalize-names'])).exitCode,
       'Mongo-P.02: new',
     ).toBe(0);
     const dir2 = findMigrationDirBySlug(ctx, 'normalize_names');
@@ -543,7 +441,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
       join(dir2, 'migration.ts'),
       renderInvariantMigrationTs(draft.from, draft.to, { invariantId: INVARIANT_ID }),
     );
-    expect((await migrationEmit(ctx, ['--dir', dir2])).exitCode, 'Mongo-P.02: emit').toBe(0);
+    expect((await runMigrationEmit(ctx, ['--dir', dir2])).exitCode, 'Mongo-P.02: emit').toBe(0);
 
     const manifest = JSON.parse(readFileSync(join(dir2, 'migration.json'), 'utf-8'));
     const c2Hash = manifest.to as string;
@@ -552,7 +450,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     writeRefFile(ctx, 'prod', c2Hash, ['typo-no-migration-declares-this']);
 
     // Mongo-P.04: apply fails with UNKNOWN_INVARIANT.
-    const applyFail = await migrationApply(ctx, ['--to', 'prod', '--json']);
+    const applyFail = await runMigrate(ctx, ['--to', 'prod', '--json']);
     expect(applyFail.exitCode, 'Mongo-P.04: apply exits 2').toBe(2);
     const applyEnvelope = parseJsonOutput<{
       code?: string;
@@ -566,7 +464,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
 
     // Mongo-P.05: marker untouched (still at C1, not C2). Read via status
     // without --ref so the pre-check doesn't fire.
-    const statusOffline = await migrationStatus(ctx, ['--json']);
+    const statusOffline = await runMigrationStatus(ctx, ['--json']);
     expect(statusOffline.exitCode, 'Mongo-P.05: status').toBe(0);
     const offlineState = migrationStatusAppSpace(parseMigrationStatusJson(statusOffline));
     expect(offlineState.currentContract, 'Mongo-P.05: marker did not advance to C2').not.toBe(
@@ -574,10 +472,9 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     );
 
     // Mongo-P.06: status --ref also fatal (parity with apply).
-    const statusFail = await migrationStatus(ctx, ['--to', 'prod', '--json']);
+    const statusFail = await runMigrationStatus(ctx, ['--to', 'prod', '--json']);
     expect(statusFail.exitCode, 'Mongo-P.06: status exits 2').toBe(2);
-    const statusEnvelope = parseJsonOutput<{ code?: string }>(statusFail);
-    expect(statusEnvelope.code, 'Mongo-P.06: status error code').toBe(
+    expect(engineError(statusFail)?.code, 'Mongo-P.06: status error code').toBe(
       'MIGRATION.UNKNOWN_INVARIANT',
     );
   });
@@ -587,14 +484,16 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     created.add(ctx.testDir);
 
     // Mongo-Q.01: emit base, plan + apply init.
-    expect((await emitContract(ctx)).exitCode, 'Mongo-Q.01: emit base').toBe(0);
-    expect((await migrationPlan(ctx, ['--name', 'initial'])).exitCode, 'Mongo-Q.01: plan').toBe(0);
+    expect((await runContractEmit(ctx)).exitCode, 'Mongo-Q.01: emit base').toBe(0);
+    expect((await runMigrationPlan(ctx, ['--name', 'initial'])).exitCode, 'Mongo-Q.01: plan').toBe(
+      0,
+    );
     const initDir = getLatestMigrationDir(ctx);
     expect(
-      (await migrationEmit(ctx, ['--dir', `migrations/app/${basename(initDir)}`])).exitCode,
+      (await runMigrationEmit(ctx, ['--dir', `migrations/app/${basename(initDir)}`])).exitCode,
       'Mongo-Q.01: emit init',
     ).toBe(0);
-    expect((await migrationApply(ctx)).exitCode, 'Mongo-Q.01: apply init').toBe(0);
+    expect((await runMigrate(ctx)).exitCode, 'Mongo-Q.01: apply init').toBe(0);
     const initManifest = JSON.parse(readFileSync(join(initDir, 'migration.json'), 'utf-8')) as {
       to: string;
     };
@@ -602,9 +501,9 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
 
     // Mongo-Q.02: branch A — additive contract, hand-authored migration WITH invariantId.
     swapToAdditive(ctx);
-    expect((await emitContract(ctx)).exitCode, 'Mongo-Q.02: emit CA').toBe(0);
+    expect((await runContractEmit(ctx)).exitCode, 'Mongo-Q.02: emit CA').toBe(0);
     expect(
-      (await migrationNew(ctx, ['--name', 'branch-a-with-invariant'])).exitCode,
+      (await runMigrationNew(ctx, ['--name', 'branch-a-with-invariant'])).exitCode,
       'Mongo-Q.02: new branch A',
     ).toBe(0);
     const branchADir = findMigrationDirBySlug(ctx, 'branch_a_with_invariant');
@@ -617,7 +516,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
       renderInvariantMigrationTs(draftA.from, draftA.to, { invariantId: INVARIANT_ID }),
     );
     expect(
-      (await migrationEmit(ctx, ['--dir', branchADir])).exitCode,
+      (await runMigrationEmit(ctx, ['--dir', branchADir])).exitCode,
       'Mongo-Q.02: emit branch A',
     ).toBe(0);
 
@@ -628,9 +527,9 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     // fixture (a different additive index) and emit it before scaffolding,
     // then hand-author an index-only migration.ts against the real hash.
     swapToBranchB(ctx);
-    expect((await emitContract(ctx)).exitCode, 'Mongo-Q.03: emit CB').toBe(0);
+    expect((await runContractEmit(ctx)).exitCode, 'Mongo-Q.03: emit CB').toBe(0);
     expect(
-      (await migrationNew(ctx, ['--name', 'branch-b-no-invariant', '--from', c1Hash])).exitCode,
+      (await runMigrationNew(ctx, ['--name', 'branch-b-no-invariant', '--from', c1Hash])).exitCode,
       'Mongo-Q.03: new branch B',
     ).toBe(0);
     const branchBDir = findMigrationDirBySlug(ctx, 'branch_b_no_invariant');
@@ -643,7 +542,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
       renderIndexOnlyMigrationTs(branchBManifest.from, cbHash),
     );
     expect(
-      (await migrationEmit(ctx, ['--dir', branchBDir])).exitCode,
+      (await runMigrationEmit(ctx, ['--dir', branchBDir])).exitCode,
       'Mongo-Q.03: emit branch B',
     ).toBe(0);
 
@@ -652,7 +551,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     writeRefFile(ctx, 'prod', cbHash, [INVARIANT_ID]);
 
     // Mongo-Q.05: apply --ref prod fails with NO_INVARIANT_PATH.
-    const applyFail = await migrationApply(ctx, ['--to', 'prod', '--json']);
+    const applyFail = await runMigrate(ctx, ['--to', 'prod', '--json']);
     expect(applyFail.exitCode, 'Mongo-Q.05: apply exits 2').toBe(2);
     const envelope = parseJsonOutput<{
       code?: string;
