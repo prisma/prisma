@@ -337,249 +337,259 @@ function driftDiagnostics(inputs: {
   ];
 }
 
-export const dbVerifyCommand = defineOrmCommand({
-  help: {
-    summary: 'Check whether the database marker and live schema match your contract',
-    description:
-      'Verifies the database marker first, then checks the database schema\n' +
-      'matches your contract. Use `--marker-only` for marker-only verification,\n' +
-      '`--schema-only` to skip marker checks and inspect only the live schema,\n' +
-      'and `--strict` to fail if the database includes elements not present in\n' +
-      'the contract.\n' +
-      'Exit codes: 0 = the database matches the contract, 2 = the check could\n' +
-      'not run (conflicting mode flags, no emitted contract, unreachable\n' +
-      'database), 4 = drift or a marker finding.',
-    examples: [
-      'db verify',
-      'db verify --db $DATABASE_URL',
-      'db verify --strict',
-      'db verify --schema-only',
-      'db verify --marker-only',
-      'db verify --json',
-    ],
-  },
-  args: {
-    flags: {
-      db: dbFlag,
-      markerOnly: flag.boolean({
-        brief: 'Skip schema verification and only check the database marker',
-      }),
-      schemaOnly: flag.boolean({
-        brief:
-          'Skip marker verification and only check whether the live schema satisfies the contract',
-      }),
-      strict: flag.boolean({
-        brief: 'Treat schema elements not present in the contract as an error',
-      }),
+/**
+ * Builds the command with its control-client factory injected, so tests mount
+ * the same tree over a fake client instead of mocking the client module.
+ */
+export function createDbVerifyCommand(
+  createClient: typeof createControlClient = createControlClient,
+) {
+  return defineOrmCommand({
+    help: {
+      summary: 'Check whether the database marker and live schema match your contract',
+      description:
+        'Verifies the database marker first, then checks the database schema\n' +
+        'matches your contract. Use `--marker-only` for marker-only verification,\n' +
+        '`--schema-only` to skip marker checks and inspect only the live schema,\n' +
+        'and `--strict` to fail if the database includes elements not present in\n' +
+        'the contract.\n' +
+        'Exit codes: 0 = the database matches the contract, 2 = the check could\n' +
+        'not run (conflicting mode flags, no emitted contract, unreachable\n' +
+        'database), 4 = drift or a marker finding.',
+      examples: [
+        'db verify',
+        'db verify --db $DATABASE_URL',
+        'db verify --strict',
+        'db verify --schema-only',
+        'db verify --marker-only',
+        'db verify --json',
+      ],
     },
-  },
-  needs: { config: ormConfigSection },
-  exitCodes: { 4: 'verification found drift or marker findings' },
-  handler: async (args, ctx) => {
-    const strict = args.flags.strict;
-    const resolved = resolveMode({
-      markerOnly: args.flags.markerOnly,
-      schemaOnly: args.flags.schemaOnly,
-      strict,
-    });
-    if (!resolved.ok) {
-      return notOk(resolved.failure);
-    }
-    const mode = resolved.value;
-    const commandInvocation = invocation(mode, strict);
+    args: {
+      flags: {
+        db: dbFlag,
+        markerOnly: flag.boolean({
+          brief: 'Skip schema verification and only check the database marker',
+        }),
+        schemaOnly: flag.boolean({
+          brief:
+            'Skip marker verification and only check whether the live schema satisfies the contract',
+        }),
+        strict: flag.boolean({
+          brief: 'Treat schema elements not present in the contract as an error',
+        }),
+      },
+    },
+    needs: { config: ormConfigSection },
+    exitCodes: { 4: 'verification found drift or marker findings' },
+    handler: async (args, ctx) => {
+      const strict = args.flags.strict;
+      const resolved = resolveMode({
+        markerOnly: args.flags.markerOnly,
+        schemaOnly: args.flags.schemaOnly,
+        strict,
+      });
+      if (!resolved.ok) {
+        return notOk(resolved.failure);
+      }
+      const mode = resolved.value;
+      const commandInvocation = invocation(mode, strict);
 
-    const emitted = await readEmittedContract({
-      config: ctx.config,
-      cwd: ctx.cwd,
-      commandName: commandInvocation,
-    });
-    if (!emitted.ok) {
-      return notOk(emitted.failure);
-    }
+      const emitted = await readEmittedContract({
+        config: ctx.config,
+        cwd: ctx.cwd,
+        commandName: commandInvocation,
+      });
+      if (!emitted.ok) {
+        return notOk(emitted.failure);
+      }
 
-    const connection = requireVerifyConnection({
-      config: ctx.config,
-      db: args.flags.db,
-      invocation: commandInvocation,
-    });
-    if (!connection.ok) {
-      return notOk(connection.failure);
-    }
-    const dbConnection = connection.value;
+      const connection = requireVerifyConnection({
+        config: ctx.config,
+        db: args.flags.db,
+        invocation: commandInvocation,
+      });
+      if (!connection.ok) {
+        return notOk(connection.failure);
+      }
+      const dbConnection = connection.value;
 
-    const header = headerBlock({
-      contractPath: emitted.value.displayPath,
-      mode,
-      strict,
-      database: maskConnectionUrl(dbConnection),
-    });
-    const migrationsDir = migrationsDirFor(ctx.config, ctx.cwd);
-    const client = createControlClient({
-      family: ctx.config.family,
-      target: ctx.config.target,
-      adapter: ctx.config.adapter,
-      ...ifDefined('driver', ctx.config.driver),
-      extensions: ctx.config.extensions ?? [],
-    });
-    const onProgress = controlProgressReporter(ctx.report);
-    const startedAt = Date.now();
+      const header = headerBlock({
+        contractPath: emitted.value.displayPath,
+        mode,
+        strict,
+        database: maskConnectionUrl(dbConnection),
+      });
+      const migrationsDir = migrationsDirFor(ctx.config, ctx.cwd);
+      const client = createClient({
+        family: ctx.config.family,
+        target: ctx.config.target,
+        adapter: ctx.config.adapter,
+        ...ifDefined('driver', ctx.config.driver),
+        extensions: ctx.config.extensions ?? [],
+      });
+      const onProgress = controlProgressReporter(ctx.report);
+      const startedAt = Date.now();
 
-    try {
-      if (mode === 'schema-only') {
-        await client.connect(dbConnection);
+      try {
+        if (mode === 'schema-only') {
+          await client.connect(dbConnection);
+          const aggregate = await client.dbVerify({
+            contract: emitted.value.contract,
+            migrationsDir,
+            strict,
+            skipSchema: false,
+            skipMarker: true,
+            onProgress,
+          });
+          if (!aggregate.ok) {
+            return notOk(normalizeError(aggregate.failure));
+          }
+          const combined = combineVerifyResults(
+            aggregate.value.schemaResults,
+            aggregate.value.appSpaceId,
+            strict,
+            aggregate.value.unclaimed,
+          );
+          const document: SchemaVerifyDocument = {
+            ...combined.result,
+            unclaimed: combined.unclaimed,
+          };
+          return ok(
+            ctx.present(
+              {
+                data: document,
+                exitCode: combined.result.ok ? 0 : FINDINGS_EXIT_CODE,
+                diagnostics: combined.result.ok
+                  ? []
+                  : driftDiagnostics({ perSpace: aggregate.value.schemaResults, combined }),
+              },
+              schemaPresentations({ document, header, strict }),
+            ),
+          );
+        }
+
+        // The single-contract marker check and the aggregate verifier cover
+        // different failure lanes, so full mode runs both, as it does today.
+        const verified = await client.verify({
+          contract: emitted.value.contract,
+          connection: dbConnection,
+          onProgress,
+        });
+        if (!verified.ok) {
+          // The marker verdict returns before the aggregate verifier runs, so
+          // neither the live schema nor the unclaimed list was looked at — even
+          // in full mode.
+          const document = verifyDocument({
+            ok: false,
+            mode,
+            summary: verified.summary,
+            verified,
+            schema: undefined,
+            schemaVerification: 'skipped',
+            unclaimed: undefined,
+            warning: undefined,
+            elapsed: Date.now() - startedAt,
+          });
+          return ok(
+            ctx.present(
+              {
+                data: document,
+                exitCode: FINDINGS_EXIT_CODE,
+                diagnostics: [markerFindingDiagnostic(verified)],
+              },
+              verifyPresentations({ document, header }),
+            ),
+          );
+        }
+
         const aggregate = await client.dbVerify({
           contract: emitted.value.contract,
           migrationsDir,
           strict,
-          skipSchema: false,
-          skipMarker: true,
+          skipSchema: mode === 'marker-only',
+          skipMarker: false,
           onProgress,
         });
         if (!aggregate.ok) {
           return notOk(normalizeError(aggregate.failure));
         }
+
+        if (mode === 'marker-only') {
+          const document = verifyDocument({
+            ok: true,
+            mode,
+            summary: 'Database marker matches contract',
+            verified,
+            schema: undefined,
+            schemaVerification: 'skipped',
+            unclaimed: undefined,
+            warning: 'Schema verification skipped because --marker-only was provided',
+            elapsed: Date.now() - startedAt,
+          });
+          return ok(
+            ctx.present({ data: document, exitCode: 0 }, verifyPresentations({ document, header })),
+          );
+        }
+
         const combined = combineVerifyResults(
           aggregate.value.schemaResults,
           aggregate.value.appSpaceId,
           strict,
           aggregate.value.unclaimed,
         );
-        const document: SchemaVerifyDocument = {
-          ...combined.result,
-          unclaimed: combined.unclaimed,
-        };
-        return ok(
-          ctx.present(
-            {
-              data: document,
-              exitCode: combined.result.ok ? 0 : FINDINGS_EXIT_CODE,
-              diagnostics: combined.result.ok
-                ? []
-                : driftDiagnostics({ perSpace: aggregate.value.schemaResults, combined }),
-            },
-            schemaPresentations({ document, header, strict }),
-          ),
-        );
-      }
+        if (!combined.result.ok) {
+          const document: SchemaVerifyDocument = {
+            ...combined.result,
+            unclaimed: combined.unclaimed,
+          };
+          return ok(
+            ctx.present(
+              {
+                data: document,
+                exitCode: FINDINGS_EXIT_CODE,
+                diagnostics: driftDiagnostics({
+                  perSpace: aggregate.value.schemaResults,
+                  combined,
+                }),
+              },
+              schemaPresentations({ document, header, strict }),
+            ),
+          );
+        }
 
-      // The single-contract marker check and the aggregate verifier cover
-      // different failure lanes, so full mode runs both, as it does today.
-      const verified = await client.verify({
-        contract: emitted.value.contract,
-        connection: dbConnection,
-        onProgress,
-      });
-      if (!verified.ok) {
-        // The marker verdict returns before the aggregate verifier runs, so
-        // neither the live schema nor the unclaimed list was looked at — even
-        // in full mode.
-        const document = verifyDocument({
-          ok: false,
-          mode,
-          summary: verified.summary,
-          verified,
-          schema: undefined,
-          schemaVerification: 'skipped',
-          unclaimed: undefined,
-          warning: undefined,
-          elapsed: Date.now() - startedAt,
-        });
-        return ok(
-          ctx.present(
-            {
-              data: document,
-              exitCode: FINDINGS_EXIT_CODE,
-              diagnostics: [markerFindingDiagnostic(verified)],
-            },
-            verifyPresentations({ document, header }),
-          ),
-        );
-      }
-
-      const aggregate = await client.dbVerify({
-        contract: emitted.value.contract,
-        migrationsDir,
-        strict,
-        skipSchema: mode === 'marker-only',
-        skipMarker: false,
-        onProgress,
-      });
-      if (!aggregate.ok) {
-        return notOk(normalizeError(aggregate.failure));
-      }
-
-      if (mode === 'marker-only') {
         const document = verifyDocument({
           ok: true,
           mode,
-          summary: 'Database marker matches contract',
+          summary: 'Database marker and schema match contract',
           verified,
-          schema: undefined,
-          schemaVerification: 'skipped',
-          unclaimed: undefined,
-          warning: 'Schema verification skipped because --marker-only was provided',
+          schema: {
+            summary: combined.result.summary,
+            strict: combined.result.meta?.strict ?? false,
+            warnings: (combined.result.schema.warnings?.issues ?? []).map((issue) =>
+              issue.path.join('/'),
+            ),
+          },
+          schemaVerification: 'performed',
+          unclaimed: combined.unclaimed,
+          warning: undefined,
           elapsed: Date.now() - startedAt,
         });
         return ok(
           ctx.present({ data: document, exitCode: 0 }, verifyPresentations({ document, header })),
         );
-      }
-
-      const combined = combineVerifyResults(
-        aggregate.value.schemaResults,
-        aggregate.value.appSpaceId,
-        strict,
-        aggregate.value.unclaimed,
-      );
-      if (!combined.result.ok) {
-        const document: SchemaVerifyDocument = {
-          ...combined.result,
-          unclaimed: combined.unclaimed,
-        };
-        return ok(
-          ctx.present(
-            {
-              data: document,
-              exitCode: FINDINGS_EXIT_CODE,
-              diagnostics: driftDiagnostics({
-                perSpace: aggregate.value.schemaResults,
-                combined,
-              }),
-            },
-            schemaPresentations({ document, header, strict }),
-          ),
+      } catch (error) {
+        if (isInternalError(error)) {
+          throw error;
+        }
+        return notOk(
+          verificationThrow({ error, invocation: commandInvocation, connection: dbConnection }),
         );
+      } finally {
+        await closeQuietly(client);
       }
+    },
+  });
+}
 
-      const document = verifyDocument({
-        ok: true,
-        mode,
-        summary: 'Database marker and schema match contract',
-        verified,
-        schema: {
-          summary: combined.result.summary,
-          strict: combined.result.meta?.strict ?? false,
-          warnings: (combined.result.schema.warnings?.issues ?? []).map((issue) =>
-            issue.path.join('/'),
-          ),
-        },
-        schemaVerification: 'performed',
-        unclaimed: combined.unclaimed,
-        warning: undefined,
-        elapsed: Date.now() - startedAt,
-      });
-      return ok(
-        ctx.present({ data: document, exitCode: 0 }, verifyPresentations({ document, header })),
-      );
-    } catch (error) {
-      if (isInternalError(error)) {
-        throw error;
-      }
-      return notOk(
-        verificationThrow({ error, invocation: commandInvocation, connection: dbConnection }),
-      );
-    } finally {
-      await closeQuietly(client);
-    }
-  },
-});
+export const dbVerifyCommand = createDbVerifyCommand();

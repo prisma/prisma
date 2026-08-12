@@ -8,10 +8,11 @@ import { blindCast } from '@internal/utils/casts';
 import type { MountedTree, PresentedResult } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { createTestCli } from '@prisma/cli-engine/testing';
-import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ControlClient } from '../../src/control-api/types';
+import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createDbSignCommand } from '../../src/orm/db/sign';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
 const HASH_A = `4cb4256${'0'.repeat(57)}`;
@@ -19,42 +20,29 @@ const HASH_PREVIOUS = `9d0f118${'2'.repeat(57)}`;
 const CONNECTION = 'postgres://user:secret@localhost:5432/appdb';
 const MASKED_CONNECTION = 'postgres://****:****@localhost:5432/appdb';
 
-const mocks = vi.hoisted(() => ({
+const mocks = {
   connect: vi.fn(),
   close: vi.fn(),
   schemaVerify: vi.fn(),
   sign: vi.fn(),
-}));
-
-vi.mock('../../src/control-api/client', () => ({
-  createControlClient: vi.fn(() => ({
-    connect: mocks.connect,
-    schemaVerify: mocks.schemaVerify,
-    sign: mocks.sign,
-    close: mocks.close,
-  })),
-}));
+};
 
 /**
- * The command tree is imported after the module registry is reset, so the
- * mocked client is the one `db sign` closes over. Repo-wide vitest runs with
- * `isolate: false`, and a file that loaded the tree first would otherwise have
- * baked the real client into it.
+ * The command is mounted over a fake control client instead of the module
+ * being mocked: `createDbSignCommand` takes the client factory as its seam.
  */
-let commands: MountedTree;
-let groups: typeof BinGroups;
-
-beforeAll(async () => {
-  vi.resetModules();
-  const cli = await import('../../src/orm/cli');
-  commands = cli.BIN_COMMANDS;
-  groups = cli.BIN_GROUPS;
-}, timeouts.coldTransformImport);
-
-afterAll(() => {
-  vi.doUnmock('../../src/control-api/client');
-  vi.resetModules();
-});
+const commands: MountedTree = {
+  ...BIN_COMMANDS,
+  'db sign': createDbSignCommand(() =>
+    blindCast<ControlClient, 'the fake implements only what db sign touches'>({
+      connect: mocks.connect,
+      schemaVerify: mocks.schemaVerify,
+      sign: mocks.sign,
+      close: mocks.close,
+    }),
+  ),
+};
+const groups = BIN_GROUPS;
 
 const dirs: string[] = [];
 

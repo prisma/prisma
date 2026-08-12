@@ -93,156 +93,170 @@ function refusedPresentations(inputs: {
   };
 }
 
-export const dbSignCommand = defineOrmCommand({
-  help: {
-    summary: 'Sign the database with your contract so you can safely run queries',
-    description:
-      'Verifies that your database schema satisfies the emitted contract, and if\n' +
-      'so, writes or updates the database signature. Idempotent and safe to run\n' +
-      'in CI or a deployment pipeline. The signature records that this database\n' +
-      'instance is aligned with a specific contract version.\n' +
-      'Exit codes: 0 = signed, 2 = the command could not run (unresolvable\n' +
-      'contract reference, no emitted contract, unreachable database),\n' +
-      '4 = schema verification failed and no signature was written.',
-    examples: [
-      'db sign',
-      'db sign --db $DATABASE_URL',
-      'db sign production --db $DATABASE_URL',
-      'db sign --contract production --db $DATABASE_URL',
-    ],
-  },
-  args: {
-    positionals: {
-      contract: positional.optionalString({
-        brief: 'Contract reference (hash, prefix, ref name, or migration dir name)',
-        placeholder: 'contract',
-      }),
+/**
+ * Builds the command with its control-client factory injected, so tests mount
+ * the same tree over a fake client instead of mocking the client module.
+ */
+export function createDbSignCommand(
+  createClient: typeof createControlClient = createControlClient,
+) {
+  return defineOrmCommand({
+    help: {
+      summary: 'Sign the database with your contract so you can safely run queries',
+      description:
+        'Verifies that your database schema satisfies the emitted contract, and if\n' +
+        'so, writes or updates the database signature. Idempotent and safe to run\n' +
+        'in CI or a deployment pipeline. The signature records that this database\n' +
+        'instance is aligned with a specific contract version.\n' +
+        'Exit codes: 0 = signed, 2 = the command could not run (unresolvable\n' +
+        'contract reference, no emitted contract, unreachable database),\n' +
+        '4 = schema verification failed and no signature was written.',
+      examples: [
+        'db sign',
+        'db sign --db $DATABASE_URL',
+        'db sign production --db $DATABASE_URL',
+        'db sign --contract production --db $DATABASE_URL',
+      ],
     },
-    flags: {
-      db: dbFlag,
-      contract: flag.string({
-        brief: 'Contract reference (hash, prefix, ref name, migration dir name, <dir>^, or ./path)',
-        placeholder: 'contract',
-      }),
+    args: {
+      positionals: {
+        contract: positional.optionalString({
+          brief: 'Contract reference (hash, prefix, ref name, or migration dir name)',
+          placeholder: 'contract',
+        }),
+      },
+      flags: {
+        db: dbFlag,
+        contract: flag.string({
+          brief:
+            'Contract reference (hash, prefix, ref name, migration dir name, <dir>^, or ./path)',
+          placeholder: 'contract',
+        }),
+      },
     },
-  },
-  needs: { config: ormConfigSection },
-  exitCodes: { 4: 'schema verification failed; no signature was written' },
-  handler: async (args, ctx) => {
-    const positionalContract = args.positionals.contract;
-    const flagContract = args.flags.contract;
-    if (positionalContract !== undefined && flagContract !== undefined) {
-      return notOk(
-        normalizeError(
-          errorContractArgConflict({ positional: positionalContract, flag: flagContract }),
-        ),
-      );
-    }
-    const contractRef = positionalContract ?? flagContract;
-
-    const emitted = await readEmittedContract({
-      config: ctx.config,
-      cwd: ctx.cwd,
-      commandName: 'db sign',
-    });
-    if (!emitted.ok) {
-      return notOk(emitted.failure);
-    }
-
-    let contractInput: unknown = emitted.value.contract;
-    if (contractRef !== undefined) {
-      const resolvedRef = await resolveContractRefToSnapshot({
-        config: ctx.config,
-        migrationsDir: migrationsDirFor(ctx.config, ctx.cwd),
-        refInput: contractRef,
-        contractPathAbsolute: emitted.value.path,
-        fallbackToEmitted: true,
-      });
-      if (!resolvedRef.ok) {
-        return notOk(normalizeError(resolvedRef.failure));
-      }
-      contractInput = resolvedRef.value.contractJson;
-    }
-
-    const connection = requireVerifyConnection({
-      config: ctx.config,
-      db: args.flags.db,
-      invocation: 'db sign',
-    });
-    if (!connection.ok) {
-      return notOk(connection.failure);
-    }
-    const dbConnection = connection.value;
-
-    const header = headerBlock({
-      contract: contractRef ?? emitted.value.displayPath,
-      database: maskConnectionUrl(dbConnection),
-    });
-    const client = createControlClient({
-      family: ctx.config.family,
-      target: ctx.config.target,
-      adapter: ctx.config.adapter,
-      ...ifDefined('driver', ctx.config.driver),
-      extensions: ctx.config.extensions ?? [],
-    });
-    const onProgress = controlProgressReporter(ctx.report);
-
-    try {
-      const verified = await client.schemaVerify({
-        contract: contractInput,
-        strict: false,
-        connection: dbConnection,
-        onProgress,
-      });
-      if (!verified.ok) {
-        const document: SchemaVerifyDocument = { ...verified, unclaimed: [] };
-        return ok(
-          ctx.present(
-            {
-              data: document,
-              exitCode: FINDINGS_EXIT_CODE,
-              diagnostics: [
-                schemaVerdictDiagnostic({
-                  result: verified,
-                  space: undefined,
-                  nextActions: [
-                    runCommandAction(
-                      'Bring the database up to the contract, then sign again',
-                      'prisma-next db update',
-                    ),
-                  ],
-                }),
-              ],
-            },
-            refusedPresentations({ document, header }),
+    needs: { config: ormConfigSection },
+    exitCodes: { 4: 'schema verification failed; no signature was written' },
+    handler: async (args, ctx) => {
+      const positionalContract = args.positionals.contract;
+      const flagContract = args.flags.contract;
+      if (positionalContract !== undefined && flagContract !== undefined) {
+        return notOk(
+          normalizeError(
+            errorContractArgConflict({ positional: positionalContract, flag: flagContract }),
           ),
         );
       }
+      const contractRef = positionalContract ?? flagContract;
 
-      const signed = await client.sign({
-        contract: contractInput,
-        contractPath: displayPath(emitted.value.path, ctx.cwd),
-        configPath: CONFIG_DISPLAY_PATH,
-        onProgress,
+      const emitted = await readEmittedContract({
+        config: ctx.config,
+        cwd: ctx.cwd,
+        commandName: 'db sign',
       });
-      // The control contract says a family either writes the marker or throws,
-      // so a returned `ok: false` is a family breaking that contract rather
-      // than anything the user did.
-      if (!signed.ok) {
-        throw new InternalError(
-          `The family returned a sign result that did not sign: ${signed.summary}`,
+      if (!emitted.ok) {
+        return notOk(emitted.failure);
+      }
+
+      let contractInput: unknown = emitted.value.contract;
+      if (contractRef !== undefined) {
+        const resolvedRef = await resolveContractRefToSnapshot({
+          config: ctx.config,
+          migrationsDir: migrationsDirFor(ctx.config, ctx.cwd),
+          refInput: contractRef,
+          contractPathAbsolute: emitted.value.path,
+          fallbackToEmitted: true,
+        });
+        if (!resolvedRef.ok) {
+          return notOk(normalizeError(resolvedRef.failure));
+        }
+        contractInput = resolvedRef.value.contractJson;
+      }
+
+      const connection = requireVerifyConnection({
+        config: ctx.config,
+        db: args.flags.db,
+        invocation: 'db sign',
+      });
+      if (!connection.ok) {
+        return notOk(connection.failure);
+      }
+      const dbConnection = connection.value;
+
+      const header = headerBlock({
+        contract: contractRef ?? emitted.value.displayPath,
+        database: maskConnectionUrl(dbConnection),
+      });
+      const client = createClient({
+        family: ctx.config.family,
+        target: ctx.config.target,
+        adapter: ctx.config.adapter,
+        ...ifDefined('driver', ctx.config.driver),
+        extensions: ctx.config.extensions ?? [],
+      });
+      const onProgress = controlProgressReporter(ctx.report);
+
+      try {
+        const verified = await client.schemaVerify({
+          contract: contractInput,
+          strict: false,
+          connection: dbConnection,
+          onProgress,
+        });
+        if (!verified.ok) {
+          const document: SchemaVerifyDocument = { ...verified, unclaimed: [] };
+          return ok(
+            ctx.present(
+              {
+                data: document,
+                exitCode: FINDINGS_EXIT_CODE,
+                diagnostics: [
+                  schemaVerdictDiagnostic({
+                    result: verified,
+                    space: undefined,
+                    nextActions: [
+                      runCommandAction(
+                        'Bring the database up to the contract, then sign again',
+                        'prisma-next db update',
+                      ),
+                    ],
+                  }),
+                ],
+              },
+              refusedPresentations({ document, header }),
+            ),
+          );
+        }
+
+        const signed = await client.sign({
+          contract: contractInput,
+          contractPath: displayPath(emitted.value.path, ctx.cwd),
+          configPath: CONFIG_DISPLAY_PATH,
+          onProgress,
+        });
+        // The control contract says a family either writes the marker or throws,
+        // so a returned `ok: false` is a family breaking that contract rather
+        // than anything the user did.
+        if (!signed.ok) {
+          throw new InternalError(
+            `The family returned a sign result that did not sign: ${signed.summary}`,
+          );
+        }
+        return ok(
+          ctx.present(
+            { data: signed, exitCode: 0 },
+            signPresentations({ document: signed, header }),
+          ),
         );
+      } catch (error) {
+        if (isInternalError(error)) {
+          throw error;
+        }
+        return notOk(verificationThrow({ error, invocation: 'db sign', connection: dbConnection }));
+      } finally {
+        await closeQuietly(client);
       }
-      return ok(
-        ctx.present({ data: signed, exitCode: 0 }, signPresentations({ document: signed, header })),
-      );
-    } catch (error) {
-      if (isInternalError(error)) {
-        throw error;
-      }
-      return notOk(verificationThrow({ error, invocation: 'db sign', connection: dbConnection }));
-    } finally {
-      await closeQuietly(client);
-    }
-  },
-});
+    },
+  });
+}
+
+export const dbSignCommand = createDbSignCommand();
