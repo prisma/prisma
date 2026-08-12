@@ -66,7 +66,7 @@ describe('the orm command family', () => {
     expect(ormCommandFamily.docsBaseUrl?.endsWith('/')).toBe(true);
   });
 
-  it('retires the two removed migration verbs, naming the binary as {bin}', () => {
+  it('retires the two removed verbs and the four removed status flags, naming the binary as {bin}', () => {
     expect(
       ormCommandFamily.redirects.map(({ from, flag, replacement }) => ({
         from,
@@ -80,6 +80,14 @@ describe('the orm command family', () => {
         replacement: '{bin} migrate --to <contract>',
       },
       { from: 'migration ref', flag: undefined, replacement: '{bin} ref set|list|delete' },
+      { from: 'migration status', flag: 'graph', replacement: '{bin} migration graph' },
+      { from: 'migration status', flag: 'all', replacement: '{bin} migration log --db <url>' },
+      { from: 'migration status', flag: 'limit', replacement: '{bin} migration log --db <url>' },
+      {
+        from: 'migration status',
+        flag: 'ref',
+        replacement: '{bin} migration status --to <contract>',
+      },
     ]);
   });
 });
@@ -102,6 +110,28 @@ describe('a retired invocation', () => {
       envelope: { ok: false },
     });
     expect(JSON.stringify(run.json)).toContain('migrate --to <contract>');
+  });
+
+  it('answers a retired status flag with the command that replaced it', async () => {
+    const loader = recordingLoader();
+
+    const run = await harness(loader.loadConfig).run(['migration', 'status', '--graph', '--json']);
+
+    expect(run.exitCode).not.toBe(0);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: {
+        ok: false,
+        error: { code: 'CLI.COMMAND_MOVED' },
+        nextActions: [
+          {
+            kind: 'run-command',
+            label: 'Use the replacement',
+            command: 'prisma-test migration graph',
+          },
+        ],
+      },
+    });
   });
 });
 

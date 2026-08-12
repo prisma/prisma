@@ -18,7 +18,10 @@ import { createMigrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
+import { migrationNewCommand } from './migration/new';
+import { migrationPlanCommand } from './migration/plan';
 import { migrationShowCommand } from './migration/show';
+import { migrationStatusCommand } from './migration/status';
 import { normalizeError } from './normalize-error';
 import { runPackageManager } from './package-manager-runner';
 import { refDeleteCommand } from './ref/delete';
@@ -74,7 +77,10 @@ export function createBinCommands(createClient: CreateControlClient): MountedTre
     'migration graph': migrationGraphCommand,
     'migration list': migrationListCommand,
     'migration log': migrationLogCommand,
+    'migration new': migrationNewCommand,
+    'migration plan': migrationPlanCommand,
     'migration show': migrationShowCommand,
+    'migration status': migrationStatusCommand,
     'ref delete': refDeleteCommand,
     'ref list': refListCommand,
     'ref set': refSetCommand,
