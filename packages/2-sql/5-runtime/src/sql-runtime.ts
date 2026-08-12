@@ -50,6 +50,11 @@ import type { SqlMiddleware, SqlMiddlewareContext } from './middleware/sql-middl
 import { buildBindSiteParams } from './prepared/bind-site-params';
 import { resolvePreparedSlotValues } from './prepared/encode-prepared';
 import {
+  type PreparedStatementQueryTarget,
+  preparedStatementQuery,
+  runPreparedQuery,
+} from './prepared/prepared-query';
+import {
   PreparedStatementImpl,
   type PreparedStatementInternals,
 } from './prepared/prepared-statement';
@@ -121,14 +126,7 @@ export interface RuntimeTransaction extends RuntimeQueryable {
   rollback(): Promise<void>;
 }
 
-export interface RuntimeQueryable extends RuntimeScope {
-  /** Query prepared rows against this scope through its bound `SqlQueryable`. */
-  queryPrepared<Params, Row>(
-    ps: PreparedStatement<Params, Row>,
-    params: Params,
-    options?: RuntimeExecuteOptions,
-  ): AsyncIterableResult<Row>;
-}
+export interface RuntimeQueryable extends RuntimeScope {}
 
 export interface TransactionContext extends RuntimeQueryable {
   readonly invalidated: boolean;
@@ -314,14 +312,17 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     return this.executeStatisticsAgainstQueryable(plan, this.driver, options);
   }
 
-  queryPrepared<Params, Row>(
+  [preparedStatementQuery]<Params, Row>(
     ps: PreparedStatement<Params, Row>,
     params: Params,
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
-    return this.queryPreparedAgainstQueryable<Params, Row>(
-      ps as PreparedStatementImpl<Params, Row>,
-      params as Record<string, unknown>,
+    return this.runPreparedQueryAgainstQueryable<Params, Row>(
+      blindCast<
+        PreparedStatementImpl<Params, Row>,
+        'prepared statements are created by this runtime implementation'
+      >(ps),
+      params,
       this.driver,
       options,
     );
@@ -568,9 +569,9 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   /** Query prepared rows against a caller-supplied queryable through the full pipeline. */
-  protected queryPreparedAgainstQueryable<P, Row>(
+  protected runPreparedQueryAgainstQueryable<P, Row>(
     ps: PreparedStatementImpl<P, Row>,
-    userParams: Record<string, unknown>,
+    userParams: unknown,
     queryable: SqlQueryable,
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
@@ -642,7 +643,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     const driverConn = await this.driver.acquireConnection();
     const self = this;
 
-    const wrappedConnection: RuntimeConnection = {
+    const wrappedConnection: RuntimeConnection & PreparedStatementQueryTarget = {
       async transaction(): Promise<RuntimeTransaction> {
         const driverTx = await driverConn.beginTransaction();
         return self.wrapTransaction(driverTx);
@@ -671,14 +672,17 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
           scope: 'connection',
         });
       },
-      queryPrepared<Params, Row>(
+      [preparedStatementQuery]<Params, Row>(
         ps: PreparedStatement<Params, Row>,
         params: Params,
         options?: RuntimeExecuteOptions,
       ): AsyncIterableResult<Row> {
-        return self.queryPreparedAgainstQueryable<Params, Row>(
-          ps as PreparedStatementImpl<Params, Row>,
-          params as Record<string, unknown>,
+        return self.runPreparedQueryAgainstQueryable<Params, Row>(
+          blindCast<
+            PreparedStatementImpl<Params, Row>,
+            'prepared statements are created by this runtime implementation'
+          >(ps),
+          params,
           driverConn,
           { ...options, scope: 'connection' },
         );
@@ -690,7 +694,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
 
   private wrapTransaction(driverTx: SqlTransaction): RuntimeTransaction {
     const self = this;
-    return {
+    const wrappedTransaction: RuntimeTransaction & PreparedStatementQueryTarget = {
       async commit(): Promise<void> {
         await driverTx.commit();
       },
@@ -715,19 +719,23 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
           scope: 'transaction',
         });
       },
-      queryPrepared<Params, Row>(
+      [preparedStatementQuery]<Params, Row>(
         ps: PreparedStatement<Params, Row>,
         params: Params,
         options?: RuntimeExecuteOptions,
       ): AsyncIterableResult<Row> {
-        return self.queryPreparedAgainstQueryable<Params, Row>(
-          ps as PreparedStatementImpl<Params, Row>,
-          params as Record<string, unknown>,
+        return self.runPreparedQueryAgainstQueryable<Params, Row>(
+          blindCast<
+            PreparedStatementImpl<Params, Row>,
+            'prepared statements are created by this runtime implementation'
+          >(ps),
+          params,
           driverTx,
           { ...options, scope: 'transaction' },
         );
       },
     };
+    return wrappedTransaction;
   }
 
   telemetry(): RuntimeTelemetryEvent | null {
@@ -831,7 +839,7 @@ export async function withTransaction<R>(
     }
   }
 
-  const txContext: TransactionContext = {
+  const txContext: TransactionContext & PreparedStatementQueryTarget = {
     get invalidated() {
       return invalidated;
     },
@@ -853,7 +861,7 @@ export async function withTransaction<R>(
       }
       return transaction.execute(plan, options);
     },
-    queryPrepared<Params, Row>(
+    [preparedStatementQuery]<Params, Row>(
       ps: PreparedStatement<Params, Row>,
       params: Params,
       options?: RuntimeExecuteOptions,
@@ -861,7 +869,9 @@ export async function withTransaction<R>(
       if (invalidated) {
         throw transactionClosedError();
       }
-      return new AsyncIterableResult(guardedStream(transaction.queryPrepared(ps, params, options)));
+      return new AsyncIterableResult(
+        guardedStream(runPreparedQuery(transaction, ps, params, options)),
+      );
     },
   };
 

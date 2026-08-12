@@ -12,7 +12,7 @@ export async function getUserByEmailPrepared(emails: readonly string[]) {
   const runtime = db.runtime();
   const results: Array<{ email: string; user: unknown }> = [];
   for (const email of emails) {
-    const rows = await runtime.queryPrepared(ps, { email });
+    const rows = await ps.query(runtime, { email });
     results.push({ email, user: rows[0] ?? null });
   }
   return results;

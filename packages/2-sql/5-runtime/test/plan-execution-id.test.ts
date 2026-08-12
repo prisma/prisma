@@ -24,7 +24,7 @@ import {
 
 /**
  * Pins ADR 220 semantics for the SQL runtime: every `query()`, `execute()`,
- * and `queryPrepared()` call mints a fresh `ctx.planExecutionId` for the
+ * and `PreparedStatement.query()` call mints a fresh `ctx.planExecutionId` for the
  * per-operation middleware context. Hooks within one call observe the same
  * ID; hooks across two calls of the same plan/prepared-statement observe
  * distinct IDs.
@@ -153,30 +153,30 @@ describe('SqlRuntime operation planExecutionId (ADR 220)', () => {
   });
 });
 
-describe('SqlRuntime.queryPrepared planExecutionId (ADR 220)', () => {
-  it('assigns the same planExecutionId to beforeQuery and afterQuery within one queryPrepared call', async () => {
+describe('PreparedStatement.query planExecutionId (ADR 220)', () => {
+  it('assigns the same planExecutionId to beforeQuery and afterQuery within one statement.query call', async () => {
     const log: Observation[] = [];
     const { runtime } = createSetup([observerMiddleware(log)]);
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan(params.userId),
     );
 
-    await runtime.queryPrepared(ps, { userId: 1 }).toArray();
+    await ps.query(runtime, { userId: 1 }).toArray();
 
     expect(log).toHaveLength(2);
     expect(log[0]?.planExecutionId).toBeTypeOf('string');
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
   });
 
-  it('assigns distinct planExecutionIds to two queryPrepared calls on the same prepared statement', async () => {
+  it('assigns distinct planExecutionIds to two statement.query calls on the same prepared statement', async () => {
     const log: Observation[] = [];
     const { runtime } = createSetup([observerMiddleware(log)]);
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan(params.userId),
     );
 
-    await runtime.queryPrepared(ps, { userId: 1 }).toArray();
-    await runtime.queryPrepared(ps, { userId: 2 }).toArray();
+    await ps.query(runtime, { userId: 1 }).toArray();
+    await ps.query(runtime, { userId: 2 }).toArray();
 
     expect(log).toHaveLength(4);
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);

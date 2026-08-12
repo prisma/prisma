@@ -11,6 +11,8 @@ import type {
   RuntimeConnection,
   RuntimeTransaction,
 } from '@internal/sql-runtime';
+import type { PreparedStatementQueryTarget } from '@internal/sql-runtime/internal/prepared-query';
+import { preparedStatementQuery } from '@internal/sql-runtime/internal/prepared-query';
 import { blindCast } from '@internal/utils/casts';
 import type { SupabaseRole } from '../contract/roles';
 
@@ -65,7 +67,7 @@ export class SupabaseRuntimeImpl<
 
     const self = this;
 
-    const session: RoleSession = {
+    const session: RoleSession & PreparedStatementQueryTarget = {
       query<Row>(
         plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
         options?: RuntimeExecuteOptions,
@@ -81,12 +83,12 @@ export class SupabaseRuntimeImpl<
           scope: 'connection',
         });
       },
-      queryPrepared<Params, Row>(
+      [preparedStatementQuery]<Params, Row>(
         prepared: PreparedStatement<Params, Row>,
         params: Params,
         options?: RuntimeExecuteOptions,
       ): AsyncIterableResult<Row> {
-        return self.queryPreparedAgainstRoleQueryable(
+        return self.runPreparedQueryAgainstRoleQueryable(
           prepared,
           params,
           conn,
@@ -97,7 +99,7 @@ export class SupabaseRuntimeImpl<
 
       async transaction(): Promise<RuntimeTransaction> {
         const tx = await conn.beginTransaction();
-        return {
+        const roleTransaction: RuntimeTransaction & PreparedStatementQueryTarget = {
           async commit(): Promise<void> {
             await tx.commit();
           },
@@ -119,12 +121,12 @@ export class SupabaseRuntimeImpl<
               scope: 'transaction',
             });
           },
-          queryPrepared<Params, Row>(
+          [preparedStatementQuery]<Params, Row>(
             prepared: PreparedStatement<Params, Row>,
             params: Params,
             options?: RuntimeExecuteOptions,
           ): AsyncIterableResult<Row> {
-            return self.queryPreparedAgainstRoleQueryable(
+            return self.runPreparedQueryAgainstRoleQueryable(
               prepared,
               params,
               tx,
@@ -133,6 +135,7 @@ export class SupabaseRuntimeImpl<
             );
           },
         };
+        return roleTransaction;
       },
 
       /**
@@ -204,14 +207,14 @@ export class SupabaseRuntimeImpl<
     }
   }
 
-  private queryPreparedAgainstRoleQueryable<Params, Row>(
+  private runPreparedQueryAgainstRoleQueryable<Params, Row>(
     prepared: PreparedStatement<Params, Row>,
     params: Params,
     queryable: SqlQueryable,
     options: RuntimeExecuteOptions | undefined,
     scope: 'connection' | 'transaction',
   ): AsyncIterableResult<Row> {
-    return this.queryPreparedAgainstQueryable<Params, Row>(
+    return this.runPreparedQueryAgainstQueryable<Params, Row>(
       blindCast<
         PreparedStatementImpl<Params, Row>,
         'SQL runtime prepare returns PreparedStatementImpl instances'
