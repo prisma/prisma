@@ -71,7 +71,7 @@ describe('ormConfigSection', () => {
             nextActions: [
               {
                 kind: 'run-command',
-                label: 'Create a configuration file',
+                label: 'Create a config file',
                 command: 'prisma-next init',
               },
             ],
