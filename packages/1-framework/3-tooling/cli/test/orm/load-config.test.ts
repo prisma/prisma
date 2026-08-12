@@ -106,7 +106,7 @@ describe('loadOrmConfig', () => {
       const loaded = await loadOrmConfig({ cwd: projectDir() });
 
       expect(loaded.diagnostics[0]?.diagnostic.nextActions).toEqual([
-        { kind: 'user-choice', label: "Run 'prisma-next init' to create a config file" },
+        { kind: 'run-command', label: 'Create a config file', command: '{bin} init' },
       ]);
     });
 
