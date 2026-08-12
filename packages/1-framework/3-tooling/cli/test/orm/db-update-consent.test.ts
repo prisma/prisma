@@ -1,10 +1,11 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { notOk, ok } from '@internal/utils/result';
-import type { MountedTree, StreamEvent } from '@prisma/cli-engine';
+import type { EngineEvent, MountedTree, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
+import stripAnsi from 'strip-ansi';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
 
@@ -52,6 +53,7 @@ const DEST_HASH = 'd'.repeat(64);
 const MARKER_HASH = 'a'.repeat(64);
 const CONNECTION = 'postgres://user:secret@localhost:5432/appdb';
 const TOKEN = 'appdb';
+const QUESTION = 'Apply 1 destructive operation(s) to appdb?';
 
 let projectDir: string;
 const projectDirs: string[] = [];
@@ -112,14 +114,35 @@ function applySuccess(): Record<string, unknown> {
   };
 }
 
-function destructiveRefusal(): Record<string, unknown> {
+function destructiveRefusal(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     code: 'DESTRUCTIVE_CHANGES',
     summary: 'Planned 1 destructive operation(s) that require confirmation',
     why: 'Destructive operations require confirmation',
     conflicts: undefined,
     meta: { destructiveOperations: [{ id: 'op-2', label: 'drop relation legacy' }] },
+    ...overrides,
   };
+}
+
+/** An apply that dropped more than the plan the user was shown. */
+function driftedSuccess(): Record<string, unknown> {
+  const success = applySuccess();
+  return {
+    ...success,
+    plan: {
+      operations: [
+        { id: 'op-2', label: 'drop relation legacy', operationClass: 'destructive' },
+        { id: 'op-3', label: 'drop table archive', operationClass: 'destructive' },
+      ],
+    },
+  };
+}
+
+function warnTexts(events: readonly EngineEvent[]): readonly string[] {
+  return events.flatMap((event) =>
+    event.kind === 'message' && event.severity === 'warn' ? [event.text] : [],
+  );
 }
 
 /**
@@ -161,15 +184,45 @@ describe('db update consent', () => {
       expect(applyCalls().map((call) => call.acceptDataLoss)).toEqual([undefined, true]);
     });
 
+    /**
+     * Typed on stdin rather than scripted through `answers`: a scripted answer
+     * is returned without the prompt ever being rendered, so the question only
+     * reaches stderr when the run reads it from the stream.
+     */
     it('names the database and every destructive operation in the question', async () => {
       const run = await harness().run(['db', 'update'], {
         cwd: projectDir,
         isTty: { stdin: true, stdout: true, stderr: true },
-        answers: [TOKEN],
+        stdin: `${TOKEN}\n`,
       });
 
-      expect(run.stderr).toContain('drop relation legacy');
-      expect(run.stderr).toContain('appdb');
+      const rendered = stripAnsi(run.stderr);
+      expect(rendered).toContain(QUESTION);
+      expect(rendered).toContain('drop relation legacy');
+    });
+
+    it('shows the planner`s warnings before it asks', async () => {
+      const warning = 'Column user.legacy is dropped without a backfill';
+      mocks.dbUpdate
+        .mockReset()
+        .mockImplementation((options: { acceptDataLoss?: boolean }) =>
+          Promise.resolve(
+            options.acceptDataLoss === true
+              ? ok(applySuccess())
+              : notOk(destructiveRefusal({ warnings: [{ summary: warning }] })),
+          ),
+        );
+
+      const run = await harness().run(['db', 'update'], {
+        cwd: projectDir,
+        isTty: { stdin: true, stdout: true, stderr: true },
+        stdin: `${TOKEN}\n`,
+      });
+
+      const rendered = stripAnsi(run.stderr);
+      expect(warnTexts(run.events)).toContain(warning);
+      expect(rendered).toContain(QUESTION);
+      expect(rendered.indexOf(warning)).toBeLessThan(rendered.indexOf(QUESTION));
     });
 
     it('applies nothing when the answer is not the database name', async () => {
@@ -279,8 +332,31 @@ describe('db update consent', () => {
       });
     });
 
-    it('falls back to the target id when the URL carries no database name', async () => {
+    it('names the server when the URL carries no database name', async () => {
       const run = await harness(ormConfig({ db: { connection: 'postgres://localhost:5432' } })).run(
+        ['db', 'update', '--json'],
+        { cwd: projectDir },
+      );
+
+      expect(envelopeOf(run.json)).toMatchObject({
+        ok: false,
+        error: { meta: { consentToken: 'localhost:5432' } },
+      });
+    });
+
+    it('takes the database a driver connection object names', async () => {
+      const run = await harness(
+        ormConfig({ db: { connection: { host: 'localhost', database: 'appdb' } } }),
+      ).run(['db', 'update', '--json'], { cwd: projectDir });
+
+      expect(envelopeOf(run.json)).toMatchObject({
+        ok: false,
+        error: { meta: { consentToken: TOKEN } },
+      });
+    });
+
+    it('falls back to the target id when the connection identifies nothing', async () => {
+      const run = await harness(ormConfig({ db: { connection: { host: 'localhost' } } })).run(
         ['db', 'update', '--json'],
         { cwd: projectDir },
       );
@@ -290,16 +366,93 @@ describe('db update consent', () => {
         error: { meta: { consentToken: 'postgres' } },
       });
     });
+  });
 
-    it('falls back to the target id when the connection is not a URL', async () => {
-      const run = await harness(
-        ormConfig({ db: { connection: { host: 'localhost', database: 'ignored' } } }),
-      ).run(['db', 'update', '--json'], { cwd: projectDir });
+  describe('when the question would be unanswerable', () => {
+    it('refuses rather than ask for a blank token', async () => {
+      const run = await harness(ormConfig({ db: { connection: 'postgres://host/%20' } })).run(
+        ['db', 'update', '--json'],
+        { cwd: projectDir, isTty: { stdin: true }, answers: [TOKEN] },
+      );
 
+      expect(run.exitCode).toBe(2);
       expect(envelopeOf(run.json)).toMatchObject({
         ok: false,
-        error: { meta: { consentToken: 'postgres' } },
+        error: { code: 'CLI.CONSENT_TOKEN_UNRESOLVED' },
       });
+      expect(applyCalls()).toHaveLength(1);
+    });
+
+    it('refuses rather than ask about operations the refusal did not name', async () => {
+      mocks.dbUpdate
+        .mockReset()
+        .mockResolvedValue(notOk(destructiveRefusal({ meta: { destructiveOperations: [] } })));
+
+      const run = await harness().run(['db', 'update', '--json'], {
+        cwd: projectDir,
+        isTty: { stdin: true },
+        answers: [TOKEN],
+      });
+
+      expect(run.exitCode).toBe(2);
+      expect(envelopeOf(run.json)).toMatchObject({
+        ok: false,
+        error: { code: 'CLI.CONSENT_OPERATIONS_MISSING' },
+      });
+      expect(applyCalls()).toHaveLength(1);
+    });
+  });
+
+  describe('when the applied plan is not the plan consented to', () => {
+    it('warns, naming the destructive operation the consent did not cover', async () => {
+      mocks.dbUpdate
+        .mockReset()
+        .mockImplementation((options: { acceptDataLoss?: boolean }) =>
+          Promise.resolve(
+            options.acceptDataLoss === true ? ok(driftedSuccess()) : notOk(destructiveRefusal()),
+          ),
+        );
+
+      const run = await harness().run(['db', 'update', '--json'], {
+        cwd: projectDir,
+        isTty: { stdin: true },
+        answers: [TOKEN],
+      });
+
+      expect(run.exitCode).toBe(0);
+      expect(warnTexts(run.events)).toContain(
+        'Applied 1 destructive operation(s) your consent did not cover: drop table archive. ' +
+          'The plan is recomputed after consent, so it can differ from the one you approved.',
+      );
+    });
+
+    it('says nothing when the applied plan is the one consented to', async () => {
+      const run = await harness().run(['db', 'update', '--json'], {
+        cwd: projectDir,
+        isTty: { stdin: true },
+        answers: [TOKEN],
+      });
+
+      expect(run.exitCode).toBe(0);
+      expect(warnTexts(run.events)).toEqual([]);
+    });
+  });
+
+  describe('--dry-run', () => {
+    it('never asks, even when the plan call comes back destructive', async () => {
+      const run = await harness().run(['db', 'update', '--dry-run', '--json'], {
+        cwd: projectDir,
+        isTty: { stdin: true },
+        answers: [TOKEN],
+      });
+
+      expect(run.exitCode).toBe(2);
+      expect(envelopeOf(run.json)).toMatchObject({
+        ok: false,
+        error: { code: 'MIGRATION.DESTRUCTIVE_CHANGES' },
+      });
+      expect(mocks.dbUpdate).toHaveBeenCalledWith(expect.objectContaining({ mode: 'plan' }));
+      expect(applyCalls()).toHaveLength(1);
     });
   });
 

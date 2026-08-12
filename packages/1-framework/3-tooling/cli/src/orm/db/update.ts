@@ -23,10 +23,15 @@ import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { normalizeError } from '../normalize-error';
 import { controlProgressReporter } from '../progress';
+import type { DestructiveOperation } from './consent';
 import {
   destructiveConsentQuestion,
   destructiveConsentToken,
   destructiveOperationsIn,
+  errorConsentOperationsMissing,
+  errorConsentTokenUnresolved,
+  unconsentedDestructiveOperations,
+  unconsentedDestructiveWarning,
 } from './consent';
 import { migrationResultBlocks, migrationResultNextActions } from './migration-blocks';
 import { prepareMigrationRun } from './prepare';
@@ -114,13 +119,13 @@ export const dbUpdateCommand = defineOrmCommand({
       'Compares the database to the emitted contract and applies the changes that\n' +
       'close the gap, whether or not the database was bootstrapped with `db init`.\n' +
       'An operation that would destroy data is applied only with your consent: the\n' +
-      'command asks you to type the database name, or takes it from\n' +
-      '`--confirm <database>` where there is nobody to ask. Use --dry-run to see the\n' +
-      'operations without applying them.',
+      'command asks you to type the database name. A run with nobody to ask — a CI\n' +
+      'job, or `--no-interactive` — takes it from `--confirm <database>` instead.\n' +
+      'Use --dry-run to see the operations without applying them.',
     examples: [
       'db update',
       'db update --dry-run',
-      'db update --confirm appdb',
+      'db update --no-interactive --confirm appdb',
       'db update --to production',
     ],
   },
@@ -184,24 +189,65 @@ export const dbUpdateCommand = defineOrmCommand({
           onProgress: controlProgressReporter(ctx.report),
         });
 
+      // A successful run shows the planner's warnings in its blocks. A refused
+      // or failed one has no result to carry them, and an errored envelope
+      // renders no meta, so they are reported as events to reach both channels.
+      // The refusal's warnings matter most of all: they are what the user is
+      // told just before consenting.
+      const reported = new Set<string>();
+      const reportPlannerWarnings = (warnings: readonly { readonly summary: string }[]): void => {
+        for (const warning of warnings) {
+          if (!reported.has(warning.summary)) {
+            reported.add(warning.summary);
+            ctx.report({ kind: 'message', severity: 'warn', text: warning.summary });
+          }
+        }
+      };
+
       let result = await update(false);
+      let consented: readonly DestructiveOperation[] | undefined;
       // The destructive verdict is the planner's, so it arrives only after the
       // connection is open. Consent is asked for on that same connection and
-      // the plan is re-run carrying it — one connection, no re-invocation.
-      if (!result.ok && result.failure.code === 'DESTRUCTIVE_CHANGES') {
+      // the plan is re-run carrying it — one connection, no re-invocation. Only
+      // an apply can ask: a dry run has nothing to authorise.
+      if (mode === 'apply' && !result.ok && result.failure.code === 'DESTRUCTIVE_CHANGES') {
+        reportPlannerWarnings(result.failure.warnings ?? []);
         const operations = destructiveOperationsIn(result.failure.meta);
+        if (operations.length === 0) {
+          return notOk(normalizeError(errorConsentOperationsMissing()));
+        }
         const token = destructiveConsentToken(dbConnection, ctx.config.target.targetId);
-        await ctx.prompt.consent(destructiveConsentQuestion(operations, token), { token });
+        if (token.trim().length === 0) {
+          return notOk(normalizeError(errorConsentTokenUnresolved(ctx.config.target.targetId)));
+        }
+        const granted = await ctx.prompt.consent(destructiveConsentQuestion(operations, token), {
+          token,
+        });
+        if (!granted) {
+          return notOk(normalizeError(mapDbUpdateFailure(result.failure)));
+        }
+        consented = operations;
         result = await update(true);
       }
       if (!result.ok) {
-        // A successful run shows these in its blocks. A failed one has no
-        // result to carry them, and an errored envelope renders no meta, so
-        // they are reported as events to reach both channels.
-        for (const warning of result.failure.warnings ?? []) {
-          ctx.report({ kind: 'message', severity: 'warn', text: warning.summary });
-        }
+        reportPlannerWarnings(result.failure.warnings ?? []);
         return notOk(normalizeError(mapDbUpdateFailure(result.failure)));
+      }
+      if (consented !== undefined) {
+        // Nothing binds the applied plan to the consented one — the second call
+        // re-reads markers and re-introspects, so it plans afresh. The operator
+        // at least learns which drops their consent did not cover.
+        const unconsented = unconsentedDestructiveOperations(
+          consented,
+          result.value.plan.operations,
+        );
+        if (unconsented.length > 0) {
+          ctx.report({
+            kind: 'message',
+            severity: 'warn',
+            text: unconsentedDestructiveWarning(unconsented),
+          });
+        }
       }
 
       const advancementHash =

@@ -75,6 +75,14 @@ The config module evaluated, but its default export was not created by the curre
 
 The migration-file CLI (`prisma-next migration`) received `--config` without a path argument — either a bare trailing `--config`, or `--config` immediately followed by another flag (e.g. `--config --dry-run`). The CLI fails fast instead of consuming the next flag as the config path or silently falling back to default config discovery. Meta: `nextToken` (present only when another flag followed `--config`).
 
+### CLI.CONSENT_OPERATIONS_MISSING
+
+`db update` was told the plan is destructive but was given no operations to name, so the consent prompt would have asked you to authorise a list of nothing. The command refuses instead of prompting. This is an inconsistency between the CLI and the control API rather than something your project can be wrong about; run `prisma-next db update --dry-run` to see the plan, and report the run. Meta: none.
+
+### CLI.CONSENT_TOKEN_UNRESOLVED
+
+`db update` could not derive a name for the database it is about to change, so there is nothing for the consent prompt to ask you to type — and an empty token would let a bare Enter (or `--confirm ""`) authorise data loss. The name comes from the `database` a driver connection object carries, or from the connection URL (its first path segment, else its host), falling back to the target id. Name the database in `db.connection` or pass `--db <url>`. Meta: none.
+
 ### CLI.FILE_NOT_FOUND
 
 A file the command needs does not exist at the given path. Produced by several commands: the migration command scaffold, `migrate`, `migration plan`, `migration show`, `db sign`, `db update`, `db verify`, and `ref` all raise it when the emitted `contract.json` (or another required file) is missing from the expected location. Most sites carry the path in `where.path`; the `migration new` contract-file site carries it in the summary text only. Meta: none.
@@ -847,7 +855,7 @@ Runner-level failure during apply (`db init`, `db update`, `migrate`): the plan'
 
 ### MIGRATION.DESTRUCTIVE_CHANGES
 
-The planned operations include destructive changes (e.g. DROP) and the command was run without explicit consent. `db update` asks for that consent instead of failing: interactively it asks you to type the database name, and outside an interactive terminal it is granted by `--confirm <database>` (`--yes` accepts declared prompt defaults and never grants consent). A run with nobody to ask and no `--confirm` settles as `CLI.CONSENT_REQUIRED` at exit 2; a run whose prompt is cancelled settles as `CLI.PROMPT_CANCELLED` at exit 3. Use `--dry-run` to preview the operations first.
+The planned operations include destructive changes (e.g. DROP) and the command was run without explicit consent. `db update` asks for that consent instead of failing: interactively it asks you to type the name of the database it is about to change, and outside an interactive terminal it is granted by `--confirm <database>` (`--yes` accepts declared prompt defaults and never grants consent; `--confirm` is read only when the run is non-interactive or `--yes` is set, so a script run from a terminal needs `--no-interactive --confirm <database>`). The name is the `database` a driver connection object carries, or the connection URL's first path segment, else its host, falling back to the target id. A run with nobody to ask and no `--confirm` settles as `CLI.CONSENT_REQUIRED` at exit 2; a run whose prompt is cancelled settles as `CLI.PROMPT_CANCELLED` at exit 3. `--dry-run` never asks — it settles as this error instead. Use it to preview the operations first.
 
 ### MIGRATION.DIR_EXISTS
 
