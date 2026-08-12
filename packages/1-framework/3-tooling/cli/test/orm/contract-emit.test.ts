@@ -1,45 +1,29 @@
 import { CliStructuredError } from '@internal/errors/control';
 import type { ErroredEnvelope, LoadedConfig, MountedTree, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
-import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
-
-const mocks = vi.hoisted(() => ({
-  executeContractEmit: vi.fn(),
-}));
-
-vi.mock('../../src/control-api/operations/contract-emit', () => ({
-  executeContractEmit: mocks.executeContractEmit,
-}));
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ContractEmitResult } from '../../src/control-api/types';
+import { BIN_GROUPS } from '../../src/orm/cli';
+import type { ContractEmitCommandDeps } from '../../src/orm/contract/emit';
+import { createContractEmitCommand } from '../../src/orm/contract/emit';
 
 /**
- * The command tree is imported after the module registry is reset, so the
- * mocked operation is the one `contract emit` closes over. Repo-wide vitest
- * runs with `isolate: false`, and another file that loaded the command tree
- * first would otherwise have baked the real operation into it.
+ * The command is mounted from the factory with the operation injected, so no
+ * module mocking is involved and the double is scoped to this file.
  */
-let commands: MountedTree;
-let groups: typeof BinGroups;
+const executeContractEmit = vi.fn<ContractEmitCommandDeps['executeContractEmit']>();
 
-beforeAll(async () => {
-  vi.resetModules();
-  const cli = await import('../../src/orm/cli');
-  commands = cli.BIN_COMMANDS;
-  groups = cli.BIN_GROUPS;
-}, timeouts.coldTransformImport);
-
-afterAll(() => {
-  vi.doUnmock('../../src/control-api/operations/contract-emit');
-  vi.resetModules();
-});
+const commands: MountedTree = {
+  'contract emit': createContractEmitCommand({ executeContractEmit }),
+};
+const groups = BIN_GROUPS;
 
 const PROJECT_DIR = '/workspace/app';
 const OUTPUT_DIR = join(PROJECT_DIR, 'generated');
 
-function emitResult(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function emitResult(overrides: Record<string, unknown> = {}): ContractEmitResult {
   return {
     storageHash: 'storage-hash',
     executionHash: 'execution-hash',
@@ -49,11 +33,11 @@ function emitResult(overrides: Record<string, unknown> = {}): Record<string, unk
       dts: join(OUTPUT_DIR, 'contract.d.ts'),
     },
     ...overrides,
-  };
+  } as ContractEmitResult;
 }
 
 beforeEach(() => {
-  mocks.executeContractEmit.mockReset().mockResolvedValue(emitResult());
+  executeContractEmit.mockReset().mockResolvedValue(emitResult());
 });
 
 /**
@@ -150,8 +134,8 @@ describe('contract emit', () => {
 
     await harness(config).run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
 
-    expect(mocks.executeContractEmit).toHaveBeenCalledTimes(1);
-    expect(mocks.executeContractEmit.mock.calls[0]?.[0]).toMatchObject({
+    expect(executeContractEmit).toHaveBeenCalledTimes(1);
+    expect(executeContractEmit.mock.calls[0]?.[0]).toMatchObject({
       config,
       cwd: PROJECT_DIR,
     });
@@ -172,8 +156,8 @@ describe('contract emit', () => {
   it('anchors the emitted artifacts on the config file rather than the process directory', async () => {
     await harness().run(['contract', 'emit', '--json'], { cwd: '/somewhere/else' });
 
-    const call = mocks.executeContractEmit.mock.calls[0]?.[0] as { outputPath?: string };
-    expect(call.outputPath).toBeUndefined();
+    const call = executeContractEmit.mock.calls[0]?.[0];
+    expect(call?.outputPath).toBeUndefined();
     expect(process.cwd()).not.toBe(PROJECT_DIR);
   });
 
@@ -182,7 +166,7 @@ describe('contract emit', () => {
       cwd: PROJECT_DIR,
     });
 
-    expect(mocks.executeContractEmit.mock.calls[0]?.[0]).toMatchObject({
+    expect(executeContractEmit.mock.calls[0]?.[0]).toMatchObject({
       outputPath: join(PROJECT_DIR, 'custom/dir'),
     });
   });
@@ -192,7 +176,7 @@ describe('contract emit', () => {
       cwd: PROJECT_DIR,
     });
 
-    expect(mocks.executeContractEmit.mock.calls[0]?.[0]).toMatchObject({
+    expect(executeContractEmit.mock.calls[0]?.[0]).toMatchObject({
       outputPath: '/tmp/abs-out',
     });
   });
@@ -251,11 +235,13 @@ describe('contract emit', () => {
 
     expect(stripAnsi(run.stderr)).toContain('generated/contract.json');
     expect(stripAnsi(run.stderr)).toContain('Emitted contract.json and contract.d.ts');
+    expect(storage).toBeDefined();
+    expect(profile).toBeDefined();
     expect(storage?.indexOf('storage-hash')).toBe(profile?.indexOf('profile-hash'));
   });
 
   it('omits the execution hash the emitter did not produce', async () => {
-    mocks.executeContractEmit.mockResolvedValue(emitResult({ executionHash: undefined }));
+    executeContractEmit.mockResolvedValue(emitResult({ executionHash: undefined }));
 
     const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
 
@@ -263,23 +249,21 @@ describe('contract emit', () => {
   });
 
   it('reports the operation spans as engine steps', async () => {
-    mocks.executeContractEmit.mockImplementation(
-      (options: { onProgress?: (event: Record<string, unknown>) => void }) => {
-        options.onProgress?.({
-          action: 'emit',
-          kind: 'spanStart',
-          spanId: 'resolveSource',
-          label: 'Resolving contract source...',
-        });
-        options.onProgress?.({
-          action: 'emit',
-          kind: 'spanEnd',
-          spanId: 'resolveSource',
-          outcome: 'ok',
-        });
-        return Promise.resolve(emitResult());
-      },
-    );
+    executeContractEmit.mockImplementation((options) => {
+      options.onProgress?.({
+        action: 'emit',
+        kind: 'spanStart',
+        spanId: 'resolveSource',
+        label: 'Resolving contract source...',
+      });
+      options.onProgress?.({
+        action: 'emit',
+        kind: 'spanEnd',
+        spanId: 'resolveSource',
+        outcome: 'ok',
+      });
+      return Promise.resolve(emitResult());
+    });
 
     const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
 
@@ -300,7 +284,7 @@ describe('contract emit', () => {
   });
 
   it('reports the emitter dependency warning as a warning event', async () => {
-    mocks.executeContractEmit.mockResolvedValue(
+    executeContractEmit.mockResolvedValue(
       emitResult({ validationWarning: 'sample dependency warning' }),
     );
 
@@ -316,7 +300,7 @@ describe('contract emit', () => {
 
   it('keeps the dotted code of an error the operation raised', async () => {
     const { errorRuntime } = await import('@internal/errors/execution');
-    mocks.executeContractEmit.mockRejectedValue(
+    executeContractEmit.mockRejectedValue(
       errorRuntime('CONTRACT.SOURCE_LOAD_FAILED', 'Failed to resolve contract source', {
         why: 'the provider threw',
         fix: 'Fix the contract source and re-run',
@@ -346,7 +330,7 @@ describe('contract emit', () => {
    */
   describe('the ORM error boundary', () => {
     it('turns a prisma/prisma structured error into a protocol envelope', async () => {
-      mocks.executeContractEmit.mockRejectedValue(
+      executeContractEmit.mockRejectedValue(
         new CliStructuredError('CONTRACT.SOURCE_LOAD_FAILED', 'Failed to resolve contract source', {
           fix: 'Fix the contract source and re-run',
         }),
@@ -364,7 +348,7 @@ describe('contract emit', () => {
     });
 
     it('settles a bare throw as CLI.UNEXPECTED at exit 2, not an engine bug at exit 1', async () => {
-      mocks.executeContractEmit.mockRejectedValue(new Error('the emitter crashed'));
+      executeContractEmit.mockRejectedValue(new Error('the emitter crashed'));
 
       const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
 

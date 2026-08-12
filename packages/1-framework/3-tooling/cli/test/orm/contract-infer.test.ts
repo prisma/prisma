@@ -2,55 +2,40 @@ import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { CliStructuredError } from '@internal/errors/control';
 import type { ErroredEnvelope, MountedTree, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
-import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { BIN_GROUPS } from '../../src/orm/cli';
+import { createContractInferCommand } from '../../src/orm/contract/infer';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
 const PSL = 'model User {\n  id Int @id\n}\n';
 
-const mocks = vi.hoisted(() => ({
+/**
+ * The command is mounted from the factory with a control-client double and a
+ * printer double injected, so no module mocking is involved and the doubles
+ * are scoped to this file.
+ */
+const mocks = {
   introspect: vi.fn(),
   inferPslContract: vi.fn(),
   getPslBlockDescriptors: vi.fn(),
   close: vi.fn(),
   printPsl: vi.fn(),
-}));
+};
 
-vi.mock('../../src/control-api/client', () => ({
-  createControlClient: vi.fn(() => ({
-    introspect: mocks.introspect,
-    inferPslContract: mocks.inferPslContract,
-    getPslBlockDescriptors: mocks.getPslBlockDescriptors,
-    close: mocks.close,
-  })),
-}));
-
-vi.mock('@internal/psl-printer', () => ({ printPsl: mocks.printPsl }));
-
-/**
- * The command tree is imported after the module registry is reset, so the
- * mocked client is the one `contract infer` closes over. Repo-wide vitest runs
- * with `isolate: false`, and another file that loaded the command tree first
- * would otherwise have baked the real client into it.
- */
-let commands: MountedTree;
-let groups: typeof BinGroups;
-
-beforeAll(async () => {
-  vi.resetModules();
-  const cli = await import('../../src/orm/cli');
-  commands = cli.BIN_COMMANDS;
-  groups = cli.BIN_GROUPS;
-}, timeouts.coldTransformImport);
-
-afterAll(() => {
-  vi.doUnmock('../../src/control-api/client');
-  vi.doUnmock('@internal/psl-printer');
-  vi.resetModules();
-});
+const commands: MountedTree = {
+  'contract infer': createContractInferCommand({
+    createControlClient: () => ({
+      introspect: mocks.introspect,
+      inferPslContract: mocks.inferPslContract,
+      getPslBlockDescriptors: mocks.getPslBlockDescriptors,
+      close: mocks.close,
+    }),
+    printPsl: mocks.printPsl,
+  }),
+};
+const groups = BIN_GROUPS;
 
 const dirs: string[] = [];
 
