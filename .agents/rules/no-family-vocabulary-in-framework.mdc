@@ -16,6 +16,14 @@ alwaysApply: false
 - Put family vocabulary (`nativeType`, CHECK constraints, schema qualification, dialect names) in the owning family layer; targets implement family interfaces structurally.
 - Express strategies as **codec-owned hooks/behavior** on the strategy owner's descriptor — never as string-enum fields threaded through shared types (see `storage-type-hooks.mdc`).
 - Run `pnpm lint:framework-vocabulary` — a committed high-water-mark threshold over a forbidden-term list (`scripts/lint-framework-vocabulary.config.json`); the count may only shrink, and the recorded threshold must be lowered whenever it does.
+- Silence a genuine false positive on the line, not by raising the threshold. Some forbidden terms carry a second, family-blind meaning — a terminal `table` with `columns` is output formatting, not schema. Mark those:
+
+  ```ts
+  // framework-vocabulary-ignore: the engine's table block, terminal output
+  return { kind: 'table', columns: headings, rows };
+  ```
+
+  The marker exempts its own line and the one directly below, so it works trailing or standalone. A reason is required. Suppressing drops the count, so lower the recorded threshold to match.
 
 ## Don't
 

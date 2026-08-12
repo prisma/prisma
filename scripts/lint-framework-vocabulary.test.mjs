@@ -177,6 +177,51 @@ describe('allow shielding', () => {
   });
 });
 
+describe('ignore comments', () => {
+  const scope = { forbidden: ['table', 'column'] };
+  const marker = '// framework-vocabulary-ignore: terminal rendering';
+
+  it('exempts the line carrying a trailing marker', () => {
+    const content = `return { kind: "table", columns }; ${marker}\n`;
+    assert.deepEqual(findMatchingLines(content, scope), []);
+  });
+
+  it('exempts the line below a marker on its own line', () => {
+    assert.deepEqual(findMatchingLines(`${marker}\nreturn { kind: "table" };\n`, scope), []);
+  });
+
+  it('never counts the marker line itself, even when the reason names forbidden terms', () => {
+    const content = '// framework-vocabulary-ignore: a terminal table, not a table\nconst x = 1;\n';
+    assert.deepEqual(findMatchingLines(content, scope), []);
+  });
+
+  it('exempts only the line immediately below the marker', () => {
+    const content = `${marker}\nconst a: Table = x;\nconst b: Table = y;\n`;
+    const matches = findMatchingLines(content, scope);
+    assert.equal(matches.length, 1);
+    assert.equal(matches[0].line, 3);
+  });
+
+  it('does not suppress when the marker carries no reason', () => {
+    const content = 'const a: Table = x; // framework-vocabulary-ignore\n';
+    assert.equal(findMatchingLines(content, scope).length, 1);
+  });
+
+  it('does not suppress when the reason is only whitespace', () => {
+    const content = 'const a: Table = x; // framework-vocabulary-ignore:   \n';
+    assert.equal(findMatchingLines(content, scope).length, 1);
+  });
+
+  it('reports suppressed lines separately from the count', () => {
+    const line = 'const n = nativeType; // framework-vocabulary-ignore: vendored name\n';
+    writeRepoFile('framework/src/a.ts', line);
+    commitAll('add suppressed hit');
+    const result = runScript();
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /count=0 threshold=0 suppressed=1/);
+  });
+});
+
 describe('tokenize', () => {
   it('splits camelCase, digit humps, and non-alphanumerics into lowercase tokens', () => {
     assert.deepEqual(tokenize('getNativeType()'), ['get', 'native', 'type']);
