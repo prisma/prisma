@@ -1,5 +1,5 @@
 {
-  "name": "prisma7",
+  "name": "@prisma/prisma7",
   "version": "0.0.0",
   "private": false,
   "description": "Compatibility wrapper for running the Prisma 7 CLI",

@@ -280,7 +280,7 @@ describe('Bootstrap command — existing project flow', () => {
     fs.mkdirSync(path.join(tmpDir, 'node_modules', '.bin'), { recursive: true })
     fs.writeFileSync(path.join(tmpDir, 'node_modules', '.bin', 'prisma7.cmd'), '', 'utf-8')
     fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
-    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'prisma7'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', '@prisma', 'prisma7'), { recursive: true })
     fs.mkdirSync(path.join(tmpDir, 'node_modules', '@prisma', 'client'), { recursive: true })
 
     const { confirm } = await import('@inquirer/prompts')

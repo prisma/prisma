@@ -3,9 +3,13 @@ import fs from 'fs'
 import { bold, yellow } from 'kleur/colors'
 import path from 'path'
 
-import type { CliDistributionIdentity } from './cli-distribution-identity'
+import {
+  type CliDistributionIdentity,
+  type CliDistributionPackageName,
+  getCliDistributionPackageName,
+} from './cli-distribution-identity'
 
-type LocalPackageName = CliDistributionIdentity | '@prisma/client'
+type LocalPackageName = CliDistributionPackageName | '@prisma/client'
 
 export type GlobalLocalVersionMismatchWarningOptions = {
   cwd?: string
@@ -22,7 +26,7 @@ type LocalPackageVersionMismatch = {
 }
 
 function getLocalPackageNames(identity: CliDistributionIdentity): LocalPackageName[] {
-  return [identity, '@prisma/client']
+  return [getCliDistributionPackageName(identity), '@prisma/client']
 }
 
 export async function getGlobalLocalVersionMismatchWarning(
@@ -109,7 +113,7 @@ function formatGlobalLocalVersionMismatchWarning(
   const packageLabel = mismatches.length === 1 ? 'package' : 'packages'
 
   return `${yellow(bold('warn'))} The globally installed ${bold(
-    `${identity}@${globalVersion}`,
+    `${getCliDistributionPackageName(identity)}@${globalVersion}`,
   )} does not match the local ${packageLabel} ${localVersions} installed in this project.
 This may generate Prisma Client artifacts that are incompatible with the local runtime.
 Run ${bold(`npx ${identity} generate`)} to use the local Prisma CLI, or align your global and local Prisma versions.`

@@ -39,19 +39,22 @@ async function bundleImport(importPath: string, external: string[] = []) {
 describe('resolvePathsPlugin', () => {
   it.each([
     ['prisma', 'packages/cli/src/types.ts'],
-    ['prisma7', 'packages/prisma7/src/index.ts'],
+    ['@prisma/prisma7', 'packages/prisma7/src/index.ts'],
     ['prisma/config', 'packages/cli/src/config.ts'],
-    ['prisma7/config', 'packages/prisma7/src/config.ts'],
+    ['@prisma/prisma7/config', 'packages/prisma7/src/config.ts'],
   ])('resolves %s to %s', async (importPath, resolvedPath) => {
     const result = await bundleImport(importPath)
 
     expect(Object.keys(result.metafile.inputs)).toContain(resolvedPath)
   })
 
-  it('preserves exact external aliases', async () => {
-    const result = await bundleImport('prisma/config', ['prisma/config'])
+  it.each([
+    ['prisma/config', 'packages/cli/src/config.ts'],
+    ['@prisma/prisma7/config', 'packages/prisma7/src/config.ts'],
+  ])('preserves exact external alias %s', async (importPath, resolvedPath) => {
+    const result = await bundleImport(importPath, [importPath])
 
-    expect(Object.keys(result.metafile.inputs)).not.toContain('packages/cli/src/config.ts')
-    expect(result.outputFiles[0]?.text).toContain('import "prisma/config";')
+    expect(Object.keys(result.metafile.inputs)).not.toContain(resolvedPath)
+    expect(result.outputFiles[0]?.text).toContain(`import "${importPath}";`)
   })
 })

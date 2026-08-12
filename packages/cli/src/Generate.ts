@@ -31,7 +31,7 @@ import { version as cliVersion } from '../package.json'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
-import type { CliDistributionIdentity } from './utils/cli-distribution-identity'
+import { type CliDistributionIdentity, getCliDistributionPackageName } from './utils/cli-distribution-identity'
 import {
   getGlobalLocalVersionMismatchWarning as getDefaultGlobalLocalVersionMismatchWarning,
   type GlobalLocalVersionMismatchWarningOptions,
@@ -250,9 +250,9 @@ ${breakingChangesMessage}`
         const versionsOutOfSync = clientGeneratorVersion && cliVersion !== clientGeneratorVersion
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
-            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`${this.identity}@${cliVersion}`)} and ${bold(
-                `@prisma/client@${clientGeneratorVersion}`,
-              )} don't match.
+            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(
+                `${getCliDistributionPackageName(this.identity)}@${cliVersion}`,
+              )} and ${bold(`@prisma/client@${clientGeneratorVersion}`)} don't match.
 This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''

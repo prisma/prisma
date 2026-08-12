@@ -1,7 +1,7 @@
 import { getCommandWithExecutor } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 
-import type { CliDistributionIdentity } from '../utils/cli-distribution-identity'
+import { type CliDistributionIdentity, getCliDistributionPackageName } from '../utils/cli-distribution-identity'
 
 type StepResult = 'completed' | 'skipped' | 'not-applicable' | 'failed'
 
@@ -64,9 +64,13 @@ export function formatBootstrapOutput(opts: {
   if (opts.pendingDepsInstall) {
     lines.push(bold('Next steps:'))
     lines.push(
-      `  1. Install ${bold('@prisma/client')}, ${bold('dotenv')}, and ${bold(cliCommand)} with your package manager`,
+      `  1. Install ${bold('@prisma/client')}, ${bold('dotenv')}, and ${bold(
+        getCliDistributionPackageName(cliCommand),
+      )} with your package manager`,
     )
-    lines.push(`  2. Re-run ${green(`npx ${cliCommand}@latest bootstrap`)} to finish setup`)
+    lines.push(
+      `  2. Re-run ${green(`npx ${getCliDistributionPackageName(cliCommand)}@latest bootstrap`)} to finish setup`,
+    )
     lines.push('')
     return lines.join('\n')
   }

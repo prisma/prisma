@@ -1,4 +1,4 @@
-import { defineConfig, type PrismaConfig } from 'prisma7/config'
+import { defineConfig, type PrismaConfig } from '@prisma/prisma7/config'
 
 const config: PrismaConfig = {
   schema: 'project-models/non-default.prisma',

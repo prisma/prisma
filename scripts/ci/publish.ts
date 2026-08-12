@@ -160,9 +160,7 @@ function getPrismaDependencies(dependencies?: { [name: string]: string }): strin
   }
   return Object.keys(dependencies).filter(
     (dependency) =>
-      (dependency.startsWith('@prisma') && !dependency.startsWith('@prisma/studio')) ||
-      dependency === 'prisma' ||
-      dependency === 'prisma7',
+      (dependency.startsWith('@prisma') && !dependency.startsWith('@prisma/studio')) || dependency === 'prisma',
   )
 }
 
