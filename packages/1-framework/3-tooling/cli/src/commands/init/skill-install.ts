@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import type { PackageManager } from './detect-package-manager';
 import { errorInitSkillInstallFailed } from './errors';
+import { redactSecrets } from './redact-secrets';
 import { resolveProjectSkillInstallCommands } from './skill-sources';
 
 const exec = promisify(execFile);
@@ -65,19 +66,4 @@ function readChildStderr(err: unknown): string {
     return String((err as { stderr: string }).stderr ?? '');
   }
   return '';
-}
-
-/**
- * Strips credentials from a `scheme://user:pass@host/...` URL anywhere
- * in `stderr`. Package-manager stderr regularly contains credentialed
- * registry URLs (private npm registries, GitHub Packages tokens), and
- * those bubble into the structured `errorInitSkillInstallFailed`
- * envelope, which ends up in logs and CI output. Redact at the
- * boundary so we never re-emit a secret.
- *
- * Exported for unit tests.
- */
-export function redactSecrets(stderr: string): string {
-  if (!stderr) return stderr;
-  return stderr.replace(/([a-zA-Z][a-zA-Z0-9+.-]*:\/\/)([^/@\s]+)@/g, '$1***@');
 }

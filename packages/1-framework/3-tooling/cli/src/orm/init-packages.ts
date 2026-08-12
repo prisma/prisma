@@ -2,6 +2,7 @@ import { ifDefined } from '@internal/utils/defined';
 import type { PackageManagerId, PackageOperations } from '@prisma/cli-engine';
 import type { CliStructuredError } from '@prisma/cli-engine/protocol';
 import { isRecognisedPnpmResolutionError } from '../commands/init/pnpm-fallback';
+import { redactSecrets } from '../commands/init/redact-secrets';
 import {
   DEFAULT_SKILL_AGENTS,
   DEFAULT_SKILL_SOURCES,
@@ -39,12 +40,18 @@ function pnpmLeakedASpecifier(failure: CliStructuredError): boolean {
   );
 }
 
+/**
+ * The engine redacts the stderr it hands back, and this redacts it again
+ * before quoting it: what the engine strips is its own business, and registry
+ * auth material is not all URL-shaped.
+ */
 function fallbackWarning(failure: CliStructuredError): string {
-  const firstLine = metaString(failure, 'stderrTail').trim().split('\n')[0] ?? '';
+  const firstLine = redactSecrets(metaString(failure, 'stderrTail')).trim().split('\n')[0] ?? '';
   return [
     'pnpm could not install: a published Prisma Next dependency leaked a `workspace:*` or `catalog:` specifier.',
     'Falling back to npm so init can complete.',
     firstLine === '' ? '' : `  pnpm error: ${firstLine}`,
+    'Both installs ran under npm, which writes a package-lock.json beside the pnpm lockfile — delete whichever of the two you do not want to keep.',
     'Once the offending package republishes a clean version, re-run `pnpm install` to switch back.',
   ]
     .filter((line) => line !== '')
