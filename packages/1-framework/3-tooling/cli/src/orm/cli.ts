@@ -4,6 +4,8 @@ import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
 import { createControlClient } from '../control-api/client';
 import type { CreateControlClient } from '../control-api/types';
+import { contractEmitCommand } from './contract/emit';
+import { contractInferCommand } from './contract/infer';
 import { createDbInitCommand } from './db/init';
 import { createDbSchemaCommand } from './db/schema';
 import { ormCommandFamily } from './family';
@@ -23,6 +25,13 @@ import { resolveTelemetryHooks } from './telemetry/reporting';
 export const BIN_NAME = 'prisma-next';
 
 export const BIN_GROUPS = {
+  contract: {
+    brief: 'Contract management commands',
+    description:
+      'Define and emit your application data contract. The contract describes your\n' +
+      'schema as a declarative data structure that can be signed and verified\n' +
+      'against your database.',
+  },
   db: {
     brief: 'Live database commands',
     description:
@@ -50,6 +59,8 @@ export const BIN_GROUPS = {
  */
 export function createBinCommands(createClient: CreateControlClient): MountedTree {
   return {
+    'contract emit': contractEmitCommand,
+    'contract infer': contractInferCommand,
     'db init': createDbInitCommand(createClient),
     'db schema': createDbSchemaCommand(createClient),
     format: formatCommand,
