@@ -3,8 +3,8 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7, D8, D9, D10; downstream-actionable-guidance D1
-- **AC scoreboard totals:** 70 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7, D8, D9, D10; downstream-actionable-guidance D1, D2
+- **AC scoreboard totals:** 75 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
 
@@ -19,6 +19,18 @@
 | D1-AC5 | Gates and mandatory transient scan are credible.                                                                                 | PASS   | `git diff --check b7fa50bea3^..b7fa50bea3` passed in review. Root `package.json` has no `lint:deps` script, matching the implementation report's classification. The mandatory transient-ID scan over the round's added TS/JS diff produced no plan-ID or `projects/prisma7-compatibility-cli/` hits. Nothing on disk contradicts the reported focused migrate build/tests, Prisma build/tsc, Bootstrap test, Prettier, and transient scan.                                                                                                                                                                       |
 
 **Overall slice verdict:** SATISFIED. D1 delivers the help-surface identity seam without dragging runtime guidance or generator work forward.
+
+## downstream-actionable-guidance D2 acceptance criteria scoreboard
+
+| AC ID  | Description (short)                                                                                                         | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------ | --------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| D2-AC1 | Active runtime migrate/db guidance derives actionable command strings from required `cliCommand`, including nested helpers. | PASS   | `451c633d10`; active runtime guidance now threads `this.cliCommand` through `DbPull.ts`, `DbPush.ts`, `MigrateDev.ts`, `MigrateStatus.ts`, `utils/errors.ts`, and `utils/handleEvaluateDataloss.ts`. The changed `getCommandWithExecutor(...)` inputs all now receive full `${cliCommand} ...` strings, and a production grep over `packages/migrate/src/{commands,utils}` leaves no remaining active hardcoded `prisma db                                                                                                                                                                                                                                                                                              | migrate | generate | validate`runtime guidance outside disabled`DbDrop` help/comments and stable Prisma domain/path terminology. |
+| D2-AC2 | Internals helper contract migration requires exact full commands, migrates all callsites, and adds no fallback identity.    | PASS   | `packages/internals/src/utils/validatePrismaConfigWithDatasource.ts` and `packages/internals/src/cli/checkUnsupportedDataProxy.ts` now require a full `command` string and render it verbatim. All active callsites were migrated: every `validatePrismaConfigWithDatasource(...)` / `checkUnsupportedDataProxy(...)` use in active migrate commands now passes `${cliCommand} ...`, while CLI/integration callers `packages/cli/src/Generate.ts`, `packages/cli/src/Init.ts`, `packages/client/tests/functional/_utils/setupTestSuiteClient.ts`, `packages/client/tests/functional/_utils/setupTestSuiteEnv.ts`, and `packages/migrate/src/bin.ts` pass explicit full commands with no optional/default identity path. |
+| D2-AC3 | Focused tests prove both identities across representative runtime categories without unnecessary production test seams.     | PASS   | `cc07b4f32a` deletes the exported `renderCreateOnlySuccessMessage(...)` seam from `packages/migrate/src/commands/MigrateDev.ts` and removes the direct-helper assertion from `packages/migrate/src/__tests__/runtime-guidance.test.ts`. The remaining focused runtime suite still proves both identities across config-validation, warning/non-interactive errors, and unexecutable-step guidance categories, and no replacement seam/mock was introduced after the attempted command-level `prisma7` create-only proof hit the known Nix schema-engine limitation.                                                                                                                                                     |
+| D2-AC4 | Remaining production literals are exhaustively and defensibly classified.                                                   | PASS   | Reviewer audit over production `prisma ...` literals in the touched lower-package scope classifies the remaining occurrences as: disabled `DbDrop` help/examples (`packages/migrate/src/commands/DbDrop.ts`), stable domain/path names such as `prisma/migrations` and `prisma.config.ts`, or comments/docstrings. No additional active runtime command guidance escapee remains in the changed migrate/internals surfaces, and the standalone explicit ordinary entrypoint continues to pass `'prisma'` deliberately.                                                                                                                                                                                                  |
+| D2-AC5 | Gates are credible, the mandatory transient scan is clean, and D1 help remains intact.                                      | PASS   | Reviewer reran `pnpm --filter @prisma/migrate build`, `pnpm --filter @prisma/migrate test runtime-guidance.test.ts --runInBand`, and `git diff --check 451c633d10^..451c633d10`; all passed. The mandatory transient-ID scan over the 23 touched files found no UUID, `agent_id`, `subagent`, `trace_id`, `session`, or `projects/prisma7-compatibility-cli/` hits. The D1 help renderers remain unchanged in this commit; the D2 diff is confined to runtime guidance, internals helper signatures, mechanical callsite migration, and focused tests.                                                                                                                                                                  |
+
+**Overall slice verdict:** SATISFIED. D2 runtime guidance propagation, helper-contract migration, audit, and focused proof now meet the dispatch contract without a production-only test seam.
 
 ## cli-owned-distribution-identity D10 acceptance criteria scoreboard
 
@@ -146,7 +158,7 @@
 ## Subagent IDs
 
 - **Implementer:** `5c6162ab-7048-4a5` — persistent implementer established at `downstream-actionable-guidance` D1 R1.
-- **Reviewer:** `6b282f5d-03e0-493` — persistent reviewer established at `downstream-actionable-guidance` D1 R1.
+- **Reviewer:** `e7127c2c-b1a0-48e` — replacement persistent reviewer established at `downstream-actionable-guidance` D2 R1 after D1 reviewer `6b282f5d-03e0-493` became inaccessible to resume.
 
 ## Orchestrator notes
 
@@ -261,6 +273,20 @@
 **Recommended next action:** Preserve wildcard aliases explicitly in `resolvePathsPlugin`: escape regex metacharacters in exact keys, convert `*` segments into capture groups, substitute captured wildcard text into the mapped target, and only append `/index.ts` for directory targets after substitution.
 
 **Status:** resolved (`25e8174e1e`) — `createPathAlias()` now escapes exact keys, turns wildcard keys into capture groups, substitutes the captured subpath into the mapped target, and the new focused esbuild test covers exact roots, wildcard `config` aliases, and exact external passthrough.
+
+### F8 — `MigrateDev` exports a production-only helper solely for direct test access
+
+**Severity:** must-fix
+
+**Where:** `packages/migrate/src/commands/MigrateDev.ts:73`; `packages/migrate/src/__tests__/runtime-guidance.test.ts:3,54`
+
+**What:** The round introduced `export function renderCreateOnlySuccessMessage(...)` and the only new consumer is the focused runtime-guidance test. The production command still has a single internal call site, so the export does not decompose shared behavior across multiple runtime consumers; it only opens the module so the test can bypass `MigrateDev.parse(...)` and assert the string directly.
+
+**Why it matters:** The operator explicitly rejected production-only test seams, and D2's contract calls for representative runtime proof without adding new exported helpers just to make assertions cheaper. This helper is not part of the CLI-owned/lower-package identity contract; it is an implementation detail of `MigrateDev`'s create-only success path. Keeping it exported increases surface area and weakens the review claim that the round stayed purely mechanical.
+
+**Recommended next action:** Remove the export and cover the `prisma7` create-only success path through command-level behavior instead — for example by extending the existing `MigrateDev.new(...).parse(['--create-only', '--name=...'], ...)` coverage to a dual-identity matrix or another focused command-level assertion that exercises the same message without a new production seam.
+
+**Status:** resolved (`cc07b4f32a`) — the export is removed, `MigrateDev` restores inline rendering with `this.cliCommand`, and the focused runtime-guidance suite no longer imports a production-only helper.
 
 ## Round notes
 
@@ -551,3 +577,31 @@
 **Findings:** none.
 
 **For orchestrator:** The round touched 33 files, slightly above the brief's ~30-file halt threshold, but the overage is mechanical constructor/callsite fanout rather than hidden scope creep, so I did not file a product finding. Dispatch 2 still owns the remaining hardcoded runtime/recovery guidance in `DbPull`, `DbPush`, `MigrateDev`, and `MigrateStatus`.
+
+### downstream-actionable-guidance D2 R1 — ANOTHER ROUND NEEDED
+
+**Scope:** Dispatch 2 migrate/db runtime guidance propagation. Commit `451c633d10`.
+
+**Tasks:** Active runtime guidance and internals helper migration are clean. Generate/Init callsite updates are necessary mechanical fallout from the full-command helper contract. Disabled `DbDrop` remains inactive and build-consistent via explicit constructor migration at its test/runtime helper callsites. The only substantive issue is the new exported `renderCreateOnlySuccessMessage(...)` test seam.
+
+**AC delta:** D2-AC1 PASS. D2-AC2 PASS. D2-AC4 PASS. D2-AC5 PASS. D2-AC3 FAIL on `packages/migrate/src/commands/MigrateDev.ts` / `packages/migrate/src/__tests__/runtime-guidance.test.ts` (see F8).
+
+**Findings:** F8 (must-fix).
+
+**Verification:** `pnpm --filter @prisma/migrate build`, `pnpm --filter @prisma/migrate test runtime-guidance.test.ts --runInBand`, and `git diff --check 451c633d10^..451c633d10` passed. The mandatory transient-ID scan over the 23 touched files found no UUID, `agent_id`, `subagent`, `trace_id`, `session`, or `projects/prisma7-compatibility-cli/` hits. No product, test, planning, or workflow files were edited during review; only this review ledger and `wip/heartbeats/reviewer.txt` were written.
+
+**For orchestrator:** Ask the implementer to keep the current runtime-guidance propagation but remove the `MigrateDev` export seam and prove the `prisma7` create-only success path through command-level behavior. No additional runtime literal fanout appears necessary after that cleanup.
+
+### downstream-actionable-guidance D2 R2 — SATISFIED
+
+**Scope:** Close F8 over commit `cc07b4f32a`.
+
+**Tasks:** The production-only `MigrateDev` export seam is removed. Inline create-only rendering again uses `this.cliCommand`, the direct helper assertion is gone, and the remaining focused dual-identity runtime suite stays proportionate. The attempted command-level `prisma7` create-only proof remains honestly blocked by the known Nix schema-engine resolution issue, and no replacement seam/mock was added.
+
+**AC delta:** D2-AC3 FAIL → PASS. D2-AC1, D2-AC2, D2-AC4, and D2-AC5 remain PASS.
+
+**Findings:** F8 resolved (`cc07b4f32a`). No new findings.
+
+**Verification:** `pnpm --filter @prisma/migrate build`, `pnpm --filter @prisma/migrate test runtime-guidance.test.ts --runInBand`, and `git diff --check cc07b4f32a^..cc07b4f32a` passed. The mandatory transient-ID scan over `packages/migrate/src/commands/MigrateDev.ts` and `packages/migrate/src/__tests__/runtime-guidance.test.ts` found no UUID, `agent_id`, `subagent`, `trace_id`, `session`, or `projects/prisma7-compatibility-cli/` hits. No product, test, planning, or workflow files were edited during review; only this review ledger and `wip/heartbeats/reviewer.txt` were written.
+
+**For orchestrator:** `downstream-actionable-guidance` D2 is closed. The next planned work remains Dispatch 3 unless the operator reprioritizes.
