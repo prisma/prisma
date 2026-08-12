@@ -89,6 +89,17 @@ export type IndexNode = IndexNodeElements &
     readonly name: string | undefined;
   };
 
+/**
+ * A definition-tree check constraint: `map` adopts an exact physical name
+ * verbatim, `name` is a wire-name prefix — exactly one is required (a check
+ * has no column tuple to derive a default from, unlike an index).
+ */
+export type CheckNode = {
+  readonly expression: string;
+  readonly map: string | undefined;
+  readonly name: string | undefined;
+};
+
 export interface ForeignKeyNode {
   readonly columns: readonly string[];
   readonly references: {
@@ -194,6 +205,7 @@ export interface ModelNode {
   readonly id?: PrimaryKeyNode;
   readonly uniques?: readonly UniqueConstraintNode[];
   readonly indexes?: readonly IndexNode[];
+  readonly checks?: readonly CheckNode[];
   readonly foreignKeys?: readonly ForeignKeyNode[];
   readonly relations?: readonly RelationNode[];
   readonly control?: ControlPolicy;

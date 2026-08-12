@@ -39,6 +39,7 @@ import {
 } from '@internal/framework-components/authoring';
 import type { CodecLookup, ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { lowerAuthoredCheck } from '@internal/sql-contract/authored-check-naming';
 import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
 import { tableEntityKind, valueSetEntityKind } from '@internal/sql-contract/entity-kinds';
 import {
@@ -71,6 +72,7 @@ import {
   type CheckKind,
   composeCheckWirePrefix,
   computeCheckContentHash,
+  derivedCheckPrefixes,
 } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -833,6 +835,27 @@ function ensureUnboundNamespaceSlot(
   };
 }
 
+const DERIVABLE_CHECK_KINDS: readonly CheckKind[] = ['membership', 'elementNotNull'];
+
+/**
+ * Which of `columnNames` could have produced `prefix` for some
+ * {@link CheckKind} — the reverse of {@link derivedCheckPrefixes}, used only
+ * to name the collision in `CONTRACT.CHECK_NAME_RESERVED`'s message. Callers
+ * already know `prefix` is a member of `derivedCheckPrefixes(tableName,
+ * columnNames)`, so the result is never empty.
+ */
+function columnsProducingCheckPrefix(
+  tableName: string,
+  columnNames: readonly string[],
+  prefix: string,
+): readonly string[] {
+  return columnNames.filter((columnName) =>
+    DERIVABLE_CHECK_KINDS.some(
+      (kind) => composeCheckWirePrefix(tableName, columnName, kind) === prefix,
+    ),
+  );
+}
+
 export function buildSqlContractFromDefinition(
   definition: ContractDefinition,
   codecLookup?: CodecLookup,
@@ -1124,7 +1147,17 @@ export function buildSqlContractFromDefinition(
 
     // STI variants share the base table: their columns are already
     // materialised onto the base `ModelNode`, so the variant builds a domain
-    // model (below) but no storage table of its own.
+    // model (below) but no storage table of its own — which leaves an
+    // authored check nowhere to attach. Refuse it here as a backstop; the
+    // PSL surface refuses it earlier, at interpretation, with a
+    // span-anchored diagnostic that names the base model.
+    if (semanticModel.sharesBaseTable && semanticModel.checks && semanticModel.checks.length > 0) {
+      throw contractError(
+        'CONTRACT.CHECK_ON_STI_VARIANT',
+        `Model "${semanticModel.modelName}" declares a check constraint but shares its base model's storage table (single-table inheritance) and has no table of its own to declare it on. Declare the check on the base model instead.`,
+        { meta: { tableName, modelName: semanticModel.modelName } },
+      );
+    }
     if (!semanticModel.sharesBaseTable) {
       const uniques = (semanticModel.uniques ?? []).map((u) => ({
         columns: u.columns,
@@ -1149,6 +1182,32 @@ export function buildSqlContractFromDefinition(
           authoringWarnings,
         ),
       );
+      // Authored checks are lowered and merged into `checksForTable`
+      // unconditionally — outside the `derivesChecks` guard above. A derived
+      // check is a Prisma Next prescription, scoped to tables it manages; an
+      // authored check is the author's own statement about a constraint they
+      // know exists, and is emitted whatever the table's control policy.
+      if (semanticModel.checks !== undefined && semanticModel.checks.length > 0) {
+        const tableColumnNames = Object.keys(columns);
+        const reservedCheckPrefixes = derivedCheckPrefixes(tableName, tableColumnNames);
+        for (const authoredCheck of semanticModel.checks) {
+          const lowered = lowerAuthoredCheck(tableName, authoredCheck, authoringWarnings);
+          if (lowered.naming.kind === 'wire' && reservedCheckPrefixes.has(lowered.naming.prefix)) {
+            const collidingColumns = columnsProducingCheckPrefix(
+              tableName,
+              tableColumnNames,
+              lowered.naming.prefix,
+            );
+            const columnList = collidingColumns.map((name) => `"${name}"`).join(', ');
+            throw contractError(
+              'CONTRACT.CHECK_NAME_RESERVED',
+              `Check "${lowered.naming.prefix}" on table "${tableName}": this name's prefix matches the shape a derived enforcement check would use for column${collidingColumns.length === 1 ? '' : 's'} ${columnList} of this table, so it can't be told apart from one. Choose a different name.`,
+              { meta: { tableName, prefix: lowered.naming.prefix, collidingColumns } },
+            );
+          }
+          checksForTable.push(new CheckConstraint(lowered));
+        }
+      }
       const primaryKey = semanticModel.id
         ? { columns: semanticModel.id.columns, ...ifDefined('name', semanticModel.id.name) }
         : undefined;

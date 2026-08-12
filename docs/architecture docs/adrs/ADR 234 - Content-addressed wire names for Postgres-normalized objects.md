@@ -145,7 +145,7 @@ policy_select profile_owner_read {
 The same problem class — Postgres re-prints stored bodies — applies to other catalog-resident objects:
 
 - **Indexes.** `pg_indexes.indexdef` is heavily normalized (column ordering, operator class names, partial-index `WHERE` clause). **Done** — see [ADR 243 — Name-identified indexes and exact-name adoption](<./ADR 243 - Name-identified indexes and exact-name adoption.md>), which extends this scheme to every index and adds the exact-name mode both kinds now share.
-- **Check constraints.** `pg_constraint` stores the predicate as a parsed tree (`conbin`); reading it back via `pg_get_expr(conbin, conrelid)` yields the printer's reprint, not the authored text. **Done** — see [ADR 244 — Check constraints are opaque wire-named expressions](<./ADR 244 - Check constraints are opaque wire-named expressions.md>), which carries the whole predicate as the hash input and derives the prefix rather than taking an authored one.
+- **Check constraints.** `pg_constraint` stores the predicate as a parsed tree (`conbin`); reading it back via `pg_get_expr(conbin, conrelid)` yields the printer's reprint, not the authored text. **Done** — see [ADR 244 — Check constraints are opaque wire-named expressions](<./ADR 244 - Check constraints are opaque wire-named expressions.md>), which carries the whole predicate as the hash input. A check's prefix is derived from column shape when Prisma Next generates the check; an authored `@@check(name:)` supplies its own prefix, and `@@check(map:)` names the constraint exactly, bypassing the scheme for adoption.
 - **Views.** `pg_views.definition` is the printer's output, not the user's text.
 - **Function bodies.** `pg_proc.prosrc` is verbatim, but function bodies typically differ in whitespace and comment placement after a deploy-tool round-trip.
 
@@ -153,7 +153,7 @@ The naming format (`<prefix>_<8 hex SHA-256>`), the normalizer (internal whitesp
 
 - The per-kind hash input tuple (analogous to the RLS list above).
 - Whether the rename signal (matching suffix, different prefix) needs a kind-specific planner action (e.g. `ALTER POLICY ... RENAME TO`).
-- What happens when the prefix overruns the length bound. (**Amended:** added with [ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>). Indexes and policies throw, because their author can shorten the name they typed; a check's prefix is derived with no authoring surface, so it truncates instead.)
+- What happens when the prefix overruns the length bound. (**Amended:** added with [ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>). Indexes and policies throw, because their author can shorten the name they typed. A *derived* check's prefix has no authoring surface, so it truncates instead; an *authored* check's `name:` prefix does have one, so it throws too, same as indexes and policies.)
 
 Whether to apply content-addressing to a given object kind is a separate decision per kind. Indexes have the widest DBA-visible surface — DBAs reference index names in `REINDEX`, `DROP INDEX`, query plans, and Postgres error messages — so the "ugly suffix" trade-off is the most prominent there. The cost of plain naming has to outweigh the cost of suffix-visibility before the pattern is worth applying to a new object kind.
 

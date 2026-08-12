@@ -28,7 +28,8 @@ throw errorHashMismatch({ expected: 'abc123', actual: 'def456' });
 // Type-guard check
 if (CliStructuredError.is(caught)) {
   const envelope = caught.toEnvelope();
-  // { ok: false, code: 'PN-CLI-4001', domain: 'CLI', summary: '...', ... }
+  // { ok: false, code: 'CONFIG.FILE_NOT_FOUND', severity: 'error', summary: '...', nextActions: [...], ... }
+  // `nextActions` is always present on the envelope — `[]` when the error carries none.
 }
 ```
 
