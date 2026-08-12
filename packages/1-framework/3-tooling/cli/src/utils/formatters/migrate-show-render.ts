@@ -5,6 +5,7 @@ import type {
 import { listRefsByContractHash } from '../../control-api/operations/migration-list';
 import type { GlyphMode } from '../glyph-mode';
 import {
+  // biome-ignore lint/plugin/no-family-vocabulary: a terminal text column, the character offset a label starts at
   computeLabelColumn,
   computeMaxDirNameWidth,
   renderMigrationGraphCommand,
@@ -20,6 +21,7 @@ import {
 import type { MigrationListStylerWithMarkers } from './migration-list-styler';
 
 const LABEL_GAP = 2;
+// biome-ignore lint/plugin/no-family-vocabulary: a terminal text column, the narrowest offset the hash column may start at
 const MIN_HASH_DATA_COLUMN = 25;
 const LIST_INDENT = 2;
 
@@ -81,8 +83,10 @@ export function renderMigrateShowGraph(
   });
 
   const multiSpace = spaceLayouts.length > 1;
+  // biome-ignore lint/plugin/no-family-vocabulary: a terminal text column, the character offset labels align to across spaces
   const globalLabelColumn = multiSpace
-    ? Math.max(...spaceLayouts.map(({ grid }) => computeLabelColumn(grid, options.glyphMode)))
+    ? // biome-ignore lint/plugin/no-family-vocabulary: a terminal text column, the character offset a label starts at
+      Math.max(...spaceLayouts.map(({ grid }) => computeLabelColumn(grid, options.glyphMode)))
     : undefined;
   const widestRunListName =
     plan.migrations.length > 0
@@ -109,6 +113,7 @@ export function renderMigrateShowGraph(
       colorize: options.colorize,
       glyphMode: options.glyphMode,
       ...paintOverrides(options),
+      // biome-ignore lint/plugin/no-family-vocabulary: a terminal text column, the character offset labels align to across spaces
       ...(globalLabelColumn === undefined ? {} : { globalLabelColumn }),
       ...(globalMaxDirNameWidth === undefined ? {} : { globalMaxDirNameWidth }),
     });
@@ -123,6 +128,7 @@ export function renderMigrateShowGraph(
   return {
     graphOutput: sections.join('\n\n'),
     runListDirNameWidth: globalMaxDirNameWidth ?? widestRunListName,
+    // biome-ignore lint/plugin/no-family-vocabulary: a terminal text column, the character offset labels align to across spaces
     runListLeftPad: globalLabelColumn,
   };
 }
@@ -145,6 +151,7 @@ export function migrateShowRunListRows(
   const multiSpace = rendering.runListLeftPad !== undefined;
   const edgeDirNameWidth = Math.max(
     rendering.runListDirNameWidth + LABEL_GAP,
+    // biome-ignore lint/plugin/no-family-vocabulary: a terminal text column, the narrowest offset the hash column may start at
     MIN_HASH_DATA_COLUMN - gutter,
   );
   const listDirNameWidth = gutter + edgeDirNameWidth - (multiSpace ? LIST_INDENT : LIST_INDENT * 2);

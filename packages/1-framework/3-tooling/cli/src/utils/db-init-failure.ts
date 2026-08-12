@@ -62,7 +62,8 @@ export function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
         : undefined;
     const fix =
       runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
-        ? 'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `prisma-next db init` to recreate it with the current per-space schema.'
+        ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
+          'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `prisma-next db init` to recreate it with the current per-space schema.'
         : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `prisma-next db init`';
     return errorRunnerFailed(failure.summary, {
       why: failure.why ?? 'Migration runner failed',
