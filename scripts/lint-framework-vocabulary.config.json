@@ -2,7 +2,7 @@
   "scopes": [
     {
       "path": "packages/1-framework",
-      "threshold": 367
+      "threshold": 365
     }
   ]
 }

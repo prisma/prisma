@@ -178,6 +178,7 @@ describe('db update read aggregate --json golden', () => {
         '  "summary": "Invalid ref name",',
         `  "why": "Ref name \\"BAD NAME\\" is invalid. Names must be lowercase alphanumeric with hyphens or forward slashes (no \\".\\" or \\"..\\" segments).",`,
         `  "fix": "Use a valid ref name (e.g., \\"staging\\", \\"envs/production\\").",`,
+        '  "nextActions": [],',
         '  "meta": {',
         '    "refName": "BAD NAME"',
         '  }',

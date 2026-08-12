@@ -26,6 +26,7 @@ import { createMigrationShowCommand } from './commands/migration-show';
 import { createMigrationStatusCommand } from './commands/migration-status';
 import { createRefCommand } from './commands/ref';
 import { createTelemetryCommand } from './commands/telemetry';
+import { BIN_NAME } from './utils/bin-name';
 import { setCommandDescriptions } from './utils/command-helpers';
 import { formatCommandHelp, formatRootHelp } from './utils/formatters/help';
 import { parseGlobalFlags } from './utils/global-flags';
@@ -70,7 +71,7 @@ function formatSuggestion(input: string, candidates: readonly string[]): string 
 
 const program = new Command();
 
-program.name('prisma-next').description('Prisma Next CLI').version(packageJson.version);
+program.name(BIN_NAME).description('Prisma Next CLI').version(packageJson.version);
 
 // Telemetry hook — fires at command start, before the action body
 // runs. Synchronous by construction: `fireTelemetryFromPreAction`

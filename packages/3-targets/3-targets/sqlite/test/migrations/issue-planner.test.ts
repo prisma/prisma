@@ -237,7 +237,7 @@ describe('mapNodeIssueToCall — absorbed node kinds surface as conflicts when u
 });
 
 describe('mapNodeIssueToCall — check constraint', () => {
-  it('always returns unsupportedOperation (SQLite has no CHECK DDL support)', () => {
+  it('always returns unsupportedOperation (the SQLite target has no CHECK DDL support)', () => {
     const result = mapNodeIssueToCall(
       issue({
         path: ['database', 'user', 'check:status_check'],

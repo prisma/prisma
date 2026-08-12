@@ -53,6 +53,12 @@ test/**/fixtures/generated/
 !test/integration/test/mongo/fixtures/generated/**
 !test/integration/test/namespaced-accessors/fixtures/generated/
 !test/integration/test/namespaced-accessors/fixtures/generated/**
+!test/integration/test/sql-builder/fixtures/generated/
+!test/integration/test/sql-builder/fixtures/generated/**
+!test/integration/test/sql-orm-client/fixtures/generated/
+!test/integration/test/sql-orm-client/fixtures/generated/**
+!test/integration/test/value-objects/fixtures/generated/
+!test/integration/test/value-objects/fixtures/generated/**
 
 # Ignore everything under `.agents/` except the canonical rules home.
 # The `.cursor/rules` and `.claude/rules` presentation trees are git-ignored
