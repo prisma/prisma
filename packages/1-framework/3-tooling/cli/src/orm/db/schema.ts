@@ -3,6 +3,7 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations, Span, TreeNode } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { createControlClient } from '../../control-api/client';
+import type { CreateControlClient } from '../../control-api/types';
 import {
   CliStructuredError,
   errorDatabaseConnectionRequired,
@@ -15,7 +16,6 @@ import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { normalizeError } from '../normalize-error';
 import { controlProgressReporter } from '../progress';
-import type { ControlClientDeps } from './prepare';
 
 interface SchemaDocument {
   readonly ok: true;
@@ -142,7 +142,7 @@ function schemaPresentations(inputs: {
   };
 }
 
-export function createDbSchemaCommand(deps: ControlClientDeps) {
+export function createDbSchemaCommand(createClient: CreateControlClient) {
   return defineOrmCommand({
     help: {
       summary: 'Inspect the live database schema',
@@ -174,7 +174,7 @@ export function createDbSchemaCommand(deps: ControlClientDeps) {
         );
       }
 
-      const client = deps.createControlClient({
+      const client = createClient({
         family: ctx.config.family,
         target: ctx.config.target,
         adapter: ctx.config.adapter,
@@ -227,4 +227,4 @@ export function createDbSchemaCommand(deps: ControlClientDeps) {
   });
 }
 
-export const dbSchemaCommand = createDbSchemaCommand({ createControlClient });
+export const dbSchemaCommand = createDbSchemaCommand(createControlClient);

@@ -10,7 +10,7 @@ import {
 import { createControlClient } from '../../control-api/client';
 import { resolveContractRefToSnapshot } from '../../control-api/operations/contract-snapshot-resolution';
 import { resolveRefAdvancementFields } from '../../control-api/operations/ref-advancement';
-import type { DbUpdateResult, DbUpdateSuccess } from '../../control-api/types';
+import type { CreateControlClient, DbUpdateResult, DbUpdateSuccess } from '../../control-api/types';
 import {
   CliStructuredError,
   errorContractValidationFailed,
@@ -35,7 +35,6 @@ import {
   unconsentedDestructiveWarning,
 } from './consent';
 import { migrationResultBlocks, migrationResultNextActions } from './migration-blocks';
-import type { ControlClientDeps } from './prepare';
 import { prepareMigrationRun } from './prepare';
 
 function updatePresentations(inputs: {
@@ -114,7 +113,7 @@ function updateDocument(inputs: {
   };
 }
 
-export function createDbUpdateCommand(deps: ControlClientDeps) {
+export function createDbUpdateCommand(createClient: CreateControlClient) {
   return defineOrmCommand({
     help: {
       summary: 'Update your database schema to match your contract',
@@ -154,7 +153,7 @@ export function createDbUpdateCommand(deps: ControlClientDeps) {
         cwd: ctx.cwd,
         db: args.flags.db,
         commandName: 'db update',
-        createControlClient: deps.createControlClient,
+        createClient,
       });
       if (!prepared.ok) {
         return notOk(prepared.failure);
@@ -335,4 +334,4 @@ export function createDbUpdateCommand(deps: ControlClientDeps) {
   });
 }
 
-export const dbUpdateCommand = createDbUpdateCommand({ createControlClient });
+export const dbUpdateCommand = createDbUpdateCommand(createControlClient);

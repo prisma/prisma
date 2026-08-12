@@ -23,7 +23,11 @@ import {
 } from '../control-api/operations/migrate-show';
 import { advanceRefSafely, readContractIR } from '../control-api/operations/ref-advancement';
 import { resolveContractRef } from '../control-api/operations/ref-resolution';
-import type { MigratePathDecision, PerSpaceExecutionEntry } from '../control-api/types';
+import type {
+  CreateControlClient,
+  MigratePathDecision,
+  PerSpaceExecutionEntry,
+} from '../control-api/types';
 import { errorContractValidationFailed, errorUnexpected } from '../utils/cli-errors';
 import { closeQuietly, maskConnectionUrl } from '../utils/command-helpers';
 import { toDeclaredExtensionsFromRaw } from '../utils/extension-pack-inputs';
@@ -38,7 +42,6 @@ import { mapMigrateFailure } from '../utils/migrate-failure';
 import { runCommandAction } from '../utils/next-actions';
 import { ormConfigSection } from './config-section';
 import { perSpaceBlocks } from './db/migration-blocks';
-import type { ControlClientDeps } from './db/prepare';
 import { prepareMigrationRun } from './db/prepare';
 import { defineOrmCommand } from './define-command';
 import { dbFlag } from './flags';
@@ -190,7 +193,7 @@ function resolveRequestedTarget(
   return ok({ entry: refs[refName], refName });
 }
 
-export function createMigrateCommand(deps: ControlClientDeps) {
+export function createMigrateCommand(createClient: CreateControlClient) {
   return defineOrmCommand({
     help: {
       summary: 'Apply planned migrations to advance the database',
@@ -237,7 +240,7 @@ export function createMigrateCommand(deps: ControlClientDeps) {
         const planned = await executeMigrateShowPlan({
           config: ctx.config,
           cwd: ctx.cwd,
-          createControlClient: deps.createControlClient,
+          createClient,
           ...ifDefined('db', args.flags.db),
           ...ifDefined('to', args.flags.to),
           ...ifDefined('from', args.flags.from),
@@ -284,7 +287,7 @@ export function createMigrateCommand(deps: ControlClientDeps) {
         cwd: ctx.cwd,
         db: args.flags.db,
         commandName: 'migrate',
-        createControlClient: deps.createControlClient,
+        createClient,
       });
       if (!prepared.ok) {
         return notOk(prepared.failure);
@@ -430,7 +433,7 @@ export function createMigrateCommand(deps: ControlClientDeps) {
         document = {
           ok: true,
           migrationsApplied: value.migrationsApplied,
-          migrationsTotal: value.perSpace.length,
+          migrationsTotal: value.applied.length,
           markerHash: value.markerHash,
           applied: value.applied,
           summary: value.summary,
@@ -474,4 +477,4 @@ export function createMigrateCommand(deps: ControlClientDeps) {
   });
 }
 
-export const migrateCommand = createMigrateCommand({ createControlClient });
+export const migrateCommand = createMigrateCommand(createControlClient);

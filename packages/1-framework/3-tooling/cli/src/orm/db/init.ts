@@ -5,7 +5,7 @@ import { flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { createControlClient } from '../../control-api/client';
 import { resolveRefAdvancementFields } from '../../control-api/operations/ref-advancement';
-import type { DbInitSuccess } from '../../control-api/types';
+import type { CreateControlClient, DbInitSuccess } from '../../control-api/types';
 import {
   CliStructuredError,
   errorContractValidationFailed,
@@ -20,7 +20,6 @@ import { dbFlag } from '../flags';
 import { normalizeError } from '../normalize-error';
 import { controlProgressReporter } from '../progress';
 import { migrationResultBlocks, migrationResultNextActions } from './migration-blocks';
-import type { ControlClientDeps } from './prepare';
 import { prepareMigrationRun } from './prepare';
 
 function initPresentations(inputs: {
@@ -96,7 +95,7 @@ function initDocument(inputs: {
   };
 }
 
-export function createDbInitCommand(deps: ControlClientDeps) {
+export function createDbInitCommand(createClient: CreateControlClient) {
   return defineOrmCommand({
     help: {
       summary: 'Bootstrap a database to match the current contract and sign it',
@@ -131,7 +130,7 @@ export function createDbInitCommand(deps: ControlClientDeps) {
         cwd: ctx.cwd,
         db: args.flags.db,
         commandName: 'db init',
-        createControlClient: deps.createControlClient,
+        createClient,
       });
       if (!prepared.ok) {
         return notOk(prepared.failure);
@@ -227,4 +226,4 @@ export function createDbInitCommand(deps: ControlClientDeps) {
   });
 }
 
-export const dbInitCommand = createDbInitCommand({ createControlClient });
+export const dbInitCommand = createDbInitCommand(createControlClient);

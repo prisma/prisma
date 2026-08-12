@@ -1,10 +1,9 @@
-import type { MountedTree, StreamEvent } from '@prisma/cli-engine';
+import type { StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import stripAnsi from 'strip-ansi';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ControlClient } from '../../src/control-api/types';
-import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
-import { createDbSchemaCommand } from '../../src/orm/db/schema';
+import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
 
 const mocks = {
   introspect: vi.fn(),
@@ -14,19 +13,17 @@ const mocks = {
   close: vi.fn(),
 };
 
-const fakeClient = {
-  introspect: mocks.introspect,
-  toSchemaView: mocks.toSchemaView,
-  inferPslContract: mocks.inferPslContract,
-  getPslBlockDescriptors: mocks.getPslBlockDescriptors,
-  close: mocks.close,
-} as unknown as ControlClient;
-
-const commands: MountedTree = {
-  ...BIN_COMMANDS,
-  'db schema': createDbSchemaCommand({ createControlClient: () => fakeClient }),
-};
-const groups = BIN_GROUPS;
+/** The command tree mounted over a control-client double instead of the real client. */
+const commands = createBinCommands(
+  () =>
+    ({
+      introspect: mocks.introspect,
+      toSchemaView: mocks.toSchemaView,
+      inferPslContract: mocks.inferPslContract,
+      getPslBlockDescriptors: mocks.getPslBlockDescriptors,
+      close: mocks.close,
+    }) as unknown as ControlClient,
+);
 
 const SCHEMA_IR = { relations: { user: { fields: ['id', 'email'] } } };
 
@@ -86,7 +83,7 @@ function ormConfig(overrides: Record<string, unknown> = {}): Record<string, unkn
 }
 
 function harness(config: Record<string, unknown>) {
-  return createTestCli({ commands, groups, config: { orm: config } });
+  return createTestCli({ commands, groups: BIN_GROUPS, config: { orm: config } });
 }
 
 function envelopeOf(json: readonly StreamEvent[]): unknown {

@@ -1,13 +1,12 @@
 import { rmSync, writeFileSync } from 'node:fs';
 import { notOk, ok } from '@internal/utils/result';
-import type { EngineEvent, MountedTree, StreamEvent } from '@prisma/cli-engine';
+import type { EngineEvent, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ControlClient } from '../../src/control-api/types';
-import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
-import { createDbUpdateCommand } from '../../src/orm/db/update';
+import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
 const mocks = {
@@ -16,16 +15,15 @@ const mocks = {
   close: vi.fn(),
 };
 
-const fakeClient = {
-  connect: mocks.connect,
-  dbUpdate: mocks.dbUpdate,
-  close: mocks.close,
-} as unknown as ControlClient;
-
-const commands: MountedTree = {
-  ...BIN_COMMANDS,
-  'db update': createDbUpdateCommand({ createControlClient: () => fakeClient }),
-};
+/** The command tree mounted over a control-client double instead of the real client. */
+const commands = createBinCommands(
+  () =>
+    ({
+      connect: mocks.connect,
+      dbUpdate: mocks.dbUpdate,
+      close: mocks.close,
+    }) as unknown as ControlClient,
+);
 const groups = BIN_GROUPS;
 
 afterAll(() => {

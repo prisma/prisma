@@ -3,8 +3,7 @@ import type { PrismaNextConfig } from '@internal/config/config-types';
 import { castAs } from '@internal/utils/casts';
 import type { CliStructuredError, Result } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
-import type { createControlClient } from '../../control-api/client';
-import type { ControlClient } from '../../control-api/types';
+import type { ControlClient, CreateControlClient } from '../../control-api/types';
 import {
   errorConfigValidation,
   errorContractValidationFailed,
@@ -17,15 +16,6 @@ import {
 import { maskConnectionUrl, targetSupportsMigrations } from '../../utils/command-helpers';
 import { appRefsDirFor, contractPathFor, displayPath, migrationsDirFor } from '../migration/paths';
 import { normalizeError } from '../normalize-error';
-
-/**
- * The client factory a database command builds its control client with. The
- * command modules export factories taking these deps so tests can seed a fake
- * client without mocking the module registry.
- */
-export interface ControlClientDeps {
-  readonly createControlClient: typeof createControlClient;
-}
 
 /**
  * Everything a database-writing migration command needs before it connects:
@@ -84,7 +74,7 @@ export async function prepareMigrationRun(inputs: {
   readonly cwd: string;
   readonly db: string | undefined;
   readonly commandName: string;
-  readonly createControlClient: typeof createControlClient;
+  readonly createClient: CreateControlClient;
 }): Promise<Result<PreparedMigrationRun, CliStructuredError>> {
   const { config, cwd, commandName } = inputs;
   const contractPath = contractPathFor(config, cwd);
@@ -132,7 +122,7 @@ export async function prepareMigrationRun(inputs: {
   }
 
   return ok({
-    client: inputs.createControlClient({
+    client: inputs.createClient({
       family: config.family,
       target: config.target,
       adapter: config.adapter,

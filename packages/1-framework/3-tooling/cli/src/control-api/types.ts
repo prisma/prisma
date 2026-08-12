@@ -58,6 +58,12 @@ export interface ControlClientOptions {
   readonly connection?: unknown;
 }
 
+/**
+ * Builds a {@link ControlClient} from descriptors. Commands take this as a
+ * dependency so tests can hand them a double instead of the real client.
+ */
+export type CreateControlClient = (options: ControlClientOptions) => ControlClient;
+
 // ============================================================================
 // Progress Events
 // ============================================================================

@@ -35,7 +35,12 @@ function splitConfigPath(args: readonly string[]): {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i] ?? '';
     if (arg === '--config') {
-      configPath = args[i + 1];
+      const value = args[i + 1];
+      if (value === undefined) {
+        rest.push(arg);
+        continue;
+      }
+      configPath = value;
       i += 1;
       continue;
     }
