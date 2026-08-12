@@ -526,6 +526,7 @@ PR #29920: `changes: []`. Adds prepared-statement test coverage to the Supabase 
 
 PR #29902: `changes: []`. Generated contracts gain additive aggregate rows for new opt-in integer representation codecs, but existing extension schemas and source require no migration; extension authors re-emit only when adopting the new target-scoped types.
 PR #29940: `changes: []`. Dependabot's weekly dev-dependency bumps, which move `@biomejs/biome` to 2.5.6 and realign every `biome.jsonc` `$schema` URL to match. The extension-package diff is that URL and nothing else, so it requires no downstream extension source translation.
+PR #29965: `changes: []`. The same shape again: `@biomejs/biome` moves to 2.5.7 and every `biome.jsonc` `$schema` URL is realigned to match. The extension-package diff is that URL and nothing else, so it requires no downstream extension source translation.
 -->
 
 ## Why checks stopped being structured
