@@ -128,7 +128,7 @@ A mutation without `RETURNING` terminates with `.affectedCount()`, which is a pl
 
 ## Deliberate limitations
 
-**Raw statement plans carry no annotations.** `.annotations()` is not part of this surface. One consequence is concrete: `evaluateRawGuardrails` reads `meta.annotations.intent` to decide whether a mutation contradicts a read-only intent, so `LINT.READ_ONLY_MUTATION` cannot fire for a raw statement plan until annotations reach it. Every other raw guardrail — `LINT.SELECT_STAR`, `LINT.NO_LIMIT`, and the unbounded-select budget — is text-derived and applies today.
+**Raw statement plans carry no annotations.** `.annotations()` is not part of this surface. One consequence is concrete: `evaluateRawGuardrails` reads `meta.annotations.intent` to decide whether a mutation contradicts a read-only intent, so `LINT.READ_ONLY_MUTATION` cannot fire for a raw statement plan until annotations reach it. The text-derived lints do apply: `LINT.SELECT_STAR` and `LINT.NO_LIMIT` both fire for a raw statement. `evaluateRawGuardrails` also computes an unbounded-select budget finding, but the lint middleware reads only the lints it returns, so that finding reaches no consumer — for raw statements as for any other plan the function evaluates.
 
 **An affected-count statement cannot be prepared.** A prepared statement executes through the row path, which reports no statistics, so a prepared `.affectedCount()` plan would stream nothing at all. `prepare()` refuses one with `RUNTIME.PREPARE_AFFECTED_COUNT_UNSUPPORTED` where the statement is declared, rather than leaving the emptiness to be discovered at execution. Row-returning raw statements prepare and stream normally; a prepared path that reports statistics is a separate surface.
 
