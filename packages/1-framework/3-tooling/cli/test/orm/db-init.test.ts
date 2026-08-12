@@ -1,50 +1,34 @@
 import { rmSync, writeFileSync } from 'node:fs';
 import { notOk, ok } from '@internal/utils/result';
-import type { EngineEvent, MountedTree, StreamEvent } from '@prisma/cli-engine';
+import type { EngineEvent, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
-import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ControlClient } from '../../src/control-api/types';
+import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
-const mocks = vi.hoisted(() => ({
+const mocks = {
   connect: vi.fn(),
   dbInit: vi.fn(),
   close: vi.fn(),
-}));
+};
 
-vi.mock('../../src/control-api/client', () => ({
-  createControlClient: vi.fn(() => ({
-    connect: mocks.connect,
-    dbInit: mocks.dbInit,
-    close: mocks.close,
-  })),
-}));
-
-/**
- * The command tree is imported after the module registry is reset, so the
- * mocked client is the one `db init` closes over. Repo-wide vitest runs with
- * `isolate: false`, and another file that loaded the command tree first would
- * otherwise have baked the real client into it.
- */
-let commands: MountedTree;
-let groups: typeof BinGroups;
-
-beforeAll(async () => {
-  vi.resetModules();
-  const cli = await import('../../src/orm/cli');
-  commands = cli.BIN_COMMANDS;
-  groups = cli.BIN_GROUPS;
-}, timeouts.coldTransformImport);
+/** The command tree mounted over a control-client double instead of the real client. */
+const commands = createBinCommands(
+  () =>
+    ({
+      connect: mocks.connect,
+      dbInit: mocks.dbInit,
+      close: mocks.close,
+    }) as unknown as ControlClient,
+);
 
 afterAll(() => {
   for (const dir of projectDirs.splice(0)) {
     rmSync(dir, { recursive: true, force: true });
   }
-  vi.doUnmock('../../src/control-api/client');
-  vi.resetModules();
 });
 
 const DESCRIPTOR = { familyId: 'sql', targetId: 'postgres', version: '1.0.0', create: () => ({}) };
@@ -137,7 +121,7 @@ function planSuccess(): Record<string, unknown> {
 }
 
 function harness(config: Record<string, unknown>) {
-  return createTestCli({ commands, groups, config: { orm: config } });
+  return createTestCli({ commands, groups: BIN_GROUPS, config: { orm: config } });
 }
 
 function envelopeOf(json: readonly StreamEvent[]): unknown {

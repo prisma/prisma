@@ -2,11 +2,13 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine';
 import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
-import { dbInitCommand } from './db/init';
-import { dbSchemaCommand } from './db/schema';
+import { createControlClient } from '../control-api/client';
+import type { CreateControlClient } from '../control-api/types';
+import { createDbInitCommand } from './db/init';
+import { createDbSchemaCommand } from './db/schema';
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
-import { migrateCommand } from './migrate';
+import { createMigrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
@@ -31,15 +33,23 @@ export const BIN_GROUPS = {
   },
 } as const;
 
-export const BIN_COMMANDS: MountedTree = {
-  'db init': dbInitCommand,
-  'db schema': dbSchemaCommand,
-  migrate: migrateCommand,
-  'migration graph': migrationGraphCommand,
-  'migration list': migrationListCommand,
-  'migration log': migrationLogCommand,
-  'migration show': migrationShowCommand,
-};
+/**
+ * The command tree with its client factory injected, so tests can mount the
+ * same tree over a control-client double instead of mocking modules.
+ */
+export function createBinCommands(createClient: CreateControlClient): MountedTree {
+  return {
+    'db init': createDbInitCommand(createClient),
+    'db schema': createDbSchemaCommand(createClient),
+    migrate: createMigrateCommand(createClient),
+    'migration graph': migrationGraphCommand,
+    'migration list': migrationListCommand,
+    'migration log': migrationLogCommand,
+    'migration show': migrationShowCommand,
+  };
+}
+
+export const BIN_COMMANDS: MountedTree = createBinCommands(createControlClient);
 
 export function createOrmCli(): Cli {
   return createCli({

@@ -3,8 +3,7 @@ import type { PrismaNextConfig } from '@internal/config/config-types';
 import { castAs } from '@internal/utils/casts';
 import type { CliStructuredError, Result } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
-import { createControlClient } from '../../control-api/client';
-import type { ControlClient } from '../../control-api/types';
+import type { ControlClient, CreateControlClient } from '../../control-api/types';
 import {
   errorConfigValidation,
   errorContractValidationFailed,
@@ -75,6 +74,7 @@ export async function prepareMigrationRun(inputs: {
   readonly cwd: string;
   readonly db: string | undefined;
   readonly commandName: string;
+  readonly createClient: CreateControlClient;
 }): Promise<Result<PreparedMigrationRun, CliStructuredError>> {
   const { config, cwd, commandName } = inputs;
   const contractPath = contractPathFor(config, cwd);
@@ -122,7 +122,7 @@ export async function prepareMigrationRun(inputs: {
   }
 
   return ok({
-    client: createControlClient({
+    client: inputs.createClient({
       family: config.family,
       target: config.target,
       adapter: config.adapter,

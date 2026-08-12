@@ -3,6 +3,7 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations, Span, TreeNode } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { createControlClient } from '../../control-api/client';
+import type { CreateControlClient } from '../../control-api/types';
 import {
   CliStructuredError,
   errorDatabaseConnectionRequired,
@@ -141,84 +142,89 @@ function schemaPresentations(inputs: {
   };
 }
 
-export const dbSchemaCommand = defineOrmCommand({
-  help: {
-    summary: 'Inspect the live database schema',
-    description:
-      'Reads the live database schema and prints it as a tree, or as the result\n' +
-      'document with --json. Always read-only: it never writes a file and never\n' +
-      'changes the database.',
-    examples: ['db schema', 'db schema --db $DATABASE_URL', 'db schema --json'],
-  },
-  args: { flags: { db: dbFlag } },
-  needs: { config: ormConfigSection },
-  handler: async (args, ctx) => {
-    const startedAt = Date.now();
-    const dbConnection = args.flags.db ?? ctx.config.db?.connection;
-    if (dbConnection === undefined) {
-      return notOk(
-        normalizeError(
-          errorDatabaseConnectionRequired({
-            why: 'Database connection is required for db schema (set db.connection in prisma-next.config.ts, or pass --db <url>)',
-            commandName: 'db schema',
-            missingFlags: ['--db'],
-          }),
-        ),
-      );
-    }
-    if (ctx.config.driver === undefined) {
-      return notOk(
-        normalizeError(errorDriverRequired({ why: 'Config.driver is required for db schema' })),
-      );
-    }
-
-    const client = createControlClient({
-      family: ctx.config.family,
-      target: ctx.config.target,
-      adapter: ctx.config.adapter,
-      driver: ctx.config.driver,
-      extensions: ctx.config.extensions ?? [],
-    });
-
-    let schema: unknown;
-    let schemaView: CoreSchemaView | undefined;
-    try {
-      schema = await client.introspect({
-        connection: dbConnection,
-        onProgress: controlProgressReporter(ctx.report),
-      });
-      schemaView = client.toSchemaView(schema);
-    } catch (error) {
-      if (CliStructuredError.is(error)) {
-        return notOk(normalizeError(error));
+export function createDbSchemaCommand(createClient: CreateControlClient) {
+  return defineOrmCommand({
+    help: {
+      summary: 'Inspect the live database schema',
+      description:
+        'Reads the live database schema and prints it as a tree, or as the result\n' +
+        'document with --json. Always read-only: it never writes a file and never\n' +
+        'changes the database.',
+      examples: ['db schema', 'db schema --db $DATABASE_URL', 'db schema --json'],
+    },
+    args: { flags: { db: dbFlag } },
+    needs: { config: ormConfigSection },
+    handler: async (args, ctx) => {
+      const startedAt = Date.now();
+      const dbConnection = args.flags.db ?? ctx.config.db?.connection;
+      if (dbConnection === undefined) {
+        return notOk(
+          normalizeError(
+            errorDatabaseConnectionRequired({
+              why: 'Database connection is required for db schema (set db.connection in prisma-next.config.ts, or pass --db <url>)',
+              commandName: 'db schema',
+              missingFlags: ['--db'],
+            }),
+          ),
+        );
       }
-      const safeMessage = sanitizeErrorMessage(
-        error instanceof Error ? error.message : String(error),
-        typeof dbConnection === 'string' ? dbConnection : undefined,
-      );
-      return notOk(
-        normalizeError(
-          errorUnexpected(safeMessage, {
-            why: `Unexpected error during db schema: ${safeMessage}`,
-          }),
-        ),
-      );
-    } finally {
-      await closeQuietly(client);
-    }
+      if (ctx.config.driver === undefined) {
+        return notOk(
+          normalizeError(errorDriverRequired({ why: 'Config.driver is required for db schema' })),
+        );
+      }
 
-    const database = typeof dbConnection === 'string' ? maskConnectionUrl(dbConnection) : undefined;
-    const document: SchemaDocument = {
-      ok: true,
-      summary: SUMMARY,
-      target: { familyId: ctx.config.family.familyId, id: ctx.config.target.targetId },
-      schema,
-      meta: { ...ifDefined('dbUrl', database) },
-      timings: { total: Date.now() - startedAt },
-    };
+      const client = createClient({
+        family: ctx.config.family,
+        target: ctx.config.target,
+        adapter: ctx.config.adapter,
+        driver: ctx.config.driver,
+        extensions: ctx.config.extensions ?? [],
+      });
 
-    return ok(
-      ctx.present({ data: document }, schemaPresentations({ document, schemaView, database })),
-    );
-  },
-});
+      let schema: unknown;
+      let schemaView: CoreSchemaView | undefined;
+      try {
+        schema = await client.introspect({
+          connection: dbConnection,
+          onProgress: controlProgressReporter(ctx.report),
+        });
+        schemaView = client.toSchemaView(schema);
+      } catch (error) {
+        if (CliStructuredError.is(error)) {
+          return notOk(normalizeError(error));
+        }
+        const safeMessage = sanitizeErrorMessage(
+          error instanceof Error ? error.message : String(error),
+          typeof dbConnection === 'string' ? dbConnection : undefined,
+        );
+        return notOk(
+          normalizeError(
+            errorUnexpected(safeMessage, {
+              why: `Unexpected error during db schema: ${safeMessage}`,
+            }),
+          ),
+        );
+      } finally {
+        await closeQuietly(client);
+      }
+
+      const database =
+        typeof dbConnection === 'string' ? maskConnectionUrl(dbConnection) : undefined;
+      const document: SchemaDocument = {
+        ok: true,
+        summary: SUMMARY,
+        target: { familyId: ctx.config.family.familyId, id: ctx.config.target.targetId },
+        schema,
+        meta: { ...ifDefined('dbUrl', database) },
+        timings: { total: Date.now() - startedAt },
+      };
+
+      return ok(
+        ctx.present({ data: document }, schemaPresentations({ document, schemaView, database })),
+      );
+    },
+  });
+}
+
+export const dbSchemaCommand = createDbSchemaCommand(createControlClient);

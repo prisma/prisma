@@ -1,48 +1,29 @@
-import type { MountedTree, StreamEvent } from '@prisma/cli-engine';
+import type { StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
-import { timeouts } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ControlClient } from '../../src/control-api/types';
+import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
 
-const mocks = vi.hoisted(() => ({
+const mocks = {
   introspect: vi.fn(),
   toSchemaView: vi.fn(),
   inferPslContract: vi.fn(),
   getPslBlockDescriptors: vi.fn(),
   close: vi.fn(),
-}));
+};
 
-vi.mock('../../src/control-api/client', () => ({
-  createControlClient: vi.fn(() => ({
-    introspect: mocks.introspect,
-    toSchemaView: mocks.toSchemaView,
-    inferPslContract: mocks.inferPslContract,
-    getPslBlockDescriptors: mocks.getPslBlockDescriptors,
-    close: mocks.close,
-  })),
-}));
-
-/**
- * The command tree is imported after the module registry is reset, so the
- * mocked client is the one `db schema` closes over. Repo-wide vitest runs with
- * `isolate: false`, and another file that loaded the command tree first would
- * otherwise have baked the real client into it.
- */
-let commands: MountedTree;
-let groups: typeof BinGroups;
-
-beforeAll(async () => {
-  vi.resetModules();
-  const cli = await import('../../src/orm/cli');
-  commands = cli.BIN_COMMANDS;
-  groups = cli.BIN_GROUPS;
-}, timeouts.coldTransformImport);
-
-afterAll(() => {
-  vi.doUnmock('../../src/control-api/client');
-  vi.resetModules();
-});
+/** The command tree mounted over a control-client double instead of the real client. */
+const commands = createBinCommands(
+  () =>
+    ({
+      introspect: mocks.introspect,
+      toSchemaView: mocks.toSchemaView,
+      inferPslContract: mocks.inferPslContract,
+      getPslBlockDescriptors: mocks.getPslBlockDescriptors,
+      close: mocks.close,
+    }) as unknown as ControlClient,
+);
 
 const SCHEMA_IR = { relations: { user: { fields: ['id', 'email'] } } };
 
@@ -102,7 +83,7 @@ function ormConfig(overrides: Record<string, unknown> = {}): Record<string, unkn
 }
 
 function harness(config: Record<string, unknown>) {
-  return createTestCli({ commands, groups, config: { orm: config } });
+  return createTestCli({ commands, groups: BIN_GROUPS, config: { orm: config } });
 }
 
 function envelopeOf(json: readonly StreamEvent[]): unknown {

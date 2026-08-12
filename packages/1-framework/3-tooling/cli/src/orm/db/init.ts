@@ -3,8 +3,9 @@ import { isStructuredError } from '@internal/utils/structured-error';
 import type { Block, Presentations } from '@prisma/cli-engine';
 import { flag } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
+import { createControlClient } from '../../control-api/client';
 import { resolveRefAdvancementFields } from '../../control-api/operations/ref-advancement';
-import type { DbInitSuccess } from '../../control-api/types';
+import type { CreateControlClient, DbInitSuccess } from '../../control-api/types';
 import {
   CliStructuredError,
   errorContractValidationFailed,
@@ -94,128 +95,135 @@ function initDocument(inputs: {
   };
 }
 
-export const dbInitCommand = defineOrmCommand({
-  help: {
-    summary: 'Bootstrap a database to match the current contract and sign it',
-    description:
-      'Creates everything the emitted contract declares and the database does not\n' +
-      'have yet, using additive operations only. Structures already in place and\n' +
-      'compatible are left alone, a conflict that would need a destructive change\n' +
-      'stops the run, and the database is signed with the contract it now matches.\n' +
-      'Use --dry-run to see the operations without applying them.',
-    examples: [
-      'db init',
-      'db init --db $DATABASE_URL',
-      'db init --dry-run',
-      'db init --advance-ref production',
-    ],
-  },
-  args: {
-    flags: {
-      db: dbFlag,
-      dryRun: flag.boolean({ brief: 'Preview the planned operations without applying them' }),
-      advanceRef: flag.string({
-        brief: 'Advance the named ref to the post-command contract hash',
-        placeholder: 'name',
-      }),
+export function createDbInitCommand(createClient: CreateControlClient) {
+  return defineOrmCommand({
+    help: {
+      summary: 'Bootstrap a database to match the current contract and sign it',
+      description:
+        'Creates everything the emitted contract declares and the database does not\n' +
+        'have yet, using additive operations only. Structures already in place and\n' +
+        'compatible are left alone, a conflict that would need a destructive change\n' +
+        'stops the run, and the database is signed with the contract it now matches.\n' +
+        'Use --dry-run to see the operations without applying them.',
+      examples: [
+        'db init',
+        'db init --db $DATABASE_URL',
+        'db init --dry-run',
+        'db init --advance-ref production',
+      ],
     },
-  },
-  needs: { config: ormConfigSection },
-  handler: async (args, ctx) => {
-    const startedAt = Date.now();
-    const prepared = await prepareMigrationRun({
-      config: ctx.config,
-      cwd: ctx.cwd,
-      db: args.flags.db,
-      commandName: 'db init',
-    });
-    if (!prepared.ok) {
-      return notOk(prepared.failure);
-    }
-    const { client, contractJson, contractPath, dbConnection, migrationsDir, refsDir } =
-      prepared.value;
-
-    let document: MigrationCommandResult;
-    try {
-      await client.connect(dbConnection);
-
-      const result = await client.dbInit({
-        contract: contractJson,
-        mode: args.flags.dryRun ? 'plan' : 'apply',
-        migrationsDir,
-        onProgress: controlProgressReporter(ctx.report),
+    args: {
+      flags: {
+        db: dbFlag,
+        dryRun: flag.boolean({ brief: 'Preview the planned operations without applying them' }),
+        advanceRef: flag.string({
+          brief: 'Advance the named ref to the post-command contract hash',
+          placeholder: 'name',
+        }),
+      },
+    },
+    needs: { config: ormConfigSection },
+    handler: async (args, ctx) => {
+      const startedAt = Date.now();
+      const prepared = await prepareMigrationRun({
+        config: ctx.config,
+        cwd: ctx.cwd,
+        db: args.flags.db,
+        commandName: 'db init',
+        createClient,
       });
-      if (!result.ok) {
-        return notOk(normalizeError(mapDbInitFailure(result.failure)));
+      if (!prepared.ok) {
+        return notOk(prepared.failure);
       }
+      const { client, contractJson, contractPath, dbConnection, migrationsDir, refsDir } =
+        prepared.value;
 
-      const advancementHash =
-        result.value.mode === 'apply'
-          ? (result.value.marker?.storageHash ?? result.value.destination.storageHash)
-          : result.value.destination.storageHash;
-      const advancement = await resolveRefAdvancementFields({
-        ...ifDefined('advanceRef', args.flags.advanceRef),
-        ...ifDefined('db', args.flags.db),
-        refsDir,
-        migrationsDir,
-        contractJson,
-        contractJsonPath: contractPath,
-        mode: result.value.mode,
-        hash: advancementHash,
-      });
-      if (!advancement.ok) {
-        return notOk(normalizeError(advancement.failure));
-      }
+      let document: MigrationCommandResult;
+      try {
+        await client.connect(dbConnection);
 
-      document = initDocument({
-        value: result.value,
-        targetId: ctx.config.target.targetId,
-        advancedRef: advancement.value.advancedRef,
-        plannedAdvanceRef: advancement.value.plannedAdvanceRef,
-        startedAt,
-      });
-    } catch (error) {
-      if (CliStructuredError.is(error)) {
-        return notOk(normalizeError(error));
-      }
-      if (isStructuredError(error) && error.code === 'CONTRACT.VALIDATION_FAILED') {
+        const result = await client.dbInit({
+          contract: contractJson,
+          mode: args.flags.dryRun ? 'plan' : 'apply',
+          migrationsDir,
+          onProgress: controlProgressReporter(ctx.report),
+        });
+        if (!result.ok) {
+          return notOk(normalizeError(mapDbInitFailure(result.failure)));
+        }
+
+        const advancementHash =
+          result.value.mode === 'apply'
+            ? (result.value.marker?.storageHash ?? result.value.destination.storageHash)
+            : result.value.destination.storageHash;
+        const advancement = await resolveRefAdvancementFields({
+          ...ifDefined('advanceRef', args.flags.advanceRef),
+          ...ifDefined('db', args.flags.db),
+          refsDir,
+          migrationsDir,
+          contractJson,
+          contractJsonPath: contractPath,
+          mode: result.value.mode,
+          hash: advancementHash,
+        });
+        if (!advancement.ok) {
+          return notOk(normalizeError(advancement.failure));
+        }
+
+        document = initDocument({
+          value: result.value,
+          targetId: ctx.config.target.targetId,
+          advancedRef: advancement.value.advancedRef,
+          plannedAdvanceRef: advancement.value.plannedAdvanceRef,
+          startedAt,
+        });
+      } catch (error) {
+        if (CliStructuredError.is(error)) {
+          return notOk(normalizeError(error));
+        }
+        if (isStructuredError(error) && error.code === 'CONTRACT.VALIDATION_FAILED') {
+          return notOk(
+            normalizeError(
+              errorContractValidationFailed(`Contract validation failed: ${error.message}`, {
+                where: { path: contractPath },
+              }),
+            ),
+          );
+        }
+        const safeMessage = sanitizeErrorMessage(
+          error instanceof Error ? error.message : String(error),
+          typeof dbConnection === 'string' ? dbConnection : undefined,
+        );
         return notOk(
           normalizeError(
-            errorContractValidationFailed(`Contract validation failed: ${error.message}`, {
-              where: { path: contractPath },
+            errorUnexpected(safeMessage, {
+              why: `Unexpected error during db init: ${safeMessage}`,
             }),
           ),
         );
+      } finally {
+        await closeQuietly(client);
       }
-      const safeMessage = sanitizeErrorMessage(
-        error instanceof Error ? error.message : String(error),
-        typeof dbConnection === 'string' ? dbConnection : undefined,
-      );
-      return notOk(
-        normalizeError(
-          errorUnexpected(safeMessage, { why: `Unexpected error during db init: ${safeMessage}` }),
+
+      ctx.report({
+        kind: 'message',
+        severity: 'verbose',
+        text: `Total time: ${document.timings.total}ms`,
+      });
+
+      return ok(
+        ctx.present(
+          { data: document },
+          initPresentations({
+            document,
+            contractPath: prepared.value.contractDisplayPath,
+            database: prepared.value.database,
+            dryRun: args.flags.dryRun,
+          }),
         ),
       );
-    } finally {
-      await closeQuietly(client);
-    }
+    },
+  });
+}
 
-    ctx.report({
-      kind: 'message',
-      severity: 'verbose',
-      text: `Total time: ${document.timings.total}ms`,
-    });
-
-    return ok(
-      ctx.present(
-        { data: document },
-        initPresentations({
-          document,
-          contractPath: prepared.value.contractDisplayPath,
-          database: prepared.value.database,
-          dryRun: args.flags.dryRun,
-        }),
-      ),
-    );
-  },
-});
+export const dbInitCommand = createDbInitCommand(createControlClient);
