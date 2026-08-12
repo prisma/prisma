@@ -18,16 +18,20 @@ import { notOk, ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@internal/emitter', () => ({
-  emit: vi.fn(
-    async (): Promise<EmitResult> => ({
-      storageHash: 'test-core-hash',
-      profileHash: 'test-profile-hash',
-      contractJson: '{"test": true}',
-      contractDts: 'export interface Contract {}',
-    }),
-  ),
-}));
+vi.mock('@internal/emitter', async () => {
+  const actual = await vi.importActual<typeof import('@internal/emitter')>('@internal/emitter');
+  return {
+    ...actual,
+    emit: vi.fn(
+      async (): Promise<EmitResult> => ({
+        storageHash: 'test-core-hash',
+        profileHash: 'test-profile-hash',
+        contractJson: '{"test": true}',
+        contractDts: 'export interface Contract {}',
+      }),
+    ),
+  };
+});
 
 import { emit as emitFn } from '@internal/emitter';
 import { createControlClient } from '../../src/control-api/client';
