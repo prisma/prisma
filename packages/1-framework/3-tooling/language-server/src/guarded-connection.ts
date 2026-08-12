@@ -51,7 +51,9 @@ function whileConnected(send: () => unknown): unknown {
     sent = send();
   } catch (error) {
     if (error instanceof ConnectionError) {
-      return undefined;
+      // Sends return promises, so a caller that awaits or chains a swallowed
+      // one must get a promise back, not a bare `undefined`.
+      return Promise.resolve(undefined);
     }
     throw error;
   }

@@ -75,6 +75,14 @@ describe('guardedConnection', () => {
       ).not.toThrow();
     });
 
+    it('hands an awaiting sender a promise, not a bare undefined', async () => {
+      const connection = guardedConnection(await closedConnection());
+
+      await expect(
+        connection.sendDiagnostics({ uri: 'file:///x.psl', diagnostics: [] }),
+      ).resolves.toBeUndefined();
+    });
+
     it('drops sends made through a nested feature', async () => {
       const connection = guardedConnection(await closedConnection());
 
