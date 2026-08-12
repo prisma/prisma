@@ -6,6 +6,10 @@ function collector(): { readonly written: string[]; readonly write: (text: strin
   return { written, write: (text) => written.push(text) };
 }
 
+// The writer in front of this stream hands each header and each body over in
+// one write, and Node does not split a chunk given to `_write`, so the split
+// writes below are a shape production never produces. They are what holds the
+// stream to its own contract: bytes in, the same bytes back out as text.
 describe('textOutputStream', () => {
   it('passes ASCII writes through unchanged', async () => {
     const out = collector();

@@ -12,8 +12,19 @@ import {
   StreamMessageReader,
   StreamMessageWriter,
 } from 'vscode-languageserver/node';
+import { captureConsole } from './console-capture';
 import { createServer } from './server';
 import { byteInputStream, type LanguageServerStreams, textOutputStream } from './stdio-transport';
+
+/**
+ * How long the conversation may stand completely still before a message the
+ * connection took off the reader but never dispatched is written off. It
+ * answers a cancellation itself without telling anyone, so the count of
+ * messages awaiting dispatch can be left standing; every other route decrements
+ * it. Any activity restarts the clock, so this delays the exit rather than
+ * cutting a reply short.
+ */
+const stalledDispatchGraceMs = 50;
 
 /**
  * Runs the server over the host's streams and resolves with the exit code the
@@ -24,41 +35,71 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
   const input = byteInputStream(streams.stdin);
   const inputMessages = new StreamMessageReader(input);
   const outputMessages = new StreamMessageWriter(textOutputStream(streams.stdout));
+  const releaseConsole = captureConsole(streams.stderr);
 
   return new Promise<number>((resolve) => {
     let settled = false;
     /**
-     * Every step a message takes — decoded by the reader, dispatched by the
-     * connection, written back out — bumps this. Each step takes its own turn of
-     * the event loop, so neither an `exit` notification nor the end of the input
-     * means the work is done: the reply to the message before it may still be on
-     * its way out.
+     * Messages the connection is handling and replies it is writing. A request
+     * handler's dispatch covers everything it awaits and the write of its
+     * reply, so this stays above zero for as long as the client is owed
+     * anything.
      */
-    let progress = 0;
+    let inFlight = 0;
+    /** Messages decoded off the stream that the connection has not started. */
+    let awaitingDispatch = 0;
+    let lastActivity = Date.now();
+    let departure: (() => number) | undefined;
+    let idleCheck: NodeJS.Timeout | undefined;
 
     function settle(code: number): void {
       if (settled) {
         return;
       }
       settled = true;
+      if (idleCheck !== undefined) {
+        clearTimeout(idleCheck);
+      }
+      releaseConsole();
       server.dispose();
       input.destroy();
       resolve(code);
     }
 
-    /** Settles once a turn passes with the conversation standing still. */
-    function settleWhenQuiet(code: () => number): void {
-      const seen = progress;
-      setImmediate(() => {
-        if (settled) {
+    function moved(): void {
+      lastActivity = Date.now();
+      checkIdle();
+    }
+
+    /**
+     * Settles once nothing is left in flight. The client's departure is not the
+     * end of the work: everything already read is queued, and a handler that
+     * awaits — resolving a project reads the filesystem — has its reply written
+     * turns later.
+     */
+    function settleOnceIdle(code: () => number): void {
+      departure ??= code;
+      checkIdle();
+    }
+
+    function checkIdle(): void {
+      if (settled || departure === undefined || idleCheck !== undefined) {
+        return;
+      }
+      idleCheck = setTimeout(() => {
+        idleCheck = undefined;
+        if (settled || departure === undefined) {
           return;
         }
-        if (progress === seen) {
-          settle(code());
+        if (inFlight > 0) {
           return;
         }
-        settleWhenQuiet(code);
-      });
+        if (awaitingDispatch === 0 || Date.now() - lastActivity >= stalledDispatchGraceMs) {
+          settle(departure());
+          return;
+        }
+        checkIdle();
+      }, 1);
     }
 
     /** LSP reserves 0 for a client that asked to shut down before leaving. */
@@ -72,7 +113,8 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
       onPartialMessage: inputMessages.onPartialMessage,
       listen: (callback: DataCallback) =>
         inputMessages.listen((message) => {
-          progress += 1;
+          awaitingDispatch += 1;
+          moved();
           callback(message);
         }),
       dispose: () => inputMessages.dispose(),
@@ -82,9 +124,11 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
       onError: outputMessages.onError,
       onClose: outputMessages.onClose,
       write: (message: Message) => {
-        progress += 1;
+        inFlight += 1;
+        moved();
         return outputMessages.write(message).finally(() => {
-          progress += 1;
+          inFlight -= 1;
+          moved();
         });
       },
       end: () => outputMessages.end(),
@@ -96,7 +140,7 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
       // The node transport polls the client's process id here and exits when
       // the editor dies. Over injected stdio that arrives as end of input.
       initialize: () => undefined,
-      exit: (code) => settleWhenQuiet(() => code),
+      exit: (code) => settleOnceIdle(() => code),
     };
     const server = createServer(
       createConnection(
@@ -104,8 +148,13 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
           createProtocolConnection(reader, writer, logger, {
             messageStrategy: {
               handleMessage: (message, next) => {
-                progress += 1;
-                return next(message);
+                awaitingDispatch -= 1;
+                inFlight += 1;
+                moved();
+                return Promise.resolve(next(message)).finally(() => {
+                  inFlight -= 1;
+                  moved();
+                });
               },
             },
           }),
@@ -114,13 +163,24 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
       ),
     );
 
-    inputMessages.onClose(() => settleWhenQuiet(departureCode));
+    inputMessages.onClose(() => settleOnceIdle(departureCode));
+    // A frame the reader cannot make sense of leaves it desynchronised for the
+    // rest of the stream — nothing further will decode — so the run ends rather
+    // than sitting there holding a parser nobody can reach.
+    inputMessages.onError((error) => {
+      streams.stderr.write(`Language server transport error: ${messageOf(error)}\n`);
+      settleOnceIdle(() => 1);
+    });
 
     const hostShutdown = streams.signal;
     if (hostShutdown?.aborted === true) {
-      settleWhenQuiet(departureCode);
+      settleOnceIdle(departureCode);
     } else {
-      hostShutdown?.addEventListener('abort', () => settleWhenQuiet(departureCode), { once: true });
+      hostShutdown?.addEventListener('abort', () => settleOnceIdle(departureCode), { once: true });
     }
   });
+}
+
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

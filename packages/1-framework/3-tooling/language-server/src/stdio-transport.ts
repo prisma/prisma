@@ -9,10 +9,20 @@ export interface TextSink {
 /**
  * The stdio a host hands a language server: bytes in, text out, and the host's
  * own shutdown signal.
+ *
+ * The client owns `stdout` — only protocol frames may reach it — and anything
+ * the server has to say for itself goes to `stderr`.
+ *
+ * Releasing the process's stdin once the run settles is the host's job. The
+ * server reads `stdin` for the length of the run, and destroying the `Readable`
+ * built from it does not release the descriptor underneath: a Node host has to
+ * call `process.stdin.unref()`, or the process sits on a pipe nobody is reading
+ * after the run has already settled its exit code.
  */
 export interface LanguageServerStreams {
   readonly stdin: AsyncIterable<Uint8Array>;
   readonly stdout: TextSink;
+  readonly stderr: TextSink;
   readonly signal?: AbortSignal;
 }
 
@@ -29,10 +39,23 @@ export function byteInputStream(stdin: AsyncIterable<Uint8Array>): Readable {
 }
 
 /**
+ * Bridges the byte stream `vscode-jsonrpc` writes to the text sink a host
+ * hands over.
+ *
  * LSP declares each message's `Content-Length` in bytes, so a UTF-8 sequence
- * split across two writes has to be held back until it is whole: decoding half
- * of one yields a replacement character, which is a different number of bytes
- * than the header promised.
+ * that arrives split across two writes has to be held back until it is whole:
+ * decoding half of one yields a replacement character, which is a different
+ * number of bytes than the header promised. `StreamMessageWriter` writes each
+ * body in one call and Node never splits a chunk given to `_write`, so the
+ * decoder holds nothing back in practice — it is here because the contract
+ * this satisfies is "bytes in, text out", and a writer that chunks its bodies
+ * would otherwise corrupt every multi-byte message silently.
+ *
+ * Back-pressure is dropped: `TextSink.write` returns nothing to wait on, so
+ * every write reports flushed the moment the sink has taken it. A client that
+ * stops reading grows the host's own output queue instead of slowing the
+ * server down, and the diagnostics for a large schema are not small. Fixing it
+ * needs a sink that reports when it drained.
  */
 export function textOutputStream(stdout: TextSink): Writable {
   const decoder = new StringDecoder('utf8');
