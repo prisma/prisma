@@ -149,7 +149,7 @@ async function selfEdgeFixture(): Promise<OfflineProject> {
   return project;
 }
 
-function documentOf(run: { readonly presented?: { readonly data: unknown } }) {
+function documentOf(run: { readonly presented: { readonly data: unknown } | undefined }) {
   return run.presented?.data as MigrationCheckResult;
 }
 

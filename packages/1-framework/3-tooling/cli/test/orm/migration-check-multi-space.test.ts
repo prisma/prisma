@@ -91,7 +91,7 @@ async function corruptStoredHash(packageDir: string): Promise<void> {
   );
 }
 
-function documentOf(run: { readonly presented?: { readonly data: unknown } }) {
+function documentOf(run: { readonly presented: { readonly data: unknown } | undefined }) {
   return run.presented?.data as MigrationCheckResult;
 }
 
