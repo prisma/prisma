@@ -34,6 +34,8 @@ test('missing @prisma/client recovery keeps ordinary prisma explicit', async () 
   await fs.writeFile(path.join(tempDir, 'package.json'), JSON.stringify({ name: 'tmp', private: true }))
   await fs.writeFile(path.join(tempDir, 'package-lock.json'), '{}')
 
+  expect.assertions(2)
+
   try {
     await resolvePrismaClient(tempDir, 'prisma')
   } catch (error) {

@@ -30,12 +30,6 @@ it('help flag', async () => {
   spy.mockRestore()
 })
 
-it('unknown command', async () => {
-  await expect(
-    MigrateCommand.new({}, 'prisma').parse(['doesnotexist'], await ctx.config(), ctx.configDir()),
-  ).resolves.toThrow()
-})
-
 describe.each(['prisma', 'prisma7'] as const)('%s', (cliCommand) => {
   it('renders help with the selected executable', () => {
     const result = MigrateCommand.new({}, cliCommand).help()
@@ -47,9 +41,11 @@ describe.each(['prisma', 'prisma7'] as const)('%s', (cliCommand) => {
 
   it('renders unknown-command help with the selected executable', async () => {
     const result = await MigrateCommand.new({}, cliCommand).parse(['doesnotexist'], await ctx.config(), ctx.configDir())
+    const otherCliCommand = cliCommand === 'prisma' ? 'prisma7' : 'prisma'
 
     expect(result).toBeInstanceOf(Error)
     expect((result as Error).message).toContain(`${cliCommand} migrate [command] [options]`)
     expect((result as Error).message).toContain(`Unknown command \"doesnotexist\"`)
+    expect((result as Error).message).not.toContain(`${otherCliCommand} migrate [command] [options]`)
   })
 })

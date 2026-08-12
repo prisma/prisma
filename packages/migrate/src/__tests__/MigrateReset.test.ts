@@ -202,6 +202,24 @@ describe('reset', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
+  it('rejects unsupported Accelerate URLs before printing datasource info', async () => {
+    ctx.fixture('schema-only-data-proxy')
+    ctx.setDatasource({
+      url: 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY',
+    })
+
+    const result = MigrateReset.new('prisma').parse(['--force'], await ctx.config(), ctx.configDir())
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      "
+      Using an Accelerate URL is not supported for this CLI command prisma migrate reset yet.
+      Please use a direct connection to your database in \`prisma.config.ts\`.
+
+      More information about this limitation: https://pris.ly/d/accelerate-limitations
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toBe('')
+  })
+
   test('reset - seed.js in prisma.config.ts', async () => {
     ctx.fixture('seed-from-prisma-config/seed-sqlite-js')
     prompt.inject(['y']) // simulate user yes input

@@ -47,16 +47,16 @@ describe('db execute', () => {
     describe.each(['prisma', 'prisma7'] as const)('%s', (cliCommand) => {
       it('renders help and help errors with the selected executable', async () => {
         const command = DbExecute.new(cliCommand)
+        const otherCliCommand = cliCommand === 'prisma' ? 'prisma7' : 'prisma'
 
         expect(command.help()).toContain(`${cliCommand} db execute --file ./script.sql`)
-        expect(command.help()).not.toContain(
-          `${cliCommand === 'prisma' ? 'prisma7' : 'prisma'} db execute --file ./script.sql`,
-        )
+        expect(command.help()).not.toContain(`${otherCliCommand} db execute --file ./script.sql`)
 
         ctx.fixture('valid-config-only')
         const result = command.parse([], await ctx.config(), ctx.configDir())
         await expect(result).rejects.toThrow(`Either --stdin or --file must be provided.`)
         await expect(result).rejects.toThrow(`See \`${cliCommand} db execute -h\``)
+        await expect(result).rejects.not.toThrow(`See \`${otherCliCommand} db execute -h\``)
       })
     })
 

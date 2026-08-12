@@ -10,6 +10,16 @@ const ctx = createDefaultTestContext()
 
 // TODO: prepare custom fixtures for `db drop`, which isn't used in the CLI.
 describe('drop', () => {
+  describe.each(['prisma', 'prisma7'] as const)('%s', (cliCommand) => {
+    it('renders help with the selected executable', () => {
+      const result = DbDrop.new(cliCommand).help()
+      const otherCliCommand = cliCommand === 'prisma' ? 'prisma7' : 'prisma'
+
+      expect(result).toContain(`${cliCommand} db drop [options] --preview-feature`)
+      expect(result).not.toContain(`${otherCliCommand} db drop [options] --preview-feature`)
+    })
+  })
+
   describe('prisma.config.ts', () => {
     it('should require a datasource in the config', async () => {
       ctx.fixture('no-config')
@@ -163,5 +173,23 @@ describe('drop', () => {
       `"Use the --force flag to use the drop command in an unattended environment like prisma db drop --force --preview-feature"`,
     )
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  it('rejects unsupported Accelerate URLs before printing datasource info', async () => {
+    ctx.fixture('schema-only-data-proxy')
+    ctx.setDatasource({
+      url: 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY',
+    })
+
+    const result = DbDrop.new('prisma').parse(['--preview-feature', '--force'], await ctx.config(), ctx.configDir())
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      "
+      Using an Accelerate URL is not supported for this CLI command prisma db drop yet.
+      Please use a direct connection to your database in \`prisma.config.ts\`.
+
+      More information about this limitation: https://pris.ly/d/accelerate-limitations
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toBe('')
   })
 })
