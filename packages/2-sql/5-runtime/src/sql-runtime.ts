@@ -532,6 +532,18 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
 
     const userPlan = callback(bindSiteParams);
     const finalPlan = await this.runBeforeCompile(userPlan);
+
+    // A prepared statement is executed through the row path, and a statement
+    // whose declared result is an affected-row count produces no rows — it
+    // would stream nothing at all. Refuse it where the statement is declared
+    // rather than at the silent execution.
+    if (finalPlan.ast.kind === 'raw-query' && finalPlan.ast.result.kind === 'affected-count') {
+      throw runtimeError(
+        'RUNTIME.PREPARE_AFFECTED_COUNT_UNSUPPORTED',
+        'A raw statement terminated with `.affectedCount()` cannot be prepared: prepared statements execute through the row path, which reports no statistics. Execute the plan directly with `runtime.execute(plan)`, or declare a row spec with `.returnsRow(spec)` if the statement returns rows.',
+      );
+    }
+
     const orderedRefs = collectOrderedParamRefs(finalPlan.ast);
 
     // Type-level detection isn't achievable across chained-builder generics.
