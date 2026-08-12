@@ -327,7 +327,29 @@ describe('migration status', () => {
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
       kind: 'result',
-      envelope: { ok: false, error: { code: 'CONFIG.DB_CONNECTION_REQUIRED' } },
+      envelope: {
+        ok: false,
+        error: { code: 'CONFIG.DB_CONNECTION_REQUIRED', meta: { missingFlags: ['--db'] } },
+      },
+    });
+  });
+
+  it('uses the same envelope with no missing flags when only the driver is absent', async () => {
+    const project = await projectWithOneMigration();
+    const config = driverConfig(project);
+
+    const run = await harness({ ...config, driver: undefined }).run(
+      ['migration', 'status', '--json'],
+      { cwd: project.dir },
+    );
+
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: {
+        ok: false,
+        error: { code: 'CONFIG.DB_CONNECTION_REQUIRED', meta: { missingFlags: [] } },
+      },
     });
   });
 
