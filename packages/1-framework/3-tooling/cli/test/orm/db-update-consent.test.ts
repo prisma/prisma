@@ -38,6 +38,8 @@ const DEST_HASH = 'd'.repeat(64);
 const MARKER_HASH = 'a'.repeat(64);
 const CONNECTION = 'postgres://user:secret@localhost:5432/appdb';
 const TOKEN = 'appdb';
+const PLAN_HASH = 'c'.repeat(64);
+const FRESH_PLAN_HASH = 'e'.repeat(64);
 const QUESTION = 'Apply 1 destructive operation(s) to appdb?';
 
 let projectDir: string;
@@ -53,7 +55,7 @@ beforeEach(() => {
   writeFileSync(join(projectDir, 'contract.d.ts'), 'export type Contract = never;\n');
   mocks.connect.mockReset().mockResolvedValue(undefined);
   mocks.close.mockReset().mockResolvedValue(undefined);
-  mocks.dbUpdate.mockReset().mockImplementation(refuseUntilAccepted());
+  mocks.dbUpdate.mockReset().mockImplementation(refuseUntilConsented());
 });
 
 function ormConfig(overrides: Record<string, unknown> = {}): Record<string, unknown> {
@@ -105,22 +107,25 @@ function destructiveRefusal(overrides: Record<string, unknown> = {}): Record<str
     summary: 'Planned 1 destructive operation(s) that require confirmation',
     why: 'Destructive operations require confirmation',
     conflicts: undefined,
-    meta: { destructiveOperations: [{ id: 'op-2', label: 'drop relation legacy' }] },
+    meta: undefined,
+    destructiveChanges: {
+      destructiveOperations: [{ id: 'op-2', label: 'drop relation legacy' }],
+      databaseName: TOKEN,
+      planHash: PLAN_HASH,
+    },
     ...overrides,
   };
 }
 
-/** An apply that dropped more than the plan the user was shown. */
-function driftedSuccess(): Record<string, unknown> {
-  const success = applySuccess();
+/** The refusal an apply carrying a stale consent comes back with. */
+function planMismatchFailure(): Record<string, unknown> {
   return {
-    ...success,
-    plan: {
-      operations: [
-        { id: 'op-2', label: 'drop relation legacy', operationClass: 'destructive' },
-        { id: 'op-3', label: 'drop table archive', operationClass: 'destructive' },
-      ],
-    },
+    code: 'CONSENT_PLAN_MISMATCH',
+    summary: 'The plan changed between consent and apply',
+    why: 'The freshly computed plan is not the plan that was consented to',
+    conflicts: undefined,
+    meta: undefined,
+    consentPlanMismatch: { consentedPlanHash: PLAN_HASH, planHash: FRESH_PLAN_HASH },
   };
 }
 
@@ -131,13 +136,14 @@ function warnTexts(events: readonly EngineEvent[]): readonly string[] {
 }
 
 /**
- * The control API's own shape: an apply without `acceptDataLoss` refuses when
- * the plan carries destructive operations, and the same call with it applies.
+ * The control API's own shape: an apply without consent refuses when the plan
+ * carries destructive operations, and the call consenting to that exact plan
+ * (by its hash) applies.
  */
-function refuseUntilAccepted() {
-  return (options: { readonly acceptDataLoss?: boolean }) =>
+function refuseUntilConsented() {
+  return (options: { readonly consent?: { readonly planHash: string } }) =>
     Promise.resolve(
-      options.acceptDataLoss === true ? ok(applySuccess()) : notOk(destructiveRefusal()),
+      options.consent?.planHash === PLAN_HASH ? ok(applySuccess()) : notOk(destructiveRefusal()),
     );
 }
 
@@ -150,7 +156,7 @@ function envelopeOf(json: readonly StreamEvent[]): unknown {
   return terminal?.kind === 'result' ? terminal.envelope : undefined;
 }
 
-function applyCalls(): readonly { readonly acceptDataLoss?: boolean }[] {
+function applyCalls(): readonly { readonly consent?: { readonly planHash: string } }[] {
   return mocks.dbUpdate.mock.calls.map((call) => call[0]);
 }
 
@@ -166,7 +172,10 @@ describe('db update consent', () => {
       expect(run.exitCode).toBe(0);
       expect(envelopeOf(run.json)).toMatchObject({ ok: true, result: { mode: 'apply' } });
       expect(mocks.connect).toHaveBeenCalledTimes(1);
-      expect(applyCalls().map((call) => call.acceptDataLoss)).toEqual([undefined, true]);
+      expect(applyCalls().map((call) => call.consent)).toEqual([
+        undefined,
+        { planHash: PLAN_HASH },
+      ]);
     });
 
     /**
@@ -190,9 +199,9 @@ describe('db update consent', () => {
       const warning = 'Column user.legacy is dropped without a backfill';
       mocks.dbUpdate
         .mockReset()
-        .mockImplementation((options: { acceptDataLoss?: boolean }) =>
+        .mockImplementation((options: { consent?: { planHash: string } }) =>
           Promise.resolve(
-            options.acceptDataLoss === true
+            options.consent?.planHash === PLAN_HASH
               ? ok(applySuccess())
               : notOk(destructiveRefusal({ warnings: [{ summary: warning }] })),
           ),
@@ -260,7 +269,10 @@ describe('db update consent', () => {
 
       expect(run.exitCode).toBe(0);
       expect(envelopeOf(run.json)).toMatchObject({ ok: true, result: { mode: 'apply' } });
-      expect(applyCalls().map((call) => call.acceptDataLoss)).toEqual([undefined, true]);
+      expect(applyCalls().map((call) => call.consent)).toEqual([
+        undefined,
+        { planHash: PLAN_HASH },
+      ]);
     });
 
     it('refuses when --confirm carries another name', async () => {
@@ -298,67 +310,55 @@ describe('db update consent', () => {
       });
 
       expect(run.exitCode).toBe(0);
-      expect(applyCalls().map((call) => call.acceptDataLoss)).toEqual([undefined, true]);
+      expect(applyCalls().map((call) => call.consent)).toEqual([
+        undefined,
+        { planHash: PLAN_HASH },
+      ]);
     });
   });
 
   describe('the consent token', () => {
-    it('follows --db rather than the configured connection', async () => {
-      const run = await harness().run(
-        ['db', 'update', '--db', 'postgres://host/otherdb', '--json'],
-        {
-          cwd: projectDir,
-        },
+    it('asks with the database name the refusal carries', async () => {
+      mocks.dbUpdate.mockReset().mockResolvedValue(
+        notOk(
+          destructiveRefusal({
+            destructiveChanges: {
+              destructiveOperations: [{ id: 'op-2', label: 'drop relation legacy' }],
+              databaseName: 'otherdb',
+              planHash: PLAN_HASH,
+            },
+          }),
+        ),
       );
+
+      const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
 
       expect(envelopeOf(run.json)).toMatchObject({
         ok: false,
         error: { meta: { consentToken: 'otherdb' } },
       });
     });
-
-    it('names the server when the URL carries no database name', async () => {
-      const run = await harness(ormConfig({ db: { connection: 'postgres://localhost:5432' } })).run(
-        ['db', 'update', '--json'],
-        { cwd: projectDir },
-      );
-
-      expect(envelopeOf(run.json)).toMatchObject({
-        ok: false,
-        error: { meta: { consentToken: 'localhost:5432' } },
-      });
-    });
-
-    it('takes the database a driver connection object names', async () => {
-      const run = await harness(
-        ormConfig({ db: { connection: { host: 'localhost', database: 'appdb' } } }),
-      ).run(['db', 'update', '--json'], { cwd: projectDir });
-
-      expect(envelopeOf(run.json)).toMatchObject({
-        ok: false,
-        error: { meta: { consentToken: TOKEN } },
-      });
-    });
-
-    it('falls back to the target id when the connection identifies nothing', async () => {
-      const run = await harness(ormConfig({ db: { connection: { host: 'localhost' } } })).run(
-        ['db', 'update', '--json'],
-        { cwd: projectDir },
-      );
-
-      expect(envelopeOf(run.json)).toMatchObject({
-        ok: false,
-        error: { meta: { consentToken: 'postgres' } },
-      });
-    });
   });
 
   describe('when the question would be unanswerable', () => {
     it('refuses rather than ask for a blank token', async () => {
-      const run = await harness(ormConfig({ db: { connection: 'postgres://host/%20' } })).run(
-        ['db', 'update', '--json'],
-        { cwd: projectDir, isTty: { stdin: true }, answers: [TOKEN] },
+      mocks.dbUpdate.mockReset().mockResolvedValue(
+        notOk(
+          destructiveRefusal({
+            destructiveChanges: {
+              destructiveOperations: [{ id: 'op-2', label: 'drop relation legacy' }],
+              databaseName: undefined,
+              planHash: PLAN_HASH,
+            },
+          }),
+        ),
       );
+
+      const run = await harness().run(['db', 'update', '--json'], {
+        cwd: projectDir,
+        isTty: { stdin: true },
+        answers: [TOKEN],
+      });
 
       expect(run.exitCode).toBe(2);
       expect(envelopeOf(run.json)).toMatchObject({
@@ -369,9 +369,17 @@ describe('db update consent', () => {
     });
 
     it('refuses rather than ask about operations the refusal did not name', async () => {
-      mocks.dbUpdate
-        .mockReset()
-        .mockResolvedValue(notOk(destructiveRefusal({ meta: { destructiveOperations: [] } })));
+      mocks.dbUpdate.mockReset().mockResolvedValue(
+        notOk(
+          destructiveRefusal({
+            destructiveChanges: {
+              destructiveOperations: [],
+              databaseName: TOKEN,
+              planHash: PLAN_HASH,
+            },
+          }),
+        ),
+      );
 
       const run = await harness().run(['db', 'update', '--json'], {
         cwd: projectDir,
@@ -389,12 +397,14 @@ describe('db update consent', () => {
   });
 
   describe('when the applied plan is not the plan consented to', () => {
-    it('warns, naming the destructive operation the consent did not cover', async () => {
+    it('surfaces the control API`s typed mismatch refusal as an error', async () => {
       mocks.dbUpdate
         .mockReset()
-        .mockImplementation((options: { acceptDataLoss?: boolean }) =>
+        .mockImplementation((options: { consent?: { planHash: string } }) =>
           Promise.resolve(
-            options.acceptDataLoss === true ? ok(driftedSuccess()) : notOk(destructiveRefusal()),
+            options.consent === undefined
+              ? notOk(destructiveRefusal())
+              : notOk(planMismatchFailure()),
           ),
         );
 
@@ -404,14 +414,18 @@ describe('db update consent', () => {
         answers: [TOKEN],
       });
 
-      expect(run.exitCode).toBe(0);
-      expect(warnTexts(run.events)).toContain(
-        'Applied 1 destructive operation(s) your consent did not cover: drop table archive. ' +
-          'The plan is recomputed after consent, so it can differ from the one you approved.',
-      );
+      expect(run.exitCode).toBe(2);
+      expect(envelopeOf(run.json)).toMatchObject({
+        ok: false,
+        error: { code: 'MIGRATION.CONSENT_PLAN_MISMATCH' },
+      });
+      expect(applyCalls().map((call) => call.consent)).toEqual([
+        undefined,
+        { planHash: PLAN_HASH },
+      ]);
     });
 
-    it('says nothing when the applied plan is the one consented to', async () => {
+    it('carries the consented plan through the re-run untouched', async () => {
       const run = await harness().run(['db', 'update', '--json'], {
         cwd: projectDir,
         isTty: { stdin: true },
@@ -451,7 +465,7 @@ describe('db update consent', () => {
 
       expect(run.exitCode).toBe(0);
       expect(applyCalls()).toHaveLength(1);
-      expect(applyCalls()[0]?.acceptDataLoss).toBeUndefined();
+      expect(applyCalls()[0]?.consent).toBeUndefined();
       expect(run.stderr).not.toContain('confirm');
     });
 

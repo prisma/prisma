@@ -3,6 +3,7 @@ import { assertNever } from '@internal/utils/internal-error';
 import type { DbUpdateFailure } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import {
+  errorConsentPlanMismatch,
   errorDestructiveChanges,
   errorMigrationPlanningFailed,
   errorRunnerFailed,
@@ -50,7 +51,23 @@ export function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError
     return errorDestructiveChanges(failure.summary, {
       ...ifDefined('why', failure.why),
       fix: 'Re-run `prisma-next db update` and type the database name when asked, or pass `--no-interactive --confirm <database>` where there is nobody to ask. Use `--dry-run` to preview the operations first.',
-      ...ifDefined('meta', failure.meta),
+      ...(failure.destructiveChanges
+        ? {
+            meta: {
+              destructiveOperations: failure.destructiveChanges.destructiveOperations,
+              databaseName: failure.destructiveChanges.databaseName,
+              planHash: failure.destructiveChanges.planHash,
+            },
+          }
+        : {}),
+    });
+  }
+
+  if (failure.code === 'CONSENT_PLAN_MISMATCH') {
+    return errorConsentPlanMismatch({
+      consentedPlanHash: failure.consentPlanMismatch?.consentedPlanHash ?? '',
+      planHash: failure.consentPlanMismatch?.planHash ?? '',
+      ...ifDefined('why', failure.why),
     });
   }
 

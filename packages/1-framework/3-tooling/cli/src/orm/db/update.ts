@@ -24,15 +24,10 @@ import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { normalizeError } from '../normalize-error';
 import { controlProgressReporter } from '../progress';
-import type { DestructiveOperation } from './consent';
 import {
   destructiveConsentQuestion,
-  destructiveConsentToken,
-  destructiveOperationsIn,
   errorConsentOperationsMissing,
   errorConsentTokenUnresolved,
-  unconsentedDestructiveOperations,
-  unconsentedDestructiveWarning,
 } from './consent';
 import { migrationResultBlocks, migrationResultNextActions } from './migration-blocks';
 import { prepareMigrationRun } from './prepare';
@@ -183,12 +178,12 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
       try {
         await client.connect(dbConnection);
 
-        const update = (acceptDataLoss: boolean): Promise<DbUpdateResult> =>
+        const update = (consent?: { readonly planHash: string }): Promise<DbUpdateResult> =>
           client.dbUpdate({
             contract: contractJson,
             mode,
             migrationsDir,
-            ...(acceptDataLoss ? { acceptDataLoss: true } : {}),
+            ...(consent === undefined ? {} : { consent }),
             onProgress: controlProgressReporter(ctx.report),
           });
 
@@ -207,50 +202,34 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           }
         };
 
-        let result = await update(false);
-        let consented: readonly DestructiveOperation[] | undefined;
+        let result = await update();
         // The destructive verdict is the planner's, so it arrives only after the
         // connection is open. Consent is asked for on that same connection and
-        // the plan is re-run carrying it — one connection, no re-invocation. Only
+        // the apply is re-run carrying the refused plan's hash — the control API
+        // refuses if the plan it is about to apply is no longer that plan. Only
         // an apply can ask: a dry run has nothing to authorise.
         if (mode === 'apply' && !result.ok && result.failure.code === 'DESTRUCTIVE_CHANGES') {
           reportPlannerWarnings(result.failure.warnings ?? []);
-          const operations = destructiveOperationsIn(result.failure.meta);
-          if (operations.length === 0) {
+          const refusal = result.failure.destructiveChanges;
+          if (refusal === undefined || refusal.destructiveOperations.length === 0) {
             return notOk(normalizeError(errorConsentOperationsMissing()));
           }
-          const token = destructiveConsentToken(dbConnection, ctx.config.target.targetId);
+          const token = refusal.databaseName ?? '';
           if (token.trim().length === 0) {
             return notOk(normalizeError(errorConsentTokenUnresolved(ctx.config.target.targetId)));
           }
-          const granted = await ctx.prompt.consent(destructiveConsentQuestion(operations, token), {
-            token,
-          });
+          const granted = await ctx.prompt.consent(
+            destructiveConsentQuestion(refusal.destructiveOperations, token),
+            { token },
+          );
           if (!granted) {
             return notOk(normalizeError(mapDbUpdateFailure(result.failure)));
           }
-          consented = operations;
-          result = await update(true);
+          result = await update({ planHash: refusal.planHash });
         }
         if (!result.ok) {
           reportPlannerWarnings(result.failure.warnings ?? []);
           return notOk(normalizeError(mapDbUpdateFailure(result.failure)));
-        }
-        if (consented !== undefined) {
-          // Nothing binds the applied plan to the consented one — the second call
-          // re-reads markers and re-introspects, so it plans afresh. The operator
-          // at least learns which drops their consent did not cover.
-          const unconsented = unconsentedDestructiveOperations(
-            consented,
-            result.value.plan.operations,
-          );
-          if (unconsented.length > 0) {
-            ctx.report({
-              kind: 'message',
-              severity: 'warn',
-              text: unconsentedDestructiveWarning(unconsented),
-            });
-          }
         }
 
         const advancementHash =

@@ -11,6 +11,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { notOk } from '@internal/utils/result';
 import type { DbUpdateResult, OnControlProgress } from '../types';
 import { executeRun } from './db-run';
+import { computePlanHash } from './plan-identity';
 
 const DB_UPDATE_POLICY = {
   allowedOperationClasses: ['additive', 'widening', 'destructive'] as const,
@@ -38,6 +39,12 @@ export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId exte
   >;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<TFamilyId, TTargetId>>;
   readonly acceptDataLoss?: boolean;
+  /**
+   * Consent to the plan a prior `DESTRUCTIVE_CHANGES` refusal named by its
+   * `planHash`. The apply recomputes its plan and refuses with
+   * `CONSENT_PLAN_MISMATCH` when the fresh plan differs.
+   */
+  readonly consent?: { readonly planHash: string };
   readonly migrationsDir: string;
   readonly targetId: TTargetId;
   readonly extensions?: ReadonlyArray<ControlExtensionDescriptor<TFamilyId, TTargetId>>;
@@ -70,13 +77,14 @@ export async function executeDbUpdate<TFamilyId extends string, TTargetId extend
     action: 'dbUpdate' as const,
     ...ifDefined('onProgress', options.onProgress),
   };
-  if (options.mode === 'apply' && !options.acceptDataLoss) {
-    const gate = await guardDestructiveChanges<TFamilyId, TTargetId>(sharedInputs);
-    if (gate !== null) return gate;
+  if (options.mode === 'apply' && !options.acceptDataLoss && options.consent === undefined) {
+    const refusal = await guardDestructiveChanges<TFamilyId, TTargetId>(sharedInputs);
+    if (refusal !== null) return refusal;
   }
   return (await executeRun<TFamilyId, TTargetId>({
     ...sharedInputs,
     mode: options.mode,
+    ...ifDefined('consentedPlanHash', options.consent?.planHash),
   })) as DbUpdateResult;
 }
 
@@ -99,11 +107,21 @@ async function guardDestructiveChanges<TFamilyId extends string, TTargetId exten
     .filter((op) => op.operationClass === 'destructive')
     .map((op) => ({ id: op.id, label: op.label }));
   if (destructiveOps.length === 0) return null;
+  const databaseName = await sharedInputs.driver.databaseName?.();
   return notOk({
     code: 'DESTRUCTIVE_CHANGES',
     summary: `Planned ${destructiveOps.length} destructive operation(s) that require confirmation`,
     why: 'Destructive operations require explicit consent, which the caller has not given',
     conflicts: undefined,
-    meta: { destructiveOperations: destructiveOps },
+    meta: undefined,
+    destructiveChanges: {
+      destructiveOperations: destructiveOps,
+      databaseName,
+      planHash: computePlanHash({
+        operations: planResult.value.plan.operations,
+        destination: planResult.value.destination,
+      }),
+    },
+    ...ifDefined('warnings', planResult.value.warnings),
   });
 }

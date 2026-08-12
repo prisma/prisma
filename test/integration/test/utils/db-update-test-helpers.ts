@@ -1,4 +1,4 @@
-import { destructiveConsentToken, loadOrmConfig, ormCommandFamily } from '@internal/cli';
+import { loadOrmConfig, ormCommandFamily } from '@internal/cli';
 import { ifDefined } from '@internal/utils/defined';
 import type { StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
@@ -118,12 +118,16 @@ export async function runDbUpdate(
 export const runDbUpdateAllowFailure = runDbUpdate;
 
 /**
- * What `db update` asks the user to type before it destroys anything, derived by
- * the command's own rule rather than a second copy of it. A run that means to
- * accept data loss passes it as `--confirm`, because `--yes` cannot grant a
- * consent. These suites all run against Postgres, so `postgres` is the target id
- * the rule would fall back to.
+ * What `db update` asks the user to type before it destroys anything: the name
+ * of the connected database, which for these Postgres-backed tests is the
+ * database segment of the connection URL. A run that means to accept data loss
+ * passes it as `--confirm`, because `--yes` cannot grant a consent.
  */
 export function consentTokenFor(connectionString: string): string {
-  return destructiveConsentToken(connectionString, 'postgres');
+  const parsed = new URL(connectionString);
+  const name = parsed.pathname.split('/').filter((segment) => segment.length > 0)[0];
+  if (name === undefined) {
+    throw new Error(`Connection URL names no database: ${connectionString}`);
+  }
+  return decodeURIComponent(name);
 }

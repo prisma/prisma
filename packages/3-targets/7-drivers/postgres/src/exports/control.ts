@@ -26,6 +26,12 @@ export class PostgresControlDriver implements SqlControlDriverInstance<'postgres
     }
   }
 
+  async databaseName(): Promise<string | undefined> {
+    const result = await this.query<{ name: unknown }>('select current_database() as name');
+    const name = result.rows[0]?.name;
+    return typeof name === 'string' && name.length > 0 ? name : undefined;
+  }
+
   async close(): Promise<void> {
     // On a dropped connection end() itself can reject; the caller already has
     // the real failure.
