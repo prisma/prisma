@@ -1,7 +1,6 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  parseJsonObjectFromCliCapture,
   setupCommandMocks,
   setupTestDirectoryFromFixtures,
   withTempDir,
@@ -24,13 +23,12 @@ import { runDbUpdateAllowFailure, setupDbUpdateFixture } from './utils/db-update
  */
 withTempDir(({ createTempDir }) => {
   describe('db update command - contract-space verifier wiring', () => {
-    let consoleOutput: string[] = [];
     let cleanupMocks: () => void;
 
+    // The emit step still runs on the commander shell, whose output goes to
+    // the console this keeps out of the test log.
     beforeEach(() => {
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      cleanupMocks = mocks.cleanup;
+      cleanupMocks = setupCommandMocks().cleanup;
     });
 
     afterEach(() => {
@@ -69,17 +67,10 @@ withTempDir(({ createTempDir }) => {
             'db-init',
           );
 
-          consoleOutput.length = 0;
+          const run = await runDbUpdateAllowFailure(testSetup, ['--config', configPath, '--json']);
+          expect(run.exitCode).not.toBe(0);
 
-          const exitCode = await runDbUpdateAllowFailure(testSetup, [
-            '--config',
-            configPath,
-            '--json',
-            '--no-color',
-          ]);
-          expect(exitCode).not.toBe(0);
-
-          const errorJson = parseJsonObjectFromCliCapture(consoleOutput) as Record<string, unknown>;
+          const errorJson = run.document as Record<string, unknown>;
 
           expect(errorJson).toMatchObject({
             code: 'MIGRATION.CONTRACT_SPACE_VIOLATION',
@@ -121,17 +112,10 @@ withTempDir(({ createTempDir }) => {
             process.chdir(originalCwd);
           }
 
-          consoleOutput.length = 0;
+          const run = await runDbUpdateAllowFailure(testSetup, ['--config', configPath, '--json']);
+          expect(run.exitCode).not.toBe(0);
 
-          const exitCode = await runDbUpdateAllowFailure(testSetup, [
-            '--config',
-            configPath,
-            '--json',
-            '--no-color',
-          ]);
-          expect(exitCode).not.toBe(0);
-
-          const errorJson = parseJsonObjectFromCliCapture(consoleOutput) as Record<string, unknown>;
+          const errorJson = run.document as Record<string, unknown>;
 
           expect(String(errorJson['code'])).toMatch(/^MIGRATION\.CONTRACT_SPACE/);
           const meta = errorJson['meta'] as

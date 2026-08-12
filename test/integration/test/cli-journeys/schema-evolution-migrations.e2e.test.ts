@@ -68,7 +68,7 @@ withTempDir(({ createTempDir }) => {
         // B.02: migration plan --name add-name-column
         const plan = await runMigrationPlan(ctx, ['--name', 'add-name-column']);
         expect(plan.exitCode, 'B.02: migration plan').toBe(0);
-        expect(stripAnsi(plan.stdout), 'B.02: shows migration').toContain('add-name-column');
+        expect(stripAnsi(plan.stderr), 'B.02: shows migration').toContain('add-name-column');
 
         // B.03: migration show (explicit target — latest planned migration)
         const showTarget = getLatestMigrationDir(ctx);
@@ -85,7 +85,7 @@ withTempDir(({ createTempDir }) => {
         // B.05: migration status (pre-apply — shows pending migration)
         const statusPreApply = await runMigrationStatus(ctx);
         expect(statusPreApply.exitCode, 'B.05: migration status pre-apply').toBe(0);
-        expect(stripAnsi(statusPreApply.stdout), 'B.05: shows pending').toContain('pending');
+        expect(stripAnsi(statusPreApply.stderr), 'B.05: shows pending').toContain('pending');
 
         // B.06: migration apply
         const apply = await runMigrate(ctx);
@@ -94,7 +94,7 @@ withTempDir(({ createTempDir }) => {
         // B.07: migration status (all applied)
         const statusApplied = await runMigrationStatus(ctx);
         expect(statusApplied.exitCode, 'B.07: migration status applied').toBe(0);
-        expect(stripAnsi(statusApplied.stdout), 'B.07: shows applied').toContain('applied');
+        expect(stripAnsi(statusApplied.stderr), 'B.07: shows applied').toContain('applied');
 
         // B.08: db verify
         const dbVerify = await runDbVerify(ctx);

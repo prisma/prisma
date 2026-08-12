@@ -11,7 +11,7 @@ import {
   legacySkillDirs,
   RETIRED_SKILL_NAMES,
   resolveProjectSkillInstallCommands,
-} from '../../../src/commands/init/skill-install';
+} from '../../../src/commands/init/skill-sources';
 
 const PRESERVED_ENV = ['PRISMA_NEXT_SKILLS_BASE'] as const;
 

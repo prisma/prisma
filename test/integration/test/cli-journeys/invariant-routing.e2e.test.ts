@@ -22,6 +22,7 @@ import { storageHashHex } from '@prisma/orm-postgres/components/control';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  engineError,
   injectMigrationSqlDbSetup,
   type JourneyContext,
   migrationStatusAppSpace,
@@ -306,8 +307,9 @@ withTempDir(({ createTempDir }) => {
         // P.06: status --ref prod is fatal too (parity with apply).
         const statusFail = await runMigrationStatus(ctx, ['--to', 'prod', '--json']);
         expect(statusFail.exitCode, 'P.06: status exits 2').toBe(2);
-        const statusEnvelope = parseJsonOutput<{ code?: string }>(statusFail);
-        expect(statusEnvelope.code, 'P.06: status error code').toBe('MIGRATION.UNKNOWN_INVARIANT');
+        expect(engineError(statusFail)?.code, 'P.06: status error code').toBe(
+          'MIGRATION.UNKNOWN_INVARIANT',
+        );
       },
       timeouts.spinUpPpgDev,
     );

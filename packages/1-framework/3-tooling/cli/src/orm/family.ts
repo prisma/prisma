@@ -6,13 +6,18 @@ import { contractEmitCommand } from './contract/emit';
 import { contractInferCommand } from './contract/infer';
 import { dbInitCommand } from './db/init';
 import { dbSchemaCommand } from './db/schema';
+import { dbUpdateCommand } from './db/update';
 import { formatCommand } from './format';
+import { initCommand } from './init';
 import { lspCommand } from './lsp';
 import { migrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
+import { migrationNewCommand } from './migration/new';
+import { migrationPlanCommand } from './migration/plan';
 import { migrationShowCommand } from './migration/show';
+import { migrationStatusCommand } from './migration/status';
 import { refDeleteCommand } from './ref/delete';
 import { refListCommand } from './ref/list';
 import { refSetCommand } from './ref/set';
@@ -28,13 +33,18 @@ const commands: Readonly<Record<string, AnyCommand>> = {
   'contract infer': contractInferCommand,
   'db init': dbInitCommand,
   'db schema': dbSchemaCommand,
+  'db update': dbUpdateCommand,
   format: formatCommand,
+  init: initCommand,
   lsp: lspCommand,
   migrate: migrateCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,
   'migration log': migrationLogCommand,
+  'migration new': migrationNewCommand,
+  'migration plan': migrationPlanCommand,
   'migration show': migrationShowCommand,
+  'migration status': migrationStatusCommand,
   'ref delete': refDeleteCommand,
   'ref list': refListCommand,
   'ref set': refSetCommand,
@@ -45,10 +55,8 @@ const commands: Readonly<Record<string, AnyCommand>> = {
  * rather than a spelling suggestion. Replacements name the binary as `{bin}`;
  * the engine substitutes the shell's own name.
  *
- * The four retired `migration status` flags (`--graph`, `--all`, `--limit`,
- * `--ref`) are missing on purpose: the engine only accepts a flag redirect
- * whose command is mounted, and `migration status` is not ported yet. They
- * belong with that command.
+ * The four flag redirects name `migration status`, which the engine requires
+ * to be a mounted command.
  */
 const redirects: readonly RedirectSpec[] = [
   {
@@ -60,6 +68,30 @@ const redirects: readonly RedirectSpec[] = [
     from: 'migration ref',
     replacement: '{bin} ref set|list|delete',
     reason: 'Refs are managed by their own command, for every space rather than migrations alone.',
+  },
+  {
+    from: 'migration status',
+    flag: 'graph',
+    replacement: '{bin} migration graph',
+    reason: 'Topology is its own command rather than a mode of the status report.',
+  },
+  {
+    from: 'migration status',
+    flag: 'all',
+    replacement: '{bin} migration log --db <url>',
+    reason: 'Execution history is read from the database ledger, which is what migration log does.',
+  },
+  {
+    from: 'migration status',
+    flag: 'limit',
+    replacement: '{bin} migration log --db <url>',
+    reason: 'Execution history is read from the database ledger, which is what migration log does.',
+  },
+  {
+    from: 'migration status',
+    flag: 'ref',
+    replacement: '{bin} migration status --to <contract>',
+    reason: 'One flag names the target contract, whether it is a ref, a hash or a migration.',
   },
 ];
 

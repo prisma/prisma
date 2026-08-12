@@ -23,6 +23,7 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  consentTokenFor,
   type JourneyContext,
   parseJsonOutput,
   runContractEmit,
@@ -64,7 +65,7 @@ withTempDir(({ createTempDir }) => {
         // D.02: db update --dry-run
         const dryRun = await runDbUpdate(ctx, ['--dry-run']);
         expect(dryRun.exitCode, 'D.02: db update dry-run').toBe(0);
-        expect(stripAnsi(dryRun.stdout), 'D.02: shows planned ops').toContain('Planned');
+        expect(stripAnsi(dryRun.stderr), 'D.02: shows planned ops').toContain('Planned');
 
         // D.03: db update
         const update = await runDbUpdate(ctx);
@@ -111,21 +112,28 @@ withTempDir(({ createTempDir }) => {
         const dryRun = await runDbUpdate(ctx, ['--dry-run']);
         expect(dryRun.exitCode, 'E.02: db update dry-run').toBe(0);
 
-        // E.03: db update --no-interactive (without -y) — fails with destructive changes
-        const noInteractive = await runDbUpdate(ctx, ['--no-interactive']);
+        // E.03: db update --no-interactive — nobody to ask, so consent is required
+        const noInteractive = await runDbUpdate(ctx, ['--json', '--no-interactive']);
         expect(noInteractive.exitCode, 'E.03: non-interactive destructive fails').toBe(2);
+        expect(parseJsonOutput(noInteractive), 'E.03: consent error').toMatchObject({
+          code: 'CLI.CONSENT_REQUIRED',
+        });
 
-        // E.04: db update --json — destructive changes, no prompt, returns error
-        const jsonDestructive = await runDbUpdate(ctx, ['--json']);
-        expect(jsonDestructive.exitCode, 'E.04: json destructive error').toBe(2);
-        const jsonError = parseJsonOutput(jsonDestructive);
-        expect(jsonError, 'E.04: error envelope').toMatchObject({ ok: false });
+        // E.04: db update --yes — --yes accepts declared defaults, never data loss
+        const yesAlone = await runDbUpdate(ctx, ['--json', '--yes']);
+        expect(yesAlone.exitCode, 'E.04: --yes does not grant consent').toBe(2);
+        expect(parseJsonOutput(yesAlone), 'E.04: consent error').toMatchObject({
+          code: 'CLI.CONSENT_REQUIRED',
+        });
 
-        // E.05: db update --json -y — auto-accept, returns success
-        const jsonAccept = await runDbUpdate(ctx, ['--json', '-y']);
-        expect(jsonAccept.exitCode, 'E.05: json accept').toBe(0);
-        const jsonSuccess = parseJsonOutput(jsonAccept);
-        expect(jsonSuccess, 'E.05: success envelope').toMatchObject({ ok: true });
+        // E.05: db update --confirm <database> — the non-interactive grant
+        const confirmed = await runDbUpdate(ctx, [
+          '--json',
+          '--confirm',
+          consentTokenFor(db.connectionString),
+        ]);
+        expect(confirmed.exitCode, 'E.05: --confirm applies').toBe(0);
+        expect(parseJsonOutput(confirmed), 'E.05: success envelope').toMatchObject({ ok: true });
       },
       timeouts.spinUpPpgDev,
     );

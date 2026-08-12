@@ -18,6 +18,17 @@ export function appMigrationsDirFor(config: PrismaNextConfig, cwd: string): stri
 }
 
 /**
+ * The config file an operation should anchor its project paths on. The engine
+ * loads the config and hands a handler the value but not the path, and
+ * `--config` is an engine flag the handler never sees, so a handler names the
+ * invocation directory's file. That equals the loaded file for every
+ * invocation whose config sits in the invocation directory.
+ */
+export function projectConfigPathFor(cwd: string): string {
+  return resolve(cwd, 'prisma-next.config.ts');
+}
+
+/**
  * Where refs live. The framework keeps them under the app subspace rather than
  * at the migrations root.
  */
