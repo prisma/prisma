@@ -96,12 +96,26 @@ describe('a retired invocation', () => {
 
     const run = await harness(loader.loadConfig).run(['migration', 'apply', '--json']);
 
-    expect(run.exitCode).not.toBe(0);
+    expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
       kind: 'result',
-      envelope: { ok: false },
+      envelope: {
+        ok: false,
+        error: {
+          code: 'CLI.COMMAND_MOVED',
+          summary: '`migration apply` has been replaced',
+          why: 'Applying a migration is a move to a target contract, not a verb of its own.',
+          nextActions: [
+            {
+              kind: 'run-command',
+              label: 'Use the replacement',
+              command: 'prisma-test migrate --to <contract>',
+            },
+          ],
+        },
+      },
     });
-    expect(JSON.stringify(run.json)).toContain('migrate --to <contract>');
+    expect(JSON.stringify(run.json)).not.toContain('Did you mean');
   });
 });
 
