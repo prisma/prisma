@@ -1374,6 +1374,27 @@ importers:
         specifier: 'catalog:'
         version: 4.1.10(@types/node@26.1.2)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
+  packages/1-framework/3-tooling/cli/test/fixture-app:
+    dependencies:
+      '@prisma/orm-mongo':
+        specifier: workspace:8.0.0-rc.1
+        version: link:../../../../../9-public/@prisma/orm-mongo
+      '@prisma/orm-postgres':
+        specifier: workspace:8.0.0-rc.1
+        version: link:../../../../../9-public/@prisma/orm-postgres
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
+      mongodb:
+        specifier: 'catalog:'
+        version: 7.5.0(socks@2.8.9)
+      pg:
+        specifier: 'catalog:'
+        version: 8.22.0
+
   packages/1-framework/3-tooling/config-loader:
     dependencies:
       '@internal/config':
@@ -8302,9 +8323,6 @@ packages:
   '@types/leaflet@1.9.22':
     resolution: {integrity: sha512-h3lhECYEKDasG7LFHu+GiHqAvsgLuQvlJvVZzJDGONo3sEL+wUOqSFLnwkZlK0qVxnxbuGFW8iBlJNYs5wgndA==}
 
-  '@types/node@26.1.1':
-    resolution: {integrity: sha512-nxAkRSVkN1Y0JC1W8ky/fTfkGsMmcrRsbx+3XoZE+rMOX71kLYTV7fLXpqud1GpbpP5TuffXFqfX7fH2GgZREw==}
-
   '@types/node@26.1.2':
     resolution: {integrity: sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==}
 
@@ -13435,17 +13453,13 @@ snapshots:
     dependencies:
       '@types/geojson': 7946.0.16
 
-  '@types/node@26.1.1':
-    dependencies:
-      undici-types: 8.3.0
-
   '@types/node@26.1.2':
     dependencies:
       undici-types: 8.3.0
 
   '@types/pg-cursor@2.7.2':
     dependencies:
-      '@types/node': 26.1.1
+      '@types/node': 26.1.2
       '@types/pg': 8.20.4
 
   '@types/pg@8.20.4':
