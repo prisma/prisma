@@ -1,3 +1,4 @@
+import { ifDefined } from '@internal/utils/defined';
 import { defineServerCommand, flag } from '@prisma/cli-engine';
 
 /**
@@ -28,30 +29,60 @@ export const lspCommand = defineServerCommand({
   },
   args: {
     flags: {
-      // The only launch argument accepted. `vscode-languageclient` appends
-      // `--clientProcessId=<pid>` to every server its NodeModule form spawns,
-      // and that launch fails here — as it does on the commander shell, which
-      // refuses it as an unknown option. Declaring the flag is not the fix on
-      // its own: `vscode-languageserver/node` reads that argument off
-      // `process.argv` when it is imported and starts a three-second interval
-      // to watch the parent, which outlives the conversation and leaves this
-      // bin — which returns rather than ending the process — hanging on a
-      // settled run.
       stdio: flag.boolean({
         brief: 'Communicate with the editor over stdio (the default and only transport)',
       }),
+      // `vscode-languageclient` appends `--clientProcessId=<pid>` to every
+      // server its NodeModule form spawns; the scanner accepts the camelCase
+      // spelling it uses.
+      clientProcessId: flag.number({
+        brief: 'Process id of the editor that spawned the server; the server ends when it dies',
+        placeholder: 'pid',
+      }),
     },
   },
-  handler: async (_args, io) => {
-    // Lazy so `vscode-languageserver` stays off every other command's startup
-    // path — only this command pays its load cost.
-    const { startServer } = await import('@internal/language-server');
-    const exitCode = await startServer({
-      stdin: io.stdin,
-      stdout: io.stdout,
-      stderr: io.stderr,
-      signal: io.signal,
+  handler: async (args, io) => {
+    const exitCode = await withoutClientProcessIdInArgv(async () => {
+      // Lazy so `vscode-languageserver` stays off every other command's
+      // startup path — only this command pays its load cost.
+      const { startServer } = await import('@internal/language-server');
+      return startServer({
+        stdin: io.stdin,
+        stdout: io.stdout,
+        stderr: io.stderr,
+        signal: io.signal,
+        ...ifDefined('clientProcessId', args.flags.clientProcessId),
+      });
     });
     return io.signal.aborted ? signalExitCode(io.signal.reason) : exitCode;
   },
 });
+
+/**
+ * Importing `vscode-languageserver/node` reads `--clientProcessId` off
+ * `process.argv` and arms a parent-watch interval that is never unref'd, so a
+ * settled run would leave the process hanging. The server watches the client
+ * process itself (from the parsed flag), so the argument is hidden for the
+ * import and restored after.
+ */
+async function withoutClientProcessIdInArgv(run: () => Promise<number>): Promise<number> {
+  const original = process.argv;
+  const scrubbed: string[] = [];
+  for (let index = 0; index < original.length; index += 1) {
+    const token = original[index];
+    if (token === '--clientProcessId') {
+      index += 1;
+      continue;
+    }
+    if (token === undefined || token.startsWith('--clientProcessId=')) {
+      continue;
+    }
+    scrubbed.push(token);
+  }
+  process.argv = scrubbed;
+  try {
+    return await run();
+  } finally {
+    process.argv = original;
+  }
+}

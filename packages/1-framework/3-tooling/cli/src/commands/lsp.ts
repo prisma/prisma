@@ -21,6 +21,13 @@ export function createLspCommand(): Command {
   setCommandExamples(command, ['prisma-next lsp --stdio']);
   addGlobalOptions(command)
     .option('--stdio', 'Communicate with the editor over stdio (the default and only transport)')
+    // `vscode-languageclient` appends this to every server its NodeModule
+    // form spawns. `vscode-languageserver/node` reads it off `process.argv`
+    // itself and watches the parent; commander only needs to not refuse it.
+    .option(
+      '--clientProcessId <pid>',
+      'Process id of the editor that spawned the server; the server ends when it dies',
+    )
     .action(async () => {
       // Lazy import so `vscode-languageserver` stays off every other command's
       // startup path — only `prisma-next lsp` pays its load cost.

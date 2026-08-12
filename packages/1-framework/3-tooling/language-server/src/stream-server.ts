@@ -35,6 +35,21 @@ const stalledDispatchGraceMs = 50;
 const abortDrainDeadlineMs = 2_000;
 
 /**
+ * How often the client's process id is polled when the host handed one over.
+ * The same cadence `vscode-languageserver/node` uses for its own watch.
+ */
+const clientProcessPollMs = 3_000;
+
+function processAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Runs the server over the host's streams and resolves with the exit code the
  * client's departure implies. The host owns the process, so nothing here ends
  * it; every route out settles the promise instead.
@@ -60,6 +75,7 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
     let departure: (() => number) | undefined;
     let idleCheck: NodeJS.Timeout | undefined;
     let abortDeadline: NodeJS.Timeout | undefined;
+    let clientWatch: NodeJS.Timeout | undefined;
 
     function settle(code: number): void {
       if (settled) {
@@ -71,6 +87,9 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
       }
       if (abortDeadline !== undefined) {
         clearTimeout(abortDeadline);
+      }
+      if (clientWatch !== undefined) {
+        clearInterval(clientWatch);
       }
       releaseConsole();
       server.dispose();
@@ -183,6 +202,21 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
       streams.stderr.write(`Language server transport error: ${messageOf(error)}\n`);
       settleOnceIdle(() => 1);
     });
+
+    // A client that dies without closing the conversation left nobody to
+    // reply to, so a dead client settles the run directly rather than
+    // draining. Unref'd: the watch must never be what keeps the host alive.
+    const clientProcessId = streams.clientProcessId;
+    if (clientProcessId !== undefined) {
+      const settleIfClientGone = (): void => {
+        if (!processAlive(clientProcessId)) {
+          settle(departureCode());
+        }
+      };
+      clientWatch = setInterval(settleIfClientGone, clientProcessPollMs);
+      clientWatch.unref();
+      settleIfClientGone();
+    }
 
     // An abort still drains through the idle route when it can, but the host
     // has already decided to stop, so the drain gets a deadline: past it the

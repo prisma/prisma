@@ -99,16 +99,24 @@ describe('lsp', () => {
     expect(run.exitCode).toBe(0);
   });
 
-  // A recorded gap, not a decision: `vscode-languageclient` appends this to
-  // every server it spawns, and neither shell accepts it. Declaring the flag
-  // is not enough on its own — see the note on the command.
-  it('refuses the parent process id the standard editor client appends', async () => {
+  // `vscode-languageclient` appends `--clientProcessId=<pid>` to every server
+  // its NodeModule form spawns, spelled exactly like this.
+  it('accepts the parent process id the standard editor client appends', async () => {
     const run = await harness().run(['lsp', '--stdio', `--clientProcessId=${process.pid}`], {
       stdin: `${initialize}${shutdown}${exit}`,
     });
 
-    expect(parseFrames(run.stdout)).toEqual([]);
-    expect(run.exitCode).toBe(2);
+    expect(parseFrames(run.stdout)).toHaveLength(2);
+    expect(run.exitCode).toBe(0);
+  });
+
+  it('accepts the kebab-case spelling of the parent process id', async () => {
+    const run = await harness().run(['lsp', '--client-process-id', `${process.pid}`], {
+      stdin: `${initialize}${shutdown}${exit}`,
+    });
+
+    expect(parseFrames(run.stdout)).toHaveLength(2);
+    expect(run.exitCode).toBe(0);
   });
 
   describe('when a signal ends the run', () => {

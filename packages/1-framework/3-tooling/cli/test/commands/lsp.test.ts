@@ -15,6 +15,15 @@ describe('createLspCommand', () => {
     expect(flagNames).not.toContain('--config');
   });
 
+  // `vscode-languageclient` appends `--clientProcessId=<pid>` to every server
+  // its NodeModule form spawns; refusing it as an unknown option kills the
+  // launch.
+  it('accepts the parent process id the standard editor client appends', () => {
+    const command = createLspCommand();
+    const flagNames = command.options.map((option) => option.long);
+    expect(flagNames).toContain('--clientProcessId');
+  });
+
   it('describes diagnostics and whole-document formatting', () => {
     const command = createLspCommand();
     const description = getLongDescription(command);

@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { PassThrough } from 'node:stream';
 import { pathToFileURL } from 'node:url';
@@ -162,6 +163,38 @@ describe('startServer over injected streams', () => {
     stdin.end();
 
     await expect(exitCode).resolves.toBe(0);
+  });
+
+  it('runs the whole conversation while the watched client process is alive', async () => {
+    const stdin = new PassThrough();
+    const { client, stdout } = connectedClient(stdin);
+    const exitCode = startServer({
+      stdin,
+      stdout,
+      stderr: hostErrors(),
+      clientProcessId: process.pid,
+    });
+
+    await client.sendRequest(InitializeRequest.type, initializeParams);
+    await client.sendRequest(ShutdownRequest.type, undefined);
+    stdin.end();
+
+    await expect(exitCode).resolves.toBe(0);
+  });
+
+  it('settles when the watched client process is already gone', async () => {
+    const departed = spawnSync(process.execPath, ['-e', '']);
+    expect(departed.pid).toBeGreaterThan(0);
+    const stdin = new PassThrough();
+    const { stdout } = connectedClient(stdin);
+    const exitCode = startServer({
+      stdin,
+      stdout,
+      stderr: hostErrors(),
+      clientProcessId: departed.pid,
+    });
+
+    await expect(exitCode).resolves.toBe(1);
   });
 
   it('stops the server when the host had already aborted', async () => {

@@ -24,6 +24,13 @@ export interface LanguageServerStreams {
   readonly stdout: TextSink;
   readonly stderr: TextSink;
   readonly signal?: AbortSignal;
+  /**
+   * Process id of the editor that spawned the server — the value
+   * `vscode-languageclient` passes as `--clientProcessId`. When set, the run
+   * polls it and settles as a departed client if the editor dies without
+   * closing the conversation.
+   */
+  readonly clientProcessId?: number;
 }
 
 /**
