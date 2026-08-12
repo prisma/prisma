@@ -255,6 +255,11 @@ describe('migration list', () => {
     expect(rendered).toContain('Legend:');
     expect(rendered).toContain('  ○ contract   ↑ forward   ↓ rollback');
     expect(rendered.filter((line) => line.startsWith('- '))).toEqual([]);
+    const legendText = rendered.join('\n');
+    expect(legendText).toContain('@contract @db');
+    expect(legendText).toContain('(prod, staging)');
+    expect(legendText).toContain('reserved markers — also typeable as --from/--to tokens');
+    expect(legendText).toContain('user-defined refs');
   });
 
   it('errors with the dotted code when the space does not exist', async () => {
