@@ -46,7 +46,7 @@ beforeEach(() => {
 })
 
 test('is schema and env written on disk replace', async () => {
-  const recordedStdout = (await Init.new().parse([], defaultTestConfig())).toString()
+  const recordedStdout = (await Init.new('prisma').parse([], defaultTestConfig())).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
@@ -54,7 +54,7 @@ test('is schema and env written on disk replace', async () => {
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
-  expect(env).toMatch(await defaultEnv(undefined))
+  expect(env).toMatch(await defaultEnv(undefined, false, true, 'prisma'))
 
   const config = fs.readFileSync(join(ctx.tmpDir, 'prisma.config.ts'), 'utf-8')
   expect(config).toContain('prisma/schema.prisma')
@@ -79,7 +79,7 @@ test('is schema and env written on disk replace', async () => {
 
 test('works with url param', async () => {
   ctx.fixture('init')
-  const recordedStdout = (await Init.new().parse(['--url', 'file:dev.db'], defaultTestConfig())).toString()
+  const recordedStdout = (await Init.new('prisma').parse(['--url', 'file:dev.db'], defaultTestConfig())).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
@@ -126,7 +126,7 @@ test('works with url param', async () => {
 test('works with provider param - postgresql', async () => {
   ctx.fixture('init')
   const recordedStdout = (
-    await Init.new().parse(['--datasource-provider', 'postgresql'], defaultTestConfig())
+    await Init.new('prisma').parse(['--datasource-provider', 'postgresql'], defaultTestConfig())
   ).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
@@ -174,7 +174,7 @@ test('works with provider param - postgresql', async () => {
 test('works with provider param - cockroachdb', async () => {
   ctx.fixture('init')
   const recordedStdout = (
-    await Init.new().parse(['--datasource-provider', 'cockroachdb'], defaultTestConfig())
+    await Init.new('prisma').parse(['--datasource-provider', 'cockroachdb'], defaultTestConfig())
   ).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
@@ -206,7 +206,7 @@ test('works with provider param - cockroachdb', async () => {
 test('works with provider and url params - cockroachdb', async () => {
   ctx.fixture('init')
   const recordedStdout = (
-    await Init.new().parse(
+    await Init.new('prisma').parse(
       ['--datasource-provider', 'cockroachdb', '--url', 'postgres://prisma@localhost:26257/defaultdb'],
       defaultTestConfig(),
     )
@@ -240,7 +240,9 @@ test('works with provider and url params - cockroachdb', async () => {
 
 test('works with provider param - mysql', async () => {
   ctx.fixture('init')
-  const recordedStdout = (await Init.new().parse(['--datasource-provider', 'mysql'], defaultTestConfig())).toString()
+  const recordedStdout = (
+    await Init.new('prisma').parse(['--datasource-provider', 'mysql'], defaultTestConfig())
+  ).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
@@ -270,7 +272,9 @@ test('works with provider param - mysql', async () => {
 
 test('works with provider param - SQLITE', async () => {
   ctx.fixture('init')
-  const recordedStdout = (await Init.new().parse(['--datasource-provider', 'SQLITE'], defaultTestConfig())).toString()
+  const recordedStdout = (
+    await Init.new('prisma').parse(['--datasource-provider', 'SQLITE'], defaultTestConfig())
+  ).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
@@ -301,7 +305,7 @@ test('works with provider param - SQLITE', async () => {
 test('works with provider param - SqlServer', async () => {
   ctx.fixture('init')
   const recordedStdout = (
-    await Init.new().parse(['--datasource-provider', 'SqlServer'], defaultTestConfig())
+    await Init.new('prisma').parse(['--datasource-provider', 'SqlServer'], defaultTestConfig())
   ).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
@@ -332,7 +336,9 @@ test('works with provider param - SqlServer', async () => {
 
 test('works with provider param - MongoDB', async () => {
   ctx.fixture('init')
-  const recordedStdout = (await Init.new().parse(['--datasource-provider', 'MongoDB'], defaultTestConfig())).toString()
+  const recordedStdout = (
+    await Init.new('prisma').parse(['--datasource-provider', 'MongoDB'], defaultTestConfig())
+  ).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
@@ -362,12 +368,12 @@ test('works with provider param - MongoDB', async () => {
 
 test('errors with invalid provider param', async () => {
   ctx.fixture('init')
-  await expect(Init.new().parse(['--datasource-provider', 'INVALID'], defaultTestConfig())).rejects.toThrow()
+  await expect(Init.new('prisma').parse(['--datasource-provider', 'INVALID'], defaultTestConfig())).rejects.toThrow()
 })
 
 test('works with --with-model param postgresql', async () => {
   ctx.fixture('init')
-  const recordedStdout = (await Init.new().parse(['--with-model'], defaultTestConfig())).toString()
+  const recordedStdout = (await Init.new('prisma').parse(['--with-model'], defaultTestConfig())).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
@@ -382,7 +388,7 @@ test('works with --with-model param postgresql', async () => {
 test('works with --with-model param mongodb', async () => {
   ctx.fixture('init')
   const recordedStdout = (
-    await Init.new().parse(['--with-model', '--datasource-provider', 'MongoDB'], defaultTestConfig())
+    await Init.new('prisma').parse(['--with-model', '--datasource-provider', 'MongoDB'], defaultTestConfig())
   ).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
@@ -398,7 +404,7 @@ test('works with --with-model param mongodb', async () => {
 test('works with --with-model param cockroachdb', async () => {
   ctx.fixture('init')
   const recordedStdout = (
-    await Init.new().parse(['--with-model', '--datasource-provider', 'CockroachDB'], defaultTestConfig())
+    await Init.new('prisma').parse(['--with-model', '--datasource-provider', 'CockroachDB'], defaultTestConfig())
   ).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
@@ -414,7 +420,7 @@ test('works with --with-model param cockroachdb', async () => {
 test('works with generator param - `go run github.com/steebchen/prisma-client-go`', async () => {
   ctx.fixture('init')
   const recordedStdout = (
-    await Init.new().parse(
+    await Init.new('prisma').parse(
       ['--generator-provider', 'go run github.com/steebchen/prisma-client-go'],
       defaultTestConfig(),
     )
@@ -436,7 +442,9 @@ test('works with generator param - `go run github.com/steebchen/prisma-client-go
 
 test('works with preview features - mock test', async () => {
   ctx.fixture('init')
-  const recordedStdout = (await Init.new().parse(['--preview-feature', 'mock-123'], defaultTestConfig())).toString()
+  const recordedStdout = (
+    await Init.new('prisma').parse(['--preview-feature', 'mock-123'], defaultTestConfig())
+  ).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
@@ -455,7 +463,10 @@ test('works with preview features - mock test', async () => {
 test('works with preview features - multiple', async () => {
   ctx.fixture('init')
   const recordedStdout = (
-    await Init.new().parse(['--preview-feature', 'mock-123', '--preview-feature', 'mock-456'], defaultTestConfig())
+    await Init.new('prisma').parse(
+      ['--preview-feature', 'mock-123', '--preview-feature', 'mock-456'],
+      defaultTestConfig(),
+    )
   ).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
@@ -474,7 +485,7 @@ test('works with preview features - multiple', async () => {
 
 test('works with custom output', async () => {
   ctx.fixture('init')
-  const recordedStdout = (await Init.new().parse(['--output', './db'], defaultTestConfig())).toString()
+  const recordedStdout = (await Init.new('prisma').parse(['--output', './db'], defaultTestConfig())).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
@@ -492,7 +503,7 @@ test('works with custom output', async () => {
 
 test('warns when DATABASE_URL present in .env ', async () => {
   fs.writeFileSync(join(ctx.tmpDir, '.env'), `DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`)
-  const recordedStdout = (await Init.new().parse([], defaultTestConfig())).toString()
+  const recordedStdout = (await Init.new('prisma').parse([], defaultTestConfig())).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
@@ -509,7 +520,7 @@ test('warns when DATABASE_URL present in .env ', async () => {
 
 test('appends when .env present', async () => {
   fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMETHING="is here"`)
-  const recordedStdout = (await Init.new().parse([], defaultTestConfig())).toString()
+  const recordedStdout = (await Init.new('prisma').parse([], defaultTestConfig())).toString()
   expect(stripAnsi(recordedStdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
@@ -527,7 +538,7 @@ test('appends when .env present', async () => {
 
 test('writes a minimal .gitignore file', async () => {
   ctx.fixture('init')
-  await Init.new().parse([], defaultTestConfig())
+  await Init.new('prisma').parse([], defaultTestConfig())
   const gitignore = fs.readFileSync(join(ctx.tmpDir, '.gitignore'), 'utf-8')
   expect(gitignore).toMatchSnapshot()
 
@@ -541,7 +552,7 @@ test('do not replace .gitignore file if already present', async () => {
   const gitignorePath = join(ctx.tmpDir, '.gitignore')
   fs.writeFileSync(gitignorePath, `# This should not be overridden`)
   fs.readFileSync(gitignorePath, 'utf-8')
-  await Init.new().parse([], defaultTestConfig())
+  await Init.new('prisma').parse([], defaultTestConfig())
   const gitignoreAfter = fs.readFileSync(gitignorePath, 'utf-8')
   expect(gitignoreAfter).toMatchSnapshot()
 
@@ -552,7 +563,7 @@ test('do not replace .gitignore file if already present', async () => {
 
 test('uses determineClientOutputPath when no output is specified', async () => {
   ctx.fixture('client-output-path/with-lib')
-  await Init.new().parse([], defaultTestConfig())
+  await Init.new('prisma').parse([], defaultTestConfig())
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toContain('output   = "../lib/generated/prisma"')
 
@@ -562,7 +573,7 @@ test('uses determineClientOutputPath when no output is specified', async () => {
 })
 
 test('installs agent skills and lists them in the summary', async () => {
-  const recordedStdout = stripAnsi((await Init.new().parse([], defaultTestConfig())).toString())
+  const recordedStdout = stripAnsi((await Init.new('prisma').parse([], defaultTestConfig())).toString())
 
   expect(installSkills).toHaveBeenCalledTimes(1)
   expect(installSkills).toHaveBeenCalledWith({ cwd: ctx.tmpDir })
@@ -576,7 +587,7 @@ test('installs agent skills and lists them in the summary', async () => {
 })
 
 test('--no-skills skips the skills install', async () => {
-  const recordedStdout = stripAnsi((await Init.new().parse(['--no-skills'], defaultTestConfig())).toString())
+  const recordedStdout = stripAnsi((await Init.new('prisma').parse(['--no-skills'], defaultTestConfig())).toString())
 
   expect(installSkills).not.toHaveBeenCalled()
   expect(oraMock).not.toHaveBeenCalled()
@@ -588,7 +599,7 @@ test('failed skills install is non-fatal and prints the manual command', async (
   const manualCommand = "npx --yes skills add prisma/skills --skill '*' -y"
   vi.mocked(installSkills).mockResolvedValueOnce({ ok: false, manualCommand })
 
-  const recordedStdout = stripAnsi((await Init.new().parse([], defaultTestConfig())).toString())
+  const recordedStdout = stripAnsi((await Init.new('prisma').parse([], defaultTestConfig())).toString())
 
   expect(recordedStdout).toContain('Initialized Prisma in your project')
   expect(recordedStdout).not.toContain('skills-lock.json')
@@ -600,7 +611,7 @@ test('failed skills install is non-fatal and prints the manual command', async (
 })
 
 test('--help lists the --no-skills flag', async () => {
-  const help = (await Init.new().parse(['--help'], defaultTestConfig())).toString()
+  const help = (await Init.new('prisma').parse(['--help'], defaultTestConfig())).toString()
 
   expect(stripAnsi(help)).toContain('--no-skills')
 })

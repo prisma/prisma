@@ -53,6 +53,7 @@ import { Studio } from './Studio'
 import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray } from './utils/checkpoint'
+import { getCliDistributionIdentity } from './utils/cli-distribution-identity'
 import { loadOrInitializeCommandState } from './utils/commandState'
 import { UserFacingError } from './utils/errors'
 import { loadConfig } from './utils/loadConfig'
@@ -96,11 +97,13 @@ const args = arg(
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
 
+  const identity = getCliDistributionIdentity()
+
   const cli = CLI.new(
     {
-      bootstrap: Bootstrap.new(),
-      init: Init.new(),
-      mcp: Mcp.new(),
+      bootstrap: Bootstrap.new(identity),
+      init: Init.new(identity),
+      mcp: Mcp.new(identity),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
         status: MigrateStatus.new(),
@@ -116,22 +119,26 @@ async function main(): Promise<number> {
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
-      postgres: PostgresCommand.new({
-        link: PostgresLink.new(),
-      }),
-      generate: Generate.new(),
-      version: Version.new(),
-      validate: Validate.new(),
-      format: Format.new(),
+      postgres: PostgresCommand.new(
+        {
+          link: PostgresLink.new(identity),
+        },
+        identity,
+      ),
+      generate: Generate.new(identity),
+      version: Version.new(identity),
+      validate: Validate.new(identity),
+      format: Format.new(identity),
       telemetry: Telemetry.new(),
-      debug: DebugInfo.new(),
-      complete: Completions.new(),
-      dev: new SubCommand('@prisma/cli-dev'),
-      studio: Studio.new(),
-      platform: Platform.$.new({ status: Status.new() }),
+      debug: DebugInfo.new(identity),
+      complete: Completions.new(identity),
+      dev: new SubCommand('@prisma/cli-dev', identity),
+      studio: Studio.new(identity),
+      platform: Platform.$.new({ status: Status.new(identity) }, identity),
     },
     ['version', 'init', 'migrate', 'db', 'generate', 'validate', 'format', 'telemetry'],
     download,
+    identity,
   )
 
   await loadOrInitializeCommandState().catch((err) => {

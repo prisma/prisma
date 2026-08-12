@@ -3,11 +3,14 @@ import fs from 'fs'
 import { bold, yellow } from 'kleur/colors'
 import path from 'path'
 
-type LocalPackageName = 'prisma' | '@prisma/client'
+import type { CliDistributionIdentity } from './cli-distribution-identity'
+
+type LocalPackageName = CliDistributionIdentity | '@prisma/client'
 
 export type GlobalLocalVersionMismatchWarningOptions = {
   cwd?: string
   globalVersion: string
+  identity: CliDistributionIdentity
   isGlobalInstall?: () => 'npm' | false
   getInstalledPackageVersion?: (packageName: LocalPackageName, cwd: string) => Promise<string | null>
 }
@@ -18,7 +21,9 @@ type LocalPackageVersionMismatch = {
   localVersion: string
 }
 
-const LOCAL_PACKAGE_NAMES: LocalPackageName[] = ['prisma', '@prisma/client']
+function getLocalPackageNames(identity: CliDistributionIdentity): LocalPackageName[] {
+  return [identity, '@prisma/client']
+}
 
 export async function getGlobalLocalVersionMismatchWarning(
   options: GlobalLocalVersionMismatchWarningOptions,
@@ -33,10 +38,11 @@ export async function getGlobalLocalVersionMismatchWarning(
     return null
   }
 
+  const identity = options.identity
   const cwd = options.cwd ?? process.cwd()
   const getInstalledPackageVersion = options.getInstalledPackageVersion ?? getInstalledPackageVersionFromNodeModules
   const localVersions = await Promise.all(
-    LOCAL_PACKAGE_NAMES.map(async (packageName) => ({
+    getLocalPackageNames(identity).map(async (packageName) => ({
       packageName,
       version: await getInstalledPackageVersion(packageName, cwd),
     })),
@@ -48,7 +54,7 @@ export async function getGlobalLocalVersionMismatchWarning(
     )
     .filter((mismatch): mismatch is LocalPackageVersionMismatch => mismatch !== null)
 
-  return mismatches.length > 0 ? formatGlobalLocalVersionMismatchWarning(mismatches) : null
+  return mismatches.length > 0 ? formatGlobalLocalVersionMismatchWarning(mismatches, identity) : null
 }
 
 export async function getInstalledPackageVersionFromNodeModules(
@@ -92,7 +98,10 @@ async function findPackageJsonFromNodeModules(packageName: LocalPackageName, cwd
   }
 }
 
-function formatGlobalLocalVersionMismatchWarning(mismatches: LocalPackageVersionMismatch[]): string {
+function formatGlobalLocalVersionMismatchWarning(
+  mismatches: LocalPackageVersionMismatch[],
+  identity: CliDistributionIdentity,
+): string {
   const globalVersion = mismatches[0].globalVersion
   const localVersions = mismatches
     .map(({ packageName, localVersion }) => bold(`${packageName}@${localVersion}`))
@@ -100,8 +109,8 @@ function formatGlobalLocalVersionMismatchWarning(mismatches: LocalPackageVersion
   const packageLabel = mismatches.length === 1 ? 'package' : 'packages'
 
   return `${yellow(bold('warn'))} The globally installed ${bold(
-    `prisma@${globalVersion}`,
+    `${identity}@${globalVersion}`,
   )} does not match the local ${packageLabel} ${localVersions} installed in this project.
 This may generate Prisma Client artifacts that are incompatible with the local runtime.
-Run ${bold('npx prisma generate')} to use the local Prisma CLI, or align your global and local Prisma versions.`
+Run ${bold(`npx ${identity} generate`)} to use the local Prisma CLI, or align your global and local Prisma versions.`
 }

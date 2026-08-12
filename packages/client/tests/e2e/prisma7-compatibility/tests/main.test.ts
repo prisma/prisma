@@ -1,0 +1,375 @@
+import { spawnSync } from 'node:child_process'
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+
+import { expect, test } from 'vitest'
+
+const rootDir = process.cwd()
+const prisma7Bin = path.join(rootDir, 'node_modules', '.bin', 'prisma7')
+const ansiPattern = new RegExp(String.raw`\u001B\[[0-9;]*m`, 'g')
+
+type CommandOutput = {
+  stderr: string
+  stdout: string
+}
+
+type VersionProjection = {
+  json: {
+    clientVersion: unknown
+    distributionKey: 'prisma7'
+    distributionVersion: unknown
+    hasPrismaKey: boolean
+    metadataKeys: string[]
+  }
+  text: {
+    clientLabel: '@prisma/client'
+    clientVersion: string
+    distributionLabel: 'prisma7'
+    distributionVersion: string
+    hasPrismaLabel: boolean
+    metadataLabels: string[]
+    stderr: string
+  }
+}
+
+function normalizeText(text: string, replacements: ReadonlyArray<readonly [string, string]>): string {
+  let normalized = text.replace(/\r\n/g, '\n').replace(ansiPattern, '').trimEnd()
+
+  for (const [from, to] of replacements) {
+    normalized = normalized.split(from).join(to)
+  }
+
+  return normalized
+}
+
+function normalizeValue(value: unknown, replacements: ReadonlyArray<readonly [string, string]>): unknown {
+  if (typeof value === 'string') {
+    return normalizeText(value, replacements)
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeValue(item, replacements))
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, normalizeValue(entry, replacements)]))
+  }
+
+  return value
+}
+
+function getVersionRows(stdout: string): Map<string, string> {
+  return new Map(
+    stdout
+      .split('\n')
+      .map((line) => line.match(/^(?<label>.+?)\s+:\s+(?<value>.*)$/)?.groups)
+      .filter((groups): groups is { label: string; value: string } => groups !== undefined)
+      .map(({ label, value }) => [label, value]),
+  )
+}
+
+function projectVersion(versionText: CommandOutput, versionJson: Record<string, unknown>): VersionProjection {
+  const rows = getVersionRows(versionText.stdout)
+
+  return {
+    json: {
+      clientVersion: versionJson['@prisma/client'],
+      distributionKey: 'prisma7',
+      distributionVersion: versionJson.prisma7,
+      hasPrismaKey: Object.hasOwn(versionJson, 'prisma'),
+      metadataKeys: Object.keys(versionJson)
+        .filter((key) => key !== '@prisma/client' && key !== 'prisma7')
+        .sort(),
+    },
+    text: {
+      clientLabel: '@prisma/client',
+      clientVersion: rows.get('@prisma/client') ?? '',
+      distributionLabel: 'prisma7',
+      distributionVersion: rows.get('prisma7') ?? '',
+      hasPrismaLabel: rows.has('prisma'),
+      metadataLabels: [...rows.keys()].filter((label) => label !== '@prisma/client' && label !== 'prisma7'),
+      stderr: versionText.stderr,
+    },
+  }
+}
+
+function run(command: string, args: string[], cwd = rootDir): CommandOutput {
+  const result = spawnSync(command, args, {
+    cwd,
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      NO_COLOR: '1',
+    },
+  })
+
+  expect(
+    result.status,
+    `${command} ${args.join(' ')} failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
+  ).toBe(0)
+
+  return {
+    stdout: result.stdout,
+    stderr: result.stderr,
+  }
+}
+
+test('prisma7 snapshots real CLI-owned identity surfaces and keeps the packed smoke green', async () => {
+  const initProjectDir = await mkdtemp(path.join(os.tmpdir(), 'prisma7-init-'))
+  const replacements = [
+    [rootDir, '<cwd>'],
+    [initProjectDir, '<init-project>'],
+    [prisma7Bin, '<prisma7-bin>'],
+  ] as const
+
+  try {
+    await writeFile(path.join(initProjectDir, 'package.json'), '{"private":true}\n')
+
+    const topLevelHelp = run('pnpm', ['exec', 'prisma7', '--help'])
+    const delegatedHelp = run('pnpm', ['exec', 'prisma7', 'validate', '--help'])
+    const versionText = run('pnpm', ['exec', 'prisma7', '--version'])
+    const versionJson = JSON.parse(run('pnpm', ['exec', 'prisma7', '--version', '--json']).stdout) as Record<
+      string,
+      unknown
+    >
+    const completionZsh = run('pnpm', ['exec', 'prisma7', 'complete', 'zsh'])
+    const init = run(prisma7Bin, ['init', '--datasource-provider', 'postgresql', '--no-skills'], initProjectDir)
+
+    const initFiles = (await readdir(initProjectDir)).sort()
+    const prismaFiles = (await readdir(path.join(initProjectDir, 'prisma'))).sort()
+    const prismaConfig = await readFile(path.join(initProjectDir, 'prisma.config.ts'), 'utf8')
+    const env = await readFile(path.join(initProjectDir, '.env'), 'utf8')
+
+    expect(normalizeValue(topLevelHelp, replacements)).toMatchInlineSnapshot(`
+      {
+        "stderr": "Loaded Prisma config from prisma.config.ts.",
+        "stdout": "
+          ◭  Prisma is a modern DB toolkit to query, migrate and model your database (https://prisma.io)
+
+          Usage
+
+            $ prisma7 [command]
+
+          Commands
+
+                      init   Set up Prisma for your app
+                 bootstrap   Bootstrap a Prisma Postgres project
+                       dev   Start a local Prisma Postgres server for development
+                  generate   Generate artifacts (e.g. Prisma Client)
+                        db   Manage your database schema and lifecycle
+                   migrate   Migrate your database
+                    studio   Browse your data with Prisma Studio
+                  validate   Validate your Prisma schema
+                    format   Format your Prisma schema
+                   version   Displays Prisma version info
+                     debug   Displays Prisma debug info
+                  platform   Prisma Data Platform commands
+                  postgres   Manage Prisma Postgres databases
+                       mcp   Starts an MCP server to use with AI development tools
+                  complete   Generate shell completion scripts
+
+          Flags
+
+               --preview-feature   Run Preview Prisma commands
+               --help, -h          Show additional information about a command
+
+      ┌───────────────────────────────────────────────────────────────────────────────────────┐
+      │  Optimize performance through connection pooling and caching with Prisma Accelerate.  │
+      │  Learn more at https://pris.ly/cli/pdp                                                │
+      └───────────────────────────────────────────────────────────────────────────────────────┘
+
+          Examples
+
+            Set up a new local Prisma Postgres \`prisma7 dev\`-ready project
+            $ prisma7 init
+
+            Start a local Prisma Postgres server for development
+            $ prisma7 dev
+
+            Generate artifacts (e.g. Prisma Client)
+            $ prisma7 generate
+
+            Browse your data
+            $ prisma7 studio
+
+            Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
+            $ prisma7 migrate dev
+
+            Pull the schema from an existing database, updating the Prisma schema
+            $ prisma7 db pull
+
+            Push the Prisma schema state to the database
+            $ prisma7 db push
+
+            Validate your Prisma schema
+            $ prisma7 validate
+
+            Format your Prisma schema
+            $ prisma7 format
+
+            Display Prisma version info
+            $ prisma7 version
+
+            Display Prisma debug info
+            $ prisma7 debug",
+      }
+    `)
+    expect(normalizeValue(delegatedHelp, replacements)).toMatchInlineSnapshot(`
+      {
+        "stderr": "Loaded Prisma config from prisma.config.ts.",
+        "stdout": "
+      Validate a Prisma schema.
+
+      Usage
+
+        $ prisma7 validate [options]
+
+      Options
+
+        -h, --help   Display this help message
+          --config   Custom path to your Prisma config file
+          --schema   Custom path to your Prisma schema
+
+      Examples
+
+        With an existing Prisma schema
+          $ prisma7 validate
+
+        With a Prisma config file
+          $ prisma7 validate --config=./prisma.config.ts
+
+        Or specify a Prisma schema path
+          $ prisma7 validate --schema=./schema.prisma",
+      }
+    `)
+
+    const normalizedVersion = normalizeValue(
+      projectVersion(versionText, versionJson),
+      replacements,
+    ) as VersionProjection
+    expect(normalizedVersion.text).toMatchInlineSnapshot(`
+{
+  "clientLabel": "@prisma/client",
+  "clientVersion": "0.0.0",
+  "distributionLabel": "prisma7",
+  "distributionVersion": "0.0.0",
+  "hasPrismaLabel": false,
+  "metadataLabels": [
+    "Operating System",
+    "Architecture",
+    "Node.js",
+    "TypeScript",
+    "Query Compiler",
+    "PSL",
+    "Schema Engine",
+    "Default Engines Hash",
+    "Studio",
+    "Prisma CLI Path",
+  ],
+  "stderr": "Loaded Prisma config from prisma.config.ts.\n\nPrisma schema loaded from project-models/non-default.prisma.",
+}
+    `)
+    expect(normalizedVersion.json).toMatchInlineSnapshot(`
+{
+  "clientVersion": "0.0.0",
+  "distributionKey": "prisma7",
+  "distributionVersion": "0.0.0",
+  "hasPrismaKey": false,
+  "metadataKeys": [
+    "architecture",
+    "default-engines-hash",
+    "node.js",
+    "operating-system",
+    "prisma-cli-path",
+    "psl",
+    "query-compiler",
+    "schema-engine",
+    "studio",
+    "typescript",
+  ],
+}
+    `)
+
+    const normalizedCompletionZsh = normalizeValue(completionZsh, replacements) as CommandOutput
+    expect(normalizedCompletionZsh.stderr).toBe('')
+    expect(normalizedCompletionZsh.stdout).toContain('#compdef prisma7')
+    expect(normalizedCompletionZsh.stdout).toContain('compdef _prisma7 prisma7')
+    expect(normalizedCompletionZsh.stdout).toContain('requestComp="prisma7 complete -- ${quoted_args[*]}"')
+    expect(normalizedCompletionZsh.stdout).not.toContain('#compdef prisma\n')
+    expect(normalizedCompletionZsh.stdout).not.toContain('requestComp="prisma complete -- ${quoted_args[*]}"')
+
+    expect(initFiles).toEqual(['.env', '.gitignore', 'package.json', 'prisma', 'prisma.config.ts'])
+    expect(prismaFiles).toEqual(['schema.prisma'])
+    expect(normalizeText(env, replacements)).toMatchInlineSnapshot(`
+      "# Environment variables declared in this file are NOT automatically loaded by Prisma.
+      # Please add \`import \"dotenv/config\";\` to your \`prisma.config.ts\` file, or use the Prisma CLI with Bun
+      # to load environment variables from .env files: https://pris.ly/prisma-config-env-vars.
+
+      # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
+      # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+      DATABASE_URL=\"postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public\""
+    `)
+    expect(normalizeText(prismaConfig, replacements)).toMatchInlineSnapshot(`
+      "// This file was generated by Prisma, and assumes you have installed the following:
+      // npm install --save-dev prisma7 dotenv
+      import \"dotenv/config\";
+      import { defineConfig } from \"prisma7/config\";
+
+      export default defineConfig({
+        schema: \"prisma/schema.prisma\",
+        migrations: {
+          path: \"prisma/migrations\",
+        },
+        datasource: {
+          url: process.env[\"DATABASE_URL\"],
+        },
+      });"
+    `)
+    expect(normalizeText(init.stderr, replacements)).toBe('')
+    expect(normalizeText(init.stdout, replacements)).toMatchInlineSnapshot(`
+      "
+      Initialized Prisma in your project
+
+        prisma/
+          schema.prisma
+        prisma.config.ts
+        .env
+        .gitignore
+
+      Next, choose how you want to set up your database:
+
+      CONNECT EXISTING DATABASE:
+        1. Configure your DATABASE_URL in prisma.config.ts
+        2. Run prisma7 db pull to introspect your database.
+
+      CREATE NEW DATABASE:
+        Local: npx prisma7 dev (runs Postgres locally in your terminal)
+        Cloud: npx create-db (creates a free Prisma Postgres database)
+
+      Then, define your models in prisma/schema.prisma and run prisma7 migrate dev to apply your schema.
+
+      Learn more: https://pris.ly/getting-started"
+    `)
+
+    run('pnpm', ['exec', 'tsc', '--noEmit'])
+    run('pnpm', ['exec', 'prisma7', 'generate'])
+    run('pnpm', ['exec', 'prisma7', 'db', 'push', '--force-reset'])
+    run('pnpm', [
+      'exec',
+      'tsc',
+      '--noEmit',
+      '--module',
+      'node16',
+      '--moduleResolution',
+      'node16',
+      '--target',
+      'es2022',
+      'smoke.ts',
+    ])
+    run('tsx', ['smoke.ts'])
+  } finally {
+    await rm(initProjectDir, { recursive: true, force: true })
+  }
+}, 120_000)

@@ -106,7 +106,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('validate', async () => {
       expect.assertions(1)
       try {
-        await Validate.new().parse([], await ctx.config())
+        await Validate.new('prisma').parse([], await ctx.config())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
@@ -175,7 +175,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('validate', async () => {
       expect.assertions(1)
       try {
-        await Validate.new().parse([], await ctx.config())
+        await Validate.new('prisma').parse([], await ctx.config())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
@@ -187,7 +187,7 @@ describe('[wasm] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await Format.new().parse([], await ctx.config())
+        await Format.new('prisma').parse([], await ctx.config())
       } catch (e) {
         expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load config file "/tmp/dir" as a TypeScript/JavaScript module. Error: PrismaConfigEnvError: Cannot resolve environment variable: SOME_UNDEFINED_DB."`,
@@ -202,11 +202,11 @@ describe('[wasm] incomplete-schemas', () => {
     })
 
     it('validate', async () => {
-      await expect(Validate.new().parse([], await ctx.config())).resolves.not.toThrow()
+      await expect(Validate.new('prisma').parse([], await ctx.config())).resolves.not.toThrow()
     })
 
     it('format', async () => {
-      await expect(Format.new().parse([], await ctx.config())).resolves.not.toThrow()
+      await expect(Format.new('prisma').parse([], await ctx.config())).resolves.not.toThrow()
     })
   })
 

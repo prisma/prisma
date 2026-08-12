@@ -31,6 +31,7 @@ import { version as cliVersion } from '../package.json'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
+import type { CliDistributionIdentity } from './utils/cli-distribution-identity'
 import {
   getGlobalLocalVersionMismatchWarning as getDefaultGlobalLocalVersionMismatchWarning,
   type GlobalLocalVersionMismatchWarningOptions,
@@ -41,6 +42,7 @@ import { handleSkillsOffer } from './utils/skills/skills-offer'
 
 type GenerateOptions = {
   getGlobalLocalVersionMismatchWarning?: (options: GlobalLocalVersionMismatchWarningOptions) => Promise<string | null>
+  identity: CliDistributionIdentity
 }
 
 /**
@@ -49,6 +51,7 @@ type GenerateOptions = {
 export class Generate implements Command {
   surveyHandler: () => Promise<void>
   skillsOfferHandler: () => Promise<{ prompted: boolean }>
+  private readonly identity: CliDistributionIdentity
   private readonly getGlobalLocalVersionMismatchWarning: (
     options: GlobalLocalVersionMismatchWarningOptions,
   ) => Promise<string | null>
@@ -56,50 +59,18 @@ export class Generate implements Command {
   constructor(
     surveyHandler: () => Promise<void> = handleNpsSurvey,
     skillsOfferHandler: () => Promise<{ prompted: boolean }> = handleSkillsOffer,
-    options: GenerateOptions = {},
+    options: GenerateOptions,
   ) {
     this.surveyHandler = surveyHandler
     this.skillsOfferHandler = skillsOfferHandler
+    this.identity = options.identity
     this.getGlobalLocalVersionMismatchWarning =
       options.getGlobalLocalVersionMismatchWarning ?? getDefaultGlobalLocalVersionMismatchWarning
   }
 
-  public static new(): Generate {
-    return new Generate()
+  public static new(identity: CliDistributionIdentity): Generate {
+    return new Generate(handleNpsSurvey, handleSkillsOffer, { identity })
   }
-
-  private static help = format(`
-Generate artifacts (e.g. Prisma Client)
-
-${bold('Usage')}
-
-  ${dim('$')} prisma generate [options]
-
-${bold('Options')}
-          -h, --help   Display this help message
-            --config   Custom path to your Prisma config file
-            --schema   Custom path to your Prisma schema
-               --sql   Generate typed sql module
-             --watch   Watch the Prisma schema and rerun after a change
-         --generator   Generator to use (may be provided multiple times)
-          --no-hints   Hides the hint messages but still outputs errors and warnings
-    --require-models   Do not allow generating a client without models
-
-${bold('Examples')}
-
-  With an existing Prisma schema
-    ${dim('$')} prisma generate
-
-  Or specify a schema
-    ${dim('$')} prisma generate --schema=./schema.prisma
-
-  Run the command with multiple specific generators
-    ${dim('$')} prisma generate --generator client1 --generator client2
-
-  Watch Prisma schema file and rerun after each change
-    ${dim('$')} prisma generate --watch
-
-`)
 
   private logText = ''
   private hasGeneratorErrored = false
@@ -240,7 +211,7 @@ ${bold('Examples')}
     if (printBreakingChangesMessage && logger.should.warn()) {
       // skipping generate
       return `There have been breaking changes in Prisma Client since you updated last time.
-Please run \`prisma generate\` manually.`
+Please run \`${this.identity} generate\` manually.`
     }
 
     const watchingText = `\n${green('Watching...')} ${dim(schemaContext.schemaRootDir)}\n`
@@ -254,6 +225,7 @@ Please run \`prisma generate\` manually.`
           globalLocalVersionWarning = await this.getGlobalLocalVersionMismatchWarning({
             cwd: schemaContext.schemaRootDir,
             globalVersion: cliVersion,
+            identity: this.identity,
           })
         } catch {
           globalLocalVersionWarning = null
@@ -277,7 +249,7 @@ ${breakingChangesMessage}`
         const versionsOutOfSync = clientGeneratorVersion && cliVersion !== clientGeneratorVersion
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
-            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${cliVersion}`)} and ${bold(
+            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`${this.identity}@${cliVersion}`)} and ${bold(
                 `@prisma/client@${clientGeneratorVersion}`,
               )} don't match.
 This might lead to unexpected behavior.
@@ -377,10 +349,45 @@ ${breakingChangesStr}${versionsWarning}${globalLocalVersionWarningStr}`
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Generate.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${createHelp(this.identity)}`)
     }
-    return Generate.help
+    return createHelp(this.identity)
   }
+}
+
+function createHelp(identity: CliDistributionIdentity): string {
+  return format(`
+Generate artifacts (e.g. Prisma Client)
+
+${bold('Usage')}
+
+  ${dim('$')} ${identity} generate [options]
+
+${bold('Options')}
+          -h, --help   Display this help message
+            --config   Custom path to your Prisma config file
+            --schema   Custom path to your Prisma schema
+               --sql   Generate typed sql module
+             --watch   Watch the Prisma schema and rerun after a change
+         --generator   Generator to use (may be provided multiple times)
+          --no-hints   Hides the hint messages but still outputs errors and warnings
+    --require-models   Do not allow generating a client without models
+
+${bold('Examples')}
+
+  With an existing Prisma schema
+    ${dim('$')} ${identity} generate
+
+  Or specify a schema
+    ${dim('$')} ${identity} generate --schema=./schema.prisma
+
+  Run the command with multiple specific generators
+    ${dim('$')} ${identity} generate --generator client1 --generator client2
+
+  Watch Prisma schema file and rerun after each change
+    ${dim('$')} ${identity} generate --watch
+
+`)
 }
 
 function getCurrentClientVersion(): string | null {
