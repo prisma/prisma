@@ -27,6 +27,14 @@ import { byteInputStream, type LanguageServerStreams, textOutputStream } from '.
 const stalledDispatchGraceMs = 50;
 
 /**
+ * How long a host abort lets in-flight work drain before the run settles
+ * regardless. The host has already decided to stop, so a handler that never
+ * settles — or work that never goes idle — must not hold the exit code back
+ * forever; it only gets this long to finish cleanly.
+ */
+const abortDrainDeadlineMs = 2_000;
+
+/**
  * Runs the server over the host's streams and resolves with the exit code the
  * client's departure implies. The host owns the process, so nothing here ends
  * it; every route out settles the promise instead.
@@ -51,6 +59,7 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
     let lastActivity = Date.now();
     let departure: (() => number) | undefined;
     let idleCheck: NodeJS.Timeout | undefined;
+    let abortDeadline: NodeJS.Timeout | undefined;
 
     function settle(code: number): void {
       if (settled) {
@@ -59,6 +68,9 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
       settled = true;
       if (idleCheck !== undefined) {
         clearTimeout(idleCheck);
+      }
+      if (abortDeadline !== undefined) {
+        clearTimeout(abortDeadline);
       }
       releaseConsole();
       server.dispose();
@@ -172,11 +184,20 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
       settleOnceIdle(() => 1);
     });
 
+    // An abort still drains through the idle route when it can, but the host
+    // has already decided to stop, so the drain gets a deadline: past it the
+    // run settles with whatever is still in flight abandoned.
+    function settleOnAbort(): void {
+      settleOnceIdle(departureCode);
+      abortDeadline ??= setTimeout(() => settle(departureCode()), abortDrainDeadlineMs);
+      abortDeadline.unref();
+    }
+
     const hostShutdown = streams.signal;
     if (hostShutdown?.aborted === true) {
-      settleOnceIdle(departureCode);
+      settleOnAbort();
     } else {
-      hostShutdown?.addEventListener('abort', () => settleOnceIdle(departureCode), { once: true });
+      hostShutdown?.addEventListener('abort', settleOnAbort, { once: true });
     }
   });
 }

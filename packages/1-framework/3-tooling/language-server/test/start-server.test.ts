@@ -1,6 +1,7 @@
 import { tmpdir } from 'node:os';
 import { PassThrough } from 'node:stream';
 import { pathToFileURL } from 'node:url';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import {
@@ -187,6 +188,43 @@ describe('startServer over injected streams', () => {
     host.abort('SIGTERM');
 
     await expect(exitCode).resolves.toBe(1);
+  });
+
+  it('settles an aborted run whose work never goes idle', {
+    timeout: timeouts.databaseOperation,
+  }, async () => {
+    const stdin = new PassThrough();
+    const { client, stdout } = connectedClient(stdin);
+    const host = new AbortController();
+    const exitCode = startServer({ stdin, stdout, stderr: hostErrors(), signal: host.signal });
+
+    await client.sendRequest(InitializeRequest.type, initializeParams);
+    // Cancelling a request already being handled: the connection answers the
+    // cancellation itself without dispatching it, so the awaiting-dispatch
+    // count is left standing for good.
+    stdin.write(
+      framed({
+        jsonrpc: '2.0',
+        id: 2,
+        method: 'textDocument/foldingRange',
+        params: { textDocument: { uri: pathToFileURL(join(tmpdir(), 'abort.psl')).toString() } },
+      }),
+    );
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+    stdin.write(framed({ jsonrpc: '2.0', method: '$/cancelRequest', params: { id: 2 } }));
+    // Fresh activity on every turn keeps the stalled-dispatch grace from ever
+    // elapsing, so only the abort deadline can end the run.
+    const holdOpen = setInterval(
+      () => stdin.write(framed({ jsonrpc: '2.0', method: 'prisma/keepBusy' })),
+      10,
+    );
+    host.abort('SIGTERM');
+    try {
+      await expect(exitCode).resolves.toBe(1);
+    } finally {
+      clearInterval(holdOpen);
+    }
   });
 });
 
