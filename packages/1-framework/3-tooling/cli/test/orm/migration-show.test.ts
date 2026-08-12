@@ -167,6 +167,43 @@ describe('migration show', () => {
       },
     ]);
     expect(run.presented?.presentation.stdout).toEqual([]);
+    expect(run.stdout).toBe('');
+  });
+
+  it('prints preview statements verbatim, dropping only the blank ones', async () => {
+    const dir = await projectDir();
+    await seedProject(dir);
+    const config = ormConfig('contract.json');
+    config['family'] = {
+      kind: 'family',
+      id: 'sql',
+      familyId: 'sql',
+      version: '1.0.0',
+      emission: {},
+      create: () => ({
+        deserializeContract: (json: unknown) => json,
+        toOperationPreview: () => ({
+          statements: [
+            { text: '  CREATE TABLE "users" (\n    id integer\n  )  ', language: 'sql' },
+            { text: '   ', language: 'sql' },
+            { text: 'db.users.createIndex({ name: 1 })', language: 'mongodb-shell' },
+          ],
+        }),
+      }),
+    };
+
+    const run = await harness(config).run(['migration', 'show', MIGRATION_DIR], {
+      cwd: dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.human).toContainEqual({
+      kind: 'drawing',
+      lines: [
+        '  CREATE TABLE "users" (\n    id integer\n  )  ',
+        'db.users.createIndex({ name: 1 })',
+      ],
+    });
   });
 
   it('renders the operation tree under its heading', async () => {

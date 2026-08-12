@@ -82,9 +82,8 @@ function operationBlocks(migration: ShowMigration): readonly Block[] {
  */
 function previewBlocks(migration: ShowMigration): readonly Block[] {
   const statements = migration.preview.statements
-    .map((statement) => statement.text.trim())
-    .filter((text) => text.length > 0)
-    .map((text) => (text.endsWith(';') ? text : `${text};`));
+    .map((statement) => statement.text)
+    .filter((text) => text.trim().length > 0);
   if (statements.length === 0) {
     return [];
   }
