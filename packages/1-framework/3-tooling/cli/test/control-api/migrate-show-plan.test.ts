@@ -1,5 +1,4 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import type { PrismaNextConfig } from '@internal/config-loader';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
@@ -9,6 +8,7 @@ import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeMigrateShowPlan } from '../../src/control-api/operations/migrate-show';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const mocks = vi.hoisted(() => ({
   createControlClient: vi.fn(),
@@ -73,10 +73,7 @@ describe('executeMigrateShowPlan', () => {
 
   beforeEach(async () => {
     mocks.createControlClient.mockReset();
-    tempDir = join(
-      tmpdir(),
-      `migrate-show-plan-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    );
+    tempDir = createTestProjectDir('migrate-show-plan');
     migrationsDir = join(tempDir, 'migrations');
     appMigrationsDir = join(migrationsDir, 'app');
     await mkdir(join(appMigrationsDir, 'refs'), { recursive: true });
