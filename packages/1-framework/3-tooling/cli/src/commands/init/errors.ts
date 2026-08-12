@@ -271,6 +271,27 @@ export function errorInitEmitFailed(options: {
 }
 
 /**
+ * A scaffold file could not be written after earlier writes had already
+ * landed. The directory is half-scaffolded, so this carries the list of what
+ * did get written, the way every other post-write failure in `init` does.
+ *
+ * Maps to exit code `2 = PRECONDITION`: what stopped the write is something
+ * about the directory the user can fix.
+ */
+export function errorInitWriteFailed(options: {
+  readonly path: string;
+  readonly cause: string;
+  readonly filesWritten: readonly string[];
+}): CliStructuredError {
+  return new CliStructuredError('CLI.INIT_WRITE_FAILED', `Failed to write ${options.path}`, {
+    why: `\`${options.path}\` could not be written: ${options.cause}`,
+    fix: 'Fix what stopped the write — a directory sitting where the file goes, permissions, a full disk — then run `prisma-next init` again. It will ask you to confirm replacing the files this run already wrote (listed in `meta.filesWritten`).',
+    docsUrl: docsUrlFor('CLI.INIT_WRITE_FAILED'),
+    meta: { path: options.path, cause: options.cause, filesWritten: options.filesWritten },
+  });
+}
+
+/**
  * The project-level skills install (`npx skills add
  * prisma/prisma#v<version>`) failed after a successful dependency
  * install + emit. The project's scaffold remains on disk; the user

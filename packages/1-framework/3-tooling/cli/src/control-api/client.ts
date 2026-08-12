@@ -452,6 +452,7 @@ class ControlClientImpl implements ControlClient {
       targetId: this.options.target.targetId,
       extensions: this.options.extensions ?? [],
       ...ifDefined('acceptDataLoss', options.acceptDataLoss),
+      ...ifDefined('consent', options.consent),
       ...ifDefined('onProgress', onProgress),
     });
   }

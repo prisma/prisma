@@ -29,16 +29,18 @@ export function defineOrmCommand<
   >,
   TConfig = undefined,
   TCode extends number = never,
+  TInstallsPackages extends boolean = false,
 >(
   def: {
     readonly help: HelpSpec;
     readonly args?: ArgsSpec<TFlags, TPositionals>;
     readonly needs?: NeedsSpec<TConfig>;
     readonly exitCodes?: Readonly<Record<TCode, string>>;
-    readonly handler: Handler<TFlags, TPositionals, TConfig, TCode>;
+    readonly installsPackages?: TInstallsPackages;
+    readonly handler: Handler<TFlags, TPositionals, TConfig, TCode, false, TInstallsPackages>;
   } & SpawnDeclarations,
-): CommandDefinition<TFlags, TPositionals, TConfig, TCode> {
-  return defineCommand<TFlags, TPositionals, TConfig, TCode>({
+): CommandDefinition<TFlags, TPositionals, TConfig, TCode, false, TInstallsPackages> {
+  return defineCommand<TFlags, TPositionals, TConfig, TCode, false, TInstallsPackages>({
     ...def,
     handler: async (args, ctx) => {
       try {

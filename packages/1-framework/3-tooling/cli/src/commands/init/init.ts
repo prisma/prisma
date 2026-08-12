@@ -9,6 +9,7 @@ import { CliStructuredError } from '../../utils/cli-errors';
 import { formatErrorJson, formatErrorOutput } from '../../utils/formatters/errors';
 import type { GlobalFlags } from '../../utils/global-flags';
 import { createTerminalUI, type TerminalUI } from '../../utils/terminal-ui';
+import { buildCatalogWarnings } from './catalog-warnings';
 import {
   detectPackageManager,
   formatAddArgs,
@@ -17,7 +18,6 @@ import {
   hasProjectManifest,
   type PackageManager,
 } from './detect-package-manager';
-import { detectPnpmCatalogOverrides, type PnpmCatalogOverride } from './detect-pnpm-catalog';
 import {
   errorInitEmitFailed,
   errorInitInstallFailed,
@@ -47,16 +47,15 @@ import {
   formatInitJson,
   type InitOutput,
   InitOutputSchema,
+  type InstallStatus,
   renderInitOutro,
 } from './output';
+import { isRecognisedPnpmResolutionError } from './pnpm-fallback';
 import { type ProbeOutcome, type ProbeOverrides, probeServerVersion } from './probe-db';
+import { redactSecrets } from './redact-secrets';
 import { findStaleArtifacts, removeDependency } from './reinit-cleanup';
-import {
-  DEFAULT_SKILL_SOURCES,
-  formatSkillInstallCommand,
-  legacySkillDirs,
-  runProjectLevelSkillInstall,
-} from './skill-install';
+import { runProjectLevelSkillInstall } from './skill-install';
+import { DEFAULT_SKILL_SOURCES, formatSkillInstallCommand, legacySkillDirs } from './skill-sources';
 import {
   configFile,
   dbFile,
@@ -532,6 +531,9 @@ export async function runInit(
     }
   }
 
+  // This shell raises a structured error on a failed install rather than
+  // reporting one, so the document it writes never carries `failed`.
+  const packagesInstalled: InstallStatus = install.skipped ? 'skipped' : 'installed';
   const output: InitOutput = {
     ok: true,
     target: inputs.target === 'mongo' ? 'mongodb' : 'postgres',
@@ -540,13 +542,14 @@ export async function runInit(
     filesWritten,
     filesDeleted,
     packagesInstalled: {
-      skipped: install.skipped,
+      status: packagesInstalled,
       deps: [...install.deps],
       devDeps: [...install.devDeps],
     },
     contractEmitted,
     nextSteps: buildNextSteps({
       target: inputs.target === 'mongo' ? 'mongodb' : 'postgres',
+      packagesInstalled,
       contractEmitted,
       emitCommand,
       schemaPath: inputs.schemaPath,
@@ -637,6 +640,7 @@ export function exitCodeForError(error: { readonly code: string }): number {
     case 'CLI.INIT_INVALID_TSCONFIG': // invalid tsconfig (unparseable JSONC) — precondition
     case 'CLI.INIT_PROBE_FAILED': // probe failed under --strict-probe — precondition
     case 'CLI.INIT_AUTHORING_SCHEMA_PATH_MISMATCH': // --authoring / --schema-path extension mismatch — precondition
+    case 'CLI.INIT_WRITE_FAILED': // a scaffold file could not be written — precondition
       return INIT_EXIT_PRECONDITION;
     case 'CLI.INIT_USER_ABORTED': // user aborted interactive prompt
       return INIT_EXIT_USER_ABORTED;
@@ -848,61 +852,6 @@ async function runInstall(ctx: {
 }
 
 /**
- * Builds the FR7.3 catalog-honoured warning(s) for the surrounding pnpm
- * workspace, if any. Returns an empty array when no `pnpm-workspace.yaml`
- * exists in any ancestor or when the workspace's catalog has no entry
- * for any of the packages `init` is about to install.
- *
- * Exported for unit tests.
- */
-export function buildCatalogWarnings(
-  baseDir: string,
-  packages: readonly string[],
-): readonly string[] {
-  const result = detectPnpmCatalogOverrides(baseDir, packages);
-  if (result === null || result.entries.length === 0) {
-    return [];
-  }
-  return [formatCatalogWarning(result.workspaceFile, result.entries)];
-}
-
-function formatCatalogWarning(
-  workspaceFile: string,
-  entries: readonly PnpmCatalogOverride[],
-): string {
-  const list = entries.map((entry) => `  • ${entry.name}: ${entry.version}`).join('\n');
-  return [
-    'pnpm workspace catalog overrides detected — pnpm will install these versions instead of `latest`:',
-    list,
-    `Catalog source: ${workspaceFile}`,
-    'To use the published `latest` instead, remove or update the catalog entry, then re-run `pnpm install`.',
-  ].join('\n');
-}
-
-/**
- * Recognised pnpm error signatures that justify a fallback to npm.
- *
- * These patterns indicate the published artifact itself is at fault
- * (a leaked `workspace:*` or `catalog:` specifier), not the user's
- * environment — pnpm is faithfully reporting "I cannot resolve this
- * registry version", and npm is willing to install it because npm
- * doesn't care about the protocol prefix when there's a fallback range.
- *
- * Exported for unit tests; do not depend on this from outside the init
- * command.
- */
-export function isRecognisedPnpmResolutionError(stderr: string): boolean {
-  if (!stderr) return false;
-  return (
-    stderr.includes('ERR_PNPM_WORKSPACE_PKG_NOT_FOUND') ||
-    stderr.includes('ERR_PNPM_NO_MATCHING_VERSION') ||
-    /No matching version found for .* in the catalog/i.test(stderr) ||
-    /workspace:[^\s]+ is not a valid (version|spec)/i.test(stderr) ||
-    /catalog:[^\s]* is not a valid (version|spec)/i.test(stderr)
-  );
-}
-
-/**
  * FR2.1 — true when the parsed `package.json` declares `name` directly
  * in either `dependencies` or `devDependencies`. We deliberately don't
  * inspect `peerDependencies` (irrelevant for a leaf project) or the
@@ -926,23 +875,6 @@ function readChildStderr(err: unknown): string {
     return String((err as { stderr: string }).stderr ?? '');
   }
   return '';
-}
-
-/**
- * Redacts userinfo (`user:password@`) from any URL-shaped substring inside
- * package-manager stderr before we surface it in a warning or error
- * meta. pnpm and npm both include the offending registry URL in resolve
- * errors, and that URL can carry an auth token (e.g. corporate registry
- * mirrors that bake `_authToken` into the URL). The Style Guide
- * (Testing & Accessibility — "Security: never print secrets") requires
- * we never surface those.
- *
- * Exported for unit tests.
- */
-export function redactSecrets(stderr: string): string {
-  if (!stderr) return stderr;
-  // Match `scheme://userinfo@host…` and replace the userinfo with `***`.
-  return stderr.replace(/([a-zA-Z][a-zA-Z0-9+.-]*:\/\/)([^/@\s]+)@/g, '$1***@');
 }
 
 /**

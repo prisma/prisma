@@ -4,7 +4,6 @@ import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  parseJsonObjectFromCliCapture,
   setupCommandMocks,
   setupTestDirectoryFromFixtures,
   withTempDir,
@@ -294,13 +293,12 @@ withTempDir(({ createTempDir }) => {
   });
 
   describe('db update ref advancement (e2e)', () => {
-    let consoleOutput: string[] = [];
     let cleanupMocks: () => void;
 
+    // `db init` still runs on the commander shell, whose output goes to the
+    // console this keeps out of the test log.
     beforeEach(() => {
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      cleanupMocks = mocks.cleanup;
+      cleanupMocks = setupCommandMocks().cleanup;
     });
 
     afterEach(() => {
@@ -444,20 +442,9 @@ withTempDir(({ createTempDir }) => {
             connectionString,
             '--no-color',
           ]);
-          const outputStart = consoleOutput.length;
+          const run = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--json']);
 
-          await runDbUpdate(testSetup, [
-            '--config',
-            configPath,
-            '--dry-run',
-            '--json',
-            '--no-color',
-          ]);
-
-          const parsed = parseJsonObjectFromCliCapture(consoleOutput.slice(outputStart)) as Record<
-            string,
-            unknown
-          >;
+          const parsed = run.document as Record<string, unknown>;
           expect(parsed['plannedAdvanceRef']).toEqual(
             expect.objectContaining({ name: 'db', hash: expect.any(String) }),
           );
@@ -484,14 +471,9 @@ withTempDir(({ createTempDir }) => {
             connectionString,
             '--no-color',
           ]);
-          const outputStart = consoleOutput.length;
+          const run = await runDbUpdate(testSetup, ['--config', configPath, '--json']);
 
-          await runDbUpdate(testSetup, ['--config', configPath, '--json', '--no-color']);
-
-          const parsed = parseJsonObjectFromCliCapture(consoleOutput.slice(outputStart)) as Record<
-            string,
-            unknown
-          >;
+          const parsed = run.document as Record<string, unknown>;
           expect(parsed['advancedRef']).toEqual(
             expect.objectContaining({ name: 'db', hash: expect.any(String) }),
           );
