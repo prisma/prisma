@@ -1,5 +1,4 @@
-import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { CliStructuredError } from '@internal/errors/control';
 import type { ErroredEnvelope, MountedTree, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
@@ -8,6 +7,7 @@ import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const PSL = 'model User {\n  id Int @id\n}\n';
 
@@ -55,7 +55,7 @@ afterAll(() => {
 const dirs: string[] = [];
 
 async function projectDir(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'orm-infer-'));
+  const dir = createTestProjectDir('orm-infer');
   dirs.push(dir);
   return dir;
 }
