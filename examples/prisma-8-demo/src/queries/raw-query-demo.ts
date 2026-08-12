@@ -109,7 +109,7 @@ export async function rawQueryActiveAuthors(minPosts = 1, runtime?: Runtime) {
  * spec and composes like any other; a mutation without one is a plan handle
  * and is rejected as an interpolation.
  */
-export async function rawQueryPromoteAndList(titleTerm = 'a', runtime?: Runtime) {
+export async function rawQueryPromoteAndList(titleTerm: string, runtime?: Runtime) {
   const promoted = db.sql.raw`
     UPDATE "post"
     SET priority = 'high'

@@ -582,7 +582,11 @@ async function main() {
       console.log(toJson(results));
     } else if (cmd === 'raw-query-promote') {
       const [titleTerm] = args;
-      const results = await rawQueryPromoteAndList(titleTerm ?? 'a');
+      if (!titleTerm) {
+        console.error('Usage: pnpm start -- raw-query-promote <titleTerm>');
+        process.exit(1);
+      }
+      const results = await rawQueryPromoteAndList(titleTerm);
 
       console.log(toJson(results));
     } else if (cmd === 'cross-author-similarity') {
