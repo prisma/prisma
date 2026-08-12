@@ -35,7 +35,7 @@ function refsGrid(refs: Refs): Block {
     return cells;
   });
 
-  // framework-vocabulary-ignore: the cli-engine block type for a grid of terminal output; `table` and `columns` are its property names
+  // biome-ignore lint/plugin/no-family-vocabulary: the cli-engine block type for a grid of terminal output; `table` and `columns` are its property names
   return { kind: 'table', columns: headings, rows };
 }
 
