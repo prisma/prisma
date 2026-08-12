@@ -170,7 +170,7 @@ describe('migration show', () => {
     expect(run.stdout).toBe('');
   });
 
-  it('prints preview statements verbatim, dropping only the blank ones', async () => {
+  it('drops blank preview statements and keeps multi-line statements unwrapped', async () => {
     const dir = await projectDir();
     await seedProject(dir);
     const config = ormConfig('contract.json');
@@ -199,10 +199,7 @@ describe('migration show', () => {
 
     expect(run.presented?.presentation.human).toContainEqual({
       kind: 'drawing',
-      lines: [
-        '  CREATE TABLE "users" (\n    id integer\n  )  ',
-        'db.users.createIndex({ name: 1 })',
-      ],
+      lines: ['CREATE TABLE "users" (\n    id integer\n  );', 'db.users.createIndex({ name: 1 })'],
     });
   });
 
@@ -218,6 +215,38 @@ describe('migration show', () => {
 
     expect(rendered).toContain('1 operation(s)');
     expect(rendered.some((line) => line.includes('Add column'))).toBe(true);
+  });
+
+  it('suffixes SQL preview statements with a semicolon and leaves other languages verbatim', async () => {
+    const dir = await projectDir();
+    await seedProject(dir);
+    const config = ormConfig('contract.json');
+    config['family'] = {
+      kind: 'family',
+      id: 'sql',
+      familyId: 'sql',
+      version: '1.0.0',
+      emission: {},
+      create: () => ({
+        deserializeContract: (json: unknown) => json,
+        toOperationPreview: () => ({
+          statements: [
+            { text: 'CREATE TABLE t (id int)', language: 'sql' },
+            { text: 'db.createCollection("t")', language: 'mongodb-shell' },
+          ],
+        }),
+      }),
+    };
+
+    const run = await harness(config).run(['migration', 'show', MIGRATION_DIR], {
+      cwd: dir,
+      isTty: { stdout: true, stderr: true },
+    });
+    const rendered = stripAnsi(run.stderr).split('\n');
+
+    expect(rendered.some((line) => line.endsWith('CREATE TABLE t (id int);'))).toBe(true);
+    expect(rendered.some((line) => line.endsWith('db.createCollection("t")'))).toBe(true);
+    expect(rendered.some((line) => line.includes('db.createCollection("t");'))).toBe(false);
   });
 
   it('keeps stdout a frame stream in json mode', async () => {

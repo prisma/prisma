@@ -2,6 +2,8 @@ import { DOCS_BASE } from '@internal/utils/structured-error';
 import type { AnyCommand, RedirectSpec } from '@prisma/cli-engine';
 import { defineCommandFamily } from '@prisma/cli-engine';
 import { ormConfigSection } from './config-section';
+import { contractEmitCommand } from './contract/emit';
+import { contractInferCommand } from './contract/infer';
 import { dbInitCommand } from './db/init';
 import { dbSchemaCommand } from './db/schema';
 import { dbSignCommand } from './db/sign';
@@ -24,6 +26,8 @@ import { refSetCommand } from './ref/set';
 const DOCS_BASE_URL = `${DOCS_BASE}/`;
 
 const commands: Readonly<Record<string, AnyCommand>> = {
+  'contract emit': contractEmitCommand,
+  'contract infer': contractInferCommand,
   'db init': dbInitCommand,
   'db schema': dbSchemaCommand,
   'db sign': dbSignCommand,

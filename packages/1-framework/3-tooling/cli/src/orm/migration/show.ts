@@ -27,7 +27,7 @@ import {
   errorNoMigrations,
   errorUnexpected,
 } from '../../utils/cli-errors';
-import { previewBlockHeader } from '../../utils/formatters/migrations';
+import { previewBlockHeader, renderPreviewStatement } from '../../utils/formatters/migrations';
 import {
   findPackageByDirPath,
   looksLikePath,
@@ -82,8 +82,8 @@ function operationBlocks(migration: ShowMigration): readonly Block[] {
  */
 function previewBlocks(migration: ShowMigration): readonly Block[] {
   const statements = migration.preview.statements
-    .map((statement) => statement.text)
-    .filter((text) => text.trim().length > 0);
+    .map((statement) => renderPreviewStatement(statement.text, statement.language))
+    .filter((text): text is string => text !== undefined);
   if (statements.length === 0) {
     return [];
   }
