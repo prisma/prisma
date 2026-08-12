@@ -158,7 +158,12 @@ function getPrismaDependencies(dependencies?: { [name: string]: string }): strin
   if (!dependencies) {
     return []
   }
-  return Object.keys(dependencies).filter((d) => d.startsWith('@prisma') && !d.startsWith('@prisma/studio'))
+  return Object.keys(dependencies).filter(
+    (dependency) =>
+      (dependency.startsWith('@prisma') && !dependency.startsWith('@prisma/studio')) ||
+      dependency === 'prisma' ||
+      dependency === 'prisma7',
+  )
 }
 
 function getCircularDependencies(packages: Packages): string[][] {
