@@ -31,6 +31,7 @@ import {
   type ProjectionExpr,
   type ProjectionItem,
   type RawExpr,
+  type RawQueryAst,
   type RawSqlExpr,
   type SelectAst,
   type SubqueryExpr,
@@ -180,6 +181,9 @@ export function renderLoweredSql(
       break;
     case 'raw-sql':
       sql = renderRawSql(node, contract, pim);
+      break;
+    case 'raw-query':
+      sql = renderParts(node.parts, contract, pim);
       break;
     // v8 ignore next 4
     default:
@@ -1142,8 +1146,16 @@ function renderRawSql(ast: RawSqlExpr, contract: PostgresContract, pim: ParamInd
   return out.join('');
 }
 
-function renderRawExpr(node: RawExpr, contract: PostgresContract, pim: ParamIndexMap): string {
-  return node.parts
+function renderParts(
+  parts: RawExpr['parts'] | RawQueryAst['parts'],
+  contract: PostgresContract,
+  pim: ParamIndexMap,
+): string {
+  return parts
     .map((part) => (typeof part === 'string' ? part : renderExpr(part, contract, pim)))
     .join('');
+}
+
+function renderRawExpr(node: RawExpr, contract: PostgresContract, pim: ParamIndexMap): string {
+  return renderParts(node.parts, contract, pim);
 }

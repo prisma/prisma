@@ -98,6 +98,7 @@ function evaluateAstLints(ast: AnyQueryAst): LintFinding[] {
       break;
 
     case 'raw-sql':
+    case 'raw-query':
       // Raw-SQL ASTs opt out of structural lints (LIMIT / WHERE etc.) —
       // the embedded SQL fragments are caller-authored and the lint's
       // shape-based heuristics don't apply.
