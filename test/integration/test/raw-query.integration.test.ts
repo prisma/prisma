@@ -57,11 +57,14 @@ describe('integration: whole-query raw statements', { timeout: timeouts.database
             invited_by_id int4
           )
         `);
+      // Dana is the mutation case's own row: no read case touches her, so the
+      // cases hold in any order.
       await c.query(`
           INSERT INTO users (id, name, email, invited_by_id) VALUES
             (1, 'Alice', 'alice@example.com', NULL),
             (2, 'Bob', 'bob@example.com', 1),
-            (3, 'Charlie', 'charlie@example.com', 1)
+            (3, 'Charlie', 'charlie@example.com', 1),
+            (4, 'Dana', 'dana@example.com', NULL)
         `);
     });
 
@@ -111,7 +114,7 @@ describe('integration: whole-query raw statements', { timeout: timeouts.database
   const rawSql = () => createRawSql(postgresRawCodecInferer, { contract: sqlContract });
 
   it('decodes the columns the row spec declares', async () => {
-    const plan = rawSql()`SELECT id, name FROM users WHERE id > ${1} ORDER BY id`
+    const plan = rawSql()`SELECT id, name FROM users WHERE invited_by_id = ${1} ORDER BY id`
       .returnsRow({ id: 'pg/int4@1', name: 'pg/text@1' })
       .build();
 
@@ -135,7 +138,7 @@ describe('integration: whole-query raw statements', { timeout: timeouts.database
 
   it('reports how many rows a mutation affected', async () => {
     const plan =
-      rawSql()`UPDATE users SET name = ${param('Roberta', { codecId: 'pg/text@1' })} WHERE id = ${2}`
+      rawSql()`UPDATE users SET name = ${param('Dana Renamed', { codecId: 'pg/text@1' })} WHERE id = ${4}`
         .affectedCount()
         .build();
 
