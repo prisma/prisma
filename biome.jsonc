@@ -27,7 +27,11 @@
     "lineWidth": 100,
     "lineEnding": "lf"
   },
-  "plugins": ["./biome-plugins/no-bare-cast.grit", "./biome-plugins/no-bare-throw.grit"],
+  "plugins": [
+    "./biome-plugins/no-bare-cast.grit",
+    "./biome-plugins/no-bare-throw.grit",
+    "./biome-plugins/no-family-vocabulary.grit"
+  ],
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,

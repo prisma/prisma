@@ -1,0 +1,112 @@
+// Recognise SQL/Mongo/target vocabulary (`table`, `column`, `postgres`,
+// `nativeType`, …) reaching the family-blind `packages/1-framework` domain.
+//
+// The scope is enforced by the `$filename` guard below, not by a biome
+// `overrides` entry. Biome 2.5.6 does accept `plugins` inside `overrides` (and
+// they add to the top-level `plugins` array rather than replacing it), but an
+// override's `includes` glob is resolved relative to the config file that is
+// in effect for the file being linted. Most framework packages ship their own
+// `biome.jsonc` with `"extends": "//"`, so a root-level `packages/1-framework/**`
+// glob is matched against paths like `src/foo.ts` and silently covers only the
+// handful of packages that have no config of their own — 63 of 473 sites when
+// measured. A `$filename` regex sees the whole path and has no such hole.
+//
+// Only syntax nodes are matched — never comment or JSDoc trivia. That is the
+// point of doing this as a plugin rather than as the line-scanning script it
+// replaces: most of the vocabulary in this domain sits in prose that correctly
+// documents family-blind code ("family-parameterized (SQL, Mongo, …)"), and
+// taxing that prose taught authors to write worse docs. A leak that matters is
+// a real type, field, identifier, string, or import path, and those are all
+// nodes.
+//
+// The `or { … }` at the top lists the leaf node kinds that carry text: the
+// identifier kinds, the literal kinds (string, regex, TS string-literal type),
+// module sources, and template chunks. Anchoring on leaves rather than on a
+// bare `js"$name"` metavariable (which matches EVERY node, including whole
+// functions and the program itself) is what keeps the reported span on the
+// offending line and keeps the run fast — the regex below only ever runs
+// against a token's own text.
+//
+// One consequence of node-level spans: a template literal chunk is a single
+// node, so a multi-line chunk (the CLI's scaffold templates) is reported once,
+// at the chunk's first line, however many terms it contains. The line scanner
+// reported each line separately. Every such chunk is still flagged; only the
+// resolution inside one is coarser.
+//
+// Two constraints of biome's GritQL regex support shape everything below.
+// First, matching is anchored full-match: a pattern must match the node's
+// entire text, so every alternative carries `.*` on both ends. Second, the
+// engine is the Rust `regex` crate, which has NO lookarounds — a boundary
+// cannot be asserted, it has to be consumed. So the "is this term its own
+// word?" test is written as explicit prefix and suffix alternatives.
+//
+// The word boundaries reproduce the tokenizer the previous script used: an
+// identifier splits on non-alphanumerics and on a lowercase/digit → uppercase
+// hump, then each token is compared case-insensitively, allowing a trailing
+// plural `s`. Reproducing that means the term's own casing decides which
+// boundaries are legal, which is why there are three alternatives instead of
+// one case-insensitive pattern:
+//
+//   1. lowercase head, lowercase tail (`table`) — a lowercase head cannot open
+//      a hump, so the prefix must be empty or end in a non-alphanumeric. This
+//      is what keeps `abortable` and `urls` out. The tail may be followed by a
+//      hump, which is what catches `tableName`.
+//   2. uppercase head, lowercase tail (`Table`) — may open a hump, so
+//      `SymbolTable` and `parentColumns` match; may also close on one.
+//   3. uppercase head, uppercase tail (`TABLE`, and mixed forms such as `SQL`
+//      in `PostgreSQL`) — may open a hump but NOT close on one, because an
+//      uppercase→uppercase pair is not a split point. That asymmetry is what
+//      stops `SQL` matching inside `SQLQueryPlan`, which the tokenizer reads as
+//      the single token `sqlquery`.
+//
+// Each alternative lists every forbidden term with a literal head character, a
+// case-insensitive middle, and a literal tail character. The three multi-word
+// terms (`nativeType`, `primaryKey`, `foreignKey`) additionally accept either a
+// separator run or a hump between their two words, so `native-type`,
+// `NATIVE_TYPE`, and `getNativeType` all match.
+//
+// The two `not` guards reproduce the previous script's `allow` list:
+// `SymbolTable` (PSL parser) and `MigrationLogTable` (CLI renderer) are
+// framework-neutral compounds, so a `table` sitting inside one does not count.
+// A bare `table` elsewhere on the same line still does, because it is its own
+// leaf node.
+//
+// `$filename` is biome's built-in current-file path; the two file-exclusion
+// regexes mirror no-bare-cast.grit and biome's test-file override includes.
+//
+// Severity is "info" so the plugin runs without breaking existing builds
+// (hundreds of pre-existing sites). The CI ratchet
+// (scripts/lint-framework-vocabulary.mjs) enforces the threshold by counting
+// these diagnostics from biome's JSON reporter, deduplicated by file and line;
+// "info" entries still appear there with the distinctive
+// `no-family-vocabulary: ` prefix.
+language js
+
+or {
+  JsReferenceIdentifier(),
+  JsIdentifierBinding(),
+  TsIdentifierBinding(),
+  JsName(),
+  JsPrivateName(),
+  JsLiteralMemberName(),
+  JsLiteralExportName(),
+  TsLiteralEnumMemberName(),
+  TsTypeParameterName(),
+  JsStringLiteralExpression(),
+  TsStringLiteralType(),
+  JsModuleSource(),
+  JsRegexLiteralExpression(),
+  JsTemplateChunkElement()
+} as $tok where {
+  $filename <: r".*packages/1-framework/.*",
+  not $filename <: r".*\.(?:test|test-d)\.ts",
+  not $filename <: r".*/test/.*\.ts",
+  or {
+    $tok <: r"(?s)(?:|.*[^A-Za-z0-9])(?:p(?i:ostgre)s|p(?i:ostgresq)l|s(?i:qlit)e|m(?i:ysq)l|m(?i:ariad)b|m(?i:ssq)l|s(?i:qlserve)r|c(?i:ockroac)h|p(?i:glit)e|m(?i:ong)o|m(?i:ongod)b|c(?i:ollectio)n|c(?i:olum)n|t(?i:abl)e|c(?i:onstrain)t|s(?i:q)l|v(?i:archa)r|j(?i:son)b|d(?i:ialec)t|r(?i:l)s|n(?i:ativ)(?:[eE][^A-Za-z0-9]+[tT]|eT)(?i:yp)e|p(?i:rimar)(?:[yY][^A-Za-z0-9]+[kK]|yK)(?i:e)y|f(?i:oreig)(?:[nN][^A-Za-z0-9]+[kK]|nK)(?i:e)y)[sS]?(?:|[^A-Za-z0-9].*|[A-Z].*)",
+    $tok <: r"(?s)(?:|.*[^A-Za-z0-9]|.*[a-z0-9])(?:P(?i:ostgre)s|P(?i:ostgresq)l|S(?i:qlit)e|M(?i:ysq)l|M(?i:ariad)b|M(?i:ssq)l|S(?i:qlserve)r|C(?i:ockroac)h|P(?i:glit)e|M(?i:ong)o|M(?i:ongod)b|C(?i:ollectio)n|C(?i:olum)n|T(?i:abl)e|C(?i:onstrain)t|S(?i:q)l|V(?i:archa)r|J(?i:son)b|D(?i:ialec)t|R(?i:l)s|N(?i:ativ)(?:[eE][^A-Za-z0-9]+[tT]|eT)(?i:yp)e|P(?i:rimar)(?:[yY][^A-Za-z0-9]+[kK]|yK)(?i:e)y|F(?i:oreig)(?:[nN][^A-Za-z0-9]+[kK]|nK)(?i:e)y)[sS]?(?:|[^A-Za-z0-9].*|[A-Z].*)",
+    $tok <: r"(?s)(?:|.*[^A-Za-z0-9]|.*[a-z0-9])(?:P(?i:ostgre)S|P(?i:ostgresq)L|S(?i:qlit)E|M(?i:ysq)L|M(?i:ariad)B|M(?i:ssq)L|S(?i:qlserve)R|C(?i:ockroac)H|P(?i:glit)E|M(?i:ong)O|M(?i:ongod)B|C(?i:ollectio)N|C(?i:olum)N|T(?i:abl)E|C(?i:onstrain)T|S(?i:q)L|V(?i:archa)R|J(?i:son)B|D(?i:ialec)T|R(?i:l)S|N(?i:ativ)(?:[eE][^A-Za-z0-9]+[tT]|eT)(?i:yp)E|P(?i:rimar)(?:[yY][^A-Za-z0-9]+[kK]|yK)(?i:e)Y|F(?i:oreig)(?:[nN][^A-Za-z0-9]+[kK]|nK)(?i:e)Y)[sS]?(?:|[^A-Za-z0-9].*)"
+  },
+  not $tok <: r"(?s).*(?i:symbol)[^A-Za-z0-9]*(?i:table).*",
+  not $tok <: r"(?s).*(?i:migration)[^A-Za-z0-9]*(?i:log)[^A-Za-z0-9]*(?i:table).*",
+  register_diagnostic(span=$tok, message="no-family-vocabulary: family/target vocabulary in the family-blind framework domain; move the concept into the owning family layer, or suppress with `// biome-ignore lint/plugin/no-family-vocabulary: <why this is family-blind>`", severity="info")
+}

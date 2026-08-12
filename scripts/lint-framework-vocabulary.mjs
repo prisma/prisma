@@ -7,10 +7,13 @@
  * concepts). Terms like `nativeType` or `postgres` belong to the SQL family
  * and have repeatedly leaked into framework types via review misses.
  *
- * Counts forbidden-term occurrences (identifier-token matching, not a
- * compiler diagnostic) at HEAD, per scope declared in
- * lint-framework-vocabulary.config.json, and compares the count against a
- * `threshold` recorded in that same config:
+ * The sites are found by the `no-family-vocabulary` Biome plugin
+ * (biome-plugins/no-family-vocabulary.grit), which matches syntax nodes and so
+ * never counts comments or JSDoc. This script is only the ratchet: it runs
+ * biome over each scope declared in lint-framework-vocabulary.config.json,
+ * counts the plugin's diagnostics deduplicated by file and line (two terms on
+ * one line, or a term matched by two nested nodes, count once), and compares
+ * that count against the `threshold` recorded in the same config:
  *
  *   - count > threshold — new vocabulary was introduced; fail, and tell the
  *     author to remove it.
@@ -27,120 +30,75 @@
  *   0 — every scope's count equals its recorded threshold
  *   1 — at least one scope's count differs from its threshold
  *
- * The script uses process.cwd() as the git root (and reads its config
+ * The script uses process.cwd() as the scan root (and reads its config
  * relative to that root) so tests can supply a temporary fixture repo by
  * setting cwd on the child process.
  */
 
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const GIT_ROOT = process.cwd();
-const CONFIG_PATH = join(GIT_ROOT, 'scripts', 'lint-framework-vocabulary.config.json');
+// The real repo root (where the biome binary + config live) — always the
+// directory that contains this script's parent, regardless of cwd.
+const REAL_REPO_ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..');
+const BIOME_BIN = join(REAL_REPO_ROOT, 'node_modules', '.bin', 'biome');
+const BIOME_CONFIG = join(REAL_REPO_ROOT, 'biome.jsonc');
 
-export function isScannableFile(relPath) {
-  if (!/\.(ts|tsx)$/.test(relPath)) return false;
-  if (/\.test\.tsx?$/.test(relPath)) return false;
-  if (/\.test-d\.tsx?$/.test(relPath)) return false;
-  if (/(^|\/)test\//.test(relPath)) return false;
-  if (/(^|\/)dist\//.test(relPath)) return false;
-  return true;
+const SCAN_ROOT = process.cwd();
+const CONFIG_PATH = join(SCAN_ROOT, 'scripts', 'lint-framework-vocabulary.config.json');
+
+const MESSAGE_PREFIX = 'no-family-vocabulary: ';
+
+export function filterVocabularyDiags(diagnostics) {
+  return diagnostics.filter(
+    (d) =>
+      d.category === 'plugin' &&
+      typeof d.message === 'string' &&
+      d.message.startsWith(MESSAGE_PREFIX),
+  );
 }
 
-// Split a line into lowercase identifier tokens: break camelCase/digit→upper humps, split on non-alphanumerics.
-export function tokenize(line) {
-  return line
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .split(/[^A-Za-z0-9]+/)
-    .filter(Boolean)
-    .map((t) => t.toLowerCase());
-}
-
-export function termTokens(term) {
-  return tokenize(term);
-}
-
-// A line token matches a term token if equal, or equal with a trailing plural 's'.
-function tokenMatches(lineToken, termToken) {
-  return lineToken === termToken || lineToken === `${termToken}s`;
-}
-
-// Every [start, end) token range where the term's token sequence appears as a
-// consecutive subsequence of the line's tokens (end exclusive).
-export function termMatchRanges(lineTokens, tt) {
-  const ranges = [];
-  for (let i = 0; i + tt.length <= lineTokens.length; i++) {
-    let ok = true;
-    for (let j = 0; j < tt.length; j++) {
-      if (!tokenMatches(lineTokens[i + j], tt[j])) {
-        ok = false;
-        break;
-      }
-    }
-    if (ok) ranges.push([i, i + tt.length]);
-  }
-  return ranges;
-}
-
-// True if the term's token sequence appears as a consecutive subsequence of the line's tokens.
-export function lineMatchesTermTokens(lineTokens, tt) {
-  return termMatchRanges(lineTokens, tt).length > 0;
-}
-
-// Distinct matching lines. Each returned entry is one line (counted once even if several terms match it).
-//
-// An optional `scope.allow` lists framework-neutral compound terms (e.g. `SymbolTable`).
-// A forbidden-term occurrence is shielded — and does not count — when its matched token
-// range is fully contained within a single allowed compound's range on the same line. This
-// lets `SymbolTable`/`symbol-table` stop matching the bare `table` term while a bare `table`
-// elsewhere on the line (or file) still counts. Absent/empty `allow` ⇒ unchanged behaviour.
-export function findMatchingLines(content, scope) {
-  const termSeqs = scope.forbidden.map(termTokens);
-  const allowSeqs = (scope.allow ?? []).map(termTokens);
-  const out = [];
-  const lines = content.split('\n');
-  for (let i = 0; i < lines.length; i++) {
-    const lineTokens = tokenize(lines[i]);
-    const allowRanges = allowSeqs.flatMap((tt) => termMatchRanges(lineTokens, tt));
-    const matched = [];
-    for (let k = 0; k < termSeqs.length; k++) {
-      const ranges = termMatchRanges(lineTokens, termSeqs[k]);
-      const hasUnshielded = ranges.some(
-        (r) => !allowRanges.some((a) => a[0] <= r[0] && r[1] <= a[1]),
-      );
-      if (hasUnshielded) matched.push(scope.forbidden[k]);
-    }
-    if (matched.length > 0) out.push({ line: i + 1, terms: matched, text: lines[i].trim() });
-  }
-  return out;
+// One entry per (file, line): the plugin reports every matching node, so a
+// single line yields several diagnostics when it carries several terms or when
+// nested nodes both match.
+export function dedupeSites(diagnostics) {
+  const sites = filterVocabularyDiags(diagnostics).map((d) => {
+    const loc = d.location ?? {};
+    return `${loc.path ?? ''}:${loc.start?.line ?? 0}`;
+  });
+  return [...new Set(sites)].sort();
 }
 
 export function loadConfig(configPath) {
   return JSON.parse(readFileSync(configPath, 'utf-8'));
 }
 
-function git(cwd, ...args) {
-  return execFileSync('git', args, { cwd, encoding: 'utf-8', stdio: 'pipe' }).trim();
-}
+function scanScope(scanDir, scopePath) {
+  const result = spawnSync(
+    BIOME_BIN,
+    ['lint', '--config-path', BIOME_CONFIG, '--reporter=json', scopePath],
+    { cwd: scanDir, encoding: 'utf-8', maxBuffer: 400 * 1024 * 1024 },
+  );
 
-export function scanScope(scanDir, scope) {
-  const listing = git(scanDir, 'ls-files', '--', scope.path);
-  const files = listing.split('\n').filter(Boolean).filter(isScannableFile);
-
-  const records = [];
-  for (const relPath of files) {
-    let content;
-    try {
-      content = readFileSync(join(scanDir, relPath), 'utf-8');
-    } catch {
-      continue;
-    }
-    for (const match of findMatchingLines(content, scope)) {
-      records.push({ file: relPath, ...match });
-    }
+  if (result.error) {
+    throw new Error(`biome spawn failed: ${result.error.message}`);
   }
-  return records;
+
+  const raw = (result.stdout ?? '').trim();
+  if (!raw) return [];
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    throw new Error(
+      `biome JSON parse failed: ${e.message}\nraw output (first 500 chars): ${raw.slice(0, 500)}`,
+    );
+  }
+
+  return dedupeSites(parsed.diagnostics ?? []);
 }
 
 function main() {
@@ -150,8 +108,8 @@ function main() {
   let anyFailed = false;
 
   for (const scope of config.scopes) {
-    const records = scanScope(GIT_ROOT, scope);
-    const count = records.length;
+    const sites = scanScope(SCAN_ROOT, scope.path);
+    const count = sites.length;
     const threshold = scope.threshold;
 
     console.log(
@@ -159,8 +117,8 @@ function main() {
     );
 
     if (list) {
-      for (const record of records) {
-        console.log(`  ${record.file}:${record.line}: [${record.terms.join(', ')}] ${record.text}`);
+      for (const site of sites) {
+        console.log(`  ${site}`);
       }
     }
 
@@ -174,8 +132,12 @@ function main() {
       );
       console.error(`  Find your additions: git diff origin/main -- ${scope.path}`);
       console.error('  List all current sites: node scripts/lint-framework-vocabulary.mjs --list');
+      console.error('  If a site is genuinely family-blind, suppress it at the line with');
       console.error(
-        `  If genuinely unavoidable, raise "threshold" to ${count} in scripts/lint-framework-vocabulary.config.json with justification in review.`,
+        '  `// biome-ignore lint/plugin/no-family-vocabulary: <why>` and lower the threshold.',
+      );
+      console.error(
+        `  Otherwise raise "threshold" to ${count} in scripts/lint-framework-vocabulary.config.json with justification in review.`,
       );
     } else if (count < threshold) {
       anyFailed = true;

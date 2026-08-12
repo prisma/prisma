@@ -7,30 +7,24 @@ import { execPath } from 'node:process';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import {
-  findMatchingLines,
-  isScannableFile,
-  lineMatchesTermTokens,
-  tokenize,
-} from './lint-framework-vocabulary.mjs';
+import { dedupeSites, filterVocabularyDiags } from './lint-framework-vocabulary.mjs';
 
 const SCRIPT_PATH = join(
   fileURLToPath(new URL('.', import.meta.url)),
   'lint-framework-vocabulary.mjs',
 );
 
-const CONFIG = {
-  scopes: [
-    {
-      path: 'framework',
-      forbidden: ['nativeType', 'postgres'],
-      threshold: 0,
-    },
-  ],
-};
+// The plugin is scoped to packages/1-framework by a $filename guard, so
+// fixtures have to live under that path to be seen at all.
+const SCOPE = 'packages/1-framework';
 
-// One matching line (nativeType), on line 2.
-const FILE_WITH_ONE_HIT = 'export const x = 1;\nexport const nativeType = "int4";\n';
+// One site, on line 1.
+const FILE_ONE_SITE = "export const nativeType = 'int4';\n";
+// Several diagnostics on a single line: two identifiers plus a string literal.
+const FILE_ONE_LINE_MANY_TERMS = "export const columnTable = 'postgres table';\n";
+// Vocabulary only in comments.
+const FILE_COMMENTS_ONLY =
+  '// a postgres table column\n/**\n * nativeType, primary key, mongo collection\n */\nexport const x = 1;\n';
 
 let repo;
 
@@ -48,13 +42,11 @@ function writeRepoFile(relPath, content) {
   writeFileSync(full, content);
 }
 
-function writeConfig(config) {
-  writeRepoFile('scripts/lint-framework-vocabulary.config.json', JSON.stringify(config, null, 2));
-}
-
-function commitAll(message) {
-  git('add', '-A');
-  git('commit', '-m', message);
+function writeConfig(threshold) {
+  writeRepoFile(
+    'scripts/lint-framework-vocabulary.config.json',
+    JSON.stringify({ scopes: [{ path: SCOPE, threshold }] }, null, 2),
+  );
 }
 
 function runScript(...args) {
@@ -64,143 +56,60 @@ function runScript(...args) {
 beforeEach(() => {
   repo = mkdtempSync(join(tmpdir(), 'pn-lint-framework-vocab-'));
   git('init', '--quiet', '--initial-branch=main');
-  git('config', 'user.email', 'test@example.com');
-  git('config', 'user.name', 'Test');
-  git('config', 'commit.gpgsign', 'false');
-  writeConfig(CONFIG);
 });
 
 afterEach(() => {
   rmSync(repo, { recursive: true, force: true });
 });
 
-describe('isScannableFile', () => {
-  it('accepts .ts and .tsx source files', () => {
-    assert.equal(isScannableFile('framework/src/foo.ts'), true);
-    assert.equal(isScannableFile('framework/src/foo.tsx'), true);
+describe('filterVocabularyDiags', () => {
+  it('keeps plugin diagnostics with the no-family-vocabulary prefix', () => {
+    const kept = filterVocabularyDiags([
+      { category: 'plugin', message: 'no-family-vocabulary: family/target vocabulary' },
+      { category: 'lint', message: 'no-family-vocabulary: wrong category' },
+      { category: 'plugin', message: 'no-bare-cast: a different plugin' },
+    ]);
+    assert.equal(kept.length, 1);
+    assert.match(kept[0].message, /^no-family-vocabulary:/);
   });
 
-  it('rejects non ts/tsx files', () => {
-    assert.equal(isScannableFile('framework/src/foo.js'), false);
-    assert.equal(isScannableFile('framework/README.md'), false);
-  });
-
-  it('rejects test files and dirs', () => {
-    assert.equal(isScannableFile('framework/src/foo.test.ts'), false);
-    assert.equal(isScannableFile('framework/src/foo.test-d.ts'), false);
-    assert.equal(isScannableFile('framework/src/foo.test.tsx'), false);
-    assert.equal(isScannableFile('framework/src/foo.test-d.tsx'), false);
-    assert.equal(isScannableFile('framework/test/foo.ts'), false);
-    assert.equal(isScannableFile('framework/src/test/foo.ts'), false);
-  });
-
-  it('rejects dist output', () => {
-    assert.equal(isScannableFile('framework/dist/foo.ts'), false);
+  it('returns empty array when no diagnostics match', () => {
+    assert.deepEqual(filterVocabularyDiags([]), []);
+    assert.deepEqual(filterVocabularyDiags([{ category: 'lint', message: 'x' }]), []);
   });
 });
 
-describe('token matcher — rejects substring noise', () => {
-  it('does not match "table" inside "abortable"', () => {
-    const scope = { forbidden: ['table', 'rls'] };
-    const content = 'const unlessAborted = abortable(signal);\n';
-    assert.deepEqual(findMatchingLines(content, scope), []);
+describe('dedupeSites', () => {
+  const diag = (path, line) => ({
+    category: 'plugin',
+    message: 'no-family-vocabulary: x',
+    location: { path, start: { line } },
   });
 
-  it('does not match "rls" inside "urls"', () => {
-    const scope = { forbidden: ['table', 'rls'] };
-    const content = 'const urls: string[] = [];\n';
-    assert.deepEqual(findMatchingLines(content, scope), []);
-  });
-});
-
-describe('token matcher — catches camelCase leaks', () => {
-  it('matches "column" against the plural in "parentColumns"', () => {
-    const scope = { forbidden: ['column'] };
-    const content = 'readonly parentColumns: readonly string[];\n';
-    const matches = findMatchingLines(content, scope);
-    assert.equal(matches.length, 1);
-    assert.deepEqual(matches[0].terms, ['column']);
+  it('collapses repeated diagnostics on one line to a single site', () => {
+    assert.deepEqual(dedupeSites([diag('a.ts', 3), diag('a.ts', 3), diag('a.ts', 3)]), ['a.ts:3']);
   });
 
-  it('matches "nativeType" against the camelCase hump in "getNativeType"', () => {
-    const scope = { forbidden: ['nativeType'] };
-    const content = 'function getNativeType() {}\n';
-    const matches = findMatchingLines(content, scope);
-    assert.equal(matches.length, 1);
+  it('keeps distinct lines and distinct files apart', () => {
+    assert.deepEqual(dedupeSites([diag('a.ts', 3), diag('a.ts', 4), diag('b.ts', 3)]), [
+      'a.ts:3',
+      'a.ts:4',
+      'b.ts:3',
+    ]);
   });
 
-  it('matches "mongo" against the camelCase hump in "MongoStorage"', () => {
-    const scope = { forbidden: ['mongo'] };
-    const content = 'export class MongoStorage {}\n';
-    const matches = findMatchingLines(content, scope);
-    assert.equal(matches.length, 1);
-  });
-});
-
-describe('token matcher — distinct-line counting', () => {
-  it('counts a line matching two terms once', () => {
-    const scope = { forbidden: ['native-type', 'postgres'] };
-    const content = 'export const postgresNativeType = "int4";\n';
-    const matches = findMatchingLines(content, scope);
-    assert.equal(matches.length, 1);
-    assert.deepEqual(matches[0].terms.sort(), ['native-type', 'postgres']);
-  });
-
-  it('counts a line matching two forms of the same concept once', () => {
-    const scope = { forbidden: ['primaryKey', 'primary key'] };
-    const content = 'readonly primaryKey: string;\n';
-    const matches = findMatchingLines(content, scope);
-    assert.equal(matches.length, 1);
-    assert.deepEqual(matches[0].terms.sort(), ['primary key', 'primaryKey']);
-  });
-});
-
-describe('allow shielding', () => {
-  it('shields a forbidden token whose range is covered by an allowed compound', () => {
-    const scope = { forbidden: ['table'], allow: ['SymbolTable'] };
-    assert.deepEqual(findMatchingLines('const t: SymbolTable = x;\n', scope), []);
-    assert.deepEqual(findMatchingLines('import { X } from "./symbol-table";\n', scope), []);
-  });
-
-  it('still counts a bare forbidden token elsewhere', () => {
-    const scope = { forbidden: ['table'], allow: ['SymbolTable'] };
-    const matches = findMatchingLines('interface Table { id: string }\n', scope);
-    assert.equal(matches.length, 1);
-    assert.deepEqual(matches[0].terms, ['table']);
-  });
-
-  it('counts a bare forbidden token on a line that also has an allowed compound', () => {
-    const scope = { forbidden: ['table'], allow: ['SymbolTable'] };
-    const matches = findMatchingLines('const s: SymbolTable = table;\n', scope);
-    assert.equal(matches.length, 1);
-    assert.deepEqual(matches[0].terms, ['table']);
-  });
-});
-
-describe('tokenize', () => {
-  it('splits camelCase, digit humps, and non-alphanumerics into lowercase tokens', () => {
-    assert.deepEqual(tokenize('getNativeType()'), ['get', 'native', 'type']);
-    assert.deepEqual(tokenize('foo-bar_baz.qux'), ['foo', 'bar', 'baz', 'qux']);
-  });
-});
-
-describe('lineMatchesTermTokens', () => {
-  it('matches a multi-token term as a consecutive subsequence', () => {
-    assert.equal(lineMatchesTermTokens(['a', 'foreign', 'key', 'b'], ['foreign', 'key']), true);
-  });
-
-  it('does not match out-of-order tokens', () => {
-    assert.equal(lineMatchesTermTokens(['key', 'foreign'], ['foreign', 'key']), false);
+  it('ignores diagnostics from other plugins', () => {
+    assert.deepEqual(
+      dedupeSites([diag('a.ts', 1), { category: 'plugin', message: 'no-bare-cast: x' }]),
+      ['a.ts:1'],
+    );
   });
 });
 
 describe('lint-framework-vocabulary — threshold met', () => {
   it('exits 0 when count equals threshold', () => {
-    writeConfig({
-      scopes: [{ path: 'framework', forbidden: ['nativeType', 'postgres'], threshold: 1 }],
-    });
-    writeRepoFile('framework/src/app.ts', FILE_WITH_ONE_HIT);
-    commitAll('one hit, threshold 1');
+    writeConfig(1);
+    writeRepoFile(`${SCOPE}/src/app.ts`, FILE_ONE_SITE);
 
     const result = runScript();
     assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
@@ -210,26 +119,28 @@ describe('lint-framework-vocabulary — threshold met', () => {
 
 describe('lint-framework-vocabulary — count above threshold', () => {
   it('exits 1 and instructs removing violations or raising the threshold', () => {
-    writeConfig({
-      scopes: [{ path: 'framework', forbidden: ['nativeType', 'postgres'], threshold: 0 }],
-    });
-    writeRepoFile('framework/src/app.ts', FILE_WITH_ONE_HIT);
-    commitAll('one hit, threshold 0');
+    writeConfig(0);
+    writeRepoFile(`${SCOPE}/src/app.ts`, FILE_ONE_SITE);
 
     const result = runScript();
     assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
     assert.match(result.stdout, /count=1 threshold=0/);
     assert.match(result.stderr, /raise.*threshold|remove/i);
   });
+
+  it('names the suppression comment in the failure advice', () => {
+    writeConfig(0);
+    writeRepoFile(`${SCOPE}/src/app.ts`, FILE_ONE_SITE);
+
+    const result = runScript();
+    assert.match(result.stderr, /biome-ignore lint\/plugin\/no-family-vocabulary/);
+  });
 });
 
 describe('lint-framework-vocabulary — count below threshold', () => {
   it('exits 1 and instructs lowering the threshold', () => {
-    writeConfig({
-      scopes: [{ path: 'framework', forbidden: ['nativeType', 'postgres'], threshold: 5 }],
-    });
-    writeRepoFile('framework/src/app.ts', FILE_WITH_ONE_HIT);
-    commitAll('one hit, threshold 5');
+    writeConfig(5);
+    writeRepoFile(`${SCOPE}/src/app.ts`, FILE_ONE_SITE);
 
     const result = runScript();
     assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
@@ -238,30 +149,53 @@ describe('lint-framework-vocabulary — count below threshold', () => {
   });
 });
 
-describe('lint-framework-vocabulary — scope boundary', () => {
-  it('does not count a matching file outside the scanned scope', () => {
-    writeConfig({
-      scopes: [{ path: 'framework', forbidden: ['nativeType', 'postgres'], threshold: 0 }],
-    });
-    writeRepoFile('other/src/app.ts', FILE_WITH_ONE_HIT);
-    commitAll('hit outside scope');
+describe('lint-framework-vocabulary — counting', () => {
+  it('counts a line carrying several terms once', () => {
+    writeConfig(1);
+    writeRepoFile(`${SCOPE}/src/app.ts`, FILE_ONE_LINE_MANY_TERMS);
+
+    const result = runScript();
+    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
+    assert.match(result.stdout, /count=1 threshold=1/);
+  });
+
+  it('does not count vocabulary in comments or JSDoc', () => {
+    writeConfig(0);
+    writeRepoFile(`${SCOPE}/src/app.ts`, FILE_COMMENTS_ONLY);
 
     const result = runScript();
     assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
     assert.match(result.stdout, /count=0 threshold=0/);
   });
+
+  it('honours a biome-ignore suppression naming this plugin', () => {
+    writeConfig(0);
+    writeRepoFile(
+      `${SCOPE}/src/app.ts`,
+      `// biome-ignore lint/plugin/no-family-vocabulary: terminal layout, not storage\n${FILE_ONE_SITE}`,
+    );
+
+    const result = runScript();
+    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
+    assert.match(result.stdout, /count=0 threshold=0/);
+  });
+
+  it('lists each site as file:line under --list', () => {
+    writeConfig(1);
+    writeRepoFile(`${SCOPE}/src/app.ts`, FILE_ONE_SITE);
+
+    const result = runScript('--list');
+    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
+    assert.match(result.stdout, new RegExp(`${SCOPE}/src/app\\.ts:1`));
+  });
 });
 
 describe('lint-framework-vocabulary — exclusions', () => {
-  it('ignores occurrences in test files and dist output', () => {
-    writeConfig({
-      scopes: [{ path: 'framework', forbidden: ['nativeType', 'postgres'], threshold: 0 }],
-    });
-    writeRepoFile('framework/src/app.test.ts', FILE_WITH_ONE_HIT);
-    writeRepoFile('framework/src/app.test-d.ts', FILE_WITH_ONE_HIT);
-    writeRepoFile('framework/test/app.ts', FILE_WITH_ONE_HIT);
-    writeRepoFile('framework/dist/app.ts', FILE_WITH_ONE_HIT);
-    commitAll('excluded-only occurrences');
+  it('ignores test files and test directories', () => {
+    writeConfig(0);
+    writeRepoFile(`${SCOPE}/src/app.test.ts`, FILE_ONE_SITE);
+    writeRepoFile(`${SCOPE}/src/app.test-d.ts`, FILE_ONE_SITE);
+    writeRepoFile(`${SCOPE}/test/app.ts`, FILE_ONE_SITE);
 
     const result = runScript();
     assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
