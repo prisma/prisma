@@ -39,3 +39,11 @@
 - **Hands to:** Green Migrate jobs on all Node versions and green macOS/Windows package suites without weakening the required production API.
 - **Focus:** Mechanically migrate every direct `new DbPull()` test/helper call to `DbPull.new('prisma')`; audit all other required migrate command classes for direct-constructor bypasses; preserve existing ordinary snapshots and do not add a fallback/default merely to accommodate tests.
 - **Validation gate:** exhaustive direct-constructor grep; full `@prisma/migrate` test command with available databases/engines; affected cross-platform package tests where locally reproducible; migrate/CLI builds and exact workspace typecheck; Prettier; `git diff --check`; mandatory transient-ID scan.
+
+### Dispatch 6: close current review comments
+
+- **Outcome:** Every current PR review thread is resolved with required rejection evidence, opposite-identity negatives, identity-aware `DbDrop` help, and side-effect-free unsupported-URL validation ordering.
+- **Builds on:** Dispatch 5's green constructor contract and the five current CodeRabbit findings against changed test/command surfaces.
+- **Hands to:** A review-complete PR with focused tests proving each corrected behavior and no weakened identity contract.
+- **Focus:** Require the ordinary missing-client test to reject; strengthen DbCommand/DbExecute negative assertions; replace the duplicate incorrect `.resolves.toThrow()` case with a resolved-Error assertion; render dormant `DbDrop` help from required `cliCommand`; reject unsupported Data Proxy reset URLs before datasource parsing/output. Keep changes minimal and do not broaden dormant `DbDrop` wiring.
+- **Validation gate:** focused client-generator and migrate tests; migrate/client-generator builds; exact workspace typecheck; Prettier; `git diff --check`; mandatory transient-ID scan.
