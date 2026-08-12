@@ -3,10 +3,22 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7, D8, D9, D10
-- **AC scoreboard totals:** 65 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4, D5, D6, D7, D8, D9, D10; downstream-actionable-guidance D1
+- **AC scoreboard totals:** 70 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
+
+## downstream-actionable-guidance D1 acceptance criteria scoreboard
+
+| AC ID  | Description (short)                                                                                                              | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1-AC1 | Active migrate/db command-group and representative leaf help surfaces require explicit `cliCommand` and render it in help paths. | PASS   | `b7fa50bea3`; `packages/migrate/src/commands/MigrateCommand.ts` and `DbCommand.ts` now require `cliCommand`, render help through instance-bound `renderHelp(...)`, and feed that help into `unknownCommand(...)` and `HelpError`. Representative leaves `MigrateResolve.ts` and `DbExecute.ts` also require `cliCommand` and use it in usage/examples plus validation-help strings such as `migrate resolve --applied ...` and `db execute -h`. Focused dual-identity coverage lives in `packages/migrate/src/__tests__/{MigrateCommand,DbCommand,MigrateResolve,DbExecute}.test.ts`.                             |
+| D1-AC2 | CLI passes the selected identity; standalone/ordinary callers explicitly pass `prisma`.                                          | PASS   | `packages/cli/src/bin.ts` now threads `identity` into `MigrateCommand.new(...)`, `DbCommand.new(...)`, and every active migrate/db leaf factory. `packages/migrate/src/bin.ts` passes `'prisma'` explicitly for the standalone migrate entrypoint. Ordinary production/test callers were migrated to explicit `'prisma'` in `packages/cli/src/bootstrap/Bootstrap.ts`, `packages/client/src/__tests__/integration/__helpers__/migrateDb.ts`, `packages/client/tests/functional/_utils/setupTestSuiteEnv.ts`, and touched migrate/CLI test suites such as `packages/cli/src/__tests__/incomplete-schemas.test.ts`. |
+| D1-AC3 | Tests prove both executable names for command-group and representative leaf paths without broad identity-suite duplication.      | PASS   | `packages/migrate/src/__tests__/MigrateCommand.test.ts` and `DbCommand.test.ts` use `describe.each(['prisma', 'prisma7'])` to prove help plus unknown-command output for both command groups with opposite-identity negatives. `MigrateResolve.test.ts` and `DbExecute.test.ts` use the same two-name matrix to prove help/examples plus validation-help errors for representative leaves, while the broader existing ordinary-`prisma` suites remain in place unchanged.                                                                                                                                         |
+| D1-AC4 | Dispatch stays in help-scope; runtime/recovery guidance remains out of scope for later work.                                     | PASS   | The commit is confined to constructor/callsite fanout and help-path renderers; it does not thread identity through the remaining runtime/recovery strings in `DbPull.ts`, `DbPush.ts`, `MigrateDev.ts`, or `MigrateStatus.ts`, which still contain ordinary `prisma ...` guidance and therefore remain clearly queued for Dispatch 2 rather than being partially mixed into this round.                                                                                                                                                                                                                           |
+| D1-AC5 | Gates and mandatory transient scan are credible.                                                                                 | PASS   | `git diff --check b7fa50bea3^..b7fa50bea3` passed in review. Root `package.json` has no `lint:deps` script, matching the implementation report's classification. The mandatory transient-ID scan over the round's added TS/JS diff produced no plan-ID or `projects/prisma7-compatibility-cli/` hits. Nothing on disk contradicts the reported focused migrate build/tests, Prisma build/tsc, Bootstrap test, Prettier, and transient scan.                                                                                                                                                                       |
+
+**Overall slice verdict:** SATISFIED. D1 delivers the help-surface identity seam without dragging runtime guidance or generator work forward.
 
 ## cli-owned-distribution-identity D10 acceptance criteria scoreboard
 
@@ -133,8 +145,8 @@
 
 ## Subagent IDs
 
-- **Implementer:** `2228b575-da61-47d` — replacement Pi implementer established at `cli-owned-distribution-identity` D10 R2 after D10 R1 implementer `9e49991e-aaba-4d4` became inaccessible to resume.
-- **Reviewer:** `f2d350dd-9015-4b0` — replacement Pi reviewer established at `cli-owned-distribution-identity` D10 R2 after D10 R1 reviewer `e3bbbf24-874d-46b` became inaccessible to resume.
+- **Implementer:** `5c6162ab-7048-4a5` — persistent implementer established at `downstream-actionable-guidance` D1 R1.
+- **Reviewer:** `6b282f5d-03e0-493` — persistent reviewer established at `downstream-actionable-guidance` D1 R1.
 
 ## Orchestrator notes
 
@@ -148,6 +160,7 @@
 - After D5, the operator correctly rejected the package-local Vitest subprocess scenario as not using Prisma's E2E harness. D6 moved the scenario under `packages/client/tests/e2e`, installed packed tarballs in the standard Docker fixture, and removed the prisma7 package-level test job and test-only dependencies.
 - D7 addresses current PR feedback only: simplify identity to `'prisma' | 'prisma7'`, use `prisma7 db push` instead of raw DDL in E2E, and guard chmod after esbuild errors. The `prepack` suggestion was rejected by the operator because root build precedes E2E packing; comments on deleted tests are obsolete.
 - After D9 review, regenerating the ignored type-benchmark clients with `pnpm --filter @prisma/type-benchmark-tests dev` cleared the local stale `@ts-expect-error` noise. The exact CI commands `pnpm tsc -p tsconfig.utils.typecheck.json` and `pnpm lint` then passed with no tracked changes.
+- `downstream-actionable-guidance` D1 touched 33 files despite a brief halt threshold of approximately 30 and the implementer did not stop. Review confirmed the overage was required mechanical factory/call-site fan-out rather than product drift, so the dispatch remains accepted; future briefs use outcome/scope halt conditions rather than a brittle file-count proxy for this mechanical migration shape.
 
 ## Findings log
 
@@ -526,3 +539,15 @@
 **Verification:** `pnpm exec vitest run helpers/compile/plugins/resolvePathsPlugin.test.ts`, `pnpm --filter prisma build`, `pnpm --filter prisma7 build`, `pnpm tsc -p tsconfig.utils.typecheck.json`, `pnpm exec vitest run src/bootstrap/__tests__/Bootstrap.vitest.ts` from `packages/cli`, and `git diff --check 25e8174e1e^..25e8174e1e` passed. The mandatory transient-ID scan over `helpers/compile/plugins/resolvePathsPlugin.ts` and `helpers/compile/plugins/resolvePathsPlugin.test.ts` found no UUID, `agent_id`, `subagent`, `trace_id`, `session`, or `projects/prisma7-compatibility-cli/` hits. An exploratory rerun of `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility` timed out inside the unchanged packed `tests/main.test.ts` body after Docker fixture install, so I treated the committed `main.test.ts` diff staying empty plus the passing Bootstrap regression test as the proportional no-regression evidence for the D10 R1 snapshot/completion and Windows fixes.
 
 **For orchestrator:** `cli-owned-distribution-identity` is closed again. The next planned work remains `downstream-actionable-guidance` unless the operator reprioritizes.
+
+### downstream-actionable-guidance D1 R1 — SATISFIED
+
+**Scope:** Dispatch 1 migrate/db help identity propagation. Commit `b7fa50bea3`.
+
+**Tasks:** Command-group help/unknown-command paths are clean. Representative leaf help and validation-help paths are clean. Explicit ordinary-callsite migration is clean.
+
+**AC delta:** D1-AC1 PASS. D1-AC2 PASS. D1-AC3 PASS. D1-AC4 PASS. D1-AC5 PASS.
+
+**Findings:** none.
+
+**For orchestrator:** The round touched 33 files, slightly above the brief's ~30-file halt threshold, but the overage is mechanical constructor/callsite fanout rather than hidden scope creep, so I did not file a product finding. Dispatch 2 still owns the remaining hardcoded runtime/recovery guidance in `DbPull`, `DbPush`, `MigrateDev`, and `MigrateStatus`.
