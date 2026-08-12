@@ -9,7 +9,7 @@ import { type BackendHarness, HARNESS_PATHS, sleep, startBackendHarness } from '
 
 /**
  * End-to-end CLI-process coverage for telemetry. Spawns the compiled
- * `prisma-next` binary via `node dist/cli.js …` against an isolated
+ * `prisma-next` binary via `node dist/bin.mjs …` against an isolated
  * `XDG_CONFIG_HOME` per test, points the in-binary endpoint at the test
  * backend, and asserts the rows the detached sender ends up writing.
  *
@@ -79,7 +79,7 @@ interface CliResult {
 }
 
 /**
- * Spawn the compiled CLI binary as `node dist/cli.js …`. Returns
+ * Spawn the compiled CLI binary as `node dist/bin.mjs …`. Returns
  * everything the parent process produced; the detached telemetry sender
  * the CLI forks is *not* observable through these handles (it's
  * `unref()`d and inherits no stdio), so callers verify its work via

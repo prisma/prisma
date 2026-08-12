@@ -12,7 +12,7 @@ Every workspace package belongs to exactly one scope, and the scope tells you it
 | `@internal/*` | This repository. ORM implementation packages. | No — `private: true`; code reaches npm only bundled inside published packages | `packages/{0-shared,1-framework,2-*,3-*}/**` |
 | `@repo/*` | This repository. Build/tooling config consumed by other workspace packages (tsconfig, tsdown presets). | No | `packages/0-config/*` |
 
-Two things intentionally fall outside the scopes: the unscoped **`prisma-next`** bin shim (published; a launcher whose only dependency is `@prisma/orm-toolchain` — see [ADR 211](../architecture%20docs/adrs/ADR%20211%20-%20prisma-next%20bin-only%20distribution.md) as amended), and the private example/app/test packages, which use bare directory names.
+One thing intentionally falls outside the scopes: the private example/app/test packages, which use bare directory names. (The unscoped `prisma-next` bin shim is gone — the unified `prisma` CLI is the only user-facing binary; see the supersession note in [ADR 211](../architecture%20docs/adrs/ADR%20211%20-%20prisma-next%20bin-only%20distribution.md).)
 
 ## The published surface
 
@@ -21,7 +21,6 @@ Two things intentionally fall outside the scopes: the unscoped **`prisma-next`**
 - **3 database facades** — `@prisma/orm-postgres`, `@prisma/orm-sqlite`, `@prisma/orm-mongo`. An application depends on exactly one; everything else arrives as its exact-pinned dependencies.
 - **6 extension packs** — `@prisma/orm-extension-{postgis,pgvector,paradedb,supabase,arktype-json,middleware-cache}`, peer-depending on their target package.
 - **7 platform packages** — `@prisma/orm-framework`, `@prisma/orm-toolchain`, `@prisma/orm-family-sql`, `@prisma/orm-family-mongo`, `@prisma/orm-target-{postgres,sqlite,mongo}`. These are shells: each bundles a set of `@internal/*` packages and re-exposes them as subpath entrypoints (e.g. `packages/2-sql/5-runtime` → `@prisma/orm-family-sql/runtime`).
-- **1 bin shim** — `prisma-next`.
 
 **Publishability is a directory property.** Everything under `packages/9-public/` is publishable and nothing else is; `pnpm lint:publishability` enforces both directions. One module lives in exactly one published package — shells re-export, never copy — so `instanceof` and shared-registry identity hold across package boundaries.
 
@@ -47,7 +46,6 @@ packages/
   3-targets/             # Domain 3: SQL targets (descriptors, adapters, drivers)
   9-public/              # The published surface — every publishable package, nothing else
     @prisma/*            # The 17 @prisma packages (16 dirs) …
-    prisma-next/         # … plus the unscoped bin shim
 ```
 
 The numbered prefixes serve two purposes:
@@ -86,7 +84,6 @@ A representative sample (the source of truth is each directory's `package.json`;
 | `packages/3-extensions/pgvector/` | `@internal/extension-pgvector` (source of `@prisma/orm-extension-pgvector`) |
 | `packages/3-targets/6-adapters/postgres/` | `@internal/adapter-postgres` |
 | `packages/9-public/@prisma/orm-postgres/` | `@prisma/orm-postgres` |
-| `packages/9-public/prisma-next/` | `prisma-next` |
 
 ## Workspace dependencies
 

@@ -23,7 +23,7 @@ const REPO_ROOT = resolve(PACKAGE_DIR, '../../../..');
 const BACKEND_DIR = join(REPO_ROOT, 'apps', 'telemetry-backend');
 const SENDER_PATH = resolve(PACKAGE_DIR, 'dist', 'sender.mjs');
 const CLI_DIR = resolve(REPO_ROOT, 'packages', '1-framework', '3-tooling', 'cli');
-const CLI_BIN_PATH = resolve(CLI_DIR, 'dist', 'cli.js');
+const CLI_BIN_PATH = resolve(CLI_DIR, 'dist', 'bin.mjs');
 
 export const HARNESS_PATHS = {
   TEST_DIR,

@@ -33,12 +33,11 @@ Provide a command-line interface that:
 ## Responsibilities
 
 - **TS Contract Loading**: Bundle and load TypeScript contract files with import allowlist enforcement
-- **CLI Command Interface**: Parse arguments and route to command handlers using commander
+- **CLI Command Interface**: Contribute the `orm` command family to the `@prisma/cli-engine` shell; the engine parses arguments, prints help, and settles results
 - **File I/O**: Read TS contracts, write emitted artifacts (`contract.json`, `contract.d.ts`)
 - **Extension Pack Descriptor Assembly**: Collect adapter and extension descriptors for emission
-- **Help Output Formatting**: Custom styled help output with command trees and formatted descriptions
 - **Config Management**: Load and validate `prisma-next.config.ts` files using Arktype validation
-- **CLI Binary Compatibility**: Build emits `dist/cli.mjs` and also writes a compatibility shim at `dist/cli.js`
+- **Workspace-local bin**: Build emits `dist/bin.mjs`, the engine entry the workspace's `prisma-next` bin points at (the published toolchain ships no bin; the unified `prisma` CLI mounts the family instead)
 
 ### Wiring validation
 

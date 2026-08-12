@@ -19,7 +19,7 @@ There are two approaches to CLI testing:
 ### Subprocess Tests (True E2E, e.g., `cli.emit-cli-process.e2e.test.ts`)
 
 - Spawn the CLI as a separate Node process using `execFileAsync('node', [cliPath, ...])`
-- Test the actual built CLI binary (`dist/cli.js`)
+- Test the actual built CLI binary (`dist/bin.mjs`)
 - **Pros**: Tests real CLI behavior, catches ESM/CJS issues
 - **Cons**: Slower, requires build first, harder to mock
 
@@ -185,7 +185,7 @@ describe('CLI process e2e', () => {
   it('executes CLI as separate process', async () => {
     const testSetup = setupIntegrationTestDirectoryFromFixtures('emit-command');
     const { testDir, cleanup } = testSetup;
-    const cliPath = resolve(__dirname, '../dist/cli.js');
+    const cliPath = resolve(__dirname, '../dist/bin.mjs');
 
     try {
       // Set cwd for spawned process so relative paths in config resolve correctly

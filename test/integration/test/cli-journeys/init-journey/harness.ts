@@ -33,11 +33,11 @@ const execFileAsync = promisify(execFile);
 
 /**
  * Path to the workspace-built CLI binary. The integration package's
- * `pretest` hook runs `pnpm -w build`, so `dist/cli.js` exists when these
+ * `pretest` hook runs `pnpm -w build`, so `dist/bin.mjs` exists when these
  * tests run.
  */
 const WORKSPACE_ROOT = resolve(import.meta.dirname, '../../../../..');
-const CLI_BIN = join(WORKSPACE_ROOT, 'packages/1-framework/3-tooling/cli/dist/cli.js');
+const CLI_BIN = join(WORKSPACE_ROOT, 'packages/1-framework/3-tooling/cli/dist/bin.mjs');
 
 /**
  * Shared cache root for the journey runs. Lives outside the repo (under

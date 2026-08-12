@@ -65,10 +65,11 @@ async function stageSchema(sourceFile?: string): Promise<string> {
 }
 
 function resolveCliEntry(): string {
-  // The facade puts the `prisma-next` command on an application's PATH and
-  // publishes the same launcher as an entrypoint, so the playground can spawn
-  // the one published CLI without depending on the toolchain itself.
-  return fileURLToPath(import.meta.resolve('@prisma/orm-postgres/bin/prisma-next'));
+  // Nothing published carries a bin anymore (the unified `prisma` CLI is the
+  // only user-facing binary), so the playground spawns the workspace-local
+  // engine entry, resolved relative to `@internal/cli`'s root export
+  // (dist/exports/index.mjs → dist/bin.mjs).
+  return fileURLToPath(new URL('../bin.mjs', import.meta.resolve('@internal/cli')));
 }
 
 async function main(): Promise<void> {
