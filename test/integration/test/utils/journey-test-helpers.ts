@@ -17,9 +17,6 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { promisify } from 'node:util';
-import { loadOrmConfig, ormCommandFamily } from '@internal/cli';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
-import { createContractInferCommand } from '@internal/cli/commands/contract-infer';
 import { createDbSignCommand } from '@internal/cli/commands/db-sign';
 import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
 import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
@@ -27,7 +24,6 @@ import { createMigrationCheckCommand } from '@internal/cli/commands/migration-ch
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { EngineEvent, PresentedResult, StreamEvent } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
-import { createTestCli } from '@prisma/cli-engine/testing';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import type { Command } from 'commander';
 import { isAbsolute, join, resolve } from 'pathe';
@@ -40,6 +36,7 @@ import {
   appendImplicitMigrationPlanFrom,
   executeCommand,
   getExitCode,
+  runOnEngine as runCommandOnEngine,
   setupCommandMocks,
   writeProjectManifest,
 } from './cli-test-helpers';
@@ -318,16 +315,6 @@ async function runCommand(
   return runCommandCore(command, ctx.testDir, ['--config', ctx.configPath, ...args], options);
 }
 
-/** Runs a CLI command without --config (for commands that don't need it, or error tests). */
-async function runCommandRaw(
-  command: Command,
-  testDir: string,
-  args: readonly string[],
-  options?: RunCommandOptions,
-): Promise<CommandResult> {
-  return runCommandCore(command, testDir, args, options);
-}
-
 /**
  * What a step run through the engine reports. A superset of
  * {@link CommandResult}, so a wrapper can move onto the engine without every
@@ -339,54 +326,13 @@ export interface EngineCommandResult extends CommandResult {
   readonly presented: PresentedResult<unknown> | undefined;
 }
 
-/**
- * Runs one step through the engine's own harness.
- *
- * The harness takes config as an already-evaluated record and has no config
- * option on `run()`, so the journey's `prisma-next.config.ts` is evaluated
- * here — through the same adapter the binary uses — and a fresh `TestCli` is
- * built per step. That is what lets a step that writes or rewrites the config
- * (`init`, or a journey that overwrites its own) be picked up by the next one.
- * The step's directory is passed as `cwd` rather than chdir'ed into, so
- * nothing about the run is process-global.
- */
+/** Runs one journey step through the engine's own harness. */
 export async function runOnEngine(
   ctx: JourneyContext,
   argv: readonly string[],
   options?: RunCommandOptions,
 ): Promise<EngineCommandResult> {
-  const loaded = await loadOrmConfig({ cwd: ctx.testDir, configPath: ctx.configPath });
-  const fileLevel = loaded.diagnostics.find((entry) => entry.section === null);
-  if (fileLevel !== undefined) {
-    throw new Error(
-      `runOnEngine: ${ctx.configPath} did not evaluate: ${fileLevel.diagnostic.code} — ${fileLevel.diagnostic.summary}`,
-    );
-  }
-
-  const cli = createTestCli({
-    commandFamilies: [ormCommandFamily],
-    commands: ormCommandFamily.commands,
-    groups: {
-      db: { brief: 'Live database commands' },
-      migration: { brief: 'On-disk migration management commands' },
-      ref: { brief: 'Named pointers at contracts' },
-    },
-    config: loaded.sections,
-  });
-
-  const run = await cli.run(argv, {
-    cwd: ctx.testDir,
-    isTty: { stdout: options?.isTTY !== false, stderr: options?.isTTY !== false },
-  });
-
-  return {
-    exitCode: run.exitCode,
-    stdout: run.stdout,
-    stderr: run.stderr,
-    events: run.events,
-    json: run.json,
-    presented: run.presented,
-  };
+  return runCommandOnEngine(ctx, argv, options);
 }
 
 // ---------------------------------------------------------------------------
@@ -397,15 +343,16 @@ export async function runContractEmit(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
   options?: RunCommandOptions,
-): Promise<CommandResult> {
-  return runCommand(createContractEmitCommand(), ctx, extraArgs, options);
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['contract', 'emit', ...extraArgs], options);
 }
 
 export async function runContractInfer(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createContractInferCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['contract', 'infer', ...extraArgs], options);
 }
 
 export async function runDbInit(
@@ -653,18 +600,18 @@ export async function runRef(
 }
 
 /**
- * Runs a command with explicit config path (for error tests with custom configs).
+ * Runs `contract emit` against a config file the test wrote itself — including
+ * files that do not evaluate, which settle as the run's error rather than
+ * failing the harness.
  */
 export async function runContractEmitWithConfig(
   testDir: string,
   configPath: string,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommandRaw(createContractEmitCommand(), testDir, [
-    '--config',
-    configPath,
-    ...extraArgs,
-  ]);
+): Promise<EngineCommandResult> {
+  return runCommandOnEngine({ testDir, configPath }, ['contract', 'emit', ...extraArgs], {
+    settleConfigFailures: true,
+  });
 }
 
 export async function runFormat(

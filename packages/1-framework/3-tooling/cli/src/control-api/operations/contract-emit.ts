@@ -276,7 +276,12 @@ export async function executeContractEmit(
         emit(deserializedContract, stack, config.family.emission, {
           outputJsonPath,
           serializeContract,
-          resolveImportSpecifier: createProjectSpecifierResolver(configPath),
+          // Which package names the generated files may import is decided by
+          // the nearest manifest above the file being written — the package
+          // that will import it, and the same directory `validateContractDeps`
+          // resolves against below. A caller holding the config file's path
+          // may name it instead.
+          resolveImportSpecifier: createProjectSpecifierResolver(configPath ?? outputJsonPath),
           ...ifDefined('shouldPreserveEmpty', contractSerializer.shouldPreserveEmpty),
           ...ifDefined('sortStorage', contractSerializer.sortStorage),
         }),

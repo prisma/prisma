@@ -9,10 +9,24 @@
 
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type { StreamEvent } from '@prisma/cli-engine';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
-import { runContractEmitWithConfig, setupJourney } from '../utils/journey-test-helpers';
+import {
+  type EngineCommandResult,
+  runContractEmitWithConfig,
+  setupJourney,
+} from '../utils/journey-test-helpers';
+
+/** The dotted code the run settled with, read off the terminal stream frame. */
+function settledCode(result: EngineCommandResult): string | undefined {
+  const terminal: StreamEvent | undefined = result.json.at(-1);
+  if (terminal === undefined || terminal.kind !== 'result' || terminal.envelope.ok) {
+    return undefined;
+  }
+  return terminal.envelope.error.code;
+}
 
 withTempDir(({ createTempDir }) => {
   describe('Journey T: Config Errors', () => {
@@ -26,8 +40,10 @@ withTempDir(({ createTempDir }) => {
         const result = await runContractEmitWithConfig(
           ctx.testDir,
           join(ctx.testDir, 'nonexistent-config.ts'),
+          ['--json'],
         );
-        expect(result.exitCode, 'T.01: missing config').not.toBe(0);
+        expect(result.exitCode, 'T.01: missing config').toBe(2);
+        expect(settledCode(result), 'T.01: settled code').toBe('CONFIG.FILE_NOT_FOUND');
       },
       timeouts.typeScriptCompilation,
     );
@@ -38,8 +54,11 @@ withTempDir(({ createTempDir }) => {
       async () => {
         const ctx = setupJourney({ createTempDir });
 
-        const result = await runContractEmitWithConfig(ctx.testDir, './this-does-not-exist.ts');
-        expect(result.exitCode, 'T.02: explicit missing config').not.toBe(0);
+        const result = await runContractEmitWithConfig(ctx.testDir, './this-does-not-exist.ts', [
+          '--json',
+        ]);
+        expect(result.exitCode, 'T.02: explicit missing config').toBe(2);
+        expect(settledCode(result), 'T.02: settled code').toBe('CONFIG.FILE_NOT_FOUND');
       },
       timeouts.typeScriptCompilation,
     );
@@ -54,8 +73,9 @@ withTempDir(({ createTempDir }) => {
         const invalidConfigPath = join(ctx.testDir, 'prisma-next.config.ts');
         writeFileSync(invalidConfigPath, 'export default {{{INVALID SYNTAX', 'utf-8');
 
-        const result = await runContractEmitWithConfig(ctx.testDir, invalidConfigPath);
-        expect(result.exitCode, 'T.03: invalid config TS').not.toBe(0);
+        const result = await runContractEmitWithConfig(ctx.testDir, invalidConfigPath, ['--json']);
+        expect(result.exitCode, 'T.03: invalid config TS').toBe(2);
+        expect(settledCode(result), 'T.03: settled code').toBe('CONFIG.EVALUATION_FAILED');
       },
       timeouts.typeScriptCompilation,
     );
@@ -86,8 +106,9 @@ export default defineConfig({
           'utf-8',
         );
 
-        const result = await runContractEmitWithConfig(ctx.testDir, emptyConfigPath);
-        expect(result.exitCode, 'T.04: missing contract field').not.toBe(0);
+        const result = await runContractEmitWithConfig(ctx.testDir, emptyConfigPath, ['--json']);
+        expect(result.exitCode, 'T.04: missing contract field').toBe(2);
+        expect(settledCode(result), 'T.04: settled code').toBe('CONFIG.CONTRACT_MISSING');
       },
       timeouts.typeScriptCompilation,
     );
