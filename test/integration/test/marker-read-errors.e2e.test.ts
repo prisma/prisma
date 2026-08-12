@@ -52,7 +52,10 @@ withTempDir(({ createTempDir }) => {
             why: expect.stringContaining('Invalid contract marker row'),
           },
         });
-        expect(JSON.stringify(envelope)).toContain('prisma-next db sign');
+        // The action names the binary as `{bin}`; the shell substitutes its own
+        // name when it renders. Asserting a literal here would contradict the
+        // rule that no action hardcodes a binary name.
+        expect(JSON.stringify(envelope)).toContain('{bin} db sign');
         expect(envelope).not.toHaveProperty('fix');
       },
       timeouts.spinUpPpgDev,
