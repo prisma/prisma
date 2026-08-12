@@ -4,6 +4,7 @@ import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
 import { createControlClient } from '../control-api/client';
 import type { CreateControlClient } from '../control-api/types';
+import { isCI } from '../utils/is-ci';
 import { contractEmitCommand } from './contract/emit';
 import { contractInferCommand } from './contract/infer';
 import { createDbInitCommand } from './db/init';
@@ -11,6 +12,7 @@ import { createDbSchemaCommand } from './db/schema';
 import { createDbUpdateCommand } from './db/update';
 import { ormCommandFamily } from './family';
 import { formatCommand } from './format';
+import { initCommand } from './init';
 import { loadOrmConfig } from './load-config';
 import { createMigrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
@@ -18,6 +20,7 @@ import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
 import { migrationShowCommand } from './migration/show';
 import { normalizeError } from './normalize-error';
+import { runPackageManager } from './package-manager-runner';
 import { refDeleteCommand } from './ref/delete';
 import { refListCommand } from './ref/list';
 import { refSetCommand } from './ref/set';
@@ -66,6 +69,7 @@ export function createBinCommands(createClient: CreateControlClient): MountedTre
     'db schema': createDbSchemaCommand(createClient),
     'db update': createDbUpdateCommand(createClient),
     format: formatCommand,
+    init: initCommand,
     migrate: createMigrateCommand(createClient),
     'migration graph': migrationGraphCommand,
     'migration list': migrationListCommand,
@@ -87,14 +91,6 @@ export function createOrmCli(): Cli {
     groups: BIN_GROUPS,
     commands: BIN_COMMANDS,
   });
-}
-
-function packageManagerFrom(
-  env: Readonly<Record<string, string | undefined>>,
-): Runtime['packageManager'] {
-  const userAgent = env['npm_config_user_agent'];
-  const name = userAgent?.split('/')[0];
-  return name === 'npm' || name === 'pnpm' || name === 'yarn' || name === 'bun' ? name : 'unknown';
 }
 
 /**
@@ -119,6 +115,7 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
       stdout: proc.stdout.isTTY === true,
       stderr: proc.stderr.isTTY === true,
     },
+    isCI: isCI(),
     exit: (code) => proc.exit(code),
     onSignal: (callback) => {
       const onInterrupt = () => callback('SIGINT');
@@ -133,7 +130,10 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
     loadConfig: (configPath) =>
       loadOrmConfig({ cwd: proc.cwd(), ...ifDefined('configPath', configPath) }),
     managementApi: { baseUrl: 'https://api.prisma.io' },
-    packageManager: packageManagerFrom(proc.env),
+    // No `packageManager`: a host's answer overrides the engine's detection
+    // outright, and this bin knows nothing the engine's own walk from cwd —
+    // lockfile, then the manager that invoked this process — does not.
+    runPackageManager,
   };
 }
 
