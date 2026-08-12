@@ -1,4 +1,5 @@
 export type {
+  CheckNode,
   ComposedAuthoringHelpers,
   ContractDefinition,
   ContractInput,
@@ -16,6 +17,7 @@ export type {
 } from '@internal/sql-contract-ts/contract-builder';
 export {
   buildSqlContractFromDefinition,
+  check,
   field,
   member,
   model,

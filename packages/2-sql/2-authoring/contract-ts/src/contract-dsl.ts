@@ -892,6 +892,19 @@ export type IndexConstraint<
     readonly map?: string;
   };
 
+/**
+ * An authored check constraint, as returned by {@link check}: `map` adopts an
+ * exact physical name verbatim, `name` is a wire-name prefix. Unlike an
+ * index there is no column tuple to derive a default name from, so exactly
+ * one of `name` or `map` is required — enforced at lowering, same as PSL.
+ */
+export type AuthoredCheckConstraint = {
+  readonly kind: 'check';
+  readonly expression: string;
+  readonly name?: string;
+  readonly map?: string;
+};
+
 export type ForeignKeyConstraint<
   SourceFieldNames extends readonly string[] = readonly string[],
   TargetModelName extends string = string,
@@ -1170,6 +1183,25 @@ function createConstraintsDsl<IndexTypes extends IndexTypeMap = Record<never, ne
 
 export type ConstraintsDsl = ReturnType<typeof createConstraintsDsl>;
 
+/**
+ * Declares an authored CHECK constraint for a model's `.sql({ checks: [...] })`.
+ * Unlike `index()`, `check()` names no column tuple — the predicate is opaque
+ * SQL — so it needs no field-ref context and is a plain top-level function
+ * rather than a method on `constraints`.
+ */
+export function check(input: {
+  readonly expression: string;
+  readonly name?: string;
+  readonly map?: string;
+}): AuthoredCheckConstraint {
+  return {
+    kind: 'check',
+    expression: input.expression,
+    ...(input.name !== undefined ? { name: input.name } : {}),
+    ...(input.map !== undefined ? { map: input.map } : {}),
+  };
+}
+
 export type ModelAttributesSpec = {
   readonly id?: IdConstraint;
   readonly uniques?: readonly UniqueConstraint[];
@@ -1179,6 +1211,7 @@ export type SqlStageSpec = {
   readonly table?: string;
   readonly control?: ControlPolicy;
   readonly indexes?: readonly IndexConstraint[];
+  readonly checks?: readonly AuthoredCheckConstraint[];
   readonly foreignKeys?: readonly ForeignKeyConstraint[];
 };
 

@@ -44,6 +44,7 @@
     "src"
   ],
   "exports": {
+    "./authored-check-naming": "./dist/authored-check-naming.mjs",
     "./canonicalization-hooks": "./dist/canonicalization-hooks.mjs",
     "./contract-view": "./dist/contract-view.mjs",
     "./entity-handle-lowering-hook": "./dist/entity-handle-lowering-hook.mjs",

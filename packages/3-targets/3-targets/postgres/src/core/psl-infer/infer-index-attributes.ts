@@ -3,7 +3,7 @@ import type {
   PslModelAttribute,
 } from '@internal/framework-components/psl-ast';
 import { computeIndexContentHash, parseWireName } from '@internal/sql-schema-ir/naming';
-import type { SqlIndexIR } from '@internal/sql-schema-ir/types';
+import type { SqlCheckConstraintIR, SqlIndexIR } from '@internal/sql-schema-ir/types';
 import { assertDefined } from '@internal/utils/assertions';
 import { buildAttribute, escapePslString, namedArg, positionalArg } from './psl-literals';
 
@@ -72,4 +72,22 @@ export function buildIndexAttribute(
     args.push(namedArg('options', `{ ${entries.join(', ')} }`));
   }
   return buildAttribute('model', 'index', args);
+}
+
+/**
+ * Emits one `@@check` attribute for a live, non-derived check, always in the
+ * `map:` form. Re-detecting `name:` is not attempted: the live expression is
+ * Postgres's own reprint, but a wire-named check's hash was taken over the
+ * author's original text, so recomputing the hash from the reprint would
+ * essentially never match. `map:` plus the verbatim reprint is correct
+ * regardless — a reprint compared against a later reprint of the same
+ * expression is stable, so the emitted contract signs the live database with
+ * zero pending operations. `buildPolicyBlocks` makes the same call for
+ * `@@map` on adopted RLS policies, for the same reason.
+ */
+export function buildCheckAttribute(check: SqlCheckConstraintIR): PslModelAttribute {
+  return buildAttribute('model', 'check', [
+    namedArg('expression', `"${escapePslString(check.expression)}"`),
+    namedArg('map', `"${escapePslString(check.name)}"`),
+  ]);
 }

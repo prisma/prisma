@@ -72,11 +72,12 @@ changes:
       extension manages is visible for the first time: it verifies as an undeclared extra under
       `--strict` and becomes a `dropCheckConstraint` under a policy that allows `destructive`.
       If your extension installs checks out of band — through a raw-SQL migration step rather
-      than through the contract — there is no way to declare them in 8.0.0-rc.2 (checks have no
-      authoring surface, and derivation from column shape is not one). Keep the tables carrying
-      them under an additive-only policy — the checks survive, and only `--strict` verify
-      reports them — or expect the first destructive plan against an upgraded database to
-      offer to drop them. An authoring/opt-out surface is planned for a later release.
+      than through the contract — declare them instead: `@@check(expression: "…", map: "<physical
+      name>")` adopts a constraint under the name it already carries. Until they are declared,
+      keep the tables carrying them under an additive-only policy — the checks survive, and only
+      `--strict` verify reports them — or expect the first destructive plan against an upgraded
+      database to offer to drop them. Declaring them is the durable fix; see
+      `authored-check-constraints` in this transition.
     detection:
       glob: "**/contract.json"
       contains:
@@ -243,6 +244,23 @@ changes:
         - "encodeJson"
         - "decodeJson"
         - "codec.encode"
+      anyMatch: true
+  - id: authored-check-constraints
+    summary: |
+      Two things change for packs. `sql.checkConstraint` is a new adapter-reported capability: an
+      adapter whose target implements CHECK constraint DDL reports it, and the `@@check` authoring
+      surface is gated on it. And a check is no longer "derived" merely by being wire-named —
+      user-authored checks are wire-named too. Derivation is now decided by whether the wire prefix
+      is one derivation would produce for a column of that table. A pack that read
+      `check.prefix !== undefined` to mean "Prisma Next generated this" must use the same
+      prefix-shape test, `derivedCheckPrefixes` from `@internal/sql-schema-ir/naming`. An authored
+      name that collides with a derived prefix shape is rejected at authoring with
+      `CONTRACT.CHECK_NAME_RESERVED`.
+    detection:
+      glob: "**/*.{ts,tsx}"
+      contains:
+        - 'checkConstraint'
+        - 'derivedCheckPrefixes'
       anyMatch: true
 ---
 
@@ -538,9 +556,9 @@ whose control policy allows `destructive`.
 
 For an extension this matters in one specific case — a check your extension installs through a
 raw-SQL migration step rather than deriving in its contract space. That constraint used to be
-invisible and is now drop-eligible against any database the extension manages. Declaring it is
-not possible in 8.0.0-rc.2: a contract space derives checks from column shape (enum membership,
-list element-non-null) and has no surface for an arbitrary hand-written predicate. Document
-that the tables carrying it stay under an additive-only policy — the check survives, plain
-`db verify` tolerates it, and only `--strict` reports it — or accept the drop under a
-destructive plan. An authoring/opt-out surface for checks is planned for a later release.
+invisible and is now drop-eligible against any database the extension manages. Declare it:
+`@@check(expression: "…", map: "<its physical name>")` in the contract space adopts the
+constraint under the name it already carries, after which it is owned rather than extra and no
+plan drops it — see `authored-check-constraints` in this transition. Until you do, keep the
+tables carrying it under an additive-only policy: the check survives, plain `db verify`
+tolerates it, and only `--strict` reports it.

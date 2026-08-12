@@ -12,6 +12,12 @@ describe('postgresAdapterDescriptorMeta capabilities', () => {
   it('descriptor reports sql.scalarList capability', () => {
     expect(postgresAdapterDescriptorMeta.capabilities['sql']).toMatchObject({ scalarList: true });
   });
+
+  it('descriptor reports sql.checkConstraint capability', () => {
+    expect(postgresAdapterDescriptorMeta.capabilities['sql']).toMatchObject({
+      checkConstraint: true,
+    });
+  });
 });
 
 describe('expandNativeType hooks via descriptor-meta', () => {
