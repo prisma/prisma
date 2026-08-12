@@ -10,12 +10,10 @@ dependencies per package, and the CLI package itself does not declare
 `@prisma/orm-postgres`, `@prisma/orm-mongo` or `dotenv`, so a scaffolded
 `prisma-next.config.ts` written outside the repo fails to import them.
 
-The `packageManager` field stops package-manager detection here. `init` picks
-the manager by walking up from the project it is scaffolding, and without this
-it would walk out of the fixture package and find the repository's own pnpm
-lockfile — so every test project would look like part of a pnpm workspace, and
-`init` would report the repository's catalog as the project's. Declaring npm
-gives a test project the same neutral answer it got outside the repository, and
-a test that wants a different one writes its own lockfile into the project.
+A test project here sits inside the repository's own pnpm workspace, so
+package-manager detection resolves to pnpm. That is the correct answer for a
+project in this position, and nothing here overrides it — which manager runs an
+install is the CLI engine's concern, not this package's. A test asserts the
+packages `init` asks for, never the manager that installs them.
 
 Every subdirectory named `test-*` is ephemeral test output and is gitignored.
