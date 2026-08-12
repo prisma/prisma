@@ -1,5 +1,6 @@
 {
   "name": "cli-fixture-app",
+  "packageManager": "npm@11.6.2",
   "private": true,
   "type": "module",
   "dependencies": {
