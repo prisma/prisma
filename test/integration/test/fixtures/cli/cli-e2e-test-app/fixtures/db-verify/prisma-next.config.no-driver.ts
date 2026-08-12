@@ -1,15 +1,16 @@
 import postgresAdapter from '@internal/adapter-postgres/control';
+import { defineConfig } from '@internal/cli/config-types';
 import sql from '@internal/family-sql/control';
 import postgres from '@internal/target-postgres/control';
 import { contract } from './contract';
 
-// This config includes db.connection but no driver
-// Manually create config without defineConfig to bypass validation (testing error case)
-export default {
+// This config includes db.connection but no driver - that is what tests using
+// it assert on (CONFIG.DRIVER_REQUIRED). The driver field is optional, so the
+// config loads cleanly and the command-level driver requirement fires.
+export default defineConfig({
   family: sql,
   target: postgres,
   adapter: postgresAdapter,
-  // driver is missing - this is what we're testing
   extensions: [],
   contract: {
     source: {
@@ -20,4 +21,4 @@ export default {
   db: {
     connection: '{{DB_URL}}', // Placeholder to be replaced in tests
   },
-};
+});
