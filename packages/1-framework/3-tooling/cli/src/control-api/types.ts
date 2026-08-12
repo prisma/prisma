@@ -228,8 +228,9 @@ export interface DbUpdateOptions {
    * When true, allows applying plans that contain destructive operations
    * (e.g., DROP TABLE, DROP COLUMN, ALTER TYPE).
    * When false (default), the operation returns a failure if the plan
-   * includes destructive operations, prompting the user to confirm interactively
-   * or re-run with -y/--yes.
+   * includes destructive operations, which `db update` turns into its consent
+   * prompt: the user types the database name, or passes `--confirm <database>`
+   * where there is nobody to ask.
    */
   readonly acceptDataLoss?: boolean;
   /**

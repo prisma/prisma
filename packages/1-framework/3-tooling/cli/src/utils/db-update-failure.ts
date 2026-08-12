@@ -48,7 +48,7 @@ export function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError
   if (failure.code === 'DESTRUCTIVE_CHANGES') {
     return errorDestructiveChanges(failure.summary, {
       ...ifDefined('why', failure.why),
-      fix: 'Re-run with `--confirm <database>`, or use `--dry-run` to preview first',
+      fix: 'Re-run `prisma-next db update` and type the database name when asked, or pass `--no-interactive --confirm <database>` where there is nobody to ask. Use `--dry-run` to preview the operations first.',
       ...ifDefined('meta', failure.meta),
     });
   }

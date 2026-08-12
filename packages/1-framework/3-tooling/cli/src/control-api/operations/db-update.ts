@@ -102,7 +102,7 @@ async function guardDestructiveChanges<TFamilyId extends string, TTargetId exten
   return notOk({
     code: 'DESTRUCTIVE_CHANGES',
     summary: `Planned ${destructiveOps.length} destructive operation(s) that require confirmation`,
-    why: 'Destructive operations require confirmation — re-run with -y to accept',
+    why: 'Destructive operations require explicit consent, which the caller has not given',
     conflicts: undefined,
     meta: { destructiveOperations: destructiveOps },
   });
