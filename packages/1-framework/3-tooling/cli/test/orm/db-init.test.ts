@@ -1,5 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { rmSync, writeFileSync } from 'node:fs';
 import { notOk, ok } from '@internal/utils/result';
 import type { EngineEvent, MountedTree, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
@@ -8,6 +7,7 @@ import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const mocks = vi.hoisted(() => ({
   connect: vi.fn(),
@@ -56,7 +56,7 @@ let projectDir: string;
 const projectDirs: string[] = [];
 
 beforeEach(() => {
-  projectDir = mkdtempSync(join(tmpdir(), 'orm-db-init-'));
+  projectDir = createTestProjectDir('orm-db-init');
   projectDirs.push(projectDir);
   writeFileSync(
     join(projectDir, 'contract.json'),

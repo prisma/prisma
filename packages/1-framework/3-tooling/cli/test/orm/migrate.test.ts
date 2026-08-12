@@ -1,5 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
@@ -12,6 +11,7 @@ import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const mocks = vi.hoisted(() => ({
   connect: vi.fn(),
@@ -81,7 +81,7 @@ async function writePackage(
 
 /** A linear app history: empty → C1 → C2, with the emitted contract at C2. */
 async function buildProject(): Promise<string> {
-  const cwd = await mkdtemp(join(tmpdir(), 'orm-migrate-'));
+  const cwd = createTestProjectDir('orm-migrate');
   tempDirs.push(cwd);
   const appDir = join(cwd, 'migrations', 'app');
   await mkdir(appDir, { recursive: true });
