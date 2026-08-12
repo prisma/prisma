@@ -9,6 +9,7 @@ import { dbSchemaCommand } from './db/schema';
 import { dbUpdateCommand } from './db/update';
 import { formatCommand } from './format';
 import { initCommand } from './init';
+import { lspCommand } from './lsp';
 import { migrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
@@ -35,6 +36,7 @@ const commands: Readonly<Record<string, AnyCommand>> = {
   'db update': dbUpdateCommand,
   format: formatCommand,
   init: initCommand,
+  lsp: lspCommand,
   migrate: migrateCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,

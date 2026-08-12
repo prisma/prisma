@@ -14,6 +14,7 @@ import { ormCommandFamily } from './family';
 import { formatCommand } from './format';
 import { initCommand } from './init';
 import { loadOrmConfig } from './load-config';
+import { lspCommand } from './lsp';
 import { createMigrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
@@ -73,6 +74,7 @@ export function createBinCommands(createClient: CreateControlClient): MountedTre
     'db update': createDbUpdateCommand(createClient),
     format: formatCommand,
     init: initCommand,
+    lsp: lspCommand,
     migrate: createMigrateCommand(createClient),
     'migration graph': migrationGraphCommand,
     'migration list': migrationListCommand,
