@@ -1,10 +1,10 @@
 import type { PlanMeta } from '@internal/contract/types';
 import { describe, expect, it, vi } from 'vitest';
 import type { ExecutionPlan } from '../src/execution/query-plan';
-import { runWithMiddleware } from '../src/execution/run-with-middleware';
+import { runQueryWithMiddleware } from '../src/execution/run-with-middleware';
 import type {
-  AfterExecuteResult,
-  InterceptResult,
+  AfterQueryResult,
+  QueryInterceptResult,
   RuntimeMiddleware,
   RuntimeMiddlewareContext,
 } from '../src/execution/runtime-middleware';
@@ -40,30 +40,30 @@ async function* yieldRows<R>(rows: ReadonlyArray<R>): AsyncGenerator<R, void, un
   }
 }
 
-describe('runWithMiddleware — intercept', () => {
+describe('runQueryWithMiddleware — interceptQuery', () => {
   describe('chain semantics', () => {
-    it('first interceptor returning a non-undefined result wins; subsequent intercept does not fire', async () => {
-      const interceptCalls: string[] = [];
+    it('first interceptQueryor returning a non-undefined result wins; subsequent interceptQuery does not fire', async () => {
+      const interceptQueryCalls: string[] = [];
       const winnerRows = [{ id: 'a' }, { id: 'b' }];
 
       const winner: RuntimeMiddleware<MockExec> = {
         name: 'winner',
-        async intercept() {
-          interceptCalls.push('winner');
+        async interceptQuery() {
+          interceptQueryCalls.push('winner');
           return { rows: winnerRows };
         },
       };
       const loser: RuntimeMiddleware<MockExec> = {
         name: 'loser',
-        async intercept() {
-          interceptCalls.push('loser');
+        async interceptQuery() {
+          interceptQueryCalls.push('loser');
           return { rows: [{ id: 'should-not-appear' }] };
         },
       };
 
       const driverFactory = vi.fn(() => yieldRows([{ id: 'driver' }]));
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
         [winner, loser],
         makeCtx(),
@@ -73,32 +73,32 @@ describe('runWithMiddleware — intercept', () => {
       const out = await result.toArray();
 
       expect(out).toEqual(winnerRows);
-      expect(interceptCalls).toEqual(['winner']);
+      expect(interceptQueryCalls).toEqual(['winner']);
       expect(driverFactory).not.toHaveBeenCalled();
     });
 
-    it('passes through to subsequent middleware when intercept returns undefined', async () => {
-      const interceptCalls: string[] = [];
+    it('passes through to subsequent middleware when interceptQuery returns undefined', async () => {
+      const interceptQueryCalls: string[] = [];
       const winnerRows = [{ id: 'B-served' }];
 
       const a: RuntimeMiddleware<MockExec> = {
         name: 'A',
-        async intercept() {
-          interceptCalls.push('A');
+        async interceptQuery() {
+          interceptQueryCalls.push('A');
           return undefined;
         },
       };
       const b: RuntimeMiddleware<MockExec> = {
         name: 'B',
-        async intercept() {
-          interceptCalls.push('B');
+        async interceptQuery() {
+          interceptQueryCalls.push('B');
           return { rows: winnerRows };
         },
       };
 
       const driverFactory = vi.fn(() => yieldRows([{ id: 'driver' }]));
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
         [a, b],
         makeCtx(),
@@ -108,37 +108,37 @@ describe('runWithMiddleware — intercept', () => {
       const out = await result.toArray();
 
       expect(out).toEqual(winnerRows);
-      expect(interceptCalls).toEqual(['A', 'B']);
+      expect(interceptQueryCalls).toEqual(['A', 'B']);
       expect(driverFactory).not.toHaveBeenCalled();
     });
 
-    it('mixed chain: A is observer-only, B intercepts → driver is skipped; intercept + afterExecute fire', async () => {
+    it('mixed chain: A is observer-only, B interceptQuerys → driver is skipped; interceptQuery + afterQuery fire', async () => {
       const events: string[] = [];
 
       const a: RuntimeMiddleware<MockExec> = {
         name: 'A',
-        // `beforeExecute` is fired by the family runtime via
-        // `runBeforeExecuteChain` before `runWithMiddleware` is
-        // even reached; it is therefore not visible to interceptors.
+        // `beforeQuery` is fired by the family runtime via
+        // `runBeforeQueryChain` before `runQueryWithMiddleware` is
+        // even reached; it is therefore not visible to interceptQueryors.
         // See `before-execute-chain.test.ts`.
-        async afterExecute() {
-          events.push('A:afterExecute');
+        async afterQuery() {
+          events.push('A:afterQuery');
         },
       };
       const b: RuntimeMiddleware<MockExec> = {
         name: 'B',
-        async intercept() {
-          events.push('B:intercept');
+        async interceptQuery() {
+          events.push('B:interceptQuery');
           return { rows: [{ id: 1 }] };
         },
-        async afterExecute() {
-          events.push('B:afterExecute');
+        async afterQuery() {
+          events.push('B:afterQuery');
         },
       };
 
       const driverFactory = vi.fn(() => yieldRows([{ id: 'driver' }]));
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
         [a, b],
         makeCtx(),
@@ -147,40 +147,40 @@ describe('runWithMiddleware — intercept', () => {
 
       await result.toArray();
 
-      expect(events).toEqual(['B:intercept', 'A:afterExecute', 'B:afterExecute']);
+      expect(events).toEqual(['B:interceptQuery', 'A:afterQuery', 'B:afterQuery']);
       expect(driverFactory).not.toHaveBeenCalled();
     });
   });
 
   describe('hit path', () => {
-    it('skips onRow; afterExecute fires with source: "middleware"', async () => {
+    it('skips onRow; afterQuery fires with source: "middleware"', async () => {
       const events: string[] = [];
-      let observedResult: AfterExecuteResult | undefined;
+      let observedResult: AfterQueryResult | undefined;
 
-      // `beforeExecute` is fired by the family runtime via
-      // `runBeforeExecuteChain` before `runWithMiddleware`; it is not
-      // visible at the intercept-vs-driver decision point. Asserted in
+      // `beforeQuery` is fired by the family runtime via
+      // `runBeforeQueryChain` before `runQueryWithMiddleware`; it is not
+      // visible at the interceptQuery-vs-driver decision point. Asserted in
       // `before-execute-chain.test.ts`.
-      const interceptor: RuntimeMiddleware<MockExec> = {
-        name: 'interceptor',
-        async intercept() {
-          events.push('intercept');
+      const interceptQueryor: RuntimeMiddleware<MockExec> = {
+        name: 'interceptQueryor',
+        async interceptQuery() {
+          events.push('interceptQuery');
           return { rows: [{ id: 1 }, { id: 2 }, { id: 3 }] };
         },
         async onRow() {
           events.push('onRow');
         },
-        async afterExecute(_plan, result) {
+        async afterQuery(_plan, result) {
           observedResult = result;
-          events.push('afterExecute');
+          events.push('afterQuery');
         },
       };
 
       const driverFactory = vi.fn(() => yieldRows([{ id: 'driver' }]));
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
-        [interceptor],
+        [interceptQueryor],
         makeCtx(),
         driverFactory,
       );
@@ -188,7 +188,7 @@ describe('runWithMiddleware — intercept', () => {
       const out = await result.toArray();
 
       expect(out).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
-      expect(events).toEqual(['intercept', 'afterExecute']);
+      expect(events).toEqual(['interceptQuery', 'afterQuery']);
       expect(driverFactory).not.toHaveBeenCalled();
       expect(observedResult).toMatchObject({
         rowCount: 3,
@@ -198,22 +198,22 @@ describe('runWithMiddleware — intercept', () => {
       expect(observedResult?.latencyMs).toBeGreaterThanOrEqual(0);
     });
 
-    it('emits a middleware.intercept debug log event naming the winning middleware', async () => {
+    it('emits a middleware.interceptQuery debug log event naming the winning middleware', async () => {
       const debug = vi.fn();
       const ctx = makeCtx({
         log: { info: () => {}, warn: () => {}, error: () => {}, debug },
       });
 
-      const interceptor: RuntimeMiddleware<MockExec> = {
+      const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'cache',
-        async intercept() {
+        async interceptQuery() {
           return { rows: [{ id: 1 }] };
         },
       };
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
-        [interceptor],
+        [interceptQueryor],
         ctx,
         () => yieldRows([]),
       );
@@ -222,12 +222,12 @@ describe('runWithMiddleware — intercept', () => {
 
       expect(debug).toHaveBeenCalledTimes(1);
       expect(debug).toHaveBeenCalledWith({
-        event: 'middleware.intercept',
+        event: 'middleware.interceptQuery',
         middleware: 'cache',
       });
     });
 
-    it('does not require a debug log function; intercepts succeed without it', async () => {
+    it('does not require a debug log function; interceptQuerys succeed without it', async () => {
       const ctx: RuntimeMiddlewareContext = {
         contract: {},
         mode: 'strict',
@@ -239,16 +239,16 @@ describe('runWithMiddleware — intercept', () => {
         planExecutionId: 'test-fixture-plan-execution-id',
       };
 
-      const interceptor: RuntimeMiddleware<MockExec> = {
+      const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'cache',
-        async intercept() {
+        async interceptQuery() {
           return { rows: [{ id: 1 }] };
         },
       };
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
-        [interceptor],
+        [interceptQueryor],
         ctx,
         () => yieldRows([]),
       );
@@ -258,16 +258,16 @@ describe('runWithMiddleware — intercept', () => {
 
     it('accepts arrays as the row source', async () => {
       const cached = [{ id: 1 }, { id: 2 }];
-      const interceptor: RuntimeMiddleware<MockExec> = {
+      const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'array',
-        async intercept(): Promise<InterceptResult> {
+        async interceptQuery(): Promise<QueryInterceptResult> {
           return { rows: cached };
         },
       };
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
-        [interceptor],
+        [interceptQueryor],
         makeCtx(),
         () => yieldRows([]),
       );
@@ -281,16 +281,16 @@ describe('runWithMiddleware — intercept', () => {
         yield { id: 'a' };
         yield { id: 'b' };
       }
-      const interceptor: RuntimeMiddleware<MockExec> = {
+      const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'sync-gen',
-        async intercept(): Promise<InterceptResult> {
+        async interceptQuery(): Promise<QueryInterceptResult> {
           return { rows: syncGen() };
         },
       };
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
-        [interceptor],
+        [interceptQueryor],
         makeCtx(),
         () => yieldRows([]),
       );
@@ -305,16 +305,16 @@ describe('runWithMiddleware — intercept', () => {
         yield { id: 'y' };
         yield { id: 'z' };
       }
-      const interceptor: RuntimeMiddleware<MockExec> = {
+      const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'async-gen',
-        async intercept(): Promise<InterceptResult> {
+        async interceptQuery(): Promise<QueryInterceptResult> {
           return { rows: asyncGen() };
         },
       };
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
-        [interceptor],
+        [interceptQueryor],
         makeCtx(),
         () => yieldRows([]),
       );
@@ -323,21 +323,21 @@ describe('runWithMiddleware — intercept', () => {
       expect(out).toEqual([{ id: 'x' }, { id: 'y' }, { id: 'z' }]);
     });
 
-    it('rowCount reported in afterExecute matches the number of intercepted rows yielded', async () => {
-      let observed: AfterExecuteResult | undefined;
-      const interceptor: RuntimeMiddleware<MockExec> = {
+    it('rowCount reported in afterQuery matches the number of interceptQueryed rows yielded', async () => {
+      let observed: AfterQueryResult | undefined;
+      const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'counter',
-        async intercept() {
+        async interceptQuery() {
           return { rows: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }] };
         },
-        async afterExecute(_plan, result) {
+        async afterQuery(_plan, result) {
           observed = result;
         },
       };
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
-        [interceptor],
+        [interceptQueryor],
         makeCtx(),
         () => yieldRows([]),
       );
@@ -348,36 +348,36 @@ describe('runWithMiddleware — intercept', () => {
   });
 
   describe('miss path', () => {
-    it('all-undefined intercepts → driver path runs normally with source: "driver"', async () => {
+    it('all-undefined interceptQuerys → driver path runs normally with source: "driver"', async () => {
       const events: string[] = [];
-      let observed: AfterExecuteResult | undefined;
+      let observed: AfterQueryResult | undefined;
       const driverRows = [{ id: 1 }, { id: 2 }];
 
       const a: RuntimeMiddleware<MockExec> = {
         name: 'A',
-        async intercept() {
-          events.push('A:intercept');
+        async interceptQuery() {
+          events.push('A:interceptQuery');
           return undefined;
         },
         async onRow() {
           events.push('A:onRow');
         },
-        async afterExecute(_plan, result) {
+        async afterQuery(_plan, result) {
           observed = result;
-          events.push('A:afterExecute');
+          events.push('A:afterQuery');
         },
       };
       const b: RuntimeMiddleware<MockExec> = {
         name: 'B',
-        async intercept() {
-          events.push('B:intercept');
+        async interceptQuery() {
+          events.push('B:interceptQuery');
           return undefined;
         },
       };
 
       const driverFactory = vi.fn(() => yieldRows(driverRows));
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
         [a, b],
         makeCtx(),
@@ -388,20 +388,20 @@ describe('runWithMiddleware — intercept', () => {
 
       expect(out).toEqual(driverRows);
       expect(driverFactory).toHaveBeenCalledTimes(1);
-      // `beforeExecute` is fired by `runBeforeExecuteChain` outside this
-      // helper; the event log here only sees `intercept`, `onRow`, and
-      // `afterExecute`.
+      // `beforeQuery` is fired by `runBeforeQueryChain` outside this
+      // helper; the event log here only sees `interceptQuery`, `onRow`, and
+      // `afterQuery`.
       expect(events).toEqual([
-        'A:intercept',
-        'B:intercept',
+        'A:interceptQuery',
+        'B:interceptQuery',
         'A:onRow',
         'A:onRow',
-        'A:afterExecute',
+        'A:afterQuery',
       ]);
       expect(observed?.source).toBe('driver');
     });
 
-    it('middleware without intercept hooks behave as observers (zero-change baseline)', async () => {
+    it('middleware without interceptQuery hooks behave as observers (zero-change baseline)', async () => {
       const events: string[] = [];
       const driverRows = [{ id: 1 }];
 
@@ -410,14 +410,14 @@ describe('runWithMiddleware — intercept', () => {
         async onRow() {
           events.push('onRow');
         },
-        async afterExecute() {
-          events.push('afterExecute');
+        async afterQuery() {
+          events.push('afterQuery');
         },
       };
 
       const driverFactory = vi.fn(() => yieldRows(driverRows));
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
         [observer],
         makeCtx(),
@@ -428,16 +428,16 @@ describe('runWithMiddleware — intercept', () => {
 
       expect(out).toEqual(driverRows);
       expect(driverFactory).toHaveBeenCalledTimes(1);
-      expect(events).toEqual(['onRow', 'afterExecute']);
+      expect(events).toEqual(['onRow', 'afterQuery']);
     });
 
-    it('runDriver factory is invoked lazily — only after intercept chain resolves to passthrough', async () => {
+    it('runDriver factory is invoked lazily — only after interceptQuery chain resolves to passthrough', async () => {
       const callOrder: string[] = [];
 
-      const interceptor: RuntimeMiddleware<MockExec> = {
+      const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'late-passthrough',
-        async intercept() {
-          callOrder.push('intercept');
+        async interceptQuery() {
+          callOrder.push('interceptQuery');
           return undefined;
         },
       };
@@ -447,50 +447,50 @@ describe('runWithMiddleware — intercept', () => {
         return yieldRows([{ id: 1 }]);
       });
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
-        [interceptor],
+        [interceptQueryor],
         makeCtx(),
         driverFactory,
       );
 
       await result.toArray();
 
-      // intercept must run before runDriver is called.
-      expect(callOrder).toEqual(['intercept', 'driverFactory']);
+      // interceptQuery must run before runDriver is called.
+      expect(callOrder).toEqual(['interceptQuery', 'driverFactory']);
     });
   });
 
   describe('error path', () => {
-    it('an interceptor that throws → afterExecute fires with completed: false, source: "middleware", and the error is rethrown', async () => {
+    it('an interceptQueryor that throws → afterQuery fires with completed: false, source: "middleware", and the error is rethrown', async () => {
       const events: string[] = [];
-      let observed: AfterExecuteResult | undefined;
-      const boom = new Error('intercept boom');
+      let observed: AfterQueryResult | undefined;
+      const boom = new Error('interceptQuery boom');
 
-      const interceptor: RuntimeMiddleware<MockExec> = {
+      const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'boom',
-        async intercept() {
-          events.push('intercept');
+        async interceptQuery() {
+          events.push('interceptQuery');
           throw boom;
         },
-        async afterExecute(_plan, result) {
+        async afterQuery(_plan, result) {
           observed = result;
-          events.push('afterExecute');
+          events.push('afterQuery');
         },
       };
 
       const driverFactory = vi.fn(() => yieldRows([]));
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
-        [interceptor],
+        [interceptQueryor],
         makeCtx(),
         driverFactory,
       );
 
       await expect(result.toArray()).rejects.toBe(boom);
 
-      expect(events).toEqual(['intercept', 'afterExecute']);
+      expect(events).toEqual(['interceptQuery', 'afterQuery']);
       expect(driverFactory).not.toHaveBeenCalled();
       expect(observed).toMatchObject({
         completed: false,
@@ -499,8 +499,8 @@ describe('runWithMiddleware — intercept', () => {
       });
     });
 
-    it('an error thrown while iterating intercepted rows → afterExecute fires with completed: false, source: "middleware"', async () => {
-      let observed: AfterExecuteResult | undefined;
+    it('an error thrown while iterating interceptQueryed rows → afterQuery fires with completed: false, source: "middleware"', async () => {
+      let observed: AfterQueryResult | undefined;
       const boom = new Error('rows boom');
 
       async function* badRows(): AsyncGenerator<Record<string, unknown>, void, unknown> {
@@ -508,19 +508,19 @@ describe('runWithMiddleware — intercept', () => {
         throw boom;
       }
 
-      const interceptor: RuntimeMiddleware<MockExec> = {
+      const interceptQueryor: RuntimeMiddleware<MockExec> = {
         name: 'bad-rows',
-        async intercept(): Promise<InterceptResult> {
+        async interceptQuery(): Promise<QueryInterceptResult> {
           return { rows: badRows() };
         },
-        async afterExecute(_plan, result) {
+        async afterQuery(_plan, result) {
           observed = result;
         },
       };
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
-        [interceptor],
+        [interceptQueryor],
         makeCtx(),
         () => yieldRows([]),
       );
@@ -534,80 +534,80 @@ describe('runWithMiddleware — intercept', () => {
       });
     });
 
-    it('errors thrown by afterExecute on the intercepted error path are swallowed; the original error is rethrown', async () => {
+    it('errors thrown by afterQuery on the interceptQueryed error path are swallowed; the original error is rethrown', async () => {
       const events: string[] = [];
-      const interceptError = new Error('intercept boom');
-      const afterError = new Error('afterExecute boom');
+      const interceptQueryError = new Error('interceptQuery boom');
+      const afterError = new Error('afterQuery boom');
 
       const noisy: RuntimeMiddleware<MockExec> = {
         name: 'noisy',
-        async intercept() {
-          throw interceptError;
+        async interceptQuery() {
+          throw interceptQueryError;
         },
-        async afterExecute() {
-          events.push('noisy:afterExecute');
+        async afterQuery() {
+          events.push('noisy:afterQuery');
           throw afterError;
         },
       };
       const tail: RuntimeMiddleware<MockExec> = {
         name: 'tail',
-        async afterExecute() {
-          events.push('tail:afterExecute');
+        async afterQuery() {
+          events.push('tail:afterQuery');
         },
       };
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
         [noisy, tail],
         makeCtx(),
         () => yieldRows([]),
       );
 
-      await expect(result.toArray()).rejects.toBe(interceptError);
+      await expect(result.toArray()).rejects.toBe(interceptQueryError);
 
-      // Both afterExecute callbacks ran; the noisy throw was swallowed.
-      expect(events).toEqual(['noisy:afterExecute', 'tail:afterExecute']);
+      // Both afterQuery callbacks ran; the noisy throw was swallowed.
+      expect(events).toEqual(['noisy:afterQuery', 'tail:afterQuery']);
     });
 
-    it('afterExecute on the intercept error path runs in registration order across multiple middleware', async () => {
+    it('afterQuery on the interceptQuery error path runs in registration order across multiple middleware', async () => {
       const events: string[] = [];
       const observed: Array<{ label: string; source: string; completed: boolean }> = [];
-      const interceptError = new Error('intercept boom');
+      const interceptQueryError = new Error('interceptQuery boom');
 
       function mw(label: string, doesIntercept: boolean): RuntimeMiddleware<MockExec> {
         return {
           name: label,
           ...(doesIntercept
             ? {
-                async intercept(): Promise<InterceptResult | undefined> {
-                  events.push(`${label}:intercept`);
-                  throw interceptError;
+                async interceptQuery(): Promise<QueryInterceptResult | undefined> {
+                  events.push(`${label}:interceptQuery`);
+                  throw interceptQueryError;
                 },
               }
             : {}),
-          async afterExecute(_plan, result) {
+          async afterQuery(_plan, result) {
             observed.push({
               label,
               source: result.source,
               completed: result.completed,
             });
-            events.push(`${label}:afterExecute`);
+            events.push(`${label}:afterQuery`);
           },
         };
       }
 
-      const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+      const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
         mockExec,
         [mw('A', false), mw('B', true), mw('C', false)],
         makeCtx(),
         () => yieldRows([]),
       );
 
-      await expect(result.toArray()).rejects.toBe(interceptError);
+      await expect(result.toArray()).rejects.toBe(interceptQueryError);
 
-      // A.intercept doesn't exist; B.intercept throws; C.intercept never runs.
-      // afterExecute fires for all three in registration order.
-      expect(events).toEqual(['B:intercept', 'A:afterExecute', 'B:afterExecute', 'C:afterExecute']);
+      // A.interceptQuery doesn't exist; B.interceptQuery throws; C.interceptQuery never runs.
+      // afterQuery fires for all three in registration order.
+      expect(events).toEqual(['B:interceptQuery', 'A:afterQuery', 'B:afterQuery', 'C:afterQuery']);
       expect(observed).toEqual([
         { label: 'A', source: 'middleware', completed: false },
         { label: 'B', source: 'middleware', completed: false },

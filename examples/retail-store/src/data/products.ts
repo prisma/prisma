@@ -15,7 +15,7 @@ export async function findProductsPaginated(
   take: number,
 ): Promise<Product[]> {
   const plan = db.query.from('products').sort({ _id: 1 }).skip(skip).limit(take).build();
-  return db.execute(plan);
+  return (await db.runtime()).query(plan);
 }
 
 export function findProductById(db: Db, id: string) {
@@ -34,12 +34,12 @@ export async function searchProducts(db: Db, query: string): Promise<Product[]> 
     MongoFieldFilter.of('articleType', '$regex', regex),
   ]);
   const plan = db.query.from('products').match(filter).build();
-  return db.execute(plan);
+  return (await db.runtime()).query(plan);
 }
 
 export async function getRandomProducts(db: Db, count: number): Promise<Product[]> {
   const plan = db.query.from('products').sample(count).build();
-  return db.execute(plan);
+  return (await db.runtime()).query(plan);
 }
 
 /**
@@ -62,5 +62,5 @@ export async function findSimilarProducts(
       limit,
     })
     .build();
-  return db.execute(plan);
+  return (await db.runtime()).query(plan);
 }

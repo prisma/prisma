@@ -1,3 +1,4 @@
+import type { SqlMiddleware } from '@internal/sql-runtime';
 import { describe, expect, it } from 'vitest';
 import {
   createReturningUsersCollection,
@@ -12,23 +13,39 @@ describe('integration/delete', () => {
   it(
     'deleteAndCount() returns matched row count and deletes data',
     async () => {
-      await withCollectionRuntime(async (runtime) => {
-        const users = createUsersCollection(runtime);
+      const observedStatements: string[] = [];
+      const observer: SqlMiddleware = {
+        name: 'delete-count-observer',
+        familyId: 'sql',
+        beforeExecute(exec) {
+          observedStatements.push(exec.sql);
+        },
+      };
+      await withCollectionRuntime(
+        async (runtime) => {
+          const users = createUsersCollection(runtime);
 
-        await seedUsers(runtime, [
-          { id: 1, name: 'Remove', email: 'a@example.com' },
-          { id: 2, name: 'Remove', email: 'b@example.com' },
-          { id: 3, name: 'Keep', email: 'c@example.com' },
-        ]);
+          await seedUsers(runtime, [
+            { id: 1, name: 'Remove', email: 'a@example.com' },
+            { id: 2, name: 'Remove', email: 'b@example.com' },
+            { id: 3, name: 'Keep', email: 'c@example.com' },
+          ]);
+          observedStatements.length = 0;
 
-        const count = await users.where({ name: 'Remove' }).deleteAndCount();
-        expect(count).toBe(2);
+          const count = await users.where({ name: 'Remove' }).deleteAndCount();
+          expect(count).toBe(2);
+          expect(observedStatements).toHaveLength(1);
+          expect(observedStatements[0]?.toLowerCase()).toContain('delete');
 
-        const rows = await runtime.query<{ id: number; name: string }>(
-          'select id, name from users order by id',
-        );
-        expect(rows).toEqual([{ id: 3, name: 'Keep' }]);
-      });
+          const rows = await runtime.query<{ id: number; name: string }>(
+            'select id, name from users order by id',
+          );
+          expect(rows).toEqual([{ id: 3, name: 'Keep' }]);
+        },
+        undefined,
+        [],
+        [observer],
+      );
     },
     timeouts.spinUpPpgDev,
   );

@@ -23,5 +23,5 @@ export async function getUsersCached(limit = 10, ttlMs = 60_000) {
     .annotate(cacheAnnotation({ ttl: ttlMs }))
     .limit(limit)
     .build();
-  return db.runtime().execute(plan);
+  return db.runtime().query(plan);
 }

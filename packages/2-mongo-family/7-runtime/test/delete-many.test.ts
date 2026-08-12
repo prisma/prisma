@@ -17,7 +17,7 @@ describe('deleteMany integration', () => {
         collectionName,
         MongoFieldFilter.eq('status', new MongoParamRef('old')),
       );
-      const rows = await ctx.runtime.execute({
+      const rows = await ctx.runtime.query({
         collection: collectionName,
         command,
         meta: ctx.stubMeta,

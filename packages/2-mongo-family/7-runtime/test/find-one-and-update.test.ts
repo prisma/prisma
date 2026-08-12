@@ -17,7 +17,7 @@ describe('findOneAndUpdate integration', () => {
         { $set: { age: 31 } },
         false,
       );
-      const rows = await ctx.runtime.execute({
+      const rows = await ctx.runtime.query({
         collection: collectionName,
         command,
         meta: ctx.stubMeta,
@@ -35,7 +35,7 @@ describe('findOneAndUpdate integration', () => {
         { $set: { age: 20 } },
         true,
       );
-      const rows = await ctx.runtime.execute({
+      const rows = await ctx.runtime.query({
         collection: collectionName,
         command,
         meta: ctx.stubMeta,

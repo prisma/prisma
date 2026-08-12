@@ -14,8 +14,9 @@ export { isRuntimeError, runtimeError } from '../shared/runtime-error';
  * - `'decode'` — abort fired during `decodeRow` / `decodeField`.
  * - `'stream'` — abort fired between rows or before any codec call
  *   (already-aborted at entry).
- * - `'beforeExecute'` / `'afterExecute'` / `'onRow'` — abort fired
- *   on entry to or during the corresponding middleware phase
+ * - `'beforeQuery'` / `'beforeExecute'` / `'afterQuery'` /
+ *   `'afterExecute'` / `'onRow'` — abort fired on entry to or during
+ *   the corresponding middleware phase
  *   (cooperative cancellation per the param-transform seam).
  */
 export const RUNTIME_ABORTED = 'RUNTIME.ABORTED' as const;
@@ -25,14 +26,16 @@ export type RuntimeAbortedPhase =
   | 'encode'
   | 'decode'
   | 'stream'
+  | 'beforeQuery'
   | 'beforeExecute'
+  | 'afterQuery'
   | 'afterExecute'
   | 'onRow';
 
 /**
  * Construct a `RUNTIME.ABORTED` envelope. Phase distinguishes where the
  * abort was observed — codec call sites (`encode` / `decode` / `stream`)
- * or middleware seams (`beforeExecute` / `afterExecute` / `onRow`), as
+ * or operation-specific middleware seams, as
  * enumerated on {@link RuntimeAbortedPhase}. Cause carries
  * `signal.reason` verbatim from the platform — native abort produces a
  * `DOMException`, explicit `controller.abort(reason)` produces whatever

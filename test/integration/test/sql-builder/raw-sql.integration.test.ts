@@ -163,7 +163,7 @@ describe('integration: rawSql expression in typed builder', {
       // posts.views values: 100, 50, 200, 10 — doubled they become 200, 100, 400, 20.
       // fns.raw is RawSqlTag (always present) because BuiltinFunctions declares it
       // concretely; the callback receives AggregateFunctions<QC>.
-      const rows = await runtime.execute(
+      const rows = await runtime.query(
         db.public.posts
           .select('id')
           .select('doubled', (f, fns) => fns.raw`${f.views} * 2`.returns('pg/int4@1'))
@@ -180,7 +180,7 @@ describe('integration: rawSql expression in typed builder', {
       const db = sql({ context, rawCodecInferer: adapter });
       const runtime = buildRuntime();
 
-      const rows = await runtime.execute(
+      const rows = await runtime.query(
         db.public.posts
           .select('id')
           .select('magic', (_f, fns) => fns.raw`42`.returns('pg/int4@1'))
@@ -193,14 +193,14 @@ describe('integration: rawSql expression in typed builder', {
     });
   });
 
-  describe('ParamRef from rawSql interpolation surfaces in beforeExecute params walk', () => {
-    it('param() inside rawSql appears in beforeExecute entries() in canonical order', async () => {
+  describe('ParamRef from rawSql interpolation surfaces in beforeQuery params walk', () => {
+    it('param() inside rawSql appears in beforeQuery entries() in canonical order', async () => {
       const capturedEntries: Array<{ codecId: string | undefined; value: unknown }> = [];
 
       const middleware: SqlMiddleware = {
         name: 'param-capture',
         familyId: 'sql',
-        beforeExecute(_plan, _ctx, params?: SqlParamRefMutator) {
+        beforeQuery(_plan, _ctx, params?: SqlParamRefMutator) {
           if (!params) return;
           for (const entry of params.entries()) {
             capturedEntries.push({ codecId: entry.codecId, value: entry.value });
@@ -214,9 +214,9 @@ describe('integration: rawSql expression in typed builder', {
 
       // The where clause embeds a param() inside a rawSql expression.
       // After lowering, the plan carries one ParamRef (value 50, codec pg/int4@1).
-      // The middleware's beforeExecute should see it via params.entries().
+      // The middleware's beforeQuery should see it via params.entries().
       // fns.raw is RawSqlTag (non-optional) — callable directly as a template tag.
-      await runtime.execute(
+      const result = runtime.query(
         db.public.posts
           .select('id')
           .where((_f, fns) =>
@@ -227,6 +227,7 @@ describe('integration: rawSql expression in typed builder', {
           )
           .build(),
       );
+      await result.toArray();
 
       // The where predicate gt(rawSql`${param(50)}`, rawSql`0`) produces one ParamRef.
       // The rawSql`0` branch has no interpolations; param(50) introduces one ParamRef.
@@ -236,13 +237,13 @@ describe('integration: rawSql expression in typed builder', {
       expect(paramEntry?.value).toBe(50);
     });
 
-    it('param() count in beforeExecute entries matches the number of param() calls in rawSql', async () => {
+    it('param() count in beforeQuery entries matches the number of param() calls in rawSql', async () => {
       const capturedEntries: Array<{ codecId: string | undefined; value: unknown }> = [];
 
       const middleware: SqlMiddleware = {
         name: 'param-count-capture',
         familyId: 'sql',
-        beforeExecute(_plan, _ctx, params?: SqlParamRefMutator) {
+        beforeQuery(_plan, _ctx, params?: SqlParamRefMutator) {
           if (!params) return;
           for (const entry of params.entries()) {
             capturedEntries.push({ codecId: entry.codecId, value: entry.value });
@@ -256,7 +257,7 @@ describe('integration: rawSql expression in typed builder', {
 
       // Two param() calls: param(10) and param(200).
       // The where clause: both params embedded in rawSql expressions, surfaced via gt/lt.
-      await runtime.execute(
+      const result = runtime.query(
         db.public.posts
           .select('id')
           .where((_f, fns) =>
@@ -273,6 +274,7 @@ describe('integration: rawSql expression in typed builder', {
           )
           .build(),
       );
+      await result.toArray();
 
       const int4Entries = capturedEntries.filter((e) => e.codecId === 'pg/int4@1');
       expect(int4Entries).toHaveLength(2);

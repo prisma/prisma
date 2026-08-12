@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { setupIntegrationTest, timeouts } from './setup';
 
-describe('integration: runtime.execute({ signal }) — abort semantics', {
+describe('integration: runtime.query({ signal }) — abort semantics', {
   timeout: timeouts.databaseOperation,
 }, () => {
   const { db, runtime } = setupIntegrationTest();
@@ -14,7 +14,7 @@ describe('integration: runtime.execute({ signal }) — abort semantics', {
     const plan = db().public.users.select('id', 'name').build();
 
     await expect(
-      runtime().execute(plan, { signal: controller.signal }).toArray(),
+      runtime().query(plan, { signal: controller.signal }).toArray(),
     ).rejects.toMatchObject({
       code: 'RUNTIME.ABORTED',
       details: { phase: 'stream' },
@@ -29,7 +29,7 @@ describe('integration: runtime.execute({ signal }) — abort semantics', {
 
     const collected: { id: number; name: string }[] = [];
     const consume = async (): Promise<void> => {
-      const result = runtime().execute(plan, { signal: controller.signal });
+      const result = runtime().query(plan, { signal: controller.signal });
       for await (const row of result) {
         collected.push(row);
         // After the first row, simulate a user-initiated cancellation.
@@ -51,7 +51,7 @@ describe('integration: runtime.execute({ signal }) — abort semantics', {
 
   it('regression — omitting options is identical to today (stream completes)', async () => {
     const plan = db().public.users.select('id').orderBy('id').build();
-    const rows = await runtime().execute(plan).toArray();
+    const rows = await runtime().query(plan).toArray();
     expect(rows.map((r) => r.id)).toEqual([1, 2, 3, 4]);
   });
 });

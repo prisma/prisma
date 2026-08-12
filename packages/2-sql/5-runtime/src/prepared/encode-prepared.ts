@@ -10,16 +10,26 @@ import type { PreparedStatementInternals } from './prepared-statement';
  * surface `RUNTIME.PREPARE_MISSING_PARAM` so the caller cannot silently
  * bind `undefined`.
  */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
 export function resolvePreparedSlotValues(
   ps: PreparedStatementInternals,
-  userParams: Record<string, unknown>,
+  userParams: unknown,
 ): unknown[] {
+  if (!isRecord(userParams)) {
+    throw runtimeError(
+      'RUNTIME.PREPARE_MISSING_PARAM',
+      'Prepared statement parameters must be an object',
+    );
+  }
   return ps.slots.map((slot) => {
     if (slot.kind === 'literal') return slot.value;
     if (!Object.hasOwn(userParams, slot.name)) {
       throw runtimeError(
         'RUNTIME.PREPARE_MISSING_PARAM',
-        `Prepared statement execute is missing parameter '${slot.name}'`,
+        `Prepared statement query is missing parameter '${slot.name}'`,
         { name: slot.name },
       );
     }
@@ -29,7 +39,7 @@ export function resolvePreparedSlotValues(
 
 export async function encodePreparedParams(
   ps: PreparedStatementInternals,
-  userParams: Record<string, unknown>,
+  userParams: unknown,
   ctx: SqlCodecCallContext,
   contractCodecs?: ContractCodecRegistry,
 ): Promise<readonly unknown[]> {

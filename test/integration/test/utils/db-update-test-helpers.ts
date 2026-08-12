@@ -58,7 +58,9 @@ export async function runDbUpdate(
     commandFamilies: [ormCommandFamily],
     commands: ormCommandFamily.commands,
     groups: {
+      contract: { brief: 'Contract authoring commands' },
       db: { brief: 'Live database commands' },
+      ref: { brief: 'Migration reference commands' },
       migration: { brief: 'On-disk migration management commands' },
     },
     // The engine parses `--config` itself and hands the path to this loader,

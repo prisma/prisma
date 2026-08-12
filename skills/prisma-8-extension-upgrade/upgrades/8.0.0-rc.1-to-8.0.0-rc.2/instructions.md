@@ -262,6 +262,17 @@ changes:
         - 'checkConstraint'
         - 'derivedCheckPrefixes'
       anyMatch: true
+  - id: runtime-query-execute-hard-cut
+    summary: |
+      Runtime and scope implementations expose `query()` for rows, while rc.1 prepared rows use `target.queryPrepared(prepared, params, options?)` and rc.2 uses `prepared.query(target, params, options?)`; statistics-returning `execute()` remains for non-returning statements. Classify callers and helpers by the result they consume; do not globally rename `execute`. Route row plans to `query`, prepared row plans to `prepared.query(target, params, options?)`, and non-returning writes to `execute`, reading `stats.affectedRows` when a count is needed. Preserve the bound connection, row-result laziness, and eager statistics result. Middleware uses `beforeQuery` → `interceptQuery` → driver query → `onRow` → `afterQuery` for rows and `beforeExecute` → `interceptExecute` → driver execute → `afterExecute` for statistics. Query interception returns `{ rows }`; execute interception returns `{ stats }`. There is no operation discriminator, compatibility alias, or generic fallback hook. The Mongo facade keeps static `db.query` and removes row-execution `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "beforeQuery"
+        - "interceptExecute"
+        - ".queryPrepared("
+        - ".execute("
+      anyMatch: true
 ---
 
 # 8.0.0-rc.1 → 8.0.0-rc.2 — Extension-author upgrade instructions
@@ -520,8 +531,6 @@ Two consequences for a pack:
   A `Date` is the one authored value JSON has no notation for, so it is the one that arrives as itself.
 
 <!--
-PR #29910: `changes: []`. Binding internal mutation-reload filters and repairing Supabase runtime coverage after the driver SPI split require no downstream extension source translation.
-
 PR #29920: `changes: []`. Adds prepared-statement test coverage to the Supabase runtime suite (test-fixture codec registration only) and fixes a postgres direct-driver transaction defect; neither requires downstream extension source translation. The SPI split itself is recorded as `driver-spi-splits-query-and-execute` in the 0.17-to-8.0.0-rc.1 transition.
 
 PR #29902: `changes: []`. Generated contracts gain additive aggregate rows for new opt-in integer representation codecs, but existing extension schemas and source require no migration; extension authors re-emit only when adopting the new target-scoped types.
@@ -563,3 +572,13 @@ constraint under the name it already carries, after which it is owned rather tha
 plan drops it — see `authored-check-constraints` in this transition. Until you do, keep the
 tables carrying it under an additive-only policy: the check survives, plain `db verify`
 tolerates it, and only `--strict` reports it.
+
+## `runtime-query-execute-hard-cut`
+
+The runtime SPI separates row streams from statement statistics. Inspect what each caller consumes rather than applying a global `execute` → `query` replacement: selects, returning writes, Mongo command-result plans, and other iterated or decoded results use `query`; non-returning DML uses eager `execute` and returns `{ affectedRows: number }`. Prepared row callers move from `target.queryPrepared(prepared, params, options?)` to `prepared.query(target, params, options?)`.
+
+Connection, transaction, and role-bound scopes preserve their existing bound resource for both operations. Keep row results lazy and fully consume them inside a scope when required; statistics execution is eager. A count terminal must use `stats.affectedRows` from the write and never derive it from a row array.
+
+Middleware hooks are operation-specific: query uses `beforeQuery`, `interceptQuery`, `onRow`, and `afterQuery`; statistics uses `beforeExecute`, `interceptExecute`, and `afterExecute`; `beforeCompile` remains shared. `interceptQuery` returns `{ rows }`, `interceptExecute` returns `{ stats }`, and hook selection carries the operation distinction, so contexts and results have no operation discriminator. Do not add compatibility aliases or generic fallback hooks. Split row and statistics fakes and spies so tests detect an incorrect route. Behavior intended for both operations assigns one private implementation to both corresponding hook names.
+
+The Mongo facade keeps static `db.query`; it has no row-execution method named `query` and no compatibility `db.execute`. Build with `db.query`, obtain the connected runtime, and call `(await db.runtime()).query(plan)`. Leave genuine statistics calls, migration runners, and unrelated APIs named `execute` unchanged.

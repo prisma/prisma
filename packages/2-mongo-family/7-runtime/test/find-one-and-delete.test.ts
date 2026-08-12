@@ -15,7 +15,7 @@ describe('findOneAndDelete integration', () => {
         collectionName,
         MongoFieldFilter.eq('name', new MongoParamRef('Ivan')),
       );
-      const rows = await ctx.runtime.execute({
+      const rows = await ctx.runtime.query({
         collection: collectionName,
         command,
         meta: ctx.stubMeta,

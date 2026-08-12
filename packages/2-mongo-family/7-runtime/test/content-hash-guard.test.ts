@@ -49,7 +49,7 @@ describe('computeMongoContentHash unresolved-command guard', () => {
           error.code === 'RUNTIME.CONTENT_HASH_REQUIRES_RESOLVED_COMMAND' &&
           error.message.includes('contentHash') &&
           error.message.includes('resolved wire command') &&
-          error.message.includes('beforeExecute')
+          error.message.includes('before hook')
         );
       },
     );
@@ -76,10 +76,10 @@ describe('computeMongoContentHash unresolved-command guard', () => {
     },
   );
 
-  it('throws the same code when beforeExecute calls ctx.contentHash on the pre-resolve plan', async () => {
+  it('throws the same code when beforeQuery calls ctx.contentHash on the pre-resolve plan', async () => {
     const middleware: MongoMiddleware = {
       name: 'hash-too-early',
-      async beforeExecute(plan, ctx) {
+      async beforeQuery(plan, ctx) {
         await ctx.contentHash(plan);
       },
     };
@@ -103,7 +103,7 @@ describe('computeMongoContentHash unresolved-command guard', () => {
 
     await expect(
       runtime
-        .execute({
+        .query({
           collection: 'users',
           command: new InsertOneCommand('users', { name: new MongoParamRef('Alice') }),
           meta: baseMeta,

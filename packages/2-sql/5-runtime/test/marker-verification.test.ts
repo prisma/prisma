@@ -35,8 +35,8 @@ import { createTestRuntime as createRuntime, descriptorsFromCodecs } from './uti
  * matching marker (silent), verifyMarker: false (reader never called), and one-shot semantics
  * (at most one log per runtime lifetime).
  *
- * Storage-hash mismatch ordering against middleware intercepts is covered by
- * `marker-vs-intercept-ordering.test.ts`.
+ * Storage-hash mismatch ordering against middleware interceptQuerys is covered by
+ * `marker-vs-interceptQuery-ordering.test.ts`.
  */
 
 const testContract: Contract<SqlStorage> = {
@@ -219,7 +219,7 @@ describe('verifyMarker', () => {
     const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
     const runtime = buildRuntime({ markerResult: { kind: 'absent' }, log });
 
-    await runtime.execute(createPlan()).toArray();
+    await runtime.execute(createPlan());
 
     expect(log.warn).toHaveBeenCalledOnce();
     expect(log.warn).toHaveBeenCalledWith(
@@ -239,7 +239,7 @@ describe('verifyMarker', () => {
     const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
     const runtime = buildRuntime({ markerResult: { kind: 'no-table' }, log });
 
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(log.warn).toHaveBeenCalledOnce();
     expect(log.warn).toHaveBeenCalledWith(
@@ -258,7 +258,7 @@ describe('verifyMarker', () => {
       log,
     });
 
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(log.warn).not.toHaveBeenCalled();
   });
@@ -273,7 +273,7 @@ describe('verifyMarker', () => {
       log,
     });
 
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(log.warn).toHaveBeenCalledOnce();
     expect(log.warn).toHaveBeenCalledWith(
@@ -299,7 +299,7 @@ describe('verifyMarker', () => {
       log,
     });
 
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(log.warn).toHaveBeenCalledOnce();
     expect(log.warn).toHaveBeenCalledWith(
@@ -322,8 +322,8 @@ describe('verifyMarker', () => {
       readMarkerSpy,
     });
 
-    await runtime.execute(createPlan()).toArray();
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(readMarkerSpy).not.toHaveBeenCalled();
     expect(log.warn).not.toHaveBeenCalled();
@@ -338,16 +338,16 @@ describe('verifyMarker', () => {
       readMarkerSpy,
     });
 
-    await runtime.execute(createPlan()).toArray();
-    await runtime.execute(createPlan()).toArray();
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(readMarkerSpy).toHaveBeenCalledTimes(1);
     expect(log.warn).toHaveBeenCalledTimes(1);
   });
 
   it('single-flights the marker read under concurrent first queries', async () => {
-    // Hold the marker read open until we have N concurrent execute() calls
+    // Hold the marker read open until we have N concurrent query() calls
     // sitting at the verifyMarker gate. Without single-flight, each one would
     // call readMarker() and emit a log line independently.
     let releaseMarker: (result: MarkerReadResult) => void = () => {};
@@ -363,10 +363,10 @@ describe('verifyMarker', () => {
     });
 
     const inflight = [
-      runtime.execute(createPlan()).toArray(),
-      runtime.execute(createPlan()).toArray(),
-      runtime.execute(createPlan()).toArray(),
-      runtime.execute(createPlan()).toArray(),
+      runtime.query(createPlan()).toArray(),
+      runtime.query(createPlan()).toArray(),
+      runtime.query(createPlan()).toArray(),
+      runtime.query(createPlan()).toArray(),
     ];
 
     releaseMarker({ kind: 'absent' });

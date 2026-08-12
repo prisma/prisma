@@ -49,6 +49,17 @@ describe('cross-shell tarball chain (target-postgres -> family-sql -> framework,
     expect(runInScratch(scratch, script)).toContain(`resolved ${imports.length}`);
   });
 
+  it('resolves the prepared-query bridge used by the Supabase extension', () => {
+    const script = `
+      const preparedQuery = await import('@prisma/orm-family-sql/runtime/internal/prepared-query');
+      if (typeof preparedQuery.preparedStatementQuery !== 'symbol') {
+        throw new Error('prepared-query bridge is not exported');
+      }
+      console.log('prepared-query bridge ok');
+    `;
+    expect(runInScratch(scratch, script)).toContain('prepared-query bridge ok');
+  });
+
   it('keeps framework modules identical when reached through family-sql', () => {
     const script = `
       import { strict as assert } from 'node:assert';

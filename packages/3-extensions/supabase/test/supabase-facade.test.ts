@@ -63,7 +63,7 @@ async function makeJwt(
     .sign(key);
 }
 
-function makeFakeClient() {
+function makeFakeClient(affectedRows = 0) {
   const queryCalls: Array<{ sql: string; params?: readonly unknown[] }> = [];
   return {
     queryCalls,
@@ -78,7 +78,7 @@ function makeFakeClient() {
           } else {
             queryCalls.push({ sql });
           }
-          return { rows: [], rowCount: 0 };
+          return { rows: [], rowCount: affectedRows };
         },
       ),
     release: vi.fn(),
@@ -232,7 +232,7 @@ describe('supabase() factory — asUser', () => {
 });
 
 describe('supabase() factory — behavioral binding via set_config', () => {
-  it('execute on a role-bound db sends set_config for role before the app query', async () => {
+  it('query on a role-bound db sends set_config for role before the app query', async () => {
     const fakeClient = makeFakeClient();
     poolConnectSpy().mockResolvedValue(fakeClient);
 
@@ -245,7 +245,7 @@ describe('supabase() factory — behavioral binding via set_config', () => {
     const roleBoundDb = await db.asUser(jwt);
 
     await roleBoundDb
-      .execute(stubPlan() as unknown as Parameters<typeof roleBoundDb.execute>[0])
+      .query(stubPlan() as unknown as Parameters<typeof roleBoundDb.query>[0])
       .toArray();
 
     const sqlsSeen = fakeClient.queryCalls.map((c) => c.sql);
@@ -273,11 +273,33 @@ describe('supabase() factory — behavioral binding via set_config', () => {
     const roleBoundDb = await db.asUser(jwt);
 
     await roleBoundDb
-      .execute(stubPlan() as unknown as Parameters<typeof roleBoundDb.execute>[0])
+      .query(stubPlan() as unknown as Parameters<typeof roleBoundDb.query>[0])
       .toArray();
 
     const sqlsSeen = fakeClient.queryCalls.map((c) => c.sql);
     expect(sqlsSeen[sqlsSeen.length - 1]).toBe('RESET ALL');
+
+    await db.close();
+  });
+
+  it('execute returns statistics then resets and releases the role-bound connection', async () => {
+    const fakeClient = makeFakeClient(6);
+    poolConnectSpy().mockResolvedValue(fakeClient);
+
+    const db = await supabase({
+      contract,
+      url: 'postgres://localhost/db',
+      jwtSecret: fixtureJwt,
+    });
+    const roleBoundDb = db.asAnon();
+
+    const stats = await roleBoundDb.execute(
+      stubPlan() as unknown as Parameters<typeof roleBoundDb.execute>[0],
+    );
+
+    expect(stats).toEqual({ affectedRows: 6 });
+    expect(fakeClient.queryCalls.at(-1)?.sql).toBe('RESET ALL');
+    expect(fakeClient.release).toHaveBeenCalled();
 
     await db.close();
   });
@@ -294,7 +316,7 @@ describe('supabase() factory — behavioral binding via set_config', () => {
     const roleBoundDb = db.asAnon();
 
     await roleBoundDb
-      .execute(stubPlan() as unknown as Parameters<typeof roleBoundDb.execute>[0])
+      .query(stubPlan() as unknown as Parameters<typeof roleBoundDb.query>[0])
       .toArray();
 
     const roleCall = fakeClient.queryCalls.find(
@@ -317,7 +339,7 @@ describe('supabase() factory — behavioral binding via set_config', () => {
     const roleBoundDb = db.asServiceRole();
 
     await roleBoundDb
-      .execute(stubPlan() as unknown as Parameters<typeof roleBoundDb.execute>[0])
+      .query(stubPlan() as unknown as Parameters<typeof roleBoundDb.query>[0])
       .toArray();
 
     const roleCall = fakeClient.queryCalls.find(
@@ -419,7 +441,7 @@ describe('RoleBoundDb — facade invariant: no unbound connection surface', () =
     await db.close();
   });
 
-  it('execute on RoleBoundDb routes through set_config (binding enforced)', async () => {
+  it('query on RoleBoundDb routes through set_config (binding enforced)', async () => {
     const fakeClient = makeFakeClient();
     poolConnectSpy().mockResolvedValue(fakeClient);
 
@@ -431,7 +453,7 @@ describe('RoleBoundDb — facade invariant: no unbound connection surface', () =
     const roleBoundDb = db.asServiceRole();
 
     await roleBoundDb
-      .execute(stubPlan() as unknown as Parameters<typeof roleBoundDb.execute>[0])
+      .query(stubPlan() as unknown as Parameters<typeof roleBoundDb.query>[0])
       .toArray();
 
     const setConfigCall = fakeClient.queryCalls.find(
@@ -453,10 +475,10 @@ describe('RoleBoundDb — facade invariant: no unbound connection surface', () =
     });
     const roleBoundDb = db.asAnon();
 
-    // Drive the ORM scope path by calling execute directly via the role-bound surface.
+    // Drive the ORM scope path by calling query directly via the role-bound surface.
     // (The ORM builds plans through roleBoundDb.orm, which uses openRoleSession internally.)
     await roleBoundDb
-      .execute(stubPlan() as unknown as Parameters<typeof roleBoundDb.execute>[0])
+      .query(stubPlan() as unknown as Parameters<typeof roleBoundDb.query>[0])
       .toArray();
 
     const sqlsSeen = fakeClient.queryCalls.map((c) => c.sql);

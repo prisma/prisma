@@ -7,7 +7,7 @@ import { enums, sql } from './context';
  * surfaces the lowest-priority posts first.
  */
 export async function getPostsByPriority(runtime: Runtime) {
-  const rows = await runtime.execute(
+  const rows = await runtime.query(
     sql.post.select('id', 'title', 'priority').orderBy('priority').orderBy('id').build(),
   );
   return rows;

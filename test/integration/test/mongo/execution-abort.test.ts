@@ -38,19 +38,19 @@ describeWithMongoDB('integration: mongoRuntime.execute({ signal }) — abort sem
 
     const queryPlan = plan(col, new AggregateCommand(col, []));
 
-    await expect(
-      ctx.runtime.execute(queryPlan, { signal: controller.signal }),
-    ).rejects.toMatchObject({
-      code: 'RUNTIME.ABORTED',
-      details: { phase: 'stream' },
-      cause: reason,
-    });
+    await expect(ctx.runtime.query(queryPlan, { signal: controller.signal })).rejects.toMatchObject(
+      {
+        code: 'RUNTIME.ABORTED',
+        details: { phase: 'stream' },
+        cause: reason,
+      },
+    );
   });
 
   it('regression — omitting options is identical to today (stream completes with all rows)', async () => {
     await seed();
     const queryPlan = plan(col, new AggregateCommand(col, []));
-    const rows = (await ctx.runtime.execute(queryPlan)) as Array<{ name: string; age: number }>;
+    const rows = (await ctx.runtime.query(queryPlan)) as Array<{ name: string; age: number }>;
     const names = rows.map((r) => r.name).sort();
     expect(names).toEqual(['Alice', 'Bob', 'Carol']);
   });
@@ -59,10 +59,10 @@ describeWithMongoDB('integration: mongoRuntime.execute({ signal }) — abort sem
     await seed();
     const filter = MongoFieldFilter.eq('name', 'Alice');
     const queryPlan = plan(col, new AggregateCommand(col, [new MongoMatchStage(filter)]));
-    const a = (await ctx.runtime.execute(queryPlan, {})) as Array<{ name: string }>;
+    const a = (await ctx.runtime.query(queryPlan, {})) as Array<{ name: string }>;
     expect(a.map((r) => r.name)).toEqual(['Alice']);
 
-    const b = (await ctx.runtime.execute(queryPlan, undefined)) as Array<{ name: string }>;
+    const b = (await ctx.runtime.query(queryPlan, undefined)) as Array<{ name: string }>;
     expect(b.map((r) => r.name)).toEqual(['Alice']);
   });
 });

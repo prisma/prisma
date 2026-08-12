@@ -64,7 +64,6 @@ import {
   executeMutationReturningSingleRow,
 } from './collection-mutation-dispatch';
 import { mapModelDataToStorageRow, mapPolymorphicRow } from './collection-runtime';
-import { executeQueryPlan } from './execute-query-plan';
 import { shorthandToWhereExpr } from './filters';
 import { GroupedCollection } from './grouped-collection';
 import {
@@ -91,12 +90,12 @@ import {
   compileInsertCountSplit,
   compileInsertReturning,
   compileInsertReturningSplit,
-  compileSelect,
   compileUpdateCount,
   compileUpdateReturning,
   compileUpsertReturning,
   mergeAnnotations,
 } from './query-plan';
+import { queryPlanRows } from './query-plan-rows';
 import {
   type AggregateBuilder,
   type AggregateIncludeReducers,
@@ -1147,10 +1146,7 @@ class CollectionImpl<
       ),
       annotationsMap,
     );
-    const rows = await executeQueryPlan<Record<string, unknown>>(
-      this.ctx.runtime,
-      compiled,
-    ).toArray();
+    const rows = await queryPlanRows<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
     // Values arrive decoded: the projection carries each aggregate's resolved
     // output codec, so the runtime's decode pass has already turned the wire
     // value into the application one. An absent alias means an empty input
@@ -1490,7 +1486,7 @@ class CollectionImpl<
             [baseRow],
             undefined,
           );
-          const baseResult = await executeQueryPlan<Record<string, unknown>>(
+          const baseResult = await queryPlanRows<Record<string, unknown>>(
             scope,
             baseCompiled,
           ).toArray();
@@ -1520,7 +1516,7 @@ class CollectionImpl<
             [variantRow],
             undefined,
           );
-          const variantResult = await executeQueryPlan<Record<string, unknown>>(
+          const variantResult = await queryPlanRows<Record<string, unknown>>(
             scope,
             variantCompiled,
           ).toArray();
@@ -1649,7 +1645,7 @@ class CollectionImpl<
         mappedRows,
       ).map((plan) => mergeAnnotations(plan, annotationsMap));
       for (const plan of plans) {
-        await executeQueryPlan<Record<string, unknown>>(this.ctx.runtime, plan).toArray();
+        await this.ctx.runtime.execute(plan);
       }
       return data.length;
     }
@@ -1658,7 +1654,7 @@ class CollectionImpl<
       compileInsertCount(this.contract, this.namespaceId, this.tableName, mappedRows),
       annotationsMap,
     );
-    await executeQueryPlan<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
+    await this.ctx.runtime.execute(compiled);
     return data.length;
   }
 
@@ -2011,31 +2007,7 @@ class CollectionImpl<
 
     applyUpdateDefaults(this.ctx, this.namespaceId, this.tableName, mappedData);
 
-    // Annotations attach to the write, not the matching read.
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'updateAndCount');
-
-    const primaryKeyColumn = resolvePrimaryKeyColumn(
-      this.contract,
-      this.namespaceId,
-      this.tableName,
-    );
-    const countState: CollectionState = {
-      ...emptyState(),
-      filters: this.state.filters,
-      selectedFields: [primaryKeyColumn],
-      variantName: this.state.variantName,
-    };
-    const countCompiled = compileSelect(
-      this.contract,
-      this.namespaceId,
-      this.tableName,
-      countState,
-      this.modelName,
-    );
-    const matchingRows = await executeQueryPlan<Record<string, unknown>>(
-      this.ctx.runtime,
-      countCompiled,
-    ).toArray();
 
     const compiled = mergeAnnotations(
       compileUpdateCount(
@@ -2049,9 +2021,8 @@ class CollectionImpl<
       ),
       annotationsMap,
     );
-    await executeQueryPlan<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
-
-    return matchingRows.length;
+    const stats = await this.ctx.runtime.execute(compiled);
+    return stats.affectedRows;
   }
 
   /**
@@ -2200,7 +2171,7 @@ class CollectionImpl<
           ),
           annotationsMap,
         );
-        await executeQueryPlan<Record<string, unknown>>(scope, deletePlan).toArray();
+        await scope.execute(deletePlan);
         return rows;
       });
       for (const row of snapshot) {
@@ -2226,31 +2197,7 @@ class CollectionImpl<
     this: State['hasWhere'] extends true ? Collection<TContract, ModelName, Row, State> : never,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<number> {
-    // Annotations attach to the write, not the matching read.
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'deleteAndCount');
-
-    const primaryKeyColumn = resolvePrimaryKeyColumn(
-      this.contract,
-      this.namespaceId,
-      this.tableName,
-    );
-    const countState: CollectionState = {
-      ...emptyState(),
-      filters: this.state.filters,
-      selectedFields: [primaryKeyColumn],
-      variantName: this.state.variantName,
-    };
-    const countCompiled = compileSelect(
-      this.contract,
-      this.namespaceId,
-      this.tableName,
-      countState,
-      this.modelName,
-    );
-    const matchingRows = await executeQueryPlan<Record<string, unknown>>(
-      this.ctx.runtime,
-      countCompiled,
-    ).toArray();
 
     const compiled = mergeAnnotations(
       compileDeleteCount(
@@ -2263,9 +2210,8 @@ class CollectionImpl<
       ),
       annotationsMap,
     );
-    await executeQueryPlan<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
-
-    return matchingRows.length;
+    const stats = await this.ctx.runtime.execute(compiled);
+    return stats.affectedRows;
   }
 
   #buildUpsertConflictCriterion(

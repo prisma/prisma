@@ -52,7 +52,7 @@ withTempDir(({ createTempDir }) => {
             why: expect.stringContaining('Invalid contract marker row'),
           },
         });
-        expect(JSON.stringify(envelope)).toContain('prisma-next db sign');
+        expect(JSON.stringify(envelope)).toContain('{bin} db sign --db <url>');
         expect(envelope).not.toHaveProperty('fix');
       },
       timeouts.spinUpPpgDev,
