@@ -3,6 +3,7 @@ import type {
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
+import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import type { Block, Presentations } from '@prisma/cli-engine';
 import { flag, positional } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
@@ -99,7 +100,10 @@ export const dbSignCommand = defineOrmCommand({
       'Verifies that your database schema satisfies the emitted contract, and if\n' +
       'so, writes or updates the database signature. Idempotent and safe to run\n' +
       'in CI or a deployment pipeline. The signature records that this database\n' +
-      'instance is aligned with a specific contract version.',
+      'instance is aligned with a specific contract version.\n' +
+      'Exit codes: 0 = signed, 2 = the command could not run (unresolvable\n' +
+      'contract reference, no emitted contract, unreachable database),\n' +
+      '4 = schema verification failed and no signature was written.',
     examples: [
       'db sign',
       'db sign --db $DATABASE_URL',
@@ -221,10 +225,21 @@ export const dbSignCommand = defineOrmCommand({
         configPath: CONFIG_DISPLAY_PATH,
         onProgress,
       });
+      // The control contract says a family either writes the marker or throws,
+      // so a returned `ok: false` is a family breaking that contract rather
+      // than anything the user did.
+      if (!signed.ok) {
+        throw new InternalError(
+          `The family returned a sign result that did not sign: ${signed.summary}`,
+        );
+      }
       return ok(
         ctx.present({ data: signed, exitCode: 0 }, signPresentations({ document: signed, header })),
       );
     } catch (error) {
+      if (isInternalError(error)) {
+        throw error;
+      }
       return notOk(verificationThrow({ error, invocation: 'db sign', connection: dbConnection }));
     } finally {
       await closeQuietly(client);

@@ -231,6 +231,7 @@ describe('db verify', () => {
         warning: 'Schema verification skipped because --marker-only was provided',
         meta: { schemaVerification: 'skipped' },
       });
+      expect(run.presented?.data).not.toHaveProperty('unclaimed');
     });
 
     it('takes the connection from --db over the config', async () => {
@@ -309,9 +310,30 @@ describe('db verify', () => {
         mode: 'full',
         summary: 'No marker found',
         contract: { storageHash: HASH_A },
-        unclaimed: [],
       });
       expect(envelopeOf(run)?.ok).toBe(true);
+    });
+
+    it('says the schema check was skipped, because the marker verdict returned first', async () => {
+      const dir = await projectDir();
+      mocks.verify.mockResolvedValue(
+        verified({ ok: false, code: 'CONTRACT.MARKER_MISSING', summary: 'No marker found' }),
+      );
+
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
+
+      expect(run.presented?.data).toMatchObject({ meta: { schemaVerification: 'skipped' } });
+    });
+
+    it('omits unclaimed rather than reporting an empty list nothing looked for', async () => {
+      const dir = await projectDir();
+      mocks.verify.mockResolvedValue(
+        verified({ ok: false, code: 'CONTRACT.MARKER_MISSING', summary: 'No marker found' }),
+      );
+
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
+
+      expect(run.presented?.data).not.toHaveProperty('unclaimed');
     });
 
     it('does not run the aggregate verifier once the marker check has failed', async () => {
@@ -558,6 +580,81 @@ describe('db verify', () => {
       expect(settled).not.toContain('secret');
       expect(mocks.close).toHaveBeenCalled();
     });
+
+    it('strips the connection string from a driver error that carries an errno code', async () => {
+      const dir = await projectDir();
+      mocks.verify.mockRejectedValue(
+        Object.assign(new Error(`connect ECONNREFUSED for ${CONNECTION}`), {
+          code: 'ECONNREFUSED',
+        }),
+      );
+
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
+      const settled = JSON.stringify(run.json.at(-1));
+
+      expect(run.exitCode).toBe(2);
+      expect(settled).not.toContain('secret');
+      expect(settled).toContain(MASKED_CONNECTION);
+    });
+
+    it('strips the connection string from a driver error that carries a SQLSTATE', async () => {
+      const dir = await projectDir();
+      mocks.verify.mockRejectedValue(
+        Object.assign(new Error(`password authentication failed for ${CONNECTION}`), {
+          code: '28P01',
+        }),
+      );
+
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
+
+      expect(JSON.stringify(run.json.at(-1))).not.toContain('secret');
+    });
+
+    it('keeps the connection string out of a structured driver error too', async () => {
+      const dir = await projectDir();
+      mocks.verify.mockRejectedValue(
+        new CliStructuredError('CONTRACT.MARKER_READ_FAILED', `Could not reach ${CONNECTION}`, {
+          why: `The driver refused ${CONNECTION}`,
+        }),
+      );
+
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
+
+      expect(envelopeOf(run)).toMatchObject({
+        ok: false,
+        error: { code: 'CONTRACT.MARKER_READ_FAILED' },
+      });
+      expect(JSON.stringify(run.json.at(-1))).not.toContain('secret');
+    });
+  });
+
+  describe('a wiring bug', () => {
+    it('reaches the engine as an internal error at exit 1', async () => {
+      const dir = await projectDir();
+      mocks.dbVerify.mockResolvedValue(aggregateOk({ perSpace: [] }));
+
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(1);
+      expect(envelopeOf(run)).toMatchObject({ ok: false, error: { code: 'CLI.INTERNAL_ERROR' } });
+    });
+
+    it('still hangs up on the client', async () => {
+      const dir = await projectDir();
+      mocks.dbVerify.mockResolvedValue(aggregateOk({ perSpace: [] }));
+
+      await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
+
+      expect(mocks.close).toHaveBeenCalled();
+    });
+  });
+
+  it('spells its exit codes in --help, which does not render the exitCodes map', async () => {
+    const dir = await projectDir();
+
+    const run = await harness(ormConfig()).run(['db', 'verify', '--help'], { cwd: dir });
+
+    expect(`${run.stdout}${run.stderr}`).toContain('4 = drift or a marker finding');
   });
 
   it('does not turn a completed verification into a failure when the hang-up fails', async () => {

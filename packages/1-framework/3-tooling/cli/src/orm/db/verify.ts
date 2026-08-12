@@ -5,6 +5,7 @@ import {
   VERIFY_CODE_TARGET_MISMATCH,
 } from '@internal/framework-components/control';
 import { ifDefined } from '@internal/utils/defined';
+import { isInternalError } from '@internal/utils/internal-error';
 import type { Block, Presentations } from '@prisma/cli-engine';
 import { flag } from '@prisma/cli-engine';
 import type { Diagnostic, Result } from '@prisma/cli-engine/protocol';
@@ -46,10 +47,13 @@ const FINDINGS_EXIT_CODE = 4;
 
 type DbVerifyMode = 'full' | 'marker-only' | 'schema-only';
 
-/** The verify document, which reports a failed verdict in the same shape. */
-type DbVerifyDocument = Omit<DbVerifyCommandSuccessResult, 'ok' | 'unclaimed'> & {
+/**
+ * The verify document, which reports a failed verdict in the same shape.
+ * `unclaimed` is absent on a run that never looked for unclaimed elements —
+ * an empty array there would read as "none found".
+ */
+type DbVerifyDocument = Omit<DbVerifyCommandSuccessResult, 'ok'> & {
   readonly ok: boolean;
-  readonly unclaimed: readonly string[];
 };
 
 /** The schema-verify document `--schema-only` and the drift branch report. */
@@ -169,7 +173,8 @@ function verifyDocument(inputs: {
   readonly summary: string;
   readonly verified: VerifyDatabaseResult;
   readonly schema: DbVerifyCommandSuccessResult['schema'];
-  readonly unclaimed: readonly string[];
+  readonly schemaVerification: 'performed' | 'skipped';
+  readonly unclaimed: readonly string[] | undefined;
   readonly warning: string | undefined;
   readonly elapsed: number;
 }): DbVerifyDocument {
@@ -183,11 +188,11 @@ function verifyDocument(inputs: {
     ...ifDefined('missingCodecs', inputs.verified.missingCodecs),
     ...ifDefined('codecCoverageSkipped', inputs.verified.codecCoverageSkipped),
     ...ifDefined('schema', inputs.schema),
-    unclaimed: inputs.unclaimed,
+    ...ifDefined('unclaimed', inputs.unclaimed),
     ...ifDefined('warning', inputs.warning),
     meta: {
       ...(inputs.verified.meta ?? {}),
-      schemaVerification: inputs.mode === 'marker-only' ? 'skipped' : 'performed',
+      schemaVerification: inputs.schemaVerification,
     },
     timings: { total: inputs.elapsed },
   };
@@ -216,6 +221,7 @@ function verifyPresentations(inputs: {
 }): Presentations {
   const document = inputs.document;
   const warnings = document.schema?.warnings ?? [];
+  const unclaimed = document.unclaimed ?? [];
   return {
     human: (): readonly Block[] => [
       inputs.header,
@@ -233,7 +239,7 @@ function verifyPresentations(inputs: {
             },
           ]
         : []),
-      ...(warnings.length === 0 && document.unclaimed.length === 0
+      ...(warnings.length === 0 && unclaimed.length === 0
         ? []
         : [
             {
@@ -251,13 +257,13 @@ function verifyPresentations(inputs: {
                         })),
                       },
                     ]),
-                ...(document.unclaimed.length === 0
+                ...(unclaimed.length === 0
                   ? []
                   : [
                       {
                         label: 'Unclaimed elements (declared by no contract)',
                         status: 'warn' as const,
-                        children: document.unclaimed.map((name) => ({
+                        children: unclaimed.map((name) => ({
                           label: name,
                           status: 'warn' as const,
                         })),
@@ -339,7 +345,10 @@ export const dbVerifyCommand = defineOrmCommand({
       'matches your contract. Use `--marker-only` for marker-only verification,\n' +
       '`--schema-only` to skip marker checks and inspect only the live schema,\n' +
       'and `--strict` to fail if the database includes elements not present in\n' +
-      'the contract.',
+      'the contract.\n' +
+      'Exit codes: 0 = the database matches the contract, 2 = the check could\n' +
+      'not run (conflicting mode flags, no emitted contract, unreachable\n' +
+      'database), 4 = drift or a marker finding.',
     examples: [
       'db verify',
       'db verify --db $DATABASE_URL',
@@ -461,13 +470,17 @@ export const dbVerifyCommand = defineOrmCommand({
         onProgress,
       });
       if (!verified.ok) {
+        // The marker verdict returns before the aggregate verifier runs, so
+        // neither the live schema nor the unclaimed list was looked at — even
+        // in full mode.
         const document = verifyDocument({
           ok: false,
           mode,
           summary: verified.summary,
           verified,
           schema: undefined,
-          unclaimed: [],
+          schemaVerification: 'skipped',
+          unclaimed: undefined,
           warning: undefined,
           elapsed: Date.now() - startedAt,
         });
@@ -502,7 +515,8 @@ export const dbVerifyCommand = defineOrmCommand({
           summary: 'Database marker matches contract',
           verified,
           schema: undefined,
-          unclaimed: [],
+          schemaVerification: 'skipped',
+          unclaimed: undefined,
           warning: 'Schema verification skipped because --marker-only was provided',
           elapsed: Date.now() - startedAt,
         });
@@ -549,6 +563,7 @@ export const dbVerifyCommand = defineOrmCommand({
             issue.path.join('/'),
           ),
         },
+        schemaVerification: 'performed',
         unclaimed: combined.unclaimed,
         warning: undefined,
         elapsed: Date.now() - startedAt,
@@ -557,6 +572,9 @@ export const dbVerifyCommand = defineOrmCommand({
         ctx.present({ data: document, exitCode: 0 }, verifyPresentations({ document, header })),
       );
     } catch (error) {
+      if (isInternalError(error)) {
+        throw error;
+      }
       return notOk(
         verificationThrow({ error, invocation: commandInvocation, connection: dbConnection }),
       );

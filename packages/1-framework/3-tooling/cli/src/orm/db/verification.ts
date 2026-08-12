@@ -8,9 +8,11 @@ import type {
 } from '@internal/framework-components/control';
 import { createControlStack, issueOutcome } from '@internal/framework-components/control';
 import { castAs } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { isStructuredErrorCode } from '@internal/utils/structured-error';
 import type { Block, TreeNode } from '@prisma/cli-engine';
-import type { CliStructuredError, Diagnostic, Result } from '@prisma/cli-engine/protocol';
-import { notOk, ok } from '@prisma/cli-engine/protocol';
+import type { Diagnostic, Result } from '@prisma/cli-engine/protocol';
+import { CliStructuredError, notOk, ok } from '@prisma/cli-engine/protocol';
 import {
   errorConfigValidation,
   errorContractValidationFailed,
@@ -125,7 +127,9 @@ export function requireVerifyConnection(inputs: {
 /**
  * A failure the verification could not recover from — a dropped connection, a
  * driver throw — as a settlement the user can act on. Connection strings are
- * stripped from the message before it is surfaced.
+ * stripped from the prose whichever path the value took. A driver error
+ * carrying `ECONNREFUSED`, `ENOTFOUND` or a SQLSTATE has a `code` and takes
+ * the first path, and its message is exactly the one likely to quote the URL.
  */
 export function verificationThrow(inputs: {
   readonly error: unknown;
@@ -133,16 +137,33 @@ export function verificationThrow(inputs: {
   readonly connection: string;
 }): CliStructuredError {
   const { error } = inputs;
-  if (typeof error === 'object' && error !== null && 'code' in error) {
-    return normalizeError(error);
-  }
-  const message = sanitizeErrorMessage(
-    error instanceof Error ? error.message : String(error),
-    inputs.connection,
-  );
-  return normalizeError(
-    errorUnexpected(message, { why: `Unexpected error during ${inputs.invocation}: ${message}` }),
-  );
+  const message = error instanceof Error ? error.message : String(error);
+  const carriesCode = typeof error === 'object' && error !== null && 'code' in error;
+  const normalized = carriesCode
+    ? normalizeError(error)
+    : normalizeError(
+        errorUnexpected(message, {
+          why: `Unexpected error during ${inputs.invocation}: ${message}`,
+        }),
+      );
+  return withoutConnectionString(normalized, inputs.connection);
+}
+
+/** The same envelope with the connection string stripped from its prose. */
+function withoutConnectionString(
+  error: CliStructuredError,
+  connection: string,
+): CliStructuredError {
+  const clean = (text: string): string => sanitizeErrorMessage(text, connection);
+  return new CliStructuredError(error.code, clean(error.message), {
+    severity: error.severity,
+    nextActions: error.nextActions,
+    ...ifDefined('why', error.why === undefined ? undefined : clean(error.why)),
+    ...ifDefined('where', error.where),
+    ...ifDefined('meta', error.meta),
+    ...ifDefined('docsUrl', error.docsUrl),
+    cause: error.cause,
+  });
 }
 
 const OUTCOME_LABEL: Record<ExpectationFailureReason, string> = {
@@ -194,12 +215,6 @@ export function schemaFindingBlocks(inputs: {
   return roots.length === 0 ? [] : [{ kind: 'tree', roots }];
 }
 
-const DOTTED_CODE = /^[^.]+\.[^.]+$/;
-
-function isDottedCode(code: string): code is `${string}.${string}` {
-  return DOTTED_CODE.test(code);
-}
-
 /**
  * A failed schema-verification verdict as one envelope diagnostic. `error` is
  * the honest severity: the database does not satisfy the contract. It is legal
@@ -212,7 +227,7 @@ export function schemaVerdictDiagnostic(inputs: {
   readonly nextActions: Diagnostic['nextActions'];
 }): Diagnostic {
   const code = inputs.result.code;
-  const dotted = code !== undefined && isDottedCode(code);
+  const dotted = code !== undefined && isStructuredErrorCode(code);
   const issues = inputs.result.schema.issues.map(issueLabel);
   return {
     code: dotted ? code : 'CONTRACT.VERIFY_FAILED',

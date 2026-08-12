@@ -222,6 +222,30 @@ describe('db sign', () => {
     });
   });
 
+  describe('the family reports it did not sign', () => {
+    it('reaches the engine as an internal error rather than claiming success', async () => {
+      const dir = await projectDir();
+      mocks.sign.mockResolvedValue({ ...signResult(), ok: false, summary: 'Marker not written' });
+
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(1);
+      expect(envelopeOf(run)).toMatchObject({ ok: false, error: { code: 'CLI.INTERNAL_ERROR' } });
+    });
+
+    it('does not present "Database signed"', async () => {
+      const dir = await projectDir();
+      mocks.sign.mockResolvedValue({ ...signResult(), ok: false, summary: 'Marker not written' });
+
+      const run = await harness(ormConfig()).run(['db', 'sign'], {
+        cwd: dir,
+        isTty: { stdout: true },
+      });
+
+      expect(run.stderr).not.toContain('Database signed');
+    });
+  });
+
   describe('verification fails', () => {
     const DRIFTED = schemaResult({
       ok: false,
@@ -385,6 +409,14 @@ describe('db sign', () => {
       expect(JSON.stringify(run.json.at(-1))).not.toContain('secret');
       expect(mocks.close).toHaveBeenCalled();
     });
+  });
+
+  it('spells its exit codes in --help, which does not render the exitCodes map', async () => {
+    const dir = await projectDir();
+
+    const run = await harness(ormConfig()).run(['db', 'sign', '--help'], { cwd: dir });
+
+    expect(`${run.stdout}${run.stderr}`).toContain('4 = schema verification failed');
   });
 
   it('does not turn a written signature into a failure when the hang-up fails', async () => {
