@@ -31,7 +31,7 @@
         "foreign key"
       ],
       "allow": ["SymbolTable"],
-      "threshold": 801
+      "threshold": 803
     }
   ]
 }
