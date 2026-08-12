@@ -1,10 +1,6 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  setupCommandMocks,
-  setupTestDirectoryFromFixtures,
-  withTempDir,
-} from './utils/cli-test-helpers';
+import { describe, expect, it } from 'vitest';
+import { runOnEngine, setupTestDirectoryFromFixtures, withTempDir } from './utils/cli-test-helpers';
 import { runDbUpdateAllowFailure, setupDbUpdateFixture } from './utils/db-update-test-helpers';
 
 /**
@@ -23,18 +19,6 @@ import { runDbUpdateAllowFailure, setupDbUpdateFixture } from './utils/db-update
  */
 withTempDir(({ createTempDir }) => {
   describe('db update command - contract-space verifier wiring', () => {
-    let cleanupMocks: () => void;
-
-    // The emit step still runs on the commander shell, whose output goes to
-    // the console this keeps out of the test log.
-    beforeEach(() => {
-      cleanupMocks = setupCommandMocks().cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     it(
       'rejects when an orphan marker row exists for a space not in extensions (AC-13)',
       async () => {
@@ -99,18 +83,8 @@ withTempDir(({ createTempDir }) => {
           );
           const { configPath } = testSetup;
 
-          const { createContractEmitCommand } = await import(
-            '@internal/cli/commands/contract-emit'
-          );
-          const { executeCommand } = await import('./utils/cli-test-helpers');
-          const emitCommand = createContractEmitCommand();
-          const originalCwd = process.cwd();
-          try {
-            process.chdir(testSetup.testDir);
-            await executeCommand(emitCommand, ['--config', configPath, '--no-color']);
-          } finally {
-            process.chdir(originalCwd);
-          }
+          const emit = await runOnEngine(testSetup, ['contract', 'emit']);
+          expect(emit.exitCode).toBe(0);
 
           const run = await runDbUpdateAllowFailure(testSetup, ['--config', configPath, '--json']);
           expect(run.exitCode).not.toBe(0);
