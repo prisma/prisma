@@ -126,7 +126,7 @@ export const contractInferCommand = defineOrmCommand({
               'contract infer is not supported for this family',
               {
                 why: 'The configured family does not implement the PslContractInferCapable capability, so an inferred PSL contract cannot be produced from the live database schema.',
-                // framework-vocabulary-ignore: names a family on purpose — this is user-facing guidance about which family to switch to, not a framework type
+                // biome-ignore lint/plugin/no-family-vocabulary: names a family on purpose — this is user-facing guidance about which family to switch to, not a framework type
                 fix: 'Use a family that supports contract inference (e.g. SQL/Postgres).',
               },
             ),
