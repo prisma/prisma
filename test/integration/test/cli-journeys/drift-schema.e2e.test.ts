@@ -151,7 +151,7 @@ withTempDir(({ createTempDir }) => {
         // N.04: db schema
         const schema = await runDbSchema(ctx);
         expect(schema.exitCode, 'N.04: db schema').toBe(0);
-        expect(stripAnsi(schema.stdout), 'N.04: shows age column').toContain('age');
+        expect(stripAnsi(schema.stderr), 'N.04: shows age column').toContain('age');
 
         // N.05: Evolve contract (adds 'name' column — 'age' remains as unmanaged extra)
         swapContract(ctx, 'contract-additive');

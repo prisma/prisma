@@ -4,6 +4,7 @@ import type { PrismaNextConfig } from '@internal/config/config-types';
 import { type FormatOptions, format } from '@internal/psl-parser/format';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
+import { resolve } from 'pathe';
 import { type CliStructuredError, errorRuntime, errorUnexpected } from '../../utils/cli-errors';
 
 export interface FormatOperationOptions {
@@ -39,10 +40,11 @@ export async function executeFormat(
     return ok({ formatted: false });
   }
 
-  const inputPath = source.inputs?.[0];
-  if (inputPath === undefined) {
+  const declaredPath = source.inputs?.[0];
+  if (declaredPath === undefined) {
     return ok({ formatted: false });
   }
+  const inputPath = resolve(options.cwd, declaredPath);
 
   let contents: string;
   try {

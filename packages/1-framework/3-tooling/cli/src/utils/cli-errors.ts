@@ -532,6 +532,10 @@ export function errorPathUnreachable(failure: MigrateFailure): ActionableCliErro
       chooseAction(ROLLBACK_IS_DESTRUCTIVE),
       chooseAction(NARROWER_CASES_NEED_A_HINT),
       runCommandAction('Inspect the on-disk graph', 'prisma-next migration list'),
+      runCommandAction(
+        'Inspect a bundle in the path you expected',
+        'prisma-next migration show <bundle>',
+      ),
     ],
     meta: {
       ...meta,

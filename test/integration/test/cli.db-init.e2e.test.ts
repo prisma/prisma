@@ -1,11 +1,7 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  parseJsonObjectFromCliCapture,
-  setupCommandMocks,
-  withTempDir,
-} from './utils/cli-test-helpers';
+import { setupCommandMocks, withTempDir } from './utils/cli-test-helpers';
 import { runDbInit, setupDbInitFixture } from './utils/db-init-test-helpers';
 
 // Fixture subdirectory for db-init e2e tests
@@ -13,12 +9,10 @@ const fixtureSubdir = 'db-init';
 
 withTempDir(({ createTempDir }) => {
   describe('db init command (e2e)', () => {
-    let consoleOutput: string[] = [];
     let cleanupMocks: () => void;
 
     beforeEach(() => {
       const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
       cleanupMocks = mocks.cleanup;
     });
 
@@ -38,11 +32,9 @@ withTempDir(({ createTempDir }) => {
               fixtureSubdir,
             );
 
-            await runDbInit(testSetup, ['--config', configPath, '--no-color']);
+            const run = await runDbInit(testSetup, ['--config', configPath, '--no-color']);
 
-            // Get output and strip ANSI for verification
-            const output = consoleOutput.join('\n');
-            const stripped = stripAnsi(output);
+            const stripped = stripAnsi(run.stderr);
 
             // Verify success message
             expect(stripped).toContain('Applied');
@@ -81,14 +73,14 @@ withTempDir(({ createTempDir }) => {
               fixtureSubdir,
             );
 
-            // Clear console output before running the command we want to test
-            const outputStartIndex = consoleOutput.length;
+            const run = await runDbInit(testSetup, [
+              '--config',
+              configPath,
+              '--json',
+              '--no-color',
+            ]);
 
-            await runDbInit(testSetup, ['--config', configPath, '--json', '--no-color']);
-
-            const jsonOutput = parseJsonObjectFromCliCapture(
-              consoleOutput.slice(outputStartIndex),
-            ) as Record<string, unknown>;
+            const jsonOutput = run.document as Record<string, unknown>;
 
             // Verify structure
             expect(jsonOutput).toMatchObject({
@@ -130,11 +122,14 @@ withTempDir(({ createTempDir }) => {
               fixtureSubdir,
             );
 
-            await runDbInit(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
+            const run = await runDbInit(testSetup, [
+              '--config',
+              configPath,
+              '--dry-run',
+              '--no-color',
+            ]);
 
-            // Get output and strip ANSI for verification
-            const output = consoleOutput.join('\n');
-            const stripped = stripAnsi(output);
+            const stripped = stripAnsi(run.stderr);
 
             // Verify plan output
             expect(stripped).toContain('Planned');
@@ -172,9 +167,7 @@ withTempDir(({ createTempDir }) => {
               fixtureSubdir,
             );
 
-            const outputStartIndex = consoleOutput.length;
-
-            await runDbInit(testSetup, [
+            const run = await runDbInit(testSetup, [
               '--config',
               configPath,
               '--dry-run',
@@ -182,9 +175,7 @@ withTempDir(({ createTempDir }) => {
               '--no-color',
             ]);
 
-            const jsonOutput = parseJsonObjectFromCliCapture(
-              consoleOutput.slice(outputStartIndex),
-            ) as Record<string, unknown>;
+            const jsonOutput = run.document as Record<string, unknown>;
 
             // Verify structure
             expect(jsonOutput).toMatchObject({
@@ -226,14 +217,10 @@ withTempDir(({ createTempDir }) => {
 
             await runDbInit(testSetup, ['--config', configPath, '--no-color']);
 
-            // Clear console output
-            consoleOutput.length = 0;
-
             // Second run: should succeed as noop (0 operations applied)
-            await runDbInit(testSetup, ['--config', configPath, '--no-color']);
+            const rerun = await runDbInit(testSetup, ['--config', configPath, '--no-color']);
 
-            const output = consoleOutput.join('\n');
-            const stripped = stripAnsi(output);
+            const stripped = stripAnsi(rerun.stderr);
 
             // Verify noop - shows "Database already matches contract" indicating nothing to do
             expect(stripped).toContain('Database already matches contract');
@@ -255,14 +242,15 @@ withTempDir(({ createTempDir }) => {
 
             await runDbInit(testSetup, ['--config', configPath, '--no-color']);
 
-            // Clear console output
-            consoleOutput.length = 0;
-
             // Second run in plan mode: should succeed as noop with 0 operations
-            await runDbInit(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
+            const rerun = await runDbInit(testSetup, [
+              '--config',
+              configPath,
+              '--dry-run',
+              '--no-color',
+            ]);
 
-            const output = consoleOutput.join('\n');
-            const stripped = stripAnsi(output);
+            const stripped = stripAnsi(rerun.stderr);
 
             // Verify it shows 0 planned operations (indicating nothing to do)
             expect(stripped).toContain('Planned 0 operation');
@@ -284,15 +272,15 @@ withTempDir(({ createTempDir }) => {
 
             await runDbInit(testSetup, ['--config', configPath, '--no-color']);
 
-            // Clear console output
-            const outputStartIndex = consoleOutput.length;
-
             // Second run: should succeed as noop
-            await runDbInit(testSetup, ['--config', configPath, '--json', '--no-color']);
+            const rerun = await runDbInit(testSetup, [
+              '--config',
+              configPath,
+              '--json',
+              '--no-color',
+            ]);
 
-            const jsonOutput = parseJsonObjectFromCliCapture(
-              consoleOutput.slice(outputStartIndex),
-            ) as Record<string, unknown>;
+            const jsonOutput = rerun.document as Record<string, unknown>;
 
             // Verify structure - should be noop with existing marker.
             // The noop case routes through `execute` with an

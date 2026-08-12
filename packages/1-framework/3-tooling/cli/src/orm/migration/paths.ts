@@ -18,6 +18,14 @@ export function appMigrationsDirFor(config: PrismaNextConfig, cwd: string): stri
 }
 
 /**
+ * Where refs live. The framework keeps them under the app subspace rather than
+ * at the migrations root.
+ */
+export function appRefsDirFor(config: PrismaNextConfig, cwd: string): string {
+  return resolve(appMigrationsDirFor(config, cwd), 'refs');
+}
+
+/**
  * The emitted contract. The config loader has already resolved
  * `contract.output` against the config file's directory, so this only has an
  * effect for a config handed in raw, as tests do.
