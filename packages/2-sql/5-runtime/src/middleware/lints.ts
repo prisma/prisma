@@ -155,6 +155,13 @@ export function lints(options?: LintsOptions): SqlMiddleware {
     const findings: LintFinding[] = [];
     if (isQueryAst(plan.ast)) {
       findings.push(...evaluateAstLints(plan.ast));
+      // A raw statement has no structural shape to lint (no LIMIT / WHERE
+      // clause the runtime authored), but its SQL text still wants the
+      // heuristic guardrails. Without this the lint middleware would
+      // silently disable both for raw plans.
+      if (plan.ast.kind === 'raw-query') {
+        findings.push(...evaluateRawGuardrails(plan).lints);
+      }
     } else if (fallback !== 'skip') {
       findings.push(...evaluateRawGuardrails(plan).lints);
     }

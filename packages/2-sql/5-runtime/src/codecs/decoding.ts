@@ -8,6 +8,7 @@ import type {
   Codec,
   ContractCodecRegistry,
   ProjectionItem,
+  RawQueryAst,
   SqlCodecCallContext,
 } from '@internal/sql-relational-core/ast';
 import { isStructuredError } from '@internal/utils/structured-error';
@@ -20,17 +21,23 @@ export interface DecodeContext {
   readonly columnRefs: ReadonlyMap<string, ColumnRef>;
   readonly includeAliases: ReadonlySet<string>;
   readonly manyAliases: ReadonlySet<string>;
+  /**
+   * Where {@link DecodeContext.aliases} came from, which decides how a row
+   * that lacks one of them reads: a projection the builder wrote is the
+   * runtime's own doing, while a row spec is the author's declaration about a
+   * statement the runtime never inspected.
+   */
+  readonly aliasSource: 'projection' | 'row-spec';
 }
 
 const WIRE_PREVIEW_LIMIT = 100;
 const EMPTY_INCLUDE_ALIASES: ReadonlySet<string> = new Set<string>();
 
-function projectionListFromAst(ast: AnyQueryAst): ReadonlyArray<ProjectionItem> | undefined {
+function projectionListFromAst(
+  ast: Exclude<AnyQueryAst, RawQueryAst>,
+): ReadonlyArray<ProjectionItem> | undefined {
   if (ast.kind === 'select') {
     return ast.projection;
-  }
-  if (ast.kind === 'raw-query') {
-    return undefined;
   }
   return ast.returning;
 }
@@ -47,19 +54,64 @@ function resolveProjectionCodec(
 
 const EMPTY_MANY_ALIASES: ReadonlySet<string> = new Set<string>();
 
+function undecodedContext(): DecodeContext {
+  return {
+    aliases: undefined,
+    codecs: new Map(),
+    columnRefs: new Map(),
+    includeAliases: EMPTY_INCLUDE_ALIASES,
+    manyAliases: EMPTY_MANY_ALIASES,
+    aliasSource: 'projection',
+  };
+}
+
+/**
+ * Decode context for a raw statement: the columns come from the row spec its
+ * author declared at the terminator, and each carries the codec that decodes
+ * it. A statement that reports an affected-row count declares no columns, so
+ * its single stats row passes through undecoded.
+ *
+ * The spec is the only description of the result — the runtime never parses
+ * the SQL — so it is also what a mismatched result set is measured against.
+ */
+function rawQueryDecodeContext(
+  ast: RawQueryAst,
+  contractCodecs: ContractCodecRegistry | undefined,
+): DecodeContext {
+  if (ast.result.kind === 'affected-count') {
+    return undecodedContext();
+  }
+
+  const aliases: string[] = [];
+  const codecs = new Map<string, Codec>();
+  for (const [name, column] of Object.entries(ast.result.columns)) {
+    aliases.push(name);
+    if (contractCodecs) {
+      codecs.set(name, contractCodecs.forCodecRef({ codecId: column.codecId }));
+    }
+  }
+
+  return {
+    aliases,
+    codecs,
+    columnRefs: new Map(),
+    includeAliases: EMPTY_INCLUDE_ALIASES,
+    manyAliases: EMPTY_MANY_ALIASES,
+    aliasSource: 'row-spec',
+  };
+}
+
 export function buildDecodeContext(
   ast: AnyQueryAst,
   contractCodecs: ContractCodecRegistry | undefined,
 ): DecodeContext {
+  if (ast.kind === 'raw-query') {
+    return rawQueryDecodeContext(ast, contractCodecs);
+  }
+
   const projection = projectionListFromAst(ast);
   if (!projection || projection.length === 0) {
-    return {
-      aliases: undefined,
-      codecs: new Map(),
-      columnRefs: new Map(),
-      includeAliases: EMPTY_INCLUDE_ALIASES,
-      manyAliases: EMPTY_MANY_ALIASES,
-    };
+    return undecodedContext();
   }
 
   const aliases: string[] = [];
@@ -90,7 +142,7 @@ export function buildDecodeContext(
     }
   }
 
-  return { aliases, codecs, columnRefs, includeAliases, manyAliases };
+  return { aliases, codecs, columnRefs, includeAliases, manyAliases, aliasSource: 'projection' };
 }
 
 function previewWireValue(wireValue: unknown): string {
@@ -261,11 +313,21 @@ export async function decodeRow(
   if (decodeCtx.aliases !== undefined) {
     for (const alias of decodeCtx.aliases) {
       if (!Object.hasOwn(row, alias)) {
-        throw runtimeError('RUNTIME.DECODE_FAILED', `Row missing projection alias "${alias}"`, {
-          alias,
-          expectedAliases: decodeCtx.aliases,
-          presentKeys: Object.keys(row),
-        });
+        throw decodeCtx.aliasSource === 'row-spec'
+          ? runtimeError(
+              'RUNTIME.RAW_ROW_COLUMN_MISSING',
+              `Raw statement result has no column "${alias}", which its row spec declares`,
+              {
+                column: alias,
+                declaredColumns: decodeCtx.aliases,
+                resultColumns: Object.keys(row),
+              },
+            )
+          : runtimeError('RUNTIME.DECODE_FAILED', `Row missing projection alias "${alias}"`, {
+              alias,
+              expectedAliases: decodeCtx.aliases,
+              presentKeys: Object.keys(row),
+            });
       }
     }
   }

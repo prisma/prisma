@@ -7,6 +7,7 @@ import {
   DerivedTableSource,
   ParamRef,
   ProjectionItem,
+  RawQueryAst,
   SelectAst,
   TableSource,
   UpdateAst,
@@ -265,6 +266,25 @@ describe('lints middleware', () => {
       expect(ctx.log.warn).toHaveBeenCalledWith(
         expect.objectContaining({ code: 'LINT.SELECT_STAR' }),
       );
+    },
+    timeouts.default,
+  );
+
+  it(
+    'routes raw-query plans through the raw guardrails when an ast is present',
+    async () => {
+      const plan = createPlan({
+        sql: 'SELECT * FROM "user"',
+        ast: RawQueryAst.rows(['SELECT * FROM "user"'], {
+          id: { codecId: 'pg/int4@1', nullable: false },
+        }),
+      });
+      const mw = lints();
+      const ctx = createMiddlewareContext();
+
+      await expect(mw.beforeExecute?.(plan, ctx)).rejects.toMatchObject({
+        code: 'LINT.SELECT_STAR',
+      });
     },
     timeouts.default,
   );
