@@ -274,7 +274,7 @@ describe('typed next actions on the CLI factories', () => {
     ]);
   });
 
-  it('keeps the fix prose alongside the typed actions while the commander shell renders it', () => {
+  it('keeps the fix prose alongside the typed actions', () => {
     const error = errorSpaceNotFound('billing', []);
 
     expect(error.fix).toBeDefined();

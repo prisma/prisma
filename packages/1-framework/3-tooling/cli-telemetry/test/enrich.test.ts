@@ -134,7 +134,18 @@ describe('buildTelemetryEvent', () => {
       tsVersion: '5.9.3',
       agent: null,
       extensions: ['pgvector'],
+      exitCode: null,
     });
+  });
+
+  it('carries the parent-reported exit code onto the event', () => {
+    const event = buildTelemetryEvent({ ...basePayload, exitCode: 4 }, baseProjectConfig, baseEnv);
+    expect(event.exitCode).toBe(4);
+  });
+
+  it('reports exitCode null when the parent sent none', () => {
+    const event = buildTelemetryEvent(basePayload, baseProjectConfig, baseEnv);
+    expect(event.exitCode).toBeNull();
   });
 
   it('detects bun as the runtime when versions.bun is present', () => {

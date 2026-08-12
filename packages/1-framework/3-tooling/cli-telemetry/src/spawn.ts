@@ -37,6 +37,11 @@ export interface RunTelemetryInputs {
    */
   readonly databaseTarget?: string;
   /**
+   * Exit code of the settled run, when the caller reports after settlement
+   * (the engine bin's `onSettled` path). `undefined` when unknown.
+   */
+  readonly exitCode: number | undefined;
+  /**
    * Path to the sender entry compiled into this package's `dist/`.
    * Resolved by the caller because the compiled sender lives at
    * `<package>/dist/sender.mjs` and only the consumer knows its own
@@ -101,6 +106,7 @@ export function runTelemetry(inputs: RunTelemetryInputs): TelemetryRunOutcome {
     projectRoot: inputs.projectRoot,
     endpoint: resolveTelemetryEndpoint(env),
     ...ifDefined('databaseTarget', inputs.databaseTarget),
+    ...ifDefined('exitCode', inputs.exitCode),
   };
 
   try {

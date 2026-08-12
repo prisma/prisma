@@ -1,25 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import {
-  buildNoPathSummary,
-  buildStatusHeadline,
-  formatStatusSummary,
-  type StatusDiagnosticJson,
-} from '../../src/commands/migration-status';
-
-const baseResult = {
-  ok: true as const,
-  spaces: [],
-  summary: 'Up to date',
-  diagnostics: [],
-  treeSections: [],
-};
+import { buildNoPathSummary, buildStatusHeadline } from '../../src/orm/migration/status';
 
 describe('buildNoPathSummary', () => {
   it('names the live contract when no --to was passed', () => {
     expect(
       buildNoPathSummary({
-        markerHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        targetHash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        markerHash: 'a'.repeat(64),
+        targetHash: 'b'.repeat(64),
         explicitTarget: false,
         refName: undefined,
       }),
@@ -31,8 +18,8 @@ describe('buildNoPathSummary', () => {
   it('names the ref when --to resolved via ref', () => {
     expect(
       buildNoPathSummary({
-        markerHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        targetHash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        markerHash: 'a'.repeat(64),
+        targetHash: 'b'.repeat(64),
         explicitTarget: true,
         refName: 'prod',
       }),
@@ -44,8 +31,8 @@ describe('buildNoPathSummary', () => {
   it('omits via ref when --to was a raw hash', () => {
     expect(
       buildNoPathSummary({
-        markerHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        targetHash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        markerHash: 'a'.repeat(64),
+        targetHash: 'b'.repeat(64),
         explicitTarget: true,
         refName: undefined,
       }),
@@ -54,11 +41,11 @@ describe('buildNoPathSummary', () => {
     );
   });
 
-  it('omits marker parenthetical when marker hash is unknown', () => {
+  it('omits the marker parenthetical when the marker hash is unknown', () => {
     expect(
       buildNoPathSummary({
         markerHash: undefined,
-        targetHash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        targetHash: 'b'.repeat(64),
         explicitTarget: false,
         refName: undefined,
       }),
@@ -90,40 +77,15 @@ describe('buildStatusHeadline', () => {
       }),
     ).toBe('2 pending — run `prisma-next migrate --to deadbeef`');
   });
-});
 
-describe('formatStatusSummary', () => {
-  it('includes the missing-invariants line when a MIGRATION.MISSING_INVARIANTS diagnostic is present', () => {
-    const diagnostics: StatusDiagnosticJson[] = [
-      {
-        code: 'MIGRATION.MISSING_INVARIANTS',
-        severity: 'warn',
-        invariants: ['users-have-email'],
-        message: 'missing invariant(s): users-have-email',
-      },
-    ];
-    const out = formatStatusSummary({ ...baseResult, diagnostics }, false);
-    expect(out).toContain('Up to date');
-    expect(out).toContain('missing invariant(s): users-have-email');
-  });
-
-  it('highlights divergence warnings', () => {
-    const diagnostics: StatusDiagnosticJson[] = [
-      {
-        code: 'MIGRATION.MARKER_NOT_IN_HISTORY',
-        severity: 'warn',
-        message: 'marker diverged',
-        hints: [],
-      },
-    ];
-    const out = formatStatusSummary(
-      {
-        ...baseResult,
-        summary: 'Database marker abcdef is not in the on-disk migration graph',
-        diagnostics,
-      },
-      false,
-    );
-    expect(out).toContain('Database marker abcdef');
+  it('reports divergence when the marker is not in the on-disk graph', () => {
+    expect(
+      buildStatusHeadline({
+        pendingCount: 1,
+        targetHash: 'b'.repeat(64),
+        markerDiverged: true,
+        markerHash: 'a'.repeat(64),
+      }),
+    ).toBe('Database marker aaaaaaaaaaaa is not in the on-disk migration graph');
   });
 });

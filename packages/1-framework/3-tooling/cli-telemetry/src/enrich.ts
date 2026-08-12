@@ -203,6 +203,7 @@ export function buildTelemetryEvent(
     tsVersion: readTsVersionFromPackageJson(env.readProjectPackageJson()),
     agent: env.agent,
     extensions: projectConfig.extensions,
+    exitCode: payload.exitCode ?? null,
   };
 }
 
