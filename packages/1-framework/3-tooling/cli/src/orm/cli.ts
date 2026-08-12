@@ -2,13 +2,16 @@ import { ifDefined } from '@internal/utils/defined';
 import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine';
 import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
+import { isCI } from '../utils/is-ci';
 import { ormCommandFamily } from './family';
+import { initCommand } from './init';
 import { loadOrmConfig } from './load-config';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
 import { migrationShowCommand } from './migration/show';
 import { normalizeError } from './normalize-error';
+import { runPackageManager } from './package-manager-runner';
 import { resolveTelemetryHooks } from './telemetry/reporting';
 
 export const BIN_NAME = 'prisma-next';
@@ -23,6 +26,7 @@ export const BIN_GROUPS = {
 } as const;
 
 export const BIN_COMMANDS: MountedTree = {
+  init: initCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,
   'migration log': migrationLogCommand,
@@ -37,14 +41,6 @@ export function createOrmCli(): Cli {
     groups: BIN_GROUPS,
     commands: BIN_COMMANDS,
   });
-}
-
-function packageManagerFrom(
-  env: Readonly<Record<string, string | undefined>>,
-): Runtime['packageManager'] {
-  const userAgent = env['npm_config_user_agent'];
-  const name = userAgent?.split('/')[0];
-  return name === 'npm' || name === 'pnpm' || name === 'yarn' || name === 'bun' ? name : 'unknown';
 }
 
 /**
@@ -68,6 +64,7 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
       stdout: proc.stdout.isTTY === true,
       stderr: proc.stderr.isTTY === true,
     },
+    isCI: isCI(),
     exit: (code) => proc.exit(code),
     onSignal: (callback) => {
       const onInterrupt = () => callback('SIGINT');
@@ -82,7 +79,10 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
     loadConfig: (configPath) =>
       loadOrmConfig({ cwd: proc.cwd(), ...ifDefined('configPath', configPath) }),
     managementApi: { baseUrl: 'https://api.prisma.io' },
-    packageManager: packageManagerFrom(proc.env),
+    // No `packageManager`: a host's answer overrides the engine's detection
+    // outright, and this bin knows nothing the engine's own walk from cwd —
+    // lockfile, then the manager that invoked this process — does not.
+    runPackageManager,
   };
 }
 

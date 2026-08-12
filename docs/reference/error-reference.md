@@ -6,6 +6,8 @@ Recognize an error programmatically with `isStructuredError` from `@internal/uti
 
 Exit codes (CLI): an expected structured failure exits `2`, a user abort exits `3`, and `1` is reserved for internal errors (bugs). Errors with codes on this page exit `2` unless noted.
 
+A command may also **complete with findings**: it ran to its end and has a result to report, and the problems it found ride that result as diagnostics carrying the codes on this page. Those runs exit with a documented per-command code in the `4`–`99` band rather than `2`, and the entry below says so. `prisma-next init` is the case today: its scaffold is on disk whatever happens next, so a failed dependency install, contract emit, or agent-skill install is a finding on a completed run at exit `4`, `5` or `6`.
+
 Codes that predate the dotted scheme were renamed at 0.16; the full old→new crosswalk (`PN-DOMAIN-NNNN` → `NAMESPACE.SUBCODE`) is in [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md).
 
 Namespaces:
@@ -89,11 +91,11 @@ During `prisma-next init`, `--authoring` and `--schema-path` disagree on file ex
 
 ### CLI.INIT_EMIT_FAILED
 
-During `prisma-next init`, the `prisma-next contract emit` step failed after a successful dependency install. Scaffolded files and installed dependencies remain on disk; the user fixes the contract file and re-runs the emit command. Maps to init exit code 5 (EMIT_FAILED). Meta: `filesWritten`, `cause`.
+During `prisma-next init`, the `prisma-next contract emit` step failed after a successful dependency install. Scaffolded files and installed dependencies remain on disk; the user fixes the contract file and re-runs the emit command. `init` completes with this as a finding and exits 5. Meta: `filesWritten`, `cause`.
 
 ### CLI.INIT_INSTALL_FAILED
 
-During `prisma-next init`, dependency installation failed and the pnpm-to-npm fallback either did not apply or also failed. Files scaffolded before the install step are already on disk; the fix text gives the manual install and emit commands to resume. Maps to init exit code 4 (INSTALL_FAILED). Meta: `filesWritten`, `stderr`.
+During `prisma-next init`, dependency installation failed and the pnpm-to-npm fallback either did not apply or also failed. Files scaffolded before the install step are already on disk; the next actions carry the install command that was attempted and the emit that was waiting on it. `init` completes with this as a finding and exits 4. Meta: `filesWritten`, plus `install` (the attempted command, the manager, its exit code and the tail of its stderr).
 
 ### CLI.INIT_INVALID_FLAG_VALUE
 
@@ -105,7 +107,7 @@ A flag passed to `prisma-next init` has a value outside its allowed set (for exa
 
 ### CLI.INIT_INVALID_OUTPUT_DOCUMENT
 
-`prisma-next init` completed but its own success output document failed schema validation. This indicates a bug in prisma-next itself, not user error, so it maps to the init internal-error exit code rather than PRECONDITION. Meta: none.
+`prisma-next init` completed but its own success output document failed schema validation. This indicates a bug in prisma-next itself, not user error. The commander `init` maps it to exit code 1 (INTERNAL_ERROR); the engine-hosted `init` settles it as an errored envelope at exit 2, because the ORM's error boundary converts every failure into a structured settlement and the engine reserves exit 1 for a throw that reaches it uncaught. Meta: none.
 
 ### CLI.INIT_INVALID_TSCONFIG
 
@@ -121,11 +123,13 @@ A flag passed to `prisma-next init` has a value outside its allowed set (for exa
 
 ### CLI.INIT_REINIT_NEEDS_FORCE
 
-`prisma-next init` ran non-interactively in a directory that already has a `prisma-next.config.ts`, without `--force`. Init refuses to overwrite the existing scaffold; distinct from CLI.INIT_USER_ABORTED because here the user was never given an interactive choice. Maps to init exit code 2 (PRECONDITION). Meta: none.
+`prisma-next init` ran non-interactively in a directory that already has a `prisma-next.config.ts`, and consent to overwrite the existing scaffold was not given. Re-scaffolding is destructive, so it needs explicit consent: interactively, `init` asks the user to type the working directory's name back; non-interactively, the same consent is granted by `--confirm <directory name>`. Neither `--yes` nor any flag skips it. Maps to init exit code 2 (PRECONDITION). Meta: none.
+
+The code is raised by the commander `prisma-next init`, whose consent flag is `--force`. The engine-hosted `init` reaches the same outcome through the engine's own `CLI.CONSENT_REQUIRED`, which names the exact `--confirm` value to pass.
 
 ### CLI.INIT_SKILL_INSTALL_FAILED
 
-During `prisma-next init`, the project-level skills install (`npx skills add prisma/prisma#v<version>`) failed after a successful dependency install and emit. The scaffold stays on disk; the user can fix the underlying issue (network, registry, PATH) and install manually, or re-run with `--no-skill`. Maps to init exit code 6 (SKILL_INSTALL_FAILED). Meta: `filesWritten`, `skillInstallCommand`, `cause`.
+During `prisma-next init`, the project-level skills install (`skills add prisma/prisma#v<version>`, run through the project's package manager) failed after a successful dependency install and emit. The project itself is complete without the skills; the user can fix the underlying issue (network, registry, PATH) and install manually, or re-run with `--skip-skills`. `init` completes with this as a finding and exits 6. Meta: `filesWritten`, plus `skillInstall` (the attempted command, the manager, its exit code and the tail of its stderr).
 
 ### CLI.INIT_STRICT_PROBE_WITHOUT_PROBE
 
@@ -134,6 +138,8 @@ During `prisma-next init`, the project-level skills install (`npx skills add pri
 ### CLI.INIT_USER_ABORTED
 
 The user cancelled an interactive `prisma-next init` prompt (Ctrl-C, escape, or declining a selection) before all required inputs were supplied. No files were modified. Severity is `info`, not `error`; maps to init exit code 3 (USER_ABORTED). Meta: none.
+
+Raised by the commander `prisma-next init`. On the engine-hosted `init` a cancelled prompt is the engine's own `CLI.PROMPT_CANCELLED`, which exits 3 for every command rather than only this one.
 
 ### CLI.INVALID_OUTPUT_FORMAT
 
