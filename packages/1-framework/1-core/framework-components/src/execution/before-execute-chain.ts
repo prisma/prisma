@@ -38,9 +38,9 @@ import type {
  *
  * Error propagation: any error thrown by a `beforeQuery` body
  * (or surfaced by the abort race) propagates out of this helper
- * unchanged. The family runtime is responsible for converting it
- * into the appropriate `afterQuery(completed: false)` notification
- * once `runQueryWithMiddleware` runs.
+ * unchanged. Family runtime entry points await this helper before invoking
+ * `runQueryWithMiddleware`, so a rejection prevents the runner and its
+ * `afterQuery` hook from running.
  *
  * Relationship to {@link runQueryWithMiddleware}: the framework's
  * `RuntimeCore.query` template calls this helper between
@@ -106,9 +106,9 @@ export function runBeforeQueryChain<
  *
  * Error propagation: any error thrown by a `beforeExecute` body
  * (or surfaced by the abort race) propagates out of this helper
- * unchanged. The family runtime is responsible for converting it
- * into the appropriate `afterExecute(completed: false)` notification
- * once `runExecuteWithMiddleware` runs.
+ * unchanged. Family runtime entry points await this helper before invoking
+ * `runExecuteWithMiddleware`, so a rejection prevents the runner and its
+ * `afterExecute` hook from running.
  *
  * Relationship to {@link runExecuteWithMiddleware}: the framework's
  * `RuntimeCore.execute` template calls this helper between

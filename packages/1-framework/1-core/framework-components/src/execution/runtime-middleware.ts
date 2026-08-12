@@ -93,6 +93,20 @@ export interface RuntimeMiddlewareContext {
 
 interface AfterResultBase {
   readonly latencyMs: number;
+  /**
+   * Indicates where the result observed during this execution came from.
+   *
+   * - `'driver'` — the default. The result came from the underlying driver via
+   *   `runDriver` / `runQueryWithMiddleware` or
+   *   `runExecuteWithMiddleware`'s normal path.
+   * - `'middleware'` — a `RuntimeMiddleware.interceptQuery` or
+   *   `RuntimeMiddleware.interceptExecute` hook short-circuited execution and
+   *   supplied the result directly. The driver was not invoked.
+   *
+   * Observers (telemetry, lints, budgets) that need to distinguish between
+   * driver-served and middleware-served executions read this field.
+   * Observers that don't care can ignore it.
+   */
   readonly source: 'driver' | 'middleware';
 }
 
@@ -190,8 +204,8 @@ export interface RuntimeMiddleware<
    * order; the first to return a non-`undefined` `QueryInterceptResult` wins,
    * and subsequent middleware's `interceptQuery` does not fire.
    *
-   * On a hit, `beforeQuery`, `runDriver`, and `onRow` are all skipped.
-   * `afterQuery` still fires with `source: 'middleware'`.
+   * On a hit, `beforeQuery` has already fired; `runDriver` and `onRow` are
+   * skipped. `afterQuery` still fires with `source: 'middleware'`.
    *
    * Returning `undefined` (or omitting the hook entirely) signals passthrough
    * — execution proceeds through the normal driver path.
@@ -259,9 +273,9 @@ export interface RuntimeMiddleware<
    * `ExecuteInterceptResult` wins, and subsequent middleware's
    * `interceptExecute` does not fire.
    *
-   * On a hit, `beforeExecute` and the driver execute are skipped. The
-   * statistics supplied in `stats` are returned eagerly; there is no row
-   * stream and `onRow` is not fired. `afterExecute` still fires with
+   * On a hit, `beforeExecute` has already fired; only the driver execute is
+   * skipped. The statistics supplied in `stats` are returned eagerly; there is
+   * no row stream and `onRow` is not fired. `afterExecute` still fires with
    * `source: 'middleware'`.
    *
    * Returning `undefined` (or omitting the hook entirely) signals passthrough
