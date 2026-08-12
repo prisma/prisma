@@ -1,5 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
@@ -9,6 +8,7 @@ import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
 import { blindCast } from '@internal/utils/casts';
 import { join } from 'pathe';
+import { createTestProjectDir } from '../../utils/test-project-dir';
 
 /**
  * A project on disk for the offline write commands: an emitted contract pair,
@@ -44,7 +44,7 @@ export function contractJson(storageHash: string): Record<string, unknown> {
 export async function createOfflineProject(options: {
   readonly storageHash: string;
 }): Promise<OfflineProject> {
-  const dir = await mkdtemp(join(tmpdir(), 'orm-offline-'));
+  const dir = createTestProjectDir('orm-offline');
   created.push(dir);
   const contractPath = join(dir, 'output', 'contract.json');
   await mkdir(join(dir, 'output'), { recursive: true });
