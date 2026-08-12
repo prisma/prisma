@@ -32,11 +32,10 @@ import {
   resolveMigrationPaths,
 } from '../../utils/command-helpers';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
-import type { CommonCommandOptions } from '../../utils/global-flags';
 import { createProjectSpecifierResolver } from '../../utils/project-import-root';
 import { refusePackageCorruptionOnAggregate } from './contract-space-aggregate-loader';
 
-export interface MigrationNewOptions extends CommonCommandOptions {
+export interface MigrationNewOptions {
   readonly config: PrismaNextConfig;
   /** Directory the command was invoked from. */
   readonly cwd: string;

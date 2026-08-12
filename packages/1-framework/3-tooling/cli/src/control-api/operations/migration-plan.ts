@@ -43,7 +43,6 @@ import {
 } from '../../utils/command-helpers';
 import { toExtensionInputs } from '../../utils/extension-pack-inputs';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
-import type { CommonCommandOptions } from '../../utils/global-flags';
 import { createProjectSpecifierResolver } from '../../utils/project-import-root';
 import {
   buildContractSpaceAggregate,
@@ -59,7 +58,7 @@ function isEnoent(error: unknown): boolean {
   return error instanceof Error && 'code' in error && error.code === 'ENOENT';
 }
 
-export interface MigrationPlanOptions extends CommonCommandOptions {
+export interface MigrationPlanOptions {
   readonly config: PrismaNextConfig;
   /** Directory the command was invoked from. */
   readonly cwd: string;

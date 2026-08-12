@@ -1251,9 +1251,6 @@ importers:
 
   packages/1-framework/3-tooling/cli:
     dependencies:
-      '@clack/prompts':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@internal/cli-telemetry':
         specifier: workspace:8.0.0-rc.1
         version: link:../cli-telemetry
@@ -1311,9 +1308,6 @@ importers:
       colorette:
         specifier: ^2.0.20
         version: 2.0.20
-      commander:
-        specifier: ^15.0.0
-        version: 15.0.0
       esbuild:
         specifier: ^0.28.1
         version: 0.28.1
@@ -5027,9 +5021,6 @@ importers:
 
   packages/9-public/@prisma/orm-toolchain:
     dependencies:
-      '@clack/prompts':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@prisma/cli-engine':
         specifier: 0.0.9
         version: 0.0.9(magicast@0.5.3)
@@ -5057,9 +5048,6 @@ importers:
       colorette:
         specifier: ^2.0.20
         version: 2.0.20
-      commander:
-        specifier: ^15.0.0
-        version: 15.0.0
       esbuild:
         specifier: ^0.28.1
         version: 0.28.1
@@ -5868,16 +5856,8 @@ packages:
     resolution: {integrity: sha512-7Wctjq6f7c1CPz8sPpkwUnz8yRgVANkpNupb81q432FjcJg4l+Sw7XANdNSdWfAKq0IHI0JTcUeK5dxs/HrGPw==}
     engines: {node: '>= 20.12.0'}
 
-  '@clack/core@1.4.3':
-    resolution: {integrity: sha512-/kr3UWNtdJfxZtPgDqUOmG2pvwlmcLGheex5yiZKdwbzZJxhV+HMNR9QNmyY5cGwTNV6LrR7Jtp+KjhUAP1qBQ==}
-    engines: {node: '>= 20.12.0'}
-
   '@clack/prompts@1.5.0':
     resolution: {integrity: sha512-wKh+wTjmrUoUdkZg8KpJO5X+p9PWV+KE9mePseq9UYWkukgTKsGS47RRL2HstwVcvDQH+PenrPJWII8+MfiiyA==}
-    engines: {node: '>= 20.12.0'}
-
-  '@clack/prompts@1.7.0':
-    resolution: {integrity: sha512-y7/yvZ2TPAnR9+jnc00klvNNLkJiXFFrQA/hlLCcxA9a2A4zQIOimyFQ9XfwYKiGD1fb5GY8vbKIIgO8d5Tb2A==}
     engines: {node: '>= 20.12.0'}
 
   '@cloudflare/kv-asset-handler@0.5.0':
@@ -11534,21 +11514,9 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
 
-  '@clack/core@1.4.3':
-    dependencies:
-      fast-wrap-ansi: 0.2.2
-      sisteransi: 1.0.5
-
   '@clack/prompts@1.5.0':
     dependencies:
       '@clack/core': 1.4.0
-      fast-string-width: 3.0.2
-      fast-wrap-ansi: 0.2.2
-      sisteransi: 1.0.5
-
-  '@clack/prompts@1.7.0':
-    dependencies:
-      '@clack/core': 1.4.3
       fast-string-width: 3.0.2
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
