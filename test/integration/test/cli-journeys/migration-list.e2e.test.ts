@@ -51,14 +51,16 @@ withTempDir(({ createTempDir }) => {
     );
 
     it(
-      'draws the tree on stdout in human mode and keeps stdout a frame stream in json mode',
+      'draws the tree for the reader on stderr and keeps stdout a frame stream',
       async () => {
         const ctx = await projectWithTwoMigrations();
 
         const human = await runMigrationList(ctx);
         const json = await runMigrationList(ctx, ['--json']);
 
-        expect(human.stdout).toContain('initial');
+        expect(human.stderr).toContain('initial');
+        expect(human.stdout).toBe('');
+        expect(human.presented?.presentation.human.at(-1)?.kind).toBe('drawing');
         expect(json.presented?.presentation.stdout).toEqual([]);
         for (const line of json.stdout.split('\n').filter((entry) => entry.length > 0)) {
           expect(() => JSON.parse(line)).not.toThrow();

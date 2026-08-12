@@ -3,12 +3,14 @@ import type { MigrationGraph } from '@internal/migration-tools/graph';
 import type { MigrationSpaceListEntry } from '../../commands/json/schemas';
 import { listRefsByContractHash } from '../../control-api/operations/migration-list';
 import type { GlyphMode } from '../glyph-mode';
+import type { MigrationGraphPalette } from './migration-graph-palette';
 import {
   computeGlobalMaxDirNameWidth,
   computeGlobalMaxEdgeTreePrefixWidth,
   indentMigrationGraphTreeBlock,
   renderMigrationGraphSpaceTree,
 } from './migration-graph-space-render';
+import type { MigrationListStyler } from './migration-list-render';
 
 export interface MigrationGraphTreeSection {
   readonly space: string;
@@ -26,6 +28,8 @@ export function buildMigrationGraphTreeSections(inputs: {
   readonly liveContractHash: string;
   readonly glyphMode: GlyphMode;
   readonly colorize: boolean;
+  readonly styler?: MigrationListStyler;
+  readonly palette?: MigrationGraphPalette;
 }): readonly MigrationGraphTreeSection[] {
   const { aggregate, scopedSpaces, liveContractHash, glyphMode, colorize } = inputs;
   const showSpaceHeadings = scopedSpaces.length > 1;
@@ -62,6 +66,8 @@ export function buildMigrationGraphTreeSections(inputs: {
             colorize,
             isAppSpace: entry.space === aggregate.app.spaceId,
             refsByHash: listRefsByContractHash(space),
+            ...(inputs.styler !== undefined ? { styler: inputs.styler } : {}),
+            ...(inputs.palette !== undefined ? { palette: inputs.palette } : {}),
             ...(globalMaxEdgeTreePrefixWidth !== undefined ? { globalMaxEdgeTreePrefixWidth } : {}),
             ...(globalMaxDirNameWidth !== undefined ? { globalMaxDirNameWidth } : {}),
           });

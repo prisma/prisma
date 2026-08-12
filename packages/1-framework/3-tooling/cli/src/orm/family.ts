@@ -1,5 +1,5 @@
 import { DOCS_BASE } from '@internal/utils/structured-error';
-import type { AnyCommand } from '@prisma/cli-engine';
+import type { AnyCommand, RedirectSpec } from '@prisma/cli-engine';
 import { defineCommandFamily } from '@prisma/cli-engine';
 import { ormConfigSection } from './config-section';
 import { migrationGraphCommand } from './migration/graph';
@@ -21,12 +21,36 @@ const commands: Readonly<Record<string, AnyCommand>> = {
 };
 
 /**
+ * The invocations the ORM retired, so an old command line gets the replacement
+ * rather than a spelling suggestion. Replacements name the binary as `{bin}`;
+ * the engine substitutes the shell's own name.
+ *
+ * The four retired `migration status` flags (`--graph`, `--all`, `--limit`,
+ * `--ref`) are missing on purpose: the engine only accepts a flag redirect
+ * whose command is mounted, and `migration status` is not ported yet. They
+ * belong with that command.
+ */
+const redirects: readonly RedirectSpec[] = [
+  {
+    from: 'migration apply',
+    replacement: '{bin} migrate --to <contract>',
+    reason: 'Applying a migration is a move to a target contract, not a verb of its own.',
+  },
+  {
+    from: 'migration ref',
+    replacement: '{bin} ref set|list|delete',
+    reason: 'Refs are managed by their own command, for every space rather than migrations alone.',
+  },
+];
+
+/**
  * The unit the ORM contributes to a CLI: its config section, its commands by
- * name, and where its diagnostics are documented. The shell owns the command
- * tree, so nothing here says where a command mounts.
+ * name, where its diagnostics are documented, and the invocations it retired.
+ * The shell owns the command tree, so nothing here says where a command mounts.
  */
 export const ormCommandFamily = defineCommandFamily({
   configSection: ormConfigSection,
   commands,
   docsBaseUrl: DOCS_BASE_URL,
+  redirects,
 });

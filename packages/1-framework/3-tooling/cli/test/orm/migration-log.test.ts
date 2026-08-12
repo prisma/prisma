@@ -1,6 +1,7 @@
 import type { LedgerEntryRecord } from '@internal/contract/types';
 import type { MountedTree } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
+import stripAnsi from 'strip-ansi';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
 
@@ -18,12 +19,15 @@ vi.mock('../../src/control-api/client', () => ({
   })),
 }));
 
+/**
+ * The command tree is imported after the module registry is reset, so the
+ * mocked client is the one `migration log` closes over. Repo-wide vitest runs
+ * with `isolate: false`, and another file that loaded the command tree first
+ * would otherwise have baked the real client into it.
+ */
 let commands: MountedTree;
 let groups: typeof BinGroups;
 
-// Repo-wide vitest runs with `isolate: false`, so whichever file loads
-// `src/orm/cli` first fixes the client this module tree is bound to. Import it
-// here, after the reset, so this file's mock is the one in force.
 beforeAll(async () => {
   vi.resetModules();
   const cli = await import('../../src/orm/cli');
@@ -32,6 +36,8 @@ beforeAll(async () => {
 });
 
 afterAll(() => {
+  // The `vi.mock` leaks into the next file in the same worker; unmock and
+  // reset so the next file loads the real client.
   vi.doUnmock('../../src/control-api/client');
   vi.resetModules();
 });
@@ -109,21 +115,53 @@ describe('migration log', () => {
     });
   });
 
-  it('ships the table as the stdout presentation and masks the database in the block', async () => {
+  it('ships the ledger as a table the engine sizes, masking the database', async () => {
     mocks.readLedger.mockResolvedValue([ledgerEntry()]);
 
     const run = await harness(ormConfig()).run(['migration', 'log'], {
       cwd: '/tmp',
       isTty: { stdout: true },
     });
+    const blocks = run.presented?.presentation.human ?? [];
 
-    expect(run.presented?.presentation.stdout?.join('\n')).toContain('20260601T0800_initial');
-    expect(run.presented?.presentation.human).toEqual([
-      {
-        kind: 'fields',
-        rows: [{ label: 'database', value: 'postgres://****:****@localhost:5432/appdb' }],
-      },
-    ]);
+    expect(blocks[0]).toEqual({
+      kind: 'fields',
+      rail: true,
+      rows: [{ label: 'database', value: 'postgres://****:****@localhost:5432/appdb' }],
+    });
+    expect(blocks[1]).toEqual({
+      kind: 'table',
+      columns: ['Applied at', 'Migration', 'Change', 'Ops'],
+      rows: [
+        [
+          expect.any(String),
+          [{ text: '20260601T0800_initial', tone: 'emphasis' }],
+          [
+            { text: '∅', tone: 'structure' },
+            { text: ' ' },
+            { text: '→', tone: 'structure' },
+            { text: ' ' },
+            { text: 'dest-ha', tone: 'identifier' },
+          ],
+          '3 ops',
+        ],
+      ],
+    });
+    expect(run.presented?.presentation.stdout).toEqual([]);
+  });
+
+  it('lines the table up under its headings', async () => {
+    mocks.readLedger.mockResolvedValue([ledgerEntry()]);
+
+    const run = await harness(ormConfig()).run(['migration', 'log'], {
+      cwd: '/tmp',
+      isTty: { stdout: true, stderr: true },
+    });
+    const rendered = stripAnsi(run.stderr).split('\n');
+    const heading = rendered.find((line) => line.includes('Migration'));
+    const row = rendered.find((line) => line.includes('20260601T0800_initial'));
+
+    expect(heading?.indexOf('Migration')).toBe(row?.indexOf('20260601T0800_initial'));
   });
 
   it('reports an empty ledger with the empty-state line', async () => {
@@ -133,9 +171,11 @@ describe('migration log', () => {
     });
 
     expect(run.exitCode).toBe(0);
-    expect(run.presented?.presentation.stdout).toEqual([
-      'No migrations have been applied to this database.',
-    ]);
+    expect(run.presented?.presentation.human.at(-1)).toEqual({
+      kind: 'summary',
+      status: 'info',
+      text: 'No migrations have been applied to this database.',
+    });
   });
 
   it('takes the connection from --db over the config', async () => {

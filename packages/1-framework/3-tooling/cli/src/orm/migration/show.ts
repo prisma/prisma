@@ -10,7 +10,7 @@ import type { OnDiskMigrationPackage } from '@internal/migration-tools/package';
 import type { Refs } from '@internal/migration-tools/refs';
 import { castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import type { Presentations } from '@prisma/cli-engine';
+import type { Block, Presentations, TreeNode } from '@prisma/cli-engine';
 import { positional } from '@prisma/cli-engine';
 import type { CliStructuredError, Result } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
@@ -27,7 +27,7 @@ import {
   errorNoMigrations,
   errorUnexpected,
 } from '../../utils/cli-errors';
-import { renderMigrationShowLines } from '../../utils/formatters/migrations';
+import { previewBlockHeader } from '../../utils/formatters/migrations';
 import {
   findPackageByDirPath,
   looksLikePath,
@@ -38,24 +38,104 @@ import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { appMigrationsDirFor, contractPathFor, displayPath, migrationsDirFor } from './paths';
 
+/** One node per operation, the destructive ones carrying the warning glyph. */
+function operationNodes(migration: ShowMigration): readonly TreeNode[] {
+  return migration.operations.map((operation) =>
+    operation.operationClass === 'destructive'
+      ? { label: operation.label, status: 'warn' }
+      : { label: operation.label },
+  );
+}
+
+function operationBlocks(migration: ShowMigration): readonly Block[] {
+  if (migration.operations.length === 0) {
+    return [{ kind: 'summary', status: 'info', text: 'No operations.' }];
+  }
+  const destructive = migration.operations.some(
+    (operation) => operation.operationClass === 'destructive',
+  );
+  return [
+    {
+      kind: 'tree',
+      roots: [
+        {
+          label: `${migration.operations.length} operation(s)`,
+          children: operationNodes(migration),
+        },
+      ],
+    },
+    ...(destructive
+      ? [
+          {
+            kind: 'summary' as const,
+            status: 'warn' as const,
+            text: 'This migration contains destructive operations that may cause data loss.',
+          },
+        ]
+      : []),
+  ];
+}
+
+/**
+ * The statement preview: text a database would run, printed verbatim rather
+ * than laid out, so nothing is re-wrapped between here and the reader.
+ */
+function previewBlocks(migration: ShowMigration): readonly Block[] {
+  const statements = migration.preview.statements
+    .map((statement) => statement.text.trim())
+    .filter((text) => text.length > 0)
+    .map((text) => (text.endsWith(';') ? text : `${text};`));
+  if (statements.length === 0) {
+    return [];
+  }
+  return [
+    {
+      kind: 'summary',
+      status: 'info',
+      tone: 'muted',
+      text: previewBlockHeader(migration.preview),
+    },
+    { kind: 'drawing', lines: statements },
+  ];
+}
+
 function showPresentations(inputs: {
   readonly document: MigrationShowResult;
   readonly contractPath: string;
   readonly appMigrationsRelative: string;
   readonly target: string;
 }): Presentations {
+  const migration = inputs.document.migration;
   return {
-    human: () => [
+    human: (): readonly Block[] => [
       {
         kind: 'fields',
+        rail: true,
         rows: [
           { label: 'contract', value: inputs.contractPath },
           { label: 'migrations', value: inputs.appMigrationsRelative },
           { label: 'target', value: inputs.target },
         ],
       },
+      { kind: 'summary', status: 'ok', text: [{ text: migration.name, tone: 'emphasis' }] },
+      {
+        kind: 'fields',
+        rows: [
+          {
+            label: 'from',
+            value:
+              migration.fromContract === null
+                ? [{ text: '(baseline)', tone: 'muted' }]
+                : [{ text: migration.fromContract, tone: 'identifier' }],
+          },
+          { label: 'to', value: [{ text: migration.toContract, tone: 'identifier' }] },
+          { label: 'hash', value: [{ text: migration.hash, tone: 'identifier' }] },
+          { label: 'created', value: [{ text: migration.createdAt, tone: 'muted' }] },
+        ],
+      },
+      ...operationBlocks(migration),
+      ...previewBlocks(migration),
     ],
-    stdout: () => renderMigrationShowLines(inputs.document.migration, { colorize: false }),
     json: () => inputs.document,
   };
 }
