@@ -1,7 +1,6 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  parseJsonObjectFromCliCapture,
   setupCommandMocks,
   setupTestDirectoryFromFixtures,
   withTempDir,
@@ -26,12 +25,10 @@ import { runDbInit, setupDbInitFixture } from './utils/db-init-test-helpers';
  */
 withTempDir(({ createTempDir }) => {
   describe('db init command - contract-space verifier wiring', () => {
-    let consoleOutput: string[] = [];
     let cleanupMocks: () => void;
 
     beforeEach(() => {
       const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
       cleanupMocks = mocks.cleanup;
     });
 
@@ -71,13 +68,9 @@ withTempDir(({ createTempDir }) => {
             'db-init',
           );
 
-          consoleOutput.length = 0;
-
-          await expect(
-            runDbInit(testSetup, ['--config', configPath, '--json', '--no-color']),
-          ).rejects.toThrow();
-
-          const errorJson = parseJsonObjectFromCliCapture(consoleOutput) as Record<string, unknown>;
+          const run = await runDbInit(testSetup, ['--config', configPath, '--json', '--no-color']);
+          expect(run.exitCode).toBe(2);
+          const errorJson = run.document as Record<string, unknown>;
 
           expect(errorJson).toMatchObject({
             code: 'MIGRATION.CONTRACT_SPACE_VIOLATION',
@@ -122,13 +115,9 @@ withTempDir(({ createTempDir }) => {
             process.chdir(originalCwd);
           }
 
-          consoleOutput.length = 0;
-
-          await expect(
-            runDbInit(testSetup, ['--config', configPath, '--json', '--no-color']),
-          ).rejects.toThrow();
-
-          const errorJson = parseJsonObjectFromCliCapture(consoleOutput) as Record<string, unknown>;
+          const run = await runDbInit(testSetup, ['--config', configPath, '--json', '--no-color']);
+          expect(run.exitCode).toBe(2);
+          const errorJson = run.document as Record<string, unknown>;
 
           expect(String(errorJson['code'])).toMatch(/^MIGRATION\.CONTRACT_SPACE/);
           const meta = errorJson['meta'] as

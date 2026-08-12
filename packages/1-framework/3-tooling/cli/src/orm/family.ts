@@ -4,6 +4,9 @@ import { defineCommandFamily } from '@prisma/cli-engine';
 import { ormConfigSection } from './config-section';
 import { contractEmitCommand } from './contract/emit';
 import { contractInferCommand } from './contract/infer';
+import { dbInitCommand } from './db/init';
+import { dbSchemaCommand } from './db/schema';
+import { migrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
@@ -18,6 +21,9 @@ const DOCS_BASE_URL = `${DOCS_BASE}/`;
 const commands: Readonly<Record<string, AnyCommand>> = {
   'contract emit': contractEmitCommand,
   'contract infer': contractInferCommand,
+  'db init': dbInitCommand,
+  'db schema': dbSchemaCommand,
+  migrate: migrateCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,
   'migration log': migrationLogCommand,

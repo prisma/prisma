@@ -28,9 +28,11 @@ export function controlProgressReporter(report: (event: EngineEvent) => void): O
       });
       return;
     }
+    const step = labels.get(event.spanId) ?? event.spanId;
+    labels.delete(event.spanId);
     report({
       kind: 'step-finished',
-      step: labels.get(event.spanId) ?? event.spanId,
+      step,
       id: event.spanId,
       outcome: OUTCOMES[event.outcome],
     });
