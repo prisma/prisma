@@ -4,16 +4,17 @@ import { join } from 'node:path';
 import type * as configLoader from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import type { EmitResult } from '@internal/emitter';
-import { emit as emitFn } from '@internal/emitter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeContractEmit } from '../../src/control-api/operations/contract-emit';
 import { disposeEmitQueue } from '../../src/utils/emit-queue';
+
+const mockedEmit = vi.hoisted(() => vi.fn<typeof import('@internal/emitter')['emit']>());
 
 vi.mock('@internal/emitter', async () => {
   const actual = await vi.importActual<typeof import('@internal/emitter')>('@internal/emitter');
   return {
     ...actual,
-    emit: vi.fn(),
+    emit: mockedEmit,
   };
 });
 
@@ -29,7 +30,6 @@ vi.mock('node:fs/promises', async () => {
 
 type FsModule = typeof import('node:fs/promises');
 
-const mockedEmit = vi.mocked(emitFn);
 const mockedRename = vi.mocked(rename);
 const mockedWriteFile = vi.mocked(writeFile);
 
