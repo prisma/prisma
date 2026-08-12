@@ -19,7 +19,6 @@ export default defineConfig({
         '**/*.config.ts',
         '**/exports/**',
         'src/lower-sql-plan.ts', // TODO(TML-1786): Add tests - currently 0% coverage
-        'src/codecs/encoding.ts', // TODO(TML-1786): Add tests - currently 6% coverage
         'src/codecs/decoding.ts', // TODO(TML-1786): Add tests - currently 33% coverage
         'src/marker.ts', // TODO(TML-1786): Add tests - relocated from runtime-executor in TML-2242, currently 10% coverage
         'src/guardrails/raw.ts', // TODO(TML-1786): Add tests - relocated from runtime-executor in TML-2242, currently 8% coverage
