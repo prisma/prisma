@@ -2,7 +2,7 @@ import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { assertType, test } from 'vitest';
 import type { RawSqlLiteral, SqlStatementStats } from '../../src/exports/ast';
-import { createRawSql } from '../../src/exports/expression';
+import { createRawSql, type RawSqlTag } from '../../src/exports/expression';
 import type { SqlQueryPlan } from '../../src/exports/plan';
 
 const CONTRACT = {
@@ -79,4 +79,10 @@ test('the context-free tag exposes the expression terminator only', () => {
 test('the context-free tag has no affected-count terminator', () => {
   // @ts-expect-error — statement terminators need the plan context createRawSql took
   expressionOnly`delete from "user"`.affectedCount();
+});
+
+test('the tag type inferred from createRawSql is the expression tag', () => {
+  const tag: ReturnType<typeof createRawSql> = expressionOnly;
+
+  assertType<RawSqlTag>(tag);
 });

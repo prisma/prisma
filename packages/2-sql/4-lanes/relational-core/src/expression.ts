@@ -367,11 +367,11 @@ function resolveRowSpec(spec: RawRowSpec): Record<string, RawQueryColumn> {
  *
  * Bare {@link RawSqlLiteral} interpolations are wrapped as `ParamRef` nodes with the codec resolved via `adapter.inferCodec(value)`. Use {@link param} when the codec cannot be inferred from the value alone (e.g. `Date`).
  */
-export function createRawSql(adapter: RawCodecInferer): RawSqlTag;
 export function createRawSql(
   adapter: RawCodecInferer,
   planContext: RawPlanContext,
 ): RawSqlStatementTag;
+export function createRawSql(adapter: RawCodecInferer): RawSqlTag;
 export function createRawSql(adapter: RawCodecInferer, planContext?: RawPlanContext): RawSqlTag {
   if (planContext === undefined) {
     return (strings, ...values) => new RawSqlBuilderImpl(templateParts(adapter, strings, values));
