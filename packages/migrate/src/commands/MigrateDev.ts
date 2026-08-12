@@ -70,12 +70,6 @@ ${bold('Examples')}
   `)
 }
 
-export function renderCreateOnlySuccessMessage(cliCommand: string, migrationName: string): string {
-  return `Prisma Migrate created the following migration without applying it ${printMigrationId(
-    migrationName,
-  )}\n\nYou can now edit it and apply it by running ${green(getCommandWithExecutor(`${cliCommand} migrate dev`))}.`
-}
-
 export class MigrateDev implements Command {
   public static new(cliCommand: string): MigrateDev {
     return new MigrateDev(cliCommand)
@@ -289,7 +283,9 @@ export class MigrateDev implements Command {
       if (args['--create-only']) {
         await migrate.stop()
 
-        return renderCreateOnlySuccessMessage(this.cliCommand, createMigrationResult.generatedMigrationName!)
+        return `Prisma Migrate created the following migration without applying it ${printMigrationId(
+          createMigrationResult.generatedMigrationName!,
+        )}\n\nYou can now edit it and apply it by running ${green(getCommandWithExecutor(`${this.cliCommand} migrate dev`))}.`
       }
 
       const { appliedMigrationNames } = await migrate.applyMigrations()

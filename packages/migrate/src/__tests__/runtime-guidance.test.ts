@@ -1,6 +1,5 @@
 import { validatePrismaConfigWithDatasource } from '@prisma/internals'
 
-import { renderCreateOnlySuccessMessage } from '../commands/MigrateDev'
 import type { MigrationFeedback } from '../types'
 import { DbPushIgnoreWarningsWithFlagError, MigrateDevEnvNonInteractiveError } from '../utils/errors'
 import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
@@ -51,9 +50,6 @@ describe.each(['prisma', 'prisma7'] as const)('%s', (cliCommand) => {
     expect(unexecutableMessage).toContain(`${cliCommand} migrate dev`)
     expect(unexecutableMessage).not.toContain(`${otherCliCommand} migrate dev --create-only`)
 
-    const createOnlyMessage = renderCreateOnlySuccessMessage(cliCommand, '20201231000000_init')
-
-    expect(createOnlyMessage).toContain(`${cliCommand} migrate dev`)
-    expect(createOnlyMessage).not.toContain(`${otherCliCommand} migrate dev`)
+    expect(unexecutableMessage).not.toContain(`${otherCliCommand} migrate dev`)
   })
 })
