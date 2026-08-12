@@ -17,7 +17,7 @@ export const ORM_CONFIG_SECTION_NAME = 'orm';
 
 const MISSING_CONFIG_ACTION: NextAction = {
   kind: 'run-command',
-  label: 'Create a configuration file',
+  label: 'Create a config file',
   command: 'prisma-next init',
 };
 
