@@ -36,7 +36,13 @@ const FINDINGS_EXIT_CODE = 4;
 /** The config file this bin reads; the handler is not told which one was loaded. */
 const CONFIG_DISPLAY_PATH = 'prisma-next.config.ts';
 
-type SchemaVerifyDocument = VerifyDatabaseSchemaResult & { readonly unclaimed: readonly string[] };
+/**
+ * The refusal document. `schemaVerify` never evaluates unclaimed elements, so
+ * the document carries no `unclaimed` key at all — `db verify` reports the
+ * same absence when the check did not run, and an empty array would read as
+ * "evaluated, none found".
+ */
+type SchemaVerifyDocument = VerifyDatabaseSchemaResult;
 
 function headerBlock(inputs: { readonly contract: string; readonly database: string }): Block {
   return {
@@ -203,7 +209,7 @@ export function createDbSignCommand(
           onProgress,
         });
         if (!verified.ok) {
-          const document: SchemaVerifyDocument = { ...verified, unclaimed: [] };
+          const document: SchemaVerifyDocument = verified;
           return ok(
             ctx.present(
               {

@@ -264,7 +264,7 @@ export function schemaFindingBlocks(inputs: {
 export function schemaVerdictDiagnostic(inputs: {
   readonly result: VerifyDatabaseSchemaResult;
   readonly space: string | undefined;
-  readonly nextActions: Diagnostic['nextActions'];
+  readonly nextActions: readonly NextAction[];
 }): Diagnostic {
   const code = inputs.result.code;
   const dotted = code !== undefined && isStructuredErrorCode(code);

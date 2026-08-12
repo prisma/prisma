@@ -8,9 +8,10 @@ import { ifDefined } from '@internal/utils/defined';
 import { isInternalError } from '@internal/utils/internal-error';
 import type { Block, Presentations } from '@prisma/cli-engine';
 import { flag } from '@prisma/cli-engine';
-import type { Diagnostic, Result } from '@prisma/cli-engine/protocol';
+import type { Diagnostic, NextAction, Result } from '@prisma/cli-engine/protocol';
 import { CliStructuredError, notOk, ok } from '@prisma/cli-engine/protocol';
 import { createControlClient } from '../../control-api/client';
+import type { DbVerifyMode } from '../../control-api/types';
 import {
   errorHashMismatch,
   errorMarkerMissing,
@@ -22,7 +23,7 @@ import {
   combineVerifyResults,
 } from '../../utils/combine-verify-results';
 import { closeQuietly, maskConnectionUrl } from '../../utils/command-helpers';
-import type { DbVerifyCommandSuccessResult } from '../../utils/formatters/verify';
+import type { DbVerifyReport } from '../../utils/formatters/verify';
 import { runCommandAction } from '../../utils/next-actions';
 import { ormConfigSection } from '../config-section';
 import { defineOrmCommand } from '../define-command';
@@ -45,14 +46,12 @@ import {
  */
 const FINDINGS_EXIT_CODE = 4;
 
-type DbVerifyMode = 'full' | 'marker-only' | 'schema-only';
-
 /**
  * The verify document, which reports a failed verdict in the same shape.
  * `unclaimed` is absent on a run that never looked for unclaimed elements —
  * an empty array there would read as "none found".
  */
-type DbVerifyDocument = Omit<DbVerifyCommandSuccessResult, 'ok'> & {
+type DbVerifyDocument = DbVerifyReport & {
   readonly ok: boolean;
 };
 
@@ -65,7 +64,7 @@ const PUSH_THE_CONTRACT = runCommandAction(
   'Push the contract to the database',
   'prisma-next db update',
 );
-const RECONCILE_BY_HAND: Diagnostic['nextActions'][number] = {
+const RECONCILE_BY_HAND: NextAction = {
   kind: 'user-choice',
   label: 'Or reconcile the differences by hand and verify again',
 };
@@ -182,7 +181,7 @@ function verifyDocument(inputs: {
   readonly mode: Extract<DbVerifyMode, 'full' | 'marker-only'>;
   readonly summary: string;
   readonly verified: VerifyDatabaseResult;
-  readonly schema: DbVerifyCommandSuccessResult['schema'];
+  readonly schema: DbVerifyReport['schema'];
   readonly schemaVerification: 'performed' | 'skipped';
   readonly unclaimed: readonly string[] | undefined;
   readonly warning: string | undefined;
@@ -205,6 +204,14 @@ function verifyDocument(inputs: {
       schemaVerification: inputs.schemaVerification,
     },
     timings: { total: inputs.elapsed },
+  };
+}
+
+function schemaSummary(combined: CombinedVerifyResult): NonNullable<DbVerifyReport['schema']> {
+  return {
+    summary: combined.result.summary,
+    strict: combined.result.meta?.strict ?? false,
+    warnings: (combined.result.schema.warnings?.issues ?? []).map((issue) => issue.path.join('/')),
   };
 }
 
@@ -531,14 +538,26 @@ export function createDbVerifyCommand(
         // is that check.
         const drift = aggregate.value.markerDrift;
         if (drift !== null) {
+          // Full mode ran the schema check before the drift verdict, so the
+          // document carries its outcome; --marker-only never ran it and
+          // reports the same absence as the marker branch above.
+          const driftCombined =
+            mode === 'marker-only'
+              ? undefined
+              : combineVerifyResults(
+                  aggregate.value.schemaResults,
+                  aggregate.value.appSpaceId,
+                  strict,
+                  aggregate.value.unclaimed,
+                );
           const document = verifyDocument({
             ok: false,
             mode,
             summary: normalizeError(drift).message,
             verified,
-            schema: undefined,
-            schemaVerification: mode === 'marker-only' ? 'skipped' : 'performed',
-            unclaimed: undefined,
+            schema: driftCombined === undefined ? undefined : schemaSummary(driftCombined),
+            schemaVerification: driftCombined === undefined ? 'skipped' : 'performed',
+            unclaimed: driftCombined?.unclaimed,
             warning: undefined,
             elapsed: Date.now() - startedAt,
           });
@@ -602,13 +621,7 @@ export function createDbVerifyCommand(
           mode,
           summary: 'Database marker and schema match contract',
           verified,
-          schema: {
-            summary: combined.result.summary,
-            strict: combined.result.meta?.strict ?? false,
-            warnings: (combined.result.schema.warnings?.issues ?? []).map((issue) =>
-              issue.path.join('/'),
-            ),
-          },
+          schema: schemaSummary(combined),
           schemaVerification: 'performed',
           unclaimed: combined.unclaimed,
           warning: undefined,

@@ -287,7 +287,8 @@ describe('db sign', () => {
 
       const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
 
-      expect(run.presented?.data).toEqual({ ...DRIFTED, unclaimed: [] });
+      expect(run.presented?.data).toEqual(DRIFTED);
+      expect(run.presented?.data).not.toHaveProperty('unclaimed');
     });
 
     it('draws the drift as a tree and closes with the failing summary', async () => {

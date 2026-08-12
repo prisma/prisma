@@ -386,6 +386,9 @@ describe('db verify', () => {
         ok: false,
         mode: 'full',
         summary: 'Contract-space verifier found a violation',
+        schema: { summary: 'Database schema satisfies contract', strict: false, warnings: [] },
+        unclaimed: [],
+        meta: { schemaVerification: 'performed' },
       });
     });
 
@@ -406,6 +409,8 @@ describe('db verify', () => {
         mode: 'marker-only',
         meta: { schemaVerification: 'skipped' },
       });
+      expect(run.presented?.data).not.toHaveProperty('schema');
+      expect(run.presented?.data).not.toHaveProperty('unclaimed');
     });
   });
 
