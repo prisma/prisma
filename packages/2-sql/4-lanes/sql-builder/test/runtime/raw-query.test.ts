@@ -1,7 +1,12 @@
+import type { Contract as FrameworkContract } from '@internal/contract/types';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { validateSqlContractFully } from '@internal/sql-contract/validators';
+import { defineContract } from '@internal/sql-contract-ts/contract-builder';
 import { type ParamRef, RawQueryAst } from '@internal/sql-relational-core/ast';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
+import { createTestSqlNamespace } from '../../../../1-core/contract/test/test-support';
 import { sql } from '../../src/runtime/sql';
 import { contract as contractJson } from '../fixtures/contract';
 import type { Contract } from '../fixtures/generated/contract';
@@ -104,5 +109,62 @@ describe('contract-bound raw statements', () => {
     const ast = plan.ast as RawQueryAst;
     expect(ast.parts.some((part) => part instanceof RawQueryAst)).toBe(false);
     expect(ast.collectParamRefs()).toHaveLength(1);
+  });
+});
+
+describe('reserved surface keys', () => {
+  // Authored through the contract builder so the namespace is one the emitter
+  // could really produce: the target pack's default namespace names it.
+  const rawNamespaceContract = defineContract(
+    {
+      family: {
+        kind: 'family',
+        id: 'sql',
+        familyId: 'sql',
+        version: '0.0.1',
+        authoring: {
+          field: {
+            text: { kind: 'fieldPreset', output: { codecId: 'pg/text@1', nativeType: 'text' } },
+          },
+        },
+      } as const satisfies FamilyPackRef<'sql'>,
+      target: {
+        kind: 'target',
+        id: 'postgres',
+        familyId: 'sql',
+        targetId: 'postgres',
+        version: '0.0.1',
+        defaultNamespaceId: 'raw',
+      } as const satisfies TargetPackRef<'sql', 'postgres'>,
+      createNamespace: createTestSqlNamespace,
+    },
+    ({ field: f, model: m }) =>
+      ({
+        models: {
+          Note: m('Note', { fields: { id: f.text().id() } }),
+        },
+      }) as const,
+  ) as FrameworkContract<SqlStorage>;
+
+  it('refuses a contract whose storage claims the raw tag key', () => {
+    expect(() =>
+      sql({
+        context: { ...stubBase, contract: rawNamespaceContract } as unknown as ExecutionContext<
+          typeof rawNamespaceContract
+        >,
+        rawCodecInferer: { inferCodec: () => 'pg/text@1' },
+      }),
+    ).toThrow(/namespace named "raw" cannot be reached/);
+  });
+
+  it('names the collision in a structured envelope', () => {
+    expect(() =>
+      sql({
+        context: { ...stubBase, contract: rawNamespaceContract } as unknown as ExecutionContext<
+          typeof rawNamespaceContract
+        >,
+        rawCodecInferer: { inferCodec: () => 'pg/text@1' },
+      }),
+    ).toThrow(expect.objectContaining({ code: 'ORM.NAMESPACE_RESERVED' }));
   });
 });
