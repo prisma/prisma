@@ -9,6 +9,7 @@ import { contractInferCommand } from './contract/infer';
 import { createDbInitCommand } from './db/init';
 import { createDbSchemaCommand } from './db/schema';
 import { ormCommandFamily } from './family';
+import { formatCommand } from './format';
 import { loadOrmConfig } from './load-config';
 import { createMigrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
@@ -16,6 +17,9 @@ import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
 import { migrationShowCommand } from './migration/show';
 import { normalizeError } from './normalize-error';
+import { refDeleteCommand } from './ref/delete';
+import { refListCommand } from './ref/list';
+import { refSetCommand } from './ref/set';
 import { resolveTelemetryHooks } from './telemetry/reporting';
 
 export const BIN_NAME = 'prisma-next';
@@ -40,6 +44,13 @@ export const BIN_GROUPS = {
       'Plan, apply, and scaffold on-disk migration packages. Migrations are\n' +
       'contract-to-contract edges stored as versioned directories under migrations/.',
   },
+  ref: {
+    brief: 'Named pointers at contracts',
+    description:
+      'Manage the named refs under migrations/app/refs/. A ref maps a logical\n' +
+      'environment name — staging, production — to a contract hash, so a command\n' +
+      'can name the environment instead of the hash.',
+  },
 } as const;
 
 /**
@@ -52,11 +63,15 @@ export function createBinCommands(createClient: CreateControlClient): MountedTre
     'contract infer': contractInferCommand,
     'db init': createDbInitCommand(createClient),
     'db schema': createDbSchemaCommand(createClient),
+    format: formatCommand,
     migrate: createMigrateCommand(createClient),
     'migration graph': migrationGraphCommand,
     'migration list': migrationListCommand,
     'migration log': migrationLogCommand,
     'migration show': migrationShowCommand,
+    'ref delete': refDeleteCommand,
+    'ref list': refListCommand,
+    'ref set': refSetCommand,
   };
 }
 
