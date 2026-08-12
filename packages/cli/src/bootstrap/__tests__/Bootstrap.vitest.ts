@@ -162,6 +162,29 @@ describe('Bootstrap command — help and validation', () => {
 })
 
 describe('Bootstrap command — new project flow', () => {
+  test.each([
+    { args: [], templateFailure: false },
+    { args: ['--template', 'nextjs'], templateFailure: true },
+  ])('uses the scoped package in empty-project prisma7 recovery', async ({ args, templateFailure }) => {
+    const { confirm } = await import('@inquirer/prompts')
+    vi.mocked(confirm).mockResolvedValue(false)
+
+    if (templateFailure) {
+      const { downloadAndExtractTemplate } = await import('../template-scaffold')
+      vi.mocked(downloadAndExtractTemplate).mockRejectedValueOnce(new Error('Network error'))
+    }
+
+    const result = await Bootstrap.new('prisma7').parse(
+      ['--api-key', 'test_key', '--database', 'db_abc123', ...args],
+      defaultTestConfig(),
+      tmpDir,
+    )
+
+    expect(result).toBeInstanceOf(HelpError)
+    expect((result as HelpError).message).toContain('npx @prisma/prisma7@latest bootstrap')
+    expect((result as HelpError).message).not.toContain('npx prisma7 bootstrap')
+  })
+
   test('runs init when user declines template, then links', async () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test"}', 'utf-8')
     fs.mkdirSync(path.join(tmpDir, 'node_modules', 'dotenv'), { recursive: true })
