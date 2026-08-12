@@ -333,14 +333,6 @@ export type ColumnsOf<
     : never
   : never;
 
-export interface RawTemplateOptions {
-  readonly annotations?: Record<string, unknown>;
-}
-
-export interface RawFunctionOptions extends RawTemplateOptions {
-  readonly params: ReadonlyArray<unknown>;
-}
-
 export interface BuildParamsMap {
   readonly [name: string]: unknown;
 }
