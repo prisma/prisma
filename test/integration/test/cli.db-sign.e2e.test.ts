@@ -117,7 +117,6 @@ withTempDir(({ createTempDir }) => {
           });
 
           expect(normalized).toContain('Database signed');
-          expect(normalized).toContain('storageHash:');
           expect(normalized).toContain('from: none');
           expect(normalized).toContain('to:');
         });

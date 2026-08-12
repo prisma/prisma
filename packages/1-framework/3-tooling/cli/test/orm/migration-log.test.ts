@@ -162,6 +162,8 @@ describe('migration log', () => {
     const heading = rendered.find((line) => line.includes('Migration'));
     const row = rendered.find((line) => line.includes('20260601T0800_initial'));
 
+    expect(heading).toBeDefined();
+    expect(row).toBeDefined();
     expect(heading?.indexOf('Migration')).toBe(row?.indexOf('20260601T0800_initial'));
   });
 
