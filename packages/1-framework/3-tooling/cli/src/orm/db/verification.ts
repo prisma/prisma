@@ -11,7 +11,7 @@ import { castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { isStructuredErrorCode } from '@internal/utils/structured-error';
 import type { Block, TreeNode } from '@prisma/cli-engine';
-import type { Diagnostic, Result } from '@prisma/cli-engine/protocol';
+import type { Diagnostic, NextAction, Result } from '@prisma/cli-engine/protocol';
 import { CliStructuredError, notOk, ok } from '@prisma/cli-engine/protocol';
 import {
   errorConfigValidation,
@@ -149,7 +149,12 @@ export function verificationThrow(inputs: {
   return withoutConnectionString(normalized, inputs.connection);
 }
 
-/** The same envelope with the connection string stripped from its prose. */
+/**
+ * The same envelope with the connection string stripped from every field the
+ * settlement serializes: the prose, each next action's strings, and every
+ * string reachable through `meta`. A driver error quotes the URL wherever it
+ * pleases, so nothing user-facing passes through unstripped.
+ */
 function withoutConnectionString(
   error: CliStructuredError,
   connection: string,
@@ -157,13 +162,48 @@ function withoutConnectionString(
   const clean = (text: string): string => sanitizeErrorMessage(text, connection);
   return new CliStructuredError(error.code, clean(error.message), {
     severity: error.severity,
-    nextActions: error.nextActions,
+    nextActions: error.nextActions.map((action) => cleanNextAction(action, clean)),
     ...ifDefined('why', error.why === undefined ? undefined : clean(error.why)),
     ...ifDefined('where', error.where),
-    ...ifDefined('meta', error.meta),
+    ...ifDefined('meta', error.meta === undefined ? undefined : cleanMetaRecord(error.meta, clean)),
     ...ifDefined('docsUrl', error.docsUrl),
     cause: error.cause,
   });
+}
+
+function cleanNextAction(action: NextAction, clean: (text: string) => string): NextAction {
+  return {
+    kind: action.kind,
+    label: clean(action.label),
+    ...ifDefined('command', action.command === undefined ? undefined : clean(action.command)),
+    ...ifDefined('commands', action.commands?.map(clean)),
+    ...ifDefined('url', action.url === undefined ? undefined : clean(action.url)),
+    ...ifDefined('reason', action.reason === undefined ? undefined : clean(action.reason)),
+  };
+}
+
+function cleanMetaValue(value: unknown, clean: (text: string) => string): unknown {
+  if (typeof value === 'string') {
+    return clean(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map((entry) => cleanMetaValue(entry, clean));
+  }
+  if (typeof value === 'object' && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, cleanMetaValue(entry, clean)]),
+    );
+  }
+  return value;
+}
+
+function cleanMetaRecord(
+  meta: Record<string, unknown>,
+  clean: (text: string) => string,
+): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(meta).map(([key, value]) => [key, cleanMetaValue(value, clean)]),
+  );
 }
 
 const OUTCOME_LABEL: Record<ExpectationFailureReason, string> = {

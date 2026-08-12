@@ -61,10 +61,10 @@ export interface ExecuteDbVerifyOptions<TFamilyId extends string, TTargetId exte
 /**
  * Result of the aggregate verify operation.
  *
- * Marker-check failures are surfaced as a {@link CliStructuredError}
- * (same envelope code `5002` the legacy `runContractSpaceVerifierMarkerCheck`
- * emitted, so downstream tooling and integration tests assert on the
- * same shape).
+ * Marker drift keeps the envelope shape the legacy
+ * `runContractSpaceVerifierMarkerCheck` emitted, but rides the success value
+ * as {@link ExecuteDbVerifySuccess.markerDrift}: the check ran to completion,
+ * so drift is a finding for the caller to settle, not a failure to run.
  *
  * On success, the per-space verify results are returned for the CLI to
  * render. When `skipSchema` is true (`--marker-only`), the schema map
@@ -80,6 +80,14 @@ export interface ExecuteDbVerifySuccess {
   readonly unclaimed: readonly string[];
   readonly spaceOrder: readonly string[];
   readonly appSpaceId: string;
+  /**
+   * Per-space marker drift the verifier found — a hash mismatch, missing
+   * invariants, an orphan marker row — as the violation envelope. The check
+   * completed and this is its verdict, so it rides the success value: callers
+   * settle it as a finding, while the failure lane stays reserved for a check
+   * that could not run (loader violations, introspection failure).
+   */
+  readonly markerDrift: CliStructuredError | null;
 }
 
 export type ExecuteDbVerifyResult = Result<ExecuteDbVerifySuccess, CliStructuredError>;
@@ -96,9 +104,9 @@ export type ExecuteDbVerifyResult = Result<ExecuteDbVerifySuccess, CliStructured
  *    schema introspection.
  * 3. **Verify**: {@link verifyMigration} returns per-space `markerCheck` +
  *    per-space `schemaCheck` (each contract space verified against the full schema,
- *    then scoped to its own contract space). Marker mismatches map to
- *    `CliStructuredError` (code `5002`) so callers (CLI command) can render
- *    and exit. Verify results are returned to the caller verbatim.
+ *    then scoped to its own contract space). Marker drift is returned as the
+ *    success value's `markerDrift` envelope for callers to settle as a
+ *    finding. Verify results are returned to the caller verbatim.
  */
 export async function executeDbVerify<TFamilyId extends string, TTargetId extends string>(
   options: ExecuteDbVerifyOptions<TFamilyId, TTargetId>,
@@ -265,19 +273,16 @@ function finaliseVerifyResult(args: {
       ),
     );
   }
-  const markerError = skipMarker
+  const markerDrift = skipMarker
     ? null
     : mapMarkerCheckFailures(aggregate.app.spaceId, verifyResult.value.markerCheck);
-  if (markerError !== null) {
-    emitVerifySpan(onProgress, 'spanEndError');
-    return notOk(markerError);
-  }
-  emitVerifySpan(onProgress, 'spanEndOk');
+  emitVerifySpan(onProgress, markerDrift === null ? 'spanEndOk' : 'spanEndError');
   return ok({
     schemaResults: verifyResult.value.schemaCheck.perSpace,
     unclaimed: verifyResult.value.schemaCheck.unclaimed,
     spaceOrder: [aggregate.app.spaceId, ...aggregate.extensions.map((e) => e.spaceId)],
     appSpaceId: aggregate.app.spaceId,
+    markerDrift,
   });
 }
 

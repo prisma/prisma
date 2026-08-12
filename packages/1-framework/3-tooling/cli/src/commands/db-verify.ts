@@ -425,6 +425,11 @@ async function executeDbVerifyCommand(
       onProgress,
     });
     if (!aggregateResult.ok) return notOk(aggregateResult.failure);
+    // The legacy shell keeps rendering marker drift as the violation
+    // envelope; the orm bin settles it as a finding at exit 4.
+    if (aggregateResult.value.markerDrift !== null) {
+      return notOk(aggregateResult.value.markerDrift);
+    }
 
     if (mode === 'marker-only') {
       return ok({

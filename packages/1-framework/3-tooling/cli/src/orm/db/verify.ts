@@ -135,6 +135,16 @@ function markerFindingDiagnostic(result: VerifyDatabaseResult): Diagnostic {
   return diagnostic;
 }
 
+/**
+ * The aggregate verifier's per-space marker drift as a finding on a completed
+ * run, keeping the `MIGRATION.CONTRACT_SPACE_VIOLATION` envelope it was
+ * raised with.
+ */
+function markerDriftDiagnostic(drift: unknown): Diagnostic {
+  const { ok: _ok, ...diagnostic } = normalizeError(drift).toEnvelope();
+  return diagnostic;
+}
+
 function markerFindingError(result: VerifyDatabaseResult) {
   if (result.code === VERIFY_CODE_MARKER_MISSING) {
     return errorMarkerMissing();
@@ -513,6 +523,35 @@ export function createDbVerifyCommand(
         });
         if (!aggregate.ok) {
           return notOk(normalizeError(aggregate.failure));
+        }
+
+        // Per-space marker drift is the verdict of a check that ran to
+        // completion, so it settles at exit 4 next to the single-contract
+        // marker findings — including under --marker-only, whose whole job
+        // is that check.
+        const drift = aggregate.value.markerDrift;
+        if (drift !== null) {
+          const document = verifyDocument({
+            ok: false,
+            mode,
+            summary: normalizeError(drift).message,
+            verified,
+            schema: undefined,
+            schemaVerification: mode === 'marker-only' ? 'skipped' : 'performed',
+            unclaimed: undefined,
+            warning: undefined,
+            elapsed: Date.now() - startedAt,
+          });
+          return ok(
+            ctx.present(
+              {
+                data: document,
+                exitCode: FINDINGS_EXIT_CODE,
+                diagnostics: [markerDriftDiagnostic(drift)],
+              },
+              verifyPresentations({ document, header }),
+            ),
+          );
         }
 
         if (mode === 'marker-only') {

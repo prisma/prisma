@@ -131,12 +131,14 @@ function schemaResult(
 function aggregateOk(inputs: {
   readonly perSpace?: ReadonlyArray<readonly [string, VerifyDatabaseSchemaResult]>;
   readonly unclaimed?: readonly string[];
+  readonly markerDrift?: CliStructuredError;
 }) {
   return ok({
     schemaResults: new Map(inputs.perSpace ?? [['app', schemaResult()]]),
     unclaimed: inputs.unclaimed ?? [],
     spaceOrder: ['app'],
     appSpaceId: 'app',
+    markerDrift: inputs.markerDrift ?? null,
   });
 }
 
@@ -346,6 +348,64 @@ describe('db verify', () => {
 
       expect(finding?.nextActions.length).toBeGreaterThan(0);
       expect(finding).not.toHaveProperty('fix');
+    });
+  });
+
+  describe('aggregate marker drift', () => {
+    const DRIFT = new CliStructuredError(
+      'MIGRATION.CONTRACT_SPACE_VIOLATION',
+      'Contract-space verifier found a violation',
+      {
+        why: 'The on-disk `migrations/` directory, the `extensions` declaration, and the live database marker rows are not in agreement.\n- [hashMismatch] audit: Apply on-disk migrations under `migrations/audit/` to advance the marker, or remove the conflicting marker row.',
+        meta: { violations: [{ kind: 'hashMismatch', spaceId: 'audit' }] },
+      },
+    );
+
+    it('completes at exit 4 carrying the violation as an error diagnostic', async () => {
+      const dir = await projectDir();
+      mocks.dbVerify.mockResolvedValue(aggregateOk({ markerDrift: DRIFT }));
+
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(4);
+      expect(envelopeOf(run)).toMatchObject({ ok: true, exitCode: 4 });
+      expect(
+        diagnosticsOf(run).map((entry) => ({
+          code: entry.code,
+          severity: entry.severity,
+          summary: entry.summary,
+        })),
+      ).toEqual([
+        {
+          code: 'MIGRATION.CONTRACT_SPACE_VIOLATION',
+          severity: 'error',
+          summary: 'Contract-space verifier found a violation',
+        },
+      ]);
+      expect(run.presented?.data).toMatchObject({
+        ok: false,
+        mode: 'full',
+        summary: 'Contract-space verifier found a violation',
+      });
+    });
+
+    it('settles --marker-only drift at exit 4 too', async () => {
+      const dir = await projectDir();
+      mocks.dbVerify.mockResolvedValue(aggregateOk({ markerDrift: DRIFT }));
+
+      const run = await harness(ormConfig()).run(['db', 'verify', '--marker-only', '--json'], {
+        cwd: dir,
+      });
+
+      expect(run.exitCode).toBe(4);
+      expect(diagnosticsOf(run).map((entry) => entry.code)).toEqual([
+        'MIGRATION.CONTRACT_SPACE_VIOLATION',
+      ]);
+      expect(run.presented?.data).toMatchObject({
+        ok: false,
+        mode: 'marker-only',
+        meta: { schemaVerification: 'skipped' },
+      });
     });
   });
 
@@ -596,6 +656,29 @@ describe('db verify', () => {
       const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(JSON.stringify(run.json.at(-1))).not.toContain('secret');
+    });
+
+    it('strips the connection string from the error meta and next actions', async () => {
+      const dir = await projectDir();
+      mocks.verify.mockRejectedValue(
+        new CliStructuredError('CONTRACT.MARKER_READ_FAILED', `Could not reach ${CONNECTION}`, {
+          why: 'The driver refused the connection',
+          nextActions: [
+            {
+              kind: 'run-command',
+              label: `Check that ${CONNECTION} is reachable`,
+              command: `psql ${CONNECTION}`,
+            },
+          ],
+          meta: { connection: CONNECTION, attempts: 2, urls: [CONNECTION] },
+        }),
+      );
+
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
+      const settled = JSON.stringify(run.json.at(-1));
+
+      expect(settled).not.toContain('secret');
+      expect(settled).toContain(MASKED_CONNECTION);
     });
 
     it('keeps the connection string out of a structured driver error too', async () => {

@@ -837,9 +837,7 @@ The on-disk `migrations/` directory and the `extensions` declaration in config d
 
 ### MIGRATION.CONTRACT_SPACE_VIOLATION
 
-A contract-space integrity check failed while loading the aggregate or verifying the database (`db verify`, `db run`): a space's target mismatches the project target, two spaces claim the same storage element, a space contract is unreadable, a marker row exists for a space no longer declared (orphan marker), or aggregate introspection failed. The envelope's `why` lists the specific violations. Meta: `violations`.
-
-One code covers two different situations here, and they should exit differently. Introspection that could not run is a failure to do the job and exits `2`, which is right. Per-space marker drift — a hash mismatch, missing invariants, an orphan marker row — is a finding, and belongs at exit `4` next to the single-contract marker findings `db verify` already reports there. It exits `2` today, including under `db verify --marker-only`, whose whole job is that check. Splitting the code at the raise site is the fix; nothing on the value distinguishes the two.
+A contract-space check raised under one code, in two lanes with different exits. As an error at exit `2` when the check could not run: a space's target mismatches the project target, two spaces claim the same storage element, a space contract is unreadable, or aggregate introspection failed (`db verify`, `db run`). As an `error`-severity diagnostic on a completed `db verify` run that exits `4` — including under `--marker-only` — when the check ran and found per-space marker drift: a marker hash mismatch, missing invariants, or an orphan marker row, reported next to the single-contract marker findings that already settle there. The envelope's `why` lists the specific violations. Meta: `violations`.
 
 ### MIGRATION.CONTRACT_VIEW_MISSING
 
