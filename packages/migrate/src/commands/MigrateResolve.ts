@@ -96,10 +96,10 @@ export class MigrateResolve implements Command {
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    const cmd = 'migrate resolve'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+    const cmd = `${this.cliCommand} migrate resolve`
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, command: cmd })
 
-    checkUnsupportedDataProxy({ cmd, validatedConfig })
+    checkUnsupportedDataProxy({ command: cmd, validatedConfig })
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig) })
 

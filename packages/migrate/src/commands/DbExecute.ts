@@ -98,8 +98,8 @@ export class DbExecute implements Command {
       return this.help()
     }
 
-    const cmd = 'db execute'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+    const cmd = `${this.cliCommand} db execute`
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, command: cmd })
 
     if (args['--stdin'] && args['--file']) {
       throw new Error(
@@ -131,7 +131,7 @@ See \`${green(getCommandWithExecutor(`${this.cliCommand} db execute -h`))}\``,
       script = await streamConsumer.text(process.stdin)
     }
 
-    checkUnsupportedDataProxy({ cmd, validatedConfig })
+    checkUnsupportedDataProxy({ command: cmd, validatedConfig })
 
     const datasourceType: EngineArgs.DbExecuteDatasourceType = {
       tag: 'url',

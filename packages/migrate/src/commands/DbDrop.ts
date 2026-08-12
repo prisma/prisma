@@ -23,9 +23,11 @@ import { PreviewFlagError } from '../utils/flagErrors'
 import { printDatasource } from '../utils/printDatasource'
 
 export class DbDrop implements Command {
-  public static new(): DbDrop {
-    return new DbDrop()
+  public static new(cliCommand: string): DbDrop {
+    return new DbDrop(cliCommand)
   }
+
+  private constructor(private readonly cliCommand: string) {}
 
   private static help = format(`
 ${process.platform === 'win32' ? '' : '💣  '}Drop the database
@@ -93,10 +95,10 @@ ${bold('Examples')}
       }),
     })
 
-    const cmd = 'db drop'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+    const cmd = `${this.cliCommand} db drop`
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, command: cmd })
 
-    checkUnsupportedDataProxy({ cmd, validatedConfig })
+    checkUnsupportedDataProxy({ command: cmd, validatedConfig })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
     printDatasource({ datasourceInfo })
@@ -105,7 +107,7 @@ ${bold('Examples')}
 
     if (!args['--force']) {
       if (!canPrompt()) {
-        throw new DbDropNeedsForceError('drop')
+        throw new DbDropNeedsForceError('drop', this.cliCommand)
       }
 
       const confirmation = await prompt({

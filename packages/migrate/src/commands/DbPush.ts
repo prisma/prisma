@@ -110,10 +110,10 @@ export class DbPush implements Command {
       }
     }
 
-    const cmd = 'db push'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, cmd })
+    const cmd = `${this.cliCommand} db push`
+    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, command: cmd })
 
-    checkUnsupportedDataProxy({ cmd, validatedConfig })
+    checkUnsupportedDataProxy({ command: cmd, validatedConfig })
 
     const datasourceProvider = getSchemaDatasourceProvider(schemaContext)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
@@ -207,7 +207,7 @@ export class DbPush implements Command {
       await migrate.stop()
       throw new Error(`${messages.join('\n')}\n
 You may use the --force-reset flag to drop the database before push like ${bold(
-        green(getCommandWithExecutor('prisma db push --force-reset')),
+        green(getCommandWithExecutor(`${this.cliCommand} db push --force-reset`)),
       )}
 ${bold(red('All data will be lost.'))}
       `)
@@ -224,7 +224,7 @@ ${bold(red('All data will be lost.'))}
       if (!args['--accept-data-loss']) {
         if (!canPrompt()) {
           await migrate.stop()
-          throw new DbPushIgnoreWarningsWithFlagError()
+          throw new DbPushIgnoreWarningsWithFlagError(this.cliCommand)
         }
 
         process.stdout.write('\n') // empty line

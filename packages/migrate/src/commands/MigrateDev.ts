@@ -70,6 +70,12 @@ ${bold('Examples')}
   `)
 }
 
+export function renderCreateOnlySuccessMessage(cliCommand: string, migrationName: string): string {
+  return `Prisma Migrate created the following migration without applying it ${printMigrationId(
+    migrationName,
+  )}\n\nYou can now edit it and apply it by running ${green(getCommandWithExecutor(`${cliCommand} migrate dev`))}.`
+}
+
 export class MigrateDev implements Command {
   public static new(cliCommand: string): MigrateDev {
     return new MigrateDev(cliCommand)
@@ -120,10 +126,10 @@ export class MigrateDev implements Command {
       }
     }
 
-    const cmd = 'migrate dev'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, cmd })
+    const cmd = `${this.cliCommand} migrate dev`
+    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, command: cmd })
 
-    checkUnsupportedDataProxy({ cmd, validatedConfig })
+    checkUnsupportedDataProxy({ command: cmd, validatedConfig })
 
     const datasourceProvider = getSchemaDatasourceProvider(schemaContext)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
@@ -175,7 +181,7 @@ export class MigrateDev implements Command {
 
       process.stdout.write(
         '\n' +
-          `You may use ${red('prisma migrate reset')} to drop the development database.\n` +
+          `You may use ${red(`${this.cliCommand} migrate reset`)} to drop the development database.\n` +
           `${bold(red('All data will be lost.'))}\n`,
       )
       await migrate.stop()
@@ -217,6 +223,7 @@ export class MigrateDev implements Command {
     // throws error if not create-only
     const unexecutableStepsError = handleUnexecutableSteps(
       evaluateDataLossResult.unexecutableSteps,
+      this.cliCommand,
       args['--create-only'],
     )
     if (unexecutableStepsError) {
@@ -235,7 +242,7 @@ export class MigrateDev implements Command {
       if (!args['--force']) {
         if (!canPrompt()) {
           await migrate.stop()
-          throw new MigrateDevEnvNonInteractiveError()
+          throw new MigrateDevEnvNonInteractiveError(this.cliCommand)
         }
 
         const message = args['--create-only']
@@ -282,9 +289,7 @@ export class MigrateDev implements Command {
       if (args['--create-only']) {
         await migrate.stop()
 
-        return `Prisma Migrate created the following migration without applying it ${printMigrationId(
-          createMigrationResult.generatedMigrationName!,
-        )}\n\nYou can now edit it and apply it by running ${green(getCommandWithExecutor('prisma migrate dev'))}.`
+        return renderCreateOnlySuccessMessage(this.cliCommand, createMigrationResult.generatedMigrationName!)
       }
 
       const { appliedMigrationNames } = await migrate.applyMigrations()

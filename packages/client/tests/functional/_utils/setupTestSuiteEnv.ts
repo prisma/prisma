@@ -333,7 +333,7 @@ export async function dropTestSuiteDatabase({
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     const runtimeConfig = buildPrismaConfig({ suiteConfig, suiteMeta, datasourceInfo })
     const testDirectory = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
-    await DbDrop.new().parse(['--force', '--preview-feature'], runtimeConfig, testDirectory)
+    await DbDrop.new('prisma').parse(['--force', '--preview-feature'], runtimeConfig, testDirectory)
     consoleInfoMock.mockRestore()
   } catch (e) {
     errors.push(e as Error)

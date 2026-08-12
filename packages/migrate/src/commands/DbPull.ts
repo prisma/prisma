@@ -137,10 +137,10 @@ export class DbPull implements Command {
       }
     }
 
-    const cmd = 'db pull'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, cmd })
+    const cmd = `${this.cliCommand} db pull`
+    const validatedConfig = validatePrismaConfigWithDatasource({ config: cmdSpecificConfig, command: cmd })
 
-    checkUnsupportedDataProxy({ cmd, validatedConfig })
+    checkUnsupportedDataProxy({ command: cmd, validatedConfig })
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
@@ -169,7 +169,7 @@ export class DbPull implements Command {
     if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
       throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
 You can explicitly ignore and override your current local schema file with ${green(
-        getCommandWithExecutor('prisma db pull --force'),
+        getCommandWithExecutor(`${this.cliCommand} db pull --force`),
       )}
 Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
         'https://github.com/prisma/prisma/issues/9585',
@@ -218,10 +218,10 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
         /* P4001: The introspected database was empty */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database was empty:')}
 
-${bold('prisma db pull')} could not create any models in your ${bold(
+${bold(`${this.cliCommand} db pull`)} could not create any models in your ${bold(
           'schema.prisma',
         )} file and you will not be able to generate Prisma Client with the ${bold(
-          getCommandWithExecutor('prisma generate'),
+          getCommandWithExecutor(`${this.cliCommand} generate`),
         )} command.
 
 ${bold('To fix this, you have two options:')}
@@ -231,16 +231,16 @@ ${bold('To fix this, you have two options:')}
           'schema.prisma',
         )} points to a database that is not empty (it must contain at least one table).
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
+Then you can run ${green(getCommandWithExecutor(`${this.cliCommand} db pull`))} again.
 `)
       } else if (e.code === 'P1003') {
         /* P1003: Database does not exist */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')}
 
-${bold('prisma db pull')} could not create any models in your ${bold(
+${bold(`${this.cliCommand} db pull`)} could not create any models in your ${bold(
           'schema.prisma',
         )} file and you will not be able to generate Prisma Client with the ${bold(
-          getCommandWithExecutor('prisma generate'),
+          getCommandWithExecutor(`${this.cliCommand} generate`),
         )} command.
 
 ${bold('To fix this, you have two options:')}
@@ -250,7 +250,7 @@ ${bold('To fix this, you have two options:')}
           'schema.prisma',
         )} points to an existing database.
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
+Then you can run ${green(getCommandWithExecutor(`${this.cliCommand} db pull`))} again.
 `)
       } else if (e.code === 'P1012') {
         /* P1012: Schema parsing error */
@@ -262,7 +262,7 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 Introspection failed as your current Prisma schema file is invalid
 
 Please fix your current schema manually (using either ${green(
-          getCommandWithExecutor('prisma validate'),
+          getCommandWithExecutor(`${this.cliCommand} validate`),
         )} or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
 Or run this command with the ${green(
           '--force',
@@ -308,7 +308,7 @@ Or run this command with the ${green(
         path.relative(process.cwd(), introspectedSchemaPath),
       )} in ${bold(formatms(Math.round(performance.now()) - before))}
       ${yellow(introspectionWarningsMessage)}
-${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
+${`Run ${green(getCommandWithExecutor(`${this.cliCommand} generate`))} to generate Prisma Client.`}`)
     }
 
     return ''

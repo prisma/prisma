@@ -88,14 +88,14 @@ export class MigrateReset implements Command {
       }),
     })
 
-    const cmd = 'migrate reset'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+    const cmd = `${this.cliCommand} migrate reset`
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, command: cmd })
 
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
 
     printDatasource({ datasourceInfo })
-    checkUnsupportedDataProxy({ cmd, validatedConfig })
+    checkUnsupportedDataProxy({ command: cmd, validatedConfig })
 
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
     // Automatically create the database if it doesn't exist

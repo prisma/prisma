@@ -87,10 +87,10 @@ export class MigrateStatus implements Command {
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    const cmd = 'migrate status'
-    const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd })
+    const cmd = `${this.cliCommand} migrate status`
+    const validatedConfig = validatePrismaConfigWithDatasource({ config, command: cmd })
 
-    checkUnsupportedDataProxy({ cmd, validatedConfig })
+    checkUnsupportedDataProxy({ command: cmd, validatedConfig })
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig) })
 
@@ -150,8 +150,8 @@ export class MigrateStatus implements Command {
         `Following migration${unappliedMigrations.length > 1 ? 's' : ''} have not yet been applied:
 ${unappliedMigrations.join('\n')}
 
-To apply migrations in development run ${bold(green(getCommandWithExecutor(`prisma migrate dev`)))}.
-To apply migrations in production run ${bold(green(getCommandWithExecutor(`prisma migrate deploy`)))}.\n`,
+To apply migrations in development run ${bold(green(getCommandWithExecutor(`${this.cliCommand} migrate dev`)))}.
+To apply migrations in production run ${bold(green(getCommandWithExecutor(`${this.cliCommand} migrate deploy`)))}.\n`,
       )
       // Exit 1 to signal that the status is not in sync
       process.exit(1)
@@ -193,7 +193,7 @@ ${link('https://pris.ly/d/migrate-baseline')}`)
         console.error(`The current database is not managed by Prisma Migrate.
 
 If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "${migrationId}":
-${bold(green(getCommandWithExecutor(`prisma migrate resolve --applied "${migrationId}"`)))}
+${bold(green(getCommandWithExecutor(`${this.cliCommand} migrate resolve --applied "${migrationId}"`)))}
 
 Read more about how to baseline an existing production database:
 https://pris.ly/d/migrate-baseline`)
@@ -212,17 +212,17 @@ https://pris.ly/d/migrate-baseline`)
 ${failedMigrations.join('\n')}
 
 During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run ${bold(
-          green(getCommandWithExecutor(`prisma migrate dev`)),
+          green(getCommandWithExecutor(`${this.cliCommand} migrate dev`)),
         )}.\n`,
       )
 
       console.error(`The failed migration(s) can be marked as rolled back or applied:
 
 - If you rolled back the migration(s) manually:
-${bold(green(getCommandWithExecutor(`prisma migrate resolve --rolled-back "${failedMigrations[0]}"`)))}
+${bold(green(getCommandWithExecutor(`${this.cliCommand} migrate resolve --rolled-back "${failedMigrations[0]}"`)))}
 
 - If you fixed the database manually (hotfix):
-${bold(green(getCommandWithExecutor(`prisma migrate resolve --applied "${failedMigrations[0]}"`)))}
+${bold(green(getCommandWithExecutor(`${this.cliCommand} migrate resolve --applied "${failedMigrations[0]}"`)))}
 
 Read more about how to resolve migration issues in a production database:
 ${link('https://pris.ly/d/migrate-resolve')}`)

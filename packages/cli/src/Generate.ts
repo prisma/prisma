@@ -146,7 +146,7 @@ export class Generate implements Command {
 
     let typedSqlData: { validatedConfig: PrismaConfigWithDatasource; typedSql: SqlQueryOutput[] } | undefined
     if (args['--sql']) {
-      const validatedConfig = validatePrismaConfigWithDatasource({ config, cmd: 'generate --sql' })
+      const validatedConfig = validatePrismaConfigWithDatasource({ config, command: `${this.identity} generate --sql` })
       const typedSql = await introspectSql(validatedConfig, baseDir, schemaContext)
       typedSqlData = {
         validatedConfig,

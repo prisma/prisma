@@ -120,7 +120,7 @@ async function main(): Promise<number> {
           execute: DbExecute.new(identity),
           pull: DbPull.new(identity),
           push: DbPush.new(identity),
-          // drop: DbDrop.new(),
+          // drop: DbDrop.new('prisma'),
           seed: DbSeed.new(identity),
         },
         identity,
