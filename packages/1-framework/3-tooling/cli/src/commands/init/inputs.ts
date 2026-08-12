@@ -1,15 +1,14 @@
 import { existsSync, readFileSync } from 'node:fs';
 import * as clack from '@clack/prompts';
-import { extname, join, normalize } from 'pathe';
+import { extname, join } from 'pathe';
 import type { GlobalFlags } from '../../utils/global-flags';
 import {
-  errorInitAuthoringSchemaPathMismatch,
-  errorInitInvalidFlagValue,
   errorInitMissingFlags,
   errorInitReinitNeedsForce,
   errorInitStrictProbeWithoutProbe,
   errorInitUserAborted,
 } from './errors';
+import { resolveAuthoring, resolveTarget, validateSchemaPath } from './input-values';
 import {
   type AuthoringId,
   defaultSchemaPath,
@@ -79,19 +78,6 @@ export interface ResolvedInitInputs {
    */
   readonly installProjectSkill: boolean;
 }
-
-const TARGET_ALIASES: ReadonlyMap<string, TargetId> = new Map([
-  ['postgres', 'postgres'],
-  ['postgresql', 'postgres'],
-  ['mongo', 'mongo'],
-  ['mongodb', 'mongo'],
-]);
-
-const AUTHORING_VALUES: ReadonlyMap<string, AuthoringId> = new Map([
-  ['psl', 'psl'],
-  ['typescript', 'typescript'],
-  ['ts', 'typescript'],
-]);
 
 /**
  * Resolves every required input for `runInit`. In interactive mode, missing
@@ -334,68 +320,6 @@ async function resolveReinit(opts: {
     throw errorInitUserAborted();
   }
   return true;
-}
-
-function resolveTarget(value: string | undefined): TargetId | undefined {
-  if (value === undefined) return undefined;
-  const mapped = TARGET_ALIASES.get(value.toLowerCase());
-  if (mapped === undefined) {
-    throw errorInitInvalidFlagValue({
-      flag: 'target',
-      value,
-      allowed: ['postgres', 'mongodb'],
-    });
-  }
-  return mapped;
-}
-
-function resolveAuthoring(value: string | undefined): AuthoringId | undefined {
-  if (value === undefined) return undefined;
-  const mapped = AUTHORING_VALUES.get(value.toLowerCase());
-  if (mapped === undefined) {
-    throw errorInitInvalidFlagValue({
-      flag: 'authoring',
-      value,
-      allowed: ['psl', 'typescript'],
-    });
-  }
-  return mapped;
-}
-
-/**
- * Validates `--schema-path` against the chosen `--authoring` style: PSL
- * authoring requires a `.prisma` file and TypeScript authoring requires a
- * `.ts` file. Mismatched combinations would silently scaffold PSL content
- * into a `.ts` file (or vice versa); this validator surfaces the mistake
- * as a precondition error naming both flags.
- */
-function validateSchemaPath(value: string, authoring: AuthoringId): string {
-  const trimmed = value.trim();
-  if (trimmed.length === 0) {
-    throw errorInitInvalidFlagValue({
-      flag: 'schema-path',
-      value,
-      allowed: ['<non-empty file path with .prisma or .ts extension>'],
-    });
-  }
-  if (trimmed.endsWith('/') || trimmed.endsWith('\\')) {
-    throw errorInitInvalidFlagValue({
-      flag: 'schema-path',
-      value,
-      allowed: ['<file path, not a directory>'],
-    });
-  }
-  const ext = extname(trimmed).toLowerCase();
-  const expected = authoring === 'typescript' ? '.ts' : '.prisma';
-  if (ext !== expected) {
-    throw errorInitAuthoringSchemaPathMismatch({
-      authoring,
-      schemaPath: trimmed,
-      actualExtension: ext.length > 0 ? ext : '(none)',
-      expectedExtension: expected,
-    });
-  }
-  return normalize(trimmed);
 }
 
 async function promptTarget(): Promise<TargetId> {

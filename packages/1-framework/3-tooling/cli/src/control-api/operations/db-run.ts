@@ -42,6 +42,7 @@ import {
   buildContractSpaceAggregate,
 } from './contract-space-aggregate-loader';
 import { stripOperations } from './migration-helpers';
+import { computePlanHash } from './plan-identity';
 import {
   buildPerSpaceBreakdown,
   collectOrdered,
@@ -85,6 +86,13 @@ export interface ExecuteRunOptions<TFamilyId extends string, TTargetId extends s
   readonly targetId: TTargetId;
   readonly policy: MigrationOperationPolicy;
   readonly action: 'dbInit' | 'dbUpdate';
+  /**
+   * Identity of the plan the caller consented to (`db update` only). When
+   * set, the apply refuses with `CONSENT_PLAN_MISMATCH` if the freshly
+   * computed plan differs — consent binds to one plan, not to data loss in
+   * general.
+   */
+  readonly consentedPlanHash?: string;
   readonly onProgress?: OnControlProgress;
 }
 
@@ -225,6 +233,28 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       summary,
       ...ifDefined('warnings', plannerWarnings),
     });
+  }
+
+  // 4a. Consent binding: the caller consented to one specific plan. The
+  // freshly computed plan must be that plan, or the apply is refused before
+  // anything runs.
+  if (options.consentedPlanHash !== undefined) {
+    const planHash = computePlanHash({
+      operations: stripOperations(orderedResolutions.flatMap((r) => r.entry.displayOps)),
+      destination: appPlan.destination,
+    });
+    if (planHash !== options.consentedPlanHash) {
+      const failure: DbUpdateFailure = {
+        code: 'CONSENT_PLAN_MISMATCH',
+        summary: 'The plan changed between consent and apply',
+        why: 'The plan recomputed for the consented apply is not the plan that was consented to, so applying it could destroy something nobody agreed to.',
+        conflicts: undefined,
+        meta: undefined,
+        consentPlanMismatch: { consentedPlanHash: options.consentedPlanHash, planHash },
+        ...ifDefined('warnings', plannerWarnings),
+      };
+      return notOk(failure);
+    }
   }
 
   // 5. Run mode: hand off to the shared `runMigration` primitive.

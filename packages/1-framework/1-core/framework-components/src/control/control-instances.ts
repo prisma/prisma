@@ -115,6 +115,12 @@ export interface ControlAdapterInstance<TFamilyId extends string, TTargetId exte
 export interface ControlDriverInstance<TFamilyId extends string, TTargetId extends string>
   extends DriverInstance<TFamilyId, TTargetId> {
   close(): Promise<void>;
+  /**
+   * Name of the database this connection is bound to, when the target names
+   * one. `db update` asks the user to type it before applying destructive
+   * operations, so it names where the data would be lost.
+   */
+  databaseName?(): Promise<string | undefined>;
 }
 
 export interface ControlExtensionInstance<TFamilyId extends string, TTargetId extends string>

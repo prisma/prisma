@@ -9,13 +9,12 @@ const fixtureSubdir = 'db-init';
 
 withTempDir(({ createTempDir }) => {
   describe('db update command (e2e) - errors', () => {
-    let consoleOutput: string[] = [];
     let cleanupMocks: () => void;
 
+    // `db init` and the emit steps still run on the commander shell, whose
+    // output goes to the console this keeps out of the test log.
     beforeEach(() => {
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      cleanupMocks = mocks.cleanup;
+      cleanupMocks = setupCommandMocks().cleanup;
     });
 
     afterEach(() => {
@@ -33,10 +32,8 @@ withTempDir(({ createTempDir }) => {
           );
 
           // db update should work on a fresh database without db init
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const planOutput = stripAnsi(consoleOutput.join('\n'));
-          expect(planOutput).toContain('Planned');
+          const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          expect(stripAnsi(plan.stderr)).toContain('Planned');
         });
       },
       timeouts.spinUpPpgDev,
@@ -61,9 +58,8 @@ withTempDir(({ createTempDir }) => {
           });
 
           // db update should detect the extra column and plan a destructive drop
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const planOutput = stripAnsi(consoleOutput.join('\n'));
+          const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          const planOutput = stripAnsi(plan.stderr);
           expect(planOutput).toContain('legacy_notes');
           expect(planOutput).toContain('destructive');
         });

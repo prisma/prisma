@@ -17,14 +17,10 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { promisify } from 'node:util';
-import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
-import { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
-import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
-import { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { EngineEvent, PresentedResult, StreamEvent } from '@prisma/cli-engine';
+import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
-import type { Command } from 'commander';
 import { isAbsolute, join, resolve } from 'pathe';
 import { afterAll, beforeAll } from 'vitest';
 
@@ -33,10 +29,7 @@ const TSX_BIN = resolve(import.meta.dirname, '../../../../node_modules/.bin/tsx'
 
 import {
   appendImplicitMigrationPlanFrom,
-  executeCommand,
-  getExitCode,
   runOnEngine as runCommandOnEngine,
-  setupCommandMocks,
   writeProjectManifest,
 } from './cli-test-helpers';
 
@@ -265,56 +258,6 @@ export interface RunCommandOptions {
 }
 
 /**
- * Core execution helper — all run* functions delegate to this.
- * Creates fresh mocks for each invocation so steps don't interfere.
- *
- * NOTE: Uses `process.chdir()`, which is process-global. This is safe because
- * `vitest.journeys.config.ts` uses `pool: 'forks'` (each file runs in its own
- * process) and tests within a file run sequentially. Do NOT switch to `pool: 'threads'`.
- */
-async function runCommandCore(
-  command: Command,
-  testDir: string,
-  args: readonly string[],
-  options?: RunCommandOptions,
-): Promise<CommandResult> {
-  const mocks = setupCommandMocks({ isTTY: options?.isTTY });
-  const originalCwd = process.cwd();
-  try {
-    process.chdir(testDir);
-    try {
-      await executeCommand(command, ['--no-color', ...args]);
-      return {
-        exitCode: 0,
-        stdout: mocks.consoleOutput.join('\n'),
-        stderr: mocks.consoleErrors.join('\n'),
-      };
-    } catch (error) {
-      const exitCode = getExitCode();
-      if (exitCode == null) throw error; // unexpected error, not a CLI exit
-      return {
-        exitCode,
-        stdout: mocks.consoleOutput.join('\n'),
-        stderr: mocks.consoleErrors.join('\n'),
-      };
-    }
-  } finally {
-    process.chdir(originalCwd);
-    mocks.cleanup();
-  }
-}
-
-/** Runs a CLI command with --config in the journey's test directory. */
-async function runCommand(
-  command: Command,
-  ctx: JourneyContext,
-  args: readonly string[],
-  options?: RunCommandOptions,
-): Promise<CommandResult> {
-  return runCommandCore(command, ctx.testDir, ['--config', ctx.configPath, ...args], options);
-}
-
-/**
  * What a step run through the engine reports. A superset of
  * {@link CommandResult}, so a wrapper can move onto the engine without every
  * journey that calls it changing at once.
@@ -365,8 +308,24 @@ export async function runDbInit(
 export async function runDbUpdate(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbUpdateCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'update', ...extraArgs], options);
+}
+
+/**
+ * What `db update` asks the user to type before it destroys anything: the name
+ * of the connected database, which for these Postgres-backed tests is the
+ * database segment of the connection URL. A run that means to accept data loss
+ * passes it as `--confirm`, because `--yes` cannot grant a consent.
+ */
+export function consentTokenFor(connectionString: string): string {
+  const parsed = new URL(connectionString);
+  const name = parsed.pathname.split('/').filter((segment) => segment.length > 0)[0];
+  if (name === undefined) {
+    throw new Error(`Connection URL names no database: ${connectionString}`);
+  }
+  return decodeURIComponent(name);
 }
 
 export async function runDbVerify(
@@ -396,19 +355,21 @@ export async function runDbSchema(
 export async function runMigrationPlan(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(
-    createMigrationPlanCommand(),
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(
     ctx,
-    appendImplicitMigrationPlanFrom(ctx.testDir, extraArgs),
+    ['migration', 'plan', ...appendImplicitMigrationPlanFrom(ctx.testDir, extraArgs)],
+    options,
   );
 }
 
 export async function runMigrationNew(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationNewCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'new', ...extraArgs], options);
 }
 
 export async function runMigrate(
@@ -422,8 +383,9 @@ export async function runMigrate(
 export async function runMigrationStatus(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationStatusCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'status', ...extraArgs], options);
 }
 
 export async function runMigrationShow(
@@ -645,7 +607,19 @@ export async function runDbVerifyWithDb(
  * `result` when the command completed and under `error` when it did not, which
  * is where the commander put its error envelope too.
  */
-export function parseJsonOutput<T = Record<string, unknown>>(result: CommandResult): T {
+/**
+ * The `--json` document a step produced. A step run through the engine already
+ * carries it as the presented result — the engine's json mode writes NDJSON
+ * frames rather than the bare document, so the document is read from the run
+ * rather than parsed back out of stdout.
+ */
+export function parseJsonOutput<T = Record<string, unknown>>(
+  result: CommandResult | EngineCommandResult,
+): T {
+  const presented = 'presented' in result ? result.presented : undefined;
+  if (presented !== undefined) {
+    return (presented.presentation.json ?? presented.data) as T;
+  }
   const output = result.stdout.trim();
   const parsed = lastJsonValue(output);
   if (parsed === undefined) {
@@ -746,6 +720,19 @@ export function readEmittedContractStorageHash(ctx: JourneyContext): string {
     storage: { storageHash: string };
   };
   return contractJson.storage.storageHash;
+}
+
+/**
+ * The primary error an errored engine run settled with. An errored run
+ * presents nothing, so its envelope is read from the terminal stream frame
+ * rather than from a presented document.
+ */
+export function engineError(result: EngineCommandResult): Diagnostic | undefined {
+  const terminal = result.json.at(-1);
+  if (terminal === undefined || terminal.kind !== 'result' || terminal.envelope.ok) {
+    return undefined;
+  }
+  return terminal.envelope.error;
 }
 
 export function parseMigrationStatusJson(result: CommandResult): MigrationStatusJson {

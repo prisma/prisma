@@ -97,6 +97,7 @@ describe('formatStatusSummary', () => {
     const diagnostics: StatusDiagnosticJson[] = [
       {
         code: 'MIGRATION.MISSING_INVARIANTS',
+        severity: 'warn',
         invariants: ['users-have-email'],
         message: 'missing invariant(s): users-have-email',
       },
