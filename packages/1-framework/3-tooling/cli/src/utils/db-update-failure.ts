@@ -30,7 +30,7 @@ export function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError
         : undefined;
     const fix =
       runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
-        ? // framework-vocabulary-ignore: names the object to drop per target on purpose — user-facing remediation text, not a framework type
+        ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
           'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `prisma-next db init` to recreate it with the current per-space schema.'
         : 'Inspect the reported conflict, reconcile schema drift if needed, then re-run `prisma-next db update`';
     return errorRunnerFailed(failure.summary, {
