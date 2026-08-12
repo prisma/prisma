@@ -730,9 +730,18 @@ export function engineDocument<T = Record<string, unknown>>(run: EngineCommandRe
   return presented.data as T;
 }
 
-/** The dotted codes of the findings an engine-run step carried on its envelope. */
+/**
+ * The dotted codes of the findings an engine-run step carried on its envelope.
+ * Throws on a step that errored rather than reporting no findings — an empty
+ * list has to mean "settled with none", or `toEqual([])` would pass against a
+ * run that never presented at all.
+ */
 export function engineDiagnosticCodes(run: EngineCommandResult): readonly string[] {
-  return (run.presented?.diagnostics ?? []).map((diagnostic) => diagnostic.code);
+  const presented = run.presented;
+  if (presented === undefined) {
+    throw new Error(`Step never presented a result (exit ${run.exitCode}):\n${run.stderr}`);
+  }
+  return presented.diagnostics.map((diagnostic) => diagnostic.code);
 }
 
 export { EMPTY_CONTRACT_HASH };

@@ -16,6 +16,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { withClient } from '@repo/test-utils';
+import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
@@ -113,6 +114,9 @@ withTempDir(({ createTempDir }) => {
         expect(engineDiagnosticCodes(verify), 'U.01: reported as a finding').toEqual([
           'CONTRACT.TARGET_MISMATCH',
         ]);
+        expect(stripAnsi(verify.stderr), 'U.01: mentions target mismatch').toContain(
+          'Target mismatch',
+        );
       },
       timeouts.spinUpPpgDev,
     );
