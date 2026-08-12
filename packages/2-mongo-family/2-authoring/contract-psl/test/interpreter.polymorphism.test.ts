@@ -151,7 +151,7 @@ describe('interpretPslDocumentToMongoContract — polymorphism', () => {
         }
       `);
 
-      expect(modelsOf(ir)['Note']).toMatchObject({ fields: {} });
+      expect(modelsOf(ir)['Note']).toHaveProperty('fields', {});
 
       const canonical = canonicalizeContractToObject(ir, {
         serializeContract: (contract) => JSON.parse(JSON.stringify(contract)) as JsonObject,
@@ -163,7 +163,7 @@ describe('interpretPslDocumentToMongoContract — polymorphism', () => {
         }
       ).namespaces[UNBOUND_NAMESPACE_ID]!.models['Note'];
 
-      expect(note).toMatchObject({ fields: {} });
+      expect(note).toHaveProperty('fields', {});
       expect(() => MongoContractSchema.assert(canonical)).not.toThrow();
     });
 
