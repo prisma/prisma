@@ -7,6 +7,7 @@ import {
   notOk,
   ok,
 } from '@prisma/cli-engine/protocol';
+import { createControlClient } from '../../control-api/client';
 import { resolveContractRefToSnapshot } from '../../control-api/operations/contract-snapshot-resolution';
 import { resolveRefAdvancementFields } from '../../control-api/operations/ref-advancement';
 import type { DbUpdateResult, DbUpdateSuccess } from '../../control-api/types';
@@ -34,6 +35,7 @@ import {
   unconsentedDestructiveWarning,
 } from './consent';
 import { migrationResultBlocks, migrationResultNextActions } from './migration-blocks';
+import type { ControlClientDeps } from './prepare';
 import { prepareMigrationRun } from './prepare';
 
 function updatePresentations(inputs: {
@@ -112,220 +114,225 @@ function updateDocument(inputs: {
   };
 }
 
-export const dbUpdateCommand = defineOrmCommand({
-  help: {
-    summary: 'Update your database schema to match your contract',
-    description:
-      'Compares the database to the emitted contract and applies the changes that\n' +
-      'close the gap, whether or not the database was bootstrapped with `db init`.\n' +
-      'An operation that would destroy data is applied only with your consent: the\n' +
-      'command asks you to type the database name. A run with nobody to ask — a CI\n' +
-      'job, or `--no-interactive` — takes it from `--confirm <database>` instead.\n' +
-      'Use --dry-run to see the operations without applying them.',
-    examples: [
-      'db update',
-      'db update --dry-run',
-      'db update --no-interactive --confirm appdb',
-      'db update --to production',
-    ],
-  },
-  args: {
-    flags: {
-      db: dbFlag,
-      dryRun: flag.boolean({ brief: 'Preview the planned operations without applying them' }),
-      to: flag.string({
-        brief: 'Contract to update to (hash, prefix, ref name, migration dir name, or ./path)',
-        placeholder: 'contract',
-      }),
-      advanceRef: flag.string({
-        brief: 'Advance the named ref to the post-command contract hash',
-        placeholder: 'name',
-      }),
+export function createDbUpdateCommand(deps: ControlClientDeps) {
+  return defineOrmCommand({
+    help: {
+      summary: 'Update your database schema to match your contract',
+      description:
+        'Compares the database to the emitted contract and applies the changes that\n' +
+        'close the gap, whether or not the database was bootstrapped with `db init`.\n' +
+        'An operation that would destroy data is applied only with your consent: the\n' +
+        'command asks you to type the database name. A run with nobody to ask — a CI\n' +
+        'job, or `--no-interactive` — takes it from `--confirm <database>` instead.\n' +
+        'Use --dry-run to see the operations without applying them.',
+      examples: [
+        'db update',
+        'db update --dry-run',
+        'db update --no-interactive --confirm appdb',
+        'db update --to production',
+      ],
     },
-  },
-  needs: { config: ormConfigSection },
-  handler: async (args, ctx) => {
-    const startedAt = Date.now();
-    const prepared = await prepareMigrationRun({
-      config: ctx.config,
-      cwd: ctx.cwd,
-      db: args.flags.db,
-      commandName: 'db update',
-    });
-    if (!prepared.ok) {
-      return notOk(prepared.failure);
-    }
-    const { client, contractPath, dbConnection, migrationsDir, refsDir } = prepared.value;
-
-    let contractJson = prepared.value.contractJson;
-    let snapshotContractPath = contractPath;
-    if (args.flags.to !== undefined) {
-      const resolved = await resolveContractRefToSnapshot({
+    args: {
+      flags: {
+        db: dbFlag,
+        dryRun: flag.boolean({ brief: 'Preview the planned operations without applying them' }),
+        to: flag.string({
+          brief: 'Contract to update to (hash, prefix, ref name, migration dir name, or ./path)',
+          placeholder: 'contract',
+        }),
+        advanceRef: flag.string({
+          brief: 'Advance the named ref to the post-command contract hash',
+          placeholder: 'name',
+        }),
+      },
+    },
+    needs: { config: ormConfigSection },
+    handler: async (args, ctx) => {
+      const startedAt = Date.now();
+      const prepared = await prepareMigrationRun({
         config: ctx.config,
-        migrationsDir,
-        refInput: args.flags.to,
-        contractPathAbsolute: contractPath,
-        fallbackToEmitted: false,
-        missingBundleFlag: '--to',
+        cwd: ctx.cwd,
+        db: args.flags.db,
+        commandName: 'db update',
+        createControlClient: deps.createControlClient,
       });
-      if (!resolved.ok) {
-        return notOk(normalizeError(resolved.failure));
+      if (!prepared.ok) {
+        return notOk(prepared.failure);
       }
-      contractJson = resolved.value.contractJson;
-      snapshotContractPath = resolved.value.contractJsonPath;
-    }
+      const { client, contractPath, dbConnection, migrationsDir, refsDir } = prepared.value;
 
-    const mode = args.flags.dryRun ? 'plan' : 'apply';
-    let document: MigrationCommandResult;
-    try {
-      await client.connect(dbConnection);
-
-      const update = (acceptDataLoss: boolean): Promise<DbUpdateResult> =>
-        client.dbUpdate({
-          contract: contractJson,
-          mode,
+      let contractJson = prepared.value.contractJson;
+      let snapshotContractPath = contractPath;
+      if (args.flags.to !== undefined) {
+        const resolved = await resolveContractRefToSnapshot({
+          config: ctx.config,
           migrationsDir,
-          ...(acceptDataLoss ? { acceptDataLoss: true } : {}),
-          onProgress: controlProgressReporter(ctx.report),
+          refInput: args.flags.to,
+          contractPathAbsolute: contractPath,
+          fallbackToEmitted: false,
+          missingBundleFlag: '--to',
         });
+        if (!resolved.ok) {
+          return notOk(normalizeError(resolved.failure));
+        }
+        contractJson = resolved.value.contractJson;
+        snapshotContractPath = resolved.value.contractJsonPath;
+      }
 
-      // A successful run shows the planner's warnings in its blocks. A refused
-      // or failed one has no result to carry them, and an errored envelope
-      // renders no meta, so they are reported as events to reach both channels.
-      // The refusal's warnings matter most of all: they are what the user is
-      // told just before consenting.
-      const reported = new Set<string>();
-      const reportPlannerWarnings = (warnings: readonly { readonly summary: string }[]): void => {
-        for (const warning of warnings) {
-          if (!reported.has(warning.summary)) {
-            reported.add(warning.summary);
-            ctx.report({ kind: 'message', severity: 'warn', text: warning.summary });
+      const mode = args.flags.dryRun ? 'plan' : 'apply';
+      let document: MigrationCommandResult;
+      try {
+        await client.connect(dbConnection);
+
+        const update = (acceptDataLoss: boolean): Promise<DbUpdateResult> =>
+          client.dbUpdate({
+            contract: contractJson,
+            mode,
+            migrationsDir,
+            ...(acceptDataLoss ? { acceptDataLoss: true } : {}),
+            onProgress: controlProgressReporter(ctx.report),
+          });
+
+        // A successful run shows the planner's warnings in its blocks. A refused
+        // or failed one has no result to carry them, and an errored envelope
+        // renders no meta, so they are reported as events to reach both channels.
+        // The refusal's warnings matter most of all: they are what the user is
+        // told just before consenting.
+        const reported = new Set<string>();
+        const reportPlannerWarnings = (warnings: readonly { readonly summary: string }[]): void => {
+          for (const warning of warnings) {
+            if (!reported.has(warning.summary)) {
+              reported.add(warning.summary);
+              ctx.report({ kind: 'message', severity: 'warn', text: warning.summary });
+            }
           }
-        }
-      };
+        };
 
-      let result = await update(false);
-      let consented: readonly DestructiveOperation[] | undefined;
-      // The destructive verdict is the planner's, so it arrives only after the
-      // connection is open. Consent is asked for on that same connection and
-      // the plan is re-run carrying it — one connection, no re-invocation. Only
-      // an apply can ask: a dry run has nothing to authorise.
-      if (mode === 'apply' && !result.ok && result.failure.code === 'DESTRUCTIVE_CHANGES') {
-        reportPlannerWarnings(result.failure.warnings ?? []);
-        const operations = destructiveOperationsIn(result.failure.meta);
-        if (operations.length === 0) {
-          return notOk(normalizeError(errorConsentOperationsMissing()));
+        let result = await update(false);
+        let consented: readonly DestructiveOperation[] | undefined;
+        // The destructive verdict is the planner's, so it arrives only after the
+        // connection is open. Consent is asked for on that same connection and
+        // the plan is re-run carrying it — one connection, no re-invocation. Only
+        // an apply can ask: a dry run has nothing to authorise.
+        if (mode === 'apply' && !result.ok && result.failure.code === 'DESTRUCTIVE_CHANGES') {
+          reportPlannerWarnings(result.failure.warnings ?? []);
+          const operations = destructiveOperationsIn(result.failure.meta);
+          if (operations.length === 0) {
+            return notOk(normalizeError(errorConsentOperationsMissing()));
+          }
+          const token = destructiveConsentToken(dbConnection, ctx.config.target.targetId);
+          if (token.trim().length === 0) {
+            return notOk(normalizeError(errorConsentTokenUnresolved(ctx.config.target.targetId)));
+          }
+          const granted = await ctx.prompt.consent(destructiveConsentQuestion(operations, token), {
+            token,
+          });
+          if (!granted) {
+            return notOk(normalizeError(mapDbUpdateFailure(result.failure)));
+          }
+          consented = operations;
+          result = await update(true);
         }
-        const token = destructiveConsentToken(dbConnection, ctx.config.target.targetId);
-        if (token.trim().length === 0) {
-          return notOk(normalizeError(errorConsentTokenUnresolved(ctx.config.target.targetId)));
-        }
-        const granted = await ctx.prompt.consent(destructiveConsentQuestion(operations, token), {
-          token,
-        });
-        if (!granted) {
+        if (!result.ok) {
+          reportPlannerWarnings(result.failure.warnings ?? []);
           return notOk(normalizeError(mapDbUpdateFailure(result.failure)));
         }
-        consented = operations;
-        result = await update(true);
-      }
-      if (!result.ok) {
-        reportPlannerWarnings(result.failure.warnings ?? []);
-        return notOk(normalizeError(mapDbUpdateFailure(result.failure)));
-      }
-      if (consented !== undefined) {
-        // Nothing binds the applied plan to the consented one — the second call
-        // re-reads markers and re-introspects, so it plans afresh. The operator
-        // at least learns which drops their consent did not cover.
-        const unconsented = unconsentedDestructiveOperations(
-          consented,
-          result.value.plan.operations,
-        );
-        if (unconsented.length > 0) {
-          ctx.report({
-            kind: 'message',
-            severity: 'warn',
-            text: unconsentedDestructiveWarning(unconsented),
-          });
+        if (consented !== undefined) {
+          // Nothing binds the applied plan to the consented one — the second call
+          // re-reads markers and re-introspects, so it plans afresh. The operator
+          // at least learns which drops their consent did not cover.
+          const unconsented = unconsentedDestructiveOperations(
+            consented,
+            result.value.plan.operations,
+          );
+          if (unconsented.length > 0) {
+            ctx.report({
+              kind: 'message',
+              severity: 'warn',
+              text: unconsentedDestructiveWarning(unconsented),
+            });
+          }
         }
-      }
 
-      const advancementHash =
-        result.value.mode === 'apply'
-          ? (result.value.marker?.storageHash ?? result.value.destination.storageHash)
-          : result.value.destination.storageHash;
-      const advancement = await resolveRefAdvancementFields({
-        ...ifDefined('advanceRef', args.flags.advanceRef),
-        ...ifDefined('db', args.flags.db),
-        refsDir,
-        migrationsDir,
-        contractJson,
-        contractJsonPath: snapshotContractPath,
-        mode: result.value.mode,
-        hash: advancementHash,
-      });
-      if (!advancement.ok) {
-        return notOk(normalizeError(advancement.failure));
-      }
+        const advancementHash =
+          result.value.mode === 'apply'
+            ? (result.value.marker?.storageHash ?? result.value.destination.storageHash)
+            : result.value.destination.storageHash;
+        const advancement = await resolveRefAdvancementFields({
+          ...ifDefined('advanceRef', args.flags.advanceRef),
+          ...ifDefined('db', args.flags.db),
+          refsDir,
+          migrationsDir,
+          contractJson,
+          contractJsonPath: snapshotContractPath,
+          mode: result.value.mode,
+          hash: advancementHash,
+        });
+        if (!advancement.ok) {
+          return notOk(normalizeError(advancement.failure));
+        }
 
-      document = updateDocument({
-        value: result.value,
-        targetId: ctx.config.target.targetId,
-        advancedRef: advancement.value.advancedRef,
-        plannedAdvanceRef: advancement.value.plannedAdvanceRef,
-        startedAt,
-      });
-    } catch (error) {
-      // A refused, mistyped or cancelled consent is the engine's own error, and
-      // the engine settles it: cancellation exits 3, everything else 2. Catching
-      // it here would restate it as this command's failure and lose that.
-      if (error instanceof EngineStructuredError) {
-        throw error;
-      }
-      if (CliStructuredError.is(error)) {
-        return notOk(normalizeError(error));
-      }
-      if (isStructuredError(error) && error.code === 'CONTRACT.VALIDATION_FAILED') {
+        document = updateDocument({
+          value: result.value,
+          targetId: ctx.config.target.targetId,
+          advancedRef: advancement.value.advancedRef,
+          plannedAdvanceRef: advancement.value.plannedAdvanceRef,
+          startedAt,
+        });
+      } catch (error) {
+        // A refused, mistyped or cancelled consent is the engine's own error, and
+        // the engine settles it: cancellation exits 3, everything else 2. Catching
+        // it here would restate it as this command's failure and lose that.
+        if (error instanceof EngineStructuredError) {
+          throw error;
+        }
+        if (CliStructuredError.is(error)) {
+          return notOk(normalizeError(error));
+        }
+        if (isStructuredError(error) && error.code === 'CONTRACT.VALIDATION_FAILED') {
+          return notOk(
+            normalizeError(
+              errorContractValidationFailed(`Contract validation failed: ${error.message}`, {
+                where: { path: contractPath },
+              }),
+            ),
+          );
+        }
+        const safeMessage = sanitizeErrorMessage(
+          error instanceof Error ? error.message : String(error),
+          typeof dbConnection === 'string' ? dbConnection : undefined,
+        );
         return notOk(
           normalizeError(
-            errorContractValidationFailed(`Contract validation failed: ${error.message}`, {
-              where: { path: contractPath },
+            errorUnexpected(safeMessage, {
+              why: `Unexpected error during db update: ${safeMessage}`,
             }),
           ),
         );
+      } finally {
+        await closeQuietly(client);
       }
-      const safeMessage = sanitizeErrorMessage(
-        error instanceof Error ? error.message : String(error),
-        typeof dbConnection === 'string' ? dbConnection : undefined,
-      );
-      return notOk(
-        normalizeError(
-          errorUnexpected(safeMessage, {
-            why: `Unexpected error during db update: ${safeMessage}`,
+
+      ctx.report({
+        kind: 'message',
+        severity: 'verbose',
+        text: `Total time: ${document.timings.total}ms`,
+      });
+
+      return ok(
+        ctx.present(
+          { data: document },
+          updatePresentations({
+            document,
+            contractPath: prepared.value.contractDisplayPath,
+            database: prepared.value.database,
+            to: args.flags.to,
+            dryRun: args.flags.dryRun,
           }),
         ),
       );
-    } finally {
-      await closeQuietly(client);
-    }
+    },
+  });
+}
 
-    ctx.report({
-      kind: 'message',
-      severity: 'verbose',
-      text: `Total time: ${document.timings.total}ms`,
-    });
-
-    return ok(
-      ctx.present(
-        { data: document },
-        updatePresentations({
-          document,
-          contractPath: prepared.value.contractDisplayPath,
-          database: prepared.value.database,
-          to: args.flags.to,
-          dryRun: args.flags.dryRun,
-        }),
-      ),
-    );
-  },
-});
+export const dbUpdateCommand = createDbUpdateCommand({ createControlClient });

@@ -6,49 +6,33 @@ import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { notOk, ok } from '@internal/utils/result';
 import type { EngineEvent, MountedTree, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
-import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ControlClient } from '../../src/control-api/types';
+import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createMigrateCommand } from '../../src/orm/migrate';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
-const mocks = vi.hoisted(() => ({
+const mocks = {
   connect: vi.fn(),
   readAllMarkers: vi.fn(),
   migrate: vi.fn(),
   close: vi.fn(),
-}));
+};
 
-vi.mock('../../src/control-api/client', () => ({
-  createControlClient: vi.fn(() => ({
-    connect: mocks.connect,
-    readAllMarkers: mocks.readAllMarkers,
-    migrate: mocks.migrate,
-    close: mocks.close,
-  })),
-}));
+const fakeClient = {
+  connect: mocks.connect,
+  readAllMarkers: mocks.readAllMarkers,
+  migrate: mocks.migrate,
+  close: mocks.close,
+} as unknown as ControlClient;
 
-/**
- * The command tree is imported after the module registry is reset, so the
- * mocked client is the one `migrate` closes over. Repo-wide vitest runs with
- * `isolate: false`, and another file that loaded the command tree first would
- * otherwise have baked the real client into it.
- */
-let commands: MountedTree;
-let groups: typeof BinGroups;
-
-beforeAll(async () => {
-  vi.resetModules();
-  const cli = await import('../../src/orm/cli');
-  commands = cli.BIN_COMMANDS;
-  groups = cli.BIN_GROUPS;
-}, timeouts.coldTransformImport);
-
-afterAll(() => {
-  vi.doUnmock('../../src/control-api/client');
-  vi.resetModules();
-});
+const commands: MountedTree = {
+  ...BIN_COMMANDS,
+  migrate: createMigrateCommand({ createControlClient: () => fakeClient }),
+};
+const groups = BIN_GROUPS;
 
 const EMPTY = 'empty';
 const C1 = '1'.repeat(64);
