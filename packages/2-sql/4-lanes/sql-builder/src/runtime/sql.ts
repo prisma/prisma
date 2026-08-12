@@ -10,7 +10,7 @@ import type { BuilderContext } from './builder-base';
 import { resolveTableInNamespace } from './resolve-table';
 import { TableProxyImpl } from './table-proxy-impl';
 
-/** The key `db` answers with the raw statement tag; no storage namespace may claim it. */
+/** The key `raw`, which the SQL surface answers with the raw statement tag; no storage namespace may claim it. */
 const RAW_TAG_KEY = 'raw';
 
 export interface SqlOptions<C extends Contract<SqlStorage> & TableProxyContract> {
