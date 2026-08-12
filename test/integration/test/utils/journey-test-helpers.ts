@@ -22,11 +22,8 @@ import { createContractEmitCommand } from '@internal/cli/commands/contract-emit'
 import { createContractInferCommand } from '@internal/cli/commands/contract-infer';
 import { createDbInitCommand } from '@internal/cli/commands/db-init';
 import { createDbSchemaCommand } from '@internal/cli/commands/db-schema';
-import { createDbSignCommand } from '@internal/cli/commands/db-sign';
 import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
-import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
 import { createMigrateCommand } from '@internal/cli/commands/migrate';
-import { createMigrationCheckCommand } from '@internal/cli/commands/migration-check';
 import { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
 import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
 import { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
@@ -374,7 +371,10 @@ export async function runOnEngine(
   const cli = createTestCli({
     commandFamilies: [ormCommandFamily],
     commands: ormCommandFamily.commands,
-    groups: { migration: { brief: 'On-disk migration management commands' } },
+    groups: {
+      db: { brief: 'Database lifecycle commands' },
+      migration: { brief: 'On-disk migration management commands' },
+    },
     config: loaded.sections,
   });
 
@@ -429,15 +429,17 @@ export async function runDbUpdate(
 export async function runDbVerify(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbVerifyCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'verify', ...extraArgs], options);
 }
 
 export async function runDbSign(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbSignCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'sign', ...extraArgs], options);
 }
 
 export async function runDbSchema(
@@ -514,8 +516,9 @@ export async function runMigrationGraph(
 export async function runMigrationCheck(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationCheckCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'check', ...extraArgs], options);
 }
 
 // The generator emits `import endContract from '<specifier>' with { type: "json" };`
@@ -685,8 +688,8 @@ export async function runDbVerifyWithDb(
   ctx: JourneyContext,
   dbUrl: string,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbVerifyCommand(), ctx, ['--db', dbUrl, ...extraArgs]);
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'verify', '--db', dbUrl, ...extraArgs]);
 }
 
 // ---------------------------------------------------------------------------
@@ -713,6 +716,23 @@ export function parseJsonOutput<T = Record<string, unknown>>(result: CommandResu
     }
     throw new Error(`Failed to parse JSON from command output:\n${output}`);
   }
+}
+
+/**
+ * The document an engine-run step presented — what `--json` would print inside
+ * the result frame — without going back through the frame stream.
+ */
+export function engineDocument<T = Record<string, unknown>>(run: EngineCommandResult): T {
+  const presented = run.presented;
+  if (presented === undefined) {
+    throw new Error(`Step never presented a result (exit ${run.exitCode}):\n${run.stderr}`);
+  }
+  return presented.data as T;
+}
+
+/** The dotted codes of the findings an engine-run step carried on its envelope. */
+export function engineDiagnosticCodes(run: EngineCommandResult): readonly string[] {
+  return (run.presented?.diagnostics ?? []).map((diagnostic) => diagnostic.code);
 }
 
 export { EMPTY_CONTRACT_HASH };

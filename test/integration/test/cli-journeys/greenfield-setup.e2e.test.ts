@@ -12,8 +12,8 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  engineDocument,
   type JourneyContext,
-  parseJsonOutput,
   runContractEmit,
   runDbInit,
   runDbSchema,
@@ -95,8 +95,7 @@ withTempDir(({ createTempDir }) => {
         // A.09: db verify --json
         const verifyJson = await runDbVerify(ctx, ['--json']);
         expect(verifyJson.exitCode, 'A.09: db verify json').toBe(0);
-        const verifyData = parseJsonOutput(verifyJson);
-        expect(verifyData, 'A.09: json ok').toMatchObject({
+        expect(engineDocument(verifyJson), 'A.09: json ok').toMatchObject({
           ok: true,
           contract: { storageHash: expect.any(String) },
           marker: { storageHash: expect.any(String) },
@@ -105,8 +104,7 @@ withTempDir(({ createTempDir }) => {
         // A.10: db verify --schema-only --json
         const schemaVerifyJson = await runDbVerify(ctx, ['--schema-only', '--json']);
         expect(schemaVerifyJson.exitCode, 'A.10: db verify schema-only json').toBe(0);
-        const svData = parseJsonOutput(schemaVerifyJson);
-        expect(svData, 'A.10: json ok').toMatchObject({ ok: true });
+        expect(engineDocument(schemaVerifyJson), 'A.10: json ok').toMatchObject({ ok: true });
       },
       timeouts.spinUpPpgDev,
     );

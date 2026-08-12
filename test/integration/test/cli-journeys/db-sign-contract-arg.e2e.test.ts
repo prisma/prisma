@@ -14,6 +14,7 @@
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  engineDocument,
   type JourneyContext,
   parseJsonOutput,
   runContractEmit,
@@ -57,19 +58,19 @@ withTempDir(({ createTempDir }) => {
 
         const signDefault = await runDbSign(ctx, ['--json']);
         expect(signDefault.exitCode, 'sign (no arg)').toBe(0);
-        const markerDefault = parseJsonOutput(signDefault);
+        const markerDefault = engineDocument(signDefault);
 
         const signPositional = await runDbSign(ctx, [hashPrefix, '--json']);
         expect(signPositional.exitCode, 'sign (positional prefix)').toBe(0);
-        const markerPositional = parseJsonOutput(signPositional);
+        const markerPositional = engineDocument(signPositional);
 
         const signExplicit = await runDbSign(ctx, ['--contract', contractHash, '--json']);
         expect(signExplicit.exitCode, 'sign (--contract hash)').toBe(0);
-        const markerExplicit = parseJsonOutput(signExplicit);
+        const markerExplicit = engineDocument(signExplicit);
 
         const signRef = await runDbSign(ctx, ['--contract', 'prod', '--json']);
         expect(signRef.exitCode, 'sign (--contract ref)').toBe(0);
-        const markerRef = parseJsonOutput(signRef);
+        const markerRef = engineDocument(signRef);
 
         const extractHash = (json: Record<string, unknown> | undefined) =>
           (json?.['contract'] as Record<string, unknown> | undefined)?.['storageHash'];

@@ -726,7 +726,7 @@ withTempDir(({ createTempDir }) => {
 
         const strict = await runDbVerify(ctx, ['--schema-only', '--strict']);
         const strictOutput = `${stripAnsi(strict.stderr)}\n${stripAnsi(strict.stdout)}`;
-        expect(strict.exitCode, `strict verify should report the extra\n${strictOutput}`).toBe(1);
+        expect(strict.exitCode, `strict verify should report the extra\n${strictOutput}`).toBe(4);
         expect(strictOutput, 'the hand-written check surfaces as a strict extra').toContain(
           'users_tags_not_empty',
         );
