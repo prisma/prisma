@@ -6,7 +6,7 @@ Recognize an error programmatically with `isStructuredError` from `@internal/uti
 
 Exit codes (CLI): an expected structured failure exits `2`, a user abort exits `3`, and `1` is reserved for internal errors (bugs). Codes on this page exit `2` unless the entry says otherwise.
 
-Some codes are not failures to run at all. `db verify`, `db sign` and `migration check` answer a question about the project, and a bad answer is still an answer: they finish, report their findings as diagnostics on a successful envelope, and exit `4`. Exit `2` is reserved for the cases where those commands could not do the job — an unknown `--space`, a migration reference that resolves to nothing, an unreachable database, a contract that has not been emitted. Every entry whose code can arrive on one of those runs says so and names the command. Which numbers a command can exit with is declared on the command itself and shown by `--help`.
+Some codes are not failures to run at all. `db verify`, `db sign` and `migration check` answer a question about the project, and a bad answer is still an answer: they finish, report their findings as diagnostics on a successful envelope, and exit `4`. Exit `2` is reserved for the cases where those commands could not do the job — an unknown `--space`, a migration reference that resolves to nothing, an unreachable database, a contract that has not been emitted. Every entry whose code can arrive on one of those runs says so and names the command. Each of those commands declares the numbers it can exit with, and its `--help` text spells out what each one means.
 
 Codes that predate the dotted scheme were renamed at 0.16; the full old→new crosswalk (`PN-DOMAIN-NNNN` → `NAMESPACE.SUBCODE`) is in [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md).
 
@@ -281,7 +281,7 @@ A driver-level failure occurred while reading the contract marker table — conn
 
 ### CONTRACT.MARKER_REQUIRED
 
-A command that requires a pre-signed database (marker present) as a precondition found none; also the default failure code stamped onto a non-ok verify result when no more specific code applies, which is how `db verify --strict` reports a database holding elements no contract declares. On `db verify` it is an `error` diagnostic on a completed run that exits `4`; everywhere else it is a precondition failure at exit `2`. Fix path: run `prisma-next db init` first, or declare the extra elements in a contract. Meta: none notable.
+A command that requires a pre-signed database (marker present) as a precondition found none; also the default failure code stamped onto a non-ok verify result when no more specific code applies, which is how `db verify --strict` reports a database holding elements no contract declares. On `db verify` it is an `error` diagnostic on a completed run that exits `4`; everywhere else it is a precondition failure at exit `2`. Those are two unrelated jobs for one code — "sign the database first" and "strict mode found elements no contract declares" — and splitting them would let the exit code follow from the code alone. Fix path: run `prisma-next db init` first, or declare the extra elements in a contract. Meta: none notable.
 
 ### CONTRACT.MARKER_ROW_CORRUPT
 
@@ -830,6 +830,8 @@ The on-disk `migrations/` directory and the `extensions` declaration in config d
 ### MIGRATION.CONTRACT_SPACE_VIOLATION
 
 A contract-space integrity check failed while loading the aggregate or verifying the database (`db verify`, `db run`): a space's target mismatches the project target, two spaces claim the same storage element, a space contract is unreadable, a marker row exists for a space no longer declared (orphan marker), or aggregate introspection failed. The envelope's `why` lists the specific violations. Meta: `violations`.
+
+One code covers two different situations here, and they should exit differently. Introspection that could not run is a failure to do the job and exits `2`, which is right. Per-space marker drift — a hash mismatch, missing invariants, an orphan marker row — is a finding, and belongs at exit `4` next to the single-contract marker findings `db verify` already reports there. It exits `2` today, including under `db verify --marker-only`, whose whole job is that check. Splitting the code at the raise site is the fix; nothing on the value distinguishes the two.
 
 ### MIGRATION.CONTRACT_VIEW_MISSING
 

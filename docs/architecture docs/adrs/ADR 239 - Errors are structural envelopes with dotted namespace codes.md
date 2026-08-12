@@ -216,7 +216,7 @@ Two rules make the table unambiguous.
 
 **A severity-`error` diagnostic requires a non-zero exit code.** A command that completed while recording something it calls an error must say so in its exit code; otherwise a shell pipeline would read success. The converse does not hold — a documented non-zero code may accompany warnings only.
 
-Each command declares its `4`–`99` codes in a co-located exported module (`src/commands/<command>/exit-codes.ts`) and documents them in `--help`. The same number may mean different things in different commands; the dotted code on each diagnostic disambiguates within the class.
+Each command declares its `4`–`99` codes inline, in the `exitCodes` map on its own definition, and spells out what each one means at the end of its `--help` description. The declaration and the description are separate jobs: the declaration is what makes a non-zero completed exit code legal at all — a command that settles with a number it never declared is a construction error — while the description is what a user reads, because nothing renders the map itself. The same number may mean different things in different commands; the dotted code on each diagnostic disambiguates within the class.
 
 **The envelope a settlement produces.** In JSON output both settlement paths share one envelope contract, discriminated by `ok`:
 
