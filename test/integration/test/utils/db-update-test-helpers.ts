@@ -21,33 +21,6 @@ export async function setupDbUpdateFixture(
   });
 }
 
-/**
- * `--config <path>` as the engine harness needs it: the harness seeds the
- * sections directly rather than loading a file, so the path is consumed here
- * and the flag is dropped from the argv it never has to parse.
- */
-function splitConfigPath(args: readonly string[]): {
-  readonly configPath: string | undefined;
-  readonly rest: readonly string[];
-} {
-  const rest: string[] = [];
-  let configPath: string | undefined;
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i] ?? '';
-    if (arg === '--config') {
-      configPath = args[i + 1];
-      i += 1;
-      continue;
-    }
-    if (arg.startsWith('--config=')) {
-      configPath = arg.slice('--config='.length);
-      continue;
-    }
-    rest.push(arg);
-  }
-  return { configPath, rest };
-}
-
 /** What one `db update` run reported. */
 export interface DbUpdateRun {
   readonly exitCode: number;
@@ -81,11 +54,6 @@ export async function runDbUpdate(
   testSetup: DbUpdateTestSetup,
   args: readonly string[],
 ): Promise<DbUpdateRun> {
-  const { configPath, rest } = splitConfigPath(args);
-  const loaded = await loadOrmConfig({
-    cwd: testSetup.testDir,
-    ...ifDefined('configPath', configPath),
-  });
   const cli = createTestCli({
     commandFamilies: [ormCommandFamily],
     commands: ormCommandFamily.commands,
@@ -93,11 +61,14 @@ export async function runDbUpdate(
       db: { brief: 'Live database commands' },
       migration: { brief: 'On-disk migration management commands' },
     },
-    config: loaded.sections,
+    // The engine parses `--config` itself and hands the path to this loader,
+    // exactly as the real runtime does.
+    loadConfig: (configPath) =>
+      loadOrmConfig({ cwd: testSetup.testDir, ...ifDefined('configPath', configPath) }),
   });
   // Format auto-selection is the engine's: json off a TTY. A step that asks for
   // human output has to say its streams are terminals, as the journey harness does.
-  const run = await cli.run(['db', 'update', ...rest], {
+  const run = await cli.run(['db', 'update', ...args], {
     cwd: testSetup.testDir,
     isTty: { stdout: true, stderr: true },
   });
