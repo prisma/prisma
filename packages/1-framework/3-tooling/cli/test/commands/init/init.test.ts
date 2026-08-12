@@ -56,6 +56,7 @@ vi.mock('@internal/config-loader', async () => {
 
 import { execFile } from 'node:child_process';
 import * as clack from '@clack/prompts';
+import { buildCatalogWarnings } from '../../../src/commands/init/catalog-warnings';
 import { detectPnpmCatalogOverrides } from '../../../src/commands/init/detect-pnpm-catalog';
 import {
   INIT_EXIT_EMIT_FAILED,
@@ -66,14 +67,13 @@ import {
   INIT_EXIT_USER_ABORTED,
 } from '../../../src/commands/init/exit-codes';
 import {
-  buildCatalogWarnings,
   exitCodeForError,
   hasDirectDep,
-  isRecognisedPnpmResolutionError,
   redactSecrets,
   runInit,
 } from '../../../src/commands/init/init';
 import type { InitFlagOptions } from '../../../src/commands/init/inputs';
+import { isRecognisedPnpmResolutionError } from '../../../src/commands/init/pnpm-fallback';
 import type { ProbeOverrides } from '../../../src/commands/init/probe-db';
 import type { GlobalFlags } from '../../../src/utils/global-flags';
 

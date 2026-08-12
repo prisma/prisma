@@ -9,6 +9,7 @@ import { CliStructuredError } from '../../utils/cli-errors';
 import { formatErrorJson, formatErrorOutput } from '../../utils/formatters/errors';
 import type { GlobalFlags } from '../../utils/global-flags';
 import { createTerminalUI, type TerminalUI } from '../../utils/terminal-ui';
+import { buildCatalogWarnings } from './catalog-warnings';
 import {
   detectPackageManager,
   formatAddArgs,
@@ -17,7 +18,6 @@ import {
   hasProjectManifest,
   type PackageManager,
 } from './detect-package-manager';
-import { detectPnpmCatalogOverrides, type PnpmCatalogOverride } from './detect-pnpm-catalog';
 import {
   errorInitEmitFailed,
   errorInitInstallFailed,
@@ -49,14 +49,11 @@ import {
   InitOutputSchema,
   renderInitOutro,
 } from './output';
+import { isRecognisedPnpmResolutionError } from './pnpm-fallback';
 import { type ProbeOutcome, type ProbeOverrides, probeServerVersion } from './probe-db';
 import { findStaleArtifacts, removeDependency } from './reinit-cleanup';
-import {
-  DEFAULT_SKILL_SOURCES,
-  formatSkillInstallCommand,
-  legacySkillDirs,
-  runProjectLevelSkillInstall,
-} from './skill-install';
+import { runProjectLevelSkillInstall } from './skill-install';
+import { DEFAULT_SKILL_SOURCES, formatSkillInstallCommand, legacySkillDirs } from './skill-sources';
 import {
   configFile,
   dbFile,
@@ -845,61 +842,6 @@ async function runInstall(ctx: {
       stderrLines: [stderrText],
     });
   }
-}
-
-/**
- * Builds the FR7.3 catalog-honoured warning(s) for the surrounding pnpm
- * workspace, if any. Returns an empty array when no `pnpm-workspace.yaml`
- * exists in any ancestor or when the workspace's catalog has no entry
- * for any of the packages `init` is about to install.
- *
- * Exported for unit tests.
- */
-export function buildCatalogWarnings(
-  baseDir: string,
-  packages: readonly string[],
-): readonly string[] {
-  const result = detectPnpmCatalogOverrides(baseDir, packages);
-  if (result === null || result.entries.length === 0) {
-    return [];
-  }
-  return [formatCatalogWarning(result.workspaceFile, result.entries)];
-}
-
-function formatCatalogWarning(
-  workspaceFile: string,
-  entries: readonly PnpmCatalogOverride[],
-): string {
-  const list = entries.map((entry) => `  • ${entry.name}: ${entry.version}`).join('\n');
-  return [
-    'pnpm workspace catalog overrides detected — pnpm will install these versions instead of `latest`:',
-    list,
-    `Catalog source: ${workspaceFile}`,
-    'To use the published `latest` instead, remove or update the catalog entry, then re-run `pnpm install`.',
-  ].join('\n');
-}
-
-/**
- * Recognised pnpm error signatures that justify a fallback to npm.
- *
- * These patterns indicate the published artifact itself is at fault
- * (a leaked `workspace:*` or `catalog:` specifier), not the user's
- * environment — pnpm is faithfully reporting "I cannot resolve this
- * registry version", and npm is willing to install it because npm
- * doesn't care about the protocol prefix when there's a fallback range.
- *
- * Exported for unit tests; do not depend on this from outside the init
- * command.
- */
-export function isRecognisedPnpmResolutionError(stderr: string): boolean {
-  if (!stderr) return false;
-  return (
-    stderr.includes('ERR_PNPM_WORKSPACE_PKG_NOT_FOUND') ||
-    stderr.includes('ERR_PNPM_NO_MATCHING_VERSION') ||
-    /No matching version found for .* in the catalog/i.test(stderr) ||
-    /workspace:[^\s]+ is not a valid (version|spec)/i.test(stderr) ||
-    /catalog:[^\s]* is not a valid (version|spec)/i.test(stderr)
-  );
 }
 
 /**
