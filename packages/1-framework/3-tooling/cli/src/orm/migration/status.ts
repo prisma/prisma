@@ -368,8 +368,10 @@ export const migrationStatusCommand = defineOrmCommand({
     const renderInputs: Array<RenderMigrationGraphSpaceTreeInput & { readonly spaceId: string }> =
       [];
     const emptySpaces: string[] = [];
-    let markerDiverged = false;
-    let markerCannotReachTarget = false;
+    let divergedMarker: { readonly space: string; readonly markerHash: string } | undefined;
+    let noPath:
+      | { readonly markerHash: string | undefined; readonly targetHash: string }
+      | undefined;
     let headlineTargetHash = activeRefHash ?? contractHash;
     let totalPending = 0;
 
@@ -392,13 +394,18 @@ export const migrationStatusCommand = defineOrmCommand({
       const markerInGraph =
         markerHash === undefined || graph.nodes.has(markerHash) || markerHash === spaceContractHash;
 
-      if (connects && markerInGraph && originHash !== targetHash) {
-        markerCannotReachTarget =
-          markerCannotReachTarget || !hasMigrationPath(graph, originHash, targetHash);
+      if (
+        connects &&
+        markerInGraph &&
+        originHash !== targetHash &&
+        noPath === undefined &&
+        !hasMigrationPath(graph, originHash, targetHash)
+      ) {
+        noPath = { markerHash, targetHash };
       }
       if (connects && markerHash !== undefined && !markerInGraph) {
-        markerDiverged = true;
-        findings.push(markerNotInHistoryFinding());
+        divergedMarker ??= { space: entry.space, markerHash };
+        findings.push(markerNotInHistoryFinding(entry.space));
       }
 
       const ledger = database.ledgersBySpace.get(entry.space) ?? [];
@@ -480,18 +487,18 @@ export const migrationStatusCommand = defineOrmCommand({
     const everySpaceEmpty = scopedSpaces.every((entry) => entry.migrations.length === 0);
     const summary = everySpaceEmpty
       ? 'No migrations found'
-      : markerCannotReachTarget
+      : noPath !== undefined
         ? buildNoPathSummary({
-            markerHash: appMarker?.storageHash,
-            targetHash: headlineTargetHash,
+            markerHash: noPath.markerHash,
+            targetHash: noPath.targetHash,
             explicitTarget: args.flags.to !== undefined,
             refName: activeRefName,
           })
         : buildStatusHeadline({
             pendingCount: totalPending,
             targetHash: headlineTargetHash,
-            markerDiverged,
-            markerHash: appMarker?.storageHash,
+            markerDiverged: divergedMarker !== undefined,
+            markerHash: divergedMarker?.markerHash,
           });
 
     const diagnostics: readonly Diagnostic[] = findings.map((finding) => finding.diagnostic);
@@ -502,7 +509,7 @@ export const migrationStatusCommand = defineOrmCommand({
       summary,
       diagnostics: documentDiagnostics,
     };
-    const alarming = markerDiverged || totalPending > 0 || markerCannotReachTarget;
+    const alarming = divergedMarker !== undefined || totalPending > 0 || noPath !== undefined;
 
     return ok(
       ctx.present(

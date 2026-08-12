@@ -39,9 +39,8 @@ export function contractUnreadableFinding(reason: string): StatusFinding {
   };
 }
 
-export function markerNotInHistoryFinding(): StatusFinding {
-  const message =
-    'Database was updated outside the migration system (marker does not match any migration)';
+export function markerNotInHistoryFinding(space: string): StatusFinding {
+  const message = `Database was updated outside the migration system (marker for space "${space}" does not match any migration)`;
   const hints = [
     "Run 'prisma-next db sign' to overwrite the marker if the database already matches the contract",
     "Run 'prisma-next db update' to push the current contract to the database",
@@ -53,6 +52,7 @@ export function markerNotInHistoryFinding(): StatusFinding {
       severity: 'warn',
       summary: message,
       why: 'The marker the database carries names no contract in the on-disk migration graph.',
+      meta: { space },
       nextActions: [
         runCommandAction(
           'Overwrite the marker if the database already matches the contract',
@@ -72,6 +72,7 @@ export function missingInvariantsFinding(inputs: {
   return {
     document: {
       code: 'MIGRATION.MISSING_INVARIANTS',
+      severity: 'warn',
       ...ifDefined('ref', inputs.refName),
       invariants: [...inputs.missing],
       message,

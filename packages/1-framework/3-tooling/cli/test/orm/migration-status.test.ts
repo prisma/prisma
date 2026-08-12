@@ -1,13 +1,11 @@
 import { rm } from 'node:fs/promises';
 import { writeRef } from '@internal/migration-tools/refs';
-import type { MountedTree } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { createTestCli } from '@prisma/cli-engine/testing';
-import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
 import {
   createOfflineProject,
   invariantOp,
@@ -17,50 +15,6 @@ import {
   seedMigrationPackage,
 } from './fixtures/offline-project';
 
-const mocks = vi.hoisted(() => ({
-  connect: vi.fn(),
-  close: vi.fn(),
-  readAllMarkers: vi.fn(),
-  readLedger: vi.fn(),
-}));
-
-vi.mock('../../src/control-api/client', () => ({
-  createControlClient: vi.fn(() => ({
-    connect: mocks.connect,
-    readAllMarkers: mocks.readAllMarkers,
-    readLedger: mocks.readLedger,
-    close: mocks.close,
-  })),
-}));
-
-/**
- * The command tree is imported after the module registry is reset, so the
- * mocked client is the one `migration status` closes over. Repo-wide vitest
- * runs with `isolate: false`, and another file that loaded the command tree
- * first would otherwise have baked the real client into it.
- */
-let commands: MountedTree;
-let groups: typeof BinGroups;
-
-beforeAll(async () => {
-  vi.resetModules();
-  const cli = await import('../../src/orm/cli');
-  commands = cli.BIN_COMMANDS;
-  groups = cli.BIN_GROUPS;
-}, timeouts.coldTransformImport);
-
-afterAll(() => {
-  vi.doUnmock('../../src/control-api/client');
-  vi.resetModules();
-});
-
-beforeEach(() => {
-  mocks.connect.mockReset().mockResolvedValue(undefined);
-  mocks.close.mockReset().mockResolvedValue(undefined);
-  mocks.readAllMarkers.mockReset().mockResolvedValue(new Map());
-  mocks.readLedger.mockReset().mockResolvedValue([]);
-});
-
 afterEach(removeOfflineProjects);
 
 const HASH_HEAD = `c0ffee${'0'.repeat(58)}`;
@@ -68,23 +22,72 @@ const HASH_BASE = `beef${'1'.repeat(60)}`;
 const HASH_UNKNOWN = `dead${'2'.repeat(60)}`;
 const CONNECTION = 'postgres://user:secret@localhost:5432/appdb';
 
-function driverConfig(project: OfflineProject): Record<string, unknown> {
+interface FakeDatabaseScript {
+  readonly markers?: ReadonlyMap<
+    string,
+    { readonly storageHash: string; readonly invariants: readonly string[] }
+  >;
+  readonly ledger?: ReadonlyArray<{ readonly migrationHash: string }>;
+  readonly readMarkersError?: Error;
+  readonly closeError?: Error;
+}
+
+/**
+ * The database the real control client talks to: the family instance answers
+ * marker and ledger reads from the script, and the driver descriptor counts
+ * connections so tests can assert none was opened. No module mocks — the
+ * command builds the real client over these descriptors.
+ */
+function fakeDatabase(script: FakeDatabaseScript = {}) {
+  const counters = { connections: 0, closes: 0 };
+  const familyInstance = {
+    deserializeContract: (json: unknown) => json,
+    readAllMarkers: async () => {
+      if (script.readMarkersError !== undefined) {
+        throw script.readMarkersError;
+      }
+      return script.markers ?? new Map();
+    },
+    readLedger: async () => script.ledger ?? [],
+  };
+  const driver = {
+    close: async () => {
+      counters.closes += 1;
+      if (script.closeError !== undefined) {
+        throw script.closeError;
+      }
+    },
+  };
+  return { counters, familyInstance, driver };
+}
+
+type FakeDatabase = ReturnType<typeof fakeDatabase>;
+
+function driverConfig(
+  project: OfflineProject,
+  db: FakeDatabase = fakeDatabase(),
+): Record<string, unknown> {
+  const base = offlineConfig({ project });
   return {
-    ...offlineConfig({ project }),
+    ...base,
+    family: { ...(base['family'] as Record<string, unknown>), create: () => db.familyInstance },
     driver: {
       kind: 'driver',
       id: 'pg',
       familyId: 'sql',
       targetId: 'postgres',
       version: '1.0.0',
-      create: () => ({}),
+      create: async () => {
+        db.counters.connections += 1;
+        return db.driver;
+      },
     },
     db: { connection: CONNECTION },
   };
 }
 
 function harness(config: Record<string, unknown>) {
-  return createTestCli({ commands, groups, config: { orm: config } });
+  return createTestCli({ commands: BIN_COMMANDS, groups: BIN_GROUPS, config: { orm: config } });
 }
 
 /** A project whose app space carries one migration ∅ → HASH_HEAD. */
@@ -101,6 +104,10 @@ async function projectWithOneMigration(): Promise<
   return { ...project, migrationHash: seeded.migrationHash };
 }
 
+function markersAt(storageHash: string) {
+  return new Map([['app', { storageHash, invariants: [] as readonly string[] }]]);
+}
+
 function codesAndSeverities(
   diagnostics: readonly Diagnostic[],
 ): ReadonlyArray<{ code: string; severity: string }> {
@@ -110,12 +117,12 @@ function codesAndSeverities(
 describe('migration status', () => {
   it('settles as a completed envelope carrying the status document', async () => {
     const project = await projectWithOneMigration();
-    mocks.readAllMarkers.mockResolvedValue(
-      new Map([['app', { storageHash: HASH_HEAD, invariants: [] }]]),
-    );
-    mocks.readLedger.mockResolvedValue([{ migrationHash: project.migrationHash }]);
+    const db = fakeDatabase({
+      markers: markersAt(HASH_HEAD),
+      ledger: [{ migrationHash: project.migrationHash }],
+    });
 
-    const run = await harness(driverConfig(project)).run(['migration', 'status', '--json'], {
+    const run = await harness(driverConfig(project, db)).run(['migration', 'status', '--json'], {
       cwd: project.dir,
     });
 
@@ -139,11 +146,9 @@ describe('migration status', () => {
   it('records an unreadable contract as a warn diagnostic and still exits 0', async () => {
     const project = await projectWithOneMigration();
     await rm(project.contractPath);
-    mocks.readAllMarkers.mockResolvedValue(
-      new Map([['app', { storageHash: HASH_HEAD, invariants: [] }]]),
-    );
+    const db = fakeDatabase({ markers: markersAt(HASH_HEAD) });
 
-    const run = await harness(driverConfig(project)).run(['migration', 'status', '--json'], {
+    const run = await harness(driverConfig(project, db)).run(['migration', 'status', '--json'], {
       cwd: project.dir,
     });
 
@@ -159,11 +164,9 @@ describe('migration status', () => {
 
   it('records a marker outside the graph as a warn diagnostic and still exits 0', async () => {
     const project = await projectWithOneMigration();
-    mocks.readAllMarkers.mockResolvedValue(
-      new Map([['app', { storageHash: HASH_UNKNOWN, invariants: [] }]]),
-    );
+    const db = fakeDatabase({ markers: markersAt(HASH_UNKNOWN) });
 
-    const run = await harness(driverConfig(project)).run(['migration', 'status', '--json'], {
+    const run = await harness(driverConfig(project, db)).run(['migration', 'status', '--json'], {
       cwd: project.dir,
     });
 
@@ -171,6 +174,7 @@ describe('migration status', () => {
     expect(codesAndSeverities(run.presented?.diagnostics ?? [])).toEqual([
       { code: 'MIGRATION.MARKER_NOT_IN_HISTORY', severity: 'warn' },
     ]);
+    expect(run.presented?.diagnostics.at(0)).toMatchObject({ meta: { space: 'app' } });
     expect(run.presented?.data).toMatchObject({
       summary: `Database marker ${HASH_UNKNOWN.slice(0, 12)} is not in the on-disk migration graph`,
     });
@@ -195,11 +199,9 @@ describe('migration status', () => {
       hash: HASH_HEAD,
       invariants: ['users.email.unique'],
     });
-    mocks.readAllMarkers.mockResolvedValue(
-      new Map([['app', { storageHash: HASH_BASE, invariants: [] }]]),
-    );
+    const db = fakeDatabase({ markers: markersAt(HASH_BASE) });
 
-    const run = await harness(driverConfig(project)).run(
+    const run = await harness(driverConfig(project, db)).run(
       ['migration', 'status', '--to', 'production', '--json'],
       { cwd: project.dir },
     );
@@ -216,11 +218,9 @@ describe('migration status', () => {
 
   it('keeps the findings in the json document as well as on the envelope', async () => {
     const project = await projectWithOneMigration();
-    mocks.readAllMarkers.mockResolvedValue(
-      new Map([['app', { storageHash: HASH_UNKNOWN, invariants: [] }]]),
-    );
+    const db = fakeDatabase({ markers: markersAt(HASH_UNKNOWN) });
 
-    const run = await harness(driverConfig(project)).run(['migration', 'status', '--json'], {
+    const run = await harness(driverConfig(project, db)).run(['migration', 'status', '--json'], {
       cwd: project.dir,
     });
     const document = run.presented?.data as { diagnostics: ReadonlyArray<{ code: string }> };
@@ -230,7 +230,7 @@ describe('migration status', () => {
         code: 'MIGRATION.MARKER_NOT_IN_HISTORY',
         severity: 'warn',
         message:
-          'Database was updated outside the migration system (marker does not match any migration)',
+          'Database was updated outside the migration system (marker for space "app" does not match any migration)',
         hints: [expect.stringContaining('db sign'), expect.stringContaining('db update')],
       },
     ]);
@@ -238,11 +238,9 @@ describe('migration status', () => {
 
   it('heads the human output with the migrations directory and the masked database', async () => {
     const project = await projectWithOneMigration();
-    mocks.readAllMarkers.mockResolvedValue(
-      new Map([['app', { storageHash: HASH_HEAD, invariants: [] }]]),
-    );
+    const db = fakeDatabase({ markers: markersAt(HASH_HEAD) });
 
-    const run = await harness(driverConfig(project)).run(['migration', 'status'], {
+    const run = await harness(driverConfig(project, db)).run(['migration', 'status'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -259,11 +257,9 @@ describe('migration status', () => {
 
   it('draws the space tree as toned spans rather than a pre-coloured string', async () => {
     const project = await projectWithOneMigration();
-    mocks.readAllMarkers.mockResolvedValue(
-      new Map([['app', { storageHash: HASH_HEAD, invariants: [] }]]),
-    );
+    const db = fakeDatabase({ markers: markersAt(HASH_HEAD) });
 
-    const run = await harness(driverConfig(project)).run(['migration', 'status'], {
+    const run = await harness(driverConfig(project, db)).run(['migration', 'status'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -278,11 +274,9 @@ describe('migration status', () => {
 
   it('renders the tree and the headline to stderr', async () => {
     const project = await projectWithOneMigration();
-    mocks.readAllMarkers.mockResolvedValue(
-      new Map([['app', { storageHash: HASH_HEAD, invariants: [] }]]),
-    );
+    const db = fakeDatabase({ markers: markersAt(HASH_HEAD) });
 
-    const run = await harness(driverConfig(project)).run(['migration', 'status'], {
+    const run = await harness(driverConfig(project, db)).run(['migration', 'status'], {
       cwd: project.dir,
       isTty: { stdout: true, stderr: true },
     });
@@ -296,7 +290,6 @@ describe('migration status', () => {
 
   it('closes the ends of the run summary line with the pending count', async () => {
     const project = await projectWithOneMigration();
-    mocks.readAllMarkers.mockResolvedValue(new Map());
 
     const run = await harness(driverConfig(project)).run(['migration', 'status'], {
       cwd: project.dir,
@@ -312,14 +305,15 @@ describe('migration status', () => {
 
   it('never opens a connection when --from asks for an offline preview', async () => {
     const project = await projectWithOneMigration();
+    const db = fakeDatabase();
 
-    const run = await harness(driverConfig(project)).run(
+    const run = await harness(driverConfig(project, db)).run(
       ['migration', 'status', '--from', HASH_HEAD, '--json'],
       { cwd: project.dir },
     );
 
     expect(run.exitCode).toBe(0);
-    expect(mocks.connect).not.toHaveBeenCalled();
+    expect(db.counters.connections).toBe(0);
   });
 
   it('errors when no connection is configured and --from is absent', async () => {
@@ -339,7 +333,6 @@ describe('migration status', () => {
 
   it('errors when --space names a space that is not on disk', async () => {
     const project = await projectWithOneMigration();
-    mocks.readAllMarkers.mockResolvedValue(new Map());
 
     const run = await harness(driverConfig(project)).run(
       ['migration', 'status', '--space', 'nope', '--json'],
@@ -355,7 +348,6 @@ describe('migration status', () => {
 
   it('prints the glyph key as its own drawing under --legend', async () => {
     const project = await projectWithOneMigration();
-    mocks.readAllMarkers.mockResolvedValue(new Map());
 
     const run = await harness(driverConfig(project)).run(['migration', 'status', '--legend'], {
       cwd: project.dir,
@@ -369,14 +361,16 @@ describe('migration status', () => {
 
   it('closes the connection and keeps the structured error when the marker read fails', async () => {
     const project = await projectWithOneMigration();
-    mocks.readAllMarkers.mockRejectedValue(new Error('connection reset'));
-    mocks.close.mockRejectedValue(new Error('close failed'));
+    const db = fakeDatabase({
+      readMarkersError: new Error('connection reset'),
+      closeError: new Error('close failed'),
+    });
 
-    const run = await harness(driverConfig(project)).run(['migration', 'status', '--json'], {
+    const run = await harness(driverConfig(project, db)).run(['migration', 'status', '--json'], {
       cwd: project.dir,
     });
 
-    expect(mocks.close).toHaveBeenCalled();
+    expect(db.counters.closes).toBe(1);
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
       kind: 'result',

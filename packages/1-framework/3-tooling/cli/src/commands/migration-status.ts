@@ -578,6 +578,7 @@ export async function executeMigrationStatusCommand(
     if (missing.length > 0) {
       diagnostics.push({
         code: 'MIGRATION.MISSING_INVARIANTS',
+        severity: 'warn',
         ...ifDefined('ref', activeRefName),
         invariants: missing,
         message: `missing invariant(s): ${missing.join(', ')}`,
