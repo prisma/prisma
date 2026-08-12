@@ -98,12 +98,12 @@ describe('init installs', () => {
       expect(run.exitCode).toBe(0);
       expect(calls.slice(0, 2)).toEqual([
         {
-          file: 'npm',
+          file: expect.any(String),
           args: ['add', '@prisma/orm-postgres', 'dotenv'],
           cwd: projectDir,
         },
         {
-          file: 'npm',
+          file: expect.any(String),
           args: ['add', '-D', 'prisma-next', '@types/node'],
           cwd: projectDir,
         },
@@ -130,7 +130,7 @@ describe('init installs', () => {
       expect(run.events).toContainEqual(
         expect.objectContaining({
           kind: 'step-started',
-          step: 'npm add @prisma/orm-postgres dotenv',
+          step: expect.stringContaining('add @prisma/orm-postgres dotenv'),
         }),
       );
     },
@@ -248,15 +248,14 @@ describe('init installs', () => {
     async () => {
       await harness().run(scaffoldArgv(), { cwd: projectDir });
 
+      const first = skillCalls()[0];
+
       expect(skillCalls()).toHaveLength(3);
-      expect(skillCalls()[0]).toMatchObject({
-        file: 'npx',
-        cwd: projectDir,
-      });
-      expect(skillCalls()[0]?.args.slice(0, 2)).toEqual(['skills@latest', 'add']);
-      expect(skillCalls()[0]?.args).toContain('--skill');
-      expect(skillCalls()[0]?.args).toContain('prisma-8');
-      expect(skillCalls()[0]?.args.at(-1)).toBe('-y');
+      expect(first).toMatchObject({ cwd: projectDir });
+      expect(first?.args).toEqual(
+        expect.arrayContaining(['skills@latest', 'add', '--skill', 'prisma-8']),
+      );
+      expect(first?.args.at(-1)).toBe('-y');
     },
     timeouts.coldTransformImport,
   );

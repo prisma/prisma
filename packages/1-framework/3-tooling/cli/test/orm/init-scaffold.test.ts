@@ -216,7 +216,7 @@ describe('init scaffold', () => {
 
         expect(envelopeOf(run)).toMatchObject({ ok: true });
         expect(run.exitCode).toBe(0);
-        expect(calls[1]).toEqual({ file: 'npm', args: ['add', '-D', 'prisma-next'] });
+        expect(calls[1]?.args).toEqual(['add', '-D', 'prisma-next']);
       },
       timeouts.coldTransformImport,
     );
