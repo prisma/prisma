@@ -177,7 +177,7 @@ export async function setupTestSuiteDatabase({
       }
 
       const runtimeConfig = buildPrismaConfig({ suiteMeta, suiteConfig, datasourceInfo })
-      await DbPush.new().parse(dbPushParams, runtimeConfig, testDirectoryPath)
+      await DbPush.new('prisma').parse(dbPushParams, runtimeConfig, testDirectoryPath)
 
       if (
         suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
@@ -207,7 +207,7 @@ export async function setupTestSuiteDatabase({
       const runtimeConfig = buildPrismaConfig({ suiteMeta, suiteConfig, datasourceInfo })
       const testDirectoryPath = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
 
-      await DbExecute.new().parse(
+      await DbExecute.new('prisma').parse(
         ['--file', `${prismaDir}/migrations/${timestamp}/migration.sql`],
         runtimeConfig,
         testDirectoryPath,
@@ -292,7 +292,7 @@ async function getD1MigrationScript({
 }): Promise<string> {
   const sqlScriptPath = temporaryFile()
 
-  const diffResult = await MigrateDiff.new().parse(
+  const diffResult = await MigrateDiff.new('prisma').parse(
     ['--from-empty', '--to-schema', schemaPath, '--script', '--output', sqlScriptPath],
     prismaConfig,
     testDirectoryPath,

@@ -35,19 +35,15 @@ import { getMigrationName } from '../utils/promptForMigrationName'
 
 const debug = Debug('prisma:migrate:dev')
 
-export class MigrateDev implements Command {
-  public static new(): MigrateDev {
-    return new MigrateDev()
-  }
-
-  private static help = format(`
+function renderHelp(cliCommand: string): string {
+  return format(`
 ${
   process.platform === 'win32' ? '' : '🏋️  '
 }Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
 
 ${bold('Usage')}
 
-  ${dim('$')} prisma migrate dev [options]
+  ${dim('$')} ${cliCommand} migrate dev [options]
 
   The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
@@ -64,14 +60,22 @@ ${bold('Options')}
 ${bold('Examples')}
 
   Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
-  ${dim('$')} prisma migrate dev
+  ${dim('$')} ${cliCommand} migrate dev
 
   Specify a schema
-  ${dim('$')} prisma migrate dev --schema=./schema.prisma
+  ${dim('$')} ${cliCommand} migrate dev --schema=./schema.prisma
 
   Create a migration without applying it
-  ${dim('$')} prisma migrate dev --create-only
+  ${dim('$')} ${cliCommand} migrate dev --create-only
   `)
+}
+
+export class MigrateDev implements Command {
+  public static new(cliCommand: string): MigrateDev {
+    return new MigrateDev(cliCommand)
+  }
+
+  private constructor(private readonly cliCommand: string) {}
 
   public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
@@ -346,8 +350,8 @@ ${green('Your database is now in sync with your schema.')}\n`,
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateDev.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${renderHelp(this.cliCommand)}`)
     }
-    return MigrateDev.help
+    return renderHelp(this.cliCommand)
   }
 }

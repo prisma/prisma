@@ -50,7 +50,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
     // See changing_all_referenced_columns_of_foreign_key_works
     // in https://github.com/prisma/prisma-engines/blob/f8f78f335fd86dea323d7fbc581fdf500d745e9a/schema-engine/sql-migration-tests/tests/migrations/foreign_keys.rs#L287-L318.
     it.failing('changing_all_referenced_columns_of_foreign_key_works', async () => {
-      const cliInstance = MigrateDiff.new()
+      const cliInstance = MigrateDiff.new('prisma')
       ctx.fixture('schema-sqlite-d1-change-all-referenced-columns')
 
       // Create D1 database
@@ -147,7 +147,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
     // See migration_tests::existing_data::primary_key_migrations_do_not_cause_data_loss
     // in https://github.com/prisma/prisma-engines/blob/6e26301fe272ba4ba0598fe43eb5d8df030be4db/schema-engine/sql-migration-tests/tests/existing_data/mod.rs#L784-L866.
     it('migration_tests::existing_data::primary_key_migrations_do_not_cause_data_loss', async () => {
-      const cliInstance = MigrateDiff.new()
+      const cliInstance = MigrateDiff.new('prisma')
       ctx.fixture('schema-sqlite-d1-migrations-do-not-cause-data-loss')
 
       // Create D1 database
@@ -267,7 +267,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
     // See `migration_tests::migrations::relations::adding_mutual_references_on_existing_tables_works`
     // in https://github.com/prisma/prisma-engines/blob/main/schema-engine/sql-migration-tests/tests/migrations/relations.rs.
     it.failing('relations::adding_mutual_references_on_existing_tables_works', async () => {
-      const cliInstance = MigrateDiff.new()
+      const cliInstance = MigrateDiff.new('prisma')
       ctx.fixture('schema-sqlite-d1-mutual-references')
 
       // Create D1 database
@@ -368,7 +368,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
 
     // Based on: https://github.com/prisma/prisma/issues/24208
     it('issue #24208 - broken migrations with relations', async () => {
-      const cliInstance = MigrateDiff.new()
+      const cliInstance = MigrateDiff.new('prisma')
       ctx.fixture('schema-sqlite-d1-24208')
 
       // Create D1 database
@@ -483,7 +483,7 @@ describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
     })
 
     it('incremental changes succeed until foreign keys are violated', async () => {
-      const cliInstance = MigrateDiff.new()
+      const cliInstance = MigrateDiff.new('prisma')
       ctx.fixture('schema-sqlite-d1')
 
       // Create D1 database

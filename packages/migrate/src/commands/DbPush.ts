@@ -26,17 +26,13 @@ import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDataba
 import { DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 
-export class DbPush implements Command {
-  public static new(): DbPush {
-    return new DbPush()
-  }
-
-  private static help = format(`
+function renderHelp(cliCommand: string): string {
+  return format(`
 ${process.platform === 'win32' ? '' : '🙌  '}Push the state from your Prisma schema to your database
 
 ${bold('Usage')}
 
-  ${dim('$')} prisma db push [options]
+  ${dim('$')} ${cliCommand} db push [options]
 
   The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
@@ -52,14 +48,22 @@ ${bold('Options')}
 ${bold('Examples')}
 
   Push the Prisma schema state to the database
-  ${dim('$')} prisma db push
+  ${dim('$')} ${cliCommand} db push
 
   Specify a schema
-  ${dim('$')} prisma db push --schema=./schema.prisma
+  ${dim('$')} ${cliCommand} db push --schema=./schema.prisma
 
   Ignore data loss warnings
-  ${dim('$')} prisma db push --accept-data-loss
+  ${dim('$')} ${cliCommand} db push --accept-data-loss
 `)
+}
+
+export class DbPush implements Command {
+  public static new(cliCommand: string): DbPush {
+    return new DbPush(cliCommand)
+  }
+
+  private constructor(private readonly cliCommand: string) {}
 
   public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(
@@ -274,8 +278,8 @@ ${bold(red('All data will be lost.'))}
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbPush.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${renderHelp(this.cliCommand)}`)
     }
-    return DbPush.help
+    return renderHelp(this.cliCommand)
   }
 }

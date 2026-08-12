@@ -37,17 +37,13 @@ import { createSpinner } from '../utils/spinner'
 
 const debug = Debug('prisma:db:pull')
 
-export class DbPull implements Command {
-  public static new(): DbPull {
-    return new DbPull()
-  }
-
-  private static help = format(`
+function renderHelp(cliCommand: string): string {
+  return format(`
 Pull the state from the database to the Prisma schema using introspection
 
 ${bold('Usage')}
 
-  ${dim('$')} prisma db pull [flags/options]
+  ${dim('$')} ${cliCommand} db pull [flags/options]
 
   The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
@@ -69,21 +65,29 @@ ${bold('Options')}
 ${bold('Examples')}
 
 With an existing Prisma schema
-  ${dim('$')} prisma db pull
+  ${dim('$')} ${cliCommand} db pull
 
 Or specify a Prisma schema path
-  ${dim('$')} prisma db pull --schema=./schema.prisma
+  ${dim('$')} ${cliCommand} db pull --schema=./schema.prisma
 
 Instead of saving the result to the filesystem, you can also print it to stdout
-  ${dim('$')} prisma db pull --print
+  ${dim('$')} ${cliCommand} db pull --print
 
 Overwrite the current schema with the introspected schema instead of enriching it
-  ${dim('$')} prisma db pull --force
+  ${dim('$')} ${cliCommand} db pull --force
 
 Set composite types introspection depth to 2 levels
-  ${dim('$')} prisma db pull --composite-type-depth=2
+  ${dim('$')} ${cliCommand} db pull --composite-type-depth=2
 
 `)
+}
+
+export class DbPull implements Command {
+  public static new(cliCommand: string): DbPull {
+    return new DbPull(cliCommand)
+  }
+
+  private constructor(private readonly cliCommand: string) {}
 
   public async parse(
     argv: string[],
@@ -320,8 +324,8 @@ ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Cl
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbPull.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${renderHelp(this.cliCommand)}`)
     }
-    return DbPull.help
+    return renderHelp(this.cliCommand)
   }
 }

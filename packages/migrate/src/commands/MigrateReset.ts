@@ -24,17 +24,13 @@ import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 
-export class MigrateReset implements Command {
-  public static new(): MigrateReset {
-    return new MigrateReset()
-  }
-
-  private static help = format(`
+function renderHelp(cliCommand: string): string {
+  return format(`
 Reset your database and apply all migrations, all data will be lost
 
 ${bold('Usage')}
 
-  ${dim('$')} prisma migrate reset [options]
+  ${dim('$')} ${cliCommand} migrate reset [options]
 
   The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
@@ -48,14 +44,22 @@ ${bold('Options')}
 ${bold('Examples')}
 
   Reset your database and apply all migrations, all data will be lost
-  ${dim('$')} prisma migrate reset
+  ${dim('$')} ${cliCommand} migrate reset
 
   Specify a schema
-  ${dim('$')} prisma migrate reset --schema=./schema.prisma
+  ${dim('$')} ${cliCommand} migrate reset --schema=./schema.prisma
 
   Use --force to skip the confirmation prompt
-  ${dim('$')} prisma migrate reset --force
+  ${dim('$')} ${cliCommand} migrate reset --force
   `)
+}
+
+export class MigrateReset implements Command {
+  public static new(cliCommand: string): MigrateReset {
+    return new MigrateReset(cliCommand)
+  }
+
+  private constructor(private readonly cliCommand: string) {}
 
   public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(argv, {
@@ -170,8 +174,8 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateReset.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${renderHelp(this.cliCommand)}`)
     }
-    return MigrateReset.help
+    return renderHelp(this.cliCommand)
   }
 }

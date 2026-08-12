@@ -330,7 +330,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
   it('should succeed when schema and db do match', async () => {
     ctx.fixture('introspect')
-    const result = DbPull.new().parse([], await ctx.config(), ctx.configDir())
+    const result = DbPull.new('prisma').parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)
 
@@ -347,7 +347,11 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
   it('should succeed and keep changes to valid schema and output warnings', async () => {
     ctx.fixture('introspect')
-    const result = DbPull.new().parse(['--schema=./prisma/reintrospection.prisma'], await ctx.config(), ctx.configDir())
+    const result = DbPull.new('prisma').parse(
+      ['--schema=./prisma/reintrospection.prisma'],
+      await ctx.config(),
+      ctx.configDir(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -414,7 +418,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
   it('should succeed and keep changes to valid schema and output warnings when using --print', async () => {
     ctx.fixture('introspect')
     const originalSchema = ctx.fs.read('prisma/reintrospection.prisma')
-    const result = DbPull.new().parse(
+    const result = DbPull.new('prisma').parse(
       ['--print', '--schema=./prisma/reintrospection.prisma'],
       await ctx.config(),
       ctx.configDir(),
@@ -480,7 +484,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
   it('should succeed when schema and db do not match', async () => {
     ctx.fixture('existing-db-histories-diverge')
-    const result = DbPull.new().parse([], await ctx.config(), ctx.configDir())
+    const result = DbPull.new('prisma').parse([], await ctx.config(), ctx.configDir())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -496,7 +500,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
   it('should fail when db is missing', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = DbPull.new().parse([], await ctx.config(), ctx.configDir())
+    const result = DbPull.new('prisma').parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       P1003 The introspected database does not exist:
@@ -524,7 +528,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
   it('should fail when db is empty', async () => {
     ctx.fixture('schema-only-sqlite')
     ctx.fs.write('dev.db', '')
-    const result = DbPull.new().parse([], await ctx.config(), ctx.configDir())
+    const result = DbPull.new('prisma').parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       P4001 The introspected database was empty:
@@ -551,7 +555,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
   it('should fail when Prisma schema is missing', async () => {
     ctx.fixture('valid-config-only')
-    const result = DbPull.new().parse([], await ctx.config(), ctx.configDir())
+    const result = DbPull.new('prisma').parse([], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find a schema.prisma file that is required for this command.
       You can either provide it with --schema, set its path in the \`schema\` property in your Prisma Config file, or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
@@ -562,7 +566,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
   it('should fail when schema is invalid', async () => {
     ctx.fixture('introspect')
-    const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma'], await ctx.config(), ctx.configDir())
+    const result = DbPull.new('prisma').parse(['--schema=./prisma/invalid.prisma'], await ctx.config(), ctx.configDir())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P1012
 
@@ -596,7 +600,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
   it('should succeed when schema is invalid and using --force', async () => {
     ctx.fixture('introspect')
 
-    const result = DbPull.new().parse(
+    const result = DbPull.new('prisma').parse(
       ['--schema=./prisma/invalid.prisma', '--force'],
       await ctx.config(),
       ctx.configDir(),

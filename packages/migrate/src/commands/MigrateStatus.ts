@@ -24,17 +24,13 @@ import { printDatasource } from '../utils/printDatasource'
 
 const debug = Debug('prisma:migrate:status')
 
-export class MigrateStatus implements Command {
-  public static new(): MigrateStatus {
-    return new MigrateStatus()
-  }
-
-  private static help = format(`
+function renderHelp(cliCommand: string): string {
+  return format(`
 Check the status of your database migrations
 
   ${bold('Usage')}
 
-    ${dim('$')} prisma migrate status [options]
+    ${dim('$')} ${cliCommand} migrate status [options]
 
     The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
@@ -47,11 +43,19 @@ Check the status of your database migrations
   ${bold('Examples')}
 
   Check the status of your database migrations
-  ${dim('$')} prisma migrate status
+  ${dim('$')} ${cliCommand} migrate status
 
   Specify a schema
-  ${dim('$')} prisma migrate status --schema=./schema.prisma
+  ${dim('$')} ${cliCommand} migrate status --schema=./schema.prisma
 `)
+}
+
+export class MigrateStatus implements Command {
+  public static new(cliCommand: string): MigrateStatus {
+    return new MigrateStatus(cliCommand)
+  }
+
+  private constructor(private readonly cliCommand: string) {}
 
   public async parse(argv: string[], config: PrismaConfigInternal, baseDir: string): Promise<string | Error> {
     const args = arg(
@@ -239,8 +243,8 @@ ${link('https://pris.ly/d/migrate-resolve')}`)
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateStatus.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${renderHelp(this.cliCommand)}`)
     }
-    return MigrateStatus.help
+    return renderHelp(this.cliCommand)
   }
 }
