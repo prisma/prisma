@@ -90,7 +90,9 @@ export function consentToken(cwd: string): string {
 
 async function askTarget(prompt: PromptSurface): Promise<TargetId> {
   return prompt.select<TargetId>('What database are you using?', [
+    // biome-ignore lint/plugin/no-family-vocabulary: names a target on purpose — the interactive picker showing the user what they can choose
     { value: 'postgres', label: 'PostgreSQL' },
+    // biome-ignore lint/plugin/no-family-vocabulary: names a target on purpose — the interactive picker showing the user what they can choose
     { value: 'mongo', label: 'MongoDB' },
   ]);
 }

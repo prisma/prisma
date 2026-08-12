@@ -76,10 +76,13 @@ export const initCommand = defineOrmCommand({
       'for a fully scriptable run (CI, AI coding agents, automation).',
     examples: [
       'init',
+      // biome-ignore lint/plugin/no-family-vocabulary: names a target on purpose — user-facing help showing what to pass to --target
       'init --target postgres --authoring psl',
+      // biome-ignore lint/plugin/no-family-vocabulary: names a target on purpose — user-facing help showing what to pass to --target
       'init --target mongodb --authoring typescript --json',
       'init --skip-install',
       'init --skip-skills',
+      // biome-ignore lint/plugin/no-family-vocabulary: names a target on purpose — user-facing help showing what to pass to --target
       'init --target postgres --keep-previous-facade',
     ],
   },
@@ -88,6 +91,7 @@ export const initCommand = defineOrmCommand({
       // Not flag.enum: the aliases and capitalizations init has always
       // accepted (postgresql, mongodb, ts, any case) are matched in the
       // handler, where a rejection can name every allowed value.
+      // biome-ignore lint/plugin/no-family-vocabulary: names the targets on purpose — user-facing flag help listing the accepted values
       target: flag.string({ brief: 'Database target: postgres or mongodb', placeholder: 'db' }),
       authoring: flag.string({
         brief: 'Schema authoring style: psl or typescript',
