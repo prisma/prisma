@@ -292,7 +292,7 @@ export type RawSqlStatementTag = (
 type RawExprInterpolation = Expression<ScopeField> | ParamRef | RawSqlLiteral;
 
 /** Interpolations a raw template accepts; a {@link RawRowQuery} splices its own parts in. */
-type RawSqlInterpolation = RawExprInterpolation | RawRowQuery;
+export type RawSqlInterpolation = RawExprInterpolation | RawRowQuery;
 
 function resolveInterpolation(
   adapter: RawCodecInferer,
