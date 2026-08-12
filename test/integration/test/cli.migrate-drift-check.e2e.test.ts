@@ -14,6 +14,13 @@ import {
   swapContract,
 } from './utils/journey-test-helpers';
 
+/** The typed remediation as one blob, so a regex can look for a named command. */
+function remediation(error: MigrateErrorJson): string {
+  return (error.nextActions ?? [])
+    .map((action) => `${action.label} ${action.command ?? ''}`)
+    .join('\n');
+}
+
 interface MigrateErrorJson {
   readonly ok?: boolean;
   readonly code?: string;
@@ -25,7 +32,7 @@ interface MigrateErrorJson {
     readonly targetHash?: string;
     readonly kind?: string;
   };
-  readonly fix?: string;
+  readonly nextActions?: readonly { readonly label: string; readonly command?: string }[];
   readonly why?: string;
 }
 
@@ -78,8 +85,8 @@ withTempDir(({ createTempDir }) => {
             expect(err.meta?.markerHash).toBe(staleMarker);
             expect(err.meta?.reachableHashes?.length).toBeGreaterThan(0);
             expect(err.meta?.reachableHashes).not.toContain(staleMarker);
-            expect(err.fix).toMatch(/migration plan/);
-            expect(err.fix).toMatch(/ref set db/);
+            expect(remediation(err)).toMatch(/migration plan/);
+            expect(remediation(err)).toMatch(/ref set db/);
           });
         });
       },
@@ -189,9 +196,9 @@ withTempDir(({ createTempDir }) => {
             const err = parseJsonOutput<MigrateErrorJson>(unreachable);
             expect(err.code).toBe('MIGRATION.PATH_UNREACHABLE');
             expect(err.meta?.kind).toBe('pathUnreachable');
-            expect(err.fix).toMatch(/migration list/);
-            expect(err.fix).toMatch(/migration plan/);
-            expect(err.fix).toMatch(/migration show/);
+            expect(remediation(err)).toMatch(/migration list/);
+            expect(remediation(err)).toMatch(/migration plan/);
+            expect(remediation(err)).toMatch(/migration show/);
           });
         });
       },

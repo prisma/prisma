@@ -2,21 +2,13 @@ import { withClient } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  parseJsonOutput,
   runContractEmit,
   runDbInit,
   setupJourney,
   timeouts,
   useDevDatabase,
 } from '../utils/journey-test-helpers';
-
-function extractJson(text: string): Record<string, unknown> {
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start === -1 || end === -1) {
-    throw new Error(`No JSON object found in output:\n${text}`);
-  }
-  return JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
-}
 
 async function plantLegacyMarker(connectionString: string) {
   await withClient(connectionString, async (client) => {
@@ -56,12 +48,15 @@ withTempDir(({ createTempDir }) => {
         const initFail = await runDbInit(ctx, ['--json', '--no-color']);
         expect(initFail.exitCode).not.toBe(0);
 
-        const envelope = extractJson(initFail.stdout);
-        expect(envelope['code']).toBe('MIGRATION.RUNNER_FAILED');
-        expect(String(envelope['fix'])).toContain('Legacy marker-table shape detected');
-        expect(String(envelope['fix'])).toContain('prisma_contract.marker');
-        expect(String(envelope['fix'])).toContain('prisma-next db init');
-        expect(envelope['code']).not.toBe('CONTRACT.MARKER_READ_FAILED');
+        const error = parseJsonOutput<{
+          code: string;
+          nextActions: readonly { label: string }[];
+        }>(initFail);
+        expect(error.code).toBe('MIGRATION.RUNNER_FAILED');
+        const remediation = error.nextActions.map((action) => action.label).join('\n');
+        expect(remediation).toContain('Legacy marker-table shape detected');
+        expect(remediation).toContain('prisma_contract.marker');
+        expect(remediation).toContain('prisma-next db init');
       },
       timeouts.spinUpPpgDev,
     );

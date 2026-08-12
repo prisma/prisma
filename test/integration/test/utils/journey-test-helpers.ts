@@ -20,17 +20,13 @@ import { promisify } from 'node:util';
 import { loadOrmConfig, ormCommandFamily } from '@internal/cli';
 import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
 import { createContractInferCommand } from '@internal/cli/commands/contract-infer';
-import { createDbInitCommand } from '@internal/cli/commands/db-init';
-import { createDbSchemaCommand } from '@internal/cli/commands/db-schema';
 import { createDbSignCommand } from '@internal/cli/commands/db-sign';
 import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
 import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
-import { createMigrateCommand } from '@internal/cli/commands/migrate';
 import { createMigrationCheckCommand } from '@internal/cli/commands/migration-check';
 import { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
 import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
 import { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
-import { createRefCommand } from '@internal/cli/commands/ref';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { EngineEvent, PresentedResult, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
@@ -42,8 +38,6 @@ import { afterAll, beforeAll } from 'vitest';
 const execFileAsync = promisify(execFile);
 const TSX_BIN = resolve(import.meta.dirname, '../../../../node_modules/.bin/tsx');
 
-// Not exported from the CLI package subpath map.
-import { createFormatCommand } from '../../../../packages/1-framework/3-tooling/cli/src/commands/format';
 import {
   appendImplicitMigrationPlanFrom,
   executeCommand,
@@ -374,7 +368,11 @@ export async function runOnEngine(
   const cli = createTestCli({
     commandFamilies: [ormCommandFamily],
     commands: ormCommandFamily.commands,
-    groups: { migration: { brief: 'On-disk migration management commands' } },
+    groups: {
+      db: { brief: 'Live database commands' },
+      migration: { brief: 'On-disk migration management commands' },
+      ref: { brief: 'Named pointers at contracts' },
+    },
     config: loaded.sections,
   });
 
@@ -415,8 +413,9 @@ export async function runContractInfer(
 export async function runDbInit(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbInitCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'init', ...extraArgs], options);
 }
 
 export async function runDbUpdate(
@@ -443,8 +442,9 @@ export async function runDbSign(
 export async function runDbSchema(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbSchemaCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'schema', ...extraArgs], options);
 }
 
 export async function runMigrationPlan(
@@ -468,8 +468,9 @@ export async function runMigrationNew(
 export async function runMigrate(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrateCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migrate', ...extraArgs], options);
 }
 
 export async function runMigrationStatus(
@@ -645,15 +646,9 @@ export async function runMigrationPlanAndEmit(
 export async function runRef(
   ctx: JourneyContext,
   subcommandArgs: readonly string[],
-): Promise<CommandResult> {
-  const [subcommand, ...rest] = subcommandArgs;
-  return runCommandRaw(createRefCommand(), ctx.testDir, [
-    subcommand!,
-    '--config',
-    ctx.configPath,
-    '--no-color',
-    ...rest,
-  ]);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['ref', ...subcommandArgs], options);
 }
 
 /**
@@ -671,11 +666,12 @@ export async function runContractEmitWithConfig(
   ]);
 }
 
-export async function runFormatWithConfig(
-  testDir: string,
-  configPath: string,
-): Promise<CommandResult> {
-  return runCommandRaw(createFormatCommand(), testDir, ['--config', configPath]);
+export async function runFormat(
+  ctx: JourneyContext,
+  extraArgs: readonly string[] = [],
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['format', ...extraArgs], options);
 }
 
 /**
@@ -694,25 +690,49 @@ export async function runDbVerifyWithDb(
 // ---------------------------------------------------------------------------
 
 /**
- * Parses the JSON output from a --json command result.
- * Extracts the last valid JSON object from stdout (in case decoration preceded it).
+ * The document a step's `--json` run produced.
+ *
+ * The two shells frame it differently and this unwraps both. The commander
+ * writes the document itself; the engine writes one `StreamEvent` per line and
+ * carries the document inside the terminal `result` frame's envelope — under
+ * `result` when the command completed and under `error` when it did not, which
+ * is where the commander put its error envelope too.
  */
 export function parseJsonOutput<T = Record<string, unknown>>(result: CommandResult): T {
   const output = result.stdout.trim();
-  // JSON output goes to stdout. Try parsing the full output first.
+  const parsed = lastJsonValue(output);
+  if (parsed === undefined) {
+    throw new Error(`Failed to parse JSON from command output:\n${output}`);
+  }
+  const document = engineDocument(parsed);
+  return (document === undefined ? parsed : document) as T;
+}
+
+function lastJsonValue(output: string): unknown {
   try {
-    return JSON.parse(output) as T;
+    return JSON.parse(output);
   } catch {
-    // If mixed output, find the last JSON block
     const lines = output.split('\n');
     for (let i = lines.length - 1; i >= 0; i--) {
       const candidate = lines.slice(i).join('\n').trim();
       try {
-        return JSON.parse(candidate) as T;
+        return JSON.parse(candidate);
       } catch {}
     }
-    throw new Error(`Failed to parse JSON from command output:\n${output}`);
+    return undefined;
   }
+}
+
+function engineDocument(parsed: unknown): unknown {
+  if (typeof parsed !== 'object' || parsed === null) {
+    return undefined;
+  }
+  const frame = parsed as { kind?: unknown; envelope?: unknown };
+  if (frame.kind !== 'result' || typeof frame.envelope !== 'object' || frame.envelope === null) {
+    return undefined;
+  }
+  const envelope = frame.envelope as { ok?: unknown; result?: unknown; error?: unknown };
+  return envelope.ok === true ? envelope.result : envelope.error;
 }
 
 export { EMPTY_CONTRACT_HASH };

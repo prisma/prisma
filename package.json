@@ -72,7 +72,7 @@
     "lint:publishability": "node scripts/lint-publishability.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.6",
+    "@biomejs/biome": "2.5.7",
     "@cursor/sdk": "^1.0.26",
     "@internal/framework-components": "workspace:8.0.0-rc.1",
     "@internal/migration-tools": "workspace:8.0.0-rc.1",
@@ -80,7 +80,7 @@
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "^4.1.10",
     "arktype": "catalog:",
-    "dependency-cruiser": "^17.4.3",
+    "dependency-cruiser": "^18.1.0",
     "gray-matter": "catalog:",
     "husky": "^9.1.7",
     "lint-staged": "^17.2.0",

@@ -19,22 +19,15 @@ import {
   executeMigrateShowPlan,
   type MigrateShowMigration,
 } from '../control-api/operations/migrate-show';
-import { listRefsByContractHash } from '../control-api/operations/migration-list';
 import { advanceRefSafely, readContractIR } from '../control-api/operations/ref-advancement';
 import { resolveContractRef } from '../control-api/operations/ref-resolution';
-import type {
-  MigrateFailure,
-  MigratePathDecision,
-  PerSpaceExecutionEntry,
-} from '../control-api/types';
+import type { MigratePathDecision, PerSpaceExecutionEntry } from '../control-api/types';
 import {
   type CliStructuredError as CliStructuredErrorType,
   errorContractValidationFailed,
   errorDatabaseConnectionRequired,
   errorDriverRequired,
   errorFileNotFound,
-  errorPathUnreachable,
-  errorRunnerFailed,
   errorTargetMigrationNotSupported,
   errorUnexpected,
 } from '../utils/cli-errors';
@@ -50,24 +43,14 @@ import {
 } from '../utils/command-helpers';
 import { toDeclaredExtensionsFromRaw } from '../utils/extension-pack-inputs';
 import {
-  computeLabelColumn,
-  computeMaxDirNameWidth,
-  renderMigrationGraphCommand,
-} from '../utils/formatters/migration-graph-command-render';
-import { buildGrid } from '../utils/formatters/migration-graph-grid-layout';
-import {
-  formatOnPathMigrationRow,
-  type MigrationEdgeAnnotation,
-} from '../utils/formatters/migration-graph-labels';
-import { buildMigrationGraphRows } from '../utils/formatters/migration-graph-rows';
-import {
-  highlightFromEdgeAnnotations,
-  indentMigrationGraphTreeBlock,
-} from '../utils/formatters/migration-graph-space-render';
+  migrateShowRunListRows,
+  renderMigrateShowGraph,
+} from '../utils/formatters/migrate-show-render';
 import { formatMigrationApplyCommandOutput } from '../utils/formatters/migrations';
 import { formatStyledHeader } from '../utils/formatters/styled';
 import type { CommonCommandOptions } from '../utils/global-flags';
 import { type GlobalFlags, parseGlobalFlagsOrExit } from '../utils/global-flags';
+import { mapMigrateFailure } from '../utils/migrate-failure';
 import { handleResult } from '../utils/result-handler';
 import { createTerminalUI, type TerminalUI } from '../utils/terminal-ui';
 
@@ -191,88 +174,22 @@ async function executeMigrateShowCommand(
     return notOk(planResult.failure);
   }
   const plan = planResult.value;
-  const { aggregate, contractHash } = plan;
   const orderedMigrations = plan.migrations;
-  const allSpaces = [aggregate.app, ...aggregate.extensions];
 
   // Build the Tier-3 graph visualization (human mode only; skipped for --json).
-  // Reuses the existing annotation hook — no parallel renderer.
+  // Reuses the shared renderer the ported command draws with — one layout, two
+  // palettes.
   let graphOutput: string | undefined;
   let runListDirNameWidth: number | undefined;
   let runListLeftPad: number | undefined;
   if (!flags.json) {
-    const onPathHashes = new Set(orderedMigrations.map((m) => m.migrationHash));
-    const colorize = flags.color !== false;
-
-    // Build layouts for all spaces first so we can compute global column widths
-    // before rendering. This ensures the name column, hash column, and ops column
-    // start at the same horizontal offset across every space section AND the
-    // "Will run, in order:" list below.
-    const spaceLayouts = allSpaces.map((space) => {
-      const isApp = space.spaceId === aggregate.app.spaceId;
-      const spaceGraph = space.graph();
-      const rowModel = buildMigrationGraphRows(spaceGraph, isApp ? { contractHash } : {});
-      const edgeAnnotations = new Map<string, MigrationEdgeAnnotation>();
-      for (const edge of spaceGraph.migrationByHash.values()) {
-        edgeAnnotations.set(edge.migrationHash, {
-          pathHighlight: onPathHashes.has(edge.migrationHash) ? 'on-path' : 'off-path',
-        });
-      }
-      // The on-path migration set lifts to focus mode so the chosen route draws
-      // green/continuous; off-path lanes dim. Rows, gutter, and labels all come
-      // from this one grid.
-      const grid = buildGrid(rowModel, {}, highlightFromEdgeAnnotations(edgeAnnotations));
-      return { space, isApp, spaceGraph, rowModel, grid, edgeAnnotations };
+    const rendering = renderMigrateShowGraph(plan, {
+      colorize: flags.color !== false,
+      glyphMode: 'unicode',
     });
-
-    // Global max across all space grids so every section's labels share columns.
-    const globalLabelColumn =
-      spaceLayouts.length > 1
-        ? Math.max(...spaceLayouts.map(({ grid }) => computeLabelColumn(grid, 'unicode')))
-        : undefined;
-    const globalMaxDirNameWidthFromLayouts =
-      spaceLayouts.length > 1
-        ? Math.max(...spaceLayouts.map(({ rowModel }) => computeMaxDirNameWidth(rowModel)))
-        : undefined;
-    // The run-list name column width must be at least as wide as the global tree dirName
-    // width so that tree sections and the list align at the hash column.
-    const runListMaxFromMigrations =
-      orderedMigrations.length > 0
-        ? Math.max(...orderedMigrations.map((m) => m.dirName.length))
-        : 0;
-    const globalMaxDirNameWidth =
-      globalMaxDirNameWidthFromLayouts !== undefined
-        ? Math.max(globalMaxDirNameWidthFromLayouts, runListMaxFromMigrations)
-        : undefined;
-    runListDirNameWidth = globalMaxDirNameWidth ?? runListMaxFromMigrations;
-    runListLeftPad = globalLabelColumn;
-
-    // Render each space section with globally computed widths.
-    const showSpaceHeadings = allSpaces.length > 1;
-    const sections: string[] = [];
-    for (const { space, isApp, rowModel, grid, edgeAnnotations } of spaceLayouts) {
-      const liveMarkerHash = plan.renderMarkerHashBySpace.get(space.spaceId)!;
-      const tree = renderMigrationGraphCommand({
-        grid,
-        rowModel,
-        contractHash,
-        isAppSpace: isApp,
-        ...(plan.usedLiveMarker ? { dbHash: liveMarkerHash } : {}),
-        refsByHash: listRefsByContractHash(space),
-        edgeAnnotationsByHash: edgeAnnotations,
-        colorize,
-        glyphMode: 'unicode',
-        ...(globalLabelColumn !== undefined ? { globalLabelColumn } : {}),
-        ...(globalMaxDirNameWidth !== undefined ? { globalMaxDirNameWidth } : {}),
-      });
-      if (tree.length === 0) continue;
-      if (showSpaceHeadings) {
-        sections.push(`${space.spaceId}:\n${indentMigrationGraphTreeBlock(tree, '  ')}`);
-      } else {
-        sections.push(tree);
-      }
-    }
-    graphOutput = sections.join('\n\n');
+    graphOutput = rendering.graphOutput;
+    runListDirNameWidth = rendering.runListDirNameWidth;
+    runListLeftPad = rendering.runListLeftPad;
   }
 
   return ok({
@@ -287,7 +204,6 @@ async function executeMigrateShowCommand(
 
 function formatMigrateShowOutput(result: MigrateShowResult, flags: GlobalFlags): string {
   if (flags.quiet) return '';
-  const colorize = flags.color !== false;
   const lines: string[] = [];
   // Graph tree first (shows the full topology with on-path highlighted).
   if (result.graphOutput !== undefined && result.graphOutput.length > 0) {
@@ -295,59 +211,23 @@ function formatMigrateShowOutput(result: MigrateShowResult, flags: GlobalFlags):
     lines.push('');
   }
   const n = result.migrations.length;
-  if (n > 0) {
-    // Consolidated header: one line replaces the old separate summary + blank +
-    // "Will run, in order:" header.
-    lines.push(`The following ${n} migration${n === 1 ? '' : 's'} will run:`);
-    // Ordered list rendered through the SAME on-path row renderer as the tree.
-    // `formatOnPathMigrationRow` uses PATH_HIGHLIGHT_STYLES.onPath so the list and
-    // graph-tree rows are styled identically — changing the on-path colour in future
-    // is a one-line edit in PATH_HIGHLIGHT_STYLES.
-    //
-    // Alignment anchor: the `→` arrow (source-hash onward) must land at the SAME
-    // absolute column as in graph edge rows, across every graph section and this list.
-    //
-    // Multi-space output layout (space headings + 2-space indented tree sections):
-    //   Graph edge row:  [2 heading][G gutter][D dirName][7 source] [→] [dest]
-    //   List row:        [2 spaces][L dirName][  ][7 source] [→] [dest]
-    //   Alignment:  2 + G + D + 9 = 2 + L + 2 + 9   =>   L = G + D - 2
-    //
-    // Single-space output layout (flat tree, no heading indent):
-    //   Graph edge row:  [G gutter][D dirName][7 source] [→] [dest]
-    //   List row:        [2 spaces][L dirName][  ][7 source] [→] [dest]
-    //   Alignment:  G + D + 9 = 2 + L + 2 + 9   =>   L = G + D - 4
-    //
-    // D (edgeDirNameWidth) = max(rawDirNameWidth + LABEL_GAP, MIN_HASH_DATA_COLUMN - G)
-    // where LABEL_GAP = 2 and MIN_HASH_DATA_COLUMN = 25 (same constants as the renderer).
-    //
-    // runListLeftPad is set only for multi-space; undefined means single-space.
-    const isMultiSpace = result.runListLeftPad !== undefined;
-    const gutter = result.runListLeftPad ?? 0;
-    const rawDirNameWidth =
-      result.runListDirNameWidth ?? Math.max(...result.migrations.map((m) => m.dirName.length));
-    const edgeDirNameWidth = Math.max(rawDirNameWidth + 2, 25 - gutter);
-    const listDirNameWidth = gutter + edgeDirNameWidth - (isMultiSpace ? 2 : 4);
-    for (const m of result.migrations) {
-      lines.push(
-        `  ${formatOnPathMigrationRow(m.dirName, m.from, m.to, listDirNameWidth, colorize, 'unicode')}`,
-      );
-    }
-  } else {
+  if (n === 0) {
     lines.push(result.summary);
+    return lines.join('\n');
   }
+  lines.push(`The following ${n} migration${n === 1 ? '' : 's'} will run:`);
+  lines.push(
+    ...migrateShowRunListRows(
+      result.migrations,
+      {
+        runListDirNameWidth:
+          result.runListDirNameWidth ?? Math.max(...result.migrations.map((m) => m.dirName.length)),
+        runListLeftPad: result.runListLeftPad,
+      },
+      { colorize: flags.color !== false, glyphMode: 'unicode' },
+    ),
+  );
   return lines.join('\n');
-}
-
-function mapApplyFailure(failure: MigrateFailure): CliStructuredErrorType {
-  if (failure.code === 'MIGRATION_PATH_NOT_FOUND') {
-    return errorPathUnreachable(failure);
-  }
-  return errorRunnerFailed(failure.summary, {
-    why: failure.why ?? 'Migration runner failed',
-    fix: 'Fix the issue and re-run `prisma-next migrate --to <contract>` — previously applied migrations are preserved.',
-    meta: failure.meta ?? {},
-    ...ifDefined('cause', failure.cause),
-  });
 }
 
 async function executeMigrateCommand(
@@ -585,7 +465,7 @@ async function executeMigrateCommand(
     });
 
     if (!applyResult.ok) {
-      return notOk(mapApplyFailure(applyResult.failure));
+      return notOk(mapMigrateFailure(applyResult.failure));
     }
 
     const { value } = applyResult;
