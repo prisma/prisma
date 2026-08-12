@@ -105,6 +105,16 @@ jobs:
       - name: Check publish dependency specifiers
         run: pnpm check:publish-deps
 
+      # Publish-time gate: three conformance checks over what actually
+      # ships — packed JavaScript imports only declared packages, the
+      # shipped orm config-section validator never throws, and the
+      # @prisma/orm-toolchain tarball installs into a clean sandbox with
+      # working bins and a single agreed @prisma/cli-engine pin. See
+      # `scripts/check-conformance.mjs`. The same three checks run in the
+      # prisma-cli repo (prisma/prisma-cli#161).
+      - name: Run conformance checks
+        run: pnpm check:conformance
+
       # Publish-time gate: ensures every substrate change since the previous
       # `v[0-9]*` tag is accompanied by a matching upgrade-instructions
       # directory in the user-skill / extension-upgrade-skill packages, and
