@@ -1,3 +1,4 @@
+import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
 import { describe, expect, it } from 'vitest';
 import { postgresRawCodecInferer } from '../src/core/adapter';
 
@@ -59,6 +60,24 @@ describe('inferCodec', () => {
 
     it('maps an empty Uint8Array to pg/bytea@1', () => {
       expect(adapter.inferCodec(new Uint8Array([]))).toBe('pg/bytea@1');
+    });
+  });
+
+  // An inferred id is only useful if lowering can resolve it: renderTypedParam
+  // looks the id up in this registry by exact match, so an id the registry does
+  // not carry fails every raw interpolation that infers it.
+  describe('inferred ids resolve in the postgres codec registry', () => {
+    it.each([
+      ['safe integer', 42],
+      ['fractional number', 1.5],
+      ['bigint', 1n],
+      ['string', 'hello'],
+      ['boolean', true],
+      ['Uint8Array', new Uint8Array([1, 2, 3])],
+    ] as const)('resolves the id inferred from a %s', (_label, value) => {
+      const codecId = adapter.inferCodec(value);
+
+      expect(postgresCodecDescriptorRegistry.descriptorFor(codecId)).toBeDefined();
     });
   });
 
