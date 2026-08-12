@@ -178,7 +178,7 @@ export const migrationPlanCommand = defineOrmCommand({
       'Offline — does not consult the database.',
     examples: [
       'migration plan',
-      // framework-vocabulary-ignore: a migration slug a user would plausibly type, not a schema concept
+      // biome-ignore lint/plugin/no-family-vocabulary: a migration slug a user would plausibly type, not a schema concept
       'migration plan --name add-users-table',
       'migration plan --to <migration-dir>^ --name rollback',
       'migration plan --json',
