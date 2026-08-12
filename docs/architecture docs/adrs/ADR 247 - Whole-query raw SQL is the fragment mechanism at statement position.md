@@ -114,7 +114,7 @@ A mutation without `RETURNING` terminates with `.affectedCount()`, which is a pl
 ## Responsibilities
 
 - **Lane (`@internal/sql-relational-core`)** owns the node, the terminators, spec normalization (a bare codec id becomes `{ codecId, nullable: false }`), and the splice.
-- **Contract-typed lane (`@internal/sql-builder`)** owns `db.raw`, the table proxy's `columns` accessor, and the resolution of spec entries to TypeScript row types.
+- **Contract-typed lane (`@internal/sql-builder`)** owns the `raw` key on the SQL DSL object (`db.sql.raw` where the client composes that object as `db.sql`), the table proxy's `columns` accessor, and the resolution of spec entries to TypeScript row types.
 - **Adapters** render the node by walking its parts through the same expression renderer that serves `RawExpr`, emitting each target's placeholder form (`$N` for Postgres, `?` for SQLite).
 - **Runtime** reads the node's `result` where it decodes: a row spec becomes the decode context's aliases and per-column codecs. Which runtime operation a plan belongs to needs no raw-specific code — a row-returning statement is run through `runtime.query(plan)`, which streams decoded rows, and a statement declaring an affected-row count through `runtime.execute(plan)`, which resolves to `SqlStatementStats`. Guardrails run over the SQL text via `evaluateRawGuardrails`, because a raw statement has no structural shape for the AST lints to inspect.
 
@@ -132,7 +132,7 @@ A mutation without `RETURNING` terminates with `.affectedCount()`, which is a pl
 
 **An affected-count statement cannot be prepared.** A prepared statement executes through the row path, which reports no statistics, so a prepared `.affectedCount()` plan would stream nothing at all. `prepare()` refuses one with `RUNTIME.PREPARE_AFFECTED_COUNT_UNSUPPORTED` where the statement is declared, rather than leaving the emptiness to be discovered at execution. Row-returning raw statements prepare and stream normally; a prepared path that reports statistics is a separate surface.
 
-**`raw` is a reserved storage-namespace name.** `db.raw` is the tag, so a contract declaring a storage namespace named `raw` would have that namespace shadowed while the type still promised its tables. `sql()` refuses such a contract at construction with `ORM.NAMESPACE_RESERVED` rather than answering `undefined` for every table in it. The check reads storage namespaces only, because storage is what the surface dispatches on.
+**`raw` is a reserved storage-namespace name.** `raw` is the key the SQL DSL object answers with the tag (`db.sql.raw`), so a contract declaring a storage namespace named `raw` would have that namespace shadowed while the type still promised its tables. `sql()` refuses such a contract at construction with `ORM.NAMESPACE_RESERVED` rather than answering `undefined` for every table in it. The check reads storage namespaces only, because storage is what the surface dispatches on.
 
 ## Consequences
 
