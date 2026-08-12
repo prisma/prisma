@@ -64,7 +64,10 @@ export function tonePainter(tone: Tone): (text: string) => string {
   return (text) => toned(tone, text);
 }
 
-const SGR_SEQUENCE = new RegExp(`${ESCAPE}\\[(\\d+)m`, 'g');
+// Matches a whole SGR parameter list, not a single number: a sequence the
+// pattern misses survives into a span, which puts raw ANSI in front of the
+// engine. `[1;31m` and `[38;5;208m` are the shapes that do it.
+const SGR_SEQUENCE = new RegExp(`${ESCAPE}\\[([\\d;]*)m`, 'g');
 
 function pushSpan(spans: Span[], text: string, tone: Tone | undefined): void {
   if (text.length === 0) {
@@ -90,14 +93,16 @@ export function toneSpans(line: string): readonly Span[] {
   for (let match = SGR_SEQUENCE.exec(line); match !== null; match = SGR_SEQUENCE.exec(line)) {
     pushSpan(spans, line.slice(cursor, match.index), open.at(-1));
     cursor = match.index + match[0].length;
-    const code = Number(match[1]);
-    if (code === TONE_MARK_BASE) {
-      open.pop();
-      continue;
-    }
-    const tone = TONE_BY_MARK.get(code);
-    if (tone !== undefined) {
-      open.push(tone);
+    for (const parameter of (match[1] ?? '').split(';')) {
+      const code = Number(parameter);
+      if (code === TONE_MARK_BASE) {
+        open.pop();
+        continue;
+      }
+      const tone = TONE_BY_MARK.get(code);
+      if (tone !== undefined) {
+        open.push(tone);
+      }
     }
   }
   pushSpan(spans, line.slice(cursor), open.at(-1));
