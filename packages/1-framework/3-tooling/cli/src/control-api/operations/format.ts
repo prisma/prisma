@@ -1,13 +1,15 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { EOL } from 'node:os';
-import { loadConfigForSections } from '@internal/config-loader';
+import type { PrismaNextConfig } from '@internal/config/config-types';
 import { type FormatOptions, format } from '@internal/psl-parser/format';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { type CliStructuredError, errorRuntime, errorUnexpected } from '../../utils/cli-errors';
 
 export interface FormatOperationOptions {
-  readonly configPath?: string;
+  readonly config: PrismaNextConfig;
+  /** Directory the command was invoked from. */
+  readonly cwd: string;
   readonly eol?: string;
 }
 
@@ -30,12 +32,7 @@ export async function executeFormat(
   options: FormatOperationOptions,
 ): Promise<Result<FormatOperationResult, CliStructuredError>> {
   const eol = options.eol ?? EOL;
-
-  const configResult = await loadConfigForSections(options.configPath, ['contract', 'formatter']);
-  if (!configResult.ok) {
-    return configResult;
-  }
-  const config = configResult.value;
+  const config = options.config;
 
   const source = config.contract?.source;
   if (source?.format !== 'psl') {

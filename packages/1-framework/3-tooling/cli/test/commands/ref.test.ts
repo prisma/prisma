@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { PrismaNextConfig } from '@internal/config-loader';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import {
@@ -12,17 +13,11 @@ import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
-import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  loadConfig: vi.fn(),
   writeRef: vi.fn(),
-}));
-
-vi.mock('@internal/config-loader', () => ({
-  loadConfigForSections: mocks.loadConfig,
 }));
 
 vi.mock('@internal/migration-tools/refs', async (importOriginal) => {
@@ -117,12 +112,16 @@ function storeContractJsonPath(migrationsRootDir: string, storageHash: string): 
 describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
   let tempDir: string;
   let configPath: string;
+  let config: PrismaNextConfig;
   let migrationsRootDir: string;
   let appMigrationsDir: string;
   let refsDir: string;
 
+  function refOptions() {
+    return { config, cwd: tempDir, configPath };
+  }
+
   beforeEach(async () => {
-    mocks.loadConfig.mockReset();
     mocks.writeRef.mockReset();
     const { writeRef: realWriteRef } = await vi.importActual<
       typeof import('@internal/migration-tools/refs')
@@ -144,25 +143,23 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
         targetFamily: 'sql',
       }),
     );
-    mocks.loadConfig.mockResolvedValue(
-      ok({
-        family: {
-          familyId: 'sql',
-          create: vi.fn().mockReturnValue({
-            deserializeContract: (json: unknown) => json,
-          }),
-        },
-        target: {
-          id: 'postgres',
-          familyId: 'sql',
-          targetId: 'postgres',
-          kind: 'target',
-          migrations: {},
-        },
-        contract: { output: join(tempDir, 'contract.json') },
-        migrations: { dir: 'migrations' },
-      }),
-    );
+    config = {
+      family: {
+        familyId: 'sql',
+        create: vi.fn().mockReturnValue({
+          deserializeContract: (json: unknown) => json,
+        }),
+      },
+      target: {
+        id: 'postgres',
+        familyId: 'sql',
+        targetId: 'postgres',
+        kind: 'target',
+        migrations: {},
+      },
+      contract: { output: join(tempDir, 'contract.json') },
+      migrations: { dir: 'migrations' },
+    } as unknown as PrismaNextConfig;
   });
 
   afterEach(async () => {
@@ -212,7 +209,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefSetCommand('staging', hashB, { config: configPath });
+      const result = await executeRefSetCommand('staging', hashB, refOptions());
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.value.hash).toBe(hashB);
@@ -229,7 +226,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefSetCommand('staging', HASH_FLOAT, { config: configPath });
+      const result = await executeRefSetCommand('staging', HASH_FLOAT, refOptions());
       expect(result.ok).toBe(false);
       if (result.ok) return;
       const envelope = result.failure.toEnvelope();
@@ -248,7 +245,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefSetCommand('staging', HASH_A, { config: configPath });
+      const result = await executeRefSetCommand('staging', HASH_A, refOptions());
       expect(result.ok).toBe(false);
       if (result.ok) return;
       const envelope = result.failure.toEnvelope();
@@ -266,9 +263,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefSetCommand('staging', EMPTY_CONTRACT_HASH, {
-        config: configPath,
-      });
+      const result = await executeRefSetCommand('staging', EMPTY_CONTRACT_HASH, refOptions());
       expect(result.ok).toBe(false);
       if (result.ok) return;
       const envelope = result.failure.toEnvelope();
@@ -285,7 +280,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefSetCommand('staging', 'production', { config: configPath });
+      const result = await executeRefSetCommand('staging', 'production', refOptions());
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.value.hash).toBe(hashC);
@@ -301,7 +296,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefSetCommand('staging', firstDirName, { config: configPath });
+      const result = await executeRefSetCommand('staging', firstDirName, refOptions());
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.value.hash).toBe(hashA);
@@ -316,9 +311,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefSetCommand('staging', `${secondDirName}^`, {
-        config: configPath,
-      });
+      const result = await executeRefSetCommand('staging', `${secondDirName}^`, refOptions());
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.value.hash).toBe(hashA);
@@ -333,7 +326,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefSetCommand('../evil', HASH_A, { config: configPath });
+      const result = await executeRefSetCommand('../evil', HASH_A, refOptions());
       expect(result.ok).toBe(false);
     } finally {
       process.chdir(prev);
@@ -346,9 +339,9 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const first = await executeRefSetCommand('staging', hashA, { config: configPath });
+      const first = await executeRefSetCommand('staging', hashA, refOptions());
       expect(first.ok).toBe(true);
-      const second = await executeRefSetCommand('staging', hashB, { config: configPath });
+      const second = await executeRefSetCommand('staging', hashB, refOptions());
       expect(second.ok).toBe(true);
       if (!second.ok) return;
       const pointer = JSON.parse(await readFile(refPointerPath(refsDir, 'staging'), 'utf-8'));
@@ -371,7 +364,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefSetCommand('staging', HASH_A, { config: configPath });
+      const result = await executeRefSetCommand('staging', HASH_A, refOptions());
       expect(result.ok).toBe(false);
       if (result.ok) return;
       expect(result.failure.toEnvelope().summary).toContain('File not found');
@@ -387,7 +380,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefSetCommand('staging', hashA, { config: configPath });
+      const result = await executeRefSetCommand('staging', hashA, refOptions());
       expect(result.ok).toBe(false);
       expect(existsSync(refPointerPath(refsDir, 'staging'))).toBe(false);
     } finally {
@@ -403,8 +396,8 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
       const { executeRefSetCommand, executeRefDeleteCommand } = await import(
         '../../src/control-api/operations/ref'
       );
-      await executeRefSetCommand('staging', hashA, { config: configPath });
-      const result = await executeRefDeleteCommand('staging', { config: configPath });
+      await executeRefSetCommand('staging', hashA, refOptions());
+      const result = await executeRefDeleteCommand('staging', refOptions());
       expect(result.ok).toBe(true);
       expect(existsSync(refPointerPath(refsDir, 'staging'))).toBe(false);
       expect(existsSync(storeContractJsonPath(migrationsRootDir, hashA))).toBe(true);
@@ -421,8 +414,8 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
       const { executeRefSetCommand, executeRefDeleteCommand } = await import(
         '../../src/control-api/operations/ref'
       );
-      await executeRefSetCommand('db', hashA, { config: configPath });
-      const result = await executeRefDeleteCommand('db', { config: configPath });
+      await executeRefSetCommand('db', hashA, refOptions());
+      const result = await executeRefDeleteCommand('db', refOptions());
       expect(result.ok).toBe(true);
     } finally {
       process.chdir(prev);
@@ -434,7 +427,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefDeleteCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefDeleteCommand('missing', { config: configPath });
+      const result = await executeRefDeleteCommand('missing', refOptions());
       expect(result.ok).toBe(false);
       if (result.ok) return;
       expect(result.failure.toEnvelope().code).toBe('MIGRATION.UNKNOWN_REF');
@@ -448,7 +441,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefDeleteCommand } = await import('../../src/control-api/operations/ref');
-      const result = await executeRefDeleteCommand('bad/name', { config: configPath });
+      const result = await executeRefDeleteCommand('bad/name', refOptions());
       expect(result.ok).toBe(false);
     } finally {
       process.chdir(prev);
@@ -463,9 +456,9 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
       const { executeRefSetCommand, executeRefListCommand } = await import(
         '../../src/control-api/operations/ref'
       );
-      await executeRefSetCommand('db', hashA, { config: configPath });
-      await executeRefSetCommand('staging', hashB, { config: configPath });
-      const result = await executeRefListCommand({ config: configPath });
+      await executeRefSetCommand('db', hashA, refOptions());
+      await executeRefSetCommand('staging', hashB, refOptions());
+      const result = await executeRefListCommand(refOptions());
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(Object.keys(result.value.refs).sort()).toEqual(['db', 'staging']);

@@ -1,0 +1,51 @@
+import type {
+  ArgsSpec,
+  CommandDefinition,
+  FlagSpec,
+  Handler,
+  HelpSpec,
+  NeedsSpec,
+  PositionalSpec,
+  SpawnDeclarations,
+} from '@prisma/cli-engine';
+import { defineCommand } from '@prisma/cli-engine';
+import { notOk } from '@prisma/cli-engine/protocol';
+import { normalizeError } from './normalize-error';
+
+/**
+ * `defineCommand` with the ORM's error boundary already attached. Every ORM command is defined
+ * through this rather than through `defineCommand` directly.
+ *
+ * Without it, an error a handler throws reaches the engine, whose duck test accepts
+ * prisma/prisma's `CliStructuredError` — both classes carry that name — and then settles it
+ * through fields the engine's own class has and this one does not. The envelope that results is
+ * off-protocol. Catching here means every handler settles through the single conversion instead.
+ */
+export function defineOrmCommand<
+  TFlags extends Record<string, FlagSpec<unknown>> = Record<never, FlagSpec<unknown>>,
+  TPositionals extends Record<string, PositionalSpec<unknown>> = Record<
+    never,
+    PositionalSpec<unknown>
+  >,
+  TConfig = undefined,
+  TCode extends number = never,
+>(
+  def: {
+    readonly help: HelpSpec;
+    readonly args?: ArgsSpec<TFlags, TPositionals>;
+    readonly needs?: NeedsSpec<TConfig>;
+    readonly exitCodes?: Readonly<Record<TCode, string>>;
+    readonly handler: Handler<TFlags, TPositionals, TConfig, TCode>;
+  } & SpawnDeclarations,
+): CommandDefinition<TFlags, TPositionals, TConfig, TCode> {
+  return defineCommand<TFlags, TPositionals, TConfig, TCode>({
+    ...def,
+    handler: async (args, ctx) => {
+      try {
+        return await def.handler(args, ctx);
+      } catch (error) {
+        return notOk(normalizeError(error));
+      }
+    },
+  });
+}

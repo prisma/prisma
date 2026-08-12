@@ -29,6 +29,7 @@ import {
 import { type CombinedVerifyResult, combineVerifyResults } from '../utils/combine-verify-results';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveContractPath,
   resolveMigrationPaths,
@@ -385,7 +386,11 @@ async function executeDbVerifyCommand(
   const setupResult = await resolveVerifySetup(paths, options, mode);
   if (!setupResult.ok) return setupResult;
   const { contractJson, dbConnection, contractPathAbsolute } = setupResult.value;
-  const { migrationsDir } = resolveMigrationPaths(options.config, setupResult.value.config);
+  const { migrationsDir } = resolveMigrationPaths(
+    options.config,
+    setupResult.value.config,
+    process.cwd(),
+  );
 
   const client = createVerifyClient(setupResult.value);
   const onProgress = createProgressAdapter({ ui, flags });
@@ -476,7 +481,7 @@ async function executeDbVerifyCommand(
   } catch (error) {
     return wrapVerifyError(error, contractPathAbsolute, 'db verify');
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 
@@ -493,7 +498,11 @@ async function executeDbSchemaOnlyVerifyCommand(
   const setupResult = await resolveVerifySetup(paths, options, 'schema-only');
   if (!setupResult.ok) return setupResult;
   const { contractJson, dbConnection, contractPathAbsolute } = setupResult.value;
-  const { migrationsDir } = resolveMigrationPaths(options.config, setupResult.value.config);
+  const { migrationsDir } = resolveMigrationPaths(
+    options.config,
+    setupResult.value.config,
+    process.cwd(),
+  );
 
   const client = createVerifyClient(setupResult.value);
   const onProgress = createProgressAdapter({ ui, flags });
@@ -521,7 +530,7 @@ async function executeDbSchemaOnlyVerifyCommand(
   } catch (error) {
     return wrapVerifyError(error, contractPathAbsolute, 'db verify --schema-only');
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

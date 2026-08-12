@@ -108,7 +108,7 @@ async function checkFromDisk(inputs: {
     appContract: TEST_APP_CONTRACT,
     deserializeContract: identityDeserialize,
   });
-  const spaces = await enumerateCheckSpaces(aggregate, inputs.migrationsDir);
+  const spaces = await enumerateCheckSpaces(aggregate, inputs.migrationsDir, process.cwd());
   const outcome = await runMigrationCheck({
     spaces,
     ...(inputs.spaceFilter !== undefined ? { spaceFilter: inputs.spaceFilter } : {}),
@@ -271,7 +271,7 @@ describe('migration check — --space narrowing', () => {
       appContract: TEST_APP_CONTRACT,
       deserializeContract: identityDeserialize,
     });
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot, process.cwd());
     const outcome = await runMigrationCheck({ spaces, spaceFilter: '../escape' });
     expect(outcome.ok).toBe(false);
     if (outcome.ok) throw new Error('unreachable');
@@ -293,7 +293,7 @@ describe('migration check — --space narrowing', () => {
       appContract: TEST_APP_CONTRACT,
       deserializeContract: identityDeserialize,
     });
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot, process.cwd());
     const outcome = await runMigrationCheck({ spaces, spaceFilter: 'nope' });
     expect(outcome.ok).toBe(false);
     if (outcome.ok) throw new Error('unreachable');
@@ -319,7 +319,7 @@ describe('migration check — migrationCheckResultSchema validation', () => {
       appContract: TEST_APP_CONTRACT,
       deserializeContract: identityDeserialize,
     });
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot, process.cwd());
     const outcome = await runMigrationCheck({ spaces });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) throw new Error('unreachable');
@@ -350,7 +350,7 @@ describe('migration check — migrationCheckResultSchema validation', () => {
       appContract: TEST_APP_CONTRACT,
       deserializeContract: identityDeserialize,
     });
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot, process.cwd());
     const outcome = await runMigrationCheck({ spaces });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) throw new Error('unreachable');

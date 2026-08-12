@@ -340,7 +340,11 @@ describe('read commands --json golden', () => {
     process.chdir(cwd);
     let result: Awaited<ReturnType<typeof executeRefSetCommand>>;
     try {
-      result = await executeRefSetCommand('staging', dirNext, { config: contractPath });
+      result = await executeRefSetCommand('staging', dirNext, {
+        config: baseConfig(contractPath) as unknown as configLoader.PrismaNextConfig,
+        cwd,
+        configPath: contractPath,
+      });
     } finally {
       process.chdir(prev);
     }

@@ -51,28 +51,31 @@ import {
   resolveAppTargetPath,
   resolveTargetPathAcrossSpaces,
 } from '../../utils/migration-path-target';
+import { chooseAction, runCommandAction } from '../../utils/next-actions';
 
-function migrationPathRelative(dirPath: string): string {
-  return relative(process.cwd(), dirPath);
+function migrationPathRelative(cwd: string, dirPath: string): string {
+  return relative(cwd, dirPath);
 }
 
-function migrationFileRelative(dirPath: string, fileName: string): string {
-  return join(migrationPathRelative(dirPath), fileName);
+function migrationFileRelative(cwd: string, dirPath: string, fileName: string): string {
+  return join(migrationPathRelative(cwd, dirPath), fileName);
 }
 
 function checkFileExists(
-  spaceId: string,
+  space: CheckSpace,
   dirPath: string,
   dirName: string,
   fileName: string,
 ): CheckFailure | null {
   if (!existsSync(join(dirPath, fileName))) {
     return {
-      space: spaceId,
+      space: space.spaceId,
       code: 'MIGRATION.CHECK_FILE_MISSING',
-      where: migrationFileRelative(dirPath, fileName),
+      where: migrationFileRelative(space.cwd, dirPath, fileName),
       why: `${fileName} is missing from ${dirName}`,
-      fix: 'Re-emit the migration package or restore from version control.',
+      nextActions: [
+        chooseAction('Re-emit the migration package, or restore it from version control'),
+      ],
     };
   }
   return null;
@@ -87,10 +90,11 @@ function checkFileExists(
  * entry (or a malformed `to`) is `MIGRATION.CHECK_SNAPSHOT_UNPARSEABLE`.
  */
 async function checkSnapshotConsistency(
-  spaceId: string,
+  space: CheckSpace,
   pkg: OnDiskMigrationPackage,
   migrationsDir: string,
 ): Promise<CheckFailure | null> {
+  const spaceId = space.spaceId;
   let snapshotDir: string;
   try {
     snapshotDir = contractSnapshotDir(migrationsDir, pkg.metadata.to);
@@ -98,9 +102,13 @@ async function checkSnapshotConsistency(
     return {
       space: spaceId,
       code: 'MIGRATION.CHECK_SNAPSHOT_UNPARSEABLE',
-      where: migrationPathRelative(pkg.dirPath),
+      where: migrationPathRelative(space.cwd, pkg.dirPath),
       why: `Migration "${pkg.dirName}" declares to="${pkg.metadata.to}", which is not a well-formed contract snapshot hash.`,
-      fix: 'Re-emit the migration package so migration.json declares a valid 64-hex to-hash.',
+      nextActions: [
+        chooseAction(
+          'Re-emit the migration package so migration.json declares a valid 64-hex to-hash',
+        ),
+      ],
     };
   }
 
@@ -114,9 +122,14 @@ async function checkSnapshotConsistency(
     return {
       space: spaceId,
       code: 'MIGRATION.CHECK_SNAPSHOT_UNPARSEABLE',
-      where: migrationPathRelative(pkg.dirPath),
+      where: migrationPathRelative(space.cwd, pkg.dirPath),
       why: `Migration "${pkg.dirName}" has an unparseable contract snapshot at ${snapshotDir}/contract.json.`,
-      fix: 'Restore migrations/snapshots/ from version control, or re-run the command that produced this migration to regenerate its snapshot.',
+      nextActions: [
+        chooseAction('Restore migrations/snapshots/ from version control'),
+        chooseAction(
+          'Or re-run the command that produced this migration to regenerate its snapshot',
+        ),
+      ],
     };
   }
   const record = raw !== null && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
@@ -126,9 +139,13 @@ async function checkSnapshotConsistency(
     return {
       space: spaceId,
       code: 'MIGRATION.CHECK_SNAPSHOT_HASH_MISMATCH',
-      where: migrationPathRelative(pkg.dirPath),
+      where: migrationPathRelative(space.cwd, pkg.dirPath),
       why: `Migration "${pkg.dirName}" declares to=${pkg.metadata.to} but its contract snapshot has storageHash=${snapshotHash}`,
-      fix: 'Re-emit the migration package so migration.json and its contract snapshot agree.',
+      nextActions: [
+        chooseAction(
+          'Re-emit the migration package so migration.json and its contract snapshot agree',
+        ),
+      ],
     };
   }
   return null;
@@ -150,6 +167,8 @@ export interface CheckSpace {
   readonly refsDir: string;
   /** Migrations root the contract-snapshot store lives under — shared by every space. */
   readonly projectMigrationsDir: string;
+  /** Directory the command was invoked from; every `where` path is relative to it. */
+  readonly cwd: string;
 }
 
 /**
@@ -163,6 +182,7 @@ export interface CheckSpace {
 export async function enumerateCheckSpaces(
   aggregate: ContractSpaceAggregate,
   projectMigrationsDir: string,
+  cwd: string,
 ): Promise<readonly CheckSpace[]> {
   const candidateDirs = await listContractSpaceDirectories(projectMigrationsDir);
   const onDiskSpaceIds = new Set(candidateDirs.filter(isValidSpaceId));
@@ -180,6 +200,7 @@ export async function enumerateCheckSpaces(
       migrationsDir,
       refsDir: spaceRefsDirectory(migrationsDir),
       projectMigrationsDir,
+      cwd,
     });
   }
   return spaces;
@@ -205,7 +226,7 @@ function checkManifestFilesPresent(space: CheckSpace): readonly CheckFailure[] {
     }
     if (!loadedDirNames.has(entry)) {
       for (const f of ['migration.json', 'ops.json']) {
-        const fail = checkFileExists(space.spaceId, entryPath, entry, f);
+        const fail = checkFileExists(space, entryPath, entry, f);
         if (fail) failures.push(fail);
       }
     }
@@ -225,9 +246,12 @@ function checkReachability(space: CheckSpace): readonly CheckFailure[] {
       failures.push({
         space: space.spaceId,
         code: 'MIGRATION.CHECK_UNREACHABLE_MIGRATION',
-        where: migrationPathRelative(pkg.dirPath),
+        where: migrationPathRelative(space.cwd, pkg.dirPath),
         why: `Migration "${pkg.dirName}" starts from ${pkg.metadata.from} which no other migration produces`,
-        fix: 'This migration is unreachable in the graph. Delete it or re-emit a connecting migration.',
+        nextActions: [
+          chooseAction('Delete the unreachable migration'),
+          chooseAction('Or re-emit a migration that connects it to the graph'),
+        ],
       });
     }
   }
@@ -241,9 +265,15 @@ function checkDanglingRefs(space: CheckSpace): readonly CheckFailure[] {
       failures.push({
         space: space.spaceId,
         code: 'MIGRATION.CHECK_DANGLING_REF',
-        where: relative(process.cwd(), join(space.refsDir, `${name}.json`)),
+        where: relative(space.cwd, join(space.refsDir, `${name}.json`)),
         why: `Ref "${name}" points at ${entry.hash} which does not exist in the migration graph`,
-        fix: `Update the ref with \`prisma-next ref set ${name} <valid-hash>\` or delete it.`,
+        nextActions: [
+          runCommandAction(
+            'Point the ref at a graph node',
+            `prisma-next ref set ${name} <valid-hash>`,
+          ),
+          chooseAction('Or delete the ref'),
+        ],
       });
     }
   }
@@ -252,9 +282,7 @@ function checkDanglingRefs(space: CheckSpace): readonly CheckFailure[] {
 
 async function checkSpace(space: CheckSpace): Promise<readonly CheckFailure[]> {
   const snapshotFailures = await Promise.all(
-    space.packages.map((pkg) =>
-      checkSnapshotConsistency(space.spaceId, pkg, space.projectMigrationsDir),
-    ),
+    space.packages.map((pkg) => checkSnapshotConsistency(space, pkg, space.projectMigrationsDir)),
   );
   return [
     ...checkManifestFilesPresent(space),
@@ -342,6 +370,8 @@ export interface SingleTargetInputs {
   readonly spaceFilter?: string;
   readonly appMigrationsDir: string;
   readonly appMigrationsRelative: string;
+  /** Directory the command was invoked from; a path target resolves against it. */
+  readonly cwd: string;
 }
 
 /**
@@ -383,7 +413,7 @@ export async function checkSingleTarget(
   target: string,
   inputs: SingleTargetInputs,
 ): Promise<MigrationCheckOutcome> {
-  const { spaces, spaceFilter, appMigrationsDir, appMigrationsRelative } = inputs;
+  const { spaces, spaceFilter, appMigrationsDir, appMigrationsRelative, cwd } = inputs;
 
   if (spaceFilter !== undefined && !isValidSpaceId(spaceFilter)) {
     return { error: errorInvalidSpaceId(spaceFilter), exitCode: PRECONDITION };
@@ -402,7 +432,7 @@ export async function checkSingleTarget(
   let matchedPkg: OnDiskMigrationPackage | undefined;
 
   if (looksLikePath(target)) {
-    const resolvedPath = resolveTargetPathAcrossSpaces(target, scopedSpaces);
+    const resolvedPath = resolveTargetPathAcrossSpaces(cwd, target, scopedSpaces);
     if (resolvedPath !== null) {
       for (const space of scopedSpaces) {
         const found = findPackageByDirPath(space.packages, resolvedPath);
@@ -414,7 +444,7 @@ export async function checkSingleTarget(
       }
     } else {
       // Path outside every space dir — fall back to app-relative validation
-      const resolved = resolveAppTargetPath(target, appMigrationsDir, appMigrationsRelative);
+      const resolved = resolveAppTargetPath(cwd, target, appMigrationsDir, appMigrationsRelative);
       if (!resolved.ok) {
         return { error: resolved.failure, exitCode: PRECONDITION };
       }
@@ -484,7 +514,7 @@ export async function checkSingleTarget(
   const failures: CheckFailure[] = [...checkManifestFilesPresent(matchedSpace)];
 
   for (const f of ['migration.json', 'ops.json']) {
-    const fail = checkFileExists(matchedSpace.spaceId, matchedPkg.dirPath, matchedPkg.dirName, f);
+    const fail = checkFileExists(matchedSpace, matchedPkg.dirPath, matchedPkg.dirName, f);
     if (fail) failures.push(fail);
   }
 
@@ -493,14 +523,16 @@ export async function checkSingleTarget(
     failures.push({
       space: matchedSpace.spaceId,
       code: 'MIGRATION.CHECK_HASH_MISMATCH',
-      where: migrationFileRelative(matchedPkg.dirPath, 'migration.json'),
+      where: migrationFileRelative(matchedSpace.cwd, matchedPkg.dirPath, 'migration.json'),
       why: `Stored hash ${verification.storedHash} does not match recomputed hash ${verification.computedHash}`,
-      fix: 'Re-emit the migration package or restore from version control.',
+      nextActions: [
+        chooseAction('Re-emit the migration package, or restore it from version control'),
+      ],
     });
   }
 
   const snapshotFailure = await checkSnapshotConsistency(
-    matchedSpace.spaceId,
+    matchedSpace,
     matchedPkg,
     matchedSpace.projectMigrationsDir,
   );

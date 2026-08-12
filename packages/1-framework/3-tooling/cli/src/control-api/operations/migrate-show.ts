@@ -2,7 +2,7 @@
  * Read-only preview core for `migrate --show`: computes the migration path through the same planSpacePath seam the real apply uses, stopping before any write boundary.
  */
 
-import { loadConfigForSections } from '@internal/config-loader';
+import type { PrismaNextConfig } from '@internal/config/config-types';
 import {
   type AggregateContractSpace,
   type ContractSpaceAggregate,
@@ -23,7 +23,7 @@ import {
   mapRefResolutionError,
   requireLiveDatabase,
 } from '../../utils/cli-errors';
-import { resolveMigrationPaths } from '../../utils/command-helpers';
+import { closeQuietly, resolveMigrationPaths } from '../../utils/command-helpers';
 import { createControlClient } from '../client';
 import { buildReadAggregate } from './contract-space-aggregate-loader';
 import { planSpacePath } from './migrate';
@@ -40,7 +40,11 @@ export interface MigrateShowMigration {
 }
 
 export interface ExecuteMigrateShowPlanOptions {
-  readonly config?: string;
+  readonly config: PrismaNextConfig;
+  /** Directory the command was invoked from. */
+  readonly cwd: string;
+  /** `--config` as the user wrote it, used only to locate the migrations directory and for display. */
+  readonly configPath?: string;
   readonly db?: string;
   readonly to?: string;
   readonly from?: string;
@@ -81,23 +85,11 @@ export interface MigrateShowPlanSuccess {
 export async function executeMigrateShowPlan(
   options: ExecuteMigrateShowPlanOptions,
 ): Promise<Result<MigrateShowPlanSuccess, CliStructuredError>> {
-  const configResult = await loadConfigForSections(options.config, [
-    'family',
-    'target',
-    'adapter',
-    'driver',
-    'extensions',
-    'db',
-    'migrations',
-    'contract',
-  ]);
-  if (!configResult.ok) {
-    return configResult;
-  }
-  const config = configResult.value;
+  const config = options.config;
   const { configPath, migrationsDir, migrationsRelative, refsDir } = resolveMigrationPaths(
-    options.config,
+    options.configPath,
     config,
+    options.cwd,
   );
 
   const dbConnection = options.db ?? config.db?.connection;
@@ -265,7 +257,7 @@ export async function executeMigrateShowPlan(
         }),
       );
     } finally {
-      await client.close();
+      await closeQuietly(client);
     }
   }
 

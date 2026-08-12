@@ -20,6 +20,7 @@ import {
 } from '../utils/cli-errors';
 import type { MigrationCommandOptions } from '../utils/command-helpers';
 import {
+  closeQuietly,
   resolveMigrationPaths,
   sanitizeErrorMessage,
   setCommandDescriptions,
@@ -107,7 +108,7 @@ async function executeDbUpdateCommand(
   const { client, config, dbConnection, onProgress, contractPathAbsolute } = ctxResult.value;
   let { contractJson } = ctxResult.value;
   let contractJsonPathForSnapshot = contractPathAbsolute;
-  const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config);
+  const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config, process.cwd());
 
   if (options.to) {
     const resolved = await resolveContractRefToSnapshot({
@@ -229,7 +230,7 @@ async function executeDbUpdateCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

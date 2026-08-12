@@ -10,14 +10,12 @@ import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { MigrationEdge, MigrationGraph } from '@internal/migration-tools/graph';
 import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
-import {
-  formatMigrationGraphHumanOutput,
-  type MigrationGraphTreeSection,
-} from '../../src/commands/migration-graph';
+import { formatMigrationGraphHumanOutput } from '../../src/commands/migration-graph';
 import { renderMigrationGraphCommand } from '../../src/utils/formatters/migration-graph-command-render';
 import { buildGrid } from '../../src/utils/formatters/migration-graph-grid-layout';
 import type { MigrationEdgeAnnotation } from '../../src/utils/formatters/migration-graph-labels';
 import { buildMigrationGraphRows } from '../../src/utils/formatters/migration-graph-rows';
+import type { MigrationGraphTreeSection } from '../../src/utils/formatters/migration-graph-sections';
 import {
   highlightFromEdgeAnnotations,
   renderMigrationGraphSpaceTree,

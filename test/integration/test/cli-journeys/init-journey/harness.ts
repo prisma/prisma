@@ -529,6 +529,9 @@ function writeIsolatedNpmrc(dir: string): void {
     'auto-install-peers=true',
     'strict-peer-dependencies=false',
     'prefer-workspace-packages=false',
+    // The scratch project is outside the workspace, so it does not inherit
+    // the repo's release-age exemption for first-party Prisma packages.
+    'minimum-release-age-exclude[]=@prisma/cli-engine',
     // Side-load the pnpm store next to the tarball cache so the encoded
     // relative path stays short (avoids ENAMETOOLONG under deep worktrees).
     `store-dir=${PNPM_STORE_DIR}`,

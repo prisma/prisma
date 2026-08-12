@@ -51,7 +51,7 @@ async function executeMigrationCheckCommand(
   }
   const config = configResult.value;
   const { configPath, migrationsDir, appMigrationsDir, appMigrationsRelative } =
-    resolveMigrationPaths(options.config, config);
+    resolveMigrationPaths(options.config, config, process.cwd());
 
   if (!flags.json && !flags.quiet) {
     const details: Array<{ label: string; value: string }> = [
@@ -75,7 +75,11 @@ async function executeMigrationCheckCommand(
     return { error: loadedAggregate.failure, exitCode: PRECONDITION };
   }
 
-  const spaces = await enumerateCheckSpaces(loadedAggregate.value.aggregate, migrationsDir);
+  const spaces = await enumerateCheckSpaces(
+    loadedAggregate.value.aggregate,
+    migrationsDir,
+    process.cwd(),
+  );
 
   if (target) {
     return await checkSingleTarget(target, {
@@ -83,6 +87,7 @@ async function executeMigrationCheckCommand(
       ...(options.space !== undefined ? { spaceFilter: options.space } : {}),
       appMigrationsDir,
       appMigrationsRelative,
+      cwd: process.cwd(),
     });
   }
 
@@ -191,7 +196,10 @@ export function createMigrationCheckCommand(): Command {
         } else {
           for (const f of result.failures) {
             ui.log(`✗ [${f.code}] ${f.where}: ${f.why}`);
-            ui.log(`  fix: ${f.fix}`);
+            for (const action of f.nextActions) {
+              const command = action.command === undefined ? '' : `: ${action.command}`;
+              ui.log(`  next: ${action.label}${command}`);
+            }
           }
           ui.log(`\n${result.summary}`);
         }

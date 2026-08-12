@@ -8,6 +8,7 @@ import { mapCaughtMigrationError } from '../control-api/operations/caught-errors
 import { type CliStructuredError, errorUnexpected, requireLiveDatabase } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveMigrationPaths,
   setCommandDescriptions,
@@ -55,7 +56,7 @@ export async function executeMigrationLogCommand(
     return configResult;
   }
   const config = configResult.value;
-  const { configPath } = resolveMigrationPaths(options.config, config);
+  const { configPath } = resolveMigrationPaths(options.config, config, process.cwd());
 
   const dbConnection = options.db ?? config.db?.connection;
   const missingDb = requireLiveDatabase({
@@ -107,7 +108,7 @@ export async function executeMigrationLogCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

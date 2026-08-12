@@ -36,6 +36,7 @@ import { readMigrationRefs } from '../control-api/operations/refs';
 import { CliStructuredError, errorUnexpected, requireLiveDatabase } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   readContractEnvelope,
   resolveMigrationPaths,
@@ -283,6 +284,7 @@ export async function executeMigrationStatusCommand(
   const { configPath, migrationsDir, migrationsRelative, refsDir } = resolveMigrationPaths(
     options.config,
     config,
+    process.cwd(),
   );
 
   const dbConnection = options.db ?? config.db?.connection;
@@ -440,7 +442,7 @@ export async function executeMigrationStatusCommand(
         }),
       );
     } finally {
-      await client.close();
+      await closeQuietly(client);
     }
   }
 

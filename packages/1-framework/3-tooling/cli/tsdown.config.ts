@@ -3,6 +3,7 @@ import { defineConfig } from '@repo/tsdown';
 export default defineConfig({
   entry: [
     'src/cli.ts',
+    'src/bin.ts',
     'src/exports/index.ts',
     'src/exports/config-types.ts',
     'src/exports/init-output.ts',

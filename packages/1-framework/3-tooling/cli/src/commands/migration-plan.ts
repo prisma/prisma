@@ -1,19 +1,57 @@
+import { loadConfigForSections } from '@internal/config-loader';
+import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import {
   executeMigrationPlanCommand,
-  type MigrationPlanOptions,
   type MigrationPlanResult,
 } from '../control-api/operations/migration-plan';
+import type { CliStructuredError } from '../utils/cli-errors';
 import {
   addGlobalOptions,
   setCommandDescriptions,
   setCommandExamples,
 } from '../utils/command-helpers';
 import { formatStyledHeader } from '../utils/formatters/styled';
+import type { CommonCommandOptions } from '../utils/global-flags';
 import { type GlobalFlags, parseGlobalFlagsOrExit } from '../utils/global-flags';
 import { handleResult } from '../utils/result-handler';
 import { createTerminalUI } from '../utils/terminal-ui';
+
+interface MigrationPlanCommandOptions extends CommonCommandOptions {
+  readonly config?: string;
+  readonly name?: string;
+  readonly from?: string;
+  readonly to?: string;
+}
+
+async function runMigrationPlan(
+  options: MigrationPlanCommandOptions,
+  startTime: number,
+  callbacks: Parameters<typeof executeMigrationPlanCommand>[2],
+): Promise<Result<MigrationPlanResult, CliStructuredError>> {
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'extensions',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  return executeMigrationPlanCommand(
+    {
+      ...options,
+      config: configResult.value,
+      cwd: process.cwd(),
+      ...ifDefined('configPath', options.config),
+    },
+    startTime,
+    callbacks,
+  );
+}
 
 export function createMigrationPlanCommand(): Command {
   const command = new Command('plan');
@@ -40,12 +78,12 @@ export function createMigrationPlanCommand(): Command {
       '--to <contract>',
       'Destination contract reference (hash, prefix, ref name, migration dir name, <dir>^, or ./path); defaults to the emitted contract',
     )
-    .action(async (options: MigrationPlanOptions) => {
+    .action(async (options: MigrationPlanCommandOptions) => {
       const flags = parseGlobalFlagsOrExit(options);
       const startTime = Date.now();
 
       const ui = createTerminalUI(flags);
-      const result = await executeMigrationPlanCommand(options, startTime, {
+      const result = await runMigrationPlan(options, startTime, {
         onContextResolved: ({ configPath, contractPath, appMigrationsRelative }) => {
           if (!flags.json && !flags.quiet) {
             const details: Array<{ label: string; value: string }> = [

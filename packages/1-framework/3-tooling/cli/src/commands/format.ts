@@ -1,7 +1,10 @@
-import { ifDefined } from '@internal/utils/defined';
+import { loadConfigForSections } from '@internal/config-loader';
+import type { Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { relative, resolve } from 'pathe';
+import type { FormatOperationResult } from '../control-api/operations/format';
 import { executeFormat } from '../control-api/operations/format';
+import type { CliStructuredError } from '../utils/cli-errors';
 import {
   addGlobalOptions,
   setCommandDescriptions,
@@ -15,6 +18,16 @@ import { createTerminalUI } from '../utils/terminal-ui';
 
 interface FormatCommandOptions extends CommonCommandOptions {
   readonly config?: string;
+}
+
+async function runFormat(
+  options: FormatCommandOptions,
+): Promise<Result<FormatOperationResult, CliStructuredError>> {
+  const configResult = await loadConfigForSections(options.config, ['contract', 'formatter']);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  return executeFormat({ config: configResult.value, cwd: process.cwd() });
 }
 
 export function createFormatCommand(): Command {
@@ -52,7 +65,7 @@ export function createFormatCommand(): Command {
         );
       }
 
-      const result = await executeFormat({ ...ifDefined('configPath', options.config) });
+      const result = await runFormat(options);
 
       const exitCode = handleResult(result, flags, ui, (value) => {
         if (flags.json) {
