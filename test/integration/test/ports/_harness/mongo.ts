@@ -1,6 +1,15 @@
+import mongoAdapterControl from '@internal/adapter-mongo/control';
 import mongoRuntimeAdapter from '@internal/adapter-mongo/runtime';
 import { createMongoDriver } from '@internal/driver-mongo';
+import mongoDriverControl from '@internal/driver-mongo/control';
+import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
+import {
+  APP_SPACE_ID,
+  createControlStack,
+  type MigrationOperationPolicy,
+} from '@internal/framework-components/control';
+import { buildFabricatedMigrationEdge } from '@internal/migration-tools/aggregate';
 import type {
   AnyMongoTypeMaps,
   MongoContract,
@@ -13,6 +22,7 @@ import {
   createMongoExecutionStack,
   createMongoRuntime,
 } from '@internal/mongo-runtime';
+import { mongoTargetDescriptor as mongoTargetControl } from '@internal/target-mongo/control';
 import mongoRuntimeTarget from '@internal/target-mongo/runtime';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
@@ -43,11 +53,77 @@ export interface WithMongoPortOptions {
  * Each ported suite authors its schema as PSL (`_fixtures/<suite>/contract.prisma`)
  * and emits a `contract.json` / `contract.d.ts`. The harness:
  *   1. starts a `MongoMemoryReplSet` (wiredTiger, single-node),
- *   2. connects a `MongoClient` (raw) + a prisma-next `MongoRuntime`,
- *   3. deserialises the emitted `contract.json` and builds a `mongoOrm` handle,
- *   4. yields `{ db, client, mongoDb, contract }`,
- *   5. drops the database + tears down in a `finally` block.
+ *   2. pushes the emitted contract through Prisma Next's plan → apply path,
+ *   3. connects a `MongoClient` (raw) + a prisma-next `MongoRuntime`,
+ *   4. deserialises the emitted `contract.json` and builds a `mongoOrm` handle,
+ *   5. yields `{ db, client, mongoDb, contract }`,
+ *   6. drops the database + tears down in a `finally` block.
  */
+
+const initPolicy: MigrationOperationPolicy = {
+  allowedOperationClasses: ['additive'],
+};
+
+const controlStack = createControlStack({
+  family: mongoFamilyDescriptor,
+  target: mongoTargetControl,
+  adapter: mongoAdapterControl,
+  driver: mongoDriverControl,
+  extensions: [],
+});
+const controlFamily = mongoFamilyDescriptor.create(controlStack);
+const controlAdapter = mongoAdapterControl.create(controlStack);
+const frameworkComponents = [mongoTargetControl, mongoAdapterControl, mongoDriverControl] as const;
+
+async function pushContract(connectionUri: string, contractJson: unknown): Promise<void> {
+  const contract = controlFamily.deserializeContract(contractJson);
+  const driver = await mongoDriverControl.create(connectionUri);
+  try {
+    const schema = await controlFamily.introspect({ driver, contract });
+    const planner = mongoTargetControl.migrations.createPlanner(controlAdapter);
+    const planResult = planner.plan({
+      contract,
+      schema,
+      policy: initPolicy,
+      fromContract: null,
+      frameworkComponents,
+      spaceId: APP_SPACE_ID,
+      snapshotsImportPath: '../../snapshots',
+    });
+    if (planResult.kind !== 'success') {
+      throw new Error(`Contract push planning failed: ${JSON.stringify(planResult)}`);
+    }
+
+    const plan = planResult.plan;
+    const runner = mongoTargetControl.migrations.createRunner(controlFamily);
+    const executeResult = await runner.execute({
+      driver,
+      perSpaceOptions: [
+        {
+          space: plan.spaceId ?? APP_SPACE_ID,
+          plan,
+          migrationEdges: [
+            buildFabricatedMigrationEdge({
+              currentMarkerStorageHash: plan.origin?.storageHash,
+              destinationStorageHash: plan.destination.storageHash,
+              operationCount: plan.operations.length,
+            }),
+          ],
+          driver,
+          destinationContract: contract,
+          policy: initPolicy,
+          frameworkComponents,
+        },
+      ],
+    });
+    if (!executeResult.ok) {
+      throw new Error(`Contract push apply failed: ${JSON.stringify(executeResult.failure)}`);
+    }
+  } finally {
+    await driver.close();
+  }
+}
+
 export async function withMongoPort<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
 >(
@@ -69,7 +145,8 @@ export async function withMongoPort<
       ],
       replSet: { count: 1, storageEngine: 'wiredTiger' },
     });
-    const connectionUri = replSet.getUri();
+    const connectionUri = replSet.getUri(dbName);
+    await pushContract(connectionUri, options.contractJson);
     client = new MongoClient(connectionUri);
     await client.connect();
 

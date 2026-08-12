@@ -11,6 +11,7 @@ import { timeouts } from '@repo/test-utils';
 import { Client } from 'pg';
 import { afterEach, describe, expect, it } from 'vitest';
 import postgresRuntimeDriverDescriptor from '../src/exports/runtime';
+import { executeSql, queryRows } from './sql-queryable-test-utils';
 
 interface Harness {
   readonly client: Client;
@@ -117,9 +118,9 @@ async function settleWarnings(): Promise<void> {
 }
 
 async function seedRows(h: Harness, count: number): Promise<void> {
-  await h.driver.query('create table items (id int primary key, n int not null)');
+  await executeSql(h.driver, 'create table items (id int primary key, n int not null)');
   const values = Array.from({ length: count }, (_, i) => `(${i}, ${i * 2})`).join(', ');
-  await h.driver.query(`insert into items (id, n) values ${values}`);
+  await executeSql(h.driver, `insert into items (id, n) values ${values}`);
 }
 
 afterEach(async () => {
@@ -140,14 +141,14 @@ describe('pinned-client serialization on a real wire', () => {
       const capture = captureProcessWarnings();
       try {
         const results = await Promise.all([
-          h.driver.query<{ n: number }>('select 1 as n'),
-          h.driver.query<{ n: number }>('select 2 as n'),
-          h.driver.query<{ n: number }>('select 3 as n'),
+          queryRows<{ n: number }>(h.driver, 'select 1 as n'),
+          queryRows<{ n: number }>(h.driver, 'select 2 as n'),
+          queryRows<{ n: number }>(h.driver, 'select 3 as n'),
         ]);
         await settleWarnings();
 
         expect(capture.warnings).toEqual([]);
-        expect(results.map((r) => r.rows[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
+        expect(results.map((r) => r[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
       } finally {
         capture.stop();
       }
@@ -160,12 +161,12 @@ describe('pinned-client serialization on a real wire', () => {
     async () => {
       const h = await createHarness();
       const results = await Promise.all([
-        h.driver.query<{ n: number }>('select 1 as n'),
-        h.driver.query<{ n: number }>('select 2 as n'),
-        h.driver.query<{ n: number }>('select 3 as n'),
+        queryRows<{ n: number }>(h.driver, 'select 1 as n'),
+        queryRows<{ n: number }>(h.driver, 'select 2 as n'),
+        queryRows<{ n: number }>(h.driver, 'select 3 as n'),
       ]);
 
-      expect(results.map((r) => r.rows[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
+      expect(results.map((r) => r[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
       expect(h.maxInFlight()).toBe(1);
     },
     timeouts.spinUpDbServer,
@@ -178,12 +179,12 @@ describe('pinned-client serialization on a real wire', () => {
       const connection = await h.driver.acquireConnection();
       try {
         const results = await Promise.all([
-          connection.query<{ n: number }>('select 1 as n'),
-          connection.query<{ n: number }>('select 2 as n'),
-          connection.query<{ n: number }>('select 3 as n'),
+          queryRows<{ n: number }>(connection, 'select 1 as n'),
+          queryRows<{ n: number }>(connection, 'select 2 as n'),
+          queryRows<{ n: number }>(connection, 'select 3 as n'),
         ]);
 
-        expect(results.map((r) => r.rows[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
+        expect(results.map((r) => r[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
         expect(h.maxInFlight()).toBe(1);
       } finally {
         await connection.release();
@@ -200,13 +201,13 @@ describe('pinned-client serialization on a real wire', () => {
       try {
         const transaction = await connection.beginTransaction();
         const results = await Promise.all([
-          transaction.query<{ n: number }>('select 1 as n'),
-          transaction.query<{ n: number }>('select 2 as n'),
-          transaction.query<{ n: number }>('select 3 as n'),
+          queryRows<{ n: number }>(transaction, 'select 1 as n'),
+          queryRows<{ n: number }>(transaction, 'select 2 as n'),
+          queryRows<{ n: number }>(transaction, 'select 3 as n'),
         ]);
         await transaction.commit();
 
-        expect(results.map((r) => r.rows[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
+        expect(results.map((r) => r[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
         expect(h.maxInFlight()).toBe(1);
       } finally {
         await connection.release();
@@ -224,7 +225,7 @@ describe('pinned-client serialization on a real wire', () => {
 
       const streamed: number[] = [];
       const consumeStream = async (): Promise<void> => {
-        for await (const row of h.driver.execute<{ id: number }>({
+        for await (const row of h.driver.query<{ id: number }>({
           sql: 'select id from items order by id',
         })) {
           streamed.push(row.id);
@@ -233,11 +234,11 @@ describe('pinned-client serialization on a real wire', () => {
 
       const [, other] = await Promise.all([
         consumeStream(),
-        h.driver.query<{ n: number }>('select count(*)::int as n from items'),
+        queryRows<{ n: number }>(h.driver, 'select count(*)::int as n from items'),
       ]);
 
       expect(streamed).toHaveLength(20);
-      expect(other.rows).toEqual([{ n: 20 }]);
+      expect(other).toEqual([{ n: 20 }]);
 
       const begin = h.recordedQueryTexts.indexOf('BEGIN');
       const commit = h.recordedQueryTexts.indexOf('COMMIT');

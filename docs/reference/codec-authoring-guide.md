@@ -27,7 +27,7 @@ PostgreSQL and SQLite target descriptors also declare AST-to-AST JSON projection
 
 **A value read back through database-produced JSON is the value that was stored.** Where a query returns JSON — an `.include()`'s nested rows, an aggregated child row set — each column reaches that JSON through its own codec's projection, and `decodeJson` returns the application value the column holds. A `numeric` arrives as its exact decimal text rather than rounded through a double; a `bytea` as base64 rather than a hex escape; a `bigint` as decimal text rather than a JSON number that cannot hold it. Absence is preserved: a `NULL` column reads back as `null`, never as a zero or an empty value.
 
-The guarantee is about **columns**. A value computed by the query rather than stored by it — an aggregate such as `count()`, `sum()` or `avg()` — has no column codec to be canonical against, so it reaches JSON as whatever the database's own conversion produces and is outside this guarantee. `count()` is the one you will meet first: it is typed `bigint` and the runtime hands back a string. Aggregate decoding is being addressed separately ([TML-3064](https://linear.app/prisma-company/issue/TML-3064)); until it is, treat an aggregate's value as needing your own conversion.
+The guarantee reaches values the query **computes** as well as values it stores. An aggregate has no column codec to be canonical against, so its target declares one — see the [aggregate descriptor guide](./aggregate-descriptor-guide.md) — and the declared codec is what the value enters JSON under and is read back through. A count inside an `.include()` arrives under `pg/int8number@1`, whose canonical JSON is a JSON number and whose post-parse guard refuses a value the safe-integer range cannot hold; a `countBigInt` in the same position arrives under `pg/int8@1` as decimal text. An aggregate no target declares an overload for does not weaken this: the call is a type error on the typed surfaces, and a dynamic invocation is rejected with `ORM.AGGREGATE_UNSUPPORTED` before any SQL is built — no undeclared value ever reaches JSON.
 
 The guarantee rests on the codec, not on the database's own JSON conversion, which is why it can be stated at all. It has exactly two limits, and both are real:
 
@@ -35,6 +35,8 @@ The guarantee rests on the codec, not on the database's own JSON conversion, whi
 - **Float codecs need `extra_float_digits >= 1`.** `pg/float4@1`, `pg/float8@1`, `pg/float@1` and `sql/float@1` render through PostgreSQL's float-to-text conversion, which `extra_float_digits` controls. At `1` (the default since PostgreSQL 12) it prints the shortest decimal that round-trips exactly, and the guarantee holds. A session that lowers it to `0` or below prints fewer digits than the value needs, and a float read back through JSON may differ from the one stored. Nothing in the framework enforces the setting; if your deployment changes it, floats are outside the guarantee.
 
 Non-finite floats are rejected rather than silently mangled: JSON has no spelling for `NaN` or an infinity, and a database that holds one emits it as a *string*, so `sql/float@1` and `sqlite/real@1` refuse them in both directions rather than hand back a string typed as `number`. `pg/numeric@1` accepts all three, because its application value is already text.
+
+The consumer-facing [`BigInt`, `BigIntNumber`, and `UnboundedInt` representation choices](./integer-representation-types.md), including `BigIntNumber`'s deliberate JSON-number exception, are documented separately from this contributor guide.
 
 ## Three case studies
 
@@ -428,6 +430,10 @@ class PgCharDescriptor extends PostgresCodecDescriptor<LengthParams> {
 This keeps target ownership explicit: adaptation is for a reusable descriptor with its existing id; target-owned subclassing is for a PostgreSQL codec with PostgreSQL identity or behavior. In both cases the result satisfies the PostgreSQL descriptor protocol and can participate in `definePostgresCodecs(...)`.
 
 See [packages/3-targets/3-targets/postgres/src/core/codecs.ts](../../packages/3-targets/3-targets/postgres/src/core/codecs.ts) (`postgresSqlCharDescriptor`, `PgCharDescriptor`) for both patterns.
+
+## Aggregate result codecs
+
+What an aggregate returns is a declaration of its target, not a property of the input codec. That contribution surface — `SqlAggregateDescriptor` on `types.aggregateDescriptors`, a sibling of `codecTypes` — has its own reference: the [aggregate descriptor guide](./aggregate-descriptor-guide.md).
 
 ## Heterogeneous storage at the runtime layer
 

@@ -79,7 +79,7 @@ describe('sql-target-family-hook', () => {
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain('relations: {');
     expect(types).toContain(
-      "readonly posts: { readonly to: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Post' }; readonly cardinality: '1:N'; readonly on: { readonly localFields: readonly ['id']; readonly targetFields: readonly ['userId'] } }",
+      'readonly posts: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Post" }; readonly cardinality: "1:N"; readonly on: { readonly localFields: readonly ["id"]; readonly targetFields: readonly ["userId"] } }',
     );
   });
 
@@ -104,8 +104,8 @@ describe('sql-target-family-hook', () => {
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).not.toContain('SqlMappings');
     expect(types).toContain('export type TypeMaps');
-    expect(types).not.toContain("'__@internal/sql-contract/codecTypes@__'");
-    expect(types).not.toContain("'__@internal/sql-contract/operationTypes@__'");
+    expect(types).not.toContain('"__@internal/sql-contract/codecTypes@__"');
+    expect(types).not.toContain('"__@internal/sql-contract/operationTypes@__"');
   });
 
   it('generates contract types with explicitly empty models and codecTypes', () => {
@@ -270,10 +270,10 @@ describe('sql-target-family-hook', () => {
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).not.toContain('export type Relations');
     expect(types).toContain(
-      "readonly posts: { readonly to: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Post' }; readonly cardinality: '1:N'; readonly on: { readonly localFields: readonly ['id']; readonly targetFields: readonly ['userId'] } }",
+      'readonly posts: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Post" }; readonly cardinality: "1:N"; readonly on: { readonly localFields: readonly ["id"]; readonly targetFields: readonly ["userId"] } }',
     );
     expect(types).toContain(
-      "readonly comments: { readonly to: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Comment' }; readonly cardinality: '1:N'; readonly on: { readonly localFields: readonly ['id']; readonly targetFields: readonly ['authorId'] } }",
+      'readonly comments: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Comment" }; readonly cardinality: "1:N"; readonly on: { readonly localFields: readonly ["id"]; readonly targetFields: readonly ["authorId"] } }',
     );
   });
 
@@ -352,15 +352,15 @@ describe('sql-target-family-hook', () => {
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain('export type Contract');
     expect(types).toContain('readonly User: {');
-    expect(types).toContain("storage: { readonly table: 'user'");
+    expect(types).toContain('storage: { readonly table: "user"');
     expect(types).toContain(
-      "readonly id: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' } }",
+      'readonly id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/int4@1" } }',
     );
     expect(types).toContain(
-      "readonly email: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' } }",
+      'readonly email: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" } }',
     );
     expect(types).toContain(
-      "readonly name: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' } }",
+      'readonly name: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" } }',
     );
     expect(types).not.toContain('modelToTable');
     expect(types).not.toContain('fieldToColumn');
@@ -424,8 +424,8 @@ describe('sql-target-family-hook', () => {
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain('readonly User: {');
     expect(types).toContain('readonly Post: {');
-    expect(types).toContain("readonly table: 'user'");
-    expect(types).toContain("readonly table: 'post'");
+    expect(types).toContain('readonly table: "user"');
+    expect(types).toContain('readonly table: "post"');
     expect(types).not.toContain('modelToTable');
   });
 
@@ -482,7 +482,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain(
-      "readonly partialRel: { readonly to: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Post' } }",
+      'readonly partialRel: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Post" } }',
     );
   });
 
@@ -515,7 +515,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain('readonly User: {');
-    expect(types).toContain("storage: { readonly table: 'user'");
+    expect(types).toContain('storage: { readonly table: "user"');
     expect(types).toContain('readonly fields: Record<string, never>');
     expect(types).not.toContain('fieldToColumn');
     expect(types).not.toContain('columnToField');
@@ -618,9 +618,9 @@ describe('sql-target-family-hook', () => {
     };
 
     const result = sqlEmission.generateModelStorageType('User', model);
-    expect(result).toContain("readonly table: 'user'");
-    expect(result).toContain("readonly id: { readonly column: 'id' }");
-    expect(result).toContain("readonly email: { readonly column: 'email' }");
+    expect(result).toContain('readonly table: "user"');
+    expect(result).toContain('readonly id: { readonly column: "id" }');
+    expect(result).toContain('readonly email: { readonly column: "email" }');
   });
 
   it('includes owner field in model type when present', () => {
@@ -654,6 +654,6 @@ describe('sql-target-family-hook', () => {
     });
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
-    expect(types).toContain("readonly owner: 'system'");
+    expect(types).toContain('readonly owner: "system"');
   });
 });

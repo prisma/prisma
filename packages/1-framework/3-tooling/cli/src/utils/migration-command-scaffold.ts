@@ -1,13 +1,13 @@
 import { readFile } from 'node:fs/promises';
 import { relative, resolve } from 'node:path';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections, type PrismaNextConfig } from '@internal/config-loader';
 import { hasMigrations } from '@internal/framework-components/control';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import type { Command } from 'commander';
 import { createControlClient } from '../control-api/client';
 import type { ControlClient } from '../control-api/types';
 import {
-  type CliStructuredError,
+  CliStructuredError,
   errorContractValidationFailed,
   errorDatabaseConnectionRequired,
   errorDriverRequired,
@@ -33,7 +33,7 @@ export interface MigrationContext {
   readonly configPath: string;
   readonly contractPath: string;
   readonly contractPathAbsolute: string;
-  readonly config: Awaited<ReturnType<typeof loadConfig>>;
+  readonly config: PrismaNextConfig;
 }
 
 /**
@@ -60,11 +60,32 @@ export async function prepareMigrationContext(
   descriptor: MigrationCommandDescriptor,
 ): Promise<Result<MigrationContext, CliStructuredError>> {
   // Load config
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const configPath = options.config
     ? relative(process.cwd(), resolve(options.config))
     : 'prisma-next.config.ts';
-  const contractPathAbsolute = resolveContractPath(config);
+  let contractPathAbsolute: string;
+  try {
+    contractPathAbsolute = resolveContractPath(config);
+  } catch (error) {
+    if (CliStructuredError.is(error)) {
+      return notOk(error);
+    }
+    throw error;
+  }
   const contractPath = relative(process.cwd(), contractPathAbsolute);
 
   // Output header to stderr (decoration)

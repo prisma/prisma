@@ -97,12 +97,9 @@ function createMockDriver(): SqlDriver {
     yield {} as Record<string, unknown>;
   });
 
-  const query = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
-
   return {
-    execute: rootExecute,
-    executePrepared: vi.fn().mockRejectedValue(new Error('executePrepared not used in this test')),
-    query,
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: rootExecute,
     connect: vi.fn().mockImplementation(async (_binding?: undefined) => undefined),
     acquireConnection: vi.fn().mockRejectedValue(new Error('not used in this test')),
     close: vi.fn().mockResolvedValue(undefined),
@@ -269,7 +266,7 @@ describe('intercepted rows go through codec decoding', () => {
     const out = await runtime.execute(plan).toArray();
 
     expect(out).toEqual([{ profile: { kind: 'first' } }, { profile: { kind: 'second' } }]);
-    expect(driver.execute).not.toHaveBeenCalled();
+    expect(driver.query).not.toHaveBeenCalled();
   });
 
   it('decodes driver rows and intercepted rows the same way (round-trip via the same codec path)', async () => {
@@ -281,7 +278,7 @@ describe('intercepted rows go through codec decoding', () => {
       const { runtime, driver } = createTestSetup([]);
 
       // Override the driver to produce the wire value.
-      (driver.execute as ReturnType<typeof vi.fn>).mockImplementation(async function* (
+      (driver.query as ReturnType<typeof vi.fn>).mockImplementation(async function* (
         _request: SqlExecuteRequest,
       ) {
         yield { profile: wireValue };

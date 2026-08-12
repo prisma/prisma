@@ -3,12 +3,126 @@ import { describe, expect, it } from 'vitest';
 
 import {
   assertWireNamePrefixLength,
+  composeCheckWirePrefix,
+  computeCheckContentHash,
   computeIndexContentHash,
+  defaultIndexName,
   formatWireName,
+  nameOf,
+  namingOf,
+  namingOfLiveName,
+  normalizeIndexOptionValue,
   normalizeSqlBody,
+  parseNaming,
   parseWireName,
-  WIRE_NAME_PREFIX_MAX_LENGTH,
+  truncateToWireNamePrefixBytes,
+  WIRE_NAME_PREFIX_MAX_BYTES,
 } from '../src/exports/naming';
+
+describe('defaultIndexName', () => {
+  it('joins the table and column tuple into the conventional suffix', () => {
+    expect(defaultIndexName('users', ['tenant_id', 'email'])).toBe('users_tenant_id_email_idx');
+  });
+});
+
+describe('the naming union', () => {
+  describe('nameOf / namingOf round-trip', () => {
+    it('an exact name keeps its author-owned spelling', () => {
+      const naming = namingOf('users_pkey', undefined);
+
+      expect(naming).toEqual({ kind: 'exact', name: 'users_pkey' });
+      expect(nameOf(naming)).toBe('users_pkey');
+    });
+
+    it('a wire name splits back into the prefix it was built from', () => {
+      const naming = namingOf('users_email_idx_ab12cd34', 'users_email_idx');
+
+      expect(naming).toEqual({
+        kind: 'wire',
+        prefix: 'users_email_idx',
+        hash: 'ab12cd34',
+      });
+      expect(nameOf(naming)).toBe('users_email_idx_ab12cd34');
+    });
+  });
+
+  describe('parseNaming (flat data from outside the process)', () => {
+    it('reads a wire name back when the declared prefix agrees', () => {
+      expect(parseNaming('p_read_ab12cd34', 'p_read')).toEqual({
+        kind: 'wire',
+        prefix: 'p_read',
+        hash: 'ab12cd34',
+      });
+    });
+
+    it('treats an absent prefix as an exact name', () => {
+      expect(parseNaming('handwritten', undefined)).toEqual({
+        kind: 'exact',
+        name: 'handwritten',
+      });
+    });
+
+    it('rejects a declared prefix that disagrees with the name', () => {
+      expect(() => parseNaming('p_read_ab12cd34', 'p_write')).toThrow(
+        '"p_read_ab12cd34": prefix "p_write" does not match the wire name',
+      );
+    });
+
+    it('rejects a declared prefix on a name with no hash suffix', () => {
+      expect(() => parseNaming('handwritten', 'handwritten')).toThrow(
+        'does not match the wire name',
+      );
+    });
+  });
+
+  describe('namingOfLiveName (a name read out of the catalog)', () => {
+    it('claims the wire arm for a wire-shaped name', () => {
+      expect(namingOfLiveName('users_email_idx_ab12cd34')).toEqual({
+        kind: 'wire',
+        prefix: 'users_email_idx',
+        hash: 'ab12cd34',
+      });
+    });
+
+    it('claims the exact arm for anything else', () => {
+      expect(namingOfLiveName('users_pkey')).toEqual({ kind: 'exact', name: 'users_pkey' });
+    });
+  });
+});
+
+describe('composeCheckWirePrefix', () => {
+  it('spells the membership and element-not-null kinds distinctly', () => {
+    expect({
+      membership: composeCheckWirePrefix('User', 'role', 'membership'),
+      elementNotNull: composeCheckWirePrefix('User', 'tags', 'elementNotNull'),
+    }).toEqual({
+      membership: 'User_role_check',
+      elementNotNull: 'User_tags_elem_not_null',
+    });
+  });
+
+  it('truncates a derived prefix to the wire-name byte budget', () => {
+    const prefix = composeCheckWirePrefix('t'.repeat(60), 'column', 'membership');
+
+    expect(new TextEncoder().encode(prefix).length).toBe(WIRE_NAME_PREFIX_MAX_BYTES);
+  });
+});
+
+describe('normalizeIndexOptionValue', () => {
+  it('canonicalizes every boolean spelling the catalog may reprint', () => {
+    expect({
+      trueValues: [true, 'true', 'on'].map(normalizeIndexOptionValue),
+      falseValues: [false, 'false', 'off'].map(normalizeIndexOptionValue),
+    }).toEqual({
+      trueValues: ['on', 'on', 'on'],
+      falseValues: ['off', 'off', 'off'],
+    });
+  });
+
+  it('String()-coerces everything else', () => {
+    expect([70, '70', null].map(normalizeIndexOptionValue)).toEqual(['70', '70', 'null']);
+  });
+});
 
 describe('formatWireName', () => {
   it('joins prefix and hash with an underscore', () => {
@@ -108,6 +222,36 @@ describe('normalizeSqlBody', () => {
       const b = normalizeSqlBody('user_id = auth.uid()');
       expect(a).toBe(b);
     });
+  });
+});
+
+describe('computeCheckContentHash', () => {
+  it('returns 8 lowercase hex characters', () => {
+    expect(computeCheckContentHash(`"role" IN ('user', 'admin')`)).toMatch(/^[0-9a-f]{8}$/);
+  });
+
+  it('matches the expected SHA-256 first-8-hex for a known input', () => {
+    const expression = `"role"  IN ('user', 'admin')`;
+    const tuple = JSON.stringify([`"role" IN ('user', 'admin')`]);
+    const expected = createHash('sha256').update(tuple).digest('hex').slice(0, 8);
+    expect(computeCheckContentHash(expression)).toBe(expected);
+  });
+
+  it('is stable across calls', () => {
+    const expression = 'array_position("tags", NULL) IS NULL';
+    expect(computeCheckContentHash(expression)).toBe(computeCheckContentHash(expression));
+  });
+
+  it('whitespace variants hash identically', () => {
+    expect(computeCheckContentHash('  array_position("tags",   NULL)\n IS NULL ')).toBe(
+      computeCheckContentHash('array_position("tags", NULL) IS NULL'),
+    );
+  });
+
+  it('materially different expressions hash differently', () => {
+    expect(computeCheckContentHash(`"role" IN ('user')`)).not.toBe(
+      computeCheckContentHash(`"role" IN ('admin')`),
+    );
   });
 });
 
@@ -274,15 +418,58 @@ describe('pinned wire hashes (stability commitment)', () => {
 });
 
 describe('assertWireNamePrefixLength', () => {
-  it('rejects a prefix over the 54-character cap, naming the prefix and the cap', () => {
-    const longPrefix = 'a'.repeat(WIRE_NAME_PREFIX_MAX_LENGTH + 1);
+  it('rejects a prefix over the 54-byte cap, naming the prefix and the cap', () => {
+    const longPrefix = 'a'.repeat(WIRE_NAME_PREFIX_MAX_BYTES + 1);
     expect(() => assertWireNamePrefixLength(longPrefix, 'index prefix')).toThrow(
-      `index prefix "${longPrefix}" exceeds the 54-character maximum`,
+      `index prefix "${longPrefix}" exceeds the 54-byte maximum`,
     );
   });
 
-  it('accepts a 54-character prefix (the cap is inclusive)', () => {
-    const prefix = 'a'.repeat(WIRE_NAME_PREFIX_MAX_LENGTH);
+  it('accepts a 54-byte prefix (the cap is inclusive)', () => {
+    const prefix = 'a'.repeat(WIRE_NAME_PREFIX_MAX_BYTES);
     expect(() => assertWireNamePrefixLength(prefix, 'index prefix')).not.toThrow();
+  });
+
+  it('measures bytes, not characters — Postgres NAMEDATALEN is a byte limit', () => {
+    // 28 two-byte characters = 56 bytes, under the character cap, over the byte one.
+    const cyrillic = 'я'.repeat(28);
+    expect(cyrillic.length).toBeLessThan(WIRE_NAME_PREFIX_MAX_BYTES);
+    expect(() => assertWireNamePrefixLength(cyrillic, 'index prefix')).toThrow(
+      /exceeds the 54-byte maximum/,
+    );
+  });
+});
+
+describe('truncateToWireNamePrefixBytes', () => {
+  it('leaves a prefix within the budget untouched', () => {
+    expect(truncateToWireNamePrefixBytes('User_role_check')).toBe('User_role_check');
+  });
+
+  it('truncates an ASCII prefix to the byte budget', () => {
+    const long = 'a'.repeat(80);
+    const out = truncateToWireNamePrefixBytes(long);
+    expect(out).toBe('a'.repeat(WIRE_NAME_PREFIX_MAX_BYTES));
+  });
+
+  it('never splits a multibyte character', () => {
+    // Two-byte characters: 27 fit in 54 bytes, the 28th would overrun.
+    const cyrillic = 'я'.repeat(40);
+    const out = truncateToWireNamePrefixBytes(cyrillic);
+    expect(out).toBe('я'.repeat(27));
+    expect(new TextEncoder().encode(out).length).toBeLessThanOrEqual(WIRE_NAME_PREFIX_MAX_BYTES);
+  });
+
+  it('never splits an astral character (surrogate pair)', () => {
+    // Four-byte characters: 13 fit in 54 bytes with 2 bytes to spare.
+    const emoji = '😀'.repeat(20);
+    const out = truncateToWireNamePrefixBytes(emoji);
+    expect(out).toBe('😀'.repeat(13));
+    expect([...out].every((c) => c === '😀')).toBe(true);
+  });
+
+  it('the resulting wire name fits Postgres 63-byte identifier limit', () => {
+    const out = truncateToWireNamePrefixBytes('Пользователь_электронная_почта_адрес_строка');
+    const wireName = formatWireName(out, 'aabbccdd');
+    expect(new TextEncoder().encode(wireName).length).toBeLessThanOrEqual(63);
   });
 });

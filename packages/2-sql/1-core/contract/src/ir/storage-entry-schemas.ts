@@ -45,9 +45,26 @@ const StorageColumnSchema = type({
   'default?': ColumnDefaultSchema,
   'control?': ControlPolicySchema,
   'valueSet?': StorageValueSetRefSchema,
+  // Arktype schema expression, so the union stays a string literal here; the
+  // canonical spelling is `CheckKind` in `@internal/sql-schema-ir/naming`.
+  'noCheck?': '("membership" | "elementNotNull")[]',
 }).narrow((col, ctx) => {
   if (col.typeParams !== undefined && col.typeRef !== undefined) {
     return ctx.mustBe('a column with either typeParams or typeRef, not both');
+  }
+  if (col.noCheck !== undefined) {
+    if (col.noCheck.length === 0) {
+      return ctx.mustBe('a column whose noCheck array is non-empty (omit the key when enforced)');
+    }
+    for (let i = 1; i < col.noCheck.length; i += 1) {
+      const previous = col.noCheck[i - 1];
+      const current = col.noCheck[i];
+      if (previous !== undefined && current !== undefined && previous >= current) {
+        return ctx.mustBe(
+          'a column whose noCheck kinds are unique and sorted ascending lexicographically',
+        );
+      }
+    }
   }
   return true;
 });
@@ -115,8 +132,8 @@ export const ForeignKeySchema = type.declare<ForeignKeyInput>().type({
 export const CheckConstraintSchema = type({
   '+': 'reject',
   name: 'string',
-  column: 'string',
-  valueSet: StorageValueSetRefSchema,
+  'prefix?': 'string',
+  expression: 'string',
 });
 
 export const StorageTableSchema = type({

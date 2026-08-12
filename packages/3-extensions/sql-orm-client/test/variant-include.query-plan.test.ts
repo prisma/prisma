@@ -1,9 +1,9 @@
 import {
   AggregateExpr,
   BinaryExpr,
+  CodecJsonValueProjection,
   ColumnRef,
   JsonObjectExpr,
-  NativeJsonValueProjection,
   ProjectionItem,
   SelectAst,
   SubqueryExpr,
@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest';
 import { createIncludeScalar } from '../src/include-descriptors';
 import { compileSelectWithIncludes } from '../src/query-plan-select';
 import { emptyState } from '../src/types';
-import { buildMixedPolyContract } from './helpers';
+import { buildMixedPolyContract, getTestAggregates } from './helpers';
 import {
   assigneeInclude,
   assigneeRows,
@@ -35,6 +35,7 @@ describe('variant-owned include parent correlation', () => {
 
     const plan = compileSelectWithIncludes(
       contract,
+      getTestAggregates(),
       'public',
       'tasks',
       rootState(include, 'Feature', 'title'),
@@ -59,6 +60,7 @@ describe('variant-owned include parent correlation', () => {
 
     const plan = compileSelectWithIncludes(
       contract,
+      getTestAggregates(),
       'public',
       'tasks',
       rootState(include, 'Bug', 'title'),
@@ -88,6 +90,7 @@ describe('variant-owned include parent correlation', () => {
 
     const plan = compileSelectWithIncludes(
       contract,
+      getTestAggregates(),
       'public',
       'tasks',
       rootState(include, 'Feature', 'title'),
@@ -128,6 +131,7 @@ describe('variant-owned include child alias collisions', () => {
 
     const plan = compileSelectWithIncludes(
       contract,
+      getTestAggregates(),
       'public',
       'tasks',
       rootState(include, 'Feature', 'title'),
@@ -164,7 +168,12 @@ describe('variant-owned include child alias collisions', () => {
         ProjectionItem.of(
           'featureCount',
           JsonObjectExpr.fromEntries([
-            JsonObjectExpr.entry('value', new NativeJsonValueProjection(AggregateExpr.count())),
+            JsonObjectExpr.entry(
+              'value',
+              new CodecJsonValueProjection(AggregateExpr.count(), {
+                codecId: 'pg/int8number@1',
+              }),
+            ),
           ]),
         ),
       ])
@@ -177,6 +186,7 @@ describe('variant-owned include child alias collisions', () => {
 
     const plan = compileSelectWithIncludes(
       contract,
+      getTestAggregates(),
       'public',
       'tasks',
       rootState(include, 'Feature', 'title'),

@@ -213,7 +213,7 @@ These questions refine implementation but do not reopen the model above. If evid
 - **SQLite hexadecimal casing and validation** — working position: use SQLite's uppercase `hex()` output and make the codec's canonical validation explicitly match it unless conformance exposes a portability issue.
 - **SQLite scalar arrays** — working position: do not add a speculative stored-array protocol; implement only JSON aggregate element projection until a real SQLite `many` storage representation exists.
 - **Public testkit API shape** — working position: keep it test-framework-independent, caller-supplied for database execution/setup, and package it separately from production adapters.
-- **ADR shape** — working position: author a dedicated ADR at close-out for target-specific codec descriptors and database JSON projection semantics, then link any aggregate descriptor decision that proves independently durable.
+- **ADR shape** — working position, now that the aggregate slice has shipped: **two ADRs at close-out**, the aggregate one citing the projection one. The aggregate decision proved independently statable — its own contribution channel keyed on `(operation, input)` rather than `codecId`, its own precedence rule, a lowering mechanism the projection design has no analogue for, its own emitted `TypeMaps` key, and its own consumers (ORM planning and decoding, the SQL builder lane). What links them is one citation: an include reducer's result enters the JSON envelope under the codec these descriptors resolve, so the canonical-JSON guarantee is what carries it. One ADR remains the better record only if close-out finds neither decision statable without restating most of the other. Fuller rationale in the project's learnings ledger.
 
 ## Assumptions that trigger redesign if falsified
 
@@ -223,6 +223,38 @@ These questions refine implementation but do not reopen the model above. If evid
 4. SQL `TypeMaps.aggregateTypes` can be emitted from the same contributions used by runtime aggregate resolution.
 5. The typed relational AST can express built-in scalar and array projections without target branches in target-neutral planners.
 6. Existing codec IDs may change semantics under pre-1.0 policy when upgrade instructions require contract regeneration.
+
+## Integer representation and the aggregate operation split (2026-08-04)
+
+Settled in design discussion after slice 5 merged its aggregate hard cut. The problem: the hard cut is correct but hostile to JS developers — `count()` returns `bigint` (which `JSON.stringify` rejects and users report as "weird numbers with n"), integer `sum()` returns `bigint`, and integer `avg()` returns a decimal string. Two orthogonal mechanisms resolve this: a per-column codec choice in the contract, and a per-call operation choice at the query surface. They are unrelated concerns that meet only at descriptor resolution.
+
+### Decisions
+
+1. **`BigInt` keeps the lossless `bigint` codec as its default.** No second representation flip a week after the first. Classic Prisma is the prior art: `BigInt` columns have been JS `bigint` since 2.17.
+2. **`BigIntNumber` is a new opt-in target-contributed type** (PostgreSQL + SQLite): 64-bit integer storage decoded as JS `number`, throwing a structured error outside ±(2^53 − 1). Strictly sounder than classic Prisma's engine-side downcast, which fails at 2^31. Names rejected: `SafeInt` (misleading — the lossless codec is the safer one against overflow), `Int54` (the safe-range width is spec-pinned — ECMAScript mandates IEEE 754 binary64 — but the figure 54 is unrecognizable where 2^53 is familiar).
+3. **`BigIntNumber`'s canonical JSON is a JSON number** — the one deliberate exception to "64-bit integers travel as decimal text". Sound because double rounding is monotone and 2^53 is exactly representable: no true value outside the safe range can parse into it and slip past the post-parse guard.
+4. **`UnboundedInt` is a new PostgreSQL-only target-contributed type**: unconstrained `numeric` storage, integrality-checked decode to JS `bigint`, decimal-text canonical JSON. Born as the output codec `sumBigInt` needs over `int8` inputs, promoted to a column type because genuinely unbounded integers are a real authoring need (uint256 token amounts). Its codec claims no target-type name, so it cannot compete with the canonical Numeric codec during reverse native-type resolution; introspection never infers it.
+5. **The aggregate operation set becomes a target/extension contribution.** Descriptor `operation` opens to `string`; the ORM and sql-builder method surfaces derive from emitted `aggregateTypes` (call shape from row presence: `withoutInput` ⇒ zero-arg, `byCodec`/`anyInput` ⇒ field-taking); dispatch is generic and name-keyed. Method names *are* the contracted operation names — one flat namespace, nothing framework-blessed. The AST `AggregateFn` union stays closed: it is SQL's alphabet, not the operation namespace; novel operations lower through slice-1 function nodes.
+6. **Defaults policy: bare operations favour JS-native `number`, throwing where silence would lose precision; suffixed variants are lossless.** `count`/`countBigInt`, `sum`/`sumBigInt`, `avg`/`avgDecimal`; `min`/`max` output `self` and need no split. Bare operations over Float and Decimal columns stay in the column's own family — those users already chose their representation. Classic Prisma prior art: `count` is `number`, integer `_avg` is a float, while columns stay honest.
+7. **`sumBigInt` over `int8` decodes the database's `numeric` result to an unbounded `bigint`** (integrality-checked, via `pg/unboundedint@1`) rather than casting to `int8`. On PostgreSQL it therefore never overflows; on SQLite the database's own `SUM` raises past 2^63 — the target's declared bound. Naming the codec in the descriptor row makes the decode approach a contract fact no implementer can silently substitute.
+8. **`avg` lowers by casting the result** (`avg(x)::float8`), not the input: the exact numeric mean is computed first and rounded once.
+9. **Three slices:** 06 (codecs/types) ∥ 07 (behaviour-preserving de-hardcoding) → 08 (the breaking operation split with upgrade instructions). 06 and 07 stack on the slice-5 branch; separating 07 from 08 keeps the pure refactor and the behaviour change in different reviews.
+
+### Alternatives rejected
+
+- **`sumDecimal`.** Proposed, then dropped: with `sumBigInt` unbounded on PostgreSQL and bare `sum` staying in-family over Decimal columns, it has no non-redundant domain — and SQLite could not contribute it anyway. This rejection is contingent on decision 7; an `int8`-cast `sumBigInt` would resurrect the need.
+- **Field-preset authoring for `BigIntNumber` and `UnboundedInt`.** These names select storage plus application representation and carry no field-template semantics. Modeling them as presets would impose preset-only optional/default/list restrictions and retain machinery the Prisma 8 roadmap already plans to retire; target-contributed type constructors express the actual concept and share one registry across PSL and TS.
+- **Decimal-text canonical JSON for `BigIntNumber`** (uniformity with `pg/int8@1`). Number-ness is the codec's entire purpose, and the guard makes JSON-number safe here.
+- **Opening the AST `AggregateFn` union to `string`.** Unnecessary — lowering hooks and the slice-1 function nodes cover contributed operations; the closed union keeps renderers exhaustive.
+- **Framework-blessed method names with contributed semantics only.** Rejected for full contribution: portability across targets rests on targets agreeing on names, the same social contract codecs already use.
+
+### Assumptions
+
+- `pg/numeric@1` keeps decoding to a string (no Decimal application type). If a Decimal class ever lands, `avgDecimal` and Decimal-column `sum` return types change with it.
+- Type-constructor availability remains target-scoped because authoring contributions are assembled only from the active family, target, adapter, and extensions; adding `BigIntNumber` to PostgreSQL and SQLite does not expose it on other targets.
+- Reverse introspection remains independent from authored type constructors: the new codecs keep `targetTypes: []`, PostgreSQL continues to infer `int8` as `BigInt` and `numeric` as `Numeric`, and SQLite retains its canonical integer mapping.
+- The safe-range guard's soundness rests on ECMAScript-mandated binary64 — spec-pinned, not VM-dependent.
+- Slice 8's operation names assume slice 7's flat namespace ships as designed; a partial de-hardcoding would force per-surface special cases back in.
 
 ## References
 

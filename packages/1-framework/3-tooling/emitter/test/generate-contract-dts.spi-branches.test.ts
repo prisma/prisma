@@ -18,7 +18,7 @@ function literalCodecLookup(): CodecLookup {
     renderOutputTypeFor: () => undefined,
     renderValueLiteralFor: (_id, value) =>
       typeof value === 'string'
-        ? `'${value}'`
+        ? `"${value}"`
         : typeof value === 'number' || typeof value === 'boolean'
           ? String(value)
           : undefined,
@@ -113,7 +113,7 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
       undefined,
       literalCodecLookup(),
     );
-    expect(dts).toContain("readonly priority: 'low' | 'high'");
+    expect(dts).toContain('readonly priority: "low" | "high"');
   });
 
   it('does not narrow when the SPI supplies no resolveFieldValueSet hook', () => {
@@ -134,7 +134,7 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
       undefined,
       literalCodecLookup(),
     );
-    expect(dts).toContain("readonly priority: CodecTypes['pg/text@1']['output']");
+    expect(dts).toContain('readonly priority: CodecTypes["pg/text@1"]["output"]');
   });
 
   it('falls back to the codec channel when the resolver returns undefined for the field', () => {
@@ -155,7 +155,7 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
       undefined,
       literalCodecLookup(),
     );
-    expect(dts).toContain("readonly priority: CodecTypes['pg/text@1']['output']");
+    expect(dts).toContain('readonly priority: CodecTypes["pg/text@1"]["output"]');
   });
 
   it('falls back to the codec channel when no codec lookup is supplied', () => {
@@ -174,6 +174,6 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
       [],
       HASHES,
     );
-    expect(dts).toContain("readonly priority: CodecTypes['pg/text@1']['output']");
+    expect(dts).toContain('readonly priority: CodecTypes["pg/text@1"]["output"]');
   });
 });

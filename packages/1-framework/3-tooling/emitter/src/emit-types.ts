@@ -3,7 +3,8 @@ import type {
   SerializeContract,
   StorageSort,
 } from '@internal/contract/hashing';
-import type { CodecLookup } from '@internal/framework-components/codec';
+import type { AnyCodecDescriptor, CodecLookup } from '@internal/framework-components/codec';
+import type { AggregateDescriptor } from '@internal/framework-components/components';
 import type {
   ImportSpecifierResolver,
   TypesImportSpec,
@@ -19,6 +20,8 @@ export interface EmitStackInput {
   readonly queryOperationTypeImports?: ReadonlyArray<TypesImportSpec>;
   readonly extensionIds?: ReadonlyArray<string>;
   readonly codecLookup?: CodecLookup;
+  readonly codecDescriptors?: ReadonlyArray<AnyCodecDescriptor>;
+  readonly aggregateDescriptors?: ReadonlyArray<AggregateDescriptor>;
 }
 
 export interface EmitOptions {

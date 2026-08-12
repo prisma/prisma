@@ -445,9 +445,7 @@ withTempDir(({ createTempDir }) => {
             string,
             unknown
           >;
-          expect(parsed['meta']).toEqual(
-            expect.objectContaining({ code: 'MIGRATION.INVALID_REF_NAME' }),
-          );
+          expect(parsed['code']).toBe('MIGRATION.INVALID_REF_NAME');
         });
       },
       timeouts.spinUpPpgDev,

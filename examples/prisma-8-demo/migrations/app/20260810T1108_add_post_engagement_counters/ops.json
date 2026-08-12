@@ -1,0 +1,104 @@
+[
+  {
+    "id": "column.public.post.impressionCount",
+    "label": "Add column \"impressionCount\" to \"post\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "impressionCount",
+        "table": "post"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"impressionCount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": ["public", "post", "impressionCount"]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"impressionCount\"",
+        "sql": "ALTER TABLE \"public\".\"post\" ADD COLUMN \"impressionCount\" int8"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"impressionCount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": ["public", "post", "impressionCount"]
+      }
+    ]
+  },
+  {
+    "id": "column.public.post.reachScore",
+    "label": "Add column \"reachScore\" to \"post\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "reachScore",
+        "table": "post"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"reachScore\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": ["public", "post", "reachScore"]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"reachScore\"",
+        "sql": "ALTER TABLE \"public\".\"post\" ADD COLUMN \"reachScore\" numeric"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"reachScore\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": ["public", "post", "reachScore"]
+      }
+    ]
+  },
+  {
+    "id": "column.public.post.viewCount",
+    "label": "Add column \"viewCount\" to \"post\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "viewCount",
+        "table": "post"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"viewCount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": ["public", "post", "viewCount"]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"viewCount\"",
+        "sql": "ALTER TABLE \"public\".\"post\" ADD COLUMN \"viewCount\" int8"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"viewCount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": ["public", "post", "viewCount"]
+      }
+    ]
+  }
+]

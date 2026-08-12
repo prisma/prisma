@@ -14,12 +14,10 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //   - includes Enum[] enum lists (postgres-only, not mysql)
 //   - does NOT include MongoDB composites (mongo-only — skipped)
 //
-// EMITTER GAP: the faithful PSL translation includes `enumList Enum[]`
-// (a text-backed enum list column), which the postgres emitter lowers to a
-// CHECK constraint using `IN ('A', 'B')`. That constraint is invalid for
-// Postgres array columns — Postgres rejects it with "malformed array literal"
-// (sqlState 22P02) during plan→apply. The schema push therefore fails before
-// any ORM operation can run. All tests in this suite are marked it.fails.
+// The faithful PSL translation includes `enumList Enum[]`, a text-backed enum
+// list column. That column used to lower to `CHECK (enumList IN ('A', 'B'))`,
+// which Postgres rejects for an array column, so the whole suite failed at
+// schema push. The membership check is now array containment.
 //
 // Note: MongoDB `composite` field is mongo-only and is not ported here.
 
@@ -38,7 +36,7 @@ const SEED_MODEL = {
 };
 
 describe('ports/prisma/functional/default-selection', () => {
-  it.fails(
+  it(
     'includes scalars',
     () =>
       withDefaultSelection(async ({ db }) => {
@@ -53,7 +51,7 @@ describe('ports/prisma/functional/default-selection', () => {
     timeouts.spinUpPpgDev,
   );
 
-  it.fails(
+  it(
     'does not include relations',
     () =>
       withDefaultSelection(async ({ db }) => {
@@ -68,7 +66,7 @@ describe('ports/prisma/functional/default-selection', () => {
     timeouts.spinUpPpgDev,
   );
 
-  it.fails(
+  it(
     'includes enums',
     () =>
       withDefaultSelection(async ({ db }) => {
@@ -82,7 +80,7 @@ describe('ports/prisma/functional/default-selection', () => {
     timeouts.spinUpPpgDev,
   );
 
-  it.fails(
+  it(
     'includes lists',
     () =>
       withDefaultSelection(async ({ db }) => {
@@ -96,7 +94,7 @@ describe('ports/prisma/functional/default-selection', () => {
     timeouts.spinUpPpgDev,
   );
 
-  it.fails(
+  it(
     'includes enum lists',
     () =>
       withDefaultSelection(async ({ db }) => {

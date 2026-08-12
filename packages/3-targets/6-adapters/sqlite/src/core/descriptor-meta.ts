@@ -1,3 +1,4 @@
+import { sqliteAggregateDescriptors } from '@internal/target-sqlite/aggregates';
 import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
 
 // Exclude codecs that carry a renderOutputType: those emit named TypeScript types (e.g.
@@ -27,6 +28,7 @@ export const sqliteAdapterDescriptorMeta = {
     },
   },
   types: {
+    aggregateDescriptors: sqliteAggregateDescriptors,
     codecTypes: {
       codecDescriptors: executionCodecDescriptors,
       import: {

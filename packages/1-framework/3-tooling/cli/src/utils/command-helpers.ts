@@ -8,6 +8,7 @@ import { APP_SPACE_ID, spaceMigrationDirectory } from '@internal/migration-tools
 import { ifDefined } from '@internal/utils/defined';
 import type { Command } from 'commander';
 import { relative, resolve } from 'pathe';
+import type { ControlClient } from '../control-api/types';
 import { CliStructuredError, errorRuntime } from './cli-errors';
 import { formatCommandHelp } from './formatters/help';
 import type { CommonCommandOptions } from './global-flags';
@@ -95,10 +96,14 @@ export interface MigrationCommandOptions extends CommonCommandOptions {
  */
 export function resolveContractPath(config: { contract?: { output?: string } }): string {
   if (config.contract?.output === undefined) {
-    throw errorRuntime('config.contract.output is required to resolve the contract path', {
-      why: 'CLI commands read the emitted contract from config.contract.output; the config has no value to read.',
-      fix: 'Ensure your prisma-next.config.ts goes through `defineConfig()`, which normalises a default output when the provider supplies an input path, or set `contract.output` explicitly.',
-    });
+    throw errorRuntime(
+      'CONFIG.VALIDATION_FAILED',
+      'config.contract.output is required to resolve the contract path',
+      {
+        why: 'CLI commands read the emitted contract from config.contract.output; the config has no value to read.',
+        fix: 'Ensure your prisma-next.config.ts goes through `defineConfig()`, which normalises a default output when the provider supplies an input path, or set `contract.output` explicitly.',
+      },
+    );
   }
   return resolve(config.contract.output);
 }
@@ -116,10 +121,14 @@ export function resolveContractPath(config: { contract?: { output?: string } }):
  *   this directory. Extensions own their own `migrations/<spaceId>/`.
  * - `refsDir` is the app's refs directory (`<appMigrationsDir>/refs/`).
  *   The framework does not maintain refs at the migrations root.
+ *
+ * `cwd` is the directory the command was invoked from; every relative path in
+ * the result is computed against it.
  */
 export function resolveMigrationPaths(
   configOption: string | undefined,
   config: { migrations?: { dir?: string } },
+  cwd: string,
 ): {
   configPath: string;
   migrationsDir: string;
@@ -128,16 +137,17 @@ export function resolveMigrationPaths(
   appMigrationsRelative: string;
   refsDir: string;
 } {
-  const configPath = configOption
-    ? relative(process.cwd(), resolve(configOption))
+  const resolvedConfigPath = configOption ? resolve(cwd, configOption) : undefined;
+  const configPath = resolvedConfigPath
+    ? relative(cwd, resolvedConfigPath)
     : 'prisma-next.config.ts';
   const migrationsDir = resolve(
-    configOption ? resolve(configOption, '..') : process.cwd(),
+    resolvedConfigPath ? resolve(resolvedConfigPath, '..') : cwd,
     config.migrations?.dir ?? 'migrations',
   );
-  const migrationsRelative = relative(process.cwd(), migrationsDir);
+  const migrationsRelative = relative(cwd, migrationsDir);
   const appMigrationsDir = spaceMigrationDirectory(migrationsDir, APP_SPACE_ID);
-  const appMigrationsRelative = relative(process.cwd(), appMigrationsDir);
+  const appMigrationsRelative = relative(cwd, appMigrationsDir);
   const refsDir = resolve(appMigrationsDir, 'refs');
   return {
     configPath,
@@ -222,6 +232,20 @@ export function toPathDecisionResult(decision: PathDecision): PathDecisionResult
 
 export function targetSupportsMigrations(target: ControlTargetDescriptor<string, string>): boolean {
   return hasMigrations(target);
+}
+
+/**
+ * Hangs up without letting the hang-up decide the command's result. A rejection out of a
+ * `finally` replaces the value the `try`/`catch` already returned, so an unguarded close turns a
+ * mapped connection error into an unmapped one — and that is the case it hits most, because a
+ * `connect()` that failed leaves nothing to close.
+ */
+export async function closeQuietly(client: Pick<ControlClient, 'close'>): Promise<void> {
+  try {
+    await client.close();
+  } catch {
+    // The command already decided its result; failing to hang up cannot change it.
+  }
 }
 
 export function getTargetMigrations(target: ControlTargetDescriptor<string, string>) {

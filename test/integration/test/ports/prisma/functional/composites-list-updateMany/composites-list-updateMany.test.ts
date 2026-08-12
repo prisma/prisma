@@ -17,9 +17,9 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //   - set nested list    → updateAndCount with full replacement incl. upvotes array
 //   - push               → updateAndCount((u) => [u.contents.push({...})])
 //
-// Ported (it.fails — type-rejected, mongo does not throw at runtime):
-//   - set null           → @ts-expect-error, mongo omits runtime guard
-//   - set null shorthand → same
+// Ported:
+//   - set null
+//   - set null shorthand
 //
 // Non-ported — see non-ported ledger:
 //   - updateMany (embedded-list per-element filtered update) — no prisma-next surface
@@ -73,9 +73,9 @@ describe('ports/prisma/functional/composites/list/updateMany', () => {
   );
 
   // Upstream asserts null on required `contents` is a type error and a runtime throw.
-  // prisma-next rejects it at the type level (@ts-expect-error holds) but mongo does not
-  // throw at runtime for required embedded list fields — faithful port, it.fails.
-  it.fails(
+  // Prisma Next rejects it at the type level (@ts-expect-error holds), and MongoDB
+  // rejects it through the provisioned collection validator.
+  it(
     'set null',
     () =>
       withComposites(async ({ db }) => {
@@ -92,7 +92,7 @@ describe('ports/prisma/functional/composites/list/updateMany', () => {
     timeouts.spinUpMongoMemoryServer,
   );
 
-  it.fails(
+  it(
     'set null shorthand',
     () =>
       withComposites(async ({ db }) => {

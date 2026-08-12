@@ -1,4 +1,5 @@
 export {
+  errorContractDeserializationFailed,
   errorContractSnapshotHashMismatch,
   errorContractSnapshotMissing,
   errorDescriptorHeadHashMismatch,

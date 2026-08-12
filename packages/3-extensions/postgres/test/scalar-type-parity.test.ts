@@ -26,6 +26,8 @@ const REPRESENTATIVE_SCHEMA = `model sample {
   name      String
   active    Boolean
   big       BigInt
+  bounded   BigIntNumber
+  unbounded UnboundedInt
   ratio     Float
   price     Decimal
   createdAt DateTime
@@ -66,6 +68,8 @@ describe('postgres scalar types derived from the unified namespace', () => {
       Boolean: { codecId: 'pg/bool@1', nativeType: 'bool' },
       Int: { codecId: 'pg/int4@1', nativeType: 'int4' },
       BigInt: { codecId: 'pg/int8@1', nativeType: 'int8' },
+      BigIntNumber: { codecId: 'pg/int8number@1', nativeType: 'int8' },
+      UnboundedInt: { codecId: 'pg/unboundedint@1', nativeType: 'numeric' },
       Float: { codecId: 'pg/float8@1', nativeType: 'float8' },
       Inet: { codecId: 'pg/inet@1', nativeType: 'inet' },
       Decimal: { codecId: 'pg/numeric@1', nativeType: 'numeric' },
@@ -90,6 +94,7 @@ describe('postgres scalar types derived from the unified namespace', () => {
   it('exposes the derived scalar names as controlStack.scalarTypes', () => {
     expect([...stack.scalarTypes].sort()).toEqual([
       'BigInt',
+      'BigIntNumber',
       'Boolean',
       'Bytes',
       'Char',
@@ -109,6 +114,7 @@ describe('postgres scalar types derived from the unified namespace', () => {
       'Timestamp',
       'Timestamptz',
       'Timetz',
+      'UnboundedInt',
       'Uuid',
       'VarChar',
     ]);
@@ -131,6 +137,8 @@ describe('postgres scalar types derived from the unified namespace', () => {
                     name: { codecId: 'pg/text@1', nativeType: 'text' },
                     active: { codecId: 'pg/bool@1', nativeType: 'bool' },
                     big: { codecId: 'pg/int8@1', nativeType: 'int8' },
+                    bounded: { codecId: 'pg/int8number@1', nativeType: 'int8' },
+                    unbounded: { codecId: 'pg/unboundedint@1', nativeType: 'numeric' },
                     ratio: { codecId: 'pg/float8@1', nativeType: 'float8' },
                     price: { codecId: 'pg/numeric@1', nativeType: 'numeric' },
                     createdAt: { codecId: 'pg/timestamptz@1', nativeType: 'timestamptz' },

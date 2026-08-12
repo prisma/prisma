@@ -5,6 +5,12 @@ import { sql } from '../../src/runtime/sql';
 import { contract as contractJson } from '../fixtures/contract';
 import type { Contract } from '../fixtures/generated/contract';
 
+/** No target contributes aggregates to these plan-shape cases; resolution answers nothing and the codec slot stays empty. */
+const emptyAggregateRegistry = {
+  resolve: () => undefined,
+  values: function* () {},
+};
+
 // Builder annotate tests exercise plan-meta wiring; they don't need
 // real contract validation, so we cast the fixture's typed contract JSON.
 const sqlContract = contractJson as unknown as Contract;
@@ -13,6 +19,7 @@ const stubBase = {
   operations: {},
   codecs: {},
   queryOperations: { entries: () => ({}) },
+  aggregateDescriptors: emptyAggregateRegistry,
   types: {},
   applyMutationDefaults: () => [],
 };

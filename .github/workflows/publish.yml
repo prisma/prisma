@@ -2,7 +2,7 @@ name: Publish to npm
 
 # Source-of-truth model:
 #   The version comes from the root `package.json` `version` field.
-#   Maintainers advance it via `pnpm bump-minor` (see
+#   Maintainers advance it via `pnpm bump-version` (see
 #   docs/oss/versioning.md). This workflow can never publish a version
 #   other than what is committed at HEAD.
 #
@@ -10,8 +10,11 @@ name: Publish to npm
 #   - push to `main` with the root `version` unchanged → publish
 #     `<base>-dev.N` under dist-tag `dev`.
 #   - push to `main` with the root `version` changed   → publish `<base>`
-#     under dist-tag `latest` and create a GitHub Release. This is how a
-#     merged `chore(release): ...` PR auto-ships.
+#     under dist-tag `latest` and create a GitHub Release (marked
+#     pre-release for RC-line versions like `8.0.0-rc.N`). `latest`
+#     tracks the newest release, RC or stable — the package names this
+#     repo publishes have no pre-v8 stable audience to protect. This is
+#     how a merged `chore(release): ...` PR auto-ships.
 #   - workflow_dispatch                                 → publish `<base>`
 #     under the chosen dist-tag (default `latest`); also the dry-run path.
 
@@ -62,7 +65,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup mise
-        uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
+        uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
         with:
           cache: true
 
@@ -110,6 +113,19 @@ jobs:
       - name: Check upgrade-instruction coverage
         run: pnpm check:upgrade-coverage --mode publish
 
+      # Publish-time check (releases only): a `latest` Release publishes
+      # the committed notes file as its body, so that file must exist
+      # before anything reaches the registry — a release with missing or
+      # flat notes must fail here, not after the packages are already
+      # public. There is no auto-generated fallback. Dev/beta builds
+      # create no Release, so the check is scoped to `latest`, matching
+      # the Release step's own condition.
+      - name: Check release notes
+        if: ${{ steps.version.outputs.tag == 'latest' && (github.event_name != 'workflow_dispatch' || github.event.inputs.dry-run != 'true') }}
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: pnpm check:release-notes --mode publish --version "$VERSION"
+
       # Both publish paths fan out across `PUBLISH_CONCURRENCY` workers
       # (default 8) via `scripts/publish-packages.mjs`. `pnpm -r publish` is
       # intentionally serialized (it rejects `--workspace-concurrency`
@@ -139,16 +155,16 @@ jobs:
           NPM_CONFIG_PROVENANCE: "true"
         run: node scripts/publish-packages.mjs --tag "${{ steps.version.outputs.tag }}"
 
-      # Lightweight git tag for non-stable publishes (dev / beta / …). Stable
-      # publishes get a tag implicitly via `gh release create` below; dev-channel
-      # builds need one too because `prisma-next init` resolves its skill-cluster
-      # URL via `#v<cliVersion>` (see packages/1-framework/3-tooling/cli/src/
-      # commands/init/skill-install.ts), which 404s without a matching git ref.
-      # Tag-only is intentional — a full Release per dev build would drown out
-      # the changelog signal. (TML-2696)
+      # Lightweight git tag for non-latest publishes (dev / beta / …).
+      # `latest` publishes get a tag implicitly via `gh release create`
+      # below; dev-channel builds need one too because `prisma-next init` resolves
+      # its skill-cluster URL via `#v<cliVersion>` (see packages/1-framework/
+      # 3-tooling/cli/src/commands/init/skill-install.ts), which 404s without a
+      # matching git ref. Tag-only is intentional — a full Release per dev build
+      # would drown out the changelog signal. (TML-2696)
       #
       # Idempotent on workflow rerun: if `v$VERSION` already exists, skip.
-      - name: Create lightweight git tag for non-stable publishes
+      - name: Create lightweight git tag for non-latest publishes
         if: ${{ steps.version.outputs.tag != 'latest' && (github.event_name != 'workflow_dispatch' || github.event.inputs.dry-run != 'true') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -163,24 +179,13 @@ jobs:
               -f "sha=$GITHUB_SHA"
           fi
 
-      # Publish-time gate (stable only): a `latest` Release publishes the
-      # committed notes file as its body, so that file must exist before the
-      # Release step runs. There is no auto-generated fallback — a release
-      # bump without docs/releases/v$VERSION.md fails here rather than
-      # shipping flat notes. Dev/beta builds create no Release, so the gate is
-      # scoped to `latest`, matching the Release step's own condition.
-      - name: Check release notes
-        if: ${{ steps.version.outputs.tag == 'latest' && (github.event_name != 'workflow_dispatch' || github.event.inputs.dry-run != 'true') }}
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: pnpm check:release-notes --mode publish --version "$VERSION"
-
-      # Emit a GitHub Release for stable publishes only (dist-tag `latest`).
-      # Dev / PR / beta builds publish to npm but do not produce a Release —
-      # those would drown out the changelog signal. The Release is created at
+      # Emit a GitHub Release for `latest` publishes only (marked
+      # pre-release when the version is on the RC line). Dev / PR / beta
+      # builds publish to npm but do not produce a Release — those would
+      # drown out the changelog signal. The Release is created at
       # $GITHUB_SHA so the tag points at the same commit the publish ran from.
       # The body is the committed `docs/releases/v$VERSION.md` (its presence is
-      # enforced by the "Check release notes" gate above); there is no
+      # enforced by the "Check release notes" step above); there is no
       # auto-generated fallback.
       #
       # Idempotent on workflow rerun: if a Release for `v$VERSION` already exists
@@ -189,12 +194,16 @@ jobs:
       # and preserves the already-published body rather than re-pushing the
       # file — the right trade-off versus clobbering a hand-edited body or
       # failing the rerun outright.
-      - name: Create GitHub Release for stable publishes
+      - name: Create GitHub Release for latest publishes
         if: ${{ steps.version.outputs.tag == 'latest' && (github.event_name != 'workflow_dispatch' || github.event.inputs.dry-run != 'true') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
+          PRERELEASE_FLAG=""
+          case "$VERSION" in
+            *-rc.*) PRERELEASE_FLAG="--prerelease" ;;
+          esac
           if gh release view "v$VERSION" >/dev/null 2>&1; then
             gh release edit "v$VERSION" \
               --target "$GITHUB_SHA" \
@@ -203,5 +212,6 @@ jobs:
             gh release create "v$VERSION" \
               --target "$GITHUB_SHA" \
               --title "v$VERSION" \
-              --notes-file "docs/releases/v$VERSION.md"
+              --notes-file "docs/releases/v$VERSION.md" \
+              $PRERELEASE_FLAG
           fi

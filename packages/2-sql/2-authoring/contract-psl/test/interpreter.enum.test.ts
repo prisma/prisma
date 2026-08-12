@@ -19,11 +19,13 @@ import {
   postgresEnumInferenceCodecs,
   postgresScalarTypeDescriptors,
   postgresTarget,
+  postgresTargetRenderingChecks,
   sqliteEnumInferenceCodecs,
   sqliteScalarColumnDescriptors,
   sqliteTarget,
   symbolTableInputFromParseArgs,
   testEnumEntityContributions,
+  testRenderCheckExpressions,
 } from './fixtures';
 
 // ---------------------------------------------------------------------------
@@ -129,7 +131,8 @@ function interpret(schema: string, overrides?: Partial<InterpretPslDocumentToSql
 
 describe('enum PSL ↔ TS parity', () => {
   it('emits domain enum, storage valueSet, field/column valueSet refs, and table check equal to TS enumType authoring', () => {
-    const pslResult = interpret(`
+    const pslResult = interpret(
+      `
 enum Priority {
   @@type("pg/text@1")
   Low    = "low"
@@ -141,7 +144,9 @@ model Post {
   id       Int    @id
   priority Priority
 }
-`);
+`,
+      { target: postgresTargetRenderingChecks },
+    );
 
     expect(pslResult.ok).toBe(true);
     if (!pslResult.ok) return;
@@ -161,6 +166,8 @@ model Post {
       familyId: 'sql' as const,
       version: '0.0.1',
     };
+    // Same hook as the PSL side's target fixture: the parity claim is that one
+    // emission site serves both surfaces, so both must actually render checks.
     const postgresTargetPack = {
       kind: 'target' as const,
       id: 'postgres',
@@ -168,6 +175,7 @@ model Post {
       targetId: 'postgres' as const,
       version: '0.0.1',
       defaultNamespaceId: 'public',
+      authoring: { field: {}, renderCheckExpressions: testRenderCheckExpressions },
     };
 
     const tsContract = defineContract({
@@ -211,7 +219,8 @@ model Post {
   });
 
   it('parity holds with a defaulted field: @default(Low) produces the same column as .default(members.Low)', () => {
-    const pslResult = interpret(`
+    const pslResult = interpret(
+      `
 enum Priority {
   @@type("pg/text@1")
   Low    = "low"
@@ -223,7 +232,9 @@ model Post {
   id       Int      @id
   priority Priority @default(Low)
 }
-`);
+`,
+      { target: postgresTargetRenderingChecks },
+    );
 
     expect(pslResult.ok).toBe(true);
     if (!pslResult.ok) return;
@@ -243,6 +254,8 @@ model Post {
       familyId: 'sql' as const,
       version: '0.0.1',
     };
+    // Same hook as the PSL side's target fixture: the parity claim is that one
+    // emission site serves both surfaces, so both must actually render checks.
     const postgresTargetPack = {
       kind: 'target' as const,
       id: 'postgres',
@@ -250,6 +263,7 @@ model Post {
       targetId: 'postgres' as const,
       version: '0.0.1',
       defaultNamespaceId: 'public',
+      authoring: { field: {}, renderCheckExpressions: testRenderCheckExpressions },
     };
 
     const tsContract = defineContract({
@@ -794,6 +808,39 @@ model Post {
 // ---------------------------------------------------------------------------
 
 describe('enum non-string codec', () => {
+  // The lowering tests below run against the hook-less target fixture, which
+  // renders no checks: they pin that int member values survive lowering into
+  // the value set, the domain enum, and column defaults. A target that DOES
+  // render checks cannot express a numeric membership predicate, so it rejects
+  // the same schema outright — pinned first so the two are read together.
+  // The guard surfaces as a thrown structured error rather than a
+  // span-anchored diagnostic: it fires inside contract building, downstream of
+  // interpretation.
+  it('an int-backed enum is rejected by a target that renders check predicates', () => {
+    expect(() =>
+      interpret(
+        `
+enum Priority {
+  @@type("pg/int4@1")
+  Low  = 1
+  High = 10
+}
+
+model Post {
+  id       Int @id
+  priority Priority
+}
+`,
+        { target: postgresTargetRenderingChecks },
+      ),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.ENUM_INVALID',
+        message: expect.stringContaining('numeric-enum CHECK constraints are not yet supported'),
+      }),
+    );
+  });
+
   it('integer-backed enum lowers correctly', () => {
     const result = interpret(`
 enum Priority {

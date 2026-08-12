@@ -7,6 +7,7 @@ import {
   postgresAuthoringTypes,
   postgresLowerEntityHandles,
 } from './authoring';
+import { postgresRenderCheckExpressions } from './check-expressions';
 import { postgresQualifyColumnType } from './codecs';
 import { postgresTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
 import { postgresIndexTypes } from './index-types';
@@ -25,6 +26,7 @@ const postgresTargetDescriptorMetaBase = {
     modelAttributes: postgresAuthoringModelAttributes,
     createNamespace: postgresCreateNamespace,
     qualifyColumnType: postgresQualifyColumnType,
+    renderCheckExpressions: postgresRenderCheckExpressions,
     lowerEntityHandles: postgresLowerEntityHandles,
   },
 } as const;

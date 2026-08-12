@@ -30,7 +30,7 @@ function mongoNamespaceSerializedKind(ns: Namespace): string {
   if (typeof kind === 'string') {
     return `readonly kind: ${serializeValue(kind)}`;
   }
-  return `readonly kind: '${MONGO_NAMESPACE_KIND_FALLBACK}'`;
+  return `readonly kind: "${MONGO_NAMESPACE_KIND_FALLBACK}"`;
 }
 
 function assertUniqueMongoCollectionNames(storage: MongoStorage): void {

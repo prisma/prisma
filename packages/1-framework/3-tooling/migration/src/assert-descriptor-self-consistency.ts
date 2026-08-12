@@ -42,7 +42,7 @@ export interface DescriptorSelfConsistencyInputs {
  *
  * Synchronous, pure, no I/O. Throws
  * `MIGRATION.DESCRIPTOR_HEAD_HASH_MISMATCH` on failure with both the
- * recomputed and published hashes in `details` so callers can surface a
+ * recomputed and published hashes in `meta` so callers can surface a
  * clear remediation hint without re-deriving them.
  */
 export function assertDescriptorSelfConsistency(inputs: DescriptorSelfConsistencyInputs): void {

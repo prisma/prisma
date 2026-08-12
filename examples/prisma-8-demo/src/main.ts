@@ -88,6 +88,15 @@
  * - enum-default-demo          Insert a Post without `priority` (typed-optional thanks to
  *                              `@default(Low)` in the emitted contract), read it back, and
  *                              confirm the database supplied 'low'
+ * - integer-representations [limit]
+ *                              The three Post engagement counters side by side: `BigIntNumber`
+ *                              reads as a JS number, `BigInt` as a bigint, and `UnboundedInt`
+ *                              as a bigint that stays exact past 2^63
+ * - aggregate-precision        count/sum/avg beside countBigInt/sumBigInt/avgDecimal. Includes
+ *                              the case the split exists for: a bare sum() whose total passes
+ *                              2^53 raises instead of rounding, and sumBigInt() answers it
+ * - aggregate-stddev           An extension-contributed aggregate (`stddev`, from
+ *                              src/extensions/engagement-stats.ts) called like a built-in
  * - budget-violation           Demo budget enforcement error
  * - guardrail-delete           Demo AST lint blocking DELETE without WHERE
  *
@@ -107,8 +116,11 @@ import { ormClientFindUserByEmail } from './orm-client/find-user-by-email';
 import { ormClientFindUserByIdCached } from './orm-client/find-user-by-id-cached';
 import { ormClientGetAdminUsers } from './orm-client/get-admin-users';
 import { ormClientGetDashboardUsers } from './orm-client/get-dashboard-users';
+import { ormClientGetEngagementPrecision } from './orm-client/get-engagement-precision';
+import { ormClientGetEngagementSpread } from './orm-client/get-engagement-spread';
 import { ormClientGetFeatureRoadmap } from './orm-client/get-feature-roadmap';
 import { ormClientGetLatestUserPerKind } from './orm-client/get-latest-user-per-kind';
+import { ormClientGetPostEngagement } from './orm-client/get-post-engagement';
 import { ormClientGetPostFeed } from './orm-client/get-post-feed';
 import { ormClientGetPostTags } from './orm-client/get-post-tags';
 import { ormClientGetPostsByTagFilter } from './orm-client/get-posts-by-tag-filter';
@@ -145,6 +157,18 @@ const [cmd, ...args] = argv;
 function displayNameFromEmail(email: string): string {
   const local = email.split('@')[0] ?? email;
   return local.length > 0 ? local.charAt(0).toUpperCase() + local.slice(1) : email;
+}
+
+/**
+ * Renders a value with the JavaScript type it arrived as. The
+ * integer-representation demos are about exactly that, and `JSON.stringify`
+ * cannot help: it refuses a `bigint` outright.
+ */
+function describe(value: unknown): string {
+  if (value === null) return 'null';
+  if (typeof value === 'bigint') return `${value}n (bigint)`;
+  if (typeof value === 'string') return `'${value}' (string)`;
+  return `${String(value)} (${typeof value})`;
 }
 
 async function main() {
@@ -628,6 +652,66 @@ async function main() {
         'Demonstrating enum member default: inserting a Post without priority, then reading it back...',
       );
       await enumDefaultDemo();
+    } else if (cmd === 'integer-representations') {
+      const limit = args[0] ? Number.parseInt(args[0], 10) : 10;
+      const posts = await ormClientGetPostEngagement(limit, runtime);
+
+      console.log('Post engagement counters, one column per integer representation:\n');
+      console.log('  viewCount        BigIntNumber   pg/int8number@1     int8 read as a number');
+      console.log('  impressionCount  BigInt         pg/int8@1           int8 read as a bigint');
+      console.log(
+        '  reachScore       UnboundedInt   pg/unboundedint@1   numeric read as a bigint\n',
+      );
+      for (const post of posts) {
+        console.log(post.title);
+        console.log(`  viewCount        ${describe(post.viewCount)}`);
+        console.log(`  impressionCount  ${describe(post.impressionCount)}`);
+        console.log(`  reachScore       ${describe(post.reachScore)}`);
+      }
+      console.log(
+        '\nTwo reachScore values are past 2^63, where an int8 column would have overflowed.',
+      );
+    } else if (cmd === 'aggregate-precision') {
+      const report = await ormClientGetEngagementPrecision(runtime);
+
+      console.log('Counting posts:');
+      console.log(`  count()                       ${describe(report.posts.count)}`);
+      console.log(`  countBigInt()                 ${describe(report.posts.countBigInt)}\n`);
+
+      console.log('viewCount — BigIntNumber, and the total stays inside the safe range:');
+      console.log(`  sum('viewCount')              ${describe(report.views.sum)}`);
+      console.log(`  sumBigInt('viewCount')        ${describe(report.views.sumBigInt)}`);
+      console.log(`  avg('viewCount')              ${describe(report.views.avg)}`);
+      console.log(`  avgDecimal('viewCount')       ${describe(report.views.avgDecimal)}\n`);
+
+      console.log('impressionCount — BigInt, and the total is 2^53 + 1000:');
+      if (report.impressions.sum.kind === 'guarded') {
+        console.log("  sum('impressionCount')        refused — this is the guard working:");
+        console.log(`    ${report.impressions.sum.code}: ${report.impressions.sum.message}`);
+        console.log('    A number cannot hold that total exactly, so the codec raises rather');
+        console.log('    than rounding. Reach for the lossless variant instead:');
+      } else {
+        console.log(
+          `  sum('impressionCount')        ${describe(report.impressions.sum.total)} — expected the guard here; is the database seeded?`,
+        );
+      }
+      console.log(`  sumBigInt('impressionCount')  ${describe(report.impressions.sumBigInt)}\n`);
+
+      console.log('reachScore — UnboundedInt, so even the bare sum is exact:');
+      console.log(`  sum('reachScore')             ${describe(report.reach.sum)}`);
+      console.log(`  sumBigInt('reachScore')       ${describe(report.reach.sumBigInt)}`);
+    } else if (cmd === 'aggregate-stddev') {
+      const spread = await ormClientGetEngagementSpread(runtime);
+
+      console.log('`stddev` is contributed by src/extensions/engagement-stats.ts, not by the');
+      console.log('PostgreSQL target — yet it is called like any built-in aggregate:\n');
+      console.log(`  count()                       ${describe(spread.posts)}`);
+      console.log(`  avg('viewCount')              ${describe(spread.meanViews)}`);
+      console.log(`  stddev('viewCount')           ${describe(spread.viewSpread)}`);
+      console.log(`  stddev('impressionCount')     ${describe(spread.impressionSpread)}`);
+      console.log(
+        '\nIts result is a decimal string because that is the codec its descriptor declares.',
+      );
     } else if (cmd === 'guardrail-delete') {
       console.log('Running DELETE without WHERE to demonstrate AST-based lint guardrail...');
       try {
@@ -670,6 +754,7 @@ async function main() {
           'similarity-search <vec> [limit] | cross-author-similarity [limit] | raw-sql-demo [limit] | ' +
           'cache-demo-user <userId> | cache-demo-users [limit] | cache-demo-sql [limit] | ' +
           'enum-priority [limit] | enum-priority-filter [member] [limit] | enum-default-demo | ' +
+          'integer-representations [limit] | aggregate-precision | aggregate-stddev | ' +
           'budget-violation | guardrail-delete]',
       );
       process.exit(1);

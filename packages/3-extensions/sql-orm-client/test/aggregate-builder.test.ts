@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { createAggregateBuilder, isAggregateSelector } from '../src/aggregate-builder';
-import { getTestContract } from './helpers';
+import { getTestAggregates, getTestContract } from './helpers';
 
 describe('aggregate-builder', () => {
   const contract = getTestContract();
+  const aggregates = getTestAggregates();
 
   it('createAggregateBuilder() maps numeric field selectors to storage columns', () => {
-    const aggregate = createAggregateBuilder(contract, 'public', 'Post');
+    const aggregate = createAggregateBuilder(contract, aggregates, 'public', 'Post');
     const numericField = 'views' as never;
 
     expect(aggregate.count()).toEqual({
@@ -36,7 +37,12 @@ describe('aggregate-builder', () => {
   });
 
   it('createAggregateBuilder() falls back to field name without mapping', () => {
-    const aggregate = createAggregateBuilder(contract, 'public', 'UnknownModel' as never);
+    const aggregate = createAggregateBuilder(
+      contract,
+      aggregates,
+      'public',
+      'UnknownModel' as never,
+    );
     const numericField = 'custom_metric' as never;
 
     expect(aggregate.sum(numericField)).toEqual({
@@ -50,7 +56,10 @@ describe('aggregate-builder', () => {
     expect(isAggregateSelector(null)).toBe(false);
     expect(isAggregateSelector('x')).toBe(false);
     expect(isAggregateSelector({ kind: 'not-aggregate', fn: 'count' })).toBe(false);
-    expect(isAggregateSelector({ kind: 'aggregate', fn: 'median' })).toBe(false);
+    // The operation vocabulary is open: any string names a potentially
+    // contributed operation, so validity is shape-only.
+    expect(isAggregateSelector({ kind: 'aggregate', fn: 'median' })).toBe(true);
+    expect(isAggregateSelector({ kind: 'aggregate', fn: 42 })).toBe(false);
     expect(isAggregateSelector({ kind: 'aggregate', fn: 'count' })).toBe(true);
     expect(isAggregateSelector({ kind: 'aggregate', fn: 'sum', column: 'views' })).toBe(true);
   });

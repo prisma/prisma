@@ -78,7 +78,7 @@ function createControlledDriver(options?: DriverOptions): SqlDriver & {
   const rows = options?.rows ?? [{ id: 1 }];
   const rowGate = options?.rowGate;
 
-  const execute = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
+  const query = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
     for (const row of rows) {
       if (rowGate) await rowGate();
       yield row;
@@ -86,14 +86,12 @@ function createControlledDriver(options?: DriverOptions): SqlDriver & {
   });
 
   const driver: SqlDriver = {
-    execute,
-    executePrepared: execute,
-    query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query,
     connect: vi.fn().mockResolvedValue(undefined),
     acquireConnection: vi.fn().mockResolvedValue({
-      execute,
-      executePrepared: execute,
-      query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+      execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+      query,
       release: vi.fn().mockResolvedValue(undefined),
       destroy: vi.fn().mockResolvedValue(undefined),
       beginTransaction: vi.fn(),
@@ -101,7 +99,7 @@ function createControlledDriver(options?: DriverOptions): SqlDriver & {
     close: vi.fn().mockResolvedValue(undefined),
   };
 
-  return Object.assign(driver, { __executeMock: execute });
+  return Object.assign(driver, { __executeMock: query });
 }
 
 function createStubAdapter(extraCodecs: readonly Codec<string>[] = []) {

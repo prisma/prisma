@@ -104,6 +104,9 @@ const targetPostgresPack = workspaceModule(
 const targetPostgresTypes = workspaceModule(
   'packages/3-targets/3-targets/postgres/src/exports/types.ts',
 );
+const frameworkConfigTypes = workspaceModule(
+  'packages/1-framework/1-core/config/src/exports/config-types.ts',
+);
 
 // Some example configs guard against a missing DATABASE_URL at module load time.
 // Contract emit and migration serialization don't actually connect to the DB, but
@@ -291,6 +294,10 @@ function rewriteContractSnapshotSpecifiers(source, snapshotsImportPath, toHash, 
  * — the same options the postgres `defineConfig` helper passes — so the emitted
  * contract is identical in shape to what the real config would produce.
  *
+ * The result is passed through `defineConfig` so the export carries the
+ * config-format version marker the loader requires. Spreading `realConfig`
+ * drops that marker (it is non-enumerable), so re-stamping here is required.
+ *
  * @param {string} schemaSrc        - Absolute path to the migration's contract.prisma.
  * @param {string} realConfigAbsPath - Absolute path to the example's real config file.
  * @param {'mongo'|'sql'} contractFamily - Which provider to use.
@@ -299,27 +306,29 @@ function rewriteContractSnapshotSpecifiers(source, snapshotsImportPath, toHash, 
 function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
   if (contractFamily === 'sql') {
     return (
+      `import { defineConfig } from '${frameworkConfigTypes}';\n` +
       `import { prismaContract } from '${sqlContractPslProvider}';\n` +
       `import postgresPackRef from '${targetPostgresPack}';\n` +
       `import { postgresCreateNamespace } from '${targetPostgresTypes}';\n` +
       `import realConfig from '${realConfigAbsPath}';\n\n` +
-      'export default {\n' +
+      'export default defineConfig({\n' +
       '  ...realConfig,\n' +
       `  contract: prismaContract('${schemaSrc}', {\n` +
       '    target: postgresPackRef,\n' +
       '    createNamespace: postgresCreateNamespace,\n' +
       '  }),\n' +
-      '};\n'
+      '});\n'
     );
   }
   // Default: mongo
   return (
+    `import { defineConfig } from '${frameworkConfigTypes}';\n` +
     `import { mongoContract } from '${mongoContractPslProvider}';\n` +
     `import realConfig from '${realConfigAbsPath}';\n\n` +
-    'export default {\n' +
+    'export default defineConfig({\n' +
     '  ...realConfig,\n' +
     `  contract: mongoContract('${schemaSrc}'),\n` +
-    '};\n'
+    '});\n'
   );
 }
 

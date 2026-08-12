@@ -5,6 +5,7 @@ import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
+import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -22,7 +23,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 const FROM_HASH = 'empty';
@@ -84,25 +85,27 @@ function setupConfigMock(
     // crossing in place without requiring a full hydrated contract fixture.
     deserializeContract: (json: unknown) => json,
   };
-  mocks.loadConfig.mockResolvedValue({
-    family: { familyId: TARGET_FAMILY, create: vi.fn().mockReturnValue(familyInstance) },
-    target: {
-      id: TARGET,
-      familyId: TARGET_FAMILY,
-      targetId: TARGET,
-      kind: 'target',
-      migrations: {},
-    },
-    adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
-    driver: {
-      kind: 'driver',
-      create: vi.fn().mockResolvedValue({ close: vi.fn().mockResolvedValue(undefined) }),
-    },
-    db: { connection: 'postgres://localhost/invariant-test' },
-    // Per-test fixtures write contract.json under <cwd>/src/prisma/. Each
-    // test chdirs to its tempdir before invoking the command.
-    contract: { output: 'src/prisma/contract.json' },
-  });
+  mocks.loadConfig.mockResolvedValue(
+    ok({
+      family: { familyId: TARGET_FAMILY, create: vi.fn().mockReturnValue(familyInstance) },
+      target: {
+        id: TARGET,
+        familyId: TARGET_FAMILY,
+        targetId: TARGET,
+        kind: 'target',
+        migrations: {},
+      },
+      adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
+      driver: {
+        kind: 'driver',
+        create: vi.fn().mockResolvedValue({ close: vi.fn().mockResolvedValue(undefined) }),
+      },
+      db: { connection: 'postgres://localhost/invariant-test' },
+      // Per-test fixtures write contract.json under <cwd>/src/prisma/. Each
+      // test chdirs to its tempdir before invoking the command.
+      contract: { output: 'src/prisma/contract.json' },
+    }),
+  );
 }
 
 async function setupDivergentFixture(): Promise<InvariantFixture & { refHash: string }> {
@@ -260,9 +263,10 @@ describe('migrate / migration status — invariant-routing pre-checks', {
     const jsonLine = consoleOutput.find((line) => line.trimStart().startsWith('{'));
     expect(jsonLine).toBeDefined();
     const envelope = JSON.parse(jsonLine!) as {
-      meta?: { code?: string; unknown?: string[]; declared?: string[] };
+      code?: string;
+      meta?: { unknown?: string[]; declared?: string[] };
     };
-    expect(envelope.meta?.code).toBe('MIGRATION.UNKNOWN_INVARIANT');
+    expect(envelope.code).toBe('MIGRATION.UNKNOWN_INVARIANT');
     expect(envelope.meta?.unknown).toEqual(['typo-id']);
     expect(envelope.meta?.declared).toEqual(['real-id']);
   });
@@ -284,8 +288,8 @@ describe('migrate / migration status — invariant-routing pre-checks', {
     expect(exitCode).not.toBe(0);
     const jsonLine = consoleOutput.find((line) => line.trimStart().startsWith('{'));
     expect(jsonLine).toBeDefined();
-    const envelope = JSON.parse(jsonLine!) as { meta?: { code?: string } };
-    expect(envelope.meta?.code).toBe('MIGRATION.UNKNOWN_INVARIANT');
+    const envelope = JSON.parse(jsonLine!) as { code?: string };
+    expect(envelope.code).toBe('MIGRATION.UNKNOWN_INVARIANT');
   });
 
   it('migrate --to does not fire UNKNOWN_INVARIANT when a retired invariant is already on the marker', async () => {
@@ -345,8 +349,8 @@ describe('migrate / migration status — invariant-routing pre-checks', {
 
     const jsonLine = consoleOutput.find((line) => line.trimStart().startsWith('{'));
     if (jsonLine !== undefined && exitCode !== 0) {
-      const envelope = JSON.parse(jsonLine) as { meta?: { code?: string } };
-      expect(envelope.meta?.code).not.toBe('MIGRATION.UNKNOWN_INVARIANT');
+      const envelope = JSON.parse(jsonLine) as { code?: string };
+      expect(envelope.code).not.toBe('MIGRATION.UNKNOWN_INVARIANT');
     }
     expect(consoleErrors.join('\n')).not.toContain('MIGRATION.UNKNOWN_INVARIANT');
   });
@@ -399,8 +403,8 @@ describe('migrate / migration status — invariant-routing pre-checks', {
     // Either the command succeeded (exit 0, no JSON envelope), or it failed
     // for a *later* reason (driver/runner) — but never with UNKNOWN_INVARIANT.
     if (jsonLine !== undefined && exitCode !== 0) {
-      const envelope = JSON.parse(jsonLine) as { meta?: { code?: string } };
-      expect(envelope.meta?.code).not.toBe('MIGRATION.UNKNOWN_INVARIANT');
+      const envelope = JSON.parse(jsonLine) as { code?: string };
+      expect(envelope.code).not.toBe('MIGRATION.UNKNOWN_INVARIANT');
     }
     expect(consoleErrors.join('\n')).not.toContain('MIGRATION.UNKNOWN_INVARIANT');
   });

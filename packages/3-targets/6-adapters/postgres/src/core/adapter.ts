@@ -65,8 +65,14 @@ class PostgresAdapterImpl
               sql: string,
               params?: readonly unknown[],
             ) => {
-              const result = await queryable.query<Row>(sql, params);
-              return { rows: [...result.rows] };
+              const rows: Row[] = [];
+              for await (const row of queryable.query<Row>({
+                sql,
+                ...(params === undefined ? {} : { params }),
+              })) {
+                rows.push(row);
+              }
+              return { rows };
             },
             close: async () => {},
           },

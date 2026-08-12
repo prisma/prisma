@@ -40,6 +40,19 @@ describe('generateContractDts domain namespace handling', () => {
     expect(dts).toContain('readonly storage:');
   });
 
+  it('quotes a namespace id that is not a bare identifier', () => {
+    const contract = {
+      ...createTestContract(),
+      domain: {
+        namespaces: {
+          'report data': { models: {} },
+        },
+      },
+    };
+    const dts = generateContractDts(contract, mockSqlHook, [], HASHES);
+    expect(dts).toContain('readonly "report data":');
+  });
+
   it("emits each namespace's same-bare-name model under its own coordinate", () => {
     // Both namespaces have a 'User' model. With the flat top-level models map
     // retired, neither model is dropped: each namespace's own `User` is emitted

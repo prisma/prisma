@@ -88,7 +88,7 @@ describe('scalar projection expressions', () => {
     expect(() => CaseExpr.of([])).toThrow(
       expect.objectContaining({
         name: 'StructuredError',
-        code: 'SQL.AST_INVALID',
+        code: 'RUNTIME.AST_INVALID',
         message: 'CaseExpr requires at least one branch',
         meta: { kind: 'case', field: 'branches' },
       }),

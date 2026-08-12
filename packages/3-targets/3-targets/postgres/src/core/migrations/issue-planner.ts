@@ -32,6 +32,7 @@ import type { DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
 import {
   RelationalSchemaNodeKind,
+  type SqlCheckConstraintIR,
   type SqlColumnDefaultIR,
   type SqlColumnIR,
   type SqlForeignKeyIR,
@@ -48,7 +49,6 @@ import type { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespac
 import type { PostgresNativeEnumSchemaNode } from '../schema-ir/postgres-native-enum-schema-node';
 import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
 import { PostgresSchemaNodeKind } from '../schema-ir/schema-node-kinds';
-import { quoteIdentifier } from '../sql-utils';
 import {
   renderColumnAlterType,
   renderColumnDdl,
@@ -56,6 +56,7 @@ import {
 } from './column-ddl-rendering';
 import { resolveNamespaceIdForDdlSchema } from './control-policy';
 import {
+  AddCheckConstraintCall,
   AddColumnCall,
   AddForeignKeyCall,
   AddNativeEnumValueCall,
@@ -88,26 +89,6 @@ import {
 } from './planner-strategies';
 
 export type { CallMigrationStrategy, StrategyContext };
-
-/**
- * Deterministic name for the element-non-null CHECK constraint on a scalar-array
- * column. Distinct `_elem_not_null` suffix avoids collision with the enum
- * value-set `_check` constraints. Re-emitting the same schema produces the same
- * name, so `pg_get_constraintdef`-based verify sees no drift.
- */
-function elementNonNullCheckName(tableName: string, columnName: string): string {
-  return `${tableName}_${columnName}_elem_not_null`;
-}
-
-/**
- * Predicate enforcing that a scalar-array column carries no NULL element. The
- * array column itself may be NULL (container nullability is the column's NOT NULL
- * clause); `array_position` over a NULL array yields NULL, which a CHECK treats
- * as satisfied, so a nullable array column is unaffected.
- */
-function elementNonNullCheckExpression(columnName: string): string {
-  return `array_position(${quoteIdentifier(columnName)}, NULL) IS NULL`;
-}
 
 // ============================================================================
 // Conflict helpers
@@ -177,6 +158,7 @@ function classifyCall(call: PostgresOpFactoryCall): CallCategory {
     case 'dropDefault':
       return 'drop';
     case 'addCheckConstraint':
+    case 'renameCheckConstraint':
       return 'unique'; // after uniques, before indexes
     case 'createTable':
       return 'table';
@@ -270,6 +252,7 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
     indexName?: string;
     newIndexName?: string;
     constraintName?: string;
+    newConstraintName?: string;
     typeName?: string;
     policyName?: string;
     newPolicyName?: string;
@@ -295,7 +278,10 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
   // contract-side identity, so it is the conflict location.
   if (anyCall.indexName) location.index = anyCall.indexName;
   else if (anyCall.newIndexName) location.index = anyCall.newIndexName;
+  // Same convention as indexes and policies: a rename call's NEW name is the
+  // constraint's contract-side identity.
   if (anyCall.constraintName) location.constraint = anyCall.constraintName;
+  else if (anyCall.newConstraintName) location.constraint = anyCall.newConstraintName;
   // Same convention as indexes: a rename call's NEW name is the policy's
   // contract-side identity.
   if (anyCall.policyName) location.rlsPolicy = anyCall.policyName;
@@ -375,18 +361,6 @@ export function emissionSchemaName(ctx: StrategyContext, ddlSchemaName: string):
   return namespaceId === UNBOUND_NAMESPACE_ID ? UNBOUND_NAMESPACE_ID : ddlSchemaName;
 }
 
-/**
- * Whether a column node is a scalar-array (`many: true`) column. The family
- * converter (`contractToSchemaIR`'s `convertColumn`) never stamps `many` on
- * the derived node — array-ness is folded into the `[]` suffix on
- * `nativeType` instead — so the node-derived check reads the suffix; `.many`
- * is still checked first for nodes a caller stamps directly (e.g. hand-built
- * test fixtures, or an adapter that populates it at introspection).
- */
-function isManyColumn(column: SqlColumnIR): boolean {
-  return column.many === true || column.nativeType.endsWith('[]');
-}
-
 /** Whether the expected/actual native type (resolved, or raw+many fallback) differs — mirrors `SqlColumnIR.isEqualTo`'s type comparison. */
 export function columnTypeChanged(expected: SqlColumnIR, actual: SqlColumnIR): boolean {
   if (expected.resolvedNativeType !== undefined && actual.resolvedNativeType !== undefined) {
@@ -455,7 +429,7 @@ function fkSpecFromNode(fk: SqlForeignKeyIR, tableName: string): ForeignKeySpec 
 /**
  * Builds the `CreateTable` + child `CreateIndex` / `AddForeignKey` / `AddUnique`
  * calls for a newly-expected table, reading only the table node's children. The
- * PK and element-non-null CHECKs go inline as table constraints; indexes
+ * PK and every declared CHECK go inline as table constraints; indexes
  * (declared + FK-backing, already merged and ordered at derivation) and the
  * FK / unique constraints are separate calls (re-bucketed downstream). Every
  * column's DDL is resolved from its `codecRef` via `renderColumnDdl`.
@@ -476,15 +450,10 @@ function buildCreateTableCallsFromNode(
         }),
       ]
     : [];
-  const elementNonNullChecks: DdlTableConstraint[] = Object.values(table.columns)
-    .filter((c) => isManyColumn(c))
-    .map((c) =>
-      contractFree.checkExpression(
-        elementNonNullCheckName(table.name, c.name),
-        elementNonNullCheckExpression(c.name),
-      ),
-    );
-  const allTableConstraints = [...primaryKeyConstraints, ...elementNonNullChecks];
+  const declaredChecks: DdlTableConstraint[] = (table.checks ?? []).map((c) =>
+    contractFree.checkExpression(c.name, c.expression),
+  );
+  const allTableConstraints = [...primaryKeyConstraints, ...declaredChecks];
   const calls: PostgresOpFactoryCall[] = [
     new CreateTableCall(
       schemaName,
@@ -875,28 +844,33 @@ function mapIndexNodeIssue(
   return notOk(nodeConflict('indexIncompatible', issue.path.join('/')));
 }
 
+/**
+ * The index treatment: a missing check is added, an undeclared live check is
+ * dropped, and a paired divergence is a conflict. `not-equal` is reachable only
+ * for an exact-named expected check — a wire-named one compares by name, so a
+ * changed predicate re-suffixes the name and arrives as missing + extra
+ * instead.
+ */
 function mapCheckNodeIssue(
   issue: SchemaDiffIssue,
   schemaName: string,
   tableName: string,
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
-  // check_removed (extra live check not in contract) is the only check drift
-  // the default mapper handles directly; check_missing / check_mismatch are
-  // consumed by `checkConstraintPlanCallStrategy` (drop+recreate), so reaching
-  // here for them means the strategy did not run — a conflict.
+  if (issueOutcome(issue) === 'not-found') {
+    const check = blindCast<
+      SqlCheckConstraintIR,
+      'a not-found check issue always carries the expected check node'
+    >(issue.expected);
+    return ok([new AddCheckConstraintCall(schemaName, tableName, check.name, check.expression)]);
+  }
   if (issueOutcome(issue) === 'not-expected') {
     const check = blindCast<
-      { readonly name: string },
+      SqlCheckConstraintIR,
       'a not-expected check issue always carries the actual check node'
     >(issue.actual);
     return ok([new DropCheckConstraintCall(schemaName, tableName, check.name)]);
   }
-  return notOk(
-    nodeConflict(
-      'unsupportedOperation',
-      `Check constraint drift on "${tableName}" — handled by checkConstraintPlanCallStrategy: ${issue.path.join('/')}`,
-    ),
-  );
+  return notOk(nodeConflict('unsupportedOperation', issue.path.join('/')));
 }
 
 /**

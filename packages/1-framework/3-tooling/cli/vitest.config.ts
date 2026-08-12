@@ -76,11 +76,6 @@ export default defineConfig({
         'src/load-ts-contract.ts',
         // Control API — tested via integration tests (test/integration/test/control-api.test.ts)
         'src/control-api/**',
-        // Aggregate loader CLI wrapper — translates loader failures into CLI
-        // error envelopes. Exercised end-to-end via the contract-space verifier
-        // suites (test/integration/test/cli.db-init.contract-space-verifier.test.ts,
-        // cli.db-update.contract-space-verifier.test.ts, cli.db-verify.aggregate-schema.test.ts).
-        'src/utils/contract-space-aggregate-loader.ts',
       ],
       thresholds: {
         lines: 95,

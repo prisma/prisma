@@ -115,7 +115,7 @@ withTempDir(({ createTempDir }) => {
             >;
 
             expect(errorJson).toMatchObject({
-              code: 'CONTRACT.VERIFY_FAILED',
+              code: 'DRIVER.CONNECTION_FAILED',
               summary: 'Database connection failed',
               meta: {
                 port: '1',

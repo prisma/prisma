@@ -1,4 +1,5 @@
 import type {
+  ExtractAggregateTypes,
   ExtractCodecTypes,
   ExtractQueryOperationTypes,
   ExtractStorageColumnInputTypes,
@@ -69,6 +70,7 @@ export type ContractToQC<
   readonly capabilities: C['capabilities'];
   readonly queryOperationTypes: ExtractQueryOperationTypes<C>;
   readonly resolvedColumnOutputTypes: ResolvedColumnTypes<C, NsId, Name>;
+  readonly aggregateTypes: ExtractAggregateTypes<C>;
 };
 
 export interface TableProxy<

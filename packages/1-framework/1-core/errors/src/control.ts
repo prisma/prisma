@@ -57,9 +57,10 @@ export class CliStructuredError extends Error implements StructuredError {
       readonly where?: { readonly path?: string; readonly line?: number };
       readonly meta?: Record<string, unknown>;
       readonly docsUrl?: string;
+      readonly cause?: unknown;
     },
   ) {
-    super(summary);
+    super(summary, options?.cause !== undefined ? { cause: options.cause } : undefined);
     this.name = 'CliStructuredError';
     this.code = code;
     this.severity = options?.severity ?? 'error';
@@ -132,6 +133,43 @@ export function errorConfigFileNotFound(
 }
 
 /**
+ * Config module failed to evaluate (syntax error, module threw during import).
+ */
+export function errorConfigEvaluationFailed(
+  configPath: string | undefined,
+  options: {
+    readonly why: string;
+    readonly cause?: unknown;
+  },
+): CliStructuredError {
+  return new CliStructuredError('CONFIG.EVALUATION_FAILED', 'Config file could not be evaluated', {
+    why: options.why,
+    fix: 'Fix the error in your prisma-next.config.ts so the module evaluates, then rerun the command',
+    docsUrl: docsUrlFor('CONFIG.EVALUATION_FAILED'),
+    ...(configPath ? { where: { path: configPath } } : {}),
+    ...(options.cause !== undefined ? { cause: options.cause } : {}),
+  });
+}
+
+/**
+ * Config module evaluated, but its export does not carry the defineConfig
+ * version marker (plain object export, or a config produced by a different
+ * defineConfig such as classic Prisma's).
+ */
+export function errorConfigVersionMarkerMissing(configPath?: string): CliStructuredError {
+  return new CliStructuredError(
+    'CONFIG.VERSION_MARKER_MISSING',
+    'Config is not a defineConfig result',
+    {
+      why: 'The config module evaluated, but its default export was not created by a current defineConfig',
+      fix: "Create the config with defineConfig (imported from your target's '/config' entrypoint) and export its return value directly",
+      docsUrl: docsUrlFor('CONFIG.VERSION_MARKER_MISSING'),
+      ...(configPath ? { where: { path: configPath } } : {}),
+    },
+  );
+}
+
+/**
  * Contract configuration missing from config.
  */
 export function errorContractConfigMissing(options?: {
@@ -151,6 +189,7 @@ export function errorContractValidationFailed(
   reason: string,
   options?: {
     readonly where?: { readonly path?: string; readonly line?: number };
+    readonly cause?: unknown;
   },
 ): CliStructuredError {
   return new CliStructuredError('CONTRACT.VALIDATION_FAILED', 'Contract validation failed', {
@@ -158,6 +197,7 @@ export function errorContractValidationFailed(
     fix: 'Re-run `prisma-next contract emit`, or fix the contract file and try again',
     docsUrl: docsUrlFor('CONTRACT.VALIDATION_FAILED'),
     ...(options?.where ? { where: options.where } : {}),
+    ...ifDefined('cause', options?.cause),
   });
 }
 
@@ -170,6 +210,7 @@ export function errorFileNotFound(
     readonly why?: string;
     readonly fix?: string;
     readonly docsUrl?: string;
+    readonly cause?: unknown;
   },
 ): CliStructuredError {
   return new CliStructuredError('CLI.FILE_NOT_FOUND', 'File not found', {
@@ -177,6 +218,7 @@ export function errorFileNotFound(
     fix: options?.fix ?? 'Check that the file path is correct',
     where: { path: filePath },
     ...(options?.docsUrl ? { docsUrl: options.docsUrl } : {}),
+    ...ifDefined('cause', options?.cause),
   });
 }
 
@@ -421,12 +463,14 @@ export function errorConfigValidation(
   field: string,
   options?: {
     readonly why?: string;
+    readonly section?: string;
   },
 ): CliStructuredError {
   return new CliStructuredError('CONFIG.VALIDATION_FAILED', 'Config validation error', {
     why: options?.why ?? `Config must have a "${field}" field`,
     fix: 'Check your prisma-next.config.ts and ensure all required fields are provided',
     docsUrl: docsUrlFor('CONFIG.VALIDATION_FAILED'),
+    meta: { field, ...(options?.section !== undefined ? { section: options.section } : {}) },
   });
 }
 
@@ -462,10 +506,12 @@ export function errorUnexpected(
   options?: {
     readonly why?: string;
     readonly fix?: string;
+    readonly cause?: unknown;
   },
 ): CliStructuredError {
   return new CliStructuredError('CLI.UNEXPECTED', 'Unexpected error', {
     why: options?.why ?? message,
     fix: options?.fix ?? 'Check the error message and try again',
+    ...ifDefined('cause', options?.cause),
   });
 }

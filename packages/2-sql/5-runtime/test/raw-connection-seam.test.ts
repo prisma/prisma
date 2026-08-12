@@ -73,7 +73,6 @@ function createStubAdapter() {
 
 interface RecordingConnection {
   readonly execute: ReturnType<typeof vi.fn>;
-  readonly executePrepared: ReturnType<typeof vi.fn>;
   readonly query: ReturnType<typeof vi.fn>;
   readonly release: ReturnType<typeof vi.fn>;
   readonly destroy: ReturnType<typeof vi.fn>;
@@ -91,13 +90,10 @@ function createRecordingDriver(): {
     get queryCalls() {
       return queryCalls;
     },
-    execute: vi.fn().mockImplementation(async function* (_req: SqlExecuteRequest) {
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: vi.fn().mockImplementation(async function* (request: SqlExecuteRequest) {
+      queryCalls.push({ sql: request.sql, params: request.params });
       yield { id: 42 };
-    }),
-    executePrepared: vi.fn().mockImplementation(async function* () {}),
-    query: vi.fn().mockImplementation(async (sql: string, params?: readonly unknown[]) => {
-      queryCalls.push({ sql, params });
-      return { rows: [], rowCount: 0 };
     }),
     release: vi.fn().mockResolvedValue(undefined),
     destroy: vi.fn().mockResolvedValue(undefined),
@@ -107,9 +103,8 @@ function createRecordingDriver(): {
   const acquireConnectionSpy = vi.fn().mockResolvedValue(connection);
 
   const driver: SqlDriver = {
-    execute: vi.fn().mockImplementation(async function* () {}),
-    executePrepared: vi.fn().mockImplementation(async function* () {}),
-    query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: vi.fn().mockImplementation(async function* () {}),
     connect: vi.fn().mockResolvedValue(undefined),
     acquireConnection: () => acquireConnectionSpy(),
     close: vi.fn().mockResolvedValue(undefined),
@@ -247,7 +242,9 @@ describe('acquireRawConnection', () => {
     const { runtime, connection } = createTestSetup({ middleware: [observer] });
     const raw = await runtime.acquireRawConn();
 
-    await raw.query('SET LOCAL role = $1', ['viewer']);
+    for await (const row of raw.query({ sql: 'SET LOCAL role = $1', params: ['viewer'] })) {
+      void row;
+    }
 
     expect(connection.queryCalls).toEqual([{ sql: 'SET LOCAL role = $1', params: ['viewer'] }]);
     expect(observedSqls).toHaveLength(0);
@@ -272,7 +269,7 @@ describe('executeAgainstQueryable', () => {
     await runtime.runAgainstQueryable(plan, raw).toArray();
 
     expect(observedSqls).toEqual(['select id from users']);
-    expect(connection.execute).toHaveBeenCalledOnce();
+    expect(connection.query).toHaveBeenCalledOnce();
   });
 
   it('sticks to the connection supplied — not the driver root', async () => {
@@ -281,7 +278,7 @@ describe('executeAgainstQueryable', () => {
 
     await runtime.runAgainstQueryable(rawPlan(), raw).toArray();
 
-    expect(connection.execute).toHaveBeenCalledOnce();
-    expect(driver.execute).not.toHaveBeenCalled();
+    expect(connection.query).toHaveBeenCalledOnce();
+    expect(driver.query).not.toHaveBeenCalled();
   });
 });

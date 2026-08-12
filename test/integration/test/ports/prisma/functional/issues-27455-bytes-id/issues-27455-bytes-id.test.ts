@@ -15,17 +15,9 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //
 // Note: `accommodationId` must be provided explicitly in the nested rows
 // because prisma-next nested mutations do not automatically inject the parent FK.
-//
-// Disposition:
-//   'should retrieve records after a create with Bytes IDs' → it.fails
-//   The nested create() with a Bytes @id parent triggers a post-insert reload
-//   via buildPrimaryKeyFilterFromRow. The Uint8Array equality in the WHERE
-//   clause does not round-trip through the PK filter, so the reload returns
-//   null and throws ORM.MUTATION_ROW_MISSING — same gap as bytes-upsert.
-//   (A simple create() without include/nested also hits this path.)
 
 describe('ports/prisma/functional/issues-27455-bytes-id', () => {
-  it.fails(
+  it(
     'retrieves records after a create with Bytes IDs',
     () =>
       withPostgresPort<Contract>({ contractJson }, async ({ db }) => {
@@ -45,7 +37,7 @@ describe('ports/prisma/functional/issues-27455-bytes-id', () => {
               ]),
           });
 
-        expect(result).toMatchObject({
+        expect(result).toEqual({
           id: id1,
           name: 'Test Accommodation',
           timeTables: [{ id: id2 }, { id: id3 }],

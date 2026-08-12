@@ -88,7 +88,7 @@ describe('demo migration replay (dev database)', () => {
              JOIN pg_class t ON t.oid = c.conrelid
              JOIN pg_namespace n ON n.oid = t.relnamespace
              WHERE n.nspname = 'public' AND t.relname = 'user'
-               AND c.conname = 'user_kind_check' AND c.contype = 'c'`,
+               AND c.conname = 'user_kind_check_836d43ef' AND c.contype = 'c'`,
           );
           expect(check.rows).toHaveLength(1);
           expect(check.rows[0]?.def).toContain('admin');

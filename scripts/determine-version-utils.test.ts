@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { assertCanonicalBase, computeNextMinor, parseVersion } from './determine-version-utils.ts';
+import {
+  assertCanonicalBase,
+  composeDevVersion,
+  computeNextMinor,
+  computeNextReleaseVersion,
+  parseVersion,
+} from './determine-version-utils.ts';
 
 describe('parseVersion', () => {
   it('parses a clean release', () => {
@@ -31,14 +37,116 @@ describe('computeNextMinor', () => {
   });
 });
 
+describe('computeNextReleaseVersion', () => {
+  it('advances an rc base to the next rc', () => {
+    assert.equal(computeNextReleaseVersion('8.0.0-rc.1'), '8.0.0-rc.2');
+  });
+
+  it('advances a multi-digit rc counter', () => {
+    assert.equal(computeNextReleaseVersion('8.0.0-rc.9'), '8.0.0-rc.10');
+    assert.equal(computeNextReleaseVersion('8.0.0-rc.41'), '8.0.0-rc.42');
+  });
+
+  it('transitions a pre-8 stable base onto the v8 rc line', () => {
+    assert.equal(computeNextReleaseVersion('0.17.0'), '8.0.0-rc.1');
+    assert.equal(computeNextReleaseVersion('0.18.0'), '8.0.0-rc.1');
+  });
+
+  it('advances a stable 8.x base to the next minor', () => {
+    assert.equal(computeNextReleaseVersion('8.0.0'), '8.1.0');
+    assert.equal(computeNextReleaseVersion('8.1.0'), '8.2.0');
+  });
+
+  it('rejects a non-canonical base', () => {
+    assert.throws(() => computeNextReleaseVersion('8.0.0-dev.1'), /not canonical/);
+  });
+
+  it('rejects rc bases outside the 8.0.0 line', () => {
+    assert.throws(() => computeNextReleaseVersion('0.17.0-rc.1'), /not canonical/);
+    assert.throws(() => computeNextReleaseVersion('8.0.1-rc.1'), /not canonical/);
+    assert.throws(() => computeNextReleaseVersion('9.0.0-rc.1'), /not canonical/);
+  });
+});
+
+describe('composeDevVersion', () => {
+  it('starts at dev.1 when no dev build exists yet', () => {
+    assert.deepEqual(composeDevVersion('0.17.0', undefined), {
+      version: '0.17.0-dev.1',
+      tag: 'dev',
+    });
+  });
+
+  it('increments the counter when the latest dev build shares the base', () => {
+    assert.deepEqual(composeDevVersion('0.17.0', '0.17.0-dev.4'), {
+      version: '0.17.0-dev.5',
+      tag: 'dev',
+    });
+  });
+
+  it('resets the counter when the base moved on', () => {
+    assert.deepEqual(composeDevVersion('0.18.0', '0.17.0-dev.9'), {
+      version: '0.18.0-dev.1',
+      tag: 'dev',
+    });
+  });
+
+  it('composes dev builds on an rc base', () => {
+    assert.deepEqual(composeDevVersion('8.0.0-rc.1', undefined), {
+      version: '8.0.0-rc.1-dev.1',
+      tag: 'dev',
+    });
+    assert.deepEqual(composeDevVersion('8.0.0-rc.1', '8.0.0-rc.1-dev.7'), {
+      version: '8.0.0-rc.1-dev.8',
+      tag: 'dev',
+    });
+  });
+
+  it('resets the counter when the rc counter moved on', () => {
+    assert.deepEqual(composeDevVersion('8.0.0-rc.2', '8.0.0-rc.1-dev.7'), {
+      version: '8.0.0-rc.2-dev.1',
+      tag: 'dev',
+    });
+  });
+
+  it('resets the counter across the stable-to-rc transition', () => {
+    assert.deepEqual(composeDevVersion('8.0.0-rc.1', '0.17.0-dev.12'), {
+      version: '8.0.0-rc.1-dev.1',
+      tag: 'dev',
+    });
+  });
+});
+
 describe('assertCanonicalBase', () => {
   it('accepts a clean release', () => {
     assert.doesNotThrow(() => assertCanonicalBase('0.7.0'));
     assert.doesNotThrow(() => assertCanonicalBase('1.2.3'));
   });
 
-  it('rejects a pre-release suffix', () => {
+  it('accepts an rc base', () => {
+    assert.doesNotThrow(() => assertCanonicalBase('8.0.0-rc.1'));
+    assert.doesNotThrow(() => assertCanonicalBase('8.0.0-rc.42'));
+  });
+
+  it('rejects a dev suffix', () => {
     assert.throws(() => assertCanonicalBase('0.7.0-dev.1'), /not canonical/);
+    assert.throws(() => assertCanonicalBase('8.0.0-rc.1-dev.2'), /not canonical/);
+  });
+
+  it('rejects non-rc pre-release suffixes', () => {
+    assert.throws(() => assertCanonicalBase('8.0.0-beta.1'), /not canonical/);
+    assert.throws(() => assertCanonicalBase('8.0.0-rc'), /not canonical/);
+    assert.throws(() => assertCanonicalBase('8.0.0-rc.'), /not canonical/);
+  });
+
+  it('rejects rc bases outside the 8.0.0 line', () => {
+    assert.throws(() => assertCanonicalBase('0.17.0-rc.1'), /not canonical/);
+    assert.throws(() => assertCanonicalBase('8.0.1-rc.1'), /not canonical/);
+    assert.throws(() => assertCanonicalBase('8.1.0-rc.1'), /not canonical/);
+    assert.throws(() => assertCanonicalBase('9.0.0-rc.1'), /not canonical/);
+  });
+
+  it('rejects rc.0 — the counter starts at rc.1', () => {
+    assert.throws(() => assertCanonicalBase('8.0.0-rc.0'), /not canonical/);
   });
 
   it('rejects a missing component', () => {
@@ -53,5 +161,6 @@ describe('assertCanonicalBase', () => {
     assert.throws(() => assertCanonicalBase('01.2.3'), /not canonical/);
     assert.throws(() => assertCanonicalBase('1.02.3'), /not canonical/);
     assert.throws(() => assertCanonicalBase('1.2.03'), /not canonical/);
+    assert.throws(() => assertCanonicalBase('8.0.0-rc.01'), /not canonical/);
   });
 });

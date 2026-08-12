@@ -3,14 +3,23 @@
 //
 // Enforces two related invariants on every PR and every release.
 // `package.json.version` on a given ref is the *currently published*
-// version on that ref — the value `pnpm bump-minor` reads when
+// version on that ref — the value `pnpm bump-version` reads when
 // preparing the next release. The "in-flight" transition is therefore
-// `head.minor → head.minor + 1`: the directory where breaking-change
+// the step from head to the next release: `head.minor → head.minor + 1`
+// for a stable version, or `rc.N → rc.N + 1` while head is on a
+// release-candidate line. That is the directory where breaking-change
 // entries authored on the current commit graph belong.
+//
+// A version's *transition segment* — the name it contributes to a
+// directory — is `major.minor` when it is stable and the full
+// `major.minor.patch-rc.N` when it is on an RC line, because an RC line
+// lives inside a single minor and every RC may carry breaking changes.
+// So `8.0.0-rc.1 → 8.0.0-rc.2` is the directory `8.0.0-rc.1-to-8.0.0-rc.2`,
+// and the final RC to the stable release is `8.0.0-rc.7-to-8.0`.
 //
 //   1. Coverage. If the diff between prev and head touches `examples/`,
 //      the user-skill package must carry an upgrade-instructions
-//      directory for every consecutive minor step from prev to head.
+//      directory for every step from prev to head.
 //      Same for `packages/3-extensions/` and the extension-upgrade-skill
 //      package. Two cases:
 //        - PR mode (head.minor === prev.minor, no bump on the branch):
@@ -23,6 +32,9 @@
 //          When a minor was bumped in-tree but never actually published,
 //          the chain spans more than one step (e.g. 0.7-to-0.8 + 0.8-to-0.9
 //          for a 0.7 → 0.9 publish); each directory must exist.
+//        - RC line (either side is a `-rc.N` version): the required
+//          chain is the single prev → head step. RC counters are not
+//          chained arithmetically — one release is one step.
 //
 //   2. New-entries-go-in-the-chain-or-in-flight-directory. File
 //      *adds* under either skill package's `upgrades/` tree must land
@@ -114,8 +126,8 @@ export function parseChangesFrontmatter(src) {
   return { ok: false, reason: 'changes key absent' };
 }
 
-const USER_SKILL_PKG = 'skills/upgrade/prisma-next-upgrade';
-const EXT_SKILL_PKG = 'skills/extension-author/prisma-8-extension-upgrade';
+const USER_SKILL_PKG = 'skills/prisma-next-upgrade';
+const EXT_SKILL_PKG = 'skills/prisma-8-extension-upgrade';
 
 /**
  * Substrates covered by the gate. Each entry pairs a diff pathspec
@@ -136,48 +148,87 @@ const COVERAGE_SUBSTRATES = [
 
 /**
  * Parse a `<major>.<minor>.<patch>[-<prerelease>]` version string into
- * `{ major, minor, patch }` (all numbers; pre-release suffix discarded).
- * Throws on malformed input.
+ * `{ major, minor, patch, rc }` (all numbers, `rc` nullable). `rc` is the
+ * release-candidate counter when the pre-release suffix is exactly
+ * `rc.<n>` (`8.0.0-rc.3` → `3`) and `null` otherwise, including for any
+ * other pre-release suffix such as `-dev.7`. Throws on malformed input.
  */
 export function parseVersion(spec) {
-  const match = /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?$/.exec(spec);
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(spec);
   if (!match) {
     throw new Error(`unparseable version "${spec}"`);
   }
+  const rcMatch = match[4] ? /^rc\.(\d+)$/.exec(match[4]) : null;
   return {
     major: Number(match[1]),
     minor: Number(match[2]),
     patch: Number(match[3]),
+    rc: rcMatch ? Number(rcMatch[1]) : null,
   };
 }
 
 /**
- * Returns the transition directory keyed to a minor bump from
- * `prev = <major>.<minor>` to `head = <major>.<minor>` (or across a
- * major boundary). Used by the coverage sub-check in publish mode,
- * where the "from" side is the previously-published version and the
- * "to" side is the version being shipped.
+ * The name a version contributes to a transition directory:
+ * `<major>.<minor>` for a stable version, `<major>.<minor>.<patch>-rc.<n>`
+ * for a release candidate. An RC line lives entirely inside one minor, so
+ * keying an RC on its minor would collapse every RC of that line onto the
+ * same directory.
  */
-export function transitionLabel(prev, head) {
-  return `${prev.major}.${prev.minor}-to-${head.major}.${head.minor}`;
+export function versionSegment(version) {
+  return version.rc === null
+    ? `${version.major}.${version.minor}`
+    : `${version.major}.${version.minor}.${version.patch}-rc.${version.rc}`;
 }
 
 /**
- * The "in-flight" transition directory keyed to the head version
- * alone — `head.minor → head.minor + 1`. Authoring of new
+ * Semver precedence for two parsed versions: negative when `left` is
+ * older. The base version is compared before the RC counter, so
+ * `8.0.1-rc.1` is correctly newer than `8.0.0-rc.9` — the counter resets
+ * on each new base. A release candidate precedes its own release
+ * (`8.0.0-rc.9` < `8.0.0`).
+ */
+export function comparePrecedence(left, right) {
+  for (const field of ['major', 'minor', 'patch']) {
+    if (left[field] !== right[field]) return left[field] - right[field];
+  }
+  if (left.rc === right.rc) return 0;
+  if (left.rc === null) return 1;
+  if (right.rc === null) return -1;
+  return left.rc - right.rc;
+}
+
+/**
+ * Returns the transition directory for the step from `prev` to `head`.
+ * Used by the coverage sub-check in publish mode, where the "from" side
+ * is the previously-published version and the "to" side is the version
+ * being shipped.
+ */
+export function transitionLabel(prev, head) {
+  return `${versionSegment(prev)}-to-${versionSegment(head)}`;
+}
+
+/**
+ * The "in-flight" transition directory keyed to the head version alone —
+ * the step from head to whatever ships next: the next minor for a stable
+ * head, the next release candidate for an RC head. Authoring of new
  * upgrade-instructions entries on a feature branch goes here:
- * `package.json` on the head ref reads the currently-published
- * version, so the next batch of breaking-change work targets one
- * minor up.
+ * `package.json` on the head ref reads the currently-published version,
+ * so the next batch of breaking-change work targets one release up.
  */
 export function inFlightTransitionLabel(head) {
-  return `${head.major}.${head.minor}-to-${head.major}.${head.minor + 1}`;
+  const next = head.rc === null ? { ...head, minor: head.minor + 1 } : { ...head, rc: head.rc + 1 };
+  return transitionLabel(head, next);
 }
 
 /**
  * The ordered chain of consecutive transition directories the coverage
  * sub-check expects to find for a (prev, head) pair.
  *
+ * - RC line (either side carries an `rc` counter): single-element chain
+ *   naming the prev → head step, because one RC release is one step and
+ *   RC counters are not chained arithmetically. When prev and head are
+ *   the same RC — PR-mode steady state during the RC line — the element
+ *   is the in-flight directory instead.
  * - PR-mode steady-state (prev.minor === head.minor): single-element
  *   chain naming the in-flight directory; the substrate diff is in-flight
  *   work.
@@ -192,6 +243,16 @@ export function inFlightTransitionLabel(head) {
  *   bump are deliberately out of scope.
  */
 export function coverageTransitionChain(head, prev) {
+  if (head.rc !== null || prev.rc !== null) {
+    if (comparePrecedence(head, prev) < 0) {
+      throw new Error(
+        `check-upgrade-coverage: head ${versionSegment(head)} is behind prev ${versionSegment(prev)} (reversed RC range); rebase or pass refs in chronological order`,
+      );
+    }
+    return versionSegment(head) === versionSegment(prev)
+      ? [inFlightTransitionLabel(head)]
+      : [transitionLabel(prev, head)];
+  }
   if (head.major !== prev.major) {
     return [transitionLabel(prev, head)];
   }
@@ -214,14 +275,12 @@ export function coverageTransitionChain(head, prev) {
  * Parse a path under `<skill-pkg>/upgrades/<transition>/...` and return
  * the transition segment, or null if the path does not match.
  *
- * Example: `skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/foo.ts`
+ * Example: `skills/prisma-next-upgrade/upgrades/0.7-to-0.8/foo.ts`
  *  → `'0.7-to-0.8'`
  */
 export function parseTransitionFromPath(path) {
   const match =
-    /^skills\/(?:upgrade\/prisma-next-upgrade|extension-author\/prisma-8-extension-upgrade)\/upgrades\/([^/]+)\//.exec(
-      path,
-    );
+    /^skills\/(?:prisma-next-upgrade|prisma-8-extension-upgrade)\/upgrades\/([^/]+)\//.exec(path);
   return match ? match[1] : null;
 }
 
@@ -316,12 +375,13 @@ function resolveDefaultPrev(repoRoot, mode) {
       'check-upgrade-coverage: --mode pr default --prev requires either `origin/main` or `main` to exist; pass --prev <ref> explicitly',
     );
   }
-  // mode publish — fall back to the most recent stable `v[0-9]*` tag,
-  // excluding pre-release tags (`v*-dev.N`, `v*-rc.N`, etc.). The
-  // publish-time check compares the full release cycle against the last
-  // shipped version; a dev tag sits on an intermediate commit (often the
-  // bump commit's parent), which would shrink the diff to the bump itself
-  // and trip per-pr-declaration on every package.json the bump rewrites.
+  // mode publish — fall back to the most recent release `v[0-9]*` tag:
+  // stable or `v*-rc.N`, excluding build tags (`v*-dev.N`, `v*-beta.N`).
+  // The publish-time check compares the full release cycle against the
+  // last shipped version — on the RC line that is the previous RC. A dev
+  // tag sits on an intermediate commit (often the bump commit's parent),
+  // which would shrink the diff to the bump itself and trip
+  // per-pr-declaration on every package.json the bump rewrites.
   const tag = tryGit(
     repoRoot,
     'describe',
@@ -330,11 +390,13 @@ function resolveDefaultPrev(repoRoot, mode) {
     '--match',
     'v[0-9]*',
     '--exclude',
-    '*-*',
+    '*-dev.*',
+    '--exclude',
+    '*-beta.*',
   );
   if (tag) return tag;
   throw new Error(
-    'check-upgrade-coverage: --mode publish default --prev requires a stable `v[0-9]*` git tag (pre-release tags are excluded); pass --prev <ref> explicitly',
+    'check-upgrade-coverage: --mode publish default --prev requires a release `v[0-9]*` git tag (dev/beta build tags are excluded); pass --prev <ref> explicitly',
   );
 }
 
@@ -374,8 +436,8 @@ export function runCheck({ repoRoot, head, prev }) {
   const headVersion = parseVersion(readPackageJsonAtRef(repoRoot, head).version);
   const prevVersion = parseVersion(readPackageJsonAtRef(repoRoot, prev).version);
 
-  const headMinor = `${headVersion.major}.${headVersion.minor}`;
-  const prevMinor = `${prevVersion.major}.${prevVersion.minor}`;
+  const headSegment = versionSegment(headVersion);
+  const prevSegment = versionSegment(prevVersion);
   const coverageChain = coverageTransitionChain(headVersion, prevVersion);
   const inflightTransition = inFlightTransitionLabel(headVersion);
 
@@ -468,8 +530,8 @@ export function runCheck({ repoRoot, head, prev }) {
 
   return {
     ok: violations.length === 0,
-    headMinor,
-    prevMinor,
+    headSegment,
+    prevSegment,
     coverageChain,
     inflightTransition,
     violations,
@@ -478,7 +540,7 @@ export function runCheck({ repoRoot, head, prev }) {
 
 function renderViolations(result, write) {
   write(
-    `check-upgrade-coverage: ${result.violations.length} violation(s) (${result.prevMinor} → ${result.headMinor})\n`,
+    `check-upgrade-coverage: ${result.violations.length} violation(s) (${result.prevSegment} → ${result.headSegment})\n`,
   );
   for (const v of result.violations) {
     if (v.rule === 'coverage') {
@@ -498,8 +560,8 @@ function renderViolations(result, write) {
           `              transition is "${v.observedTransition}" but only the following are accepted:\n` +
           `                ${v.allowedTransitions.join(', ')}\n` +
           '              move the new file under one of:\n' +
-          '                skills/upgrade/prisma-next-upgrade/upgrades/<one-of-the-above>/instructions.md\n' +
-          '                skills/extension-author/prisma-8-extension-upgrade/upgrades/<one-of-the-above>/instructions.md\n',
+          '                skills/prisma-next-upgrade/upgrades/<one-of-the-above>/instructions.md\n' +
+          '                skills/prisma-8-extension-upgrade/upgrades/<one-of-the-above>/instructions.md\n',
       );
     } else if (v.rule === 'per-pr-declaration') {
       if (v.malformed) {
@@ -545,7 +607,8 @@ export function main(args = argv.slice(2), repoRoot = cwd()) {
         '  --mode    pr (default) or publish; selects the default --prev source',
         '  --head    git ref to inspect (default: HEAD)',
         '  --prev    git ref to compare against (default: origin/main for pr; most',
-        '            recent stable v[0-9]* tag for publish, pre-release tags excluded)',
+        '            recent release v[0-9]* tag for publish — stable or -rc.N,',
+        '            dev/beta build tags excluded)',
         '  --json    emit a JSON result envelope on stdout instead of text on stderr',
         '',
       ].join('\n'),

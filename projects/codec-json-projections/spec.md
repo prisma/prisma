@@ -1,6 +1,6 @@
 # Codec JSON projections
 
-> Linear Project: [Codec JSON projections](https://linear.app/prisma-company/project/codec-json-projections-a10fba2e9cd5) · Planning record: [TML-3060](https://linear.app/prisma-company/issue/TML-3060/plan-codec-json-projections) · Slices: [TML-3062](https://linear.app/prisma-company/issue/TML-3062/sql-json-projection-ast-foundations) → [TML-3061](https://linear.app/prisma-company/issue/TML-3061/target-codec-descriptor-foundations) → [TML-3063](https://linear.app/prisma-company/issue/TML-3063/lossless-json-projection-hard-cut) → [TML-3064](https://linear.app/prisma-company/issue/TML-3064/aggregate-codec-typing-and-extension-testkits) · Branch: `tml-3060-codec-json-projections`
+> Linear Project: [Codec JSON projections](https://linear.app/prisma-company/project/codec-json-projections-a10fba2e9cd5) · Planning record: [TML-3060](https://linear.app/prisma-company/issue/TML-3060/plan-codec-json-projections) · Slices: [TML-3062](https://linear.app/prisma-company/issue/TML-3062/sql-json-projection-ast-foundations) → [TML-3061](https://linear.app/prisma-company/issue/TML-3061/target-codec-descriptor-foundations) → [TML-3063](https://linear.app/prisma-company/issue/TML-3063/lossless-json-projection-hard-cut) → [TML-3064](https://linear.app/prisma-company/issue/TML-3064/aggregate-codec-typing-and-extension-testkits) · Ad-hoc extension (2026-08-04): [TML-3163](https://linear.app/prisma-company/issue/TML-3163/opt-in-number-representation-integer-codecs-bigintnumber-unboundedint) ∥ [TML-3164](https://linear.app/prisma-company/issue/TML-3164/contributed-aggregate-operations-de-hardcode-the-sql-builder-and-orm) → [TML-3165](https://linear.app/prisma-company/issue/TML-3165/native-number-aggregate-defaults-countcountbigint-sumsumbigint) · Branch: `tml-3060-codec-json-projections`
 
 ## Purpose
 
@@ -33,7 +33,7 @@ graph TD
 
 The target-neutral SQL AST says whether a value is codec-projected, natively converted, or already a JSON document. PostgreSQL, SQLite, and custom targets own how those semantics become SQL. `ProjectionItem.codec` is the authoritative output-codec fact; target renderers use typed target descriptor registries rather than codec-ID branches or derived-table lineage inference. A separate aggregate descriptor system makes runtime result decoding and emitted aggregate types agree.
 
-The accepted hard cut restores canonical lossless representations, including PostgreSQL numeric/int8 decimal strings and bytea base64, pgvector arrays, PostGIS GeoJSON, SQLite bigint decimal strings, and SQLite BLOB hexadecimal strings. Existing codec IDs remain unchanged; users regenerate contracts and adopt corrected `bigint`/decimal aggregate results.
+The accepted hard cut restores canonical lossless representations, including PostgreSQL numeric/int8 decimal strings and bytea base64, pgvector arrays, PostGIS GeoJSON, SQLite bigint decimal strings, and SQLite BLOB hexadecimal strings. Existing codec IDs remain unchanged; users regenerate contracts and adopt corrected `bigint`/decimal aggregate results. A scope extension (2026-08-04, slices 6–8) then resolves the DX cost of those corrected results: opt-in integer presets, contributed aggregate operations, and native-`number` aggregate defaults with lossless suffixed variants — see § Scope extension below.
 
 ## Non-goals
 
@@ -44,9 +44,19 @@ The accepted hard cut restores canonical lossless representations, including Pos
 - **A complete SQL grammar.** The relational AST gains only the typed frozen nodes required to express built-in projections and array lifting; raw SQL remains an extension escape hatch.
 - **A raw JavaScript `JsonValue` projection variant.** Every JSON projection variant wraps a relational `ProjectionExpr`.
 - **Speculative SQLite stored-array support.** SQLite receives scalar/document and JSON-aggregation projection behavior; PostgreSQL-style `many` storage machinery waits for a real SQLite representation.
-- **New aggregate operations.** The project corrects availability, typing, lowering, nullability, and decoding of the existing aggregate surface rather than adding unrelated analytics features.
+- **New analytics operations.** The project corrects availability, typing, lowering, nullability, and decoding of the existing aggregate surface rather than adding unrelated analytics features (`median`, `string_agg`, …). The 2026-08-04 scope extension adds representation variants of existing operations (`countBigInt`, `sumBigInt`, `avgDecimal`) — new names for the same computations, not new analytics.
 - **Production dependencies on conformance tooling.** Public codec testkits are separate dev-only packages, never runtime adapter dependencies.
 - **Compatibility codec IDs or permissive lossy decoders.** This pre-1.0 migration keeps existing IDs, removes the invalid contract, and documents regeneration rather than shipping `@2` aliases or accepting rounded numbers.
+
+## Scope extension (2026-08-04)
+
+The slice-5 hard cut makes aggregate results correct but hands JS developers `bigint` and decimal-string values they did not ask for (`JSON.stringify` rejects `bigint`; "weird numbers with n" issues). Three ad-hoc slices resolve the conflict without reintroducing silent loss; the settled design and its reasoning live in [`design-notes.md` § Integer representation and the aggregate operation split](./design-notes.md).
+
+- **Slice 6 — integer representation codecs** ([TML-3163](https://linear.app/prisma-company/issue/TML-3163/opt-in-number-representation-integer-codecs-bigintnumber-unboundedint), [spec](./slices/06-integer-representation-codecs/spec.md)): target-scoped opt-in `BigIntNumber` and `UnboundedInt` types select alternative application representations while bare `BigInt` keeps the lossless default; their codecs make no reverse-introspection claims.
+- **Slice 7 — contributed aggregate operations** ([TML-3164](https://linear.app/prisma-company/issue/TML-3164/contributed-aggregate-operations-de-hardcode-the-sql-builder-and-orm), [spec](./slices/07-contributed-aggregate-operations/spec.md)): the operation set becomes a target/extension contribution; behaviour-preserving.
+- **Slice 8 — native-number aggregate defaults** ([TML-3165](https://linear.app/prisma-company/issue/TML-3165/native-number-aggregate-defaults-countcountbigint-sumsumbigint), [spec](./slices/08-native-number-aggregate-defaults/spec.md)): bare operations return JS-native `number` and throw rather than silently lose precision; `countBigInt`/`sumBigInt`/`avgDecimal` stay lossless.
+
+The extension preserves the project's invariants: no silent lossy decode ever ships (the number-flavoured codecs throw at the safe-integer boundary), and no codec-ID or operation knowledge enters generic planners (slice 7 removes what remained).
 
 ## Place in the larger world
 

@@ -67,6 +67,35 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "vitest"
         update-types: ["version-update:semver-major"]
+      # vite majors are coordinated by hand too. The repo takes vite from the
+      # catalog, so a major moves every package at once.
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      # apps/lsp-playground is a private dev tool: a Monaco editor wired to the
+      # language server, started by hand when working on PSL diagnostics. It
+      # ships to nobody, and its dependency churn is pure noise — the
+      # @codingame/monaco-vscode-* family alone opened two unmergeable major
+      # PRs in one week (#29942, #29943).
+      #
+      # Dependabot cannot exclude a workspace path, so the packages that only
+      # this app uses are ignored by name instead. Upgrade them by hand if the
+      # playground ever needs it. Two things to know before trying: the whole
+      # @codingame/monaco-vscode-* family shares one major version, and
+      # monaco-languageclient depends on 31 of those packages directly, so it
+      # decides which major the app can use. Its compatibility table records
+      # the major each release pins:
+      # https://github.com/TypeFox/monaco-languageclient/blob/main/docs/versions-and-history.md
+      - dependency-name: "@codingame/monaco-vscode-*"
+      - dependency-name: "monaco-editor"
+      - dependency-name: "monaco-languageclient"
+      - dependency-name: "vscode"
+      - dependency-name: "vscode-jsonrpc"
+      - dependency-name: "vscode-languageclient"
+      - dependency-name: "vscode-languageserver-protocol"
+      - dependency-name: "vscode-ws-jsonrpc"
+      - dependency-name: "ws"
+      - dependency-name: "@types/ws"
+      - dependency-name: "puppeteer-core"
 
   - package-ecosystem: github-actions
     directory: /

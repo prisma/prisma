@@ -1,13 +1,15 @@
 ---
 name: publish-npm-version
 description: >-
-  Cuts the next minor release of Prisma Next: bumps the root package.json
-  version, propagates it to every workspace package, and opens a PR titled
-  "chore(release): bump to <next-version>". When the maintainer merges the
-  PR, the `Publish to npm` workflow runs automatically and ships the new
-  version to npm under dist-tag `latest`, plus a matching GitHub Release.
-  Use when a maintainer asks to "cut the next minor", "bump to the next
-  version", "open a release PR", or "prepare a publish PR".
+  Cuts the next release of Prisma Next: bumps the root package.json
+  version (on the v8 RC line: 8.0.0-rc.N → rc.N+1), propagates it to every
+  workspace package, and opens a PR titled "chore(release): bump to
+  <next-version>". When the maintainer merges the PR, the `Publish to npm`
+  workflow runs automatically and ships the new version to npm under the
+  dist-tag its shape implies (`latest`; RC releases get a pre-release GitHub Release),
+  plus a matching GitHub Release. Use when a maintainer asks to "cut the
+  next RC", "cut the next release", "bump to the next version", "open a
+  release PR", or "prepare a publish PR".
 ---
 
 # Publish next npm version
@@ -22,6 +24,7 @@ Read [`docs/oss/versioning.md`](../../docs/oss/versioning.md) before running thi
 
 - The source-of-truth model (root `package.json` `version`).
 - The lockstep guarantee (every workspace package matches the root).
+- The v8 RC line (`8.0.0-rc.N`, `latest` frozen until `8.0.0` final).
 - The dist-tag convention (`latest` / `dev` / `beta`).
 - The full release procedure (this skill is step 2 of 3; merging the PR is the publish trigger — there is no separate dispatch step).
 - The emergency-patch path (this skill does **not** handle patches).
@@ -41,16 +44,16 @@ If either precondition is unmet, stop and surface the issue. Do **not** try to a
 
 ## Procedure
 
-1. **Fetch and determine the target version.** Run `git fetch origin main`, then read the current root `version` from `origin/main` and compute the next minor:
+1. **Fetch and determine the target version.** Run `git fetch origin main`, then read the current root `version` from `origin/main`. The next version follows the release-bump rules in [`scripts/determine-version-utils.ts`](../../scripts/determine-version-utils.ts): an RC base advances its counter (`8.0.0-rc.1` → `8.0.0-rc.2`), a pre-8 stable base transitions onto the RC line (`0.17.0` → `8.0.0-rc.1`), a stable 8.x base advances the minor.
 
    ```bash
    git fetch origin main
    CURRENT=$(git show origin/main:package.json | node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0,"utf8")).version)')
-   NEXT=$(node -e "const [a,b] = process.argv[1].split('.'); process.stdout.write(\`\${a}.\${Number(b)+1}.0\`)" "$CURRENT")
+   NEXT=$(node -e "import('./scripts/determine-version-utils.ts').then(m => process.stdout.write(m.computeNextReleaseVersion(process.argv[1])))" "$CURRENT")
    echo "$CURRENT → $NEXT"
    ```
 
-   (Patch component is reset to 0 by design — see [`docs/oss/versioning.md`](../../docs/oss/versioning.md).)
+   (`$NEXT` is only for naming the branch and PR — the authoritative bump in step 3 recomputes it inside the fresh `origin/main` worktree. The command above runs the helper from *your* checkout, which may be older than `origin/main`; step 3 therefore ends by verifying the two agree.)
 
 2. **Create a fresh worktree off `origin/main`.** Use the convention `release/<version>` for both the branch and the sibling worktree path:
 
@@ -61,9 +64,11 @@ If either precondition is unmet, stop and surface the issue. Do **not** try to a
 
    This is what makes the skill safe to invoke from any worktree: the bump happens against a fresh checkout of `origin/main`, not against the maintainer's current branch. The branch name encodes the target version so reviewers can tell at a glance what the PR ships.
 
-3. **Bump.** From the new worktree, run `pnpm bump-minor`. The script reads the root `package.json` `version` from `git show HEAD:package.json` (in this worktree, HEAD is `origin/main`), computes the next minor, and writes it to every workspace `package.json` via `scripts/set-version.ts`.
+3. **Bump.** From the new worktree, run `pnpm bump-version`. The script reads the root `package.json` `version` from `git show HEAD:package.json` (in this worktree, HEAD is `origin/main`), computes the next release version, and writes it to every workspace `package.json` via `scripts/set-version.ts`.
 
-   Note: `bump-minor` requires `node_modules` to resolve its dependencies (e.g. `pathe`). If the fresh worktree has no `node_modules`, run `pnpm install --frozen-lockfile --ignore-scripts` first.
+   Note: `bump-version` requires `node_modules` to resolve its dependencies (e.g. `pathe`). If the fresh worktree has no `node_modules`, run `pnpm install --frozen-lockfile --ignore-scripts` first.
+
+   Then confirm the version it wrote matches `$NEXT` from step 1. A mismatch means the helper in your original checkout has diverged from `origin/main` (step 1 ran the local copy); the worktree's value is authoritative — remove the worktree and branch, and restart from step 1 using the value the bump printed.
 
 4. **Refresh the lockfile.** Workspace-internal dependencies in this repo are pinned as `workspace:<version>` (not `workspace:*`), so the bump changes their specifiers in `pnpm-lock.yaml`. Run:
 
@@ -102,16 +107,16 @@ If either precondition is unmet, stop and surface the issue. Do **not** try to a
    - State the previous and new version (`<previous> → <new>`).
    - Link to [`docs/oss/versioning.md`](../../docs/oss/versioning.md) for context.
    - Point reviewers at the committed `docs/releases/v<version>.md` (authored by the `draft-release-notes` skill in step 7) as the human-review surface for the release's user-facing changes.
-   - Note that **merging this PR ships the release**: the resulting push to `main` carries the bumped root `version`, the `Publish to npm` workflow detects the change and publishes `<new>` under dist-tag `latest`, and a matching GitHub Release is created automatically.
+   - Note that **merging this PR ships the release**: the resulting push to `main` carries the bumped root `version`, the `Publish to npm` workflow detects the change and publishes `<new>` under dist-tag `latest`, and a matching GitHub Release (marked pre-release on the RC line) is created automatically.
 
 10. **Stop and report** the PR URL **and the worktree path** to the maintainer. The maintainer can `git worktree remove ../release-<version>` after the PR merges. Do not merge the PR yourself; the merge is a human gate where someone confirms the release notes are acceptable. (Merging triggers the publish — there is no separate dispatch step.)
 
 ## Idempotency
 
-`pnpm bump-minor` is idempotent because it reads the root version from `git show HEAD:package.json` rather than from the working tree. A maintainer who runs the skill twice without committing in between still ends up with the same target version, not a double-bump. If you find yourself in that situation (working tree dirty with a previous bump), reset and re-run; do not stack bumps.
+`pnpm bump-version` is idempotent because it reads the root version from `git show HEAD:package.json` rather than from the working tree: running it twice in the same worktree without committing produces the same target version, not a double-bump. The skill as a whole is not — step 2's `git worktree add -b "release/$NEXT" …` fails if the branch or sibling worktree already exists from an earlier run. To rerun from scratch, remove them first (`git worktree remove ../release-$NEXT` and `git branch -D release/$NEXT`), or skip straight to step 3 inside the existing worktree. Do not stack bumps.
 
 ## Out of scope
 
 - **Merging the PR.** The skill stops at "PR opened" so a human can confirm the release notes. Merging is what triggers the actual publish, but it remains a human gate by design.
-- **Patch releases.** Patches use a different bump shape (`patch+1` from a release tag); the manual procedure in `docs/oss/versioning.md` applies.
-- **Pre-release / beta tags.** The `beta` dist-tag is hand-cut via a manual `workflow_dispatch` of `Publish to npm`; this skill always advances to a stable minor.
+- **Patch releases.** On the RC line there are none (a fix is just the next `rc.N`, which this skill handles). For stable-line patches (`patch+1`), the manual procedure in `docs/oss/versioning.md` applies.
+- **Beta tags.** The `beta` dist-tag is hand-cut via a manual `workflow_dispatch` of `Publish to npm`; this skill always advances to the next release version.

@@ -10,7 +10,7 @@ import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { orm } from '../src/orm';
-import { createMockRuntime, type MockRuntime } from './helpers';
+import { createMockRuntime, getTestAggregates, type MockRuntime } from './helpers';
 
 function model(table: string, fieldColumns: Record<string, string>) {
   const fields: Record<string, { type: { kind: string; codecId: string } }> = {};
@@ -101,6 +101,9 @@ function setup(): { db: TwoNamespaceOrm; runtime: MockRuntime } {
         contract: twoNamespaceContract,
         applyMutationDefaults: () => [],
         codecDescriptors: { descriptorFor: () => ({ traits: ['equality'] }) },
+        // The real registry: what a `max` over each namespace's column resolves
+        // to is the target's answer, which is the whole subject of these cases.
+        aggregateDescriptors: getTestAggregates(),
       }),
     }),
   );
@@ -317,7 +320,10 @@ describe('orm same bare table name across namespaces', () => {
     await db.auth.User.aggregate((aggregate) => ({ maxToken: aggregate.max('token') }));
     const authAst = lastPlanAst(runtime);
     expect((authAst as unknown as { from: { namespaceId: string } }).from.namespaceId).toBe('auth');
-    expect(codecByAlias(authAst)).toEqual({ maxToken: 'pg/varchar@1' });
+    // PostgreSQL's `max` over a varchar returns text, so the result carries the
+    // text codec rather than the column's own — the registry's answer, not an
+    // assumption that an extremum keeps its input type.
+    expect(codecByAlias(authAst)).toEqual({ maxToken: 'pg/text@1' });
   });
 
   it('resolves per-namespace grouped aggregate column codecs, discriminating by namespace', async () => {
@@ -339,6 +345,6 @@ describe('orm same bare table name across namespaces', () => {
     }));
     const authAst = lastPlanAst(runtime);
     expect((authAst as unknown as { from: { namespaceId: string } }).from.namespaceId).toBe('auth');
-    expect(codecByAlias(authAst)).toEqual({ id: 'pg/int4@1', maxToken: 'pg/varchar@1' });
+    expect(codecByAlias(authAst)).toEqual({ id: 'pg/int4@1', maxToken: 'pg/text@1' });
   });
 });

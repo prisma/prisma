@@ -40,10 +40,10 @@ describe('sql-target-family-hook parameterized type emission', () => {
 
       expect(types).toContain('readonly types:');
       expect(types).toContain(
-        "readonly Vector1536: { readonly kind: 'codec-instance'; readonly codecId: 'pg/vector@1'; readonly nativeType: 'vector'; readonly typeParams: { readonly length: 1536 } }",
+        'readonly Vector1536: { readonly kind: "codec-instance"; readonly codecId: "pg/vector@1"; readonly nativeType: "vector"; readonly typeParams: { readonly length: 1536 } }',
       );
       expect(types).toContain(
-        "readonly Vector768: { readonly kind: 'codec-instance'; readonly codecId: 'pg/vector@1'; readonly nativeType: 'vector'; readonly typeParams: { readonly length: 768 } }",
+        'readonly Vector768: { readonly kind: "codec-instance"; readonly codecId: "pg/vector@1"; readonly nativeType: "vector"; readonly typeParams: { readonly length: 768 } }',
       );
     });
 
@@ -122,7 +122,7 @@ describe('sql-target-family-hook parameterized type emission', () => {
 
       expect(types).toContain('readonly ComplexType:');
       expect(types).toContain(
-        "readonly typeParams: { readonly a: 1; readonly b: 'hello'; readonly c: true }",
+        'readonly typeParams: { readonly a: 1; readonly b: "hello"; readonly c: true }',
       );
     });
 

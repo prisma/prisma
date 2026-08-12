@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections, type PrismaNextConfig } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import type { VerifyDatabaseResult } from '@internal/framework-components/control';
 import {
@@ -29,6 +29,7 @@ import {
 import { type CombinedVerifyResult, combineVerifyResults } from '../utils/combine-verify-results';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveContractPath,
   resolveMigrationPaths,
@@ -97,7 +98,10 @@ function mapVerifyFailure(verifyResult: VerifyDatabaseResult): CliStructuredErro
     }
     // Unknown code - fall through to runtime error
   }
-  return errorRuntime(verifyResult.summary);
+  return errorRuntime('CONTRACT.VERIFY_FAILED', verifyResult.summary, {
+    why: 'Verification failed',
+    fix: 'Check contract and database state',
+  });
 }
 
 type DbVerifyFailure = CliStructuredError | CombinedVerifyResult;
@@ -221,17 +225,37 @@ function renderVerifyHeader(
   );
 }
 
-async function resolveVerifyPaths(options: DbVerifyOptions) {
-  const config = await loadConfig(options.config);
+async function resolveVerifyPaths(
+  options: DbVerifyOptions,
+): Promise<Result<VerifyPaths, CliStructuredError>> {
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const configPath = options.config
     ? relative(process.cwd(), resolve(options.config))
     : 'prisma-next.config.ts';
   const contractPathAbsolute = resolveContractPath(config);
   const contractPath = relative(process.cwd(), contractPathAbsolute);
-  return { config, configPath, contractPathAbsolute, contractPath };
+  return ok({ config, configPath, contractPathAbsolute, contractPath });
 }
 
-type VerifyPaths = Awaited<ReturnType<typeof resolveVerifyPaths>>;
+interface VerifyPaths {
+  readonly config: PrismaNextConfig;
+  readonly configPath: string;
+  readonly contractPathAbsolute: string;
+  readonly contractPath: string;
+}
 
 interface VerifySetup extends VerifyPaths {
   readonly contractJson: Contract;
@@ -354,13 +378,19 @@ async function executeDbVerifyCommand(
   mode: Extract<DbVerifyMode, 'full' | 'marker-only'>,
 ): Promise<Result<DbVerifyCommandSuccessResult, DbVerifyFailure>> {
   const startTime = Date.now();
-  const paths = await resolveVerifyPaths(options);
+  const pathsResult = await resolveVerifyPaths(options);
+  if (!pathsResult.ok) return pathsResult;
+  const paths = pathsResult.value;
   renderVerifyHeader(paths, options, mode, flags, ui);
 
   const setupResult = await resolveVerifySetup(paths, options, mode);
   if (!setupResult.ok) return setupResult;
   const { contractJson, dbConnection, contractPathAbsolute } = setupResult.value;
-  const { migrationsDir } = resolveMigrationPaths(options.config, setupResult.value.config);
+  const { migrationsDir } = resolveMigrationPaths(
+    options.config,
+    setupResult.value.config,
+    process.cwd(),
+  );
 
   const client = createVerifyClient(setupResult.value);
   const onProgress = createProgressAdapter({ ui, flags });
@@ -451,7 +481,7 @@ async function executeDbVerifyCommand(
   } catch (error) {
     return wrapVerifyError(error, contractPathAbsolute, 'db verify');
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 
@@ -460,13 +490,19 @@ async function executeDbSchemaOnlyVerifyCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<CombinedVerifyResult, CliStructuredError>> {
-  const paths = await resolveVerifyPaths(options);
+  const pathsResult = await resolveVerifyPaths(options);
+  if (!pathsResult.ok) return pathsResult;
+  const paths = pathsResult.value;
   renderVerifyHeader(paths, options, 'schema-only', flags, ui);
 
   const setupResult = await resolveVerifySetup(paths, options, 'schema-only');
   if (!setupResult.ok) return setupResult;
   const { contractJson, dbConnection, contractPathAbsolute } = setupResult.value;
-  const { migrationsDir } = resolveMigrationPaths(options.config, setupResult.value.config);
+  const { migrationsDir } = resolveMigrationPaths(
+    options.config,
+    setupResult.value.config,
+    process.cwd(),
+  );
 
   const client = createVerifyClient(setupResult.value);
   const onProgress = createProgressAdapter({ ui, flags });
@@ -494,7 +530,7 @@ async function executeDbSchemaOnlyVerifyCommand(
   } catch (error) {
     return wrapVerifyError(error, contractPathAbsolute, 'db verify --schema-only');
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

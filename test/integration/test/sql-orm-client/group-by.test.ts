@@ -94,6 +94,8 @@ describe('integration/groupBy', () => {
           (left, right) => Number(left.userId) - Number(right.userId),
         );
         expect(sorted).toEqual([
+          // The bare operations answer in the JS types a caller expects: the
+          // sum of integers as a number, the mean as a number too.
           { userId: 1, totalViews: 20, avgViews: 20 },
           { userId: 2, totalViews: 30, avgViews: 30 },
         ]);

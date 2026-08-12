@@ -2,17 +2,17 @@
 
 Prisma Next — the contract-first rewrite of Prisma — ships as **Prisma 8**. On **July 31** we publish **`prisma@8.0.0-rc.1`** from the `prisma/prisma` repository: the same repository and the same npm package Prisma users already know. The release candidate is published under a pre-release tag, so `npm install prisma` keeps installing Prisma 7 until 8.0.0 final ships. Prisma 8 carries **PostgreSQL to general availability** — and that is all: **MongoDB ships in early access**, and **SQLite is a proof of concept** at this stage. A release candidate freezes the public API; it does not promise Prisma 7 feature parity. Its promise is different: **everything it ships works and is proven by a test**, everything experimental is labeled, and everything absent is named rather than silently missing.
 
-**Updated July 31 · Health: on track · Ships July 31 · Tasks: 9 done / 10 in flight / 16 not started · [Scoreboard](https://github.com/prisma/prisma-next/pull/1000): ~450 proven / ~500 unproven / ~30 experimental / ~250 not in 8.0**
+**Updated August 5 · Health: on track · Ships July 31 · Tasks: 14 done / 9 in flight / 21 not started · [Scoreboard](scorecard.md): 416 proven / 488 unproven / 12 experimental / 244 not in 8.0**
 
 ## What needs to happen to release v8-RC1
 
 Six things must be true on release day. Everything on this page belongs to one of them.
 
-1. **[Queries must return correct values](#1-queries-must-return-correct-values)** — *in progress · Alexey.* The relation-loading codec defect is fixed and verified; aggregate typing and the type/runtime mismatches remain.
+1. **[Queries must return correct values](#1-queries-must-return-correct-values)** — *in progress · Alexey.* The relation-loading codec defect is fixed and verified, and aggregates now decode through codecs; two type/runtime mismatches remain.
 2. **[The schema language must reach its final form](#2-the-schema-language-must-reach-its-final-form)** — *in flight · Serhii.* Whatever syntax the RC ships is permanent for the life of v8; three language projects are running.
 3. **[Every name and format users depend on must be final](#3-every-name-and-format-users-depend-on-must-be-final)** — *in progress · Will.* Error codes, hashes, the migration snapshot layout, and the config-key rename are done; the `prisma-next` name sweep remains.
 4. **[The release's claims must be proven](#4-the-releases-claims-must-be-proven)** — *scoreboard drafted, proofs open · everyone.* "It works" and "you can migrate incrementally" each need a runnable receipt.
-5. **[The code must move into prisma/prisma](#5-the-code-must-move-into-prismaprisma)** — *starting · Alexey.* Repository merge, publishing pipeline, and years of open v7 issues.
+5. **[The code must move into prisma/prisma](#5-the-code-must-move-into-prismaprisma)** — *in progress · Alexey.* The code is in prisma/prisma and the `v7` branch runs its own CI; the package-name takeover and the v7 issue triage remain.
 6. **[The rough edges users hit on day one must be gone](#6-the-rough-edges-users-hit-on-day-one-must-be-gone)** — *not started · everyone.* Small fixes that would be embarrassing under announcement-day attention.
 
 Two dated decisions still bound the work. One is now overdue: the minimum supported Postgres version, whose July 22 target has passed and still blocks final scoreboard verdicts until it is set. One is imminent: the polymorphism stable-or-experimental call (July 24, decided by whether its bug stream has flattened). A third is already made and delivered: error codes standardize on dotted namespace codes (like `ORM.DECODE_FAILED`), and the consolidation has landed. July 24 is also the day the scoreboard verdicts freeze and scope stops moving. There is no other internal schedule: we work these sections as fast as they'll go and ship when they're done.
@@ -21,7 +21,7 @@ Two dated decisions still bound the work. One is now overdue: the minimum suppor
 
 ## 1. Queries must return correct values
 
-Prisma 8's core promise at the RC is that the query paths it ships are correct. The one significant defect class — relation-loading bypassing type codecs — is fixed as of July 31; what remains is the aggregate-typing tail, the type/runtime mismatches, and the polymorphism call.
+Prisma 8's core promise at the RC is that the query paths it ships are correct. The one significant defect class — relation-loading bypassing type codecs — is fixed as of July 31, and aggregate decoding followed on August 5; what remains is the type/runtime mismatches and the polymorphism call.
 
 <details><summary>✅ <b>Values read through relation-loading bypass their type codecs — big numbers silently corrupt, date columns throw</b> · landed</summary>
 
@@ -29,7 +29,7 @@ When a query loads a relation (say, a post together with its author), Postgres a
 
 The fix landed July 31: every type codec states an explicit *lossless* canonical JSON form (big numbers travel as decimal strings, binary as base64), and the SQL we generate produces that form inside the database. It shipped as three pull requests in strict sequence — the projection AST foundations ([TML-3062](https://linear.app/prisma-company/issue/TML-3062), [#1023](https://github.com/prisma/prisma-next/pull/1023)), the per-database codec descriptors ([TML-3061](https://linear.app/prisma-company/issue/TML-3061), [#1051](https://github.com/prisma/prisma-next/pull/1051)), and the switch-over carrying the per-codec projections and their database-backed conformance harness ([TML-3100](https://linear.app/prisma-company/issue/TML-3100), [TML-3063](https://linear.app/prisma-company/issue/TML-3063), [#29844](https://github.com/prisma/prisma/pull/29844)). The switch-over is the promised breaking change: users regenerate their contract files, nine codecs change their JSON form on the read path, and zone-less timestamps now read as UTC. Integration tests prove each renderer produces the canonical form against a real database.
 
-Two remainders are accepted knowingly: aggregate values are not yet decoded through codecs ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), tracked in the type-mismatch item below), and `pg/geometry@1` keeps its non-canonical form until its SRID representation is decided and a PostGIS-capable test database exists ([TML-3105](https://linear.app/prisma-company/issue/TML-3105)).
+One remainder was accepted knowingly and later closed: aggregate values now decode through codecs ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), landed August 5 as [#29867](https://github.com/prisma/prisma/pull/29867)). The other stands: `pg/geometry@1` keeps its non-canonical form until its SRID representation is decided and a PostGIS-capable test database exists ([TML-3105](https://linear.app/prisma-company/issue/TML-3105)).
 </details>
 
 <details><summary>✅ <b>`date` columns fail at runtime when read through relation-loading</b> · landed</summary>
@@ -44,11 +44,12 @@ Same disease as the big one above, concrete instance: a `Bytes` column selected 
 
 <details><summary>⏳ <b>Places where the TypeScript types and the runtime disagree</b></summary>
 
-Three known mismatches, all "the type signature promises one thing, the running code returns another":
+Two known mismatches remain, both "the type signature promises one thing, the running code returns another":
 
 - `Timestamp`/`Timestamptz` columns: the declared output type is a branded string, but the codec actually returns a JavaScript `Date` ([TML-2391](https://linear.app/prisma-company/issue/TML-2391), in progress).
-- Projects that use the schema types directly without running contract emission (`typeof contract`) get types that ignore per-instance codec parameters and enum value sets — so a column can typecheck against values the database will reject ([TML-2960](https://linear.app/prisma-company/issue/TML-2960), in progress).
-- Aggregate results: a `count()` is typed `bigint`, but the runtime still returns the text the database sent — aggregate values are not yet decoded through codecs. This is the final PR of the lossless-JSON sequence, which also delivers the public target testkits for extensions ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), open).
+- Projects that use the schema types directly without running contract emission (`typeof contract`) get types that ignore per-instance codec parameters — enum value sets are fixed ([TML-2960](https://linear.app/prisma-company/issue/TML-2960), [#958](https://github.com/prisma/prisma-next/pull/958)), the codec-parameter half is tracked as [TML-3014](https://linear.app/prisma-company/issue/TML-3014).
+
+A third is resolved: aggregate values now decode through target-declared aggregate codecs, so the type an aggregate declares is the value the runtime hands back. `count()` reads as a `number` and refuses a tally outside ±(2^53 − 1) rather than rounding it, with `countBigInt()` as the lossless form. Delivered with the public target testkits for extensions ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), landed August 5 as [#29867](https://github.com/prisma/prisma/pull/29867)); the native-number defaults are [TML-3165](https://linear.app/prisma-company/issue/TML-3165).
 
 A type that lies is a correctness bug with a delay on it; all must be resolved (or the type corrected to tell the truth) before the types freeze.
 </details>
@@ -57,7 +58,7 @@ A type that lies is a correctness bug with a delay on it; all must be resolved (
 
 Polymorphism means models that inherit from a base model, stored across joined tables (multi-table inheritance). It has been the source of most of Prisma 8's recent correctness bugs. The encouraging signal: recent fixes are narrow edge cases rather than missing capabilities, and no known-broken or skipped tests remain in the area. The open list, so the tail is visible rather than vibes:
 
-- Explicit `.select(...)` on a polymorphic include doesn't restrict variant-table columns ([TML-2783](https://linear.app/prisma-company/issue/TML-2783), in progress — the core fix landed, follow-up open).
+- Explicit `.select(...)` on a polymorphic include doesn't restrict variant-table columns ([TML-2783](https://linear.app/prisma-company/issue/TML-2783) — the runtime fix landed in [#984](https://github.com/prisma/prisma-next/pull/984); the typed `.select()` surface still offers base-model fields only).
 - Variant lookup is namespace-flat, so two variants with the same name in different namespaces can't be addressed ([TML-2841](https://linear.app/prisma-company/issue/TML-2841), in progress).
 - The model accessor's return type isn't variant-aware ([TML-2847](https://linear.app/prisma-company/issue/TML-2847), in progress).
 - The shorthand `.where({priority: 1})` form rejects variant fields that the callback form accepts ([TML-2982](https://linear.app/prisma-company/issue/TML-2982), open).
@@ -71,7 +72,7 @@ On July 24 we decide from this list and the discovery rate, not from hope: if it
 
 ## 2. The schema language must reach its final form
 
-Users write their data model in Prisma Schema Language (PSL) files. Whatever syntax the RC accepts is the syntax v8 supports forever — so every planned change to the language must land before July 31 or be abandoned. Four language changes are planned — mixins, native column types, directional relations, and tagged SQL fences — plus two items that follow from them: removing `@dbgenerated()` builds on the tagged fences, and the example schemas get regenerated once at the end. All of it is coordinated so users' generated files change once, not once per change.
+Users write their data model in Prisma Schema Language (PSL) files. Whatever syntax the RC accepts is the syntax v8 supports forever — so every planned change to the language must land before July 31 or be abandoned. Four language changes are planned — mixins, native column types, directional relations, and tagged SQL fences — plus one item that follows from them: removing `@dbgenerated()` builds on the tagged fences.
 
 <details><summary>⏳ <b>Mixins: reusable, named sets of fields</b></summary>
 
@@ -80,11 +81,11 @@ The long-standing ask — share `createdAt`/`updatedAt`/tenant-id fields across 
 Decided by the team on July 20; design in progress. Tracked as [TML-3055](https://linear.app/prisma-company/issue/TML-3055/psl-mixins-named-field-set-reuse-retire-field-presets-type-aliases-and). This is the largest single pre-release work item.
 </details>
 
-<details><summary>⏳ <b>Native column types move onto type constructors; `@db.*` attributes are deleted</b></summary>
+<details><summary>✅ <b>Native column types move onto type constructors; `@db.*` attributes are deleted</b> · landed</summary>
 
 Prisma 7 spelled database-native column types with attributes: `email String @db.VarChar(255)`. Prisma 8 replaces that spelling with the type written directly in the type position: `email VarChar(255)`, `id Uuid`, `payload Jsonb`. The type says what the column is; no attribute needed. All `@db.*` attribute support is deleted from the language before the freeze — shipping both spellings would freeze both forever.
 
-This has its own running project ("Remove `@db.*` attributes from PSL"). The scalar-type unification — every scalar becomes a zero-argument type constructor under one contribution mechanism, with the Postgres native constructors exposed — has landed ([TML-2986](https://linear.app/prisma-company/issue/TML-2986), [#1022](https://github.com/prisma/prisma-next/pull/1022)). What remains is deleting the `@db.*` channel itself ([TML-2988](https://linear.app/prisma-company/issue/TML-2988)) so only the bare-type spelling survives the freeze.
+Both halves have landed. The scalar-type unification — every scalar becomes a zero-argument type constructor under one contribution mechanism, with the Postgres native constructors exposed — landed first ([TML-2986](https://linear.app/prisma-company/issue/TML-2986), [#1022](https://github.com/prisma/prisma-next/pull/1022)). The `@db.*` channel itself is now deleted ([TML-2988](https://linear.app/prisma-company/issue/TML-2988), landed as [#1054](https://github.com/prisma/prisma-next/pull/1054)): writing a `@db.*` attribute fails with a diagnostic that spells out the replacement, e.g. `@db.Uuid is no longer supported; use Uuid in type position`. Only the bare-type spelling survives the freeze.
 </details>
 
 <details><summary>⏳ <b>Relations get a directional spelling; `@relation(name:)` retires</b></summary>
@@ -100,11 +101,6 @@ Schemas sometimes need to carry a piece of literal SQL: a view definition, a par
 <details><summary>⬜ <b>`@dbgenerated()` is removed; database-computed defaults become tagged fences</b></summary>
 
 Prisma 7 spelled "the database computes this default" as an attribute wrapping a SQL string: `@default(dbgenerated("gen_random_uuid()"))` — a quoted string with escaping problems and no ownership story. Prisma 8 removes `@dbgenerated()` entirely: a raw SQL default is written as a tagged backtick fence (the mechanism above), so the same one syntax carries every piece of embedded SQL in a schema. This depends on the tagged-fence implementation landing first. It also reaches beyond the parser: the Postgres and SQLite default-handling code and the introspection path (which meets `dbgenerated`-shaped defaults in every real existing database, and must *emit* tagged fences for them) all change with it.
-</details>
-
-<details><summary>⬜ <b>Regenerate every example schema and migration — once, at the end</b></summary>
-
-All of the above changes what generated schema and migration files look like. The example projects and their committed migrations get regenerated a single time after the last language change lands, rather than churning after each one.
 </details>
 
 ---
@@ -153,11 +149,11 @@ Both therefore need an upgrade path rather than a rename — a loader that accep
 
 The announcement will make two big claims: *everything Prisma 8 ships works*, and *you can run Prisma 7 and Prisma 8 side by side and migrate incrementally*. With early-access adoption having been thin, tests have to do the confidence-building work that production feedback normally would. Each claim gets a runnable receipt.
 
-<details><summary>⏳ <b>The feature scoreboard: ~326 features × 3 databases, every "works" backed by a named test</b></summary>
+<details><summary>⏳ <b>The feature scoreboard: 593 features × 3 databases, every "works" backed by a named test</b></summary>
 
 A matrix of every feature against every supported database (Postgres, SQLite, MongoDB). Each cell holds a verdict: **works** (and names the test suite that proves it), **unproven** (reachable, but no test demonstrates it yet), **experimental** (shipped, outside the stability promise), or **not in 8.0** (a deliberate, written-down absence — nothing is allowed to be silently missing). The rows come from two directions: everything Prisma 8's public surface exposes, crossed with every notable Prisma 7 capability, so absences are named rather than discovered.
 
-The draft is up for review as [PR #1000](https://github.com/prisma/prisma-next/pull/1000). Current draft counts: **~450 cells proven, ~500 unproven, ~30 experimental, ~250 named absences.** The unproven column is literally the remaining test-writing queue, and the rendered matrix ships publicly with the RC — progress from here on is cells flipping from unproven to proven.
+The scorecard is merged in-repo — [scorecard.md](scorecard.md) plus 19 category files — and is updated as gaps are found (most recently eight compatibility gaps, [#29881](https://github.com/prisma/prisma/pull/29881)). Current tallies: **593 feature rows, 1,779 cells — 416 proven, 488 unproven, 12 experimental, 244 named absences.** The unproven column is literally the remaining test-writing queue, and the rendered matrix ships publicly with the RC — progress from here on is cells flipping from unproven to proven. No CI job renders or checks the scorecard yet.
 </details>
 
 <details><summary>⏳ <b>Capabilities still landing before the verdicts freeze on July 24</b></summary>
@@ -169,6 +165,11 @@ Several features are mid-flight; their scoreboard cells can't get final verdicts
 - **Polymorphism in the TypeScript authoring path** — schemas written in TypeScript (instead of PSL) can't declare inheritance yet; the PSL path can ([TML-2228](https://linear.app/prisma-company/issue/TML-2228), open). Until it lands, the scoreboard carries the asymmetry explicitly.
 
 Anything on this list that misses July 24 gets its cells stamped as they actually are — unproven, experimental, or not in 8.0 — rather than holding the freeze.
+</details>
+
+<details><summary>⬜ <b>Raw query support</b></summary>
+
+An ORM needs an escape hatch: when the query builder can't express something, users drop to raw SQL (Prisma 7's `$queryRaw`/`$executeRaw`) or raw database commands. Prisma 8's pieces exist but are unproven and incomplete: the `rawSql` expression inside the typed builder is proven on Postgres and SQLite, but the statement-level `raw` SQL tag (`client.raw`) and the raw Mongo client have no proving integration test, and Prisma 7's composition surface — `Prisma.sql`/`Prisma.join`/`Prisma.raw`/`Prisma.empty` fragments, typed fragment generics, TypedSQL — is currently marked *not in 8.0*. Migrating users reach for the escape hatch on day one, so the existing surfaces need proving tests and the fragment-composition story needs an explicit ship-or-name-the-absence decision before the freeze makes "not in 8.0" permanent. Current state: [scorecard/13-raw-and-typed-sql.md](scorecard/13-raw-and-typed-sql.md).
 </details>
 
 <details><summary>⬜ <b>The side-by-side proof: both versions, one database, migrating incrementally</b></summary>
@@ -185,7 +186,7 @@ Prisma 8 leans heavily on advanced TypeScript types, which is exactly the patter
 
 <details><summary>⏳ <b>Port Prisma 7's accumulated edge-case tests against the unproven cells</b></summary>
 
-Prisma 7's functional test suite encodes years of database and query edge cases. Converting it wholesale would take months and mostly port API details that no longer exist — so we mine it instead: for each scoreboard cell that says "works" without a proving test, find the Prisma 7 tests covering that feature and port just those scenarios. Where comparing against Prisma 7's behavior is cheaper than porting assertions, the side-by-side project doubles as the comparison harness. The port has started — a first pass accounting for 488 scenarios from the `prisma` and `prisma-engines` corpus landed ([#1035](https://github.com/prisma/prisma-next/pull/1035)). This is a stream, not a step; it continues past the RC, visibly, on the public scoreboard.
+Prisma 7's functional test suite encodes years of database and query edge cases. Converting it wholesale would take months and mostly port API details that no longer exist — so we mine it instead: for each scoreboard cell that says "works" without a proving test, find the Prisma 7 tests covering that feature and port just those scenarios. Where comparing against Prisma 7's behavior is cheaper than porting assertions, the side-by-side project doubles as the comparison harness. The port is underway — 1,423 of 6,304 in-scope scenarios accounted across five waves ([#1035](https://github.com/prisma/prisma-next/pull/1035), [#1042](https://github.com/prisma/prisma-next/pull/1042), [#29832](https://github.com/prisma/prisma/pull/29832), [#29912](https://github.com/prisma/prisma/pull/29912)); the three functional checklists are complete at 1,423 of 1,423, the engines corpus untouched. The per-test ledger lives in `projects/port-all-tests/checklists/`. This is a stream, not a step; it continues past the RC, visibly, on the public scoreboard.
 </details>
 
 <details><summary>✅ <b>Expression, partial, and unique indexes — authorable, name-identified, adoptable</b> · landed</summary>
@@ -202,16 +203,16 @@ The adoption path had a credibility problem: deriving a schema from a live datab
 
 ## 5. The code must move into prisma/prisma
 
-Prisma 8 has so far been developed in a separate repository, `prisma/prisma-next`. Before release, everything moves into `prisma/prisma` — the repository users already watch, star, and file issues against — so Prisma 8 arrives as the main line of Prisma, not a side project. Moving is much more than copying code: the two repositories' git histories have to be joined, CI has to run green in its new home, the npm publishing pipeline has to serve v8 and v7 side by side, thousands of open v7 issues and pull requests need a decision, and the automation in other repositories that points at prisma/prisma has to keep working afterward. Prisma 7 doesn't stop: it continues from a `v7` branch in the same repository, with bug fixes promised for 12 months after 8.0.0 final ships.
+Prisma 8 has so far been developed in a separate repository, `prisma/prisma-next`. Before release, everything moves into `prisma/prisma` — the repository users already watch, star, and file issues against — so Prisma 8 arrives as the main line of Prisma, not a side project. Moving is much more than copying code: the two repositories' git histories have to be joined, CI has to run green in its new home, the npm publishing pipeline has to serve v8 and v7 side by side, thousands of open v7 issues and pull requests need a decision, the automation in other repositories that points at prisma/prisma has to keep working afterward, and the old prisma-next repository has to be visibly retired. Prisma 7 doesn't stop: it continues from a `v7` branch in the same repository, with bug fixes promised for 12 months after 8.0.0 final ships.
 
-<details><summary>⏳ <b>Join the two repositories' histories on a staging branch</b></summary>
+<details><summary>✅ <b>Move the code into prisma/prisma</b> · landed, plan revised</summary>
 
-First a rehearsal in a disposable fork: combine prisma-next's history with prisma/prisma's and check the result is livable — `git log` and `git blame` still make sense, old tags still resolve, the repository doesn't balloon. Then the real `v8` branch inside prisma/prisma, with the complete test suite green and kept green until release week, when it becomes `main`. The merge gets rehearsed for weeks; it is never improvised at the deadline.
+The move happened July 27–28: this repository *is* prisma/prisma, v8 is `main`, and everything since lands under prisma/prisma PR numbers ([#29825](https://github.com/prisma/prisma/pull/29825), [#29826](https://github.com/prisma/prisma/pull/29826)). The originally planned history graft was dropped: `main` carries prisma-next's history only and shares no ancestor with the `v7` branch, so `git log`/`git blame` on `main` do not reach 7.x. The old 5.x/6.x/7.x tags still resolve, and a signpost on the default branch points Prisma 7 users at the `v7` branch.
 </details>
 
-<details><summary>⬜ <b>Rewire the publishing pipeline — inside prisma/prisma and in the repositories connected to it</b></summary>
+<details><summary>⏳ <b>Rewire the publishing pipeline — inside prisma/prisma and in the repositories connected to it</b></summary>
 
-prisma/prisma's release automation currently exists to publish Prisma 7. After the move it does two jobs: publish v8 from `main` and keep publishing v7 patches from the `v7` branch, without either disturbing the other. (Publish permissions on the `prisma` npm package are already in hand, and the per-package "trusted publishing" setup that lets CI publish without long-lived secrets is done for all 17 v8 packages — what remains is the v7 side.) Beyond the repository itself, workflows in several other repositories and open pull requests are wired into prisma/prisma's publishing today; each connection has to be found and re-pointed. The first concrete task is the inventory — a written list of every workflow that touches prisma/prisma's publishing, so the rewiring is a checklist instead of a surprise.
+The in-repo half is done: `publish.yml` publishes v8 from `main` via OIDC trusted publishing with provenance (unchanged version → `dev` dist-tag, bumped version → `latest` plus a GitHub Release), and five `v7-*` registration stubs on `main` dispatch to the real workflows on the `v7` branch, so neither pipeline disturbs the other ([#29803](https://github.com/prisma/prisma/pull/29803), [#29823](https://github.com/prisma/prisma/pull/29823), [#29840](https://github.com/prisma/prisma/pull/29840), [#29880](https://github.com/prisma/prisma/pull/29880), [#29884](https://github.com/prisma/prisma/pull/29884), [#29886](https://github.com/prisma/prisma/pull/29886)). What remains is the cross-repository half: the written inventory of workflows in other repositories wired into prisma/prisma's publishing, and re-pointing each of them. That inventory doesn't exist yet.
 </details>
 
 <details><summary>⬜ <b>Take over the `prisma` package name — carefully</b></summary>
@@ -225,14 +226,19 @@ Delivered, with one revision to the plan: no second namespace exists. 17 package
 
 </details>
 
+<details><summary>⬜ <b>Deprecate the old prisma-next repository</b></summary>
+
+Development has moved here, but [prisma/prisma-next](https://github.com/prisma/prisma-next) still exists with its issues, PRs, and watchers — and nothing tells a visitor it's dead. Before the announcement: archive the repository, point its README at prisma/prisma, and decide what happens to anything still open there (open items move here or get closed with a pointer). Links into the old repo — including the `#10xx` PR references in this file's history — keep resolving after archival, so nothing breaks; the goal is just that nobody lands there and thinks it's where Prisma 8 lives.
+</details>
+
 <details><summary>⬜ <b>Decide the fate of every open v7 issue and pull request</b></summary>
 
 prisma/prisma has years of open issues and PRs written against Prisma 7. When v8 becomes `main`, we close everything except genuine v7 bug reports (which stay open against the `v7` branch), post a pinned issue explaining what happened and why, and answer follow-ups with a saved reply pointing at it. This deliberately happens at merge time, not earlier — closing thousands of issues weeks before there's an announcement to point at would produce weeks of confusion. Issue templates get a version chooser at the same time, so new reports arrive sorted into v7 vs v8.
 </details>
 
-<details><summary>⬜ <b>The `v7` maintenance branch, with working CI</b></summary>
+<details><summary>✅ <b>The `v7` maintenance branch, with working CI</b> · landed</summary>
 
-Prisma 7's code, tests, and release automation move to a `v7` branch in prisma/prisma and must actually work there — this branch is where 12 months of promised bug fixes ship from, so a broken CI setup on it would turn every future v7 patch into an archaeology project.
+The `v7` branch exists with Prisma 7's code, tests, and release automation, and its CI actually works there — test, publish, benchmark, and auxiliary workflows all run on the branch, with dispatch stubs registered on `main`, CodeRabbit reviews enabled, and the 7.x docs pointed at it ([#29803](https://github.com/prisma/prisma/pull/29803), [#29822](https://github.com/prisma/prisma/pull/29822), [#29827](https://github.com/prisma/prisma/pull/29827), [#29828](https://github.com/prisma/prisma/pull/29828)). This branch is where 12 months of promised bug fixes ship from.
 </details>
 
 ---
@@ -245,7 +251,7 @@ None of these block anything technically. All of them are what a skeptical engin
 
 When an idle pooled connection drops (a database restart, a network blip), the error has no listener attached and crashes the whole Node.js process. A production-readiness bug, not housekeeping — fixed before anyone's production meets it. ([TML-2655](https://linear.app/prisma-company/issue/TML-2655))
 
-Re-verified July 28: both places that build a `pg.Pool` from a `url` binding still attach no `'error'` handler, and the `db.ts` that `prisma-next init` scaffolds still uses exactly that path — so every scaffolded app deployed behind a connection pooler is exposed. A production app on Prisma Compute already hit this; the whole process died on each idle-connection drop. ([TML-2842](https://linear.app/prisma-company/issue/TML-2842))
+Re-verified August 5: now *three* places build a `pg.Pool` with no `'error'` handler — the postgres driver's `url` binding, the postgres extension runtime, and the supabase extension — and the `db.ts` that `prisma-next init` scaffolds still uses exactly that path, so every scaffolded app deployed behind a connection pooler is exposed. A production app on Prisma Compute already hit this; the whole process died on each idle-connection drop. ([TML-2842](https://linear.app/prisma-company/issue/TML-2842))
 </details>
 
 <details><summary>⬜ <b>`migration plan` can silently generate a destructive baseline</b> · verified July 28 · data-loss risk</summary>
@@ -278,9 +284,9 @@ Anyone porting a `schema.prisma` keeps writing `Json` and silently gets `json` c
 Init queues deletion of `.agents/skills/prisma-next/SKILL.md` unconditionally as "legacy cleanup" — the same path a genuinely installed router skill occupies. In the default run the subsequent skill install masks the delete by rewriting the file; with `--no-skill` the install never runs, so init destroys the user's installed skill and reports it only in the JSON `filesDeleted` list. ([TML-2637](https://linear.app/prisma-company/issue/TML-2637))
 </details>
 
-<details><summary>⬜ <b>A deprecation warning prints on every single database connection</b></summary>
+<details><summary>✅ <b>A deprecation warning prints on every single database connection</b> · landed</summary>
 
-The underlying Postgres driver prints a deprecation notice each time a connection opens. Harmless, but it's the first thing every new user sees, and it reads as "this isn't finished." ([TML-2628](https://linear.app/prisma-company/issue/TML-2628))
+Resolved: the query-overlap `DeprecationWarning` was closed by [TML-3108](https://linear.app/prisma-company/issue/TML-3108) ([#29839](https://github.com/prisma/prisma/pull/29839)) — the driver now serializes queries per pinned pg client, with a regression test asserting no warning — and no per-connection deprecation exists in the pg 8.22 APIs the driver uses. [TML-2628](https://linear.app/prisma-company/issue/TML-2628) is closed.
 </details>
 
 <details><summary>⬜ <b>Open security alerts on dependencies</b></summary>
@@ -295,7 +301,7 @@ The `prisma` package's README becomes Prisma 8's face on npm. The four public pa
 
 <details><summary>⏳ <b>First-class editor support for the schema language</b></summary>
 
-A language users write by hand deserves an editor that helps: formatting, autocomplete, syntax coloring, and diagnostics for Prisma 8's schema language, served by its language server. This work is running now — hooking the formatter to the language server, keyword and model-type completions, semantic-token coloring, and replacing the legacy schema parser with the new syntax-tree parser underneath it all (the "Language Tools Support Prisma Next PSL" project — e.g. [TML-2929](https://linear.app/prisma-company/issue/TML-2929), [TML-2947](https://linear.app/prisma-company/issue/TML-2947), [TML-2948](https://linear.app/prisma-company/issue/TML-2948)). It also has to track the schema-language changes in section 2 as they land, or the editor will underline the new syntax as errors.
+A language users write by hand deserves an editor that helps. Most of this has landed: the language server ships formatting, keyword and model-type completions, semantic-token coloring, folding, and interpreter-backed diagnostics, served via `prisma-next lsp --stdio` on the new syntax-tree parser ([TML-2929](https://linear.app/prisma-company/issue/TML-2929), [TML-2947](https://linear.app/prisma-company/issue/TML-2947), [TML-2948](https://linear.app/prisma-company/issue/TML-2948) all landed). What remains: tracking the schema-language changes in section 2 as they land — or the editor will underline the new syntax as errors — and the VS Code extension packaging, which lives outside this repository.
 </details>
 
 <details><summary>⬜ <b>The editor doesn't fight itself in a two-version project</b></summary>
@@ -312,6 +318,16 @@ Support statements that end up in the announcement get checked first: Windows, B
 
 ## Recently landed
 
+```mermaid
+timeline
+    title Landed on the road to RC1
+    Jul 22-23 : Snapshot store dedup : extensionPacks rename : sha256 prefix drop : date codec binding : Scalar-type unification
+    Jul 27-28 : db attribute deletion : Error-code scheme : Move into prisma-prisma
+    Jul 30-31 : v7 branch with CI : Lossless JSON projection : Index authoring and adoption
+    Aug 3 : npm namespace restructure
+```
+
+- **The code moved into prisma/prisma** — v8 is `main`, all work lands under prisma/prisma PR numbers, and the `v7` branch carries Prisma 7 with its own working CI (section 5).
 - **Expression, partial, and unique indexes landed end-to-end** — authorable in PSL and TypeScript, name-identified (a wire name carries a content-hash suffix; `map:` adopts the live name verbatim), and emitted at full fidelity by `contract infer` so existing databases adopt cleanly (section 4).
 - **Relation-loading now reads every value losslessly through its type codec** — nested JSON is canonical per codec: big integers arrive as `bigint`, decimals as exact strings, `Bytes` as bytes; a breaking change that regenerates contracts and changes nine codecs' JSON form (section 1).
 - **One error-code scheme, delivered end-to-end** — every published error is a structural envelope with a dotted code; the ORM and contract-authoring planes' codeless throws were swept onto it; the 221-code reference page ships with a CI check that keeps it complete (section 3).
@@ -320,7 +336,7 @@ Support statements that end up in the announcement get checked first: Windows, B
 - **`date` columns read through `.include()` now decode correctly** — the `@db.Date` codec binding that had been missing (section 1).
 - **Scalar-type unification landed** — every scalar is a zero-argument type constructor, with Postgres native constructors exposed (section 2).
 - **Adopting an existing database round-trips cleanly** — seven defects fixed, proven against live databases (details in section 4).
-- **The feature scoreboard draft is up** — 326 features enumerated and verdict-ed across all three databases ([PR #1000](https://github.com/prisma/prisma-next/pull/1000)).
+- **The feature scoreboard is merged in-repo** — 593 features enumerated and verdict-ed across all three databases ([scorecard.md](scorecard.md)).
 
 ---
 

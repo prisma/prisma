@@ -164,6 +164,17 @@ describe('SqliteCodecDescriptor', () => {
     ).toThrow(/SQLite codec descriptors do not support stored scalar arrays/);
     expect(descriptor.jsonProjectionParams).toEqual([]);
   });
+
+  it('rejects stored scalar arrays with RUNTIME.CODEC_DESCRIPTOR_ARRAY_UNSUPPORTED', () => {
+    const descriptor = new DirectVectorDescriptor();
+
+    expect(() =>
+      descriptor.projectJson(ColumnRef.of('items', 'embeddings'), {
+        ...scalarRef(descriptor.codecId, 5),
+        many: true,
+      }),
+    ).toThrow(expect.objectContaining({ code: 'RUNTIME.CODEC_DESCRIPTOR_ARRAY_UNSUPPORTED' }));
+  });
 });
 
 describe('sqliteCodec', () => {
@@ -258,6 +269,16 @@ describe('SQLite codec descriptor registry', () => {
 
     expect(() => buildSqliteCodecDescriptorRegistry([validShape, validShape])).toThrow(
       /Duplicate SQLite codec descriptor id.*demo\/direct-vector@1/,
+    );
+
+    expect(() =>
+      buildSqliteCodecDescriptorRegistry([{ ...validShape, descriptorKind: 'postgres-codec' }]),
+    ).toThrow(expect.objectContaining({ code: 'RUNTIME.CODEC_DESCRIPTOR_INVALID' }));
+    expect(() => buildSqliteCodecDescriptorRegistry([validShape, validShape])).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.DUPLICATE_CODEC',
+        meta: expect.objectContaining({ target: 'sqlite' }),
+      }),
     );
   });
 });

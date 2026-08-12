@@ -37,6 +37,17 @@ function requireEnv(name: 'DATABASE_URL' | 'SUPABASE_JWT_SECRET'): string {
   return value;
 }
 
+function acceptanceEmail(userId: string): string {
+  return `acceptance-${userId}@example.com`;
+}
+
+async function cleanupUsers(connectionString: string, userIds: readonly string[]): Promise<void> {
+  await withClient(connectionString, async (pg) => {
+    await pg.query('DELETE FROM public.profile WHERE "userId" = ANY($1::uuid[])', [userIds]);
+    await pg.query('DELETE FROM auth.users WHERE id = ANY($1::uuid[])', [userIds]);
+  });
+}
+
 async function signJwt(
   payload: Record<string, unknown>,
   secret: string,
@@ -115,18 +126,18 @@ describe.skipIf(!process.env['DATABASE_URL'] || !process.env['SUPABASE_JWT_SECRE
         const profileBId = crypto.randomUUID();
         const now = new Date().toISOString();
 
-        await withClient(connectionString, async (pg) => {
-          await pg.query(
-            'INSERT INTO auth.users (id, email, created_at, updated_at) VALUES ($1, $2, $3, $3), ($4, $5, $3, $3)',
-            [userAId, 'user-a@example.com', now, userBId, 'user-b@example.com'],
-          );
-          await pg.query(
-            'INSERT INTO public.profile (id, username, "userId") VALUES ($1, $2, $3), ($4, $5, $6)',
-            [profileAId, 'alice', userAId, profileBId, 'bob', userBId],
-          );
-        });
-
         try {
+          await withClient(connectionString, async (pg) => {
+            await pg.query(
+              'INSERT INTO auth.users (id, email, created_at, updated_at) VALUES ($1, $2, $3, $3), ($4, $5, $3, $3)',
+              [userAId, acceptanceEmail(userAId), now, userBId, acceptanceEmail(userBId)],
+            );
+            await pg.query(
+              'INSERT INTO public.profile (id, username, "userId") VALUES ($1, $2, $3), ($4, $5, $6)',
+              [profileAId, 'alice', userAId, profileBId, 'bob', userBId],
+            );
+          });
+
           const recorder = recordingMiddleware();
           const db = await createDb(connectionString, { middleware: [recorder.middleware] });
 
@@ -180,9 +191,7 @@ describe.skipIf(!process.env['DATABASE_URL'] || !process.env['SUPABASE_JWT_SECRE
             await db.close();
           }
         } finally {
-          await withClient(connectionString, async (pg) => {
-            await pg.query('DELETE FROM auth.users WHERE id IN ($1, $2)', [userAId, userBId]);
-          });
+          await cleanupUsers(connectionString, [userAId, userBId]);
         }
       },
       timeouts.spinUpPpgDev * 4,
@@ -200,14 +209,14 @@ describe.skipIf(!process.env['DATABASE_URL'] || !process.env['SUPABASE_JWT_SECRE
         const userBId = crypto.randomUUID();
         const now = new Date().toISOString();
 
-        await withClient(connectionString, async (pg) => {
-          await pg.query(
-            'INSERT INTO auth.users (id, email, created_at, updated_at) VALUES ($1, $2, $3, $3), ($4, $5, $3, $3)',
-            [userAId, 'user-a@example.com', now, userBId, 'user-b@example.com'],
-          );
-        });
-
         try {
+          await withClient(connectionString, async (pg) => {
+            await pg.query(
+              'INSERT INTO auth.users (id, email, created_at, updated_at) VALUES ($1, $2, $3, $3), ($4, $5, $3, $3)',
+              [userAId, acceptanceEmail(userAId), now, userBId, acceptanceEmail(userBId)],
+            );
+          });
+
           const db = await createDb(connectionString);
 
           try {
@@ -257,9 +266,7 @@ describe.skipIf(!process.env['DATABASE_URL'] || !process.env['SUPABASE_JWT_SECRE
             await db.close();
           }
         } finally {
-          await withClient(connectionString, async (pg) => {
-            await pg.query('DELETE FROM auth.users WHERE id IN ($1, $2)', [userAId, userBId]);
-          });
+          await cleanupUsers(connectionString, [userAId, userBId]);
         }
       },
       timeouts.spinUpPpgDev * 4,
@@ -333,18 +340,18 @@ describe.skipIf(!process.env['DATABASE_URL'] || !process.env['SUPABASE_JWT_SECRE
         const profileBId = crypto.randomUUID();
         const now = new Date().toISOString();
 
-        await withClient(connectionString, async (pg) => {
-          await pg.query(
-            'INSERT INTO auth.users (id, email, created_at, updated_at) VALUES ($1, $2, $3, $3)',
-            [userBId, 'user-b@example.com', now],
-          );
-          await pg.query(
-            'INSERT INTO public.profile (id, username, "userId") VALUES ($1, $2, $3), ($4, $5, $6)',
-            [profileAId, 'alice', userAId, profileBId, 'bob', userBId],
-          );
-        });
-
         try {
+          await withClient(connectionString, async (pg) => {
+            await pg.query(
+              'INSERT INTO auth.users (id, email, created_at, updated_at) VALUES ($1, $2, $3, $3)',
+              [userBId, acceptanceEmail(userBId), now],
+            );
+            await pg.query(
+              'INSERT INTO public.profile (id, username, "userId") VALUES ($1, $2, $3), ($4, $5, $6)',
+              [profileAId, 'alice', userAId, profileBId, 'bob', userBId],
+            );
+          });
+
           const db = await supabase<Contract>({
             contractJson,
             url: connectionString,
@@ -361,9 +368,7 @@ describe.skipIf(!process.env['DATABASE_URL'] || !process.env['SUPABASE_JWT_SECRE
             await db.close();
           }
         } finally {
-          await withClient(connectionString, async (pg) => {
-            await pg.query('DELETE FROM auth.users WHERE id IN ($1, $2)', [userAId, userBId]);
-          });
+          await cleanupUsers(connectionString, [userAId, userBId]);
         }
       },
       timeouts.spinUpPpgDev * 4,

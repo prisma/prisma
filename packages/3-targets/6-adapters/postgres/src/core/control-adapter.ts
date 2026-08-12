@@ -926,28 +926,37 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
          ORDER BY i.tablename, i.indexname, k.ord`,
       [schema],
     );
-    // Query all check constraints for enum-restricted columns.
-    // `pg_get_constraintdef(oid)` returns the predicate including the
-    // `CHECK (...)` wrapper. We parse the inner predicate to extract
-    // the column name and permitted values.
+    // Every check constraint on a relation in this schema, captured opaquely.
     //
-    // Scope: only parses the `= ANY (ARRAY[...])` and `IN (...)` shapes
-    // that this slice emits. Arbitrary SQL predicates are left as-is
-    // and will not produce check IR entries (they are silently skipped).
+    // `pg_get_expr(c.conbin, c.conrelid)` yields the bare predicate — no
+    // `CHECK (…)` wrapper and no `NOT VALID` / `NO INHERIT` suffix, since those
+    // qualify the constraint rather than the expression. The body is stored
+    // verbatim and never parsed: Postgres reprints predicates in its own
+    // normalized form (a `varchar` membership test comes back as
+    // `((col)::text = ANY ((ARRAY[…])::text[]))`), so any structured reading of
+    // it would drift against the authored text.
+    //
+    // `c.conislocal` keeps one row per constraint: a partition or inheriting
+    // child carries a non-local copy of its parent's constraint, which would
+    // otherwise surface as a second node. `c.conrelid <> 0` excludes domain
+    // constraints, which are `contype = 'c'` but belong to a type rather than a
+    // relation — previously excluded only as a side effect of the pg_class join.
     const checkResult = await driver.query<{
       table_name: string;
       constraint_name: string;
-      constraintdef: string;
+      check_expression: string;
     }>(
       `SELECT
            cl.relname AS table_name,
            c.conname AS constraint_name,
-           pg_get_constraintdef(c.oid) AS constraintdef
+           pg_get_expr(c.conbin, c.conrelid) AS check_expression
          FROM pg_catalog.pg_constraint c
          JOIN pg_catalog.pg_class cl ON cl.oid = c.conrelid
          JOIN pg_catalog.pg_namespace ns ON ns.oid = cl.relnamespace
          WHERE ns.nspname = $1
            AND c.contype = 'c'
+           AND c.conislocal
+           AND c.conrelid <> 0
          ORDER BY cl.relname, c.conname`,
       [schema],
     );
@@ -1203,20 +1212,22 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
           : { ...base, columns: Object.freeze([...columnNames]) };
       });
 
-      // Process check constraints — parse each predicate into column + value set.
-      // Only the two shapes emitted by this slice are recognised; free-form
-      // predicates are silently skipped (they won't produce check IR entries).
-      const checksForTable: SqlCheckConstraintIRInput[] = [];
-      for (const checkRow of checksByTable.get(tableName) ?? []) {
-        const parsed = parseCheckConstraintDef(checkRow.constraintdef);
-        if (parsed) {
-          checksForTable.push({
-            name: checkRow.constraint_name,
-            column: parsed.column,
-            permittedValues: parsed.permittedValues,
-          });
-        }
-      }
+      // Every check row becomes a node — nothing is skipped. `namingOfLiveName`
+      // makes a shape-only claim: a wire-shaped name gets the wire arm so the
+      // rename pass can pair it by prefix, but the hash is never recomputed from
+      // the introspected body. The differ always lets the contract-derived side
+      // choose the comparison, so that claim never suppresses one.
+      const checksForTable: SqlCheckConstraintIRInput[] = (checksByTable.get(tableName) ?? []).map(
+        (checkRow) => ({
+          naming: namingOfLiveName(checkRow.constraint_name),
+          expression: checkRow.check_expression,
+          // Every column of the table — the predicate is opaque, so which
+          // columns it constrains is unknowable here. Postgres drops a check
+          // along with any column it covers, so the check must be torn down
+          // first.
+          dependsOn: postgresColumnDependsOn(schema, tableName, Object.keys(columns)),
+        }),
+      );
 
       tableInputs[tableName] = {
         name: tableName,
@@ -1638,103 +1649,6 @@ function groupBy<T, K extends keyof T>(items: readonly T[], key: K): Map<T[K], T
   return map;
 }
 
-/**
- * Parses a Postgres check-constraint definition string (as returned by
- * `pg_get_constraintdef`) into a column name and permitted values array.
- *
- * Handles two shapes that Postgres emits for enum-style checks:
- *
- * 1. `= ANY (ARRAY[...])` — Postgres rewrites `col IN ('a','b')` to this form:
- *    `CHECK ((col = ANY (ARRAY['a'::text, 'b'::text])))`
- *
- * 2. `IN (...)` — stays as-is when written directly:
- *    `CHECK ((col IN ('a', 'b')))`
- *
- * Column names may be plain identifiers (`status`) or double-quoted identifiers
- * (`"my-col"`). Double-quoted identifiers with embedded `""` are un-escaped to a
- * single `"`.
- *
- * String literal values may contain Postgres-style doubled single-quotes (`''`),
- * which are un-escaped to a single `'` (e.g. `O''Brien` → `O'Brien`).
- *
- * Returns `{ column, permittedValues }` when the predicate matches one of
- * the two recognised shapes. Returns `undefined` for anything else (e.g.
- * a free-form SQL predicate that wasn't emitted by this slice).
- */
-export function parseCheckConstraintDef(
-  constraintdef: string,
-): { column: string; permittedValues: readonly string[] } | undefined {
-  // Strip outer `CHECK (...)` wrapper and any extra parentheses.
-  // pg_get_constraintdef returns e.g. `CHECK ((col = ANY (ARRAY[...])))` — note
-  // the double parens: one from CHECK and one that Postgres wraps the predicate
-  // in. Strip both outer layers.
-  const afterCheck = constraintdef
-    .replace(/^CHECK\s*\(/i, '')
-    .replace(/\)$/, '')
-    .trim();
-  // Strip one more optional paren pair (the inner wrap Postgres adds)
-  const inner =
-    afterCheck.startsWith('(') && afterCheck.endsWith(')')
-      ? afterCheck.slice(1, -1).trim()
-      : afterCheck;
-
-  // Shape 1: col = ANY (ARRAY['a'::text, 'b'::text])
-  // Accepts both plain identifiers and double-quoted identifiers for the column.
-  // Anchored at the end so a composite predicate (e.g. `col = ANY (...) AND x > 0`)
-  // does not partial-match.
-  const anyArrayMatch = inner.match(
-    /^(?:"((?:[^"]|"")*)"|(\w+))\s*=\s*ANY\s*\(\s*ARRAY\s*\[(.+)\]\s*\)\s*$/i,
-  );
-  if (anyArrayMatch) {
-    const column =
-      anyArrayMatch[1] !== undefined ? anyArrayMatch[1].replace(/""/g, '"') : anyArrayMatch[2];
-    const arrayBody = anyArrayMatch[3];
-    if (!column || !arrayBody) return undefined;
-    const permittedValues = extractArrayLiterals(arrayBody);
-    return permittedValues ? { column, permittedValues } : undefined;
-  }
-
-  // Shape 2: col IN ('a', 'b')
-  // Accepts both plain identifiers and double-quoted identifiers for the column.
-  // Anchored at the end so a composite predicate (e.g. `col IN (...) AND x > 0`)
-  // does not partial-match.
-  const inMatch = inner.match(/^(?:"((?:[^"]|"")*)"|(\w+))\s+IN\s*\((.+)\)\s*$/i);
-  if (inMatch) {
-    const column = inMatch[1] !== undefined ? inMatch[1].replace(/""/g, '"') : inMatch[2];
-    const listBody = inMatch[3];
-    if (!column || !listBody) return undefined;
-    const permittedValues = extractQuotedLiterals(listBody);
-    return permittedValues ? { column, permittedValues } : undefined;
-  }
-
-  return undefined;
-}
-
-/**
- * Extracts string literals from an `ARRAY[...]` body.
- * Handles `'value'::type` casts by stripping the cast part.
- * Postgres stores single quotes inside values as doubled single-quotes (`''`);
- * each extracted value is un-escaped so `O''Brien` becomes `O'Brien`.
- */
-function extractArrayLiterals(arrayBody: string): readonly string[] | undefined {
-  // Match 'value'::cast or 'value' (with possible spaces)
-  const pattern = /'((?:[^'\\]|\\.|'')*)'\s*(?:::[^\s,\]]+)?/g;
-  const values = [...arrayBody.matchAll(pattern)].map((m) => (m[1] ?? '').replace(/''/g, "'"));
-  return values.length > 0 ? values : undefined;
-}
-
-/**
- * Extracts string literals from an `IN (...)` list.
- * Handles single-quoted literals with possible escaped quotes.
- * Postgres stores single quotes inside values as doubled single-quotes (`''`);
- * each extracted value is un-escaped so `O''Brien` becomes `O'Brien`.
- */
-function extractQuotedLiterals(listBody: string): readonly string[] | undefined {
-  const pattern = /'((?:[^'\\]|\\.|'')*)'/g;
-  const values = [...listBody.matchAll(pattern)].map((m) => (m[1] ?? '').replace(/''/g, "'"));
-  return values.length > 0 ? values : undefined;
-}
-
 // ---------------------------------------------------------------------------
 // pgRenderDdlExecuteRequest — independent DDL walker for lowerToExecuteRequest
 // ---------------------------------------------------------------------------
@@ -1827,7 +1741,14 @@ async function pgRenderDdlColumnDefault(
   if (codecRef !== undefined) {
     const codec = codecLookup.get(codecRef.codecId);
     if (codec !== undefined) {
-      const wire = await codec.encode(def.value, {});
+      // A literal default reaches here either as the canonical JSON a
+      // contract stores or as the value an authoring surface built, and only
+      // the first needs reading back: `pg/int8@1` stores decimal text for a
+      // `bigint`, which `encode` does not take. A `Date` is the one authored
+      // value JSON has no notation for, so it is the one that arrives as
+      // itself.
+      const value = def.value instanceof Date ? def.value : codec.decodeJson(def.value);
+      const wire = await codec.encode(value, {});
       return `DEFAULT ${pgInlineLiteral(wire, nativeType)}`;
     }
   }

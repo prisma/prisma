@@ -296,7 +296,7 @@ describe('buildMigrationArtifacts', () => {
     await expect(buildMigrationArtifacts(makeMigration(ops), null)).rejects.toThrowError(
       expect.objectContaining({
         code: 'MIGRATION.INVALID_OPERATION_ENTRY',
-        details: expect.objectContaining({ index: 0 }),
+        meta: expect.objectContaining({ index: 0 }),
       }) as unknown as Error,
     );
   });
@@ -306,7 +306,7 @@ describe('buildMigrationArtifacts', () => {
     await expect(buildMigrationArtifacts(makeMigration(ops), null)).rejects.toThrowError(
       expect.objectContaining({
         code: 'MIGRATION.INVALID_OPERATION_ENTRY',
-        details: expect.objectContaining({ index: 0 }),
+        meta: expect.objectContaining({ index: 0 }),
       }) as unknown as Error,
     );
   });
@@ -316,7 +316,7 @@ describe('buildMigrationArtifacts', () => {
     await expect(buildMigrationArtifacts(makeMigration(ops), null)).rejects.toThrowError(
       expect.objectContaining({
         code: 'MIGRATION.INVALID_OPERATION_ENTRY',
-        details: expect.objectContaining({ index: 0 }),
+        meta: expect.objectContaining({ index: 0 }),
       }) as unknown as Error,
     );
   });
@@ -326,7 +326,7 @@ describe('buildMigrationArtifacts', () => {
     await expect(buildMigrationArtifacts(makeMigration(ops), null)).rejects.toThrowError(
       expect.objectContaining({
         code: 'MIGRATION.INVALID_OPERATION_ENTRY',
-        details: expect.objectContaining({ index: 0 }),
+        meta: expect.objectContaining({ index: 0 }),
       }) as unknown as Error,
     );
   });
@@ -340,7 +340,7 @@ describe('buildMigrationArtifacts', () => {
     await expect(buildMigrationArtifacts(makeMigration(ops), null)).rejects.toThrowError(
       expect.objectContaining({
         code: 'MIGRATION.INVALID_OPERATION_ENTRY',
-        details: expect.objectContaining({ index: 2 }),
+        meta: expect.objectContaining({ index: 2 }),
       }) as unknown as Error,
     );
   });

@@ -8,9 +8,8 @@ import contractJson from './contract.json' with { type: 'json' };
  * authoring surface (`sql`, `context`, `stack`, `contract`) is closure-cached.
  * The per-request runtime is acquired inside `fetch` via `db.connect({ url })`.
  */
-export const db = postgresServerless<Contract>({
-  contractJson,
-  middleware: [
+function createMiddleware() {
+  return [
     lints(),
     budgets({
       maxRows: 10_000,
@@ -18,5 +17,17 @@ export const db = postgresServerless<Contract>({
       tableRows: { user: 10_000, post: 10_000 },
       maxLatencyMs: 5_000,
     }),
-  ],
+  ];
+}
+
+export const db = postgresServerless<Contract>({
+  contractJson,
+  middleware: createMiddleware(),
+});
+
+// Transaction routes buffer DML so each statement settles before the callback commits or rolls back.
+export const transactionalDb = postgresServerless<Contract>({
+  contractJson,
+  cursor: { disabled: true },
+  middleware: createMiddleware(),
 });

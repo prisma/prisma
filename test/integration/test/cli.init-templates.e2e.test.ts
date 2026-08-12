@@ -57,11 +57,22 @@ async function emitContract(testDir: string, configPath: string): Promise<void> 
   const { executeContractEmit } = await import(
     '../../../packages/1-framework/3-tooling/cli/src/control-api/operations/contract-emit'
   );
+  const { loadConfigForSections } = await import('@internal/config-loader');
 
   const originalCwd = process.cwd();
   try {
     process.chdir(testDir);
-    await executeContractEmit({ configPath });
+    const loaded = await loadConfigForSections(configPath, [
+      'contract',
+      'family',
+      'target',
+      'adapter',
+      'extensions',
+    ]);
+    if (!loaded.ok) {
+      throw loaded.failure;
+    }
+    await executeContractEmit({ config: loaded.value, cwd: testDir, configPath });
   } finally {
     process.chdir(originalCwd);
   }

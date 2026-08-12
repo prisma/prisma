@@ -76,14 +76,14 @@
             "user": {
               "checks": [
                 {
-                  "column": "plans",
-                  "name": "user_plans_check",
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "Plan",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
+                  "expression": "\"plans\"::text[] <@ ARRAY['FREE', 'PAID', 'CUSTOM']::text[]",
+                  "name": "user_plans_check_86e31b31",
+                  "prefix": "user_plans_check"
+                },
+                {
+                  "expression": "array_position(\"plans\", NULL) IS NULL",
+                  "name": "user_plans_elem_not_null_6cb3f725",
+                  "prefix": "user_plans_elem_not_null"
                 }
               ],
               "columns": {
@@ -130,7 +130,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "d18bcd277b03d4baffad1194e45dcca908da431c2acf3f5cc18e4d89b4a553df"
+    "storageHash": "28369815a587ef18873c40e9269de8b47a1f0d86f1c34db4748d24cd98cdb9cb"
   },
   "execution": {
     "executionHash": "b3a0c7629738fce7d43a03a126ffc34990efca75f034d52cdd67a1adfada5ca4",

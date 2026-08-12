@@ -19,7 +19,7 @@
     "lint:fix": "biome check --write ."
   },
   "dependencies": {
-    "@prisma/orm-postgres": "workspace:0.17.0",
+    "@prisma/orm-postgres": "workspace:8.0.0-rc.1",
     "@react-router/node": "^8.1.0",
     "@react-router/serve": "^8.1.0",
     "dotenv": "^17.4.2",
@@ -32,17 +32,17 @@
   "devDependencies": {
     "@prisma/dev": "catalog:",
     "@react-router/dev": "^8.1.0",
-    "@repo/test-utils": "workspace:0.17.0",
-    "@repo/tsconfig": "workspace:0.17.0",
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "pathe": "^2.0.3",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "catalog:"
   },
-  "version": "0.17.0"
+  "version": "8.0.0-rc.1"
 }

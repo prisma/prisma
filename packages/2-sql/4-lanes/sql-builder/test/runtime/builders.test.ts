@@ -16,6 +16,29 @@ import { sql } from '../../src/runtime/sql';
 import { contract as contractJson } from '../fixtures/contract';
 import type { Contract } from '../fixtures/generated/contract';
 
+/** The one aggregate these plan-shape cases invoke; every other pair stays undeclared and is rejected. */
+const emptyAggregateRegistry = {
+  resolve: (operation: string) =>
+    operation === 'count'
+      ? {
+          operation,
+          output: { codecId: 'pg/int8@1' },
+          nullable: false as const,
+          emptyResultJson: '0',
+          lower: undefined,
+        }
+      : undefined,
+  values: function* () {
+    yield {
+      operation: 'count',
+      input: { kind: 'any' as const },
+      output: { kind: 'codec' as const, codecId: 'pg/int8@1' },
+      nullable: false as const,
+      emptyResultJson: '0',
+    };
+  },
+};
+
 // ---------------------------------------------------------------------------
 // Fixture: real contract with users + posts
 // ---------------------------------------------------------------------------
@@ -26,6 +49,7 @@ const stubBase = {
   operations: {},
   codecs: {},
   queryOperations: { entries: () => ({}) },
+  aggregateDescriptors: emptyAggregateRegistry,
   types: {},
   applyMutationDefaults: () => [],
 };

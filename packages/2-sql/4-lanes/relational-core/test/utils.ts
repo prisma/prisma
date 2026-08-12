@@ -45,6 +45,10 @@ export function createTestContext<TContract extends Contract<SqlStorage>>(
       values: function* () {},
       byTargetType: () => Object.freeze([]),
     },
+    aggregateDescriptors: {
+      resolve: () => undefined,
+      values: function* () {},
+    },
     queryOperations: createSqlOperationRegistry(),
     types: {},
     applyMutationDefaults: () => [],

@@ -16,6 +16,22 @@ export type AggregateOpFn = 'sum' | 'avg' | 'min' | 'max';
 export type AggregateFn = AggregateCountFn | AggregateOpFn;
 
 /**
+ * The closed SQL aggregate alphabet: every function name an {@link AggregateExpr} can carry, and so the set renderers are exhaustive over. Aggregate operation names are an open namespace; an operation outside the alphabet reaches SQL only through a descriptor's lowering hook, which builds its expression from existing nodes.
+ */
+export const aggregateFnNames: ReadonlySet<string> = new Set<AggregateFn>([
+  'count',
+  'sum',
+  'avg',
+  'min',
+  'max',
+]);
+
+/** Whether `name` is in the closed SQL aggregate alphabet, and so lowers to a plain {@link AggregateExpr} without a descriptor-supplied hook. */
+export function isAggregateFn(name: string): name is AggregateFn {
+  return aggregateFnNames.has(name);
+}
+
+/**
  * Window function names. Currently only `row_number` is wired up — added
  * to support `ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...) = 1`
  * lowering for `.distinct(cols)` semantics in the SQL ORM client. `rank`
@@ -429,9 +445,13 @@ export class FunctionSource extends FromSource {
   ) {
     super();
     if (alias?.columnAliases?.length === 0) {
-      throw structuredError('SQL.AST_INVALID', 'FunctionSource column aliases must not be empty', {
-        meta: { kind: 'function-source', field: 'columnAliases' },
-      });
+      throw structuredError(
+        'RUNTIME.AST_INVALID',
+        'FunctionSource column aliases must not be empty',
+        {
+          meta: { kind: 'function-source', field: 'columnAliases' },
+        },
+      );
     }
     this.fn = fn;
     this.args = frozenArrayCopy(args);
@@ -969,7 +989,7 @@ export class CaseExpr extends Expression {
   constructor(branches: ReadonlyArray<CaseBranch>, elseExpr?: AnyExpression) {
     super();
     if (branches.length === 0) {
-      throw structuredError('SQL.AST_INVALID', 'CaseExpr requires at least one branch', {
+      throw structuredError('RUNTIME.AST_INVALID', 'CaseExpr requires at least one branch', {
         meta: { kind: 'case', field: 'branches' },
       });
     }

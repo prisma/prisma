@@ -1,9 +1,12 @@
-import { MigrationToolsError } from '@internal/migration-tools/errors';
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { Command } from 'commander';
+import {
+  type RefAdvancementFields,
+  resolveRefAdvancementFields,
+} from '../control-api/operations/ref-advancement';
 import type { DbInitFailure } from '../control-api/types';
 import {
   CliStructuredError,
@@ -12,10 +15,10 @@ import {
   errorRunnerFailed,
   errorRuntime,
   errorUnexpected,
-  mapMigrationToolsError,
 } from '../utils/cli-errors';
 import type { MigrationCommandOptions } from '../utils/command-helpers';
 import {
+  closeQuietly,
   resolveMigrationPaths,
   sanitizeErrorMessage,
   setCommandDescriptions,
@@ -32,12 +35,6 @@ import {
   addMigrationCommandOptions,
   prepareMigrationContext,
 } from '../utils/migration-command-scaffold';
-import {
-  buildRefAdvancementFields,
-  computeRefAdvancementName,
-  type RefAdvancementFields,
-  readContractIR,
-} from '../utils/ref-advancement';
 import { handleResult } from '../utils/result-handler';
 import { createTerminalUI, type TerminalUI } from '../utils/terminal-ui';
 
@@ -75,12 +72,12 @@ function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
     }
 
     return errorRuntime(
+      'MIGRATION.MARKER_ORIGIN_MISMATCH',
       `Existing database signature does not match plan destination.${mismatchParts.length > 0 ? ` Mismatch in ${mismatchParts.join(' and ')}.` : ''}`,
       {
         why: 'Database has an existing signature (marker) that does not match the target contract',
         fix: 'If bootstrapping, drop/reset the database then re-run `prisma-next db init`; otherwise reconcile schema/marker using your migration workflow',
         meta: {
-          code: 'MIGRATION.MARKER_ORIGIN_MISMATCH',
           ...ifDefined('markerStorageHash', failure.marker?.storageHash),
           ...ifDefined('destinationStorageHash', failure.destination?.storageHash),
           ...ifDefined('markerProfileHash', failure.marker?.profileHash),
@@ -102,9 +99,8 @@ function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
     return errorRunnerFailed(failure.summary, {
       why: failure.why ?? 'Migration runner failed',
       fix,
-      ...(failure.meta
-        ? { meta: { code: 'RUNNER_FAILED', ...failure.meta } }
-        : { meta: { code: 'RUNNER_FAILED' } }),
+      ...ifDefined('meta', failure.meta),
+      ...ifDefined('cause', failure.cause),
     });
   }
 
@@ -139,7 +135,7 @@ async function executeDbInitCommand(
   // per-space precheck + marker-check helpers are no longer needed at
   // this surface. Marker-vs-on-disk drift surfaces through the planner's
   // graph-walk strategy.
-  const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config);
+  const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config, process.cwd());
 
   try {
     await client.connect(dbConnection);
@@ -161,34 +157,20 @@ async function executeDbInitCommand(
         ? (result.value.marker?.storageHash ?? result.value.destination.storageHash)
         : result.value.destination.storageHash;
 
-    let refAdvancementFields: RefAdvancementFields = {
-      advancedRef: null,
-      plannedAdvanceRef: null,
-    };
-    if (
-      computeRefAdvancementName({
-        ...ifDefined('advanceRef', options.advanceRef),
-        ...ifDefined('db', options.db),
-      }) !== null
-    ) {
-      try {
-        const contractIR = await readContractIR(contractJson, contractPathAbsolute);
-        refAdvancementFields = await buildRefAdvancementFields({
-          ...ifDefined('advanceRef', options.advanceRef),
-          ...ifDefined('db', options.db),
-          refsDir,
-          migrationsDir,
-          contractIR,
-          mode: result.value.mode,
-          hash: advancementHash,
-        });
-      } catch (error) {
-        if (MigrationToolsError.is(error)) {
-          return notOk(mapMigrationToolsError(error));
-        }
-        throw error;
-      }
+    const advancement = await resolveRefAdvancementFields({
+      ...ifDefined('advanceRef', options.advanceRef),
+      ...ifDefined('db', options.db),
+      refsDir,
+      migrationsDir,
+      contractJson,
+      contractJsonPath: contractPathAbsolute,
+      mode: result.value.mode,
+      hash: advancementHash,
+    });
+    if (!advancement.ok) {
+      return notOk(advancement.failure);
     }
+    const refAdvancementFields: RefAdvancementFields = advancement.value;
 
     // Convert success result to CLI output format
     const dbInitResult: MigrationCommandResult = {
@@ -256,7 +238,7 @@ async function executeDbInitCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

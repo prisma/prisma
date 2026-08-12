@@ -8,11 +8,13 @@ import { afterEach, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  comparePrecedence,
   coverageTransitionChain,
   inFlightTransitionLabel,
   parseChangesFrontmatter,
   parseTransitionFromPath,
   parseVersion,
+  transitionLabel,
 } from './check-upgrade-coverage.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -62,22 +64,63 @@ afterEach(() => {
 describe('parseTransitionFromPath', () => {
   it('extracts the transition segment for the user skill', () => {
     assert.equal(
-      parseTransitionFromPath('skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/foo.ts'),
+      parseTransitionFromPath('skills/prisma-next-upgrade/upgrades/0.7-to-0.8/foo.ts'),
       '0.7-to-0.8',
     );
   });
   it('extracts the transition segment for the extension skill', () => {
     assert.equal(
       parseTransitionFromPath(
-        'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
+        'skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
       ),
       '0.7-to-0.8',
     );
   });
   it('returns null for paths outside an upgrades/<transition>/ subdirectory', () => {
-    assert.equal(parseTransitionFromPath('skills/upgrade/prisma-next-upgrade/SKILL.md'), null);
-    assert.equal(parseTransitionFromPath('skills/upgrade/prisma-next-upgrade/upgrades/'), null);
+    assert.equal(parseTransitionFromPath('skills/prisma-next-upgrade/SKILL.md'), null);
+    assert.equal(parseTransitionFromPath('skills/prisma-next-upgrade/upgrades/'), null);
     assert.equal(parseTransitionFromPath('examples/foo/bar.ts'), null);
+  });
+});
+
+describe('parseVersion', () => {
+  it('reports the release-candidate counter for an rc.N pre-release', () => {
+    assert.deepEqual(parseVersion('8.0.0-rc.3'), { major: 8, minor: 0, patch: 0, rc: 3 });
+  });
+  it('reports rc: null for a stable version', () => {
+    assert.deepEqual(parseVersion('0.17.0'), { major: 0, minor: 17, patch: 0, rc: null });
+  });
+  it('reports rc: null for a non-rc pre-release such as -dev.N', () => {
+    assert.deepEqual(parseVersion('8.0.0-dev.7'), { major: 8, minor: 0, patch: 0, rc: null });
+    assert.deepEqual(parseVersion('8.0.0-beta.1'), { major: 8, minor: 0, patch: 0, rc: null });
+  });
+});
+
+describe('transitionLabel', () => {
+  it('keys two stable versions on major.minor (unchanged from the historical labels)', () => {
+    assert.equal(transitionLabel(parseVersion('0.7.0'), parseVersion('0.8.0')), '0.7-to-0.8');
+    assert.equal(transitionLabel(parseVersion('0.16.0'), parseVersion('0.17.0')), '0.16-to-0.17');
+    assert.equal(transitionLabel(parseVersion('0.7.3'), parseVersion('0.8.1')), '0.7-to-0.8');
+  });
+  it('keys a release candidate on its full version so RCs of one minor stay distinct', () => {
+    assert.equal(
+      transitionLabel(parseVersion('0.17.0'), parseVersion('8.0.0-rc.1')),
+      '0.17-to-8.0.0-rc.1',
+    );
+    assert.equal(
+      transitionLabel(parseVersion('8.0.0-rc.1'), parseVersion('8.0.0-rc.2')),
+      '8.0.0-rc.1-to-8.0.0-rc.2',
+    );
+    assert.equal(
+      transitionLabel(parseVersion('8.0.0-rc.1'), parseVersion('8.0.0-rc.7')),
+      '8.0.0-rc.1-to-8.0.0-rc.7',
+    );
+  });
+  it('keys the last release candidate to the stable release as rc.N → major.minor', () => {
+    assert.equal(
+      transitionLabel(parseVersion('8.0.0-rc.7'), parseVersion('8.0.0')),
+      '8.0.0-rc.7-to-8.0',
+    );
   });
 });
 
@@ -86,6 +129,13 @@ describe('inFlightTransitionLabel', () => {
     assert.equal(inFlightTransitionLabel(parseVersion('0.7.0')), '0.7-to-0.8');
     assert.equal(inFlightTransitionLabel(parseVersion('0.7.1')), '0.7-to-0.8');
     assert.equal(inFlightTransitionLabel(parseVersion('1.0.0')), '1.0-to-1.1');
+  });
+  it('returns rc.N → rc.N + 1 while head is on a release-candidate line', () => {
+    assert.equal(inFlightTransitionLabel(parseVersion('8.0.0-rc.1')), '8.0.0-rc.1-to-8.0.0-rc.2');
+    assert.equal(inFlightTransitionLabel(parseVersion('8.0.0-rc.9')), '8.0.0-rc.9-to-8.0.0-rc.10');
+  });
+  it('ignores a non-rc pre-release suffix and returns the next minor', () => {
+    assert.equal(inFlightTransitionLabel(parseVersion('8.0.0-dev.7')), '8.0-to-8.1');
   });
 });
 
@@ -122,6 +172,35 @@ describe('coverageTransitionChain', () => {
       '0.99-to-1.0',
     ]);
   });
+  it('reversed RC range (head.rc < prev.rc): throws rather than naming a backwards transition', () => {
+    assert.throws(
+      () => coverageTransitionChain(parseVersion('8.0.0-rc.2'), parseVersion('8.0.0-rc.4')),
+      (err) =>
+        err instanceof Error &&
+        /8\.0\.0-rc\.2/.test(err.message) &&
+        /8\.0\.0-rc\.4/.test(err.message) &&
+        /reversed|behind|chronological/i.test(err.message),
+    );
+  });
+  it('a later base version with a reset RC counter is forward, not reversed', () => {
+    assert.deepEqual(
+      coverageTransitionChain(parseVersion('8.0.1-rc.1'), parseVersion('8.0.0-rc.9')),
+      ['8.0.0-rc.9-to-8.0.1-rc.1'],
+    );
+  });
+  it('an earlier base version with a higher RC counter is reversed', () => {
+    assert.throws(
+      () => coverageTransitionChain(parseVersion('8.0.0-rc.9'), parseVersion('8.0.1-rc.1')),
+      /reversed|behind|chronological/i,
+    );
+  });
+  it('an RC precedes its own release, and the release does not precede the RC', () => {
+    assert.equal(comparePrecedence(parseVersion('8.0.0-rc.9'), parseVersion('8.0.0')) < 0, true);
+    assert.throws(
+      () => coverageTransitionChain(parseVersion('8.0.0-rc.9'), parseVersion('8.0.0')),
+      /reversed|behind|chronological/i,
+    );
+  });
   it('reversed same-major range (head.minor < prev.minor): throws naming both versions instead of silently returning an empty chain', () => {
     assert.throws(
       () => coverageTransitionChain(parseVersion('0.7.0'), parseVersion('0.9.0')),
@@ -130,6 +209,44 @@ describe('coverageTransitionChain', () => {
         /0\.7/.test(err.message) &&
         /0\.9/.test(err.message) &&
         /reversed|behind|chronological/i.test(err.message),
+    );
+  });
+});
+
+describe('coverageTransitionChain — release-candidate line', () => {
+  it('entering the RC line from the last stable minor: single step naming the RC', () => {
+    assert.deepEqual(coverageTransitionChain(parseVersion('8.0.0-rc.1'), parseVersion('0.17.0')), [
+      '0.17-to-8.0.0-rc.1',
+    ]);
+  });
+  it('consecutive RC publish: single step, one release is one step', () => {
+    assert.deepEqual(
+      coverageTransitionChain(parseVersion('8.0.0-rc.2'), parseVersion('8.0.0-rc.1')),
+      ['8.0.0-rc.1-to-8.0.0-rc.2'],
+    );
+  });
+  it('RC counters are never chained arithmetically, however far apart they are', () => {
+    assert.deepEqual(
+      coverageTransitionChain(parseVersion('8.0.0-rc.7'), parseVersion('8.0.0-rc.1')),
+      ['8.0.0-rc.1-to-8.0.0-rc.7'],
+    );
+  });
+  it('leaving the RC line for the stable release: single step from the last RC', () => {
+    assert.deepEqual(coverageTransitionChain(parseVersion('8.0.0'), parseVersion('8.0.0-rc.7')), [
+      '8.0.0-rc.7-to-8.0',
+    ]);
+  });
+  it('PR-mode steady state on the RC line (prev === head): names the next RC directory', () => {
+    assert.deepEqual(
+      coverageTransitionChain(parseVersion('8.0.0-rc.1'), parseVersion('8.0.0-rc.1')),
+      ['8.0.0-rc.1-to-8.0.0-rc.2'],
+    );
+  });
+  it('the in-flight directory on rc.N is the directory the rc.N → rc.N+1 release requires', () => {
+    const inFlight = inFlightTransitionLabel(parseVersion('8.0.0-rc.4'));
+    assert.deepEqual(
+      coverageTransitionChain(parseVersion('8.0.0-rc.5'), parseVersion('8.0.0-rc.4')),
+      [inFlight],
     );
   });
 });
@@ -146,7 +263,7 @@ describe('check-upgrade-coverage — coverage rule (publish style: prev.minor < 
     const result = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /coverage/);
-    assert.match(result.stderr, /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.6-to-0\.7/);
+    assert.match(result.stderr, /skills\/prisma-next-upgrade\/upgrades\/0\.6-to-0\.7/);
     assert.match(result.stderr, /examples\/demo\/src\/main\.ts/);
   });
 
@@ -160,10 +277,7 @@ describe('check-upgrade-coverage — coverage rule (publish style: prev.minor < 
     commitAll('head');
     const result = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.notEqual(result.status, 0);
-    assert.match(
-      result.stderr,
-      /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades\/0\.6-to-0\.7/,
-    );
+    assert.match(result.stderr, /skills\/prisma-8-extension-upgrade\/upgrades\/0\.6-to-0\.7/);
   });
 
   it('requires both directories when both substrates change; passes once both are present', () => {
@@ -180,35 +294,23 @@ describe('check-upgrade-coverage — coverage rule (publish style: prev.minor < 
     // Neither directory present → both missing.
     const missingBoth = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.notEqual(missingBoth.status, 0);
-    assert.match(
-      missingBoth.stderr,
-      /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.6-to-0\.7/,
-    );
-    assert.match(
-      missingBoth.stderr,
-      /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades\/0\.6-to-0\.7/,
-    );
+    assert.match(missingBoth.stderr, /skills\/prisma-next-upgrade\/upgrades\/0\.6-to-0\.7/);
+    assert.match(missingBoth.stderr, /skills\/prisma-8-extension-upgrade\/upgrades\/0\.6-to-0\.7/);
 
     // Add only the user-skill directory; extension-skill still missing.
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n',
     );
     commitAll('add user-skill dir');
     const missingExt = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.notEqual(missingExt.status, 0);
-    assert.match(
-      missingExt.stderr,
-      /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades\/0\.6-to-0\.7/,
-    );
-    assert.doesNotMatch(
-      missingExt.stderr,
-      /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.6-to-0\.7/,
-    );
+    assert.match(missingExt.stderr, /skills\/prisma-8-extension-upgrade\/upgrades\/0\.6-to-0\.7/);
+    assert.doesNotMatch(missingExt.stderr, /skills\/prisma-next-upgrade\/upgrades\/0\.6-to-0\.7/);
 
     // Add the extension-skill directory; both present → pass.
     writeRepoFile(
-      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/prisma-8-extension-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n',
     );
     commitAll('add ext-skill dir');
@@ -226,7 +328,7 @@ describe('check-upgrade-coverage — coverage rule (publish style: prev.minor < 
     commitAll('head');
     const result = runScript(['--mode', 'publish', '--head', 'HEAD']);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.6-to-0\.7/);
+    assert.match(result.stderr, /skills\/prisma-next-upgrade\/upgrades\/0\.6-to-0\.7/);
   });
 
   it('publish mode: default --prev skips pre-release tags and picks the last stable v[0-9]* tag', () => {
@@ -245,11 +347,11 @@ describe('check-upgrade-coverage — coverage rule (publish style: prev.minor < 
     // both authored mid-cycle.
     writeRepoFile('examples/demo/src/main.ts', 'b\n');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/prisma-8-extension-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n',
     );
     commitAll('feature with upgrade entry');
@@ -279,7 +381,7 @@ describe('check-upgrade-coverage — coverage rule (PR style: prev.minor === hea
     commitAll('head');
     const result = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.7-to-0\.8/);
+    assert.match(result.stderr, /skills\/prisma-next-upgrade\/upgrades\/0\.7-to-0\.8/);
     assert.doesNotMatch(result.stderr, /upgrades\/0\.6-to-0\.7/);
   });
 
@@ -289,7 +391,7 @@ describe('check-upgrade-coverage — coverage rule (PR style: prev.minor === hea
     const prev = git('rev-parse', 'HEAD');
     writeRepoFile('examples/demo/src/main.ts', 'export const a = 2;\n');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     commitAll('head');
@@ -351,14 +453,14 @@ describe('check-upgrade-coverage — new-entries rule', () => {
     // (allowed transitions are 0.7-to-0.8 and 0.8-to-0.9).
     writePackageJson('0.7.0');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n',
     );
     commitAll('prev');
     const prev = git('rev-parse', 'HEAD');
     writePackageJson('0.8.0');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.6-to-0.7/new-script.ts',
+      'skills/prisma-next-upgrade/upgrades/0.6-to-0.7/new-script.ts',
       'export const x = 1;\n',
     );
     commitAll('head');
@@ -369,8 +471,8 @@ describe('check-upgrade-coverage — new-entries rule', () => {
     // Either of the allowed transitions should be mentioned.
     assert.match(result.stderr, /0\.7-to-0\.8|0\.8-to-0\.9/);
     // The "move the new file under" diagnostic should name both cluster paths.
-    assert.match(result.stderr, /skills\/upgrade\/prisma-next-upgrade\/upgrades/);
-    assert.match(result.stderr, /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades/);
+    assert.match(result.stderr, /skills\/prisma-next-upgrade\/upgrades/);
+    assert.match(result.stderr, /skills\/prisma-8-extension-upgrade\/upgrades/);
   });
 
   it('publish mode: accepts an added file under either prev→head or head→head+1', () => {
@@ -381,11 +483,11 @@ describe('check-upgrade-coverage — new-entries rule', () => {
     const prev = git('rev-parse', 'HEAD');
     writePackageJson('0.8.0');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.8-to-0.9/instructions.md',
+      'skills/prisma-8-extension-upgrade/upgrades/0.8-to-0.9/instructions.md',
       '---\nfrom: "0.8"\nto: "0.9"\nchanges: []\n---\n',
     );
     commitAll('head');
@@ -402,7 +504,7 @@ describe('check-upgrade-coverage — new-entries rule', () => {
     const prev = git('rev-parse', 'HEAD');
     writePackageJson('0.7.0');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     commitAll('head');
@@ -418,7 +520,7 @@ describe('check-upgrade-coverage — new-entries rule', () => {
     const prev = git('rev-parse', 'HEAD');
     writePackageJson('0.7.0');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n',
     );
     commitAll('head');
@@ -427,13 +529,13 @@ describe('check-upgrade-coverage — new-entries rule', () => {
     assert.match(result.stderr, /new-entries-stale-transition/);
     assert.match(result.stderr, /0\.7-to-0\.8/);
     // The "move the new file under" diagnostic should name both cluster paths.
-    assert.match(result.stderr, /skills\/upgrade\/prisma-next-upgrade\/upgrades/);
-    assert.match(result.stderr, /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades/);
+    assert.match(result.stderr, /skills\/prisma-next-upgrade\/upgrades/);
+    assert.match(result.stderr, /skills\/prisma-8-extension-upgrade\/upgrades/);
   });
 
   it('treats a git mv from outside the upgrades tree into a valid transition directory as a move, not an addition', () => {
     // Mirrors the real-world tml-2535 case: the upgrade instructions were
-    // moved from packages/0-shared/upgrade-skill/ to skills/upgrade/…
+    // moved from packages/0-shared/upgrade-skill/ to skills/…
     // The gate must not flag the destination path as a "new entry in a stale
     // transition directory" just because the source path is outside the
     // watched pathspec.
@@ -448,11 +550,11 @@ describe('check-upgrade-coverage — new-entries rule', () => {
     // Simulate `git mv` by writing the file at the new path (same content)
     // and removing the old path. Git's rename detection (-M) infers the move.
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n',
     );
     git('rm', 'packages/0-shared/upgrade-skill/upgrades/0.6-to-0.7/instructions.md');
-    git('add', 'skills/upgrade/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md');
+    git('add', 'skills/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md');
     git('commit', '-m', 'move upgrade instructions to new cluster');
 
     const result = runScript(['--prev', prev, '--head', 'HEAD']);
@@ -463,7 +565,7 @@ describe('check-upgrade-coverage — new-entries rule', () => {
   it('accepts a modification to an existing file in a stale transition directory', () => {
     writePackageJson('0.7.0');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n# v1\n',
     );
     commitAll('prev');
@@ -471,7 +573,7 @@ describe('check-upgrade-coverage — new-entries rule', () => {
     writePackageJson('0.8.0');
     // Same path — modification, not add.
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n# v2 — bug fix\n',
     );
     commitAll('head');
@@ -496,34 +598,25 @@ describe('check-upgrade-coverage — skip-publish chain (head.minor > prev.minor
 
     const missingBoth = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.notEqual(missingBoth.status, 0);
-    assert.match(
-      missingBoth.stderr,
-      /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.7-to-0\.8/,
-    );
-    assert.match(
-      missingBoth.stderr,
-      /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.8-to-0\.9/,
-    );
+    assert.match(missingBoth.stderr, /skills\/prisma-next-upgrade\/upgrades\/0\.7-to-0\.8/);
+    assert.match(missingBoth.stderr, /skills\/prisma-next-upgrade\/upgrades\/0\.8-to-0\.9/);
     assert.doesNotMatch(missingBoth.stderr, /upgrades\/0\.7-to-0\.9/);
 
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     commitAll('add 0.7-to-0.8');
     const missingSecond = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.notEqual(missingSecond.status, 0);
-    assert.match(
-      missingSecond.stderr,
-      /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.8-to-0\.9/,
-    );
+    assert.match(missingSecond.stderr, /skills\/prisma-next-upgrade\/upgrades\/0\.8-to-0\.9/);
     assert.doesNotMatch(
       missingSecond.stderr,
-      /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.7-to-0\.8[^/]*$/m,
+      /skills\/prisma-next-upgrade\/upgrades\/0\.7-to-0\.8[^/]*$/m,
     );
 
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.8-to-0.9/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.8-to-0.9/instructions.md',
       '---\nfrom: "0.8"\nto: "0.9"\nchanges: []\n---\n',
     );
     commitAll('add 0.8-to-0.9');
@@ -537,23 +630,23 @@ describe('check-upgrade-coverage — skip-publish chain (head.minor > prev.minor
     const prev = git('rev-parse', 'HEAD');
     writePackageJson('0.9.0');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.8-to-0.9/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.8-to-0.9/instructions.md',
       '---\nfrom: "0.8"\nto: "0.9"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.8-to-0.9/instructions.md',
+      'skills/prisma-8-extension-upgrade/upgrades/0.8-to-0.9/instructions.md',
       '---\nfrom: "0.8"\nto: "0.9"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.9-to-0.10/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.9-to-0.10/instructions.md',
       '---\nfrom: "0.9"\nto: "0.10"\nchanges: []\n---\n',
     );
     commitAll('head');
@@ -568,15 +661,15 @@ describe('check-upgrade-coverage — skip-publish chain (head.minor > prev.minor
     writePackageJson('0.9.0');
     // Coverage directories for the chain so coverage isn't the failure mode.
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.8-to-0.9/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.8-to-0.9/instructions.md',
       '---\nfrom: "0.8"\nto: "0.9"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.6-to-0.7/new-script.ts',
+      'skills/prisma-next-upgrade/upgrades/0.6-to-0.7/new-script.ts',
       'export const x = 1;\n',
     );
     commitAll('head');
@@ -605,9 +698,57 @@ describe('check-upgrade-coverage — skip-publish chain (head.minor > prev.minor
       .filter((v) => v.rule === 'coverage' && v.substrate === 'examples/')
       .map((v) => v.requiredDir);
     assert.deepEqual(coverageDirs.sort(), [
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8',
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.8-to-0.9',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8',
+      'skills/prisma-next-upgrade/upgrades/0.8-to-0.9',
     ]);
+  });
+});
+
+describe('check-upgrade-coverage — release-candidate release PR', () => {
+  it('an rc.1 → rc.2 release is covered by the directory the rc.1 branch treated as in-flight', () => {
+    // The bump rewrites every package.json under examples/, so the
+    // coverage rule fires on every RC release. It must ask for the
+    // rc.1 → rc.2 directory — the one authored while main was on rc.1 —
+    // and not for a directory named after a minor bump that never happens
+    // on the RC line.
+    writePackageJson('8.0.0-rc.1');
+    writeRepoFile('examples/demo/package.json', '{"version":"8.0.0-rc.1"}\n');
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+
+    writePackageJson('8.0.0-rc.2');
+    writeRepoFile('examples/demo/package.json', '{"version":"8.0.0-rc.2"}\n');
+    commitAll('bump to 8.0.0-rc.2');
+
+    const missing = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(missing.status, 0);
+    assert.match(
+      missing.stderr,
+      /skills\/prisma-next-upgrade\/upgrades\/8\.0\.0-rc\.1-to-8\.0\.0-rc\.2/,
+    );
+    assert.doesNotMatch(missing.stderr, /upgrades\/8\.0-to-8\.1/);
+
+    writeRepoFile(
+      'skills/prisma-next-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/instructions.md',
+      '---\nfrom: "8.0.0-rc.1"\nto: "8.0.0-rc.2"\nchanges: []\n---\n',
+    );
+    commitAll('record the rc.1 → rc.2 entry');
+    const covered = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(covered.status, 0, `expected exit 0; stderr=${covered.stderr}`);
+  });
+
+  it('a PR on the rc.1 line records into the rc.1 → rc.2 directory', () => {
+    writePackageJson('8.0.0-rc.1');
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/src/main.ts', 'export const a = 2;\n');
+    writeRepoFile(
+      'skills/prisma-next-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/instructions.md',
+      '---\nfrom: "8.0.0-rc.1"\nto: "8.0.0-rc.2"\nchanges: []\n---\n',
+    );
+    commitAll('head');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
   });
 });
 
@@ -699,7 +840,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
   it('substrate touched + in-flight instructions.md NOT in diff → violation', () => {
     writePackageJson('0.7.0');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     commitAll('prev — directory already exists');
@@ -711,7 +852,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
     assert.match(result.stderr, /per-pr-declaration/);
     assert.match(
       result.stderr,
-      /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.7-to-0\.8\/instructions\.md/,
+      /skills\/prisma-next-upgrade\/upgrades\/0\.7-to-0\.8\/instructions\.md/,
     );
   });
 
@@ -721,7 +862,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
     const prev = git('rev-parse', 'HEAD');
     writeRepoFile('examples/demo/src/main.ts', 'export const a = 2;\n');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges:\n  - id: my-change\n    summary: Some migration step.\n---\n',
     );
     commitAll('head');
@@ -735,7 +876,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
     const prev = git('rev-parse', 'HEAD');
     writeRepoFile('examples/demo/src/main.ts', 'export const a = 2;\n');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     commitAll('head');
@@ -759,11 +900,11 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
     // correspondence check then fires independently for each cluster.
     writePackageJson('0.7.0');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     commitAll('prev — both directories already exist');
@@ -773,7 +914,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
     writeRepoFile('examples/demo/src/main.ts', 'b\n');
     writeRepoFile('packages/3-extensions/pgvector/src/main.ts', 'b\n');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\nupdated\n',
     );
     commitAll('head — only user-skill instructions.md updated');
@@ -782,15 +923,15 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
     assert.match(missingExt.stderr, /per-pr-declaration/);
     assert.match(
       missingExt.stderr,
-      /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades\/0\.7-to-0\.8\/instructions\.md/,
+      /skills\/prisma-8-extension-upgrade\/upgrades\/0\.7-to-0\.8\/instructions\.md/,
     );
     assert.doesNotMatch(
       missingExt.stderr,
-      /skills\/upgrade\/prisma-next-upgrade\/upgrades\/0\.7-to-0\.8\/instructions\.md/,
+      /skills\/prisma-next-upgrade\/upgrades\/0\.7-to-0\.8\/instructions\.md/,
     );
 
     writeRepoFile(
-      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\nupdated\n',
     );
     commitAll('head — both instructions.md updated');
@@ -804,7 +945,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
     const prev = git('rev-parse', 'HEAD');
     writeRepoFile('examples/demo/src/main.ts', 'export const a = 2;\n');
     writeRepoFile(
-      'skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\n---\n',
     );
     commitAll('head — instructions.md missing changes key');

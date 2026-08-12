@@ -43,7 +43,7 @@ function makeSlot(initial?: unknown) {
       set: (v: unknown) => {
         value = v;
       },
-    } satisfies PreparedExecuteRequest['handle'],
+    } satisfies PreparedExecuteRequest['preparedStatementHandle'],
     snapshot: () => value,
   };
 }
@@ -89,8 +89,8 @@ describe('postgres prepared statements', () => {
 
       const { slot, snapshot } = makeSlot();
       const sql = 'select id from t where x = $1';
-      await consume(driver.executePrepared({ sql, params: [42], handle: slot }));
-      await consume(driver.executePrepared({ sql, params: [99], handle: slot }));
+      await consume(driver.query({ sql, params: [42], preparedStatementHandle: slot }));
+      await consume(driver.query({ sql, params: [99], preparedStatementHandle: slot }));
 
       expect(snapshot()).toBeUndefined();
       expect(calls).toHaveLength(2);
@@ -111,9 +111,135 @@ describe('postgres prepared statements', () => {
 
       const { slot } = makeSlot();
       await expect(
-        consume(driver.executePrepared({ sql: 'select 1', params: [], handle: slot })),
+        consume(driver.query({ sql: 'select 1', params: [], preparedStatementHandle: slot })),
       ).rejects.toBeInstanceOf(SqlQueryError);
       expect(invocations).toBe(1);
+    });
+  });
+
+  it('maps pg rowCount to affectedRows', async () => {
+    const { client, calls } = makeMockClient({
+      handler: () => ({ rows: [], rowCount: 3 }),
+    });
+    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    cleanups.push(() => driver.close());
+
+    await expect(driver.execute({ sql: 'update t set x = $1', params: [42] })).resolves.toEqual({
+      affectedRows: 3,
+    });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.arg).toEqual({
+      text: 'update t set x = $1',
+      values: [42],
+    });
+  });
+
+  it('returns no rows when a prepared query has an empty result', async () => {
+    const { client, calls } = makeMockClient();
+    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    cleanups.push(() => driver.close());
+
+    const { slot, snapshot } = makeSlot();
+    await expect(
+      consume(driver.query({ sql: 'select id from t', params: [], preparedStatementHandle: slot })),
+    ).resolves.toEqual([]);
+
+    expect(snapshot()).toBe('pn_1');
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.arg).toEqual({ name: 'pn_1', text: 'select id from t', values: [] });
+  });
+
+  it('uses and reuses a prepared name for execute requests with a handle', async () => {
+    const { client, calls } = makeMockClient({
+      handler: () => ({ rows: [], rowCount: 1 }),
+    });
+    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    cleanups.push(() => driver.close());
+
+    const { slot, snapshot } = makeSlot();
+    const sql = 'update t set x = $1';
+    await driver.execute({ sql, params: [42], preparedStatementHandle: slot });
+    await driver.execute({ sql, params: [99], preparedStatementHandle: slot });
+
+    expect(snapshot()).toBe('pn_1');
+    expect(calls).toHaveLength(2);
+    expect(calls[0]?.arg).toEqual({ name: 'pn_1', text: sql, values: [42] });
+    expect(calls[1]?.arg).toEqual({ name: 'pn_1', text: sql, values: [99] });
+  });
+
+  describe('stale-handle retry', () => {
+    it('retries execute with a fresh name and surfaces DRIVER.PREPARE_FAILED if retry fails', async () => {
+      const retryError = makePgError('26000', 'statement gone after re-prepare');
+      const { client, calls } = makeMockClient({
+        handler: (_call, callIndex) =>
+          callIndex === 0 ? makePgError('26000', 'statement gone') : retryError,
+      });
+      const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+      cleanups.push(() => driver.close());
+
+      const { slot, snapshot } = makeSlot();
+      const rejection = await driver
+        .execute({ sql: 'update t set x = $1', params: [42], preparedStatementHandle: slot })
+        .then(
+          () => undefined,
+          (error: unknown) => error,
+        );
+
+      expect(calls).toHaveLength(2);
+      expect(calls[0]?.arg).toMatchObject({ name: 'pn_1' });
+      expect(calls[1]?.arg).toMatchObject({ name: 'pn_2' });
+      expect(snapshot()).toBe('pn_2');
+
+      const envelope = rejection as Error & {
+        code?: unknown;
+        category?: unknown;
+        severity?: unknown;
+        details?: Record<string, unknown>;
+      };
+      expect(envelope.code).toBe('DRIVER.PREPARE_FAILED');
+      expect(envelope.category).toBe('DRIVER');
+      expect(envelope.severity).toBe('error');
+      expect(envelope.details).toEqual({ handle: 'pn_2' });
+
+      const cause = envelope.cause as SqlQueryError;
+      expect(cause).toBeInstanceOf(SqlQueryError);
+      expect(cause.sqlState).toBe('26000');
+      expect(cause.cause).toBe(retryError);
+    });
+
+    it('surfaces DRIVER.PREPARE_FAILED with the originating error as cause when the retry fails', async () => {
+      const retryError = makePgError('26000', 'statement gone after re-prepare');
+      const { client, calls } = makeMockClient({
+        handler: (_call, callIndex) =>
+          callIndex === 0 ? makePgError('26000', 'statement gone') : retryError,
+      });
+      const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+      cleanups.push(() => driver.close());
+
+      const { slot, snapshot } = makeSlot();
+      const rejection = await consume(
+        driver.query({ sql: 'select 1', params: [], preparedStatementHandle: slot }),
+      ).then(
+        () => undefined,
+        (error: unknown) => error,
+      );
+
+      expect(calls).toHaveLength(2);
+      const envelope = rejection as Error & {
+        code?: unknown;
+        category?: unknown;
+        severity?: unknown;
+        details?: Record<string, unknown>;
+      };
+      expect(envelope.code).toBe('DRIVER.PREPARE_FAILED');
+      expect(envelope.category).toBe('DRIVER');
+      expect(envelope.severity).toBe('error');
+      expect(envelope.details).toEqual({ handle: snapshot() });
+
+      const cause = envelope.cause as SqlQueryError;
+      expect(cause).toBeInstanceOf(SqlQueryError);
+      expect(cause.sqlState).toBe('26000');
+      expect(cause.cause).toBe(retryError);
     });
   });
 });

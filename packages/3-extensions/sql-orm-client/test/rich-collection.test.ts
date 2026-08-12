@@ -49,7 +49,7 @@ describe('SQL ORM collections with rich AST plans', () => {
 
   it('executes grouped aggregates backed by aggregate expressions', async () => {
     const { collection, runtime } = createCollectionFor('Post');
-    runtime.setNextResults([[{ user_id: 1, postCount: '2', totalViews: '30' }]]);
+    runtime.setNextResults([[{ user_id: 1, postCount: 2, totalViews: 30 }]]);
 
     const rows = await collection
       .groupBy('userId')

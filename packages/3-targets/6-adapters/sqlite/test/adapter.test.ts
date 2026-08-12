@@ -260,7 +260,7 @@ describe('SQLite adapter', () => {
       expect(() => adapter.lower(ast, { contract })).toThrow(
         expect.objectContaining({
           name: 'StructuredError',
-          code: 'ADAPTER.CAPABILITY_MISSING',
+          code: 'RUNTIME.AST_UNSUPPORTED',
           message,
           meta: { target: 'sqlite', feature },
         }),

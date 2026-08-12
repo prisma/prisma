@@ -1,37 +1,32 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type {
   SignDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
-import { readContractSnapshotJson } from '@internal/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@internal/migration-tools/errors';
-import { parseContractRef } from '@internal/migration-tools/ref-resolution';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { Command } from 'commander';
 import { relative, resolve } from 'pathe';
 import { createControlClient } from '../control-api/client';
+import { resolveContractRefToSnapshot } from '../control-api/operations/contract-snapshot-resolution';
 import {
   CliStructuredError,
   errorContractValidationFailed,
   errorDatabaseConnectionRequired,
   errorDriverRequired,
   errorFileNotFound,
-  errorRuntime,
   errorUnexpected,
-  mapMigrationToolsError,
-  mapRefResolutionError,
 } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveContractPath,
   resolveMigrationPaths,
   setCommandDescriptions,
   setCommandExamples,
 } from '../utils/command-helpers';
-import { buildReadAggregate } from '../utils/contract-space-aggregate-loader';
 import { formatStyledHeader } from '../utils/formatters/styled';
 import {
   formatSchemaVerifyJson,
@@ -68,7 +63,20 @@ async function executeDbSignCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<SignDatabaseResult, DbSignFailure>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const configPath = options.config
     ? relative(process.cwd(), resolve(options.config))
     : 'prisma-next.config.ts';
@@ -99,44 +107,19 @@ async function executeDbSignCommand(
 
   if (effectiveContractArg) {
     try {
-      const { migrationsDir } = resolveMigrationPaths(options.config, config);
-      const loaded = await buildReadAggregate(config, { migrationsDir });
-      if (!loaded.ok) {
-        return notOk(loaded.failure);
+      const { migrationsDir } = resolveMigrationPaths(options.config, config, process.cwd());
+      const resolved = await resolveContractRefToSnapshot({
+        config,
+        migrationsDir,
+        refInput: effectiveContractArg,
+        contractPathAbsolute,
+        fallbackToEmitted: true,
+      });
+      if (!resolved.ok) {
+        return notOk(resolved.failure);
       }
-      const graph = loaded.value.aggregate.app.graph();
-      const bundles = loaded.value.aggregate.app.packages;
-      const refs = loaded.value.aggregate.app.refs;
-      const refResult = parseContractRef(effectiveContractArg, { graph, refs });
-      if (!refResult.ok) {
-        return notOk(mapRefResolutionError(refResult.failure));
-      }
-      const targetHash = refResult.value.hash;
-      const matchingBundle = bundles.find((p) => p.metadata.to === targetHash);
-      if (matchingBundle) {
-        contractJson = (await readContractSnapshotJson(migrationsDir, targetHash)) as Record<
-          string,
-          unknown
-        >;
-      } else {
-        const defaultRaw = await readFile(contractPathAbsolute, 'utf-8');
-        const defaultContract = JSON.parse(defaultRaw) as Record<string, unknown>;
-        const storageHash = (defaultContract['storage'] as Record<string, unknown> | undefined)?.[
-          'storageHash'
-        ];
-        if (storageHash === targetHash) {
-          contractJson = defaultContract;
-        } else {
-          return notOk(
-            errorRuntime(`No contract file found for hash "${targetHash}"`, {
-              why: `Resolved contract reference "${effectiveContractArg}" to hash "${targetHash}" but no migration produces that hash and the emitted contract does not match.`,
-              fix: 'Ensure the target contract exists on disk — either as a migration endpoint or as the emitted contract.json.',
-            }),
-          );
-        }
-      }
+      contractJson = resolved.value.contractJson;
     } catch (error) {
-      if (MigrationToolsError.is(error)) return notOk(mapMigrationToolsError(error));
       if (error instanceof CliStructuredError) return notOk(error);
       return notOk(
         errorUnexpected(error instanceof Error ? error.message : String(error), {
@@ -248,7 +231,7 @@ async function executeDbSignCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

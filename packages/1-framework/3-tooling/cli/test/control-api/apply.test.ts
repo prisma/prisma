@@ -14,7 +14,7 @@ import {
   buildFabricatedMigrationEdge,
   createContractSpaceAggregate,
 } from '@internal/migration-tools/aggregate';
-import { ok } from '@internal/utils/result';
+import { notOk, ok } from '@internal/utils/result';
 import { describe, expect, it, vi } from 'vitest';
 import { type RunAction, runMigration } from '../../src/control-api/operations/run-migration';
 import type { ControlProgressEvent } from '../../src/control-api/types';
@@ -139,6 +139,49 @@ describe('runMigration apply span label', () => {
     expect(start).toMatchObject({
       action: 'migrate',
       label: 'Running migration plan across spaces',
+    });
+  });
+});
+
+describe('runMigration runner-failure cause forwarding', () => {
+  it('preserves the runner failure object as `cause` on the RunnerFailure', async () => {
+    const runnerFailure = {
+      code: 'MIGRATION.APPLY_FAILED',
+      summary: 'relation "users" already exists',
+      why: 'CREATE TABLE users conflicted with an existing relation',
+      meta: { sqlState: '42P07' },
+      failingSpace: 'app',
+    };
+    const failingResult: MigrationRunnerResult = notOk(runnerFailure);
+    const migrations = {
+      createRunner: () => ({
+        execute: async () => failingResult,
+      }),
+    } as unknown as TargetMigrationsCapability<
+      'sql',
+      'postgres',
+      ControlFamilyInstance<'sql', unknown>
+    >;
+
+    const result = await runMigration<'sql', 'postgres'>({
+      aggregate: makeAggregate(),
+      perSpacePlans: new Map([['app', makePerSpacePlan()]]),
+      applyOrder: ['app'],
+      driver: {} as ControlDriverInstance<'sql', 'postgres'>,
+      familyInstance: { familyId: 'sql' } as unknown as ControlFamilyInstance<'sql', unknown>,
+      migrations,
+      frameworkComponents: [],
+      policy: { allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'] },
+      action: 'migrate',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.cause).toBe(runnerFailure);
+    expect(result.failure.meta).toMatchObject({
+      failingSpace: 'app',
+      runnerErrorCode: 'MIGRATION.APPLY_FAILED',
+      sqlState: '42P07',
     });
   });
 });

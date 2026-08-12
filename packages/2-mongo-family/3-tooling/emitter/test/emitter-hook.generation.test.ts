@@ -25,8 +25,8 @@ describe('mongoEmission.generateContractTypes', () => {
   it('generates hash type aliases', () => {
     const contract = createMongoContract();
     const types = generateContractDts(contract, mongoEmission, [], testHashes);
-    expect(types).toContain("StorageHashBase<'test-storage-hash'>");
-    expect(types).toContain("ProfileHashBase<'test-profile-hash'>");
+    expect(types).toContain('StorageHashBase<"test-storage-hash">');
+    expect(types).toContain('ProfileHashBase<"test-profile-hash">');
   });
 
   it('generates concrete execution hash when provided', () => {
@@ -35,7 +35,7 @@ describe('mongoEmission.generateContractTypes', () => {
       ...testHashes,
       executionHash: 'test-exec-hash',
     });
-    expect(types).toContain("ExecutionHashBase<'test-exec-hash'>");
+    expect(types).toContain('ExecutionHashBase<"test-exec-hash">');
   });
 
   it('generates generic execution hash when not provided', () => {
@@ -81,7 +81,7 @@ describe('mongoEmission.generateContractTypes', () => {
   it('generates contract header fields', () => {
     const contract = createMongoContract();
     const types = generateContractDts(contract, mongoEmission, [], testHashes);
-    expect(types).toContain("readonly target: 'mongo'");
+    expect(types).toContain('readonly target: "mongo"');
     expect(types).not.toContain('schemaVersion');
     expect(types).toContain('readonly profileHash: ProfileHash');
   });
@@ -92,10 +92,10 @@ describe('mongoEmission.generateContractTypes', () => {
     });
     const types = generateContractDts(contract, mongoEmission, [], testHashes);
     expect(types).toContain(
-      "readonly users: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'User' }",
+      'readonly users: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "User" }',
     );
     expect(types).toContain(
-      "readonly posts: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Post' }",
+      'readonly posts: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Post" }',
     );
   });
 
@@ -117,13 +117,13 @@ describe('mongoEmission.generateContractTypes', () => {
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
       expect(types).toContain(
-        "readonly _id: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' } }",
+        'readonly _id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/objectId@1" } }',
       );
       expect(types).toContain(
-        "readonly name: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' } }",
+        'readonly name: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }',
       );
       expect(types).toContain(
-        "readonly bio: { readonly nullable: true; readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' } }",
+        'readonly bio: { readonly nullable: true; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }',
       );
     });
 
@@ -162,11 +162,11 @@ describe('mongoEmission.generateContractTypes', () => {
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
       expect(types).toContain(
-        "readonly to: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Post' }",
+        'readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Post" }',
       );
-      expect(types).toContain("readonly cardinality: '1:N'");
-      expect(types).toContain("readonly localFields: readonly ['_id']");
-      expect(types).toContain("readonly targetFields: readonly ['authorId']");
+      expect(types).toContain('readonly cardinality: "1:N"');
+      expect(types).toContain('readonly localFields: readonly ["_id"]');
+      expect(types).toContain('readonly targetFields: readonly ["authorId"]');
       expect(types).not.toContain('strategy');
     });
 
@@ -184,7 +184,7 @@ describe('mongoEmission.generateContractTypes', () => {
         storage: namespacedMongoStorageFromCollections({ users: {} }),
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
-      expect(types).toContain("readonly collection: 'users'");
+      expect(types).toContain('readonly collection: "users"');
     });
 
     it('generates embedded model storage as empty record', () => {
@@ -215,7 +215,7 @@ describe('mongoEmission.generateContractTypes', () => {
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
       expect(types).toContain('readonly Address: { readonly fields:');
-      expect(types).toContain("readonly owner: 'User'");
+      expect(types).toContain('readonly owner: "User"');
     });
 
     it('generates model with owner field', () => {
@@ -242,7 +242,7 @@ describe('mongoEmission.generateContractTypes', () => {
         storage: namespacedMongoStorageFromCollections({ posts: {} }),
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
-      expect(types).toContain("readonly owner: 'Post'");
+      expect(types).toContain('readonly owner: "Post"');
     });
 
     it('generates polymorphic model with discriminator and variants', () => {
@@ -278,11 +278,11 @@ describe('mongoEmission.generateContractTypes', () => {
         storage: namespacedMongoStorageFromCollections({ tasks: {} }),
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
-      expect(types).toContain("discriminator: { readonly field: 'type' }");
-      expect(types).toContain("readonly Bug: { readonly value: 'bug' }");
-      expect(types).toContain("readonly Feature: { readonly value: 'feature' }");
+      expect(types).toContain('discriminator: { readonly field: "type" }');
+      expect(types).toContain('readonly Bug: { readonly value: "bug" }');
+      expect(types).toContain('readonly Feature: { readonly value: "feature" }');
       expect(types).toContain(
-        "base: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Task' }",
+        'base: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Task" }',
       );
     });
 
@@ -314,7 +314,7 @@ describe('mongoEmission.generateContractTypes', () => {
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
       expect(types).toContain(
-        "readonly relations: { readonly addresses: { readonly field: 'addresses' } }",
+        'readonly relations: { readonly addresses: { readonly field: "addresses" } }',
       );
     });
   });
@@ -348,7 +348,7 @@ describe('mongoEmission.generateContractTypes', () => {
       expect(types).toContain('readonly fields: { readonly email: 1 }');
       expect(types).toContain('readonly options: { readonly unique: true }');
       expect(types).toContain(
-        "readonly collation: { readonly locale: 'en'; readonly strength: 2 }",
+        'readonly collation: { readonly locale: "en"; readonly strength: 2 }',
       );
     });
 
@@ -429,7 +429,7 @@ describe('mongoEmission.generateContractTypes', () => {
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
       expect(types).toContain(
-        "readonly homeAddress: { readonly nullable: true; readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' } }",
+        'readonly homeAddress: { readonly nullable: true; readonly type: { readonly kind: "valueObject"; readonly name: "Address" } }',
       );
     });
 
@@ -460,7 +460,7 @@ describe('mongoEmission.generateContractTypes', () => {
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
       expect(types).toContain(
-        "readonly previousAddresses: { readonly nullable: false; readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' }; readonly many: true }",
+        'readonly previousAddresses: { readonly nullable: false; readonly type: { readonly kind: "valueObject"; readonly name: "Address" }; readonly many: true }',
       );
     });
 
@@ -503,7 +503,7 @@ describe('mongoEmission.generateContractTypes', () => {
         },
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
-      expect(types).toContain("readonly zip: CodecTypes['mongo/string@1']['output'] | null");
+      expect(types).toContain('readonly zip: CodecTypes["mongo/string@1"]["output"] | null');
     });
 
     it('emits FieldInputTypes alongside FieldOutputTypes', () => {
@@ -523,8 +523,8 @@ describe('mongoEmission.generateContractTypes', () => {
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
       expect(types).toContain('export type FieldOutputTypes =');
       expect(types).toContain('export type FieldInputTypes =');
-      expect(types).toContain("CodecTypes['mongo/objectId@1']['input']");
-      expect(types).toContain("CodecTypes['mongo/string@1']['input']");
+      expect(types).toContain('CodecTypes["mongo/objectId@1"]["input"]');
+      expect(types).toContain('CodecTypes["mongo/string@1"]["input"]');
     });
   });
 });

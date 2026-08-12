@@ -12,6 +12,7 @@ import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
+import { ok } from '@internal/utils/result';
 import { createSqlContract } from '@repo/test-utils';
 import { type } from 'arktype';
 import { join } from 'pathe';
@@ -25,21 +26,14 @@ import {
   migrationShowResultSchema,
   migrationStatusJsonResultSchema,
 } from '../../src/commands/json/schemas';
-import {
-  createMigrationCheckCommand,
-  enumerateCheckSpaces,
-  runMigrationCheck,
-} from '../../src/commands/migration-check';
+import { createMigrationCheckCommand } from '../../src/commands/migration-check';
 import {
   createMigrationGraphCommand,
   formatMigrationGraphHumanOutput,
 } from '../../src/commands/migration-graph';
 import {
   createMigrationListCommand,
-  listRefsByContractHash,
-  migrationSpaceListEntriesFromAggregate,
   renderMigrationListHumanOutput,
-  runMigrationList,
 } from '../../src/commands/migration-list';
 import {
   createMigrationLogCommand,
@@ -54,7 +48,16 @@ import {
   createMigrationStatusCommand,
   formatStatusHumanOutput,
 } from '../../src/commands/migration-status';
-import { deriveStatusEdgeAnnotations } from '../../src/commands/migration-status-overlay';
+import {
+  enumerateCheckSpaces,
+  runMigrationCheck,
+} from '../../src/control-api/operations/migration-check';
+import {
+  listRefsByContractHash,
+  migrationSpaceListEntriesFromAggregate,
+  runMigrationList,
+} from '../../src/control-api/operations/migration-list';
+import { deriveStatusEdgeAnnotations } from '../../src/control-api/operations/migration-status-overlay';
 import { getCommandSeeAlso } from '../../src/utils/command-helpers';
 import {
   computeGlobalMaxDirNameWidth,
@@ -437,30 +440,32 @@ describe('migration read commands pretty parity', () => {
 
   it('indents per-space trees under headings via migration status --from', async () => {
     const commandMocks = setupCommandMocks();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
     const { cwd } = await buildMultiSpaceFixture();
     const originalCwd = process.cwd();
     process.chdir(cwd);
-    type LoadedConfig = Awaited<ReturnType<typeof configLoader.loadConfig>>;
-    loadConfigSpy.mockResolvedValue({
-      family: {
-        familyId: 'sql',
-        create: vi.fn().mockReturnValue({
-          deserializeContract: (json: unknown) => json,
-        }),
-      },
-      target: {
-        id: 'postgres',
-        familyId: 'sql',
-        targetId: 'postgres',
-        kind: 'target',
-      },
-      adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
-      driver: { kind: 'driver' },
-      contract: { output: 'src/prisma/contract.json', source: 'src/prisma/contract.json' },
-      migrations: { dir: 'migrations' },
-      extensions: [],
-    } as unknown as LoadedConfig);
+    type LoadedConfig = configLoader.PrismaNextConfig;
+    loadConfigSpy.mockResolvedValue(
+      ok({
+        family: {
+          familyId: 'sql',
+          create: vi.fn().mockReturnValue({
+            deserializeContract: (json: unknown) => json,
+          }),
+        },
+        target: {
+          id: 'postgres',
+          familyId: 'sql',
+          targetId: 'postgres',
+          kind: 'target',
+        },
+        adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
+        driver: { kind: 'driver' },
+        contract: { output: 'src/prisma/contract.json', source: 'src/prisma/contract.json' },
+        migrations: { dir: 'migrations' },
+        extensions: [],
+      } as unknown as LoadedConfig),
+    );
     try {
       const { createMigrationStatusCommand } = await import('../../src/commands/migration-status');
       const exitCode = await executeCommand(createMigrationStatusCommand(), [
@@ -487,7 +492,7 @@ describe('migration read commands pretty parity', () => {
 // Helpers shared by the consistency-lock sections below
 // ---------------------------------------------------------------------------
 
-type LoadedConfig = Awaited<ReturnType<typeof configLoader.loadConfig>>;
+type LoadedConfig = configLoader.PrismaNextConfig;
 
 function makeOfflineConfig(cwd: string): LoadedConfig {
   return {
@@ -538,8 +543,8 @@ describe('migration read-verb --json envelope shape (D1 lock)', () => {
 
   it('migration list --json emits { ok: true, spaces: [...] }', async () => {
     const { cwd } = await buildMultiSpaceFixture();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(makeOfflineConfig(cwd));
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(makeOfflineConfig(cwd)));
     process.chdir(cwd);
 
     const { consoleOutput, cleanup } = setupCommandMocks();
@@ -559,8 +564,8 @@ describe('migration read-verb --json envelope shape (D1 lock)', () => {
 
   it('migration graph --json emits { ok: true, spaces: [{ contracts, migrations }], summary }', async () => {
     const { cwd } = await buildMultiSpaceFixture();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(makeOfflineConfig(cwd));
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(makeOfflineConfig(cwd)));
     process.chdir(cwd);
 
     const { consoleOutput, cleanup } = setupCommandMocks();
@@ -592,8 +597,8 @@ describe('migration read-verb --json envelope shape (D1 lock)', () => {
 
   it('migration status --json (with --from) emits { ok: true, spaces: [...] }', async () => {
     const { cwd } = await buildMultiSpaceFixture();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(makeOfflineConfig(cwd));
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(makeOfflineConfig(cwd)));
     process.chdir(cwd);
 
     const { consoleOutput, cleanup } = setupCommandMocks();
@@ -642,8 +647,8 @@ describe('migration read-verb --json envelope shape (D1 lock)', () => {
 
   it('migration check --json emits { ok: boolean, failures: [...], summary }', async () => {
     const { cwd } = await buildMultiSpaceFixture();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(makeOfflineConfig(cwd));
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(makeOfflineConfig(cwd)));
     process.chdir(cwd);
 
     const { consoleOutput, cleanup } = setupCommandMocks();
@@ -784,8 +789,8 @@ describe('migration read-verb missing-DB error shape parity (D2 lock)', () => {
       migrations: { dir: 'migrations' },
     } as unknown as LoadedConfig;
 
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(noDbConfig);
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(noDbConfig));
 
     const flags = parseGlobalFlags({ json: true });
     const ui = createTerminalUI(flags);
@@ -795,7 +800,7 @@ describe('migration read-verb missing-DB error shape parity (D2 lock)', () => {
     if (logResult.ok) throw new Error('unreachable');
     const logEnvelope = logResult.failure.toEnvelope() as CliErrorEnvelope;
 
-    loadConfigSpy.mockResolvedValue(noDbConfig);
+    loadConfigSpy.mockResolvedValue(ok(noDbConfig));
 
     const statusCommandMocks = setupCommandMocks();
     const originalCwd = process.cwd();
@@ -824,7 +829,7 @@ describe('migration read-verb missing-DB error shape parity (D2 lock)', () => {
 describe('migration check multi-space parity (D6 lock)', () => {
   it('no-arg check validates all spaces from the multi-space fixture', async () => {
     const { aggregate, migrationsDir } = await buildMultiSpaceFixture();
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir, process.cwd());
     const spaceIds = spaces.map((s) => s.spaceId);
     expect(spaceIds).toContain('app');
     expect(spaceIds).toContain('postgis');
@@ -838,7 +843,7 @@ describe('migration check multi-space parity (D6 lock)', () => {
 
   it('--space app narrows to only the app space', async () => {
     const { aggregate, migrationsDir } = await buildMultiSpaceFixture();
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir, process.cwd());
 
     const result = await runMigrationCheck({ spaces, spaceFilter: 'app' });
     expect(result.ok).toBe(true);
@@ -850,7 +855,7 @@ describe('migration check multi-space parity (D6 lock)', () => {
 
   it('--space <unknown> emits a structured error (not a bare array)', async () => {
     const { aggregate, migrationsDir } = await buildMultiSpaceFixture();
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsDir, process.cwd());
 
     const result = await runMigrationCheck({ spaces, spaceFilter: 'nonexistent' });
     expect(result.ok).toBe(false);
@@ -858,7 +863,7 @@ describe('migration check multi-space parity (D6 lock)', () => {
     const envelope = result.failure.toEnvelope();
     expect(envelope.ok).toBe(false);
     expect(typeof envelope.code).toBe('string');
-    expect(envelope.meta?.['code']).toBe('MIGRATION.SPACE_NOT_FOUND');
+    expect(envelope.code).toBe('MIGRATION.SPACE_NOT_FOUND');
   });
 });
 
@@ -907,8 +912,8 @@ describe('migration read-verb --json consistency lock (D8)', () => {
 
   it('list --json validates against migrationListResultSchema and has no retired names', async () => {
     const { cwd } = await buildMultiSpaceFixture();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(makeOfflineConfig(cwd));
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(makeOfflineConfig(cwd)));
     process.chdir(cwd);
 
     const { consoleOutput, cleanup } = setupCommandMocks();
@@ -929,8 +934,8 @@ describe('migration read-verb --json consistency lock (D8)', () => {
 
   it('graph --json validates against migrationGraphJsonResultSchema, no retired names, fromContract null at empty-start', async () => {
     const { cwd } = await buildMultiSpaceFixture();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(makeOfflineConfig(cwd));
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(makeOfflineConfig(cwd)));
     process.chdir(cwd);
 
     const { consoleOutput, cleanup } = setupCommandMocks();
@@ -966,8 +971,8 @@ describe('migration read-verb --json consistency lock (D8)', () => {
 
   it('status --json (with --from) validates against migrationStatusJsonResultSchema and has no retired names', async () => {
     const { cwd } = await buildMultiSpaceFixture();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(makeOfflineConfig(cwd));
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(makeOfflineConfig(cwd)));
     process.chdir(cwd);
 
     const { consoleOutput, cleanup } = setupCommandMocks();
@@ -1044,8 +1049,8 @@ describe('migration read-verb --json consistency lock (D8)', () => {
 
   it('check --json validates against migrationCheckResultSchema and has no retired names', async () => {
     const { cwd } = await buildMultiSpaceFixture();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(makeOfflineConfig(cwd));
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(makeOfflineConfig(cwd)));
     process.chdir(cwd);
 
     const { consoleOutput, cleanup } = setupCommandMocks();
@@ -1067,8 +1072,8 @@ describe('migration read-verb --json consistency lock (D8)', () => {
 
   it('ok:true ⇒ exit 0 for list --json; ok:false ⇒ non-zero exit for check --json with failures', async () => {
     const { cwd, migrationsDir } = await buildMultiSpaceFixture();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(makeOfflineConfig(cwd));
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(makeOfflineConfig(cwd)));
     process.chdir(cwd);
 
     const { consoleOutput: listOutput, cleanup: cleanupList } = setupCommandMocks();
@@ -1110,8 +1115,8 @@ describe('migration read-verb --json consistency lock (D8)', () => {
 
   it('space topology: list/graph/status have spaces[]; log has records[]; check has failures[]; show has migration.space', async () => {
     const { cwd } = await buildMultiSpaceFixture();
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig');
-    loadConfigSpy.mockResolvedValue(makeOfflineConfig(cwd));
+    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfigForSections');
+    loadConfigSpy.mockResolvedValue(ok(makeOfflineConfig(cwd)));
     process.chdir(cwd);
 
     const runAndCapture = async (

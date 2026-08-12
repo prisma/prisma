@@ -12,10 +12,14 @@ import {
   BinaryExpr,
   type BinaryOp,
   ColumnRef,
+  isAggregateFn,
   LiteralExpr,
 } from '@internal/sql-relational-core/ast';
+import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
+import { blindCast } from '@internal/utils/casts';
 import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder';
+import { aggregateOperationNames } from './aggregate-operations';
 import { getFieldToColumnMap } from './collection-contract';
 import { mapStorageRowToModelFields } from './collection-runtime';
 import { executeQueryPlan } from './execute-query-plan';
@@ -44,12 +48,14 @@ interface GroupedCollectionInit {
 type GroupByFieldName<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
-> = keyof DefaultModelRow<TContract, ModelName> & string;
+  NsId extends string = never,
+> = keyof DefaultModelRow<TContract, ModelName, NsId> & string;
 
 export class GroupedCollection<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
-  GroupFields extends readonly GroupByFieldName<TContract, ModelName>[],
+  GroupFields extends readonly GroupByFieldName<TContract, ModelName, NsId>[],
+  NsId extends string = never,
 > {
   readonly ctx: CollectionContext<TContract>;
   private readonly contract: TContract;
@@ -78,10 +84,16 @@ export class GroupedCollection<
   }
 
   having(
-    predicate: (having: HavingBuilder<TContract, ModelName>) => AnyExpression,
-  ): GroupedCollection<TContract, ModelName, GroupFields> {
+    predicate: (having: HavingBuilder<TContract, ModelName, NsId>) => AnyExpression,
+  ): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
     const havingExpr = predicate(
-      createHavingBuilder(this.contract, this.namespaceId, this.modelName, this.tableName),
+      createHavingBuilder<TContract, ModelName, NsId>(
+        this.contract,
+        this.ctx.context.aggregateDescriptors,
+        this.namespaceId,
+        this.modelName,
+        this.tableName,
+      ),
     );
     return new GroupedCollection(this.ctx, this.modelName, {
       tableName: this.tableName,
@@ -90,7 +102,7 @@ export class GroupedCollection<
       groupByFields: this.groupByFields,
       groupByColumns: this.groupByColumns,
       havingFilters: [...this.havingFilters, havingExpr],
-    }) as GroupedCollection<TContract, ModelName, GroupFields>;
+    }) as GroupedCollection<TContract, ModelName, GroupFields, NsId>;
   }
 
   /**
@@ -101,17 +113,23 @@ export class GroupedCollection<
    * Annotations are merged into the compiled plan's `meta.annotations`.
    */
   async aggregate<Spec extends AggregateSpec>(
-    fn: (aggregate: AggregateBuilder<TContract, ModelName>) => Spec,
+    fn: (aggregate: AggregateBuilder<TContract, ModelName, NsId>) => Spec,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<
     Array<
       SimplifyDeep<
-        Pick<DefaultModelRow<TContract, ModelName>, GroupFields[number]> & AggregateResult<Spec>
+        Pick<DefaultModelRow<TContract, ModelName, NsId>, GroupFields[number]> &
+          AggregateResult<Spec>
       >
     >
   > {
     const aggregateSpec = fn(
-      createAggregateBuilder(this.contract, this.namespaceId, this.modelName),
+      createAggregateBuilder<TContract, ModelName, NsId>(
+        this.contract,
+        this.ctx.context.aggregateDescriptors,
+        this.namespaceId,
+        this.modelName,
+      ),
     );
     const aggregateEntries = Object.entries(aggregateSpec);
     if (aggregateEntries.length === 0) {
@@ -144,6 +162,7 @@ export class GroupedCollection<
     const compiled = mergeAnnotations(
       compileGroupedAggregate(
         this.contract,
+        this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.tableName,
         this.baseFilters,
@@ -165,48 +184,66 @@ export class GroupedCollection<
         this.modelName,
         row,
       );
-      for (const [alias, selector] of aggregateEntries) {
-        mapped[alias] = coerceAggregateValue(selector.fn, row[alias]);
+      for (const [alias] of aggregateEntries) {
+        mapped[alias] = row[alias];
       }
       return mapped;
     }) as Array<
       SimplifyDeep<
-        Pick<DefaultModelRow<TContract, ModelName>, GroupFields[number]> & AggregateResult<Spec>
+        Pick<DefaultModelRow<TContract, ModelName, NsId>, GroupFields[number]> &
+          AggregateResult<Spec>
       >
     >;
   }
 }
 
-function createHavingBuilder<TContract extends Contract<SqlStorage>, ModelName extends string>(
+/**
+ * The having metric methods, one per operation the registry contributes —
+ * the runtime mirror of the contract's emitted aggregate map, which is what
+ * types the surface as {@link HavingBuilder}. HAVING compares the value
+ * inside the database, so only an operation's plain `AggregateExpr` form is
+ * sound here: an operation outside the SQL aggregate alphabet exists only in
+ * its descriptor-lowered form — a rendering for the driver boundary — and is
+ * refused. The typed surface already excludes it; the runtime refusal covers
+ * dynamic invocation.
+ */
+function createHavingBuilder<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string = never,
+>(
   contract: TContract,
+  aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   modelName: ModelName,
   tableName: string,
-): HavingBuilder<TContract, ModelName> {
+): HavingBuilder<TContract, ModelName, NsId> {
   const fieldToColumn = getFieldToColumnMap(contract, namespaceId, modelName);
-  const createMetricExpr = (
-    fn: Exclude<AggregateExpr['fn'], 'count'>,
-    fieldName: string,
-  ): AggregateExpr =>
-    new AggregateExpr(fn, ColumnRef.of(tableName, fieldToColumn[fieldName] ?? fieldName));
-
-  return {
-    count() {
-      return createHavingComparisonMethods<number>(AggregateExpr.count());
-    },
-    sum(field) {
-      return createHavingComparisonMethods<number | null>(createMetricExpr('sum', field as string));
-    },
-    avg(field) {
-      return createHavingComparisonMethods<number | null>(createMetricExpr('avg', field as string));
-    },
-    min(field) {
-      return createHavingComparisonMethods<number | null>(createMetricExpr('min', field as string));
-    },
-    max(field) {
-      return createHavingComparisonMethods<number | null>(createMetricExpr('max', field as string));
-    },
-  };
+  const builder: Record<string, (field?: string) => HavingComparisonMethods<number | null>> = {};
+  for (const operation of aggregateOperationNames(aggregates)) {
+    builder[operation] = (field?: string) => {
+      if (!isAggregateFn(operation)) {
+        throw ormError(
+          'ORM.AGGREGATE_PROJECTION_ONLY',
+          `Aggregate operation '${operation}' is projection-only: it has no plain SQL form for HAVING, ORDER BY, or comparison positions.`,
+          {
+            why: "An operation outside the SQL aggregate alphabet reaches SQL only through its descriptor's lowering hook — a rendering for the driver boundary. HAVING and ORDER BY compare the value inside the database, where that rendering would change SQL semantics.",
+            fix: `Project '${operation}' in a select and filter or order on the projected value, or use an operation from the SQL aggregate alphabet.`,
+            meta: { operation },
+          },
+        );
+      }
+      const metric = new AggregateExpr(
+        operation,
+        field === undefined ? undefined : ColumnRef.of(tableName, fieldToColumn[field] ?? field),
+      );
+      return createHavingComparisonMethods(metric);
+    };
+  }
+  return blindCast<
+    HavingBuilder<TContract, ModelName, NsId>,
+    "the registry's operations are the contract's emitted aggregate map, whose mapped type enforces each method's arity and comparand"
+  >(builder);
 }
 
 function createHavingComparisonMethods<T extends number | null>(
@@ -235,29 +272,4 @@ function createHavingComparisonMethods<T extends number | null>(
       return buildBinaryExpr('lte', value);
     },
   };
-}
-
-function coerceAggregateValue(fn: string, value: unknown): unknown {
-  if (value === null) {
-    return null;
-  }
-
-  if (value === undefined) {
-    return fn === 'count' ? 0 : null;
-  }
-
-  if (typeof value === 'number') {
-    return value;
-  }
-
-  if (typeof value === 'bigint') {
-    return Number(value);
-  }
-
-  if (typeof value === 'string') {
-    const numeric = Number(value);
-    return Number.isNaN(numeric) ? value : numeric;
-  }
-
-  return value;
 }

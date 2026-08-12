@@ -16,8 +16,8 @@ import {
 
 interface MigrateErrorJson {
   readonly ok?: boolean;
+  readonly code?: string;
   readonly meta?: {
-    readonly code?: string;
     readonly markerHash?: string;
     readonly reachableHashes?: readonly string[];
     readonly graphTip?: string;
@@ -74,7 +74,7 @@ withTempDir(({ createTempDir }) => {
             const drift = await runMigrate(ctx, ['--json']);
             expect(drift.exitCode).not.toBe(0);
             const err = parseJsonOutput<MigrateErrorJson>(drift);
-            expect(err.meta?.code).toBe('MIGRATION.MARKER_MISMATCH');
+            expect(err.code).toBe('MIGRATION.MARKER_MISMATCH');
             expect(err.meta?.markerHash).toBe(staleMarker);
             expect(err.meta?.reachableHashes?.length).toBeGreaterThan(0);
             expect(err.meta?.reachableHashes).not.toContain(staleMarker);
@@ -130,7 +130,7 @@ withTempDir(({ createTempDir }) => {
             const drift = await runMigrate(ctx, ['--json']);
             expect(drift.exitCode).not.toBe(0);
             const err = parseJsonOutput<MigrateErrorJson>(drift);
-            expect(err.meta?.code).toBe('MIGRATION.MARKER_MISMATCH');
+            expect(err.code).toBe('MIGRATION.MARKER_MISMATCH');
             expect(err.meta?.markerHash).toMatch(/^[a-f0-9]{64}$/);
             expect(err.meta?.reachableHashes).toEqual([]);
           });
@@ -161,7 +161,7 @@ withTempDir(({ createTempDir }) => {
             const drift = await runMigrate(ctx, ['--to', bundleDir, '--json']);
             expect(drift.exitCode).not.toBe(0);
             const err = parseJsonOutput<MigrateErrorJson>(drift);
-            expect(err.meta?.code).toBe('MIGRATION.MARKER_MISMATCH');
+            expect(err.code).toBe('MIGRATION.MARKER_MISMATCH');
           });
         });
       },
@@ -187,7 +187,7 @@ withTempDir(({ createTempDir }) => {
             const unreachable = await runMigrate(ctx, ['--json']);
             expect(unreachable.exitCode).not.toBe(0);
             const err = parseJsonOutput<MigrateErrorJson>(unreachable);
-            expect(err.meta?.code).toBe('MIGRATION.PATH_UNREACHABLE');
+            expect(err.code).toBe('MIGRATION.PATH_UNREACHABLE');
             expect(err.meta?.kind).toBe('pathUnreachable');
             expect(err.fix).toMatch(/migration list/);
             expect(err.fix).toMatch(/migration plan/);

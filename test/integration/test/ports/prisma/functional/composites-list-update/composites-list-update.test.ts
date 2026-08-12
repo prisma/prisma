@@ -12,7 +12,7 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //
 // Ported: set, set shorthand, set nested list (whole-list replacement via the
 // update data object), push (append an element via the field-op callback), and
-// the two null cases (it.fails — type-rejected, mongo does not throw at runtime).
+// the two null cases.
 //
 // Non-ported (see _inbox ledger): embedded-list `updateMany`/`deleteMany` (no
 // filtered per-element mutation surface), and `unset`/`upsert` on the embedded
@@ -109,7 +109,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
     timeouts.spinUpMongoMemoryServer,
   );
 
-  it.fails(
+  it(
     'set null',
     run(async () => {
       // @ts-expect-error required `contents` list cannot be null
@@ -122,7 +122,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
     timeouts.spinUpMongoMemoryServer,
   );
 
-  it.fails(
+  it(
     'set null shorthand',
     run(async () => {
       // @ts-expect-error required `contents` list cannot be null

@@ -1,6 +1,8 @@
 import type { Contract, JsonValue } from '@internal/contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
+import type { AggregateDescriptor } from '../shared/aggregate-descriptor';
+import { aggregateDescriptorKey, isAggregateDescriptor } from '../shared/aggregate-descriptor';
 import type { CapabilityMatrix } from '../shared/capabilities';
 import { mergeCapabilityMatrices } from '../shared/capabilities';
 import type { Codec } from '../shared/codec';
@@ -32,6 +34,7 @@ import {
   materializeCodec,
   resolveCodecDescriptorOrThrow,
 } from '../shared/resolve-codec';
+import { runtimeError } from '../shared/runtime-error';
 import type { TypesImportSpec } from '../shared/types-import-spec';
 import type {
   ControlAdapterDescriptor,
@@ -67,6 +70,10 @@ export interface ControlStack<
   readonly queryOperationTypeImports: ReadonlyArray<TypesImportSpec>;
   readonly extensionIds: ReadonlyArray<string>;
   readonly codecLookup: CodecRegistry;
+  /** Every codec descriptor the composed components contribute — the set an emitted type surface may resolve against, which is not always the set a target's own registry holds. */
+  readonly codecDescriptors: ReadonlyArray<AnyCodecDescriptor>;
+  /** Every aggregate overload the composed components declare, validated for shape and single ownership at assembly. */
+  readonly aggregateDescriptors: ReadonlyArray<AggregateDescriptor>;
   readonly authoringContributions: AssembledAuthoringContributions;
   /** Names of the top-level zero-arg type constructors in the assembled authoring namespace — the base scalars of the composed stack. */
   readonly scalarTypes: ReadonlyArray<string>;
@@ -345,6 +352,61 @@ export function assembleControlMutationDefaults(
   };
 }
 
+/**
+ * Collect every contributed {@link AggregateDescriptor} across the composed components, rejecting malformed shapes and second claims on one `(operation, input)` overload.
+ *
+ * Both planes read the same contribution slot: emission derives result types from these descriptors, and family runtimes build their resolution registry from them. Rejections are user-facing — an extension author's bad contribution surfaces here first, during `contract emit` — so a malformed shape raises `CONTRACT.AGGREGATE_DESCRIPTOR_INVALID` and a second claim raises `CONTRACT.AGGREGATE_DESCRIPTOR_DUPLICATE`, each naming the contributing component.
+ */
+export function collectAggregateDescriptors(
+  descriptors: ReadonlyArray<Pick<ComponentMetadata, 'types'> & { readonly id?: string }>,
+): ReadonlyArray<AggregateDescriptor> {
+  const collected: AggregateDescriptor[] = [];
+  const owners = new Map<string, string>();
+
+  for (const descriptor of descriptors) {
+    const descriptorId = descriptor.id ?? '<unknown>';
+    for (const contributed of descriptor.types?.aggregateDescriptors ?? []) {
+      if (!isAggregateDescriptor(contributed)) {
+        throw runtimeError(
+          'CONTRACT.AGGREGATE_DESCRIPTOR_INVALID',
+          `Malformed aggregate descriptor contributed by "${descriptorId}". ` +
+            'A descriptor declares a non-empty `operation`, an `input` match of kind `none`/`any`/`codec`/`trait`, ' +
+            'an `output` of kind `self`/`codec`, and a boolean `nullable` — plus `emptyResultJson`, ' +
+            "in the result codec's canonical JSON, where `nullable` is false; a `self` output needs an input to reuse.",
+          { contributedBy: descriptorId, descriptor: contributed },
+        );
+      }
+
+      const key = aggregateDescriptorKey(contributed);
+      const existingOwner = owners.get(key);
+      if (existingOwner !== undefined) {
+        throw runtimeError(
+          'CONTRACT.AGGREGATE_DESCRIPTOR_DUPLICATE',
+          `Duplicate aggregate descriptor for "${key}". ` +
+            `Descriptor "${descriptorId}" conflicts with "${existingOwner}". ` +
+            'Each operation/input pair can only have one provider.',
+          { key, contributedBy: descriptorId, owner: existingOwner },
+        );
+      }
+      owners.set(key, descriptorId);
+      collected.push(contributed);
+    }
+  }
+
+  return collected;
+}
+
+/**
+ * Flatten the codec descriptors the composed components contribute.
+ *
+ * A component may know a codec and still withhold it — an adapter that cannot name a codec's emitted type contributes the rest without it — so the contributed set is not always the set some component's own registry holds. Consumers whose output must agree with what the runtime resolves read this list rather than any one component's registry.
+ */
+export function collectCodecDescriptors(
+  descriptors: ReadonlyArray<Pick<ComponentMetadata, 'types'>>,
+): ReadonlyArray<AnyCodecDescriptor> {
+  return descriptors.flatMap((descriptor) => descriptor.types?.codecTypes?.codecDescriptors ?? []);
+}
+
 export function extractCodecLookup(
   descriptors: ReadonlyArray<Pick<ComponentMetadata & { id: string }, 'types' | 'id'>>,
 ): CodecRegistry {
@@ -575,6 +637,8 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     queryOperationTypeImports: extractQueryOperationTypeImports(allDescriptors),
     extensionIds: extractComponentIds(family, target, adapter, orderedExtensions),
     codecLookup,
+    codecDescriptors: collectCodecDescriptors(allDescriptors),
+    aggregateDescriptors: collectAggregateDescriptors(allDescriptors),
     authoringContributions,
     scalarTypes: [...collectScalarTypeConstructors(authoringContributions.type).keys()],
     controlMutationDefaults: assembleControlMutationDefaults(allDescriptors),

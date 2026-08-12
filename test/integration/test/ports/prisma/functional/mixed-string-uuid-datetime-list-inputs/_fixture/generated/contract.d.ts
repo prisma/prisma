@@ -17,10 +17,7 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type {
-  ContractWithTypeMaps,
-  TypeMaps as TypeMapsType,
-} from '@internal/sql-contract/types';
+import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -30,7 +27,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'8cffacccaca58385733fe8582fcfb6c9b7e8f7dbe453cf7026540739bf64a24d'>;
+  StorageHashBase<'db84b109afa8ccab6e32a70f2053101f12a232891c52d445f5f023a3d237e195'>;
 export type ExecutionHash =
   ExecutionHashBase<'2e23ab58081d872c77fd3f131a34727eb6de9fa2c0e4bfa8bd7a0e38693a1a77'>;
 export type ProfileHash =
@@ -39,9 +36,110 @@ export type ProfileHash =
 export type CodecTypes = PgTypes;
 export type LaneCodecTypes = CodecTypes;
 export type QueryOperationTypes = PgAdapterQueryOps<CodecTypes>;
-type DefaultLiteralValue<CodecId extends string, _Encoded> = CodecId extends keyof CodecTypes
-  ? CodecTypes[CodecId]['output']
-  : _Encoded;
+export type AggregateTypes = {
+  readonly avg: {
+    readonly byCodec: {
+      readonly 'pg/float@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
+      readonly 'pg/float4@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
+      readonly 'pg/float8@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
+      readonly 'pg/int@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/int2@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/int4@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/int8@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/interval@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
+      readonly 'pg/numeric@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/time@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
+      readonly 'sql/float@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
+      readonly 'sql/int@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+    };
+  };
+  readonly count: {
+    readonly byCodec: {};
+    readonly withoutInput: { readonly output: 'pg/int8@1'; readonly nullable: false };
+    readonly anyInput: { readonly output: 'pg/int8@1'; readonly nullable: false };
+  };
+  readonly max: {
+    readonly byCodec: {
+      readonly 'pg/char@1': { readonly output: 'pg/char@1'; readonly nullable: true };
+      readonly 'pg/date@1': { readonly output: 'pg/date@1'; readonly nullable: true };
+      readonly 'pg/enum@1': { readonly output: 'pg/enum@1'; readonly nullable: true };
+      readonly 'pg/float@1': { readonly output: 'pg/float@1'; readonly nullable: true };
+      readonly 'pg/float4@1': { readonly output: 'pg/float4@1'; readonly nullable: true };
+      readonly 'pg/float8@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
+      readonly 'pg/inet@1': { readonly output: 'pg/inet@1'; readonly nullable: true };
+      readonly 'pg/int@1': { readonly output: 'pg/int@1'; readonly nullable: true };
+      readonly 'pg/int2@1': { readonly output: 'pg/int2@1'; readonly nullable: true };
+      readonly 'pg/int4@1': { readonly output: 'pg/int4@1'; readonly nullable: true };
+      readonly 'pg/int8@1': { readonly output: 'pg/int8@1'; readonly nullable: true };
+      readonly 'pg/interval@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
+      readonly 'pg/numeric@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/text-array@1': { readonly output: 'pg/text-array@1'; readonly nullable: true };
+      readonly 'pg/text@1': { readonly output: 'pg/text@1'; readonly nullable: true };
+      readonly 'pg/time@1': { readonly output: 'pg/time@1'; readonly nullable: true };
+      readonly 'pg/timestamp@1': { readonly output: 'pg/timestamp@1'; readonly nullable: true };
+      readonly 'pg/timestamptz@1': { readonly output: 'pg/timestamptz@1'; readonly nullable: true };
+      readonly 'pg/timetz@1': { readonly output: 'pg/timetz@1'; readonly nullable: true };
+      readonly 'pg/varchar@1': { readonly output: 'pg/text@1'; readonly nullable: true };
+      readonly 'sql/char@1': { readonly output: 'sql/char@1'; readonly nullable: true };
+      readonly 'sql/float@1': { readonly output: 'sql/float@1'; readonly nullable: true };
+      readonly 'sql/int@1': { readonly output: 'sql/int@1'; readonly nullable: true };
+      readonly 'sql/text@1': { readonly output: 'sql/text@1'; readonly nullable: true };
+      readonly 'sql/timestamp@1': { readonly output: 'sql/timestamp@1'; readonly nullable: true };
+      readonly 'sql/varchar@1': { readonly output: 'pg/text@1'; readonly nullable: true };
+    };
+  };
+  readonly min: {
+    readonly byCodec: {
+      readonly 'pg/char@1': { readonly output: 'pg/char@1'; readonly nullable: true };
+      readonly 'pg/date@1': { readonly output: 'pg/date@1'; readonly nullable: true };
+      readonly 'pg/enum@1': { readonly output: 'pg/enum@1'; readonly nullable: true };
+      readonly 'pg/float@1': { readonly output: 'pg/float@1'; readonly nullable: true };
+      readonly 'pg/float4@1': { readonly output: 'pg/float4@1'; readonly nullable: true };
+      readonly 'pg/float8@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
+      readonly 'pg/inet@1': { readonly output: 'pg/inet@1'; readonly nullable: true };
+      readonly 'pg/int@1': { readonly output: 'pg/int@1'; readonly nullable: true };
+      readonly 'pg/int2@1': { readonly output: 'pg/int2@1'; readonly nullable: true };
+      readonly 'pg/int4@1': { readonly output: 'pg/int4@1'; readonly nullable: true };
+      readonly 'pg/int8@1': { readonly output: 'pg/int8@1'; readonly nullable: true };
+      readonly 'pg/interval@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
+      readonly 'pg/numeric@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/text-array@1': { readonly output: 'pg/text-array@1'; readonly nullable: true };
+      readonly 'pg/text@1': { readonly output: 'pg/text@1'; readonly nullable: true };
+      readonly 'pg/time@1': { readonly output: 'pg/time@1'; readonly nullable: true };
+      readonly 'pg/timestamp@1': { readonly output: 'pg/timestamp@1'; readonly nullable: true };
+      readonly 'pg/timestamptz@1': { readonly output: 'pg/timestamptz@1'; readonly nullable: true };
+      readonly 'pg/timetz@1': { readonly output: 'pg/timetz@1'; readonly nullable: true };
+      readonly 'pg/varchar@1': { readonly output: 'pg/text@1'; readonly nullable: true };
+      readonly 'sql/char@1': { readonly output: 'sql/char@1'; readonly nullable: true };
+      readonly 'sql/float@1': { readonly output: 'sql/float@1'; readonly nullable: true };
+      readonly 'sql/int@1': { readonly output: 'sql/int@1'; readonly nullable: true };
+      readonly 'sql/text@1': { readonly output: 'sql/text@1'; readonly nullable: true };
+      readonly 'sql/timestamp@1': { readonly output: 'sql/timestamp@1'; readonly nullable: true };
+      readonly 'sql/varchar@1': { readonly output: 'pg/text@1'; readonly nullable: true };
+    };
+  };
+  readonly sum: {
+    readonly byCodec: {
+      readonly 'pg/float@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
+      readonly 'pg/float4@1': { readonly output: 'pg/float4@1'; readonly nullable: true };
+      readonly 'pg/float8@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
+      readonly 'pg/int@1': { readonly output: 'pg/int8@1'; readonly nullable: true };
+      readonly 'pg/int2@1': { readonly output: 'pg/int8@1'; readonly nullable: true };
+      readonly 'pg/int4@1': { readonly output: 'pg/int8@1'; readonly nullable: true };
+      readonly 'pg/int8@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/interval@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
+      readonly 'pg/numeric@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/time@1': { readonly output: 'pg/interval@1'; readonly nullable: true };
+      readonly 'sql/float@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
+      readonly 'sql/int@1': { readonly output: 'pg/int8@1'; readonly nullable: true };
+    };
+  };
+};
+type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyof CodecTypes
+  ? Encoded extends CodecTypes[CodecId]['json']
+    ? Encoded
+    : CodecTypes[CodecId]['json']
+  : Encoded;
 
 export type FieldOutputTypes = {
   readonly public: {
@@ -81,7 +179,8 @@ export type TypeMaps = TypeMapsType<
   FieldOutputTypes,
   FieldInputTypes,
   StorageColumnTypes,
-  StorageColumnInputTypes
+  StorageColumnInputTypes,
+  AggregateTypes
 >;
 
 type ContractBase = Omit<

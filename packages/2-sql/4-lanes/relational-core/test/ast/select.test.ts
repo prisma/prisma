@@ -166,7 +166,7 @@ describe('ast/select', () => {
     ).toThrow(
       expect.objectContaining({
         name: 'StructuredError',
-        code: 'SQL.AST_INVALID',
+        code: 'RUNTIME.AST_INVALID',
         message: 'FunctionSource column aliases must not be empty',
         meta: { kind: 'function-source', field: 'columnAliases' },
       }),

@@ -18,8 +18,8 @@
     "lint": "biome check . --error-on-warnings"
   },
   "dependencies": {
-    "@prisma/orm-extension-middleware-cache": "workspace:0.17.0",
-    "@prisma/orm-mongo": "workspace:0.17.0",
+    "@prisma/orm-extension-middleware-cache": "workspace:8.0.0-rc.1",
+    "@prisma/orm-mongo": "workspace:8.0.0-rc.1",
     "@radix-ui/react-dropdown-menu": "^2.1.24",
     "@radix-ui/react-label": "^2.1.15",
     "@radix-ui/react-radio-group": "^1.4.7",
@@ -29,26 +29,26 @@
     "@tailwindcss/postcss": "^4.3.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^1.26.0",
+    "lucide-react": "^1.28.0",
     "mongodb": "catalog:",
     "next": "^16.2.12",
-    "postcss": "^8.5.21",
+    "postcss": "^8.5.25",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "@repo/test-utils": "workspace:0.17.0",
-    "@repo/tsconfig": "workspace:0.17.0",
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "@types/node": "catalog:",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "mongodb-memory-server": "catalog:",
     "pathe": "^2.0.3",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
-  "version": "0.17.0"
+  "version": "8.0.0-rc.1"
 }

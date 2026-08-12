@@ -1,6 +1,6 @@
 {
   "name": "telemetry-backend",
-  "version": "0.17.0",
+  "version": "8.0.0-rc.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -22,15 +22,15 @@
     "clean": "rm -rf dist coverage"
   },
   "dependencies": {
-    "@prisma/orm-postgres": "workspace:0.17.0",
+    "@prisma/orm-postgres": "workspace:8.0.0-rc.1",
     "arktype": "catalog:",
     "evlog": "^2.22.4"
   },
   "devDependencies": {
-    "@prisma/compute-sdk": "^0.36.0",
+    "@prisma/compute-sdk": "^0.38.0",
     "@prisma/management-api-sdk": "^1.47.0",
-    "@repo/test-utils": "workspace:0.17.0",
-    "@repo/tsconfig": "workspace:0.17.0",
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "@types/bun": "^1.2.18",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",

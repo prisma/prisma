@@ -11,7 +11,11 @@
  * - `push`              → if the root `version` changed in this push,
  *                          `<base>` (no suffix), dist-tag `latest`. This
  *                          is how a merged `chore(release): ...` PR
- *                          ships a stable release automatically.
+ *                          ships a release automatically — on the RC
+ *                          line `latest` tracks the newest `8.0.0-rc.N`
+ *                          (these package names have no pre-v8 stable
+ *                          audience to protect; the bare `prisma`
+ *                          package, which does, is published elsewhere).
  *                         Otherwise, `<base>-dev.N`, dist-tag `dev`
  *                          (N is the next available build number,
  *                          discovered by querying npm).
@@ -28,18 +32,14 @@ import { execFileSync, execSync } from 'node:child_process';
 import { appendFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'pathe';
-import { assertCanonicalBase } from './determine-version-utils.ts';
+import type { VersionResult } from './determine-version-utils.ts';
+import { assertCanonicalBase, composeDevVersion } from './determine-version-utils.ts';
 
 // `prisma-next` has the longest publish history (it carries dev builds from
 // the pre-monorepo repository), so its `dev` dist-tag is the high-water mark
 // for the build counter. Counting from any younger package would re-issue a
 // `<base>-dev.N` that npm already holds for the shim and fail the publish.
 const PACKAGE_NAME = process.argv[2] ?? 'prisma-next';
-
-interface VersionResult {
-  version: string;
-  tag: string;
-}
 
 const rootDir = dirname(dirname(fileURLToPath(import.meta.url)));
 
@@ -50,7 +50,7 @@ function readRootVersion(): string {
     throw new Error(
       `Root package.json (${pkgPath}) is missing a \`version\` field. ` +
         'The publish pipeline now reads the version directly from the workspace root; ' +
-        'set it (e.g. `pnpm bump-minor`) before publishing.',
+        'set it (e.g. `pnpm bump-version`) before publishing.',
     );
   }
   return parsed.version;
@@ -100,28 +100,6 @@ function readPreviousRootVersion(): PreviousVersionLookup {
   }
 }
 
-function determineDevVersion(baseVersion: string): VersionResult {
-  const latestDevVersion = getLatestDevVersion();
-  let buildNumber = 1;
-
-  if (latestDevVersion) {
-    const devPattern = /^(\d+\.\d+\.\d+)-dev\.(\d+)$/;
-    const match = latestDevVersion.match(devPattern);
-
-    if (match) {
-      const [, devBase, build] = match;
-      if (devBase === baseVersion) {
-        buildNumber = Number.parseInt(build, 10) + 1;
-      }
-    }
-  }
-
-  return {
-    version: `${baseVersion}-dev.${buildNumber}`,
-    tag: 'dev',
-  };
-}
-
 function writeGitHubOutput(result: VersionResult): void {
   const outputFile = process.env.GITHUB_OUTPUT;
   if (outputFile) {
@@ -145,15 +123,15 @@ switch (eventName) {
   case 'workflow_dispatch':
     // `??` is wrong here: an empty INPUT_DIST_TAG would slip through as
     // the dist-tag and cause `pnpm publish --tag ""` to fail downstream.
-    // The workflow declares `dist-tag` with a `latest` default, so this
-    // fallback is a defensive belt-and-braces.
     result = { version: baseVersion, tag: inputDistTag || 'latest' };
     break;
 
   case 'push': {
     // If the root `version` differs from what main was pointing at before
-    // this push, the push contains a release bump — cut a stable release
-    // automatically. Otherwise, produce the usual `<base>-dev.N` tarball.
+    // this push, the push contains a release bump — cut a release
+    // automatically under `latest` (which tracks the newest release,
+    // RC or stable, for every package this repo publishes). Otherwise,
+    // produce the usual `<base>-dev.N` tarball.
     //
     // `available: false` (shallow clone, missing SHA) deliberately falls
     // through to the dev path: a transient git error must never silently
@@ -166,7 +144,7 @@ switch (eventName) {
       );
       result = { version: baseVersion, tag: 'latest' };
     } else {
-      result = determineDevVersion(baseVersion);
+      result = composeDevVersion(baseVersion, getLatestDevVersion());
     }
     break;
   }

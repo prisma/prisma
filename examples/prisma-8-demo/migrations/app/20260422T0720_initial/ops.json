@@ -154,7 +154,7 @@
     "execute": [
       {
         "description": "create table \"user\"",
-        "sql": "CREATE TABLE \"public\".\"user\" (\n  \"address\" jsonb,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"displayName\" text NOT NULL,\n  \"email\" text NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"kind\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "sql": "CREATE TABLE \"public\".\"user\" (\n  \"address\" jsonb,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"displayName\" text NOT NULL,\n  \"email\" text NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"kind\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"user_kind_check_836d43ef\" CHECK (\"kind\" IN ('admin', 'user'))\n)",
         "params": []
       }
     ],
@@ -189,7 +189,7 @@
     "execute": [
       {
         "description": "create table \"post\"",
-        "sql": "CREATE TABLE \"public\".\"post\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"embedding\" vector(1536),\n  \"id\" uuid NOT NULL,\n  \"priority\" text DEFAULT 'low' NOT NULL,\n  \"title\" text NOT NULL,\n  \"userId\" uuid NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "sql": "CREATE TABLE \"public\".\"post\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"embedding\" vector(1536),\n  \"id\" uuid NOT NULL,\n  \"priority\" text DEFAULT 'low' NOT NULL,\n  \"title\" text NOT NULL,\n  \"userId\" uuid NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"post_priority_check_09b41aa0\" CHECK (\"priority\" IN ('low', 'high', 'urgent'))\n)",
         "params": []
       }
     ],
@@ -268,74 +268,6 @@
         "description": "verify table \"post_tag\" exists",
         "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
         "params": ["\"public\".\"post_tag\""]
-      }
-    ]
-  },
-  {
-    "id": "checkConstraint.user.user_kind_check",
-    "label": "Add check constraint \"user_kind_check\" on \"user\".\"kind\"",
-    "operationClass": "additive",
-    "target": {
-      "id": "postgres",
-      "details": {
-        "schema": "public",
-        "objectType": "checkConstraint",
-        "name": "user_kind_check",
-        "table": "user"
-      }
-    },
-    "precheck": [
-      {
-        "description": "ensure constraint \"user_kind_check\" does not exist",
-        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
-        "params": ["user_kind_check", "public", "\"public\".\"user\""]
-      }
-    ],
-    "execute": [
-      {
-        "description": "add check constraint \"user_kind_check\"",
-        "sql": "ALTER TABLE \"public\".\"user\" ADD CONSTRAINT \"user_kind_check\" CHECK (\"kind\" IN ('admin', 'user'))"
-      }
-    ],
-    "postcheck": [
-      {
-        "description": "verify constraint \"user_kind_check\" exists",
-        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
-        "params": ["user_kind_check", "public", "\"public\".\"user\""]
-      }
-    ]
-  },
-  {
-    "id": "checkConstraint.post.post_priority_check",
-    "label": "Add check constraint \"post_priority_check\" on \"post\".\"priority\"",
-    "operationClass": "additive",
-    "target": {
-      "id": "postgres",
-      "details": {
-        "schema": "public",
-        "objectType": "checkConstraint",
-        "name": "post_priority_check",
-        "table": "post"
-      }
-    },
-    "precheck": [
-      {
-        "description": "ensure constraint \"post_priority_check\" does not exist",
-        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
-        "params": ["post_priority_check", "public", "\"public\".\"post\""]
-      }
-    ],
-    "execute": [
-      {
-        "description": "add check constraint \"post_priority_check\"",
-        "sql": "ALTER TABLE \"public\".\"post\" ADD CONSTRAINT \"post_priority_check\" CHECK (\"priority\" IN ('low', 'high', 'urgent'))"
-      }
-    ],
-    "postcheck": [
-      {
-        "description": "verify constraint \"post_priority_check\" exists",
-        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
-        "params": ["post_priority_check", "public", "\"public\".\"post\""]
       }
     ]
   },

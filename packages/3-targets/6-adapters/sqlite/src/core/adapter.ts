@@ -107,8 +107,14 @@ class SqliteAdapterImpl implements Adapter<AnyQueryAst, SqliteContract, SqliteLo
               sql: string,
               params?: readonly unknown[],
             ) => {
-              const result = await queryable.query<Row>(sql, params);
-              return { rows: [...result.rows] };
+              const rows: Row[] = [];
+              for await (const row of queryable.query<Row>({
+                sql,
+                ...(params === undefined ? {} : { params }),
+              })) {
+                rows.push(row);
+              }
+              return { rows };
             },
             close: async () => {},
           },
@@ -326,14 +332,14 @@ function renderSource(source: AnyFromSource, ctx: SqliteRenderContext): string {
     case 'function-source': {
       if (node.ordinality) {
         throw structuredError(
-          'ADAPTER.CAPABILITY_MISSING',
+          'RUNTIME.AST_UNSUPPORTED',
           'SQLite does not support WITH ORDINALITY on function sources',
           { meta: { target: 'sqlite', feature: 'function-source-with-ordinality' } },
         );
       }
       if (node.columnAliases !== undefined) {
         throw structuredError(
-          'ADAPTER.CAPABILITY_MISSING',
+          'RUNTIME.AST_UNSUPPORTED',
           'SQLite does not support returned-column aliases on function sources',
           { meta: { target: 'sqlite', feature: 'function-source-column-aliases' } },
         );

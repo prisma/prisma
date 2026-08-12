@@ -69,6 +69,9 @@ type UsersWithSelectedPostsRow = RowOf<typeof usersWithSelectedPosts>;
 
 export type IncludeCardinalityTypeAssertions = [
   Assert<Equal<UsersWithPostsRow['posts'], Array<RowOf<Collection<TestContract, 'Post'>>>>>,
+  // An include count reads through the target's count codec, like any other
+  // aggregate — PostgreSQL counts as `pg/int8number@1`, whose value is a
+  // number.
   Assert<Equal<UsersWithPostCountRow['posts'], number>>,
   Assert<Equal<keyof UsersWithSelectedPostsRow['posts'][number], 'title'>>,
   // 1:1 non-FK side (parentCols = PK) → nullable

@@ -1,6 +1,6 @@
 {
   "name": "@prisma/orm-sqlite",
-  "version": "0.17.0",
+  "version": "8.0.0-rc.1",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -14,16 +14,16 @@
     "clean": "rm -rf dist src-gen"
   },
   "dependencies": {
-    "@prisma/orm-family-sql": "workspace:0.17.0",
-    "@prisma/orm-framework": "workspace:0.17.0",
-    "@prisma/orm-target-sqlite": "workspace:0.17.0",
-    "@prisma/orm-toolchain": "workspace:0.17.0",
+    "@prisma/orm-family-sql": "workspace:8.0.0-rc.1",
+    "@prisma/orm-framework": "workspace:8.0.0-rc.1",
+    "@prisma/orm-target-sqlite": "workspace:8.0.0-rc.1",
+    "@prisma/orm-toolchain": "workspace:8.0.0-rc.1",
     "pathe": "^2.0.3"
   },
   "devDependencies": {
-    "@internal/sqlite": "workspace:0.17.0",
-    "@repo/tsconfig": "workspace:0.17.0",
-    "@repo/tsdown": "workspace:0.17.0",
+    "@internal/sqlite": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   },
@@ -42,6 +42,7 @@
     "./adapter/column-types": "./dist/adapter__column-types.mjs",
     "./adapter/control": "./dist/adapter__control.mjs",
     "./adapter/runtime": "./dist/adapter__runtime.mjs",
+    "./adapter/sql-renderer": "./dist/adapter__sql-renderer.mjs",
     "./adapter/types": "./dist/adapter__types.mjs",
     "./bin/prisma-next": "./dist/bin__prisma-next.mjs",
     "./builder": "./dist/builder.mjs",
@@ -109,6 +110,7 @@
     "./migration-tools/spaces": "./dist/migration-tools__spaces.mjs",
     "./orm-client": "./dist/orm-client.mjs",
     "./relational-core": "./dist/relational-core.mjs",
+    "./relational-core/aggregate-descriptor-registry": "./dist/relational-core__aggregate-descriptor-registry.mjs",
     "./relational-core/ast": "./dist/relational-core__ast.mjs",
     "./relational-core/codec-descriptor-registry": "./dist/relational-core__codec-descriptor-registry.mjs",
     "./relational-core/contract-free": "./dist/relational-core__contract-free.mjs",
@@ -120,6 +122,7 @@
     "./runtime": "./dist/runtime.mjs",
     "./schema-ir/types": "./dist/schema-ir__types.mjs",
     "./static": "./dist/static.mjs",
+    "./target/aggregates": "./dist/target__aggregates.mjs",
     "./target/codec-descriptor": "./dist/target__codec-descriptor.mjs",
     "./target/codec-ids": "./dist/target__codec-ids.mjs",
     "./target/codec-types": "./dist/target__codec-types.mjs",

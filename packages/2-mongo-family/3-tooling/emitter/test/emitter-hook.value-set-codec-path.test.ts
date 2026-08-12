@@ -10,7 +10,7 @@ const NON_IDENTITY_CODEC_ID = 'test/level@1';
 const LEVEL_BY_INDEX = ['low', 'high', 'urgent'] as const;
 
 // A non-identity codec: encodes to ints 0|1|2 (the value-set's stored form) but its output type is
-// the string literals 'low'|'high'|'urgent'. `renderValueLiteralFor` decodes the encoded int, then
+// the string literals "low"|"high"|"urgent". `renderValueLiteralFor` decodes the encoded int, then
 // renders the decoded literal — so the emitted type is the codec OUTPUT, not the encoded value.
 const nonIdentityCodecLookup: CodecLookup = {
   get: () => undefined,
@@ -19,7 +19,7 @@ const nonIdentityCodecLookup: CodecLookup = {
   renderValueLiteralFor: (id, value) => {
     if (id !== NON_IDENTITY_CODEC_ID || typeof value !== 'number') return undefined;
     const decoded = LEVEL_BY_INDEX[value];
-    return decoded === undefined ? undefined : `'${decoded}'`;
+    return decoded === undefined ? undefined : `"${decoded}"`;
   },
 };
 
@@ -79,7 +79,7 @@ describe('mongo emit typing routes through the codec seam (not a raw value print
 
     // Codec OUTPUT (decoded literals), proving the value flowed through
     // renderValueSetType -> renderValueLiteralFor, not a raw print of the encoded values.
-    expect(outputMap).toContain("readonly level: 'low' | 'high' | 'urgent'");
+    expect(outputMap).toContain('readonly level: "low" | "high" | "urgent"');
     expect(outputMap).not.toContain('0 | 1 | 2');
   });
 
@@ -101,7 +101,7 @@ describe('mongo emit typing routes through the codec seam (not a raw value print
       dts.indexOf('export type FieldInputTypes'),
     );
     // Fallback is the codec output channel, never the raw encoded ints.
-    expect(outputMap).toContain(`readonly level: CodecTypes['${NON_IDENTITY_CODEC_ID}']['output']`);
+    expect(outputMap).toContain(`readonly level: CodecTypes["${NON_IDENTITY_CODEC_ID}"]["output"]`);
     expect(outputMap).not.toContain('0 | 1 | 2');
   });
 });

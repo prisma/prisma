@@ -20,6 +20,7 @@ import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   AppliedMutationDefault,
   MutationDefaultsOptions,
+  SqlAggregateDescriptorRegistry,
 } from '@internal/sql-relational-core/query-lane-context';
 import { ifDefined } from '@internal/utils/defined';
 import { structuredError } from '@internal/utils/structured-error';
@@ -39,6 +40,7 @@ import type {
   ScopeField,
   ScopeTable,
 } from '../scope';
+import { projectionAstOf } from './expression-impl';
 import { createFieldProxy } from './field-proxy';
 import { createAggregateFunctions, createFunctions } from './functions';
 
@@ -101,6 +103,10 @@ export interface BuilderContext {
    * Codec inferer used inside `createBuiltinFunctions` to construct the raw-SQL tag — `fns.raw` dispatches through `inferCodec(value)` for bare-literal interpolations.
    */
   readonly rawCodecInferer: RawCodecInferer;
+  /**
+   * Aggregate result identity, resolved from the descriptors the composed stack contributes. The lane asks it what an aggregate's result carries rather than assuming the input's codec or naming a target's codec id.
+   */
+  readonly aggregates: SqlAggregateDescriptorRegistry;
 }
 
 /**
@@ -316,10 +322,14 @@ export function resolveSelectArgs(
       f: FieldProxy<Scope>,
       fns: AggregateFunctions<QueryContext>,
     ) => Expression<ScopeField>;
-    const fns = createAggregateFunctions(ctx.queryOperationTypes, ctx.rawCodecInferer);
+    const fns = createAggregateFunctions(
+      ctx.queryOperationTypes,
+      ctx.rawCodecInferer,
+      ctx.aggregates,
+    );
     const result = exprFn(createFieldProxy(scope), fns);
     const field = result.returnType;
-    projections.push(ProjectionItem.of(alias, result.buildAst(), field.codec));
+    projections.push(ProjectionItem.of(alias, projectionAstOf(result), field.codec));
     newRowFields[alias] = field;
     return { projections, newRowFields };
   }
@@ -329,11 +339,15 @@ export function resolveSelectArgs(
       f: FieldProxy<Scope>,
       fns: AggregateFunctions<QueryContext>,
     ) => Record<string, Expression<ScopeField>>;
-    const fns = createAggregateFunctions(ctx.queryOperationTypes, ctx.rawCodecInferer);
+    const fns = createAggregateFunctions(
+      ctx.queryOperationTypes,
+      ctx.rawCodecInferer,
+      ctx.aggregates,
+    );
     const record = callbackFn(createFieldProxy(scope), fns);
     for (const [key, expr] of Object.entries(record)) {
       const field = expr.returnType;
-      projections.push(ProjectionItem.of(key, expr.buildAst(), field.codec));
+      projections.push(ProjectionItem.of(key, projectionAstOf(expr), field.codec));
       newRowFields[key] = field;
     }
     return { projections, newRowFields };
@@ -369,7 +383,7 @@ export function resolveOrderBy(
   if (typeof arg === 'function') {
     const combined = orderByScopeOf(scope, rowFields);
     const fns = useAggregateFns
-      ? createAggregateFunctions(ctx.queryOperationTypes, ctx.rawCodecInferer)
+      ? createAggregateFunctions(ctx.queryOperationTypes, ctx.rawCodecInferer, ctx.aggregates)
       : createFunctions(ctx.queryOperationTypes, ctx.rawCodecInferer);
     const result = (arg as ExprCallback)(createFieldProxy(combined), fns);
     return dir === 'asc' ? OrderByItem.asc(result.buildAst()) : OrderByItem.desc(result.buildAst());

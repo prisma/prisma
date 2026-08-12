@@ -46,13 +46,8 @@ describe('SqlFamilyAdapter', () => {
   it('delegates readMarker to adapter profile', async () => {
     const adapter = new SqlFamilyAdapter(testContract, testProfile);
     const fakeQueryable = {
-      execute: () => {
-        throw new Error('not used');
-      },
-      executePrepared: () => {
-        throw new Error('not used');
-      },
-      query: async () => ({ rows: [] }),
+      execute: async () => ({ affectedRows: 0 }),
+      async *query() {},
     };
     const result = await adapter.markerReader.readMarker(fakeQueryable);
 

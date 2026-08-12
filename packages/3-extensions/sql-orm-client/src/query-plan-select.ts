@@ -1,7 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlAggregateLowering } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import {
-  AggregateExpr,
   AndExpr,
   type AnyExpression,
   type AnyFromSource,
@@ -31,9 +31,11 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { assertDefined, invariant } from '@internal/utils/assertions';
 import { ifDefined } from '@internal/utils/defined';
-import { assertNever, InternalError } from '@internal/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
+import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
 import {
   getCompleteColumnToFieldMap,
   getFieldToColumnMap,
@@ -71,11 +73,13 @@ type CursorOrderEntry = {
  *   correlated subquery, a combine branch, or the object a child row set is
  *   aggregated from. Its parts were made canonical at the level that produced
  *   them; this level only nests it.
- * - `native`: the value has no codec identity. An aggregate is the case that
- *   arises today: `COUNT(*)` and `SUM(col)` are computed, and the aggregate's
- *   own result type is not the column's codec. Native is what a value with no
- *   codec identity means, which is a different thing from defaulting a codec
- *   to identity — that, the project forbids.
+ * - `native`: the value has no codec identity. The case that reaches it is an
+ *   aggregate the target declares no overload for — SQLite computes `sum` over
+ *   a text column from whatever leading numbers the rows held, and declines to
+ *   type the result. Native is what a value with no codec identity means, which
+ *   is a different thing from defaulting a codec to identity — that, the
+ *   project forbids. An aggregate the target does declare carries the codec the
+ *   registry resolved for it, like any other value.
  *
  * A document never carries a codec and a codec-bearing column is never a
  * document, so the first two cases cannot both apply.
@@ -336,12 +340,15 @@ function buildStateWhere(
   const filterTableName = options?.filterTableName;
   const cursorTableName = filterTableName ?? tableName;
   const cursorWhere = buildCursorWhere(cursorTableName, state.orderBy, state.cursor);
+  const boundFilters = state.filters.map((filter) =>
+    bindWhereExpr(contract, filter, options?.namespaceId),
+  );
   const remappedFilters =
     filterTableName && filterTableName !== tableName
-      ? state.filters.map((filter) =>
+      ? boundFilters.map((filter) =>
           filter.rewrite(createTableRefRemapper(filterTableName, tableName)),
         )
-      : state.filters;
+      : boundFilters;
   const boundCursorWhere = cursorWhere
     ? bindWhereExpr(contract, cursorWhere, options?.namespaceId)
     : undefined;
@@ -491,11 +498,13 @@ function resolveChildTableSource(
  */
 function buildNestedIncludeProjections(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   parentSource: IncludeParentSource,
   includes: readonly IncludeExpr[],
 ): ReadonlyArray<ProjectionItem> {
   return includes.map(
-    (nested) => buildCorrelatedIncludeProjection(contract, parentSource, nested).projection,
+    (nested) =>
+      buildCorrelatedIncludeProjection(contract, aggregates, parentSource, nested).projection,
   );
 }
 
@@ -709,6 +718,7 @@ function buildManyToManyJunctionArtifacts(
 
 function buildIncludeChildRowsSelect(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   parentSource: IncludeParentSource,
   include: IncludeExpr,
 ): {
@@ -793,6 +803,7 @@ function buildIncludeChildRowsSelect(
   if (isDistinctNonLeaf) {
     return buildDistinctNonLeafChildRowsSelect({
       contract,
+      aggregates,
       include,
       childTableAlias,
       childTableRef,
@@ -825,6 +836,7 @@ function buildIncludeChildRowsSelect(
   // be an alias if the relation is self-referential.
   const nestedProjections = buildNestedIncludeProjections(
     contract,
+    aggregates,
     {
       baseTableName: include.relatedTableName,
       tableRef: childTableRef,
@@ -917,6 +929,7 @@ function buildIncludeChildRowsSelect(
 
 function buildDistinctNonLeafChildRowsSelect(options: {
   readonly contract: Contract<SqlStorage>;
+  readonly aggregates: SqlAggregateDescriptorRegistry;
   readonly include: IncludeExpr;
   readonly childTableAlias: string | undefined;
   readonly childTableRef: string;
@@ -935,6 +948,7 @@ function buildDistinctNonLeafChildRowsSelect(options: {
 } {
   const {
     contract,
+    aggregates,
     include,
     childTableAlias,
     childTableRef,
@@ -1076,6 +1090,7 @@ function buildDistinctNonLeafChildRowsSelect(options: {
   );
   const outerNestedProjections = buildNestedIncludeProjections(
     contract,
+    aggregates,
     {
       baseTableName: include.relatedTableName,
       tableRef: distinctAlias,
@@ -1149,10 +1164,27 @@ function buildDistinctNonLeafChildRowsSelect(options: {
  */
 function buildIncludeChildScalarSelect(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   parentSource: IncludeParentSource,
   include: IncludeExpr,
   scalar: IncludeScalar<unknown>,
 ): SelectAst {
+  // The reducer's result is a value in its own right, so it enters the JSON
+  // envelope under the codec the target declares for it — without which a count
+  // past 2^53 would arrive as a rounded JSON number — and through whatever
+  // expression that target wants built for it.
+  const {
+    codec: resultCodec,
+    input: inputCodec,
+    lower: resultLowering,
+  } = resolveAggregate({
+    aggregates,
+    contract,
+    namespaceId: include.relatedNamespaceId,
+    tableName: include.relatedTableName,
+    fn: scalar.fn,
+    column: scalar.column,
+  });
   const parentLocalRefs = resolveParentLocalRefs(
     parentSource,
     include,
@@ -1209,9 +1241,14 @@ function buildIncludeChildScalarSelect(
   const needsInnerScoping = hasPagination || hasDistinct;
 
   if (!needsInnerScoping) {
-    const aggregateExpr = buildIncludeAggregateExpr(scalar, childTableRef);
+    const aggregateExpr = buildIncludeAggregateExpr(
+      scalar,
+      childTableRef,
+      resultLowering,
+      inputCodec,
+    );
     const jsonObjectExpr = JsonObjectExpr.fromEntries([
-      JsonObjectExpr.entry('value', jsonEntryProjection(aggregateExpr, {})),
+      JsonObjectExpr.entry('value', jsonEntryProjection(aggregateExpr, { codec: resultCodec })),
     ]);
     let select = SelectAst.from(
       tableSourceForContract(
@@ -1318,9 +1355,14 @@ function buildIncludeChildScalarSelect(
   }
 
   // Outer aggregating SELECT over the shaped inner row set.
-  const outerAggregateExpr = buildIncludeAggregateExpr(scalar, innerAlias);
+  const outerAggregateExpr = buildIncludeAggregateExpr(
+    scalar,
+    innerAlias,
+    resultLowering,
+    inputCodec,
+  );
   const outerJsonObjectExpr = JsonObjectExpr.fromEntries([
-    JsonObjectExpr.entry('value', jsonEntryProjection(outerAggregateExpr, {})),
+    JsonObjectExpr.entry('value', jsonEntryProjection(outerAggregateExpr, { codec: resultCodec })),
   ]);
 
   return SelectAst.from(DerivedTableSource.as(innerAlias, inner)).withProjection([
@@ -1331,32 +1373,16 @@ function buildIncludeChildScalarSelect(
 function buildIncludeAggregateExpr(
   scalar: IncludeScalar<unknown>,
   childTableRef: string,
-): AggregateExpr {
-  if (scalar.fn === 'count') {
-    return AggregateExpr.count();
-  }
-  if (scalar.column === undefined) {
-    throw ormError(
-      'ORM.AGGREGATE_SELECTOR_INVALID',
-      `Aggregate selector "${scalar.fn}" requires a column`,
-      {
-        meta: { fn: scalar.fn },
-      },
-    );
-  }
-  const columnRef = ColumnRef.of(childTableRef, scalar.column);
-  switch (scalar.fn) {
-    case 'sum':
-      return AggregateExpr.sum(columnRef);
-    case 'avg':
-      return AggregateExpr.avg(columnRef);
-    case 'min':
-      return AggregateExpr.min(columnRef);
-    case 'max':
-      return AggregateExpr.max(columnRef);
-    default:
-      return assertNever(scalar.fn);
-  }
+  lower: SqlAggregateLowering | undefined,
+  inputCodec: CodecRef | undefined,
+): AnyExpression {
+  // A call without a column has no value to carry a codec, so the lowering is
+  // told as much rather than told nothing. Whether the operation answers such
+  // a call at all was the descriptor's to declare — resolution already failed
+  // any pair the target does not answer.
+  const expr = scalar.column === undefined ? undefined : ColumnRef.of(childTableRef, scalar.column);
+  if (lower !== undefined) return lower({ expr, inputCodec });
+  return plainAggregateExpr(scalar.fn, expr);
 }
 
 /**
@@ -1380,6 +1406,7 @@ function buildIncludeAggregateExpr(
  */
 function buildIncludeChildCombineSelect(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   parentSource: IncludeParentSource,
   include: IncludeExpr,
   branches: Readonly<Record<string, IncludeCombineBranch>>,
@@ -1398,7 +1425,13 @@ function buildIncludeChildCombineSelect(
   const compiledBranches = branchEntries.map(([name, branch]) => ({
     name,
     alias: `${include.relationName}__combine__${name}`,
-    select: buildIncludeChildCombineBranchSelect(contract, parentSource, include, branch),
+    select: buildIncludeChildCombineBranchSelect(
+      contract,
+      aggregates,
+      parentSource,
+      include,
+      branch,
+    ),
   }));
 
   const jsonObjectExpr = JsonObjectExpr.fromEntries(
@@ -1434,12 +1467,19 @@ function buildIncludeChildCombineSelect(
  */
 function buildIncludeChildCombineBranchSelect(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   parentSource: IncludeParentSource,
   include: IncludeExpr,
   branch: IncludeCombineBranch,
 ): SelectAst {
   if (branch.kind === 'scalar') {
-    return buildIncludeChildScalarSelect(contract, parentSource, include, branch.selector);
+    return buildIncludeChildScalarSelect(
+      contract,
+      aggregates,
+      parentSource,
+      include,
+      branch.selector,
+    );
   }
   // Row branch: synthesize an IncludeExpr whose `nested` is the
   // branch's state, then build the standard row-aggregate inner shape.
@@ -1449,7 +1489,7 @@ function buildIncludeChildCombineBranchSelect(
     scalar: undefined,
     combine: undefined,
   };
-  return buildIncludeChildRowsAggregateSelect(contract, parentSource, syntheticInclude);
+  return buildIncludeChildRowsAggregateSelect(contract, aggregates, parentSource, syntheticInclude);
 }
 
 /**
@@ -1460,11 +1500,12 @@ function buildIncludeChildCombineBranchSelect(
  */
 function buildIncludeChildRowsAggregateSelect(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   parentSource: IncludeParentSource,
   include: IncludeExpr,
 ): SelectAst {
   const { childRows, childProjection, documentAliases, rowsAlias, aggregateOrderBy } =
-    buildIncludeChildRowsSelect(contract, parentSource, include);
+    buildIncludeChildRowsSelect(contract, aggregates, parentSource, include);
   const jsonObjectExpr = JsonObjectExpr.fromEntries(
     childProjection.map((item) =>
       JsonObjectExpr.entry(
@@ -1490,6 +1531,7 @@ function buildIncludeChildRowsAggregateSelect(
 
 function buildCorrelatedIncludeProjection(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   parentSource: IncludeParentSource,
   include: IncludeExpr,
 ): {
@@ -1498,6 +1540,7 @@ function buildCorrelatedIncludeProjection(
   if (include.scalar) {
     const scalarSelect = buildIncludeChildScalarSelect(
       contract,
+      aggregates,
       parentSource,
       include,
       include.scalar,
@@ -1510,6 +1553,7 @@ function buildCorrelatedIncludeProjection(
   if (include.combine) {
     const combineSelect = buildIncludeChildCombineSelect(
       contract,
+      aggregates,
       parentSource,
       include,
       include.combine,
@@ -1519,7 +1563,12 @@ function buildCorrelatedIncludeProjection(
     };
   }
 
-  const aggregateQuery = buildIncludeChildRowsAggregateSelect(contract, parentSource, include);
+  const aggregateQuery = buildIncludeChildRowsAggregateSelect(
+    contract,
+    aggregates,
+    parentSource,
+    include,
+  );
   return {
     projection: ProjectionItem.of(include.relationName, SubqueryExpr.of(aggregateQuery)),
   };
@@ -1744,6 +1793,7 @@ export function compileSelect(
 
 export function compileSelectWithIncludes(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   tableName: string,
   state: CollectionState,
@@ -1792,7 +1842,7 @@ export function compileSelectWithIncludes(
     variantColumnsProjected: false,
   };
   for (const include of state.includes) {
-    const artifact = buildCorrelatedIncludeProjection(contract, parentSource, include);
+    const artifact = buildCorrelatedIncludeProjection(contract, aggregates, parentSource, include);
     includeProjection.push(artifact.projection);
   }
 

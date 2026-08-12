@@ -1,5 +1,4 @@
 import { mkdir } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import { emit, getEmittedArtifactPaths } from '@internal/emitter';
 import { createControlStack } from '@internal/framework-components/control';
@@ -39,11 +38,17 @@ function endSpan(
   onProgress?.({ action: EMIT_ACTION, kind: 'spanEnd', spanId, outcome });
 }
 
-function failedToResolveContractSource(why: string, fix: string, meta?: Record<string, unknown>) {
-  return errorRuntime('Failed to resolve contract source', {
+function failedToResolveContractSource(
+  why: string,
+  fix: string,
+  meta?: Record<string, unknown>,
+  cause?: unknown,
+) {
+  return errorRuntime('CONTRACT.SOURCE_LOAD_FAILED', 'Failed to resolve contract source', {
     why,
     fix,
     ...ifDefined('meta', meta),
+    ...ifDefined('cause', cause),
   });
 }
 
@@ -154,10 +159,14 @@ function validateProviderResult(providerResult: unknown): ValidatedProviderResul
 export async function executeContractEmit(
   options: ContractEmitOptions,
 ): Promise<ContractEmitResult> {
-  const { configPath, outputPath, signal = new AbortController().signal, onProgress } = options;
+  const {
+    config,
+    configPath,
+    outputPath,
+    signal = new AbortController().signal,
+    onProgress,
+  } = options;
   const unlessAborted = abortable(signal);
-
-  const config = await unlessAborted(loadConfig(configPath));
 
   if (!config.contract) {
     throw errorContractConfigMissing({
@@ -217,6 +226,8 @@ export async function executeContractEmit(
       throw failedToResolveContractSource(
         error instanceof Error ? error.message : String(error),
         'Ensure contract.source.load resolves to ok(Contract) or returns structured diagnostics.',
+        undefined,
+        error,
       );
     }
 

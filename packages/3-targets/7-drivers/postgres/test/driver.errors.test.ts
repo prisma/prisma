@@ -5,6 +5,7 @@ import { newDb } from 'pg-mem';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import postgresRuntimeDriverDescriptor from '../src/exports/runtime';
 import { createBoundDriverFromBinding } from '../src/postgres-driver';
+import { queryRows } from './sql-queryable-test-utils';
 
 describe('@internal/driver-postgres', () => {
   const cleanups: Array<() => Promise<void>> = [];
@@ -21,12 +22,12 @@ describe('@internal/driver-postgres', () => {
       const db = newDb();
       const { Pool } = db.adapters.createPg();
       const pool = new Pool();
-      const driver = postgresRuntimeDriverDescriptor.create();
+      const driver = postgresRuntimeDriverDescriptor.create({ cursor: { disabled: true } });
       cleanups.push(async () => {
         await driver.close();
       });
       await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool });
-      await expect(driver.query('select * from nonexistent_table')).rejects.toThrow();
+      await expect(queryRows(driver, 'select * from nonexistent_table')).rejects.toThrow();
     },
     timeouts.spinUpPpgDev,
   );
@@ -54,7 +55,7 @@ describe('@internal/driver-postgres', () => {
     });
 
     const consume = async () => {
-      for await (const _row of driver.execute({ sql: 'select 1' })) {
+      for await (const _row of driver.query({ sql: 'select 1' })) {
         // consume stream
       }
     };
@@ -94,7 +95,7 @@ describe('@internal/driver-postgres', () => {
     });
 
     const rows: Array<{ id: number; name: string }> = [];
-    for await (const row of driver.execute<{ id: number; name: string }>({
+    for await (const row of driver.query<{ id: number; name: string }>({
       sql: 'select id, name from items',
     })) {
       rows.push(row);
@@ -125,7 +126,7 @@ describe('@internal/driver-postgres', () => {
     });
 
     const consume = async () => {
-      for await (const _row of driver.execute({ sql: 'select 1' })) {
+      for await (const _row of driver.query({ sql: 'select 1' })) {
         // consume stream
       }
     };
@@ -145,13 +146,13 @@ describe('@internal/driver-postgres', () => {
     };
     const driver = createBoundDriverFromBinding(
       { kind: 'pgClient', client: mockClient as unknown as Client },
-      undefined,
+      { disabled: true },
     );
     cleanups.push(async () => {
       await driver.close();
     });
 
-    await expect(driver.query('select 1')).rejects.toThrow('Connection failed');
+    await expect(queryRows(driver, 'select 1')).rejects.toThrow('Connection failed');
   });
 
   it('closes pool driver once when close called multiple times', async () => {
@@ -205,15 +206,15 @@ describe('@internal/driver-postgres', () => {
     };
     const driver = createBoundDriverFromBinding(
       { kind: 'pgClient', client: mockClient as unknown as Client },
-      undefined,
+      { disabled: true },
     );
     cleanups.push(async () => {
       await driver.close();
     });
 
-    const result = await driver.query('select 1');
+    const result = await queryRows(driver, 'select 1');
 
-    expect(result.rows).toEqual([]);
+    expect(result).toEqual([]);
     expect(mockClient.connect).toHaveBeenCalledTimes(1);
   });
 
@@ -233,14 +234,14 @@ describe('@internal/driver-postgres', () => {
     };
     const driver = createBoundDriverFromBinding(
       { kind: 'pgClient', client: mockClient as unknown as Client },
-      undefined,
+      { disabled: true },
     );
     cleanups.push(async () => {
       await driver.close();
     });
 
-    const first = driver.query('select 1');
-    const second = driver.query('select 1');
+    const first = queryRows(driver, 'select 1');
+    const second = queryRows(driver, 'select 1');
     resolveConnect?.();
     await Promise.all([first, second]);
 

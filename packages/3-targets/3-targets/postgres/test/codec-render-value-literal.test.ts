@@ -25,20 +25,21 @@ describe('codec renderValueLiteral', () => {
     const renderer = valueRendererFor(pgTextDescriptor);
 
     it('renders a quoted string literal for output', () => {
-      expect(renderer?.('low', 'output')).toBe("'low'");
+      expect(renderer?.('low', 'output')).toBe('"low"');
     });
 
     it('renders a quoted string literal for input', () => {
-      expect(renderer?.('high', 'input')).toBe("'high'");
+      expect(renderer?.('high', 'input')).toBe('"high"');
     });
 
-    it('escapes single quotes in string values', () => {
-      expect(renderer?.("it's", 'output')).toBe("'it\\'s'");
+    it('escapes double quotes in string values', () => {
+      expect(renderer?.('say "hi"', 'output')).toBe('"say \\"hi\\""');
+      expect(renderer?.("it's", 'output')).toBe('"it\'s"');
     });
 
-    it('escapes newlines and carriage returns (invalid raw in a single-quoted literal)', () => {
-      expect(renderer?.('a\nb', 'output')).toBe("'a\\nb'");
-      expect(renderer?.('a\r\nb', 'output')).toBe("'a\\r\\nb'");
+    it('escapes newlines and carriage returns (invalid raw in a quoted literal)', () => {
+      expect(renderer?.('a\nb', 'output')).toBe('"a\\nb"');
+      expect(renderer?.('a\r\nb', 'output')).toBe('"a\\r\\nb"');
     });
   });
 
@@ -98,15 +99,16 @@ describe('codec renderValueLiteral', () => {
     const renderer = valueRendererFor(pgEnumDescriptor);
 
     it('renders a quoted string literal for output', () => {
-      expect(renderer?.('aal1', 'output')).toBe("'aal1'");
+      expect(renderer?.('aal1', 'output')).toBe('"aal1"');
     });
 
     it('renders a quoted string literal for input', () => {
-      expect(renderer?.('aal2', 'input')).toBe("'aal2'");
+      expect(renderer?.('aal2', 'input')).toBe('"aal2"');
     });
 
-    it('escapes single quotes in member values', () => {
-      expect(renderer?.("it's", 'output')).toBe("'it\\'s'");
+    it('escapes double quotes in member values', () => {
+      expect(renderer?.('say "hi"', 'output')).toBe('"say \\"hi\\""');
+      expect(renderer?.("it's", 'output')).toBe('"it\'s"');
     });
   });
 

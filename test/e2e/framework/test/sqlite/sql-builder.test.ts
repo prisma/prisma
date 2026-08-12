@@ -1,4 +1,5 @@
 import { dirname, resolve } from 'node:path';
+import type { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import type { JsonValue } from '@prisma/orm-sqlite/adapter/codec-types';
 import { UNBOUND_NAMESPACE_ID } from '@prisma/orm-sqlite/components/ir';
@@ -9,6 +10,32 @@ import { withSqliteTestRuntime } from './utils';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const contractJsonPath = resolve(__dirname, 'fixtures/generated/contract.json');
+
+/**
+ * Replace the seeded posts with `groupCount` groups where group `g` holds `g`
+ * rows — distinct counts spanning the two-digit boundary, so a count compared
+ * or sorted as text ('10' < '9') diverges from the numeric answer.
+ */
+function seedPostsWithGroupCounts(rawDb: DatabaseSync, groupCount: number): void {
+  rawDb.exec('DELETE FROM posts');
+  const values: string[] = [];
+  let id = 1;
+  for (let group = 1; group <= groupCount; group += 1) {
+    for (let i = 0; i < group; i += 1) {
+      values.push(`(${id}, 'post ${id}', ${group}, 1)`);
+      id += 1;
+    }
+  }
+  rawDb.exec(`INSERT INTO posts (id, title, user_id, views) VALUES ${values.join(', ')}`);
+}
+
+/** Two rows whose `views` total leaves the safe integer range while staying a perfectly good SQLite integer. */
+function seedWideSum(rawDb: DatabaseSync): void {
+  rawDb.exec('DELETE FROM posts');
+  rawDb.exec(
+    "INSERT INTO posts (id, title, user_id, views) VALUES (1, 'a', 1, 9007199254740993), (2, 'b', 1, 2)",
+  );
+}
 
 describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, () => {
   describe('SELECT', () => {
@@ -236,6 +263,70 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
         expect(rows[0]!.metadata).toEqual(jsonData);
 
         expectTypeOf(rows[0]!).toEqualTypeOf<{ id: number; metadata: JsonValue | null }>();
+      });
+    });
+  });
+
+  describe('aggregates', () => {
+    it('HAVING on count filters numerically across the two-digit boundary', async () => {
+      await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime, rawDb }) => {
+        seedPostsWithGroupCounts(rawDb, 12);
+        const rows = await runtime.execute(
+          db[UNBOUND_NAMESPACE_ID].posts
+            .select('user_id')
+            .select('cnt', (_f, fns) => fns.count())
+            .groupBy('user_id')
+            .having((_f, fns) => fns.gt(fns.count(), 9))
+            .orderBy('user_id')
+            .build(),
+        );
+        expect(rows).toEqual([
+          { user_id: 10, cnt: 10 },
+          { user_id: 11, cnt: 11 },
+          { user_id: 12, cnt: 12 },
+        ]);
+      });
+    });
+
+    it('ORDER BY count sorts numerically across the two-digit boundary', async () => {
+      await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime, rawDb }) => {
+        seedPostsWithGroupCounts(rawDb, 12);
+        const rows = await runtime.execute(
+          db[UNBOUND_NAMESPACE_ID].posts
+            .select('user_id')
+            .select('cnt', (_f, fns) => fns.count())
+            .groupBy('user_id')
+            .orderBy((_f, fns) => fns.count(), { direction: 'desc' })
+            .build(),
+        );
+        expect(rows.map((r) => r.user_id)).toEqual([12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+      });
+    });
+
+    it('projects a sumBigInt past 2^53 through the bigint lowering', async () => {
+      await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime, rawDb }) => {
+        seedWideSum(rawDb);
+        const rows = await runtime.execute(
+          db[UNBOUND_NAMESPACE_ID].posts
+            .select('total', (f, fns) => fns.sumBigInt(f.views))
+            .build(),
+        );
+        expect(rows).toEqual([{ total: 9007199254740995n }]);
+      });
+    });
+
+    it('refuses a bare sum past 2^53 rather than rounding it', async () => {
+      await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime, rawDb }) => {
+        seedWideSum(rawDb);
+        await expect(
+          runtime.execute(
+            db[UNBOUND_NAMESPACE_ID].posts.select('total', (f, fns) => fns.sum(f.views)).build(),
+          ),
+        ).rejects.toMatchObject({
+          code: 'RUNTIME.DECODE_FAILED',
+          message:
+            'sqlite/bigintnumber@1 value must be an integer within the safe integer range, got 9007199254740995',
+        });
       });
     });
   });

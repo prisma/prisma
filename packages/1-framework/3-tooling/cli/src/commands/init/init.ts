@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { promisify } from 'node:util';
 import * as clack from '@clack/prompts';
 import type { ImportSpecifierResolver } from '@internal/framework-components/emission';
@@ -54,7 +54,7 @@ import { findStaleArtifacts, removeDependency } from './reinit-cleanup';
 import {
   DEFAULT_SKILL_SOURCES,
   formatSkillInstallCommand,
-  LEGACY_SKILL_FILE,
+  legacySkillDirs,
   runProjectLevelSkillInstall,
 } from './skill-install';
 import {
@@ -207,13 +207,11 @@ export async function runInit(
   // and missing-on-disk-at-write-time is tolerated.
   const filesToDelete: string[] = inputs.reinit ? [...findStaleArtifacts(baseDir, schemaDir)] : [];
 
-  // `init` delegates the skill to `npx skills add prisma/prisma#v<version>`,
-  // so a hand-rolled `.agents/skills/prisma-next/SKILL.md` in the project
-  // would shadow the published package. Queue it for deletion on every
-  // run (not gated on `--reinit`).
-  if (existsSync(join(baseDir, LEGACY_SKILL_FILE))) {
-    filesToDelete.push(LEGACY_SKILL_FILE);
-  }
+  // Retired per-workflow skill directories from pre-consolidation
+  // installs compete with the consolidated `prisma-8` skill for
+  // activation. Queue every existing one for recursive deletion on
+  // every run (not gated on `--reinit`).
+  const legacyDirsToDelete = legacySkillDirs().filter((rel) => existsSync(join(baseDir, rel)));
 
   // FR3.2: a real `.env` is only written when the user opted in. Never
   // overwrite an existing `.env` — secrets live there and clobbering
@@ -417,6 +415,14 @@ export async function runInit(
         throw err;
       }
     }
+  }
+
+  // Retired skill directories are removed whole — `rmSync` with
+  // `force` tolerates a concurrent removal the same way the ENOENT
+  // branch above does for single files.
+  for (const rel of legacyDirsToDelete) {
+    rmSync(join(baseDir, rel), { recursive: true, force: true });
+    filesDeleted.push(rel);
   }
 
   const emitCommand = formatRunCommand(pm, 'prisma-next', 'contract emit');
@@ -956,8 +962,23 @@ async function runEmit(ctx: {
   spinner.start('Emitting contract...');
   try {
     const { executeContractEmit } = await import('../../control-api/operations/contract-emit');
+    const { loadConfigForSections } = await import('@internal/config-loader');
     const configFilePath = join(ctx.baseDir, 'prisma-next.config.ts');
-    await executeContractEmit({ configPath: configFilePath });
+    const configResult = await loadConfigForSections(configFilePath, [
+      'contract',
+      'family',
+      'target',
+      'adapter',
+      'extensions',
+    ]);
+    if (!configResult.ok) {
+      throw configResult.failure;
+    }
+    await executeContractEmit({
+      config: configResult.value,
+      cwd: process.cwd(),
+      configPath: configFilePath,
+    });
     spinner.stop('Contract emitted');
   } catch (err) {
     spinner.stop('Contract emission failed');

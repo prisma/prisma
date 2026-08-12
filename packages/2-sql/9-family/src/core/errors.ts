@@ -2,12 +2,9 @@ import type { StructuredError, StructuredErrorOptions } from '@internal/utils/st
 import { structuredError } from '@internal/utils/structured-error';
 
 type SqlFamilyErrorCode =
-  | 'CONTRACT.ENUM_INVALID'
-  | 'CONTRACT.ENUM_UNKNOWN'
   | 'CONTRACT.FOREIGN_KEY_INVALID'
   | 'CONTRACT.INFER_UNSUPPORTED'
   | 'CONTRACT.MARKER_ROW_CORRUPT'
-  | 'CONTRACT.NAMESPACE_UNKNOWN'
   | 'CONTRACT.PACK_CONTRIBUTION_INVALID'
   | 'CONTRACT.TABLE_AMBIGUOUS'
   | 'CONTRACT.TYPE_UNKNOWN'

@@ -3,6 +3,7 @@ import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { Migration as SqlMigration } from '@internal/family-sql/migration';
 import type { ControlStack } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { MigrationContractViews } from '@internal/migration-tools/migration';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
@@ -34,6 +35,7 @@ import {
   DropPostgresRlsPolicyCall,
   DropTableCall,
   EnableRowLevelSecurityCall,
+  RenameCheckConstraintCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
   SetDefaultCall,
@@ -278,16 +280,28 @@ export abstract class PostgresMigration<
     readonly schema: string;
     readonly table: string;
     readonly constraint: string;
-    readonly column: string;
-    readonly values: readonly string[];
+    readonly expression: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new AddCheckConstraintCall(
       options.schema,
       options.table,
       options.constraint,
-      options.column,
-      options.values,
+      options.expression,
     ).toOp(this.controlAdapterFor('addCheckConstraint'));
+  }
+
+  protected renameCheckConstraint(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly from: string;
+    readonly to: string;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new RenameCheckConstraintCall(
+      options.schema ?? UNBOUND_NAMESPACE_ID,
+      options.table,
+      options.from,
+      options.to,
+    ).toOp(this.controlAdapterFor('renameCheckConstraint'));
   }
 
   protected dropCheckConstraint(options: {

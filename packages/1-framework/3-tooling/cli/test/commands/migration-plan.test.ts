@@ -1,7 +1,9 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { CliStructuredError } from '@internal/errors/control';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import {
   formatMigrationDirName,
@@ -313,24 +315,29 @@ describe('--from hash lookup', () => {
   );
 });
 
-describe('MigrationToolsError mapping', () => {
-  it('MigrationToolsError has expected shape for CLI mapping', () => {
-    // Simulate a MigrationToolsError-like object as the CLI would encounter it
-    const error = new Error('Directory already exists: /tmp/test');
-    error.name = 'MigrationToolsError';
-    Object.assign(error, {
-      code: 'MIGRATION.DIR_EXISTS',
-      category: 'MIGRATION',
-      why: 'A migration directory with this name already exists on disk.',
-      fix: 'Choose a different name or remove the existing directory.',
-      details: { dir: '/tmp/test' },
-    });
+describe('MigrationToolsError passthrough shape', () => {
+  it('MigrationToolsError is a CliStructuredError the CLI can pass straight through', () => {
+    const error = new MigrationToolsError(
+      'MIGRATION.DIR_EXISTS',
+      'Migration directory already exists',
+      {
+        why: 'A migration directory with this name already exists on disk.',
+        fix: 'Choose a different name or remove the existing directory.',
+        meta: { dir: '/tmp/test' },
+      },
+    );
 
-    expect(error.name).toBe('MigrationToolsError');
-    expect((error as unknown as { code: string }).code).toBe('MIGRATION.DIR_EXISTS');
-    expect((error as unknown as { category: string }).category).toBe('MIGRATION');
-    expect(typeof (error as unknown as { why: string }).why).toBe('string');
-    expect(typeof (error as unknown as { fix: string }).fix).toBe('string');
-    expect(error instanceof Error).toBe(true);
+    expect(CliStructuredError.is(error)).toBe(true);
+    expect(MigrationToolsError.is(error)).toBe(true);
+    expect(error.name).toBe('CliStructuredError');
+    expect(error.code).toBe('MIGRATION.DIR_EXISTS');
+    expect(error.category).toBe('MIGRATION');
+    expect(typeof error.why).toBe('string');
+    expect(typeof error.fix).toBe('string');
+    expect(error.toEnvelope()).toMatchObject({
+      ok: false,
+      code: 'MIGRATION.DIR_EXISTS',
+      meta: { dir: '/tmp/test' },
+    });
   });
 });

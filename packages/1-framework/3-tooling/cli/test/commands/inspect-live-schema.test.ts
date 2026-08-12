@@ -1,3 +1,4 @@
+import { notOk, ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -39,7 +40,7 @@ const mocks = vi.hoisted(() => {
 });
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfigMock,
+  loadConfigForSections: mocks.loadConfigMock,
 }));
 
 vi.mock('../../src/control-api/client', () => ({
@@ -79,7 +80,7 @@ describe('inspectLiveSchema', () => {
     consoleErrors = commandMocks.consoleErrors;
     cleanupMocks = commandMocks.cleanup;
 
-    mocks.loadConfigMock.mockResolvedValue(baseConfig);
+    mocks.loadConfigMock.mockResolvedValue(ok(baseConfig));
     mocks.introspectMock.mockResolvedValue(schemaIR);
     mocks.toSchemaViewMock.mockReturnValue(undefined);
     mocks.inferPslContractMock.mockReturnValue(undefined);
@@ -100,10 +101,12 @@ describe('inspectLiveSchema', () => {
   }
 
   it('uses the explicit db url, masks it in output/meta, and falls back to the default config path', async () => {
-    mocks.loadConfigMock.mockResolvedValue({
-      ...baseConfig,
-      extensions: undefined,
-    });
+    mocks.loadConfigMock.mockResolvedValue(
+      ok({
+        ...baseConfig,
+        extensions: undefined,
+      }),
+    );
 
     const { flags, ui } = createUi();
     const result = await inspectLiveSchema(
@@ -136,10 +139,12 @@ describe('inspectLiveSchema', () => {
   });
 
   it('returns a database connection error when no db url is available', async () => {
-    mocks.loadConfigMock.mockResolvedValue({
-      ...baseConfig,
-      db: undefined,
-    });
+    mocks.loadConfigMock.mockResolvedValue(
+      ok({
+        ...baseConfig,
+        db: undefined,
+      }),
+    );
 
     const { flags, ui } = createUi();
     const result = await inspectLiveSchema({}, flags, ui, 0, context);
@@ -152,10 +157,12 @@ describe('inspectLiveSchema', () => {
   });
 
   it('returns a driver error when config.driver is missing', async () => {
-    mocks.loadConfigMock.mockResolvedValue({
-      ...baseConfig,
-      driver: undefined,
-    });
+    mocks.loadConfigMock.mockResolvedValue(
+      ok({
+        ...baseConfig,
+        driver: undefined,
+      }),
+    );
 
     const { flags, ui } = createUi();
     const result = await inspectLiveSchema({}, flags, ui, 0, context);
@@ -165,9 +172,9 @@ describe('inspectLiveSchema', () => {
     expect(result.failure.toEnvelope().code).toBe(errorDriverRequired().toEnvelope().code);
   });
 
-  it('passes through structured config-loading errors unchanged', async () => {
+  it('passes through structured config-loading failures unchanged', async () => {
     const configError = errorDriverRequired({ why: 'broken config file' });
-    mocks.loadConfigMock.mockRejectedValue(configError);
+    mocks.loadConfigMock.mockResolvedValue(notOk(configError));
 
     const { flags, ui } = createUi();
     const result = await inspectLiveSchema({}, flags, ui, 0, context);
@@ -177,21 +184,10 @@ describe('inspectLiveSchema', () => {
     expect(result.failure.toEnvelope().code).toBe(configError.toEnvelope().code);
   });
 
-  it('wraps unexpected config-loading errors', async () => {
-    mocks.loadConfigMock.mockRejectedValue(new Error('boom'));
-
-    const { flags, ui } = createUi();
-    const result = await inspectLiveSchema({}, flags, ui, 0, context);
-
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.toEnvelope().code).toBe(
-      errorUnexpected('boom', { why: 'Failed to load config' }).toEnvelope().code,
+  it('passes through unexpected config-loading failures already wrapped by the loader', async () => {
+    mocks.loadConfigMock.mockResolvedValue(
+      notOk(errorUnexpected('boom', { why: 'Failed to load config' })),
     );
-  });
-
-  it('wraps non-Error config-loading failures', async () => {
-    mocks.loadConfigMock.mockRejectedValue('boom');
 
     const { flags, ui } = createUi();
     const result = await inspectLiveSchema({}, flags, ui, 0, context);
@@ -204,12 +200,14 @@ describe('inspectLiveSchema', () => {
   });
 
   it('omits masked db metadata when the configured connection is not a url string', async () => {
-    mocks.loadConfigMock.mockResolvedValue({
-      ...baseConfig,
-      db: {
-        connection: { host: 'localhost', port: 5432 },
-      },
-    });
+    mocks.loadConfigMock.mockResolvedValue(
+      ok({
+        ...baseConfig,
+        db: {
+          connection: { host: 'localhost', port: 5432 },
+        },
+      }),
+    );
 
     const { flags, ui } = createUi();
     const result = await inspectLiveSchema({}, flags, ui, 0, context);
@@ -269,12 +267,14 @@ describe('inspectLiveSchema', () => {
 
   it('passes non-SQL schema IR through unchanged when no contract inference is supported', async () => {
     const mongoSchemaIR = { collections: { users: { name: 'users', indexes: [] } } };
-    mocks.loadConfigMock.mockResolvedValue({
-      ...baseConfig,
-      family: { familyId: 'mongo' },
-      target: { targetId: 'mongo' },
-      db: { connection: 'mongodb://localhost:27017/test' },
-    });
+    mocks.loadConfigMock.mockResolvedValue(
+      ok({
+        ...baseConfig,
+        family: { familyId: 'mongo' },
+        target: { targetId: 'mongo' },
+        db: { connection: 'mongodb://localhost:27017/test' },
+      }),
+    );
     mocks.introspectMock.mockResolvedValue(mongoSchemaIR);
     mocks.inferPslContractMock.mockReturnValue(undefined);
 

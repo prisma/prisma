@@ -8,11 +8,12 @@ export function looksLikePath(target: string): boolean {
 }
 
 export function resolveAppTargetPath(
+  cwd: string,
   target: string,
   appMigrationsDir: string,
   appMigrationsRelative: string,
 ): Result<string, CliStructuredError> {
-  const targetPath = resolve(target);
+  const targetPath = resolve(cwd, target);
   const relativeToApp = relative(appMigrationsDir, targetPath);
   const isOutsideAppDir =
     relativeToApp === '' ||
@@ -21,10 +22,14 @@ export function resolveAppTargetPath(
     isAbsolute(relativeToApp);
   if (isOutsideAppDir) {
     return notOk(
-      errorRuntime('Target must point to an app-space migration', {
-        why: `Expected a path under ${appMigrationsRelative}, got ${target}`,
-        fix: 'Pass an app-space migration directory or use a hash prefix.',
-      }),
+      errorRuntime(
+        'MIGRATION.TARGET_NOT_APP_SPACE',
+        'Target must point to an app-space migration',
+        {
+          why: `Expected a path under ${appMigrationsRelative}, got ${target}`,
+          fix: 'Pass an app-space migration directory or use a hash prefix.',
+        },
+      ),
     );
   }
   return ok(targetPath);
@@ -37,10 +42,11 @@ export function resolveAppTargetPath(
  * when the path falls outside every space dir.
  */
 export function resolveTargetPathAcrossSpaces(
+  cwd: string,
   target: string,
   spaces: ReadonlyArray<{ readonly migrationsDir: string }>,
 ): string | null {
-  const targetPath = resolve(target);
+  const targetPath = resolve(cwd, target);
   for (const space of spaces) {
     const rel = relative(space.migrationsDir, targetPath);
     const isOutside = rel === '' || rel === '.' || rel.startsWith('..') || isAbsolute(rel);

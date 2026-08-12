@@ -22,7 +22,7 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //   - set nested list   → upsert update with full replacement incl. upvotes
 //   - push              → upsert update((u) => [u.contents.push({...})])
 //
-// Ported (it.fails — type-rejected, mongo does not throw at runtime):
+// Ported:
 //   - set null
 //   - set null shorthand
 //
@@ -96,8 +96,9 @@ describe('ports/prisma/functional/composites/list/upsert-update', () => {
   );
 
   // Upstream asserts null on required `contents` is a type error and a runtime throw.
-  // prisma-next rejects it at the type level but mongo does not throw — it.fails.
-  it.fails(
+  // Prisma Next rejects it at the type level, and MongoDB rejects it through the
+  // provisioned collection validator.
+  it(
     'set null',
     () =>
       withComposites(async ({ db }) => {
@@ -117,7 +118,7 @@ describe('ports/prisma/functional/composites/list/upsert-update', () => {
     timeouts.spinUpMongoMemoryServer,
   );
 
-  it.fails(
+  it(
     'set null shorthand',
     () =>
       withComposites(async ({ db }) => {

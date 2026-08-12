@@ -137,7 +137,13 @@ describe('PostgresTableSchemaNode', () => {
           dependsOn: undefined,
         },
       ],
-      checks: [{ name: 'chk_status', column: 'status', permittedValues: ['active', 'inactive'] }],
+      checks: [
+        {
+          naming: { kind: 'exact', name: 'chk_status' },
+          expression: `"status" IN ('active', 'inactive')`,
+          dependsOn: undefined,
+        },
+      ],
       rlsEnabled: false,
       policies: [basePolicy],
     });

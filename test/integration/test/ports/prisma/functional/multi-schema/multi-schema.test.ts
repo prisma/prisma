@@ -175,12 +175,7 @@ describe('ports/prisma/functional/multi-schema (mapTable=IDENTICAL_NAMES)', () =
     timeouts.spinUpPpgDev,
   );
 
-  // it.fails: posts.some() filter across cross-namespace tables with identical bare table
-  // names (base.some_table vs transactional.some_table) returns 0 rows instead of 1.
-  // The ORM's correlated EXISTS subquery does not emit schema-qualified table names for
-  // the relation target, so the subquery references an ambiguous unqualified "some_table"
-  // and finds no matches. Faithful port of upstream `read` test.
-  it.fails(
+  it(
     'multischema: read',
     () =>
       withMultiSchemaIdenticalNames(async ({ db }) => {
@@ -207,9 +202,7 @@ describe('ports/prisma/functional/multi-schema (mapTable=IDENTICAL_NAMES)', () =
     timeouts.spinUpPpgDev,
   );
 
-  // it.fails: same gap as `read` above — posts.some() filter with identical table
-  // names across namespaces does not qualify the subquery table, so it returns 0 rows.
-  it.fails(
+  it(
     'multischema: update',
     () =>
       withMultiSchemaIdenticalNames(async ({ db }) => {

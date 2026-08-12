@@ -1,0 +1,31 @@
+// Faithful MongoDB translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/default-selection/prisma/_schema.ts.
+
+type Composite {
+  value String
+}
+
+enum Enum {
+  A
+  B
+}
+
+model Model {
+  id        ObjectId  @id @map("_id")
+  value     String
+  otherId   ObjectId  @unique
+  relation  Other     @relation(fields: [otherId], references: [id])
+  list      String[]
+  enum      Enum
+  enumList  Enum[]
+  composite Composite
+
+  @@map("Model")
+}
+
+model Other {
+  id    ObjectId @id @map("_id")
+  model Model?
+
+  @@map("Other")
+}

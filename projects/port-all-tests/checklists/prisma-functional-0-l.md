@@ -6,8 +6,8 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/0-legacy-ports/aggregate-raw/tests.ts
 
-- [ ] `group` — aggregateRaw with $group/$sort pipeline returns grouped age counts [providers: mongodb-only]
-- [ ] `match` — aggregateRaw with $match/$project pipeline filters and projects fields [providers: mongodb-only]
+- [x] `group` — aggregateRaw with $group/$sort pipeline returns grouped age counts [providers: mongodb-only] → ports/prisma/functional/legacy-aggregate-raw/legacy-aggregate-raw.test.ts
+- [x] `match` — aggregateRaw with $match/$project pipeline filters and projects fields [providers: mongodb-only] → ports/prisma/functional/legacy-aggregate-raw/legacy-aggregate-raw.test.ts
 
 ### packages/client/tests/functional/0-legacy-ports/aggregations/tests.ts
 
@@ -46,9 +46,9 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/0-legacy-ports/find-raw/tests.ts
 
-- [ ] `all` — findRaw with empty query returns all documents [providers: mongodb-only]
-- [ ] `filtered` — findRaw with filter returns matching documents [providers: mongodb-only]
-- [ ] `projection` — findRaw with projection option excludes _id [providers: mongodb-only]
+- [x] `all` — findRaw with empty query returns all documents [providers: mongodb-only] → non-ported
+- [x] `filtered` — findRaw with filter returns matching documents [providers: mongodb-only] → non-ported
+- [x] `projection` — findRaw with projection option excludes _id [providers: mongodb-only] → non-ported
 
 ### packages/client/tests/functional/0-legacy-ports/json/tests.ts
 
@@ -88,7 +88,7 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/0-legacy-ports/run-command-raw/tests.ts
 
-- [ ] `aggregate` — $runCommandRaw aggregate command returns cursor firstBatch [providers: mongodb-only]
+- [x] `aggregate` — $runCommandRaw aggregate command returns cursor firstBatch [providers: mongodb-only] → non-ported
 
 ### packages/client/tests/functional/accelerate-bad-url-errors/tests.ts
 
@@ -400,7 +400,7 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/dataproxy-engine/version/tests.ts
 
-- [ ] `check versions on \`_engine\`` — (data-proxy only) engine exposes stubbed client/engine version and hash before and after $connect [providers: all]
+- [x] `check versions on \`_engine\`` — (data-proxy only) engine exposes stubbed client/engine version and hash before and after $connect [providers: all] → non-ported
 
 ### packages/client/tests/functional/decimal/list/tests.ts
 
@@ -421,12 +421,12 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/default-selection/tests.ts
 
-- [x] `includes scalars` — default selection includes scalar fields (id, value, otherId) [providers: all] → test.fails: test/ports/prisma/functional/default-selection/default-selection.test.ts
-- [x] `does not include relations` — default selection excludes relation fields [providers: all] → test.fails: test/ports/prisma/functional/default-selection/default-selection.test.ts
-- [x] `includes enums` — (non-sqlite/sqlserver) default selection includes enum field [providers: all] → test.fails: test/ports/prisma/functional/default-selection/default-selection.test.ts
-- [x] `includes lists` — (postgres/cockroach/mongo) default selection includes list field [providers: all] → test.fails: test/ports/prisma/functional/default-selection/default-selection.test.ts
-- [x] `includes enum lists` — (postgres/cockroach/mongo) default selection includes enum-list field [providers: all] → test.fails: test/ports/prisma/functional/default-selection/default-selection.test.ts
-- [ ] `includes composites` — (mongo only) default selection includes composite field [providers: all] → mongo-skip
+- [x] `includes scalars` — default selection includes scalar fields (id, value, otherId) [providers: all] → ports/prisma/functional/default-selection/default-selection.test.ts
+- [x] `does not include relations` — default selection excludes relation fields [providers: all] → ports/prisma/functional/default-selection/default-selection.test.ts
+- [x] `includes enums` — (non-sqlite/sqlserver) default selection includes enum field [providers: all] → ports/prisma/functional/default-selection/default-selection.test.ts
+- [x] `includes lists` — (postgres/cockroach/mongo) default selection includes list field [providers: all] → ports/prisma/functional/default-selection/default-selection.test.ts
+- [x] `includes enum lists` — (postgres/cockroach/mongo) default selection includes enum-list field [providers: all] → ports/prisma/functional/default-selection/default-selection.test.ts
+- [x] `includes composites` — (mongo only) default selection includes composite field [providers: all] → ports/prisma/functional/default-selection/default-selection.mongo.test.ts
 
 ### packages/client/tests/functional/distinct/tests.ts
 
@@ -443,26 +443,26 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/driver-adapters/error-forwarding/tests.ts
 
-- [ ] `correctly forwards error for queryRaw` — adapter queryRaw error surfaces on findFirst [providers: sqlite,postgres,mysql]
-- [ ] `correctly forwards error for executeRaw` — adapter executeRaw error surfaces on $executeRaw [providers: sqlite,postgres,mysql]
-- [ ] `correctly forwards error for implicit transactions` — adapter startTransaction error surfaces on nested create [providers: sqlite,postgres,mysql]
-- [ ] `correctly forwards error for batch transactions` — adapter startTransaction error surfaces on $transaction array [providers: sqlite,postgres,mysql]
-- [ ] `correctly forwards error for itx` — adapter startTransaction error surfaces on interactive $transaction [providers: sqlite,postgres,mysql]
+- [x] `correctly forwards error for queryRaw` — adapter queryRaw error surfaces on findFirst [providers: sqlite,postgres,mysql] → test.fails: ports/prisma/functional/driver-adapters-error-forwarding/driver-adapters-error-forwarding.test.ts
+- [x] `correctly forwards error for executeRaw` — adapter executeRaw error surfaces on $executeRaw [providers: sqlite,postgres,mysql] → non-ported
+- [x] `correctly forwards error for implicit transactions` — adapter startTransaction error surfaces on nested create [providers: sqlite,postgres,mysql] → ports/prisma/functional/driver-adapters-error-forwarding/driver-adapters-error-forwarding.test.ts
+- [x] `correctly forwards error for batch transactions` — adapter startTransaction error surfaces on $transaction array [providers: sqlite,postgres,mysql] → non-ported
+- [x] `correctly forwards error for itx` — adapter startTransaction error surfaces on interactive $transaction [providers: sqlite,postgres,mysql] → ports/prisma/functional/driver-adapters-error-forwarding/driver-adapters-error-forwarding.test.ts
 
 ### packages/client/tests/functional/driver-adapters/team-orm-687-bytes/tests.ts
 
-- [ ] `Bytes encoding is preserved` — Bytes/Uint8Array values round-trip unchanged through create and findMany [providers: sqlite,postgres,mysql]
+- [x] `Bytes encoding is preserved` — Bytes/Uint8Array values round-trip unchanged through create and findMany [providers: sqlite,postgres,mysql] → ports/prisma/functional/driver-adapters-team-orm-687-bytes/driver-adapters-team-orm-687-bytes.test.ts
 
 ### packages/client/tests/functional/driver-adapters/validate-active-provider/tests.ts
 
-- [ ] `@prisma/adapter-pg cannot be used with \`provider = "mysql"\`` — (js_pg+mysql only) mismatched pg adapter throws PrismaClientInitializationError [providers: postgres,mysql,sqlite]
-- [ ] `@prisma/adapter-planetscale cannot be used with \`provider = "sqlite"\`` — (js_planetscale+sqlite only) mismatched planetscale adapter throws PrismaClientInitializationError [providers: postgres,mysql,sqlite]
-- [ ] `@prisma/adapter-d1 cannot be used with \`provider = "postgresql"\`` — (js_d1+postgres only) mismatched d1 adapter throws PrismaClientInitializationError [providers: postgres,mysql,sqlite]
+- [x] `@prisma/adapter-pg cannot be used with \`provider = "mysql"\`` — (js_pg+mysql only) mismatched pg adapter throws PrismaClientInitializationError [providers: postgres,mysql,sqlite] → ports/prisma/functional/driver-adapters-validate-active-provider/driver-adapters-validate-active-provider.test.ts
+- [x] `@prisma/adapter-planetscale cannot be used with \`provider = "sqlite"\`` — (js_planetscale+sqlite only) mismatched planetscale adapter throws PrismaClientInitializationError [providers: postgres,mysql,sqlite] → non-ported
+- [x] `@prisma/adapter-d1 cannot be used with \`provider = "postgresql"\`` — (js_d1+postgres only) mismatched d1 adapter throws PrismaClientInitializationError [providers: postgres,mysql,sqlite] → ports/prisma/functional/driver-adapters-validate-active-provider/driver-adapters-validate-active-provider.test.ts
 
 ### packages/client/tests/functional/enum-array/tests.ts
 
-- [x] `can create data with an enum array` — create record with an enum array field [providers: postgres,mongodb,cockroachdb] → test.fails: test/ports/prisma/functional/enum-array/enum-array.test.ts
-- [x] `can retrieve data with an enum array` — create then findFirstOrThrow returns the enum array with correct type [providers: postgres,mongodb,cockroachdb] → test.fails: test/ports/prisma/functional/enum-array/enum-array.test.ts
+- [x] `can create data with an enum array` — create record with an enum array field [providers: postgres,mongodb,cockroachdb] → ports/prisma/functional/enum-array/enum-array.test.ts
+- [x] `can retrieve data with an enum array` — create then findFirstOrThrow returns the enum array with correct type [providers: postgres,mongodb,cockroachdb] → ports/prisma/functional/enum-array/enum-array.test.ts
 - [x] `can retrieve data with an enum array with a raw query and a custom parser` — (js_pg + client runtime only) createManyAndReturn + $queryRaw with custom userDefinedTypeParser parses enum arrays [providers: postgres,mongodb,cockroachdb] → non-ported
 
 ### packages/client/tests/functional/enums/tests.ts
@@ -471,7 +471,7 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 - [x] `can retrieve data with an enum value` — create then findFirstOrThrow filtering by enum returns correct typed value [providers: postgres,mysql,mongodb,cockroachdb,sqlite] → ports/prisma/functional/enums/enums.test.ts
 - [x] `the enum type can be assigned its own values` — enum type accepts its own literal values with correct static type [providers: postgres,mysql,mongodb,cockroachdb,sqlite] → ports/prisma/functional/enums/enums.test.ts
 - [x] `fails at runtime when an invalid entry is entered manually in SQLite` — (sqlite only) raw-inserted invalid enum value errors on read [providers: postgres,mysql,mongodb,cockroachdb,sqlite] → non-ported
-- [ ] `fails at runtime when an invalid entry is entered manually in Mongo` — (mongo only) runCommandRaw-inserted invalid enum value errors on read [providers: postgres,mysql,mongodb,cockroachdb,sqlite] → mongo-skip
+- [x] `fails at runtime when an invalid entry is entered manually in Mongo` — (mongo only) runCommandRaw-inserted invalid enum value errors on read [providers: postgres,mysql,mongodb,cockroachdb,sqlite] → test.fails: ports/prisma/functional/enums/enums.test.ts
 
 ### packages/client/tests/functional/extended-where/aggregate.ts
 
@@ -998,11 +998,11 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/invalid-env-value/tests.ts
 
-- [ ] `PrismaClientInitializationError for invalid env` — $connect with invalid datasource URL env throws PrismaClientInitializationError [providers: all]
+- [x] `PrismaClientInitializationError for invalid env` — $connect with invalid datasource URL env throws PrismaClientInitializationError [providers: all] → non-ported
 
 ### packages/client/tests/functional/invalid-sqlite-isolation-level/tests.ts
 
-- [ ] `invalid level generates run- and compile- time error` — ReadUncommitted isolation level on sqlite errors at run/compile time (testIf: driver-adapter only) [providers: sqlite-only]
+- [x] `invalid level generates run- and compile- time error` — ReadUncommitted isolation level on sqlite errors at run/compile time (testIf: driver-adapter only) [providers: sqlite-only] → non-ported
 
 ### packages/client/tests/functional/json-fields/tests.ts
 
@@ -1038,6 +1038,6 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/logging-types/tests.ts
 
-- [ ] `check that query and info logs match their declared types` — query and info log events conform to declared event types [providers: all]
+- [x] `check that query and info logs match their declared types` — query and info log events conform to declared event types [providers: all] → non-ported
 
 **Total: 730 tests**

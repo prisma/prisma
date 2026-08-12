@@ -14,6 +14,7 @@ import { timeouts } from '@repo/test-utils';
 import { Client } from 'pg';
 import { afterEach, describe, expect, it } from 'vitest';
 import postgresRuntimeDriverDescriptor from '../src/exports/runtime';
+import { executeSql, queryRows } from './sql-queryable-test-utils';
 
 interface SharedSessionHarness {
   readonly db: PGlite;
@@ -119,9 +120,9 @@ async function createSharedSessionHarness(options?: {
 }
 
 async function seedRows(h: SharedSessionHarness, count: number): Promise<void> {
-  await h.driver.query('create table items (id int primary key, n int not null)');
+  await executeSql(h.driver, 'create table items (id int primary key, n int not null)');
   const values = Array.from({ length: count }, (_, i) => `(${i}, ${i * 2})`).join(', ');
-  await h.driver.query(`insert into items (id, n) values ${values}`);
+  await executeSql(h.driver, `insert into items (id, n) values ${values}`);
 }
 
 afterEach(async () => {
@@ -139,7 +140,7 @@ describe('streamed execute on a shared single-session backend', () => {
       await seedRows(h, 30);
 
       const rows: Array<{ id: number }> = [];
-      for await (const row of h.driver.execute<{ id: number }>({
+      for await (const row of h.driver.query<{ id: number }>({
         sql: 'select id from items order by id',
       })) {
         rows.push(row);
@@ -171,7 +172,7 @@ describe('streamed execute on a shared single-session backend', () => {
       h.recordedQueryTexts.length = 0;
 
       const rows: unknown[] = [];
-      for await (const row of h.driver.execute({ sql: 'select id from items order by id' })) {
+      for await (const row of h.driver.query({ sql: 'select id from items order by id' })) {
         rows.push(row);
       }
 
@@ -189,7 +190,7 @@ describe('streamed execute on a shared single-session backend', () => {
       await seedRows(h, 25);
       h.recordedQueryTexts.length = 0;
 
-      for await (const row of h.driver.execute<{ id: number }>({
+      for await (const row of h.driver.query<{ id: number }>({
         sql: 'select id from items order by id',
       })) {
         if (row.id >= 6) {
@@ -201,8 +202,11 @@ describe('streamed execute on a shared single-session backend', () => {
       expect(h.recordedQueryTexts.filter((text) => text === 'COMMIT')).toHaveLength(1);
       expect(h.db.isInTransaction()).toBe(false);
 
-      const after = await h.driver.query<{ n: number }>('select count(*)::int as n from items');
-      expect(after.rows).toEqual([{ n: 25 }]);
+      const after = await queryRows<{ n: number }>(
+        h.driver,
+        'select count(*)::int as n from items',
+      );
+      expect(after).toEqual([{ n: 25 }]);
     },
     timeouts.spinUpDbServer,
   );
@@ -216,7 +220,7 @@ describe('streamed execute on a shared single-session backend', () => {
       const rows: unknown[] = [];
       let caught: unknown;
       try {
-        for await (const row of h.driver.execute({ sql: 'select id from items order by id' })) {
+        for await (const row of h.driver.query({ sql: 'select id from items order by id' })) {
           rows.push(row);
         }
       } catch (error) {
@@ -242,7 +246,7 @@ describe('streamed execute on a shared single-session backend', () => {
       try {
         // Division by zero at id = 3 fails the stream mid-read; the terminating
         // COMMIT then also fails (injected), and must not mask the stream error.
-        for await (const _row of h.driver.execute({
+        for await (const _row of h.driver.query({
           sql: 'select 1 / (id - 3) as x from items order by id',
         })) {
           // drain until the backend raises division_by_zero
@@ -267,7 +271,7 @@ describe('streamed execute on a shared single-session backend', () => {
       const connection = await h.driver.acquireConnection();
       const transaction = await connection.beginTransaction();
       const rows: unknown[] = [];
-      for await (const row of transaction.execute({ sql: 'select id from items order by id' })) {
+      for await (const row of transaction.query({ sql: 'select id from items order by id' })) {
         rows.push(row);
       }
       await transaction.commit();
@@ -292,7 +296,7 @@ describe('streamed execute on a shared single-session backend', () => {
       h.recordedQueryTexts.length = 0;
 
       const rows: unknown[] = [];
-      for await (const row of connection.execute({ sql: 'select id from items order by id' })) {
+      for await (const row of connection.query({ sql: 'select id from items order by id' })) {
         rows.push(row);
       }
       await connection.release();
@@ -311,7 +315,7 @@ describe('streamed execute on a shared single-session backend', () => {
 
       const consume = async (): Promise<number> => {
         let count = 0;
-        for await (const _row of h.driver.execute({ sql: 'select id from items order by id' })) {
+        for await (const _row of h.driver.query({ sql: 'select id from items order by id' })) {
           count++;
         }
         return count;
@@ -321,6 +325,35 @@ describe('streamed execute on a shared single-session backend', () => {
       expect(first).toBe(20);
       expect(second).toBe(20);
       expect(h.db.isInTransaction()).toBe(false);
+    },
+    timeouts.spinUpDbServer,
+  );
+
+  it(
+    'a driver-level streamed query during an open connection transaction does not end it',
+    async () => {
+      const h = await createSharedSessionHarness({ cursorBatchSize: 10 });
+      await seedRows(h, 5);
+
+      const connection = await h.driver.acquireConnection();
+      const tx = await connection.beginTransaction();
+      try {
+        await executeSql(tx, 'insert into items (id, n) values (100, 200)');
+
+        // A driver-level read on the shared socket (the runtime's lazy
+        // verify-marker read does exactly this mid-mutation). The portal
+        // protection wrap must be skipped: its COMMIT would end the open
+        // transaction and the rollback below would undo nothing.
+        const rows = await queryRows(h.driver, 'select id from items where id = 100');
+        expect(rows).toHaveLength(1);
+        expect(h.recordedQueryTexts).not.toContain('COMMIT');
+      } finally {
+        await tx.rollback();
+        await connection.release();
+      }
+
+      const after = await queryRows(h.driver, 'select id from items where id = 100');
+      expect(after).toEqual([]);
     },
     timeouts.spinUpDbServer,
   );

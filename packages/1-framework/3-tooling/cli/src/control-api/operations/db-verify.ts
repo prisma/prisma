@@ -19,11 +19,11 @@ import { castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { CliStructuredError } from '../../utils/cli-errors';
+import type { OnControlProgress } from '../types';
 import {
   type BuildAggregateInputs,
   buildContractSpaceAggregate,
-} from '../../utils/contract-space-aggregate-loader';
-import type { OnControlProgress } from '../types';
+} from './contract-space-aggregate-loader';
 
 /**
  * Span IDs emitted via `onProgress` during the aggregate verify flow.

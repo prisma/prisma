@@ -85,13 +85,13 @@ describe('ports/prisma/functional/relationMode-gh-m-to-n › [emit @map] (index-
   for (const variant of MAP_VARIANTS) {
     describe(variant, () => {
       it(
-        'today fails specifically on the 54-character index-name-length limit',
+        'today fails specifically on the 54-byte index-name-length limit',
         async () => {
           const { exitCode, json } = await emitVariant(variant);
           expect(exitCode).not.toBe(0);
           expect(json?.ok).toBe(false);
           expect(json?.why ?? '').toContain(
-            'index prefix "CategoriesOnPostsManyToMany_AtAtMap_categoryId_AtMap_idx" exceeds the 54-character maximum',
+            'index prefix "CategoriesOnPostsManyToMany_AtAtMap_categoryId_AtMap_idx" exceeds the 54-byte maximum',
           );
         },
         timeouts.typeScriptCompilation,

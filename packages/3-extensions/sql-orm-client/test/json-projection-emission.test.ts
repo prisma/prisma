@@ -44,9 +44,11 @@ describe('JSON projection emission', () => {
       ]);
     });
 
-    it('leaves an aggregate native — a computed value carries no codec', () => {
-      expect(entriesFor('aggregate include')).toEqual(['value:native']);
-      expect(entriesFor('aggregate include over a column')).toEqual(['value:native']);
+    it('gives an aggregate the codec its target declares for the result', () => {
+      expect(entriesFor('aggregate include')).toEqual(['value:codec(pg/int8number@1)']);
+      expect(entriesFor('aggregate include over a column')).toEqual([
+        'value:codec(pg/int8number@1)',
+      ]);
     });
 
     it('gives every combine branch a document entry, whatever the branch is', () => {
@@ -59,7 +61,7 @@ describe('JSON projection emission', () => {
         'title:codec(pg/text@1)',
         'user_id:codec(pg/int4@1)',
         'views:codec(pg/int4@1)',
-        'value:native',
+        'value:codec(pg/int8number@1)',
       ]);
     });
 
@@ -87,18 +89,18 @@ describe('JSON projection emission', () => {
       ]);
     });
 
-    it('no entry is left native except the aggregates', () => {
+    // Nothing the planner puts into JSON is left unidentified any more.
+    // A native entry says "read this back as whatever JSON.parse makes of it",
+    // which for a count past 2^53 is a rounded number — so the absence of
+    // native entries is the invariant, not a list of permitted ones.
+    it('leaves no entry native — every value it emits states its identity', () => {
       const natives = [...planned].flatMap(([label, ast]) =>
         jsonEntriesOf(ast)
           .filter((entry) => entry.endsWith(':native'))
           .map((entry) => `${label} ${entry}`),
       );
 
-      expect(natives).toEqual([
-        'aggregate include value:native',
-        'aggregate include over a column value:native',
-        'combine of a row branch and a scalar branch value:native',
-      ]);
+      expect(natives).toEqual([]);
     });
   });
 });

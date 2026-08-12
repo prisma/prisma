@@ -2,7 +2,7 @@ import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
 import { InternalError } from '@internal/utils/internal-error';
 import { constraintExistsAst } from '../../../contract-free/checks';
-import { escapeLiteral, quoteIdentifier } from '../../sql-utils';
+import { quoteIdentifier } from '../../sql-utils';
 import { qualifyTableName } from '../planner-sql-checks';
 import { type ForeignKeySpec, type Op, step, targetDetails } from './shared';
 
@@ -134,12 +134,10 @@ export async function addCheckConstraint(
   schemaName: string,
   tableName: string,
   constraintName: string,
-  column: string,
-  values: readonly string[],
+  expression: string,
   lowerer: ExecuteRequestLowerer,
 ): Promise<Op> {
   const qualified = qualifyTableName(schemaName, tableName);
-  const valueList = values.map((v) => `'${escapeLiteral(v)}'`).join(', ');
   const { absent, present } = await constraintCheckSteps(lowerer, {
     constraintName,
     schema: schemaName,
@@ -147,7 +145,7 @@ export async function addCheckConstraint(
   });
   return {
     id: `checkConstraint.${tableName}.${constraintName}`,
-    label: `Add check constraint "${constraintName}" on "${tableName}"."${column}"`,
+    label: `Add check constraint "${constraintName}" on "${tableName}"`,
     operationClass: 'additive',
     target: targetDetails('checkConstraint', constraintName, schemaName, tableName),
     precheck: [
@@ -156,10 +154,51 @@ export async function addCheckConstraint(
     execute: [
       step(
         `add check constraint "${constraintName}"`,
-        `ALTER TABLE ${qualified} ADD CONSTRAINT ${quoteIdentifier(constraintName)} CHECK (${quoteIdentifier(column)} IN (${valueList}))`,
+        `ALTER TABLE ${qualified} ADD CONSTRAINT ${quoteIdentifier(constraintName)} CHECK (${expression})`,
       ),
     ],
     postcheck: [step(`verify constraint "${constraintName}" exists`, present.sql, present.params)],
+  };
+}
+
+export async function renameCheckConstraint(
+  schemaName: string,
+  tableName: string,
+  fromName: string,
+  toName: string,
+  lowerer: ExecuteRequestLowerer,
+): Promise<Op> {
+  const qualified = qualifyTableName(schemaName, tableName);
+  // `constraintCheckSteps` is kind-agnostic, so the same helper answers for
+  // both names.
+  const from = await constraintCheckSteps(lowerer, {
+    constraintName: fromName,
+    schema: schemaName,
+    table: tableName,
+  });
+  const to = await constraintCheckSteps(lowerer, {
+    constraintName: toName,
+    schema: schemaName,
+    table: tableName,
+  });
+  return {
+    id: `checkConstraint.${schemaName}.${tableName}.${fromName}.rename`,
+    label: `Rename check constraint "${fromName}" to "${toName}" on "${tableName}"`,
+    operationClass: 'widening',
+    // The NEW name is the constraint's contract-side identity — the rename
+    // convention indexes and policies already follow.
+    target: targetDetails('checkConstraint', toName, schemaName, tableName),
+    precheck: [
+      step(`ensure constraint "${fromName}" exists`, from.present.sql, from.present.params),
+      step(`ensure constraint "${toName}" does not exist`, to.absent.sql, to.absent.params),
+    ],
+    execute: [
+      step(
+        `rename check constraint "${fromName}" to "${toName}"`,
+        `ALTER TABLE ${qualified} RENAME CONSTRAINT ${quoteIdentifier(fromName)} TO ${quoteIdentifier(toName)}`,
+      ),
+    ],
+    postcheck: [step(`verify constraint "${toName}" exists`, to.present.sql, to.present.params)],
   };
 }
 

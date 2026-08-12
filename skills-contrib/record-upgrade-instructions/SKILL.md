@@ -54,11 +54,16 @@ The substrate diff is the signal that an entry is required. The agent fixing the
 
 For each PR that hits one or both signals, walk these steps in order.
 
-1. **Determine the in-flight transition.** Read the `version` field from the root `package.json` on the PR branch. That value is the *currently published* version (the source-of-truth `pnpm bump-minor` reads when preparing the next release). Call its minor `M`. The in-flight transition is therefore `M → M+1`, and the in-flight directory in each destination package is `upgrades/<M>-to-<M+1>/` — e.g. `"0.7.0"` in `package.json` means you're authoring into `upgrades/0.7-to-0.8/`. The branch's `package.json` is the source-of-truth — do **not** consult `npm view`. If there is no substrate diff at all, no entry is needed — skip to step 7.
+1. **Determine the in-flight transition.** Read the `version` field from the root `package.json` on the PR branch. That value is the *currently published* version (the source-of-truth `pnpm bump-version` reads when preparing the next release). The in-flight transition is the step from it to whatever ships next, and both sides are named the way transition directories name versions: a stable version by its minor, a release candidate by its full version.
+
+   - `"0.7.0"` → the next release is `0.8`, so you author into `upgrades/0.7-to-0.8/`.
+   - `"8.0.0-rc.1"` → the next release is the next release candidate, so you author into `upgrades/8.0.0-rc.1-to-8.0.0-rc.2/`. An RC line lives inside a single minor and each RC may carry breaking changes of its own, so on an RC line a step is one RC rather than one minor.
+
+   The branch's `package.json` is the source-of-truth — do **not** consult `npm view`. If there is no substrate diff at all, no entry is needed — skip to step 7.
 
 2. **Identify the touched substrate(s).** Compute `git diff origin/main..HEAD` restricted to `examples/` and to `packages/3-extensions/`. Each non-empty substrate corresponds to one destination package per the routing table above. The "both" case is normal — the rare PR (e.g. a structural on-disk migration shape change) touches both.
 
-3. **Find or create the directory in each destination.** For each destination, the directory is `<destination>/upgrades/<M>-to-<M+1>/` where `M` is the currently-published minor from step 1 (so e.g. `skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/` for the user-skill). If the directory already exists (an earlier PR on the same transition created it, or the placeholder shipped with the initial mechanism PR is still there), **do not create a duplicate** — append a new entry to the existing `instructions.md`'s `changes[]` array.
+3. **Find or create the directory in each destination.** For each destination, the directory is `<destination>/upgrades/<in-flight transition>/` from step 1 (so e.g. `skills/prisma-next-upgrade/upgrades/0.7-to-0.8/` for the user-skill). If the directory already exists (an earlier PR on the same transition created it, or the placeholder shipped with the initial mechanism PR is still there), **do not create a duplicate** — append a new entry to the existing `instructions.md`'s `changes[]` array.
 
 4. **Write the entry into `instructions.md`.** Each `changes[]` entry carries an `id` (kebab-case, unique within the transition), a one-line `summary`, an optional `detection` block (glob + content predicate the consumer's agent runs to know whether the change applies to that consumer's project), and an optional `script:` reference (relative path to a colocated script next to `instructions.md`). For changes that need agent reasoning across the codebase rather than a deterministic script, the entry omits `script:` and the agent follows the prose body of `instructions.md` instead.
 
@@ -100,7 +105,7 @@ If any of those checks fail, iterate on the entry. Do not merge.
 
 The PR that introduces the breaking change must contain, in addition to the framework change itself:
 
-- **The new entry directory in each affected skill** — `<destination>/upgrades/<M>-to-<M+1>/instructions.md` plus any colocated scripts (where `M` is the currently-published minor read from root `package.json`).
+- **The new entry directory in each affected skill** — `<destination>/upgrades/<in-flight transition>/instructions.md` plus any colocated scripts (the in-flight transition being the one determined in step 1 of the authoring workflow).
 - **The post-instructions state of every affected substrate** — these substrates would have been left broken without the entry; the entry's effect on the substrate *is* the diff that brings them back to green. The PR-branch substrate state and the validation-by-execution output state must be identical.
 - **A reference in the PR description naming each entry directory** (e.g. *"Adds entries to `skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/` and `skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/`."*).
 
@@ -119,15 +124,17 @@ Bug fixes to either copy land via normal PRs. Yes, duplication carries small ong
 
 If a minor was bumped in-tree but never actually shipped to npm — `package.json` advanced from `M` to `M+1` on `main` but no `vM+1.0` tag landed, so the next publish crosses two minor steps in one release — keep authoring per single-step transition. The coverage gate accepts the **chain** of consecutive transition directories spanning the unreleased range: a 0.7 → 0.9 publish is satisfied by both `upgrades/0.7-to-0.8/` and `upgrades/0.8-to-0.9/` existing, not by a synthetic `upgrades/0.7-to-0.9/`. New entries added on a branch that publishes across a skip may land in any chain step (or the in-flight directory for the cycle after head); the per-version-step authoring model is the source of truth, the gate aggregates.
 
+Chaining is a property of the stable minor line only. On a release-candidate line the gate never composes a chain across RC counters — an `rc.1 → rc.4` range is the single step `upgrades/8.0.0-rc.1-to-8.0.0-rc.4/`.
+
 ## Rebase scenario
 
-If a release PR lands on `main` mid-flight (advancing the currently-published minor from `M` to `M+1`), your topic branch's next rebase brings the new `package.json` value with it:
+If a release PR lands on `main` mid-flight (advancing the currently-published version, whether that is a minor or a release candidate), your topic branch's next rebase brings the new `package.json` value with it:
 
-1. Re-run step 1 of the authoring workflow. The currently-published minor is now `M+1`, and the in-flight directory is `upgrades/<M+1>-to-<M+2>/`.
-2. Author any **new** entries (changes added on this rebase) in `upgrades/<M+1>-to-<M+2>/`. The new-entries check (part of `pnpm check:upgrade-coverage`) blocks file *adds* in stale transition directories.
-3. **Existing entries** your branch added before the rebase to `upgrades/<M>-to-<M+1>/` may be left in place — they describe the transition that just shipped, and modifications / removals of any transition directory are allowed (the new-entries check only enforces *added* paths).
+1. Re-run step 1 of the authoring workflow. The in-flight transition has moved one release forward.
+2. Author any **new** entries (changes added on this rebase) in the new in-flight directory. The new-entries check (part of `pnpm check:upgrade-coverage`) blocks file *adds* in stale transition directories.
+3. **Existing entries** your branch added before the rebase to the previous in-flight directory may be left in place — they describe the transition that just shipped, and modifications / removals of any transition directory are allowed (the new-entries check only enforces *added* paths).
 
-Decide per-entry whether each prior add belongs in the just-shipped transition directory or should be relocated. The rule of thumb: if the entry fixes a substrate diff that already shipped under `M+1`, leave it in `upgrades/<M>-to-<M+1>/`; if the entry fixes a substrate diff introduced by the further refactoring you did after the rebase, move it to `upgrades/<M+1>-to-<M+2>/`.
+Decide per-entry whether each prior add belongs in the just-shipped transition directory or should be relocated. The rule of thumb: if the entry fixes a substrate diff that already shipped in the release that just landed, leave it in the previous directory; if the entry fixes a substrate diff introduced by the further refactoring you did after the rebase, move it to the new in-flight directory.
 
 ## Out of scope
 

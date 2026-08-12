@@ -77,7 +77,7 @@ const ALLOWED = [
     matches: (relPath, line, before, after) =>
       /^skills\//.test(relPath) ||
       (/skills\/(?:upgrade\/|extension-author\/)?$/.test(before) && /^[-/]/.test(after)) ||
-      /^-(?:quickstart|contract|migrations|queries|supabase|runtime|build|debug|feedback|upgrade)\b/.test(
+      /^-(?:quickstart|contract|migrations|migration-review|queries|supabase|runtime|build|debug|feedback|upgrade|extension-upgrade)\b/.test(
         after,
       ),
   },

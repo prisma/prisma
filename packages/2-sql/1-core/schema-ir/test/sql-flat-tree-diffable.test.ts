@@ -26,7 +26,9 @@ describe('flat tree diffability (SqlSchemaIR / SqlTableIR)', () => {
         dependsOn: undefined,
       },
     ],
-    checks: [{ name: 'chk', column: 'email', permittedValues: ['a'] }],
+    checks: [
+      { naming: { kind: 'exact', name: 'chk' }, expression: `"email" <> ''`, dependsOn: undefined },
+    ],
   });
 
   it('SqlSchemaIR is the diff root: sentinel id, identity isEqualTo, tables as children', () => {
@@ -46,6 +48,42 @@ describe('flat tree diffability (SqlSchemaIR / SqlTableIR)', () => {
       'index:users_email_idx',
       'check:chk',
     ]);
+  });
+
+  describe('given plain-data input rather than constructed nodes', () => {
+    const fromPlainData = new SqlSchemaIR({
+      tables: {
+        users: {
+          name: 'users',
+          columns: { id: { name: 'id', nativeType: 'int4', nullable: false } },
+          foreignKeys: [
+            { columns: ['org_id'], referencedTable: 'orgs', referencedColumns: ['id'] },
+          ],
+          uniques: [{ columns: ['email'] }],
+          indexes: [],
+        },
+      },
+    });
+
+    const users = Object.values(fromPlainData.tables)[0];
+
+    it('normalises the whole tree into IR classes', () => {
+      expect({
+        table: users instanceof SqlTableIR,
+        childKinds: users?.children().map((child) => child.nodeKind),
+      }).toEqual({
+        table: true,
+        childKinds: ['sql-column', 'sql-foreign-key', 'sql-unique'],
+      });
+    });
+
+    it('leaves an absent primary key and absent checks out of children', () => {
+      expect(users?.children().map((child) => child.id)).toEqual([
+        'column:id',
+        'foreign-key:org_id->.orgs(id)',
+        'unique:email',
+      ]);
+    });
   });
 
   it('SqlTableIR isEqualTo is identity by name', () => {

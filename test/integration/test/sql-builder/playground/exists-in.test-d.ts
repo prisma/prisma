@@ -115,7 +115,7 @@ test('EXISTS with grouped subquery', () => {
           .select('user_id')
           .select('cnt', (_pf, pfns) => pfns.count())
           .groupBy('user_id')
-          .having((_pf, pfns) => pfns.gt(pfns.count(), 5n)),
+          .having((_pf, pfns) => pfns.gt(pfns.count(), 5)),
       ),
     )
     .build();

@@ -59,6 +59,45 @@ describe('sqlContractCanonicalizationHooks.shouldPreserveEmpty', () => {
   });
 });
 
+describe('sqlContractCanonicalizationHooks.sortStorage', () => {
+  const tableWith = (arrays: Record<string, ReadonlyArray<{ name: string }>>): unknown => ({
+    namespaces: { public: { entries: { table: { sample: arrays } } } },
+  });
+
+  const namesOf = (sorted: unknown, key: string): readonly string[] => {
+    const storage = blindCast<
+      {
+        namespaces: {
+          public: {
+            entries: { table: { sample: Record<string, ReadonlyArray<{ name: string }>> } };
+          };
+        };
+      },
+      'the sort hook returns the same shape it was handed'
+    >(sorted);
+    return (storage.namespaces.public.entries.table.sample[key] ?? []).map((entry) => entry.name);
+  };
+
+  it('orders checks, indexes, and uniques by physical name', () => {
+    const sorted = sqlContractCanonicalizationHooks.sortStorage(
+      tableWith({
+        checks: [{ name: 'sample_z_check_00000002' }, { name: 'sample_a_check_00000001' }],
+        indexes: [{ name: 'z_idx' }, { name: 'a_idx' }],
+        uniques: [{ name: 'z_key' }, { name: 'a_key' }],
+      }),
+    );
+    expect({
+      checks: namesOf(sorted, 'checks'),
+      indexes: namesOf(sorted, 'indexes'),
+      uniques: namesOf(sorted, 'uniques'),
+    }).toEqual({
+      checks: ['sample_a_check_00000001', 'sample_z_check_00000002'],
+      indexes: ['a_idx', 'z_idx'],
+      uniques: ['a_key', 'z_key'],
+    });
+  });
+});
+
 describe('canonicalization of literal column defaults', () => {
   const { shouldPreserveEmpty } = sqlContractCanonicalizationHooks;
 

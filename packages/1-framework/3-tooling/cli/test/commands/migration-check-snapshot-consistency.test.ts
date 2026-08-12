@@ -8,11 +8,11 @@ import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
+import type { MigrationCheckResult } from '../../src/commands/migration-check';
 import {
   enumerateCheckSpaces,
-  type MigrationCheckResult,
   runMigrationCheck,
-} from '../../src/commands/migration-check';
+} from '../../src/control-api/operations/migration-check';
 
 /**
  * `checkSnapshotConsistency` reads the destination snapshot keyed by
@@ -80,7 +80,7 @@ async function checkFromDisk(migrationsDir: string): Promise<MigrationCheckResul
     appContract: TEST_APP_CONTRACT,
     deserializeContract: identityDeserialize,
   });
-  const spaces = await enumerateCheckSpaces(aggregate, migrationsDir);
+  const spaces = await enumerateCheckSpaces(aggregate, migrationsDir, process.cwd());
   const outcome = await runMigrationCheck({ spaces });
   if (!outcome.ok) throw new Error('runMigrationCheck rejected unexpectedly');
   return outcome.value;

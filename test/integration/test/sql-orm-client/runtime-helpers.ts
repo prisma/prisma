@@ -3,7 +3,10 @@ import type { Contract } from '@internal/contract/types';
 import postgresDriver from '@internal/driver-postgres/runtime';
 import pgvectorRuntime from '@internal/extension-pgvector/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
-import type { AsyncIterableResult } from '@internal/framework-components/runtime';
+import type {
+  AsyncIterableResult,
+  RuntimeExecuteOptions,
+} from '@internal/framework-components/runtime';
 import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { RuntimeQueryable } from '@internal/sql-orm-client';
@@ -11,9 +14,12 @@ import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-co
 import {
   createExecutionContext,
   createSqlExecutionStack,
+  type PreparedStatement,
   type SqlRuntimeExtensionDescriptor,
+  type RuntimeQueryable as SqlRuntimeQueryable,
 } from '@internal/sql-runtime';
 import postgresTarget from '@internal/target-postgres/runtime';
+import { blindCast } from '@internal/utils/casts';
 import { Client } from 'pg';
 import { getTestContract } from './helpers';
 
@@ -106,7 +112,16 @@ export async function createPgIntegrationRuntime(
       const stack = createSqlExecutionStack({
         target: postgresTarget,
         adapter: postgresAdapter,
-        driver: postgresDriver,
+        // Cursor-backed statements through the PGlite-backed `@prisma/dev`
+        // server do not preserve this harness's ORM mutation transaction: a
+        // failing nested write leaves its parent insert committed. These tests
+        // exercise ORM rollback semantics rather than streaming, so buffer rows.
+        driver: {
+          ...postgresDriver,
+          create() {
+            return postgresDriver.create({ cursor: { disabled: true } });
+          },
+        },
         extensions: [pgvectorRuntime, ...additionalExtensions],
       });
 
@@ -177,6 +192,57 @@ export async function createPgIntegrationRuntime(
     return delegate(plan);
   };
 
+  function isPreparedStatement<Params extends Record<string, unknown>, Row>(
+    execution:
+      | ((SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row })
+      | PreparedStatement<Params, Row>,
+  ): execution is PreparedStatement<Params, Row> {
+    return 'slots' in execution;
+  }
+
+  function createRecordingExecutor(target: SqlRuntimeQueryable): SqlRuntimeQueryable['execute'] {
+    function execute<Row>(
+      plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row },
+      options?: RuntimeExecuteOptions,
+    ): AsyncIterableResult<Row>;
+    function execute<Params extends Record<string, unknown>, Row>(
+      ps: PreparedStatement<Params, Row>,
+      params: Params,
+      options?: RuntimeExecuteOptions,
+    ): AsyncIterableResult<Row>;
+    function execute<Params extends Record<string, unknown>, Row>(
+      planOrStatement:
+        | ((SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row })
+        | PreparedStatement<Params, Row>,
+      paramsOrOptions?: Params | RuntimeExecuteOptions,
+      preparedOptions?: RuntimeExecuteOptions,
+    ): AsyncIterableResult<Row> {
+      if (isPreparedStatement(planOrStatement)) {
+        return target.executePrepared(
+          planOrStatement,
+          blindCast<Params, 'prepared execute overload always receives statement parameters'>(
+            paramsOrOptions,
+          ),
+          preparedOptions,
+        );
+      }
+
+      return recordAndDelegate(
+        (plan) =>
+          target.execute(
+            plan,
+            blindCast<
+              RuntimeExecuteOptions | undefined,
+              'plan execute overload always receives execution options'
+            >(paramsOrOptions),
+          ),
+        planOrStatement,
+      );
+    }
+
+    return execute;
+  }
+
   const runtime: PgIntegrationRuntime = {
     executions,
     async query<Row extends Record<string, unknown> = Record<string, unknown>>(
@@ -209,14 +275,12 @@ export async function createPgIntegrationRuntime(
 
       const recordingConnection: PgConnection = {
         ...conn,
-        execute: <Row>(plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row }) =>
-          recordAndDelegate((p) => conn.execute(p), plan),
+        execute: createRecordingExecutor(conn),
         transaction: async (): Promise<PgTransaction> => {
           const tx = await conn.transaction();
           const recordingTransaction: PgTransaction = {
             ...tx,
-            execute: <Row>(plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row }) =>
-              recordAndDelegate((p) => tx.execute(p), plan),
+            execute: createRecordingExecutor(tx),
           };
           return recordingTransaction;
         },

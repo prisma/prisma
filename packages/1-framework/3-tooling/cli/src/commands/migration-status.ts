@@ -1,47 +1,49 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { LedgerEntryRecord } from '@internal/contract/types';
 import type {
   AggregateContractSpace,
   ContractMarkerRecordLike,
 } from '@internal/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
-import {
-  errorNoInvariantPath,
-  errorUnknownInvariant,
-  MigrationToolsError,
-} from '@internal/migration-tools/errors';
-import { findPath, findPathWithDecision } from '@internal/migration-tools/migration-graph';
-import { parseContractRef } from '@internal/migration-tools/ref-resolution';
-import type { RefEntry, Refs } from '@internal/migration-tools/refs';
-import { readRefs } from '@internal/migration-tools/refs';
+import type { RefEntry } from '@internal/migration-tools/refs';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { dim, yellow } from 'colorette';
 import { Command } from 'commander';
 import { createControlClient } from '../control-api/client';
 import {
-  CliStructuredError,
-  errorUnexpected,
-  mapMigrationToolsError,
-  mapRefResolutionError,
-  requireLiveDatabase,
-} from '../utils/cli-errors';
+  buildReadAggregate,
+  loadContractRawSafely,
+  refusePackageCorruptionOnAggregate,
+} from '../control-api/operations/contract-space-aggregate-loader';
+import { hasMigrationPath } from '../control-api/operations/graph-queries';
+import {
+  refuseMissingInvariantPath,
+  refuseUnknownInvariants,
+} from '../control-api/operations/invariants';
+import {
+  listRefsByContractHash,
+  migrationSpaceListEntriesFromAggregate,
+  runMigrationList,
+} from '../control-api/operations/migration-list';
+import {
+  appliedHashesFromLedger,
+  deriveStatusEdgeAnnotations,
+  originHashForStatus,
+  statusForMigrationHash,
+} from '../control-api/operations/migration-status-overlay';
+import { resolveContractRef } from '../control-api/operations/ref-resolution';
+import { readMigrationRefs } from '../control-api/operations/refs';
+import { CliStructuredError, errorUnexpected, requireLiveDatabase } from '../utils/cli-errors';
 import {
   addGlobalOptions,
-  collectDeclaredInvariants,
+  closeQuietly,
   maskConnectionUrl,
   readContractEnvelope,
   resolveMigrationPaths,
   setCommandDescriptions,
   setCommandExamples,
   setCommandSeeAlso,
-  toStructuralEdge,
 } from '../utils/command-helpers';
-import {
-  buildReadAggregate,
-  loadContractRawSafely,
-  refusePackageCorruptionOnAggregate,
-} from '../utils/contract-space-aggregate-loader';
 import {
   type MigrationEdgeAnnotation,
   renderMigrationGraphLegend,
@@ -66,16 +68,6 @@ import type {
   StatusDiagnosticJson,
 } from './json/schemas';
 import { migrationStatusJsonResultSchema } from './json/schemas';
-import {
-  listRefsByContractHash,
-  migrationSpaceListEntriesFromAggregate,
-  runMigrationList,
-} from './migration-list';
-import {
-  appliedHashesFromLedger,
-  deriveStatusEdgeAnnotations,
-  statusForMigrationHash,
-} from './migration-status-overlay';
 
 export type { StatusRef } from '../utils/migration-types';
 export type {
@@ -275,10 +267,24 @@ export async function executeMigrationStatusCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<MigrationStatusCommandResult, CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath, migrationsDir, migrationsRelative, refsDir } = resolveMigrationPaths(
     options.config,
     config,
+    process.cwd(),
   );
 
   const dbConnection = options.db ?? config.db?.connection;
@@ -297,21 +303,21 @@ export async function executeMigrationStatusCommand(
     }
   }
 
-  let allRefs: Refs = {};
-  try {
-    allRefs = await readRefs(refsDir);
-  } catch (error) {
-    if (MigrationToolsError.is(error)) {
-      return notOk(mapMigrationToolsError(error));
-    }
-    throw error;
+  const refsResult = await readMigrationRefs(refsDir);
+  if (!refsResult.ok) {
+    return notOk(refsResult.failure);
   }
+  const allRefs = refsResult.value;
 
   const diagnostics: StatusDiagnosticJson[] = [];
-  let contractHash: string = EMPTY_CONTRACT_HASH;
+
+  const loaded = await buildReadAggregate(config, { migrationsDir });
+  if (!loaded.ok) {
+    return notOk(loaded.failure);
+  }
+  const contractHash = loaded.value.contractHash;
   try {
-    const envelope = await readContractEnvelope(config);
-    contractHash = envelope.storageHash;
+    await readContractEnvelope(config);
   } catch (error) {
     diagnostics.push({
       code: 'CONTRACT.UNREADABLE',
@@ -319,11 +325,6 @@ export async function executeMigrationStatusCommand(
       message: `Could not read contract: ${error instanceof Error ? error.message : 'unknown error'}`,
       hints: ["Run 'prisma-next contract emit' to generate a valid contract"],
     });
-  }
-
-  const loaded = await buildReadAggregate(config, { migrationsDir });
-  if (!loaded.ok) {
-    return notOk(loaded.failure);
   }
 
   const { aggregate } = loaded.value;
@@ -342,9 +343,9 @@ export async function executeMigrationStatusCommand(
   let fromOverrideHash: string | undefined;
 
   if (options.to) {
-    const refResult = parseContractRef(options.to, { graph: appGraph, refs: allRefs });
+    const refResult = resolveContractRef(options.to, { graph: appGraph, refs: allRefs });
     if (!refResult.ok) {
-      return notOk(mapRefResolutionError(refResult.failure));
+      return notOk(refResult.failure);
     }
     activeRefHash = refResult.value.hash;
     if (refResult.value.provenance.kind === 'ref') {
@@ -354,9 +355,9 @@ export async function executeMigrationStatusCommand(
   }
 
   if (options.from) {
-    const fromResult = parseContractRef(options.from, { graph: appGraph, refs: allRefs });
+    const fromResult = resolveContractRef(options.from, { graph: appGraph, refs: allRefs });
     if (!fromResult.ok) {
-      return notOk(mapRefResolutionError(fromResult.failure));
+      return notOk(fromResult.failure);
     }
     fromOverrideHash = fromResult.value.hash;
   }
@@ -441,26 +442,19 @@ export async function executeMigrationStatusCommand(
         }),
       );
     } finally {
-      await client.close();
+      await closeQuietly(client);
     }
   }
 
   if (activeRefEntry && activeRefEntry.invariants.length > 0 && connected) {
-    const declared = collectDeclaredInvariants(appGraph);
-    const markerInvariants = markersBySpace.get(aggregate.app.spaceId)?.invariants ?? [];
-    const known = new Set<string>(declared);
-    for (const id of markerInvariants) known.add(id);
-    const unknown = activeRefEntry.invariants.filter((id) => !known.has(id));
-    if (unknown.length > 0) {
-      return notOk(
-        mapMigrationToolsError(
-          errorUnknownInvariant({
-            ...ifDefined('refName', activeRefName),
-            unknown,
-            declared: [...declared].sort(),
-          }),
-        ),
-      );
+    const invariantRefusal = refuseUnknownInvariants({
+      graph: appGraph,
+      markerInvariants: markersBySpace.get(aggregate.app.spaceId)?.invariants ?? [],
+      refInvariants: activeRefEntry.invariants,
+      ...ifDefined('refName', activeRefName),
+    });
+    if (invariantRefusal) {
+      return notOk(invariantRefusal);
     }
   }
 
@@ -507,7 +501,7 @@ export async function executeMigrationStatusCommand(
     const markerHash = usingFromOverride
       ? fromOverrideHash
       : (markerRecord?.storageHash ?? undefined);
-    const originHash = markerHash ?? EMPTY_CONTRACT_HASH;
+    const originHash = originHashForStatus(markerHash);
     const markerInGraph =
       markerHash === undefined || graph.nodes.has(markerHash) || markerHash === spaceContractHash;
     if (
@@ -515,7 +509,7 @@ export async function executeMigrationStatusCommand(
       !usingFromOverride &&
       markerInGraph &&
       originHash !== targetHash &&
-      findPath(graph, originHash, targetHash) === null
+      !hasMigrationPath(graph, originHash, targetHash)
     ) {
       markerCannotReachTarget = true;
     }
@@ -589,23 +583,15 @@ export async function executeMigrationStatusCommand(
         message: `missing invariant(s): ${missing.join(', ')}`,
       });
       if (activeRefHash !== undefined) {
-        const originHash =
-          markersBySpace.get(aggregate.app.spaceId)?.storageHash ?? EMPTY_CONTRACT_HASH;
-        const outcome = findPathWithDecision(appGraph, originHash, activeRefHash, {
+        const pathRefusal = refuseMissingInvariantPath({
+          graph: appGraph,
+          originHash: originHashForStatus(markersBySpace.get(aggregate.app.spaceId)?.storageHash),
+          targetHash: activeRefHash,
+          missing,
           ...ifDefined('refName', activeRefName),
-          required: new Set(missing),
         });
-        if (outcome.kind === 'unsatisfiable') {
-          return notOk(
-            mapMigrationToolsError(
-              errorNoInvariantPath({
-                ...ifDefined('refName', activeRefName),
-                required: [...missing].sort(),
-                missing: outcome.missing,
-                structuralPath: outcome.structuralPath.map(toStructuralEdge),
-              }),
-            ),
-          );
+        if (pathRefusal) {
+          return notOk(pathRefusal);
         }
       }
     }

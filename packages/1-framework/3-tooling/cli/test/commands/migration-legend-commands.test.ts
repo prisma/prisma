@@ -8,6 +8,7 @@ import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { createSqlContract } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -73,26 +74,27 @@ async function buildFixture(): Promise<string> {
 }
 
 function mockConfig(): void {
-  type LoadedConfig = Awaited<ReturnType<typeof configLoader.loadConfig>>;
-  vi.spyOn(configLoader, 'loadConfig').mockResolvedValue({
-    family: {
-      familyId: 'sql',
-      create: vi.fn().mockReturnValue({
-        deserializeContract: identityDeserialize,
-      }),
-    },
-    target: {
-      id: 'postgres',
-      familyId: 'sql',
-      targetId: 'postgres',
-      kind: 'target',
-    },
-    adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
-    driver: { kind: 'driver' },
-    contract: { output: 'src/prisma/contract.json', source: 'src/prisma/contract.json' },
-    migrations: { dir: 'migrations' },
-    extensions: [],
-  } as unknown as LoadedConfig);
+  vi.spyOn(configLoader, 'loadConfigForSections').mockResolvedValue(
+    ok({
+      family: {
+        familyId: 'sql',
+        create: vi.fn().mockReturnValue({
+          deserializeContract: identityDeserialize,
+        }),
+      },
+      target: {
+        id: 'postgres',
+        familyId: 'sql',
+        targetId: 'postgres',
+        kind: 'target',
+      },
+      adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
+      driver: { kind: 'driver' },
+      contract: { output: 'src/prisma/contract.json', source: 'src/prisma/contract.json' },
+      migrations: { dir: 'migrations' },
+      extensions: [],
+    } as unknown as configLoader.PrismaNextConfig),
+  );
 }
 
 function envelopeCode(consoleOutput: readonly string[]): string | undefined {
@@ -100,8 +102,8 @@ function envelopeCode(consoleOutput: readonly string[]): string | undefined {
   if (jsonLine === undefined) {
     return undefined;
   }
-  const envelope = JSON.parse(jsonLine) as { meta?: { code?: string } };
-  return envelope.meta?.code;
+  const envelope = JSON.parse(jsonLine) as { code?: string };
+  return envelope.code;
 }
 
 const createdDirs: string[] = [];

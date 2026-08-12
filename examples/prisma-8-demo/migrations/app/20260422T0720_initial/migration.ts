@@ -1,5 +1,6 @@
 #!/usr/bin/env -S node
 import {
+  checkExpression,
   col,
   fn,
   lit,
@@ -9,8 +10,8 @@ import {
   rawSql,
   unique,
 } from '@prisma/orm-postgres/target/migration';
-import type { Contract as End } from '../../snapshots/cd96283a9f2a36f2c3e2a66663380bd1e5a71c09c2e991395c2e9b234c7e9a09/contract';
-import endContract from '../../snapshots/cd96283a9f2a36f2c3e2a66663380bd1e5a71c09c2e991395c2e9b234c7e9a09/contract.json' with {
+import type { Contract as End } from '../../snapshots/0b4bec62f3ba6e3e85b4ca8601cfb71fdf8bba01baaf491f93ea7a7d96ce96d2/contract';
+import endContract from '../../snapshots/0b4bec62f3ba6e3e85b4ca8601cfb71fdf8bba01baaf491f93ea7a7d96ce96d2/contract.json' with {
   type: 'json',
 };
 
@@ -81,7 +82,10 @@ export default class M extends Migration<never, End> {
           col('id', 'uuid', { notNull: true }),
           col('kind', 'text', { notNull: true }),
         ],
-        constraints: [primaryKey(['id'])],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression('user_kind_check_836d43ef', "\"kind\" IN ('admin', 'user')"),
+        ],
       }),
       this.createTable({
         schema: 'public',
@@ -94,7 +98,13 @@ export default class M extends Migration<never, End> {
           col('title', 'text', { notNull: true }),
           col('userId', 'uuid', { notNull: true }),
         ],
-        constraints: [primaryKey(['id'])],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'post_priority_check_09b41aa0',
+            "\"priority\" IN ('low', 'high', 'urgent')",
+          ),
+        ],
       }),
       this.createTable({
         schema: 'public',
@@ -118,20 +128,6 @@ export default class M extends Migration<never, End> {
           col('tagId', 'uuid', { notNull: true }),
         ],
         constraints: [primaryKey(['postId', 'tagId'])],
-      }),
-      this.addCheckConstraint({
-        schema: 'public',
-        table: 'user',
-        constraint: 'user_kind_check',
-        column: 'kind',
-        values: ['admin', 'user'],
-      }),
-      this.addCheckConstraint({
-        schema: 'public',
-        table: 'post',
-        constraint: 'post_priority_check',
-        column: 'priority',
-        values: ['low', 'high', 'urgent'],
       }),
       this.addForeignKey({
         schema: 'public',

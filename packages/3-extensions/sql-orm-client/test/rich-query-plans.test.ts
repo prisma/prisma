@@ -21,6 +21,7 @@ import {
   compileUpsertReturning,
 } from '../src/query-plan';
 import { baseContract, createCollectionFor } from './collection-fixtures';
+import { getTestAggregates } from './helpers';
 
 describe('SQL ORM rich AST query plans', () => {
   it('compiles include plans with AST classes and limit annotations', () => {
@@ -42,7 +43,13 @@ describe('SQL ORM rich AST query plans', () => {
       )
       .take(5).state;
 
-    const plan = compileSelectWithIncludes(baseContract, 'public', 'users', state);
+    const plan = compileSelectWithIncludes(
+      baseContract,
+      getTestAggregates(),
+      'public',
+      'users',
+      state,
+    );
 
     expect(plan.ast.kind).toBe('select');
     expect(plan.params).toEqual([100, 'Alice']);
@@ -107,6 +114,7 @@ describe('SQL ORM rich AST query plans', () => {
 
     const groupedPlan = compileGroupedAggregate(
       baseContract,
+      getTestAggregates(),
       'public',
       'posts',
       [],

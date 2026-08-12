@@ -399,5 +399,15 @@ describe('Postgres codec descriptor registry', () => {
     expect(() => buildPostgresCodecDescriptorRegistry([validShape, validShape])).toThrow(
       /Duplicate PostgreSQL codec descriptor id.*demo\/direct-vector@1/,
     );
+
+    expect(() =>
+      buildPostgresCodecDescriptorRegistry([{ ...validShape, descriptorKind: 'sqlite-codec' }]),
+    ).toThrow(expect.objectContaining({ code: 'RUNTIME.CODEC_DESCRIPTOR_INVALID' }));
+    expect(() => buildPostgresCodecDescriptorRegistry([validShape, validShape])).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.DUPLICATE_CODEC',
+        meta: expect.objectContaining({ target: 'postgres' }),
+      }),
+    );
   });
 });

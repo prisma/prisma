@@ -1,7 +1,7 @@
 {
   "name": "@internal/sql-builder",
   "private": true,
-  "version": "0.17.0",
+  "version": "8.0.0-rc.1",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -19,21 +19,21 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@internal/contract": "workspace:0.17.0",
-    "@internal/framework-components": "workspace:0.17.0",
-    "@internal/sql-contract": "workspace:0.17.0",
-    "@internal/sql-operations": "workspace:0.17.0",
-    "@internal/sql-relational-core": "workspace:0.17.0"
+    "@internal/contract": "workspace:8.0.0-rc.1",
+    "@internal/framework-components": "workspace:8.0.0-rc.1",
+    "@internal/sql-contract": "workspace:8.0.0-rc.1",
+    "@internal/sql-operations": "workspace:8.0.0-rc.1",
+    "@internal/sql-relational-core": "workspace:8.0.0-rc.1"
   },
   "devDependencies": {
-    "@internal/adapter-postgres": "workspace:0.17.0",
-    "@internal/ids": "workspace:0.17.0",
-    "@internal/sql-contract-ts": "workspace:0.17.0",
-    "@internal/target-postgres": "workspace:0.17.0",
-    "@repo/test-utils": "workspace:0.17.0",
-    "@internal/utils": "workspace:0.17.0",
-    "@repo/tsconfig": "workspace:0.17.0",
-    "@repo/tsdown": "workspace:0.17.0",
+    "@internal/adapter-postgres": "workspace:8.0.0-rc.1",
+    "@internal/ids": "workspace:8.0.0-rc.1",
+    "@internal/sql-contract-ts": "workspace:8.0.0-rc.1",
+    "@internal/target-postgres": "workspace:8.0.0-rc.1",
+    "@repo/test-utils": "workspace:8.0.0-rc.1",
+    "@internal/utils": "workspace:8.0.0-rc.1",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
+    "@repo/tsdown": "workspace:8.0.0-rc.1",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

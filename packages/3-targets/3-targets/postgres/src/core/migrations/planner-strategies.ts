@@ -32,16 +32,11 @@ import type {
   MigrationOperationPolicy,
   SqlMigrationPlanOperation,
 } from '@internal/family-sql/control';
-import { resolveValueSetValues } from '@internal/family-sql/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import {
-  type SqlStorage,
-  StorageTable,
-  type StorageTypeInstance,
-} from '@internal/sql-contract/types';
+import type { SqlStorage, StorageTable, StorageTypeInstance } from '@internal/sql-contract/types';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
 import {
   RelationalSchemaNodeKind,
@@ -58,13 +53,11 @@ import {
 import { resolveNamespaceIdForDdlSchema } from './control-policy';
 import { emissionSchemaName, issueNode, issueSchemaName, issueTableName } from './issue-planner';
 import {
-  AddCheckConstraintCall,
   AddColumnCall,
   AddNotNullColumnDirectCall,
   AddNotNullColumnWithTempDefaultCall,
   AlterColumnTypeCall,
   DataTransformCall,
-  DropCheckConstraintCall,
   DropNotNullCall,
   type PostgresOpFactoryCall,
   RawSqlCall,
@@ -391,135 +384,6 @@ export const nullableTighteningCallStrategy: CallMigrationStrategy = (issues, ct
 };
 
 /**
- * Collects every check constraint from a table in the contract storage.
- * Returns an empty array when the table has no checks or the table is absent.
- */
-function collectContractChecks(
-  storage: SqlStorage,
-  namespaceId: string,
-  tableName: string,
-): ReadonlyArray<{ name: string; column: string; permittedValues: readonly string[] }> {
-  const ns = storage.namespaces[namespaceId];
-  const tableRaw = ns !== undefined ? ns.entries.table?.[tableName] : undefined;
-  if (!(tableRaw instanceof StorageTable)) return [];
-  const checks = tableRaw.checks;
-  if (!checks || checks.length === 0) return [];
-  return checks.map((c) => ({
-    name: c.name,
-    column: c.column,
-    permittedValues: resolveValueSetValues(
-      c.valueSet,
-      storage,
-      `check "${c.name}" on "${tableName}"`,
-    ),
-  }));
-}
-
-/**
- * Compares two value arrays as unordered sets.
- */
-function checkValueSetsEqual(a: readonly string[], b: readonly string[]): boolean {
-  if (a.length !== b.length) return false;
-  const bSet = new Set(b);
-  return a.every((v) => bSet.has(v));
-}
-
-/**
- * Plans check-constraint migrations for `enumType`-authored columns.
- *
- * Walks every namespace's tables in the target contract (the check nodes'
- * resolved `permittedValues` are ultimately sourced from the same
- * contract-declared value sets, so walking the contract directly is the
- * simplest faithful port — the strategy's decisions never depend on which
- * ISSUES happen to be in the input list, only on the contract + live schema
- * shapes). For each table that carries `checks`, diffs the contract-expected
- * checks against the live schema's checks:
- *
- * - Check in contract, absent from live DB → `AddCheckConstraintCall`.
- * - Check in live DB, absent from contract → `DropCheckConstraintCall`.
- * - Check on both sides but value sets differ → `DropCheckConstraintCall`
- *   then `AddCheckConstraintCall` (drop + recreate; a check predicate cannot
- *   be altered in place).
- *
- * Consumes every `sql-check-constraint` issue on a table this walk handles
- * (not-found/not-expected/not-equal), leaving check issues on tables with
- * NO contract checks to `mapNodeIssueToCall`'s `not-expected` fallback.
- */
-export const checkConstraintPlanCallStrategy: CallMigrationStrategy = (issues, ctx) => {
-  const calls: PostgresOpFactoryCall[] = [];
-  const handledIssueKeys = new Set<string>();
-
-  for (const [namespaceId, ns] of Object.entries(ctx.toContract.storage.namespaces)) {
-    for (const tableName of Object.keys(ns.entries.table ?? {})) {
-      const contractChecks = collectContractChecks(ctx.toContract.storage, namespaceId, tableName);
-      if (contractChecks.length === 0) continue;
-
-      const schemaTable = ctx.schema.tables[tableName];
-      const liveChecks = schemaTable?.checks ?? [];
-      const ddlSchema = resolveDdlSchemaForNamespace(ctx, namespaceId);
-
-      for (const contractCheck of contractChecks) {
-        const liveCheck = liveChecks.find((c) => c.name === contractCheck.name);
-        const issueKey = `${tableName} ${contractCheck.name}`;
-        if (!liveCheck) {
-          calls.push(
-            new AddCheckConstraintCall(
-              ddlSchema,
-              tableName,
-              contractCheck.name,
-              contractCheck.column,
-              contractCheck.permittedValues,
-            ),
-          );
-          handledIssueKeys.add(issueKey);
-        } else if (!checkValueSetsEqual(contractCheck.permittedValues, liveCheck.permittedValues)) {
-          calls.push(
-            new DropCheckConstraintCall(ddlSchema, tableName, contractCheck.name),
-            new AddCheckConstraintCall(
-              ddlSchema,
-              tableName,
-              contractCheck.name,
-              contractCheck.column,
-              contractCheck.permittedValues,
-            ),
-          );
-          handledIssueKeys.add(issueKey);
-        }
-        // else: values match — no op needed, still consume the issue
-        else {
-          handledIssueKeys.add(issueKey);
-        }
-      }
-
-      // Emit drops for checks that are live but not in the contract.
-      for (const liveCheck of liveChecks) {
-        const inContract = contractChecks.some((c) => c.name === liveCheck.name);
-        if (!inContract) {
-          const issueKey = `${tableName} ${liveCheck.name}`;
-          calls.push(new DropCheckConstraintCall(ddlSchema, tableName, liveCheck.name));
-          handledIssueKeys.add(issueKey);
-        }
-      }
-    }
-  }
-
-  if (calls.length === 0 && handledIssueKeys.size === 0) return { kind: 'no_match' };
-
-  const remaining = issues.filter((issue) => {
-    const node = issueNode(issue);
-    if (node === undefined || node.nodeKind !== RelationalSchemaNodeKind.check) return true;
-    const tableName = issueTableName(issue);
-    if (tableName === undefined) return true;
-    const checkName = blindCast<{ readonly name: string }, 'a check node always carries a name'>(
-      node,
-    ).name;
-    return !handledIssueKeys.has(`${tableName} ${checkName}`);
-  });
-
-  return { kind: 'match', issues: remaining, calls };
-};
-
-/**
  * Dispatches codec-typed storage types through their codec's
  * `planTypeOperations` hook (the authoritative source for codec-driven DDL
  * such as custom type creation). Codec extension/type ops are not modeled as
@@ -718,7 +582,6 @@ export const postgresPlannerStrategies: readonly CallMigrationStrategy[] = [
   notNullBackfillCallStrategy,
   typeChangeCallStrategy,
   nullableTighteningCallStrategy,
-  checkConstraintPlanCallStrategy,
   storageTypePlanCallStrategy,
   notNullAddColumnCallStrategy,
 ];

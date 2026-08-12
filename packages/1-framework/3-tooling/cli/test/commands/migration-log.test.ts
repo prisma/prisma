@@ -1,4 +1,5 @@
 import type { LedgerEntryRecord } from '@internal/contract/types';
+import { ok } from '@internal/utils/result';
 import { type } from 'arktype';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import { migrationLogResultSchema } from '../../src/commands/json/schemas';
@@ -22,7 +23,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 vi.mock('../../src/control-api/client', () => ({
@@ -67,10 +68,12 @@ function ledgerEntry(
 
 describe('executeMigrationLogCommand', () => {
   it('returns a structured error when no database connection is configured', async () => {
-    mocks.loadConfig.mockResolvedValue({
-      ...baseConfig,
-      db: {},
-    });
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        ...baseConfig,
+        db: {},
+      }),
+    );
     const result = await executeMigrationLogCommand(
       { config: 'prisma-next.config.ts' },
       parseGlobalFlags({}),
@@ -83,10 +86,12 @@ describe('executeMigrationLogCommand', () => {
   });
 
   it('returns the same missing-DB envelope when only the driver is missing', async () => {
-    mocks.loadConfig.mockResolvedValue({
-      ...baseConfig,
-      driver: undefined,
-    });
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        ...baseConfig,
+        driver: undefined,
+      }),
+    );
     const result = await executeMigrationLogCommand(
       { config: 'prisma-next.config.ts', db: 'postgres://localhost/test' },
       parseGlobalFlags({}),
@@ -99,7 +104,7 @@ describe('executeMigrationLogCommand', () => {
   });
 
   it('returns an empty array when the ledger has no rows', async () => {
-    mocks.loadConfig.mockResolvedValue(baseConfig);
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig));
     mocks.connect.mockResolvedValue(undefined);
     mocks.readLedger.mockResolvedValue([]);
     mocks.close.mockResolvedValue(undefined);
@@ -115,7 +120,7 @@ describe('executeMigrationLogCommand', () => {
   });
 
   it('reads the unscoped ledger', async () => {
-    mocks.loadConfig.mockResolvedValue(baseConfig);
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig));
     mocks.connect.mockResolvedValue(undefined);
     mocks.readLedger.mockResolvedValue([ledgerEntry({ migrationName: '20260301_init' })]);
     mocks.close.mockResolvedValue(undefined);
@@ -130,7 +135,7 @@ describe('executeMigrationLogCommand', () => {
   });
 
   it('preserves rollback and re-apply rows as repeated uniform entries', async () => {
-    mocks.loadConfig.mockResolvedValue(baseConfig);
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig));
     mocks.connect.mockResolvedValue(undefined);
     mocks.readLedger.mockResolvedValue([
       ledgerEntry({
@@ -172,7 +177,7 @@ describe('migration log --json envelope', () => {
   });
 
   it('emits { ok: true, records: [...], summary } for a populated ledger', async () => {
-    mocks.loadConfig.mockResolvedValue(baseConfig);
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig));
     mocks.connect.mockResolvedValue(undefined);
     mocks.readLedger.mockResolvedValue([ledgerEntry({ migrationName: '20260301_init' })]);
     mocks.close.mockResolvedValue(undefined);
@@ -202,7 +207,7 @@ describe('migration log --json envelope', () => {
   });
 
   it('emits { ok: true, records: [], summary } for an empty ledger', async () => {
-    mocks.loadConfig.mockResolvedValue(baseConfig);
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig));
     mocks.connect.mockResolvedValue(undefined);
     mocks.readLedger.mockResolvedValue([]);
     mocks.close.mockResolvedValue(undefined);

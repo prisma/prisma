@@ -17,7 +17,7 @@ import {
   TableSource,
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
-import { buildPairedColumnExprs, createModelAccessor } from '../src/model-accessor';
+import { createModelAccessor } from '../src/model-accessor';
 import {
   buildMixedPolyContract,
   getTestContext,
@@ -205,6 +205,66 @@ describe('createModelAccessor', () => {
     expect(expr.subquery.where!.kind).toBe('and');
     const where = expr.subquery.where! as AndExpr;
     expect(where.exprs[1]!.kind).toBe('exists');
+  });
+
+  it('aliases both directions of ordinary self-relation predicates', () => {
+    const children = createModelAccessor(context, 'public', 'User')['invitedUsers']!.some(
+      (invitee) => invitee['name']!.eq('Bob'),
+    ) as ExistsExpr;
+    const inviter = createModelAccessor(context, 'public', 'User')['invitedBy']!.some((invitedBy) =>
+      invitedBy['name']!.eq('Alice'),
+    ) as ExistsExpr;
+
+    expect(children.subquery.from).toEqual(TableSource.named('users', '__orm_rel_1', 'public'));
+    expect(children.subquery.where).toEqual(
+      AndExpr.of([
+        BinaryExpr.eq(ColumnRef.of('__orm_rel_1', 'invited_by_id'), ColumnRef.of('users', 'id')),
+        BinaryExpr.eq(ColumnRef.of('__orm_rel_1', 'name'), paramRef('users', 'name', 'Bob')),
+      ]),
+    );
+    expect(inviter.subquery.from).toEqual(TableSource.named('users', '__orm_rel_1', 'public'));
+    expect(inviter.subquery.where).toEqual(
+      AndExpr.of([
+        BinaryExpr.eq(ColumnRef.of('__orm_rel_1', 'id'), ColumnRef.of('users', 'invited_by_id')),
+        BinaryExpr.eq(ColumnRef.of('__orm_rel_1', 'name'), paramRef('users', 'name', 'Alice')),
+      ]),
+    );
+  });
+
+  it('allocates distinct aliases for sibling predicates from one accessor', () => {
+    const accessor = createModelAccessor(context, 'public', 'User');
+    const children = accessor['invitedUsers']!.some((invitee) =>
+      invitee['name']!.eq('Bob'),
+    ) as ExistsExpr;
+    const inviter = accessor['invitedBy']!.some((invitedBy) =>
+      invitedBy['name']!.eq('Alice'),
+    ) as ExistsExpr;
+
+    expect(children.subquery.from).toEqual(TableSource.named('users', '__orm_rel_1', 'public'));
+    expect(inviter.subquery.from).toEqual(TableSource.named('users', '__orm_rel_2', 'public'));
+  });
+
+  it('correlates repeated self-relation predicates to the immediate parent alias', () => {
+    const expr = createModelAccessor(context, 'public', 'User')['invitedUsers']!.some((child) =>
+      child['invitedUsers']!.some((grandchild) => grandchild['name']!.eq('Dan')),
+    ) as ExistsExpr;
+    const outerWhere = expr.subquery.where as AndExpr;
+    const nested = outerWhere.exprs[1] as ExistsExpr;
+
+    expect(expr.subquery.from).toEqual(TableSource.named('users', '__orm_rel_1', 'public'));
+    expect(outerWhere.exprs[0]).toEqual(
+      BinaryExpr.eq(ColumnRef.of('__orm_rel_1', 'invited_by_id'), ColumnRef.of('users', 'id')),
+    );
+    expect(nested.subquery.from).toEqual(TableSource.named('users', '__orm_rel_2', 'public'));
+    expect(nested.subquery.where).toEqual(
+      AndExpr.of([
+        BinaryExpr.eq(
+          ColumnRef.of('__orm_rel_2', 'invited_by_id'),
+          ColumnRef.of('__orm_rel_1', 'id'),
+        ),
+        BinaryExpr.eq(ColumnRef.of('__orm_rel_2', 'name'), paramRef('users', 'name', 'Dan')),
+      ]),
+    );
   });
 
   it('keeps proxy symbol access undefined and relation shorthand maps null and undefined', () => {
@@ -640,10 +700,24 @@ describe('createModelAccessor', () => {
 
       const expr = feature['subtasks']!.some() as ExistsExpr;
 
-      expect(expr.subquery.from).toEqual(TableSource.named('tasks', undefined, 'public'));
+      expect(expr.subquery.from).toEqual(TableSource.named('tasks', '__orm_rel_1', 'public'));
       expect(expr.subquery.where).toEqual(
-        BinaryExpr.eq(ColumnRef.of('tasks', 'parent_id'), ColumnRef.of('tasks', 'id')),
+        BinaryExpr.eq(ColumnRef.of('__orm_rel_1', 'parent_id'), ColumnRef.of('tasks', 'id')),
       );
+    });
+
+    it('does not consume an alias when resolving an already joined variant source', () => {
+      const feature = createModelAccessor(
+        polyContext,
+        'public',
+        'Task',
+        'Feature',
+      ) as unknown as RelationBag;
+
+      feature['assignee']!.some();
+      const expr = feature['subtasks']!.some() as ExistsExpr;
+
+      expect(expr.subquery.from).toEqual(TableSource.named('tasks', '__orm_rel_1', 'public'));
     });
   });
 
@@ -745,11 +819,11 @@ describe('createModelAccessor', () => {
           AndExpr.of([
             BinaryExpr.eq(
               ColumnRef.of('project_links', 'dst_tenant_id'),
-              ColumnRef.of('related__child', 'tenant_id'),
+              ColumnRef.of('__orm_rel_1', 'tenant_id'),
             ),
             BinaryExpr.eq(
               ColumnRef.of('project_links', 'dst_id'),
-              ColumnRef.of('related__child', 'id'),
+              ColumnRef.of('__orm_rel_1', 'id'),
             ),
           ]),
         ),
@@ -775,9 +849,9 @@ describe('createModelAccessor', () => {
         (c as Record<string, { eq: (v: unknown) => unknown }>)['name']!.eq('Apollo'),
       ) as ExistsExpr;
 
-      expect(expr.subquery.from).toEqual(TableSource.named('projects', 'related__child', 'public'));
+      expect(expr.subquery.from).toEqual(TableSource.named('projects', '__orm_rel_1', 'public'));
       expect(expr.subquery.projection).toEqual([
-        ProjectionItem.of('_exists', ColumnRef.of('related__child', 'tenant_id')),
+        ProjectionItem.of('_exists', ColumnRef.of('__orm_rel_1', 'tenant_id')),
       ]);
       expect(expr.subquery.where).toEqual(
         AndExpr.of([
@@ -789,28 +863,134 @@ describe('createModelAccessor', () => {
             BinaryExpr.eq(ColumnRef.of('project_links', 'src_id'), ColumnRef.of('projects', 'id')),
           ]),
           BinaryExpr.eq(
-            ColumnRef.of('related__child', 'name'),
+            ColumnRef.of('__orm_rel_1', 'name'),
             paramRef('projects', 'name', 'Apollo'),
           ),
         ]),
       );
     });
 
-    it('throws when M:N join metadata column counts differ', () => {
-      expect(() =>
-        buildPairedColumnExprs('project_links', ['dst_tenant_id', 'dst_id'], 'projects', [
-          'tenant_id',
+    it('uses distinct child and junction aliases for repeated self-referential M:N predicates', () => {
+      const accessor = createModelAccessor(context, 'public', 'Project') as unknown as Record<
+        string,
+        { some: (pred: (c: unknown) => unknown) => unknown }
+      >;
+
+      const expr = accessor['related']!.some((related: unknown) =>
+        (related as Record<string, { some: (pred: (c: unknown) => unknown) => unknown }>)[
+          'related'
+        ]!.some((nested: unknown) =>
+          (nested as Record<string, { eq: (v: unknown) => unknown }>)['name']!.eq('Gamma'),
+        ),
+      ) as ExistsExpr;
+      const outerWhere = expr.subquery.where as AndExpr;
+      const nested = outerWhere.exprs[1] as ExistsExpr;
+
+      expect(expr.subquery.from).toEqual(TableSource.named('projects', '__orm_rel_1', 'public'));
+      expect(expr.subquery.joins).toEqual([
+        JoinAst.inner(
+          TableSource.named('project_links', undefined, 'public'),
+          AndExpr.of([
+            BinaryExpr.eq(
+              ColumnRef.of('project_links', 'dst_tenant_id'),
+              ColumnRef.of('__orm_rel_1', 'tenant_id'),
+            ),
+            BinaryExpr.eq(
+              ColumnRef.of('project_links', 'dst_id'),
+              ColumnRef.of('__orm_rel_1', 'id'),
+            ),
+          ]),
+        ),
+      ]);
+      expect(nested.subquery.from).toEqual(TableSource.named('projects', '__orm_rel_2', 'public'));
+      expect(nested.subquery.joins).toEqual([
+        JoinAst.inner(
+          TableSource.named('project_links', '__orm_junction_3', 'public'),
+          AndExpr.of([
+            BinaryExpr.eq(
+              ColumnRef.of('__orm_junction_3', 'dst_tenant_id'),
+              ColumnRef.of('__orm_rel_2', 'tenant_id'),
+            ),
+            BinaryExpr.eq(
+              ColumnRef.of('__orm_junction_3', 'dst_id'),
+              ColumnRef.of('__orm_rel_2', 'id'),
+            ),
+          ]),
+        ),
+      ]);
+      expect(nested.subquery.where).toEqual(
+        AndExpr.of([
+          AndExpr.of([
+            BinaryExpr.eq(
+              ColumnRef.of('__orm_junction_3', 'src_tenant_id'),
+              ColumnRef.of('__orm_rel_1', 'tenant_id'),
+            ),
+            BinaryExpr.eq(
+              ColumnRef.of('__orm_junction_3', 'src_id'),
+              ColumnRef.of('__orm_rel_1', 'id'),
+            ),
+          ]),
+          BinaryExpr.eq(ColumnRef.of('__orm_rel_2', 'name'), paramRef('projects', 'name', 'Gamma')),
         ]),
-      ).toThrow(/Relation metadata has mismatched join column counts/);
+      );
+    });
+
+    it('throws when M:N join metadata column counts differ', () => {
+      const malformedContract = withPatchedDomainModels(getTestContract(), (models) => {
+        const project = models['Project'] as { relations: Record<string, unknown> };
+        const related = project.relations['related'] as { through: Record<string, unknown> };
+        return {
+          ...models,
+          Project: {
+            ...project,
+            relations: {
+              ...project.relations,
+              related: {
+                ...related,
+                through: { ...related.through, targetColumns: ['tenant_id'] },
+              },
+            },
+          },
+        };
+      });
+      const accessor = createModelAccessor(
+        { ...context, contract: malformedContract } as never,
+        'public',
+        'Project',
+      ) as unknown as Record<string, { some: () => unknown }>;
+
+      expect(() => accessor['related']!.some()).toThrow(
+        /Relation metadata has mismatched join column counts/,
+      );
     });
 
     it('throws when M:N join metadata omits a paired column', () => {
-      expect(() =>
-        buildPairedColumnExprs('project_links', ['dst_tenant_id', ''], 'projects', [
-          'tenant_id',
-          'id',
-        ]),
-      ).toThrow(/Relation metadata is missing a join column pair/);
+      const malformedContract = withPatchedDomainModels(getTestContract(), (models) => {
+        const project = models['Project'] as { relations: Record<string, unknown> };
+        const related = project.relations['related'] as { through: Record<string, unknown> };
+        return {
+          ...models,
+          Project: {
+            ...project,
+            relations: {
+              ...project.relations,
+              related: {
+                ...related,
+                through: { ...related.through, childColumns: ['dst_tenant_id', ''] },
+              },
+            },
+          },
+        };
+      });
+      const accessor = createModelAccessor(
+        { ...context, contract: malformedContract } as never,
+        'public',
+        'Project',
+      ) as unknown as Record<string, { some: () => unknown }>;
+
+      expect(() => accessor['related']!.some()).toThrow(
+        /Relation metadata is missing a join column pair/,
+      );
     });
   });
 

@@ -1048,11 +1048,11 @@ describe('ORM client integration examples', () => {
   // `@internal/middleware-cache` middleware via `cacheAnnotation(...)`.
   // The middleware short-circuits repeated executions of the same plan via
   // its `intercept` hook, so a cache hit means the SQL driver is *not*
-  // invoked again. We assert that contract by spying on `driver.execute`.
+  // invoked again. We assert that contract by spying on `driver.query`.
   // ---------------------------------------------------------------------------
 
   it(
-    'ormClientFindUserByIdCached serves the second call from the cache (driver.execute not invoked again)',
+    'ormClientFindUserByIdCached serves the second call from the cache (driver.query not invoked again)',
     async () => {
       await withDevDatabase(async ({ connectionString }) => {
         await initTestDatabase({ connection: connectionString, contract });
@@ -1063,16 +1063,16 @@ describe('ORM client integration examples', () => {
           await seedOrmClientData(runtime);
 
           // Spy *after* seeding so we don't count seed inserts.
-          const driverExecuteSpy = vi.spyOn(driver, 'execute');
+          const driverQuerySpy = vi.spyOn(driver, 'query');
 
           const first = await ormClientFindUserByIdCached(seededUserIds.admin, runtime);
-          const driverCallsAfterFirst = driverExecuteSpy.mock.calls.length;
+          const driverCallsAfterFirst = driverQuerySpy.mock.calls.length;
           expect(driverCallsAfterFirst).toBeGreaterThan(0);
           expect(first).toMatchObject({ id: seededUserIds.admin, kind: 'admin' });
 
           const second = await ormClientFindUserByIdCached(seededUserIds.admin, runtime);
           // Cache hit: driver was not invoked again.
-          expect(driverExecuteSpy.mock.calls.length).toBe(driverCallsAfterFirst);
+          expect(driverQuerySpy.mock.calls.length).toBe(driverCallsAfterFirst);
           expect(second).toEqual(first);
         } finally {
           await runtime.close();
@@ -1092,17 +1092,17 @@ describe('ORM client integration examples', () => {
 
         try {
           await seedOrmClientData(runtime);
-          const driverExecuteSpy = vi.spyOn(driver, 'execute');
+          const driverQuerySpy = vi.spyOn(driver, 'query');
 
           // Prime the cache.
           await ormClientFindUserByIdCached(seededUserIds.admin, runtime);
-          const callsAfterFirst = driverExecuteSpy.mock.calls.length;
+          const callsAfterFirst = driverQuerySpy.mock.calls.length;
 
           // Same query but with skip — should hit the driver again.
           await ormClientFindUserByIdCached(seededUserIds.admin, runtime, {
             forceRefresh: true,
           });
-          expect(driverExecuteSpy.mock.calls.length).toBeGreaterThan(callsAfterFirst);
+          expect(driverQuerySpy.mock.calls.length).toBeGreaterThan(callsAfterFirst);
         } finally {
           await runtime.close();
         }
@@ -1121,21 +1121,21 @@ describe('ORM client integration examples', () => {
 
         try {
           await seedOrmClientData(runtime);
-          const driverExecuteSpy = vi.spyOn(driver, 'execute');
+          const driverQuerySpy = vi.spyOn(driver, 'query');
 
           const first = await ormClientGetUsersCached(2, runtime);
-          const callsAfterFirst = driverExecuteSpy.mock.calls.length;
+          const callsAfterFirst = driverQuerySpy.mock.calls.length;
           expect(first).toHaveLength(2);
 
           const second = await ormClientGetUsersCached(2, runtime);
           // Same plan: cache hit, driver not invoked.
-          expect(driverExecuteSpy.mock.calls.length).toBe(callsAfterFirst);
+          expect(driverQuerySpy.mock.calls.length).toBe(callsAfterFirst);
           expect(second).toEqual(first);
 
           // Different plan (different limit → different params → different
           // identity key): cache miss, driver invoked.
           await ormClientGetUsersCached(3, runtime);
-          expect(driverExecuteSpy.mock.calls.length).toBeGreaterThan(callsAfterFirst);
+          expect(driverQuerySpy.mock.calls.length).toBeGreaterThan(callsAfterFirst);
         } finally {
           await runtime.close();
         }
@@ -1154,11 +1154,11 @@ describe('ORM client integration examples', () => {
 
         try {
           await seedOrmClientData(runtime);
-          const driverExecuteSpy = vi.spyOn(driver, 'execute');
+          const driverQuerySpy = vi.spyOn(driver, 'query');
 
           // Prime the cache under an explicit key.
           const first = await ormClientGetUsersCached(2, runtime, { key: 'user-list:demo' });
-          const callsAfterFirst = driverExecuteSpy.mock.calls.length;
+          const callsAfterFirst = driverQuerySpy.mock.calls.length;
           expect(first).toHaveLength(2);
 
           // Different limit (→ different identity key) but same explicit
@@ -1168,7 +1168,7 @@ describe('ORM client integration examples', () => {
           // rows from the first call — the explicit key takes precedence
           // over the canonical identity key.)
           const second = await ormClientGetUsersCached(5, runtime, { key: 'user-list:demo' });
-          expect(driverExecuteSpy.mock.calls.length).toBe(callsAfterFirst);
+          expect(driverQuerySpy.mock.calls.length).toBe(callsAfterFirst);
           expect(second).toEqual(first);
         } finally {
           await runtime.close();

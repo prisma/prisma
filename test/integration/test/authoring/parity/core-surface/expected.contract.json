@@ -244,14 +244,9 @@
             "user": {
               "checks": [
                 {
-                  "column": "role",
-                  "name": "user_role_check",
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "Role",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
+                  "expression": "\"role\" IN ('USER', 'ADMIN')",
+                  "name": "user_role_check_1954e8c0",
+                  "prefix": "user_role_check"
                 }
               ],
               "columns": {
@@ -327,7 +322,7 @@
         "id": "public"
       }
     },
-    "storageHash": "cf5145e9a1de641f00c0dc2eed38b3d5317e9cc34cdb250552494b1ecec2cda8",
+    "storageHash": "18cf551b7c6cb114f16d5eed967fba34f4c30e571d5efdb002ca23da0f055748",
     "types": {
       "Email": {
         "codecId": "pg/text@1",

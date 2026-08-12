@@ -1,3 +1,4 @@
+import type { AggregateDescriptor } from './aggregate-descriptor';
 import type { AnyCodecDescriptor } from './codec-descriptor';
 import type { AuthoringContributions } from './framework-authoring';
 import type { ControlMutationDefaults } from './mutation-default-types';
@@ -41,6 +42,10 @@ export interface ComponentMetadata {
        */
       readonly codecDescriptors?: ReadonlyArray<AnyCodecDescriptor>;
     };
+    /**
+     * Aggregate descriptors contributed by this component — a sibling of `codecTypes`, not a member: an aggregate descriptor relates an operation, a target, and an input codec, which is why it is modeled apart from codecs. Source of truth for the result codec, nullability, and (family-side) lowering of each `(aggregate operation, input codec)` overload; each overload has exactly one contributor across the composed stack.
+     */
+    readonly aggregateDescriptors?: ReadonlyArray<AggregateDescriptor>;
     readonly queryOperationTypes?: { readonly import: TypesImportSpec };
     readonly storage?: ReadonlyArray<{
       readonly typeId: string;

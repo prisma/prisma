@@ -13,15 +13,9 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // In prisma-next, the Bytes field is typed as Uint8Array and `conflictOn` is
 // used instead of Prisma's `where: { bytes: byteId }`.
 //
-// FAIL: second upsert with `update: {}` on a Bytes @unique field throws
-//   ORM.MUTATION_ROW_MISSING — the ON CONFLICT DO NOTHING RETURNING * emits
-//   zero rows, and the follow-up reload via `#buildUpsertConflictCriterion`
-//   fails to match the existing row (Uint8Array equality in the WHERE clause
-//   does not round-trip correctly through the reload path).
-
 describe('ports/prisma/functional/bytes-upsert', () => {
-  it.fails(
-    'bytes upsert should work correctly',
+  it(
+    'bytes upsert works correctly',
     () =>
       withPostgresPort<Contract>({ contractJson }, async ({ db }) => {
         const byteId = new Uint8Array(randomBytes(16));
@@ -34,12 +28,10 @@ describe('ports/prisma/functional/bytes-upsert', () => {
           });
 
         await upsertByteRow();
-        // This second call fails: upsert() did not return a row
         await upsertByteRow();
 
-        const result = await db.public.TestByteId.first({ bytes: byteId });
-        expect(result).toBeTruthy();
-        expect(result?.bytes).toEqual(byteId);
+        const result = await db.public.TestByteId.select('bytes').first({ bytes: byteId });
+        expect(result).toEqual({ bytes: byteId });
       }),
     timeouts.spinUpPpgDev,
   );

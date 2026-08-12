@@ -18,6 +18,7 @@ import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { diffSchemas, issueOutcome } from '@internal/framework-components/control';
 import { entityAt } from '@internal/framework-components/ir';
 import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { namingOf } from '@internal/sql-schema-ir/naming';
 import {
   relationalNodeGranularity,
   SqlColumnIR,
@@ -749,104 +750,78 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
 });
 
 describe('differ verdict — check constraints', () => {
-  const contractWithCheck = (values: readonly string[]) => {
-    const table = createContractTable({ status: { nativeType: 'text', nullable: false } });
-    // createContractTable has no checks support; splice the check in via a
-    // fresh table (checks reference a value set on the namespace, which the
-    // flat converter resolves — covered by the target-level tests; here the
-    // ACTUAL side pins the differ behavior with pre-resolved check nodes).
-    void values;
-    return table;
-  };
-  void contractWithCheck;
+  const postWithChecks = (
+    checks: ReadonlyArray<{ name: string; prefix?: string; expression: string }>,
+  ) =>
+    new SqlSchemaIR({
+      tables: {
+        post: {
+          name: 'post',
+          columns: { status: { name: 'status', nativeType: 'text', nullable: false } },
+          foreignKeys: [],
+          uniques: [],
+          indexes: [],
+          checks: checks.map((c) => ({
+            naming: namingOf(c.name, c.prefix),
+            expression: c.expression,
+            dependsOn: undefined,
+          })),
+        },
+      },
+    });
 
-  it('check drift is covered at the node level: name-paired checks compare value sets only', () => {
-    // The check node semantics (values-only, order-insensitive, column not
-    // compared) are pinned in the schema-ir unit tests; the value-set
-    // resolution derivation is pinned in contract-to-schema-ir tests. Here we
-    // pin the classification: a paired check with divergent values is
-    // valueDrift (not-equal), a live-only check is not-expected.
-    const expected = new SqlSchemaIR({
-      tables: {
-        post: {
-          name: 'post',
-          columns: { status: { name: 'status', nativeType: 'text', nullable: false } },
-          foreignKeys: [],
-          uniques: [],
-          indexes: [],
-          checks: [{ name: 'post_status_check', column: 'status', permittedValues: ['a', 'b'] }],
-        },
-      },
-    });
-    const actualDrift = new SqlSchemaIR({
-      tables: {
-        post: {
-          name: 'post',
-          columns: { status: { name: 'status', nativeType: 'text', nullable: false } },
-          foreignKeys: [],
-          uniques: [],
-          indexes: [],
-          checks: [{ name: 'post_status_check', column: 'status', permittedValues: ['a', 'c'] }],
-        },
-      },
-    });
-    const driftIssues = diffSchemas(expected, actualDrift).filter((i) =>
-      i.path.includes('check:post_status_check'),
-    );
-    expect(driftIssues).toHaveLength(1);
-    expect(issueOutcome(driftIssues[0]!)).toBe('not-equal');
+  const checkIssues = (expected: SqlSchemaIR, actual: SqlSchemaIR, name: string) =>
+    diffSchemas(expected, actual).filter((i) => i.path.includes(`check:${name}`));
 
-    const actualRemoved = new SqlSchemaIR({
-      tables: {
-        post: {
-          name: 'post',
-          columns: { status: { name: 'status', nativeType: 'text', nullable: false } },
-          foreignKeys: [],
-          uniques: [],
-          indexes: [],
-        },
-      },
-    });
-    const removedIssues = diffSchemas(expected, actualRemoved).filter((i) =>
-      i.path.includes('check:post_status_check'),
+  it('an exact-named check whose expression drifted is not-equal', () => {
+    const issues = checkIssues(
+      postWithChecks([{ name: 'post_status_check', expression: `"status" IN ('a', 'b')` }]),
+      postWithChecks([{ name: 'post_status_check', expression: `"status" IN ('a', 'c')` }]),
+      'post_status_check',
     );
-    expect(issueOutcome(removedIssues[0]!)).toBe('not-found');
+    expect(issues).toHaveLength(1);
+    expect(issueOutcome(issues[0]!)).toBe('not-equal');
+  });
 
-    // check_removed reclassifies to not-expected per the spec: a live-only
-    // check under a declared table is an undeclared extra (strict-gated),
-    // where the legacy kind stamped not-equal despite being semantically an
-    // extra. Verdict-neutral: strict-only failure either way.
-    const expectedNoChecks = new SqlSchemaIR({
-      tables: {
-        post: {
-          name: 'post',
-          columns: { status: { name: 'status', nativeType: 'text', nullable: false } },
-          foreignKeys: [],
-          uniques: [],
-          indexes: [],
-        },
-      },
-    });
-    const liveOnlyCheckIssues = diffSchemas(expectedNoChecks, actualDrift).filter((i) =>
-      i.path.includes('check:post_status_check'),
+  it('a wire-named check pairs by name, so a reprinted expression is not drift', () => {
+    const wire = { name: 'post_status_check_0a1b2c3d', prefix: 'post_status_check' };
+    const issues = checkIssues(
+      postWithChecks([{ ...wire, expression: `"status" IN ('a', 'b')` }]),
+      postWithChecks([
+        { ...wire, expression: `((status)::text = ANY ((ARRAY['a'::text])::text[]))` },
+      ]),
+      wire.name,
     );
-    expect(issueOutcome(liveOnlyCheckIssues[0]!)).toBe('not-expected');
-    const strictVerdict = computeSqlDiffVerdict({
-      issues: liveOnlyCheckIssues,
-      resolveControlPolicy: () => undefined,
-      strict: true,
-      defaultControlPolicy: undefined,
-      granularityOf: relationalNodeGranularity,
-    });
-    const lenientVerdict = computeSqlDiffVerdict({
-      issues: liveOnlyCheckIssues,
-      resolveControlPolicy: () => undefined,
-      strict: false,
-      defaultControlPolicy: undefined,
-      granularityOf: relationalNodeGranularity,
-    });
-    expect(strictVerdict.failures).toHaveLength(1);
-    expect(lenientVerdict.failures).toHaveLength(0);
+    expect(issues).toHaveLength(0);
+  });
+
+  it('a declared check the database lacks is not-found', () => {
+    const issues = checkIssues(
+      postWithChecks([{ name: 'post_status_check', expression: `"status" IN ('a')` }]),
+      postWithChecks([]),
+      'post_status_check',
+    );
+    expect(issueOutcome(issues[0]!)).toBe('not-found');
+  });
+
+  it('a live-only check is a strict-gated extra', () => {
+    const issues = checkIssues(
+      postWithChecks([]),
+      postWithChecks([{ name: 'post_status_check', expression: `"status" IN ('a')` }]),
+      'post_status_check',
+    );
+    expect(issueOutcome(issues[0]!)).toBe('not-expected');
+
+    const verdictFor = (strict: boolean) =>
+      computeSqlDiffVerdict({
+        issues,
+        resolveControlPolicy: () => undefined,
+        strict,
+        defaultControlPolicy: undefined,
+        granularityOf: relationalNodeGranularity,
+      });
+    expect(verdictFor(true).failures).toHaveLength(1);
+    expect(verdictFor(false).failures).toHaveLength(0);
   });
 });
 

@@ -2,6 +2,7 @@ import type { SqlConnection, SqlQueryable } from '@internal/sql-relational-core/
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createBoundDriverFromBinding } from '../src/postgres-driver';
+import { executeSql, queryRows } from './sql-queryable-test-utils';
 
 function makeSlot(initial?: unknown) {
   let value: unknown = initial;
@@ -25,10 +26,11 @@ async function consume<T>(iterable: AsyncIterable<T>): Promise<T[]> {
 }
 
 async function preparedNames(queryable: SqlQueryable): Promise<string[]> {
-  const result = await queryable.query<{ name: string }>(
+  const result = await queryRows<{ name: string }>(
+    queryable,
     'select name from pg_prepared_statements order by name',
   );
-  return result.rows.map((r) => r.name);
+  return result.map((row) => row.name);
 }
 
 describe('@internal/driver-postgres prepared statements', () => {
@@ -52,17 +54,17 @@ describe('@internal/driver-postgres prepared statements', () => {
         await database.close();
       });
 
-      await driver.query('create table t (id serial primary key, label text)');
-      await driver.query("insert into t (label) values ('a'), ('b')");
+      await executeSql(driver, 'create table t (id serial primary key, label text)');
+      await executeSql(driver, "insert into t (label) values ('a'), ('b')");
 
       const { slot, snapshot } = makeSlot();
       expect(await preparedNames(driver)).toEqual([]);
 
       const r1 = await consume(
-        driver.executePrepared<{ id: number; label: string }>({
+        driver.query<{ id: number; label: string }>({
           sql: 'select id, label from t where label = $1',
           params: ['a'],
-          handle: slot,
+          preparedStatementHandle: slot,
         }),
       );
       expect(r1).toEqual([{ id: 1, label: 'a' }]);
@@ -72,10 +74,10 @@ describe('@internal/driver-postgres prepared statements', () => {
       expect(await preparedNames(driver)).toEqual([handleName]);
 
       const r2 = await consume(
-        driver.executePrepared<{ id: number; label: string }>({
+        driver.query<{ id: number; label: string }>({
           sql: 'select id, label from t where label = $1',
           params: ['b'],
-          handle: slot,
+          preparedStatementHandle: slot,
         }),
       );
       expect(r2).toEqual([{ id: 2, label: 'b' }]);
@@ -118,7 +120,7 @@ describe('@internal/driver-postgres prepared statements', () => {
         await databaseA.close();
       });
 
-      await consume(driverA.executePrepared({ sql, params: ['a'], handle: slot }));
+      await consume(driverA.query({ sql, params: ['a'], preparedStatementHandle: slot }));
       const name = snapshot() as string;
       expect(name).toMatch(/^pn_\d+$/);
       expect(await preparedNames(driverA)).toEqual([name]);
@@ -133,7 +135,7 @@ describe('@internal/driver-postgres prepared statements', () => {
         await databaseB.close();
       });
 
-      await consume(driverB.executePrepared({ sql, params: ['a'], handle: slot }));
+      await consume(driverB.query({ sql, params: ['a'], preparedStatementHandle: slot }));
       expect(snapshot()).toBe(name);
       expect(await preparedNames(driverB)).toEqual([name]);
     },
@@ -152,22 +154,22 @@ describe('@internal/driver-postgres prepared statements', () => {
         await database.close();
       });
 
-      await driver.query('create table t3 (id serial primary key, label text)');
-      await driver.query("insert into t3 (label) values ('a'), ('b')");
+      await executeSql(driver, 'create table t3 (id serial primary key, label text)');
+      await executeSql(driver, "insert into t3 (label) values ('a'), ('b')");
 
       const { slot, snapshot } = makeSlot();
       const sql = 'select id, label from t3 where label = $1';
 
-      const r1 = await consume(driver.executePrepared({ sql, params: ['a'], handle: slot }));
+      const r1 = await consume(driver.query({ sql, params: ['a'], preparedStatementHandle: slot }));
       expect(r1).toHaveLength(1);
       const firstHandle = snapshot() as string;
 
       // Forget every prepared statement server-side. pg's parsedStatements
       // still records firstHandle, so the next execute under the old name
       // would skip Parse on the wire and surface 26000 from the server.
-      await driver.query('deallocate all');
+      await executeSql(driver, 'deallocate all');
 
-      const r2 = await consume(driver.executePrepared({ sql, params: ['b'], handle: slot }));
+      const r2 = await consume(driver.query({ sql, params: ['b'], preparedStatementHandle: slot }));
       expect(r2).toHaveLength(1);
       expect((r2[0] as { label: string }).label).toBe('b');
 
@@ -191,22 +193,22 @@ describe('@internal/driver-postgres prepared statements', () => {
         await database.close();
       });
 
-      await driver.query('create table t4 (id serial primary key, label text)');
-      await driver.query("insert into t4 (label) values ('a'), ('b')");
+      await executeSql(driver, 'create table t4 (id serial primary key, label text)');
+      await executeSql(driver, "insert into t4 (label) values ('a'), ('b')");
 
       const { slot, snapshot } = makeSlot();
       // SELECT * so a column-shape change invalidates the cached plan.
       const sql = 'select * from t4 where id = $1';
 
-      const r1 = await consume(driver.executePrepared({ sql, params: [1], handle: slot }));
+      const r1 = await consume(driver.query({ sql, params: [1], preparedStatementHandle: slot }));
       expect(r1).toHaveLength(1);
       const firstHandle = snapshot() as string;
 
-      await driver.query('alter table t4 drop column label');
-      await driver.query('alter table t4 add column label varchar(50)');
-      await driver.query("update t4 set label = 'b' where id = 2");
+      await executeSql(driver, 'alter table t4 drop column label');
+      await executeSql(driver, 'alter table t4 add column label varchar(50)');
+      await executeSql(driver, "update t4 set label = 'b' where id = 2");
 
-      const r2 = await consume(driver.executePrepared({ sql, params: [2], handle: slot }));
+      const r2 = await consume(driver.query({ sql, params: [2], preparedStatementHandle: slot }));
       expect(r2).toHaveLength(1);
       const retryHandle = snapshot() as string;
       expect(retryHandle).toMatch(/^pn_\d+$/);
@@ -227,23 +229,23 @@ describe('@internal/driver-postgres prepared statements', () => {
         await database.close();
       });
 
-      await driver.query('create table t5 (id serial primary key, label text)');
+      await executeSql(driver, 'create table t5 (id serial primary key, label text)');
 
       const connection: SqlConnection = await driver.acquireConnection();
       const tx = await connection.beginTransaction();
 
-      await tx.query("insert into t5 (label) values ('a'), ('b'), ('c')");
+      await executeSql(tx, "insert into t5 (label) values ('a'), ('b'), ('c')");
 
       const { slot, snapshot } = makeSlot();
       const sql = 'select id, label from t5 where label = $1';
 
-      const r1 = await consume(tx.executePrepared({ sql, params: ['a'], handle: slot }));
+      const r1 = await consume(tx.query({ sql, params: ['a'], preparedStatementHandle: slot }));
       expect(r1).toEqual([{ id: 1, label: 'a' }]);
 
       const handle = snapshot() as string;
       expect(handle).toMatch(/^pn_\d+$/);
 
-      const r2 = await consume(tx.executePrepared({ sql, params: ['b'], handle: slot }));
+      const r2 = await consume(tx.query({ sql, params: ['b'], preparedStatementHandle: slot }));
       expect(r2).toEqual([{ id: 2, label: 'b' }]);
       expect(snapshot()).toBe(handle);
 
@@ -251,7 +253,9 @@ describe('@internal/driver-postgres prepared statements', () => {
 
       // PREPARE survives the transaction; only DEALLOCATE / end-of-session
       // discards it. The handle still resolves on the parent connection.
-      const r3 = await consume(connection.executePrepared({ sql, params: ['c'], handle: slot }));
+      const r3 = await consume(
+        connection.query({ sql, params: ['c'], preparedStatementHandle: slot }),
+      );
       expect(r3).toEqual([{ id: 3, label: 'c' }]);
       expect(snapshot()).toBe(handle);
 
@@ -272,18 +276,18 @@ describe('@internal/driver-postgres prepared statements', () => {
         await database.close();
       });
 
-      await driver.query('create table t7 (id serial primary key, label text)');
-      await driver.query("insert into t7 (label) values ('a'), ('b')");
+      await executeSql(driver, 'create table t7 (id serial primary key, label text)');
+      await executeSql(driver, "insert into t7 (label) values ('a'), ('b')");
 
       const { slot, snapshot } = makeSlot();
       const sql = 'select id, label from t7 where label = $1';
 
-      const r1 = await consume(driver.executePrepared({ sql, params: ['a'], handle: slot }));
+      const r1 = await consume(driver.query({ sql, params: ['a'], preparedStatementHandle: slot }));
       expect(r1).toEqual([{ id: 1, label: 'a' }]);
       const handle = snapshot() as string;
       expect(handle).toMatch(/^pn_\d+$/);
 
-      const r2 = await consume(driver.executePrepared({ sql, params: ['b'], handle: slot }));
+      const r2 = await consume(driver.query({ sql, params: ['b'], preparedStatementHandle: slot }));
       expect(r2).toEqual([{ id: 2, label: 'b' }]);
 
       expect(await preparedNames(driver)).toEqual([handle]);
@@ -305,14 +309,14 @@ describe('@internal/driver-postgres prepared statements', () => {
         await database.close();
       });
 
-      await driver.query('create table t6 (id serial primary key, label text)');
-      await driver.query("insert into t6 (label) values ('a'), ('b')");
+      await executeSql(driver, 'create table t6 (id serial primary key, label text)');
+      await executeSql(driver, "insert into t6 (label) values ('a'), ('b')");
 
       const { slot, snapshot } = makeSlot();
       const sql = 'select id, label from t6 where label = $1';
 
-      await consume(driver.executePrepared({ sql, params: ['a'], handle: slot }));
-      await consume(driver.executePrepared({ sql, params: ['b'], handle: slot }));
+      await consume(driver.query({ sql, params: ['a'], preparedStatementHandle: slot }));
+      await consume(driver.query({ sql, params: ['b'], preparedStatementHandle: slot }));
 
       expect(snapshot()).toBeUndefined();
       expect(await preparedNames(driver)).toEqual([]);

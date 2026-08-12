@@ -342,7 +342,7 @@ describe('load-time diagnostics name the prefix', () => {
     ).toThrow(/role "app_user" is declared more than once/);
   });
 
-  it('rejects a prefix over the 54-character cap, naming the prefix only', () => {
+  it('rejects a prefix over the 54-byte cap, naming the prefix only', () => {
     const Profile = makeProfile();
     const longPrefix = 'p'.repeat(55);
     expect(() =>
@@ -353,7 +353,7 @@ describe('load-time diagnostics name the prefix', () => {
           policySelect(Profile, { name: longPrefix, roles: [anon], using: 'true' }),
         ],
       }),
-    ).toThrow(new RegExp(`policy prefix "${longPrefix}" exceeds the 54-character maximum`));
+    ).toThrow(new RegExp(`policy prefix "${longPrefix}" exceeds the 54-byte maximum`));
   });
 
   it('accepts a 54-character prefix (the cap is inclusive)', () => {

@@ -6,24 +6,23 @@
  * clauses) carry no param; `params` holds the wire values for the `$N`/`?`
  * positions, in order.
  */
+export interface PreparedStatementHandle {
+  get(): unknown;
+  set(value: unknown): void;
+}
+
 export interface SqlExecuteRequest {
   readonly sql: string;
   readonly params?: readonly unknown[];
+  readonly preparedStatementHandle?: PreparedStatementHandle;
 }
 
-export interface PreparedExecuteRequest {
-  readonly sql: string;
-  readonly params: readonly unknown[];
-  readonly handle: {
-    get(): unknown;
-    set(value: unknown): void;
-  };
+export interface PreparedExecuteRequest extends SqlExecuteRequest {
+  readonly preparedStatementHandle: PreparedStatementHandle;
 }
 
-export interface SqlQueryResult<Row = Record<string, unknown>> {
-  readonly rows: ReadonlyArray<Row>;
-  readonly rowCount?: number | null;
-  readonly [key: string]: unknown;
+export interface SqlStatementStats {
+  readonly affectedRows: number;
 }
 
 export interface SqlExplainResult<Row = Record<string, unknown>> {
@@ -80,13 +79,7 @@ export interface SqlTransaction extends SqlQueryable {
 }
 
 export interface SqlQueryable {
-  execute<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row>;
-  executePrepared<Row = Record<string, unknown>>(
-    request: PreparedExecuteRequest,
-  ): AsyncIterable<Row>;
+  query<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row>;
+  execute(request: SqlExecuteRequest): Promise<SqlStatementStats>;
   explain?(request: SqlExecuteRequest): Promise<SqlExplainResult>;
-  query<Row = Record<string, unknown>>(
-    sql: string,
-    params?: readonly unknown[],
-  ): Promise<SqlQueryResult<Row>>;
 }

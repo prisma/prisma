@@ -88,7 +88,7 @@ Content addressing sidesteps the comparison entirely. The target normalizes the 
 
 - **User prefix.** What the user types in the authoring DSL. The TS helpers take a `name` field on the policy descriptor; PSL takes the head identifier on the per-operation `policy_<op> <name> { … }` block. Required; the target does not synthesize names.
 - **Hash suffix.** First 8 hex characters (32 bits) of SHA-256 over the canonical content tuple. Truncation precedent is git short hashes. 32 bits is comfortable headroom for the per-table policy count any realistic contract reaches; the collision analysis is in [Consequences](#consequences).
-- **Length budget.** Postgres `name` type is 63 chars. The suffix is 9 chars (underscore + 8 hex). User prefix is bounded at 54 chars at lowering time; exceeding the cap is a lowering error with a clear message.
+- **Length budget.** Postgres's `name` type holds 63 **bytes** (`NAMEDATALEN - 1`). The suffix is 9 bytes (underscore + 8 hex). The prefix is bounded at 54 UTF-8 bytes at lowering time; exceeding the cap is a lowering error with a clear message. (**Amended:** this budget was originally stated in characters. The unit was always bytes — a multibyte prefix under 54 characters can exceed 63 bytes, which Postgres silently truncates — and the shipped constant is `WIRE_NAME_PREFIX_MAX_BYTES`; see [ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>).)
 - **No version marker.** Versioning is unnecessary — see [Normalizer stability](#normalizer-stability) below.
 
 ### Hash inputs (for RLS policies)
@@ -145,7 +145,7 @@ policy_select profile_owner_read {
 The same problem class — Postgres re-prints stored bodies — applies to other catalog-resident objects:
 
 - **Indexes.** `pg_indexes.indexdef` is heavily normalized (column ordering, operator class names, partial-index `WHERE` clause). **Done** — see [ADR 243 — Name-identified indexes and exact-name adoption](<./ADR 243 - Name-identified indexes and exact-name adoption.md>), which extends this scheme to every index and adds the exact-name mode both kinds now share.
-- **Check constraints.** `pg_constraint.consrc` is reparsed at create time.
+- **Check constraints.** `pg_constraint` stores the predicate as a parsed tree (`conbin`); reading it back via `pg_get_expr(conbin, conrelid)` yields the printer's reprint, not the authored text. **Done** — see [ADR 244 — Check constraints are opaque wire-named expressions](<./ADR 244 - Check constraints are opaque wire-named expressions.md>), which carries the whole predicate as the hash input and derives the prefix rather than taking an authored one.
 - **Views.** `pg_views.definition` is the printer's output, not the user's text.
 - **Function bodies.** `pg_proc.prosrc` is verbatim, but function bodies typically differ in whitespace and comment placement after a deploy-tool round-trip.
 
@@ -153,6 +153,7 @@ The naming format (`<prefix>_<8 hex SHA-256>`), the normalizer (internal whitesp
 
 - The per-kind hash input tuple (analogous to the RLS list above).
 - Whether the rename signal (matching suffix, different prefix) needs a kind-specific planner action (e.g. `ALTER POLICY ... RENAME TO`).
+- What happens when the prefix overruns the length bound. (**Amended:** added with [ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>). Indexes and policies throw, because their author can shorten the name they typed; a check's prefix is derived with no authoring surface, so it truncates instead.)
 
 Whether to apply content-addressing to a given object kind is a separate decision per kind. Indexes have the widest DBA-visible surface — DBAs reference index names in `REINDEX`, `DROP INDEX`, query plans, and Postgres error messages — so the "ugly suffix" trade-off is the most prominent there. The cost of plain naming has to outweigh the cost of suffix-visibility before the pattern is worth applying to a new object kind.
 

@@ -1,0 +1,15 @@
+// Faithful MongoDB translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/enums/prisma/_schema.ts.
+
+enum Plan {
+  FREE
+  PAID
+  CUSTOM
+}
+
+model User {
+  id   ObjectId @id @map("_id")
+  plan Plan
+
+  @@map("User")
+}

@@ -2,41 +2,714 @@
   "$id": "https://prisma.dev/schemas/data-contract-sql-v1.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Prisma Next Data Contract SQL v1",
-  "description": "Schema for Prisma Next contract.json files for the SQL family (postgres, mysql, sqlite, etc.)",
+  "description": "Schema for Prisma Next contract.json files for the SQL family (postgres, mysql, sqlite, etc.). Generated from the arktype schemas in @internal/sql-contract — do not edit by hand; run `pnpm schemas:generate` in @internal/sql-contract-ts.",
   "type": "object",
-  "additionalProperties": false,
   "properties": {
-    "$schema": {
-      "type": "string",
-      "description": "Reference to this JSON schema for IDE validation"
-    },
-    "schemaVersion": {
-      "type": "string",
-      "enum": ["1"],
-      "description": "Contract schema version"
-    },
-    "target": {
-      "type": "string",
-      "description": "Database target identifier (e.g., 'postgres', 'mysql', 'sqlite')"
-    },
-    "targetFamily": {
-      "type": "string",
-      "enum": ["sql"],
-      "description": "Target family classification"
-    },
-    "storageHash": {
-      "type": "string",
-      "pattern": "^[a-f0-9]{64}$",
-      "description": "SHA-256 hash of the storage section (DB-satisfied expectations)"
+    "domain": {
+      "type": "object",
+      "properties": {
+        "namespaces": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "models": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "storage": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "column": {
+                                "type": "string"
+                              },
+                              "codecId": {
+                                "type": "string"
+                              },
+                              "nullable": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": ["column"]
+                          }
+                        },
+                        "namespaceId": {
+                          "type": "string"
+                        },
+                        "table": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["fields", "namespaceId", "table"]
+                    },
+                    "base": {
+                      "type": "object",
+                      "properties": {
+                        "model": {
+                          "type": "string"
+                        },
+                        "namespace": {
+                          "type": "string"
+                        },
+                        "space": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["model", "namespace"],
+                      "additionalProperties": false
+                    },
+                    "discriminator": {},
+                    "fields": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "nullable": {
+                            "type": "boolean"
+                          },
+                          "type": {},
+                          "dict": {
+                            "const": true
+                          },
+                          "many": {
+                            "const": true
+                          },
+                          "valueSet": {
+                            "type": "object",
+                            "properties": {
+                              "entityKind": {
+                                "const": "enum"
+                              },
+                              "entityName": {
+                                "type": "string"
+                              },
+                              "namespaceId": {
+                                "type": "string"
+                              },
+                              "plane": {
+                                "const": "domain"
+                              },
+                              "spaceId": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["entityKind", "entityName", "namespaceId", "plane"]
+                          }
+                        },
+                        "required": ["nullable", "type"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "owner": {
+                      "type": "string"
+                    },
+                    "relations": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "cardinality": {
+                                "enum": ["1:1", "1:N", "N:1"]
+                              },
+                              "on": {
+                                "type": "object",
+                                "properties": {
+                                  "localFields": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "targetFields": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": ["localFields", "targetFields"],
+                                "additionalProperties": false
+                              },
+                              "to": {
+                                "type": "object",
+                                "properties": {
+                                  "model": {
+                                    "type": "string"
+                                  },
+                                  "namespace": {
+                                    "type": "string"
+                                  },
+                                  "space": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["model", "namespace"],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": ["cardinality", "on", "to"],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "cardinality": {
+                                "enum": ["1:1", "1:N"]
+                              },
+                              "to": {
+                                "type": "object",
+                                "properties": {
+                                  "model": {
+                                    "type": "string"
+                                  },
+                                  "namespace": {
+                                    "type": "string"
+                                  },
+                                  "space": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["model", "namespace"],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": ["cardinality", "to"],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "cardinality": {
+                                "const": "N:M"
+                              },
+                              "on": {
+                                "type": "object",
+                                "properties": {
+                                  "localFields": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "targetFields": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": ["localFields", "targetFields"],
+                                "additionalProperties": false
+                              },
+                              "through": {
+                                "type": "object",
+                                "properties": {
+                                  "childColumns": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "namespaceId": {
+                                    "type": "string"
+                                  },
+                                  "parentColumns": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "table": {
+                                    "type": "string"
+                                  },
+                                  "targetColumns": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "childColumns",
+                                  "namespaceId",
+                                  "parentColumns",
+                                  "table",
+                                  "targetColumns"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "to": {
+                                "type": "object",
+                                "properties": {
+                                  "model": {
+                                    "type": "string"
+                                  },
+                                  "namespace": {
+                                    "type": "string"
+                                  },
+                                  "space": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["model", "namespace"],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": ["cardinality", "on", "through", "to"],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "variants": {}
+                  },
+                  "required": ["storage"]
+                }
+              },
+              "enum": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "codecId": {
+                      "type": "string"
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": {}
+                              },
+                              {
+                                "type": "array"
+                              },
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": ["name", "value"]
+                      }
+                    }
+                  },
+                  "required": ["codecId", "members"],
+                  "additionalProperties": false
+                }
+              },
+              "valueObjects": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            },
+            "required": ["models"]
+          }
+        }
+      },
+      "required": ["namespaces"]
     },
     "profileHash": {
-      "type": "string",
-      "pattern": "^[a-f0-9]{64}$",
-      "description": "SHA-256 hash of the pinned capability profile (capability keys/variants and adapter pins)"
+      "type": "string"
+    },
+    "storage": {
+      "type": "object",
+      "properties": {
+        "storageHash": {
+          "type": "string"
+        },
+        "namespaces": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "entries": {
+                "type": "object",
+                "properties": {
+                  "table": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "columns": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "codecId": {
+                                "type": "string"
+                              },
+                              "nativeType": {
+                                "type": "string"
+                              },
+                              "nullable": {
+                                "type": "boolean"
+                              },
+                              "control": {
+                                "enum": ["external", "managed", "observed", "tolerated"]
+                              },
+                              "default": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "expression": {
+                                        "type": "string"
+                                      },
+                                      "kind": {
+                                        "const": "function"
+                                      }
+                                    },
+                                    "required": ["expression", "kind"]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "const": "literal"
+                                      },
+                                      "value": {
+                                        "anyOf": [
+                                          {
+                                            "type": "number"
+                                          },
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "object",
+                                            "additionalProperties": {}
+                                          },
+                                          {
+                                            "type": "array"
+                                          },
+                                          {
+                                            "type": "boolean"
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": ["kind", "value"]
+                                  }
+                                ]
+                              },
+                              "many": {
+                                "type": "boolean"
+                              },
+                              "noCheck": {
+                                "type": "array",
+                                "items": {
+                                  "enum": ["elementNotNull", "membership"]
+                                }
+                              },
+                              "typeParams": {
+                                "type": "object",
+                                "additionalProperties": {}
+                              },
+                              "typeRef": {
+                                "type": "string"
+                              },
+                              "valueSet": {
+                                "type": "object",
+                                "properties": {
+                                  "entityKind": {
+                                    "const": "valueSet"
+                                  },
+                                  "entityName": {
+                                    "type": "string"
+                                  },
+                                  "namespaceId": {
+                                    "type": "string"
+                                  },
+                                  "plane": {
+                                    "const": "storage"
+                                  },
+                                  "spaceId": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["entityKind", "entityName", "namespaceId", "plane"]
+                              }
+                            },
+                            "required": ["codecId", "nativeType", "nullable"],
+                            "additionalProperties": false
+                          }
+                        },
+                        "foreignKeys": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "source": {
+                                "type": "object",
+                                "properties": {
+                                  "columns": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "namespaceId": {
+                                    "type": "string"
+                                  },
+                                  "tableName": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["columns", "namespaceId", "tableName"],
+                                "additionalProperties": false
+                              },
+                              "target": {
+                                "type": "object",
+                                "properties": {
+                                  "columns": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "namespaceId": {
+                                    "type": "string"
+                                  },
+                                  "tableName": {
+                                    "type": "string"
+                                  },
+                                  "spaceId": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["columns", "namespaceId", "tableName"],
+                                "additionalProperties": false
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "onDelete": {
+                                "enum": ["cascade", "noAction", "restrict", "setDefault", "setNull"]
+                              },
+                              "onUpdate": {
+                                "enum": ["cascade", "noAction", "restrict", "setDefault", "setNull"]
+                              }
+                            },
+                            "required": ["source", "target"]
+                          }
+                        },
+                        "indexes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "unique": {
+                                "type": "boolean"
+                              },
+                              "columns": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "expression": {
+                                "type": "string"
+                              },
+                              "options": {
+                                "type": "object",
+                                "additionalProperties": {}
+                              },
+                              "prefix": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "where": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["name", "unique"]
+                          }
+                        },
+                        "uniques": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "columns": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["columns"]
+                          }
+                        },
+                        "checks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "expression": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "prefix": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["expression", "name"],
+                            "additionalProperties": false
+                          }
+                        },
+                        "control": {
+                          "enum": ["external", "managed", "observed", "tolerated"]
+                        },
+                        "primaryKey": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["columns"]
+                        }
+                      },
+                      "required": ["columns", "foreignKeys", "indexes", "uniques"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "valueSet": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "const": "valueSet"
+                        },
+                        "values": {
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": {}
+                              },
+                              {
+                                "type": "array"
+                              },
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "required": ["kind", "values"]
+                    }
+                  }
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                }
+              },
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              }
+            },
+            "required": ["entries", "id"],
+            "additionalProperties": false
+          }
+        },
+        "types": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "codecId": {
+                "type": "string"
+              },
+              "kind": {
+                "const": "codec-instance"
+              },
+              "nativeType": {
+                "type": "string"
+              },
+              "typeParams": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            },
+            "required": ["codecId", "kind", "nativeType"]
+          }
+        }
+      },
+      "required": ["storageHash"],
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "string"
+    },
+    "targetFamily": {
+      "const": "sql"
     },
     "capabilities": {
       "type": "object",
-      "description": "Capability flags declared by the contract",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": {
@@ -44,582 +717,129 @@
         }
       }
     },
-    "extensions": {
-      "type": "object",
-      "description": "Extension packs and their configuration",
-      "additionalProperties": true
+    "coreHash": {
+      "type": "string"
     },
-    "meta": {
-      "type": "object",
-      "description": "Non-semantic metadata (excluded from hashing)",
-      "additionalProperties": true
-    },
-    "sources": {
-      "type": "object",
-      "description": "Read-only sources (views, etc.) available for querying",
-      "additionalProperties": {
-        "$ref": "#/$defs/Source"
-      }
-    },
-    "roots": {
-      "type": "object",
-      "description": "Mapping of root model names to their identifiers",
-      "additionalProperties": {
-        "type": "string"
-      }
-    },
-    "models": {
-      "type": "object",
-      "description": "Model definitions mapping application-level models to storage tables",
-      "additionalProperties": {
-        "$ref": "#/$defs/Model"
-      }
-    },
-    "storage": {
-      "type": "object",
-      "description": "Storage layout definition",
-      "additionalProperties": false,
-      "properties": {
-        "tables": {
-          "type": "object",
-          "description": "Table definitions keyed by table name",
-          "additionalProperties": {
-            "$ref": "#/$defs/StorageTable"
-          }
-        },
-        "types": {
-          "type": "object",
-          "description": "Named type instances for parameterized/custom types (e.g., vectors, enums)",
-          "additionalProperties": {
-            "$ref": "#/$defs/StorageTypeInstance"
-          }
-        }
-      },
-      "required": ["tables"]
+    "defaultControlPolicy": {
+      "enum": ["external", "managed", "observed", "tolerated"]
     },
     "execution": {
       "type": "object",
-      "description": "Execution-only behavior not satisfied by the database",
-      "additionalProperties": false,
       "properties": {
         "executionHash": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$",
-          "description": "SHA-256 hash of the execution section (client-side behavior)"
+          "type": "string"
         },
         "mutations": {
           "type": "object",
-          "additionalProperties": false,
           "properties": {
             "defaults": {
               "type": "array",
-              "items": { "$ref": "#/$defs/ExecutionMutationDefault" }
+              "items": {
+                "type": "object",
+                "properties": {
+                  "ref": {
+                    "type": "object",
+                    "properties": {
+                      "column": {
+                        "type": "string"
+                      },
+                      "namespace": {
+                        "type": "string"
+                      },
+                      "table": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["column", "namespace", "table"],
+                    "additionalProperties": false
+                  },
+                  "onCreate": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "const": "generator"
+                      },
+                      "params": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    },
+                    "required": ["id", "kind"],
+                    "additionalProperties": false
+                  },
+                  "onUpdate": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "const": "generator"
+                      },
+                      "params": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    },
+                    "required": ["id", "kind"],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["ref"],
+                "additionalProperties": false
+              }
             }
           },
-          "required": ["defaults"]
+          "required": ["defaults"],
+          "additionalProperties": false
         }
       },
-      "required": ["executionHash", "mutations"]
-    }
-  },
-  "required": [
-    "schemaVersion",
-    "target",
-    "targetFamily",
-    "storageHash",
-    "models",
-    "storage",
-    "roots"
-  ],
-  "$defs": {
-    "StorageTable": {
-      "type": "object",
-      "description": "Table definition with columns, constraints, and indexes",
-      "additionalProperties": false,
-      "properties": {
-        "columns": {
-          "type": "object",
-          "description": "Column definitions keyed by column name",
-          "additionalProperties": {
-            "$ref": "#/$defs/StorageColumn"
-          }
-        },
-        "primaryKey": {
-          "$ref": "#/$defs/PrimaryKey",
-          "description": "Primary key constraint definition"
-        },
-        "uniques": {
-          "type": "array",
-          "description": "Unique constraint definitions",
-          "items": {
-            "$ref": "#/$defs/UniqueConstraint"
-          }
-        },
-        "indexes": {
-          "type": "array",
-          "description": "Index definitions",
-          "items": {
-            "$ref": "#/$defs/Index"
-          }
-        },
-        "foreignKeys": {
-          "type": "array",
-          "description": "Foreign key constraint definitions",
-          "items": {
-            "$ref": "#/$defs/ForeignKey"
-          }
-        }
-      },
-      "required": ["columns"]
+      "required": ["executionHash", "mutations"],
+      "additionalProperties": false
     },
-    "ColumnDefault": {
-      "description": "Column default value. Can be a literal value or a database function expression.",
-      "oneOf": [
-        {
-          "type": "object",
-          "description": "Static literal value",
-          "additionalProperties": false,
-          "properties": {
-            "kind": {
-              "type": "string",
-              "enum": ["literal"]
-            },
-            "value": {
-              "description": "JSON literal value (or tagged bigint) for the default value",
-              "oneOf": [
-                { "type": "string" },
-                { "type": "number" },
-                { "type": "boolean" },
-                { "type": "null" },
-                { "type": "array" },
-                { "type": "object" }
-              ]
-            }
-          },
-          "required": ["kind", "value"]
-        },
-        {
-          "type": "object",
-          "description": "Database function expression (e.g., 'autoincrement()', 'now()', 'gen_random_uuid()')",
-          "additionalProperties": false,
-          "properties": {
-            "kind": {
-              "type": "string",
-              "enum": ["function"]
-            },
-            "expression": {
-              "type": "string",
-              "description": "The function expression (e.g., 'autoincrement()', 'now()', 'gen_random_uuid()')"
-            }
-          },
-          "required": ["kind", "expression"]
-        }
-      ]
-    },
-    "ExecutionMutationDefaultValue": {
+    "extensions": {
       "type": "object",
-      "description": "Execution-time default value applied before a write",
-      "additionalProperties": false,
-      "properties": {
-        "kind": {
-          "type": "string",
-          "enum": ["generator"]
-        },
-        "id": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"
-        },
-        "params": {
-          "type": "object",
-          "additionalProperties": true
-        }
-      },
-      "required": ["kind", "id"]
+      "additionalProperties": {}
     },
-    "ExecutionMutationDefault": {
+    "meta": {
       "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "ref": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "table": { "type": "string" },
-            "column": { "type": "string" }
-          },
-          "required": ["table", "column"]
-        },
-        "onCreate": { "$ref": "#/$defs/ExecutionMutationDefaultValue" },
-        "onUpdate": { "$ref": "#/$defs/ExecutionMutationDefaultValue" }
-      },
-      "required": ["ref"]
+      "additionalProperties": {}
     },
-    "StorageColumn": {
+    "roots": {
       "type": "object",
-      "description": "Column definition with type, nullability, and optional parameterized type info",
-      "additionalProperties": false,
-      "properties": {
-        "nativeType": {
-          "type": "string",
-          "description": "Database-native type (e.g., 'text', 'int4', 'timestamptz', 'vector(1536)')"
-        },
-        "codecId": {
-          "type": "string",
-          "description": "Codec identifier for encoding/decoding (e.g., 'pg/text@1', 'pg/vector@1')"
-        },
-        "nullable": {
-          "type": "boolean",
-          "default": false,
-          "description": "Whether the column allows NULL values"
-        },
-        "typeParams": {
-          "type": "object",
-          "description": "Opaque, codec-owned JS/type parameters (e.g., { length: 1536 } for vectors)",
-          "additionalProperties": true
-        },
-        "typeRef": {
-          "type": "string",
-          "description": "Reference to a named type instance in storage.types"
-        },
-        "default": {
-          "$ref": "#/$defs/ColumnDefault",
-          "description": "Default value for the column"
-        }
-      },
-      "required": ["nativeType", "codecId", "nullable"]
-    },
-    "StorageTypeInstance": {
-      "type": "object",
-      "description": "Named, parameterized type instance for reuse across columns",
-      "additionalProperties": false,
-      "properties": {
-        "codecId": {
-          "type": "string",
-          "description": "Codec identifier for encoding/decoding"
-        },
-        "nativeType": {
-          "type": "string",
-          "description": "Database-native type"
-        },
-        "typeParams": {
-          "type": "object",
-          "description": "Codec-owned type parameters",
-          "additionalProperties": true
-        }
-      },
-      "required": ["codecId", "nativeType", "typeParams"]
-    },
-    "PrimaryKey": {
-      "type": "object",
-      "description": "Primary key constraint",
-      "additionalProperties": false,
-      "properties": {
-        "columns": {
-          "type": "array",
-          "description": "Column names comprising the primary key",
-          "items": {
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "model": {
             "type": "string"
           },
-          "minItems": 1
-        },
-        "name": {
-          "type": "string",
-          "description": "Constraint name (e.g., 'user_pkey')"
-        }
-      },
-      "required": ["columns"]
-    },
-    "UniqueConstraint": {
-      "type": "object",
-      "description": "Unique constraint",
-      "additionalProperties": false,
-      "properties": {
-        "columns": {
-          "type": "array",
-          "description": "Column names comprising the unique constraint",
-          "items": {
+          "namespace": {
             "type": "string"
           },
-          "minItems": 1
-        },
-        "name": {
-          "type": "string",
-          "description": "Constraint name (e.g., 'user_email_key')"
-        }
-      },
-      "required": ["columns"]
-    },
-    "Index": {
-      "type": "object",
-      "description": "Index definition (structure may vary by target)",
-      "additionalProperties": false,
-      "properties": {
-        "columns": {
-          "type": "array",
-          "description": "Column names indexed",
-          "items": {
+          "space": {
             "type": "string"
           }
         },
-        "name": {
-          "type": "string",
-          "description": "Index name"
-        }
+        "required": ["model", "namespace"],
+        "additionalProperties": false
       }
     },
-    "ForeignKey": {
-      "type": "object",
-      "description": "Foreign key constraint definition",
-      "additionalProperties": false,
-      "properties": {
-        "columns": {
-          "type": "array",
-          "description": "Column names in the referencing table",
-          "items": {
-            "type": "string"
-          }
-        },
-        "references": {
-          "type": "object",
-          "description": "Referenced table and columns",
-          "additionalProperties": false,
-          "properties": {
-            "table": {
-              "type": "string",
-              "description": "Referenced table name"
-            },
-            "columns": {
-              "type": "array",
-              "description": "Referenced column names",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "required": ["table", "columns"]
-        },
-        "name": {
-          "type": "string",
-          "description": "Foreign key constraint name"
-        },
-        "constraint": {
-          "type": "boolean",
-          "description": "Whether to emit FK constraint DDL (ALTER TABLE … ADD CONSTRAINT … FOREIGN KEY)"
-        },
-        "index": {
-          "type": "boolean",
-          "description": "Whether to emit a backing index for the FK columns"
-        }
-      },
-      "required": ["columns", "references", "constraint", "index"]
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this JSON schema for IDE validation"
     },
-    "FieldType": {
-      "type": "object",
-      "description": "Neutral field type definition for sources and document fields",
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "type": "string",
-          "description": "Field type identifier (e.g., 'int4', 'text', 'bool', 'object', 'array', 'date', 'bytes', 'id')"
-        },
-        "nullable": {
-          "type": "boolean",
-          "default": false,
-          "description": "Whether the field allows null values"
-        },
-        "items": {
-          "$ref": "#/$defs/FieldType",
-          "description": "Item type for array fields"
-        },
-        "properties": {
-          "type": "object",
-          "description": "Property definitions for object fields",
-          "additionalProperties": {
-            "$ref": "#/$defs/FieldType"
-          }
-        }
-      },
-      "required": ["type", "nullable"]
+    "schemaVersion": {
+      "enum": ["1"],
+      "description": "Contract schema version"
     },
-    "Source": {
+    "_generated": {
       "type": "object",
-      "description": "Read-only source definition for views and other queryable sources",
-      "additionalProperties": false,
-      "properties": {
-        "readOnly": {
-          "type": "boolean",
-          "description": "Whether mutations (INSERT/UPDATE/DELETE) are disallowed"
-        },
-        "projection": {
-          "type": "object",
-          "description": "Field projection mapping column/field name to FieldType",
-          "additionalProperties": {
-            "$ref": "#/$defs/FieldType"
-          }
-        },
-        "origin": {
-          "type": "object",
-          "description": "Provenance link to pack-owned block (e.g., view, enum)",
-          "additionalProperties": true
-        },
-        "capabilities": {
-          "type": "object",
-          "description": "Feature flags relevant to this source",
-          "additionalProperties": {
-            "type": "boolean"
-          }
-        }
-      },
-      "required": ["readOnly", "projection"]
-    },
-    "Model": {
-      "type": "object",
-      "description": "Model definition mapping to storage table",
-      "additionalProperties": false,
-      "properties": {
-        "storage": {
-          "type": "object",
-          "description": "Storage mapping for the model",
-          "additionalProperties": false,
-          "properties": {
-            "table": {
-              "type": "string",
-              "description": "Table name in storage.tables"
-            },
-            "fields": {
-              "type": "object",
-              "description": "Per-field storage mappings",
-              "additionalProperties": {
-                "$ref": "#/$defs/ModelStorageField"
-              }
-            }
-          },
-          "required": ["table"]
-        },
-        "fields": {
-          "type": "object",
-          "description": "Domain field metadata (codecId, nullable)",
-          "additionalProperties": {
-            "$ref": "#/$defs/ModelField"
-          }
-        },
-        "relations": {
-          "type": "object",
-          "description": "Relation definitions for the model",
-          "additionalProperties": {
-            "$ref": "#/$defs/ModelRelation"
-          }
-        },
-        "owner": {
-          "type": "string",
-          "description": "Owner model name — declares this model belongs to another model's aggregate (per ADR 177)"
-        }
-      },
-      "required": ["storage", "fields"]
-    },
-    "ModelField": {
-      "type": "object",
-      "description": "Domain field definition (codec and nullability; column mapping lives in model.storage.fields)",
-      "additionalProperties": false,
-      "properties": {
-        "codecId": {
-          "type": "string",
-          "description": "Codec identifier for the field"
-        },
-        "nullable": {
-          "type": "boolean",
-          "description": "Whether the field allows NULL values"
-        }
-      },
-      "required": ["codecId", "nullable"]
-    },
-    "ModelStorageField": {
-      "type": "object",
-      "description": "Per-field storage mapping",
-      "additionalProperties": false,
-      "properties": {
-        "column": {
-          "type": "string",
-          "description": "Column name in the model's backing table"
-        },
-        "codecId": {
-          "type": "string",
-          "description": "Codec identifier for the field (derived from storage column)"
-        },
-        "nullable": {
-          "type": "boolean",
-          "description": "Whether the field allows NULL values (derived from storage column)"
-        }
-      },
-      "required": ["column"]
-    },
-    "ModelRelation": {
-      "type": "object",
-      "description": "Model relation definition (domain format with localFields/targetFields)",
-      "properties": {
-        "to": {
-          "type": "string",
-          "description": "Target model name"
-        },
-        "cardinality": {
-          "type": "string",
-          "enum": ["1:1", "1:N", "N:1", "N:M"],
-          "description": "Relation cardinality"
-        },
-        "strategy": {
-          "type": "string",
-          "enum": ["reference", "embed"],
-          "description": "Relation strategy"
-        },
-        "on": {
-          "type": "object",
-          "description": "Relation field mappings",
-          "properties": {
-            "localFields": {
-              "type": "array",
-              "description": "Local model fields",
-              "items": { "type": "string" }
-            },
-            "targetFields": {
-              "type": "array",
-              "description": "Target model fields",
-              "items": { "type": "string" }
-            }
-          }
-        },
-        "through": {
-          "type": "object",
-          "description": "Junction table descriptor for N:M relations",
-          "additionalProperties": false,
-          "properties": {
-            "table": {
-              "type": "string",
-              "description": "Junction table name"
-            },
-            "namespaceId": {
-              "type": "string",
-              "description": "Namespace the junction table lives in"
-            },
-            "parentColumns": {
-              "type": "array",
-              "description": "Junction columns referencing the parent FK",
-              "items": { "type": "string" }
-            },
-            "childColumns": {
-              "type": "array",
-              "description": "Junction columns referencing the target FK",
-              "items": { "type": "string" }
-            },
-            "targetColumns": {
-              "type": "array",
-              "description": "Target anchor columns (PK) the childColumns reference",
-              "items": { "type": "string" }
-            }
-          },
-          "required": ["table", "namespaceId", "parentColumns", "childColumns", "targetColumns"]
-        }
-      },
-      "required": ["to", "cardinality"]
+      "description": "Non-semantic generation metadata (ignored by validation)"
     }
-  }
+  },
+  "required": ["domain", "profileHash", "storage", "target", "targetFamily"],
+  "additionalProperties": false
 }

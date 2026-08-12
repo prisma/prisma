@@ -14,8 +14,8 @@ import {
   SqlStorage,
   type StorageColumn,
   type StorageTable,
-  StorageValueSet,
 } from '@internal/sql-contract/types';
+import { computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 import {
   PrimaryKey,
   SqlCheckConstraintIR,
@@ -1341,8 +1341,9 @@ describe('contractToSchemaIR — resolved leaf values', () => {
     });
   });
 
-  it('check nodes carry the value-set resolved permittedValues', () => {
-    const valueSetName = 'T_status_values';
+  it('check nodes pass naming and expression through unchanged', () => {
+    const expression = `"status" IN ('draft', 'published')`;
+    const hash = computeCheckContentHash(expression);
     const ns = createTestSqlNamespace({
       id: UNBOUND_NAMESPACE_ID,
       entries: {
@@ -1351,20 +1352,15 @@ describe('contractToSchemaIR — resolved leaf values', () => {
             columns: { status: col({ nativeType: 'text' }) },
             checks: [
               new CheckConstraint({
-                name: 'T_status_check',
-                column: 'status',
-                valueSet: {
-                  plane: 'storage',
-                  entityKind: 'valueSet',
-                  namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
-                  entityName: valueSetName,
-                },
+                naming: { kind: 'wire', prefix: 'T_status_check', hash },
+                expression,
+              }),
+              new CheckConstraint({
+                naming: { kind: 'exact', name: 'T_legacy_check' },
+                expression: `"status" <> ''`,
               }),
             ],
           }),
-        },
-        valueSet: {
-          [valueSetName]: new StorageValueSet({ kind: 'valueSet', values: ['draft', 'published'] }),
         },
       },
     });
@@ -1376,10 +1372,25 @@ describe('contractToSchemaIR — resolved leaf values', () => {
     const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
     expect(result.tables['T']!.checks).toEqual([
       new SqlCheckConstraintIR({
-        name: 'T_status_check',
-        column: 'status',
-        permittedValues: ['draft', 'published'],
+        naming: { kind: 'wire', prefix: 'T_status_check', hash },
+        expression,
+        dependsOn: undefined,
       }),
+      new SqlCheckConstraintIR({
+        naming: { kind: 'exact', name: 'T_legacy_check' },
+        expression: `"status" <> ''`,
+        dependsOn: undefined,
+      }),
+    ]);
+    // Chains to every column of the table: the predicate is opaque, so the
+    // derivation cannot know which columns it names. Without the edge a check
+    // could be ordered after the drop of a column it depends on.
+    expect(result.tables['T']!.checks?.[0]?.dependsOn).toEqual([
+      [
+        { nodeKind: 'sql-schema', id: 'database' },
+        { nodeKind: 'sql-table', id: 'T' },
+        { nodeKind: 'sql-column', id: 'column:status' },
+      ],
     ]);
   });
 });

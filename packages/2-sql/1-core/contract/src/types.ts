@@ -54,6 +54,10 @@ export {
   UniqueConstraint,
   type UniqueConstraintInput,
 } from './ir/unique-constraint';
+export {
+  checkConstraintInputFromSerialized,
+  type SerializedCheckConstraint,
+} from './serialized-check-constraint';
 export { indexInputFromSerialized, type SerializedIndex } from './serialized-index';
 
 export type ForeignKeyOptions = {
@@ -96,6 +100,30 @@ export type NamespacedStorageColumnTypeMap = Record<
   Record<string, Record<string, unknown>>
 >;
 
+/**
+ * What one aggregate produces: the id of the codec its result carries, and whether that result can be null. The codec id is the whole of the result's identity — a `sum` leaves its input's type parameters behind, and a result that keeps them is one whose codec id is the input's own.
+ */
+export type AggregateResultType = {
+  readonly output: string;
+  readonly nullable: boolean;
+};
+
+/**
+ * One aggregate operation's settled overloads.
+ *
+ * `byCodec` answers per input codec, precedence already applied: a codec claimed by an exact overload carries that overload's result, and one served by a trait fallback carries the fallback's. `anyInput` answers an input no row claims, and `withoutInput` answers a call that carries no input at all — `count()` over rows.
+ *
+ * Only codecs the composed stack contributes appear, so an availability this map advertises is one the runtime will honour.
+ */
+export type AggregateOperationTypes = {
+  readonly byCodec: Record<string, AggregateResultType>;
+  readonly withoutInput?: AggregateResultType;
+  readonly anyInput?: AggregateResultType;
+};
+
+/** Aggregate operations keyed by name (`count`, `sum`, …). */
+export type AggregateTypesBase = Record<string, AggregateOperationTypes>;
+
 export type TypeMaps<
   TCodecTypes extends Record<string, { output: unknown }> = Record<string, never>,
   TQueryOperationTypes extends Record<string, unknown> = Record<string, never>,
@@ -103,6 +131,7 @@ export type TypeMaps<
   TFieldInputTypes extends NamespacedFieldTypeMap = Record<string, never>,
   TStorageColumnTypes extends NamespacedStorageColumnTypeMap = Record<string, never>,
   TStorageColumnInputTypes extends NamespacedStorageColumnTypeMap = Record<string, never>,
+  TAggregateTypes extends AggregateTypesBase = Record<string, never>,
 > = {
   readonly codecTypes: TCodecTypes;
   readonly queryOperationTypes: TQueryOperationTypes;
@@ -110,7 +139,16 @@ export type TypeMaps<
   readonly fieldInputTypes: TFieldInputTypes;
   readonly storageColumnTypes: TStorageColumnTypes;
   readonly storageColumnInputTypes: TStorageColumnInputTypes;
+  readonly aggregateTypes: TAggregateTypes;
 };
+
+export type AggregateTypesOf<T> = [T] extends [never]
+  ? Record<string, never>
+  : T extends { readonly aggregateTypes: infer A }
+    ? A extends AggregateTypesBase
+      ? A
+      : Record<string, never>
+    : Record<string, never>;
 
 export type CodecTypesOf<T> = [T] extends [never]
   ? Record<string, never>
@@ -220,6 +258,7 @@ export type ExtractStorageColumnTypes<T> = StorageColumnTypesOf<ExtractTypeMapsF
 export type ExtractStorageColumnInputTypes<T> = StorageColumnInputTypesOf<
   ExtractTypeMapsFromContract<T>
 >;
+export type ExtractAggregateTypes<T> = AggregateTypesOf<ExtractTypeMapsFromContract<T>>;
 
 export type ResolveCodecTypes<TContract, TTypeMaps> = [TTypeMaps] extends [never]
   ? ExtractCodecTypes<TContract>

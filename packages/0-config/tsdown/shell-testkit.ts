@@ -7,9 +7,27 @@ import { init as initLexer, parse as parseModule } from 'es-module-lexer';
 /** A tarball-install smoke-test failure with the offending command output attached. */
 class ShellTestError extends Error {}
 
+/**
+ * The supply-chain cooldown a scratch project installs under. Kept in step with
+ * `minimumReleaseAge` / `minimumReleaseAgeExclude` in the repo's pnpm-workspace.yaml, which a
+ * scratch project outside the workspace does not inherit.
+ */
+const MINIMUM_RELEASE_AGE_MINUTES = 1440;
+const MINIMUM_RELEASE_AGE_EXCLUDE = [
+  '@prisma/cli-engine',
+  '@prisma/dev',
+  '@prisma/streams-local',
+] as const;
+
 export interface PackedShell {
   readonly name: string;
   readonly tarball: string;
+  /**
+   * Whether cross-shell dependencies on this name are redirected to the
+   * tarball. Stand-ins packed at a skewed version occupy their name only,
+   * so they set this to false and are reached solely as direct dependencies.
+   */
+  readonly override?: boolean;
 }
 
 /** The `package.json` of a package directory, as a record. */
@@ -70,7 +88,7 @@ export function packShellAtVersion(shellDir: string, outDir: string, version: st
   writeFileSync(join(stageDir, 'package.json'), `${JSON.stringify(staged, null, 2)}\n`);
   const tarball = join(outDir, `${name.replaceAll(/[@/]/g, '-').replace(/^-/, '')}-${version}.tgz`);
   execFileSync('pnpm', ['pack', '--out', tarball], { cwd: stageDir, stdio: 'pipe' });
-  return { name, tarball };
+  return { name, tarball, override: false };
 }
 
 export interface InstallOptions {
@@ -111,9 +129,43 @@ export function tryInstallShells(
     private: true,
     type: 'module',
     dependencies: Object.fromEntries(direct.map((name) => [name, fileDeps[name]])),
-    pnpm: { overrides: fileDeps },
   };
   writeFileSync(join(scratchDir, 'package.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+  // pnpm 10 reads overrides and its own settings from pnpm-workspace.yaml;
+  // a `pnpm.overrides` field in package.json and pnpm-specific keys in
+  // `.npmrc` are ignored, which would let cross-shell dependencies fall
+  // through to the npm registry and strict-peer settings silently lapse.
+  const overrideLines = shells
+    .filter((s) => s.override !== false)
+    .map((s) => `  ${JSON.stringify(s.name)}: ${JSON.stringify(`file:${s.tarball}`)}`);
+  const settingLines = (options.npmrc ?? []).map((line) => {
+    // Split on the first `=` only — an npmrc value may itself contain `=`
+    // (e.g. a base64 auth token), and String#split's limit truncates it.
+    const separator = line.indexOf('=');
+    const key = separator === -1 ? line : line.slice(0, separator);
+    const value = separator === -1 ? '' : line.slice(separator + 1);
+    const camelKey = key.replaceAll(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
+    // Booleans and numbers must stay bare scalars — quoting would turn them
+    // into strings for pnpm's settings parser; everything else is quoted.
+    const scalar = /^(true|false|\d+)$/.test(value) ? value : JSON.stringify(value);
+    return `${camelKey}: ${scalar}`;
+  });
+  // The repo's release-age cooldown reaches this scratch project through the
+  // outer workspace, but its exemption list does not, so a first-party pin
+  // published today fails the install. Restate both: the cooldown still
+  // defends every third-party dependency, and only the first-party packages
+  // pnpm-workspace.yaml already exempts are allowed past it.
+  const workspaceYaml = [
+    ...(overrideLines.length > 0 ? ['overrides:', ...overrideLines] : []),
+    `minimumReleaseAge: ${MINIMUM_RELEASE_AGE_MINUTES}`,
+    'minimumReleaseAgeExclude:',
+    ...MINIMUM_RELEASE_AGE_EXCLUDE.map((name) => `  - ${JSON.stringify(name)}`),
+    ...settingLines,
+  ];
+  writeFileSync(
+    join(scratchDir, 'pnpm-workspace.yaml'),
+    workspaceYaml.length > 0 ? `${workspaceYaml.join('\n')}\n` : '{}\n',
+  );
   if (options.npmrc !== undefined) {
     writeFileSync(join(scratchDir, '.npmrc'), `${options.npmrc.join('\n')}\n`);
   }

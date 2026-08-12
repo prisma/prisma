@@ -85,7 +85,7 @@ describe('filterNoBareThrowDiags', () => {
         location: { path: 'biome-plugins/fixtures/throw-positive.ts' },
       },
       { category: 'plugin', message: msg, location: { path: 'scripts/lint-throws.mjs' } },
-      { category: 'plugin', message: msg, location: { path: 'scripts/bump-minor.ts' } },
+      { category: 'plugin', message: msg, location: { path: 'scripts/bump-version.ts' } },
       { category: 'plugin', message: msg, location: { path: 'packages/x/src/scripts.ts' } },
       { category: 'plugin', message: msg, location: { path: 'packages/x/src/thing.ts' } },
     ];

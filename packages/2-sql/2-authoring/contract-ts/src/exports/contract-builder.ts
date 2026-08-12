@@ -26,9 +26,11 @@ export type {
   RelationNode,
   UniqueConstraintNode,
 } from '../contract-definition';
-export type { TargetFieldRef } from '../contract-dsl';
+export type { CheckKind, TargetFieldRef } from '../contract-dsl';
 export { buildContractDefinition } from '../contract-lowering';
 export type { ExtractCodecTypesFromPack } from '../contract-types';
+export type { SqlNamespaceFactory } from '../derived-checks';
+export { applySqlSpecifierControlPolicy } from '../derived-checks';
 export type {
   BoundEnumType,
   CodecInput,

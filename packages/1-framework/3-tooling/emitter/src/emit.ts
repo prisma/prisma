@@ -19,7 +19,8 @@ export async function emit(
     getEmittedArtifactPaths(options.outputJsonPath);
   }
 
-  const { codecTypeImports, queryOperationTypeImports } = stack;
+  const { codecTypeImports, queryOperationTypeImports, aggregateDescriptors, codecDescriptors } =
+    stack;
 
   const { storageHash } = contract.storage;
   const executionHash = contract.execution?.executionHash;
@@ -44,7 +45,11 @@ export async function emit(
     2,
   );
 
-  const generateOptions = queryOperationTypeImports ? { queryOperationTypeImports } : undefined;
+  const generateOptions = {
+    ...ifDefined('queryOperationTypeImports', queryOperationTypeImports),
+    ...ifDefined('aggregateDescriptors', aggregateDescriptors),
+    ...ifDefined('codecDescriptors', codecDescriptors),
+  };
 
   const contractTypeHashes = {
     storageHash,

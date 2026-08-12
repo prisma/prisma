@@ -170,7 +170,7 @@ describe('AggregateContractSpace.contractAt', () => {
 
     await expect(space.contractAt(HASH_B)).rejects.toMatchObject({
       code: 'MIGRATION.CONTRACT_SNAPSHOT_MISSING',
-      details: { storageHash: HASH_B },
+      meta: { storageHash: HASH_B },
     });
   });
 
@@ -183,7 +183,7 @@ describe('AggregateContractSpace.contractAt', () => {
 
     await expect(space.contractAt(HASH_A, { refName: 'staging' })).rejects.toMatchObject({
       code: 'MIGRATION.CONTRACT_SNAPSHOT_MISSING',
-      details: { storageHash: HASH_A },
+      meta: { storageHash: HASH_A },
     });
   });
 
@@ -219,7 +219,7 @@ describe('AggregateContractSpace.contractAt', () => {
 
     await expect(space.contractAt(HASH_A, { refName: 'staging' })).rejects.toMatchObject({
       code: 'MIGRATION.REF_NOT_RESOLVABLE',
-      details: { refName: 'staging' },
+      meta: { refName: 'staging' },
     });
   });
 
@@ -230,7 +230,7 @@ describe('AggregateContractSpace.contractAt', () => {
 
     await expect(space.contractAt(HASH_A)).rejects.toMatchObject({
       code: 'MIGRATION.HASH_NOT_IN_GRAPH',
-      details: { hash: HASH_A },
+      meta: { hash: HASH_A },
     });
   });
 

@@ -243,8 +243,7 @@ describe('mapNodeIssueToCall — check constraint', () => {
         path: ['database', 'user', 'check:status_check'],
         expected: checkConstraint({
           name: 'status_check',
-          column: 'status',
-          permittedValues: ['a', 'b'],
+          expression: `"status" IN ('a', 'b')`,
         }),
       }),
       emptyCtx,

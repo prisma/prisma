@@ -56,7 +56,7 @@ describe('init skill distribution (offline integration, real CLI)', () => {
     testDirs.clear();
   });
 
-  it('invokes the three subpath URLs and installs the union of their skills', {
+  it('invokes the shared skills source once per named skill and installs their union', {
     timeout: 60_000,
   }, async () => {
     const testDir = createIntegrationTestDir();
@@ -87,23 +87,20 @@ describe('init skill distribution (offline integration, real CLI)', () => {
       expect(exitCode).toBe(INIT_EXIT_OK);
 
       const loggedCommands = readLoggedCommands(logPath);
-      const consolidatedAgentFlags = `--agent ${DEFAULT_SKILL_AGENTS.join(' ')} --skill * -y`;
+      const agentFlags = (skill: string) =>
+        `--agent ${DEFAULT_SKILL_AGENTS.join(' ')} --skill ${skill} -y`;
       expect(loggedCommands).toContain(
-        `dlx skills@latest add ${workspaceClone}/skills ${consolidatedAgentFlags}`,
+        `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-8')}`,
       );
       expect(loggedCommands).toContain(
-        `dlx skills@latest add ${workspaceClone}/skills/upgrade ${consolidatedAgentFlags}`,
+        `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-next-upgrade')}`,
       );
       expect(loggedCommands).toContain(
-        `dlx skills@latest add ${workspaceClone}/skills/extension-author ${consolidatedAgentFlags}`,
+        `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-8-extension-upgrade')}`,
       );
 
       const installed = readInstalledSkillDirs(testDir);
-      const expected = [
-        ...readSkillNamesFrom(join(workspaceClone, 'skills')),
-        ...readSkillNamesFrom(join(workspaceClone, 'skills/upgrade')),
-        ...readSkillNamesFrom(join(workspaceClone, 'skills/extension-author')),
-      ];
+      const expected = readSkillNamesFrom(join(workspaceClone, 'skills'));
       const expectedSorted = Array.from(new Set(expected)).sort();
       expect(installed).toEqual(expectedSorted);
       expect(installed.length).toBeGreaterThan(0);
@@ -148,14 +145,17 @@ describe('init skill distribution (offline integration, real CLI)', () => {
 
       const loggedCommands = readLoggedCommands(logPath);
       const skillsAddCommands = loggedCommands.filter((c) => c.startsWith('dlx skills@latest add'));
-      // Three subpath sources, one consolidated multi-agent install each.
+      // One shared source, one consolidated multi-agent install per named skill.
       expect(skillsAddCommands).toHaveLength(3);
       for (const command of skillsAddCommands) {
-        // Each call's source ends at one of the three known subpaths
-        // before any flags. A bare repo URL (no `/skills`) would leak
-        // contributor skills via priority discovery of `.agents/skills/`;
-        // assert the subpath form here.
-        expect(command).toMatch(/\/(skills|skills\/upgrade|skills\/extension-author)(?:\s|$)/);
+        // Each call's source ends at the `skills` subpath before any
+        // flags. A bare repo URL (no `/skills`) would leak contributor
+        // skills via priority discovery of `.agents/skills/`; assert
+        // the subpath form here.
+        expect(command).toMatch(/\/skills(?:\s|$)/);
+        expect(command).toMatch(
+          /--skill (?:prisma-8|prisma-next-upgrade|prisma-8-extension-upgrade) /,
+        );
       }
     } finally {
       restoreEnvVar('PATH', previousPath);

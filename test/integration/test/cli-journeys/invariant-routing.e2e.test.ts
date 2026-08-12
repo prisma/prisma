@@ -284,11 +284,10 @@ withTempDir(({ createTempDir }) => {
         const applyFail = await runMigrate(ctx, ['--to', 'prod', '--json']);
         expect(applyFail.exitCode, 'P.04: apply exits 2').toBe(2);
         const applyEnvelope = parseJsonOutput<{
-          meta?: { code?: string; unknown?: readonly string[]; declared?: readonly string[] };
+          code?: string;
+          meta?: { unknown?: readonly string[]; declared?: readonly string[] };
         }>(applyFail);
-        expect(applyEnvelope.meta?.code, 'P.04: apply error code').toBe(
-          'MIGRATION.UNKNOWN_INVARIANT',
-        );
+        expect(applyEnvelope.code, 'P.04: apply error code').toBe('MIGRATION.UNKNOWN_INVARIANT');
         expect(applyEnvelope.meta?.unknown, 'P.04: apply error names the typo').toEqual([
           'typo-no-migration-declares-this',
         ]);
@@ -307,10 +306,8 @@ withTempDir(({ createTempDir }) => {
         // P.06: status --ref prod is fatal too (parity with apply).
         const statusFail = await runMigrationStatus(ctx, ['--to', 'prod', '--json']);
         expect(statusFail.exitCode, 'P.06: status exits 2').toBe(2);
-        const statusEnvelope = parseJsonOutput<{ meta?: { code?: string } }>(statusFail);
-        expect(statusEnvelope.meta?.code, 'P.06: status error code').toBe(
-          'MIGRATION.UNKNOWN_INVARIANT',
-        );
+        const statusEnvelope = parseJsonOutput<{ code?: string }>(statusFail);
+        expect(statusEnvelope.code, 'P.06: status error code').toBe('MIGRATION.UNKNOWN_INVARIANT');
       },
       timeouts.spinUpPpgDev,
     );
@@ -384,14 +381,14 @@ withTempDir(({ createTempDir }) => {
         const applyFail = await runMigrate(ctx, ['--to', 'prod', '--json']);
         expect(applyFail.exitCode, 'Q.05: apply exits 2').toBe(2);
         const envelope = parseJsonOutput<{
+          code?: string;
           meta?: {
-            code?: string;
             required?: readonly string[];
             missing?: readonly string[];
             structuralPath?: readonly { dirName: string; invariants: readonly string[] }[];
           };
         }>(applyFail);
-        expect(envelope.meta?.code, 'Q.05: error code').toBe('MIGRATION.NO_INVARIANT_PATH');
+        expect(envelope.code, 'Q.05: error code').toBe('MIGRATION.NO_INVARIANT_PATH');
         expect(envelope.meta?.required, 'Q.05: required reflects ref').toEqual([INVARIANT_ID]);
         expect(
           envelope.meta?.missing,

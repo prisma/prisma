@@ -1,3 +1,9 @@
+export {
+  type PostgresCheckExpressionCandidate,
+  type PostgresCheckExpressionInput,
+  type PostgresCheckKind,
+  postgresRenderCheckExpressions,
+} from '../core/check-expressions';
 export { PostgresNativeEnum, type PostgresNativeEnumInput } from '../core/postgres-native-enum';
 export {
   PostgresRlsEnablement,

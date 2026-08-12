@@ -21,6 +21,7 @@ import type { AnySqliteCodecDescriptor } from '../src/core/codec-descriptor';
 import {
   codecDescriptors,
   sqliteBigintDescriptor,
+  sqliteBigintNumberDescriptor,
   sqliteBlobDescriptor,
   sqliteDatetimeDescriptor,
   sqliteIntegerDescriptor,
@@ -46,6 +47,7 @@ const EXPECTED_CODEC_IDS = [
   'sqlite/datetime@1',
   'sqlite/json@1',
   'sqlite/bigint@1',
+  'sqlite/bigintnumber@1',
 ] as const;
 
 const refFor = (
@@ -146,6 +148,12 @@ describe('SQLite built-in codec descriptors', () => {
     expect(sqliteJsonDescriptor.projectJson(expression, refFor(sqliteJsonDescriptor))).toEqual(
       FunctionCallExpr.of('json', [expression]),
     );
+    // The canonical JSON is a number, and the JSON constructor renders the
+    // storage class it is handed — which for an aggregate is the text its
+    // lowering cast to. The cast names the class the canonical form needs.
+    expect(
+      sqliteBigintNumberDescriptor.projectJson(expression, refFor(sqliteBigintNumberDescriptor)),
+    ).toEqual(CastExpr.as(expression, 'INTEGER'));
   });
 
   it('keeps authored registries complete while preserving the control metadata filter boundary', () => {

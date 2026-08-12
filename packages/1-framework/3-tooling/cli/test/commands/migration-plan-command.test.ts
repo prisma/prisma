@@ -16,7 +16,7 @@ import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MigrationPlanResult } from '../../src/commands/migration-plan';
+import type { MigrationPlanResult } from '../../src/control-api/operations/migration-plan';
 import { executeCommand, setupCommandMocks } from '../utils/test-helpers';
 
 type CreateMigrationPlanCommand =
@@ -49,17 +49,17 @@ vi.mock('node:fs/promises', async () => {
   };
 });
 
-vi.mock('../../src/utils/contract-space-seed-phase', () => ({
+vi.mock('../../src/control-api/operations/contract-space-seed-phase', () => ({
   runContractSpaceSeedPhase: mocks.runContractSpaceSeedPhase,
 }));
 
-vi.mock('../../src/utils/contract-space-aggregate-loader', () => ({
+vi.mock('../../src/control-api/operations/contract-space-aggregate-loader', () => ({
   buildContractSpaceAggregate: mocks.buildContractSpaceAggregate,
   loadContractSpaceAggregateForCli: mocks.loadContractSpaceAggregateForCli,
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 vi.mock('@internal/migration-tools/refs', async () => {
@@ -161,7 +161,7 @@ function buildResolutionSpace(
           {
             why: `The hash ${hash} is a graph node but no on-disk migration package has a destination (\`to\`) hash matching it.`,
             fix: 'Provide a ref or hash that corresponds to an existing migration package, or run `migration list` to see available migrations.',
-            details: { hash },
+            meta: { hash },
           },
         );
       }
@@ -277,32 +277,34 @@ function setupBaseConfig(
     ),
 ): void {
   const planner = { plan: plannerPlan };
-  mocks.loadConfig.mockResolvedValue({
-    family: {
-      familyId: 'mongo',
-      create: vi.fn().mockReturnValue({
-        deserializeContract: (c: unknown) => c,
-      }),
-    },
-    target: {
-      id: 'mongo',
-      familyId: 'mongo',
-      targetId: 'mongo',
-      kind: 'target',
-      migrations: {
-        createPlanner: vi.fn().mockReturnValue(planner),
-        contractToSchema: vi.fn().mockReturnValue({}),
+  mocks.loadConfig.mockResolvedValue(
+    ok({
+      family: {
+        familyId: 'mongo',
+        create: vi.fn().mockReturnValue({
+          deserializeContract: (c: unknown) => c,
+        }),
       },
-    },
-    adapter: {
-      kind: 'adapter',
-      familyId: 'mongo',
-      targetId: 'mongo',
-      create: () => ({ familyId: 'mongo', targetId: 'mongo' }),
-    },
-    contract: { output: '/tmp/test/contract.json' },
-    migrations: { dir: '/tmp/test/migrations' },
-  });
+      target: {
+        id: 'mongo',
+        familyId: 'mongo',
+        targetId: 'mongo',
+        kind: 'target',
+        migrations: {
+          createPlanner: vi.fn().mockReturnValue(planner),
+          contractToSchema: vi.fn().mockReturnValue({}),
+        },
+      },
+      adapter: {
+        kind: 'adapter',
+        familyId: 'mongo',
+        targetId: 'mongo',
+        create: () => ({ familyId: 'mongo', targetId: 'mongo' }),
+      },
+      contract: { output: '/tmp/test/contract.json' },
+      migrations: { dir: '/tmp/test/migrations' },
+    }),
+  );
   mocks.createControlStack.mockReturnValue({});
 }
 
@@ -346,8 +348,8 @@ describe('migration plan command', () => {
     mocks.runContractSpaceSeedPhase.mockResolvedValue({ seeded: [] });
     mocks.buildContractSpaceAggregate.mockImplementation(async (inputs) => {
       const loader = await vi.importActual<
-        typeof import('../../src/utils/contract-space-aggregate-loader')
-      >('../../src/utils/contract-space-aggregate-loader');
+        typeof import('../../src/control-api/operations/contract-space-aggregate-loader')
+      >('../../src/control-api/operations/contract-space-aggregate-loader');
       return loader.buildContractSpaceAggregate(
         inputs as Parameters<typeof loader.buildContractSpaceAggregate>[0],
       );
@@ -381,8 +383,8 @@ describe('migration plan command', () => {
     vi.doUnmock('../../src/utils/framework-components');
     vi.doUnmock('../../src/control-api/operations/extract-sql-ddl');
     vi.doUnmock('@internal/framework-components/control');
-    vi.doUnmock('../../src/utils/contract-space-seed-phase');
-    vi.doUnmock('../../src/utils/contract-space-aggregate-loader');
+    vi.doUnmock('../../src/control-api/operations/contract-space-seed-phase');
+    vi.doUnmock('../../src/control-api/operations/contract-space-aggregate-loader');
     vi.resetModules();
   });
 
@@ -520,40 +522,42 @@ describe('migration plan command', () => {
           defaultPlannerSuccess([{ id: 'd', label: 'Delta', operationClass: 'additive' }]),
         );
       setupBaseConfig(planMock);
-      mocks.loadConfig.mockResolvedValue({
-        family: {
-          familyId: 'mongo',
-          create: vi.fn().mockReturnValue({ deserializeContract: (c: unknown) => c }),
-        },
-        target: {
-          id: 'mongo',
-          familyId: 'mongo',
-          targetId: 'mongo',
-          kind: 'target',
-          migrations: {
-            createPlanner: vi.fn().mockReturnValue({ plan: planMock }),
-            contractToSchema: vi.fn().mockReturnValue({}),
+      mocks.loadConfig.mockResolvedValue(
+        ok({
+          family: {
+            familyId: 'mongo',
+            create: vi.fn().mockReturnValue({ deserializeContract: (c: unknown) => c }),
           },
-        },
-        adapter: {
-          kind: 'adapter',
-          familyId: 'mongo',
-          targetId: 'mongo',
-          create: () => ({ familyId: 'mongo', targetId: 'mongo' }),
-        },
-        contract: { output: '/tmp/test/contract.json' },
-        migrations: { dir: '/tmp/test/migrations' },
-        extensions: [
-          {
-            id: 'cipherstash',
-            contractSpace: {
-              contractJson: { v: 1 },
-              headRef: { hash: OLD_HASH, invariants: [] },
-              migrations: [],
+          target: {
+            id: 'mongo',
+            familyId: 'mongo',
+            targetId: 'mongo',
+            kind: 'target',
+            migrations: {
+              createPlanner: vi.fn().mockReturnValue({ plan: planMock }),
+              contractToSchema: vi.fn().mockReturnValue({}),
             },
           },
-        ],
-      });
+          adapter: {
+            kind: 'adapter',
+            familyId: 'mongo',
+            targetId: 'mongo',
+            create: () => ({ familyId: 'mongo', targetId: 'mongo' }),
+          },
+          contract: { output: '/tmp/test/contract.json' },
+          migrations: { dir: '/tmp/test/migrations' },
+          extensions: [
+            {
+              id: 'cipherstash',
+              contractSpace: {
+                contractJson: { v: 1 },
+                headRef: { hash: OLD_HASH, invariants: [] },
+                migrations: [],
+              },
+            },
+          ],
+        }),
+      );
       mocks.runContractSpaceSeedPhase.mockResolvedValue({
         seeded: [
           {
@@ -706,34 +710,36 @@ describe('migration plan command', () => {
       const createPlannerMock = vi.fn().mockReturnValue({ plan: planMock });
       const contractToSchemaMock = vi.fn().mockReturnValue({ tables: {} });
 
-      mocks.loadConfig.mockResolvedValue({
-        family: {
-          familyId: 'sql',
-          create: vi.fn().mockReturnValue({
-            deserializeContract: (c: unknown) => c,
-          }),
-        },
-        target: {
-          id: 'postgres',
-          familyId: 'sql',
-          targetId: 'postgres',
-          kind: 'target',
-          migrations: {
-            createPlanner: createPlannerMock,
-            createRunner: vi.fn(),
-            contractToSchema: contractToSchemaMock,
-            emit: vi.fn(),
+      mocks.loadConfig.mockResolvedValue(
+        ok({
+          family: {
+            familyId: 'sql',
+            create: vi.fn().mockReturnValue({
+              deserializeContract: (c: unknown) => c,
+            }),
           },
-        },
-        adapter: {
-          kind: 'adapter',
-          familyId: 'sql',
-          targetId: 'postgres',
-          create: () => ({ familyId: 'sql', targetId: 'postgres' }),
-        },
-        contract: { output: '/tmp/test/contract.json' },
-        migrations: { dir: '/tmp/test/migrations' },
-      });
+          target: {
+            id: 'postgres',
+            familyId: 'sql',
+            targetId: 'postgres',
+            kind: 'target',
+            migrations: {
+              createPlanner: createPlannerMock,
+              createRunner: vi.fn(),
+              contractToSchema: contractToSchemaMock,
+              emit: vi.fn(),
+            },
+          },
+          adapter: {
+            kind: 'adapter',
+            familyId: 'sql',
+            targetId: 'postgres',
+            create: () => ({ familyId: 'sql', targetId: 'postgres' }),
+          },
+          contract: { output: '/tmp/test/contract.json' },
+          migrations: { dir: '/tmp/test/migrations' },
+        }),
+      );
       mocks.createControlStack.mockReturnValue({});
     }
 

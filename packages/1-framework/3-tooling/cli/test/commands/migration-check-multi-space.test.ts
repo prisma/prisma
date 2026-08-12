@@ -11,11 +11,13 @@ import { type } from 'arktype';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
-  enumerateCheckSpaces,
   type MigrationCheckResult,
   migrationCheckResultSchema,
-  runMigrationCheck,
 } from '../../src/commands/migration-check';
+import {
+  enumerateCheckSpaces,
+  runMigrationCheck,
+} from '../../src/control-api/operations/migration-check';
 
 /**
  * Exercises `migration check`'s multi-space policy core directly, mirroring
@@ -106,7 +108,7 @@ async function checkFromDisk(inputs: {
     appContract: TEST_APP_CONTRACT,
     deserializeContract: identityDeserialize,
   });
-  const spaces = await enumerateCheckSpaces(aggregate, inputs.migrationsDir);
+  const spaces = await enumerateCheckSpaces(aggregate, inputs.migrationsDir, process.cwd());
   const outcome = await runMigrationCheck({
     spaces,
     ...(inputs.spaceFilter !== undefined ? { spaceFilter: inputs.spaceFilter } : {}),
@@ -269,12 +271,12 @@ describe('migration check — --space narrowing', () => {
       appContract: TEST_APP_CONTRACT,
       deserializeContract: identityDeserialize,
     });
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot, process.cwd());
     const outcome = await runMigrationCheck({ spaces, spaceFilter: '../escape' });
     expect(outcome.ok).toBe(false);
     if (outcome.ok) throw new Error('unreachable');
     const envelope = outcome.failure.toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.INVALID_SPACE_ID');
+    expect(envelope.code).toBe('MIGRATION.INVALID_SPACE_ID');
     expect(envelope.meta?.['spaceId']).toBe('../escape');
   });
 
@@ -291,12 +293,12 @@ describe('migration check — --space narrowing', () => {
       appContract: TEST_APP_CONTRACT,
       deserializeContract: identityDeserialize,
     });
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot, process.cwd());
     const outcome = await runMigrationCheck({ spaces, spaceFilter: 'nope' });
     expect(outcome.ok).toBe(false);
     if (outcome.ok) throw new Error('unreachable');
     const envelope = outcome.failure.toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.SPACE_NOT_FOUND');
+    expect(envelope.code).toBe('MIGRATION.SPACE_NOT_FOUND');
     expect(envelope.meta?.['spaceId']).toBe('nope');
     expect(envelope.meta?.['availableSpaces']).toEqual(['app']);
   });
@@ -317,7 +319,7 @@ describe('migration check — migrationCheckResultSchema validation', () => {
       appContract: TEST_APP_CONTRACT,
       deserializeContract: identityDeserialize,
     });
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot, process.cwd());
     const outcome = await runMigrationCheck({ spaces });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) throw new Error('unreachable');
@@ -348,7 +350,7 @@ describe('migration check — migrationCheckResultSchema validation', () => {
       appContract: TEST_APP_CONTRACT,
       deserializeContract: identityDeserialize,
     });
-    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot);
+    const spaces = await enumerateCheckSpaces(aggregate, migrationsRoot, process.cwd());
     const outcome = await runMigrationCheck({ spaces });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) throw new Error('unreachable');

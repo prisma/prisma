@@ -25,18 +25,26 @@ import {
   type PgBitDescriptor,
   type PgInt4Codec,
   type PgInt4Descriptor,
+  type PgInt8NumberCodec,
+  type PgInt8NumberDescriptor,
   type PgNumericCodec,
   type PgNumericDescriptor,
   type PgTimestamptzCodec,
   type PgTimestamptzDescriptor,
+  type PgUnboundedIntCodec,
+  type PgUnboundedIntDescriptor,
   pgBitColumn,
   pgBitDescriptor,
   pgInt4Column,
   pgInt4Descriptor,
+  pgInt8NumberColumn,
+  pgInt8NumberDescriptor,
   pgNumericColumn,
   pgNumericDescriptor,
   pgTimestamptzColumn,
   pgTimestamptzDescriptor,
+  pgUnboundedIntColumn,
+  pgUnboundedIntDescriptor,
 } from '../src/core/codecs';
 
 test('pgInt4: descriptor.factory() returns typed (ctx) => PgInt4Codec', () => {
@@ -48,6 +56,17 @@ test('pgInt4: column helper preserves typed codecFactory + undefined typeParams'
   const col = pgInt4Column();
   expectTypeOf(col.codecFactory).toEqualTypeOf<(ctx: CodecInstanceContext) => PgInt4Codec>();
   expectTypeOf(col.typeParams).toEqualTypeOf<undefined>();
+});
+
+test('integer representation column helpers preserve their application codec types', () => {
+  expectTypeOf(pgInt8NumberColumn().codecFactory).toEqualTypeOf<
+    (ctx: CodecInstanceContext) => PgInt8NumberCodec
+  >();
+  expectTypeOf(pgUnboundedIntColumn().codecFactory).toEqualTypeOf<
+    (ctx: CodecInstanceContext) => PgUnboundedIntCodec
+  >();
+  expectTypeOf(pgInt8NumberColumn().typeParams).toEqualTypeOf<undefined>();
+  expectTypeOf(pgUnboundedIntColumn().typeParams).toEqualTypeOf<undefined>();
 });
 
 test('pgBit: descriptor.factory(params) returns typed (ctx) => PgBitCodec', () => {
@@ -103,6 +122,15 @@ test('pgNumeric: column helper accepts no-args call (default params)', () => {
 
 pgInt4Column satisfies ColumnHelperFor<PgInt4Descriptor>;
 pgInt4Column satisfies ColumnHelperForStrict<PgInt4Descriptor>;
+
+pgInt8NumberColumn satisfies ColumnHelperFor<PgInt8NumberDescriptor>;
+pgInt8NumberColumn satisfies ColumnHelperForStrict<PgInt8NumberDescriptor>;
+
+pgUnboundedIntColumn satisfies ColumnHelperFor<PgUnboundedIntDescriptor>;
+pgUnboundedIntColumn satisfies ColumnHelperForStrict<PgUnboundedIntDescriptor>;
+
+pgInt8NumberDescriptor.factory() satisfies (ctx: CodecInstanceContext) => PgInt8NumberCodec;
+pgUnboundedIntDescriptor.factory() satisfies (ctx: CodecInstanceContext) => PgUnboundedIntCodec;
 
 pgBitColumn satisfies ColumnHelperFor<PgBitDescriptor>;
 pgBitColumn satisfies ColumnHelperForStrict<PgBitDescriptor>;

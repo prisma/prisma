@@ -1,9 +1,5 @@
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
-import type {
-  PreparedExecuteRequest,
-  SqlDriver,
-  SqlExecuteRequest,
-} from '@internal/sql-relational-core/ast';
+import type { SqlDriver, SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import {
   BinaryExpr,
   ColumnRef,
@@ -37,18 +33,12 @@ import {
 const testContract = createTestContract({ targetFamily: 'sql', target: 'postgres' });
 
 function createMockDriver(rows: ReadonlyArray<Record<string, unknown>> = []): SqlDriver {
-  const execute = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
-    for (const row of rows) yield row;
-  });
-  const executePrepared = vi.fn().mockImplementation(async function* (
-    _request: PreparedExecuteRequest,
-  ) {
+  const query = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
     for (const row of rows) yield row;
   });
   return {
-    execute,
-    executePrepared,
-    query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query,
     connect: vi.fn().mockResolvedValue(undefined),
     acquireConnection: vi.fn(),
     close: vi.fn().mockResolvedValue(undefined),

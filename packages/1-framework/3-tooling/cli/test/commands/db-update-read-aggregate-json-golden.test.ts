@@ -5,10 +5,11 @@ import { writeContractSnapshot } from '@internal/migration-tools/contract-snapsh
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDbUpdateCommand } from '../../src/commands/db-update';
-import { executeCommand, setupCommandMocks } from '../utils/test-helpers';
+import { executeCommand, getExitCode, setupCommandMocks } from '../utils/test-helpers';
 
 const mocks = vi.hoisted(() => ({
   loadConfig: vi.fn(),
@@ -18,7 +19,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 vi.mock('../../src/control-api/client', () => ({
@@ -106,27 +107,108 @@ describe('db update read aggregate --json golden', () => {
     createdDirs.length = 0;
   });
 
+  it('pins the --json envelope when ref advancement throws a MigrationToolsError', async () => {
+    // Command-level envelope pin for the db-sign/-update/-init group: a
+    // MigrationToolsError raised inside the command (here MIGRATION.INVALID_REF_NAME
+    // from --advance-ref validation) must surface byte-identical through --json.
+    const { contractPath, dirNext } = await setupFixture();
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        family: {
+          familyId: 'sql',
+          create: vi.fn().mockReturnValue({
+            deserializeContract: (json: unknown) => json,
+          }),
+        },
+        target: {
+          id: 'postgres',
+          familyId: 'sql',
+          targetId: 'postgres',
+          kind: 'target',
+          migrations: {},
+        },
+        adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
+        driver: { kind: 'driver' },
+        db: { connection: 'postgres://localhost/db-update-golden' },
+        contract: { output: contractPath },
+      }),
+    );
+    mocks.dbUpdate.mockResolvedValue({
+      ok: true,
+      value: {
+        ok: true as const,
+        mode: 'apply' as const,
+        destination: { storageHash: HASH_B },
+        summary: 'Applied',
+      },
+    });
+
+    const { consoleOutput, cleanup } = setupCommandMocks({ isTTY: false });
+    const updateCmd = createDbUpdateCommand();
+    let exitCode: number;
+    try {
+      exitCode = await executeCommand(updateCmd, [
+        '--to',
+        dirNext,
+        '--advance-ref',
+        'BAD NAME',
+        '--json',
+        '--db',
+        'postgres://localhost/db-update-golden',
+        '--config',
+        contractPath,
+      ]);
+    } catch (error) {
+      if (!(error instanceof Error) || error.message !== 'process.exit called') {
+        throw error;
+      }
+      exitCode = getExitCode() ?? 0;
+    } finally {
+      cleanup();
+    }
+
+    expect(exitCode).toBe(2);
+    const json = consoleOutput.join('\n');
+    expect(json).toBe(
+      [
+        '{',
+        '  "ok": false,',
+        '  "code": "MIGRATION.INVALID_REF_NAME",',
+        '  "severity": "error",',
+        '  "summary": "Invalid ref name",',
+        `  "why": "Ref name \\"BAD NAME\\" is invalid. Names must be lowercase alphanumeric with hyphens or forward slashes (no \\".\\" or \\"..\\" segments).",`,
+        `  "fix": "Use a valid ref name (e.g., \\"staging\\", \\"envs/production\\").",`,
+        '  "meta": {',
+        '    "refName": "BAD NAME"',
+        '  }',
+        '}',
+      ].join('\n'),
+    );
+  });
+
   it('pins --json dry-run output when --to resolves via aggregate packages', async () => {
     const { contractPath, dirNext, endContract } = await setupFixture();
-    mocks.loadConfig.mockResolvedValue({
-      family: {
-        familyId: 'sql',
-        create: vi.fn().mockReturnValue({
-          deserializeContract: (json: unknown) => json,
-        }),
-      },
-      target: {
-        id: 'postgres',
-        familyId: 'sql',
-        targetId: 'postgres',
-        kind: 'target',
-        migrations: {},
-      },
-      adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
-      driver: { kind: 'driver' },
-      db: { connection: 'postgres://localhost/db-update-golden' },
-      contract: { output: contractPath },
-    });
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        family: {
+          familyId: 'sql',
+          create: vi.fn().mockReturnValue({
+            deserializeContract: (json: unknown) => json,
+          }),
+        },
+        target: {
+          id: 'postgres',
+          familyId: 'sql',
+          targetId: 'postgres',
+          kind: 'target',
+          migrations: {},
+        },
+        adapter: { kind: 'adapter', familyId: 'sql', targetId: 'postgres' },
+        driver: { kind: 'driver' },
+        db: { connection: 'postgres://localhost/db-update-golden' },
+        contract: { output: contractPath },
+      }),
+    );
 
     const dbUpdateValue = {
       ok: true as const,

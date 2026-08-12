@@ -196,32 +196,32 @@
     <div class="statusline">
       <span class="item"><span class="k">Ships</span> <span class="v teal">July 31</span></span>
       <span class="item"><span class="k">Health</span> <span class="v ok">On track</span></span>
-      <span class="item"><span class="k">Updated</span> <span class="v">July 31</span></span>
-      <span class="item"><span class="k">Scoreboard</span> <span class="v link"><a href="https://github.com/prisma/prisma-next/pull/1000">450 proven · 500 unproven · 30 experimental · 250 not in 8.0</a></span></span>
+      <span class="item"><span class="k">Updated</span> <span class="v">August 5</span></span>
+      <span class="item"><span class="k">Scoreboard</span> <span class="v link"><a href="scorecard.md">416 proven · 488 unproven · 12 experimental · 244 not in 8.0</a></span></span>
     </div>
     <div class="progress">
-      <p class="cap">Work on this page: <b>35 tasks</b> — 9 done, 10 in flight, 16 not started</p>
-      <div class="bar" role="img" aria-label="35 tasks: 9 done, 10 in flight, 16 not started">
-        <div class="done" style="width: 25.7%"></div>
-        <div class="flight" style="width: 28.6%"></div>
+      <p class="cap">Work on this page: <b>44 tasks</b> — 14 done, 9 in flight, 21 not started</p>
+      <div class="bar" role="img" aria-label="44 tasks: 14 done, 9 in flight, 21 not started">
+        <div class="done" style="width: 31.8%"></div>
+        <div class="flight" style="width: 20.5%"></div>
       </div>
       <div class="legend">
-        <span><span class="dot" style="background: var(--good)"></span><b>9</b> done</span>
-        <span><span class="dot" style="background: var(--accent)"></span><b>10</b> in flight</span>
-        <span><span class="dot" style="background: var(--open-bg); outline: 1px solid var(--line-strong); outline-offset: -1px;"></span><b>16</b> not started</span>
+        <span><span class="dot" style="background: var(--good)"></span><b>14</b> done</span>
+        <span><span class="dot" style="background: var(--accent)"></span><b>9</b> in flight</span>
+        <span><span class="dot" style="background: var(--open-bg); outline: 1px solid var(--line-strong); outline-offset: -1px;"></span><b>21</b> not started</span>
       </div>
-      <p class="cap" style="margin-top: 16px;"><a href="https://github.com/prisma/prisma-next/pull/1000">Feature scoreboard</a>: <b>~1,230 cells</b> (~326 features × 3 databases) — 450 proven, 500 unproven, 30 experimental, 250 not in 8.0</p>
-      <div class="bar" role="img" aria-label="Scoreboard: about 450 cells proven, 500 unproven, 30 experimental, 250 not in 8.0">
-        <div style="width: 36.5%; background: var(--accent);"></div>
-        <div style="width: 40.7%; background: var(--warn); opacity: 0.45;"></div>
-        <div style="width: 2.5%; background: var(--line-strong);"></div>
-        <div style="width: 20.3%; background: var(--open); opacity: 0.35;"></div>
+      <p class="cap" style="margin-top: 16px;"><a href="scorecard.md">Feature scoreboard</a>: <b>1,160 verdict cells</b> (593 features × 3 databases, minus n/a) — 416 proven, 488 unproven, 12 experimental, 244 not in 8.0</p>
+      <div class="bar" role="img" aria-label="Scoreboard: 416 cells proven, 488 unproven, 12 experimental, 244 not in 8.0">
+        <div style="width: 35.9%; background: var(--accent);"></div>
+        <div style="width: 42.1%; background: var(--warn); opacity: 0.45;"></div>
+        <div style="width: 1.0%; background: var(--line-strong);"></div>
+        <div style="width: 21.0%; background: var(--open); opacity: 0.35;"></div>
       </div>
       <div class="legend">
-        <span><span class="dot" style="background: var(--accent)"></span><b>~450</b> proven by a named test</span>
-        <span><span class="dot" style="background: var(--warn); opacity: 0.45"></span><b>~500</b> unproven — the test-writing queue</span>
-        <span><span class="dot" style="background: var(--line-strong)"></span><b>~30</b> experimental</span>
-        <span><span class="dot" style="background: var(--open); opacity: 0.35"></span><b>~250</b> not in 8.0 (named absences)</span>
+        <span><span class="dot" style="background: var(--accent)"></span><b>416</b> proven by a named test</span>
+        <span><span class="dot" style="background: var(--warn); opacity: 0.45"></span><b>488</b> unproven — the test-writing queue</span>
+        <span><span class="dot" style="background: var(--line-strong)"></span><b>12</b> experimental</span>
+        <span><span class="dot" style="background: var(--open); opacity: 0.35"></span><b>244</b> not in 8.0 (named absences)</span>
       </div>
     </div>
   </header>
@@ -233,42 +233,42 @@
       <li>
         <span class="n">1</span>
         <span class="what"><a href="#req1">Queries must return correct values</a>
-          <span class="note">The relation-loading codec defect is fixed and verified; aggregate typing and the type/runtime mismatches remain.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="5 tasks: 3 done · 2 in flight"><span class="d" style="width: 60.0%"></span><span class="f" style="width: 40.0%"></span></span><span class="minicount">3 done · 2 in flight</span></span></span>
+          <span class="note">The relation-loading codec defect is fixed and verified, and aggregates now decode through codecs; two type/runtime mismatches remain.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="5 tasks: 3 done · 2 in flight"><span class="d" style="width: 60.0%"></span><span class="f" style="width: 40.0%"></span></span><span class="minicount">3 done · 2 in flight</span></span></span>
         <span class="owner">Alexey</span>
         <span class="pill flight">In progress</span>
       </li>
       <li>
         <span class="n">2</span>
         <span class="what"><a href="#req2">The schema language must reach its final form</a>
-          <span class="note">Whatever syntax the RC ships is permanent for the life of v8; three language projects are running.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="6 tasks: 3 in flight · 3 not started"><span class="f" style="width: 50.0%"></span></span><span class="minicount">3 in flight · 3 not started</span></span></span>
+          <span class="note">Whatever syntax the RC ships is permanent for the life of v8; two language projects are running.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="5 tasks: 1 done · 2 in flight · 2 not started"><span class="d" style="width: 20.0%"></span><span class="f" style="width: 40.0%"></span></span><span class="minicount">1 done · 2 in flight · 2 not started</span></span></span>
         <span class="owner">Serhii</span>
         <span class="pill flight">In flight</span>
       </li>
       <li>
         <span class="n">3</span>
         <span class="what"><a href="#req3">Every name and format users depend on must be final</a>
-          <span class="note">Error codes, hashes, the migration snapshot layout, and the config-key rename are done; the name sweep remains.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="5 tasks: 4 done · 1 not started"><span class="d" style="width: 80.0%"></span></span><span class="minicount">4 done · 1 not started</span></span></span>
+          <span class="note">Error codes, hashes, the migration snapshot layout, and the config-key rename are done; the name sweep remains.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="6 tasks: 4 done · 2 not started"><span class="d" style="width: 66.7%"></span></span><span class="minicount">4 done · 2 not started</span></span></span>
         <span class="owner">Will</span>
         <span class="pill flight">In progress</span>
       </li>
       <li>
         <span class="n">4</span>
         <span class="what"><a href="#req4">The release's claims must be proven</a>
-          <span class="note">"It works" and "you can migrate incrementally" each need a runnable receipt.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="7 tasks: 2 done · 3 in flight · 2 not started"><span class="d" style="width: 28.6%"></span><span class="f" style="width: 42.9%"></span></span><span class="minicount">2 done · 3 in flight · 2 not started</span></span></span>
+          <span class="note">"It works" and "you can migrate incrementally" each need a runnable receipt.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="8 tasks: 2 done · 3 in flight · 3 not started"><span class="d" style="width: 25.0%"></span><span class="f" style="width: 37.5%"></span></span><span class="minicount">2 done · 3 in flight · 3 not started</span></span></span>
         <span class="owner">Everyone</span>
-        <span class="pill flight">Scoreboard drafted</span>
+        <span class="pill flight">Scoreboard merged</span>
       </li>
       <li>
         <span class="n">5</span>
         <span class="what"><a href="#req5">The code must move into prisma/prisma</a>
-          <span class="note">Repository merge, publishing pipeline, and years of open v7 issues.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="5 tasks: 1 in flight · 4 not started"><span class="f" style="width: 20.0%"></span></span><span class="minicount">1 in flight · 4 not started</span></span></span>
+          <span class="note">The code is in prisma/prisma and the v7 branch runs its own CI; the package-name takeover and v7 issue triage remain.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="7 tasks: 3 done · 1 in flight · 3 not started"><span class="d" style="width: 42.9%"></span><span class="f" style="width: 14.3%"></span></span><span class="minicount">3 done · 1 in flight · 3 not started</span></span></span>
         <span class="owner">Alexey</span>
-        <span class="pill open">Starting</span>
+        <span class="pill flight">In progress</span>
       </li>
       <li>
         <span class="n">6</span>
         <span class="what"><a href="#req6">The rough edges users hit on day one must be gone</a>
-          <span class="note">Small fixes that would be embarrassing under announcement-day attention.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="7 tasks: 1 in flight · 6 not started"><span class="f" style="width: 14.3%"></span></span><span class="minicount">1 in flight · 6 not started</span></span></span>
+          <span class="note">Small fixes that would be embarrassing under announcement-day attention.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="13 tasks: 1 done · 1 in flight · 11 not started"><span class="d" style="width: 7.7%"></span><span class="f" style="width: 7.7%"></span></span><span class="minicount">1 done · 1 in flight · 11 not started</span></span></span>
         <span class="owner">Everyone</span>
         <span class="pill open">Open</span>
       </li>
@@ -280,14 +280,14 @@
     <span class="reqno">Requirement 1</span>
     <span class="owner" style="margin-left: 8px;">Alexey</span>
     <h2>Queries must return correct values</h2>
-    <p class="soft">Prisma 8's core promise at the RC is that the query paths it ships are correct. The one significant defect class — relation-loading bypassing type codecs — is fixed as of July 31; what remains is the aggregate-typing tail, the type/runtime mismatches, and the polymorphism call.</p>
+    <p class="soft">Prisma 8's core promise at the RC is that the query paths it ships are correct. The one significant defect class — relation-loading bypassing type codecs — is fixed as of July 31, and aggregate decoding followed on August 5; what remains is the type/runtime mismatches and the polymorphism call.</p>
 
     <details class="task">
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Values read through relation-loading bypass their type codecs — big numbers silently corrupt, date columns throw</span><span class="pill done">Landed</span></summary>
       <div class="body">
         <p>When a query loads a relation (say, a post together with its author), Postgres assembles the nested rows into JSON inside the database, using its <code>json_agg</code> function. JSON numbers cannot represent everything a database column can hold: a 64-bit integer or arbitrary-precision decimal got silently rounded to the nearest JavaScript-representable number before Prisma's type codecs ever saw it, and date/time values arrived in a format the decoder rejects — so a plain <code>DateTime</code> column read through <code>.include()</code> threw.</p>
         <p>The fix landed July 31: every type codec states an explicit <em>lossless</em> canonical JSON form (big numbers travel as decimal strings, binary as base64), and the SQL we generate produces that form inside the database. It shipped as three pull requests in strict sequence — the projection AST foundations (<a href="https://linear.app/prisma-company/issue/TML-3062">TML-3062</a>, <a href="https://github.com/prisma/prisma-next/pull/1023">#1023</a>), the per-database codec descriptors (<a href="https://linear.app/prisma-company/issue/TML-3061">TML-3061</a>, <a href="https://github.com/prisma/prisma-next/pull/1051">#1051</a>), and the switch-over carrying the per-codec projections and their database-backed conformance harness (<a href="https://linear.app/prisma-company/issue/TML-3100">TML-3100</a>, <a href="https://linear.app/prisma-company/issue/TML-3063">TML-3063</a>, <a href="https://github.com/prisma/prisma/pull/29844">#29844</a>). The switch-over is the promised breaking change: users regenerate their contract files, nine codecs change their JSON form on the read path, and zone-less timestamps now read as UTC. Integration tests prove each renderer produces the canonical form against a real database.</p>
-        <p>Two remainders are accepted knowingly: aggregate values are not yet decoded through codecs (<a href="https://linear.app/prisma-company/issue/TML-3064">TML-3064</a>, tracked in the type-mismatch item below), and <code>pg/geometry@1</code> keeps its non-canonical form until its SRID representation is decided and a PostGIS-capable test database exists (<a href="https://linear.app/prisma-company/issue/TML-3105">TML-3105</a>).</p>
+        <p>One remainder was accepted knowingly and later closed: aggregate values now decode through codecs (<a href="https://linear.app/prisma-company/issue/TML-3064">TML-3064</a>, landed August 5 as <a href="https://github.com/prisma/prisma/pull/29867">#29867</a>). The other stands: <code>pg/geometry@1</code> keeps its non-canonical form until its SRID representation is decided and a PostGIS-capable test database exists (<a href="https://linear.app/prisma-company/issue/TML-3105">TML-3105</a>).</p>
       </div>
     </details>
 
@@ -308,12 +308,12 @@
     <details class="task">
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Places where the TypeScript types and the runtime disagree</span><span class="pill flight">In flight</span></summary>
       <div class="body">
-        <p>Three known mismatches, all "the type signature promises one thing, the running code returns another":</p>
+        <p>Two known mismatches remain, both "the type signature promises one thing, the running code returns another":</p>
         <ul>
           <li><code>Timestamp</code>/<code>Timestamptz</code> columns: the declared output type is a branded string, but the codec actually returns a JavaScript <code>Date</code> (<a href="https://linear.app/prisma-company/issue/TML-2391">TML-2391</a>, in progress).</li>
-          <li>Projects that use the schema types directly without running contract emission (<code>typeof contract</code>) get types that ignore per-instance codec parameters and enum value sets — so a column can typecheck against values the database will reject (<a href="https://linear.app/prisma-company/issue/TML-2960">TML-2960</a>, in progress).</li>
-          <li>Aggregate results: a <code>count()</code> is typed <code>bigint</code>, but the runtime still returns the text the database sent — aggregate values are not yet decoded through codecs. This is the final PR of the lossless-JSON sequence, which also delivers the public target testkits for extensions (<a href="https://linear.app/prisma-company/issue/TML-3064">TML-3064</a>, open).</li>
+          <li>Projects that use the schema types directly without running contract emission (<code>typeof contract</code>) get types that ignore per-instance codec parameters — enum value sets are fixed (<a href="https://linear.app/prisma-company/issue/TML-2960">TML-2960</a>, <a href="https://github.com/prisma/prisma-next/pull/958">#958</a>), the codec-parameter half is tracked as <a href="https://linear.app/prisma-company/issue/TML-3014">TML-3014</a>.</li>
         </ul>
+        <p>A third is resolved: aggregate values now decode through target-declared aggregate codecs, so the type an aggregate declares is the value the runtime hands back. <code>count()</code> reads as a <code>number</code> and refuses a tally outside ±(2^53 − 1) rather than rounding it, with <code>countBigInt()</code> as the lossless form. Delivered with the public target testkits for extensions (<a href="https://linear.app/prisma-company/issue/TML-3064">TML-3064</a>, landed August 5 as <a href="https://github.com/prisma/prisma/pull/29867">#29867</a>); the native-number defaults are <a href="https://linear.app/prisma-company/issue/TML-3165">TML-3165</a>.</p>
         <p>A type that lies is a correctness bug with a delay on it; all must be resolved (or the type corrected to tell the truth) before the types freeze.</p>
       </div>
     </details>
@@ -323,7 +323,7 @@
       <div class="body">
         <p>Polymorphism means models that inherit from a base model, stored across joined tables (multi-table inheritance). It has been the source of most of Prisma 8's recent correctness bugs. The encouraging signal: recent fixes are narrow edge cases rather than missing capabilities, and no known-broken or skipped tests remain in the area. The open list, so the tail is visible rather than vibes:</p>
         <ul>
-          <li>Explicit <code>.select(...)</code> on a polymorphic include doesn't restrict variant-table columns (<a href="https://linear.app/prisma-company/issue/TML-2783">TML-2783</a>, in progress — the core fix landed, follow-up open).</li>
+          <li>Explicit <code>.select(...)</code> on a polymorphic include doesn't restrict variant-table columns (<a href="https://linear.app/prisma-company/issue/TML-2783">TML-2783</a> — the runtime fix landed in <a href="https://github.com/prisma/prisma-next/pull/984">#984</a>; the typed <code>.select()</code> surface still offers base-model fields only).</li>
           <li>Variant lookup is namespace-flat, so two variants with the same name in different namespaces can't be addressed (<a href="https://linear.app/prisma-company/issue/TML-2841">TML-2841</a>, in progress).</li>
           <li>The model accessor's return type isn't variant-aware (<a href="https://linear.app/prisma-company/issue/TML-2847">TML-2847</a>, in progress).</li>
           <li>The shorthand <code>.where({priority: 1})</code> form rejects variant fields that the callback form accepts (<a href="https://linear.app/prisma-company/issue/TML-2982">TML-2982</a>, open).</li>
@@ -339,7 +339,7 @@
     <span class="reqno">Requirement 2</span>
     <span class="owner" style="margin-left: 8px;">Serhii</span>
     <h2>The schema language must reach its final form</h2>
-    <p class="soft">Users write their data model in Prisma Schema Language (PSL) files. Whatever syntax the RC accepts is the syntax v8 supports forever — so every planned change to the language must land before July 31 or be abandoned. Four language changes are planned — mixins, native column types, directional relations, and tagged SQL fences — plus two items that follow from them: removing <code>@dbgenerated()</code> builds on the tagged fences, and the example schemas get regenerated once at the end. All of it is coordinated so users' generated files change once, not once per change.</p>
+    <p class="soft">Users write their data model in Prisma Schema Language (PSL) files. Whatever syntax the RC accepts is the syntax v8 supports forever — so every planned change to the language must land before July 31 or be abandoned. Four language changes are planned — mixins, native column types, directional relations, and tagged SQL fences — plus one item that follows from them: removing <code>@dbgenerated()</code> builds on the tagged fences.</p>
 
     <details class="task">
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Mixins: reusable, named sets of fields</span><span class="crit">CRITICAL PATH</span><span class="pill flight">Design in progress</span></summary>
@@ -350,10 +350,10 @@
     </details>
 
     <details class="task">
-      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Native column types move onto type constructors; <code>@db.*</code> attributes are deleted</span><span class="pill flight">In flight</span></summary>
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Native column types move onto type constructors; <code>@db.*</code> attributes are deleted</span><span class="pill done">Landed</span></summary>
       <div class="body">
         <p>Prisma 7 spelled database-native column types with attributes: <code>email String @db.VarChar(255)</code>. Prisma 8 replaces that spelling with the type written directly in the type position: <code>email VarChar(255)</code>, <code>id Uuid</code>, <code>payload Jsonb</code>. The type says what the column is; no attribute needed. All <code>@db.*</code> attribute support is deleted from the language before the freeze — shipping both spellings would freeze both forever.</p>
-        <p>This has its own running project ("Remove <code>@db.*</code> attributes from PSL"). The scalar-type unification — every scalar becomes a zero-argument type constructor under one contribution mechanism, with the Postgres native constructors exposed — has landed (<a href="https://linear.app/prisma-company/issue/TML-2986">TML-2986</a>, <a href="https://github.com/prisma/prisma-next/pull/1022">#1022</a>). What remains is deleting the <code>@db.*</code> channel itself (<a href="https://linear.app/prisma-company/issue/TML-2988">TML-2988</a>) so only the bare-type spelling survives the freeze.</p>
+        <p>Both halves have landed. The scalar-type unification — every scalar becomes a zero-argument type constructor under one contribution mechanism, with the Postgres native constructors exposed — landed first (<a href="https://linear.app/prisma-company/issue/TML-2986">TML-2986</a>, <a href="https://github.com/prisma/prisma-next/pull/1022">#1022</a>). The <code>@db.*</code> channel itself is now deleted (<a href="https://linear.app/prisma-company/issue/TML-2988">TML-2988</a>, landed as <a href="https://github.com/prisma/prisma-next/pull/1054">#1054</a>): writing a <code>@db.*</code> attribute fails with a diagnostic that spells out the replacement, e.g. <code>@db.Uuid is no longer supported; use Uuid in type position</code>. Only the bare-type spelling survives the freeze.</p>
       </div>
     </details>
 
@@ -378,12 +378,6 @@
       </div>
     </details>
 
-    <details class="task">
-      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Regenerate every example schema and migration — once, at the end</span><span class="pill open">Open</span></summary>
-      <div class="body">
-        <p>All of the above changes what generated schema and migration files look like. The example projects and their committed migrations get regenerated a single time after the last language change lands, rather than churning after each one.</p>
-      </div>
-    </details>
   </section>
 
   <section class="req" id="req3">
@@ -435,21 +429,21 @@
     <p class="soft">The announcement will make two big claims: <em>everything Prisma 8 ships works</em>, and <em>you can run Prisma 7 and Prisma 8 side by side and migrate incrementally</em>. With early-access adoption having been thin, tests have to do the confidence-building work that production feedback normally would. Each claim gets a runnable receipt.</p>
 
     <details class="task" open>
-      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">The feature scoreboard: ~326 features × 3 databases, every "works" backed by a named test</span><span class="pill flight">Draft in review</span></summary>
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">The feature scoreboard: 593 features × 3 databases, every "works" backed by a named test</span><span class="pill flight">In flight</span></summary>
       <div class="body">
         <p>A matrix of every feature against every supported database (Postgres, SQLite, MongoDB). Each cell holds a verdict: <strong>works</strong> (and names the test suite that proves it), <strong>unproven</strong> (reachable, but no test demonstrates it yet), <strong>experimental</strong> (shipped, outside the stability promise), or <strong>not in 8.0</strong> (a deliberate, written-down absence — nothing is allowed to be silently missing). The rows come from two directions: everything Prisma 8's public surface exposes, crossed with every notable Prisma 7 capability, so absences are named rather than discovered.</p>
         <div class="meter">
-          <div class="bar" role="img" aria-label="Of roughly 980 availability-claiming cells: about 450 proven, 500 unproven, 30 experimental">
-            <div class="seg1" style="width: 46%"></div>
-            <div class="seg2d" style="width: 51%"></div>
+          <div class="bar" role="img" aria-label="Of 916 availability-claiming cells: 416 proven, 488 unproven, 12 experimental">
+            <div class="seg1" style="width: 45.4%"></div>
+            <div class="seg2d" style="width: 53.3%"></div>
           </div>
           <div class="legend">
-            <span><span class="dot" style="background: var(--accent)"></span><b>~450</b> proven by a named test</span>
-            <span><span class="dot" style="background: var(--warn); opacity: 0.45"></span><b>~500</b> unproven — the test-writing queue</span>
-            <span><span class="dot" style="background: var(--open-bg); outline: 1px solid var(--line-strong); outline-offset: -1px;"></span><b>~30</b> experimental</span>
+            <span><span class="dot" style="background: var(--accent)"></span><b>416</b> proven by a named test</span>
+            <span><span class="dot" style="background: var(--warn); opacity: 0.45"></span><b>488</b> unproven — the test-writing queue</span>
+            <span><span class="dot" style="background: var(--open-bg); outline: 1px solid var(--line-strong); outline-offset: -1px;"></span><b>12</b> experimental</span>
           </div>
         </div>
-        <p>A further <strong>~250</strong> cells are deliberate, named absences ("not in 8.0"). The draft is up for review as <a href="https://github.com/prisma/prisma-next/pull/1000">PR #1000</a>. The unproven column is literally the remaining test-writing queue, and the rendered matrix ships publicly with the RC — progress from here on is cells flipping from unproven to proven.</p>
+        <p>A further <strong>244</strong> cells are deliberate, named absences ("not in 8.0"). The scorecard is merged in-repo — <a href="scorecard.md">scorecard.md</a> plus 19 category files — and is updated as gaps are found (most recently eight compatibility gaps, <a href="https://github.com/prisma/prisma/pull/29881">#29881</a>). The unproven column is literally the remaining test-writing queue, and the rendered matrix ships publicly with the RC — progress from here on is cells flipping from unproven to proven. No CI job renders or checks the scorecard yet.</p>
       </div>
     </details>
 
@@ -463,6 +457,13 @@
           <li><strong>Polymorphism in the TypeScript authoring path</strong> — schemas written in TypeScript (instead of PSL) can't declare inheritance yet; the PSL path can (<a href="https://linear.app/prisma-company/issue/TML-2228">TML-2228</a>, open). Until it lands, the scoreboard carries the asymmetry explicitly.</li>
         </ul>
         <p>Anything on this list that misses July 24 gets its cells stamped as they actually are — unproven, experimental, or not in 8.0 — rather than holding the freeze.</p>
+      </div>
+    </details>
+
+    <details class="task">
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Raw query support</span><span class="pill open">Open</span></summary>
+      <div class="body">
+        <p>An ORM needs an escape hatch: when the query builder can't express something, users drop to raw SQL (Prisma 7's <code>$queryRaw</code>/<code>$executeRaw</code>) or raw database commands. Prisma 8's pieces exist but are unproven and incomplete: the <code>rawSql</code> expression inside the typed builder is proven on Postgres and SQLite, but the statement-level <code>raw</code> SQL tag (<code>client.raw</code>) and the raw Mongo client have no proving integration test, and Prisma 7's composition surface — <code>Prisma.sql</code>/<code>Prisma.join</code>/<code>Prisma.raw</code>/<code>Prisma.empty</code> fragments, typed fragment generics, TypedSQL — is currently marked <em>not in 8.0</em>. Migrating users reach for the escape hatch on day one, so the existing surfaces need proving tests and the fragment-composition story needs an explicit ship-or-name-the-absence decision before the freeze makes "not in 8.0" permanent. Current state: <a href="scorecard/13-raw-and-typed-sql.md">scorecard/13-raw-and-typed-sql.md</a>.</p>
       </div>
     </details>
 
@@ -484,7 +485,7 @@
     <details class="task">
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Port Prisma 7's accumulated edge-case tests against the unproven cells</span><span class="pill flight">In flight</span></summary>
       <div class="body">
-        <p>Prisma 7's functional test suite encodes years of database and query edge cases. Converting it wholesale would take months and mostly port API details that no longer exist — so we mine it instead: for each scoreboard cell that says "works" without a proving test, find the Prisma 7 tests covering that feature and port just those scenarios. Where comparing against Prisma 7's behavior is cheaper than porting assertions, the side-by-side project doubles as the comparison harness. The port has started — a first pass accounting for 488 scenarios from the <code>prisma</code> and <code>prisma-engines</code> corpus landed (<a href="https://github.com/prisma/prisma-next/pull/1035">#1035</a>). This is a stream, not a step; it continues past the RC, visibly, on the public scoreboard.</p>
+        <p>Prisma 7's functional test suite encodes years of database and query edge cases. Converting it wholesale would take months and mostly port API details that no longer exist — so we mine it instead: for each scoreboard cell that says "works" without a proving test, find the Prisma 7 tests covering that feature and port just those scenarios. Where comparing against Prisma 7's behavior is cheaper than porting assertions, the side-by-side project doubles as the comparison harness. The port is underway — 1,423 of 6,304 in-scope scenarios accounted across five waves (<a href="https://github.com/prisma/prisma-next/pull/1035">#1035</a>, <a href="https://github.com/prisma/prisma-next/pull/1042">#1042</a>, <a href="https://github.com/prisma/prisma/pull/29832">#29832</a>, <a href="https://github.com/prisma/prisma/pull/29912">#29912</a>); the three functional checklists are complete at 1,423 of 1,423, the engines corpus untouched. The per-test ledger lives in <code>projects/port-all-tests/checklists/</code>. This is a stream, not a step; it continues past the RC, visibly, on the public scoreboard.</p>
       </div>
     </details>
 
@@ -507,19 +508,19 @@
     <span class="reqno">Requirement 5</span>
     <span class="owner" style="margin-left: 8px;">Alexey</span>
     <h2>The code must move into prisma/prisma</h2>
-    <p class="soft">Prisma 8 has so far been developed in a separate repository, <code>prisma/prisma-next</code>. Before release, everything moves into <code>prisma/prisma</code> — the repository users already watch, star, and file issues against — so Prisma 8 arrives as the main line of Prisma, not a side project. Moving is much more than copying code: the two repositories' git histories have to be joined, CI has to run green in its new home, the npm publishing pipeline has to serve v8 and v7 side by side, thousands of open v7 issues and pull requests need a decision, and the automation in other repositories that points at prisma/prisma has to keep working afterward. Prisma 7 doesn't stop: it continues from a <code>v7</code> branch in the same repository, with bug fixes promised for 12 months after 8.0.0 final ships.</p>
+    <p class="soft">Prisma 8 has so far been developed in a separate repository, <code>prisma/prisma-next</code>. Before release, everything moves into <code>prisma/prisma</code> — the repository users already watch, star, and file issues against — so Prisma 8 arrives as the main line of Prisma, not a side project. Moving is much more than copying code: the two repositories' git histories have to be joined, CI has to run green in its new home, the npm publishing pipeline has to serve v8 and v7 side by side, thousands of open v7 issues and pull requests need a decision, the automation in other repositories that points at prisma/prisma has to keep working afterward, and the old prisma-next repository has to be visibly retired. Prisma 7 doesn't stop: it continues from a <code>v7</code> branch in the same repository, with bug fixes promised for 12 months after 8.0.0 final ships.</p>
 
     <details class="task">
-      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Join the two repositories' histories on a staging branch</span><span class="crit">CRITICAL PATH</span><span class="pill flight">Starting</span></summary>
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Move the code into prisma/prisma</span><span class="pill done">Landed · plan revised</span></summary>
       <div class="body">
-        <p>First a rehearsal in a disposable fork: combine prisma-next's history with prisma/prisma's and check the result is livable — <code>git log</code> and <code>git blame</code> still make sense, old tags still resolve, the repository doesn't balloon. Then the real <code>v8</code> branch inside prisma/prisma, with the complete test suite green and kept green until release week, when it becomes <code>main</code>. The merge gets rehearsed for weeks; it is never improvised at the deadline.</p>
+        <p>The move happened July 27–28: this repository <em>is</em> prisma/prisma, v8 is <code>main</code>, and everything since lands under prisma/prisma PR numbers (<a href="https://github.com/prisma/prisma/pull/29825">#29825</a>, <a href="https://github.com/prisma/prisma/pull/29826">#29826</a>). The originally planned history graft was dropped: <code>main</code> carries prisma-next's history only and shares no ancestor with the <code>v7</code> branch, so <code>git log</code>/<code>git blame</code> on <code>main</code> do not reach 7.x. The old 5.x/6.x/7.x tags still resolve, and a signpost on the default branch points Prisma 7 users at the <code>v7</code> branch.</p>
       </div>
     </details>
 
     <details class="task">
-      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Rewire the publishing pipeline — inside prisma/prisma and in the repositories connected to it</span><span class="pill open">Open</span></summary>
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Rewire the publishing pipeline — inside prisma/prisma and in the repositories connected to it</span><span class="pill flight">In flight</span></summary>
       <div class="body">
-        <p>prisma/prisma's release automation currently exists to publish Prisma 7. After the move it does two jobs: publish v8 from <code>main</code> and keep publishing v7 patches from the <code>v7</code> branch, without either disturbing the other. (Publish permissions on the <code>prisma</code> npm package are already in hand, and the per-package "trusted publishing" setup that lets CI publish without long-lived secrets is done for all 17 v8 packages — what remains is the v7 side.) Beyond the repository itself, workflows in several other repositories and open pull requests are wired into prisma/prisma's publishing today; each connection has to be found and re-pointed. The first concrete task is the inventory — a written list of every workflow that touches prisma/prisma's publishing, so the rewiring is a checklist instead of a surprise.</p>
+        <p>The in-repo half is done: <code>publish.yml</code> publishes v8 from <code>main</code> via OIDC trusted publishing with provenance (unchanged version → <code>dev</code> dist-tag, bumped version → <code>latest</code> plus a GitHub Release), and five <code>v7-*</code> registration stubs on <code>main</code> dispatch to the real workflows on the <code>v7</code> branch, so neither pipeline disturbs the other (<a href="https://github.com/prisma/prisma/pull/29803">#29803</a>, <a href="https://github.com/prisma/prisma/pull/29823">#29823</a>, <a href="https://github.com/prisma/prisma/pull/29840">#29840</a>, <a href="https://github.com/prisma/prisma/pull/29880">#29880</a>, <a href="https://github.com/prisma/prisma/pull/29884">#29884</a>, <a href="https://github.com/prisma/prisma/pull/29886">#29886</a>). What remains is the cross-repository half: the written inventory of workflows in other repositories wired into prisma/prisma's publishing, and re-pointing each of them. That inventory doesn't exist yet.</p>
       </div>
     </details>
 
@@ -538,6 +539,13 @@
     </details>
 
     <details class="task">
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Deprecate the old prisma-next repository</span><span class="pill open">Open</span></summary>
+      <div class="body">
+        <p>Development has moved here, but <a href="https://github.com/prisma/prisma-next">prisma/prisma-next</a> still exists with its issues, PRs, and watchers — and nothing tells a visitor it's dead. Before the announcement: archive the repository, point its README at prisma/prisma, and decide what happens to anything still open there (open items move here or get closed with a pointer). Links into the old repo — including the <code>#10xx</code> PR references on this page — keep resolving after archival, so nothing breaks; the goal is just that nobody lands there and thinks it's where Prisma 8 lives.</p>
+      </div>
+    </details>
+
+    <details class="task">
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Decide the fate of every open v7 issue and pull request</span><span class="pill open">Open</span></summary>
       <div class="body">
         <p>prisma/prisma has years of open issues and PRs written against Prisma 7. When v8 becomes <code>main</code>, we close everything except genuine v7 bug reports (which stay open against the <code>v7</code> branch), post a pinned issue explaining what happened and why, and answer follow-ups with a saved reply pointing at it. This deliberately happens at merge time, not earlier — closing thousands of issues weeks before there's an announcement to point at would produce weeks of confusion. Issue templates get a version chooser at the same time, so new reports arrive sorted into v7 vs v8.</p>
@@ -545,9 +553,9 @@
     </details>
 
     <details class="task">
-      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">The <code>v7</code> maintenance branch, with working CI</span><span class="pill open">Open</span></summary>
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">The <code>v7</code> maintenance branch, with working CI</span><span class="pill done">Landed</span></summary>
       <div class="body">
-        <p>Prisma 7's code, tests, and release automation move to a <code>v7</code> branch in prisma/prisma and must actually work there — this branch is where 12 months of promised bug fixes ship from, so a broken CI setup on it would turn every future v7 patch into an archaeology project.</p>
+        <p>The <code>v7</code> branch exists with Prisma 7's code, tests, and release automation, and its CI actually works there — test, publish, benchmark, and auxiliary workflows all run on the branch, with dispatch stubs registered on <code>main</code>, CodeRabbit reviews enabled, and the 7.x docs pointed at it (<a href="https://github.com/prisma/prisma/pull/29803">#29803</a>, <a href="https://github.com/prisma/prisma/pull/29822">#29822</a>, <a href="https://github.com/prisma/prisma/pull/29827">#29827</a>, <a href="https://github.com/prisma/prisma/pull/29828">#29828</a>). This branch is where 12 months of promised bug fixes ship from.</p>
       </div>
     </details>
   </section>
@@ -562,7 +570,7 @@
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">A dropped database connection can crash the host process</span><span class="pill open">Open</span></summary>
       <div class="body">
         <p>When an idle pooled connection drops (a database restart, a network blip), the error has no listener attached and crashes the whole Node.js process. A production-readiness bug, not housekeeping — fixed before anyone's production meets it. (<a href="https://linear.app/prisma-company/issue/TML-2655">TML-2655</a>)</p>
-        <p>Re-verified July 28: both places that build a <code>pg.Pool</code> from a <code>url</code> binding still attach no <code>'error'</code> handler, and the <code>db.ts</code> that <code>prisma-next init</code> scaffolds still uses exactly that path — so every scaffolded app deployed behind a connection pooler is exposed. A production app on Prisma Compute already hit this; the whole process died on each idle-connection drop. (<a href="https://linear.app/prisma-company/issue/TML-2842">TML-2842</a>)</p>
+        <p>Re-verified August 5: now <em>three</em> places build a <code>pg.Pool</code> with no <code>'error'</code> handler — the postgres driver's <code>url</code> binding, the postgres extension runtime, and the supabase extension — and the <code>db.ts</code> that <code>prisma-next init</code> scaffolds still uses exactly that path, so every scaffolded app deployed behind a connection pooler is exposed. A production app on Prisma Compute already hit this; the whole process died on each idle-connection drop. (<a href="https://linear.app/prisma-company/issue/TML-2842">TML-2842</a>)</p>
       </div>
     </details>
 
@@ -609,9 +617,9 @@
     </details>
 
     <details class="task">
-      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">A deprecation warning prints on every single database connection</span><span class="pill open">Open</span></summary>
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">A deprecation warning prints on every single database connection</span><span class="pill done">Landed</span></summary>
       <div class="body">
-        <p>The underlying Postgres driver prints a deprecation notice each time a connection opens. Harmless, but it's the first thing every new user sees, and it reads as "this isn't finished." (<a href="https://linear.app/prisma-company/issue/TML-2628">TML-2628</a>)</p>
+        <p>Resolved: the query-overlap <code>DeprecationWarning</code> was closed by <a href="https://linear.app/prisma-company/issue/TML-3108">TML-3108</a> (<a href="https://github.com/prisma/prisma/pull/29839">#29839</a>) — the driver now serializes queries per pinned pg client, with a regression test asserting no warning — and no per-connection deprecation exists in the pg 8.22 APIs the driver uses. <a href="https://linear.app/prisma-company/issue/TML-2628">TML-2628</a> is closed.</p>
       </div>
     </details>
 
@@ -632,7 +640,7 @@
     <details class="task">
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">First-class editor support for the schema language</span><span class="pill flight">In flight</span></summary>
       <div class="body">
-        <p>A language users write by hand deserves an editor that helps: formatting, autocomplete, syntax coloring, and diagnostics for Prisma 8's schema language, served by its language server. This work is running now — hooking the formatter to the language server, keyword and model-type completions, semantic-token coloring, and replacing the legacy schema parser with the new syntax-tree parser underneath it all (the "Language Tools Support Prisma Next PSL" project — e.g. <a href="https://linear.app/prisma-company/issue/TML-2929">TML-2929</a>, <a href="https://linear.app/prisma-company/issue/TML-2932">TML-2932</a>, <a href="https://linear.app/prisma-company/issue/TML-2947">TML-2947</a>, <a href="https://linear.app/prisma-company/issue/TML-2948">TML-2948</a>). It also has to track the schema-language changes in requirement 2 as they land, or the editor will underline the new syntax as errors.</p>
+        <p>A language users write by hand deserves an editor that helps. Most of this has landed: the language server ships formatting, keyword and model-type completions, semantic-token coloring, folding, and interpreter-backed diagnostics, served via <code>prisma-next lsp --stdio</code> on the new syntax-tree parser (<a href="https://linear.app/prisma-company/issue/TML-2929">TML-2929</a>, <a href="https://linear.app/prisma-company/issue/TML-2947">TML-2947</a>, <a href="https://linear.app/prisma-company/issue/TML-2948">TML-2948</a> all landed). What remains: tracking the schema-language changes in requirement 2 as they land — or the editor will underline the new syntax as errors — and the VS Code extension packaging, which lives outside this repository.</p>
       </div>
     </details>
 
@@ -654,6 +662,7 @@
   <section class="landed">
     <h2>Recently landed</h2>
     <ul>
+      <li><strong>The code moved into prisma/prisma</strong> — v8 is <code>main</code>, all work lands under prisma/prisma PR numbers, and the <code>v7</code> branch carries Prisma 7 with its own working CI (requirement 5).</li>
       <li><strong>Expression, partial, and unique indexes landed end-to-end</strong> — authorable in PSL and TypeScript, name-identified (a wire name carries a content-hash suffix; <code>map:</code> adopts the live name verbatim), and emitted at full fidelity by <code>contract infer</code> so existing databases adopt cleanly (requirement 4).</li>
       <li><strong>Relation-loading now reads every value losslessly through its type codec</strong> — nested JSON is canonical per codec: big integers arrive as <code>bigint</code>, decimals as exact strings, <code>Bytes</code> as bytes; a breaking change that regenerates contracts and changes nine codecs' JSON form (requirement 1).</li>
       <li><strong>One error-code scheme, delivered end-to-end</strong> — every published error is a structural envelope with a dotted code; the ORM and contract-authoring planes' codeless throws were swept onto it; the 221-code reference page ships with a CI check that keeps it complete (requirement 3).</li>
@@ -662,7 +671,7 @@
       <li><strong><code>date</code> columns read through <code>.include()</code> now decode correctly</strong> — the <code>@db.Date</code> codec binding that had been missing (requirement 1).</li>
       <li><strong>Scalar-type unification landed</strong> — every scalar is a zero-argument type constructor, with Postgres native constructors exposed (requirement 2).</li>
       <li><strong>Adopting an existing database round-trips cleanly</strong> — seven defects fixed, proven against live databases (details in requirement 4).</li>
-      <li><strong>The feature scoreboard draft is up</strong> — 326 features enumerated and verdict-ed across all three databases (<a href="https://github.com/prisma/prisma-next/pull/1000">PR #1000</a>).</li>
+      <li><strong>The feature scoreboard is merged in-repo</strong> — 593 features enumerated and verdict-ed across all three databases (<a href="scorecard.md">scorecard.md</a>).</li>
     </ul>
   </section>
 

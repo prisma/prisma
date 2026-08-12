@@ -2,8 +2,10 @@ import { docsUrlFor } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
   CliStructuredError,
+  errorConfigEvaluationFailed,
   errorConfigFileNotFound,
   errorConfigValidation,
+  errorConfigVersionMarkerMissing,
   errorContractConfigMissing,
   errorContractMissingExtensions,
   errorContractValidationFailed,
@@ -71,6 +73,27 @@ describe('CliStructuredError', () => {
 
     expect(envelope.code).toBe('CONTRACT.MARKER_MISSING');
     expect(envelope.summary).toBe('Test error');
+  });
+
+  it('sets cause when provided', () => {
+    const cause = new Error('underlying failure');
+    const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error', { cause });
+
+    expect(error.cause).toBe(cause);
+  });
+
+  it('omits cause as an own property when not provided', () => {
+    const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error');
+
+    expect(Object.hasOwn(error, 'cause')).toBe(false);
+  });
+
+  it('envelope carries no cause key', () => {
+    const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error', {
+      cause: new Error('underlying failure'),
+    });
+
+    expect(Object.keys(error.toEnvelope())).not.toContain('cause');
   });
 
   it('normalizes fix when fix equals why', () => {
@@ -354,6 +377,48 @@ describe('Config Errors', () => {
     expect(error.why).toBe('Custom reason');
   });
 
+  it('errorConfigValidation records field and section in meta', () => {
+    const error = errorConfigValidation('target.familyId', { section: 'target' });
+    expect(error.meta).toEqual({ field: 'target.familyId', section: 'target' });
+  });
+
+  it('errorConfigValidation without section keeps only the field in meta', () => {
+    const error = errorConfigValidation('family');
+    expect(error.meta).toEqual({ field: 'family' });
+  });
+
+  it('errorConfigEvaluationFailed creates correct error', () => {
+    const error = errorConfigEvaluationFailed('/project/prisma-next.config.ts', {
+      why: 'ParseError: Unexpected token',
+    });
+    expect(error.code).toBe('CONFIG.EVALUATION_FAILED');
+    expect(error.message).toBe('Config file could not be evaluated');
+    expect(error.why).toBe('ParseError: Unexpected token');
+    expect(error.where?.path).toBe('/project/prisma-next.config.ts');
+    expect(error.docsUrl).toBe(docsUrlFor('CONFIG.EVALUATION_FAILED'));
+  });
+
+  it('errorConfigEvaluationFailed without path omits where and forwards cause', () => {
+    const cause = new Error('boom');
+    const error = errorConfigEvaluationFailed(undefined, { why: 'boom', cause });
+    expect(error.where).toBeUndefined();
+    expect(error.cause).toBe(cause);
+  });
+
+  it('errorConfigVersionMarkerMissing creates correct error', () => {
+    const error = errorConfigVersionMarkerMissing('/project/prisma-next.config.ts');
+    expect(error.code).toBe('CONFIG.VERSION_MARKER_MISSING');
+    expect(error.message).toBe('Config is not a defineConfig result');
+    expect(error.fix).toContain('defineConfig');
+    expect(error.where?.path).toBe('/project/prisma-next.config.ts');
+    expect(error.docsUrl).toBe(docsUrlFor('CONFIG.VERSION_MARKER_MISSING'));
+  });
+
+  it('errorConfigVersionMarkerMissing without path omits where', () => {
+    const error = errorConfigVersionMarkerMissing();
+    expect(error.where).toBeUndefined();
+  });
+
   it('errorMigrationCliInvalidConfigArg creates correct error for missing path', () => {
     const error = errorMigrationCliInvalidConfigArg();
     expect(error.code).toBe('CLI.CONFIG_ARG_MISSING_PATH');
@@ -445,5 +510,16 @@ describe('Generic Error', () => {
     });
     expect(error.why).toBe('Custom why');
     expect(error.fix).toBe('Custom fix');
+  });
+
+  it('errorUnexpected forwards cause', () => {
+    const cause = new Error('underlying failure');
+    const error = errorUnexpected('Unexpected error occurred', { cause });
+    expect(error.cause).toBe(cause);
+  });
+
+  it('errorUnexpected without cause leaves no own cause property', () => {
+    const error = errorUnexpected('Unexpected error occurred');
+    expect(Object.hasOwn(error, 'cause')).toBe(false);
   });
 });

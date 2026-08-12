@@ -1,18 +1,14 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { LedgerEntryRecord } from '@internal/contract/types';
-import { MigrationToolsError } from '@internal/migration-tools/errors';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { createControlClient } from '../control-api/client';
-import {
-  CliStructuredError,
-  errorUnexpected,
-  mapMigrationToolsError,
-  requireLiveDatabase,
-} from '../utils/cli-errors';
+import { mapCaughtMigrationError } from '../control-api/operations/caught-errors';
+import { type CliStructuredError, errorUnexpected, requireLiveDatabase } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveMigrationPaths,
   setCommandDescriptions,
@@ -47,8 +43,20 @@ export async function executeMigrationLogCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<readonly LedgerEntryRecord[], CliStructuredError>> {
-  const config = await loadConfig(options.config);
-  const { configPath } = resolveMigrationPaths(options.config, config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
+  const { configPath } = resolveMigrationPaths(options.config, config, process.cwd());
 
   const dbConnection = options.db ?? config.db?.connection;
   const missingDb = requireLiveDatabase({
@@ -92,15 +100,15 @@ export async function executeMigrationLogCommand(
     const ledger = await client.readLedger();
     return ok(ledger);
   } catch (error) {
-    if (CliStructuredError.is(error)) return notOk(error);
-    if (MigrationToolsError.is(error)) return notOk(mapMigrationToolsError(error));
+    const mapped = mapCaughtMigrationError(error);
+    if (mapped) return notOk(mapped);
     return notOk(
       errorUnexpected(error instanceof Error ? error.message : String(error), {
         why: `Failed to read migration log: ${error instanceof Error ? error.message : String(error)}`,
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

@@ -48,7 +48,10 @@ import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import { definePostgresCodecs, PostgresCodecDescriptor, postgresCodec } from './codec-descriptor';
 import {
+  decimalTextBigintLiteral,
   type PgInterval,
+  pgBigintEncode,
+  pgBigintEncodeJson,
   pgByteaDecodeJson,
   pgByteaEncodeJson,
   pgDateDecode,
@@ -56,7 +59,10 @@ import {
   pgDateEncode,
   pgDateEncodeJson,
   pgInt8Decode,
-  pgInt8RenderValueLiteral,
+  pgInt8NumberDecode,
+  pgInt8NumberDecodeJson,
+  pgInt8NumberEncode,
+  pgInt8NumberEncodeJson,
   pgIntervalDecode,
   pgIntervalDecodeJson,
   pgIntervalEncodeJson,
@@ -71,6 +77,7 @@ import {
   pgTimestampEncodeJson,
   pgTimestamptzDecodeJson,
   pgTimestamptzEncodeJson,
+  pgUnboundedIntDecode,
   renderLength,
   renderPrecision,
 } from './codec-helpers';
@@ -89,6 +96,7 @@ import {
   PG_INT2_CODEC_ID,
   PG_INT4_CODEC_ID,
   PG_INT8_CODEC_ID,
+  PG_INT8_NUMBER_CODEC_ID,
   PG_INTERVAL_CODEC_ID,
   PG_JSON_CODEC_ID,
   PG_JSONB_CODEC_ID,
@@ -99,6 +107,7 @@ import {
   PG_TIMESTAMP_CODEC_ID,
   PG_TIMESTAMPTZ_CODEC_ID,
   PG_TIMETZ_CODEC_ID,
+  PG_UNBOUNDED_INT_CODEC_ID,
   PG_UUID_CODEC_ID,
   PG_VARBIT_CODEC_ID,
   PG_VARCHAR_CODEC_ID,
@@ -669,13 +678,13 @@ export class PgInt8Codec extends CodecImpl<
   bigint
 > {
   async encode(value: bigint, _ctx: CodecCallContext): Promise<string> {
-    return value.toString();
+    return pgBigintEncode(PG_INT8_CODEC_ID, value);
   }
   async decode(wire: string | number | bigint, _ctx: CodecCallContext): Promise<bigint> {
     return pgInt8Decode(wire);
   }
   encodeJson(value: bigint): JsonValue {
-    return value.toString();
+    return pgBigintEncodeJson(PG_INT8_CODEC_ID, value);
   }
   decodeJson(json: JsonValue): bigint {
     if (typeof json !== 'string') {
@@ -701,7 +710,7 @@ export class PgInt8Descriptor extends PostgresCodecDescriptor<void> {
   override readonly targetTypes = ['int8'] as const;
   override readonly paramsSchema: StandardSchemaV1<void> = voidParamsSchema;
   override renderValueLiteral(value: JsonValue): string | undefined {
-    return pgInt8RenderValueLiteral(value);
+    return decimalTextBigintLiteral(value);
   }
   override factory(): (ctx: CodecInstanceContext) => PgInt8Codec {
     return () => new PgInt8Codec(this);
@@ -715,6 +724,62 @@ export const pgInt8Column = () =>
 
 pgInt8Column satisfies ColumnHelperFor<PgInt8Descriptor>;
 pgInt8Column satisfies ColumnHelperForStrict<PgInt8Descriptor>;
+
+/**
+ * A Postgres `int8` decoded as a JS `number`, for columns whose values stay
+ * within the safe integer range ±(2^53 − 1). Both directions guard rather than
+ * round: decode (wire and JSON) and encode throw a structured error on
+ * out-of-range or non-integral input. The canonical JSON is a JSON number —
+ * the deliberate exception to the decimal-text rule for 64-bit integers, and
+ * the codec's purpose. The descriptor claims no target type, so `int8` in type
+ * position stays `pg/int8@1`.
+ */
+export class PgInt8NumberCodec extends CodecImpl<
+  typeof PG_INT8_NUMBER_CODEC_ID,
+  readonly ['equality', 'order', 'numeric'],
+  string | number | bigint,
+  number
+> {
+  async encode(value: number, _ctx: CodecCallContext): Promise<string> {
+    return pgInt8NumberEncode(value);
+  }
+  async decode(wire: string | number | bigint, _ctx: CodecCallContext): Promise<number> {
+    return pgInt8NumberDecode(wire);
+  }
+  encodeJson(value: number): JsonValue {
+    return pgInt8NumberEncodeJson(value);
+  }
+  decodeJson(json: JsonValue): number {
+    return pgInt8NumberDecodeJson(json);
+  }
+}
+
+export class PgInt8NumberDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_INT8_NATIVE_TYPE;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
+  override readonly codecId = PG_INT8_NUMBER_CODEC_ID;
+  override readonly traits = ['equality', 'order', 'numeric'] as const;
+  override readonly targetTypes = [] as const;
+  override readonly paramsSchema: StandardSchemaV1<void> = voidParamsSchema;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return renderTsLiteral(value);
+  }
+  override factory(): (ctx: CodecInstanceContext) => PgInt8NumberCodec {
+    return () => new PgInt8NumberCodec(this);
+  }
+}
+
+export const pgInt8NumberDescriptor = new PgInt8NumberDescriptor();
+
+export const pgInt8NumberColumn = () =>
+  column(pgInt8NumberDescriptor.factory(), pgInt8NumberDescriptor.codecId, undefined, 'int8');
+
+pgInt8NumberColumn satisfies ColumnHelperFor<PgInt8NumberDescriptor>;
+pgInt8NumberColumn satisfies ColumnHelperForStrict<PgInt8NumberDescriptor>;
 
 export class PgFloat4Codec extends CodecImpl<
   typeof PG_FLOAT4_CODEC_ID,
@@ -917,6 +982,71 @@ export const pgNumericColumn = (params: NumericParams = {}) =>
 
 pgNumericColumn satisfies ColumnHelperFor<PgNumericDescriptor>;
 pgNumericColumn satisfies ColumnHelperForStrict<PgNumericDescriptor>;
+
+/**
+ * A genuinely unbounded integer over unconstrained Postgres `numeric` storage.
+ * Application values are `bigint` and the canonical JSON is decimal text, like
+ * `pg/int8@1`; decode rejects non-integral values. The descriptor claims no
+ * target type, so `numeric` and `decimal` in type position stay `pg/numeric@1`.
+ */
+export class PgUnboundedIntCodec extends CodecImpl<
+  typeof PG_UNBOUNDED_INT_CODEC_ID,
+  readonly ['equality', 'order', 'numeric'],
+  string | number | bigint,
+  bigint
+> {
+  async encode(value: bigint, _ctx: CodecCallContext): Promise<string> {
+    return pgBigintEncode(PG_UNBOUNDED_INT_CODEC_ID, value);
+  }
+  async decode(wire: string | number | bigint, _ctx: CodecCallContext): Promise<bigint> {
+    return pgUnboundedIntDecode(wire);
+  }
+  encodeJson(value: bigint): JsonValue {
+    return pgBigintEncodeJson(PG_UNBOUNDED_INT_CODEC_ID, value);
+  }
+  decodeJson(json: JsonValue): bigint {
+    if (typeof json !== 'string') {
+      throw postgresError(
+        'RUNTIME.DECODE_FAILED',
+        'pg/unboundedint@1 database JSON value must be a decimal string',
+        { meta: { codecId: PG_UNBOUNDED_INT_CODEC_ID, received: typeof json } },
+      );
+    }
+    return pgUnboundedIntDecode(json);
+  }
+}
+
+export class PgUnboundedIntDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_NUMERIC_NATIVE_TYPE;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return decimalTextJsonProjection(expression);
+  }
+  override readonly codecId = PG_UNBOUNDED_INT_CODEC_ID;
+  override readonly traits = ['equality', 'order', 'numeric'] as const;
+  override readonly targetTypes = [] as const;
+  override readonly paramsSchema: StandardSchemaV1<void> = voidParamsSchema;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return decimalTextBigintLiteral(value);
+  }
+  override factory(): (ctx: CodecInstanceContext) => PgUnboundedIntCodec {
+    return () => new PgUnboundedIntCodec(this);
+  }
+}
+
+export const pgUnboundedIntDescriptor = new PgUnboundedIntDescriptor();
+
+export const pgUnboundedIntColumn = () =>
+  column(
+    pgUnboundedIntDescriptor.factory(),
+    pgUnboundedIntDescriptor.codecId,
+    undefined,
+    'numeric',
+  );
+
+pgUnboundedIntColumn satisfies ColumnHelperFor<PgUnboundedIntDescriptor>;
+pgUnboundedIntColumn satisfies ColumnHelperForStrict<PgUnboundedIntDescriptor>;
 
 /**
  * A Postgres `date` has no time-of-day or timezone component. This codec
@@ -1701,9 +1831,11 @@ export const codecDescriptors = definePostgresCodecs([
   pgInt4Descriptor,
   pgInt2Descriptor,
   pgInt8Descriptor,
+  pgInt8NumberDescriptor,
   pgFloat4Descriptor,
   pgFloat8Descriptor,
   pgNumericDescriptor,
+  pgUnboundedIntDescriptor,
   // PSL `Date` pins this codec by ID rather than activating a second target-type mapping.
   pgDateDescriptor,
   pgTimestampDescriptor,

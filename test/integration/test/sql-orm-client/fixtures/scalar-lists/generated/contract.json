@@ -66,6 +66,18 @@
         "entries": {
           "table": {
             "item": {
+              "checks": [
+                {
+                  "expression": "array_position(\"scores\", NULL) IS NULL",
+                  "name": "item_scores_elem_not_null_0d0de0bd",
+                  "prefix": "item_scores_elem_not_null"
+                },
+                {
+                  "expression": "array_position(\"tags\", NULL) IS NULL",
+                  "name": "item_tags_elem_not_null_aecbe9e2",
+                  "prefix": "item_tags_elem_not_null"
+                }
+              ],
               "columns": {
                 "id": {
                   "codecId": "pg/int4@1",
@@ -100,7 +112,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3a10c028735f9c0c412412ee2f4a0bb57dfa5b7a1a49f8f7392f09703e3ce4b3"
+    "storageHash": "563f9e0b2a9d656e14bd2909f2f5864b160744a27b6922a2a3f10bf6df7abec8"
   },
   "capabilities": {
     "postgres": {

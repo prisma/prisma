@@ -14,13 +14,13 @@
  */
 
 import postgresControlDriverDescriptor from '@internal/driver-postgres/control';
-import { createDevDatabase, timeouts } from '@repo/test-utils';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type {
   ConformanceConnection,
   PostgresCodecConformanceCase,
-} from '../../../3-targets/6-adapters/postgres/test/codec-conformance/harness';
-import { runPostgresCodecProjection } from '../../../3-targets/6-adapters/postgres/test/codec-conformance/harness';
+} from '@internal/postgres-codec-testkit';
+import { runPostgresCodecProjection } from '@internal/postgres-codec-testkit';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { pgVectorDescriptor } from '../src/core/codecs';
 
 const INSTALL_VECTOR = ['CREATE EXTENSION IF NOT EXISTS vector'] as const;

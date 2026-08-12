@@ -176,12 +176,28 @@ export const migrationShowResultSchema = successEnvelopeBaseSchema.and(
 
 export type MigrationShowResult = typeof migrationShowResultSchema.infer;
 
+/**
+ * The engine's `NextAction`, restated as the published shape of this CLI's own
+ * `--json` documents. It is not imported from the engine because these schemas
+ * ARE the wire contract — a change here is a change users see. The engine's
+ * plural `commands` form is absent because nothing here emits one.
+ */
+export const nextActionSchema = type({
+  kind: '"run-command" | "open-url" | "user-choice" | "edit-file" | "done"',
+  label: 'string',
+  'command?': 'string',
+  'url?': 'string',
+  'reason?': 'string',
+});
+
+export type NextActionJson = typeof nextActionSchema.infer;
+
 export const checkFailureSchema = type({
   space: 'string',
   code: 'string',
   where: 'string',
   why: 'string',
-  fix: 'string',
+  nextActions: nextActionSchema.array(),
 });
 
 export type CheckFailure = typeof checkFailureSchema.infer;

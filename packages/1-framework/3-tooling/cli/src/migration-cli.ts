@@ -17,8 +17,9 @@
  * 1. Detects whether the file is the direct entrypoint (no-op when imported).
  * 2. Parses CLI args (`--help`, `--dry-run`, `--config <path>`) via
  *    [clipanion](https://github.com/arcanis/clipanion).
- * 3. Loads the project's `prisma-next.config.ts` via the same `loadConfig`
- *    the CLI commands use, walking up from the migration file's directory.
+ * 3. Loads the project's `prisma-next.config.ts` via the same
+ *    `loadConfigForSections` the CLI commands use, walking up from the
+ *    migration file's directory.
  * 4. Probe-instantiates the migration class without a stack so it can read
  *    `targetId` and verify it matches `config.target.targetId`
  *    (`MIGRATION.TARGET_MISMATCH` on mismatch) before any stack-driven adapter
@@ -45,7 +46,7 @@
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import type { Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import {
   CliStructuredError,
   errorMigrationCliInvalidConfigArg,
@@ -53,7 +54,7 @@ import {
 } from '@internal/errors/control';
 import { errorMigrationTargetMismatch } from '@internal/errors/migration';
 import { createControlStack } from '@internal/framework-components/control';
-import { errorInvalidJson, MigrationToolsError } from '@internal/migration-tools/errors';
+import { errorInvalidJson } from '@internal/migration-tools/errors';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { buildMigrationArtifacts, type Migration } from '@internal/migration-tools/migration';
 import { Cli, Command, Option, UsageError } from 'clipanion';
@@ -310,15 +311,10 @@ async function orchestrate(
     return 0;
   } catch (err) {
     if (CliStructuredError.is(err)) {
-      writeStructuredError(ctx.stderr, err);
-    } else if (MigrationToolsError.is(err)) {
       // Migration-tools errors (e.g. `errorInvalidJson` thrown by
-      // `readExistingMetadata` when migration.json is malformed) carry
-      // their own `code`/`why`/`fix` shape. Render them with the same
-      // visual structure as `CliStructuredError` so consumers grepping
-      // for `MIGRATION.<CODE>` see consistent output across surfaces.
-      const fix = err.fix ? `\n${err.fix}` : '';
-      ctx.stderr.write(`${err.code}: ${err.message}\n${err.why}${fix}\n`);
+      // `readExistingMetadata` when migration.json is malformed) are
+      // `CliStructuredError`s and render through the same surface.
+      writeStructuredError(ctx.stderr, err);
     } else {
       ctx.stderr.write(`${err instanceof Error ? err.message : String(err)}\n`);
     }
@@ -548,7 +544,17 @@ async function runMigration(
   const migrationFile = fileURLToPath(importMetaUrl);
   const migrationDir = dirname(migrationFile);
 
-  const config = await loadConfig(parsed.config);
+  const configResult = await loadConfigForSections(parsed.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+  ]);
+  if (!configResult.ok) {
+    throw configResult.failure;
+  }
+  const config = configResult.value;
 
   // Probe-instantiate without a stack so we can read `targetId` before
   // any target-specific constructor side effects (e.g.

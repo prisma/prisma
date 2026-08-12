@@ -53,24 +53,153 @@ export const pgNumericDecode = (wire: string | number): string => {
 
 const DECIMAL_INTEGER = /^-?\d+$/;
 
-/** Reads an `int8` wire or JSON value as a `bigint`, rejecting anything `BigInt()` would misread. */
-export const pgInt8Decode = (wire: string | number | bigint): bigint => {
+/**
+ * Requires an application value to be of the JS type the codec reads.
+ *
+ * A range check reads a value of the wrong type as a value out of range, and
+ * reports a number plainly inside the range as outside it — so the type is
+ * established first and answered for on its own terms, naming what a caller
+ * has to change.
+ */
+const requireJsType = (codecId: string, expected: 'number' | 'bigint', value: unknown): void => {
+  if (typeof value === expected) return;
+  throw postgresError(
+    'RUNTIME.ENCODE_FAILED',
+    `${codecId} value must be a ${expected}, got ${typeof value} ${String(value)}`,
+    { meta: { codecId, received: typeof value } },
+  );
+};
+
+/** Writes a `bigint` application value as the decimal text the wire form of the exact integer codecs carries. */
+export const pgBigintEncode = (codecId: string, value: bigint): string => {
+  requireJsType(codecId, 'bigint', value);
+  return value.toString();
+};
+
+/**
+ * Writes an application value as the decimal text these codecs carry as their
+ * canonical JSON.
+ *
+ * A schema-written literal default (`BigInt @default(0)`) arrives here as a
+ * `number`, since a number literal is the only integer a schema language
+ * writes, and one that is a safe integer names its value exactly. Past that
+ * range the literal was rounded before any of this ran, so the value written is
+ * not the value meant — which this refuses rather than minting an exact-looking
+ * total from it. A non-integral number is refused on the same terms.
+ */
+export const pgBigintEncodeJson = (codecId: string, value: bigint | number): string => {
+  if (typeof value !== 'number') return pgBigintEncode(codecId, value);
+  if (!Number.isSafeInteger(value)) {
+    throw postgresError(
+      'RUNTIME.ENCODE_FAILED',
+      `${codecId} number literal must be an integer within the safe integer range, got ${String(value)}`,
+      { meta: { codecId, received: String(value) } },
+    );
+  }
+  return BigInt(value).toString();
+};
+
+/**
+ * Reads a wire or JSON value as a `bigint`, rejecting anything `BigInt()` would
+ * misread. A number-typed wire value must also be a safe integer: past
+ * ±(2^53 − 1) the driver's `number` has already rounded, so stringifying it
+ * would mint a spuriously-exact `bigint` that need not equal the stored value.
+ */
+const decimalIntegerDecode = (codecId: string, wire: string | number | bigint): bigint => {
   if (typeof wire === 'bigint') return wire;
   const text = String(wire);
   if (!DECIMAL_INTEGER.test(text)) {
-    throw postgresError('RUNTIME.DECODE_FAILED', 'pg/int8@1 value must be a decimal integer', {
-      meta: { codecId: 'pg/int8@1', received: text },
+    throw postgresError('RUNTIME.DECODE_FAILED', `${codecId} value must be a decimal integer`, {
+      meta: { codecId, received: text },
     });
+  }
+  if (typeof wire === 'number' && !Number.isSafeInteger(wire)) {
+    throw postgresError(
+      'RUNTIME.DECODE_FAILED',
+      `${codecId} wire number must be an integer within the safe integer range, got ${text}`,
+      { meta: { codecId, received: text } },
+    );
   }
   return BigInt(text);
 };
 
+/** Reads an `int8` wire or JSON value as a `bigint`, rejecting anything `BigInt()` would misread. */
+export const pgInt8Decode = (wire: string | number | bigint): bigint =>
+  decimalIntegerDecode('pg/int8@1', wire);
+
 /**
- * Renders an `int8` default as a `bigint` literal. The canonical JSON is decimal
- * text but the application type is `bigint`, so a plain string literal would not
+ * Reads an unconstrained-`numeric` wire or JSON value as a `bigint`, rejecting
+ * non-integral values — including `NaN` and the infinities, which are `numeric`
+ * values but not integers.
+ */
+export const pgUnboundedIntDecode = (wire: string | number | bigint): bigint =>
+  decimalIntegerDecode('pg/unboundedint@1', wire);
+
+const MIN_SAFE_INTEGER_BIGINT = BigInt(Number.MIN_SAFE_INTEGER);
+const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
+
+/**
+ * Requires an integer within ±(2^53 − 1), the range a JS `number` holds
+ * exactly. The guard throws rather than rounding: past the boundary a `number`
+ * silently loses digits, which is the failure mode this codec exists to refuse.
+ */
+const pgInt8NumberGuard = (
+  code: 'RUNTIME.ENCODE_FAILED' | 'RUNTIME.DECODE_FAILED',
+  value: number,
+): number => {
+  if (!Number.isSafeInteger(value)) {
+    throw postgresError(
+      code,
+      `pg/int8number@1 value must be an integer within the safe integer range, got ${String(value)}`,
+      { meta: { codecId: 'pg/int8number@1', received: String(value) } },
+    );
+  }
+  return value;
+};
+
+export const pgInt8NumberEncodeJson = (value: number): number => {
+  requireJsType('pg/int8number@1', 'number', value);
+  return pgInt8NumberGuard('RUNTIME.ENCODE_FAILED', value);
+};
+
+export const pgInt8NumberEncode = (value: number): string => String(pgInt8NumberEncodeJson(value));
+
+/**
+ * Reads an `int8` wire value as a `number`, throwing outside ±(2^53 − 1) and on
+ * non-integral input. Decimal text goes through `BigInt` before the range check
+ * so an out-of-range value is compared exactly rather than after rounding.
+ */
+export const pgInt8NumberDecode = (wire: string | number | bigint): number => {
+  if (typeof wire === 'number') return pgInt8NumberGuard('RUNTIME.DECODE_FAILED', wire);
+  const value = decimalIntegerDecode('pg/int8number@1', wire);
+  if (value < MIN_SAFE_INTEGER_BIGINT || value > MAX_SAFE_INTEGER_BIGINT) {
+    throw postgresError(
+      'RUNTIME.DECODE_FAILED',
+      `pg/int8number@1 value must be an integer within the safe integer range, got ${value}`,
+      { meta: { codecId: 'pg/int8number@1', received: value.toString() } },
+    );
+  }
+  return Number(value);
+};
+
+export const pgInt8NumberDecodeJson = (json: JsonValue): number => {
+  if (typeof json !== 'number') {
+    throw postgresError(
+      'RUNTIME.DECODE_FAILED',
+      'pg/int8number@1 database JSON value must be a number',
+      { meta: { codecId: 'pg/int8number@1', received: typeof json } },
+    );
+  }
+  return pgInt8NumberGuard('RUNTIME.DECODE_FAILED', json);
+};
+
+/**
+ * Renders a decimal-text default as a `bigint` literal, for the codecs whose
+ * canonical JSON is decimal text while the application type is `bigint`
+ * (`pg/int8@1`, `pg/unboundedint@1`) — a plain string literal would not
  * typecheck against the emitted column type.
  */
-export const pgInt8RenderValueLiteral = (value: JsonValue): string | undefined =>
+export const decimalTextBigintLiteral = (value: JsonValue): string | undefined =>
   typeof value === 'string' && DECIMAL_INTEGER.test(value) ? `${value}n` : undefined;
 
 export const pgNumericRenderOutputType = (typeParams: {
