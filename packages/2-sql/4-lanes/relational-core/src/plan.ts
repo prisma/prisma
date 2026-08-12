@@ -22,12 +22,13 @@ export interface SqlQueryPlan<Row = unknown> extends QueryPlan<Row> {
 }
 
 /**
- * Wraps an `AnyQueryAst` (typically a `RawSqlExpr` constructed package-internally
- * by an extension's migration factory) in a fully-populated `SqlQueryPlan`
- * whose `meta` is sourced from the supplied contract.
+ * Wraps an `AnyQueryAst` (typically a `RawQueryAst`, minted by a raw statement
+ * terminator or package-internally by an extension's migration factory) in a
+ * fully-populated `SqlQueryPlan` whose `meta` is sourced from the supplied
+ * contract.
  *
- * Centralising the envelope here means consumers (cipherstash migration
- * factories today; future raw-sql callers) cannot drift on `storageHash` /
+ * Centralising the envelope here means consumers (raw statement terminators,
+ * cipherstash migration factories) cannot drift on `storageHash` /
  * `target` / `targetFamily`, which would otherwise surface as a subtle
  * `assertContractMatches` failure inside `dataTransform`. `params` defaults
  * to `[]` because parameters embedded in the AST as `ParamRef`s are resolved

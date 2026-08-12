@@ -32,7 +32,6 @@ import {
   type ProjectionItem,
   type RawExpr,
   type RawQueryAst,
-  type RawSqlExpr,
   type SelectAst,
   type SubqueryExpr,
   type TableSource,
@@ -178,9 +177,6 @@ export function renderLoweredSql(
       break;
     case 'delete':
       sql = renderDelete(node, contract, pim);
-      break;
-    case 'raw-sql':
-      sql = renderRawSql(node, contract, pim);
       break;
     case 'raw-query':
       sql = renderParts(node.parts, contract, pim);
@@ -1130,20 +1126,6 @@ function renderDelete(ast: DeleteAst, contract: PostgresContract, pim: ParamInde
     : '';
 
   return `DELETE FROM ${table}${whereClause}${returningClause}`;
-}
-
-function renderRawSql(ast: RawSqlExpr, contract: PostgresContract, pim: ParamIndexMap): string {
-  const out: string[] = [];
-  for (let i = 0; i < ast.fragments.length; i++) {
-    out.push(ast.fragments[i] ?? '');
-    if (i < ast.args.length) {
-      const arg = ast.args[i];
-      if (arg !== undefined) {
-        out.push(renderExpr(arg, contract, pim));
-      }
-    }
-  }
-  return out.join('');
 }
 
 function renderParts(
