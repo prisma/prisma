@@ -6,13 +6,124 @@ import {
   composeCheckWirePrefix,
   computeCheckContentHash,
   computeIndexContentHash,
+  defaultIndexName,
   derivedCheckPrefixes,
   formatWireName,
+  nameOf,
+  namingOf,
+  namingOfLiveName,
+  normalizeIndexOptionValue,
   normalizeSqlBody,
+  parseNaming,
   parseWireName,
   truncateToWireNamePrefixBytes,
   WIRE_NAME_PREFIX_MAX_BYTES,
 } from '../src/exports/naming';
+
+describe('defaultIndexName', () => {
+  it('joins the table and column tuple into the conventional suffix', () => {
+    expect(defaultIndexName('users', ['tenant_id', 'email'])).toBe('users_tenant_id_email_idx');
+  });
+});
+
+describe('the naming union', () => {
+  describe('nameOf / namingOf round-trip', () => {
+    it('an exact name keeps its author-owned spelling', () => {
+      const naming = namingOf('users_pkey', undefined);
+
+      expect(naming).toEqual({ kind: 'exact', name: 'users_pkey' });
+      expect(nameOf(naming)).toBe('users_pkey');
+    });
+
+    it('a wire name splits back into the prefix it was built from', () => {
+      const naming = namingOf('users_email_idx_ab12cd34', 'users_email_idx');
+
+      expect(naming).toEqual({
+        kind: 'wire',
+        prefix: 'users_email_idx',
+        hash: 'ab12cd34',
+      });
+      expect(nameOf(naming)).toBe('users_email_idx_ab12cd34');
+    });
+  });
+
+  describe('parseNaming (flat data from outside the process)', () => {
+    it('reads a wire name back when the declared prefix agrees', () => {
+      expect(parseNaming('p_read_ab12cd34', 'p_read')).toEqual({
+        kind: 'wire',
+        prefix: 'p_read',
+        hash: 'ab12cd34',
+      });
+    });
+
+    it('treats an absent prefix as an exact name', () => {
+      expect(parseNaming('handwritten', undefined)).toEqual({
+        kind: 'exact',
+        name: 'handwritten',
+      });
+    });
+
+    it('rejects a declared prefix that disagrees with the name', () => {
+      expect(() => parseNaming('p_read_ab12cd34', 'p_write')).toThrow(
+        '"p_read_ab12cd34": prefix "p_write" does not match the wire name',
+      );
+    });
+
+    it('rejects a declared prefix on a name with no hash suffix', () => {
+      expect(() => parseNaming('handwritten', 'handwritten')).toThrow(
+        'does not match the wire name',
+      );
+    });
+  });
+
+  describe('namingOfLiveName (a name read out of the catalog)', () => {
+    it('claims the wire arm for a wire-shaped name', () => {
+      expect(namingOfLiveName('users_email_idx_ab12cd34')).toEqual({
+        kind: 'wire',
+        prefix: 'users_email_idx',
+        hash: 'ab12cd34',
+      });
+    });
+
+    it('claims the exact arm for anything else', () => {
+      expect(namingOfLiveName('users_pkey')).toEqual({ kind: 'exact', name: 'users_pkey' });
+    });
+  });
+});
+
+describe('composeCheckWirePrefix', () => {
+  it('spells the membership and element-not-null kinds distinctly', () => {
+    expect({
+      membership: composeCheckWirePrefix('User', 'role', 'membership'),
+      elementNotNull: composeCheckWirePrefix('User', 'tags', 'elementNotNull'),
+    }).toEqual({
+      membership: 'User_role_check',
+      elementNotNull: 'User_tags_elem_not_null',
+    });
+  });
+
+  it('truncates a derived prefix to the wire-name byte budget', () => {
+    const prefix = composeCheckWirePrefix('t'.repeat(60), 'column', 'membership');
+
+    expect(new TextEncoder().encode(prefix).length).toBe(WIRE_NAME_PREFIX_MAX_BYTES);
+  });
+});
+
+describe('normalizeIndexOptionValue', () => {
+  it('canonicalizes every boolean spelling the catalog may reprint', () => {
+    expect({
+      trueValues: [true, 'true', 'on'].map(normalizeIndexOptionValue),
+      falseValues: [false, 'false', 'off'].map(normalizeIndexOptionValue),
+    }).toEqual({
+      trueValues: ['on', 'on', 'on'],
+      falseValues: ['off', 'off', 'off'],
+    });
+  });
+
+  it('String()-coerces everything else', () => {
+    expect([70, '70', null].map(normalizeIndexOptionValue)).toEqual(['70', '70', 'null']);
+  });
+});
 
 describe('formatWireName', () => {
   it('joins prefix and hash with an underscore', () => {

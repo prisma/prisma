@@ -7,6 +7,7 @@ import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   executeCommand,
+  getExitCode,
   integrationFixtureAppDir,
   setupCommandMocks,
   setupIntegrationTestDirectoryFromFixtures,
@@ -142,7 +143,9 @@ describe('emit command: additional fixtures', () => {
         'utf-8',
       );
 
-      const providerConfig = await loadConfig(join(testSetup.testDir, 'prisma-next.config.ts'));
+      const providerConfig = (
+        await loadConfig(join(testSetup.testDir, 'prisma-next.config.ts'))
+      ).assertOk().config;
       const contractConfig = providerConfig.contract;
       expect(contractConfig).toBeDefined();
 
@@ -207,7 +210,7 @@ describe('emit command: additional fixtures', () => {
     }
   });
 
-  it('uses default output path for plain-object configs without defineConfig', {
+  it('rejects plain-object configs that were not created by defineConfig', {
     timeout: timeouts.typeScriptCompilation,
   }, async () => {
     const command = createContractEmitCommand();
@@ -220,18 +223,16 @@ describe('emit command: additional fixtures', () => {
       const originalCwd = process.cwd();
       try {
         process.chdir(testSetup.testDir);
-        const exitCode = await executeCommand(command, [
-          '--config',
-          'prisma-next.config.ts',
-          '--json',
-        ]);
-        expect(exitCode).toBe(0);
+        await expect(
+          executeCommand(command, ['--config', 'prisma-next.config.ts', '--json']),
+        ).rejects.toThrow('process.exit called');
       } finally {
         process.chdir(originalCwd);
       }
 
-      expect(existsSync(join(testSetup.testDir, 'src/prisma/contract.json'))).toBe(true);
-      expect(existsSync(join(testSetup.testDir, 'src/prisma/contract.d.ts'))).toBe(true);
+      expect(getExitCode()).toBe(2);
+      expect(consoleOutput.join('\n')).toContain('CONFIG.VERSION_MARKER_MISSING');
+      expect(existsSync(join(testSetup.testDir, 'src/prisma/contract.json'))).toBe(false);
     } finally {
       testSetup.cleanup();
     }

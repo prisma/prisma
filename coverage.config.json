@@ -30,15 +30,6 @@
       "notes": "Recovery requires either reorganising coverage scopes (so integration tests count toward this package's report) or adding equivalent unit-level tests inside the package that don't need pgvector fixtures."
     },
     {
-      "package": "1-framework/2-authoring/contract",
-      "reason": "M9 target-extensible-IR refactor introduced composed-helpers-scaffolding.ts (currently 0%) — module-level scaffolding exercised through composed authoring flows in target packages rather than direct unit tests at the framework layer. Per-module unit coverage tracked as a follow-up before 0.9 release.",
-      "addedDate": "2026-05-16",
-      "expiryDays": 90,
-      "assignee": null,
-      "linear": "TML-2521",
-      "notes": "Coverage will recover once dedicated unit tests for the scaffolding helpers land; meanwhile composed-helpers behaviour is verified end-to-end in target-pack integration tests."
-    },
-    {
       "package": "2-sql/1-core/contract",
       "reason": "M9 target-extensible-IR refactor introduced new SQL Contract IR classes (postgres-enum-storage-entry.ts, sql-storage.ts, storage-column.ts, storage-table.ts, storage-type-instance.ts, unique-constraint.ts) and grew validators.ts to handle polymorphic storage type entries. IR classes are exercised through integration paths (contract-ts builder, family serializer round-trips, target-postgres hydration); per-class direct unit tests and additional validator branch coverage tracked as a follow-up before 0.9 release.",
       "addedDate": "2026-05-16",
@@ -48,15 +39,6 @@
       "notes": "vitest.config.ts excludes the IR class-only files from coverage (mirroring the existing pack-types.ts pattern); validators.ts and index-type-validation.ts remain under-covered pending dedicated branch-coverage tests."
     },
     {
-      "package": "2-sql/1-core/schema-ir",
-      "reason": "M9 target-extensible-IR refactor lifted SQL Schema IR shapes to IR classes (primary-key.ts, sql-column-ir.ts, sql-foreign-key-ir.ts, sql-index-ir.ts, sql-schema-ir.ts, sql-table-ir.ts, sql-unique-ir.ts). They are exercised through schema verify/planner integration paths rather than direct unit tests today.",
-      "addedDate": "2026-05-16",
-      "expiryDays": 90,
-      "assignee": null,
-      "linear": "TML-2521",
-      "notes": "Per-class unit tests tracked as a follow-up before 0.9 release."
-    },
-    {
       "package": "2-sql/2-authoring/contract-ts",
       "reason": "M9 target-extensible-IR refactor reshaped build-contract.ts, composed-authoring-helpers.ts, config-types.ts, contract-builder.ts, and contract-warnings.ts to thread polymorphic storage type entries and composed authoring contributions through the SQL contract-ts builder. Coverage delta is small (1-5% below threshold) and falls on new authoring branches exercised through integration paths.",
       "addedDate": "2026-05-16",
@@ -64,24 +46,6 @@
       "assignee": null,
       "linear": "TML-2521",
       "notes": "Direct branch-coverage tests for the new authoring helpers tracked as a follow-up before 0.9 release."
-    },
-    {
-      "package": "2-sql/3-tooling/emitter",
-      "reason": "M9 target-extensible-IR refactor added emitter-side handling for target-contributed entity types. src/index.ts coverage dropped marginally (91.84% statements / 89.47% branches against 97/93 thresholds) — exercised end-to-end through emitter-hook fixtures.",
-      "addedDate": "2026-05-16",
-      "expiryDays": 90,
-      "assignee": null,
-      "linear": "TML-2521",
-      "notes": "Direct emitter-index branch tests tracked as a follow-up."
-    },
-    {
-      "package": "2-sql/4-lanes/relational-core",
-      "reason": "M9 target-extensible-IR refactor touched codec-ref-for-column.ts, expression.ts, and middleware/param-ref-mutator.ts with small coverage drops (1-7% below threshold). Behaviour verified through downstream SQL builder and runtime integration tests.",
-      "addedDate": "2026-05-16",
-      "expiryDays": 90,
-      "assignee": null,
-      "linear": "TML-2521",
-      "notes": "Direct unit tests for the new branches tracked as a follow-up before 0.9 release."
     },
     {
       "package": "3-mongo-target/1-mongo-target",

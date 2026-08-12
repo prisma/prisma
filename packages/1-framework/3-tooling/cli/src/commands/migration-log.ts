@@ -1,4 +1,4 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { LedgerEntryRecord } from '@internal/contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -8,6 +8,7 @@ import { mapCaughtMigrationError } from '../control-api/operations/caught-errors
 import { type CliStructuredError, errorUnexpected, requireLiveDatabase } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveMigrationPaths,
   setCommandDescriptions,
@@ -42,8 +43,20 @@ export async function executeMigrationLogCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<readonly LedgerEntryRecord[], CliStructuredError>> {
-  const config = await loadConfig(options.config);
-  const { configPath } = resolveMigrationPaths(options.config, config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
+  const { configPath } = resolveMigrationPaths(options.config, config, process.cwd());
 
   const dbConnection = options.db ?? config.db?.connection;
   const missingDb = requireLiveDatabase({
@@ -95,7 +108,7 @@ export async function executeMigrationLogCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

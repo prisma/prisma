@@ -7,6 +7,7 @@ import { writeContractSnapshot } from '@internal/migration-tools/contract-snapsh
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { applicationDomainOf } from '@repo/test-utils';
 import { type } from 'arktype';
 import { join } from 'pathe';
@@ -66,9 +67,8 @@ const ADDITIVE_OP: MigrationPlanOperation = {
 const createdDirs: string[] = [];
 
 function stubLoadConfig(contractOutput: string): void {
-  type LoadedConfig = Awaited<ReturnType<typeof configLoader.loadConfig>>;
-  vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(
-    baseConfig(contractOutput) as unknown as LoadedConfig,
+  vi.spyOn(configLoader, 'loadConfigForSections').mockResolvedValue(
+    ok(baseConfig(contractOutput) as unknown as configLoader.PrismaNextConfig),
   );
 }
 
@@ -340,7 +340,11 @@ describe('read commands --json golden', () => {
     process.chdir(cwd);
     let result: Awaited<ReturnType<typeof executeRefSetCommand>>;
     try {
-      result = await executeRefSetCommand('staging', dirNext, { config: contractPath });
+      result = await executeRefSetCommand('staging', dirNext, {
+        config: baseConfig(contractPath) as unknown as configLoader.PrismaNextConfig,
+        cwd,
+        configPath: contractPath,
+      });
     } finally {
       process.chdir(prev);
     }

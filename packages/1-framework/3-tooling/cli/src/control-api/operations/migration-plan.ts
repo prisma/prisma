@@ -3,7 +3,7 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import type { PrismaNextConfig } from '@internal/config/config-types';
 import type { Contract } from '@internal/contract/types';
 import { getEmittedArtifactPaths } from '@internal/emitter';
 import {
@@ -60,7 +60,11 @@ function isEnoent(error: unknown): boolean {
 }
 
 export interface MigrationPlanOptions extends CommonCommandOptions {
-  readonly config?: string;
+  readonly config: PrismaNextConfig;
+  /** Directory the command was invoked from. */
+  readonly cwd: string;
+  /** `--config` as the user wrote it, used only to locate project paths and for display. */
+  readonly configPath?: string;
   readonly name?: string;
   readonly from?: string;
   readonly to?: string;
@@ -250,12 +254,13 @@ async function executeMigrationPlanCommandInner(
     readonly onSeeded?: (record: ContractSpaceSeedPhaseRecord) => void;
   },
 ): Promise<Result<MigrationPlanResult, CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const config = options.config;
+  const cwd = options.cwd;
   const { configPath, migrationsDir, appMigrationsDir, appMigrationsRelative } =
-    resolveMigrationPaths(options.config, config);
+    resolveMigrationPaths(options.configPath, config, cwd);
 
   const contractPathAbsolute = resolveContractPath(config);
-  const contractPath = relative(process.cwd(), contractPathAbsolute);
+  const contractPath = relative(cwd, contractPathAbsolute);
 
   callbacks?.onContextResolved?.({ configPath, contractPath, appMigrationsRelative });
 
@@ -396,7 +401,7 @@ async function executeMigrationPlanCommandInner(
   // Before the seed phase, which is the first thing here that writes: an
   // unreadable or contradictory project manifest fails the command outright
   // rather than after artifacts are already on disk.
-  const resolveImportSpecifier = createProjectSpecifierResolver(options.config);
+  const resolveImportSpecifier = createProjectSpecifierResolver(options.configPath);
 
   // Phase 1 — seed: unconditionally re-emit per-space pinned artifacts
   // (contract.json / contract.d.ts / refs/head.json) and materialise any
@@ -535,7 +540,7 @@ async function executeMigrationPlanCommandInner(
       if (fromHash === toStorageHash) {
         const baselineOps = baselineLeg.value.hasPlaceholders ? [] : baselineLeg.value.plannedOps;
         if (baselineLeg.value.hasPlaceholders) {
-          const baselineDir = relative(process.cwd(), baselinePackageDir);
+          const baselineDir = relative(cwd, baselinePackageDir);
           const result: MigrationPlanResult = {
             ok: true,
             noOp: false,
@@ -561,7 +566,7 @@ async function executeMigrationPlanCommandInner(
           noOp: false,
           from: fromHash,
           to: toStorageHash,
-          baselineDir: relative(process.cwd(), baselinePackageDir),
+          baselineDir: relative(cwd, baselinePackageDir),
           operations: baselineOps.map((op) => ({
             id: op.id,
             label: op.label,
@@ -610,8 +615,8 @@ async function executeMigrationPlanCommandInner(
           noOp: false,
           from: fromHash,
           to: toStorageHash,
-          dir: relative(process.cwd(), deltaPackageDir),
-          baselineDir: relative(process.cwd(), baselinePackageDir),
+          dir: relative(cwd, deltaPackageDir),
+          baselineDir: relative(cwd, baselinePackageDir),
           operations: [],
           emittedExtensionDirs,
           pendingPlaceholders: true,
@@ -630,8 +635,8 @@ async function executeMigrationPlanCommandInner(
         noOp: false,
         from: fromHash,
         to: toStorageHash,
-        dir: relative(process.cwd(), deltaPackageDir),
-        baselineDir: relative(process.cwd(), baselinePackageDir),
+        dir: relative(cwd, deltaPackageDir),
+        baselineDir: relative(cwd, baselinePackageDir),
         operations: deltaOps.map((op) => ({
           id: op.id,
           label: op.label,
@@ -686,7 +691,7 @@ async function executeMigrationPlanCommandInner(
         noOp: false,
         from: fromHash,
         to: toStorageHash,
-        dir: relative(process.cwd(), packageDir),
+        dir: relative(cwd, packageDir),
         operations: [],
         emittedExtensionDirs,
         pendingPlaceholders: true,
@@ -706,7 +711,7 @@ async function executeMigrationPlanCommandInner(
       noOp: false,
       from: fromHash,
       to: toStorageHash,
-      dir: relative(process.cwd(), packageDir),
+      dir: relative(cwd, packageDir),
       operations: plannedOps.map((op) => ({
         id: op.id,
         label: op.label,

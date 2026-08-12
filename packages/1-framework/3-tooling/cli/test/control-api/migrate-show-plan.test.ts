@@ -1,5 +1,6 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import type { PrismaNextConfig } from '@internal/config-loader';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
@@ -10,11 +11,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeMigrateShowPlan } from '../../src/control-api/operations/migrate-show';
 
 const mocks = vi.hoisted(() => ({
-  loadConfig: vi.fn(),
   createControlClient: vi.fn(),
 }));
 
-vi.mock('@internal/config-loader', () => ({ loadConfig: mocks.loadConfig }));
 vi.mock('../../src/control-api/client', () => ({
   createControlClient: mocks.createControlClient,
 }));
@@ -37,6 +36,7 @@ describe('executeMigrateShowPlan', () => {
   let migrationsDir: string;
   let appMigrationsDir: string;
   let configPath: string;
+  let config: PrismaNextConfig;
   let firstDirName: string;
   let firstMigrationHash: string;
   let secondDirName: string;
@@ -72,7 +72,6 @@ describe('executeMigrateShowPlan', () => {
   }
 
   beforeEach(async () => {
-    mocks.loadConfig.mockReset();
     mocks.createControlClient.mockReset();
     tempDir = join(
       tmpdir(),
@@ -101,7 +100,7 @@ describe('executeMigrateShowPlan', () => {
     secondDirName = second.dirName;
     secondMigrationHash = second.migrationHash;
 
-    mocks.loadConfig.mockResolvedValue({
+    config = {
       family: {
         familyId: 'sql',
         create: vi.fn().mockReturnValue({
@@ -117,7 +116,7 @@ describe('executeMigrateShowPlan', () => {
       },
       contract: { output: join(tempDir, 'contract.json') },
       migrations: { dir: 'migrations' },
-    });
+    } as unknown as PrismaNextConfig;
   });
 
   afterEach(async () => {
@@ -125,7 +124,12 @@ describe('executeMigrateShowPlan', () => {
   });
 
   it('computes the ordered offline path without constructing a control client', async () => {
-    const result = await executeMigrateShowPlan({ config: configPath, from: HASH_A });
+    const result = await executeMigrateShowPlan({
+      config,
+      cwd: tempDir,
+      configPath,
+      from: HASH_A,
+    });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.migrations).toEqual([
@@ -146,7 +150,9 @@ describe('executeMigrateShowPlan', () => {
 
   it('defaults the per-space render marker hash to the empty sentinel', async () => {
     const result = await executeMigrateShowPlan({
-      config: configPath,
+      config,
+      cwd: tempDir,
+      configPath,
       from: EMPTY_CONTRACT_HASH,
     });
     expect(result.ok).toBe(true);
@@ -163,7 +169,9 @@ describe('executeMigrateShowPlan', () => {
   it('fires onPreflightComplete exactly once, before any client construction', async () => {
     const onPreflightComplete = vi.fn();
     const result = await executeMigrateShowPlan({
-      config: configPath,
+      config,
+      cwd: tempDir,
+      configPath,
       from: HASH_A,
       onPreflightComplete,
     });

@@ -16,14 +16,21 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   declarePgvectorExtension,
+  type EngineCommandResult,
   type JourneyContext,
-  parseJsonOutput,
   runContractEmit,
   runMigrationPlanAndEmit,
   runMigrationShow,
   setupJourney,
   timeouts,
 } from '../utils/journey-test-helpers';
+
+function errorEnvelope(run: EngineCommandResult) {
+  const terminal = run.json.at(-1);
+  const envelope =
+    terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+  return envelope !== undefined && !envelope.ok ? envelope : undefined;
+}
 
 function setupUnmigratedExtensionsState(ctx: JourneyContext): void {
   declarePgvectorExtension(ctx);
@@ -80,16 +87,14 @@ withTempDir(({ createTempDir }) => {
         const show = await runMigrationShow(ctx, ['production', '--json']);
         expect(show.exitCode, 'show exit code is non-zero').not.toBe(0);
 
-        const json = parseJsonOutput(show);
-        expect(json?.['ok'], 'response is an error envelope').toBe(false);
-
-        const code = json?.['code'];
-        expect(code, 'must not be the aggregate-loader code').not.toBe(
+        const envelope = errorEnvelope(show);
+        expect(envelope, 'response is an error envelope').toBeDefined();
+        expect(envelope?.error.code, 'must not be the aggregate-loader code').not.toBe(
           'MIGRATION.CONTRACT_SPACE_LAYOUT_VIOLATION',
         );
-
-        const meta = json?.['meta'] as Record<string, unknown> | undefined;
-        expect(meta?.['input'], 'meta echoes the user input verbatim').toBe('production');
+        expect(envelope?.error.meta?.['input'], 'meta echoes the user input verbatim').toBe(
+          'production',
+        );
       },
       timeouts.typeScriptCompilation,
     );
@@ -113,13 +118,10 @@ withTempDir(({ createTempDir }) => {
         const show = await runMigrationShow(ctx, [dirName, '--json']);
         expect(show.exitCode, 'show exits 0').toBe(0);
 
-        const json = parseJsonOutput(show);
-        expect(json?.['ok'], 'response is a success envelope').toBe(true);
-
-        const migration = json?.['migration'] as Record<string, unknown> | undefined;
-        expect(migration, 'response carries a migration object').toBeTruthy();
-        expect(migration?.['space'], 'returned space is the app space').toBe('app');
-        expect(migration?.['name'], 'returned name matches the targeted migration').toBe(dirName);
+        expect(
+          show.presented?.data,
+          'the presented document describes the migration',
+        ).toMatchObject({ ok: true, migration: { space: 'app', name: dirName } });
       },
       timeouts.typeScriptCompilation,
     );

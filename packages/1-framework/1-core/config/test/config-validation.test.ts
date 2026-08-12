@@ -1,83 +1,13 @@
 import type { Contract } from '@internal/contract/types';
-import type {
-  ControlDriverInstance,
-  ControlFamilyInstance,
-} from '@internal/framework-components/control';
 import { ok } from '@internal/utils/result';
-import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it, vi } from 'vitest';
-import { defineConfig, type PrismaNextConfig } from '../src/config-types';
-import { validateConfig } from '../src/config-validation';
-
-const mockHook = {
-  id: 'sql',
-  generateStorageType: () => '{}',
-  generateModelStorageType: () => '{}',
-  getFamilyImports: () => [] as string[],
-  getFamilyTypeAliases: () => '',
-  getTypeMapsExpression: () => 'never',
-  getContractWrapper: (base: string, tm: string) =>
-    `export type Contract = ${base} & { typeMaps: ${tm} };`,
-};
+import { collectConfigIssues } from '../src/config-validation';
 
 function createSourceProvider(overrides: Record<string, unknown> = {}) {
   return {
     load: async () => ok({ targetFamily: 'sql' } as Contract),
     ...overrides,
   };
-}
-
-function createValidConfig(overrides: Record<string, unknown> = {}): PrismaNextConfig {
-  return {
-    family: {
-      kind: 'family',
-      id: 'sql',
-      familyId: 'sql',
-      version: '0.0.1',
-      manifest: {},
-      emission: mockHook,
-      create: () => ({ familyId: 'sql' }) as unknown as ControlFamilyInstance<'sql', unknown>,
-    },
-    target: {
-      kind: 'target',
-      familyId: 'sql',
-      targetId: 'postgres',
-      id: 'postgres',
-      version: '0.0.1',
-      manifest: {},
-      contractSerializer: {
-        deserializeContract: (json) => json as never,
-        serializeContract: (contract) => contract as never,
-      },
-      create: () => ({ familyId: 'sql', targetId: 'postgres' }),
-    },
-    adapter: {
-      kind: 'adapter',
-      familyId: 'sql',
-      targetId: 'postgres',
-      id: 'postgres',
-      version: '0.0.1',
-      manifest: {},
-      create: () => ({ familyId: 'sql', targetId: 'postgres' }),
-    },
-    driver: {
-      kind: 'driver',
-      familyId: 'sql',
-      targetId: 'postgres',
-      id: 'postgres',
-      version: '0.0.1',
-      manifest: {},
-      create: async () =>
-        ({
-          familyId: 'sql',
-          targetId: 'postgres',
-          query: async () => ({ rows: [] }),
-          close: async () => {},
-        }) as ControlDriverInstance<'sql', 'postgres'>,
-    },
-    extensions: [],
-    ...overrides,
-  } as PrismaNextConfig;
 }
 
 type RawConfigOverrides = Record<string, unknown> & {
@@ -135,146 +65,149 @@ function createValidRawConfig(overrides: RawConfigOverrides = {}) {
   };
 }
 
-function expectFieldError(config: unknown, field: string) {
-  try {
-    validateConfig(config);
-    throw new Error('expected validateConfig to throw');
-  } catch (error) {
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({ code: 'CONFIG.VALIDATION_FAILED', meta: { field } });
-  }
+function expectIssue(config: Record<string, unknown>, field: string, section: string) {
+  const issues = collectConfigIssues(config);
+  expect(issues).toContainEqual(expect.objectContaining({ field, section }));
 }
 
-describe('validateConfig', () => {
-  it('validates valid config', () => {
-    expect(() => validateConfig(createValidRawConfig())).not.toThrow();
+describe('collectConfigIssues', () => {
+  it('returns no issues for a valid config', () => {
+    expect(collectConfigIssues(createValidRawConfig())).toEqual([]);
   });
 
-  it('throws for non-object config', () => {
-    expectFieldError(null, 'object');
-    expectFieldError(undefined, 'object');
-    expectFieldError('invalid', 'object');
+  it('reports each missing top-level descriptor under its own section', () => {
+    const issues = collectConfigIssues({});
+    expect(issues).toEqual([
+      { section: 'family', field: 'family', message: 'Config must have a "family" field' },
+      { section: 'target', field: 'target', message: 'Config must have a "target" field' },
+      { section: 'adapter', field: 'adapter', message: 'Config must have a "adapter" field' },
+    ]);
   });
 
-  it('throws when required top-level descriptors are missing', () => {
-    expectFieldError({ target: {}, adapter: {} }, 'family');
-    expectFieldError({ family: {}, adapter: {} }, 'target');
-    expectFieldError({ family: {}, target: {} }, 'adapter');
+  it('reports one object-type issue per section holding a non-object', () => {
+    const issues = collectConfigIssues({
+      ...createValidRawConfig(),
+      family: 'sql',
+      target: 'postgres',
+      adapter: 42,
+      driver: true,
+    });
+
+    expect(issues).toEqual([
+      { section: 'family', field: 'family', message: 'Config.family must be an object' },
+      { section: 'target', field: 'target', message: 'Config.target must be an object' },
+      { section: 'adapter', field: 'adapter', message: 'Config.adapter must be an object' },
+      { section: 'driver', field: 'driver', message: 'Config.driver must be an object' },
+    ]);
   });
 
-  it('validates family descriptor fields', () => {
-    expectFieldError(createValidRawConfig({ family: { kind: 'invalid' } }), 'family.kind');
-    expectFieldError(createValidRawConfig({ family: { id: 123 } }), 'family.id');
-    expectFieldError(createValidRawConfig({ family: { familyId: 123 } }), 'family.familyId');
-    expectFieldError(createValidRawConfig({ family: { version: 123 } }), 'family.version');
-    expectFieldError(createValidRawConfig({ family: { emission: undefined } }), 'family.emission');
-    expectFieldError(createValidRawConfig({ family: { create: 'invalid' } }), 'family.create');
+  it('reports a broken family without hiding issues in other sections', () => {
+    const issues = collectConfigIssues(
+      createValidRawConfig({
+        family: { kind: 'invalid' },
+        target: { targetId: 123 },
+      }),
+    );
+
+    expect(issues).toContainEqual(expect.objectContaining({ section: 'family' }));
+    expect(issues).toContainEqual(
+      expect.objectContaining({ section: 'target', field: 'target.targetId' }),
+    );
   });
 
-  it('validates target descriptor fields', () => {
-    expectFieldError(createValidRawConfig({ target: { kind: 'invalid' } }), 'target.kind');
-    expectFieldError(createValidRawConfig({ target: { id: 123 } }), 'target.id');
-    expectFieldError(createValidRawConfig({ target: { familyId: 123 } }), 'target.familyId');
-    expectFieldError(createValidRawConfig({ target: { version: 123 } }), 'target.version');
-    expectFieldError(createValidRawConfig({ target: { targetId: 123 } }), 'target.targetId');
-    expectFieldError(createValidRawConfig({ target: { create: 'invalid' } }), 'target.create');
+  it('collects family descriptor field issues', () => {
+    expectIssue(createValidRawConfig({ family: { kind: 'invalid' } }), 'family.kind', 'family');
+    expectIssue(createValidRawConfig({ family: { id: 123 } }), 'family.id', 'family');
+    expectIssue(createValidRawConfig({ family: { familyId: 123 } }), 'family.familyId', 'family');
+    expectIssue(createValidRawConfig({ family: { version: 123 } }), 'family.version', 'family');
+    expectIssue(
+      createValidRawConfig({ family: { emission: undefined } }),
+      'family.emission',
+      'family',
+    );
+    expectIssue(createValidRawConfig({ family: { create: 'invalid' } }), 'family.create', 'family');
   });
 
-  it('validates target family compatibility', () => {
-    expectFieldError(
+  it('collects target descriptor field issues', () => {
+    expectIssue(createValidRawConfig({ target: { kind: 'invalid' } }), 'target.kind', 'target');
+    expectIssue(createValidRawConfig({ target: { id: 123 } }), 'target.id', 'target');
+    expectIssue(createValidRawConfig({ target: { familyId: 123 } }), 'target.familyId', 'target');
+    expectIssue(createValidRawConfig({ target: { version: 123 } }), 'target.version', 'target');
+    expectIssue(createValidRawConfig({ target: { targetId: 123 } }), 'target.targetId', 'target');
+    expectIssue(createValidRawConfig({ target: { create: 'invalid' } }), 'target.create', 'target');
+  });
+
+  it('reports a family mismatch on the target section', () => {
+    expectIssue(
       createValidRawConfig({
         family: { familyId: 'sql' },
         target: { familyId: 'document' },
       }),
       'target.familyId',
+      'target',
     );
   });
 
-  it('validates adapter descriptor fields', () => {
-    expectFieldError(createValidRawConfig({ adapter: { kind: 'invalid' } }), 'adapter.kind');
-    expectFieldError(createValidRawConfig({ adapter: { id: 123 } }), 'adapter.id');
-    expectFieldError(createValidRawConfig({ adapter: { familyId: 123 } }), 'adapter.familyId');
-    expectFieldError(createValidRawConfig({ adapter: { version: 123 } }), 'adapter.version');
-    expectFieldError(createValidRawConfig({ adapter: { targetId: 123 } }), 'adapter.targetId');
-    expectFieldError(createValidRawConfig({ adapter: { create: 'invalid' } }), 'adapter.create');
+  it('skips the family mismatch check when the family id itself is invalid', () => {
+    const issues = collectConfigIssues(
+      createValidRawConfig({
+        family: { familyId: 123 },
+        target: { familyId: 'document' },
+      }),
+    );
+
+    expect(issues).toContainEqual(expect.objectContaining({ field: 'family.familyId' }));
+    expect(issues).not.toContainEqual(expect.objectContaining({ field: 'target.familyId' }));
   });
 
-  it('validates adapter family and target compatibility', () => {
-    expectFieldError(
-      createValidRawConfig({
-        family: { familyId: 'sql' },
-        adapter: { familyId: 'document' },
-      }),
+  it('collects adapter descriptor field and compatibility issues', () => {
+    expectIssue(createValidRawConfig({ adapter: { kind: 'invalid' } }), 'adapter.kind', 'adapter');
+    expectIssue(createValidRawConfig({ adapter: { id: 123 } }), 'adapter.id', 'adapter');
+    expectIssue(
+      createValidRawConfig({ adapter: { familyId: 'document' } }),
       'adapter.familyId',
+      'adapter',
     );
-
-    expectFieldError(
-      createValidRawConfig({
-        target: { targetId: 'postgres' },
-        adapter: { targetId: 'mysql' },
-      }),
+    expectIssue(
+      createValidRawConfig({ adapter: { targetId: 'mysql' } }),
       'adapter.targetId',
+      'adapter',
+    );
+    expectIssue(
+      createValidRawConfig({ adapter: { create: 'invalid' } }),
+      'adapter.create',
+      'adapter',
     );
   });
 
-  it('validates extensions collection and extension descriptors', () => {
-    expectFieldError(createValidRawConfig({ extensions: 'invalid' }), 'extensions');
-    expectFieldError(createValidRawConfig({ extensions: ['invalid'] }), 'extensions[]');
-    expectFieldError(
+  it('collects driver descriptor field and compatibility issues', () => {
+    expectIssue(createValidRawConfig({ driver: { kind: 'invalid' } }), 'driver.kind', 'driver');
+    expectIssue(createValidRawConfig({ driver: { id: 123 } }), 'driver.id', 'driver');
+    expectIssue(createValidRawConfig({ driver: { version: 123 } }), 'driver.version', 'driver');
+    expectIssue(
+      createValidRawConfig({ driver: { familyId: 'document' } }),
+      'driver.familyId',
+      'driver',
+    );
+    expectIssue(
+      createValidRawConfig({ driver: { targetId: 'mysql' } }),
+      'driver.targetId',
+      'driver',
+    );
+    expectIssue(createValidRawConfig({ driver: { create: 'invalid' } }), 'driver.create', 'driver');
+  });
+
+  it('collects extension issues under the extensions section', () => {
+    expectIssue(createValidRawConfig({ extensions: 'invalid' }), 'extensions', 'extensions');
+    expectIssue(createValidRawConfig({ extensions: ['invalid'] }), 'extensions[]', 'extensions');
+    expectIssue(
       createValidRawConfig({
         extensions: [{ kind: 'invalid', id: 'ext', familyId: 'sql', targetId: 'postgres' }],
       }),
       'extensions[].kind',
+      'extensions',
     );
-    expectFieldError(
-      createValidRawConfig({
-        extensions: [{ kind: 'extension', id: 123, familyId: 'sql', targetId: 'postgres' }],
-      }),
-      'extensions[].id',
-    );
-    expectFieldError(
-      createValidRawConfig({
-        extensions: [{ kind: 'extension', id: 'ext', familyId: 123, targetId: 'postgres' }],
-      }),
-      'extensions[].familyId',
-    );
-    expectFieldError(
-      createValidRawConfig({
-        extensions: [{ kind: 'extension', id: 'ext', familyId: 'sql', version: 123 }],
-      }),
-      'extensions[].version',
-    );
-    expectFieldError(
-      createValidRawConfig({
-        extensions: [
-          {
-            kind: 'extension',
-            id: 'ext',
-            familyId: 'document',
-            targetId: 'postgres',
-            version: '0.0.1',
-            create: vi.fn(),
-          },
-        ],
-      }),
-      'extensions[].familyId',
-    );
-    expectFieldError(
-      createValidRawConfig({
-        extensions: [
-          {
-            kind: 'extension',
-            id: 'ext',
-            familyId: 'sql',
-            targetId: 123,
-            version: '0.0.1',
-            create: vi.fn(),
-          },
-        ],
-      }),
-      'extensions[].targetId',
-    );
-    expectFieldError(
+    expectIssue(
       createValidRawConfig({
         extensions: [
           {
@@ -288,178 +221,137 @@ describe('validateConfig', () => {
         ],
       }),
       'extensions[].targetId',
+      'extensions',
     );
-    expectFieldError(
-      createValidRawConfig({
-        extensions: [
-          {
-            kind: 'extension',
-            id: 'ext',
-            familyId: 'sql',
-            targetId: 'postgres',
-            version: '0.0.1',
-            create: 'invalid',
-          },
-        ],
+  });
+
+  it('reports the removed extensionPacks key under the extensions section', () => {
+    const issues = collectConfigIssues(createValidRawConfig({ extensionPacks: [] }));
+    expect(issues).toContainEqual(
+      expect.objectContaining({
+        section: 'extensions',
+        field: 'extensionPacks',
+        message: expect.stringContaining('rename it to Config.extensions'),
       }),
-      'extensions[].create',
     );
   });
 
-  it('accepts extensions key', () => {
-    expect(() => validateConfig(createValidRawConfig({ extensions: [] }))).not.toThrow();
+  it('collects contract issues under the contract section', () => {
+    expectIssue(createValidRawConfig({ contract: 'invalid' }), 'contract', 'contract');
+    expectIssue(createValidRawConfig({ contract: {} }), 'contract.source', 'contract');
+    expectIssue(
+      createValidRawConfig({ contract: { source: {} } }),
+      'contract.source.load',
+      'contract',
+    );
+    expectIssue(
+      createValidRawConfig({ contract: { source: { load: 'invalid' } } }),
+      'contract.source.load',
+      'contract',
+    );
+    expectIssue(
+      createValidRawConfig({
+        contract: { source: createSourceProvider({ inputs: 123 }) },
+      }),
+      'contract.source.inputs',
+      'contract',
+    );
+    expectIssue(
+      createValidRawConfig({
+        contract: { source: createSourceProvider({ inputs: ['valid', 123] }) },
+      }),
+      'contract.source.inputs[]',
+      'contract',
+    );
+    expectIssue(
+      createValidRawConfig({
+        contract: { source: createSourceProvider({ format: 123 }) },
+      }),
+      'contract.source.format',
+      'contract',
+    );
+    expectIssue(
+      createValidRawConfig({
+        contract: { source: createSourceProvider(), output: 123 },
+      }),
+      'contract.output',
+      'contract',
+    );
   });
 
-  it('rejects removed extensionPacks key with a pointer to extensions', () => {
-    try {
-      validateConfig(createValidRawConfig({ extensionPacks: [] }));
-      throw new Error('expected validateConfig to throw');
-    } catch (error) {
-      expect(isStructuredError(error)).toBe(true);
-      expect(error).toMatchObject({
-        code: 'CONFIG.VALIDATION_FAILED',
-        meta: { field: 'extensionPacks' },
-      });
-      expect((error as Error).message).toContain('rename it to Config.extensions');
-    }
-  });
-
-  it('validates driver descriptor fields and compatibility', () => {
-    expectFieldError(createValidRawConfig({ driver: { kind: 'invalid' } }), 'driver.kind');
-    expectFieldError(createValidRawConfig({ driver: { id: 123 } }), 'driver.id');
-    expectFieldError(createValidRawConfig({ driver: { version: 123 } }), 'driver.version');
-    expectFieldError(createValidRawConfig({ driver: { familyId: 123 } }), 'driver.familyId');
-    expectFieldError(createValidRawConfig({ driver: { familyId: 'document' } }), 'driver.familyId');
-    expectFieldError(createValidRawConfig({ driver: { targetId: 123 } }), 'driver.targetId');
-    expectFieldError(createValidRawConfig({ driver: { targetId: 'mysql' } }), 'driver.targetId');
-    expectFieldError(createValidRawConfig({ driver: { create: 'invalid' } }), 'driver.create');
-  });
-
-  it('validates contract shape and source provider', () => {
-    expectFieldError(createValidRawConfig({ contract: 'invalid' }), 'contract');
-    expectFieldError(createValidRawConfig({ contract: {} }), 'contract.source');
+  it('ignores inherited contract keys', () => {
     const inheritedSourceContract = Object.create({
       source: createSourceProvider(),
     }) as Record<string, unknown>;
-    expectFieldError(
+    expectIssue(
       createValidRawConfig({ contract: inheritedSourceContract }),
       'contract.source',
+      'contract',
     );
-    const inheritedLoadSource = Object.create({
-      load: async () => ok({ targetFamily: 'sql' } as Contract),
-    }) as Record<string, unknown>;
-    expectFieldError(
-      createValidRawConfig({
-        contract: {
-          source: inheritedLoadSource,
-        },
-      }),
-      'contract.source.load',
-    );
-    expectFieldError(
-      createValidRawConfig({
-        contract: {
-          source: {
-            inputs: 123,
-            load: async () => ok({ targetFamily: 'sql' } as Contract),
-          },
-        },
-      }),
-      'contract.source.inputs',
-    );
-    expectFieldError(
-      createValidRawConfig({
-        contract: {
-          source: {
-            inputs: ['valid', 123],
-            load: async () => ok({ targetFamily: 'sql' } as Contract),
-          },
-        },
-      }),
-      'contract.source.inputs[]',
-    );
-    expectFieldError(
-      createValidRawConfig({
-        contract: {
-          source: {},
-        },
-      }),
-      'contract.source.load',
-    );
-    expectFieldError(
-      createValidRawConfig({
-        contract: {
-          source: {
-            load: 'invalid',
-          },
-        },
-      }),
-      'contract.source.load',
-    );
-    const inheritedInputsSource = Object.create(
-      {
-        inputs: [123],
-      },
-      {
-        load: {
-          value: async () => ok({ targetFamily: 'sql' } as Contract),
-          enumerable: true,
-        },
-      },
-    ) as Record<string, unknown>;
-    expect(() =>
-      validateConfig(
-        createValidRawConfig({
-          contract: {
-            source: inheritedInputsSource,
-          },
-        }),
-      ),
-    ).not.toThrow();
-    expectFieldError(
-      createValidRawConfig({
-        contract: {
-          source: createSourceProvider(),
-          output: 123,
-        },
-      }),
-      'contract.output',
-    );
+
     const inheritedOutputContract = Object.create(
-      {
-        output: 123,
-      },
-      {
-        source: {
-          value: createSourceProvider(),
-          enumerable: true,
-        },
-      },
+      { output: 123 },
+      { source: { value: createSourceProvider(), enumerable: true } },
     ) as Record<string, unknown>;
-    expect(() =>
-      validateConfig(createValidRawConfig({ contract: inheritedOutputContract })),
-    ).not.toThrow();
+    expect(
+      collectConfigIssues(createValidRawConfig({ contract: inheritedOutputContract })),
+    ).toEqual([]);
   });
 
-  it('accepts valid optional sections', () => {
-    const config = createValidRawConfig({
-      extensions: [
-        {
-          kind: 'extension',
-          id: 'pgvector',
-          familyId: 'sql',
-          targetId: 'postgres',
-          version: '0.0.1',
-          manifest: {},
-          create: vi.fn(),
+  it('accepts a provider with an unknown format string and extra keys', () => {
+    const issues = collectConfigIssues(
+      createValidRawConfig({
+        contract: {
+          source: createSourceProvider({
+            format: 'made-up-format',
+            inputs: ['./schema.prisma'],
+            interpret: () => [],
+          }),
         },
-      ],
-      contract: {
-        source: createSourceProvider(),
-        output: 'src/prisma/contract.json',
-      },
-    });
-    expect(() => validateConfig(config)).not.toThrow();
+      }),
+    );
+    expect(issues).toEqual([]);
+  });
+
+  it('collects migrations issues under the migrations section', () => {
+    expectIssue(createValidRawConfig({ migrations: 'invalid' }), 'migrations', 'migrations');
+    expectIssue(createValidRawConfig({ migrations: { dir: 123 } }), 'migrations.dir', 'migrations');
+    expect(collectConfigIssues(createValidRawConfig({ migrations: {} }))).toEqual([]);
+    expect(collectConfigIssues(createValidRawConfig({ migrations: { dir: 'moves' } }))).toEqual([]);
+  });
+
+  it('collects formatter issues under the formatter section', () => {
+    expectIssue(createValidRawConfig({ formatter: 'invalid' }), 'formatter', 'formatter');
+    expectIssue(
+      createValidRawConfig({ formatter: { indent: 0 } }),
+      'formatter.indent',
+      'formatter',
+    );
+    expectIssue(
+      createValidRawConfig({ formatter: { indent: -1 } }),
+      'formatter.indent',
+      'formatter',
+    );
+    expectIssue(
+      createValidRawConfig({ formatter: { indent: 1.5 } }),
+      'formatter.indent',
+      'formatter',
+    );
+    expectIssue(
+      createValidRawConfig({ formatter: { indent: 'spaces' } }),
+      'formatter.indent',
+      'formatter',
+    );
+    expectIssue(
+      createValidRawConfig({ formatter: { newline: 'crlf' } }),
+      'formatter.newline',
+      'formatter',
+    );
+    expect(collectConfigIssues(createValidRawConfig({ formatter: {} }))).toEqual([]);
+    expect(
+      collectConfigIssues(createValidRawConfig({ formatter: { indent: 4, newline: 'CRLF' } })),
+    ).toEqual([]);
+    expect(collectConfigIssues(createValidRawConfig({ formatter: { indent: 'tab' } }))).toEqual([]);
   });
 
   it('accepts descriptors without manifest fields', () => {
@@ -481,233 +373,6 @@ describe('validateConfig', () => {
       ],
     });
 
-    expect(() => validateConfig(config)).not.toThrow();
-  });
-});
-
-describe('CONFIG.VALIDATION_FAILED structured error', () => {
-  it('uses default message when why is omitted', () => {
-    try {
-      validateConfig({ target: {}, adapter: {} });
-      throw new Error('expected validateConfig to throw');
-    } catch (error) {
-      expect(isStructuredError(error)).toBe(true);
-      expect(error).toMatchObject({
-        code: 'CONFIG.VALIDATION_FAILED',
-        message: 'Config must have a "family" field',
-        why: 'Config must have a "family" field',
-        meta: { field: 'family' },
-      });
-    }
-  });
-
-  it('carries the explicit why as message when provided', () => {
-    try {
-      validateConfig('invalid');
-      throw new Error('expected validateConfig to throw');
-    } catch (error) {
-      expect(isStructuredError(error)).toBe(true);
-      expect(error).toMatchObject({
-        code: 'CONFIG.VALIDATION_FAILED',
-        message: 'Config must be an object',
-        why: 'Config must be an object',
-        meta: { field: 'object' },
-      });
-    }
-  });
-});
-
-describe('defineConfig', () => {
-  it('returns config unchanged when contract is absent', () => {
-    const config = createValidConfig();
-    const result = defineConfig(config);
-    expect(result).toBe(config);
-  });
-
-  it('applies default output path when contract output is missing', () => {
-    const config = createValidConfig({
-      contract: {
-        source: createSourceProvider(),
-      },
-    });
-
-    const result = defineConfig(config);
-    expect(result.contract?.output).toBe('src/prisma/contract.json');
-  });
-
-  it('preserves source provider metadata', () => {
-    const config = createValidConfig({
-      contract: {
-        source: createSourceProvider({
-          inputs: ['./schema.prisma'],
-        }),
-      },
-    });
-
-    const result = defineConfig(config);
-    expect(result.contract).toBeDefined();
-    expect(result.contract?.source.inputs).toEqual(['./schema.prisma']);
-  });
-
-  it('preserves custom output path', () => {
-    const config = createValidConfig({
-      contract: {
-        source: createSourceProvider(),
-        output: 'custom/contract.json',
-      },
-    });
-
-    const result = defineConfig(config);
-    expect(result.contract?.output).toBe('custom/contract.json');
-  });
-
-  it('throws when contract source is not a provider object', () => {
-    const config = createValidConfig({
-      contract: {
-        source: 'invalid',
-      },
-    }) as unknown as PrismaNextConfig;
-
-    expect(() => defineConfig(config)).toThrow('Config validation failed');
-  });
-
-  it('throws for invalid top-level shape', () => {
-    const invalidConfig = { family: null } as unknown as PrismaNextConfig;
-    try {
-      defineConfig(invalidConfig);
-      throw new Error('expected defineConfig to throw');
-    } catch (error) {
-      expect(isStructuredError(error)).toBe(true);
-      expect(error).toMatchObject({ code: 'CONFIG.VALIDATION_FAILED' });
-      expect((error as Error).message).toContain('Config validation failed');
-    }
-  });
-
-  it('validates family create is function', () => {
-    const config = createValidConfig({
-      family: {
-        kind: 'family',
-        id: 'sql',
-        familyId: 'sql',
-        version: '0.0.1',
-        manifest: {},
-        emission: mockHook,
-        create: vi.fn(),
-      },
-    });
-    expect(() => validateConfig(config)).not.toThrow();
-  });
-
-  it('accepts a provider with an unknown format string', () => {
-    const config = createValidConfig({
-      contract: {
-        source: createSourceProvider({ format: 'made-up-format' }),
-      },
-    });
-
-    const result = defineConfig(config);
-    expect(result.contract?.source.format).toBe('made-up-format');
-  });
-
-  it('rejects a non-string format', () => {
-    const config = createValidConfig({
-      contract: {
-        source: createSourceProvider({ format: 123 }),
-      },
-    });
-
-    expect(() => defineConfig(config)).toThrow('Config validation failed');
-  });
-
-  it('passes a provider carrying an extra interpret key through validation untouched', () => {
-    const source = createSourceProvider({
-      format: 'psl',
-      inputs: ['./schema.prisma'],
-      interpret: () => [],
-    });
-    const config = createValidConfig({ contract: { source } });
-
-    const result = defineConfig(config);
-    expect(result.contract?.source).toBe(source);
-  });
-
-  it('accepts the first-party psl and typescript provider shapes', () => {
-    // Config (core) cannot import the authoring packages, so their provider shapes are mirrored here.
-    const pslConfig = createValidConfig({
-      contract: {
-        source: createSourceProvider({ format: 'psl', inputs: ['./schema.prisma'] }),
-      },
-    });
-    const typescriptConfig = createValidConfig({
-      contract: {
-        source: createSourceProvider({ format: 'typescript' }),
-      },
-    });
-
-    expect(() => defineConfig(pslConfig)).not.toThrow();
-    expect(() => defineConfig(typescriptConfig)).not.toThrow();
-  });
-});
-
-describe('formatter section', () => {
-  it('is optional', () => {
-    const config = createValidConfig();
-    expect(() => defineConfig(config)).not.toThrow();
-  });
-
-  it('accepts a numeric indent and an explicit newline', () => {
-    const config = createValidConfig({
-      formatter: { indent: 4, newline: 'CRLF' },
-    });
-    expect(() => defineConfig(config)).not.toThrow();
-  });
-
-  it('accepts a tab indent', () => {
-    const config = createValidConfig({
-      formatter: { indent: 'tab' },
-    });
-    expect(() => defineConfig(config)).not.toThrow();
-  });
-
-  it('accepts an empty formatter object', () => {
-    const config = createValidConfig({
-      formatter: {},
-    });
-    expect(() => defineConfig(config)).not.toThrow();
-  });
-
-  it('rejects a lowercase newline', () => {
-    const config = createValidConfig({
-      formatter: { newline: 'crlf' },
-    }) as unknown as PrismaNextConfig;
-    expect(() => defineConfig(config)).toThrow('Config validation failed');
-  });
-
-  it('rejects a zero indent', () => {
-    const config = createValidConfig({
-      formatter: { indent: 0 },
-    });
-    expect(() => defineConfig(config)).toThrow('Config validation failed');
-  });
-
-  it('rejects a negative indent', () => {
-    const config = createValidConfig({
-      formatter: { indent: -1 },
-    });
-    expect(() => defineConfig(config)).toThrow('Config validation failed');
-  });
-
-  it('rejects a non-integer indent', () => {
-    const config = createValidConfig({
-      formatter: { indent: 1.5 },
-    });
-    expect(() => defineConfig(config)).toThrow('Config validation failed');
-  });
-
-  it('rejects an unsupported indent literal', () => {
-    const config = createValidConfig({
-      formatter: { indent: 'spaces' },
-    }) as unknown as PrismaNextConfig;
-    expect(() => defineConfig(config)).toThrow('Config validation failed');
+    expect(collectConfigIssues(config)).toEqual([]);
   });
 });

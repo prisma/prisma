@@ -10,6 +10,7 @@ import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { type } from 'arktype';
 import stripAnsi from 'strip-ansi';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -25,7 +26,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 afterAll(() => {
@@ -88,28 +89,30 @@ async function setupMigrationDir(
 }
 
 function setupConfigMock(): void {
-  mocks.loadConfig.mockResolvedValue({
-    family: {
-      familyId: 'mock',
-      create: vi.fn().mockReturnValue({
-        deserializeContract: (json: unknown) => json,
-      }),
-    },
-    target: {
-      id: 'mock',
-      familyId: 'mock',
-      targetId: 'mock',
-      kind: 'target',
-      migrations: {
-        createPlanner: vi.fn().mockReturnValue({
-          emptyMigration: vi.fn(),
+  mocks.loadConfig.mockResolvedValue(
+    ok({
+      family: {
+        familyId: 'mock',
+        create: vi.fn().mockReturnValue({
+          deserializeContract: (json: unknown) => json,
         }),
       },
-    },
-    adapter: { kind: 'adapter', familyId: 'mock', targetId: 'mock' },
-    driver: { kind: 'driver', familyId: 'mock', targetId: 'mock' },
-    contract: { output: 'src/prisma/contract.json' },
-  });
+      target: {
+        id: 'mock',
+        familyId: 'mock',
+        targetId: 'mock',
+        kind: 'target',
+        migrations: {
+          createPlanner: vi.fn().mockReturnValue({
+            emptyMigration: vi.fn(),
+          }),
+        },
+      },
+      adapter: { kind: 'adapter', familyId: 'mock', targetId: 'mock' },
+      driver: { kind: 'driver', familyId: 'mock', targetId: 'mock' },
+      contract: { output: 'src/prisma/contract.json' },
+    }),
+  );
 }
 
 function samplePresent(overrides: Partial<MigrationShowPresent> = {}): MigrationShowPresent {
@@ -136,7 +139,12 @@ describe('resolveAppTargetPath', () => {
   it('returns the resolved path when the target is inside the app migrations dir', () => {
     const target = `${appMigrationsDir}/20260101_000000_init`;
 
-    const result = resolveAppTargetPath(target, appMigrationsDir, appMigrationsRelative);
+    const result = resolveAppTargetPath(
+      '/tmp/proj',
+      target,
+      appMigrationsDir,
+      appMigrationsRelative,
+    );
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value).toBe(target);
@@ -146,7 +154,12 @@ describe('resolveAppTargetPath', () => {
   it('rejects an extension-space package path (sibling of the app dir)', () => {
     const extensionPackage = `${migrationsDir}/cipherstash/0000000001-init`;
 
-    const result = resolveAppTargetPath(extensionPackage, appMigrationsDir, appMigrationsRelative);
+    const result = resolveAppTargetPath(
+      '/tmp/proj',
+      extensionPackage,
+      appMigrationsDir,
+      appMigrationsRelative,
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.failure.message).toContain('app-space migration');
@@ -156,12 +169,22 @@ describe('resolveAppTargetPath', () => {
   it('rejects an unrelated path outside the migrations tree', () => {
     const outsideTarget = '/tmp/other/extensions/cipherstash/0000000001-init';
 
-    const result = resolveAppTargetPath(outsideTarget, appMigrationsDir, appMigrationsRelative);
+    const result = resolveAppTargetPath(
+      '/tmp/proj',
+      outsideTarget,
+      appMigrationsDir,
+      appMigrationsRelative,
+    );
     expect(result.ok).toBe(false);
   });
 
   it('rejects the app migrations dir itself as a target', () => {
-    const result = resolveAppTargetPath(appMigrationsDir, appMigrationsDir, appMigrationsRelative);
+    const result = resolveAppTargetPath(
+      '/tmp/proj',
+      appMigrationsDir,
+      appMigrationsDir,
+      appMigrationsRelative,
+    );
     expect(result.ok).toBe(false);
   });
 
@@ -170,6 +193,7 @@ describe('resolveAppTargetPath', () => {
     const crossDriveTarget = 'D:/elsewhere/foo';
 
     const result = resolveAppTargetPath(
+      'C:/app',
       crossDriveTarget,
       windowsAppMigrationsDir,
       'migrations/app',

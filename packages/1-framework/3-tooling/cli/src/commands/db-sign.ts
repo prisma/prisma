@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type {
   SignDatabaseResult,
   VerifyDatabaseSchemaResult,
@@ -20,6 +20,7 @@ import {
 } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveContractPath,
   resolveMigrationPaths,
@@ -62,7 +63,20 @@ async function executeDbSignCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<SignDatabaseResult, DbSignFailure>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const configPath = options.config
     ? relative(process.cwd(), resolve(options.config))
     : 'prisma-next.config.ts';
@@ -93,7 +107,7 @@ async function executeDbSignCommand(
 
   if (effectiveContractArg) {
     try {
-      const { migrationsDir } = resolveMigrationPaths(options.config, config);
+      const { migrationsDir } = resolveMigrationPaths(options.config, config, process.cwd());
       const resolved = await resolveContractRefToSnapshot({
         config,
         migrationsDir,
@@ -217,7 +231,7 @@ async function executeDbSignCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

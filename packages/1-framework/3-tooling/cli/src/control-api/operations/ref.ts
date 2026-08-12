@@ -1,8 +1,8 @@
 /**
- * Policy cores of the `ref set` / `ref delete` / `ref list` commands: load config, resolve the reference, and write or read the refs index.
+ * Policy cores of the `ref set` / `ref delete` / `ref list` commands: resolve the reference, and write or read the refs index.
  */
 
-import { loadConfig } from '@internal/config-loader';
+import type { PrismaNextConfig } from '@internal/config/config-types';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import {
   contractSnapshotDir,
@@ -59,6 +59,14 @@ function mapError(error: unknown): CliStructuredError {
   return errorUnexpected(error instanceof Error ? error.message : String(error));
 }
 
+export interface RefOperationOptions {
+  readonly config: PrismaNextConfig;
+  /** Directory the command was invoked from. */
+  readonly cwd: string;
+  /** `--config` as the user wrote it, used only to locate the migrations directory and for display. */
+  readonly configPath?: string;
+}
+
 function cliErrorInvalidRefName(name: string): CliStructuredError {
   return errorRuntime('MIGRATION.INVALID_REF_NAME', `Invalid ref name "${name}"`, {
     why: `Ref name "${name}" does not match the required format`,
@@ -69,15 +77,19 @@ function cliErrorInvalidRefName(name: string): CliStructuredError {
 export async function executeRefSetCommand(
   name: string,
   contractInput: string,
-  options: { config?: string },
+  options: RefOperationOptions,
 ): Promise<Result<RefSetResult, CliStructuredError>> {
   if (!validateRefName(name)) {
     return notOk(cliErrorInvalidRefName(name));
   }
 
+  const config = options.config;
   try {
-    const config = await loadConfig(options.config);
-    const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config);
+    const { migrationsDir, refsDir } = resolveMigrationPaths(
+      options.configPath,
+      config,
+      options.cwd,
+    );
     const loaded = await buildReadAggregate(config, { migrationsDir });
     if (!loaded.ok) {
       return notOk(loaded.failure);
@@ -142,11 +154,10 @@ export async function executeRefSetCommand(
 
 export async function executeRefDeleteCommand(
   name: string,
-  options: { config?: string },
+  options: RefOperationOptions,
 ): Promise<Result<RefDeleteResult, CliStructuredError>> {
   try {
-    const config = await loadConfig(options.config);
-    const { refsDir } = resolveMigrationPaths(options.config, config);
+    const { refsDir } = resolveMigrationPaths(options.configPath, options.config, options.cwd);
     await deleteRef(refsDir, name);
     return ok({ ok: true as const, ref: name, deleted: true as const });
   } catch (error) {
@@ -155,12 +166,11 @@ export async function executeRefDeleteCommand(
   }
 }
 
-export async function executeRefListCommand(options: {
-  config?: string;
-}): Promise<Result<RefListResult, CliStructuredError>> {
+export async function executeRefListCommand(
+  options: RefOperationOptions,
+): Promise<Result<RefListResult, CliStructuredError>> {
   try {
-    const config = await loadConfig(options.config);
-    const { refsDir } = resolveMigrationPaths(options.config, config);
+    const { refsDir } = resolveMigrationPaths(options.configPath, options.config, options.cwd);
     const refs = await readRefs(refsDir);
     return ok({ ok: true as const, refs });
   } catch (error) {

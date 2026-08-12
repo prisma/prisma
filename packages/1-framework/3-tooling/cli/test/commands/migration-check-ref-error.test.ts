@@ -5,6 +5,7 @@ import type { MigrationPlanOperation } from '@internal/framework-components/cont
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeCommand, getExitCode, setupCommandMocks } from '../utils/test-helpers';
@@ -14,7 +15,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 const TARGET = 'mock';
@@ -105,7 +106,7 @@ describe('migration check ref-resolution error', () => {
     const commandMocks = setupCommandMocks();
     consoleOutput = commandMocks.consoleOutput;
     cleanup = commandMocks.cleanup;
-    mocks.loadConfig.mockResolvedValue(baseConfig());
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig()));
   });
 
   afterEach(async () => {

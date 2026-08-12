@@ -1,4 +1,4 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { LedgerEntryRecord } from '@internal/contract/types';
 import type {
   AggregateContractSpace,
@@ -36,6 +36,7 @@ import { readMigrationRefs } from '../control-api/operations/refs';
 import { CliStructuredError, errorUnexpected, requireLiveDatabase } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   readContractEnvelope,
   resolveMigrationPaths,
@@ -266,10 +267,24 @@ export async function executeMigrationStatusCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<MigrationStatusCommandResult, CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath, migrationsDir, migrationsRelative, refsDir } = resolveMigrationPaths(
     options.config,
     config,
+    process.cwd(),
   );
 
   const dbConnection = options.db ?? config.db?.connection;
@@ -427,7 +442,7 @@ export async function executeMigrationStatusCommand(
         }),
       );
     } finally {
-      await client.close();
+      await closeQuietly(client);
     }
   }
 

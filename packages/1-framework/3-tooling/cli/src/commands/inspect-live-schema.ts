@@ -1,4 +1,4 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections, type PrismaNextConfig } from '@internal/config-loader';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
 import type { CoreSchemaView } from '@internal/framework-components/control';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
@@ -11,7 +11,7 @@ import {
   errorDriverRequired,
   errorUnexpected,
 } from '../utils/cli-errors';
-import { maskConnectionUrl, sanitizeErrorMessage } from '../utils/command-helpers';
+import { closeQuietly, maskConnectionUrl, sanitizeErrorMessage } from '../utils/command-helpers';
 import { formatStyledHeader } from '../utils/formatters/styled';
 import type { CommonCommandOptions, GlobalFlags } from '../utils/global-flags';
 import { createProgressAdapter } from '../utils/progress-adapter';
@@ -28,7 +28,7 @@ interface InspectLiveSchemaContext {
   readonly url: string;
 }
 
-type LoadedCliConfig = Awaited<ReturnType<typeof loadConfig>>;
+type LoadedCliConfig = PrismaNextConfig;
 
 export interface InspectLiveSchemaResult {
   readonly config: LoadedCliConfig;
@@ -67,20 +67,18 @@ export async function inspectLiveSchema(
   startTime: number,
   context: InspectLiveSchemaContext,
 ): Promise<Result<InspectLiveSchemaResult, CliStructuredError>> {
-  let config: LoadedCliConfig;
-  try {
-    config = await loadConfig(options.config);
-  } catch (error) {
-    if (CliStructuredError.is(error)) {
-      return notOk(error);
-    }
-
-    return notOk(
-      errorUnexpected(error instanceof Error ? error.message : String(error), {
-        why: 'Failed to load config',
-      }),
-    );
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
   }
+  const config = configResult.value;
 
   const configPath = options.config
     ? relative(process.cwd(), resolve(options.config))
@@ -180,6 +178,6 @@ export async function inspectLiveSchema(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }

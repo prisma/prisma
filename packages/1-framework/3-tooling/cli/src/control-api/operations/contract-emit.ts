@@ -1,5 +1,4 @@
 import { mkdir } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import { emit, getEmittedArtifactPaths } from '@internal/emitter';
 import { createControlStack } from '@internal/framework-components/control';
@@ -160,10 +159,14 @@ function validateProviderResult(providerResult: unknown): ValidatedProviderResul
 export async function executeContractEmit(
   options: ContractEmitOptions,
 ): Promise<ContractEmitResult> {
-  const { configPath, outputPath, signal = new AbortController().signal, onProgress } = options;
+  const {
+    config,
+    configPath,
+    outputPath,
+    signal = new AbortController().signal,
+    onProgress,
+  } = options;
   const unlessAborted = abortable(signal);
-
-  const config = await unlessAborted(loadConfig(configPath));
 
   if (!config.contract) {
     throw errorContractConfigMissing({

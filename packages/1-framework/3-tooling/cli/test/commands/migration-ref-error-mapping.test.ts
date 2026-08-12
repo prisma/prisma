@@ -1,18 +1,13 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { PrismaNextConfig } from '@internal/config-loader';
 import { timeouts } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-const mocks = vi.hoisted(() => ({
-  loadConfig: vi.fn(),
-}));
-
-vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
-}));
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 const HASH_A = `${'a'.repeat(64)}`;
+
+const config = { migrations: { dir: 'migrations' } } as unknown as PrismaNextConfig;
 
 describe('migration-ref MigrationToolsError envelope passthrough', () => {
   let tempDir: string;
@@ -32,13 +27,9 @@ describe('migration-ref MigrationToolsError envelope passthrough', () => {
       'utf-8',
     );
     configPath = join(tempDir, 'prisma-next.config.ts');
-    mocks.loadConfig.mockResolvedValue({
-      migrations: { dir: 'migrations' },
-    });
   });
 
   afterEach(async () => {
-    mocks.loadConfig.mockReset();
     await rm(tempDir, { recursive: true, force: true });
   });
 
@@ -47,7 +38,11 @@ describe('migration-ref MigrationToolsError envelope passthrough', () => {
     async () => {
       const { executeRefDeleteCommand } = await import('../../src/control-api/operations/ref');
 
-      const result = await executeRefDeleteCommand('does-not-exist', { config: configPath });
+      const result = await executeRefDeleteCommand('does-not-exist', {
+        config,
+        cwd: tempDir,
+        configPath,
+      });
 
       expect(result.ok).toBe(false);
       if (result.ok) return;

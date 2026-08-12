@@ -6,6 +6,7 @@ import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
+import { ok } from '@internal/utils/result';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeCommand, getExitCode, setupCommandMocks } from '../utils/test-helpers';
@@ -23,7 +24,7 @@ afterAll(() => {
  */
 
 const mocks = vi.hoisted(() => ({ loadConfig: vi.fn() }));
-vi.mock('@internal/config-loader', () => ({ loadConfig: mocks.loadConfig }));
+vi.mock('@internal/config-loader', () => ({ loadConfigForSections: mocks.loadConfig }));
 
 const TARGET = 'mock';
 const TARGET_FAMILY = 'mock';
@@ -161,7 +162,7 @@ describe('migration check multi-space (command)', () => {
     const commandMocks = setupCommandMocks();
     consoleOutput = commandMocks.consoleOutput;
     cleanup = commandMocks.cleanup;
-    mocks.loadConfig.mockResolvedValue(baseConfig());
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig()));
   });
 
   afterEach(async () => {
@@ -230,7 +231,7 @@ describe('migration check --space narrows aggregate integrity violations (comman
     const commandMocks = setupCommandMocks();
     consoleOutput = commandMocks.consoleOutput;
     cleanup = commandMocks.cleanup;
-    mocks.loadConfig.mockResolvedValue(baseConfig());
+    mocks.loadConfig.mockResolvedValue(ok(baseConfig()));
   });
 
   afterEach(async () => {

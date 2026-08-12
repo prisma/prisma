@@ -16,7 +16,8 @@ import { errorConfigValidation, errorContractMissingExtensions } from './cli-err
  *
  * This validation happens at the CLI composition boundary, before passing components
  * to typed planner/runner instances. It fills the gap between runtime validation
- * (via `validateConfig()`) and compile-time type enforcement.
+ * (via the config loader's `collectConfigIssues` diagnostics) and compile-time
+ * type enforcement.
  *
  * @param expectedFamilyId - The expected family ID (e.g., 'sql')
  * @param expectedTargetId - The expected target ID (e.g., 'postgres')
@@ -26,7 +27,8 @@ import { errorConfigValidation, errorContractMissingExtensions } from './cli-err
  *
  * @example
  * ```ts
- * const config = await loadConfig();
+ * const configResult = await loadConfigForSections(undefined, ['family', 'target', 'adapter', 'extensions']);
+ * const config = configResult.assertOk();
  * const frameworkComponents = [config.target, config.adapter, ...(config.extensions ?? [])];
  *
  * // Validate and type-narrow components before passing to planner
@@ -126,7 +128,7 @@ export function assertFrameworkComponentsCompatible<
  * ```ts
  * import { assertContractRequirementsSatisfied } from './framework-components';
  *
- * const config = await loadConfig();
+ * const config = (await loadConfigForSections(undefined, ['family', 'target', 'adapter', 'extensions', 'contract'])).assertOk();
  * const contract = await loadContractJson(config.contract.output);
  * const stack = createControlStack({ family: config.family, target: config.target, adapter: config.adapter, ... });
  *

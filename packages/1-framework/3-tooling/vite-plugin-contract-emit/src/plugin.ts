@@ -1,6 +1,6 @@
 import type { ContractEmitResult } from '@internal/cli/control-api';
 import { disposeEmitQueue, executeContractEmit } from '@internal/cli/control-api';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import { getEmittedArtifactPaths } from '@internal/emitter';
 import { extname, resolve } from 'pathe';
 import type { Plugin, ViteDevServer } from 'vite';
@@ -115,7 +115,20 @@ export function prismaVitePlugin(
         await updateWatchedFiles(server);
       }
 
+      const configResult = await loadConfigForSections(absoluteConfigPath, [
+        'contract',
+        'family',
+        'target',
+        'adapter',
+        'extensions',
+      ]);
+      if (!configResult.ok) {
+        throw configResult.failure;
+      }
+
       const result = await executeContractEmit({
+        config: configResult.value,
+        cwd: process.cwd(),
         configPath: absoluteConfigPath,
         signal,
       });
@@ -282,7 +295,11 @@ export function prismaVitePlugin(
     ignoredOutputFiles.clear();
 
     try {
-      const config = await loadConfig(absoluteConfigPath);
+      const configResult = await loadConfigForSections(absoluteConfigPath, ['contract']);
+      if (!configResult.ok) {
+        throw configResult.failure;
+      }
+      const config = configResult.value;
       didWarnConfigWatchFallback = false;
       const contract = config.contract;
 

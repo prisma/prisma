@@ -1,4 +1,4 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { ContractSpaceAggregate } from '@internal/migration-tools/aggregate';
 import type { MigrationGraph } from '@internal/migration-tools/graph';
 import { ifDefined } from '@internal/utils/defined';
@@ -73,10 +73,22 @@ export async function executeMigrationListCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<MigrationListExecuteResult, CliStructuredError>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'extensions',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath, migrationsDir, migrationsRelative } = resolveMigrationPaths(
     options.config,
     config,
+    process.cwd(),
   );
 
   if (!flags.json && !flags.quiet) {

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import type { ContractSourceContext } from '@internal/cli/config-types';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfig, type PrismaNextConfig } from '@internal/config-loader';
 import type { ControlStack } from '@internal/framework-components/control';
 import { createControlStack } from '@internal/framework-components/control';
 import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
@@ -13,7 +13,7 @@ import { setupIntegrationTestDirectoryFromFixtures } from './utils/cli-test-help
 
 const fixtureSubdir = 'emit-contract';
 
-function buildControlStack(config: Awaited<ReturnType<typeof loadConfig>>) {
+function buildControlStack(config: PrismaNextConfig) {
   return createControlStack({
     family: config.family,
     target: config.target,
@@ -39,7 +39,7 @@ function buildSourceContext(
 }
 
 const resolveContract = async (
-  source: NonNullable<Awaited<ReturnType<typeof loadConfig>>['contract']>['source'],
+  source: NonNullable<PrismaNextConfig['contract']>['source'],
   stack: ControlStack,
 ) => {
   const sourceResult = await source.load(buildSourceContext(stack, source.inputs ?? []));
@@ -68,7 +68,7 @@ describe('emitContract API', () => {
   it(
     'emits contract.json and contract.d.ts with resolved values',
     async () => {
-      const config = await loadConfig(configPath);
+      const config = (await loadConfig(configPath)).assertOk().config;
       if (!config.contract) {
         throw new Error('Config.contract is required');
       }
@@ -117,7 +117,7 @@ describe('emitContract API', () => {
   it(
     'uses config paths for output',
     async () => {
-      const config = await loadConfig(configPath);
+      const config = (await loadConfig(configPath)).assertOk().config;
       if (!config.contract) {
         throw new Error('Config.contract is required');
       }
@@ -160,7 +160,7 @@ describe('emitContract API', () => {
       const customCleanup = testSetup.cleanup;
 
       try {
-        const config = await loadConfig(customConfigPath);
+        const config = (await loadConfig(customConfigPath)).assertOk().config;
         if (!config.contract) {
           throw new Error('Config.contract is required');
         }
@@ -196,7 +196,7 @@ describe('emitContract API', () => {
   it(
     'includes profileHash when present',
     async () => {
-      const config = await loadConfig(configPath);
+      const config = (await loadConfig(configPath)).assertOk().config;
       if (!config.contract) {
         throw new Error('Config.contract is required');
       }
@@ -223,7 +223,7 @@ describe('emitContract API', () => {
   it(
     'returns a complete result object',
     async () => {
-      const config = await loadConfig(configPath);
+      const config = (await loadConfig(configPath)).assertOk().config;
       if (!config.contract) {
         throw new Error('Config.contract is required');
       }

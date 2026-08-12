@@ -1,3 +1,4 @@
+import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeCommand, setupCommandMocks } from '../utils/test-helpers';
@@ -31,7 +32,7 @@ const mocks = vi.hoisted(() => {
 });
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfigMock,
+  loadConfigForSections: mocks.loadConfigMock,
 }));
 
 vi.mock('../../src/control-api/client', () => ({
@@ -124,7 +125,7 @@ describe('createDbSchemaCommand', () => {
     consoleErrors = commandMocks.consoleErrors;
     cleanupMocks = commandMocks.cleanup;
 
-    mocks.loadConfigMock.mockResolvedValue(baseConfig);
+    mocks.loadConfigMock.mockResolvedValue(ok(baseConfig));
     mocks.introspectMock.mockResolvedValue(schemaIR);
     mocks.toSchemaViewMock.mockReturnValue(schemaView);
     mocks.inferPslContractMock.mockReturnValue(undefined);

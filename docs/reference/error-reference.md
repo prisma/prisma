@@ -41,6 +41,10 @@ A DB-connected command (`migrate`, `db init`, `db sign`, `db verify`, `db update
 
 A DB-connected command was run but `prisma-next.config.ts` has no control-plane `driver` entry (e.g. `driver: postgresDriver`). Raised by the migration command scaffold, `migrate`, `db sign`, `db verify`, and `inspect-live-schema`. Meta: none.
 
+### CONFIG.EVALUATION_FAILED
+
+The config module could not be evaluated at all — a syntax error in `prisma-next.config.ts`, or the module threw during import. Raised by the config loader for any command that needs config; loading fails outright (no per-section diagnostics are possible for a module that does not evaluate) and every command exits `2` with this error. The underlying evaluation error's message is carried in `why` and the original error in `cause` (in-process only). The path, when known, is carried in `where.path`. Meta: none.
+
 ### CONFIG.FAMILY_READ_MARKER_REQUIRED
 
 Reserved: `db verify` needs the family package to export `verify.readMarker()` and it is absent. Declared in the shared error factories but not raised by any command today.
@@ -59,7 +63,11 @@ Reserved: `db verify` needs `db.queryRunnerFactory` in `prisma-next.config.ts` a
 
 ### CONFIG.VALIDATION_FAILED
 
-`prisma-next.config.ts` loaded but failed validation: a required field is missing or malformed. Raised by the config loader and by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`; also raised by contract-path resolution when `config.contract.output` is absent. Meta: none.
+`prisma-next.config.ts` loaded but a config section is missing or malformed. The config loader validates the evaluated config and returns one diagnostic per problem, each tagged with the top-level config section it concerns (`meta.section`: `family`, `target`, `adapter`, `driver`, `extensions`, `db`, `contract`, `migrations`, or `formatter`); a command fails with the diagnostic (exit `2`) only when it reads that section. Also raised by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`, and by contract-path resolution when `config.contract.output` is absent (those sites carry no `section`). Meta: `field` (loader diagnostics), `section` (loader diagnostics; optional elsewhere).
+
+### CONFIG.VERSION_MARKER_MISSING
+
+The config module evaluated, but its default export was not created by the current `defineConfig` — a plain object export, a spread copy of a `defineConfig` result, or a config produced by a different `defineConfig` (for example a classic Prisma 7 config file). Raised by the config loader before validation; loading fails outright and every command exits `2` with this error. The fix is to create the config with `defineConfig` (imported from your target package's `/config` entrypoint, for example `@prisma/orm-postgres/config`) and export its return value directly. The path, when known, is carried in `where.path`. Meta: none.
 
 ## CLI
 

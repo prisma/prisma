@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import { createControlStack } from '@internal/framework-components/control';
 import type { RefEntry } from '@internal/migration-tools/refs';
@@ -40,6 +40,7 @@ import {
 } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveContractPath,
   resolveMigrationPaths,
@@ -136,8 +137,28 @@ async function executeMigrateShowCommand(
   flags: GlobalFlags,
   ui: TerminalUI,
 ): Promise<Result<MigrateShowResult, CliStructuredErrorType>> {
+  // `--from <ref>` plans offline and never touches config.driver, so a broken
+  // driver section must not fail the command. `--from @db` still resolves
+  // against the live marker, so it does need one.
+  const readsLiveMarker = options.from === undefined || options.from === '@db';
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    ...(readsLiveMarker ? (['driver'] as const) : []),
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+
   const planResult = await executeMigrateShowPlan({
-    ...ifDefined('config', options.config),
+    config: configResult.value,
+    cwd: process.cwd(),
+    ...ifDefined('configPath', options.config),
     ...ifDefined('db', options.db),
     ...ifDefined('to', options.to),
     ...ifDefined('from', options.from),
@@ -335,10 +356,24 @@ async function executeMigrateCommand(
   ui: TerminalUI,
   startTime: number,
 ): Promise<Result<MigrateResult, CliStructuredErrorType>> {
-  const config = await loadConfig(options.config);
+  const configResult = await loadConfigForSections(options.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'db',
+    'migrations',
+    'contract',
+  ]);
+  if (!configResult.ok) {
+    return configResult;
+  }
+  const config = configResult.value;
   const { configPath, migrationsDir, appMigrationsRelative, refsDir } = resolveMigrationPaths(
     options.config,
     config,
+    process.cwd(),
   );
 
   const dbConnection = options.db ?? config.db?.connection;
@@ -597,7 +632,7 @@ async function executeMigrateCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

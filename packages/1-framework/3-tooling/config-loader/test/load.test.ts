@@ -5,7 +5,18 @@ import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { findNearestConfigPathForFile, loadConfig, loadConfigForFile } from '../src/load';
 
-const VALID_CONFIG_SOURCE = `
+// Temp-dir fixtures cannot import @internal/config, so they stamp the marker
+// the same way defineConfig does: a non-enumerable well-known symbol.
+const MARKER_STAMP = `
+Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), {
+  value: 1,
+  enumerable: false,
+});
+export default config;
+`;
+
+const VALID_CONFIG_SOURCE =
+  `
 const descriptorBase = {
   familyId: 'sql',
   targetId: 'postgres',
@@ -13,7 +24,7 @@ const descriptorBase = {
   manifest: {},
 };
 
-export default {
+const config = {
   family: {
     ...descriptorBase,
     kind: 'family',
@@ -41,9 +52,16 @@ export default {
     output: './generated/contract.json',
   },
 };
-`;
+` + MARKER_STAMP;
 
-const INVALID_CONFIG_SOURCE = `
+const INVALID_CONFIG_SOURCE =
+  `
+const config = {
+  family: { kind: 'family' },
+};
+` + MARKER_STAMP;
+
+const UNMARKED_CONFIG_SOURCE = `
 export default {
   family: { kind: 'family' },
 };
@@ -103,8 +121,11 @@ describe('loadConfigForFile', () => {
       writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
       writeFileSync(join(appDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
 
-      const config = await loadConfigForFile(schemaPath);
+      const result = await loadConfigForFile(schemaPath);
 
+      expect(result.ok).toBe(true);
+      const { config, diagnostics } = result.assertOk();
+      expect(diagnostics).toEqual([]);
       expect(config.contract?.source.inputs).toEqual([join(appDir, 'schema.prisma')]);
       expect(config.contract?.output).toBe(join(appDir, 'generated', 'contract.json'));
     },
@@ -112,7 +133,7 @@ describe('loadConfigForFile', () => {
   );
 
   it(
-    'stops at an invalid nearest config instead of falling back to a parent config',
+    'reports diagnostics from an invalid nearest config instead of falling back to a parent config',
     async () => {
       const appDir = join(tempDir, 'apps', 'shop');
       const schemaPath = join(appDir, 'prisma', 'schema.psl');
@@ -120,7 +141,11 @@ describe('loadConfigForFile', () => {
       writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
       writeFileSync(join(appDir, 'prisma-next.config.ts'), INVALID_CONFIG_SOURCE);
 
-      await expect(loadConfigForFile(schemaPath)).rejects.toMatchObject({
+      const result = await loadConfigForFile(schemaPath);
+
+      const { diagnostics } = result.assertOk();
+      expect(diagnostics.length).toBeGreaterThan(0);
+      expect(diagnostics[0]).toMatchObject({
         name: 'CliStructuredError',
         code: 'CONFIG.VALIDATION_FAILED',
       });
@@ -129,12 +154,14 @@ describe('loadConfigForFile', () => {
   );
 
   it(
-    'maps a missing config above the PSL file to a structured config-file-not-found error',
+    'maps a missing config above the PSL file to a structured config-file-not-found failure',
     async () => {
       const schemaPath = join(tempDir, 'apps', 'shop', 'prisma', 'schema.psl');
       mkdirSync(join(tempDir, 'apps', 'shop', 'prisma'), { recursive: true });
 
-      await expect(loadConfigForFile(schemaPath)).rejects.toMatchObject({
+      const result = await loadConfigForFile(schemaPath);
+
+      expect(result.assertNotOk()).toMatchObject({
         name: 'CliStructuredError',
         code: 'CONFIG.FILE_NOT_FOUND',
       });
@@ -163,8 +190,10 @@ describe('loadConfig', () => {
       writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
       process.chdir(tempDir);
 
-      const config = await loadConfig();
+      const result = await loadConfig();
 
+      const { config, diagnostics } = result.assertOk();
+      expect(diagnostics).toEqual([]);
       expect(config.contract?.source.inputs).toEqual([join(tempDir, 'schema.prisma')]);
       expect(config.contract?.output).toBe(join(tempDir, 'generated', 'contract.json'));
     },
@@ -188,19 +217,23 @@ describe('loadConfig', () => {
       writeFileSync(join(tempDir, 'prisma-next.config.ts'), noContractSource);
       process.chdir(tempDir);
 
-      const config = await loadConfig();
+      const result = await loadConfig();
 
+      const { config, diagnostics } = result.assertOk();
+      expect(diagnostics).toEqual([]);
       expect(config.contract).toBeUndefined();
     },
     timeouts.typeScriptCompilation,
   );
 
   it(
-    'maps a missing config file to a structured config-file-not-found error (CONFIG.FILE_NOT_FOUND)',
+    'maps a missing config file to a structured config-file-not-found failure (CONFIG.FILE_NOT_FOUND)',
     async () => {
       const configPath = join(tempDir, 'nonexistent.config.ts');
 
-      await expect(loadConfig(configPath)).rejects.toMatchObject({
+      const result = await loadConfig(configPath);
+
+      expect(result.assertNotOk()).toMatchObject({
         name: 'CliStructuredError',
         code: 'CONFIG.FILE_NOT_FOUND',
       });
@@ -213,7 +246,9 @@ describe('loadConfig', () => {
     async () => {
       process.chdir(tempDir);
 
-      await expect(loadConfig()).rejects.toMatchObject({
+      const result = await loadConfig();
+
+      expect(result.assertNotOk()).toMatchObject({
         name: 'CliStructuredError',
         code: 'CONFIG.FILE_NOT_FOUND',
       });
@@ -228,7 +263,9 @@ describe('loadConfig', () => {
       process.chdir(tempDir);
 
       const requestedPath = join(tempDir, 'custom.config');
-      await expect(loadConfig('custom.config')).rejects.toMatchObject({
+      const result = await loadConfig('custom.config');
+
+      expect(result.assertNotOk()).toMatchObject({
         name: 'CliStructuredError',
         code: 'CONFIG.FILE_NOT_FOUND',
         where: { path: requestedPath },
@@ -243,7 +280,9 @@ describe('loadConfig', () => {
       writeFileSync(join(tempDir, 'prisma-next.config.ts'), EMPTY_CONFIG_SOURCE);
       process.chdir(tempDir);
 
-      await expect(loadConfig()).rejects.toMatchObject({
+      const result = await loadConfig();
+
+      expect(result.assertNotOk()).toMatchObject({
         name: 'CliStructuredError',
         code: 'CONFIG.FILE_NOT_FOUND',
         where: { path: join(tempDir, 'prisma-next.config.ts') },
@@ -253,21 +292,38 @@ describe('loadConfig', () => {
   );
 
   it(
-    'maps an invalid config shape to a structured config-validation error (CONFIG.VALIDATION_FAILED)',
+    'returns section-tagged diagnostics for an invalid config shape instead of failing the load',
     async () => {
       writeFileSync(join(tempDir, 'prisma-next.config.ts'), INVALID_CONFIG_SOURCE);
       process.chdir(tempDir);
 
-      await expect(loadConfig()).rejects.toMatchObject({
-        name: 'CliStructuredError',
-        code: 'CONFIG.VALIDATION_FAILED',
-      });
+      const result = await loadConfig();
+
+      const { diagnostics } = result.assertOk();
+      expect(diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'CONFIG.VALIDATION_FAILED',
+          meta: { field: 'target', section: 'target' },
+        }),
+      );
+      expect(diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'CONFIG.VALIDATION_FAILED',
+          meta: { field: 'adapter', section: 'adapter' },
+        }),
+      );
+      expect(diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'CONFIG.VALIDATION_FAILED',
+          meta: { field: 'family.id', section: 'family' },
+        }),
+      );
     },
     timeouts.typeScriptCompilation,
   );
 
   it(
-    'maps an input/artifact collision to a structured validation error carrying the reason',
+    'reports an input/artifact collision as a contract-section diagnostic carrying the reason',
     async () => {
       const collidingSource = VALID_CONFIG_SOURCE.replace(
         "inputs: ['./schema.prisma']",
@@ -276,17 +332,22 @@ describe('loadConfig', () => {
       writeFileSync(join(tempDir, 'prisma-next.config.ts'), collidingSource);
       process.chdir(tempDir);
 
-      await expect(loadConfig()).rejects.toMatchObject({
-        name: 'CliStructuredError',
-        code: 'CONFIG.VALIDATION_FAILED',
-        why: 'Config.contract.source.inputs must not include emitted artifact paths derived from contract.output',
-      });
+      const result = await loadConfig();
+
+      const { diagnostics } = result.assertOk();
+      expect(diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'CONFIG.VALIDATION_FAILED',
+          why: 'Config.contract.source.inputs must not include emitted artifact paths derived from contract.output',
+          meta: { field: 'contract.source.inputs[]', section: 'contract' },
+        }),
+      );
     },
     timeouts.typeScriptCompilation,
   );
 
   it(
-    'maps a non-json contract output to a structured validation error from artifact path derivation',
+    'reports a non-json contract output as a contract-section diagnostic from artifact path derivation',
     async () => {
       const nonJsonSource = VALID_CONFIG_SOURCE.replace(
         "output: './generated/contract.json'",
@@ -295,25 +356,288 @@ describe('loadConfig', () => {
       writeFileSync(join(tempDir, 'prisma-next.config.ts'), nonJsonSource);
       process.chdir(tempDir);
 
-      await expect(loadConfig()).rejects.toMatchObject({
+      const result = await loadConfig();
+
+      const { diagnostics } = result.assertOk();
+      expect(diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'CONFIG.VALIDATION_FAILED',
+          why: 'Contract output path must end with .json',
+          meta: { field: 'contract.output', section: 'contract' },
+        }),
+      );
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'skips contract finalization when the contract section has diagnostics',
+    async () => {
+      const brokenOutputSource = VALID_CONFIG_SOURCE.replace(
+        "output: './generated/contract.json'",
+        'output: 123',
+      );
+      writeFileSync(join(tempDir, 'prisma-next.config.ts'), brokenOutputSource);
+      process.chdir(tempDir);
+
+      const result = await loadConfig();
+
+      const { config, diagnostics } = result.assertOk();
+      expect(diagnostics).toContainEqual(
+        expect.objectContaining({
+          meta: { field: 'contract.output', section: 'contract' },
+        }),
+      );
+      expect(config.contract?.output).toBe(123 as unknown as string);
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'rejects a config without the defineConfig version marker (CONFIG.VERSION_MARKER_MISSING)',
+    async () => {
+      writeFileSync(join(tempDir, 'prisma-next.config.ts'), UNMARKED_CONFIG_SOURCE);
+      process.chdir(tempDir);
+
+      const result = await loadConfig();
+
+      expect(result.assertNotOk()).toMatchObject({
         name: 'CliStructuredError',
-        code: 'CONFIG.VALIDATION_FAILED',
-        why: 'Contract output path must end with .json',
+        code: 'CONFIG.VERSION_MARKER_MISSING',
+        where: { path: join(tempDir, 'prisma-next.config.ts') },
       });
     },
     timeouts.typeScriptCompilation,
   );
 
   it(
-    'wraps a c12 compilation failure in a structured unexpected error (CLI.UNEXPECTED)',
+    'rejects an unmarked config that extends a marked base config',
+    async () => {
+      writeFileSync(join(tempDir, 'base.config.ts'), VALID_CONFIG_SOURCE);
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(configPath, "export default { extends: './base.config.ts' };\n");
+      process.chdir(tempDir);
+
+      const result = await loadConfig();
+
+      expect(result.assertNotOk()).toMatchObject({
+        name: 'CliStructuredError',
+        code: 'CONFIG.VERSION_MARKER_MISSING',
+        where: { path: configPath },
+      });
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'accepts a marked config that extends an unmarked base config',
+    async () => {
+      const unmarkedBase = VALID_CONFIG_SOURCE.replace(MARKER_STAMP, '\nexport default config;\n');
+      writeFileSync(join(tempDir, 'base.config.ts'), unmarkedBase);
+      const markedChild =
+        "const config = { extends: './base.config.ts' };" +
+        `\nObject.defineProperty(config, Symbol.for('prisma-next.config-format-version'), { value: 1, enumerable: false });\nexport default config;\n`;
+      writeFileSync(join(tempDir, 'prisma-next.config.ts'), markedChild);
+      process.chdir(tempDir);
+
+      const { config, diagnostics } = (await loadConfig()).assertOk();
+
+      expect(diagnostics).toEqual([]);
+      expect(config.target?.targetId).toBe('postgres');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'rejects a config carrying a stale format version (CONFIG.VERSION_MARKER_MISSING)',
+    async () => {
+      const staleSource = VALID_CONFIG_SOURCE.replace('value: 1,', 'value: 0,');
+      writeFileSync(join(tempDir, 'prisma-next.config.ts'), staleSource);
+      process.chdir(tempDir);
+
+      const result = await loadConfig();
+
+      expect(result.assertNotOk()).toMatchObject({
+        name: 'CliStructuredError',
+        code: 'CONFIG.VERSION_MARKER_MISSING',
+      });
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'maps a c12 compilation failure to a structured evaluation failure (CONFIG.EVALUATION_FAILED)',
     async () => {
       const configPath = join(tempDir, 'prisma-next.config.ts');
       writeFileSync(configPath, 'export default { invalid syntax }', 'utf-8');
 
-      await expect(loadConfig(configPath)).rejects.toMatchObject({
+      const result = await loadConfig(configPath);
+
+      expect(result.assertNotOk()).toMatchObject({
         name: 'CliStructuredError',
-        code: 'CLI.UNEXPECTED',
+        code: 'CONFIG.EVALUATION_FAILED',
+        where: { path: configPath },
       });
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'maps a config module that throws during evaluation to CONFIG.EVALUATION_FAILED',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(configPath, "throw new Error('config module exploded');", 'utf-8');
+
+      const result = await loadConfig(configPath);
+
+      const failure = result.assertNotOk();
+      expect(failure).toMatchObject({
+        name: 'CliStructuredError',
+        code: 'CONFIG.EVALUATION_FAILED',
+      });
+      expect(failure.why).toContain('config module exploded');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'maps a config module that throws during discovery from the cwd to CONFIG.EVALUATION_FAILED without a path',
+    async () => {
+      writeFileSync(
+        join(tempDir, 'prisma-next.config.ts'),
+        "throw new Error('config module exploded');",
+        'utf-8',
+      );
+      process.chdir(tempDir);
+
+      const failure = (await loadConfig()).assertNotOk();
+
+      expect(failure.code).toBe('CONFIG.EVALUATION_FAILED');
+      expect(failure.where).toBeUndefined();
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'maps a config module that throws a non-Error value to CONFIG.EVALUATION_FAILED carrying its string form',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(configPath, "throw 'config module string failure';", 'utf-8');
+
+      const failure = (await loadConfig(configPath)).assertNotOk();
+
+      expect(failure.code).toBe('CONFIG.EVALUATION_FAILED');
+      expect(failure.why).toContain('config module string failure');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'maps an unresolvable import inside an existing config to CONFIG.EVALUATION_FAILED',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(configPath, "import 'no-such-package-for-config-tests';\n", 'utf-8');
+
+      const failure = (await loadConfig(configPath)).assertNotOk();
+
+      expect(failure.code).toBe('CONFIG.EVALUATION_FAILED');
+      expect(failure.where?.path).toBe(configPath);
+      expect(failure.why).toContain('no-such-package-for-config-tests');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'maps an ENOENT raised by the config module itself to CONFIG.EVALUATION_FAILED',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      const missingFile = join(tempDir, 'absent-fixture.json');
+      writeFileSync(
+        configPath,
+        `import { readFileSync } from 'node:fs';\nreadFileSync(${JSON.stringify(missingFile)});\nexport default {};\n`,
+        'utf-8',
+      );
+
+      const failure = (await loadConfig(configPath)).assertNotOk();
+
+      expect(failure.code).toBe('CONFIG.EVALUATION_FAILED');
+      expect(failure.why).toContain('absent-fixture.json');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'passes a CliStructuredError thrown by the config module through unchanged',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(
+        configPath,
+        `
+const error = new Error('driver descriptor rejected the connection');
+Object.defineProperty(error, 'name', { value: 'CliStructuredError' });
+error.code = 'CONFIG.VALIDATION_FAILED';
+error.toEnvelope = () => ({ ok: false, code: error.code });
+throw error;
+`,
+        'utf-8',
+      );
+
+      const failure = (await loadConfig(configPath)).assertNotOk();
+
+      expect(failure.code).toBe('CONFIG.VALIDATION_FAILED');
+      expect(failure.message).toBe('driver descriptor rejected the connection');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'rewraps a plain structured error thrown by the config module, keeping its code and cause',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(
+        configPath,
+        `
+const error = new Error('extension pack refused to load');
+error.code = 'EXTENSION.LOAD_FAILED';
+error.why = 'the pack entrypoint is missing';
+error.fix = 'reinstall the extension package';
+error.where = { path: 'extensions/pack.ts' };
+error.meta = { pack: 'demo' };
+throw error;
+`,
+        'utf-8',
+      );
+
+      const failure = (await loadConfig(configPath)).assertNotOk();
+
+      expect(failure).toMatchObject({
+        name: 'CliStructuredError',
+        code: 'EXTENSION.LOAD_FAILED',
+        message: 'extension pack refused to load',
+        why: 'the pack entrypoint is missing',
+        fix: 'reinstall the extension package',
+        where: { path: 'extensions/pack.ts' },
+        meta: { pack: 'demo' },
+      });
+      expect(failure.cause).toBeDefined();
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'reports no collision diagnostics when the contract declares no inputs',
+    async () => {
+      const noInputsSource = VALID_CONFIG_SOURCE.replace(
+        "      inputs: ['./schema.prisma'],\n",
+        '',
+      );
+      writeFileSync(join(tempDir, 'prisma-next.config.ts'), noInputsSource);
+      process.chdir(tempDir);
+
+      const { config, diagnostics } = (await loadConfig()).assertOk();
+
+      expect(diagnostics).toEqual([]);
+      expect(config.contract?.source.inputs).toBeUndefined();
     },
     timeouts.typeScriptCompilation,
   );

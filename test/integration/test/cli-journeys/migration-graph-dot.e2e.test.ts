@@ -1,15 +1,11 @@
 /**
- * `migration graph --dot` must produce DOT even when stdout is non-TTY.
+ * `migration graph --dot` under the engine.
  *
- * `parseGlobalFlags` auto-enables `flags.json` when `!process.stdout.isTTY`
- * (per CLI Style Guide § JSON Semantics). The format dispatch in
- * `migration graph` used to check `flags.json` before `options.dot`, which
- * meant a user piping the output (`migration graph --dot | dot -Tsvg`) got
- * the auto-JSON envelope instead of DOT and the pipe-receiver errored.
- *
- * Explicit format flags (`--dot`) win over the auto-JSON default. This
- * test pins the precedence so a future format flag can't quietly drift
- * back into the shadowed shape.
+ * DOT is not a `--format` value — the engine reserves that flag — so `--dot`
+ * stays a command-owned boolean and the old precedence quirk goes away: in
+ * human mode the DOT text is the command's stdout payload, and in json mode
+ * (which a non-TTY stdout selects) the result carries the DOT alongside the
+ * graph document instead of replacing it.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -24,9 +20,9 @@ import {
 } from '../utils/journey-test-helpers';
 
 withTempDir(({ createTempDir }) => {
-  describe('migration graph — output format precedence', () => {
+  describe('migration graph — DOT output', () => {
     it(
-      '--dot wins over auto-JSON in non-TTY mode',
+      'puts DOT on stdout in human mode and on the result in json mode',
       async () => {
         const ctx: JourneyContext = setupJourney({ createTempDir });
 
@@ -35,27 +31,63 @@ withTempDir(({ createTempDir }) => {
         const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
-        // Reproduce the non-TTY DOT regression scenario: pipe-style
-        // invocation (`migration graph --dot | dot -Tsvg`) makes
-        // `parseGlobalFlags` auto-enable `flags.json`. The format
-        // dispatch must honour the explicit `--dot` flag over the
-        // auto-JSON default, otherwise the pipe-receiver gets JSON it
-        // can't parse.
-        const graphDot = await runMigrationGraph(ctx, ['--dot'], { isTTY: false });
-        expect(graphDot.exitCode, 'graph exit code').toBe(0);
-        expect(graphDot.stdout, 'DOT preamble appears').toContain('digraph migrations {');
+        const human = await runMigrationGraph(ctx, ['--dot']);
+        expect(human.exitCode, 'graph exit code').toBe(0);
+        expect(human.presented?.presentation.stdout?.[0], 'DOT preamble').toBe(
+          'digraph migrations {',
+        );
+        expect(human.stdout, 'DOT reaches stdout').toContain('digraph migrations {');
 
-        // Negative: the auto-JSON payload shape must NOT appear.
-        expect(graphDot.stdout, 'no JSON envelope ok-field').not.toContain('"ok": true');
-        expect(graphDot.stdout, 'no JSON spaces array').not.toContain('"spaces":');
+        // Piping selects json, and the DOT rides the result rather than
+        // shadowing it: a caller that asked for json never receives DOT where
+        // json was promised.
+        const json = await runMigrationGraph(ctx, ['--dot'], { isTTY: false });
+        const document = json.presented?.data as { dot: string; spaces: readonly unknown[] };
+        expect(json.exitCode, 'graph json exit code').toBe(0);
+        expect(document.dot, 'result carries the DOT').toContain('digraph migrations {');
+        expect(document.spaces, 'result still carries the graph document').not.toHaveLength(0);
+        expect(json.presented?.presentation.stdout, 'no raw DOT on the frame stream').toEqual([]);
+      },
+      timeouts.typeScriptCompilation,
+    );
 
-        // Sanity: bare `migration graph` in the same non-TTY mode still
-        // produces JSON (auto-JSON default), proving the precedence fix is
-        // specific to the explicit-flag case.
-        const graphJson = await runMigrationGraph(ctx, [], { isTTY: false });
-        expect(graphJson.exitCode, 'graph json exit code').toBe(0);
-        expect(graphJson.stdout, 'auto-JSON ok-field').toContain('"ok": true');
-        expect(graphJson.stdout, 'auto-JSON spaces array').toContain('"spaces":');
+    it(
+      'omits the dot field when --dot is absent',
+      async () => {
+        const ctx: JourneyContext = setupJourney({ createTempDir });
+
+        const emit = await runContractEmit(ctx);
+        expect(emit.exitCode, 'emit').toBe(0);
+        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        expect(plan.exitCode, 'plan').toBe(0);
+
+        const graph = await runMigrationGraph(ctx, [], { isTTY: false });
+
+        expect(graph.exitCode, 'graph exit code').toBe(0);
+        expect(graph.presented?.data).not.toHaveProperty('dot');
+        expect(graph.presented?.data).toMatchObject({ ok: true });
+      },
+      timeouts.typeScriptCompilation,
+    );
+
+    it(
+      'refuses --legend alongside --dot',
+      async () => {
+        const ctx: JourneyContext = setupJourney({ createTempDir });
+
+        const emit = await runContractEmit(ctx);
+        expect(emit.exitCode, 'emit').toBe(0);
+
+        const graph = await runMigrationGraph(ctx, ['--dot', '--legend'], { isTTY: false });
+        const terminal = graph.json.at(-1);
+        const envelope =
+          terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+
+        expect(graph.exitCode, 'graph exit code').toBe(2);
+        expect(envelope).toMatchObject({
+          ok: false,
+          error: { code: 'MIGRATION.LEGEND_HUMAN_ONLY' },
+        });
       },
       timeouts.typeScriptCompilation,
     );
