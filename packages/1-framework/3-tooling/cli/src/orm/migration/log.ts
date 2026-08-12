@@ -94,7 +94,8 @@ function logPresentations(inputs: {
           ]),
       ...(grid === undefined
         ? [{ kind: 'summary' as const, status: 'info' as const, text: MIGRATION_LOG_EMPTY_MESSAGE }]
-        : [{ kind: 'table' as const, columns: grid.headings, rows: grid.rows }]),
+        : // biome-ignore lint/plugin/no-family-vocabulary: the engine's table block, terminal output
+          [{ kind: 'table' as const, columns: grid.headings, rows: grid.rows }]),
     ],
     json: () => inputs.document,
   };
