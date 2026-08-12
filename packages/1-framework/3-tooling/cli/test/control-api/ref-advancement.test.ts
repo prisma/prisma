@@ -1,6 +1,5 @@
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { errorInvalidRefName, MigrationToolsError } from '@internal/migration-tools/errors';
 import { join } from 'pathe';
@@ -12,6 +11,7 @@ import {
   executeRefAdvancement,
   resolveRefAdvancementFields,
 } from '../../src/control-api/operations/ref-advancement';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const HASH_A = `${'a'.repeat(64)}`;
 const PROFILE_HASH = `${'c'.repeat(64)}`;
@@ -75,10 +75,7 @@ describe('executeRefAdvancement', () => {
   let refsDir: string;
 
   beforeEach(async () => {
-    migrationsDir = join(
-      tmpdir(),
-      `test-ref-advancement-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    );
+    migrationsDir = createTestProjectDir('ref-advancement');
     refsDir = join(migrationsDir, 'app', 'refs');
   });
 
@@ -151,13 +148,9 @@ describe('resolveRefAdvancementFields', () => {
   const contractJson = contractIR.contract as Record<string, unknown>;
 
   beforeEach(async () => {
-    tempDir = join(
-      tmpdir(),
-      `test-resolve-ref-advancement-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    );
+    tempDir = createTestProjectDir('resolve-ref-advancement');
     migrationsDir = join(tempDir, 'migrations');
     refsDir = join(migrationsDir, 'app', 'refs');
-    await mkdir(tempDir, { recursive: true });
     contractJsonPath = join(tempDir, 'contract.json');
     await writeFile(contractJsonPath, JSON.stringify(contractJson));
     await writeFile(join(tempDir, 'contract.d.ts'), contractIR.contractDts);
@@ -250,10 +243,7 @@ describe('advanceRefSafely', () => {
   let refsDir: string;
 
   beforeEach(() => {
-    migrationsDir = join(
-      tmpdir(),
-      `test-advance-ref-safely-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    );
+    migrationsDir = createTestProjectDir('advance-ref-safely');
     refsDir = join(migrationsDir, 'app', 'refs');
   });
 
