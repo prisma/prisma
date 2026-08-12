@@ -27,7 +27,6 @@ import { createMigrationCheckCommand } from '@internal/cli/commands/migration-ch
 import { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
 import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
 import { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
-import { createRefCommand } from '@internal/cli/commands/ref';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { EngineEvent, PresentedResult, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
@@ -39,8 +38,6 @@ import { afterAll, beforeAll } from 'vitest';
 const execFileAsync = promisify(execFile);
 const TSX_BIN = resolve(import.meta.dirname, '../../../../node_modules/.bin/tsx');
 
-// Not exported from the CLI package subpath map.
-import { createFormatCommand } from '../../../../packages/1-framework/3-tooling/cli/src/commands/format';
 import {
   appendImplicitMigrationPlanFrom,
   executeCommand,
@@ -374,6 +371,7 @@ export async function runOnEngine(
     groups: {
       db: { brief: 'Live database commands' },
       migration: { brief: 'On-disk migration management commands' },
+      ref: { brief: 'Named pointers at contracts' },
     },
     config: loaded.sections,
   });
@@ -648,15 +646,9 @@ export async function runMigrationPlanAndEmit(
 export async function runRef(
   ctx: JourneyContext,
   subcommandArgs: readonly string[],
-): Promise<CommandResult> {
-  const [subcommand, ...rest] = subcommandArgs;
-  return runCommandRaw(createRefCommand(), ctx.testDir, [
-    subcommand!,
-    '--config',
-    ctx.configPath,
-    '--no-color',
-    ...rest,
-  ]);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['ref', ...subcommandArgs], options);
 }
 
 /**
@@ -674,11 +666,12 @@ export async function runContractEmitWithConfig(
   ]);
 }
 
-export async function runFormatWithConfig(
-  testDir: string,
-  configPath: string,
-): Promise<CommandResult> {
-  return runCommandRaw(createFormatCommand(), testDir, ['--config', configPath]);
+export async function runFormat(
+  ctx: JourneyContext,
+  extraArgs: readonly string[] = [],
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['format', ...extraArgs], options);
 }
 
 /**

@@ -4,7 +4,7 @@ import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { format } from '../utils/cli-commands';
 import { withTempDir } from '../utils/cli-test-helpers';
-import { runFormatWithConfig, setupJourney } from '../utils/journey-test-helpers';
+import { runFormat, setupJourney } from '../utils/journey-test-helpers';
 
 const MESSY_PSL = `model    User    {
 id     Int      @id @default(autoincrement())
@@ -51,9 +51,13 @@ withTempDir(({ createTempDir }) => {
         writeFileSync(sourcePath, MESSY_PSL, 'utf-8');
         writeFileSync(ctx.configPath, pslConfig(), 'utf-8');
 
-        const result = await runFormatWithConfig(ctx.testDir, ctx.configPath);
+        const result = await runFormat(ctx);
 
         expect(result.exitCode, 'F.01: format PSL in place').toBe(0);
+        expect(result.presented?.data, 'F.01: reports the file it rewrote').toEqual({
+          formatted: true,
+          path: sourcePath,
+        });
 
         const onDisk = readFileSync(sourcePath, 'utf-8');
         const expected = format(MESSY_PSL, { indent: 2, newline: 'LF' });
@@ -96,10 +100,11 @@ export default defineConfig({
         );
 
         const before = readFileSync(sourcePath, 'utf-8');
-        const result = await runFormatWithConfig(ctx.testDir, ctx.configPath);
+        const result = await runFormat(ctx);
 
         expect(result.exitCode, 'F.02: non-PSL source exits 0').toBe(0);
-        expect(result.stdout, 'F.02: reports nothing to format').toContain('Nothing to format');
+        expect(result.stderr, 'F.02: reports nothing to format').toContain('Nothing to format');
+        expect(result.stdout, 'F.02: human mode writes nothing to stdout').toBe('');
 
         const after = readFileSync(sourcePath, 'utf-8');
         expect(after, 'F.02: source byte-identical').toBe(before);
@@ -117,9 +122,13 @@ export default defineConfig({
         writeFileSync(ctx.configPath, pslConfig(), 'utf-8');
 
         const before = readFileSync(sourcePath, 'utf-8');
-        const result = await runFormatWithConfig(ctx.testDir, ctx.configPath);
+        const result = await runFormat(ctx, ['--json']);
 
-        expect(result.exitCode, 'F.03: unparseable PSL non-zero exit').not.toBe(0);
+        expect(result.exitCode, 'F.03: unparseable PSL non-zero exit').toBe(2);
+        expect(result.json.at(-1), 'F.03: settles as an errored envelope').toMatchObject({
+          kind: 'result',
+          envelope: { ok: false, error: { code: 'PSL.PARSE_FAILED' } },
+        });
 
         const after = readFileSync(sourcePath, 'utf-8');
         expect(after, 'F.03: source untouched on refusal').toBe(before);
