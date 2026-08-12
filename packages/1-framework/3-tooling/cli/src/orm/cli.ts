@@ -4,6 +4,7 @@ import { createCli } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
+import { lspCommand } from './lsp';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
@@ -23,6 +24,7 @@ export const BIN_GROUPS = {
 } as const;
 
 export const BIN_COMMANDS: MountedTree = {
+  lsp: lspCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,
   'migration log': migrationLogCommand,
