@@ -23,6 +23,23 @@
  * checkout (shallow, detached, no origin/main) and the count may only ever
  * shrink over time.
  *
+ * False positives are silenced per line, not by raising the threshold. A
+ * `framework-vocabulary-ignore: <reason>` comment exempts the line it sits on
+ * and the line directly below it, so it works trailing or on its own line:
+ *
+ *   // framework-vocabulary-ignore: the engine's table block, terminal output
+ *   return { kind: 'table', columns: headings, rows };
+ *
+ * The reason is required — a bare marker does not suppress. The marker line
+ * is itself never counted, so the reason text may name forbidden terms.
+ * Suppressed lines drop out of the count, which lowers it below the
+ * threshold; lower the recorded threshold to match, exactly as for a real
+ * removal. This is deliberately not a biome plugin: over half of what the
+ * check catches lives in comments and JSDoc, which biome's GritQL cannot
+ * match, and biome suppresses plugin diagnostics only via an unaimed
+ * `// biome-ignore lint:` that would also mask no-bare-cast and no-bare-throw
+ * on the same line.
+ *
  * Exit codes:
  *   0 — every scope's count equals its recorded threshold
  *   1 — at least one scope's count differs from its threshold
@@ -95,10 +112,17 @@ export function lineMatchesTermTokens(lineTokens, tt) {
 // range is fully contained within a single allowed compound's range on the same line. This
 // lets `SymbolTable`/`symbol-table` stop matching the bare `table` term while a bare `table`
 // elsewhere on the line (or file) still counts. Absent/empty `allow` ⇒ unchanged behaviour.
-export function findMatchingLines(content, scope) {
+const IGNORE_MARKER = /framework-vocabulary-ignore:[ \t]*\S/;
+
+export function hasIgnoreMarker(line) {
+  return line !== undefined && IGNORE_MARKER.test(line);
+}
+
+export function partitionMatchingLines(content, scope) {
   const termSeqs = scope.forbidden.map(termTokens);
   const allowSeqs = (scope.allow ?? []).map(termTokens);
-  const out = [];
+  const counted = [];
+  const suppressed = [];
   const lines = content.split('\n');
   for (let i = 0; i < lines.length; i++) {
     const lineTokens = tokenize(lines[i]);
@@ -111,9 +135,16 @@ export function findMatchingLines(content, scope) {
       );
       if (hasUnshielded) matched.push(scope.forbidden[k]);
     }
-    if (matched.length > 0) out.push({ line: i + 1, terms: matched, text: lines[i].trim() });
+    if (matched.length === 0) continue;
+    const record = { line: i + 1, terms: matched, text: lines[i].trim() };
+    const exempt = hasIgnoreMarker(lines[i]) || hasIgnoreMarker(lines[i - 1]);
+    (exempt ? suppressed : counted).push(record);
   }
-  return out;
+  return { counted, suppressed };
+}
+
+export function findMatchingLines(content, scope) {
+  return partitionMatchingLines(content, scope).counted;
 }
 
 export function loadConfig(configPath) {
@@ -129,6 +160,7 @@ export function scanScope(scanDir, scope) {
   const files = listing.split('\n').filter(Boolean).filter(isScannableFile);
 
   const records = [];
+  const suppressed = [];
   for (const relPath of files) {
     let content;
     try {
@@ -136,11 +168,11 @@ export function scanScope(scanDir, scope) {
     } catch {
       continue;
     }
-    for (const match of findMatchingLines(content, scope)) {
-      records.push({ file: relPath, ...match });
-    }
+    const partitioned = partitionMatchingLines(content, scope);
+    for (const match of partitioned.counted) records.push({ file: relPath, ...match });
+    for (const match of partitioned.suppressed) suppressed.push({ file: relPath, ...match });
   }
-  return records;
+  return { records, suppressed };
 }
 
 function main() {
@@ -150,17 +182,22 @@ function main() {
   let anyFailed = false;
 
   for (const scope of config.scopes) {
-    const records = scanScope(GIT_ROOT, scope);
+    const { records, suppressed } = scanScope(GIT_ROOT, scope);
     const count = records.length;
     const threshold = scope.threshold;
 
     console.log(
-      `lint:framework-vocabulary: scope=${scope.path} count=${count} threshold=${threshold}`,
+      `lint:framework-vocabulary: scope=${scope.path} count=${count} threshold=${threshold} suppressed=${suppressed.length}`,
     );
 
     if (list) {
       for (const record of records) {
         console.log(`  ${record.file}:${record.line}: [${record.terms.join(', ')}] ${record.text}`);
+      }
+      for (const record of suppressed) {
+        console.log(
+          `  (ignored) ${record.file}:${record.line}: [${record.terms.join(', ')}] ${record.text}`,
+        );
       }
     }
 
