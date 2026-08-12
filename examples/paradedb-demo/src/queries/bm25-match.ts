@@ -6,5 +6,5 @@ export async function bm25Match(query: string, limit = 20) {
     .where((f, fns) => fns.paradeDbMatch(f.description, query))
     .limit(limit)
     .build();
-  return db.runtime().execute(plan);
+  return db.runtime().query(plan);
 }

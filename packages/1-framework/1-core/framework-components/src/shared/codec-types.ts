@@ -31,7 +31,7 @@ export interface CodecRef {
 }
 
 /**
- * Per-call context the runtime threads to every `codec.encode` / `codec.decode` invocation for a single `runtime.execute()` call.
+ * Per-call context the runtime threads to every `codec.encode` / `codec.decode` invocation for a single runtime operation (`query()`, `PreparedStatement.query()`, or `execute()`).
  *
  * The framework-level shape is family-agnostic and carries one field:
  *

@@ -22,9 +22,9 @@ import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder
 import { aggregateOperationNames } from './aggregate-operations';
 import { getFieldToColumnMap } from './collection-contract';
 import { mapStorageRowToModelFields } from './collection-runtime';
-import { executeQueryPlan } from './execute-query-plan';
 import { ormError } from './orm-errors';
 import { compileGroupedAggregate, mergeAnnotations } from './query-plan';
+import { queryPlanRows } from './query-plan-rows';
 import type {
   AggregateBuilder,
   AggregateResult,
@@ -172,10 +172,7 @@ export class GroupedCollection<
       ),
       annotationsMap,
     );
-    const rows = await executeQueryPlan<Record<string, unknown>>(
-      this.ctx.runtime,
-      compiled,
-    ).toArray();
+    const rows = await queryPlanRows<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
 
     return rows.map((row) => {
       const mapped = mapStorageRowToModelFields(

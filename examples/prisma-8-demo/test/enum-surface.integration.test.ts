@@ -131,7 +131,7 @@ describe('TS-authored enum on the demo contract (Post.priority)', () => {
               ])
               .build(),
           );
-          const rows = await runtime.execute(
+          const rows = await runtime.query(
             sql.post
               .select('id', 'priority')
               .where((f, fns) => fns.eq(f.id, '10000000-0000-0000-0000-0000000000fe'))

@@ -5,7 +5,7 @@ describe('integration: GROUP BY / HAVING', { timeout: timeouts.databaseOperation
   const { db, runtime } = setupIntegrationTest();
 
   it('GROUP BY with COUNT', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.posts.select('user_id')
         .select('cnt', (_f, fns) => fns.count())
@@ -24,7 +24,7 @@ describe('integration: GROUP BY / HAVING', { timeout: timeouts.databaseOperation
   // the same input-agnostic overload as `count()` — the case that has no answer
   // under a matching scheme keyed only on the input.
   it('GROUP BY with COUNT over a column', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.posts.select('user_id')
         .select('cnt', (f, fns) => fns.count(f.posts.views))
@@ -37,7 +37,7 @@ describe('integration: GROUP BY / HAVING', { timeout: timeouts.databaseOperation
   });
 
   it('HAVING filters groups', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.posts.select('user_id')
         .select('cnt', (_f, fns) => fns.count())

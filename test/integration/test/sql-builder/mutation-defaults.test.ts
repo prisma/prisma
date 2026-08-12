@@ -7,7 +7,7 @@ describe('integration: mutation defaults', { timeout: timeouts.databaseOperation
 
   it('INSERT applies execution default (generated uuid) when column is omitted', async () => {
     const row = await runtime()
-      .execute(
+      .query(
         db()
           .public.articles.insert([{ title: 'Hello' }])
           .returning('id', 'title')
@@ -24,7 +24,7 @@ describe('integration: mutation defaults', { timeout: timeouts.databaseOperation
   it('INSERT respects user-provided value over execution default', async () => {
     const explicitId = '00000000-0000-4000-8000-000000000001' as Char<36>;
     const row = await runtime()
-      .execute(
+      .query(
         db()
           .public.articles.insert([{ id: explicitId, title: 'Explicit' }])
           .returning('id', 'title')

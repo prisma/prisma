@@ -1,8 +1,16 @@
 import type { PlanMeta } from '@internal/contract/types';
+import type { CodecCallContext } from '@internal/framework-components/codec';
 import { type MongoCodecRegistry, newMongoCodecRegistry } from '@internal/mongo-codec';
 import type { MongoAdapter, MongoDriver, MongoLoweredDraft } from '@internal/mongo-lowering';
 import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
-import { AggregateWireCommand } from '@internal/mongo-wire';
+import {
+  AggregateWireCommand,
+  type AnyMongoDmlWireCommand,
+  DeleteManyWireCommand,
+  DeleteOneWireCommand,
+  UpdateManyWireCommand,
+  UpdateOneWireCommand,
+} from '@internal/mongo-wire';
 import { describe, expect, it, vi } from 'vitest';
 import type {
   MongoExecutionContext,
@@ -11,15 +19,20 @@ import type {
   MongoRuntimeAdapterInstance,
   MongoRuntimeTargetDescriptor,
 } from '../src/mongo-execution-stack';
-import type { MongoMiddleware } from '../src/mongo-middleware';
+import type { MongoMiddleware, MongoMiddlewareContext } from '../src/mongo-middleware';
 import { createMongoRuntime } from '../src/mongo-runtime';
 
-function makeContext(adapter: MongoAdapter): MongoExecutionContext {
+function makeContext(
+  _adapter: MongoAdapter,
+  wireCommand: AnyMongoDmlWireCommand = new AggregateWireCommand('users', []),
+): MongoExecutionContext {
   const codecs: MongoCodecRegistry = newMongoCodecRegistry();
   const adapterInstance: MongoRuntimeAdapterInstance<'mongo'> = {
     familyId: 'mongo',
     targetId: 'mongo',
-    lower: adapter.lower.bind(adapter),
+    lower: vi.fn(
+      async () => wireCommand,
+    ) as unknown as MongoRuntimeAdapterInstance<'mongo'>['lower'],
     structuralLower: vi.fn(
       (plan: MongoQueryPlan): MongoLoweredDraft => ({
         kind: 'rawAggregate',
@@ -27,9 +40,7 @@ function makeContext(adapter: MongoAdapter): MongoExecutionContext {
         pipeline: [],
       }),
     ),
-    resolveParams: vi.fn(
-      async (draft: MongoLoweredDraft) => new AggregateWireCommand(draft.collection, []),
-    ),
+    resolveParams: vi.fn(async (_draft: MongoLoweredDraft, _ctx: CodecCallContext) => wireCommand),
   };
   const target: MongoRuntimeTargetDescriptor<'mongo'> = {
     kind: 'target',
@@ -95,18 +106,18 @@ function createMockDriver(rows: Record<string, unknown>[] = []): MongoDriver {
 }
 
 describe('MongoRuntime middleware lifecycle', () => {
-  it('calls beforeExecute, onRow, afterExecute in order', async () => {
+  it('calls beforeQuery, onRow, afterQuery in order', async () => {
     const callOrder: string[] = [];
     const middleware: MongoMiddleware = {
       name: 'test',
-      async beforeExecute() {
-        callOrder.push('beforeExecute');
+      async beforeQuery() {
+        callOrder.push('beforeQuery');
       },
       async onRow() {
         callOrder.push('onRow');
       },
-      async afterExecute() {
-        callOrder.push('afterExecute');
+      async afterQuery() {
+        callOrder.push('afterQuery');
       },
     };
 
@@ -118,11 +129,11 @@ describe('MongoRuntime middleware lifecycle', () => {
     });
 
     const plan = createPlan();
-    for await (const _row of runtime.execute(plan)) {
+    for await (const _row of runtime.query(plan)) {
       void _row;
     }
 
-    expect(callOrder).toEqual(['beforeExecute', 'onRow', 'afterExecute']);
+    expect(callOrder).toEqual(['beforeQuery', 'onRow', 'afterQuery']);
   });
 
   it('works with no middleware', async () => {
@@ -133,18 +144,185 @@ describe('MongoRuntime middleware lifecycle', () => {
     });
 
     const results: unknown[] = [];
-    for await (const row of runtime.execute(createPlan())) {
+    for await (const row of runtime.query(createPlan())) {
       results.push(row);
     }
 
     expect(results).toHaveLength(1);
   });
 
+  it('intercepts execute statistics through only execute hooks', async () => {
+    const calls: string[] = [];
+    const contexts: MongoMiddlewareContext[] = [];
+    const driver = createMockDriver([{ deletedCount: 99 }]);
+    const context = makeContext(createMockAdapter(), new DeleteOneWireCommand('users', { id: 1 }));
+    const runtime = createMongoRuntime({
+      context,
+      driver,
+      middleware: [
+        {
+          name: 'query-only',
+          async beforeQuery() {
+            calls.push('beforeQuery');
+          },
+          async interceptQuery() {
+            calls.push('interceptQuery');
+            return undefined;
+          },
+          async afterQuery() {
+            calls.push('afterQuery');
+          },
+        },
+        {
+          name: 'passthrough',
+          async beforeExecute(_plan, ctx) {
+            calls.push('beforeExecute');
+            contexts.push(ctx);
+          },
+          async interceptExecute(_plan, ctx) {
+            calls.push('passthrough');
+            contexts.push(ctx);
+            return undefined;
+          },
+          async afterExecute(_plan, result, ctx) {
+            calls.push(`afterExecute:${result.completed ? result.stats.affectedRows : 'failed'}`);
+            contexts.push(ctx);
+          },
+        },
+        {
+          name: 'winner',
+          async interceptExecute(_plan, ctx) {
+            calls.push('winner');
+            contexts.push(ctx);
+            return { stats: { affectedRows: 5 } };
+          },
+        },
+        {
+          name: 'tail',
+          async interceptExecute() {
+            calls.push('tail');
+            return { stats: { affectedRows: 6 } };
+          },
+        },
+      ],
+    });
+
+    await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 5 });
+    expect(driver.execute).not.toHaveBeenCalled();
+    expect(calls).toEqual(['beforeExecute', 'passthrough', 'winner', 'afterExecute:5']);
+    expect(contexts).toHaveLength(4);
+    expect(contexts.every((ctx) => ctx === contexts[0])).toBe(true);
+    expect(contexts[0]?.contract).toBe(context.contract);
+    expect(contexts[0]?.scope).toBe('runtime');
+    expect(contexts[0]?.planExecutionId).toBeTypeOf('string');
+  });
+
+  it('maps updateOne modifiedCount to affectedRows', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(
+        adapter,
+        new UpdateOneWireCommand('users', { id: 1 }, { $set: { active: true } }),
+      ),
+      driver: createMockDriver([{ matchedCount: 1, modifiedCount: 1 }]),
+    });
+
+    await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 1 });
+  });
+
+  it('maps update modifiedCount to affectedRows', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(
+        adapter,
+        new UpdateManyWireCommand('users', {}, { $set: { active: true } }),
+      ),
+      driver: createMockDriver([{ matchedCount: 6, modifiedCount: 4 }]),
+    });
+
+    await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 4 });
+  });
+
+  it('maps deleteOne deletedCount to affectedRows', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(adapter, new DeleteOneWireCommand('users', { id: 1 })),
+      driver: createMockDriver([{ deletedCount: 1 }]),
+    });
+
+    await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 1 });
+  });
+
+  it('maps delete deletedCount to affectedRows', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(adapter, new DeleteManyWireCommand('users', {})),
+      driver: createMockDriver([{ deletedCount: 3 }]),
+    });
+
+    await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 3 });
+  });
+
+  it('rejects unsupported statistics commands without a default count', async () => {
+    const adapter = createMockAdapter();
+    const driver = createMockDriver([{ count: 5 }]);
+    const runtime = createMongoRuntime({
+      context: makeContext(adapter),
+      driver,
+    });
+
+    await expect(runtime.execute(createPlan())).rejects.toMatchObject({
+      code: 'RUNTIME.MONGO_STATISTICS_UNSUPPORTED',
+    });
+  });
+
+  it('rejects zero statistics results', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(adapter, new DeleteOneWireCommand('users', { id: 1 })),
+      driver: createMockDriver([]),
+    });
+
+    await expect(runtime.execute(createPlan())).rejects.toMatchObject({
+      code: 'RUNTIME.MONGO_STATISTICS_RESULT_INVALID',
+    });
+  });
+
+  it('rejects multiple statistics results', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(
+        adapter,
+        new UpdateOneWireCommand('users', { id: 1 }, { $set: { active: true } }),
+      ),
+      driver: createMockDriver([{ modifiedCount: 1 }, { modifiedCount: 2 }]),
+    });
+
+    await expect(runtime.execute(createPlan())).rejects.toMatchObject({
+      code: 'RUNTIME.MONGO_STATISTICS_RESULT_INVALID',
+    });
+  });
+
+  it('rejects update statistics without modifiedCount', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(
+        adapter,
+        new UpdateManyWireCommand('users', {}, { $set: { active: true } }),
+      ),
+      driver: createMockDriver([{ matchedCount: 2 }]),
+    });
+
+    await expect(runtime.execute(createPlan())).rejects.toMatchObject({
+      code: 'RUNTIME.MONGO_STATISTICS_RESULT_INVALID',
+    });
+  });
+
   it('passes plan metadata to middleware hooks', async () => {
     const receivedMeta: PlanMeta[] = [];
     const middleware: MongoMiddleware = {
       name: 'meta-inspector',
-      async beforeExecute(plan) {
+      async beforeQuery(plan) {
         receivedMeta.push(plan.meta);
       },
     };
@@ -157,7 +335,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     });
 
     const plan = createPlan();
-    for await (const _row of runtime.execute(plan)) {
+    for await (const _row of runtime.query(plan)) {
       void _row;
     }
 
@@ -166,7 +344,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     expect(receivedMeta[0]!.lane).toBe('orm');
   });
 
-  it('calls afterExecute with completed: false on error, then rethrows', async () => {
+  it('calls afterQuery with completed: false on error, then rethrows', async () => {
     const failingDriver = {
       execute: vi.fn(async function* () {
         yield* []; // satisfy generator contract before throwing
@@ -178,7 +356,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     let afterResult: { completed: boolean; rowCount: number } | undefined;
     const middleware: MongoMiddleware = {
       name: 'error-observer',
-      async afterExecute(_plan, result) {
+      async afterQuery(_plan, result) {
         afterResult = { completed: result.completed, rowCount: result.rowCount };
       },
     };
@@ -191,7 +369,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     });
 
     await expect(async () => {
-      for await (const _row of runtime.execute(createPlan())) {
+      for await (const _row of runtime.query(createPlan())) {
         void _row;
       }
     }).rejects.toThrow('driver failure');
@@ -199,7 +377,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     expect(afterResult).toEqual({ completed: false, rowCount: 0 });
   });
 
-  it('handles error path with middleware that has no afterExecute', async () => {
+  it('handles error path with middleware that has no afterQuery', async () => {
     const failingDriver = {
       execute: vi.fn(async function* () {
         yield* [];
@@ -210,8 +388,8 @@ describe('MongoRuntime middleware lifecycle', () => {
 
     const beforeCalled = vi.fn();
     const middleware: MongoMiddleware = {
-      name: 'no-afterExecute',
-      async beforeExecute() {
+      name: 'no-afterQuery',
+      async beforeQuery() {
         beforeCalled();
       },
     };
@@ -224,7 +402,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     });
 
     await expect(async () => {
-      for await (const _row of runtime.execute(createPlan())) {
+      for await (const _row of runtime.query(createPlan())) {
         void _row;
       }
     }).rejects.toThrow('driver failure');
@@ -232,7 +410,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     expect(beforeCalled).toHaveBeenCalledOnce();
   });
 
-  it('swallows afterExecute errors during error handling and rethrows the original', async () => {
+  it('swallows afterQuery errors during error handling and rethrows the original', async () => {
     const failingDriver = {
       execute: vi.fn(async function* () {
         yield* [];
@@ -242,9 +420,9 @@ describe('MongoRuntime middleware lifecycle', () => {
     } as unknown as MongoDriver;
 
     const middleware: MongoMiddleware = {
-      name: 'failing-afterExecute',
-      async afterExecute() {
-        throw new Error('afterExecute also fails');
+      name: 'failing-afterQuery',
+      async afterQuery() {
+        throw new Error('afterQuery also fails');
       },
     };
 
@@ -256,7 +434,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     });
 
     await expect(async () => {
-      for await (const _row of runtime.execute(createPlan())) {
+      for await (const _row of runtime.query(createPlan())) {
         void _row;
       }
     }).rejects.toThrow('driver failure');
@@ -266,7 +444,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     let afterResult: { completed: boolean; rowCount: number } | undefined;
     const middleware: MongoMiddleware = {
       name: 'result-observer',
-      async afterExecute(_plan, result) {
+      async afterQuery(_plan, result) {
         afterResult = { completed: result.completed, rowCount: result.rowCount };
       },
     };
@@ -278,7 +456,7 @@ describe('MongoRuntime middleware lifecycle', () => {
       middleware: [middleware],
     });
 
-    for await (const _row of runtime.execute(createPlan())) {
+    for await (const _row of runtime.query(createPlan())) {
       void _row;
     }
 
@@ -289,7 +467,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     let receivedMode: string | undefined;
     const middleware: MongoMiddleware = {
       name: 'mode-inspector',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         receivedMode = ctx.mode;
       },
     };
@@ -302,7 +480,7 @@ describe('MongoRuntime middleware lifecycle', () => {
       mode: 'permissive',
     });
 
-    for await (const _row of runtime.execute(createPlan())) {
+    for await (const _row of runtime.query(createPlan())) {
       void _row;
     }
 
@@ -313,7 +491,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     let logWorks = false;
     const middleware: MongoMiddleware = {
       name: 'ctx-tester',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         ctx.log.info('test');
         ctx.log.warn('test');
         ctx.log.error('test');
@@ -329,7 +507,7 @@ describe('MongoRuntime middleware lifecycle', () => {
       middleware: [middleware],
     });
 
-    for await (const _row of runtime.execute(createPlan())) {
+    for await (const _row of runtime.query(createPlan())) {
       void _row;
     }
 
@@ -340,7 +518,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     const observedKeys: string[] = [];
     const middleware: MongoMiddleware = {
       name: 'content-hash-tester',
-      async afterExecute(plan, _result, ctx) {
+      async afterQuery(plan, _result, ctx) {
         observedKeys.push(await ctx.contentHash(plan));
       },
     };
@@ -352,10 +530,10 @@ describe('MongoRuntime middleware lifecycle', () => {
       middleware: [middleware],
     });
 
-    for await (const _row of runtime.execute(createPlan())) {
+    for await (const _row of runtime.query(createPlan())) {
       void _row;
     }
-    for await (const _row of runtime.execute(createPlan())) {
+    for await (const _row of runtime.query(createPlan())) {
       void _row;
     }
 
@@ -367,23 +545,23 @@ describe('MongoRuntime middleware lifecycle', () => {
 
 describe('MongoRuntime planExecutionId (ADR 220)', () => {
   interface Observation {
-    readonly hook: 'beforeExecute' | 'afterExecute';
+    readonly hook: 'beforeQuery' | 'afterQuery';
     readonly planExecutionId: string;
   }
 
   function observerMiddleware(log: Observation[]): MongoMiddleware {
     return {
       name: 'observer',
-      async beforeExecute(_plan, ctx) {
-        log.push({ hook: 'beforeExecute', planExecutionId: ctx.planExecutionId });
+      async beforeQuery(_plan, ctx) {
+        log.push({ hook: 'beforeQuery', planExecutionId: ctx.planExecutionId });
       },
-      async afterExecute(_plan, _result, ctx) {
-        log.push({ hook: 'afterExecute', planExecutionId: ctx.planExecutionId });
+      async afterQuery(_plan, _result, ctx) {
+        log.push({ hook: 'afterQuery', planExecutionId: ctx.planExecutionId });
       },
     };
   }
 
-  it('assigns the same planExecutionId to beforeExecute and afterExecute within one execute call', async () => {
+  it('assigns the same planExecutionId to beforeQuery and afterQuery within one query call', async () => {
     const log: Observation[] = [];
     const adapter = createMockAdapter();
     const runtime = createMongoRuntime({
@@ -392,18 +570,18 @@ describe('MongoRuntime planExecutionId (ADR 220)', () => {
       middleware: [observerMiddleware(log)],
     });
 
-    for await (const _row of runtime.execute(createPlan())) {
+    for await (const _row of runtime.query(createPlan())) {
       void _row;
     }
 
     expect(log).toHaveLength(2);
-    expect(log[0]?.hook).toBe('beforeExecute');
-    expect(log[1]?.hook).toBe('afterExecute');
+    expect(log[0]?.hook).toBe('beforeQuery');
+    expect(log[1]?.hook).toBe('afterQuery');
     expect(log[0]?.planExecutionId).toBeTypeOf('string');
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
   });
 
-  it('assigns distinct planExecutionIds to two executions of the same plan instance', async () => {
+  it('assigns distinct planExecutionIds to two queries of the same plan instance', async () => {
     const log: Observation[] = [];
     const adapter = createMockAdapter();
     const runtime = createMongoRuntime({
@@ -413,10 +591,10 @@ describe('MongoRuntime planExecutionId (ADR 220)', () => {
     });
 
     const plan = createPlan();
-    for await (const _row of runtime.execute(plan)) {
+    for await (const _row of runtime.query(plan)) {
       void _row;
     }
-    for await (const _row of runtime.execute(plan)) {
+    for await (const _row of runtime.query(plan)) {
       void _row;
     }
 

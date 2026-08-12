@@ -19,7 +19,6 @@ import {
   resolvePrimaryKeyColumn,
 } from './collection-contract';
 import { mapModelDataToStorageRow, mapStorageRowToModelFields } from './collection-runtime';
-import { executeQueryPlan } from './execute-query-plan';
 import { and, shorthandToWhereExpr } from './filters';
 import { ormError } from './orm-errors';
 import {
@@ -30,6 +29,7 @@ import {
   compileUpdateCount,
   compileUpdateReturning,
 } from './query-plan';
+import { queryPlanRows } from './query-plan-rows';
 import {
   createRelationMutator,
   isRelationMutationCallback,
@@ -359,10 +359,7 @@ async function updateFirstGraph(
       [pkWhere],
       undefined,
     );
-    const updatedRowsRaw = await executeQueryPlan<Record<string, unknown>>(
-      scope,
-      compiled,
-    ).toArray();
+    const updatedRowsRaw = await queryPlanRows<Record<string, unknown>>(scope, compiled).toArray();
 
     const updatedRaw = updatedRowsRaw[0];
     if (updatedRaw) {
@@ -1046,7 +1043,7 @@ async function insertJunctionLink(
     junctionRow,
   ]);
   try {
-    await executeQueryPlan<Record<string, unknown>>(scope, compiled).toArray();
+    await scope.execute(compiled);
   } catch (error) {
     // The junction PK is the common unique constraint here, but the table may
     // carry others — say a unique constraint was violated rather than
@@ -1092,7 +1089,7 @@ async function deleteJunctionLink(
   const compiled = compileDeleteCount(context.contract, through.namespaceId, through.table, [
     where,
   ]);
-  await executeQueryPlan<Record<string, unknown>>(scope, compiled).toArray();
+  await scope.execute(compiled);
 }
 
 function readParentColumnValues(
@@ -1177,7 +1174,7 @@ async function insertSingleRow(
     [mappedData],
     undefined,
   );
-  const rows = await executeQueryPlan<Record<string, unknown>>(scope, compiled).toArray();
+  const rows = await queryPlanRows<Record<string, unknown>>(scope, compiled).toArray();
 
   const firstRow = rows[0];
   if (!firstRow) {
@@ -1220,7 +1217,7 @@ async function findRowByCriterion(
     limit: 1,
   };
   const compiled = compileSelect(contract, namespaceId, tableName, state);
-  const rows = await executeQueryPlan<Record<string, unknown>>(scope, compiled).toArray();
+  const rows = await queryPlanRows<Record<string, unknown>>(scope, compiled).toArray();
 
   const firstRow = rows[0];
   if (!firstRow) {
@@ -1244,7 +1241,7 @@ async function findFirstByFilters(
     limit: 1,
   };
   const compiled = compileSelect(contract, namespaceId, tableName, state);
-  const rows = await executeQueryPlan<Record<string, unknown>>(scope, compiled).toArray();
+  const rows = await queryPlanRows<Record<string, unknown>>(scope, compiled).toArray();
 
   const firstRow = rows[0];
   if (!firstRow) {
@@ -1263,7 +1260,7 @@ async function executeUpdateCount(
   filters: readonly AnyExpression[],
 ): Promise<void> {
   const compiled = compileUpdateCount(contract, namespaceId, tableName, setValues, filters);
-  await executeQueryPlan<Record<string, unknown>>(scope, compiled).toArray();
+  await scope.execute(compiled);
 }
 
 const relationDefsCache = new WeakMap<object, Map<string, RelationDefinition[]>>();

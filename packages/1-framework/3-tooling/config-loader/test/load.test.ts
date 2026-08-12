@@ -1,9 +1,15 @@
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { getEmittedArtifactPaths } from '@internal/emitter';
 import { timeouts } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { findNearestConfigPathForFile, loadConfig, loadConfigForFile } from '../src/load';
+
+vi.mock('@internal/emitter', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@internal/emitter')>();
+  return { ...actual, getEmittedArtifactPaths: vi.fn(actual.getEmittedArtifactPaths) };
+});
 
 // Temp-dir fixtures cannot import @internal/config, so they stamp the marker
 // the same way defineConfig does: a non-enumerable well-known symbol.
@@ -638,6 +644,28 @@ throw error;
 
       expect(diagnostics).toEqual([]);
       expect(config.contract?.source.inputs).toBeUndefined();
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'stringifies a non-Error artifact path derivation failure',
+    async () => {
+      vi.mocked(getEmittedArtifactPaths).mockImplementationOnce(() => {
+        throw 'artifact path failure';
+      });
+      writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
+      process.chdir(tempDir);
+
+      const result = await loadConfig();
+
+      expect(result.assertOk().diagnostics).toContainEqual(
+        expect.objectContaining({
+          name: 'CliStructuredError',
+          code: 'CONFIG.VALIDATION_FAILED',
+          why: 'artifact path failure',
+        }),
+      );
     },
     timeouts.typeScriptCompilation,
   );

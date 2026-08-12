@@ -40,7 +40,7 @@ describe('Mongo runtime decode integration', () => {
         )
         .build();
 
-      const rows = await ctx.runtime.execute(plan).toArray();
+      const rows = await ctx.runtime.query(plan).toArray();
       expect(rows).toHaveLength(1);
       const row = rows[0]!;
       expect(typeof row['_id']).toBe('string');
@@ -77,7 +77,7 @@ describe('Mongo runtime decode integration', () => {
       await ctx.client.db(ctx.dbName).collection('items').insertOne({ x: 'wire' });
       let err: unknown;
       try {
-        for await (const _ of ctx.runtime.execute({
+        for await (const _ of ctx.runtime.query({
           collection: 'items',
           command,
           meta: ctx.stubMeta,
@@ -105,7 +105,7 @@ describe('Mongo runtime decode integration', () => {
       const oid = await ctx.client.db(ctx.dbName).collection('rawt').insertOne({ a: 1 });
       const command = new RawAggregateCommand('rawt', [{ $match: { _id: oid.insertedId } }]);
       const rows = await ctx.runtime
-        .execute<{ _id: unknown }>({ collection: 'rawt', command, meta: ctx.stubMeta })
+        .query<{ _id: unknown }>({ collection: 'rawt', command, meta: ctx.stubMeta })
         .toArray();
       expect(rows).toHaveLength(1);
       expect(rows[0]!['_id']).not.toBe(oid.insertedId.toHexString());
@@ -139,7 +139,7 @@ describe('Mongo runtime decode integration', () => {
         ),
       ]);
       const rows = await ctx.runtime
-        .execute<{ _id: string; addr: object }>({
+        .query<{ _id: string; addr: object }>({
           collection: 'opaque',
           command,
           meta: ctx.stubMeta,

@@ -41,6 +41,10 @@ class CtxRecordingRuntime extends RuntimeCore<MockPlan, MockExec, RuntimeMiddlew
     };
   }
 
+  protected override runExecute(): Promise<{ affectedRows: number }> {
+    return Promise.resolve({ affectedRows: 0 });
+  }
+
   override async close(): Promise<void> {}
 }
 
@@ -56,19 +60,19 @@ const ctxValue: RuntimeMiddlewareContext = {
 
 const plan: MockPlan = { draftId: 'd', meta };
 
-describe('RuntimeCore.execute(plan, options?)', () => {
-  it('accepts execute(plan) with no options and threads a ctx with undefined signal', async () => {
+describe('RuntimeCore.query(plan, options?)', () => {
+  it('accepts query(plan) with no options and threads a ctx with undefined signal', async () => {
     const runtime = new CtxRecordingRuntime({ middleware: [], ctx: ctxValue });
-    const out = await runtime.execute(plan).toArray();
+    const out = await runtime.query(plan).toArray();
     expect(out).toEqual([{ ok: true }]);
     expect(runtime.observedCtx).toBeDefined();
     expect(runtime.observedCtx?.signal).toBeUndefined();
   });
 
-  it('accepts execute(plan, undefined) and execute(plan, {}) with undefined signal', async () => {
+  it('accepts query(plan, undefined) and query(plan, {}) with undefined signal', async () => {
     const runtime = new CtxRecordingRuntime({ middleware: [], ctx: ctxValue });
-    await runtime.execute(plan, undefined).toArray();
-    await runtime.execute(plan, {}).toArray();
+    await runtime.query(plan, undefined).toArray();
+    await runtime.query(plan, {}).toArray();
     expect(runtime.observedCtx).toBeDefined();
     expect(runtime.observedCtx?.signal).toBeUndefined();
   });
@@ -76,7 +80,7 @@ describe('RuntimeCore.execute(plan, options?)', () => {
   it('threads ctx (carrying the signal) into lower() when signal is present', async () => {
     const runtime = new CtxRecordingRuntime({ middleware: [], ctx: ctxValue });
     const controller = new AbortController();
-    await runtime.execute(plan, { signal: controller.signal }).toArray();
+    await runtime.query(plan, { signal: controller.signal }).toArray();
     expect(runtime.observedCtx).toBeDefined();
     expect(runtime.observedCtx?.signal).toBe(controller.signal);
   });
@@ -87,7 +91,7 @@ describe('RuntimeCore.execute(plan, options?)', () => {
     controller.abort();
     let observed: unknown;
     try {
-      await runtime.execute(plan, { signal: controller.signal }).toArray();
+      await runtime.query(plan, { signal: controller.signal }).toArray();
     } catch (error) {
       observed = error;
     }
@@ -107,7 +111,7 @@ describe('RuntimeCore.execute(plan, options?)', () => {
     controller.abort(reason);
     let observed: unknown;
     try {
-      await runtime.execute(plan, { signal: controller.signal }).toArray();
+      await runtime.query(plan, { signal: controller.signal }).toArray();
     } catch (error) {
       observed = error;
     }

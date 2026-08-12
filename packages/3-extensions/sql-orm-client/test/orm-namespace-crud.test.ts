@@ -126,14 +126,14 @@ describe('namespaced orm CRUD execution', () => {
 
   it('updates within the namespace target table', async () => {
     const { db, runtime } = setup();
-    runtime.setNextResults([[{ id: 1 }], []]);
+    runtime.setNextStats([{ affectedRows: 1 }]);
     await db.auth.User.where({ token: 'tok' }).updateAndCount({ token: 'new' });
     expect(lastPlanTable(runtime).name).toBe('auth_users');
   });
 
   it('deletes within the namespace target table', async () => {
     const { db, runtime } = setup();
-    runtime.setNextResults([[]]);
+    runtime.setNextStats([{ affectedRows: 1 }]);
     await db.public.User.where({ email: 'a@example.com' }).deleteAndCount();
     expect(lastPlanTable(runtime).name).toBe('users');
   });

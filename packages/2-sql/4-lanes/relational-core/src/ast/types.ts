@@ -605,7 +605,7 @@ export class ParamRef extends Expression {
 /**
  * Bind-site placeholder: occupies the same positions as `ParamRef` in the
  * AST, but carries no value — the value is supplied per-execute by the
- * `PreparedStatement.execute(params)` caller and matched to this node by
+ * `statement.query(target, params)` caller and matched to this node by
  * `name`.
  */
 export class PreparedParamRef extends Expression {

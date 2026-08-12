@@ -1,5 +1,6 @@
 import {
   type AfterExecuteResult,
+  type AfterQueryResult,
   type RuntimeErrorEnvelope,
   runtimeError,
 } from '@internal/framework-components/runtime';
@@ -93,17 +94,41 @@ export function budgets(options?: BudgetsOptions): SqlMiddleware {
 
   const observedRowsByPlan = new WeakMap<SqlExecutionPlan, { count: number }>();
 
+  const beforeOperation = async (
+    plan: SqlExecutionPlan,
+    ctx: SqlMiddlewareContext,
+  ): Promise<void> => {
+    observedRowsByPlan.set(plan, { count: 0 });
+
+    if (isQueryAst(plan.ast) && plan.ast.kind === 'select') {
+      evaluateSelectAst(plan.ast, ctx);
+    }
+  };
+
+  const afterOperation = async (
+    _plan: SqlExecutionPlan,
+    result: AfterQueryResult | AfterExecuteResult,
+    ctx: SqlMiddlewareContext,
+  ): Promise<void> => {
+    const latencyMs = result.latencyMs;
+    if (latencyMs > maxLatencyMs) {
+      const shouldBlock = latencySeverity === 'error' || ctx.mode === 'strict';
+      emitBudgetViolation(
+        runtimeError('BUDGET.TIME_EXCEEDED', 'Query latency exceeds budget', {
+          latencyMs,
+          maxLatencyMs,
+        }),
+        shouldBlock,
+        ctx,
+      );
+    }
+  };
+
   return Object.freeze({
     name: 'budgets',
     familyId: 'sql' as const,
-
-    async beforeExecute(plan: SqlExecutionPlan, ctx: SqlMiddlewareContext) {
-      observedRowsByPlan.set(plan, { count: 0 });
-
-      if (isQueryAst(plan.ast) && plan.ast.kind === 'select') {
-        return evaluateSelectAst(plan.ast, ctx);
-      }
-    },
+    beforeQuery: beforeOperation,
+    beforeExecute: beforeOperation,
 
     async onRow(_row: Record<string, unknown>, plan: SqlExecutionPlan, _ctx: SqlMiddlewareContext) {
       const state = observedRowsByPlan.get(plan);
@@ -118,24 +143,8 @@ export function budgets(options?: BudgetsOptions): SqlMiddleware {
       }
     },
 
-    async afterExecute(
-      _plan: SqlExecutionPlan,
-      result: AfterExecuteResult,
-      ctx: SqlMiddlewareContext,
-    ) {
-      const latencyMs = result.latencyMs;
-      if (latencyMs > maxLatencyMs) {
-        const shouldBlock = latencySeverity === 'error' || ctx.mode === 'strict';
-        emitBudgetViolation(
-          runtimeError('BUDGET.TIME_EXCEEDED', 'Query latency exceeds budget', {
-            latencyMs,
-            maxLatencyMs,
-          }),
-          shouldBlock,
-          ctx,
-        );
-      }
-    },
+    afterQuery: afterOperation,
+    afterExecute: afterOperation,
   });
 
   function evaluateSelectAst(ast: SelectAst, ctx: SqlMiddlewareContext) {

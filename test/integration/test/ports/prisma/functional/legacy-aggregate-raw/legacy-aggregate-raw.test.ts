@@ -28,12 +28,14 @@ describe('ports/prisma/functional/0-legacy-ports/aggregate-raw', () => {
       withLegacyAggregateRaw(async ({ client, db, contract }) => {
         await db.User.createAll(users as unknown as Parameters<typeof db.User.createAll>[0]);
         const raw = mongo<Contract>({ contract, mongoClient: client, dbName: 'test' });
-        const result = await raw.execute(
-          raw.raw
-            .collection('User')
-            .aggregate([{ $group: { _id: '$age', total: { $sum: 1 } } }, { $sort: { _id: -1 } }])
-            .build(),
-        );
+        const result = await (await raw.runtime())
+          .query(
+            raw.raw
+              .collection('User')
+              .aggregate([{ $group: { _id: '$age', total: { $sum: 1 } } }, { $sort: { _id: -1 } }])
+              .build(),
+          )
+          .toArray();
 
         expect(result).toEqual([
           { _id: 60, total: 2 },
@@ -51,12 +53,14 @@ describe('ports/prisma/functional/0-legacy-ports/aggregate-raw', () => {
       withLegacyAggregateRaw(async ({ client, db, contract }) => {
         await db.User.createAll(users as unknown as Parameters<typeof db.User.createAll>[0]);
         const raw = mongo<Contract>({ contract, mongoClient: client, dbName: 'test' });
-        const result = await raw.execute(
-          raw.raw
-            .collection('User')
-            .aggregate([{ $match: { age: 60 } }, { $project: { email: true, _id: false } }])
-            .build(),
-        );
+        const result = await (await raw.runtime())
+          .query(
+            raw.raw
+              .collection('User')
+              .aggregate([{ $match: { age: 60 } }, { $project: { email: true, _id: false } }])
+              .build(),
+          )
+          .toArray();
 
         expect(result).toEqual([
           { email: 'Kyla_Crist96556@cancollaboration.biz' },

@@ -26,7 +26,7 @@ function assertContentHashOnResolvedCommand(command: unknown): void {
   }
   throw runtimeError(
     RUNTIME_CONTENT_HASH_REQUIRES_RESOLVED_COMMAND,
-    'contentHash and computeMongoContentHash are only valid on a resolved wire command (after param resolution, e.g. from afterExecute). During beforeExecute, plan.command holds an unresolved MongoLoweredDraft — use params.entries() and the param mutator instead of contentHash or structural reads of plan.command.',
+    'contentHash and computeMongoContentHash are only valid on a resolved wire command after parameter resolution. During a before hook, plan.command holds an unresolved MongoLoweredDraft — use params.entries() and the param mutator instead of contentHash or structural reads of plan.command.',
     { phase: 'beforeExecute' },
   );
 }

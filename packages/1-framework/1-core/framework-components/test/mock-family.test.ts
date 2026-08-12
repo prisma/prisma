@@ -10,8 +10,8 @@ import type {
 /**
  * Cross-family demonstration: a fictional "mock" family extends the
  * canonical `RuntimeCore` base and inherits the middleware lifecycle
- * (`runBeforeCompile → lower → beforeExecute → runDriver → onRow →
- * afterExecute`) from `runWithMiddleware`. Confirms that the abstract
+ * (`runBeforeCompile → lower → beforeQuery → runDriver → onRow →
+ * afterQuery`) from `runQueryWithMiddleware`. Confirms that the abstract
  * base is family-agnostic — i.e. SQL and Mongo are not the only families
  * that can plug in.
  *
@@ -71,6 +71,10 @@ class MockRuntime extends RuntimeCore<MockPlan, MockExec, RuntimeMiddleware<Mock
     };
   }
 
+  protected runExecute(): Promise<{ affectedRows: number }> {
+    return Promise.resolve({ affectedRows: 0 });
+  }
+
   async close(): Promise<void> {
     this.closeCalls++;
   }
@@ -99,7 +103,7 @@ describe('RuntimeCore with mock family', () => {
 
     const plan: MockPlan = { draftId: 'd-1', meta };
 
-    const results = await runtime.execute(plan).toArray();
+    const results = await runtime.query(plan).toArray();
 
     expect(results).toHaveLength(1);
     expect(results[0]).toEqual({ id: 1, name: 'test' });
@@ -118,37 +122,37 @@ describe('RuntimeCore with mock family', () => {
       },
     };
 
-    await expect(runtime.execute(invalidPlan).toArray()).rejects.toThrow(
+    await expect(runtime.query(invalidPlan).toArray()).rejects.toThrow(
       'Plan target other does not match contract target mock',
     );
   });
 
   it('drives middleware hooks for any family', async () => {
-    let beforeExecuteCalled = false;
+    let beforeQueryCalled = false;
     let onRowCalled = false;
-    let afterExecuteCalled = false;
+    let afterQueryCalled = false;
 
     const middleware: RuntimeMiddleware<MockExec> = {
       name: 'test-middleware',
-      async beforeExecute() {
-        beforeExecuteCalled = true;
+      async beforeQuery() {
+        beforeQueryCalled = true;
       },
       async onRow() {
         onRowCalled = true;
       },
-      async afterExecute() {
-        afterExecuteCalled = true;
+      async afterQuery() {
+        afterQueryCalled = true;
       },
     };
 
     const contract: MockContract = { target: 'mock', storageHash: 'test-core' };
     const runtime = new MockRuntime([middleware], ctx, contract, [{ id: 1 }]);
 
-    await runtime.execute({ draftId: 'd-3', meta }).toArray();
+    await runtime.query({ draftId: 'd-3', meta }).toArray();
 
-    expect(beforeExecuteCalled).toBe(true);
+    expect(beforeQueryCalled).toBe(true);
     expect(onRowCalled).toBe(true);
-    expect(afterExecuteCalled).toBe(true);
+    expect(afterQueryCalled).toBe(true);
   });
 
   it('exposes `close()` for resource teardown', async () => {

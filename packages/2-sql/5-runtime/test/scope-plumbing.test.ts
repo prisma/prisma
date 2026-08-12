@@ -29,9 +29,9 @@ import { createTestRuntime as createRuntime, descriptorsFromCodecs, stubAst } fr
 
 /**
  * Verifies the SQL runtime populates `RuntimeMiddlewareContext.scope`
- * differently for the three queryable surfaces: top-level `runtime.execute`,
- * `connection.execute` (after `runtime.connection()`), and
- * `transaction.execute` (after `connection.transaction()` or
+ * differently for the three queryable surfaces: top-level `runtime.query`,
+ * `connection.query` (after `runtime.connection()`), and
+ * `transaction.query` (after `connection.transaction()` or
  * `withTransaction`).
  *
  * The cache middleware (TML-2143 M3) reads `ctx.scope` to bypass caching on
@@ -204,28 +204,28 @@ function createRawExecutionPlan(): SqlExecutionPlan {
 }
 
 describe('SQL runtime scope plumbing', () => {
-  it('populates ctx.scope = "runtime" on top-level runtime.execute', async () => {
+  it('populates ctx.scope = "runtime" on top-level runtime.query', async () => {
     const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
 
     const { runtime } = createTestSetup([observer]);
-    await runtime.execute(createRawExecutionPlan()).toArray();
+    await runtime.query(createRawExecutionPlan()).toArray();
 
     expect(seen).toEqual(['runtime']);
   });
 
-  it('populates ctx.scope = "connection" on connection.execute', async () => {
+  it('populates ctx.scope = "connection" on connection.query', async () => {
     const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -233,7 +233,7 @@ describe('SQL runtime scope plumbing', () => {
     const { runtime } = createTestSetup([observer]);
     const connection = await runtime.connection();
     try {
-      await connection.execute(createRawExecutionPlan()).toArray();
+      await connection.query(createRawExecutionPlan()).toArray();
     } finally {
       await connection.release();
     }
@@ -241,12 +241,12 @@ describe('SQL runtime scope plumbing', () => {
     expect(seen).toEqual(['connection']);
   });
 
-  it('populates ctx.scope = "transaction" on transaction.execute', async () => {
+  it('populates ctx.scope = "transaction" on transaction.query', async () => {
     const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -255,7 +255,7 @@ describe('SQL runtime scope plumbing', () => {
     const connection = await runtime.connection();
     const transaction = await connection.transaction();
     try {
-      await transaction.execute(createRawExecutionPlan()).toArray();
+      await transaction.query(createRawExecutionPlan()).toArray();
       await transaction.commit();
     } finally {
       await connection.release();
@@ -264,12 +264,12 @@ describe('SQL runtime scope plumbing', () => {
     expect(seen).toEqual(['transaction']);
   });
 
-  it('populates ctx.scope = "runtime" on top-level prepared .execute(runtime, ...)', async () => {
+  it('populates ctx.scope = "runtime" on top-level statement.query(runtime, ...)', async () => {
     const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -286,16 +286,16 @@ describe('SQL runtime scope plumbing', () => {
       },
     }));
 
-    await ps.execute(runtime, {}).toArray();
+    await ps.query(runtime, {}).toArray();
     expect(seen).toEqual(['runtime']);
   });
 
-  it('populates ctx.scope = "connection" on prepared .execute(connection, ...)', async () => {
+  it('populates ctx.scope = "connection" on statement.query(connection, ...)', async () => {
     const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -314,7 +314,7 @@ describe('SQL runtime scope plumbing', () => {
 
     const connection = await runtime.connection();
     try {
-      await ps.execute(connection, {}).toArray();
+      await ps.query(connection, {}).toArray();
     } finally {
       await connection.release();
     }
@@ -322,12 +322,12 @@ describe('SQL runtime scope plumbing', () => {
     expect(seen).toEqual(['connection']);
   });
 
-  it('populates ctx.scope = "transaction" on prepared .execute(transaction, ...)', async () => {
+  it('populates ctx.scope = "transaction" on statement.query(transaction, ...)', async () => {
     const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -347,7 +347,7 @@ describe('SQL runtime scope plumbing', () => {
     const connection = await runtime.connection();
     const transaction = await connection.transaction();
     try {
-      await ps.execute(transaction, {}).toArray();
+      await ps.query(transaction, {}).toArray();
       await transaction.commit();
     } finally {
       await connection.release();
@@ -356,12 +356,12 @@ describe('SQL runtime scope plumbing', () => {
     expect(seen).toEqual(['transaction']);
   });
 
-  it('routes a sequence of executes to the right scope each time', async () => {
+  it('routes a sequence of queries to the right scope each time', async () => {
     const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -369,20 +369,20 @@ describe('SQL runtime scope plumbing', () => {
     const { runtime } = createTestSetup([observer]);
 
     // Top-level.
-    await runtime.execute(createRawExecutionPlan()).toArray();
+    await runtime.query(createRawExecutionPlan()).toArray();
 
     // Connection-scoped.
     const connection = await runtime.connection();
-    await connection.execute(createRawExecutionPlan()).toArray();
+    await connection.query(createRawExecutionPlan()).toArray();
 
     // Transaction-scoped.
     const transaction = await connection.transaction();
-    await transaction.execute(createRawExecutionPlan()).toArray();
+    await transaction.query(createRawExecutionPlan()).toArray();
     await transaction.commit();
     await connection.release();
 
     // And another top-level after returning the connection to the pool.
-    await runtime.execute(createRawExecutionPlan()).toArray();
+    await runtime.query(createRawExecutionPlan()).toArray();
 
     expect(seen).toEqual(['runtime', 'connection', 'transaction', 'runtime']);
   });

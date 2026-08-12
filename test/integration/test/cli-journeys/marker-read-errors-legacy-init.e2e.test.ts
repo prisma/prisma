@@ -50,13 +50,16 @@ withTempDir(({ createTempDir }) => {
 
         const error = parseJsonOutput<{
           code: string;
-          nextActions: readonly { label: string }[];
+          nextActions: readonly { kind: string; label: string; command?: string }[];
         }>(initFail);
         expect(error.code).toBe('MIGRATION.RUNNER_FAILED');
-        const remediation = error.nextActions.map((action) => action.label).join('\n');
-        expect(remediation).toContain('Legacy marker-table shape detected');
-        expect(remediation).toContain('prisma_contract.marker');
-        expect(remediation).toContain('prisma-next db init');
+        expect(error.nextActions).toContainEqual(
+          expect.objectContaining({
+            kind: 'run-command',
+            label: 'Reinitialise the marker table from a clean baseline',
+            command: '{bin} db init',
+          }),
+        );
       },
       timeouts.spinUpPpgDev,
     );

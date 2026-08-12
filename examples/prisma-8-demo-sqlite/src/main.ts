@@ -149,7 +149,7 @@ async function main() {
       } catch (txError) {
         if (txError instanceof QuotaExceededError) {
           console.error('Transaction rolled back:', txError.message);
-          const countRows = await runtime.execute(
+          const countRows = await runtime.query(
             db.sql.post
               .select('postCount', (_f, fns) => fns.count())
               .where((f, fns) => fns.eq(f.userId, userId))

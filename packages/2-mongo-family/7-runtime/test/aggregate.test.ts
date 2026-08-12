@@ -29,7 +29,7 @@ describe('aggregate integration', () => {
         }),
         new MongoSortStage({ _id: 1 }),
       ]);
-      const rows = await ctx.runtime.execute({
+      const rows = await ctx.runtime.query({
         collection: collectionName,
         command,
         meta: ctx.stubMeta,

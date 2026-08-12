@@ -14,7 +14,7 @@ describe('DML E2E Tests', { timeout: 30000 }, () => {
       // Insert
       await runtime.execute(db.public.user.insert([{ email: 'e2e@example.com' }]).build());
 
-      const insertedRows = await runtime.execute(
+      const insertedRows = await runtime.query(
         db.public.user
           .select('id', 'email', 'created_at', 'update_at')
           .where((f, fns) => fns.eq(f.email, 'e2e@example.com'))
@@ -40,7 +40,7 @@ describe('DML E2E Tests', { timeout: 30000 }, () => {
           .build(),
       );
 
-      const updatedRows = await runtime.execute(
+      const updatedRows = await runtime.query(
         db.public.user
           .select('id', 'email')
           .where((f, fns) => fns.eq(f.id, userId))
@@ -76,7 +76,7 @@ describe('DML E2E Tests - UUIDv7 client-generated IDs', { timeout: 30000 }, () =
     await withTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
       await runtime.execute(db.public.event.insert([{ name: 'uuidv7-test-event' }]).build());
 
-      const rows = await runtime.execute(
+      const rows = await runtime.query(
         db.public.event
           .select('id', 'name', 'created_at', 'scheduled_at')
           .where((f, fns) => fns.eq(f.name, 'uuidv7-test-event'))
@@ -102,7 +102,7 @@ describe('DML E2E Tests - UUIDv7 client-generated IDs', { timeout: 30000 }, () =
         db.public.event.insert([{ id: overrideId, name: 'override-event' }]).build(),
       );
 
-      const rows = await runtime.execute(
+      const rows = await runtime.query(
         db.public.event
           .select('id', 'name')
           .where((f, fns) => fns.eq(f.id, overrideId))
@@ -123,7 +123,7 @@ describe('DML E2E Tests - UUIDv7 client-generated IDs', { timeout: 30000 }, () =
       // Insert (auto-generated id)
       await runtime.execute(db.public.event.insert([{ name: 'to-be-updated' }]).build());
 
-      const insertedRows = await runtime.execute(
+      const insertedRows = await runtime.query(
         db.public.event
           .select('id', 'name')
           .where((f, fns) => fns.eq(f.name, 'to-be-updated'))
@@ -143,7 +143,7 @@ describe('DML E2E Tests - UUIDv7 client-generated IDs', { timeout: 30000 }, () =
           .build(),
       );
 
-      const updatedRows = await runtime.execute(
+      const updatedRows = await runtime.query(
         db.public.event
           .select('id', 'name')
           .where((f, fns) => fns.eq(f.id, eventId))
@@ -175,7 +175,7 @@ describe('DML E2E Tests - UUIDv7 client-generated IDs', { timeout: 30000 }, () =
     await withTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
       await runtime.execute(db.public.literal_defaults.insert([{}]).build());
 
-      const rows = await runtime.execute(
+      const rows = await runtime.query(
         db.public.literal_defaults
           .select('id', 'label', 'score', 'rating', 'active', 'big_count', 'metadata', 'tags')
           .limit(1)
@@ -212,7 +212,7 @@ describe('DML E2E Tests - UUIDv7 client-generated IDs', { timeout: 30000 }, () =
         db.public.user.insert([{ email: 'json@example.com', profile }]).build(),
       );
 
-      const userRows = await runtime.execute(
+      const userRows = await runtime.query(
         db.public.user
           .select('id', 'profile')
           .where((f, fns) => fns.eq(f.email, 'json@example.com'))
@@ -236,7 +236,7 @@ describe('DML E2E Tests - UUIDv7 client-generated IDs', { timeout: 30000 }, () =
           .build(),
       );
 
-      const postRows = await runtime.execute(
+      const postRows = await runtime.query(
         db.public.post
           .select('id', 'meta')
           .where((f, fns) => fns.eq(f.title, 'Typed JSON post'))
