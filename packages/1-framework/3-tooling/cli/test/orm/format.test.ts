@@ -1,10 +1,10 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterEach, describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const MESSY_PSL = 'model    User{id Int @id\nname String}\n';
 const FORMATTED_PSL = `model User {
@@ -16,7 +16,7 @@ const FORMATTED_PSL = `model User {
 const dirs: string[] = [];
 
 async function projectDir(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'orm-format-'));
+  const dir = createTestProjectDir('orm-format');
   dirs.push(dir);
   return dir;
 }

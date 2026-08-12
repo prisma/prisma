@@ -1,5 +1,4 @@
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { rm } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
@@ -9,6 +8,7 @@ import { blindCast } from '@internal/utils/casts';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { join } from 'pathe';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 export const HASH_A = `4cb4256${'0'.repeat(57)}`;
 export const HASH_B = `9f1e2d3${'0'.repeat(57)}`;
@@ -29,7 +29,7 @@ export async function cleanupRefProjects(): Promise<void> {
 }
 
 export async function emptyProject(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'orm-ref-'));
+  const dir = createTestProjectDir('orm-ref');
   created.push(dir);
   return dir;
 }
