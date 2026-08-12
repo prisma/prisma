@@ -81,7 +81,7 @@ const NO_DATABASE_STATE: DatabaseState = {
 
 type ControlClient = ReturnType<typeof createControlClient>;
 
-/** Whatever the configured driver takes: a URL for Postgres, a record elsewhere. */
+/** Whatever the configured driver takes: a connection string for some drivers, a settings record for others. */
 type ConnectionInput = Parameters<ControlClient['connect']>[0];
 
 async function readDatabaseState(inputs: {
