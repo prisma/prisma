@@ -17,14 +17,10 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { promisify } from 'node:util';
-import { createDbSignCommand } from '@internal/cli/commands/db-sign';
-import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
-import { createMigrationCheckCommand } from '@internal/cli/commands/migration-check';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { EngineEvent, PresentedResult, StreamEvent } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
-import type { Command } from 'commander';
 import { isAbsolute, join, resolve } from 'pathe';
 import { afterAll, beforeAll } from 'vitest';
 
@@ -33,10 +29,7 @@ const TSX_BIN = resolve(import.meta.dirname, '../../../../node_modules/.bin/tsx'
 
 import {
   appendImplicitMigrationPlanFrom,
-  executeCommand,
-  getExitCode,
   runOnEngine as runCommandOnEngine,
-  setupCommandMocks,
   writeProjectManifest,
 } from './cli-test-helpers';
 
@@ -265,56 +258,6 @@ export interface RunCommandOptions {
 }
 
 /**
- * Core execution helper — all run* functions delegate to this.
- * Creates fresh mocks for each invocation so steps don't interfere.
- *
- * NOTE: Uses `process.chdir()`, which is process-global. This is safe because
- * `vitest.journeys.config.ts` uses `pool: 'forks'` (each file runs in its own
- * process) and tests within a file run sequentially. Do NOT switch to `pool: 'threads'`.
- */
-async function runCommandCore(
-  command: Command,
-  testDir: string,
-  args: readonly string[],
-  options?: RunCommandOptions,
-): Promise<CommandResult> {
-  const mocks = setupCommandMocks({ isTTY: options?.isTTY });
-  const originalCwd = process.cwd();
-  try {
-    process.chdir(testDir);
-    try {
-      await executeCommand(command, ['--no-color', ...args]);
-      return {
-        exitCode: 0,
-        stdout: mocks.consoleOutput.join('\n'),
-        stderr: mocks.consoleErrors.join('\n'),
-      };
-    } catch (error) {
-      const exitCode = getExitCode();
-      if (exitCode == null) throw error; // unexpected error, not a CLI exit
-      return {
-        exitCode,
-        stdout: mocks.consoleOutput.join('\n'),
-        stderr: mocks.consoleErrors.join('\n'),
-      };
-    }
-  } finally {
-    process.chdir(originalCwd);
-    mocks.cleanup();
-  }
-}
-
-/** Runs a CLI command with --config in the journey's test directory. */
-async function runCommand(
-  command: Command,
-  ctx: JourneyContext,
-  args: readonly string[],
-  options?: RunCommandOptions,
-): Promise<CommandResult> {
-  return runCommandCore(command, ctx.testDir, ['--config', ctx.configPath, ...args], options);
-}
-
-/**
  * What a step run through the engine reports. A superset of
  * {@link CommandResult}, so a wrapper can move onto the engine without every
  * journey that calls it changing at once.
@@ -388,15 +331,17 @@ export function consentTokenFor(connectionString: string): string {
 export async function runDbVerify(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbVerifyCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'verify', ...extraArgs], options);
 }
 
 export async function runDbSign(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbSignCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'sign', ...extraArgs], options);
 }
 
 export async function runDbSchema(
@@ -478,8 +423,9 @@ export async function runMigrationGraph(
 export async function runMigrationCheck(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationCheckCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'check', ...extraArgs], options);
 }
 
 // The generator emits `import endContract from '<specifier>' with { type: "json" };`
@@ -644,8 +590,8 @@ export async function runDbVerifyWithDb(
   ctx: JourneyContext,
   dbUrl: string,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbVerifyCommand(), ctx, ['--db', dbUrl, ...extraArgs]);
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'verify', '--db', dbUrl, ...extraArgs]);
 }
 
 // ---------------------------------------------------------------------------
@@ -679,7 +625,7 @@ export function parseJsonOutput<T = Record<string, unknown>>(
   if (parsed === undefined) {
     throw new Error(`Failed to parse JSON from command output:\n${output}`);
   }
-  const document = engineDocument(parsed);
+  const document = frameDocument(parsed);
   return (document === undefined ? parsed : document) as T;
 }
 
@@ -698,7 +644,33 @@ function lastJsonValue(output: string): unknown {
   }
 }
 
-function engineDocument(parsed: unknown): unknown {
+/**
+ * The document an engine-run step presented — what `--json` would print inside
+ * the result frame — without going back through the frame stream.
+ */
+export function engineDocument<T = Record<string, unknown>>(run: EngineCommandResult): T {
+  const presented = run.presented;
+  if (presented === undefined) {
+    throw new Error(`Step never presented a result (exit ${run.exitCode}):\n${run.stderr}`);
+  }
+  return presented.data as T;
+}
+
+/**
+ * The dotted codes of the findings an engine-run step carried on its envelope.
+ * Throws on a step that errored rather than reporting no findings — an empty
+ * list has to mean "settled with none", or `toEqual([])` would pass against a
+ * run that never presented at all.
+ */
+export function engineDiagnosticCodes(run: EngineCommandResult): readonly string[] {
+  const presented = run.presented;
+  if (presented === undefined) {
+    throw new Error(`Step never presented a result (exit ${run.exitCode}):\n${run.stderr}`);
+  }
+  return presented.diagnostics.map((diagnostic) => diagnostic.code);
+}
+
+function frameDocument(parsed: unknown): unknown {
   if (typeof parsed !== 'object' || parsed === null) {
     return undefined;
   }

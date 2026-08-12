@@ -101,6 +101,29 @@ export class ActionableCliError extends CliStructuredError {
   }
 }
 
+/**
+ * A command that accepts a contract reference both as a positional and as a
+ * flag was given both. Structured rather than a bare stderr line, so a script
+ * sees the same envelope every other invocation failure produces.
+ */
+export function errorContractArgConflict(options: {
+  readonly positional: string;
+  readonly flag: string;
+}): ActionableCliError {
+  const fix =
+    'Pass the contract reference once — either as the positional argument or as --contract.';
+  return new ActionableCliError(
+    'CLI.CONTRACT_ARG_CONFLICT',
+    'Cannot specify both a positional contract argument and --contract',
+    {
+      why: `The positional argument names "${options.positional}" and --contract names "${options.flag}"; there is no rule for which wins.`,
+      fix,
+      nextActions: [chooseAction(fix)],
+      meta: { positional: options.positional, flag: options.flag },
+    },
+  );
+}
+
 export function errorRefSetHashNotInGraph(
   resolvedHash: string,
   reachableHashes: readonly string[],

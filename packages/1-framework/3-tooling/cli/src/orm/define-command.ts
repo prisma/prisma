@@ -1,3 +1,4 @@
+import { isInternalError } from '@internal/utils/internal-error';
 import type {
   ArgsSpec,
   CommandDefinition,
@@ -20,6 +21,11 @@ import { normalizeError } from './normalize-error';
  * prisma/prisma's `CliStructuredError` — both classes carry that name — and then settles it
  * through fields the engine's own class has and this one does not. The envelope that results is
  * off-protocol. Catching here means every handler settles through the single conversion instead.
+ *
+ * An `InternalError` is the one thing this boundary does not convert. Its own contract says never
+ * to catch it outside the outermost boundary: it means an invariant broke, which is a bug in
+ * Prisma Next rather than something the user did. Re-throwing lets the engine settle it as a bug
+ * at exit 1, where converting it would report the same number as a bad connection string.
  */
 export function defineOrmCommand<
   TFlags extends Record<string, FlagSpec<unknown>> = Record<never, FlagSpec<unknown>>,
@@ -46,6 +52,9 @@ export function defineOrmCommand<
       try {
         return await def.handler(args, ctx);
       } catch (error) {
+        if (isInternalError(error)) {
+          throw error;
+        }
         return notOk(normalizeError(error));
       }
     },

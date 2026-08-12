@@ -162,6 +162,7 @@ export function defaultControlClientFixtures(): ControlClientFixtures {
       unclaimed: [],
       spaceOrder: [APP_SPACE_ID],
       appSpaceId: APP_SPACE_ID,
+      markerDrift: null,
     }),
     readMarker: fixtureMarker(),
     readAllMarkers: new Map([[APP_SPACE_ID, fixtureMarker()]]),

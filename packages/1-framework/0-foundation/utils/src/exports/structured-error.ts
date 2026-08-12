@@ -4,5 +4,6 @@ export {
   DOCS_ERRORS_VERSION,
   docsUrlFor,
   isStructuredError,
+  isStructuredErrorCode,
   structuredError,
 } from '../structured-error';

@@ -19,6 +19,7 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   consentTokenFor,
+  engineDiagnosticCodes,
   type JourneyContext,
   runContractEmit,
   runDbInit,
@@ -59,7 +60,10 @@ withTempDir(({ createTempDir }) => {
 
         // M.01: db verify (fails — schema verification detects the missing column)
         const verify = await runDbVerify(ctx);
-        expect(verify.exitCode, 'M.01: db verify detects drift').toBe(1);
+        expect(verify.exitCode, 'M.01: db verify detects drift').toBe(4);
+        expect(engineDiagnosticCodes(verify), 'M.01: drift rides as a finding').toContain(
+          'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        );
 
         // M.02: db verify --marker-only (passes — marker hash still matches)
         const markerOnlyVerify = await runDbVerify(ctx, ['--marker-only']);
@@ -67,7 +71,10 @@ withTempDir(({ createTempDir }) => {
 
         // M.03: db verify --schema-only (fails — missing email column)
         const schemaVerify = await runDbVerify(ctx, ['--schema-only']);
-        expect(schemaVerify.exitCode, 'M.03: db verify --schema-only fails').toBe(1);
+        expect(schemaVerify.exitCode, 'M.03: db verify --schema-only fails').toBe(4);
+        expect(engineDiagnosticCodes(schemaVerify)).toContain(
+          'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        );
 
         // M.04: db schema (shows schema without email)
         const schema = await runDbSchema(ctx);
@@ -137,7 +144,10 @@ withTempDir(({ createTempDir }) => {
 
         // N.03: db verify --strict (fails — extra age column)
         const strict = await runDbVerify(ctx, ['--strict']);
-        expect(strict.exitCode, 'N.03: db verify strict fails').toBe(1);
+        expect(strict.exitCode, 'N.03: db verify strict fails').toBe(4);
+        expect(engineDiagnosticCodes(strict), 'N.03: the extra column is the finding').toEqual([
+          'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        ]);
 
         // N.04: db schema
         const schema = await runDbSchema(ctx);

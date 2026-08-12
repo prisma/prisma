@@ -6,11 +6,14 @@ import { contractEmitCommand } from './contract/emit';
 import { contractInferCommand } from './contract/infer';
 import { dbInitCommand } from './db/init';
 import { dbSchemaCommand } from './db/schema';
+import { dbSignCommand } from './db/sign';
 import { dbUpdateCommand } from './db/update';
+import { dbVerifyCommand } from './db/verify';
 import { formatCommand } from './format';
 import { initCommand } from './init';
 import { lspCommand } from './lsp';
 import { migrateCommand } from './migrate';
+import { migrationCheckCommand } from './migration/check';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
@@ -33,11 +36,14 @@ const commands: Readonly<Record<string, AnyCommand>> = {
   'contract infer': contractInferCommand,
   'db init': dbInitCommand,
   'db schema': dbSchemaCommand,
+  'db sign': dbSignCommand,
   'db update': dbUpdateCommand,
+  'db verify': dbVerifyCommand,
   format: formatCommand,
   init: initCommand,
   lsp: lspCommand,
   migrate: migrateCommand,
+  'migration check': migrationCheckCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,
   'migration log': migrationLogCommand,

@@ -10,15 +10,6 @@ import {
   useDevDatabase,
 } from './utils/journey-test-helpers';
 
-function extractJson(text: string): Record<string, unknown> {
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start === -1 || end === -1) {
-    throw new Error(`No JSON object found in output:\n${text}`);
-  }
-  return JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
-}
-
 withTempDir(({ createTempDir }) => {
   describe('marker read typed errors (PostgreSQL)', () => {
     const db = useDevDatabase();
@@ -45,16 +36,24 @@ withTempDir(({ createTempDir }) => {
           );
         });
 
+        // A corrupt marker row stops the verification from running at all, so
+        // it errors at exit 2 rather than reporting a finding at exit 4.
         const verifyFail = await runDbVerify(ctx, ['--json', '--no-color']);
-        expect(verifyFail.exitCode).not.toBe(0);
+        expect(verifyFail.exitCode).toBe(2);
 
-        const envelope = extractJson(`${verifyFail.stdout}\n${verifyFail.stderr}`);
+        const terminal = verifyFail.json.at(-1);
+        const envelope =
+          terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
         expect(envelope).toMatchObject({
-          code: 'CONTRACT.MARKER_ROW_CORRUPT',
-          summary: 'Marker row is corrupt or incompatible',
-          why: expect.stringContaining('Invalid contract marker row'),
-          fix: expect.stringContaining('prisma-next db sign'),
+          ok: false,
+          error: {
+            code: 'CONTRACT.MARKER_ROW_CORRUPT',
+            summary: 'Marker row is corrupt or incompatible',
+            why: expect.stringContaining('Invalid contract marker row'),
+          },
         });
+        expect(JSON.stringify(envelope)).toContain('prisma-next db sign');
+        expect(envelope).not.toHaveProperty('fix');
       },
       timeouts.spinUpPpgDev,
     );

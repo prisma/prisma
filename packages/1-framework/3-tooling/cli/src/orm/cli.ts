@@ -9,13 +9,16 @@ import { contractEmitCommand } from './contract/emit';
 import { contractInferCommand } from './contract/infer';
 import { createDbInitCommand } from './db/init';
 import { createDbSchemaCommand } from './db/schema';
+import { createDbSignCommand } from './db/sign';
 import { createDbUpdateCommand } from './db/update';
+import { createDbVerifyCommand } from './db/verify';
 import { ormCommandFamily } from './family';
 import { formatCommand } from './format';
 import { initCommand } from './init';
 import { loadOrmConfig } from './load-config';
 import { lspCommand } from './lsp';
 import { createMigrateCommand } from './migrate';
+import { migrationCheckCommand } from './migration/check';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
@@ -43,8 +46,8 @@ export const BIN_GROUPS = {
   db: {
     brief: 'Live database commands',
     description:
-      'Inspect, bootstrap and sign the live database against the emitted\n' +
-      'contract. Every command in this group needs a database connection.',
+      'Inspect, bootstrap, verify and sign the live database against the\n' +
+      'emitted contract. Every command in this group needs a database connection.',
   },
   migration: {
     brief: 'On-disk migration management commands',
@@ -71,11 +74,14 @@ export function createBinCommands(createClient: CreateControlClient): MountedTre
     'contract infer': contractInferCommand,
     'db init': createDbInitCommand(createClient),
     'db schema': createDbSchemaCommand(createClient),
+    'db sign': createDbSignCommand(createClient),
     'db update': createDbUpdateCommand(createClient),
+    'db verify': createDbVerifyCommand(createClient),
     format: formatCommand,
     init: initCommand,
     lsp: lspCommand,
     migrate: createMigrateCommand(createClient),
+    'migration check': migrationCheckCommand,
     'migration graph': migrationGraphCommand,
     'migration list': migrationListCommand,
     'migration log': migrationLogCommand,

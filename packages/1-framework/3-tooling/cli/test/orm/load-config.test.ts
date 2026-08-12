@@ -1,4 +1,5 @@
 import { realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadOrmConfig } from '../../src/orm/load-config';
@@ -48,15 +49,20 @@ afterEach(() => {
 });
 
 describe('loadOrmConfig', () => {
-  it('nests the whole configuration under the orm section', async () => {
-    const dir = projectDir();
-    writeConfig(dir, VALID_BODY);
+  it(
+    'nests the whole configuration under the orm section',
+    async () => {
+      const dir = projectDir();
+      writeConfig(dir, VALID_BODY);
 
-    const loaded = await loadOrmConfig({ cwd: dir });
+      const loaded = await loadOrmConfig({ cwd: dir });
 
-    expect(loaded.diagnostics).toEqual([]);
-    expect(Object.keys(loaded.sections)).toEqual(['orm']);
-  });
+      expect(loaded.diagnostics).toEqual([]);
+      expect(Object.keys(loaded.sections)).toEqual(['orm']);
+    },
+    // The first load pays jiti's cold transform for the config module.
+    timeouts.coldTransformImport,
+  );
 
   it('finalizes contract paths against the config file directory', async () => {
     const dir = projectDir();

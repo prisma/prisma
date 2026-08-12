@@ -149,6 +149,7 @@ describe('migration log', () => {
       ],
     });
     expect(run.presented?.presentation.stdout).toEqual([]);
+    expect(run.stdout).toBe('');
   });
 
   it('lines the table up under its headings', async () => {
