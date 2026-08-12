@@ -49,9 +49,9 @@ function connectionUrl(connection: string): URL | undefined {
 
 /**
  * The name a connection URL carries. A URL with a host addresses a server, and
- * `postgres://`, `mysql://` and `mongodb://` all put the database in the first
- * path segment — `postgres://host/appdb/extra` is `appdb`, not `extra`. A URL
- * with no host is a file path, whose name is its last segment.
+ * the database is its first path segment — `scheme://host/appdb/extra` is
+ * `appdb`, not `extra`. A URL with no host is a file path, whose name is its
+ * last segment.
  */
 function urlDatabaseName(parsed: URL): string | undefined {
   const segments = parsed.pathname.split('/').filter((segment) => segment.length > 0);
