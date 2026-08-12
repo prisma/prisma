@@ -27,6 +27,30 @@ describe('inferCodec', () => {
     });
   });
 
+  // int4 is a signed 32-bit column: an integer outside that range must not be
+  // handed to a codec whose native type cannot hold it.
+  describe('integers beyond int4 → pg/int8number@1', () => {
+    it('maps the largest int4 to pg/int4@1', () => {
+      expect(adapter.inferCodec(2_147_483_647)).toBe('pg/int4@1');
+    });
+
+    it('maps the smallest int4 to pg/int4@1', () => {
+      expect(adapter.inferCodec(-2_147_483_648)).toBe('pg/int4@1');
+    });
+
+    it('maps the first integer above the int4 range to pg/int8number@1', () => {
+      expect(adapter.inferCodec(2_147_483_648)).toBe('pg/int8number@1');
+    });
+
+    it('maps the first integer below the int4 range to pg/int8number@1', () => {
+      expect(adapter.inferCodec(-2_147_483_649)).toBe('pg/int8number@1');
+    });
+
+    it('maps MAX_SAFE_INTEGER to pg/int8number@1', () => {
+      expect(adapter.inferCodec(Number.MAX_SAFE_INTEGER)).toBe('pg/int8number@1');
+    });
+  });
+
   describe('bigint → pg/int8@1', () => {
     it('maps a bigint literal to pg/int8@1', () => {
       expect(adapter.inferCodec(1n)).toBe('pg/int8@1');
@@ -74,6 +98,7 @@ describe('inferCodec', () => {
       ['string', 'hello'],
       ['boolean', true],
       ['Uint8Array', new Uint8Array([1, 2, 3])],
+      ['integer beyond the int4 range', 2_147_483_648],
     ] as const)('resolves the id inferred from a %s', (_label, value) => {
       const codecId = adapter.inferCodec(value);
 

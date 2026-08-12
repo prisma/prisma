@@ -116,4 +116,15 @@ describe('raw-query postgres lowering', () => {
       { kind: 'literal', value: 3 },
     ]);
   });
+
+  it('binds a bare integer beyond the int4 range', () => {
+    const plan = rawSql`SELECT id FROM "user" WHERE id > ${2_147_483_648}`
+      .returnsRow({ id: 'pg/int4@1' })
+      .build();
+
+    const lowered = lower(plan);
+
+    expect(lowered.sql).toBe('SELECT id FROM "user" WHERE id > $1');
+    expect(lowered.params).toEqual([{ kind: 'literal', value: 2_147_483_648 }]);
+  });
 });
