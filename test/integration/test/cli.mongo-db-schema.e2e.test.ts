@@ -1,24 +1,9 @@
-import { createDbSchemaCommand } from '@internal/cli/commands/db-schema';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import {
-  executeCommand,
-  setupCommandMocks,
-  setupTestDirectoryFromFixtures,
-  withTempDir,
-} from './utils/cli-test-helpers';
-
-function extractJson(lines: string[]): unknown {
-  const joined = lines.join('\n');
-  const start = joined.indexOf('{');
-  const end = joined.lastIndexOf('}');
-  if (start === -1 || end === -1) {
-    throw new Error(`No JSON object found in output:\n${joined}`);
-  }
-  return JSON.parse(joined.slice(start, end + 1));
-}
+import stripAnsi from 'strip-ansi';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { runOnEngine, setupTestDirectoryFromFixtures, withTempDir } from './utils/cli-test-helpers';
 
 describe('mongo db schema command (e2e)', { timeout: timeouts.spinUpMongoMemoryServer }, () => {
   let replSet: MongoMemoryReplSet;
@@ -58,21 +43,6 @@ describe('mongo db schema command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
   }, timeouts.spinUpMongoMemoryServer);
 
   withTempDir(({ createTempDir }) => {
-    let consoleOutput: string[] = [];
-    let consoleErrors: string[] = [];
-    let cleanupMocks: () => void = () => {};
-
-    beforeEach(() => {
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      consoleErrors = mocks.consoleErrors;
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     it('returns JSON schema IR for Mongo database', async () => {
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
@@ -81,18 +51,10 @@ describe('mongo db schema command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
         { '{{MONGO_URI}}': mongoUri },
       );
 
-      const command = createDbSchemaCommand();
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        await executeCommand(command, ['--config', testSetup.configPath, '--json', '--no-color']);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['db', 'schema', '--json']);
 
-      const allOutput = [...consoleOutput, ...consoleErrors];
-      const parsed = extractJson(allOutput) as Record<string, unknown>;
-      expect(parsed).toMatchObject({
+      expect(run.exitCode).toBe(0);
+      expect(run.presented?.data).toMatchObject({
         ok: true,
         schema: {
           collections: expect.arrayContaining([
@@ -121,17 +83,10 @@ describe('mongo db schema command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
         { '{{MONGO_URI}}': mongoUri },
       );
 
-      const command = createDbSchemaCommand();
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        await executeCommand(command, ['--config', testSetup.configPath, '--no-color']);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['db', 'schema']);
 
-      const output = [...consoleOutput, ...consoleErrors].join('\n');
-      expect(output).toContain('users');
+      expect(run.exitCode).toBe(0);
+      expect(stripAnsi(`${run.stdout}\n${run.stderr}`)).toContain('users');
     });
   });
 });

@@ -1,22 +1,15 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
-import { createDbSignCommand } from '@internal/cli/commands/db-sign';
 import { coreHash, crossRef, profileHash } from '@internal/contract/types';
 import { MongoControlDriver } from '@internal/driver-mongo/control';
 import { MongoCollection, type MongoContract, MongoIndex } from '@internal/mongo-contract';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import {
-  executeCommand,
-  getExitCode,
-  setupCommandMocks,
-  setupTestDirectoryFromFixtures,
-  withTempDir,
-} from './utils/cli-test-helpers';
+import { runOnEngine, setupTestDirectoryFromFixtures, withTempDir } from './utils/cli-test-helpers';
 
 const controlAdapter = new MongoControlAdapterImpl();
 
@@ -64,16 +57,6 @@ const testContract: MongoContract = {
   meta: {},
 };
 
-function extractJson(lines: string[]): unknown {
-  const joined = lines.join('\n');
-  const start = joined.indexOf('{');
-  const end = joined.lastIndexOf('}');
-  if (start === -1 || end === -1) {
-    throw new Error(`No JSON object found in output:\n${joined}`);
-  }
-  return JSON.parse(joined.slice(start, end + 1));
-}
-
 function writeContractJson(testDir: string, contract: MongoContract): void {
   const outputDir = resolve(testDir, 'output');
   mkdirSync(outputDir, { recursive: true });
@@ -113,18 +96,8 @@ describe('mongo db sign command (e2e)', { timeout: timeouts.spinUpMongoMemorySer
   }, timeouts.spinUpMongoMemoryServer);
 
   withTempDir(({ createTempDir }) => {
-    let consoleOutput: string[] = [];
-    let cleanupMocks: () => void = () => {};
-
     beforeEach(async () => {
       await db.dropDatabase();
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
     });
 
     it('creates marker when schema matches', async () => {
@@ -139,20 +112,10 @@ describe('mongo db sign command (e2e)', { timeout: timeouts.spinUpMongoMemorySer
       );
       writeContractJson(testSetup.testDir, testContract);
 
-      const outputStartIndex = consoleOutput.length;
-      const command = createDbSignCommand();
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        await executeCommand(command, ['--config', testSetup.configPath, '--json', '--no-color']);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['db', 'sign', '--json']);
 
-      expect(getExitCode()).toBe(0);
-
-      const parsed = extractJson(consoleOutput.slice(outputStartIndex)) as Record<string, unknown>;
-      expect(parsed).toMatchObject({
+      expect(run.exitCode).toBe(0);
+      expect(run.presented?.data).toMatchObject({
         ok: true,
         summary: expect.stringContaining('marker created'),
         marker: { created: true, updated: false },
@@ -175,29 +138,13 @@ describe('mongo db sign command (e2e)', { timeout: timeouts.spinUpMongoMemorySer
       );
       writeContractJson(testSetup.testDir, testContract);
 
-      const command = createDbSignCommand();
-      const originalCwd = process.cwd();
+      const firstSign = await runOnEngine(testSetup, ['db', 'sign', '--json']);
+      expect(firstSign.exitCode).toBe(0);
 
-      // First sign
-      try {
-        process.chdir(testSetup.testDir);
-        await executeCommand(command, ['--config', testSetup.configPath, '--json', '--no-color']);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const secondSign = await runOnEngine(testSetup, ['db', 'sign', '--json']);
 
-      // Second sign with same contract
-      const outputStartIndex = consoleOutput.length;
-      try {
-        process.chdir(testSetup.testDir);
-        await executeCommand(command, ['--config', testSetup.configPath, '--json', '--no-color']);
-      } finally {
-        process.chdir(originalCwd);
-      }
-
-      expect(getExitCode()).toBe(0);
-      const parsed = extractJson(consoleOutput.slice(outputStartIndex)) as Record<string, unknown>;
-      expect(parsed).toMatchObject({
+      expect(secondSign.exitCode).toBe(0);
+      expect(secondSign.presented?.data).toMatchObject({
         ok: true,
         summary: expect.stringContaining('already signed'),
         marker: { created: false, updated: false },
@@ -216,18 +163,9 @@ describe('mongo db sign command (e2e)', { timeout: timeouts.spinUpMongoMemorySer
       );
       writeContractJson(testSetup.testDir, testContract);
 
-      const command = createDbSignCommand();
-      const originalCwd = process.cwd();
+      const firstSign = await runOnEngine(testSetup, ['db', 'sign', '--json']);
+      expect(firstSign.exitCode).toBe(0);
 
-      // First sign
-      try {
-        process.chdir(testSetup.testDir);
-        await executeCommand(command, ['--config', testSetup.configPath, '--json', '--no-color']);
-      } finally {
-        process.chdir(originalCwd);
-      }
-
-      // Update contract with different hash
       const updatedContract: MongoContract = {
         ...testContract,
         storage: {
@@ -238,17 +176,10 @@ describe('mongo db sign command (e2e)', { timeout: timeouts.spinUpMongoMemorySer
       };
       writeContractJson(testSetup.testDir, updatedContract);
 
-      const outputStartIndex = consoleOutput.length;
-      try {
-        process.chdir(testSetup.testDir);
-        await executeCommand(command, ['--config', testSetup.configPath, '--json', '--no-color']);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const secondSign = await runOnEngine(testSetup, ['db', 'sign', '--json']);
 
-      expect(getExitCode()).toBe(0);
-      const parsed = extractJson(consoleOutput.slice(outputStartIndex)) as Record<string, unknown>;
-      expect(parsed).toMatchObject({
+      expect(secondSign.exitCode).toBe(0);
+      expect(secondSign.presented?.data).toMatchObject({
         ok: true,
         summary: expect.stringContaining('marker updated'),
         marker: { created: false, updated: true },
