@@ -260,7 +260,7 @@ export interface DbUpdateOptions {
 /**
  * The verification lanes the client offers: `full` runs the marker check and
  * the schema check, `marker-only` maps to `skipSchema: true`, and
- * `schema-only` goes through {@link ControlClient.schemaVerify} alone.
+ * `schema-only` runs {@link ControlClient.dbVerify} with `skipMarker: true`.
  */
 export type DbVerifyMode = 'full' | 'marker-only' | 'schema-only';
 

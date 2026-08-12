@@ -412,6 +412,32 @@ describe('db verify', () => {
       expect(run.presented?.data).not.toHaveProperty('schema');
       expect(run.presented?.data).not.toHaveProperty('unclaimed');
     });
+
+    it('carries the schema drift diagnostics alongside the violation in full mode', async () => {
+      const dir = await projectDir();
+      const drifted = schemaResult({
+        ok: false,
+        code: 'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        summary: 'Database schema does not satisfy contract',
+        schema: { issues: [MISSING_COLUMN] },
+      });
+      mocks.dbVerify.mockResolvedValue(
+        aggregateOk({ perSpace: [['app', drifted]], markerDrift: DRIFT }),
+      );
+
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(4);
+      expect(diagnosticsOf(run).map((entry) => entry.code)).toEqual([
+        'MIGRATION.CONTRACT_SPACE_VIOLATION',
+        'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+      ]);
+      expect(run.presented?.data).toMatchObject({
+        ok: false,
+        schema: { summary: 'Database schema does not satisfy contract' },
+        meta: { schemaVerification: 'performed' },
+      });
+    });
   });
 
   describe('schema drift', () => {

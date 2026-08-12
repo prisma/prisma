@@ -566,7 +566,15 @@ export function createDbVerifyCommand(
               {
                 data: document,
                 exitCode: FINDINGS_EXIT_CODE,
-                diagnostics: [markerDriftDiagnostic(drift)],
+                diagnostics: [
+                  markerDriftDiagnostic(drift),
+                  ...(driftCombined !== undefined && !driftCombined.result.ok
+                    ? driftDiagnostics({
+                        perSpace: aggregate.value.schemaResults,
+                        combined: driftCombined,
+                      })
+                    : []),
+                ],
               },
               verifyPresentations({ document, header }),
             ),
