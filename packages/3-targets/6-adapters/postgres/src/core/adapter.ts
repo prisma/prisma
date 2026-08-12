@@ -97,20 +97,24 @@ class PostgresAdapterImpl
   }
 }
 
-/** Codec-id lookup for bare-literal interpolations used by `fns.raw` on a postgres client. Contributed as the descriptor's static `rawCodecInferer` slot. */
+/**
+ * Codec-id lookup for bare-literal interpolations used by `fns.raw` on a postgres client. Contributed as the descriptor's static `rawCodecInferer` slot.
+ *
+ * The ids are versioned because that is how the codec registry keys them: lowering resolves an interpolated value's codec by exact id through `descriptorFor`.
+ */
 export const postgresRawCodecInferer: RawCodecInferer = {
   inferCodec(value: RawSqlLiteral): string {
     switch (typeof value) {
       case 'number':
-        return Number.isSafeInteger(value) && value % 1 === 0 ? 'pg/int4' : 'pg/float8';
+        return Number.isSafeInteger(value) && value % 1 === 0 ? 'pg/int4@1' : 'pg/float8@1';
       case 'bigint':
-        return 'pg/int8';
+        return 'pg/int8@1';
       case 'string':
-        return 'pg/text';
+        return 'pg/text@1';
       case 'boolean':
-        return 'pg/bool';
+        return 'pg/bool@1';
       case 'object':
-        if (value instanceof Uint8Array) return 'pg/bytea';
+        if (value instanceof Uint8Array) return 'pg/bytea@1';
     }
     throw adapterError(
       'RUNTIME.RAW_SQL_UNSUPPORTED_INTERPOLATION',

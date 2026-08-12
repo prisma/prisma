@@ -47,9 +47,9 @@ function lower(plan: { readonly ast: Parameters<typeof renderLoweredSql>[0] }) {
 }
 
 describe('raw-query postgres lowering', () => {
-  it('numbers param() interpolations in template order', () => {
+  it('numbers bare-literal and param() interpolations in template order', () => {
     const plan =
-      rawSql`SELECT id, email FROM "user" WHERE id > ${param(7, { codecId: 'pg/int4@1' })} AND email = ${param('a@b.example', { codecId: 'pg/text@1' })}`
+      rawSql`SELECT id, email FROM "user" WHERE id > ${7} AND email = ${param('a@b.example', { codecId: 'pg/text@1' })}`
         .returnsRow({ id: 'pg/int4@1', email: 'pg/text@1' })
         .build();
 

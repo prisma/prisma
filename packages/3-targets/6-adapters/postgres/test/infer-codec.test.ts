@@ -4,61 +4,61 @@ import { postgresRawCodecInferer } from '../src/core/adapter';
 const adapter = postgresRawCodecInferer;
 
 describe('inferCodec', () => {
-  describe('number → pg/int4 or pg/float8', () => {
-    it('maps a safe integer to pg/int4', () => {
-      expect(adapter.inferCodec(42)).toBe('pg/int4');
+  describe('number → pg/int4@1 or pg/float8@1', () => {
+    it('maps a safe integer to pg/int4@1', () => {
+      expect(adapter.inferCodec(42)).toBe('pg/int4@1');
     });
 
-    it('maps zero to pg/int4', () => {
-      expect(adapter.inferCodec(0)).toBe('pg/int4');
+    it('maps zero to pg/int4@1', () => {
+      expect(adapter.inferCodec(0)).toBe('pg/int4@1');
     });
 
-    it('maps negative zero to pg/int4', () => {
-      expect(adapter.inferCodec(-0)).toBe('pg/int4');
+    it('maps negative zero to pg/int4@1', () => {
+      expect(adapter.inferCodec(-0)).toBe('pg/int4@1');
     });
 
-    it('maps a fractional number to pg/float8', () => {
-      expect(adapter.inferCodec(1.5)).toBe('pg/float8');
+    it('maps a fractional number to pg/float8@1', () => {
+      expect(adapter.inferCodec(1.5)).toBe('pg/float8@1');
     });
 
-    it('maps a value above MAX_SAFE_INTEGER to pg/float8 to avoid silent truncation', () => {
-      expect(adapter.inferCodec(Number.MAX_SAFE_INTEGER + 1)).toBe('pg/float8');
-    });
-  });
-
-  describe('bigint → pg/int8', () => {
-    it('maps a bigint literal to pg/int8', () => {
-      expect(adapter.inferCodec(1n)).toBe('pg/int8');
+    it('maps a value above MAX_SAFE_INTEGER to pg/float8@1 to avoid silent truncation', () => {
+      expect(adapter.inferCodec(Number.MAX_SAFE_INTEGER + 1)).toBe('pg/float8@1');
     });
   });
 
-  describe('string → pg/text', () => {
-    it('maps a non-empty string to pg/text', () => {
-      expect(adapter.inferCodec('hello')).toBe('pg/text');
-    });
-
-    it('maps an empty string to pg/text', () => {
-      expect(adapter.inferCodec('')).toBe('pg/text');
+  describe('bigint → pg/int8@1', () => {
+    it('maps a bigint literal to pg/int8@1', () => {
+      expect(adapter.inferCodec(1n)).toBe('pg/int8@1');
     });
   });
 
-  describe('boolean → pg/bool', () => {
-    it('maps true to pg/bool', () => {
-      expect(adapter.inferCodec(true)).toBe('pg/bool');
+  describe('string → pg/text@1', () => {
+    it('maps a non-empty string to pg/text@1', () => {
+      expect(adapter.inferCodec('hello')).toBe('pg/text@1');
     });
 
-    it('maps false to pg/bool', () => {
-      expect(adapter.inferCodec(false)).toBe('pg/bool');
+    it('maps an empty string to pg/text@1', () => {
+      expect(adapter.inferCodec('')).toBe('pg/text@1');
     });
   });
 
-  describe('Uint8Array → pg/bytea', () => {
-    it('maps a non-empty Uint8Array to pg/bytea', () => {
-      expect(adapter.inferCodec(new Uint8Array([1, 2, 3]))).toBe('pg/bytea');
+  describe('boolean → pg/bool@1', () => {
+    it('maps true to pg/bool@1', () => {
+      expect(adapter.inferCodec(true)).toBe('pg/bool@1');
     });
 
-    it('maps an empty Uint8Array to pg/bytea', () => {
-      expect(adapter.inferCodec(new Uint8Array([]))).toBe('pg/bytea');
+    it('maps false to pg/bool@1', () => {
+      expect(adapter.inferCodec(false)).toBe('pg/bool@1');
+    });
+  });
+
+  describe('Uint8Array → pg/bytea@1', () => {
+    it('maps a non-empty Uint8Array to pg/bytea@1', () => {
+      expect(adapter.inferCodec(new Uint8Array([1, 2, 3]))).toBe('pg/bytea@1');
+    });
+
+    it('maps an empty Uint8Array to pg/bytea@1', () => {
+      expect(adapter.inferCodec(new Uint8Array([]))).toBe('pg/bytea@1');
     });
   });
 
