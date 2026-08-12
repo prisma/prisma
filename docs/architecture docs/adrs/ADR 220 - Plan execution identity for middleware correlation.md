@@ -92,25 +92,26 @@ ADR 160's `groupingKey` is orchestrator-assigned and groups *multiple* plans tha
 
 ## Implementation
 
-`RuntimeCore.execute()` in `@internal/framework-components` constructs the per-execute context at the top of its generator:
+`RuntimeCore.query()` and `RuntimeCore.execute()` in `@internal/framework-components` construct their per-operation contexts at the start of each operation:
 
 ```ts
-const execCtx: RuntimeMiddlewareContext = {
+const operationCtx: RuntimeMiddlewareContext = {
   ...this.ctx,
   planExecutionId: crypto.randomUUID(),
 };
-// ...threaded into runBeforeExecuteChain and runWithMiddleware.
+// Query: runBeforeQueryChain → runQueryWithMiddleware.
+// Execute: runBeforeExecuteChain → runExecuteWithMiddleware.
 ```
 
-`SqlRuntime.executeAgainstQueryable` and `executePreparedAgainstQueryable` already construct a per-execute middleware context (`execMiddlewareCtx`) that spreads the stored runtime-level ctx with `signal` and `scope`. They gain `planExecutionId: crypto.randomUUID()` in the same spread.
+`SqlRuntime.queryAgainstQueryable` and `runPreparedQueryAgainstQueryable` construct a per-query middleware context (`execMiddlewareCtx`) that spreads the stored runtime-level ctx with `signal` and `scope`. They gain `planExecutionId: crypto.randomUUID()` in the same spread. The context is shared by the query lifecycle — `beforeQuery`, `interceptQuery`, `onRow`, and `afterQuery` — for both ordinary and prepared queries.
 
-`MongoRuntimeImpl.execute` constructs its own per-execute context with the same shape. The pattern is uniform across runtimes; family-specific detail is that SQL and Mongo override `execute()` and do not delegate to `super`, so the assignment happens at each entry point.
+`MongoRuntimeImpl.query` and `execute` construct their own per-operation contexts with the same shape. The pattern is uniform across runtimes; family-specific detail is that SQL and Mongo override these operations and do not delegate to `super`, so the assignment happens at each entry point.
 
 ## Consequences
 
 ### Positive
 
-- Middleware authors correlate `beforeExecute` and `afterExecute` for the same execute call by reading `ctx.planExecutionId`.
+- Middleware authors correlate matching before/after hooks for the same query or execute call by reading `ctx.planExecutionId`.
 - Two executions of the same plan are observably distinct events.
 - Identity lives where the lifecycle lives; plans, plan builders, and content hashing are unaffected.
 - The plan reference flows through the pipeline unchanged.

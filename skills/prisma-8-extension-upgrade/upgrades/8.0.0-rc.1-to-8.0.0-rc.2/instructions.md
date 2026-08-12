@@ -264,13 +264,13 @@ changes:
       anyMatch: true
   - id: runtime-query-execute-hard-cut
     summary: |
-      Runtime and scope implementations expose `query()` for rows, `prepared.query(target, params, options?)` for prepared rows, and statistics-returning `execute()` for non-returning statements. Classify callers and helpers by the result they consume; do not globally rename `execute`. Route row plans to `query`, prepared row plans to `prepared.query(target, params, options?)`, and non-returning writes to `execute`, reading `stats.affectedRows` when a count is needed. Preserve the bound connection, row-result laziness, and eager statistics result. Middleware uses `beforeQuery` → `interceptQuery` → driver query → `onRow` → `afterQuery` for rows and `beforeExecute` → `interceptExecute` → driver execute → `afterExecute` for statistics. Query interception returns `{ rows }`; execute interception returns `{ stats }`. There is no operation discriminator, compatibility alias, or generic fallback hook. The Mongo facade keeps static `db.query` and removes row-execution `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
+      Runtime and scope implementations expose `query()` for rows, while rc.1 prepared rows use `target.queryPrepared(prepared, params, options?)` and rc.2 uses `prepared.query(target, params, options?)`; statistics-returning `execute()` remains for non-returning statements. Classify callers and helpers by the result they consume; do not globally rename `execute`. Route row plans to `query`, prepared row plans to `prepared.query(target, params, options?)`, and non-returning writes to `execute`, reading `stats.affectedRows` when a count is needed. Preserve the bound connection, row-result laziness, and eager statistics result. Middleware uses `beforeQuery` → `interceptQuery` → driver query → `onRow` → `afterQuery` for rows and `beforeExecute` → `interceptExecute` → driver execute → `afterExecute` for statistics. Query interception returns `{ rows }`; execute interception returns `{ stats }`. There is no operation discriminator, compatibility alias, or generic fallback hook. The Mongo facade keeps static `db.query` and removes row-execution `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       contains:
         - "beforeQuery"
         - "interceptExecute"
-        - "prepared.query("
+        - ".queryPrepared("
         - ".execute("
       anyMatch: true
 ---
@@ -575,7 +575,7 @@ tolerates it, and only `--strict` reports it.
 
 ## `runtime-query-execute-hard-cut`
 
-The runtime SPI separates row streams from statement statistics. Inspect what each caller consumes rather than applying a global `execute` → `query` replacement: selects, returning writes, Mongo command-result plans, and other iterated or decoded results use `query`; non-returning DML uses eager `execute` and returns `{ affectedRows: number }`. Prepared row callers move to `statement.query(target, params)`.
+The runtime SPI separates row streams from statement statistics. Inspect what each caller consumes rather than applying a global `execute` → `query` replacement: selects, returning writes, Mongo command-result plans, and other iterated or decoded results use `query`; non-returning DML uses eager `execute` and returns `{ affectedRows: number }`. Prepared row callers move from `target.queryPrepared(prepared, params, options?)` to `prepared.query(target, params, options?)`.
 
 Connection, transaction, and role-bound scopes preserve their existing bound resource for both operations. Keep row results lazy and fully consume them inside a scope when required; statistics execution is eager. A count terminal must use `stats.affectedRows` from the write and never derive it from a row array.
 

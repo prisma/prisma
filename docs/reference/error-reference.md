@@ -765,7 +765,7 @@ A control-plane driver could not establish a database connection (`driver.create
 
 ### DRIVER.NOT_CONNECTED
 
-Using a driver, a target facade client, or the CLI control client before `connect(...)` has been called (or after it was closed) — surfaces from `execute`, `executePrepared`, `acquireConnection`, `query`, or `explain`, including lazily when iterating a query result.
+Using a driver, a target facade client, or the CLI control client before `connect(...)` has been called (or after it was closed) — surfaces from runtime `query` / `execute`, a prepared statement's `query(target, params, options?)`, `acquireConnection`, or `explain`, including lazily when iterating a query result.
 
 ### DRIVER.PREPARE_FAILED
 

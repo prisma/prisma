@@ -202,12 +202,12 @@ changes:
       anyMatch: true
   - id: runtime-query-execute-hard-cut
     summary: |
-      Runtime row execution uses `query()`, prepared rows use `prepared.query(target, params, options?)`, and `execute()` returns statement statistics instead of rows. Classify each call by its consumed result rather than replacing every `execute`: move row plans to `query`, prepared rows to `prepared.query(target, params, options?)`, and keep non-returning writes on `execute` while reading `affectedRows` when needed. Middleware uses operation-specific `beforeQuery` / `interceptQuery` / `afterQuery` and `beforeExecute` / `interceptExecute` / `afterExecute` hooks, with shared `beforeCompile`; interception returns `{ rows }` for queries and `{ stats }` for execution. There is no operation discriminator, compatibility alias, or generic fallback hook. The Mongo facade keeps static `db.query` and removes row `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
+      Runtime row execution uses `query()`, while rc.1 prepared rows use `target.queryPrepared(prepared, params, options?)` and rc.2 uses `prepared.query(target, params, options?)`. Classify each call by its consumed result rather than replacing every `execute`: move row plans to `query`, prepared rows to `prepared.query(target, params, options?)`, and keep non-returning writes on `execute` while reading `affectedRows` when needed. Middleware uses operation-specific `beforeQuery` / `interceptQuery` / `afterQuery` and `beforeExecute` / `interceptExecute` / `afterExecute` hooks, with shared `beforeCompile`; interception returns `{ rows }` for queries and `{ stats }` for execution. There is no operation discriminator, compatibility alias, or generic fallback hook. The Mongo facade keeps static `db.query` and removes row `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       contains:
         - ".execute("
-        - "prepared.query("
+        - ".queryPrepared("
         - "beforeQuery"
         - "interceptExecute"
       anyMatch: true
@@ -422,11 +422,11 @@ Runtime operations state whether the caller expects rows or statement statistics
 | --- | --- |
 | `await runtime.execute(rowPlan)` | `await runtime.query(rowPlan)` |
 | `runtime.execute(rowPlan).toArray()` | `runtime.query(rowPlan).toArray()` |
-| `await prepared.execute(runtime, params)` | `await prepared.query(runtime, params)` |
+| `await target.queryPrepared(prepared, params, options?)` | `await prepared.query(target, params, options?)` |
 | `await runtime.execute(nonReturningWrite)` with ignored rows | `await runtime.execute(nonReturningWrite)` and ignore the returned statistics |
 | A count or status derived from rows returned by a non-returning write | `const stats = await runtime.execute(writePlan)` and use `stats.affectedRows` |
 
-Apply the same classification to connection and transaction scopes. `query()` and `prepared.query(target, params)` remain lazy row results, so consume them inside the scope when their connection or transaction must remain valid. `execute()` is eager and resolves to `{ affectedRows: number }`; it does not return an iterable, and `affectedRows` must not be synthesized from a row array's length.
+Apply the same classification to connection and transaction scopes. `query()` and `prepared.query(target, params, options?)` remain lazy row results, so consume them inside the scope when their connection or transaction must remain valid. `execute()` is eager and resolves to `{ affectedRows: number }`; it does not return an iterable, and `affectedRows` must not be synthesized from a row array's length.
 
 If the application defines runtime middleware, use the operation-specific hooks: query interception returns `{ rows }`, execute interception returns `{ stats }`, and completion handlers use their matching `afterQuery` or `afterExecute` result. `beforeQuery` / `interceptQuery` / `onRow` / `afterQuery` and `beforeExecute` / `interceptExecute` / `afterExecute` are distinct capabilities, while `beforeCompile` remains shared. Hook selection carries the operation distinction; contexts and results have no operation discriminator. Row-oriented middleware must not derive statistics from rows, and no compatibility aliases or generic fallback hooks are provided.
 

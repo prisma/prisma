@@ -22,19 +22,19 @@ This ADR is family-level: it pins the author surface, the driver SPI shape, the 
 
 ```ts
 const ps = await runtime.prepare(
-  { userId: 'pg/int4@1', email: 'pg/text@1' },
+  { userId: 'pg/int4@1' },
   (params) =>
     db.user
-      .update({ email: params.email })
+      .select('id', 'email')
       .where((f, fns) => fns.eq(f.id, params.userId))
       .build(),
 );
 
-await ps.query(runtime, { userId: 124, email: 'carl@example.com' });
-await ps.query(runtime, { userId: 125, email: 'dee@example.com'  });
+await ps.query(runtime, { userId: 124 });
+await ps.query(runtime, { userId: 125 });
 
 await withTransaction(runtime, async (tx) => {
-  await ps.query(tx, { userId: 126, email: 'eve@example.com' });
+  await ps.query(tx, { userId: 126 });
 });
 ```
 
@@ -153,10 +153,10 @@ Server-side prepared plans outlive any single `.query()` call. A schema migratio
 The framework guarantees one retry path:
 
 - The driver detects the staleness signal — its mechanism, its detection sensitivity.
-- On detection, the driver clears the slot and allocates a fresh handle (calls `req.preparedStatementHandle.set(newHandle) with a new value).
+- On detection, the driver clears the slot and allocates a fresh handle (calls `req.preparedStatementHandle.set(newHandle)` with a new value).
 - The driver retries the query exactly once.
 - On retry success, the user observes one `.query()` call that succeeded.
-- On retry failure, the driver surfaces `ADAPTER.PREPARE_FAILED`, preserving the originating error as `cause`. The error envelope is defined by [ADR 027 — Error Envelope Stable Codes](./ADR%20027%20-%20Error%20Envelope%20Stable%20Codes.md), which reserves `ADAPTER.PREPARE_FAILED` for exactly this surface.
+- On retry failure, the driver surfaces `DRIVER.PREPARE_FAILED`, preserving the originating error as `cause`. The error envelope is defined by [ADR 027 — Error Envelope Stable Codes](./ADR%20027%20-%20Error%20Envelope%20Stable%20Codes.md), which reserves `DRIVER.PREPARE_FAILED` for exactly this surface.
 
 Detection sensitivity is a per-driver tradeoff. Some targets surface a clean signal that says "this prepared plan is gone"; the driver retries narrowly. Others have no such signal; the driver may treat any error originating from a cached query as a candidate for re-prepare. In the second case the false-positive cost is one extra preparation, paid only on otherwise-failing queries — the bound is small and self-correcting. The framework neither prefers nor mandates either policy; it pins the contract (clear, allocate, retry once, surface) and leaves the trigger to the driver (see [design principle #4](#design-principles)).
 
@@ -208,5 +208,5 @@ The following are deliberate exclusions, not omissions:
 ## References
 
 - [ADR 016 — Adapter SPI for Lowering](./ADR%20016%20-%20Adapter%20SPI%20for%20Lowering.md) defines the adapter SPI used by prepared queries. Lowering runs once at `prepare` time and is bypassed on the prepared query path.
-- [ADR 027 — Error Envelope Stable Codes](./ADR%20027%20-%20Error%20Envelope%20Stable%20Codes.md) defines the `ADAPTER.PREPARE_FAILED` envelope returned when stale-handle retry fails.
+- [ADR 027 — Error Envelope Stable Codes](./ADR%20027%20-%20Error%20Envelope%20Stable%20Codes.md) defines the `DRIVER.PREPARE_FAILED` envelope returned when stale-handle retry fails.
 - [ADR 205 — SQL cast emission is adapter policy](./ADR%20205%20-%20SQL%20cast%20emission%20is%20adapter%20policy.md) describes when adapters emit explicit type casts on parameter sites. A cached prepared plan keeps parameter types stable across queries, so unconditional casts are not required for correctness on the prepared path.
