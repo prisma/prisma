@@ -1,5 +1,4 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
@@ -14,6 +13,7 @@ import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { MigrationCheckResult } from '../../src/commands/json/schemas';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const HASH_A = `4cb4256${'0'.repeat(57)}`;
 const HASH_UNPRODUCED = `9f9f9f9${'1'.repeat(57)}`;
@@ -21,7 +21,7 @@ const HASH_UNPRODUCED = `9f9f9f9${'1'.repeat(57)}`;
 const dirs: string[] = [];
 
 async function projectDir(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'orm-check-'));
+  const dir = createTestProjectDir('orm-check');
   dirs.push(dir);
   return dir;
 }

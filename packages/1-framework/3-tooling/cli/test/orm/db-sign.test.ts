@@ -1,5 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import type {
   SchemaDiffIssue,
   SignDatabaseResult,
@@ -13,6 +12,7 @@ import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BIN_GROUPS as BinGroups } from '../../src/orm/cli';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 const HASH_A = `4cb4256${'0'.repeat(57)}`;
 const HASH_PREVIOUS = `9d0f118${'2'.repeat(57)}`;
@@ -59,7 +59,7 @@ afterAll(() => {
 const dirs: string[] = [];
 
 async function projectDir(options: { readonly contract?: boolean } = {}): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'orm-db-sign-'));
+  const dir = createTestProjectDir('orm-db-sign');
   dirs.push(dir);
   if (options.contract !== false) {
     await mkdir(join(dir, 'output'), { recursive: true });
