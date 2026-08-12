@@ -44,8 +44,8 @@ withTempDir(({ createTempDir }) => {
 
         const dryRun = await runDbInit(ctx, ['--dry-run']);
         expect(dryRun.exitCode, 'db init --dry-run').toBe(0);
-        expect(stripAnsi(dryRun.stdout), 'dry-run planned work').toContain('Planned');
-        expect(stripAnsi(dryRun.stdout), 'dry-run output').toContain('dry run');
+        expect(stripAnsi(dryRun.stderr), 'dry-run planned work').toContain('Planned');
+        expect(stripAnsi(dryRun.stderr), 'dry-run output').toContain('dry run');
 
         const tablesAfterDryRun = await sql(
           db.connectionString,
@@ -55,7 +55,7 @@ withTempDir(({ createTempDir }) => {
 
         const init = await runDbInit(ctx);
         expect(init.exitCode, `db init\n${stripAnsi(init.stderr)}`).toBe(0);
-        expect(stripAnsi(init.stdout), 'init applied work').toContain('Applied');
+        expect(stripAnsi(init.stderr), 'init applied work').toContain('Applied');
 
         const tablesAfterInit = await sql(
           db.connectionString,

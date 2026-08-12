@@ -25,6 +25,7 @@ import {
 } from '../../utils/cli-errors';
 import { closeQuietly, resolveMigrationPaths } from '../../utils/command-helpers';
 import { createControlClient } from '../client';
+import type { CreateControlClient } from '../types';
 import { buildReadAggregate } from './contract-space-aggregate-loader';
 import { planSpacePath } from './migrate';
 
@@ -48,6 +49,8 @@ export interface ExecuteMigrateShowPlanOptions {
   readonly db?: string;
   readonly to?: string;
   readonly from?: string;
+  /** Client factory used when the plan needs the live DB marker; defaults to the real client. */
+  readonly createClient?: CreateControlClient;
   /**
    * Invoked once, after refs/aggregate/--to resolution succeeds and before any DB connection —
    * exactly where the CLI renders its styled header today.
@@ -231,7 +234,7 @@ export async function executeMigrateShowPlan(
         }),
       );
     }
-    const client = createControlClient({
+    const client = (options.createClient ?? createControlClient)({
       family: config.family,
       target: config.target,
       adapter: config.adapter,

@@ -346,9 +346,13 @@ export function formatOnPathMigrationRow(
   dirNameWidth: number,
   colorize: boolean,
   glyphMode: GlyphMode,
+  paint?: {
+    readonly styler?: MigrationListStylerWithMarkers;
+    readonly palette?: MigrationGraphPalette;
+  },
 ): string {
-  const style = createAnsiMigrationListStyler({ useColor: colorize });
-  const s = PATH_HIGHLIGHT_STYLES.onPath(style, colorize);
+  const style = paint?.styler ?? createAnsiMigrationListStyler({ useColor: colorize });
+  const s = PATH_HIGHLIGHT_STYLES.onPath(style, colorize, paint?.palette);
   const styledDirName = `${s.dirName(dirName)}${' '.repeat(Math.max(0, dirNameWidth - dirName.length))}`;
   const hashLength = MIGRATION_LIST_HASH_WIDTH;
   const emptySource = migrationListEmptySource(glyphMode);

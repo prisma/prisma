@@ -14,7 +14,7 @@ import { createColorFormatter, formatDim, isVerbose } from './helpers';
  * preview is byte-identical to the legacy `string[]`-based renderer for SQL
  * targets. Other languages (`'mongodb-shell'`) render verbatim.
  */
-function renderPreviewStatement(text: string, language: string): string | undefined {
+export function renderPreviewStatement(text: string, language: string): string | undefined {
   const trimmed = text.trim();
   if (!trimmed) return undefined;
   if (language === 'sql') {
