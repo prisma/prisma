@@ -521,6 +521,10 @@ The Mongo ORM client was asked to operate on a model name that is not in the con
 
 A mutation that expected the database to return a row got none — `create()`/`upsert()` read-back, MTI base or variant INSERT, or a nested create. The Prisma-classic analogue of P2025. Meta: `operation`, `model`, `tableName`, `phase`.
 
+### ORM.NAMESPACE_RESERVED
+
+The contract declares a storage namespace whose name the SQL surface reserves for itself, so every table in it would be unreachable through the builder while the type still promised them. `sql()` refuses such a contract at construction. One name is reserved: `raw`, which is the whole-query raw statement tag (`db.raw`, see [ADR 247](../architecture%20docs/adrs/ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md)). Rename the namespace in the schema. Meta: `namespaceId`.
+
 ### ORM.OPERATION_UNSUPPORTED
 
 A valid ORM method was called in a configuration that does not support it: mutating an MTI variant collection with a method that requires `createAll()`, Mongo `upsert()` with dot-path field operations, or a Mongo mutation carrying windowing (`orderBy`/`skip`/`take`) or includes. Meta: `method`, `model`, `reason`, `field`.
@@ -740,6 +744,10 @@ Executing a prepared statement without supplying a value for one of its declared
 ### RUNTIME.PREPARE_UNUSED_PARAM
 
 `runtime.prepare(declaration, callback)` found declared parameter names that the callback's plan never references. Remove the unused declarations or reference them in the plan. Meta: `unused`.
+
+### RUNTIME.RAW_ROW_COLUMN_MISSING
+
+A whole-query raw statement returned a result that omits a column its row spec declares. The runtime never parses the SQL, so the spec is its only description of the result — a column the spec names and the statement does not return is a mismatch the caller has to resolve, by correcting the spec or the statement. Distinct from `RUNTIME.DECODE_FAILED`, which means a codec rejected a value the runtime did expect. Surplus result columns the spec does not declare are dropped silently and never raise this. See [ADR 247](../architecture%20docs/adrs/ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md). Meta: `column`, `declaredColumns`, `resultColumns`.
 
 ### RUNTIME.RAW_SQL_UNSUPPORTED_INTERPOLATION
 
