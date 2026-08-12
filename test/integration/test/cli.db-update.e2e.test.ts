@@ -13,6 +13,7 @@ import {
 import { replaceInFileOrThrow } from './utils/contract-fixture-editing';
 import { runDbInit } from './utils/db-init-test-helpers';
 import {
+  consentTokenFor,
   runDbUpdate,
   runDbUpdateAllowFailure,
   setupDbUpdateFixture,
@@ -30,13 +31,12 @@ function addNicknameColumnToContract(testDir: string): void {
 
 withTempDir(({ createTempDir }) => {
   describe('db update command (e2e)', () => {
-    let consoleOutput: string[] = [];
     let cleanupMocks: () => void;
 
+    // The contract emit steps still run on the commander shell, whose output
+    // goes to the console this keeps out of the test log.
     beforeEach(() => {
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      cleanupMocks = mocks.cleanup;
+      cleanupMocks = setupCommandMocks().cleanup;
     });
 
     afterEach(() => {
@@ -57,15 +57,11 @@ withTempDir(({ createTempDir }) => {
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
 
           // Run db update immediately without changing the contract
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const planOutput = stripAnsi(consoleOutput.join('\n'));
-          expect(planOutput).toContain('Planned 0 operation(s)');
+          const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          expect(stripAnsi(plan.stderr)).toContain('Planned 0 operation(s)');
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--no-color']);
-          const applyOutput = stripAnsi(consoleOutput.join('\n'));
-          expect(applyOutput).toContain('Database already matches contract');
+          const apply = await runDbUpdate(testSetup, ['--config', configPath]);
+          expect(stripAnsi(apply.stderr)).toContain('Database already matches contract');
         });
       },
       timeouts.spinUpPpgDev,
@@ -93,17 +89,14 @@ withTempDir(({ createTempDir }) => {
             process.chdir(originalCwd);
           }
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const planOutput = stripAnsi(consoleOutput.join('\n'));
+          const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          const planOutput = stripAnsi(plan.stderr);
           expect(planOutput).toContain('Planned');
           expect(planOutput).toContain('nickname');
           expect(planOutput).toContain('DDL preview');
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--no-color']);
-          const applyOutput = stripAnsi(consoleOutput.join('\n'));
-          expect(applyOutput).toContain('Applied');
+          const apply = await runDbUpdate(testSetup, ['--config', configPath]);
+          expect(stripAnsi(apply.stderr)).toContain('Applied');
 
           await withClient(connectionString, async (client) => {
             const columnResult = await client.query(`
@@ -142,16 +135,8 @@ withTempDir(({ createTempDir }) => {
             process.chdir(originalCwd);
           }
 
-          const outputStart = consoleOutput.length;
-          await runDbUpdate(testSetup, [
-            '--config',
-            configPath,
-            '--dry-run',
-            '--json',
-            '--no-color',
-          ]);
-          const output = consoleOutput.slice(outputStart).join('\n').trim();
-          const payload = JSON.parse(output) as Record<string, unknown>;
+          const run = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--json']);
+          const payload = run.document as Record<string, unknown>;
 
           expect(payload).toMatchObject({
             ok: true,
@@ -215,15 +200,10 @@ async function switchToProjectSlugVariant(testDir: string, configPath: string): 
 
 withTempDir(({ createTempDir }) => {
   describe('db update scenarios', () => {
-    let consoleOutput: string[] = [];
-    let consoleErrors: string[] = [];
     let cleanupMocks: () => void;
 
     beforeEach(() => {
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      consoleErrors = mocks.consoleErrors;
-      cleanupMocks = mocks.cleanup;
+      cleanupMocks = setupCommandMocks().cleanup;
     });
 
     afterEach(() => {
@@ -242,10 +222,8 @@ withTempDir(({ createTempDir }) => {
           );
 
           // db update should work on a fresh database without db init
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const planOutput = stripAnsi(consoleOutput.join('\n'));
-          expect(planOutput).toContain('Planned');
+          const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          expect(stripAnsi(plan.stderr)).toContain('Planned');
         });
       },
       timeouts.spinUpPpgDev,
@@ -265,9 +243,8 @@ withTempDir(({ createTempDir }) => {
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
           await switchToProjectSlugVariant(testSetup.testDir, configPath);
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const planOutput = stripAnsi(consoleOutput.join('\n'));
+          const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          const planOutput = stripAnsi(plan.stderr);
 
           expect(planOutput).toContain('Planned');
           expect(planOutput).toContain('slug');
@@ -303,14 +280,12 @@ withTempDir(({ createTempDir }) => {
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
           await switchToProjectSlugVariant(testSetup.testDir, configPath);
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--no-color']);
-          const applyOutput = stripAnsi(consoleOutput.join('\n'));
+          const apply = await runDbUpdate(testSetup, ['--config', configPath]);
+          const applyOutput = stripAnsi(apply.stderr);
 
           expect(applyOutput).toContain('Applied');
-          // M6 T6.5/T6.6: `Signature:` was renamed to per-space `marker:`
-          // (or `App-space marker:` when only the app space is present).
-          expect(applyOutput).toMatch(/marker:/);
+          // The per-space tree ends on the marker the space was signed with.
+          expect(applyOutput).toMatch(/marker /);
 
           // Verify slug column exists in database
           await withClient(connectionString, async (client) => {
@@ -341,11 +316,9 @@ withTempDir(({ createTempDir }) => {
 
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--no-color']);
-          const applyOutput = stripAnsi(consoleOutput.join('\n'));
+          const apply = await runDbUpdate(testSetup, ['--config', configPath]);
 
-          expect(applyOutput).toContain('Database already matches contract');
+          expect(stripAnsi(apply.stderr)).toContain('Database already matches contract');
         });
       },
       timeouts.spinUpPpgDev,
@@ -372,9 +345,8 @@ withTempDir(({ createTempDir }) => {
             );
           });
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const planOutput = stripAnsi(consoleOutput.join('\n'));
+          const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          const planOutput = stripAnsi(plan.stderr);
 
           expect(planOutput).toContain('legacy_code');
           expect(planOutput).toContain('destructive');
@@ -409,15 +381,10 @@ withTempDir(({ createTempDir }) => {
             await client.query('ALTER TABLE "public"."account" ADD PRIMARY KEY ("email")');
           });
 
-          const exitCode = await runDbUpdateAllowFailure(testSetup, [
-            '--config',
-            configPath,
-            '--no-color',
-          ]);
+          const run = await runDbUpdateAllowFailure(testSetup, ['--config', configPath]);
 
-          expect(exitCode).not.toBe(0);
-          const allOutput = [...consoleOutput, ...consoleErrors].join('\n');
-          expect(allOutput).toMatch(/conflict|PLANNING_FAILED/i);
+          expect(run.exitCode).not.toBe(0);
+          expect(stripAnsi(run.stderr)).toMatch(/conflict|PLANNING_FAILED/i);
         });
       },
       timeouts.spinUpPpgDev,
@@ -441,16 +408,14 @@ withTempDir(({ createTempDir }) => {
             await client.query('ALTER TABLE "public"."project" ADD COLUMN "legacy_notes" text');
           });
 
-          const exitCode = await runDbUpdateAllowFailure(testSetup, [
+          const run = await runDbUpdateAllowFailure(testSetup, [
             '--config',
             configPath,
             '--no-interactive',
-            '--no-color',
           ]);
 
-          expect(exitCode).not.toBe(0);
-          const allOutput = [...consoleOutput, ...consoleErrors].join('\n');
-          expect(allOutput).toMatch(/destructive/i);
+          expect(run.exitCode).toBe(2);
+          expect(stripAnsi(run.stderr)).toMatch(/CONSENT_REQUIRED/);
 
           // Verify the confirmation gate actually blocked the update — drift column must still exist
           await withClient(connectionString, async (client) => {
@@ -485,15 +450,15 @@ withTempDir(({ createTempDir }) => {
             );
           });
 
-          const exitCode = await runDbUpdateAllowFailure(testSetup, [
+          const run = await runDbUpdateAllowFailure(testSetup, [
             '--config',
             configPath,
-            '-y',
-            '--no-color',
+            '--confirm',
+            consentTokenFor(connectionString),
           ]);
 
-          expect(exitCode).not.toBe(0);
-          const allOutput = [...consoleOutput, ...consoleErrors].join('\n');
+          expect(run.exitCode).not.toBe(0);
+          const allOutput = stripAnsi(run.stderr);
           // The runner attempts to drop legacy_notes but the view blocks it.
           // The post-apply schema verification detects the column still exists.
           expect(allOutput).toContain('legacy_notes');
@@ -516,16 +481,8 @@ withTempDir(({ createTempDir }) => {
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
           await switchToProjectSlugVariant(testSetup.testDir, configPath);
 
-          const outputStart = consoleOutput.length;
-          await runDbUpdate(testSetup, [
-            '--config',
-            configPath,
-            '--dry-run',
-            '--json',
-            '--no-color',
-          ]);
-          const output = consoleOutput.slice(outputStart).join('\n').trim();
-          const payload = JSON.parse(output) as Record<string, unknown>;
+          const run = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--json']);
+          const payload = run.document as Record<string, unknown>;
 
           expect(payload).toMatchObject({
             ok: true,

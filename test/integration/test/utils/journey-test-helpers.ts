@@ -21,7 +21,6 @@ import { loadOrmConfig, ormCommandFamily } from '@internal/cli';
 import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
 import { createContractInferCommand } from '@internal/cli/commands/contract-infer';
 import { createDbSignCommand } from '@internal/cli/commands/db-sign';
-import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
 import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
 import { createMigrationCheckCommand } from '@internal/cli/commands/migration-check';
 import { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
@@ -423,8 +422,25 @@ export async function runDbInit(
 export async function runDbUpdate(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbUpdateCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'update', ...extraArgs], options);
+}
+
+/**
+ * What `db update` asks the user to type before it destroys anything: the
+ * database named by the connection it resolved. A journey that means to accept
+ * data loss passes it as `--confirm`, because `--yes` cannot grant a consent.
+ */
+export function consentTokenFor(connectionString: string): string {
+  const segments = new URL(connectionString).pathname
+    .split('/')
+    .filter((segment) => segment.length > 0);
+  const database = segments.at(-1);
+  if (database === undefined) {
+    throw new Error(`consentTokenFor: ${connectionString} names no database`);
+  }
+  return database;
 }
 
 export async function runDbVerify(

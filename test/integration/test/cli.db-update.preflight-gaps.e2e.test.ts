@@ -26,6 +26,7 @@ import {
 } from './utils/cli-test-helpers';
 import { runDbInit } from './utils/db-init-test-helpers';
 import {
+  consentTokenFor,
   runDbUpdate,
   runDbUpdateAllowFailure,
   setupDbUpdateFixture,
@@ -93,13 +94,13 @@ withTempDir(({ createTempDir }) => {
 
           await swapToVariant(testSetup.testDir, configPath, 'contract-add-fk.ts');
 
-          const exitCode = await runDbUpdate(testSetup, [
+          const run = await runDbUpdate(testSetup, [
             '--config',
             configPath,
-            '-y',
-            '--no-color',
+            '--confirm',
+            consentTokenFor(connectionString),
           ]);
-          expect(exitCode).toBe(0);
+          expect(run.exitCode).toBe(0);
 
           await withClient(connectionString, async (client) => {
             const fkRows = await client.query<{ conname: string }>(
@@ -140,13 +141,13 @@ withTempDir(({ createTempDir }) => {
 
           await swapToVariant(testSetup.testDir, configPath, 'contract-add-required-unique.ts');
 
-          const exitCode = await runDbUpdate(testSetup, [
+          const run = await runDbUpdate(testSetup, [
             '--config',
             configPath,
-            '-y',
-            '--no-color',
+            '--confirm',
+            consentTokenFor(connectionString),
           ]);
-          expect(exitCode).toBe(0);
+          expect(run.exitCode).toBe(0);
 
           await withClient(connectionString, async (client) => {
             const col = await client.query<{ is_nullable: string; column_default: string | null }>(
@@ -192,13 +193,13 @@ withTempDir(({ createTempDir }) => {
 
           await swapToVariant(testSetup.testDir, configPath, 'contract-add-required-unique.ts');
 
-          const exitCode = await runDbUpdateAllowFailure(testSetup, [
+          const run = await runDbUpdateAllowFailure(testSetup, [
             '--config',
             configPath,
-            '-y',
-            '--no-color',
+            '--confirm',
+            consentTokenFor(connectionString),
           ]);
-          expect(exitCode).not.toBe(0);
+          expect(run.exitCode).not.toBe(0);
 
           await withClient(connectionString, async (client) => {
             const col = await client.query<{ column_name: string }>(
