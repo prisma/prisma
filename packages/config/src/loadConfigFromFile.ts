@@ -120,8 +120,13 @@ export async function loadConfigFromFile({
   const diagnostics = [] as ConfigDiagnostic[]
 
   try {
-    const selectedConfigFile = configFile ?? findPrisma7ConfigFile(configRoot) ?? undefined
-    const { configModule, resolvedPath, error } = await loadConfigTsOrJs(configRoot, selectedConfigFile)
+    const prisma7ConfigFile = configFile === undefined ? findPrisma7ConfigFile(configRoot) : null
+    const selectedConfigFile = configFile ?? prisma7ConfigFile ?? undefined
+    const { configModule, resolvedPath, error } = await loadConfigTsOrJs(
+      configRoot,
+      selectedConfigFile,
+      prisma7ConfigFile,
+    )
 
     if (error) {
       return {
@@ -189,7 +194,7 @@ export async function loadConfigFromFile({
   }
 }
 
-async function loadConfigTsOrJs(configRoot: string, configFile: string | undefined) {
+async function loadConfigTsOrJs(configRoot: string, configFile: string | undefined, prisma7ConfigFile: string | null) {
   const { loadConfig: loadConfigWithC12 } = await import('c12')
   const { deepmerge } = await import('deepmerge-ts')
 
@@ -265,9 +270,8 @@ async function loadConfigTsOrJs(configRoot: string, configFile: string | undefin
     // Extract the location of automatically discovered legacy config files from jiti's wrapped BABEL_PARSE_ERROR message.
     const configFileMatch = error.message.match(/prisma\.config\.(\w+)/)
     const extension = configFileMatch?.[1]
-    const filenameWithExtension = configFile
-      ? path.resolve(configRoot, configFile)
-      : path.join(configRoot, extension ? `prisma.config.${extension}` : '')
+    const filenameWithExtension =
+      prisma7ConfigFile ?? path.join(configRoot, extension ? `prisma.config.${extension}` : '')
     debug('faulty config file: %s', filenameWithExtension)
 
     return {
