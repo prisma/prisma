@@ -25,6 +25,7 @@ import {
 } from '../utils/cli-commands';
 import { fixtureAppDir } from '../utils/cli-test-helpers';
 import {
+  engineDocument,
   getLatestMigrationDir,
   type JourneyContext,
   parseJsonOutput,
@@ -146,7 +147,7 @@ describe('sign a database this toolchain has never seen, then transition to wire
       expect(emit.exitCode, `2.2: contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
       const schemaVerify = await runDbVerify(ctx, ['--schema-only', '--json']);
       expect(schemaVerify.exitCode, `2.2: verify\n${stripAnsi(schemaVerify.stderr)}`).toBe(0);
-      expect(parseJsonOutput(schemaVerify), '2.2: zero issues').toMatchObject({
+      expect(engineDocument(schemaVerify), '2.2: zero issues').toMatchObject({
         ok: true,
         schema: { issues: [] },
       });

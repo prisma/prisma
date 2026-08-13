@@ -91,6 +91,7 @@ const markerNotInHistoryDiagnosticSchema = type({
 
 const missingInvariantsDiagnosticSchema = type({
   code: '"MIGRATION.MISSING_INVARIANTS"',
+  severity: '"warn" | "info"',
   'ref?': 'string',
   invariants: 'string[]',
   message: 'string',

@@ -32,6 +32,16 @@ describe('isParentToSenderPayload', () => {
     expect(isParentToSenderPayload(withoutOverride)).toBe(true);
   });
 
+  it('accepts a payload carrying the run exit code', () => {
+    expect(isParentToSenderPayload({ ...validPayload, exitCode: 4 })).toBe(true);
+    expect(isParentToSenderPayload({ ...validPayload, exitCode: 0 })).toBe(true);
+  });
+
+  it('rejects a payload whose exitCode is not a number', () => {
+    expect(isParentToSenderPayload({ ...validPayload, exitCode: '4' })).toBe(false);
+    expect(isParentToSenderPayload({ ...validPayload, exitCode: null })).toBe(false);
+  });
+
   it('rejects a payload whose databaseTarget override is the wrong type', () => {
     expect(isParentToSenderPayload({ ...validPayload, databaseTarget: 42 })).toBe(false);
     expect(isParentToSenderPayload({ ...validPayload, databaseTarget: ['postgres'] })).toBe(false);

@@ -1,5 +1,4 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,6 +48,17 @@ describe('cross-shell tarball chain (target-postgres -> family-sql -> framework,
     expect(runInScratch(scratch, script)).toContain(`resolved ${imports.length}`);
   });
 
+  it('resolves the prepared-query bridge used by the Supabase extension', () => {
+    const script = `
+      const preparedQuery = await import('@prisma/orm-family-sql/runtime/internal/prepared-query');
+      if (typeof preparedQuery.preparedStatementQuery !== 'symbol') {
+        throw new Error('prepared-query bridge is not exported');
+      }
+      console.log('prepared-query bridge ok');
+    `;
+    expect(runInScratch(scratch, script)).toContain('prepared-query bridge ok');
+  });
+
   it('keeps framework modules identical when reached through family-sql', () => {
     const script = `
       import { strict as assert } from 'node:assert';
@@ -63,12 +73,11 @@ describe('cross-shell tarball chain (target-postgres -> family-sql -> framework,
     expect(runInScratch(scratch, script)).toContain('cross-shell identity ok');
   });
 
-  it('links a working prisma-next bin from the toolchain shell', () => {
-    const output = execFileSync(join(scratch, 'node_modules', '.bin', 'prisma-next'), ['--help'], {
-      encoding: 'utf8',
-    });
-    expect(output).toContain('prisma-next');
-    expect(output).toContain('init');
+  it('links no bin from any shell — the unified prisma CLI is the only binary', () => {
+    // The published surface is bin-less: the toolchain exports the orm
+    // command family at ./cli for the unified `prisma` CLI to import, and
+    // no shell forwards a launcher.
+    expect(existsSync(join(scratch, 'node_modules', '.bin', 'prisma-next'))).toBe(false);
   });
 
   it('ships no unrecorded internal package name in any shell dist', async () => {

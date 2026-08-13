@@ -112,34 +112,36 @@ The CLI checks `process.stdout.isTTY` once at startup to determine the output mo
 - Non‑TTY/CI: never prompt; fail with a structured precondition error if input is required.
 - `--interactive`/`--no-interactive` override the TTY detection.
 - **Every interactive prompt MUST have a flag-driven equivalent.** A command that requires user input without a corresponding flag is broken in non-interactive mode. Adding a new prompt requires adding the matching flag in the same change.
-- **Interactivity requires both stdin and stdout to be TTYs.** Commands that prompt MUST check `process.stdin.isTTY && process.stdout.isTTY`. A closed stdin (`< /dev/null`, common in CI and AI agents) is non-interactive even when stdout is a TTY. `--interactive` overrides this only when both streams are actually capable of carrying input/output.
-- **`-y`/`--yes` auto-accepts non-destructive prompts only.** It does NOT consent to data loss, overwriting generated files, or any other destructive action. Destructive operations require an explicit `--force` flag (see [Destructive operation confirmation](#destructive-operation-confirmation)).
+- **Interactivity is derived from stdin, and the engine owns it.** A run is interactive when stdin is a TTY and the run is not in CI; `--interactive`/`--no-interactive` override that, and the output format never decides it. Commands do not read `process.stdin.isTTY` (or any other stream) themselves — they call `ctx.prompt.*` and the engine settles what happens when there is nobody to ask. A closed stdin (`< /dev/null`, common in CI and AI agents) is therefore non-interactive even when stdout is a TTY.
+- **`-y`/`--yes` accepts declared prompt defaults only.** It does NOT consent to data loss, overwriting generated files, or any other destructive action: a consent prompt is structurally undefaultable, so `--yes` cannot answer one. Destructive actions are consented to by name (see [Destructive operation confirmation](#destructive-operation-confirmation)).
 
 ### Destructive operation confirmation
 
-Destructive operations (drops, type changes, overwriting generated files, overwriting an existing signature marker, …) require **explicit consent via `--force`**, separate from the `-y` "skip non-destructive prompts" mechanism.
+Destructive operations (drops, type changes, overwriting generated files, overwriting an existing signature marker, …) require **explicit consent**: the user types the name of the thing being changed, or passes that name as `--confirm <token>`. Consent is separate from the `-y` "accept prompt defaults" mechanism, and no command invents a flag that skips it.
 
-This is a deliberate divergence from clig.dev §Arguments §Confirmation. AI agents and CI scripts routinely pass `-y` to suppress prompts on long-running pipelines; conflating "skip prompts" with "consent to destruction" is a footgun the project has decided to avoid.
+This is a deliberate divergence from clig.dev §Arguments §Confirmation. AI agents and CI scripts routinely pass `-y` to suppress prompts on long-running pipelines; conflating "skip prompts" with "consent to destruction" is a footgun the project has decided to avoid. Typing a name also rules out the other accident a yes/no prompt allows — consenting to the right operation against the wrong database.
 
 #### Rules
 
-- A command that performs a destructive action MUST prompt for confirmation in interactive mode AND require `--force` to skip the prompt or to run the action non-interactively.
-- The prompt MUST list the destructive operations (or describe them concretely, e.g. "this will overwrite all generated files") so the user can decline knowing what's at stake.
-- In non-interactive mode (piped stdout, closed stdin, `--no-interactive`, `--json`) without `--force`: no prompt is shown; the command fails with a structured precondition error (exit code `2`) whose `nextActions` carry the same invocation with `--force` added.
-- `-y`/`--yes` MUST NOT be a substitute for `--force`. A non-interactive invocation with `-y` but without `--force` against a destructive operation MUST still fail.
-- The internal control API retains a programmatic equivalent (e.g. `acceptDataLoss: boolean`) for consumers that drive the planner directly; `--force` is the user-facing CLI flag.
+- A command that performs a destructive action MUST ask for it with `ctx.prompt.consent(question, { token })`. The token is the natural noun of what is at stake: the database name for `db update`, the working directory's basename for an `init` re-scaffold. Interactively the user types the token; non-interactively `--confirm <token>` grants it. There is no `--force`.
+- The question MUST list the destructive operations (or describe them concretely, e.g. "this will overwrite all generated files") so the user can decline knowing what's at stake. A command that cannot fill the list, or cannot derive a token, MUST fail with a structured error rather than ask a question that says nothing or accepts anything.
+- The token MUST identify the thing being changed as precisely as the invocation allows. Falling back to something a whole class of runs shares — a target id, a product name — makes one `--confirm` value grant data loss in every project that shares it.
+- Non-interactively (closed stdin, CI, `--no-interactive`) without `--confirm`: no prompt is shown; the command fails with the engine's `CLI.CONSENT_REQUIRED` (exit `2`), whose `meta.consentToken` and `nextActions` name the token to pass. A cancelled prompt is `CLI.PROMPT_CANCELLED` (exit `3`); a mistyped token is `CLI.PROMPT_INVALID` (exit `2`).
+- `--confirm` is read only when the run is non-interactive or `--yes` is set. A script that runs from a terminal must pass `--no-interactive --confirm <token>`, or it will stop at the prompt.
+- Each `--confirm` value grants at most one consent; a command that asks twice needs two.
+- The internal control API retains a programmatic equivalent (e.g. `acceptDataLoss: boolean`) for consumers that drive the planner directly; `--confirm` is the user-facing CLI form. Note that consent authorises the operations the user was shown, and the plan is recomputed on the call that carries it — a command that cannot bind the two SHOULD report what it applied beyond what was consented to.
 
 #### Examples
 
-- `migrate` / `db update`: when the plan includes destructive ops, prompts in interactive mode; requires `--force` to apply without a prompt or in non-interactive mode.
-- `db sign`: requires `--force` to overwrite an existing marker with a different hash (already documented in [Database Commands](#database-commands)).
-- `prisma-next init`: re-running `init` in a directory with a generated `prisma-next.config.ts` requires `--force`; `-y` alone is not sufficient to authorise overwriting generated files.
+- `db update`: when the plan includes destructive ops, asks the user to type the database name; `--no-interactive --confirm <database>` applies without a prompt. The name is the `database` a driver connection object carries, or the connection URL's first path segment, else its host, falling back to the target id.
+- `init`: re-running `init` in a directory with a generated `prisma.config.ts` asks the user to type the directory's basename; `-y` alone is not sufficient to authorise overwriting generated files. (The commander-era `--force` retired with the commander shell in the S5 cutover; the engine-hosted `init` uses the consent form above.)
+- `db sign`: the `--force` this guide lists in its flags was never implemented. When overwriting a marker with a different hash grows a switch, it takes the consent form above.
 
 ## Config & Environment
-- Config file names: `prisma-next.config.ts|.mjs|.js` (ESM); optional CJS fallback.
-- Discovery precedence: `--config <path>` > `PRISMA_NEXT_CONFIG` > nearest `prisma-next.config.*` in CWD (no upward search).
+- Config file names: `prisma.config.ts|.mjs|.js` (ESM); optional CJS fallback.
+- Discovery precedence: `--config <path>` > `PRISMA_NEXT_CONFIG` > nearest `prisma.config.*` in CWD (no upward search).
 - Precedence: flags > config > defaults.
-- Env policy: the CLI does not auto‑load `.env`. Apps may do so in `prisma-next.config.*` and pass values (e.g., `db.connection`).
+- Env policy: the CLI does not auto‑load `.env`. Apps may do so in `prisma.config.*` and pass values (e.g., `db.connection`).
 - Contract source: defined in config; no flag override.
 - Contract output directory: `--output-path <dir>` on `contract emit` sets the directory where `contract.json` and `contract.d.ts` are written. The filenames are canonical and not user-controlled. Precedence: `--output-path` flag > `output` in config > derived default (directory of the contract source file). The path is resolved relative to CWD. Extension wrappers (`defineConfig` from `@internal/mongo` and `@internal/postgres`) expose an `output?: string` option that maps directly to this config field.
 - Migration directory: defined in config; no flag override.
@@ -159,7 +161,7 @@ These codes have a fixed meaning across every Prisma Next CLI command. Specific 
 |---|---|---|
 | `0` | `OK` | The command completed and found nothing to report. |
 | `1` | `INTERNAL_ERROR` | Unexpected internal failure, crash, or bug. The command did not reach a documented outcome. Reserved for "this should not have happened". |
-| `2` | `PRECONDITION` | The command could not do its job: bad flags, missing required input, conflicting flags, missing prerequisite file. "Your invocation was wrong, fix it and try again." Matches commander.js and Linux convention (`misuse of shell builtin`). Never used for problems the command was asked to look for — those are findings; see [Completed with findings](#completed-with-findings). |
+| `2` | `PRECONDITION` | The command could not do its job: bad flags, missing required input, conflicting flags, missing prerequisite file. "Your invocation was wrong, fix it and try again." Matches Linux convention (`misuse of shell builtin`). Never used for problems the command was asked to look for — those are findings; see [Completed with findings](#completed-with-findings). |
 | `3` | `USER_ABORTED` | The user explicitly declined an interactive prompt (e.g. did not consent to a destructive overwrite). Distinct from signal-based interruption. |
 | `130` | — | Interrupted by SIGINT (Ctrl+C). POSIX convention (`128 + 2`). |
 | `143` | — | Terminated by SIGTERM. POSIX convention (`128 + 15`). |
@@ -205,10 +207,10 @@ Structured error codes (`CLI.INIT_MISSING_FLAGS`, `MIGRATION.UNFILLED_PLACEHOLDE
 When a verb or flag is removed from the CLI surface (e.g. during a surface refactor that promotes a subcommand to top-level, or splits a flag-overloaded verb into separate verbs), the CLI MUST emit a **targeted redirect** rather than a generic "unknown command" error. The redirect:
 
 - exits `2` (`PRECONDITION`),
-- prints `Unknown command: <name>` (or `Unknown option: <flag>`) followed by a single `Use \`prisma-next <new-form>\` instead.` line on stderr, and
+- prints `Unknown command: <name>` (or `Unknown option: <flag>`) followed by a single `Use \`<bin> <new-form>\` instead.` line on stderr (the engine renders the invoking bin), and
 - does **not** execute the new verb on the user's behalf (the redirect is a diagnostic, not a backwards-compat alias).
 
-Implementation: a small lookup table keyed by `<parent>:<subcommand>` (for verbs) or `<parent>:<subcommand>:<flag>` (for flags) is consulted during the pre-parse argv scan, before commander parses options. This keeps the redirect tied to a verb-and-flag form that is no longer registered while letting the new form's own help text and error envelopes work normally.
+Implementation: redirects are data on the command family (`RedirectSpec` in `src/orm/family.ts`); `@prisma/cli-engine` consults them before command resolution and substitutes `{bin}` in the replacement with the invoking bin's name. This keeps the redirect tied to a verb-and-flag form that is no longer registered while letting the new form's own help text and error envelopes work normally.
 
 Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry below is one row in the redirect table; the left column is the old form (no longer registered), the right column is the new top-level form:
 
@@ -247,7 +249,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
 - Prompts: target (Postgres or Mongo, default Postgres) and schema location (default `prisma/contract.prisma`). The contract output path is derived from the schema path (replace extension with `.json`); no separate prompt.
 - Detects the package manager from lockfiles (`pnpm-lock.yaml`, `yarn.lock`, `bun.lock`/`bun.lockb`, `package.json#packageManager`, falls back to npm), installs the target facade package as a dependency and `prisma-next` as a dev dependency, then runs `prisma-next contract emit` programmatically to produce `contract.json` and `contract.d.ts`.
 - Scaffolds (all colocated; no `src/prisma/` split):
-  - `prisma-next.config.ts` at the project root, importing `defineConfig` from the target facade (`@internal/postgres/config` or `@internal/mongo/config`). One import line, one function call.
+  - `prisma.config.ts` at the project root, importing `defineConfig` from the target facade (`@internal/postgres/config` or `@internal/mongo/config`). One import line, one function call.
   - `prisma/contract.prisma` (PSL) — starter schema with two related models so the user has something to query immediately.
   - `prisma/db.ts` — runtime client (e.g. `postgres<Contract>({ contractJson })`) typed against the emitted contract.
   - `prisma/contract.json` and `prisma/contract.d.ts` — emitted by the post-install `contract emit` step.
@@ -255,7 +257,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
   - `.agents/skills/prisma-next/SKILL.md` — agent skill so AI tooling in the project knows the layout and conventions.
   - `.env.example` with `DATABASE_URL=`; CLI still does not read `.env`.
   - After-init output: small celebratory header + a numbered "Next steps" list (edit the schema, run `pnpm prisma-next contract emit`, import `db` from `./prisma/db`).
-- Re-init detection: if `prisma-next.config.ts` already exists, init prompts once — *"This project is already initialized. Re-initialize? This will overwrite all generated files."* — and then either overwrites everything or exits. No per-file overwrite prompts.
+- Re-init detection: if `prisma.config.ts` already exists, init prompts once — *"This project is already initialized. Re-initialize? This will overwrite all generated files."* — and then either overwrites everything or exits. No per-file overwrite prompts.
 - `--no-install` skips dependency installation and contract emission, scaffolds the source files only, and prints the manual install + emit commands.
 - Artifacts: commit `contract.json` and `contract.d.ts` to VCS by default.
 - Adopter-visible dependency envelope after init: exactly two new entries in `package.json` (target facade + `prisma-next`); every other `@internal/*` package is pulled in transitively via the facade so emitted `contract.d.ts` imports resolve without `skipLibCheck` hiding broken types. The emitter additionally runs a post-emit dependency check and warns (non-blocking) when a `contract.d.ts` import is not resolvable.

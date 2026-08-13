@@ -4,7 +4,7 @@ import { firstOrNull } from '../result-utils';
 
 export async function getUserById(userId: string, runtime: Runtime) {
   return firstOrNull(
-    runtime.execute(
+    runtime.query(
       sql.user
         .select('id', 'email', 'createdAt')
         .where((f, fns) => fns.eq(f.id, userId))

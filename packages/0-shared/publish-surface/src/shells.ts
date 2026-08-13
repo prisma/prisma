@@ -50,6 +50,19 @@ export interface ShellPackageMapping {
    * pulls it in.
    */
   readonly published?: boolean;
+  /**
+   * The subpaths of this package the shell publishes, without the `./`
+   * prefix; `'.'` names the package's root export. Omitted publishes every
+   * subpath the package exports plus the package-level aggregate name.
+   *
+   * When listed, exactly these ship and no aggregate is synthesized. The CLI
+   * package uses this to pin its published surface explicitly: the root
+   * (`@prisma/orm-toolchain/cli`, where the unified `prisma` shell imports
+   * the `orm` command family from) plus the handful of stable subpaths —
+   * anything the package adds for workspace-internal use stays unpublished
+   * unless listed here.
+   */
+  readonly subpaths?: readonly string[];
 }
 
 export interface ShellReexportMapping {
@@ -91,25 +104,6 @@ export interface ShellDefinition {
    */
   readonly reexports?: readonly ShellReexportMapping[];
   /**
-   * Bin scripts carried by the shell: bin name to a dist file of one of the
-   * internal packages (relative to the repository root). The file is bundled
-   * as a side-effect entry named `bin/<binName>`, and published both as the
-   * `bin` field and as the `./bin/<binName>` entrypoint so another shell can
-   * forward it.
-   */
-  readonly bins?: Readonly<Record<string, string>>;
-  /**
-   * Bin scripts this shell re-exposes from another shell: bin name to that
-   * shell's `./bin/<binName>` entrypoint. The generated launcher imports the
-   * sibling for its side effects, so the command runs the one published copy
-   * of the program rather than a second one.
-   *
-   * Facades carry the CLI this way because an application installs only the
-   * facade, and package managers put a package manager's own direct
-   * dependencies on `PATH` — a transitively installed bin is not runnable.
-   */
-  readonly forwardedBins?: Readonly<Record<string, string>>;
-  /**
    * Sibling shells this shell requires the installer to provide, declared as
    * peer dependencies rather than pulled in as its own copy.
    *
@@ -146,12 +140,6 @@ export type ShellName =
   | '@prisma/orm-extension-supabase'
   | '@prisma/orm-extension-arktype-json'
   | '@prisma/orm-extension-middleware-cache';
-
-/**
- * The CLI command every facade puts on an application's `PATH`. It runs the
- * toolchain's single published copy; the facade only carries the launcher.
- */
-const FACADE_BINS = { 'prisma-next': '@prisma/orm-toolchain/bin/prisma-next' } as const;
 
 /**
  * Surfaces every facade republishes regardless of family.
@@ -328,7 +316,24 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       dir: 'packages/9-public/@prisma/orm-toolchain',
       kind: 'platform',
       packages: [
-        { dir: 'packages/1-framework/3-tooling/cli', name: '@internal/cli', entry: 'cli' },
+        {
+          dir: 'packages/1-framework/3-tooling/cli',
+          name: '@internal/cli',
+          entry: 'cli',
+          // After the S5 cutover the root export — the engine-mounted `orm`
+          // command family, imported by the unified `prisma` shell as
+          // `@prisma/orm-toolchain/cli` — is the published CLI surface. The
+          // commander-era `./cli/commands/*` factories are gone, and the
+          // workspace-local `prisma-next` bin is not published.
+          subpaths: [
+            '.',
+            'migration-cli',
+            'control-api',
+            'control-api/testing',
+            'config-types',
+            'init-output',
+          ],
+        },
         {
           dir: 'packages/1-framework/3-tooling/cli-telemetry',
           name: '@internal/cli-telemetry',
@@ -345,10 +350,10 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           entry: 'emitter',
         },
         // Bundled, not published. Editors reach the language server by
-        // spawning `prisma-next lsp` and talking to it over stdio, never by
-        // importing it, so a module entrypoint would be surface with no
-        // importer. The CLI depends on it, so the shell still carries the
-        // code — it just does not name it.
+        // spawning the CLI's `lsp` command and talking to it over stdio,
+        // never by importing it, so a module entrypoint would be surface
+        // with no importer. The CLI depends on it, so the shell still
+        // carries the code — it just does not name it.
         {
           dir: 'packages/1-framework/3-tooling/language-server',
           name: '@internal/language-server',
@@ -374,7 +379,6 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           entry: 'publish-surface',
         },
       ],
-      bins: { 'prisma-next': 'packages/1-framework/3-tooling/cli/dist/cli.mjs' },
       copy: ['packages/1-framework/3-tooling/cli/dist/*.md'],
     },
   ],
@@ -609,7 +613,6 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         driver: '@internal/driver-postgres',
         queryBuilders: SQL_QUERY_REEXPORTS,
       }),
-      forwardedBins: FACADE_BINS,
     },
   ],
   [
@@ -627,7 +630,6 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         driver: '@internal/driver-sqlite',
         queryBuilders: SQL_QUERY_REEXPORTS,
       }),
-      forwardedBins: FACADE_BINS,
     },
   ],
   [
@@ -645,7 +647,6 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         driver: '@internal/driver-mongo',
         queryBuilders: MONGO_QUERY_REEXPORTS,
       }),
-      forwardedBins: FACADE_BINS,
     },
   ],
   [

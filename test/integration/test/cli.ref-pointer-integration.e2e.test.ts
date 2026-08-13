@@ -1,82 +1,22 @@
-import { execFile } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
-import { promisify } from 'node:util';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
-import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
-import { createRefCommand } from '@internal/cli/commands/ref';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { setupTestDirectoryFromFixtures, withTempDir } from './utils/cli-test-helpers';
 import {
-  appendImplicitMigrationPlanFrom,
-  executeCommand,
-  getExitCode,
-  setupCommandMocks,
-  setupTestDirectoryFromFixtures,
-  withTempDir,
-} from './utils/cli-test-helpers';
+  type EngineCommandResult,
+  getLatestMigrationDir,
+  type JourneyContext,
+  runContractEmit,
+  runMigrationPlanAndEmit,
+  runOnEngine,
+} from './utils/journey-test-helpers';
 
-const execFileAsync = promisify(execFile);
-const TSX_BIN = resolve(__dirname, '../../../node_modules/.bin/tsx');
 const fixtureSubdir = 'migration-apply';
-const workspaceRoot = resolve(__dirname, '../../..');
 const HASH_FLOAT = `${'f'.repeat(64)}`;
-
-async function inDir<T>(dir: string, fn: () => Promise<T>): Promise<T> {
-  const prev = process.cwd();
-  try {
-    process.chdir(dir);
-    return await fn();
-  } finally {
-    process.chdir(prev);
-  }
-}
-
-async function emitContract(testDir: string, configPath: string): Promise<void> {
-  const command = createContractEmitCommand();
-  await inDir(testDir, () => executeCommand(command, ['--config', configPath, '--no-color']));
-}
-
-function getLatestMigrationDir(testDir: string): string | undefined {
-  const migrationsDir = join(testDir, 'migrations', 'app');
-  const dirs = readdirSync(migrationsDir).filter((d) => {
-    if (d.startsWith('.')) return false;
-    if (d === 'refs') return false;
-    return statSync(join(migrationsDir, d)).isDirectory();
-  });
-  if (dirs.length === 0) return undefined;
-  let newest = dirs[0]!;
-  let newestMtime = statSync(join(migrationsDir, newest)).mtimeMs;
-  for (let i = 1; i < dirs.length; i++) {
-    const dir = dirs[i]!;
-    const mtime = statSync(join(migrationsDir, dir)).mtimeMs;
-    if (mtime > newestMtime) {
-      newestMtime = mtime;
-      newest = dir;
-    }
-  }
-  return newest;
-}
-
-async function selfEmitLatestMigration(testDir: string): Promise<void> {
-  const latest = getLatestMigrationDir(testDir);
-  if (!latest) return;
-  const migrationTs = join(testDir, 'migrations', 'app', latest, 'migration.ts');
-  await execFileAsync(TSX_BIN, [migrationTs], { cwd: testDir });
-}
-
-async function runMigrationPlan(testDir: string, args: readonly string[]): Promise<number> {
-  const command = createMigrationPlanCommand();
-  const planArgs = appendImplicitMigrationPlanFrom(testDir, args);
-  const exit = await inDir(testDir, () => executeCommand(command, [...planArgs]));
-  if (exit === 0) {
-    await selfEmitLatestMigration(testDir);
-  }
-  return exit;
-}
 
 function appRefsDir(testDir: string): string {
   return join(testDir, 'migrations', 'app', 'refs');
@@ -114,103 +54,73 @@ function refFilesAbsent(refsDir: string, name: string): boolean {
 async function seedPlannedMigration(
   createTempDir: () => string,
   connectionString: string,
-): Promise<{ testDir: string; configPath: string; migrationDir: string; toHash: string }> {
+): Promise<{ ctx: JourneyContext; migrationDir: string; toHash: string }> {
   const { testDir, configPath } = setupTestDirectoryFromFixtures(
     createTempDir,
     fixtureSubdir,
-    'prisma-next.config.with-db.ts',
+    'prisma.config.with-db.ts',
     { '{{DB_URL}}': connectionString },
   );
-  await emitContract(testDir, configPath);
-  await runMigrationPlan(testDir, ['--config', configPath, '--name', 'initial', '--no-color']);
-  const migrationDir = getLatestMigrationDir(testDir)!;
+  const ctx = { testDir, configPath, outputDir: join(testDir, 'output') };
+  const emit = await runContractEmit(ctx);
+  if (emit.exitCode !== 0) {
+    throw new Error(`seedPlannedMigration: contract emit exited ${emit.exitCode}\n${emit.stderr}`);
+  }
+  const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'initial', '--no-color']);
+  if (plan.exitCode !== 0) {
+    throw new Error(`seedPlannedMigration: migration plan exited ${plan.exitCode}\n${plan.stderr}`);
+  }
+  const migrationDir = getLatestMigrationDir(ctx)!;
   const manifest = JSON.parse(
     readFileSync(join(testDir, 'migrations', 'app', migrationDir, 'migration.json'), 'utf-8'),
   ) as { to: string };
-  return { testDir, configPath, migrationDir, toHash: manifest.to };
+  return { ctx, migrationDir, toHash: manifest.to };
 }
 
 withTempDir(({ createTempDir }) => {
   describe('ref pointer integration (e2e)', () => {
-    let consoleOutput: string[];
-    let consoleErrors: string[];
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      process.chdir(workspaceRoot);
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      consoleErrors = mocks.consoleErrors;
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      process.chdir(workspaceRoot);
-      cleanupMocks();
-    });
-
+    /**
+     * The ref commands run on the engine, so the step is driven through the
+     * engine's own harness with the project directory passed as `cwd` — no
+     * chdir, no console capture.
+     */
     async function runRef(
-      testDir: string,
+      ctx: JourneyContext,
       args: readonly string[],
-    ): Promise<{ exitCode: number; output: string }> {
-      const outputStart = consoleOutput.length;
-      const errorStart = consoleErrors.length;
-      const command = createRefCommand();
-      try {
-        const exitCode = await inDir(testDir, () =>
-          executeCommand(command, ['--no-color', ...args]),
-        );
-        return {
-          exitCode,
-          output: stripAnsi(
-            [...consoleOutput.slice(outputStart), ...consoleErrors.slice(errorStart)].join('\n'),
-          ),
-        };
-      } catch {
-        return {
-          exitCode: getExitCode() ?? 1,
-          output: stripAnsi(
-            [...consoleOutput.slice(outputStart), ...consoleErrors.slice(errorStart)].join('\n'),
-          ),
-        };
-      }
+    ): Promise<EngineCommandResult> {
+      return runOnEngine(ctx, ['ref', ...args]);
     }
 
     it(
       'ref set writes only the pointer, ref list lists it, ref delete removes the pointer but leaves the store entry',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath, toHash } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
+          const { ctx, toHash } = await seedPlannedMigration(createTempDir, connectionString);
+          const { testDir } = ctx;
           const refsDir = appRefsDir(testDir);
           const bundleEndContract = join(
             contractSnapshotDir(join(testDir, 'migrations'), toHash),
             'contract.json',
           );
 
-          const setResult = await runRef(testDir, [
-            'set',
-            'staging',
-            toHash,
-            '--config',
-            configPath,
-          ]);
+          const setResult = await runRef(ctx, ['set', 'staging', toHash]);
           expect(setResult.exitCode, 'ref set exit code').toBe(0);
           expect(refFilesExist(testDir, refsDir, 'staging')).toBe(true);
           expect(
             JSON.parse(readFileSync(storeContractJsonPath(testDir, refsDir, 'staging'), 'utf-8')),
           ).toEqual(JSON.parse(readFileSync(bundleEndContract, 'utf-8')));
 
-          const listResult = await runRef(testDir, ['list', '--config', configPath]);
+          const listResult = await runRef(ctx, ['list']);
           expect(listResult.exitCode, 'ref list exit code').toBe(0);
-          expect(listResult.output).toContain('staging');
+          expect(stripAnsi(listResult.stderr), 'ref list draws the table for the reader').toContain(
+            'staging',
+          );
+          expect(listResult.stdout, 'ref list writes nothing to stdout').toBe('');
           expect(readdirSync(refsDir).filter((name) => name.endsWith('.json'))).toEqual([
             'staging.json',
           ]);
 
-          const deleteResult = await runRef(testDir, ['delete', 'staging', '--config', configPath]);
+          const deleteResult = await runRef(ctx, ['delete', 'staging']);
           expect(deleteResult.exitCode, 'ref delete exit code').toBe(0);
           expect(refFilesAbsent(refsDir, 'staging')).toBe(true);
           expect(existsSync(bundleEndContract)).toBe(true);
@@ -223,22 +133,18 @@ withTempDir(({ createTempDir }) => {
       'refuses a hash that is not in the migration graph',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
+          const { ctx } = await seedPlannedMigration(createTempDir, connectionString);
 
-          const result = await runRef(testDir, [
-            'set',
-            'staging',
-            HASH_FLOAT,
-            '--config',
-            configPath,
-          ]);
+          const result = await runRef(ctx, ['set', 'staging', HASH_FLOAT, '--json']);
           expect(result.exitCode, 'ref set exit code').toBe(2);
-          expect(result.output).toContain('not in the migration graph');
-          expect(result.output).toContain(HASH_FLOAT);
-          expect(refFilesAbsent(appRefsDir(testDir), 'staging')).toBe(true);
+          expect(result.json.at(-1)).toMatchObject({
+            kind: 'result',
+            envelope: {
+              ok: false,
+              error: { code: 'MIGRATION.HASH_NOT_IN_GRAPH', meta: { resolvedHash: HASH_FLOAT } },
+            },
+          });
+          expect(refFilesAbsent(appRefsDir(ctx.testDir), 'staging')).toBe(true);
         });
       },
       timeouts.spinUpPpgDev,
@@ -248,21 +154,14 @@ withTempDir(({ createTempDir }) => {
       'refuses the empty-database sentinel hash',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
+          const { ctx } = await seedPlannedMigration(createTempDir, connectionString);
 
-          const result = await runRef(testDir, [
-            'set',
-            'staging',
-            EMPTY_CONTRACT_HASH,
-            '--config',
-            configPath,
-          ]);
+          const result = await runRef(ctx, ['set', 'staging', EMPTY_CONTRACT_HASH]);
           expect(result.exitCode, 'ref set exit code').toBe(2);
-          expect(result.output).toContain('empty-database sentinel');
-          expect(refFilesAbsent(appRefsDir(testDir), 'staging')).toBe(true);
+          expect(stripAnsi(result.stderr), 'names the sentinel it refused').toContain(
+            'empty-database sentinel',
+          );
+          expect(refFilesAbsent(appRefsDir(ctx.testDir), 'staging')).toBe(true);
         });
       },
       timeouts.spinUpPpgDev,

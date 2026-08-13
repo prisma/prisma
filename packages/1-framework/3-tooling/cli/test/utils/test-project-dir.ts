@@ -10,7 +10,7 @@ const here = dirname(fileURLToPath(import.meta.url));
  * pnpm links dependencies per package, and the CLI package does not declare
  * `@prisma/orm-postgres`, `@prisma/orm-mongo` or `dotenv`. A project in the OS
  * temp directory therefore cannot import them, and a scaffolded
- * `prisma-next.config.ts` written there fails to load. Test projects live
+ * `prisma.config.ts` written there fails to load. Test projects live
  * under this package so Node walks up into its `node_modules`.
  */
 export const fixtureAppDir = join(here, '../fixture-app');

@@ -1186,7 +1186,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       if (extContractForSpace === undefined) {
         diagnostics.push({
           code: 'PSL_UNKNOWN_CONTRACT_SPACE',
-          message: `Relation field "${model.name}.${relationAttribute.field.name}" references contract space "${fieldTypeContractSpaceId}" which is not declared in extensions. Add "${fieldTypeContractSpaceId}" to extensions in prisma-next.config.ts.`,
+          message: `Relation field "${model.name}.${relationAttribute.field.name}" references contract space "${fieldTypeContractSpaceId}" which is not declared in extensions. Add "${fieldTypeContractSpaceId}" to extensions in prisma.config.ts.`,
           sourceId,
           span: relationAttribute.field.span,
           data: { space: fieldTypeContractSpaceId, suggestedPack: fieldTypeContractSpaceId },

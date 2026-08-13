@@ -1,13 +1,11 @@
 import { readFileSync } from 'node:fs';
-import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  executeCommand,
-  getExitCode,
-  setupCommandMocks,
+  type EngineRunResult,
+  runOnEngine,
   setupDbTestFixture,
   withTempDir,
 } from './utils/cli-test-helpers';
@@ -99,16 +97,6 @@ async function columnExists(
   });
 }
 
-function extractJson(lines: string[]): Record<string, unknown> {
-  const joined = lines.join('\n');
-  const start = joined.indexOf('{');
-  const end = joined.lastIndexOf('}');
-  if (start === -1 || end === -1) {
-    throw new Error(`No JSON object found in output:\n${joined}`);
-  }
-  return JSON.parse(joined.slice(start, end + 1)) as Record<string, unknown>;
-}
-
 interface EmittedTable {
   readonly control?: string;
 }
@@ -127,44 +115,22 @@ function readEmittedContract(testSetup: DbUpdateTestSetup): EmittedContract {
   return JSON.parse(readFileSync(path, 'utf-8')) as EmittedContract;
 }
 
-async function runDbVerifyJson(
-  testSetup: DbUpdateTestSetup,
-  configPath: string,
-  consoleOutput: string[],
-  outputStartIndex: number,
-): Promise<{ exitCode: number; parsed: Record<string, unknown> }> {
-  const command = createDbVerifyCommand();
-  const verifyCwd = process.cwd();
-  try {
-    process.chdir(testSetup.testDir);
-    try {
-      await executeCommand(command, ['--config', configPath, '--json', '--no-color']);
-    } catch {
-      // db verify exits via process.exit on failure
-    }
-  } finally {
-    process.chdir(verifyCwd);
-  }
-  const exitCode = getExitCode() ?? 0;
-  const parsed = extractJson(consoleOutput.slice(outputStartIndex));
-  return { exitCode, parsed };
+async function runDbVerifyJson(testSetup: DbUpdateTestSetup): Promise<EngineRunResult> {
+  return runOnEngine(testSetup, ['db', 'verify', '--json']);
+}
+
+function expectVerifyFailed(run: EngineRunResult): void {
+  expect(run.exitCode).toBe(4);
+  expect(run.presented?.data).toMatchObject({ ok: false });
+}
+
+function expectVerifyPassed(run: EngineRunResult): void {
+  expect(run.exitCode).toBe(0);
+  expect(run.presented?.data).toMatchObject({ ok: true });
 }
 
 withTempDir(({ createTempDir }) => {
   describe('control policy postgres CLI (e2e)', () => {
-    let consoleOutput: string[] = [];
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     // Pins `prisma-next contract emit` end-to-end for every ControlPolicy value:
     // per-table `control` survives canonicalisation, and missing-control on the
     // table left at the contract default is omitted (default-omission). The
@@ -222,15 +188,8 @@ withTempDir(({ createTempDir }) => {
             await client.query('DROP TABLE public.app_users');
           });
 
-          const outputStartIndex = consoleOutput.length;
-          const { exitCode, parsed } = await runDbVerifyJson(
-            testSetup,
-            configPath,
-            consoleOutput,
-            outputStartIndex,
-          );
-          expect(exitCode).toBe(1);
-          expect(parsed['ok']).toBe(false);
+          const verify = await runDbVerifyJson(testSetup);
+          expectVerifyFailed(verify);
         });
       },
       timeouts.spinUpPpgDev,
@@ -251,28 +210,18 @@ withTempDir(({ createTempDir }) => {
             await client.query('ALTER TABLE public.audit_log ADD COLUMN note text');
           });
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--no-color']);
+          await runDbUpdate(testSetup, ['--config', configPath]);
           expect(await columnExists(connectionString, 'public', 'audit_log', 'note')).toBe(true);
 
-          let outputStartIndex = consoleOutput.length;
-          let verify = await runDbVerifyJson(
-            testSetup,
-            configPath,
-            consoleOutput,
-            outputStartIndex,
-          );
-          expect(verify.exitCode).toBe(0);
-          expect(verify.parsed['ok']).toBe(true);
+          const withExtraColumn = await runDbVerifyJson(testSetup);
+          expectVerifyPassed(withExtraColumn);
 
           await withClient(connectionString, async (client) => {
             await client.query('ALTER TABLE public.audit_log DROP COLUMN ts');
           });
 
-          outputStartIndex = consoleOutput.length;
-          verify = await runDbVerifyJson(testSetup, configPath, consoleOutput, outputStartIndex);
-          expect(verify.exitCode).toBe(1);
-          expect(verify.parsed['ok']).toBe(false);
+          const withDroppedColumn = await runDbVerifyJson(testSetup);
+          expectVerifyFailed(withDroppedColumn);
         });
       },
       timeouts.spinUpPpgDev,
@@ -292,24 +241,15 @@ withTempDir(({ createTempDir }) => {
           expect(await tableExists(connectionString, 'public', 'auth_users')).toBe(true);
           expect(await tableExists(connectionString, 'public', 'sessions')).toBe(false);
 
-          let outputStartIndex = consoleOutput.length;
-          let verify = await runDbVerifyJson(
-            testSetup,
-            configPath,
-            consoleOutput,
-            outputStartIndex,
-          );
-          expect(verify.exitCode).toBe(0);
-          expect(verify.parsed['ok']).toBe(true);
+          const afterInit = await runDbVerifyJson(testSetup);
+          expectVerifyPassed(afterInit);
 
           await withClient(connectionString, async (client) => {
             await client.query('ALTER TABLE public.auth_users ADD COLUMN extra_note text');
           });
 
-          outputStartIndex = consoleOutput.length;
-          verify = await runDbVerifyJson(testSetup, configPath, consoleOutput, outputStartIndex);
-          expect(verify.exitCode).toBe(0);
-          expect(verify.parsed['ok']).toBe(true);
+          const withExtraColumn = await runDbVerifyJson(testSetup);
+          expectVerifyPassed(withExtraColumn);
 
           await withClient(connectionString, async (client) => {
             await client.query(
@@ -317,10 +257,8 @@ withTempDir(({ createTempDir }) => {
             );
           });
 
-          outputStartIndex = consoleOutput.length;
-          verify = await runDbVerifyJson(testSetup, configPath, consoleOutput, outputStartIndex);
-          expect(verify.exitCode).toBe(1);
-          expect(verify.parsed['ok']).toBe(false);
+          const withDeclaredDrift = await runDbVerifyJson(testSetup);
+          expectVerifyFailed(withDeclaredDrift);
         });
       },
       timeouts.spinUpPpgDev,
@@ -343,21 +281,16 @@ withTempDir(({ createTempDir }) => {
             await client.query('DROP TABLE public.legacy_jobs');
           });
 
-          const outputStartIndex = consoleOutput.length;
-          const { exitCode, parsed } = await runDbVerifyJson(
-            testSetup,
-            configPath,
-            consoleOutput,
-            outputStartIndex,
-          );
-          expect(exitCode).toBe(0);
-          expect(parsed['ok']).toBe(true);
+          const verify = await runDbVerifyJson(testSetup);
+          expectVerifyPassed(verify);
           // Under the `observed` control policy the dropped table warns but does
           // not fail: the verify passes AND the warning is surfaced in the
           // output (watch-without-failing, not silent suppression).
-          const schema = parsed['schema'] as { summary: string; warnings: readonly string[] };
-          expect(schema.summary).toBe('Database schema satisfies contract');
-          expect(schema.warnings.some((w) => w.includes('legacy_jobs'))).toBe(true);
+          const data = verify.presented?.data as {
+            schema: { summary: string; warnings: readonly string[] };
+          };
+          expect(data.schema.summary).toBe('Database schema satisfies contract');
+          expect(data.schema.warnings.some((w) => w.includes('legacy_jobs'))).toBe(true);
         });
       },
       timeouts.spinUpPpgDev,
@@ -372,23 +305,15 @@ withTempDir(({ createTempDir }) => {
             createTempDir,
           );
 
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const dryRunOutput = stripAnsi(consoleOutput.join('\n'));
-          expect(dryRunOutput).toContain('Warnings:');
+          const dryRun = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          const dryRunOutput = stripAnsi(dryRun.stderr);
+          expect(dryRunOutput).toContain('Planner warnings');
           expect(dryRunOutput).toContain('control policy suppressed: table "auth.sessions"');
 
-          consoleOutput.length = 0;
-          const applyStartIndex = consoleOutput.length;
-          const applyExitCode = await runDbUpdateAllowFailure(testSetup, [
-            '--config',
-            configPath,
-            '--no-color',
-          ]);
-          const applyOutput = stripAnsi(consoleOutput.slice(applyStartIndex).join('\n'));
-          expect(applyOutput).toContain('Warnings:');
+          const apply = await runDbUpdateAllowFailure(testSetup, ['--config', configPath]);
+          const applyOutput = stripAnsi(apply.stderr);
           expect(applyOutput).toContain('control policy suppressed: table "auth.sessions"');
-          expect(applyExitCode).not.toBe(0);
+          expect(apply.exitCode).not.toBe(0);
           expect(await tableExists(connectionString, 'auth', 'sessions')).toBe(false);
         });
       },

@@ -4,7 +4,11 @@ Every user-facing Prisma Next error is a structured envelope identified by a dot
 
 Recognize an error programmatically with `isStructuredError` from `@internal/utils/structured-error` and match on `error.code` — never `instanceof`. Envelopes carry `message`, and optionally `why`, `fix`, `where`, `meta`, `cause`, and `docsUrl`.
 
-Exit codes (CLI): an expected structured failure exits `2`, a user abort exits `3`, and `1` is reserved for internal errors (bugs). Errors with codes on this page exit `2` unless noted.
+Exit codes (CLI): an expected structured failure exits `2`, a user abort exits `3`, and `1` is reserved for internal errors (bugs). Codes on this page exit `2` unless the entry says otherwise.
+
+Some codes are not failures to run at all. `db verify`, `db sign` and `migration check` answer a question about the project, and a bad answer is still an answer: they finish, report their findings as diagnostics on a successful envelope, and exit `4`. Exit `2` is reserved for the cases where those commands could not do the job — an unknown `--space`, a migration reference that resolves to nothing, an unreachable database, a contract that has not been emitted. Every entry whose code can arrive on one of those runs says so and names the command. Each of those commands declares the numbers it can exit with, and its `--help` text spells out what each one means.
+
+A command may also **complete with findings**: it ran to its end and has a result to report, and the problems it found ride that result as diagnostics carrying the codes on this page. Those runs exit with a documented per-command code in the `4`–`99` band rather than `2`, and the entry below says so. `prisma-next init` is the case today: its scaffold is on disk whatever happens next, so a failed dependency install, contract emit, or agent-skill install is a finding on a completed run at exit `4`, `5` or `6`.
 
 Codes that predate the dotted scheme were renamed at 0.16; the full old→new crosswalk (`PN-DOMAIN-NNNN` → `NAMESPACE.SUBCODE`) is in [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md).
 
@@ -12,7 +16,7 @@ Namespaces:
 
 | Namespace | Covers |
 |---|---|
-| `CONFIG` | Loading and validating `prisma-next.config.ts` |
+| `CONFIG` | Loading and validating `prisma.config.ts` |
 | `CLI` | Command-line argument and invocation errors |
 | `CONTRACT` | Contract authoring, emission, validation, and the contract↔database relationship (markers, schema verification) |
 | `PSL` | The PSL source text itself (parse/format) |
@@ -31,19 +35,27 @@ Namespaces:
 
 ### CONFIG.CONTRACT_MISSING
 
-The `contract` section is missing (or incomplete) in `prisma-next.config.ts` when a command needs it — raised by `prisma-next contract emit` when the config has no contract configuration, no schema path, or the referenced authoring entrypoint cannot be resolved. Meta: none.
+The `contract` section is missing (or incomplete) in `prisma.config.ts` when a command needs it — raised by `prisma-next contract emit` when the config has no contract configuration, no schema path, or the referenced authoring entrypoint cannot be resolved. Meta: none.
+
+### CONFIG.DEPRECATED_FILENAME
+
+The config was discovered under the deprecated `prisma-next.config.ts` filename. The load succeeds; the config loader prints a deprecation warning on stderr for every command that reads config. The fix is to rename the file to `prisma.config.ts`. Meta: none.
+
+### CONFIG.DEPRECATED_SHAPE
+
+The config module exports the deprecated flat Prisma Next shape (the target `defineConfig` result at top level). The load succeeds; the config loader prints a deprecation warning on stderr for every command that reads config. The fix is to wrap the config in an `orm` section with `defineConfig` from `@prisma/cli-engine`: `export default defineConfig({ orm: { … } })`. Meta: none.
 
 ### CONFIG.DB_CONNECTION_REQUIRED
 
-A DB-connected command (`migrate`, `db init`, `db sign`, `db verify`, `db update`, `inspect-live-schema`, and the migration scaffold commands) was run with no database connection available — no `--db <url>` flag and no `db.connection` in `prisma-next.config.ts`. The fix text names the exact retry command when known. Meta: `missingFlags` (optional).
+A DB-connected command (`migrate`, `db init`, `db sign`, `db verify`, `db update`, `inspect-live-schema`, and the migration scaffold commands) was run with no database connection available — no `--db <url>` flag and no `db.connection` in `prisma.config.ts`. The fix text names the exact retry command when known. Meta: `missingFlags` (optional).
 
 ### CONFIG.DRIVER_REQUIRED
 
-A DB-connected command was run but `prisma-next.config.ts` has no control-plane `driver` entry (e.g. `driver: postgresDriver`). Raised by the migration command scaffold, `migrate`, `db sign`, `db verify`, and `inspect-live-schema`. Meta: none.
+A DB-connected command was run but `prisma.config.ts` has no control-plane `driver` entry (e.g. `driver: postgresDriver`). Raised by the migration command scaffold, `migrate`, `db sign`, `db verify`, and `inspect-live-schema`. Meta: none.
 
 ### CONFIG.EVALUATION_FAILED
 
-The config module could not be evaluated at all — a syntax error in `prisma-next.config.ts`, or the module threw during import. Raised by the config loader for any command that needs config; loading fails outright (no per-section diagnostics are possible for a module that does not evaluate) and every command exits `2` with this error. The underlying evaluation error's message is carried in `why` and the original error in `cause` (in-process only). The path, when known, is carried in `where.path`. Meta: none.
+The config module could not be evaluated at all — a syntax error in `prisma.config.ts`, or the module threw during import. Raised by the config loader for any command that needs config; loading fails outright (no per-section diagnostics are possible for a module that does not evaluate) and every command exits `2` with this error. The underlying evaluation error's message is carried in `why` and the original error in `cause` (in-process only). The path, when known, is carried in `where.path`. Meta: none.
 
 ### CONFIG.FAMILY_READ_MARKER_REQUIRED
 
@@ -51,19 +63,19 @@ Reserved: `db verify` needs the family package to export `verify.readMarker()` a
 
 ### CONFIG.FILE_NOT_FOUND
 
-No `prisma-next.config.ts` (or the explicitly passed config path) could be found when loading configuration — raised by the config loader for any command that needs config. The fix is to run `prisma-next init` to create one. The path, when known, is carried in `where.path`. Meta: none.
+No `prisma.config.ts` (or the explicitly passed config path) could be found when loading configuration — raised by the config loader for any command that needs config. The fix is to run `prisma-next init` to create one. The path, when known, is carried in `where.path`. Meta: none.
 
 ### CONFIG.MISSING_EXTENSION_PACKS
 
-The contract declares extension packs that the CLI config does not provide matching descriptors for; raised when resolving framework components for any command that loads the contract. The fix is to add the missing extension descriptors to `extensions` in `prisma-next.config.ts`. Meta: `missingExtensionPacks`, `providedComponentIds`.
+The contract declares extension packs that the CLI config does not provide matching descriptors for; raised when resolving framework components for any command that loads the contract. The fix is to add the missing extension descriptors to `extensions` in `prisma.config.ts`. Meta: `missingExtensionPacks`, `providedComponentIds`.
 
 ### CONFIG.QUERY_RUNNER_FACTORY_REQUIRED
 
-Reserved: `db verify` needs `db.queryRunnerFactory` in `prisma-next.config.ts` and it is absent. Declared in the shared error factories but not raised by any command today.
+Reserved: `db verify` needs `db.queryRunnerFactory` in `prisma.config.ts` and it is absent. Declared in the shared error factories but not raised by any command today.
 
 ### CONFIG.VALIDATION_FAILED
 
-`prisma-next.config.ts` loaded but a config section is missing or malformed. The config loader validates the evaluated config and returns one diagnostic per problem, each tagged with the top-level config section it concerns (`meta.section`: `family`, `target`, `adapter`, `driver`, `extensions`, `db`, `contract`, `migrations`, or `formatter`); a command fails with the diagnostic (exit `2`) only when it reads that section. Also raised by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`, and by contract-path resolution when `config.contract.output` is absent (those sites carry no `section`). Meta: `field` (loader diagnostics), `section` (loader diagnostics; optional elsewhere).
+`prisma.config.ts` loaded but a config section is missing or malformed. The config loader validates the evaluated config and returns one diagnostic per problem, each tagged with the top-level config section it concerns (`meta.section`: `family`, `target`, `adapter`, `driver`, `extensions`, `db`, `contract`, `migrations`, or `formatter`); a command fails with the diagnostic (exit `2`) only when it reads that section. Also raised by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`, and by contract-path resolution when `config.contract.output` is absent (those sites carry no `section`). Meta: `field` (loader diagnostics), `section` (loader diagnostics; optional elsewhere).
 
 ### CONFIG.VERSION_MARKER_MISSING
 
@@ -74,6 +86,18 @@ The config module evaluated, but its default export was not created by the curre
 ### CLI.CONFIG_ARG_MISSING_PATH
 
 The migration-file CLI (`prisma-next migration`) received `--config` without a path argument — either a bare trailing `--config`, or `--config` immediately followed by another flag (e.g. `--config --dry-run`). The CLI fails fast instead of consuming the next flag as the config path or silently falling back to default config discovery. Meta: `nextToken` (present only when another flag followed `--config`).
+
+### CLI.CONSENT_OPERATIONS_MISSING
+
+`db update` was told the plan is destructive but was given no operations to name, so the consent prompt would have asked you to authorise a list of nothing. The command refuses instead of prompting. This is an inconsistency between the CLI and the control API rather than something your project can be wrong about; run `prisma-next db update --dry-run` to see the plan, and report the run. Meta: none.
+
+### CLI.CONSENT_TOKEN_UNRESOLVED
+
+`db update` could not derive a name for the database it is about to change, so there is nothing for the consent prompt to ask you to type — and an empty token would let a bare Enter (or `--confirm ""`) authorise data loss. The name comes from the `database` a driver connection object carries, or from the connection URL (its first path segment, else its host), falling back to the target id. Name the database in `db.connection` or pass `--db <url>`. Meta: none.
+
+### CLI.CONTRACT_ARG_CONFLICT
+
+`prisma-next db sign` was given a contract reference twice — once as the positional argument and once as `--contract` — and there is no rule for which one wins. Pass it once. Meta: `positional`, `flag`.
 
 ### CLI.FILE_NOT_FOUND
 
@@ -89,11 +113,11 @@ During `prisma-next init`, `--authoring` and `--schema-path` disagree on file ex
 
 ### CLI.INIT_EMIT_FAILED
 
-During `prisma-next init`, the `prisma-next contract emit` step failed after a successful dependency install. Scaffolded files and installed dependencies remain on disk; the user fixes the contract file and re-runs the emit command. Maps to init exit code 5 (EMIT_FAILED). Meta: `filesWritten`, `cause`.
+During `prisma-next init`, the `prisma-next contract emit` step failed after a successful dependency install. Scaffolded files and installed dependencies remain on disk; the user fixes the contract file and re-runs the emit command. `init` completes with this as a finding and exits 5. Meta: `filesWritten`, `cause`.
 
 ### CLI.INIT_INSTALL_FAILED
 
-During `prisma-next init`, dependency installation failed and the pnpm-to-npm fallback either did not apply or also failed. Files scaffolded before the install step are already on disk; the fix text gives the manual install and emit commands to resume. Maps to init exit code 4 (INSTALL_FAILED). Meta: `filesWritten`, `stderr`.
+During `prisma-next init`, dependency installation failed and the pnpm-to-npm fallback either did not apply or also failed. Files scaffolded before the install step are already on disk; the next actions carry the install command that was attempted and the emit that was waiting on it. `init` completes with this as a finding and exits 4. Meta: `filesWritten`, plus `install` (the attempted command, the manager, its exit code and the tail of its stderr).
 
 ### CLI.INIT_INVALID_FLAG_VALUE
 
@@ -105,7 +129,7 @@ A flag passed to `prisma-next init` has a value outside its allowed set (for exa
 
 ### CLI.INIT_INVALID_OUTPUT_DOCUMENT
 
-`prisma-next init` completed but its own success output document failed schema validation. This indicates a bug in prisma-next itself, not user error, so it maps to the init internal-error exit code rather than PRECONDITION. Meta: none.
+`prisma-next init` completed but its own success output document failed schema validation. This indicates a bug in Prisma Next itself, not user error. The engine-hosted `init` settles it as an errored envelope at exit 2 (the commander `init`, deleted in the S5 cutover, mapped it to exit 1), because the ORM's error boundary converts every failure into a structured settlement and the engine reserves exit 1 for a throw that reaches it uncaught. Meta: none.
 
 ### CLI.INIT_INVALID_TSCONFIG
 
@@ -121,11 +145,13 @@ A flag passed to `prisma-next init` has a value outside its allowed set (for exa
 
 ### CLI.INIT_REINIT_NEEDS_FORCE
 
-`prisma-next init` ran non-interactively in a directory that already has a `prisma-next.config.ts`, without `--force`. Init refuses to overwrite the existing scaffold; distinct from CLI.INIT_USER_ABORTED because here the user was never given an interactive choice. Maps to init exit code 2 (PRECONDITION). Meta: none.
+`prisma-next init` ran non-interactively in a directory that already has a `prisma.config.ts`, and consent to overwrite the existing scaffold was not given. Re-scaffolding is destructive, so it needs explicit consent: interactively, `init` asks the user to type the working directory's name back; non-interactively, the same consent is granted by `--confirm <directory name>`. Neither `--yes` nor any flag skips it. Maps to init exit code 2 (PRECONDITION). Meta: none.
+
+The code was raised by the commander `init` (deleted in the S5 cutover), whose consent flag was `--force`. The engine-hosted `init` reaches the same outcome through the engine's own `CLI.CONSENT_REQUIRED`, which names the exact `--confirm` value to pass.
 
 ### CLI.INIT_SKILL_INSTALL_FAILED
 
-During `prisma-next init`, the project-level skills install (`npx skills add prisma/prisma#v<version>`) failed after a successful dependency install and emit. The scaffold stays on disk; the user can fix the underlying issue (network, registry, PATH) and install manually, or re-run with `--no-skill`. Maps to init exit code 6 (SKILL_INSTALL_FAILED). Meta: `filesWritten`, `skillInstallCommand`, `cause`.
+During `prisma-next init`, the project-level skills install failed after a successful dependency install and emit. Init runs one `skills add` per default skill through the project's package manager — e.g. `pnpm dlx skills@latest add prisma/prisma/skills#v<version> --agent cursor claude-code codex windsurf --skill prisma-8 -y` — for the `prisma-8`, `prisma-next-upgrade`, and `prisma-8-extension-upgrade` skills. The project itself is complete without the skills; the user can fix the underlying issue (network, registry, PATH) and install manually, or re-run with `--skip-skills`. `init` completes with this as a finding and exits 6. Meta: `filesWritten`, plus `skillInstall` (the attempted command, the manager, its exit code and the tail of its stderr).
 
 ### CLI.INIT_STRICT_PROBE_WITHOUT_PROBE
 
@@ -134,6 +160,12 @@ During `prisma-next init`, the project-level skills install (`npx skills add pri
 ### CLI.INIT_USER_ABORTED
 
 The user cancelled an interactive `prisma-next init` prompt (Ctrl-C, escape, or declining a selection) before all required inputs were supplied. No files were modified. Severity is `info`, not `error`; maps to init exit code 3 (USER_ABORTED). Meta: none.
+
+Raised by the commander `init` (deleted in the S5 cutover). On the engine-hosted `init` a cancelled prompt is the engine's own `CLI.PROMPT_CANCELLED`, which exits 3 for every command rather than only this one; the engine-hosted `init` keeps this code for a consent the user declines, which settles as an errored envelope at exit 2 like every other structured failure there. Because that command's consent declares a token, the engine answers a wrong or absent answer with `CLI.PROMPT_INVALID` or `CLI.CONSENT_REQUIRED` before a decline can be expressed, so the code is the refusal that runs if a future consent drops its token.
+
+### CLI.INIT_WRITE_FAILED
+
+`prisma-next init` could not write one of the files it scaffolds — a directory sitting where the file goes, permissions, a full disk. Everything that can be read and parsed is checked before the first write, so this is the failure that survives that check; the files written before it are already on disk and are listed so a follow-up run or agent knows the state it is resuming from. Maps to init exit code 2 (PRECONDITION). Meta: `path`, `cause`, `filesWritten`.
 
 ### CLI.INVALID_OUTPUT_FORMAT
 
@@ -158,6 +190,10 @@ A `package.json` found while resolving the project import root is not valid JSON
 ### CLI.PROJECT_MANIFEST_UNREADABLE
 
 A `package.json` found while resolving the project import root exists but could not be read (e.g. a permissions failure). Absent manifests continue the walk up; a read failure stops it, because silently skipping would emit against the wrong project's dependencies. The read failure is attached as `cause`. Meta: `path`.
+
+### CLI.PROMPT_REQUIRED
+
+Raised by `@prisma/cli-engine`, not by this repository: a command asked a question that has no default, and the session could not show it — stdin is not a terminal, `--no-interactive` was passed, or `--yes` was asked to answer a prompt that declares no default. The `CLI` namespace is shared with the engine (see [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md)); it is listed here because it settles runs of the `prisma-next` binary. `prisma-next init` translates it for the two prompts that stand in for a required flag, so a missing `--target` or `--authoring` still reports `CLI.INIT_MISSING_FLAGS` with the full missing list. Meta: none.
 
 ### CLI.UNEXPECTED
 
@@ -271,11 +307,11 @@ Introspection read an unrecognized or malformed database shape — an unknown re
 
 ### CONTRACT.MARKER_MISMATCH
 
-The contract hash does not match the marker (signature) stored in the database. Surfaces from verify-style CLI commands as a hard failure, and from the SQL runtime as a warning during startup marker verification. Fix path: migrate the database or re-sign if the divergence is intentional. Meta: `expected`, `actual`.
+The contract hash does not match the marker (signature) stored in the database. `db verify` reports it as an `error` diagnostic on a completed run that exits `4`; the SQL runtime reports it as a warning during startup marker verification. Fix path: migrate the database or re-sign if the divergence is intentional. Meta: `expected`, `actual`.
 
 ### CONTRACT.MARKER_MISSING
 
-No contract marker (database signature) is found in the database at all. Surfaces from verify-style CLI operations, and as a runtime warning during startup marker verification. Fix path: `prisma-next db sign`. Meta: none notable.
+No contract marker (database signature) is found in the database at all. `db verify` reports it as an `error` diagnostic on a completed run that exits `4`; the runtime reports it as a warning during startup marker verification. Fix path: `prisma-next db sign`. Meta: none notable.
 
 ### CONTRACT.MARKER_READ_FAILED
 
@@ -283,7 +319,7 @@ A driver-level failure occurred while reading the contract marker table — conn
 
 ### CONTRACT.MARKER_REQUIRED
 
-A command that requires a pre-signed database (marker present) as a precondition found none; also the default failure code stamped onto a non-ok verify result when no more specific code applies. Fix path: run `prisma-next db init` first. Meta: none notable.
+A command that requires a pre-signed database (marker present) as a precondition found none; also the default failure code stamped onto a non-ok verify result when no more specific code applies, which is how `db verify --strict` reports a database holding elements no contract declares. On `db verify` it is an `error` diagnostic on a completed run that exits `4`; everywhere else it is a precondition failure at exit `2`. Those are two unrelated jobs for one code — "sign the database first" and "strict mode found elements no contract declares" — and splitting them would let the exit code follow from the code alone. Fix path: run `prisma-next db init` first, or declare the extra elements in a contract. Meta: none notable.
 
 ### CONTRACT.MARKER_ROW_CORRUPT
 
@@ -355,7 +391,7 @@ A role entity is declared more than once in the entities list, or a role name is
 
 ### CONTRACT.SCHEMA_VERIFICATION_FAILED
 
-Schema verification found that the live database schema does not satisfy the contract — missing/extra/mismatched tables, columns, or other elements. Produced by `verify`-family CLI operations; the full verification result rides in meta. Fix path: `prisma-next db update` or adjust the contract. Meta: `verificationResult`, `issues`.
+Schema verification found that the live database schema does not satisfy the contract — missing/extra/mismatched tables, columns, or other elements. `db verify` and `db sign` both report it as an `error` diagnostic on a completed run that exits `4`: for `db verify` that is the drift verdict, and for `db sign` it is the reason no signature was written. `db verify` raises one such diagnostic per contract space whose schema failed. Fix path: `prisma-next db update` or adjust the contract. Meta: `space` (the contract space, on `db verify`), `issues` (the drifted element paths); the underlying operation result also carries `verificationResult`.
 
 ### CONTRACT.SOURCE_IMPORT_DISALLOWED
 
@@ -375,7 +411,7 @@ A foreign key or index references a table name that disagrees with the table the
 
 ### CONTRACT.TARGET_MISMATCH
 
-The contract's target does not match the target configured in `prisma-next.config.ts` (e.g. a Postgres contract with a SQLite config). Surfaces from verify-style CLI operations. Meta: `expected`, `actual`.
+The contract's target does not match the target configured in `prisma.config.ts` (e.g. a Postgres contract with a SQLite config). `db verify` reports it as an `error` diagnostic on a completed run that exits `4`. Meta: `expected`, `actual`.
 
 ### CONTRACT.TYPE_UNKNOWN
 
@@ -391,7 +427,7 @@ Aggregate contract validation failed: structural validation of the contract JSON
 
 ### CONTRACT.VERIFY_FAILED
 
-`db verify` failed for a reason the verify result did not classify under a more specific code (marker, target, or schema-verification codes). The summary carries the verify result's own text. Meta: none.
+`db verify` failed for a reason the verify result did not classify under a more specific code (marker, target, or schema-verification codes). Reported as an `error` diagnostic on a completed run that exits `4`, with the verify result's own text as the summary. Meta: none.
 
 ### CONTRACT.WIRE_NAME_PREFIX_TOO_LONG
 
@@ -525,7 +561,7 @@ A Mongo mutation method (e.g. update/delete variants) requires a prior `.where()
 
 ### RUNTIME.ABORTED
 
-An in-flight `execute()` was cancelled via the per-query `AbortSignal` passed as `execute(plan, { signal })`. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeExecute` / `afterExecute` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Meta: `phase`.
+An in-flight `query()` or `execute()` operation was cancelled via the per-operation `AbortSignal` passed as the call's `{ signal }` option. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeQuery` / `beforeExecute` / `afterQuery` / `afterExecute` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Meta: `phase`.
 
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
@@ -633,9 +669,13 @@ The integer codecs also check the JS type of the value they are given, and repor
 
 The exact integer codecs make one exception, and only on the JSON side. `encodeJson` on `pg/int8@1`, `pg/unboundedint@1`, and `sqlite/bigint@1` also accepts a `number`, because a schema language writes no `bigint` literal — `BigInt @default(0)` arrives as the JSON number `0`. The number must be an integer within the safe range, and a value that is not raises `<codec> number literal must be an integer within the safe integer range, got <value>`: past that range the literal was already rounded before the codec saw it, so its digits no longer name the value that was written. `encode` — the wire path a query parameter travels — takes no such number; it requires the `bigint`.
 
+### RUNTIME.EXECUTION_RESULT_MISSING
+
+A statistics execution completed without returning statement statistics. This indicates a runtime or middleware implementation violated the execution contract instead of returning `{ affectedRows }`. Meta: none.
+
 ### RUNTIME.ITERATOR_CONSUMED
 
-An `AsyncIterableResult` (the return value of `execute()`) was iterated a second time — each result can be consumed only once, whether via a `for await` loop or via `toArray()`/`await`. Store the array from `toArray()` if you need to reuse the rows. Meta: `consumedBy`, `suggestion`.
+An `AsyncIterableResult` (the return value of `query()`) was iterated a second time — each result can be consumed only once, whether via a `for await` loop or via `toArray()`/`await`. Store the array from `toArray()` if you need to reuse the rows. Meta: `consumedBy`, `suggestion`.
 
 ### RUNTIME.JSON_SCHEMA_VALIDATION_FAILED
 
@@ -649,6 +689,10 @@ A middleware registered on the runtime declares a `familyId` (e.g. `sql`) that d
 
 A middleware declares a `targetId` without also declaring a `familyId` — an invalid combination, since target scoping only makes sense within a family. Checked when the runtime validates its middleware list. Meta: `middleware`, `targetId`.
 
+### RUNTIME.MIDDLEWARE_RESULT_MISMATCH
+
+Middleware returned a query result for a statistics operation, or statistics for a row query. Middleware interception results must carry the same `operation` discriminant as the operation they intercept. Meta: `expected`, `received`.
+
 ### RUNTIME.MIDDLEWARE_TARGET_MISMATCH
 
 A middleware declares a `targetId` (e.g. `postgres`) that differs from the runtime's configured target. Checked when the runtime validates its middleware list. Meta: `middleware`, `middlewareTargetId`, `runtimeTargetId`.
@@ -656,6 +700,14 @@ A middleware declares a `targetId` (e.g. `postgres`) that differs from the runti
 ### RUNTIME.MISSING_EXTENSION_PACK
 
 At SQL context construction, the contract requires one or more extension packs that no component in the runtime stack provides. Add the missing pack(s) to the stack. Meta: `packIds`.
+
+### RUNTIME.MONGO_STATISTICS_RESULT_INVALID
+
+A Mongo update or delete command did not return exactly one result object with the required numeric native count field. Updates require `modifiedCount`; deletes require `deletedCount`. Meta: `commandKind`, `countField`.
+
+### RUNTIME.MONGO_STATISTICS_UNSUPPORTED
+
+Statistics execution was requested for a Mongo command that does not expose affected-row statistics. Only update and delete command kinds provide the native counts used by this operation. Meta: `commandKind`.
 
 ### RUNTIME.MUTATION_DEFAULT_GENERATOR_MISSING
 
@@ -721,7 +773,7 @@ A control-plane driver could not establish a database connection (`driver.create
 
 ### DRIVER.NOT_CONNECTED
 
-Using a driver, a target facade client, or the CLI control client before `connect(...)` has been called (or after it was closed) — surfaces from `execute`, `executePrepared`, `acquireConnection`, `query`, or `explain`, including lazily when iterating an execute result.
+Using a driver, a target facade client, or the CLI control client before `connect(...)` has been called (or after it was closed) — surfaces from runtime `query` / `execute`, a prepared statement's `query(target, params, options?)`, `acquireConnection`, or `explain`, including lazily when iterating a query result.
 
 ### DRIVER.PREPARE_FAILED
 
@@ -743,75 +795,79 @@ A hash resolves to a node in the migration graph, but no on-disk migration packa
 
 ### MIGRATION.CHECK_CONTRACT_UNREADABLE
 
-A `migration check` failure row: the `contract.json` for a contract space cannot be read or validated. Re-emit the extension contract artifacts or fix the descriptor producing the invalid contract.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: the `contract.json` for a contract space cannot be read or validated. Re-emit the extension contract artifacts or fix the descriptor producing the invalid contract.
 
 ### MIGRATION.CHECK_DANGLING_REF
 
-A `migration check` failure row: a ref file points at a contract hash that does not exist in the space's migration graph. Update the ref with `prisma-next ref set <name> <valid-hash>` or delete it.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a ref file points at a contract hash that does not exist in the space's migration graph. Update the ref with `prisma-next ref set <name> <valid-hash>` or delete it.
 
 ### MIGRATION.CHECK_DECLARED_BUT_UNMIGRATED
 
-A `migration check` failure row: an extension is declared in `extensions` but has no on-disk migrations directory under `migrations/`. Re-emit the extension's contract-space artifacts, or remove the extension from `extensions`.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: an extension is declared in `extensions` but has no on-disk migrations directory under `migrations/`. Re-emit the extension's contract-space artifacts, or remove the extension from `extensions`.
 
 ### MIGRATION.CHECK_DUPLICATE_MIGRATION_HASH
 
-A `migration check` failure row: multiple migration packages in the same contract space share the same `migrationHash`, so the packages are not uniquely content-addressed. Re-emit one of the conflicting packages.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: multiple migration packages in the same contract space share the same `migrationHash`, so the packages are not uniquely content-addressed. Re-emit one of the conflicting packages.
 
 ### MIGRATION.CHECK_FILE_MISSING
 
-A `migration check` failure row: a required file (`migration.json` or `ops.json`) is missing from a migration package directory. Re-emit the package or restore it from version control.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a required file (`migration.json` or `ops.json`) is missing from a migration package directory. Re-emit the package or restore it from version control.
 
 ### MIGRATION.CHECK_HASH_MISMATCH
 
-A `migration check` failure row: the `migrationHash` stored in `migration.json` does not match the hash recomputed from the package contents — the package was edited or partially written since emit. Re-emit the package or restore it from version control.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: the `migrationHash` stored in `migration.json` does not match the hash recomputed from the package contents — the package was edited or partially written since emit. Re-emit the package or restore it from version control.
 
 ### MIGRATION.CHECK_HEAD_REF_MISSING
 
-A `migration check` failure row: a contract space has no `refs/head.json`. Re-emit the contract-space migrations and head-ref artifacts, or restore the file from version control.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a contract space has no `refs/head.json`. Re-emit the contract-space migrations and head-ref artifacts, or restore the file from version control.
 
 ### MIGRATION.CHECK_HEAD_REF_NOT_IN_GRAPH
 
-A `migration check` failure row: the hash in a space's `refs/head.json` is not a node in that space's migration graph. Re-emit the space's migrations or restore the missing migration package.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: the hash in a space's `refs/head.json` is not a node in that space's migration graph. Re-emit the space's migrations or restore the missing migration package.
 
 ### MIGRATION.CHECK_NOOP_SELF_EDGE
 
-A `migration check` failure row: a migration has identical source and target hashes and declares no data invariant — a true no-op self-edge. Add a data operation if it was meant to carry one, or delete the migration.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a migration has identical source and target hashes and declares no data invariant — a true no-op self-edge. Add a data operation if it was meant to carry one, or delete the migration.
 
 ### MIGRATION.CHECK_ORPHAN_SPACE_DIR
 
-A `migration check` failure row: a contract-space directory exists under `migrations/` but no declared extension claims it. Remove the directory or declare the extension in `extensions`.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a contract-space directory exists under `migrations/` but no declared extension claims it. Remove the directory or declare the extension in `extensions`.
 
 ### MIGRATION.CHECK_PACKAGE_UNLOADABLE
 
-A `migration check` failure row: a migration package directory exists but could not be loaded (parse or validation failure); the row's detail names the underlying cause. Re-emit the package or restore it from version control.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a migration package directory exists but could not be loaded (parse or validation failure); the row's detail names the underlying cause. Re-emit the package or restore it from version control.
 
 ### MIGRATION.CHECK_PROVIDED_INVARIANTS_MISMATCH
 
-A `migration check` failure row: the `providedInvariants` list stored in `migration.json` disagrees with the one derived from `ops.json`. Re-emit the package so the two files agree.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: the `providedInvariants` list stored in `migration.json` disagrees with the one derived from `ops.json`. Re-emit the package so the two files agree.
 
 ### MIGRATION.CHECK_REF_UNREADABLE
 
-A `migration check` failure row: a ref file in a space's `refs/` directory cannot be read or parsed. Repair or remove the corrupt ref file.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a ref file in a space's `refs/` directory cannot be read or parsed. Repair or remove the corrupt ref file.
 
 ### MIGRATION.CHECK_SNAPSHOT_HASH_MISMATCH
 
-A `migration check` failure row: a migration declares a destination hash `to` but the contract snapshot stored for that hash has a different inner `storage.storageHash`. Re-emit the package so `migration.json` and its snapshot agree.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a migration declares a destination hash `to` but the contract snapshot stored for that hash has a different inner `storage.storageHash`. Re-emit the package so `migration.json` and its snapshot agree.
 
 ### MIGRATION.CHECK_SNAPSHOT_UNPARSEABLE
 
-A `migration check` failure row: either the migration's `to` value is not a well-formed 64-hex hash, or the contract snapshot stored for it exists but cannot be parsed. Re-emit the package, or restore `migrations/snapshots/` from version control.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: either the migration's `to` value is not a well-formed 64-hex hash, or the contract snapshot stored for it exists but cannot be parsed. Re-emit the package, or restore `migrations/snapshots/` from version control.
 
 ### MIGRATION.CHECK_SPACE_DISJOINTNESS_VIOLATION
 
-A `migration check` failure row: a storage element (table/collection) is claimed by more than one contract space. Update the contracts so each storage element is owned by exactly one space.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a storage element (table/collection) is claimed by more than one contract space. Update the contracts so each storage element is owned by exactly one space.
 
 ### MIGRATION.CHECK_TARGET_MISMATCH
 
-A `migration check` failure row: a contract space's declared database target differs from the project's configured target. Update the extension to target the configured database, or change the project target.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a contract space's declared database target differs from the project's configured target. Update the extension to target the configured database, or change the project target.
 
 ### MIGRATION.CHECK_UNREACHABLE_MIGRATION
 
-A `migration check` failure row: a migration's `from` hash is not produced by any other migration (and is not the empty state), so the migration is unreachable in the graph. Delete it or re-emit a connecting migration.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a migration's `from` hash is not produced by any other migration (and is not the empty state), so the migration is unreachable in the graph. Delete it or re-emit a connecting migration.
+
+### MIGRATION.CONSENT_PLAN_MISMATCH
+
+An apply carrying consent was refused because the plan recomputed for it is not the plan that was consented to. `db update` recomputes the plan at apply time and compares its hash against the one the consent was given for; a mismatch means the schema, the contract, or the database moved in between, so applying would carry out operations nobody agreed to. Re-run the command and review the freshly planned operations before consenting again. Meta: `consentedPlanHash`, `planHash`.
 
 ### MIGRATION.CONTRACT_DESERIALIZATION_FAILED
 
@@ -831,7 +887,7 @@ The on-disk `migrations/` directory and the `extensions` declaration in config d
 
 ### MIGRATION.CONTRACT_SPACE_VIOLATION
 
-A contract-space integrity check failed while loading the aggregate or verifying the database (`db verify`, `db run`): a space's target mismatches the project target, two spaces claim the same storage element, a space contract is unreadable, a marker row exists for a space no longer declared (orphan marker), or aggregate introspection failed. The envelope's `why` lists the specific violations. Meta: `violations`.
+A contract-space check raised under one code, in two lanes with different exits. As an error at exit `2` when the check could not run: a space's target mismatches the project target, two spaces claim the same storage element, a space contract is unreadable, or aggregate introspection failed (`db verify`, `db run`). As an `error`-severity diagnostic on a completed `db verify` run that exits `4` — including under `--marker-only` — when the check ran and found per-space marker drift: a marker hash mismatch, missing invariants, or an orphan marker row, reported next to the single-contract marker findings that already settle there. The envelope's `why` lists the specific violations. Meta: `violations`.
 
 ### MIGRATION.CONTRACT_VIEW_MISSING
 
@@ -855,7 +911,7 @@ Runner-level failure during apply (`db init`, `db update`, `migrate`): the plan'
 
 ### MIGRATION.DESTRUCTIVE_CHANGES
 
-The planned operations include destructive changes (e.g. DROP) and the command was run without explicit confirmation. Re-run with `-y`/`--yes` to apply, or `--dry-run` to preview.
+The planned operations include destructive changes (e.g. DROP) and the command was run without explicit consent. `db update` asks for that consent instead of failing: interactively it asks you to type the name of the database it is about to change, and outside an interactive terminal it is granted by `--confirm <database>` (`--yes` accepts declared prompt defaults and never grants consent; `--confirm` is read only when the run is non-interactive or `--yes` is set, so a script run from a terminal needs `--no-interactive --confirm <database>`). The name is the `database` a driver connection object carries, or the connection URL's first path segment, else its host, falling back to the target id. A run with nobody to ask and no `--confirm` settles as `CLI.CONSENT_REQUIRED` at exit 2; a run whose prompt is cancelled settles as `CLI.PROMPT_CANCELLED` at exit 3. `--dry-run` never asks — it settles as this error instead. Use it to preview the operations first.
 
 ### MIGRATION.DIR_EXISTS
 
@@ -995,7 +1051,7 @@ A Mongo migration check uses a filter feature the check evaluator does not suppo
 
 ### MIGRATION.PACKAGE_NOT_FOUND
 
-`migration show` resolved its target (a directory path, or a migration reference) but no loaded on-disk migration package matches it — either no package lives at the given path, or the resolved migration's package failed to load. Pass a directory name, hash prefix, or path to an on-disk app-space migration package, or inspect the migrations directory for corruption. Meta: none.
+`migration show` or `migration check` resolved its target (a directory path, or a migration reference) but no loaded on-disk migration package matches it — either no package lives at the given path, or the resolved migration's package failed to load. `migration check` raises it at exit `2`: it could not run the check at all, which is different from running it and finding something. Pass a directory name, hash prefix, or path to an on-disk migration package, or inspect the migrations directory for corruption. Meta: none.
 
 ### MIGRATION.PATH_UNREACHABLE
 
@@ -1019,7 +1075,7 @@ After executing a migration operation, one of its postcheck steps (a query expec
 
 ### MIGRATION.POSTGRES_CONTROL_STACK_MISSING
 
-A `PostgresMigration` operation (e.g. `createTable`, `dataTransform`) was invoked on an instance constructed without a control stack — normal CLI-driven runs always assemble one from `prisma-next.config.ts`, so this indicates a test fixture or ad-hoc consumer used the no-arg constructor (valid only for introspection). Meta: `operation`.
+A `PostgresMigration` operation (e.g. `createTable`, `dataTransform`) was invoked on an instance constructed without a control stack — normal CLI-driven runs always assemble one from `prisma.config.ts`, so this indicates a test fixture or ad-hoc consumer used the no-arg constructor (valid only for introspection). Meta: `operation`.
 
 ### MIGRATION.PRECHECK_FAILED
 
@@ -1083,7 +1139,7 @@ SQLite twin of `MIGRATION.POSTGRES_CONTROL_STACK_MISSING`: a `SqliteMigration` o
 
 ### MIGRATION.TARGET_MISMATCH
 
-A migration script declares one `targetId` but the loaded `prisma-next.config.ts` declares another; the script can only run against a config targeting the same database. Switch configs or pass `--config <path>`. Meta: `migrationTargetId`, `configTargetId`.
+A migration script declares one `targetId` but the loaded `prisma.config.ts` declares another; the script can only run against a config targeting the same database. Switch configs or pass `--config <path>`. Meta: `migrationTargetId`, `configTargetId`.
 
 ### MIGRATION.TARGET_NOT_APP_SPACE
 

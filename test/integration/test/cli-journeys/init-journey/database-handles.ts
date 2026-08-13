@@ -4,7 +4,7 @@
  * Postgres uses `@prisma/dev` via the existing `@repo/test-utils`
  * factory; Mongo uses `mongodb-memory-server`. Both expose a normalised
  * `connectionString` that the journey injects into the project's `.env`
- * so the scaffolded `prisma-next.config.ts` (which reads
+ * so the scaffolded `prisma.config.ts` (which reads
  * `process.env['DATABASE_URL']`) picks it up.
  */
 

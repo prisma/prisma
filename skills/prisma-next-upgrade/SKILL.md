@@ -27,7 +27,7 @@ Before changing any code, refuse to upgrade past any installed extension's pinne
 
 Steps:
 
-1. **Read `prisma-next.config.ts`** (or its TS-discoverable equivalent at the project root) and enumerate the list of extension packages it imports. Each `extensions: [...]` entry corresponds to an installed npm package.
+1. **Read `prisma.config.ts`** (or its TS-discoverable equivalent at the project root) and enumerate the list of extension packages it imports. Each `extensions: [...]` entry corresponds to an installed npm package.
 2. **For each extension**, read its installed `package.json` from `node_modules/<extension-package-name>/package.json` and find any `@internal/*` entry under `dependencies`, `peerDependencies`, or `optionalDependencies`. By construction those entries are exact-version pins (e.g. `"0.7.0"`), set when the extension author last ran their own upgrade.
 3. **Compute the lowest pinned version across all extensions.** That is the highest Prisma Next version reachable by this app on its current extension set.
 4. **Compare to the user's target.** If the target exceeds the lowest pin, halt with a structured message naming each lagging extension and its pinned version, and offer two paths:
@@ -36,14 +36,14 @@ Steps:
 
 Do not auto-downgrade the target; do not skip the lagging extension; do not bump past it. If the user explicitly overrides the halt, surface the risk clearly first.
 
-If `prisma-next.config.ts` is absent or names no extensions, skip the pre-flight.
+If `prisma.config.ts` is absent or names no extensions, skip the pre-flight.
 
 ## Role detection
 
 This skill applies when the project **consumes** Prisma Next:
 
 - `package.json` declares one or more `@internal/*` packages under `dependencies` / `devDependencies`, and
-- the package is *not* itself an extension (no `@internal/contract` (or other SPI) under `dependencies`/`peerDependencies`; name does not match `^@.*/extension-`; not referenced from a sibling app's `prisma-next.config.ts`).
+- the package is *not* itself an extension (no `@internal/contract` (or other SPI) under `dependencies`/`peerDependencies`; name does not match `^@.*/extension-`; not referenced from a sibling app's `prisma.config.ts`).
 
 If the project also matches the extension-author role, install the `prisma-8-extension-upgrade` skill (`pnpm dlx skills add prisma/prisma/skills --skill prisma-8-extension-upgrade -y`) and run **this** flow first, then that one in the same session. If detection is ambiguous, ask the user.
 

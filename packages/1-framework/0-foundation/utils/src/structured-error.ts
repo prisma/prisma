@@ -48,13 +48,18 @@ export interface StructuredErrorOptions {
 
 const STRUCTURED_CODE_RE = /^[A-Z][A-Z0-9]*\.[A-Z][A-Z0-9_]*$/;
 
+/** Whether a bare string is a published `NAMESPACE.SUBCODE` code. */
+export function isStructuredErrorCode(code: string): code is StructuredError['code'] {
+  return STRUCTURED_CODE_RE.test(code);
+}
+
 export function isStructuredError(e: unknown): e is StructuredError {
   return (
     typeof e === 'object' &&
     e !== null &&
     'code' in e &&
     typeof e.code === 'string' &&
-    STRUCTURED_CODE_RE.test(e.code) &&
+    isStructuredErrorCode(e.code) &&
     'message' in e &&
     typeof e.message === 'string'
   );

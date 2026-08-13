@@ -1,4 +1,5 @@
-import type { AsyncIterableResult, RuntimeExecutor } from '@internal/framework-components/runtime';
+import type { AsyncIterableResult } from '@internal/framework-components/runtime';
+import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   RuntimeScope as CanonicalRuntimeScope,
@@ -8,10 +9,7 @@ import type { Runtime, RuntimeQueryable as SqlRuntimeQueryable } from '@internal
 import { expectTypeOf, test } from 'vitest';
 import type { RuntimeConnection, RuntimeQueryable, RuntimeTransaction } from '../src/types';
 
-type CanonicalScope = Pick<RuntimeExecutor<SqlExecutionPlan | SqlQueryPlan>, 'execute'>;
-
-test('RuntimeScope from sql-relational-core is the canonical SQL runtime execute surface', () => {
-  expectTypeOf<CanonicalRuntimeScope>().toEqualTypeOf<CanonicalScope>();
+test('RuntimeScope from sql-relational-core is the canonical SQL runtime surface', () => {
   expectTypeOf<SqlOrmPlan>().toEqualTypeOf<SqlExecutionPlan | SqlQueryPlan>();
 });
 
@@ -43,16 +41,17 @@ test('SQL Runtime is structurally assignable to RuntimeQueryable', () => {
   expectTypeOf(runtime).toExtend<RuntimeQueryable>();
 });
 
-test('RuntimeScope.execute infers Row from a plan whose phantom _row is bound', () => {
+test('RuntimeScope query returns rows and execute returns statistics', () => {
   type Row = { id: number; name: string };
   const plan = {} as SqlQueryPlan<Row>;
   const scope = {} as CanonicalRuntimeScope;
-  expectTypeOf(scope.execute(plan)).toEqualTypeOf<AsyncIterableResult<Row>>();
+  expectTypeOf(scope.query(plan)).toEqualTypeOf<AsyncIterableResult<Row>>();
+  expectTypeOf(scope.execute(plan)).toEqualTypeOf<Promise<SqlStatementStats>>();
 });
 
-test('RuntimeScope.execute accepts a pre-lowered SqlExecutionPlan with a row binding', () => {
+test('RuntimeScope query accepts a pre-lowered plan with a row binding', () => {
   type Row = { count: number };
   const plan = {} as SqlExecutionPlan<Row>;
   const scope = {} as CanonicalRuntimeScope;
-  expectTypeOf(scope.execute(plan)).toEqualTypeOf<AsyncIterableResult<Row>>();
+  expectTypeOf(scope.query(plan)).toEqualTypeOf<AsyncIterableResult<Row>>();
 });

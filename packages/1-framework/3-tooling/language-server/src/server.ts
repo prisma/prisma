@@ -35,6 +35,7 @@ import {
 } from './config-resolution';
 import { type LspDiagnostic, ParseDiagnosticSeverity } from './diagnostic-mapping';
 import { computeFoldingRanges } from './folding-ranges';
+import { guardedConnection } from './guarded-connection';
 import type { PipelineInputs } from './pipeline';
 import {
   createProjectArtifacts,
@@ -97,25 +98,25 @@ export const CONFIG_LOAD_FAILED_CODE = 'PRISMA_NEXT_CONFIG_LOAD_FAILED';
 const semanticTokenSourceLimit = 100_000;
 
 export function createServer(connection: Connection): LanguageServer {
+  // Guarded here rather than at each send site, so a send added later cannot
+  // reach a departed client unguarded: the body below never holds the raw
+  // connection.
+  return createServerOn(guardedConnection(connection));
+}
+
+function createServerOn(connection: Connection): LanguageServer {
   const documents = new TextDocuments(TextDocument);
   const managedProjects = new Map<string, ManagedProject>();
   const documentConfigPaths = new Map<string, string>();
   let rootPath = process.cwd();
   let watchedConfigGlob = join(rootPath, '**', CONFIG_FILENAME);
   let clientCapabilities = noClientCapabilities;
-  let disposed = false;
 
   function sendDiagnostics(params: PublishDiagnosticsParams): void {
-    if (disposed) {
-      return;
-    }
     void connection.sendDiagnostics(params);
   }
 
   function logWarn(message: string): void {
-    if (disposed) {
-      return;
-    }
     connection.console.warn(message);
   }
 
@@ -368,18 +369,7 @@ export function createServer(connection: Connection): LanguageServer {
 
   function publishSafely(uri: string): void {
     void publish(uri).catch((error: unknown) => {
-      if (disposed) {
-        return;
-      }
-      // The connection can die between the `disposed` check and this log call
-      // (e.g. the client tears down the transport before `dispose()` runs);
-      // `console.error` sends a notification, which then throws on the dead
-      // connection. Swallow it — there is nowhere left to report to.
-      try {
-        connection.console.error(error instanceof Error ? error.message : String(error));
-      } catch {
-        // Connection already disposed; nothing to do.
-      }
+      connection.console.error(error instanceof Error ? error.message : String(error));
     });
   }
 
@@ -516,17 +506,15 @@ export function createServer(connection: Connection): LanguageServer {
 
   connection.onInitialized(() => {
     if (clientCapabilities.watchedFilesRegistration) {
-      void connection
-        .sendRequest(RegistrationRequest.type, {
-          registrations: [
-            {
-              id: 'prisma-8-config-watcher',
-              method: DidChangeWatchedFilesNotification.type.method,
-              registerOptions: { watchers: [{ globPattern: watchedConfigGlob }] },
-            },
-          ],
-        })
-        .catch(() => undefined);
+      void connection.sendRequest(RegistrationRequest.type, {
+        registrations: [
+          {
+            id: 'prisma-8-config-watcher',
+            method: DidChangeWatchedFilesNotification.type.method,
+            registerOptions: { watchers: [{ globPattern: watchedConfigGlob }] },
+          },
+        ],
+      });
     } else {
       logWarn(
         'Client does not support dynamic file-watcher registration; Prisma Next config changes will not be picked up without a restart.',
@@ -558,10 +546,9 @@ export function createServer(connection: Connection): LanguageServer {
     if (
       clientCapabilities.pullDiagnostics &&
       clientCapabilities.diagnosticsRefresh &&
-      changedConfigPaths.size > 0 &&
-      !disposed
+      changedConfigPaths.size > 0
     ) {
-      void connection.languages.diagnostics.refresh().catch(() => undefined);
+      void connection.languages.diagnostics.refresh();
     }
   });
 
@@ -661,10 +648,7 @@ export function createServer(connection: Connection): LanguageServer {
   }
 
   return {
-    dispose: () => {
-      disposed = true;
-      connection.dispose();
-    },
+    dispose: () => connection.dispose(),
     getDocumentAst: (uri) => artifactsForDocument(uri)?.document(uri),
     // `| undefined` only because the uri may be unmanaged (closed, non-input,
     // or projectless); a managed document's project always yields a symbolTable.

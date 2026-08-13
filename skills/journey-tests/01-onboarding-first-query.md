@@ -12,7 +12,7 @@
 
 ## Expected agent behavior
 
-- [ ] Reads `prisma-next.config.ts` to confirm target and authoring mode.
+- [ ] Reads `prisma.config.ts` to confirm target and authoring mode.
 - [ ] Opens the contract source (`schema.psl` or `prisma/contract.ts`).
 - [ ] Adds a `User` model with `id` (auto-increment PK) and `email` (string, unique).
 - [ ] Runs `pnpm prisma-next contract emit` (or the project-pm equivalent).

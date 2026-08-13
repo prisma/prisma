@@ -41,6 +41,18 @@ describe('SqliteControlDriverDescriptor', () => {
     await driver.close();
   });
 
+  it('names the database file it is connected to', async () => {
+    const driver = await sqliteControlDriverDescriptor.create(testPath);
+    await expect(driver.databaseName()).resolves.toBe('test.db');
+    await driver.close();
+  });
+
+  it('names nothing for an in-memory database', async () => {
+    const driver = await sqliteControlDriverDescriptor.create(':memory:');
+    await expect(driver.databaseName()).resolves.toBeUndefined();
+    await driver.close();
+  });
+
   it('has foreign keys enabled', async () => {
     const driver = await sqliteControlDriverDescriptor.create(testPath);
     const result = await driver.query<{ foreign_keys: number }>('PRAGMA foreign_keys');

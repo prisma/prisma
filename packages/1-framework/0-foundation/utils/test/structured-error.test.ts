@@ -1,6 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import type { NextAction } from '../src/structured-error';
-import { docsUrlFor, isStructuredError, structuredError } from '../src/structured-error';
+import {
+  docsUrlFor,
+  isStructuredError,
+  isStructuredErrorCode,
+  structuredError,
+} from '../src/structured-error';
+
+describe('isStructuredErrorCode', () => {
+  it('true for a dotted NAMESPACE.SUBCODE', () => {
+    expect(isStructuredErrorCode('MIGRATION.CHECK_HASH_MISMATCH')).toBe(true);
+  });
+
+  it('false for a lowercase code with a dot in it', () => {
+    expect(isStructuredErrorCode('foo.bar')).toBe(false);
+  });
+
+  it('false for a code with no dot', () => {
+    expect(isStructuredErrorCode('ECONNREFUSED')).toBe(false);
+  });
+
+  it('false for a code with more than one dot', () => {
+    expect(isStructuredErrorCode('A.B.C')).toBe(false);
+  });
+});
 
 describe('isStructuredError', () => {
   it('true for a value created by structuredError', () => {

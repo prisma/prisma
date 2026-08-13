@@ -31,6 +31,24 @@ describe('@internal/driver-postgres control', () => {
     vi.doUnmock('pg');
   });
 
+  it('names the connected database', async () => {
+    const mockClient = {
+      query: vi.fn(async () => ({ rows: [{ name: 'appdb' }] })),
+    };
+    const driver = new PostgresControlDriver(mockClient as unknown as Client);
+
+    await expect(driver.databaseName()).resolves.toBe('appdb');
+  });
+
+  it('names nothing when the server returns no name', async () => {
+    const mockClient = {
+      query: vi.fn(async () => ({ rows: [] })),
+    };
+    const driver = new PostgresControlDriver(mockClient as unknown as Client);
+
+    await expect(driver.databaseName()).resolves.toBeUndefined();
+  });
+
   it('close() resolves even when the underlying client.end() rejects', async () => {
     const mockClient = {
       end: vi.fn(async () => {

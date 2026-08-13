@@ -43,7 +43,6 @@
     "./adapter/codecs": "./dist/adapter__codecs.mjs",
     "./adapter/control": "./dist/adapter__control.mjs",
     "./adapter/runtime": "./dist/adapter__runtime.mjs",
-    "./bin/prisma-next": "./dist/bin__prisma-next.mjs",
     "./bson": "./dist/bson.mjs",
     "./components": "./dist/components.mjs",
     "./components/authoring": "./dist/components__authoring.mjs",
@@ -123,9 +122,6 @@
     "./value/mongodb-types": "./dist/value__mongodb-types.mjs",
     "./vite-plugin-contract-emit": "./dist/vite-plugin-contract-emit.mjs",
     "./package.json": "./package.json"
-  },
-  "bin": {
-    "prisma-next": "./dist/bin__prisma-next.mjs"
   },
   "repository": {
     "type": "git",

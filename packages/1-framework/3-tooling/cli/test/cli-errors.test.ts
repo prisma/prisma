@@ -24,7 +24,7 @@ describe('CliStructuredError.toEnvelope()', () => {
     expect(envelope.code).toBe('CONFIG.DRIVER_REQUIRED');
     expect(envelope.summary).toBe('Driver is required for DB-connected commands');
     expect(envelope.fix).toBe(
-      'Add a control-plane driver to prisma-next.config.ts (e.g. import a driver descriptor and set `driver: postgresDriver`)',
+      'Add a control-plane driver to prisma.config.ts (e.g. import a driver descriptor and set `driver: postgresDriver`)',
     );
     expect(envelope.docsUrl).toBe(docsUrlFor('CONFIG.DRIVER_REQUIRED'));
   });
@@ -56,11 +56,11 @@ describe('errorPathUnreachable', () => {
     const envelope = errorPathUnreachable(failure).toEnvelope();
     expect(envelope.code).toBe('MIGRATION.PATH_UNREACHABLE');
     expect(envelope.fix).toContain(
-      `prisma-next migration plan --from ${fromHash} --to ${targetHash} --name <slug>`,
+      `prisma-cli migration plan --from ${fromHash} --to ${targetHash} --name <slug>`,
     );
-    expect(envelope.fix).toContain(`prisma-next migrate --to ${targetHash}`);
-    expect(envelope.fix).toContain('prisma-next migration list');
-    expect(envelope.fix).toContain('prisma-next migration show');
+    expect(envelope.fix).toContain(`prisma-cli migrate --to ${targetHash}`);
+    expect(envelope.fix).toContain('prisma-cli migration list');
+    expect(envelope.fix).toContain('prisma-cli migration show');
     expect((envelope.fix ?? '').toLowerCase()).toContain('destructive');
     expect((envelope.fix ?? '').toLowerCase()).toContain('hint');
   });
@@ -75,7 +75,7 @@ describe('errorPathUnreachable', () => {
     const envelope = errorPathUnreachable(failure).toEnvelope();
     // A never-planned space has an EMPTY graph, and `--to <hash>` only
     // resolves against graph nodes — the remediation must run verbatim.
-    expect(envelope.fix).toContain('prisma-next migration plan --name <slug>');
+    expect(envelope.fix).toContain('prisma-cli migration plan --name <slug>');
     expect(envelope.fix).not.toContain('--to');
     expect(envelope.fix).not.toContain('--from');
     expect(envelope.fix).not.toContain('<unknown>');
@@ -89,7 +89,7 @@ describe('errorPathUnreachable', () => {
       meta: { spaceId: 'app' },
     };
     const envelope = errorPathUnreachable(failure).toEnvelope();
-    expect(envelope.fix).toContain('prisma-next migration plan');
+    expect(envelope.fix).toContain('prisma-cli migration plan');
     expect(envelope.fix).not.toContain('--from');
     expect(envelope.fix).not.toContain('--to');
     expect(envelope.fix).not.toContain('<unknown>');
@@ -115,9 +115,9 @@ describe('errorPathUnreachable', () => {
 
     // fix: the plan-then-apply sequence pointing at the now-working command.
     expect(envelope.fix).toContain(
-      `prisma-next migration plan --from ${fromHash} --to ${targetHash} --name <slug>`,
+      `prisma-cli migration plan --from ${fromHash} --to ${targetHash} --name <slug>`,
     );
-    expect(envelope.fix).toContain(`prisma-next migrate --to ${targetHash}`);
+    expect(envelope.fix).toContain(`prisma-cli migrate --to ${targetHash}`);
     expect((envelope.fix ?? '').toLowerCase()).toContain('destructive');
     expect((envelope.fix ?? '').toLowerCase()).toContain('hint');
   });
@@ -127,7 +127,7 @@ describe('errorPathUnreachable', () => {
     const envelope = errorPathUnreachable(failure).toEnvelope();
 
     expect(envelope.why).toContain('<empty>');
-    expect(envelope.fix).toContain(`prisma-next migration plan --to ${targetHash} --name <slug>`);
+    expect(envelope.fix).toContain(`prisma-cli migration plan --to ${targetHash} --name <slug>`);
     expect(envelope.fix).not.toContain('--from <empty>');
     expect(envelope.fix).not.toMatch(/--from\s/);
   });
@@ -142,8 +142,8 @@ describe('errorPathUnreachable', () => {
 
     // A never-planned space has an empty graph; the fix must not
     // prescribe a `--to <hash>` the empty graph cannot resolve.
-    expect(envelope.fix).toContain('prisma-next migration plan --name <slug>');
-    expect(envelope.fix).toContain('prisma-next migrate');
+    expect(envelope.fix).toContain('prisma-cli migration plan --name <slug>');
+    expect(envelope.fix).toContain('prisma-cli migrate');
     expect(envelope.fix).not.toContain('--to');
     expect((envelope.fix ?? '').toLowerCase()).toContain('destructive');
     expect((envelope.fix ?? '').toLowerCase()).toContain('hint');
@@ -192,7 +192,7 @@ describe('typed next actions on the CLI factories', () => {
       {
         kind: 'run-command',
         label: 'Extend the migration graph',
-        command: 'prisma-next migration plan',
+        command: 'prisma-cli migration plan',
       },
     ]);
   });
@@ -205,7 +205,7 @@ describe('typed next actions on the CLI factories', () => {
       {
         kind: 'run-command',
         label: "See every space's migrations",
-        command: 'prisma-next migration list',
+        command: 'prisma-cli migration list',
       },
     ]);
   });
@@ -220,12 +220,12 @@ describe('typed next actions on the CLI factories', () => {
       {
         kind: 'run-command',
         label: 'Catch the on-disk graph up to the live marker',
-        command: `prisma-next migration plan --from ${graphTip}`,
+        command: `prisma-cli migration plan --from ${graphTip}`,
       },
       {
         kind: 'run-command',
         label: 'Point the local db ref at the live marker',
-        command: `prisma-next ref set db ${markerHash}`,
+        command: `prisma-cli ref set db ${markerHash}`,
       },
       {
         kind: 'user-choice',
@@ -250,12 +250,12 @@ describe('typed next actions on the CLI factories', () => {
       {
         kind: 'run-command',
         label: 'Plan the missing edge',
-        command: `prisma-next migration plan --from ${fromHash} --to ${targetHash} --name <slug>`,
+        command: `prisma-cli migration plan --from ${fromHash} --to ${targetHash} --name <slug>`,
       },
       {
         kind: 'run-command',
         label: 'Apply it',
-        command: `prisma-next migrate --to ${targetHash}`,
+        command: `prisma-cli migrate --to ${targetHash}`,
       },
     ]);
   });
@@ -274,7 +274,7 @@ describe('typed next actions on the CLI factories', () => {
     ]);
   });
 
-  it('keeps the fix prose alongside the typed actions while the commander shell renders it', () => {
+  it('keeps the fix prose alongside the typed actions', () => {
     const error = errorSpaceNotFound('billing', []);
 
     expect(error.fix).toBeDefined();

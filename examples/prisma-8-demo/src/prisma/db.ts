@@ -10,14 +10,14 @@ import { slowQueryWarning } from './slow-query-warning';
 export const db = postgres<Contract>({
   contractJson,
   // The runtime half of the `stddev` contribution; its control half is
-  // composed in `prisma-next.config.ts`, where the emitted types come from.
+  // composed in `prisma.config.ts`, where the emitted types come from.
   extensions: [pgvector, engagementStatsRuntime],
   middleware: [
     // Cache first: interceptors are consulted in registration order and
     // the first non-`undefined` result wins, so the cache gets first
     // claim. A hit skips only the driver call and per-row `onRow` hooks:
-    // every middleware's `beforeExecute` (`lints`, `budgets`) has already
-    // run before any `intercept` is consulted, and `afterExecute` still
+    // every middleware's `beforeQuery` (`lints`, `budgets`) has already
+    // run before any `interceptQuery` is consulted, and `afterQuery` still
     // fires for all of them with `source: 'middleware'`. The cache stores
     // raw rows; the runtime still runs `decodeRow` on the hit path, so
     // consumers see decoded values in both cases.
@@ -30,7 +30,7 @@ export const db = postgres<Contract>({
       maxLatencyMs: 1_000,
     }),
     // Custom middleware (see `slow-query-warning.ts`): observes every
-    // execution's latency via `afterExecute` and logs a warning past the
+    // execution's latency via `afterQuery` and logs a warning past the
     // threshold. Cache hits flow through it too, with `source: 'middleware'`.
     slowQueryWarning({ thresholdMs: 250 }),
   ],

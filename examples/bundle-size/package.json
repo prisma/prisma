@@ -11,8 +11,8 @@
     "start:pg:emit": "tsx src/postgres/main-emit.ts",
     "start:mongo": "tsx src/mongo/main.ts",
     "start:mongo:emit": "tsx src/mongo/main-emit.ts",
-    "emit:pg": "prisma-next contract emit --config src/postgres/prisma-next.config.ts",
-    "emit:mongo": "prisma-next contract emit --config src/mongo/prisma-next.config.ts",
+    "emit:pg": "prisma-next contract emit --config src/postgres/prisma.config.ts",
+    "emit:mongo": "prisma-next contract emit --config src/mongo/prisma.config.ts",
     "emit": "pnpm emit:pg && pnpm emit:mongo",
     "bundle": "tsx scripts/bundle.ts",
     "size": "size-limit",
@@ -28,10 +28,11 @@
     "pg": "catalog:"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "4.20260702.1",
+    "@prisma/cli-engine": "0.0.9",
+    "@prisma/dev": "catalog:",
     "@repo/test-utils": "workspace:8.0.0-rc.1",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
-    "@prisma/dev": "catalog:",
-    "@cloudflare/workers-types": "4.20260702.1",
     "@size-limit/file": "^12.1.0",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
@@ -41,6 +42,6 @@
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
-    "wrangler": "4.116.0"
+    "wrangler": "4.118.0"
   }
 }

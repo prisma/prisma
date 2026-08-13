@@ -21,6 +21,7 @@ export const eventPayloadSchema = type({
   tsVersion: optionalString.default(null),
   agent: optionalString.default(null),
   extensions: stringArray.default(() => []),
+  exitCode: type.number.or('null').default(null),
   '+': 'delete',
 });
 

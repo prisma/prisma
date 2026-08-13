@@ -106,7 +106,7 @@ changes:
     summary: |
       The `extensionPacks` key is renamed to `extensions` across the config
       surface, the SPI, and the contract document. In your extension repo:
-      (1) any `prisma-next.config.ts` (the extension's own contract space, a
+      (1) any `prisma.config.ts` (the extension's own contract space, a
       sibling example app, tests) renames `extensionPacks:` to `extensions:` —
       the old key fails loudly with "Config.extensionPacks is no longer
       supported; rename it to Config.extensions"; (2) the provider-API field

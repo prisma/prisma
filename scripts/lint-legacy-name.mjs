@@ -57,7 +57,7 @@ const ALLOWED = [
       /linear\.app\/[^\s)]*$/.test(before),
   },
   {
-    why: `a name a user types or a path in their project — the published bin \`prisma-next\`, the \`prisma-next.config.ts\` it reads, the \`prisma-next.md\` and \`.prisma-next/\` it writes, the per-user \`config/prisma-next/\` directory, and the shim package carrying the bin. Renaming any of these is a breaking change needing an upgrade path, tracked in ${ROADMAP_TASK}`,
+    why: `a name a user types or a path in their project — the published bin \`prisma-next\`, the \`prisma.config.ts\` it reads, the \`prisma-next.md\` and \`.prisma-next/\` it writes, the per-user \`config/prisma-next/\` directory, and the shim package carrying the bin. Renaming any of these is a breaking change needing an upgrade path, tracked in ${ROADMAP_TASK}`,
     matches: (relPath, line, before, after) => {
       // Never the package scope, and never a path inside the old repository —
       // those are what this check exists to catch.

@@ -6,7 +6,10 @@ import {
   domainValueObjectsAtDefaultNamespace,
   type PlanMeta,
 } from '@internal/contract/types';
-import { AsyncIterableResult } from '@internal/framework-components/runtime';
+import {
+  AsyncIterableResult,
+  type RuntimeStatementStats,
+} from '@internal/framework-components/runtime';
 import type {
   AnyMongoTypeMaps,
   MongoContract,
@@ -332,12 +335,12 @@ class MongoCollectionImpl<
   }
 
   all(): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>> {
-    return this.#execute();
+    return this.#query();
   }
 
   async first(): Promise<IncludedRow<TContract, ModelName, TIncludes> | null> {
     const limited = this.#clone({ limit: 1 });
-    const result = limited.#execute();
+    const result = limited.#query();
     for await (const row of result) {
       return row;
     }
@@ -466,7 +469,7 @@ class MongoCollectionImpl<
         '_id',
         ids.map((id) => new MongoParamRef(id)),
       );
-      yield* self.#clone({ filters: [idFilter] }).#execute();
+      yield* self.#clone({ filters: [idFilter] }).#query();
     }
     return new AsyncIterableResult(gen());
   }
@@ -482,11 +485,8 @@ class MongoCollectionImpl<
     const filter = this.#mergeFilters();
     const updateDoc = this.#resolveUpdateDoc(dataOrCallback);
     const command = new UpdateManyCommand(this.#collectionName, filter, updateDoc);
-    const results = await this.#drainPlan(command);
-    return blindCast<
-      { modifiedCount: number },
-      'UpdateManyCommand runtime result exposes modifiedCount'
-    >(results[0]).modifiedCount;
+    const stats = await this.#executePlan(command);
+    return stats.affectedRows;
   }
 
   async delete(): Promise<IncludedRow<TContract, ModelName, TIncludes> | null> {
@@ -511,7 +511,7 @@ class MongoCollectionImpl<
     const self = this;
     async function* gen(): AsyncGenerator<IncludedRow<TContract, ModelName, TIncludes>> {
       const docs: IncludedRow<TContract, ModelName, TIncludes>[] = [];
-      for await (const row of self.#execute()) {
+      for await (const row of self.#query()) {
         docs.push(row);
       }
       const filter = self.#mergeFilters();
@@ -528,11 +528,8 @@ class MongoCollectionImpl<
     this.#rejectIncludes('deleteAndCount');
     const filter = this.#mergeFilters();
     const command = new DeleteManyCommand(this.#collectionName, filter);
-    const results = await this.#drainPlan(command);
-    return blindCast<
-      { deletedCount: number },
-      'DeleteManyCommand runtime result exposes deletedCount'
-    >(results[0]).deletedCount;
+    const stats = await this.#executePlan(command);
+    return stats.affectedRows;
   }
 
   async upsert(input: {
@@ -631,7 +628,7 @@ class MongoCollectionImpl<
     // we don't do here. Do not "tidy" the destructure away — the prefetch+modify+
     // re-read flow depends on it.
     const { resultShape: _rs, ...planWithoutShape } = idQuery.#compile();
-    for await (const row of this.#executor.execute(planWithoutShape)) {
+    for await (const row of this.#executor.query(planWithoutShape)) {
       const storageRow = blindCast<
         Record<string, unknown>,
         'Mongo id-prefetch plan without resultShape yields a raw storage row containing _id'
@@ -641,9 +638,9 @@ class MongoCollectionImpl<
     return ids;
   }
 
-  #execute(): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>> {
+  #query(): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>> {
     const plan = this.#compile();
-    return this.#executor.execute(plan);
+    return this.#executor.query(plan);
   }
 
   #compile(): MongoQueryPlan<IncludedRow<TContract, ModelName, TIncludes>> {
@@ -673,9 +670,13 @@ class MongoCollectionImpl<
     };
   }
 
+  #executePlan(command: AnyMongoCommand): Promise<RuntimeStatementStats> {
+    return this.#executor.execute(this.#wrapCommand(command));
+  }
+
   async #drainPlan(command: AnyMongoCommand, resultShape?: MongoResultShape): Promise<unknown[]> {
     const plan = this.#wrapCommand(command, resultShape);
-    const result = this.#executor.execute(plan);
+    const result = this.#executor.query(plan);
     const rows: unknown[] = [];
     for await (const row of result) {
       rows.push(row);

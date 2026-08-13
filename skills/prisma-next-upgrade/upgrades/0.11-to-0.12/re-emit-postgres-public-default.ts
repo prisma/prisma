@@ -9,7 +9,7 @@
  * to `__unbound__`; this script targets only contracts whose *default*
  * namespace is still the old sentinel shape.
  *
- * Dispatch: walks the project root for `prisma-next.config.ts` directories,
+ * Dispatch: walks the project root for `prisma.config.ts` directories,
  * resolves each space's committed `contract.json`, and re-emits when the
  * storage tree still includes `"kind": "postgres-unbound-schema"`. Uses
  * the nearest ancestor `package.json` `scripts.emit` when present; otherwise
@@ -58,7 +58,7 @@ async function findPrismaNextConfigDirs(root: string): Promise<string[]> {
       if (entry.isDirectory()) {
         if (SKIP_DIRS.has(entry.name)) continue;
         await walk(join(dir, entry.name));
-      } else if (entry.isFile() && entry.name === 'prisma-next.config.ts') {
+      } else if (entry.isFile() && entry.name === 'prisma.config.ts') {
         out.push(dir);
       }
     }
@@ -138,7 +138,7 @@ async function resolveEmitInvocation(configDir: string): Promise<{
     if (parent === dir) break;
     dir = parent;
   }
-  const configPath = join(configDir, 'prisma-next.config.ts');
+  const configPath = join(configDir, 'prisma.config.ts');
   return {
     cwd: projectRoot,
     args: ['exec', 'prisma-next', 'contract', 'emit', '--config', configPath],

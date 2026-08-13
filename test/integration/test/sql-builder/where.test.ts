@@ -6,7 +6,7 @@ describe('integration: WHERE', { timeout: timeouts.databaseOperation }, () => {
 
   it('eq filters to matching row', async () => {
     const row = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.select('id', 'name')
           .where((f, fns) => fns.eq(f.id, 1))
@@ -18,7 +18,7 @@ describe('integration: WHERE', { timeout: timeouts.databaseOperation }, () => {
   });
 
   it('gt filters rows', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.users.select('id')
         .where((f, fns) => fns.gt(f.id, 2))
@@ -29,7 +29,7 @@ describe('integration: WHERE', { timeout: timeouts.databaseOperation }, () => {
   });
 
   it('lt filters rows', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.users.select('id')
         .where((f, fns) => fns.lt(f.id, 3))
@@ -40,7 +40,7 @@ describe('integration: WHERE', { timeout: timeouts.databaseOperation }, () => {
   });
 
   it('multiple where calls AND together', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.users.select('id')
         .where((f, fns) => fns.gt(f.id, 1))
@@ -52,7 +52,7 @@ describe('integration: WHERE', { timeout: timeouts.databaseOperation }, () => {
   });
 
   it('eq(col, null) produces IS NULL', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.users.select('id', 'name')
         .where((f, fns) => fns.eq(f.invited_by_id, null))
@@ -63,7 +63,7 @@ describe('integration: WHERE', { timeout: timeouts.databaseOperation }, () => {
   });
 
   it('ne(col, null) produces IS NOT NULL', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.users.select('id', 'name')
         .where((f, fns) => fns.ne(f.invited_by_id, null))
@@ -75,7 +75,7 @@ describe('integration: WHERE', { timeout: timeouts.databaseOperation }, () => {
   });
 
   it('or within a single where', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.users.select('id')
         .where((f, fns) => fns.or(fns.eq(f.id, 1), fns.eq(f.id, 4)))

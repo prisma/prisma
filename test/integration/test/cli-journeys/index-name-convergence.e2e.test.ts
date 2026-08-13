@@ -22,6 +22,7 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  engineDocument,
   getLatestMigrationDir,
   type JourneyContext,
   parseJsonOutput,
@@ -192,7 +193,7 @@ withTempDir(({ createTempDir }) => {
 
         const schemaVerify = await runDbVerify(ctx, ['--schema-only', '--json']);
         expect(schemaVerify.exitCode, 'schema verify zero issues').toBe(0);
-        expect(parseJsonOutput(schemaVerify), 'no issues').toMatchObject({
+        expect(engineDocument(schemaVerify), 'no issues').toMatchObject({
           ok: true,
           schema: { issues: [] },
         });

@@ -1,6 +1,7 @@
 import { rm } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
@@ -109,8 +110,17 @@ describe('migration graph', () => {
     expect(run.json.at(-1)).toMatchObject({ kind: 'result', envelope: { ok: true, exitCode: 0 } });
     expect(run.presented?.data).toMatchObject({
       ok: true,
-      summary: expect.stringContaining('space(s)'),
-      spaces: [{ space: 'app', migrations: [{ name: MIGRATION_DIR, toContract: HASH_A }] }],
+      summary: '1 space(s), 2 contract(s), 1 migration(s)',
+      spaces: [
+        {
+          space: 'app',
+          contracts: [
+            { hash: EMPTY_CONTRACT_HASH, refs: [] },
+            { hash: HASH_A, refs: [] },
+          ],
+          migrations: [{ name: MIGRATION_DIR, fromContract: null, toContract: HASH_A }],
+        },
+      ],
     });
   });
 

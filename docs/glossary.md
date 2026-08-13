@@ -29,13 +29,13 @@ The part of your config that tells Prisma Next where your contract source lives 
 | `prismaContract()`     | Reads a `.prisma` PSL file               |
 | `typescriptContract()` | Accepts a TypeScript-defined contract    |
 
-Configured via the `contract:` property in `prisma-next.config.ts`.
+Configured via the `contract:` property in `prisma.config.ts`.
 
 ### Extension
 
 An installable package that adds features to Prisma Next — new data types, database-specific operations, or custom behavior. For example, the pgvector extension adds vector search support. Extensions integrate across the full stack: they can extend the contract language, contribute types and capabilities, and provide runtime behavior.
 
-Configured via the `extensions` array in `prisma-next.config.ts`; emitted into the contract under the top-level `extensions` key. Concept-level type names (`ExtensionPackRef`, `ControlExtensionDescriptor`) keep the "pack" vocabulary.
+Configured via the `extensions` array in `prisma.config.ts`; emitted into the contract under the top-level `extensions` key. Concept-level type names (`ExtensionPackRef`, `ControlExtensionDescriptor`) keep the "pack" vocabulary.
 
 ### Middleware
 

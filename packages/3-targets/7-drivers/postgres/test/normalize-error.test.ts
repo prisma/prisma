@@ -117,6 +117,18 @@ describe('normalizePgError', () => {
       }
     });
 
+    it('classifies connection timeout messages as transient', () => {
+      const pgError = new Error('Connection timeout while opening socket');
+      (pgError as { code?: string }).code = 'CUSTOM_TRANSPORT_CODE';
+
+      const error = normalizePgError(pgError);
+      expect(SqlConnectionError.is(error)).toBe(true);
+      if (SqlConnectionError.is(error)) {
+        expect(error.transient).toBe(true);
+        expect(error.cause).toBe(pgError);
+      }
+    });
+
     it('normalizes connection closed error from message', () => {
       const pgError = new Error('Connection closed');
 

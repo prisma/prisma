@@ -12,7 +12,7 @@ const contractJsonPath = resolve(__dirname, 'fixtures/generated/contract.json');
 
 describe('end-to-end prepared statements (Postgres)', () => {
   it(
-    'lowers once and reuses across multiple .execute(params) calls',
+    'lowers once and reuses across multiple statement.query calls',
     async () => {
       await withTestRuntime<Contract>(contractJsonPath, async ({ db, client, runtime }) => {
         await client.query('insert into "user" (email) values ($1), ($2), ($3) returning id', [
@@ -29,9 +29,9 @@ describe('end-to-end prepared statements (Postgres)', () => {
             .build(),
         );
 
-        const ada = await ps.execute(runtime, { email: 'ada@example.com' });
-        const tess = await ps.execute(runtime, { email: 'tess@example.com' });
-        const missing = await ps.execute(runtime, { email: 'absent@example.com' });
+        const ada = await ps.query(runtime, { email: 'ada@example.com' });
+        const tess = await ps.query(runtime, { email: 'tess@example.com' });
+        const missing = await ps.query(runtime, { email: 'absent@example.com' });
 
         expect(ada).toHaveLength(1);
         expect(ada[0]).toMatchObject({ email: 'ada@example.com', id: expect.any(Number) });
@@ -58,12 +58,12 @@ describe('end-to-end prepared statements (Postgres)', () => {
 
         const insertedId = await withTransaction(runtime, async (tx) => {
           await tx.execute(db.public.user.insert([{ email: 'tx-prepared@example.com' }]).build());
-          const rows = await ps.execute(tx, { email: 'tx-prepared@example.com' });
+          const rows = await ps.query(tx, { email: 'tx-prepared@example.com' });
           expect(rows).toHaveLength(1);
           return rows[0]!.id;
         });
 
-        const committed = await ps.execute(runtime, { email: 'tx-prepared@example.com' });
+        const committed = await ps.query(runtime, { email: 'tx-prepared@example.com' });
         expect(committed).toHaveLength(1);
         expect(committed[0]!.id).toBe(insertedId);
       });
@@ -91,15 +91,15 @@ describe('end-to-end prepared statements (Postgres)', () => {
             .build(),
         );
 
-        const page1 = await ps.execute(runtime, { take: 2, skip: 0 });
-        const page2 = await ps.execute(runtime, { take: 2, skip: 2 });
+        const page1 = await ps.query(runtime, { take: 2, skip: 0 });
+        const page2 = await ps.query(runtime, { take: 2, skip: 2 });
 
         expect(page1).toHaveLength(2);
         expect(page2).toHaveLength(2);
         expect(page1.map((r) => r.email)).toEqual(['a@example.com', 'b@example.com']);
         expect(page2.map((r) => r.email)).toEqual(['c@example.com', 'd@example.com']);
 
-        const wide = await ps.execute(runtime, { take: 10, skip: 0 });
+        const wide = await ps.query(runtime, { take: 10, skip: 0 });
         expect(wide).toHaveLength(4);
       });
     },

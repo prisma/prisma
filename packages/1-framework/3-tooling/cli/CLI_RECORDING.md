@@ -110,7 +110,7 @@ recordings/
 ├── fixtures/           # Contract source files and config template
 │   ├── contract-base.ts
 │   ├── contract-additive.ts
-│   └── prisma-next.config.ts
+│   └── prisma.config.ts
 ├── ascii/              # Plain-text output (committed)
 │   ├── db-init/
 │   ├── db-update/
@@ -159,4 +159,4 @@ Two contract fixtures drive all recordings:
 
 - **`contract-base.ts`** — a `user` table with `id` (int4) and `email` (text) columns
 - **`contract-additive.ts`** — extends base with a nullable `name` column (used for update scenarios)
-- **`prisma-next.config.ts`** — config template; `{{DB_URL}}` is replaced at runtime with the connection string
+- **`prisma.config.ts`** — config template; `{{DB_URL}}` is replaced at runtime with the connection string

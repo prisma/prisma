@@ -1,22 +1,15 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
-import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
 import { coreHash, crossRef, profileHash } from '@internal/contract/types';
 import { MongoControlDriver } from '@internal/driver-mongo/control';
 import { MongoCollection, type MongoContract, MongoIndex } from '@internal/mongo-contract';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import {
-  executeCommand,
-  getExitCode,
-  setupCommandMocks,
-  setupTestDirectoryFromFixtures,
-  withTempDir,
-} from './utils/cli-test-helpers';
+import { runOnEngine, setupTestDirectoryFromFixtures, withTempDir } from './utils/cli-test-helpers';
 
 const controlAdapter = new MongoControlAdapterImpl();
 
@@ -64,16 +57,6 @@ const testContract: MongoContract = {
   meta: {},
 };
 
-function extractJson(lines: string[]): unknown {
-  const joined = lines.join('\n');
-  const start = joined.indexOf('{');
-  const end = joined.lastIndexOf('}');
-  if (start === -1 || end === -1) {
-    throw new Error(`No JSON object found in output:\n${joined}`);
-  }
-  return JSON.parse(joined.slice(start, end + 1));
-}
-
 function writeContractJson(testDir: string, contract: MongoContract): void {
   const outputDir = resolve(testDir, 'output');
   mkdirSync(outputDir, { recursive: true });
@@ -113,18 +96,8 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
   }, timeouts.spinUpMongoMemoryServer);
 
   withTempDir(({ createTempDir }) => {
-    let consoleOutput: string[] = [];
-    let cleanupMocks: () => void = () => {};
-
     beforeEach(async () => {
       await db.dropDatabase();
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
     });
 
     it('reports error when marker is missing', async () => {
@@ -134,27 +107,18 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
       writeContractJson(testSetup.testDir, testContract);
 
-      const command = createDbVerifyCommand();
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        await expect(
-          executeCommand(command, ['--config', testSetup.configPath, '--json']),
-        ).rejects.toThrow('process.exit called');
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['db', 'verify', '--json']);
 
-      expect(getExitCode()).not.toBe(0);
-      const parsed = extractJson(consoleOutput) as Record<string, unknown>;
-      expect(parsed).toMatchObject({
-        code: 'CONTRACT.MARKER_MISSING',
-      });
+      expect(run.exitCode).toBe(4);
+      expect(run.presented?.data).toMatchObject({ ok: false });
+      expect(run.presented?.diagnostics).toEqual(
+        expect.arrayContaining([expect.objectContaining({ code: 'CONTRACT.MARKER_MISSING' })]),
+      );
     });
 
     it('verifies matching marker and schema', async () => {
@@ -168,24 +132,15 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
       writeContractJson(testSetup.testDir, testContract);
 
-      const outputStartIndex = consoleOutput.length;
-      const command = createDbVerifyCommand();
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        await executeCommand(command, ['--config', testSetup.configPath, '--json']);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['db', 'verify', '--json']);
 
-      expect(getExitCode()).toBe(0);
-      const parsed = extractJson(consoleOutput.slice(outputStartIndex)) as Record<string, unknown>;
-      expect(parsed).toMatchObject({
+      expect(run.exitCode).toBe(0);
+      expect(run.presented?.data).toMatchObject({
         ok: true,
         summary: expect.any(String),
       });
@@ -198,29 +153,15 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
       writeContractJson(testSetup.testDir, testContract);
 
-      const outputStartIndex = consoleOutput.length;
-      const command = createDbVerifyCommand();
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        await executeCommand(command, [
-          '--config',
-          testSetup.configPath,
-          '--schema-only',
-          '--json',
-        ]);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['db', 'verify', '--schema-only', '--json']);
 
-      expect(getExitCode()).toBe(0);
-      const parsed = extractJson(consoleOutput.slice(outputStartIndex)) as Record<string, unknown>;
-      expect(parsed).toMatchObject({
+      expect(run.exitCode).toBe(0);
+      expect(run.presented?.data).toMatchObject({
         ok: true,
         summary: expect.stringContaining('matches contract'),
         meta: { strict: false },
@@ -233,28 +174,15 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
       writeContractJson(testSetup.testDir, testContract);
 
-      const outputStartIndex = consoleOutput.length;
-      const command = createDbVerifyCommand();
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        await expect(
-          executeCommand(command, ['--config', testSetup.configPath, '--schema-only', '--json']),
-        ).rejects.toThrow('process.exit called');
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['db', 'verify', '--schema-only', '--json']);
 
-      expect(getExitCode()).toBe(1);
-      const parsed = extractJson(consoleOutput.slice(outputStartIndex)) as Record<string, unknown>;
-      expect(parsed).toMatchObject({
-        ok: false,
-      });
+      expect(run.exitCode).toBe(4);
+      expect(run.presented?.data).toMatchObject({ ok: false });
     });
 
     it('runs marker-only verification with matching marker', async () => {
@@ -266,29 +194,15 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
       writeContractJson(testSetup.testDir, testContract);
 
-      const outputStartIndex = consoleOutput.length;
-      const command = createDbVerifyCommand();
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        await executeCommand(command, [
-          '--config',
-          testSetup.configPath,
-          '--marker-only',
-          '--json',
-        ]);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['db', 'verify', '--marker-only', '--json']);
 
-      expect(getExitCode()).toBe(0);
-      const parsed = extractJson(consoleOutput.slice(outputStartIndex)) as Record<string, unknown>;
-      expect(parsed).toMatchObject({
+      expect(run.exitCode).toBe(0);
+      expect(run.presented?.data).toMatchObject({
         ok: true,
         mode: 'marker-only',
       });

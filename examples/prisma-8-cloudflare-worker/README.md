@@ -9,7 +9,7 @@ This example mirrors `examples/prisma-8-demo` (the Node demo), minus pgvector �
 - **Module-scope `db`** built once per isolate via `postgresServerless<Contract>({ contractJson, middleware })`.
 - **Per-request `runtime`** via `await using runtime = await db.connect({ url: env.HYPERDRIVE.connectionString })`. The `[Symbol.asyncDispose]` ensures the underlying `pg.Client` is `end()`-ed when the `fetch` handler returns.
 - **All three query surfaces** through `Runtime`:
-  - SQL DSL: `runtime.execute(db.sql.public.user.select(...).build())`
+  - SQL DSL: `runtime.query(db.sql.public.user.select(...).build())`
   - ORM client: `createOrmClient(runtime).User.newestFirst().take(10).all()`
   - Transactions: `withTransaction(runtime, async (tx) => …)`
 - **Cursor early-break** over a streamed result set (`for await … break`), exercising the cursor path that `postgresServerless` enables by default.
@@ -45,7 +45,7 @@ examples/prisma-8-cloudflare-worker/
 │   └── cloudflare-test.d.ts            # Pulls in `cloudflare:test` ambient types
 ├── docker-compose.yml                  # Local Postgres origin (port 5433)
 ├── wrangler.jsonc                      # Hyperdrive binding declaration
-├── prisma-next.config.ts               # Contract emit config
+├── prisma.config.ts               # Contract emit config
 ├── vitest.config.ts                    # cloudflareTest plugin + globalSetup
 └── .env.example                        # Copy → .env (Hyperdrive local URL)
 ```

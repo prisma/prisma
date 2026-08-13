@@ -1,6 +1,6 @@
 # @prisma/orm-toolchain
 
-Prisma Next's development and build tooling: the `prisma-next` CLI (this package carries the bin), the contract emitter, the config loader, the language server, CLI telemetry, and the Vite plugin.
+Prisma Next's development and build tooling: the ORM command family the unified `prisma` CLI mounts, the contract emitter, the config loader, the language server, CLI telemetry, and the Vite plugin. This package ships no bin.
 
 Applications get it as an exact-pinned dependency of their database facade (`@prisma/orm-postgres`, `@prisma/orm-sqlite`, `@prisma/orm-mongo`); app developers install the facade, not this package. It is separate from `@prisma/orm-framework` so deployed applications never trace a compiler, formatter, or language server into their runtime bundle.
 
@@ -8,9 +8,9 @@ Applications get it as an exact-pinned dependency of their database facade (`@pr
 
 | Namespace | Surface |
 | --- | --- |
-| `/cli` | CLI programmatic surface and command modules (the `prisma-next` bin runs the same code) |
+| `/cli` | The `orm` command family (`ormCommandFamily`, `ormConfigSection`) and CLI programmatic surface |
 | `/emitter` | contract emitter |
-| `/config-loader` | `prisma-next.config.ts` loading |
+| `/config-loader` | `prisma.config.ts` loading |
 | `/language-server` | PSL language server |
 | `/migration-tools` | migration graph, packages, refs, IO |
 | `/cli-telemetry` | CLI telemetry |

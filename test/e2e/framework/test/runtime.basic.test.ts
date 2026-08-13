@@ -8,8 +8,8 @@ import { emitAndVerifyContract, withTestRuntime } from './utils';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 describe('end-to-end basic queries', () => {
-  const configPath = resolve(__dirname, 'fixtures/prisma-next.config.ts');
-  const cliPath = resolve(__dirname, '../../../../packages/1-framework/3-tooling/cli/dist/cli.js');
+  const configPath = resolve(__dirname, 'fixtures/prisma.config.ts');
+  const cliPath = resolve(__dirname, '../../../../packages/1-framework/3-tooling/cli/dist/bin.mjs');
   const contractJsonPath = resolve(__dirname, 'fixtures/generated/contract.json');
 
   it(
@@ -30,7 +30,7 @@ describe('end-to-end basic queries', () => {
           'mike@example.com',
         ]);
 
-        const rows = await runtime.execute(db.public.user.select('id', 'email').build());
+        const rows = await runtime.query(db.public.user.select('id', 'email').build());
 
         expect(rows.length).toBeGreaterThan(1);
         expect(rows[0]).toMatchObject({

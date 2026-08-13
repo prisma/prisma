@@ -12,7 +12,7 @@
     "test/**/*.d.ts",
     "scripts/**/*.ts",
     "prisma/**/*.ts",
-    "prisma-next.config.ts",
+    "prisma.config.ts",
     "vitest.config.ts"
   ],
   "exclude": ["dist"]

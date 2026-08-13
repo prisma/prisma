@@ -1,6 +1,5 @@
 import type { ContractSourceProvider } from '@internal/config/config-types';
 import type { Contract, LedgerEntryRecord } from '@internal/contract/types';
-import type { EmitResult } from '@internal/emitter';
 import type {
   ControlAdapterDescriptor,
   ControlDriverDescriptor,
@@ -16,41 +15,34 @@ import type { EmissionSpi } from '@internal/framework-components/emission';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-vi.mock('@internal/emitter', () => ({
-  emit: vi.fn(
-    async (): Promise<EmitResult> => ({
-      storageHash: 'test-core-hash',
-      profileHash: 'test-profile-hash',
-      contractJson: '{"test": true}',
-      contractDts: 'export interface Contract {}',
-    }),
-  ),
-}));
-
-import { emit as emitFn } from '@internal/emitter';
+import { describe, expect, it, vi } from 'vitest';
 import { createControlClient } from '../../src/control-api/client';
 import type { ControlProgressEvent } from '../../src/control-api/types';
 
-const mockEmit = vi.mocked(emitFn);
-
-function createMockEmitResult(): EmitResult {
+/**
+ * The smallest contract the real emitter accepts: a storage envelope with a
+ * hash and no models. No module mocks — the emit tests run the real
+ * `@internal/emitter` over this, so they hold regardless of which test file
+ * warmed the module registry first (`isolate: false` shares it).
+ */
+function emittableContract(): Contract {
   return {
-    storageHash: 'test-core-hash',
+    schemaVersion: '1.0.0',
+    target: 'postgres',
+    targetFamily: 'sql',
+    roots: {},
+    domain: { namespaces: { app: { models: {} } } },
+    storage: { storageHash: 'test-storage-hash', namespaces: { app: { tables: {} } } },
+    extensions: {},
+    capabilities: {},
+    meta: {},
     profileHash: 'test-profile-hash',
-    contractJson: '{"test": true}',
-    contractDts: 'export interface Contract {}',
-  };
+    models: {},
+  } as unknown as Contract;
 }
 
-beforeEach(() => {
-  mockEmit.mockReset();
-  mockEmit.mockResolvedValue(createMockEmitResult());
-});
-
 function createSourceProvider(
-  load: ContractSourceProvider['load'] = async () => ok({ test: true } as unknown as Contract),
+  load: ContractSourceProvider['load'] = async () => ok(emittableContract()),
   inputs?: readonly string[],
 ): ContractSourceProvider {
   return {
@@ -477,9 +469,7 @@ describe('ControlClient progress emission', () => {
       'passes declared source inputs to the provider',
       async () => {
         const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
-        const load = vi.fn<ContractSourceProvider['load']>(async () =>
-          ok({ test: true } as unknown as Contract),
-        );
+        const load = vi.fn<ContractSourceProvider['load']>(async () => ok(emittableContract()));
         const source = createSourceProvider(load, ['/tmp/schema.prisma']);
 
         const client = createControlClient({
@@ -627,8 +617,6 @@ describe('ControlClient progress emission', () => {
       const events: ControlProgressEvent[] = [];
       const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
 
-      mockEmit.mockRejectedValueOnce(new Error('Emit error'));
-
       const client = createControlClient({
         family: mockFamily,
         target: mockTarget,
@@ -637,7 +625,8 @@ describe('ControlClient progress emission', () => {
 
       const result = await client.emit({
         contractConfig: {
-          source: createSourceProvider(),
+          // A contract with no storage envelope makes the real emitter throw.
+          source: createSourceProvider(async () => ok({} as unknown as Contract)),
           output: '/tmp/contract.json',
         },
         onProgress: (event) => events.push(event),

@@ -9,7 +9,7 @@ export async function loader() {
     .orderBy('createdAt', { direction: 'desc' })
     .limit(20)
     .build();
-  const rows = await db.runtime().execute(plan);
+  const rows = await db.runtime().query(plan);
   return { rows };
 }
 

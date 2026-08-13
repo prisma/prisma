@@ -1,20 +1,14 @@
 import { execFile } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
-import type { MigrateResult } from '@internal/cli/commands/migrate';
-import { createMigrateCommand } from '@internal/cli/commands/migrate';
-import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { dirname, join, resolve } from 'pathe';
+import { describe, expect, it } from 'vitest';
 import {
   appendImplicitMigrationPlanFrom,
-  executeCommand,
-  getExitCode,
-  parseJsonObjectFromCliCapture,
-  setupCommandMocks,
+  type EngineRunResult,
+  runOnEngine,
   setupTestDirectoryFromFixtures,
   withTempDir,
 } from './utils/cli-test-helpers';
@@ -23,21 +17,15 @@ import { replaceInFileOrThrow } from './utils/contract-fixture-editing';
 const execFileAsync = promisify(execFile);
 const TSX_BIN = resolve(__dirname, '../../../node_modules/.bin/tsx');
 const fixtureSubdir = 'migration-apply';
-const workspaceRoot = resolve(__dirname, '../../..');
 
-async function inDir<T>(dir: string, fn: () => Promise<T>): Promise<T> {
-  const prev = process.cwd();
-  try {
-    process.chdir(dir);
-    return await fn();
-  } finally {
-    process.chdir(prev);
-  }
+interface Project {
+  readonly testDir: string;
+  readonly configPath: string;
 }
 
-async function emitContract(testDir: string, configPath: string): Promise<void> {
-  const command = createContractEmitCommand();
-  await inDir(testDir, () => executeCommand(command, ['--config', configPath, '--no-color']));
+async function emitContract(project: Project): Promise<void> {
+  const run = await runOnEngine(project, ['contract', 'emit', '--no-color']);
+  expect(run.exitCode, `contract emit failed:\n${run.stderr}`).toBe(0);
 }
 
 function getLatestMigrationDir(testDir: string): string | undefined {
@@ -68,27 +56,25 @@ async function selfEmitLatestMigration(testDir: string): Promise<void> {
   await execFileAsync(TSX_BIN, [migrationTs], { cwd: testDir });
 }
 
-async function runMigrationPlan(testDir: string, args: readonly string[]): Promise<number> {
-  const command = createMigrationPlanCommand();
-  const planArgs = appendImplicitMigrationPlanFrom(testDir, args);
-  const exit = await inDir(testDir, () => executeCommand(command, [...planArgs]));
-  if (exit === 0) {
-    await selfEmitLatestMigration(testDir);
-  }
-  return exit;
+async function runMigrationPlan(project: Project, args: readonly string[]): Promise<void> {
+  const planArgs = appendImplicitMigrationPlanFrom(project.testDir, args);
+  const run = await runOnEngine(project, ['migration', 'plan', ...planArgs]);
+  expect(run.exitCode, `migration plan failed:\n${run.stderr}`).toBe(0);
+  await selfEmitLatestMigration(project.testDir);
 }
 
-async function runMigrate(testDir: string, args: readonly string[]): Promise<number> {
-  const command = createMigrateCommand();
-  return inDir(testDir, () => executeCommand(command, [...args]));
+async function runMigrate(project: Project, args: readonly string[]): Promise<EngineRunResult> {
+  const run = await runOnEngine(project, ['migrate', ...args]);
+  expect(run.exitCode, `migrate failed:\n${run.stderr}`).toBe(0);
+  return run;
 }
 
-async function runMigrateAllowFailure(testDir: string, args: readonly string[]): Promise<number> {
-  try {
-    return await runMigrate(testDir, args);
-  } catch {
-    return getExitCode() ?? 1;
-  }
+/** The engine settles failures into the exit code instead of throwing. */
+function runMigrateAllowFailure(
+  project: Project,
+  args: readonly string[],
+): Promise<EngineRunResult> {
+  return runOnEngine(project, ['migrate', ...args]);
 }
 
 function appRefsDir(testDir: string): string {
@@ -141,51 +127,44 @@ async function seedPlannedMigration(
   configPath: string;
   migrationDir: string;
   toHash: string;
-  contractPath?: string;
+  contractPath: string;
 }> {
-  const { testDir, configPath, contractPath } = setupTestDirectoryFromFixtures(
+  const project = setupTestDirectoryFromFixtures(
     createTempDir,
     fixtureSubdir,
-    'prisma-next.config.with-db.ts',
-    { '{{DB_URL}}': connectionString },
+    'prisma.config.with-db.ts',
+    {
+      '{{DB_URL}}': connectionString,
+    },
   );
-  await emitContract(testDir, configPath);
-  await runMigrationPlan(testDir, ['--config', configPath, '--name', 'initial', '--no-color']);
-  const migrationDir = getLatestMigrationDir(testDir)!;
+  await emitContract(project);
+  await runMigrationPlan(project, ['--name', 'initial', '--no-color']);
+  const migrationDir = getLatestMigrationDir(project.testDir)!;
   const manifest = JSON.parse(
-    readFileSync(join(testDir, 'migrations', 'app', migrationDir, 'migration.json'), 'utf-8'),
+    readFileSync(
+      join(project.testDir, 'migrations', 'app', migrationDir, 'migration.json'),
+      'utf-8',
+    ),
   ) as { to: string };
-  return { testDir, configPath, migrationDir, toHash: manifest.to, contractPath };
+  return {
+    testDir: project.testDir,
+    configPath: project.configPath,
+    migrationDir,
+    toHash: manifest.to,
+    contractPath: project.contractPath,
+  };
 }
 
 withTempDir(({ createTempDir }) => {
   describe('migrate ref advancement (e2e)', () => {
-    let consoleOutput: string[];
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      process.chdir(workspaceRoot);
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      process.chdir(workspaceRoot);
-      cleanupMocks();
-    });
-
     it(
       'does not advance any ref without --advance-ref',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const refsDir = appRefsDir(testDir);
+          const project = await seedPlannedMigration(createTempDir, connectionString);
+          const refsDir = appRefsDir(project.testDir);
 
-          await runMigrate(testDir, ['--config', configPath, '--no-color']);
+          await runMigrate(project, ['--no-color']);
 
           expect(noRefFilesUnder(refsDir)).toBe(true);
         });
@@ -197,19 +176,10 @@ withTempDir(({ createTempDir }) => {
       'advances an explicit ref on the default database',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const refsDir = appRefsDir(testDir);
+          const project = await seedPlannedMigration(createTempDir, connectionString);
+          const refsDir = appRefsDir(project.testDir);
 
-          await runMigrate(testDir, [
-            '--config',
-            configPath,
-            '--advance-ref',
-            'staging',
-            '--no-color',
-          ]);
+          await runMigrate(project, ['--advance-ref', 'staging', '--no-color']);
 
           expect(refFilesExist(refsDir, 'staging')).toBe(true);
           expect(refFilesAbsent(refsDir, 'db')).toBe(true);
@@ -222,16 +192,11 @@ withTempDir(({ createTempDir }) => {
       'does not advance any ref with --to when --advance-ref is omitted',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath, migrationDir } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const refsDir = appRefsDir(testDir);
+          const project = await seedPlannedMigration(createTempDir, connectionString);
+          const refsDir = appRefsDir(project.testDir);
 
-          await runMigrate(testDir, ['--config', configPath, '--no-color']);
-          consoleOutput.length = 0;
-
-          await runMigrate(testDir, ['--config', configPath, '--to', migrationDir, '--no-color']);
+          await runMigrate(project, ['--no-color']);
+          await runMigrate(project, ['--to', project.migrationDir, '--no-color']);
 
           expect(noRefFilesUnder(refsDir)).toBe(true);
         });
@@ -243,24 +208,17 @@ withTempDir(({ createTempDir }) => {
       'advances an explicit ref with --to using the bundle contract snapshot',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath, migrationDir, toHash } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const refsDir = appRefsDir(testDir);
+          const project = await seedPlannedMigration(createTempDir, connectionString);
+          const refsDir = appRefsDir(project.testDir);
           const bundleEndContract = join(
-            contractSnapshotDir(join(testDir, 'migrations'), toHash),
+            contractSnapshotDir(join(project.testDir, 'migrations'), project.toHash),
             'contract.json',
           );
 
-          await runMigrate(testDir, ['--config', configPath, '--no-color']);
-          consoleOutput.length = 0;
-
-          await runMigrate(testDir, [
-            '--config',
-            configPath,
+          await runMigrate(project, ['--no-color']);
+          await runMigrate(project, [
             '--to',
-            migrationDir,
+            project.migrationDir,
             '--advance-ref',
             'staging',
             '--no-color',
@@ -279,13 +237,10 @@ withTempDir(({ createTempDir }) => {
       'does not implicitly advance db on the default database',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const refsDir = appRefsDir(testDir);
+          const project = await seedPlannedMigration(createTempDir, connectionString);
+          const refsDir = appRefsDir(project.testDir);
 
-          await runMigrate(testDir, ['--config', configPath, '--no-color']);
+          await runMigrate(project, ['--no-color']);
 
           expect(refFilesAbsent(refsDir, 'db')).toBe(true);
         });
@@ -297,15 +252,10 @@ withTempDir(({ createTempDir }) => {
       'advances an explicit ref when --db is provided',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const refsDir = appRefsDir(testDir);
+          const project = await seedPlannedMigration(createTempDir, connectionString);
+          const refsDir = appRefsDir(project.testDir);
 
-          await runMigrate(testDir, [
-            '--config',
-            configPath,
+          await runMigrate(project, [
             '--db',
             connectionString,
             '--advance-ref',
@@ -324,28 +274,13 @@ withTempDir(({ createTempDir }) => {
       'includes advancedRef in JSON apply output',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const outputStart = consoleOutput.length;
+          const project = await seedPlannedMigration(createTempDir, connectionString);
 
-          await runMigrate(testDir, [
-            '--config',
-            configPath,
-            '--advance-ref',
-            'staging',
-            '--json',
-            '--no-color',
-          ]);
+          const run = await runMigrate(project, ['--advance-ref', 'staging', '--json']);
 
-          const parsed = parseJsonObjectFromCliCapture(consoleOutput.slice(outputStart)) as Record<
-            string,
-            unknown
-          >;
-          expect(parsed['advancedRef']).toEqual(
-            expect.objectContaining({ name: 'staging', hash: expect.any(String) }),
-          );
+          expect(run.presented?.data).toMatchObject({
+            advancedRef: { name: 'staging', hash: expect.any(String) },
+          });
         });
       },
       timeouts.spinUpPpgDev,
@@ -355,23 +290,11 @@ withTempDir(({ createTempDir }) => {
       'writes ref on no-op apply when --advance-ref is provided',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const refsDir = appRefsDir(testDir);
+          const project = await seedPlannedMigration(createTempDir, connectionString);
+          const refsDir = appRefsDir(project.testDir);
 
-          await runMigrate(testDir, ['--config', configPath, '--no-color']);
-          consoleOutput.length = 0;
-
-          await runMigrate(testDir, [
-            '--config',
-            configPath,
-            '--advance-ref',
-            'staging',
-            '--json',
-            '--no-color',
-          ]);
+          await runMigrate(project, ['--no-color']);
+          await runMigrate(project, ['--advance-ref', 'staging', '--json']);
 
           expect(refFilesExist(refsDir, 'staging')).toBe(true);
         });
@@ -383,34 +306,19 @@ withTempDir(({ createTempDir }) => {
       'idempotently rewrites the ref on repeated migrate --advance-ref',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const refsDir = appRefsDir(testDir);
+          const project = await seedPlannedMigration(createTempDir, connectionString);
+          const refsDir = appRefsDir(project.testDir);
 
-          await runMigrate(testDir, ['--config', configPath, '--no-color']);
+          await runMigrate(project, ['--no-color']);
 
-          await runMigrate(testDir, [
-            '--config',
-            configPath,
-            '--advance-ref',
-            'staging',
-            '--no-color',
-          ]);
+          await runMigrate(project, ['--advance-ref', 'staging', '--no-color']);
           const firstPointer = readFileSync(refPointerPath(refsDir, 'staging'), 'utf-8');
           const firstStoreContract = readFileSync(
             storeContractJsonPath(refsDir, 'staging'),
             'utf-8',
           );
 
-          await runMigrate(testDir, [
-            '--config',
-            configPath,
-            '--advance-ref',
-            'staging',
-            '--no-color',
-          ]);
+          await runMigrate(project, ['--advance-ref', 'staging', '--no-color']);
 
           expect(readFileSync(refPointerPath(refsDir, 'staging'), 'utf-8')).toBe(firstPointer);
           expect(readFileSync(storeContractJsonPath(refsDir, 'staging'), 'utf-8')).toBe(
@@ -425,27 +333,19 @@ withTempDir(({ createTempDir }) => {
       'surfaces MIGRATION.INVALID_REF_NAME for an invalid ref name',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const outputStart = consoleOutput.length;
+          const project = await seedPlannedMigration(createTempDir, connectionString);
 
-          const exitCode = await runMigrateAllowFailure(testDir, [
-            '--config',
-            configPath,
+          const run = await runMigrateAllowFailure(project, [
             '--advance-ref',
             'bad ref name',
             '--json',
-            '--no-color',
           ]);
 
-          expect(exitCode).not.toBe(0);
-          const parsed = parseJsonObjectFromCliCapture(consoleOutput.slice(outputStart)) as Record<
-            string,
-            unknown
-          >;
-          expect(parsed['code']).toBe('MIGRATION.INVALID_REF_NAME');
+          expect(run.exitCode).not.toBe(0);
+          expect(run.json.at(-1)).toMatchObject({
+            kind: 'result',
+            envelope: { ok: false, error: { code: 'MIGRATION.INVALID_REF_NAME' } },
+          });
         });
       },
       timeouts.spinUpPpgDev,
@@ -455,30 +355,21 @@ withTempDir(({ createTempDir }) => {
       'does not write refs when apply fails before success',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath, contractPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const refsDir = appRefsDir(testDir);
+          const project = await seedPlannedMigration(createTempDir, connectionString);
+          const refsDir = appRefsDir(project.testDir);
 
-          await runMigrate(testDir, ['--config', configPath, '--no-color']);
+          await runMigrate(project, ['--no-color']);
 
           replaceInFileOrThrow(
-            contractPath!,
+            project.contractPath,
             '        email: field.column(textColumn),\n',
             '        email: field.column(textColumn),\n        nickname: field.column(textColumn).optional(),\n',
           );
-          await emitContract(testDir, configPath);
+          await emitContract(project);
 
-          await runMigrateAllowFailure(testDir, [
-            '--config',
-            configPath,
-            '--advance-ref',
-            'staging',
-            '--json',
-            '--no-color',
-          ]);
+          const run = await runMigrateAllowFailure(project, ['--advance-ref', 'staging', '--json']);
 
+          expect(run.exitCode).not.toBe(0);
           expect(refFilesAbsent(refsDir, 'staging')).toBe(true);
         });
       },
@@ -489,26 +380,19 @@ withTempDir(({ createTempDir }) => {
       'does not write refs when --to fails to resolve',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const refsDir = appRefsDir(testDir);
-          const outputStart = consoleOutput.length;
+          const project = await seedPlannedMigration(createTempDir, connectionString);
+          const refsDir = appRefsDir(project.testDir);
 
-          const exitCode = await runMigrateAllowFailure(testDir, [
-            '--config',
-            configPath,
+          const run = await runMigrateAllowFailure(project, [
             '--to',
             'nonexistent-ref-name',
             '--advance-ref',
             'staging',
             '--json',
-            '--no-color',
           ]);
 
-          expect(exitCode).not.toBe(0);
-          parseJsonObjectFromCliCapture(consoleOutput.slice(outputStart));
+          expect(run.exitCode).not.toBe(0);
+          expect(run.json.at(-1)).toMatchObject({ kind: 'result', envelope: { ok: false } });
           expect(refFilesAbsent(refsDir, 'staging')).toBe(true);
         });
       },
@@ -519,18 +403,11 @@ withTempDir(({ createTempDir }) => {
       'reports advancedRef as null when --advance-ref is not provided',
       async () => {
         await withDevDatabase(async ({ connectionString }) => {
-          const { testDir, configPath } = await seedPlannedMigration(
-            createTempDir,
-            connectionString,
-          );
-          const outputStart = consoleOutput.length;
+          const project = await seedPlannedMigration(createTempDir, connectionString);
 
-          await runMigrate(testDir, ['--config', configPath, '--json', '--no-color']);
+          const run = await runMigrate(project, ['--json']);
 
-          const parsed = parseJsonObjectFromCliCapture(
-            consoleOutput.slice(outputStart),
-          ) as MigrateResult;
-          expect(parsed.advancedRef).toBeNull();
+          expect(run.presented?.data).toMatchObject({ advancedRef: null });
         });
       },
       timeouts.spinUpPpgDev,

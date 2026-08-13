@@ -6,7 +6,7 @@
  * apply-time runner is the thing `prisma-next migrate` uses to
  * execute migration JSON ops against a database. `MigrationCLI` is the
  * tiny CLI surface owned by an authored `migration.ts` file: parse the
- * file's argv, load the project's `prisma-next.config.ts`, assemble a
+ * file's argv, load the project's `prisma.config.ts`, assemble a
  * `ControlStack`, instantiate the migration class, and serialize.
  *
  * The user authors a migration class, then calls
@@ -17,7 +17,7 @@
  * 1. Detects whether the file is the direct entrypoint (no-op when imported).
  * 2. Parses CLI args (`--help`, `--dry-run`, `--config <path>`) via
  *    [clipanion](https://github.com/arcanis/clipanion).
- * 3. Loads the project's `prisma-next.config.ts` via the same
+ * 3. Loads the project's `prisma.config.ts` via the same
  *    `loadConfigForSections` the CLI commands use, walking up from the
  *    migration file's directory.
  * 4. Probe-instantiates the migration class without a stack so it can read
@@ -117,7 +117,7 @@ class MigrationFileCommand extends Command {
   static override usage = Command.Usage({
     description: 'Self-emit ops.json and migration.json from a class-flow migration',
     details: `
-      Loads the project's prisma-next.config.ts, assembles a ControlStack
+      Loads the project's prisma.config.ts, assembles a ControlStack
       from the configured target/adapter/extensions, and serializes the
       migration's operations + metadata next to this file.
     `,
@@ -133,7 +133,7 @@ class MigrationFileCommand extends Command {
   });
 
   config = Option.String('--config', {
-    description: 'Path to prisma-next.config.ts',
+    description: 'Path to prisma.config.ts',
   });
 
   /**
@@ -544,13 +544,11 @@ async function runMigration(
   const migrationFile = fileURLToPath(importMetaUrl);
   const migrationDir = dirname(migrationFile);
 
-  const configResult = await loadConfigForSections(parsed.config, [
-    'family',
-    'target',
-    'adapter',
-    'driver',
-    'extensions',
-  ]);
+  const configResult = await loadConfigForSections(
+    parsed.config,
+    ['family', 'target', 'adapter', 'driver', 'extensions'],
+    { onDeprecation: (deprecation) => void ctx.stderr.write(`⚠ ${deprecation.message}\n`) },
+  );
   if (!configResult.ok) {
     throw configResult.failure;
   }

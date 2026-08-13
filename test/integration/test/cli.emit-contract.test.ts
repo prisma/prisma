@@ -152,7 +152,7 @@ describe('emitContract API', () => {
       const newOutputDir = join(testDir, 'new-output');
       const testSetup = setupIntegrationTestDirectoryFromFixtures(
         fixtureSubdir,
-        'prisma-next.config.custom-output.ts',
+        'prisma.config.custom-output.ts',
         { '{{OUTPUT_DIR}}': newOutputDir },
       );
       const customTestDir = testSetup.testDir;

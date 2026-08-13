@@ -6,7 +6,7 @@ import { type } from 'arktype';
  * start: installation id, sanitised command + flags, CLI version, and
  * the project root the child uses to discover everything else. The
  * child probes its own process (runtime/os/arch, package manager, ts
- * version, agent) and reads the user's `prisma-next.config.*` via
+ * version, agent) and reads the user's `prisma.config.*` via
  * c12 to derive `databaseTarget` and `extensions`.
  *
  * Loading c12 on the parent side would put a `loadConfig()` await on
@@ -37,7 +37,7 @@ export interface ParentToSenderPayload {
   /**
    * Absolute path of the user's project. The child reads
    * `<projectRoot>/package.json` for `tsVersion` and loads
-   * `<projectRoot>/prisma-next.config.*` via c12 for `databaseTarget`
+   * `<projectRoot>/prisma.config.*` via c12 for `databaseTarget`
    * + `extensions`.
    */
   readonly projectRoot: string;
@@ -54,6 +54,14 @@ export interface ParentToSenderPayload {
    * channel only needs two states so it's `string | undefined`.
    */
   readonly databaseTarget?: string;
+  /**
+   * Exit code of the settled run. The engine bin reports from `onSettled`,
+   * after the exit code is determined, so every event it sends carries one.
+   * Optional on the IPC wire so a sender and parent from adjacent builds
+   * stay compatible; the sender maps an absent value to `null` on the
+   * backend event.
+   */
+  readonly exitCode?: number;
 }
 
 /**
@@ -79,6 +87,7 @@ export const parentToSenderPayloadSchema = type({
   projectRoot: requiredString,
   endpoint: requiredString,
   'databaseTarget?': type.string,
+  'exitCode?': type.number,
 });
 
 export function isParentToSenderPayload(value: unknown): value is ParentToSenderPayload {
@@ -103,4 +112,5 @@ export interface TelemetryEvent {
   readonly tsVersion: string | null;
   readonly agent: string | null;
   readonly extensions: readonly string[];
+  readonly exitCode: number | null;
 }

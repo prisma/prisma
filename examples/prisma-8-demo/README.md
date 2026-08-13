@@ -47,8 +47,8 @@ pnpm start -- users
 
 This repo maintains two emit configs:
 
-- **PSL emit (default)**: `prisma-next.config.ts`
-- **TypeScript emit**: `prisma-next.config.ts-contract.ts`
+- **PSL emit (default)**: `prisma.config.ts`
+- **TypeScript emit**: `prisma.config.contract-ts.ts`
 
 To prove the demo test suite passes in both modes:
 
@@ -314,7 +314,7 @@ that builds `stddev_samp(...)` because `stddev` is not one of the five names
 the SQL aggregate alphabet knows.
 
 It is composed on both planes — the control descriptor in
-`prisma-next.config.ts`, so `contract emit` writes the operation into the
+`prisma.config.ts`, so `contract emit` writes the operation into the
 emitted types, and the runtime descriptor in `src/prisma/db.ts`, so the registry
 can resolve it. Nothing in the ORM client or the query lane knows the name.
 
@@ -433,4 +433,4 @@ Run `pnpm dev` for the Vite app that visualizes the contract. It renders directl
 ## Features Demonstrated
 
 - **Vector Similarity Search**: The demo includes a `similarity-search.ts` query that demonstrates cosine distance operations using the pgvector extension pack.
-- **Extension Packs**: Shows how to configure and use extension packs (pgvector) in `prisma-next.config.ts`.
+- **Extension Packs**: Shows how to configure and use extension packs (pgvector) in `prisma.config.ts`.

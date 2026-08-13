@@ -23,9 +23,9 @@ import {
 } from './utils';
 
 /**
- * Pins ADR 220 semantics for the SQL runtime: every `execute()` and every
- * `executePrepared()` call mints a fresh `ctx.planExecutionId` for the
- * per-execute middleware context. Hooks within one call observe the same
+ * Pins ADR 220 semantics for the SQL runtime: every `query()`, `execute()`,
+ * and `PreparedStatement.query()` call mints a fresh `ctx.planExecutionId` for the
+ * per-operation middleware context. Hooks within one call observe the same
  * ID; hooks across two calls of the same plan/prepared-statement observe
  * distinct IDs.
  */
@@ -100,7 +100,7 @@ function buildEqUserIdPlan(userId: Expression<ScopeField>): SqlQueryPlan<{ id: n
 }
 
 interface Observation {
-  readonly hook: 'beforeExecute' | 'afterExecute';
+  readonly hook: 'beforeQuery' | 'afterQuery';
   readonly planExecutionId: string;
 }
 
@@ -108,26 +108,26 @@ function observerMiddleware(log: Observation[]): SqlMiddleware {
   return {
     name: 'observer',
     familyId: 'sql',
-    async beforeExecute(_plan, ctx) {
-      log.push({ hook: 'beforeExecute', planExecutionId: ctx.planExecutionId });
+    async beforeQuery(_plan, ctx) {
+      log.push({ hook: 'beforeQuery', planExecutionId: ctx.planExecutionId });
     },
-    async afterExecute(_plan, _result, ctx) {
-      log.push({ hook: 'afterExecute', planExecutionId: ctx.planExecutionId });
+    async afterQuery(_plan, _result, ctx) {
+      log.push({ hook: 'afterQuery', planExecutionId: ctx.planExecutionId });
     },
   };
 }
 
-describe('SqlRuntime.execute planExecutionId (ADR 220)', () => {
-  it('assigns the same planExecutionId to beforeExecute and afterExecute within one execute call', async () => {
+describe('SqlRuntime operation planExecutionId (ADR 220)', () => {
+  it('assigns the same planExecutionId to beforeQuery and afterQuery within one query call', async () => {
     const log: Observation[] = [];
     const { runtime } = createSetup([observerMiddleware(log)]);
     const plan = buildSelectAllUsersPlan();
 
-    await runtime.execute(plan).toArray();
+    await runtime.query(plan).toArray();
 
     expect(log).toHaveLength(2);
-    expect(log[0]?.hook).toBe('beforeExecute');
-    expect(log[1]?.hook).toBe('afterExecute');
+    expect(log[0]?.hook).toBe('beforeQuery');
+    expect(log[1]?.hook).toBe('afterQuery');
     expect(log[0]?.planExecutionId).toBeTypeOf('string');
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
   });
@@ -137,46 +137,46 @@ describe('SqlRuntime.execute planExecutionId (ADR 220)', () => {
     const { runtime } = createSetup([observerMiddleware(log)]);
     const plan = buildSelectAllUsersPlan();
 
-    await runtime.execute(plan).toArray();
-    await runtime.execute(plan).toArray();
+    await runtime.query(plan).toArray();
+    await runtime.query(plan).toArray();
 
     expect(log).toHaveLength(4);
     const firstExecId = log[0]?.planExecutionId;
     const secondExecId = log[2]?.planExecutionId;
     expect(firstExecId).toBeTypeOf('string');
     expect(secondExecId).toBeTypeOf('string');
-    // Within one execute: beforeExecute and afterExecute share the ID.
+    // Within one query: beforeQuery and afterQuery share the ID.
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
     expect(log[2]?.planExecutionId).toBe(log[3]?.planExecutionId);
-    // Across two executes: distinct IDs.
+    // Across two queries: distinct IDs.
     expect(firstExecId).not.toBe(secondExecId);
   });
 });
 
-describe('SqlRuntime.executePrepared planExecutionId (ADR 220)', () => {
-  it('assigns the same planExecutionId to beforeExecute and afterExecute within one executePrepared call', async () => {
+describe('PreparedStatement.query planExecutionId (ADR 220)', () => {
+  it('assigns the same planExecutionId to beforeQuery and afterQuery within one statement.query call', async () => {
     const log: Observation[] = [];
     const { runtime } = createSetup([observerMiddleware(log)]);
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan(params.userId),
     );
 
-    await ps.execute(runtime, { userId: 1 }).toArray();
+    await ps.query(runtime, { userId: 1 }).toArray();
 
     expect(log).toHaveLength(2);
     expect(log[0]?.planExecutionId).toBeTypeOf('string');
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
   });
 
-  it('assigns distinct planExecutionIds to two executePrepared calls on the same prepared statement', async () => {
+  it('assigns distinct planExecutionIds to two statement.query calls on the same prepared statement', async () => {
     const log: Observation[] = [];
     const { runtime } = createSetup([observerMiddleware(log)]);
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan(params.userId),
     );
 
-    await ps.execute(runtime, { userId: 1 }).toArray();
-    await ps.execute(runtime, { userId: 2 }).toArray();
+    await ps.query(runtime, { userId: 1 }).toArray();
+    await ps.query(runtime, { userId: 2 }).toArray();
 
     expect(log).toHaveLength(4);
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);

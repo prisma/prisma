@@ -94,7 +94,7 @@ vi.mock('../src/pipeline', async (importOriginal) => {
 const root = tmpdir();
 const schemaPath = join(root, 'schema.psl');
 const schemaUri = pathToFileURL(schemaPath).toString();
-const configPath = join(root, 'prisma-next.config.ts');
+const configPath = join(root, 'prisma.config.ts');
 const configUri = pathToFileURL(configPath).toString();
 const unformattedPsl = 'model User {\nid Int\n}';
 const formattedPsl = 'model User {\n  id Int\n}\n';
@@ -1328,8 +1328,8 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
   it('diagnoses open inputs from two configs in one server process', async () => {
     const projectARoot = join(root, 'project-a');
     const projectBRoot = join(root, 'project-b');
-    const projectAConfigPath = join(projectARoot, 'prisma-next.config.ts');
-    const projectBConfigPath = join(projectBRoot, 'prisma-next.config.ts');
+    const projectAConfigPath = join(projectARoot, 'prisma.config.ts');
+    const projectBConfigPath = join(projectBRoot, 'prisma.config.ts');
     const projectASchemaPath = join(projectARoot, 'schema.psl');
     const projectBSchemaPath = join(projectBRoot, 'schema.psl');
     const projectASchemaUri = pathToFileURL(projectASchemaPath).toString();
@@ -1379,7 +1379,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
 
   it('creates a project when an opened file belongs to a previously unseen config', async () => {
     const unseenRoot = join(root, 'previously-unseen');
-    const unseenConfigPath = join(unseenRoot, 'prisma-next.config.ts');
+    const unseenConfigPath = join(unseenRoot, 'prisma.config.ts');
     const unseenSchemaPath = join(unseenRoot, 'schema.psl');
     const unseenSchemaUri = pathToFileURL(unseenSchemaPath).toString();
     const resolvedConfigs: string[] = [];
@@ -1410,7 +1410,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
 
   it('publishes no diagnostics for a PSL file that is not a configured input in its project', async () => {
     const projectRoot = join(root, 'non-input-project');
-    const projectConfigPath = join(projectRoot, 'prisma-next.config.ts');
+    const projectConfigPath = join(projectRoot, 'prisma.config.ts');
     const schemaPath = join(projectRoot, 'schema.psl');
     const otherPath = join(projectRoot, 'other.psl');
     const otherUri = pathToFileURL(otherPath).toString();
@@ -1433,8 +1433,8 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
   it('does not fall back to a parent config when the nearest config fails to load', async () => {
     const parentRoot = join(root, 'parent-project');
     const childRoot = join(parentRoot, 'child-project');
-    const parentConfigPath = join(parentRoot, 'prisma-next.config.ts');
-    const childConfigPath = join(childRoot, 'prisma-next.config.ts');
+    const parentConfigPath = join(parentRoot, 'prisma.config.ts');
+    const childConfigPath = join(childRoot, 'prisma.config.ts');
     const childSchemaPath = join(childRoot, 'schema.psl');
     const childSchemaUri = pathToFileURL(childSchemaPath).toString();
     const resolvedConfigs: string[] = [];
@@ -1491,7 +1491,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
 
   it('queues project refreshes behind in-flight project loads', async () => {
     const projectRoot = join(root, 'queued-load-project');
-    const projectConfigPath = join(projectRoot, 'prisma-next.config.ts');
+    const projectConfigPath = join(projectRoot, 'prisma.config.ts');
     const schemaPath = join(projectRoot, 'schema.psl');
     const schemaUri = pathToFileURL(schemaPath).toString();
     const initialLoad = controlledPromise();
@@ -1536,8 +1536,8 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
   it('updates only the project identified by the changed config path', async () => {
     const projectARoot = join(root, 'config-change-a');
     const projectBRoot = join(root, 'config-change-b');
-    const projectAConfigPath = join(projectARoot, 'prisma-next.config.ts');
-    const projectBConfigPath = join(projectBRoot, 'prisma-next.config.ts');
+    const projectAConfigPath = join(projectARoot, 'prisma.config.ts');
+    const projectBConfigPath = join(projectBRoot, 'prisma.config.ts');
     const projectASchemaPath = join(projectARoot, 'schema.psl');
     const projectBSchemaPath = join(projectBRoot, 'schema.psl');
     const projectASchemaUri = pathToFileURL(projectASchemaPath).toString();
@@ -1594,7 +1594,7 @@ describe('language server config watching', { timeout: timeouts.databaseOperatio
 
     const watchedFiles = watchedFilesRegistrations(harness);
     expect(watchedFiles.length).toBe(1);
-    expect(JSON.stringify(watchedFiles[0]?.registerOptions)).toContain('prisma-next.config.ts');
+    expect(JSON.stringify(watchedFiles[0]?.registerOptions)).toContain('prisma.config.ts');
   });
 
   it('resolves the workspace root from workspaceFolders when rootUri is absent', async () => {
@@ -1984,7 +1984,7 @@ describe('language server preserved artifacts', { timeout: timeouts.databaseOper
   });
 
   it('rediscovers document ownership after close', async () => {
-    const alternateConfigPath = join(root, 'alternate-prisma-next.config.ts');
+    const alternateConfigPath = join(root, 'alternate-prisma.config.ts');
     let nearestConfigPath = configPath;
     harness = startHarness(
       async (path) => (path === configPath ? resolutionForInputs([schemaPath]) : emptyResolution()),

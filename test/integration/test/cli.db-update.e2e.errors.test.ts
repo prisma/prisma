@@ -1,7 +1,7 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { setupCommandMocks, withTempDir } from './utils/cli-test-helpers';
+import { describe, expect, it } from 'vitest';
+import { withTempDir } from './utils/cli-test-helpers';
 import { runDbInit } from './utils/db-init-test-helpers';
 import { runDbUpdate, setupDbUpdateFixture } from './utils/db-update-test-helpers';
 
@@ -9,19 +9,6 @@ const fixtureSubdir = 'db-init';
 
 withTempDir(({ createTempDir }) => {
   describe('db update command (e2e) - errors', () => {
-    let consoleOutput: string[] = [];
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      const mocks = setupCommandMocks();
-      consoleOutput = mocks.consoleOutput;
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     it(
       'succeeds on a fresh database without prior db init',
       async () => {
@@ -33,10 +20,8 @@ withTempDir(({ createTempDir }) => {
           );
 
           // db update should work on a fresh database without db init
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const planOutput = stripAnsi(consoleOutput.join('\n'));
-          expect(planOutput).toContain('Planned');
+          const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          expect(stripAnsi(plan.stderr)).toContain('Planned');
         });
       },
       timeouts.spinUpPpgDev,
@@ -61,9 +46,8 @@ withTempDir(({ createTempDir }) => {
           });
 
           // db update should detect the extra column and plan a destructive drop
-          consoleOutput.length = 0;
-          await runDbUpdate(testSetup, ['--config', configPath, '--dry-run', '--no-color']);
-          const planOutput = stripAnsi(consoleOutput.join('\n'));
+          const plan = await runDbUpdate(testSetup, ['--config', configPath, '--dry-run']);
+          const planOutput = stripAnsi(plan.stderr);
           expect(planOutput).toContain('legacy_notes');
           expect(planOutput).toContain('destructive');
         });

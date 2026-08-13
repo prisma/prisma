@@ -4,18 +4,12 @@ import { join } from 'node:path';
 import type * as configLoader from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import type { EmitResult } from '@internal/emitter';
-import { emit as emitFn } from '@internal/emitter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeContractEmit } from '../../src/control-api/operations/contract-emit';
+import type { ContractEmitOptions } from '../../src/control-api/types';
 import { disposeEmitQueue } from '../../src/utils/emit-queue';
 
-vi.mock('@internal/emitter', async () => {
-  const actual = await vi.importActual<typeof import('@internal/emitter')>('@internal/emitter');
-  return {
-    ...actual,
-    emit: vi.fn(),
-  };
-});
+const mockedEmit = vi.fn<typeof import('@internal/emitter')['emit']>();
 
 vi.mock('node:fs/promises', async () => {
   const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises');
@@ -29,9 +23,13 @@ vi.mock('node:fs/promises', async () => {
 
 type FsModule = typeof import('node:fs/promises');
 
-const mockedEmit = vi.mocked(emitFn);
 const mockedRename = vi.mocked(rename);
 const mockedWriteFile = vi.mocked(writeFile);
+const emitDependencies = { emit: mockedEmit };
+
+function executeContractEmitWithMock(options: ContractEmitOptions) {
+  return executeContractEmit(options, emitDependencies);
+}
 
 const stubDescriptor = (kind: string, id: string) => ({
   kind,
@@ -134,10 +132,7 @@ describe('executeContractEmit', () => {
     // modules from other test files loaded in this worker (e.g. node:child_process).
   });
 
-  function emitOptions(
-    config: configLoader.PrismaNextConfig,
-    configPath = 'prisma-next.config.ts',
-  ) {
+  function emitOptions(config: configLoader.PrismaNextConfig, configPath = 'prisma.config.ts') {
     return { config, cwd: tmpDir, configPath };
   }
 
@@ -145,12 +140,12 @@ describe('executeContractEmit', () => {
     const config = {
       family: stubDescriptor('family', 'test'),
     } as unknown as configLoader.PrismaNextConfig;
-    await expect(executeContractEmit(emitOptions(config))).rejects.toThrow();
+    await expect(executeContractEmitWithMock(emitOptions(config))).rejects.toThrow();
   });
 
   it('respects signal cancellation before starting', async () => {
     await expect(
-      executeContractEmit({
+      executeContractEmitWithMock({
         ...emitOptions(mockConfigWithContract({ output: './src/prisma/contract.json' })),
         signal: AbortSignal.abort(),
       }),
@@ -159,7 +154,7 @@ describe('executeContractEmit', () => {
 
   it('preserves AbortError from contract source provider', async () => {
     await expect(
-      executeContractEmit(
+      executeContractEmitWithMock(
         emitOptions(
           mockConfigWithContract({
             source: createSourceProvider(async () => {
@@ -206,7 +201,7 @@ describe('executeContractEmit', () => {
   ])('source provider validation', ({ label, source, expectedCode, expectedSubstring }) => {
     it(label, async () => {
       await expect(
-        executeContractEmit(
+        executeContractEmitWithMock(
           emitOptions(mockConfigWithContract({ source, output: './src/prisma/contract.json' })),
         ),
       ).rejects.toSatisfy((error: unknown) => {
@@ -236,10 +231,10 @@ describe('executeContractEmit', () => {
     };
     mockedEmit.mockResolvedValueOnce(createEmitResult('hydrated'));
 
-    await executeContractEmit(
+    await executeContractEmitWithMock(
       emitOptions(
         { ...config, family: familyWithHydration as unknown as typeof config.family },
-        join(tmpDir, 'prisma-next.config.ts'),
+        join(tmpDir, 'prisma.config.ts'),
       ),
     );
 
@@ -248,6 +243,46 @@ describe('executeContractEmit', () => {
     const emitContract = mockedEmit.mock.calls[0]?.[0];
     expect(emitContract).toBe(hydratedContract);
     expect(emitContract).not.toBe(plainEnvelope);
+  });
+
+  describe('the import root the emitted files are written against', () => {
+    async function emitInto(project: string, options: { readonly namesConfig: boolean }) {
+      const outputJsonPath = join(tmpDir, project, 'generated/contract.json');
+      await actualFs.mkdir(join(tmpDir, project), { recursive: true });
+      await actualFs.writeFile(
+        join(tmpDir, project, 'package.json'),
+        JSON.stringify({
+          name: project,
+          dependencies: { '@prisma/orm-postgres': '8.0.0-rc.1' },
+        }),
+        'utf-8',
+      );
+      mockedEmit.mockResolvedValueOnce(createEmitResult('specifiers'));
+
+      await executeContractEmitWithMock(
+        options.namesConfig
+          ? emitOptions(
+              createSuccessfulConfig(outputJsonPath),
+              join(tmpDir, project, 'prisma.config.ts'),
+            )
+          : { config: createSuccessfulConfig(outputJsonPath), cwd: tmpDir },
+      );
+
+      const resolveSpecifier = mockedEmit.mock.calls.at(-1)?.[3]?.resolveImportSpecifier;
+      return resolveSpecifier?.('@internal/contract/types');
+    }
+
+    it('is the project the artifacts are written into, not the working directory', async () => {
+      expect(await emitInto('app-a', { namesConfig: false })).toBe(
+        '@prisma/orm-postgres/contract/types',
+      );
+    });
+
+    it('is the project holding the config file when the caller names one', async () => {
+      expect(await emitInto('app-b', { namesConfig: true })).toBe(
+        '@prisma/orm-postgres/contract/types',
+      );
+    });
   });
 
   it('serializes overlapping emits per output path so the last submission wins on disk', async () => {
@@ -266,11 +301,11 @@ describe('executeContractEmit', () => {
     try {
       const options = emitOptions(
         createSuccessfulConfig(outputJsonPath),
-        join(tmpDir, 'prisma-next.config.ts'),
+        join(tmpDir, 'prisma.config.ts'),
       );
-      const first = executeContractEmit(options);
+      const first = executeContractEmitWithMock(options);
       await firstEntered.promise;
-      const second = executeContractEmit(options);
+      const second = executeContractEmitWithMock(options);
 
       // Second is queued behind first — emit() must not be called for second yet.
       expect(mockedEmit).toHaveBeenCalledTimes(1);

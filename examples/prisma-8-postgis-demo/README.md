@@ -21,7 +21,7 @@ relationships in the queries actually hold.
 | --- | --- |
 | `docker-compose.yml` | PostgreSQL 16 + PostGIS 3.4 on port `5435`. |
 | `src/prisma/contract.prisma` | Three models — `Cafe` (Point), `Route` (LineString), `Neighborhood` (Polygon). |
-| `prisma-next.config.ts` | Wires the postgis extension pack into the contract emitter and CLI. |
+| `prisma.config.ts` | Wires the postgis extension pack into the contract emitter and CLI. |
 | `src/seed-data.ts` | Hand-curated cafes, neighborhoods, and routes. |
 | `src/queries/` | One file per query example. |
 | `app/` | Next.js (App Router) UI that runs the queries on the server and renders the results. |
@@ -277,7 +277,7 @@ the pattern is easy to copy.
 ## How the extension is wired in
 
 ```typescript
-// prisma-next.config.ts (control plane)
+// prisma.config.ts (control plane)
 import postgis from '@internal/extension-postgis/control';
 extensions: [postgis];
 ```

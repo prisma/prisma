@@ -17,14 +17,14 @@ Two complementary commands for managing database schema lifecycle.
 
 ```bash
 # 1. Define schema and emit contract
-prisma-next contract emit --config prisma-next.config.ts
+prisma-next contract emit --config prisma.config.ts
 
 # 2. Sign the database (first time only)
 prisma-next db init --db $DATABASE_URL
 
 # 3. Evolve the schema: add a column, change a type, etc.
 #    Re-emit the contract after editing the schema
-prisma-next contract emit --config prisma-next.config.ts
+prisma-next contract emit --config prisma.config.ts
 
 # 4. Preview what db update would do
 prisma-next db update --db $DATABASE_URL --dry-run
@@ -119,9 +119,10 @@ Both commands share the same flag surface:
 | Flag | Description |
 |------|-------------|
 | `--db <url>` | Database connection string |
-| `--config <path>` | Path to `prisma-next.config.ts` |
+| `--config <path>` | Path to `prisma.config.ts` |
 | `--dry-run` | Preview planned operations without applying |
-| `-y, --yes` | Auto-accept prompts (skips destructive operation confirmation for `db update`) |
+| `-y, --yes` | Accept the declared default of every prompt. It cannot grant consent, so it never authorises `db update`'s destructive operations |
+| `--confirm <database>` | Grant `db update`'s destructive consent without being asked. Read only when the run is non-interactive, so a script running from a terminal needs `--no-interactive --confirm <database>` |
 | `--json [format]` | Output as JSON (`object` format only) |
 | `-q, --quiet` | Quiet mode: errors only |
 | `-v, --verbose` | Verbose output: debug info, timings |

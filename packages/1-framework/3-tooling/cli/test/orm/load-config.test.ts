@@ -1,4 +1,5 @@
 import { realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadOrmConfig } from '../../src/orm/load-config';
@@ -15,9 +16,17 @@ function projectDir(): string {
 /**
  * Written without importing the workspace, so what the loader reads is exactly
  * what these tests write and nothing resolves out of the fixture package. The
- * version marker is the same non-enumerable symbol `defineConfig` stamps.
+ * version marker is the same enumerable `$prismaConfig` key the engine's
+ * defineConfig stamps, with the whole config nested as the orm section.
  */
 function configModule(body: string): string {
+  return [`const config = ${body};`, 'export default { $prismaConfig: 1, orm: config };'].join(
+    '\n',
+  );
+}
+
+/** The deprecated flat shape, stamped the way the target defineConfigs do. */
+function flatConfigModule(body: string): string {
   return [
     `const config = ${body};`,
     `Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), {`,
@@ -37,7 +46,7 @@ const VALID_BODY = `{
   contract: { source: { format: 'psl', inputs: ['contract.prisma'], load: () => ({}) }, output: 'output/contract.json' },
 }`;
 
-function writeConfig(dir: string, body: string, fileName = 'prisma-next.config.ts'): void {
+function writeConfig(dir: string, body: string, fileName = 'prisma.config.ts'): void {
   writeFileSync(join(dir, fileName), configModule(body), 'utf-8');
 }
 
@@ -48,15 +57,20 @@ afterEach(() => {
 });
 
 describe('loadOrmConfig', () => {
-  it('nests the whole configuration under the orm section', async () => {
-    const dir = projectDir();
-    writeConfig(dir, VALID_BODY);
+  it(
+    'nests the whole configuration under the orm section',
+    async () => {
+      const dir = projectDir();
+      writeConfig(dir, VALID_BODY);
 
-    const loaded = await loadOrmConfig({ cwd: dir });
+      const loaded = await loadOrmConfig({ cwd: dir });
 
-    expect(loaded.diagnostics).toEqual([]);
-    expect(Object.keys(loaded.sections)).toEqual(['orm']);
-  });
+      expect(loaded.diagnostics).toEqual([]);
+      expect(Object.keys(loaded.sections)).toEqual(['orm']);
+    },
+    // The first load pays jiti's cold transform for the config module.
+    timeouts.coldTransformImport,
+  );
 
   it('finalizes contract paths against the config file directory', async () => {
     const dir = projectDir();
@@ -106,14 +120,14 @@ describe('loadOrmConfig', () => {
       const loaded = await loadOrmConfig({ cwd: projectDir() });
 
       expect(loaded.diagnostics[0]?.diagnostic.nextActions).toEqual([
-        { kind: 'user-choice', label: "Run 'prisma-next init' to create a config file" },
+        { kind: 'run-command', label: 'Create a config file', command: '{bin} init' },
       ]);
     });
 
     it('turns a config module that throws while evaluating into a diagnostic', async () => {
       const dir = projectDir();
       writeFileSync(
-        join(dir, 'prisma-next.config.ts'),
+        join(dir, 'prisma.config.ts'),
         "throw new Error('boom while importing');",
         'utf-8',
       );
@@ -149,6 +163,34 @@ describe('loadOrmConfig', () => {
 
       expect(loaded.diagnostics).toEqual([]);
       expect(loaded.sections['orm']).toMatchObject({ migrations: { dir: 42 } });
+    });
+  });
+
+  describe('deprecated spellings', () => {
+    it('loads a flat-shape prisma-next.config.ts and warns once per deprecation', async () => {
+      const dir = projectDir();
+      writeFileSync(join(dir, 'prisma-next.config.ts'), flatConfigModule(VALID_BODY), 'utf-8');
+      const warnings: string[] = [];
+
+      const loaded = await loadOrmConfig({ cwd: dir, warn: (message) => warnings.push(message) });
+
+      expect(loaded.diagnostics).toEqual([]);
+      expect(loaded.path).toBe(join(dir, 'prisma-next.config.ts'));
+      expect(loaded.sections['orm']).toBeDefined();
+      expect(warnings).toEqual([
+        expect.stringContaining('prisma-next.config.ts is deprecated'),
+        expect.stringContaining('flat Prisma Next config shape is deprecated'),
+      ]);
+    });
+
+    it('does not warn for the primary filename and shape', async () => {
+      const dir = projectDir();
+      writeConfig(dir, VALID_BODY);
+      const warnings: string[] = [];
+
+      await loadOrmConfig({ cwd: dir, warn: (message) => warnings.push(message) });
+
+      expect(warnings).toEqual([]);
     });
   });
 });

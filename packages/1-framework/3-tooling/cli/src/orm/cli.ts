@@ -1,33 +1,112 @@
 import { ifDefined } from '@internal/utils/defined';
 import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine';
-import { createCli } from '@prisma/cli-engine';
+import { createCli, telemetryCommandGroup } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
+import { createControlClient } from '../control-api/client';
+import type { CreateControlClient } from '../control-api/types';
+import { isCI } from '../utils/is-ci';
+import { contractEmitCommand } from './contract/emit';
+import { contractInferCommand } from './contract/infer';
+import { createDbInitCommand } from './db/init';
+import { createDbSchemaCommand } from './db/schema';
+import { createDbSignCommand } from './db/sign';
+import { createDbUpdateCommand } from './db/update';
+import { createDbVerifyCommand } from './db/verify';
 import { ormCommandFamily } from './family';
+import { formatCommand } from './format';
+import { initCommand } from './init';
 import { loadOrmConfig } from './load-config';
+import { lspCommand } from './lsp';
+import { createMigrateCommand } from './migrate';
+import { migrationCheckCommand } from './migration/check';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
+import { migrationNewCommand } from './migration/new';
+import { migrationPlanCommand } from './migration/plan';
 import { migrationShowCommand } from './migration/show';
+import { migrationStatusCommand } from './migration/status';
 import { normalizeError } from './normalize-error';
+import { runPackageManager } from './package-manager-runner';
+import { refDeleteCommand } from './ref/delete';
+import { refListCommand } from './ref/list';
+import { refSetCommand } from './ref/set';
 import { resolveTelemetryHooks } from './telemetry/reporting';
 
 export const BIN_NAME = 'prisma-next';
 
+export const TELEMETRY_DOCS_URL = 'https://prisma-next.dev/docs/cli/telemetry';
+
+/**
+ * The engine's consent surface — `telemetry status|enable|disable` and the
+ * group help that belongs to them. Mounted whole, mirroring the unified
+ * `prisma` bin's mount points.
+ */
+const telemetry = telemetryCommandGroup({ docsUrl: TELEMETRY_DOCS_URL });
+
 export const BIN_GROUPS = {
+  contract: {
+    brief: 'Contract management commands',
+    description:
+      'Define and emit your application data contract. The contract describes your\n' +
+      'schema as a declarative data structure that can be signed and verified\n' +
+      'against your database.',
+  },
+  db: {
+    brief: 'Live database commands',
+    description:
+      'Inspect, bootstrap, verify and sign the live database against the\n' +
+      'emitted contract. Every command in this group needs a database connection.',
+  },
   migration: {
     brief: 'On-disk migration management commands',
     description:
       'Plan, apply, and scaffold on-disk migration packages. Migrations are\n' +
       'contract-to-contract edges stored as versioned directories under migrations/.',
   },
+  ref: {
+    brief: 'Named pointers at contracts',
+    description:
+      'Manage the named refs under migrations/app/refs/. A ref maps a logical\n' +
+      'environment name — staging, production — to a contract hash, so a command\n' +
+      'can name the environment instead of the hash.',
+  },
+  ...telemetry.groups,
 } as const;
 
-export const BIN_COMMANDS: MountedTree = {
-  'migration graph': migrationGraphCommand,
-  'migration list': migrationListCommand,
-  'migration log': migrationLogCommand,
-  'migration show': migrationShowCommand,
-};
+/**
+ * The command tree with its client factory injected, so tests can mount the
+ * same tree over a control-client double instead of mocking modules.
+ */
+export function createBinCommands(createClient: CreateControlClient): MountedTree {
+  return {
+    'contract emit': contractEmitCommand,
+    'contract infer': contractInferCommand,
+    'db init': createDbInitCommand(createClient),
+    'db schema': createDbSchemaCommand(createClient),
+    'db sign': createDbSignCommand(createClient),
+    'db update': createDbUpdateCommand(createClient),
+    'db verify': createDbVerifyCommand(createClient),
+    format: formatCommand,
+    init: initCommand,
+    lsp: lspCommand,
+    migrate: createMigrateCommand(createClient),
+    'migration check': migrationCheckCommand,
+    'migration graph': migrationGraphCommand,
+    'migration list': migrationListCommand,
+    'migration log': migrationLogCommand,
+    'migration new': migrationNewCommand,
+    'migration plan': migrationPlanCommand,
+    'migration show': migrationShowCommand,
+    'migration status': migrationStatusCommand,
+    'ref delete': refDeleteCommand,
+    'ref list': refListCommand,
+    'ref set': refSetCommand,
+    ...telemetry.commands,
+  };
+}
+
+export const BIN_COMMANDS: MountedTree = createBinCommands(createControlClient);
 
 export function createOrmCli(): Cli {
   return createCli({
@@ -37,14 +116,6 @@ export function createOrmCli(): Cli {
     groups: BIN_GROUPS,
     commands: BIN_COMMANDS,
   });
-}
-
-function packageManagerFrom(
-  env: Readonly<Record<string, string | undefined>>,
-): Runtime['packageManager'] {
-  const userAgent = env['npm_config_user_agent'];
-  const name = userAgent?.split('/')[0];
-  return name === 'npm' || name === 'pnpm' || name === 'yarn' || name === 'bun' ? name : 'unknown';
 }
 
 /**
@@ -69,6 +140,7 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
       stdout: proc.stdout.isTTY === true,
       stderr: proc.stderr.isTTY === true,
     },
+    isCI: isCI(),
     exit: (code) => proc.exit(code),
     onSignal: (callback) => {
       const onInterrupt = () => callback('SIGINT');
@@ -81,9 +153,17 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
       };
     },
     loadConfig: (configPath) =>
-      loadOrmConfig({ cwd: proc.cwd(), ...ifDefined('configPath', configPath) }),
+      loadOrmConfig({
+        cwd: proc.cwd(),
+        ...ifDefined('configPath', configPath),
+        // Mirrors the engine's warn-diagnostic line shape on stderr.
+        warn: (message) => void proc.stderr.write(`⚠ ${message}\n`),
+      }),
     managementApi: { baseUrl: 'https://api.prisma.io' },
-    packageManager: packageManagerFrom(proc.env),
+    // No `packageManager`: a host's answer overrides the engine's detection
+    // outright, and this bin knows nothing the engine's own walk from cwd —
+    // lockfile, then the manager that invoked this process — does not.
+    runPackageManager,
   };
 }
 

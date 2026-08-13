@@ -174,7 +174,7 @@ describe('pipeline builder integration', { timeout: timeouts.spinUpMongoMemorySe
         .build();
 
       expect(plan.meta.lane).toBe('mongo-query');
-      const rows = await ctx.runtime.execute(plan);
+      const rows = await ctx.runtime.query(plan);
       expect(rows).toHaveLength(2);
 
       const typed = rows as Array<{ _id: string; total: number; orderCount: number }>;
@@ -205,7 +205,7 @@ describe('pipeline builder integration', { timeout: timeouts.spinUpMongoMemorySe
         .limit(2)
         .build();
 
-      const rows = await ctx.runtime.execute(plan);
+      const rows = await ctx.runtime.query(plan);
       expect(rows).toHaveLength(2);
 
       const typed = rows as Array<{ department: string; amount: number; isHighValue: boolean }>;
@@ -232,7 +232,7 @@ describe('pipeline builder integration', { timeout: timeouts.spinUpMongoMemorySe
         }))
         .build();
 
-      const rows = await ctx.runtime.execute(plan);
+      const rows = await ctx.runtime.query(plan);
       expect(rows).toHaveLength(1);
 
       const typed = rows as Array<{ _id: null; totalRevenue: number; count: number }>;
@@ -270,7 +270,7 @@ describe('pipeline builder integration', { timeout: timeouts.spinUpMongoMemorySe
         }))
         .build();
 
-      const rows = await ctx.runtime.execute(plan);
+      const rows = await ctx.runtime.query(plan);
       expect(rows).toHaveLength(2);
 
       const typed = rows as Array<Record<string, unknown>>;
@@ -290,7 +290,7 @@ describe('pipeline builder integration', { timeout: timeouts.spinUpMongoMemorySe
 
       const plan = p.from('orders').project('department', 'amount').sort({ amount: 1 }).build();
 
-      const rows = await ctx.runtime.execute(plan);
+      const rows = await ctx.runtime.query(plan);
       expect(rows).toHaveLength(2);
 
       const typed = rows as Array<Record<string, unknown>>;
@@ -338,7 +338,7 @@ describe('pipeline builder integration', { timeout: timeouts.spinUpMongoMemorySe
         count: number;
       }>();
 
-      const results = await ctx.runtime.execute(plan);
+      const results = await ctx.runtime.query(plan);
 
       expect(results).toEqual([
         {

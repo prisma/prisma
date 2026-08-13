@@ -26,19 +26,19 @@ Open <http://localhost:5173>. Create a user via the form; the list revalidates a
 
 ## Switching authoring surfaces
 
-The same `prisma-next.config.ts` supports both PSL and TypeScript contract authoring, selected at dev-server startup by one env var:
+The same `prisma.config.ts` supports both PSL and TypeScript contract authoring, selected at dev-server startup by one env var:
 
 ```bash
 # PSL (default) — watches prisma/contract.prisma
 pnpm dev
 
 # TypeScript — re-emits when prisma/contract.ts (or anything else imported by
-# prisma-next.config.ts) changes
+# prisma.config.ts) changes
 PRISMA_NEXT_CONTRACT_SOURCE=ts pnpm dev
 ```
 
 The TypeScript surface does not declare an explicit watch path. Instead,
-`prisma-next.config.ts` imports `./prisma/contract.ts`, which puts that file in
+`prisma.config.ts` imports `./prisma/contract.ts`, which puts that file in
 the config's module graph; the Vite plugin walks that graph and adds every
 non-`node_modules` file to its watch set, so editing any of them triggers a
 re-emit.

@@ -67,12 +67,32 @@ describe('publicShells', () => {
     }
   });
 
-  it('gives exactly the facades the re-exports and forwarded bin that make one', () => {
-    for (const [name, shell] of publicShells) {
-      const carriesFacadeMachinery =
-        shell.reexports !== undefined || shell.forwardedBins !== undefined;
+  it('declares only subpaths the mapped package actually exports', () => {
+    const dangling = [...publicShells.values()]
+      .flatMap((shell) => shell.packages)
+      .filter((pkg) => pkg.subpaths !== undefined)
+      .flatMap((pkg) => {
+        const manifest: unknown = JSON.parse(
+          readFileSync(join(repoRoot, pkg.dir, 'package.json'), 'utf8'),
+        );
+        const exported = new Set(
+          Object.keys((manifest as { exports?: Record<string, unknown> }).exports ?? {}).map(
+            (subpath) => subpath.replace(/^\.\//, ''),
+          ),
+        );
+        return (pkg.subpaths ?? [])
+          .filter((subpath) => !exported.has(subpath))
+          .map((subpath) => `${pkg.name}: ${subpath}`);
+      });
 
-      expect(`${name}: ${carriesFacadeMachinery}`).toBe(`${name}: ${shell.kind === 'facade'}`);
+    expect(dangling).toEqual([]);
+  });
+
+  it('gives exactly the facades the re-exports that make one', () => {
+    for (const [name, shell] of publicShells) {
+      expect(`${name}: ${shell.reexports !== undefined}`).toBe(
+        `${name}: ${shell.kind === 'facade'}`,
+      );
     }
   });
 });

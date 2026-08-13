@@ -32,6 +32,7 @@ function withTransaction(runtime: MockRuntime) {
   const commit = vi.fn(async () => undefined);
   const rollback = vi.fn(async () => undefined);
   const transaction = {
+    query: runtime.query.bind(runtime),
     execute: runtime.execute.bind(runtime),
     commit,
     rollback,
@@ -54,6 +55,7 @@ function withConnection(runtime: MockRuntime, onRelease: () => void) {
   return Object.assign(runtime, {
     async connection() {
       return {
+        query: runtime.query.bind(runtime),
         execute: runtime.execute.bind(runtime),
         async release() {
           onRelease();
@@ -191,6 +193,7 @@ describe('mutation-executor', () => {
     const runtimeWithBareTransaction = Object.assign(runtime, {
       async transaction() {
         return {
+          query: runtime.query.bind(runtime),
           execute: runtime.execute.bind(runtime),
         };
       },
@@ -1376,7 +1379,7 @@ describe('mutation-executor', () => {
     const runtime = createMockRuntime();
     runtime.setNextResults([[{ id: 1, name: 'Alice', email: 'alice@test.com' }]]);
 
-    const executeSpy = vi.spyOn(runtime, 'execute');
+    const querySpy = vi.spyOn(runtime, 'query');
 
     const created = await executeNestedCreateMutation({
       context: getTestContext(),
@@ -1387,7 +1390,7 @@ describe('mutation-executor', () => {
     });
 
     expect(created).toEqual({ id: 1, name: 'Alice', email: 'alice@test.com' });
-    expect(executeSpy).toHaveBeenCalledTimes(1);
+    expect(querySpy).toHaveBeenCalledTimes(1);
   });
 
   it('withMutationScope reuses runtime directly when no transaction or connection method exists', async () => {

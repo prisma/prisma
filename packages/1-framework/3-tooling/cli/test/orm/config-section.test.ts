@@ -67,12 +67,12 @@ describe('ormConfigSection', () => {
             code: 'CONFIG.FILE_NOT_FOUND',
             severity: 'error',
             summary: 'No Prisma Next configuration was loaded',
-            why: 'The orm config section is absent, so prisma-next.config.ts was never evaluated.',
+            why: 'The orm config section is absent, so prisma.config.ts was never evaluated.',
             nextActions: [
               {
                 kind: 'run-command',
-                label: 'Create a configuration file',
-                command: 'prisma-next init',
+                label: 'Create a config file',
+                command: 'prisma-cli init',
               },
             ],
           },
@@ -96,7 +96,7 @@ describe('ormConfigSection', () => {
           nextActions: [
             {
               kind: 'edit-file',
-              label: 'Correct migrations.dir in prisma-next.config.ts',
+              label: 'Correct migrations.dir in prisma.config.ts',
             },
           ],
           meta: { field: 'migrations.dir', section: 'migrations' },
@@ -162,7 +162,7 @@ describe('ormConfigSection', () => {
   describe('hostile input', () => {
     it.each([
       ['null', null],
-      ['a string', 'prisma-next.config.ts'],
+      ['a string', 'prisma.config.ts'],
       ['a number', 7],
       ['a boolean', true],
       ['an array', []],
@@ -180,7 +180,7 @@ describe('ormConfigSection', () => {
           nextActions: [
             {
               kind: 'edit-file',
-              label: 'Export a configuration object from prisma-next.config.ts',
+              label: 'Export a configuration object from prisma.config.ts',
             },
           ],
         },

@@ -227,6 +227,9 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     ormBuilder({
       context,
       runtime: {
+        query(plan) {
+          return getRuntime().query(plan);
+        },
         execute(plan) {
           return getRuntime().execute(plan);
         },
@@ -318,6 +321,9 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
         const txOrm: UnboundOrm<TContract> = unboundOrm(
           ormBuilder({
             runtime: {
+              query(plan) {
+                return txCtx.query(plan);
+              },
               execute(plan) {
                 return txCtx.execute(plan);
               },

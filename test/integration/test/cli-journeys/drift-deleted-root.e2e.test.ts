@@ -70,7 +70,7 @@ withTempDir(({ createTempDir }) => {
         // P4.01: migration status still lists the orphaned on-disk migration
         const status = await runMigrationStatus(ctx);
         expect(status.exitCode, 'P4.01: status succeeds').toBe(0);
-        const statusOutput = stripAnsi(status.stdout);
+        const statusOutput = stripAnsi(status.stderr);
         expect(statusOutput, 'P4.01: surviving migration visible').toMatch(/add_name/);
         expect(statusOutput, 'P4.01: not treated as empty').not.toContain('No migrations found');
 

@@ -1,6 +1,4 @@
 import { type } from 'arktype';
-import type { GlobalFlags } from '../../utils/global-flags';
-import type { TerminalUI } from '../../utils/terminal-ui';
 
 /**
  * arktype schema for the structured success document `init --json` writes
@@ -23,14 +21,21 @@ export const InitOutputSchema = type({
   schemaPath: 'string',
   filesWritten: 'string[]',
   /**
-   * FR9.1 — files removed from disk during this run. Populated only on
-   * re-init when previously-emitted contract artifacts (`contract.json`,
-   * `contract.d.ts`, `ops.json`, `migration.json`) were left behind by an
-   * earlier run. Empty on a green-field init.
+   * FR9.1 — paths removed from disk during this run: contract artifacts
+   * (`contract.json`, `contract.d.ts`, `ops.json`, `migration.json`) an
+   * earlier run left behind, which only a re-init has, and the retired
+   * agent-skill directories, which every run removes when it finds them.
    */
   filesDeleted: 'string[]',
+  /**
+   * What became of the dependency install. `skipped` is the deliberate
+   * `--skip-install`; `failed` is an install that ran and did not succeed,
+   * which leaves a scaffolded project that cannot run yet. `deps` and
+   * `devDeps` list what was installed, so both non-`installed` states
+   * carry them empty.
+   */
   packagesInstalled: {
-    skipped: 'boolean',
+    status: "'installed'|'skipped'|'failed'",
     deps: 'string[]',
     devDeps: 'string[]',
   },
@@ -40,6 +45,9 @@ export const InitOutputSchema = type({
 });
 
 export type InitOutput = typeof InitOutputSchema.infer;
+
+/** What became of the dependency install, as the document reports it. */
+export type InstallStatus = InitOutput['packagesInstalled']['status'];
 
 /**
  * Serialises the output document for `--json`. Sorted keys are not enforced
@@ -52,63 +60,10 @@ export function formatInitJson(output: InitOutput): string {
 }
 
 /**
- * Renders the human-readable outro on stderr (FR10.1). Re-uses the same
- * data structure as the JSON output so the two stay in lock-step.
- *
- * Warnings come before "Next steps" because they describe state the user
- * needs to be aware of before acting on the next-steps list.
- */
-export function renderInitOutro(ui: TerminalUI, output: InitOutput, flags: GlobalFlags): void {
-  if (flags.quiet || flags.json) {
-    return;
-  }
-
-  for (const warning of output.warnings) {
-    ui.warn(warning);
-  }
-
-  const lines: string[] = [];
-  lines.push(`Target:    ${output.target}`);
-  lines.push(`Authoring: ${output.authoring}`);
-  lines.push(`Schema:    ${output.schemaPath}`);
-  lines.push('');
-  lines.push('Files written:');
-  for (const file of output.filesWritten) {
-    lines.push(`  • ${file}`);
-  }
-
-  if (output.filesDeleted.length > 0) {
-    lines.push('');
-    lines.push('Files deleted (stale contract artifacts):');
-    for (const file of output.filesDeleted) {
-      lines.push(`  • ${file}`);
-    }
-  }
-
-  if (!output.packagesInstalled.skipped) {
-    lines.push('');
-    lines.push('Packages installed:');
-    for (const dep of output.packagesInstalled.deps) {
-      lines.push(`  • ${dep}`);
-    }
-    for (const dep of output.packagesInstalled.devDeps) {
-      lines.push(`  • ${dep} (dev)`);
-    }
-  }
-
-  lines.push('');
-  lines.push('Next steps:');
-  for (const step of output.nextSteps) {
-    lines.push(`  ${step}`);
-  }
-
-  ui.note(lines.join('\n'), 'Done');
-}
-
-/**
  * Builds the `nextSteps` array from the resolved scaffold state. Steps are
- * ordered by the workflow a user needs to follow: configure connection →
- * (emit if not yet done) → run a starter query → docs / agent skill.
+ * ordered by the workflow a user needs to follow: install what is missing →
+ * configure connection → (emit if not yet done) → run a starter query →
+ * docs / agent skill.
  *
  * The strings are stable and human-readable; agents wanting to act on them
  * should match on substrings (e.g. "DATABASE_URL") rather than exact text,
@@ -116,6 +71,12 @@ export function renderInitOutro(ui: TerminalUI, output: InitOutput, flags: Globa
  */
 export function buildNextSteps(options: {
   readonly target: 'postgres' | 'mongodb';
+  /**
+   * A project whose dependencies are not installed cannot emit or run,
+   * whether the install was skipped or attempted and failed. Both states put
+   * the install back at the top of the list, saying which happened.
+   */
+  readonly packagesInstalled: InstallStatus;
   readonly contractEmitted: boolean;
   readonly emitCommand: string;
   readonly schemaPath: string;
@@ -134,6 +95,14 @@ export function buildNextSteps(options: {
     steps.push(`${stepNumber}. ${text}`);
     stepNumber += 1;
   };
+  if (options.packagesInstalled === 'failed') {
+    push(
+      'Install the project dependencies with your package manager — the install this run attempted failed, so nothing else here will work yet.',
+    );
+  }
+  if (options.packagesInstalled === 'skipped') {
+    push('Install the project dependencies with your package manager (this run skipped them).');
+  }
   push('Set DATABASE_URL in your environment (export it or add it to .env).');
   if (!options.contractEmitted) {
     push(`Emit the contract: \`${options.emitCommand}\``);

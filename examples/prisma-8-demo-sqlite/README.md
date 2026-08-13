@@ -114,7 +114,7 @@ runnable example of that guard — the type-level gate makes it uncompilable.
 ## Key files
 
 - `prisma/contract.ts` — TypeScript contract authoring (User + Post FK, Post ↔ Tag M:N via PostTag)
-- `prisma-next.config.ts` — CLI config wiring SQLite target/adapter/driver
+- `prisma.config.ts` — CLI config wiring SQLite target/adapter/driver
 - `src/prisma/db.ts` — `sqlite()` one-liner client
 - `src/orm-client/` — ORM client examples
 - `src/queries/` — SQL builder examples

@@ -1,8 +1,10 @@
 import type { HostProcess, LoadedConfig } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
+import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS, createOrmCli, runOrmCli } from '../../src/orm/cli';
 import { ormCommandFamily } from '../../src/orm/family';
+import { createTestProjectDir } from '../utils/test-project-dir';
 
 function recordingLoader(): {
   readonly asked: string[];
@@ -14,7 +16,7 @@ function recordingLoader(): {
     loadConfig: (configPath) => {
       asked.push(configPath ?? '(none)');
       return Promise.resolve({
-        path: configPath ?? 'prisma-next.config.ts',
+        path: configPath ?? 'prisma.config.ts',
         sections: {},
         diagnostics: [],
       });
@@ -66,7 +68,7 @@ describe('the orm command family', () => {
     expect(ormCommandFamily.docsBaseUrl?.endsWith('/')).toBe(true);
   });
 
-  it('retires the two removed migration verbs, naming the binary as {bin}', () => {
+  it('retires the two removed verbs and the four removed status flags, naming the binary as {bin}', () => {
     expect(
       ormCommandFamily.redirects.map(({ from, flag, replacement }) => ({
         from,
@@ -80,6 +82,14 @@ describe('the orm command family', () => {
         replacement: '{bin} migrate --to <contract>',
       },
       { from: 'migration ref', flag: undefined, replacement: '{bin} ref set|list|delete' },
+      { from: 'migration status', flag: 'graph', replacement: '{bin} migration graph' },
+      { from: 'migration status', flag: 'all', replacement: '{bin} migration log --db <url>' },
+      { from: 'migration status', flag: 'limit', replacement: '{bin} migration log --db <url>' },
+      {
+        from: 'migration status',
+        flag: 'ref',
+        replacement: '{bin} migration status --to <contract>',
+      },
     ]);
   });
 });
@@ -90,18 +100,81 @@ describe('createOrmCli', () => {
   });
 });
 
+describe("the engine's telemetry command group", () => {
+  it('mounts the three consent commands and their group, mirroring the unified bin', () => {
+    expect(Object.keys(BIN_COMMANDS)).toEqual(
+      expect.arrayContaining(['telemetry status', 'telemetry enable', 'telemetry disable']),
+    );
+    expect(BIN_GROUPS).toMatchObject({
+      telemetry: { brief: expect.stringContaining('telemetry') },
+    });
+  });
+
+  it('settles telemetry status as data through the mounted tree', async () => {
+    const xdgDir = createTestProjectDir('telemetry-xdg');
+
+    const run = await harness(recordingLoader().loadConfig).run(['telemetry', 'status', '--json'], {
+      env: { XDG_CONFIG_HOME: xdgDir },
+    });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.data).toEqual({
+      enabled: true,
+      reason: 'default-on',
+      configPath: join(xdgDir, 'prisma', 'config.json'),
+      installationIdStored: false,
+    });
+  });
+});
+
 describe('a retired invocation', () => {
   it('is answered with its replacement rather than a spelling suggestion', async () => {
     const loader = recordingLoader();
 
     const run = await harness(loader.loadConfig).run(['migration', 'apply', '--json']);
 
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: {
+        ok: false,
+        error: {
+          code: 'CLI.COMMAND_MOVED',
+          summary: '`migration apply` has been replaced',
+          why: 'Applying a migration is a move to a target contract, not a verb of its own.',
+          nextActions: [
+            {
+              kind: 'run-command',
+              label: 'Use the replacement',
+              command: 'prisma-test migrate --to <contract>',
+            },
+          ],
+        },
+      },
+    });
+    expect(JSON.stringify(run.json)).not.toContain('Did you mean');
+  });
+
+  it('answers a retired status flag with the command that replaced it', async () => {
+    const loader = recordingLoader();
+
+    const run = await harness(loader.loadConfig).run(['migration', 'status', '--graph', '--json']);
+
     expect(run.exitCode).not.toBe(0);
     expect(run.json.at(-1)).toMatchObject({
       kind: 'result',
-      envelope: { ok: false },
+      envelope: {
+        ok: false,
+        error: { code: 'CLI.COMMAND_MOVED' },
+        nextActions: [
+          {
+            kind: 'run-command',
+            label: 'Use the replacement',
+            command: 'prisma-test migration graph',
+          },
+        ],
+      },
     });
-    expect(JSON.stringify(run.json)).toContain('migrate --to <contract>');
   });
 });
 

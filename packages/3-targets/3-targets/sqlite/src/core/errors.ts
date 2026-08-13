@@ -30,7 +30,7 @@ export function sqliteError(
  * — named by `operation` (e.g. `createTable`, `dropColumn`, `recreateTable`) —
  * was invoked, but the migration was constructed without a `ControlStack`.
  * Concrete authoring usage always goes through the migration CLI entrypoint,
- * which assembles a stack from the loaded `prisma-next.config.ts`; reaching this
+ * which assembles a stack from the loaded `prisma.config.ts`; reaching this
  * error means a test fixture or ad-hoc consumer instantiated `SqliteMigration`
  * with the no-arg form (legal for `operations` / `describe` introspection only).
  *
@@ -52,7 +52,7 @@ export function errorSqliteMigrationStackMissing(operation: string): CliStructur
     `SqliteMigration.${operation} requires a control adapter`,
     {
       why: `SqliteMigration.${operation} was invoked on an instance constructed without a ControlStack, so the stored controlAdapter is undefined and the operation cannot lower its DDL node.`,
-      fix: 'Construct the migration via the migration CLI entrypoint (which assembles a ControlStack from the loaded prisma-next.config.ts), or pass a ControlStack containing a SQLite adapter to the migration constructor in test fixtures.',
+      fix: 'Construct the migration via the migration CLI entrypoint (which assembles a ControlStack from the loaded prisma.config.ts), or pass a ControlStack containing a SQLite adapter to the migration constructor in test fixtures.',
       meta: { operation },
     },
   );

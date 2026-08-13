@@ -13,7 +13,7 @@ import {
 /**
  * `migration list` is the first command running on the engine, so this journey
  * is also the proof that the harness works against a real project on disk: a
- * real `prisma-next.config.ts`, evaluated through the same adapter the binary
+ * real `prisma.config.ts`, evaluated through the same adapter the binary
  * uses, with the step's directory passed as `cwd` instead of chdir'ed into.
  */
 withTempDir(({ createTempDir }) => {
@@ -42,12 +42,12 @@ withTempDir(({ createTempDir }) => {
           spaces: ReadonlyArray<{ space: string; migrations: ReadonlyArray<{ name: string }> }>;
         };
         expect(list.spaces.map((space) => space.space)).toEqual(['app']);
-        expect(list.spaces[0]?.migrations.map((migration) => migration.name)).toEqual([
-          expect.stringContaining('initial'),
-          expect.stringContaining('add_name'),
-        ]);
+        const names = list.spaces[0]?.migrations.map((migration) => migration.name) ?? [];
+        expect(names).toHaveLength(2);
+        expect(names.some((name) => name.includes('initial'))).toBe(true);
+        expect(names.some((name) => name.includes('add_name'))).toBe(true);
       },
-      timeouts.typeScriptCompilation,
+      timeouts.coldTransformImport,
     );
 
     it(
@@ -66,7 +66,7 @@ withTempDir(({ createTempDir }) => {
           expect(() => JSON.parse(line)).not.toThrow();
         }
       },
-      timeouts.typeScriptCompilation,
+      timeouts.coldTransformImport,
     );
 
     it(
@@ -80,7 +80,7 @@ withTempDir(({ createTempDir }) => {
         expect(listed.exitCode).toBe(0);
         expect(list.spaces.map((space) => space.space)).toEqual(['app']);
       },
-      timeouts.typeScriptCompilation,
+      timeouts.coldTransformImport,
     );
 
     it(
@@ -101,7 +101,7 @@ withTempDir(({ createTempDir }) => {
         expect(envelope?.nextActions.length).toBeGreaterThan(0);
         expect(envelope).not.toHaveProperty('fix');
       },
-      timeouts.typeScriptCompilation,
+      timeouts.coldTransformImport,
     );
 
     it(

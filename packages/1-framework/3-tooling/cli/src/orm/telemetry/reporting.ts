@@ -102,6 +102,7 @@ export function resolveTelemetryHooks(
         fire({
           command: senderCommandShape(summary.snapshot),
           version: CLI_VERSION,
+          exitCode: summary.exitCode,
           projectRoot: proc.cwd(),
           senderPath: options?.senderPath ?? senderPath(),
           isCI: inCI,

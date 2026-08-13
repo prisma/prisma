@@ -69,5 +69,5 @@ export async function aggregateEventsByType(db: Db, userId: string): Promise<Eve
     .sort({ count: -1 })
     .build();
 
-  return db.execute(plan);
+  return (await db.runtime()).query(plan);
 }

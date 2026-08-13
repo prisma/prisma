@@ -26,7 +26,7 @@ describe('migration-ref MigrationToolsError envelope passthrough', () => {
       `${JSON.stringify({ hash: HASH_A, invariants: [] }, null, 2)}\n`,
       'utf-8',
     );
-    configPath = join(tempDir, 'prisma-next.config.ts');
+    configPath = join(tempDir, 'prisma.config.ts');
   });
 
   afterEach(async () => {

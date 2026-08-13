@@ -17,6 +17,7 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  EMPTY_CONTRACT_HASH,
   type JourneyContext,
   migrationStatusAppSpace,
   parseJsonOutput,
@@ -73,10 +74,13 @@ withTempDir(({ createTempDir }) => {
 
         const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
         expect(plan.exitCode, 'plan').toBe(0);
-        const planFrom = parseJsonOutput<{ from: string }>(plan).from;
+        const planFrom = parseJsonOutput<{ from: string | null }>(plan).from;
 
-        const statusMigrations = await runMigrationStatus(ctx, ['--from', planFrom]);
-        const outMigrations = stripAnsi(statusMigrations.stdout);
+        const statusMigrations = await runMigrationStatus(ctx, [
+          '--from',
+          planFrom ?? EMPTY_CONTRACT_HASH,
+        ]);
+        const outMigrations = stripAnsi(statusMigrations.stderr);
         expect(statusMigrations.exitCode).toBe(0);
         expect(outMigrations).toContain('pending');
         expect(outMigrations).not.toContain('✓ applied');
@@ -115,11 +119,11 @@ withTempDir(({ createTempDir }) => {
           expect(plan.exitCode, 'plan').toBe(0);
 
           const status = await runMigrationStatus(ctx);
-          const out = stripAnsi(status.stdout);
+          const out = stripAnsi(status.stderr);
 
           expect(status.exitCode).toBe(0);
           expect(out).toMatch(/pending/);
-          expect(out).toContain('prisma-next migrate');
+          expect(out).toContain('prisma-cli migrate');
         },
         timeouts.spinUpPpgDev,
       );
@@ -150,7 +154,7 @@ withTempDir(({ createTempDir }) => {
           expect(apply.exitCode, 'apply').toBe(0);
 
           const status = await runMigrationStatus(ctx);
-          const out = stripAnsi(status.stdout);
+          const out = stripAnsi(status.stderr);
 
           expect(status.exitCode).toBe(0);
           expect(out).toContain('Up to date');
@@ -193,11 +197,11 @@ withTempDir(({ createTempDir }) => {
           expect(plan1.exitCode, 'plan v2').toBe(0);
 
           const status = await runMigrationStatus(ctx);
-          const out = stripAnsi(status.stdout);
+          const out = stripAnsi(status.stderr);
 
           expect(status.exitCode).toBe(0);
           expect(out).toMatch(/1 pending/);
-          expect(out).toContain('prisma-next migrate');
+          expect(out).toContain('prisma-cli migrate');
         },
         timeouts.spinUpPpgDev,
       );
@@ -232,7 +236,7 @@ withTempDir(({ createTempDir }) => {
           expect(emit1.exitCode, 'emit v2').toBe(0);
 
           const status = await runMigrationStatus(ctx);
-          const out = stripAnsi(status.stdout);
+          const out = stripAnsi(status.stderr);
 
           expect(status.exitCode).toBe(0);
           expect(out).toContain('No migration path from the database state');
@@ -266,12 +270,12 @@ withTempDir(({ createTempDir }) => {
           expect(emit1.exitCode, 'emit v2').toBe(0);
 
           const status = await runMigrationStatus(ctx);
-          const out = stripAnsi(status.stdout);
+          const out = stripAnsi(status.stderr);
 
           expect(status.exitCode).toBe(0);
           expect(out).toContain('@contract');
           expect(out).toContain("to the application's contract");
-          expect(out).toContain('prisma-next migration plan --name');
+          expect(out).toContain('prisma-cli migration plan --name');
         },
         timeouts.spinUpPpgDev,
       );
@@ -311,7 +315,7 @@ withTempDir(({ createTempDir }) => {
           expect(update.exitCode, 'db update').toBe(0);
 
           const status = await runMigrationStatus(ctx);
-          const out = stripAnsi(status.stdout);
+          const out = stripAnsi(status.stderr);
 
           expect(status.exitCode).toBe(0);
           expect(out).toContain('@contract @db (db)');
@@ -365,11 +369,10 @@ withTempDir(({ createTempDir }) => {
           expect(emit2.exitCode, 'emit v3').toBe(0);
 
           const status = await runMigrationStatus(ctx, ['--json']);
-          const out = stripAnsi(status.stdout);
 
           expect(status.exitCode).toBe(0);
-          expect(out).toContain('not in the on-disk migration graph');
           const statusJson = parseMigrationStatusJson(status);
+          expect(statusJson.summary).toContain('not in the on-disk migration graph');
           const hints =
             statusJson.diagnostics?.flatMap((diagnostic) => [
               diagnostic.message,
@@ -492,7 +495,7 @@ withTempDir(({ createTempDir }) => {
           expect(status.exitCode).toBe(0);
           const json = parseMigrationStatusJson(status);
           expect(json.summary).toContain("to the application's contract");
-          expect(json.summary).toContain('prisma-next migration plan --name');
+          expect(json.summary).toContain('prisma-cli migration plan --name');
         },
         timeouts.spinUpPpgDev,
       );
@@ -560,12 +563,12 @@ withTempDir(({ createTempDir }) => {
           expect(setRef.exitCode, 'ref set').toBe(0);
 
           const status = await runMigrationStatus(ctx, ['--to', 'production']);
-          const out = stripAnsi(status.stdout);
+          const out = stripAnsi(status.stderr);
 
           expect(status.exitCode).toBe(0);
           expect(out).toContain('No migration path from the database state');
           expect(out).toContain('via `production`');
-          expect(out).toContain('prisma-next migration plan');
+          expect(out).toContain('prisma-cli migration plan');
         },
         timeouts.spinUpPpgDev,
       );
@@ -627,12 +630,12 @@ withTempDir(({ createTempDir }) => {
           expect(setRef.exitCode, 'ref set').toBe(0);
 
           const status = await runMigrationStatus(ctx, ['--to', 'production']);
-          const out = stripAnsi(status.stdout);
+          const out = stripAnsi(status.stderr);
 
           expect(status.exitCode).toBe(0);
           expect(out).not.toContain('multiple valid migration paths');
           expect(out).toMatch(/1 pending/);
-          expect(out).toContain('prisma-next migrate');
+          expect(out).toContain('prisma-cli migrate');
         },
         timeouts.spinUpPpgDev,
       );

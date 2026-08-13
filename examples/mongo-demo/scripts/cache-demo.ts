@@ -74,11 +74,11 @@ async function main() {
     console.log('Running the same plan twice — second call should hit cache.\n');
 
     const firstStart = performance.now();
-    const first = await runtime.execute(plan).toArray();
+    const first = await runtime.query(plan).toArray();
     const firstMs = performance.now() - firstStart;
 
     const secondStart = performance.now();
-    const second = await runtime.execute(plan).toArray();
+    const second = await runtime.query(plan).toArray();
     const secondMs = performance.now() - secondStart;
 
     console.log(`First call (cache miss):  ${firstMs.toFixed(2)}ms`);

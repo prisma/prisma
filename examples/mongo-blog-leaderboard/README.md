@@ -64,7 +64,7 @@ const leaderboard = db.query
   // type: { _id: ObjectId, postCount: number, latestPost: Date | null, author: User[] }
   .build();
 
-const results = await runtime.execute(leaderboard);
+const results = await runtime.query(leaderboard);
 ```
 
 Each link in the chain produces a precise downstream row type:
@@ -73,7 +73,7 @@ Each link in the chain produces a precise downstream row type:
 - `.group(...)` rewrites the document to the grouped shape — `_id` is whatever expression was returned (here `f.authorId`), and the named fields (`postCount`, `latestPost`) take the type of the accumulator that produced them.
 - `.sort({ postCount: -1 })` is keyed by the grouped shape; the type system rejects sorts on fields that no longer exist after the group.
 - `.lookup((from) => from('users').on((local, foreign) => ({...})).as('author'))` adds an `author: User[]` array to the row. `local.<field>` and `foreign.<field>` are property-access errors when the field does not exist on the local pipeline shape or the foreign model. The chained inner shape is what makes `foreign` resolve to the foreign model's `FieldAccessor` narrowly — see the package README's [Typed `lookup`](../../packages/2-mongo-family/5-query-builders/query-builder/README.md) section for the API reference.
-- `.build()` materialises the chain as a `MongoQueryPlan`; `runtime.execute(...)` returns an `AsyncIterableResult` that resolves to `Row[]` when awaited.
+- `.build()` materialises the chain as a `MongoQueryPlan`; `runtime.query(...)` returns an `AsyncIterableResult` that resolves to `Row[]` when awaited.
 
 ## How the runtime is composed
 
@@ -103,7 +103,7 @@ The returned `MongoClient` exposes:
 | Path | Purpose |
 | --- | --- |
 | `src/contract.prisma` | PSL authoring surface |
-| `prisma-next.config.ts` | CLI config (uses `@prisma/orm-mongo/config`) |
+| `prisma.config.ts` | CLI config (uses `@prisma/orm-mongo/config`) |
 | `src/contract.json` | Emitted contract (regenerate with `pnpm emit`) |
 | `src/contract.d.ts` | Emitted typed contract (do not edit) |
 | `src/db.ts` | Runtime composition via the `mongo()` facade |

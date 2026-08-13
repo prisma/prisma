@@ -14,7 +14,7 @@ The contract is **introspected, not hand-authored**: `pnpm contract:generate` re
 
 ## Responsibilities
 
-- **Supabase contract**: the complete introspection-generated contract described above, `defaultControlPolicy: 'external'`, roles contributed as first-class `role` entities during emit (`prisma-next.config.ts`).
+- **Supabase contract**: the complete introspection-generated contract described above, `defaultControlPolicy: 'external'`, roles contributed as first-class `role` entities during emit (`prisma.config.ts`).
 - **`/pack` subpath**: an `ExtensionPack` value (`supabasePack` default + `supabasePackWith(options)` factory) that an app composes into its config via `extensions`. Tree-shaking-clean — `/pack` imports no runtime code.
 - **`/runtime` subpath**: the `SupabaseRuntime` role-binding runtime and `supabase({...})` facade (session-coupled `set_config` role + claims binding, per [ADR 230](../../../docs/architecture%20docs/adrs/ADR%20230%20-%20Runtime%20target%20layer%20session-coupled%20connections.md)), plus the `service_role`-only `.supabase` secondary root.
 - **`/contract` subpath**: branded model handles for the commonly-referenced models (`AuthUser`, `AuthIdentity`, `AuthSession`, `StorageBucket`, `StorageObject`) used for cross-space FK references from app contracts. The handle set is deliberately curated, not one-per-table.
@@ -26,7 +26,7 @@ The contract is **introspected, not hand-authored**: `pnpm contract:generate` re
 - **`@internal/family-sql`**: SQL family pack ref + `SqlControlExtensionDescriptor` type the `/pack` descriptor satisfies.
 - **`@internal/framework-components`**: shared component / pack-ref type shapes the descriptor consumes.
 - **`@internal/sql-runtime`**: `SqlRuntimeExtensionDescriptor` the `/runtime` minimal descriptor satisfies.
-- **`@internal/sql-contract-psl`**: `prismaContract` provider used by `prisma-next.config.ts` to emit the PSL-authored contract.
+- **`@internal/sql-contract-psl`**: `prismaContract` provider used by `prisma.config.ts` to emit the PSL-authored contract.
 - **`@internal/utils`**: `blindCast` helper for narrowing the imported `contract.json` to the emitted `Contract` type.
 
 The `/runtime` subpath additionally pulls in the Postgres runtime stack (`@internal/postgres`, `@internal/sql-runtime`, `@internal/sql-builder`, `@internal/sql-orm-client`) plus `jose` (JWT verification) and `pg` (Postgres client/pool). It does **not** depend on `@supabase/supabase-js` — the framework speaks Postgres directly.
@@ -42,7 +42,7 @@ pnpm add @internal/extension-supabase
 Compose the pack into your application contract via `extensions`. The pack's contract space (the `auth` and `storage` namespaces) joins the app's aggregate at emit time:
 
 ```ts
-// prisma-next.config.ts
+// prisma.config.ts
 import { defineConfig } from '@internal/cli/config-types';
 import postgresAdapter from '@internal/adapter-postgres/control';
 import sql from '@internal/family-sql/control';
@@ -92,7 +92,7 @@ const publicRows = await db.asAnon().orm.public.Profile.select('id', 'username')
 // service_role — BYPASSRLS. Its .sql / .orm stay app-only; .supabase reaches auth.*/storage.*.
 const admin = db.asServiceRole();
 const users = await admin.supabase
-  .execute(admin.supabase.sql.auth.users.select('id', 'email').build())
+  .query(admin.supabase.sql.auth.users.select('id', 'email').build())
   .toArray();
 ```
 

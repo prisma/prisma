@@ -26,15 +26,16 @@
     "pg": "catalog:"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "0.19.1",
+    "@cloudflare/vitest-pool-workers": "0.20.1",
     "@cloudflare/workers-types": "4.20260702.1",
+    "@prisma/cli-engine": "0.0.9",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "^4.1.10",
-    "wrangler": "4.116.0"
+    "wrangler": "4.118.0"
   },
   "version": "8.0.0-rc.1"
 }

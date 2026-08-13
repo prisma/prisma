@@ -7,7 +7,7 @@ import {
   type RuntimeDriverInstance,
 } from '@internal/framework-components/execution';
 import type {
-  AfterExecuteResult,
+  AfterQueryResult,
   CrossFamilyMiddleware,
   RuntimeMiddlewareContext,
 } from '@internal/framework-components/runtime';
@@ -49,7 +49,7 @@ import { setupTestDatabase } from '../utils';
  * - Composition with a `beforeCompile`-style rewriter (soft-delete):
  *   the rewritten SQL contributes to the cache key.
  * - Composition with an inline observer middleware: the `source` field
- *   on `afterExecute` round-trips driver vs middleware fetches.
+ *   on `afterQuery` round-trips driver vs middleware fetches.
  * - Concurrency: two parallel calls of the same plan don't cross-talk
  *   through the per-exec WeakMap buffer.
  */
@@ -171,7 +171,7 @@ describe('integration: middleware-cache against real Postgres', {
     await driver.connect({ kind: 'pgClient', client });
 
     // Spy on the driver's query so we can count round-trips. The
-    // cache middleware short-circuits via `intercept` upstream of
+    // cache middleware short-circuits via `interceptQuery` upstream of
     // `runDriver`, so a hit shows up here as zero invocations.
     driverQuerySpy = vi.spyOn(driver, 'query');
 
@@ -216,12 +216,12 @@ describe('integration: middleware-cache against real Postgres', {
       driverQuerySpy.mockClear();
 
       // First call — cache miss; driver invoked.
-      const first = await runtime.execute(buildPlan()).toArray();
+      const first = await runtime.query(buildPlan()).toArray();
       const driverCallsAfterFirst = driverQuerySpy.mock.calls.length;
       expect(driverCallsAfterFirst).toBeGreaterThan(0);
 
       // Second call — cache hit; driver not invoked again.
-      const second = await runtime.execute(buildPlan()).toArray();
+      const second = await runtime.query(buildPlan()).toArray();
       expect(driverQuerySpy.mock.calls.length).toBe(driverCallsAfterFirst);
 
       // Both calls produce equivalent decoded rows.
@@ -237,10 +237,10 @@ describe('integration: middleware-cache against real Postgres', {
 
       driverQuerySpy.mockClear();
 
-      await runtime.execute(db.public.users.select('id').build()).toArray();
+      await runtime.query(db.public.users.select('id').build()).toArray();
       const callsAfterFirst = driverQuerySpy.mock.calls.length;
 
-      await runtime.execute(db.public.users.select('id').build()).toArray();
+      await runtime.query(db.public.users.select('id').build()).toArray();
       // Second un-annotated call hits the driver again.
       expect(driverQuerySpy.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -258,10 +258,10 @@ describe('integration: middleware-cache against real Postgres', {
 
       driverQuerySpy.mockClear();
 
-      await runtime.execute(buildPlan()).toArray();
+      await runtime.query(buildPlan()).toArray();
       const callsAfterFirst = driverQuerySpy.mock.calls.length;
 
-      await runtime.execute(buildPlan()).toArray();
+      await runtime.query(buildPlan()).toArray();
       // Both calls hit the driver — skip: true bypasses the cache.
       expect(driverQuerySpy.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
@@ -286,7 +286,7 @@ describe('integration: middleware-cache against real Postgres', {
       driverQuerySpy.mockClear();
 
       // First call: rewriter prepends `id >= 2`, driver executes.
-      const first = await runtime.execute(buildPlan()).toArray();
+      const first = await runtime.query(buildPlan()).toArray();
       const callsAfterFirst = driverQuerySpy.mock.calls.length;
       expect(callsAfterFirst).toBeGreaterThan(0);
 
@@ -296,7 +296,7 @@ describe('integration: middleware-cache against real Postgres', {
 
       // Second call: cache hit, driver skipped, but the consumer
       // still sees the rewritten (filtered) result set.
-      const second = await runtime.execute(buildPlan()).toArray();
+      const second = await runtime.query(buildPlan()).toArray();
       expect(driverQuerySpy.mock.calls.length).toBe(callsAfterFirst);
       expect(second).toEqual(first);
       expect(second.map((r) => r['id']).sort()).toEqual([2, 3, 4]);
@@ -324,14 +324,14 @@ describe('integration: middleware-cache against real Postgres', {
       driverQuerySpy.mockClear();
 
       // First runtime (no rewriter) populates the cache under one key.
-      const noRewrite = await runtimeNoRewrite.execute(buildPlan()).toArray();
+      const noRewrite = await runtimeNoRewrite.query(buildPlan()).toArray();
       const callsAfterNoRewrite = driverQuerySpy.mock.calls.length;
       expect(noRewrite.map((r) => r['id']).sort()).toEqual([1, 2, 3, 4]);
 
       // Second runtime (with rewriter) sees a *different* lowered SQL
       // and therefore a different contentHash — it must miss and
       // hit the driver again.
-      const withRewrite = await runtimeWithRewrite.execute(buildPlan()).toArray();
+      const withRewrite = await runtimeWithRewrite.query(buildPlan()).toArray();
       expect(driverQuerySpy.mock.calls.length).toBeGreaterThan(callsAfterNoRewrite);
       expect(withRewrite.map((r) => r['id']).sort()).toEqual([2, 3, 4]);
     });
@@ -348,7 +348,7 @@ describe('integration: middleware-cache against real Postgres', {
      * package.
      */
     interface ObservedEvent {
-      readonly phase: 'beforeExecute' | 'afterExecute';
+      readonly phase: 'beforeQuery' | 'afterQuery';
       readonly source?: 'driver' | 'middleware';
       readonly rowCount?: number;
       readonly latencyMs?: number;
@@ -358,12 +358,12 @@ describe('integration: middleware-cache against real Postgres', {
     function createObserver(events: ObservedEvent[]): CrossFamilyMiddleware {
       return {
         name: 'observer',
-        async beforeExecute(_plan, _ctx: RuntimeMiddlewareContext) {
-          events.push({ phase: 'beforeExecute' });
+        async beforeQuery(_plan, _ctx: RuntimeMiddlewareContext) {
+          events.push({ phase: 'beforeQuery' });
         },
-        async afterExecute(_plan, result: AfterExecuteResult, _ctx: RuntimeMiddlewareContext) {
+        async afterQuery(_plan, result: AfterQueryResult, _ctx: RuntimeMiddlewareContext) {
           events.push({
-            phase: 'afterExecute',
+            phase: 'afterQuery',
             source: result.source,
             rowCount: result.rowCount,
             latencyMs: result.latencyMs,
@@ -377,8 +377,8 @@ describe('integration: middleware-cache against real Postgres', {
       const events: ObservedEvent[] = [];
       const observer = createObserver(events);
       const cache = createCacheMiddleware({ maxEntries: 100 });
-      // Cache first so its `intercept` runs upstream of the observer in
-      // the intercept chain. The observer's `afterExecute` still fires on
+      // Cache first so its `interceptQuery` runs upstream of the observer in
+      // the interceptQuery chain. The observer's `afterQuery` still fires on
       // both paths and observes the `source` field, which is the
       // canonical hit-vs-miss signal.
       const runtime = buildRuntime([cache, observer]);
@@ -394,35 +394,37 @@ describe('integration: middleware-cache against real Postgres', {
       events.length = 0;
 
       // Miss path.
-      await runtime.execute(buildPlan()).toArray();
+      await runtime.query(buildPlan()).toArray();
 
       const missEvents = events.slice();
-      // `beforeExecute` fires on every execution: the framework runs
-      // `runBeforeExecuteChain` before `runWithMiddleware`'s intercept
+      // `beforeQuery` fires on every execution: the framework runs
+      // `runBeforeQueryChain` before `runQueryWithMiddleware`'s interceptQuery
       // loop so middleware that mutates ParamRef values stays visible
-      // to encode regardless of whether a downstream interceptor wins
+      // to encode regardless of whether a downstream interceptQueryor wins
       // (see `before-execute-chain.ts`). The `source` field on
-      // `afterExecute` is what distinguishes driver vs middleware
+      // `afterQuery` is what distinguishes driver vs middleware
       // paths.
-      expect(missEvents.find((e) => e.phase === 'beforeExecute')).toBeDefined();
-      const missAfter = missEvents.find((e) => e.phase === 'afterExecute');
+      expect(missEvents.find((e) => e.phase === 'beforeQuery')).toBeDefined();
+      const missAfter = missEvents.find((e) => e.phase === 'afterQuery');
       expect(missAfter).toBeDefined();
       expect(missAfter!.source).toBe('driver');
+      expect(missAfter!.rowCount).toBe(4);
 
       events.length = 0;
       driverQuerySpy.mockClear();
 
       // Hit path.
-      await runtime.execute(buildPlan()).toArray();
+      await runtime.query(buildPlan()).toArray();
 
-      // `beforeExecute` still fires on the intercepted hit path —
-      // it runs unconditionally before `runWithMiddleware`'s intercept
-      // loop. The canonical hit signal is `afterExecute.source ===
+      // `beforeQuery` still fires on the interceptQueryed hit path —
+      // it runs unconditionally before `runQueryWithMiddleware`'s interceptQuery
+      // loop. The canonical hit signal is `afterQuery.source ===
       // 'middleware'`, paired with the driver not being invoked.
-      expect(events.find((e) => e.phase === 'beforeExecute')).toBeDefined();
-      const hitAfter = events.find((e) => e.phase === 'afterExecute');
+      expect(events.find((e) => e.phase === 'beforeQuery')).toBeDefined();
+      const hitAfter = events.find((e) => e.phase === 'afterQuery');
       expect(hitAfter).toBeDefined();
       expect(hitAfter!.source).toBe('middleware');
+      expect(hitAfter!.rowCount).toBe(4);
       expect(driverQuerySpy.mock.calls.length).toBe(0);
     });
 
@@ -440,12 +442,12 @@ describe('integration: middleware-cache against real Postgres', {
           .build();
 
       // Miss → commit.
-      await runtime.execute(buildPlan()).toArray();
+      await runtime.query(buildPlan()).toArray();
       // Hit.
       events.length = 0;
-      await runtime.execute(buildPlan()).toArray();
+      await runtime.query(buildPlan()).toArray();
 
-      const after = events.find((e) => e.phase === 'afterExecute');
+      const after = events.find((e) => e.phase === 'afterQuery');
       expect(after).toBeDefined();
       expect(after!.rowCount).toBe(4);
       expect(typeof after!.latencyMs).toBe('number');
@@ -454,7 +456,7 @@ describe('integration: middleware-cache against real Postgres', {
   });
 
   describe('concurrency regression', () => {
-    it('two parallel executes of the same plan do not cross-talk via the per-exec buffer', async () => {
+    it('two parallel queries of the same plan do not cross-talk via the per-exec buffer', async () => {
       const cache = createCacheMiddleware({ maxEntries: 100 });
       const runtime = buildRuntime([cache]);
       const db = sql({ context, rawCodecInferer: { inferCodec: () => 'pg/text' } });
@@ -469,12 +471,12 @@ describe('integration: middleware-cache against real Postgres', {
 
       // Two parallel executions of the same logical plan. Each
       // produces its own frozen `exec` object inside the runtime
-      // (executeAgainstQueryable freezes per-call), and the cache
+      // (`prepareExecution` freezes per-call), and the cache
       // middleware keys its WeakMap on that identity — so the two
       // calls' miss buffers must not interfere.
       const [a, b] = await Promise.all([
-        runtime.execute(buildPlan()).toArray(),
-        runtime.execute(buildPlan()).toArray(),
+        runtime.query(buildPlan()).toArray(),
+        runtime.query(buildPlan()).toArray(),
       ]);
 
       // Both calls produce correct, identical results.
@@ -483,11 +485,11 @@ describe('integration: middleware-cache against real Postgres', {
 
       // After both finish, the cache holds a single entry (one of
       // the misses commits last; same key, same data).
-      const third = await runtime.execute(buildPlan()).toArray();
+      const third = await runtime.query(buildPlan()).toArray();
       expect(third).toEqual(a);
     });
 
-    it('parallel executes of two different plans land in distinct cache slots', async () => {
+    it('parallel queries of two different plans land in distinct cache slots', async () => {
       const cache = createCacheMiddleware({ maxEntries: 100 });
       const runtime = buildRuntime([cache]);
       const db = sql({ context, rawCodecInferer: { inferCodec: () => 'pg/text' } });
@@ -504,8 +506,8 @@ describe('integration: middleware-cache against real Postgres', {
         .build();
 
       const [a, b] = await Promise.all([
-        runtime.execute(planA).toArray(),
-        runtime.execute(planB).toArray(),
+        runtime.query(planA).toArray(),
+        runtime.query(planB).toArray(),
       ]);
 
       expect(a.every((r) => 'id' in r && !('title' in r))).toBe(true);
@@ -515,7 +517,7 @@ describe('integration: middleware-cache against real Postgres', {
       // unchanged after these reads).
       const callsAfterParallel = driverQuerySpy.mock.calls.length;
       await runtime
-        .execute(
+        .query(
           db.public.users
             .select('id')
             .annotate(cacheAnnotation({ ttl: 60_000, key: 'parallel-A' }))
@@ -523,7 +525,7 @@ describe('integration: middleware-cache against real Postgres', {
         )
         .toArray();
       await runtime
-        .execute(
+        .query(
           db.public.posts
             .select('id', 'title')
             .annotate(cacheAnnotation({ ttl: 60_000, key: 'parallel-B' }))

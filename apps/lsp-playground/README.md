@@ -26,9 +26,9 @@ Everything (editor + LSP) is served on the single port `5295`.
 
 ### Config resolution
 
-The language server identifies schema documents from `prisma-next.config.ts` (`contract.source.inputs`), discovering a document's config by walking up from the document's own path. The playground resolves what the editor opens, and the config that sits above it, as follows:
+The language server identifies schema documents from `prisma.config.ts` (`contract.source.inputs`), discovering a document's config by walking up from the document's own path. The playground resolves what the editor opens, and the config that sits above it, as follows:
 
-1. An **existing** file already inside a project (a `prisma-next.config.ts` is found walking up from it): open it in place under that config.
+1. An **existing** file already inside a project (a `prisma.config.ts` is found walking up from it): open it in place under that config.
 2. Otherwise (no file, a non-existent path, or an existing file with no project config): **stage a copy** of the schema under `.playground/` and generate a **default-postgres** config beside it — the "without a config, assume default postgres" path. Staging is required because the server resolves the generated config's `@prisma/orm-postgres` import and discovers the config by walking up from the staged file.
 
 There is no `--config` flag: the language server discovers config purely by walking up from each document, so it cannot be pointed at an arbitrary config path.

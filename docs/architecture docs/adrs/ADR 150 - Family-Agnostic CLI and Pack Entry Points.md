@@ -10,7 +10,7 @@ We want a single, simple way for applications to declare their target family, ta
 ## Decision
 
 1. Config‑only input
-- Apps declare everything in `prisma-next.config.ts`. The CLI imports only this config module; it never imports packs directly or reads JSON manifests from disk.
+- Apps declare everything in `prisma.config.ts`. The CLI imports only this config module; it never imports packs directly or reads JSON manifests from disk.
 
 2. Explicit pack entrypoints
 - Each pack exposes two entrypoints:

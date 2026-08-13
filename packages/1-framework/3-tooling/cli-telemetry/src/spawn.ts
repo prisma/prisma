@@ -13,7 +13,7 @@ import { readUserConfig, type UserConfig } from './user-config';
  * the project root together; the telemetry module does no I/O of its
  * own except for the user-config read (skipped when `userConfig` is
  * provided). `extensions` is deliberately absent: the detached child
- * loads `prisma-next.config.*` via c12 itself and derives the
+ * loads `prisma.config.*` via c12 itself and derives the
  * extension-pack ids from the validated config — see the rationale
  * on `ParentToSenderPayload` for why c12 lives in the child rather
  * than on the parent's hot path.
@@ -36,6 +36,11 @@ export interface RunTelemetryInputs {
    * c12-derived value when present; `undefined` means "no override".
    */
   readonly databaseTarget?: string;
+  /**
+   * Exit code of the settled run, when the caller reports after settlement
+   * (the engine bin's `onSettled` path). `undefined` when unknown.
+   */
+  readonly exitCode: number | undefined;
   /**
    * Path to the sender entry compiled into this package's `dist/`.
    * Resolved by the caller because the compiled sender lives at
@@ -101,6 +106,7 @@ export function runTelemetry(inputs: RunTelemetryInputs): TelemetryRunOutcome {
     projectRoot: inputs.projectRoot,
     endpoint: resolveTelemetryEndpoint(env),
     ...ifDefined('databaseTarget', inputs.databaseTarget),
+    ...ifDefined('exitCode', inputs.exitCode),
   };
 
   try {

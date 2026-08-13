@@ -54,7 +54,7 @@ changes:
       anyMatch: true
   - id: specifier-default-control-policy-requires-create-namespace
     summary: |
-      If your `prisma-next.config.ts` passes `defaultControlPolicy` in the options bag of
+      If your `prisma.config.ts` passes `defaultControlPolicy` in the options bag of
       `typescriptContract` or `typescriptContractFromPath`, that bag now also requires
       `createNamespace`. Stamping a default policy strips derived CHECK constraints from
       tables the policy leaves non-managed, and the strip rebuilds storage namespaces through
@@ -199,6 +199,47 @@ changes:
       glob: "**/*.{prisma,ts}"
       contains:
         - '@@check'
+      anyMatch: true
+  - id: runtime-query-execute-hard-cut
+    summary: |
+      Runtime row execution uses `query()`, while rc.1 prepared rows use `target.queryPrepared(prepared, params, options?)` and rc.2 uses `prepared.query(target, params, options?)`. Classify each call by its consumed result rather than replacing every `execute`: move row plans to `query`, prepared rows to `prepared.query(target, params, options?)`, and keep non-returning writes on `execute` while reading `affectedRows` when needed. Middleware uses operation-specific `beforeQuery` / `interceptQuery` / `afterQuery` and `beforeExecute` / `interceptExecute` / `afterExecute` hooks, with shared `beforeCompile`; interception returns `{ rows }` for queries and `{ stats }` for execution. There is no operation discriminator, compatibility alias, or generic fallback hook. The Mongo facade keeps static `db.query` and removes row `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - ".execute("
+        - ".queryPrepared("
+        - "beforeQuery"
+        - "interceptExecute"
+      anyMatch: true
+  - id: config-file-is-prisma-config-with-an-orm-section
+    summary: |
+      The CLI config file is `prisma.config.ts` — the `prisma-next.config.ts` name is
+      deprecated — and the config value is engine-shaped: `defineConfig` from
+      `@prisma/cli-engine` wraps the whole ORM config as its `orm` section. Rename the file,
+      then wrap the existing export: alias the current `defineConfig` import (from the target
+      facade or CLI config-types) as `ormConfig` and write
+      `export default defineConfig({ orm: ormConfig({ ...existing config... }) })`, adding
+      `@prisma/cli-engine` to devDependencies. Both the deprecated filename and the flat shape
+      still load, each printing a deprecation warning on stderr, so the two steps can land
+      separately; anything asserting clean stderr around CLI invocations sees the warning
+      until both are done.
+    detection:
+      glob: "**/prisma*.config.*"
+      contains:
+        - "defineConfig"
+      anyMatch: true
+  - id: published-prisma-next-bin-retired
+    summary: |
+      Nothing published ships a `prisma-next` bin anymore: `@prisma/orm-toolchain` publishes
+      the `orm` command family at `@prisma/orm-toolchain/cli` and no bin, and the database
+      facades forward no launcher. The only user-facing binary is the unified `prisma` CLI
+      (the prisma-cli distribution), which mounts the same commands. Replace
+      `prisma-next <command>` invocations in package scripts and CI with the unified CLI's
+      equivalent, and drop any dependency that was taken only to put the bin on PATH.
+    detection:
+      glob: "**/package.json"
+      contains:
+        - "prisma-next"
       anyMatch: true
 ---
 
@@ -361,12 +402,45 @@ Convert each to the column's own type — `BigInt(value)` for a `bigint` column,
 
 Schema-written defaults need nothing. `BigInt @default(0)` still emits and still migrates: the JSON side of these codecs accepts a safe-integer number, because a schema language writes no `bigint` literal, and only the query-parameter side requires the exact type.
 
+
+## `config-file-is-prisma-config-with-an-orm-section`
+
+Two mechanical steps, in either order:
+
+1. `git mv prisma-next.config.ts prisma.config.ts` (same for `.mts` / `.mjs` variants).
+2. Wrap the flat export in the engine shape:
+
+```ts
+// before
+import { defineConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ ... });
+
+// after
+import { defineConfig } from '@prisma/cli-engine';
+import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ orm: ormConfig({ ... }) });
+```
+
+Add `@prisma/cli-engine` to `devDependencies`. The inner config is unchanged — only the file
+name and the outer wrapper move. The loader still discovers the deprecated filename and still
+accepts the flat shape, each with a stderr deprecation warning, so nothing breaks mid-rename;
+finish both steps to silence the warnings.
+
+## `published-prisma-next-bin-retired`
+
+`prisma-next ...` in a package script resolved through a bin the database facades forwarded
+from the toolchain. That chain is gone: the published toolchain is bin-less and exports the
+`orm` command family at `@prisma/orm-toolchain/cli` for the unified `prisma` CLI (the
+prisma-cli distribution) to mount. Point scripts and CI at the unified CLI, which serves the
+same command paths.
+
 <!--
 PR #29910: `changes: []`. The example changes repair test instrumentation and fixture/runtime isolation after the driver SPI split; they require no user API, contract, configuration, generated-artifact, or source translation.
 PR #29902: `changes: []`. Generated contracts gain additive aggregate rows for new opt-in integer representation codecs, but existing schemas and source require no migration; users re-emit only when adopting the new target-scoped types.
 PR #29950: `changes: []`. The demo applications adopt the integer representation types and the precision-preserving aggregates on their own models, and the reference docs gain the matching examples; the diff is confined to example apps and documentation and requires no user API, contract, configuration, generated-artifact, or source translation.
 PR #29939: `changes: []`. Dependabot's weekly runtime-dependency bumps (`ws`, `lucide-react`, `postcss`, `uniku`, `@vercel/detect-agent`, and the `@types/node` / `@types/pg` / `tsx` catalog entries). The example diff is dependency version strings, and requires no user API, contract, configuration, generated-artifact, or source translation.
 PR #29940: `changes: []`. Dependabot's weekly dev-dependency bumps (type packages, wrangler, biome, test tooling) plus the matching `biome.jsonc` `$schema` realignment; the example diffs are devDependency version strings and a schema URL, and require no user API, contract, configuration, generated-artifact, or source translation.
+PR #29965: `changes: []`. Dependabot's dev-dependency bumps (`wrangler`, `@cloudflare/vitest-pool-workers`, `@biomejs/biome`) plus the matching `biome.jsonc` `$schema` realignment to 2.5.7; the example diffs are devDependency version strings and a schema URL, and require no user API, contract, configuration, generated-artifact, or source translation.
 -->
 
 ## Regenerating is the first step
@@ -401,3 +475,23 @@ data all along. Grep the first plan for `dropCheckConstraint` and check every co
 Nothing drops silently — an additive-only policy never emits the operation at all — but the
 first plan after upgrading is the moment to look, because it is the first plan that can see
 these constraints.
+
+## `runtime-query-execute-hard-cut`
+
+Runtime operations state whether the caller expects rows or statement statistics. Do not apply a global `execute` → `query` replacement: an insert, update, or delete that does not return rows belongs on `execute`, while a select, a returning write, a Mongo command-result plan, or any plan whose result is iterated, awaited as an array, indexed, decoded, or otherwise read belongs on `query`.
+
+| 8.0.0-rc.1 | 8.0.0-rc.2 |
+| --- | --- |
+| `await runtime.execute(rowPlan)` | `await runtime.query(rowPlan)` |
+| `runtime.execute(rowPlan).toArray()` | `runtime.query(rowPlan).toArray()` |
+| `await target.queryPrepared(prepared, params, options?)` | `await prepared.query(target, params, options?)` |
+| `await runtime.execute(nonReturningWrite)` with ignored rows | `await runtime.execute(nonReturningWrite)` and ignore the returned statistics |
+| A count or status derived from rows returned by a non-returning write | `const stats = await runtime.execute(writePlan)` and use `stats.affectedRows` |
+
+Apply the same classification to connection and transaction scopes. `query()` and `prepared.query(target, params, options?)` remain lazy row results, so consume them inside the scope when their connection or transaction must remain valid. `execute()` is eager and resolves to `{ affectedRows: number }`; it does not return an iterable, and `affectedRows` must not be synthesized from a row array's length.
+
+If the application defines runtime middleware, use the operation-specific hooks: query interception returns `{ rows }`, execute interception returns `{ stats }`, and completion handlers use their matching `afterQuery` or `afterExecute` result. `beforeQuery` / `interceptQuery` / `onRow` / `afterQuery` and `beforeExecute` / `interceptExecute` / `afterExecute` are distinct capabilities, while `beforeCompile` remains shared. Hook selection carries the operation distinction; contexts and results have no operation discriminator. Row-oriented middleware must not derive statistics from rows, and no compatibility aliases or generic fallback hooks are provided.
+
+Tests that observe row queries should spy on `driver.query`, not `driver.execute`; statistics tests should observe `driver.execute`. Keep separate row-result and statistics queues so a wrong route fails loudly. Behavior intended for both operations assigns one private implementation to both corresponding hook names. Mongo keeps `db.query` as the static builder and has no row-execution `db.execute` facade method: build with `db.query`, obtain the connected runtime, then query through `(await db.runtime()).query(plan)`.
+
+Search broadly for `.execute(` and retired prepared execution, then inspect each candidate's plan and downstream use. Rows being iterated, indexed, decoded, compared as arrays, or passed to a row mapper identify `query`; reads of `affectedRows` or ignored results from non-returning DML identify `execute`. Leave unrelated APIs such as migration runners alone.

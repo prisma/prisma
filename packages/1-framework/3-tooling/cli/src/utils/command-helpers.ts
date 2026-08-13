@@ -3,93 +3,10 @@ import type { ControlTargetDescriptor } from '@internal/framework-components/con
 import { hasMigrations } from '@internal/framework-components/control';
 import type { NoInvariantPathStructuralEdge } from '@internal/migration-tools/errors';
 import type { MigrationEdge, MigrationGraph } from '@internal/migration-tools/graph';
-import type { PathDecision } from '@internal/migration-tools/migration-graph';
 import { APP_SPACE_ID, spaceMigrationDirectory } from '@internal/migration-tools/spaces';
-import { ifDefined } from '@internal/utils/defined';
-import type { Command } from 'commander';
 import { relative, resolve } from 'pathe';
 import type { ControlClient } from '../control-api/types';
 import { CliStructuredError, errorRuntime } from './cli-errors';
-import { formatCommandHelp } from './formatters/help';
-import type { CommonCommandOptions } from './global-flags';
-import { parseGlobalFlags } from './global-flags';
-
-const longDescriptions = new WeakMap<Command, string>();
-const commandExamples = new WeakMap<Command, readonly string[]>();
-const commandSeeAlso = new WeakMap<
-  Command,
-  readonly { readonly verb: string; readonly oneLiner: string }[]
->();
-
-/**
- * Sets both short and long descriptions for a command.
- * The short description is used in command trees and headers.
- * The long description is shown at the bottom of help output.
- */
-export function setCommandDescriptions(
-  command: Command,
-  shortDescription: string,
-  longDescription?: string,
-): Command {
-  command.description(shortDescription);
-  if (longDescription) {
-    longDescriptions.set(command, longDescription);
-  }
-  return command;
-}
-
-/**
- * Sets copy-pastable examples for a command, shown in help text.
- */
-export function setCommandExamples(command: Command, examples: readonly string[]): Command {
-  commandExamples.set(command, examples);
-  return command;
-}
-
-/**
- * Gets the long description from a command if it was set via setCommandDescriptions.
- */
-export function getLongDescription(command: Command): string | undefined {
-  return longDescriptions.get(command);
-}
-
-/**
- * Gets examples from a command if set via setCommandExamples.
- */
-export function getCommandExamples(command: Command): readonly string[] | undefined {
-  return commandExamples.get(command);
-}
-
-/**
- * Sets cross-references to related commands, rendered in a "See also"
- * section below the Examples block in help output.
- */
-export function setCommandSeeAlso(
-  command: Command,
-  refs: readonly { readonly verb: string; readonly oneLiner: string }[],
-): Command {
-  commandSeeAlso.set(command, refs);
-  return command;
-}
-
-/**
- * Gets the see-also cross-references from a command.
- */
-export function getCommandSeeAlso(
-  command: Command,
-): readonly { readonly verb: string; readonly oneLiner: string }[] | undefined {
-  return commandSeeAlso.get(command);
-}
-
-/**
- * Shared CLI options interface for migration commands (db init, db update).
- * These are the Commander.js parsed options common to both commands.
- */
-export interface MigrationCommandOptions extends CommonCommandOptions {
-  readonly db?: string;
-  readonly config?: string;
-  readonly dryRun?: boolean;
-}
 
 /**
  * Resolves the absolute path to contract.json from the config.
@@ -101,7 +18,7 @@ export function resolveContractPath(config: { contract?: { output?: string } }):
       'config.contract.output is required to resolve the contract path',
       {
         why: 'CLI commands read the emitted contract from config.contract.output; the config has no value to read.',
-        fix: 'Ensure your prisma-next.config.ts goes through `defineConfig()`, which normalises a default output when the provider supplies an input path, or set `contract.output` explicitly.',
+        fix: 'Ensure your prisma.config.ts goes through `defineConfig()`, which normalises a default output when the provider supplies an input path, or set `contract.output` explicitly.',
       },
     );
   }
@@ -138,9 +55,7 @@ export function resolveMigrationPaths(
   refsDir: string;
 } {
   const resolvedConfigPath = configOption ? resolve(cwd, configOption) : undefined;
-  const configPath = resolvedConfigPath
-    ? relative(cwd, resolvedConfigPath)
-    : 'prisma-next.config.ts';
+  const configPath = resolvedConfigPath ? relative(cwd, resolvedConfigPath) : 'prisma.config.ts';
   const migrationsDir = resolve(
     resolvedConfigPath ? resolve(resolvedConfigPath, '..') : cwd,
     config.migrations?.dir ?? 'migrations',
@@ -157,27 +72,6 @@ export function resolveMigrationPaths(
     appMigrationsRelative,
     refsDir,
   };
-}
-
-/**
- * Slim representation of a PathDecision for CLI JSON output.
- * Strips internal fields (createdAt) from path entries.
- */
-export interface PathDecisionResult {
-  readonly fromHash: string;
-  readonly toHash: string;
-  readonly alternativeCount: number;
-  readonly tieBreakReasons: readonly string[];
-  readonly refName?: string;
-  readonly requiredInvariants: readonly string[];
-  readonly satisfiedInvariants: readonly string[];
-  readonly selectedPath: readonly {
-    readonly dirName: string;
-    readonly migrationHash: string;
-    readonly from: string;
-    readonly to: string;
-    readonly invariants: readonly string[];
-  }[];
 }
 
 export function collectDeclaredInvariants(graph: MigrationGraph): ReadonlySet<string> {
@@ -208,28 +102,6 @@ export function toStructuralEdge(edge: MigrationEdge): NoInvariantPathStructural
   };
 }
 
-/**
- * Maps a PathDecision to the slim CLI output representation.
- */
-export function toPathDecisionResult(decision: PathDecision): PathDecisionResult {
-  return {
-    fromHash: decision.fromHash,
-    toHash: decision.toHash,
-    alternativeCount: decision.alternativeCount,
-    tieBreakReasons: decision.tieBreakReasons,
-    requiredInvariants: decision.requiredInvariants ?? [],
-    satisfiedInvariants: decision.satisfiedInvariants ?? [],
-    ...ifDefined('refName', decision.refName),
-    selectedPath: decision.selectedPath.map((entry) => ({
-      dirName: entry.dirName,
-      migrationHash: entry.migrationHash,
-      from: entry.from,
-      to: entry.to,
-      invariants: entry.invariants,
-    })),
-  };
-}
-
 export function targetSupportsMigrations(target: ControlTargetDescriptor<string, string>): boolean {
   return hasMigrations(target);
 }
@@ -253,11 +125,10 @@ export function getTargetMigrations(target: ControlTargetDescriptor<string, stri
 }
 
 /**
- * The subset of the emitted contract.json that the framework layer can
- * safely type. The emitter adds these fields on top of the family-specific
- * storage/models/relations. Other fields exist in the JSON but are opaque
- * at this layer — the index signature preserves them for downstream
- * consumers that operate at the family level (e.g., the control client).
+ * The framework-level envelope of `contract.json`: the fields every family
+ * shares. Other fields exist in the JSON but are opaque at this layer — the
+ * index signature preserves them for downstream consumers that operate at
+ * the family level (e.g., the control client).
  */
 export interface ContractEnvelope {
   readonly storageHash: string;
@@ -289,7 +160,7 @@ export async function readContractEnvelope(config: {
   if (typeof storageHash !== 'string') {
     throw new CliStructuredError(
       'CONTRACT.VALIDATION_FAILED',
-      `Contract at ${relative(process.cwd(), contractPath)} is missing a valid storage.storageHash. Run \`prisma-next contract emit\` to regenerate.`,
+      `Contract at ${relative(process.cwd(), contractPath)} is missing a valid storage.storageHash. Run \`prisma-cli contract emit\` to regenerate.`,
       { where: { path: contractPath } },
     );
   }
@@ -380,34 +251,4 @@ export function sanitizeErrorMessage(message: string, connectionUrl?: string): s
       .replace(/password\s*=\s*\S+/gi, 'password=****')
       .replace(/user\s*=\s*\S+/gi, 'user=****');
   }
-}
-
-/**
- * Registers the global CLI options shared by every command:
- * --format, --json, -q/--quiet, -v/--verbose, --trace, --color, --no-color,
- * --interactive, --no-interactive, -y/--yes.
- *
- * Also sets up the styled help formatter.
- */
-export function addGlobalOptions(command: Command): Command {
-  return command
-    .configureHelp({
-      formatHelp: (cmd) => {
-        const flags = parseGlobalFlags({});
-        return formatCommandHelp({ command: cmd, flags });
-      },
-    })
-    .option(
-      '--format <pretty|json>',
-      'Output format (default: pretty, or json when stdout is not a TTY)',
-    )
-    .option('--json', 'Output as JSON (alias for --format json)')
-    .option('-q, --quiet', 'Quiet mode: errors only')
-    .option('-v, --verbose', 'Verbose output: debug info, timings')
-    .option('--trace', 'Trace output: deep internals, stack traces')
-    .option('--color', 'Force color output')
-    .option('--no-color', 'Disable color output')
-    .option('--interactive', 'Force interactive mode')
-    .option('--no-interactive', 'Disable interactive prompts')
-    .option('-y, --yes', 'Auto-accept prompts');
 }

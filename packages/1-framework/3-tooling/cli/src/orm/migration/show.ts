@@ -27,7 +27,7 @@ import {
   errorNoMigrations,
   errorUnexpected,
 } from '../../utils/cli-errors';
-import { previewBlockHeader } from '../../utils/formatters/migrations';
+import { previewBlockHeader, renderPreviewStatement } from '../../utils/formatters/migrations';
 import {
   findPackageByDirPath,
   looksLikePath,
@@ -82,9 +82,8 @@ function operationBlocks(migration: ShowMigration): readonly Block[] {
  */
 function previewBlocks(migration: ShowMigration): readonly Block[] {
   const statements = migration.preview.statements
-    .map((statement) => statement.text.trim())
-    .filter((text) => text.length > 0)
-    .map((text) => (text.endsWith(';') ? text : `${text};`));
+    .map((statement) => renderPreviewStatement(statement.text, statement.language))
+    .filter((text): text is string => text !== undefined);
   if (statements.length === 0) {
     return [];
   }
@@ -247,7 +246,7 @@ export const migrationShowCommand = defineOrmCommand({
           missing
             ? errorFileNotFound(contractPath, {
                 why: `Contract file not found at ${contractPath}`,
-                fix: `Run \`prisma-next contract emit\` to generate ${relative(ctx.cwd, contractPath)}`,
+                fix: `Run \`prisma-cli contract emit\` to generate ${relative(ctx.cwd, contractPath)}`,
               })
             : errorUnexpected(error instanceof Error ? error.message : String(error), {
                 why: 'Failed to read contract file',

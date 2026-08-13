@@ -33,10 +33,10 @@ This skill covers using Prisma Next against a **Supabase** project end-to-end: c
 
 ## Workflow — Wire the pack into the config
 
-The concept: the pack registers the Supabase contract space so your contract can reference it and the planner/verifier know what Supabase owns. The extension has no `/control` subpath yet, so it can't go through the target façade's `defineConfig({ extensions: [...] })` — it wires into the low-level config's `extensions` (see *What Prisma Next doesn't do yet*). The low-level imports below are a **deliberate exception** to the façade-only import rule, forced by that gap; the block mirrors `examples/supabase/prisma-next.config.ts` verbatim — copy it rather than composing your own:
+The concept: the pack registers the Supabase contract space so your contract can reference it and the planner/verifier know what Supabase owns. The extension has no `/control` subpath yet, so it can't go through the target façade's `defineConfig({ extensions: [...] })` — it wires into the low-level config's `extensions` (see *What Prisma Next doesn't do yet*). The low-level imports below are a **deliberate exception** to the façade-only import rule, forced by that gap; the block mirrors `examples/supabase/prisma.config.ts` verbatim — copy it rather than composing your own:
 
 ```typescript
-// prisma-next.config.ts
+// prisma.config.ts
 import postgresAdapter from '@internal/adapter-postgres/control';
 import { defineConfig } from '@internal/cli/config-types';
 import postgresDriver from '@internal/driver-postgres/control';

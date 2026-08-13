@@ -24,7 +24,7 @@ ports/
         <suite>.test.ts         the port (runtime + inline type assertions)
         _fixture/               co-located contract fixture
           contract.prisma       faithful PSL translation of the upstream schema
-          prisma-next.config.ts
+          prisma.config.ts
           generated/            emitted contract.json + contract.d.ts
     non-ported/
       functional/
@@ -35,11 +35,11 @@ ports/
 
 ## Adding a suite
 
-Each suite is its own directory. Author the schema as **PSL** in `prisma/functional/<suite>/_fixture/contract.prisma` (faithful translation of the upstream `schema.prisma`) plus a `prisma-next.config.ts` (`@internal/postgres/config`, `contract: './contract.prisma'`, `output: 'generated'`). Then emit:
+Each suite is its own directory. Author the schema as **PSL** in `prisma/functional/<suite>/_fixture/contract.prisma` (faithful translation of the upstream `schema.prisma`) plus a `prisma.config.ts` (`@internal/postgres/config`, `contract: './contract.prisma'`, `output: 'generated'`). Then emit:
 
 ```bash
-node packages/1-framework/3-tooling/cli/dist/cli.js contract emit \
-  --config test/integration/test/ports/prisma/functional/<suite>/_fixture/prisma-next.config.ts
+node packages/1-framework/3-tooling/cli/dist/bin.mjs contract emit \
+  --config test/integration/test/ports/prisma/functional/<suite>/_fixture/prisma.config.ts
 ```
 
 Commit the generated `contract.json` + `contract.d.ts`. The test (`prisma/functional/<suite>/<suite>.test.ts`) imports the typed `Contract` + JSON from `./_fixture/generated/…` and the harness from `../../../_harness/postgres`, and passes the JSON to `withPostgresPort`. **The harness builds the public `postgres(...)` facade over a PGlite dev database after pushing the contract via prisma-next's own plan→apply path (the same mechanism `db init` uses) — no hand-written DDL.** Seed and query through the ORM (`ctx.db.public.<Model>...`); interactive transactions use `ctx.transaction(async (tx) => tx.orm.public.<Model>...)`. See `prisma/functional/distinct/` for the reference pattern.

@@ -15,17 +15,13 @@
 
 import { copyFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  executeCommand,
-  fixtureAppDir,
-  setupCommandMocks,
-  withTempDir,
-} from './utils/cli-test-helpers';
+import { describe, expect, it } from 'vitest';
+import { fixtureAppDir, runOnEngine, withTempDir } from './utils/cli-test-helpers';
 import { runDbInit } from './utils/db-init-test-helpers';
 import {
+  consentTokenFor,
+  type DbUpdateTestSetup,
   runDbUpdate,
   runDbUpdateAllowFailure,
   setupDbUpdateFixture,
@@ -33,37 +29,16 @@ import {
 
 const fixtureSubdir = 'db-update-preflight-gaps';
 
-async function swapToVariant(
-  testDir: string,
-  configPath: string,
-  variantFile: string,
-): Promise<void> {
+async function swapToVariant(testSetup: DbUpdateTestSetup, variantFile: string): Promise<void> {
   const variantSource = join(fixtureAppDir, 'fixtures', fixtureSubdir, variantFile);
-  copyFileSync(variantSource, join(testDir, 'contract.ts'));
+  copyFileSync(variantSource, join(testSetup.testDir, 'contract.ts'));
 
-  const emitCommand = createContractEmitCommand();
-  const originalCwd = process.cwd();
-  try {
-    process.chdir(testDir);
-    await executeCommand(emitCommand, ['--config', configPath, '--no-color']);
-  } finally {
-    process.chdir(originalCwd);
-  }
+  const emit = await runOnEngine(testSetup, ['contract', 'emit']);
+  expect(emit.exitCode).toBe(0);
 }
 
 withTempDir(({ createTempDir }) => {
   describe('db update preflight gaps', () => {
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      const mocks = setupCommandMocks();
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     // Gap 1 — FK backing-index creation on an existing table.
     //
     // Walk-schema emits the backing index via `buildFkBackingIndexOperations`
@@ -91,15 +66,15 @@ withTempDir(({ createTempDir }) => {
             expect(before.rows.map((r) => r.indexname)).not.toContain('post_userId_idx');
           });
 
-          await swapToVariant(testSetup.testDir, configPath, 'contract-add-fk.ts');
+          await swapToVariant(testSetup, 'contract-add-fk.ts');
 
-          const exitCode = await runDbUpdate(testSetup, [
+          const run = await runDbUpdate(testSetup, [
             '--config',
             configPath,
-            '-y',
-            '--no-color',
+            '--confirm',
+            consentTokenFor(connectionString),
           ]);
-          expect(exitCode).toBe(0);
+          expect(run.exitCode).toBe(0);
 
           await withClient(connectionString, async (client) => {
             const fkRows = await client.query<{ conname: string }>(
@@ -138,15 +113,15 @@ withTempDir(({ createTempDir }) => {
           await runDbInit(testSetup, ['--config', configPath, '--no-color']);
           // Table is empty — no INSERT between init and update.
 
-          await swapToVariant(testSetup.testDir, configPath, 'contract-add-required-unique.ts');
+          await swapToVariant(testSetup, 'contract-add-required-unique.ts');
 
-          const exitCode = await runDbUpdate(testSetup, [
+          const run = await runDbUpdate(testSetup, [
             '--config',
             configPath,
-            '-y',
-            '--no-color',
+            '--confirm',
+            consentTokenFor(connectionString),
           ]);
-          expect(exitCode).toBe(0);
+          expect(run.exitCode).toBe(0);
 
           await withClient(connectionString, async (client) => {
             const col = await client.query<{ is_nullable: string; column_default: string | null }>(
@@ -190,15 +165,15 @@ withTempDir(({ createTempDir }) => {
             );
           });
 
-          await swapToVariant(testSetup.testDir, configPath, 'contract-add-required-unique.ts');
+          await swapToVariant(testSetup, 'contract-add-required-unique.ts');
 
-          const exitCode = await runDbUpdateAllowFailure(testSetup, [
+          const run = await runDbUpdateAllowFailure(testSetup, [
             '--config',
             configPath,
-            '-y',
-            '--no-color',
+            '--confirm',
+            consentTokenFor(connectionString),
           ]);
-          expect(exitCode).not.toBe(0);
+          expect(run.exitCode).not.toBe(0);
 
           await withClient(connectionString, async (client) => {
             const col = await client.query<{ column_name: string }>(

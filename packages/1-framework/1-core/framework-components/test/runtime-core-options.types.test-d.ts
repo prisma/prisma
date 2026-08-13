@@ -20,6 +20,9 @@ class FixtureRuntime extends RuntimeCore<FixturePlan, FixtureExec, RuntimeMiddle
       async *[Symbol.asyncIterator]() {},
     };
   }
+  protected runExecute(): Promise<{ affectedRows: number }> {
+    return Promise.resolve({ affectedRows: 0 });
+  }
   async close(): Promise<void> {}
 }
 
@@ -29,7 +32,7 @@ const meta: PlanMeta = {
   lane: 'raw-sql',
 };
 
-test('execute accepts an optional second argument carrying { signal }', () => {
+test('query accepts an optional second argument carrying { signal }', () => {
   const runtime = new FixtureRuntime({
     middleware: [],
     ctx: {
@@ -44,10 +47,10 @@ test('execute accepts an optional second argument carrying { signal }', () => {
   });
   const plan: FixturePlan = { draftId: 'd', meta };
   // All three call shapes must compile.
-  void runtime.execute(plan);
-  void runtime.execute(plan, undefined);
-  void runtime.execute(plan, {});
-  void runtime.execute(plan, { signal: new AbortController().signal });
+  void runtime.query(plan);
+  void runtime.query(plan, undefined);
+  void runtime.query(plan, {});
+  void runtime.query(plan, { signal: new AbortController().signal });
 });
 
 test('RuntimeExecutor.execute accepts options arg', () => {

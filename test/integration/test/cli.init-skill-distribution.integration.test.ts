@@ -1,26 +1,31 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { delimiter as pathDelimiter } from 'node:path';
 import { join, resolve } from 'pathe';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { INIT_EXIT_OK } from '../../../packages/1-framework/3-tooling/cli/src/commands/init/exit-codes';
-import { runInit } from '../../../packages/1-framework/3-tooling/cli/src/commands/init/init';
-import { DEFAULT_SKILL_AGENTS } from '../../../packages/1-framework/3-tooling/cli/src/commands/init/skill-install';
+import { DEFAULT_SKILL_AGENTS } from '../../../packages/1-framework/3-tooling/cli/src/commands/init/skill-sources';
 import { createIntegrationTestDir } from './utils/cli-test-helpers';
 
 const WORKSPACE_ROOT = resolve(import.meta.dirname, '../../..');
 const SKILLS_BIN = resolve(WORKSPACE_ROOT, 'node_modules/.bin/skills');
+const CLI_BIN = resolve(WORKSPACE_ROOT, 'packages/1-framework/3-tooling/cli/dist/bin.mjs');
 
-const NONINTERACTIVE_FLAGS = {
-  format: 'pretty',
-  explicitFormat: false,
-  json: false,
-  quiet: true,
-  verbose: 0,
-  color: false,
-  interactive: false,
-  yes: true,
-} as const;
+/**
+ * Runs the workspace-built engine bin's `init` as a real subprocess with the
+ * fake package-manager harness on PATH, so every `pnpm add`/`pnpm dlx` the
+ * engine's package capability spawns hits the shim.
+ */
+function runEngineInit(
+  testDir: string,
+  env: Readonly<Record<string, string | undefined>>,
+): { readonly exitCode: number; readonly stderr: string } {
+  const result = spawnSync(
+    process.execPath,
+    [CLI_BIN, 'init', '--target', 'postgres', '--authoring', 'psl', '--yes'],
+    { cwd: testDir, encoding: 'utf8', env: { ...process.env, ...env } },
+  );
+  return { exitCode: result.status ?? 1, stderr: result.stderr ?? '' };
+}
 
 interface ParsedSkillMetadata {
   readonly name: string;
@@ -65,56 +70,38 @@ describe('init skill distribution (offline integration, real CLI)', () => {
 
     const { fakeBinDir, logPath } = createFakeDlxHarness(testDir);
 
-    const previousPath = process.env['PATH'];
-    const previousBase = process.env['PRISMA_NEXT_SKILLS_BASE'];
-    const previousLog = process.env['TEST_FAKE_DLX_LOG'];
-    const previousInternal = process.env['INSTALL_INTERNAL_SKILLS'];
-    const previousAuto = process.env['SKILLS_AGENT_AUTO'];
+    const { exitCode, stderr } = runEngineInit(testDir, {
+      PATH: `${fakeBinDir}${pathDelimiter}${process.env['PATH'] ?? ''}`,
+      PRISMA_NEXT_SKILLS_BASE: workspaceClone,
+      TEST_FAKE_DLX_LOG: logPath,
+      INSTALL_INTERNAL_SKILLS: undefined,
+      SKILLS_AGENT_AUTO: 'cursor-cli',
+    });
 
-    process.env['PATH'] = `${fakeBinDir}${pathDelimiter}${previousPath ?? ''}`;
-    process.env['PRISMA_NEXT_SKILLS_BASE'] = workspaceClone;
-    process.env['TEST_FAKE_DLX_LOG'] = logPath;
-    delete process.env['INSTALL_INTERNAL_SKILLS'];
-    process.env['SKILLS_AGENT_AUTO'] = 'cursor-cli';
+    expect(exitCode, stderr).toBe(0);
 
-    try {
-      const exitCode = await runInit(testDir, {
-        options: { target: 'postgres', authoring: 'psl', install: true },
-        flags: NONINTERACTIVE_FLAGS,
-        canPrompt: false,
-      });
+    const loggedCommands = readLoggedCommands(logPath);
+    const agentFlags = (skill: string) =>
+      `--agent ${DEFAULT_SKILL_AGENTS.join(' ')} --skill ${skill} -y`;
+    expect(loggedCommands).toContain(
+      `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-8')}`,
+    );
+    expect(loggedCommands).toContain(
+      `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-next-upgrade')}`,
+    );
+    expect(loggedCommands).toContain(
+      `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-8-extension-upgrade')}`,
+    );
 
-      expect(exitCode).toBe(INIT_EXIT_OK);
+    const installed = readInstalledSkillDirs(testDir);
+    const expected = readSkillNamesFrom(join(workspaceClone, 'skills'));
+    const expectedSorted = Array.from(new Set(expected)).sort();
+    expect(installed).toEqual(expectedSorted);
+    expect(installed.length).toBeGreaterThan(0);
 
-      const loggedCommands = readLoggedCommands(logPath);
-      const agentFlags = (skill: string) =>
-        `--agent ${DEFAULT_SKILL_AGENTS.join(' ')} --skill ${skill} -y`;
-      expect(loggedCommands).toContain(
-        `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-8')}`,
-      );
-      expect(loggedCommands).toContain(
-        `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-next-upgrade')}`,
-      );
-      expect(loggedCommands).toContain(
-        `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-8-extension-upgrade')}`,
-      );
-
-      const installed = readInstalledSkillDirs(testDir);
-      const expected = readSkillNamesFrom(join(workspaceClone, 'skills'));
-      const expectedSorted = Array.from(new Set(expected)).sort();
-      expect(installed).toEqual(expectedSorted);
-      expect(installed.length).toBeGreaterThan(0);
-
-      const contributorNames = new Set(readContributorSkillNames());
-      const leaks = installed.filter((name) => contributorNames.has(name));
-      expect(leaks).toEqual([]);
-    } finally {
-      restoreEnvVar('PATH', previousPath);
-      restoreEnvVar('PRISMA_NEXT_SKILLS_BASE', previousBase);
-      restoreEnvVar('TEST_FAKE_DLX_LOG', previousLog);
-      restoreEnvVar('INSTALL_INTERNAL_SKILLS', previousInternal);
-      restoreEnvVar('SKILLS_AGENT_AUTO', previousAuto);
-    }
+    const contributorNames = new Set(readContributorSkillNames());
+    const leaks = installed.filter((name) => contributorNames.has(name));
+    expect(leaks).toEqual([]);
   });
 
   it('subpath URL form is invoked verbatim (no implicit fallback to bare repo URL)', {
@@ -126,42 +113,26 @@ describe('init skill distribution (offline integration, real CLI)', () => {
 
     const { fakeBinDir, logPath } = createFakeDlxHarness(testDir);
 
-    const previousPath = process.env['PATH'];
-    const previousBase = process.env['PRISMA_NEXT_SKILLS_BASE'];
-    const previousLog = process.env['TEST_FAKE_DLX_LOG'];
-    const previousAuto = process.env['SKILLS_AGENT_AUTO'];
+    runEngineInit(testDir, {
+      PATH: `${fakeBinDir}${pathDelimiter}${process.env['PATH'] ?? ''}`,
+      PRISMA_NEXT_SKILLS_BASE: workspaceClone,
+      TEST_FAKE_DLX_LOG: logPath,
+      SKILLS_AGENT_AUTO: 'cursor-cli',
+    });
 
-    process.env['PATH'] = `${fakeBinDir}${pathDelimiter}${previousPath ?? ''}`;
-    process.env['PRISMA_NEXT_SKILLS_BASE'] = workspaceClone;
-    process.env['TEST_FAKE_DLX_LOG'] = logPath;
-    process.env['SKILLS_AGENT_AUTO'] = 'cursor-cli';
-
-    try {
-      await runInit(testDir, {
-        options: { target: 'postgres', authoring: 'psl', install: true },
-        flags: NONINTERACTIVE_FLAGS,
-        canPrompt: false,
-      });
-
-      const loggedCommands = readLoggedCommands(logPath);
-      const skillsAddCommands = loggedCommands.filter((c) => c.startsWith('dlx skills@latest add'));
-      // One shared source, one consolidated multi-agent install per named skill.
-      expect(skillsAddCommands).toHaveLength(3);
-      for (const command of skillsAddCommands) {
-        // Each call's source ends at the `skills` subpath before any
-        // flags. A bare repo URL (no `/skills`) would leak contributor
-        // skills via priority discovery of `.agents/skills/`; assert
-        // the subpath form here.
-        expect(command).toMatch(/\/skills(?:\s|$)/);
-        expect(command).toMatch(
-          /--skill (?:prisma-8|prisma-next-upgrade|prisma-8-extension-upgrade) /,
-        );
-      }
-    } finally {
-      restoreEnvVar('PATH', previousPath);
-      restoreEnvVar('PRISMA_NEXT_SKILLS_BASE', previousBase);
-      restoreEnvVar('TEST_FAKE_DLX_LOG', previousLog);
-      restoreEnvVar('SKILLS_AGENT_AUTO', previousAuto);
+    const loggedCommands = readLoggedCommands(logPath);
+    const skillsAddCommands = loggedCommands.filter((c) => c.startsWith('dlx skills@latest add'));
+    // One shared source, one consolidated multi-agent install per named skill.
+    expect(skillsAddCommands).toHaveLength(3);
+    for (const command of skillsAddCommands) {
+      // Each call's source ends at the `skills` subpath before any
+      // flags. A bare repo URL (no `/skills`) would leak contributor
+      // skills via priority discovery of `.agents/skills/`; assert
+      // the subpath form here.
+      expect(command).toMatch(/\/skills(?:\s|$)/);
+      expect(command).toMatch(
+        /--skill (?:prisma-8|prisma-next-upgrade|prisma-8-extension-upgrade) /,
+      );
     }
   });
 });
@@ -337,12 +308,4 @@ function sanitizeSkillDirName(name: string): string {
     .replace(/[^a-z0-9._]+/g, '-')
     .replace(/^[.-]+|[.-]+$/g, '');
   return sanitized.substring(0, 255) || 'unnamed-skill';
-}
-
-function restoreEnvVar(name: string, previous: string | undefined): void {
-  if (previous === undefined) {
-    delete process.env[name];
-  } else {
-    process.env[name] = previous;
-  }
 }

@@ -1,13 +1,25 @@
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { getEmittedArtifactPaths } from '@internal/emitter';
 import { timeouts } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { findNearestConfigPathForFile, loadConfig, loadConfigForFile } from '../src/load';
 
-// Temp-dir fixtures cannot import @internal/config, so they stamp the marker
-// the same way defineConfig does: a non-enumerable well-known symbol.
-const MARKER_STAMP = `
+vi.mock('@internal/emitter', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@internal/emitter')>();
+  return { ...actual, getEmittedArtifactPaths: vi.fn(actual.getEmittedArtifactPaths) };
+});
+
+// Temp-dir fixtures cannot import @prisma/cli-engine or @internal/config, so
+// they stamp the markers structurally, the way the real defineConfigs do: the
+// engine's shape is the enumerable $prismaConfig key wrapping an `orm`
+// section; the deprecated flat shape is a non-enumerable well-known symbol.
+const NEW_SHAPE_STAMP = `
+export default { $prismaConfig: 1, orm: config };
+`;
+
+const FLAT_MARKER_STAMP = `
 Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), {
   value: 1,
   enumerable: false,
@@ -15,8 +27,7 @@ Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), {
 export default config;
 `;
 
-const VALID_CONFIG_SOURCE =
-  `
+const CONFIG_BODY = `
 const descriptorBase = {
   familyId: 'sql',
   targetId: 'postgres',
@@ -52,14 +63,19 @@ const config = {
     output: './generated/contract.json',
   },
 };
-` + MARKER_STAMP;
+`;
 
-const INVALID_CONFIG_SOURCE =
-  `
+const VALID_CONFIG_SOURCE = CONFIG_BODY + NEW_SHAPE_STAMP;
+
+const FLAT_CONFIG_SOURCE = CONFIG_BODY + FLAT_MARKER_STAMP;
+
+const INVALID_CONFIG_BODY = `
 const config = {
   family: { kind: 'family' },
 };
-` + MARKER_STAMP;
+`;
+
+const INVALID_CONFIG_SOURCE = INVALID_CONFIG_BODY + NEW_SHAPE_STAMP;
 
 const UNMARKED_CONFIG_SOURCE = `
 export default {
@@ -85,9 +101,9 @@ describe('findNearestConfigPathForFile', () => {
   it('returns the nearest config path above the file', async () => {
     const appDir = join(tempDir, 'apps', 'shop');
     const schemaPath = join(appDir, 'prisma', 'schema.psl');
-    const appConfigPath = join(appDir, 'prisma-next.config.ts');
+    const appConfigPath = join(appDir, 'prisma.config.ts');
     mkdirSync(join(appDir, 'prisma'), { recursive: true });
-    writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
+    writeFileSync(join(tempDir, 'prisma.config.ts'), VALID_CONFIG_SOURCE);
     writeFileSync(appConfigPath, INVALID_CONFIG_SOURCE);
 
     await expect(findNearestConfigPathForFile(schemaPath)).resolves.toBe(appConfigPath);
@@ -118,8 +134,8 @@ describe('loadConfigForFile', () => {
       const appDir = join(tempDir, 'apps', 'shop');
       const schemaPath = join(appDir, 'prisma', 'schema.psl');
       mkdirSync(join(appDir, 'prisma'), { recursive: true });
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
-      writeFileSync(join(appDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), VALID_CONFIG_SOURCE);
+      writeFileSync(join(appDir, 'prisma.config.ts'), VALID_CONFIG_SOURCE);
 
       const result = await loadConfigForFile(schemaPath);
 
@@ -138,8 +154,8 @@ describe('loadConfigForFile', () => {
       const appDir = join(tempDir, 'apps', 'shop');
       const schemaPath = join(appDir, 'prisma', 'schema.psl');
       mkdirSync(join(appDir, 'prisma'), { recursive: true });
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
-      writeFileSync(join(appDir, 'prisma-next.config.ts'), INVALID_CONFIG_SOURCE);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), VALID_CONFIG_SOURCE);
+      writeFileSync(join(appDir, 'prisma.config.ts'), INVALID_CONFIG_SOURCE);
 
       const result = await loadConfigForFile(schemaPath);
 
@@ -187,15 +203,56 @@ describe('loadConfig', () => {
   it(
     'resolves inputs to absolute paths for a valid config',
     async () => {
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), VALID_CONFIG_SOURCE);
       process.chdir(tempDir);
 
       const result = await loadConfig();
 
-      const { config, diagnostics } = result.assertOk();
+      const { config, diagnostics, deprecations } = result.assertOk();
       expect(diagnostics).toEqual([]);
+      expect(deprecations).toEqual([]);
       expect(config.contract?.source.inputs).toEqual([join(tempDir, 'schema.prisma')]);
       expect(config.contract?.output).toBe(join(tempDir, 'generated', 'contract.json'));
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'reads an empty orm section from a config that declares none',
+    async () => {
+      writeFileSync(join(tempDir, 'prisma.config.ts'), 'export default { $prismaConfig: 1 };\n');
+      process.chdir(tempDir);
+
+      const { config, diagnostics } = (await loadConfig()).assertOk();
+
+      expect(config.contract).toBeUndefined();
+      expect(diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'CONFIG.VALIDATION_FAILED',
+          meta: { field: 'family', section: 'family' },
+        }),
+      );
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'reports a non-object orm section as a diagnostic that blocks every section',
+    async () => {
+      writeFileSync(
+        join(tempDir, 'prisma.config.ts'),
+        'export default { $prismaConfig: 1, orm: 42 };\n',
+      );
+      process.chdir(tempDir);
+
+      const { diagnostics } = (await loadConfig()).assertOk();
+
+      expect(diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'CONFIG.VALIDATION_FAILED',
+          meta: { field: 'orm' },
+        }),
+      );
     },
     timeouts.typeScriptCompilation,
   );
@@ -214,7 +271,7 @@ describe('loadConfig', () => {
 `,
         '',
       );
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), noContractSource);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), noContractSource);
       process.chdir(tempDir);
 
       const result = await loadConfig();
@@ -277,7 +334,7 @@ describe('loadConfig', () => {
   it(
     'maps an empty-object config to CONFIG.FILE_NOT_FOUND, reporting the discovered file path',
     async () => {
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), EMPTY_CONFIG_SOURCE);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), EMPTY_CONFIG_SOURCE);
       process.chdir(tempDir);
 
       const result = await loadConfig();
@@ -285,7 +342,7 @@ describe('loadConfig', () => {
       expect(result.assertNotOk()).toMatchObject({
         name: 'CliStructuredError',
         code: 'CONFIG.FILE_NOT_FOUND',
-        where: { path: join(tempDir, 'prisma-next.config.ts') },
+        where: { path: join(tempDir, 'prisma.config.ts') },
       });
     },
     timeouts.typeScriptCompilation,
@@ -294,7 +351,7 @@ describe('loadConfig', () => {
   it(
     'returns section-tagged diagnostics for an invalid config shape instead of failing the load',
     async () => {
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), INVALID_CONFIG_SOURCE);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), INVALID_CONFIG_SOURCE);
       process.chdir(tempDir);
 
       const result = await loadConfig();
@@ -329,7 +386,7 @@ describe('loadConfig', () => {
         "inputs: ['./schema.prisma']",
         "inputs: ['./generated/contract.json', './generated/contract.d.ts']",
       );
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), collidingSource);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), collidingSource);
       process.chdir(tempDir);
 
       const result = await loadConfig();
@@ -353,7 +410,7 @@ describe('loadConfig', () => {
         "output: './generated/contract.json'",
         "output: './generated/contract.ts'",
       );
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), nonJsonSource);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), nonJsonSource);
       process.chdir(tempDir);
 
       const result = await loadConfig();
@@ -377,7 +434,7 @@ describe('loadConfig', () => {
         "output: './generated/contract.json'",
         'output: 123',
       );
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), brokenOutputSource);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), brokenOutputSource);
       process.chdir(tempDir);
 
       const result = await loadConfig();
@@ -396,7 +453,7 @@ describe('loadConfig', () => {
   it(
     'rejects a config without the defineConfig version marker (CONFIG.VERSION_MARKER_MISSING)',
     async () => {
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), UNMARKED_CONFIG_SOURCE);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), UNMARKED_CONFIG_SOURCE);
       process.chdir(tempDir);
 
       const result = await loadConfig();
@@ -404,7 +461,7 @@ describe('loadConfig', () => {
       expect(result.assertNotOk()).toMatchObject({
         name: 'CliStructuredError',
         code: 'CONFIG.VERSION_MARKER_MISSING',
-        where: { path: join(tempDir, 'prisma-next.config.ts') },
+        where: { path: join(tempDir, 'prisma.config.ts') },
       });
     },
     timeouts.typeScriptCompilation,
@@ -414,7 +471,7 @@ describe('loadConfig', () => {
     'rejects an unmarked config that extends a marked base config',
     async () => {
       writeFileSync(join(tempDir, 'base.config.ts'), VALID_CONFIG_SOURCE);
-      const configPath = join(tempDir, 'prisma-next.config.ts');
+      const configPath = join(tempDir, 'prisma.config.ts');
       writeFileSync(configPath, "export default { extends: './base.config.ts' };\n");
       process.chdir(tempDir);
 
@@ -432,12 +489,10 @@ describe('loadConfig', () => {
   it(
     'accepts a marked config that extends an unmarked base config',
     async () => {
-      const unmarkedBase = VALID_CONFIG_SOURCE.replace(MARKER_STAMP, '\nexport default config;\n');
+      const unmarkedBase = CONFIG_BODY + '\nexport default { orm: config };\n';
       writeFileSync(join(tempDir, 'base.config.ts'), unmarkedBase);
-      const markedChild =
-        "const config = { extends: './base.config.ts' };" +
-        `\nObject.defineProperty(config, Symbol.for('prisma-next.config-format-version'), { value: 1, enumerable: false });\nexport default config;\n`;
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), markedChild);
+      const markedChild = "export default { $prismaConfig: 1, extends: './base.config.ts' };\n";
+      writeFileSync(join(tempDir, 'prisma.config.ts'), markedChild);
       process.chdir(tempDir);
 
       const { config, diagnostics } = (await loadConfig()).assertOk();
@@ -451,8 +506,8 @@ describe('loadConfig', () => {
   it(
     'rejects a config carrying a stale format version (CONFIG.VERSION_MARKER_MISSING)',
     async () => {
-      const staleSource = VALID_CONFIG_SOURCE.replace('value: 1,', 'value: 0,');
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), staleSource);
+      const staleSource = VALID_CONFIG_SOURCE.replace('$prismaConfig: 1,', '$prismaConfig: 0,');
+      writeFileSync(join(tempDir, 'prisma.config.ts'), staleSource);
       process.chdir(tempDir);
 
       const result = await loadConfig();
@@ -468,7 +523,7 @@ describe('loadConfig', () => {
   it(
     'maps a c12 compilation failure to a structured evaluation failure (CONFIG.EVALUATION_FAILED)',
     async () => {
-      const configPath = join(tempDir, 'prisma-next.config.ts');
+      const configPath = join(tempDir, 'prisma.config.ts');
       writeFileSync(configPath, 'export default { invalid syntax }', 'utf-8');
 
       const result = await loadConfig(configPath);
@@ -485,7 +540,7 @@ describe('loadConfig', () => {
   it(
     'maps a config module that throws during evaluation to CONFIG.EVALUATION_FAILED',
     async () => {
-      const configPath = join(tempDir, 'prisma-next.config.ts');
+      const configPath = join(tempDir, 'prisma.config.ts');
       writeFileSync(configPath, "throw new Error('config module exploded');", 'utf-8');
 
       const result = await loadConfig(configPath);
@@ -504,7 +559,7 @@ describe('loadConfig', () => {
     'maps a config module that throws during discovery from the cwd to CONFIG.EVALUATION_FAILED without a path',
     async () => {
       writeFileSync(
-        join(tempDir, 'prisma-next.config.ts'),
+        join(tempDir, 'prisma.config.ts'),
         "throw new Error('config module exploded');",
         'utf-8',
       );
@@ -521,7 +576,7 @@ describe('loadConfig', () => {
   it(
     'maps a config module that throws a non-Error value to CONFIG.EVALUATION_FAILED carrying its string form',
     async () => {
-      const configPath = join(tempDir, 'prisma-next.config.ts');
+      const configPath = join(tempDir, 'prisma.config.ts');
       writeFileSync(configPath, "throw 'config module string failure';", 'utf-8');
 
       const failure = (await loadConfig(configPath)).assertNotOk();
@@ -535,7 +590,7 @@ describe('loadConfig', () => {
   it(
     'maps an unresolvable import inside an existing config to CONFIG.EVALUATION_FAILED',
     async () => {
-      const configPath = join(tempDir, 'prisma-next.config.ts');
+      const configPath = join(tempDir, 'prisma.config.ts');
       writeFileSync(configPath, "import 'no-such-package-for-config-tests';\n", 'utf-8');
 
       const failure = (await loadConfig(configPath)).assertNotOk();
@@ -550,7 +605,7 @@ describe('loadConfig', () => {
   it(
     'maps an ENOENT raised by the config module itself to CONFIG.EVALUATION_FAILED',
     async () => {
-      const configPath = join(tempDir, 'prisma-next.config.ts');
+      const configPath = join(tempDir, 'prisma.config.ts');
       const missingFile = join(tempDir, 'absent-fixture.json');
       writeFileSync(
         configPath,
@@ -569,7 +624,7 @@ describe('loadConfig', () => {
   it(
     'passes a CliStructuredError thrown by the config module through unchanged',
     async () => {
-      const configPath = join(tempDir, 'prisma-next.config.ts');
+      const configPath = join(tempDir, 'prisma.config.ts');
       writeFileSync(
         configPath,
         `
@@ -593,7 +648,7 @@ throw error;
   it(
     'rewraps a plain structured error thrown by the config module, keeping its code and cause',
     async () => {
-      const configPath = join(tempDir, 'prisma-next.config.ts');
+      const configPath = join(tempDir, 'prisma.config.ts');
       writeFileSync(
         configPath,
         `
@@ -631,13 +686,148 @@ throw error;
         "      inputs: ['./schema.prisma'],\n",
         '',
       );
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), noInputsSource);
+      writeFileSync(join(tempDir, 'prisma.config.ts'), noInputsSource);
       process.chdir(tempDir);
 
       const { config, diagnostics } = (await loadConfig()).assertOk();
 
       expect(diagnostics).toEqual([]);
       expect(config.contract?.source.inputs).toBeUndefined();
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'stringifies a non-Error artifact path derivation failure',
+    async () => {
+      vi.mocked(getEmittedArtifactPaths).mockImplementationOnce(() => {
+        throw 'artifact path failure';
+      });
+      writeFileSync(join(tempDir, 'prisma.config.ts'), VALID_CONFIG_SOURCE);
+      process.chdir(tempDir);
+
+      const result = await loadConfig();
+
+      expect(result.assertOk().diagnostics).toContainEqual(
+        expect.objectContaining({
+          name: 'CliStructuredError',
+          code: 'CONFIG.VALIDATION_FAILED',
+          why: 'artifact path failure',
+        }),
+      );
+    },
+    timeouts.typeScriptCompilation,
+  );
+});
+
+describe('deprecated config fallback', () => {
+  let originalCwd: string;
+  let tempDir: string;
+
+  beforeEach(() => {
+    originalCwd = process.cwd();
+    tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'prisma-8-config-deprecated-')));
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it(
+    'accepts the flat shape in prisma.config.ts with a shape deprecation',
+    async () => {
+      writeFileSync(join(tempDir, 'prisma.config.ts'), FLAT_CONFIG_SOURCE);
+      process.chdir(tempDir);
+
+      const { config, diagnostics, deprecations } = (await loadConfig()).assertOk();
+
+      expect(diagnostics).toEqual([]);
+      expect(deprecations).toEqual([expect.objectContaining({ code: 'CONFIG.DEPRECATED_SHAPE' })]);
+      expect(config.target?.targetId).toBe('postgres');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'falls back to prisma-next.config.ts with a filename deprecation when prisma.config.ts is absent',
+    async () => {
+      writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
+      process.chdir(tempDir);
+
+      const { config, deprecations } = (await loadConfig()).assertOk();
+
+      expect(deprecations).toEqual([
+        expect.objectContaining({ code: 'CONFIG.DEPRECATED_FILENAME' }),
+      ]);
+      expect(config.target?.targetId).toBe('postgres');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'reports both deprecations for a flat-shape prisma-next.config.ts',
+    async () => {
+      writeFileSync(join(tempDir, 'prisma-next.config.ts'), FLAT_CONFIG_SOURCE);
+      process.chdir(tempDir);
+
+      const { deprecations } = (await loadConfig()).assertOk();
+
+      expect(deprecations).toEqual([
+        expect.objectContaining({ code: 'CONFIG.DEPRECATED_FILENAME' }),
+        expect.objectContaining({ code: 'CONFIG.DEPRECATED_SHAPE' }),
+      ]);
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'prefers prisma.config.ts when both filenames exist',
+    async () => {
+      writeFileSync(join(tempDir, 'prisma.config.ts'), VALID_CONFIG_SOURCE);
+      writeFileSync(join(tempDir, 'prisma-next.config.ts'), INVALID_CONFIG_SOURCE);
+      process.chdir(tempDir);
+
+      const { diagnostics, deprecations } = (await loadConfig()).assertOk();
+
+      expect(diagnostics).toEqual([]);
+      expect(deprecations).toEqual([]);
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'reports a filename deprecation when --config names prisma-next.config.ts explicitly',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(configPath, VALID_CONFIG_SOURCE);
+
+      const { deprecations } = (await loadConfig(configPath)).assertOk();
+
+      expect(deprecations).toEqual([
+        expect.objectContaining({ code: 'CONFIG.DEPRECATED_FILENAME' }),
+      ]);
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'walks to the deprecated filename from a PSL file, preferring the new name in the same directory',
+    async () => {
+      const appDir = join(tempDir, 'apps', 'shop');
+      const schemaPath = join(appDir, 'prisma', 'schema.psl');
+      mkdirSync(join(appDir, 'prisma'), { recursive: true });
+      writeFileSync(join(appDir, 'prisma-next.config.ts'), FLAT_CONFIG_SOURCE);
+
+      await expect(findNearestConfigPathForFile(schemaPath)).resolves.toBe(
+        join(appDir, 'prisma-next.config.ts'),
+      );
+
+      writeFileSync(join(appDir, 'prisma.config.ts'), VALID_CONFIG_SOURCE);
+
+      await expect(findNearestConfigPathForFile(schemaPath)).resolves.toBe(
+        join(appDir, 'prisma.config.ts'),
+      );
     },
     timeouts.typeScriptCompilation,
   );

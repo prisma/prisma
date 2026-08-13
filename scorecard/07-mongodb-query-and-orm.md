@@ -36,10 +36,10 @@ Legend:
 | ORM `createAndCount` | — | — | 🟡 | |
 | ORM `update` | — | — | 🟡 | |
 | ORM `updateAll` | — | — | 🟡 | |
-| ORM `updateAndCount` | — | — | 🟡 | |
+| ORM `updateAndCount` | — | — | 🟡 | Shipped count terminal; Mongo runtime maps `modifiedCount` to `affectedRows`; integration evidence pending |
 | ORM `delete` | — | — | 🟡 | |
 | ORM `deleteAll` | — | — | 🟡 | |
-| ORM `deleteAndCount` | — | — | 🟡 | |
+| ORM `deleteAndCount` | — | — | 🟡 | Shipped count terminal; Mongo runtime maps `deletedCount` to `affectedRows`; integration evidence pending |
 | ORM `upsert` | — | — | 🟡 | |
 | Rejection of `null` writes to required composites | — | — | ✅ | `test/integration/test/ports/prisma/functional/composites-object-create/composites-object-create.test.ts`; corresponding object/list createMany, update, updateMany, and upsert port suites |
 | Update operator `set` | — | — | 🟡 | |
@@ -93,3 +93,5 @@ Legend:
 | Composite `is` filter | — | — | ❌ | |
 | Composite `isSet` filter | — | — | ❌ | |
 | Composite `orderBy _count` | — | — | ❌ | |
+
+Mongo count terminals are shipped, but remain 🟡 under this scorecard's integration-test legend until a qualifying MongoDB ORM integration test asserts them. The runtime and target-driver evidence is in `packages/2-mongo-family/7-runtime/test/mongo-middleware.test.ts` (statistics mapping and interception) and `packages/3-mongo-target/3-mongo-driver/test/mongo-driver.test.ts` (`modifiedCount` and `deletedCount`). Mongo update counts mean `modifiedCount`, not matched rows, so no-op updates return zero; deletes mean `deletedCount`.

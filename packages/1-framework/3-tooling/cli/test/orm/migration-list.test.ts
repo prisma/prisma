@@ -1,9 +1,10 @@
-import { rm } from 'node:fs/promises';
+import { rm, writeFile } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { writeRef } from '@internal/migration-tools/refs';
 import { blindCast } from '@internal/utils/casts';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { createSqlContract } from '@repo/test-utils';
@@ -254,6 +255,11 @@ describe('migration list', () => {
     expect(rendered).toContain('Legend:');
     expect(rendered).toContain('  ○ contract   ↑ forward   ↓ rollback');
     expect(rendered.filter((line) => line.startsWith('- '))).toEqual([]);
+    const legendText = rendered.join('\n');
+    expect(legendText).toContain('@contract @db');
+    expect(legendText).toContain('(prod, staging)');
+    expect(legendText).toContain('reserved markers — also typeable as --from/--to tokens');
+    expect(legendText).toContain('user-defined refs');
   });
 
   it('errors with the dotted code when the space does not exist', async () => {
@@ -323,6 +329,130 @@ describe('migration list', () => {
       kind: 'fields',
       rail: true,
       rows: [{ label: 'migrations', value: 'db' }],
+    });
+  });
+
+  describe('the worked example from the slice spec', () => {
+    const HASH_55bada2 = `55bada2${'0'.repeat(57)}`;
+    const HASH_2f45cc7 = `2f45cc7${'0'.repeat(57)}`;
+    const HASH_804e018 = `804e018${'0'.repeat(57)}`;
+    const BACKFILL_OP = blindCast<
+      MigrationPlanOperation,
+      'The list renderer reads only the id, class and invariantId'
+    >({
+      id: 'data.backfill_emails',
+      label: 'Backfill emails',
+      operationClass: 'data',
+      invariantId: 'backfill_emails_v1',
+    });
+
+    async function seedPackage(
+      appDir: string,
+      dirName: string,
+      from: string | null,
+      to: string,
+      ops: readonly MigrationPlanOperation[],
+      providedInvariants: readonly string[] = [],
+    ): Promise<void> {
+      const base = blindCast<
+        Omit<MigrationMetadata, 'migrationHash'>,
+        'The list renderer reads only from/to, createdAt and providedInvariants'
+      >({ from, to, providedInvariants, createdAt: '2026-02-25T14:30:00.000Z' });
+      const metadata: MigrationMetadata = {
+        ...base,
+        migrationHash: computeMigrationHash(base, ops),
+      };
+      await writeMigrationPackage(join(appDir, dirName), metadata, ops);
+    }
+
+    async function seedWorkedExample(dir: string): Promise<void> {
+      const appDir = join(dir, 'migrations', 'app');
+      await seedPackage(appDir, '20260422T0720_initial', null, HASH_A, [ADDITIVE_OP]);
+      await seedPackage(appDir, '20260422T0742_migration', HASH_A, HASH_55bada2, [ADDITIVE_OP]);
+      await seedPackage(appDir, '20260422T0748_migration', HASH_55bada2, HASH_2f45cc7, [
+        ADDITIVE_OP,
+      ]);
+      await seedPackage(appDir, '20260518T1701_namespaces_bookend', HASH_2f45cc7, HASH_804e018, [
+        ADDITIVE_OP,
+      ]);
+      await seedPackage(
+        appDir,
+        '20260601T1200_backfill_emails',
+        HASH_55bada2,
+        HASH_55bada2,
+        [BACKFILL_OP],
+        ['backfill_emails_v1'],
+      );
+      const refsDir = join(appDir, 'refs');
+      await writeRef(refsDir, 'production', { hash: HASH_55bada2, invariants: [] });
+      await writeRef(refsDir, 'staging', { hash: HASH_2f45cc7, invariants: [] });
+      await writeRef(refsDir, 'db', { hash: HASH_804e018, invariants: [] });
+    }
+
+    it('lists newest-first with refs and invariants decorating their migrations', async () => {
+      const dir = await projectDir();
+      await seedWorkedExample(dir);
+
+      const run = await harness(ormConfig()).run(['migration', 'list', '--json'], { cwd: dir });
+      const list = run.presented?.data as {
+        summary: string;
+        spaces: ReadonlyArray<{
+          space: string;
+          migrations: ReadonlyArray<{
+            name: string;
+            refs: readonly string[];
+            providedInvariants: readonly string[];
+          }>;
+        }>;
+      };
+
+      expect(run.exitCode).toBe(0);
+      expect(list.summary).toBe('5 migration(s) on disk');
+      expect(list.spaces.map((entry) => entry.space)).toEqual(['app']);
+      expect(list.spaces[0]?.migrations.map((migration) => migration.name)).toEqual([
+        '20260601T1200_backfill_emails',
+        '20260518T1701_namespaces_bookend',
+        '20260422T0748_migration',
+        '20260422T0742_migration',
+        '20260422T0720_initial',
+      ]);
+      expect(list.spaces[0]?.migrations[0]).toMatchObject({
+        name: '20260601T1200_backfill_emails',
+        refs: ['production'],
+        providedInvariants: ['backfill_emails_v1'],
+      });
+      expect(list.spaces[0]?.migrations[1]).toMatchObject({ refs: ['db'] });
+      expect(list.spaces[0]?.migrations[2]).toMatchObject({ refs: ['staging'] });
+    });
+
+    it('decorates an extension tip migration with its head ref', async () => {
+      const HASH_POSTGIS = `9aabbcc${'0'.repeat(57)}`;
+      const dir = await projectDir();
+      const postgisDir = join(dir, 'migrations', 'postgis');
+      await seedPackage(postgisDir, '20260601T0000_install_postgis', null, HASH_POSTGIS, [
+        ADDITIVE_OP,
+      ]);
+      await writeRef(join(postgisDir, 'refs'), 'head', { hash: HASH_POSTGIS, invariants: [] });
+      await writeFile(
+        join(postgisDir, 'contract.json'),
+        JSON.stringify({
+          storage: { storageHash: HASH_POSTGIS },
+          schemaVersion: '1.0.0',
+          target: 'postgres',
+          targetFamily: 'sql',
+        }),
+      );
+
+      const run = await harness(ormConfig()).run(['migration', 'list', '--json'], { cwd: dir });
+      const list = run.presented?.data as {
+        spaces: ReadonlyArray<{
+          space: string;
+          migrations: ReadonlyArray<{ refs: readonly string[] }>;
+        }>;
+      };
+
+      const postgisSpace = list.spaces.find((entry) => entry.space === 'postgis');
+      expect(postgisSpace?.migrations[0]?.refs).toEqual(['head']);
     });
   });
 });

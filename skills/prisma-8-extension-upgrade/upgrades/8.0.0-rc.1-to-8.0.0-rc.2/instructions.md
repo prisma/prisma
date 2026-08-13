@@ -262,6 +262,47 @@ changes:
         - 'checkConstraint'
         - 'derivedCheckPrefixes'
       anyMatch: true
+  - id: runtime-query-execute-hard-cut
+    summary: |
+      Runtime and scope implementations expose `query()` for rows, while rc.1 prepared rows use `target.queryPrepared(prepared, params, options?)` and rc.2 uses `prepared.query(target, params, options?)`; statistics-returning `execute()` remains for non-returning statements. Classify callers and helpers by the result they consume; do not globally rename `execute`. Route row plans to `query`, prepared row plans to `prepared.query(target, params, options?)`, and non-returning writes to `execute`, reading `stats.affectedRows` when a count is needed. Preserve the bound connection, row-result laziness, and eager statistics result. Middleware uses `beforeQuery` → `interceptQuery` → driver query → `onRow` → `afterQuery` for rows and `beforeExecute` → `interceptExecute` → driver execute → `afterExecute` for statistics. Query interception returns `{ rows }`; execute interception returns `{ stats }`. There is no operation discriminator, compatibility alias, or generic fallback hook. The Mongo facade keeps static `db.query` and removes row-execution `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "beforeQuery"
+        - "interceptExecute"
+        - ".queryPrepared("
+        - ".execute("
+      anyMatch: true
+  - id: config-file-is-prisma-config-with-an-orm-section
+    summary: |
+      The CLI config file is `prisma.config.ts` — the `prisma-next.config.ts` name is
+      deprecated — and the config value is engine-shaped: `defineConfig` from
+      `@prisma/cli-engine` wraps the whole ORM config as its `orm` section. Rename the file,
+      then wrap the existing export: alias the current `defineConfig` import (from the target
+      facade or CLI config-types) as `ormConfig` and write
+      `export default defineConfig({ orm: ormConfig({ ...existing config... }) })`, adding
+      `@prisma/cli-engine` to devDependencies. Both the deprecated filename and the flat shape
+      still load, each printing a deprecation warning on stderr, so the two steps can land
+      separately; anything asserting clean stderr around CLI invocations sees the warning
+      until both are done.
+    detection:
+      glob: "**/prisma*.config.*"
+      contains:
+        - "defineConfig"
+      anyMatch: true
+  - id: published-prisma-next-bin-retired
+    summary: |
+      Nothing published ships a `prisma-next` bin anymore: `@prisma/orm-toolchain` publishes
+      the `orm` command family at `@prisma/orm-toolchain/cli` and no bin, and the database
+      facades forward no launcher. The only user-facing binary is the unified `prisma` CLI
+      (the prisma-cli distribution), which mounts the same commands. Replace
+      `prisma-next <command>` invocations in package scripts and CI with the unified CLI's
+      equivalent, and drop any dependency that was taken only to put the bin on PATH.
+    detection:
+      glob: "**/package.json"
+      contains:
+        - "prisma-next"
+      anyMatch: true
 ---
 
 # 8.0.0-rc.1 → 8.0.0-rc.2 — Extension-author upgrade instructions
@@ -520,12 +561,11 @@ Two consequences for a pack:
   A `Date` is the one authored value JSON has no notation for, so it is the one that arrives as itself.
 
 <!--
-PR #29910: `changes: []`. Binding internal mutation-reload filters and repairing Supabase runtime coverage after the driver SPI split require no downstream extension source translation.
-
 PR #29920: `changes: []`. Adds prepared-statement test coverage to the Supabase runtime suite (test-fixture codec registration only) and fixes a postgres direct-driver transaction defect; neither requires downstream extension source translation. The SPI split itself is recorded as `driver-spi-splits-query-and-execute` in the 0.17-to-8.0.0-rc.1 transition.
 
 PR #29902: `changes: []`. Generated contracts gain additive aggregate rows for new opt-in integer representation codecs, but existing extension schemas and source require no migration; extension authors re-emit only when adopting the new target-scoped types.
 PR #29940: `changes: []`. Dependabot's weekly dev-dependency bumps, which move `@biomejs/biome` to 2.5.6 and realign every `biome.jsonc` `$schema` URL to match. The extension-package diff is that URL and nothing else, so it requires no downstream extension source translation.
+PR #29965: `changes: []`. The same shape again: `@biomejs/biome` moves to 2.5.7 and every `biome.jsonc` `$schema` URL is realigned to match. The extension-package diff is that URL and nothing else, so it requires no downstream extension source translation.
 -->
 
 ## Why checks stopped being structured
@@ -562,3 +602,44 @@ constraint under the name it already carries, after which it is owned rather tha
 plan drops it — see `authored-check-constraints` in this transition. Until you do, keep the
 tables carrying it under an additive-only policy: the check survives, plain `db verify`
 tolerates it, and only `--strict` reports it.
+
+## `runtime-query-execute-hard-cut`
+
+The runtime SPI separates row streams from statement statistics. Inspect what each caller consumes rather than applying a global `execute` → `query` replacement: selects, returning writes, Mongo command-result plans, and other iterated or decoded results use `query`; non-returning DML uses eager `execute` and returns `{ affectedRows: number }`. Prepared row callers move from `target.queryPrepared(prepared, params, options?)` to `prepared.query(target, params, options?)`.
+
+Connection, transaction, and role-bound scopes preserve their existing bound resource for both operations. Keep row results lazy and fully consume them inside a scope when required; statistics execution is eager. A count terminal must use `stats.affectedRows` from the write and never derive it from a row array.
+
+Middleware hooks are operation-specific: query uses `beforeQuery`, `interceptQuery`, `onRow`, and `afterQuery`; statistics uses `beforeExecute`, `interceptExecute`, and `afterExecute`; `beforeCompile` remains shared. `interceptQuery` returns `{ rows }`, `interceptExecute` returns `{ stats }`, and hook selection carries the operation distinction, so contexts and results have no operation discriminator. Do not add compatibility aliases or generic fallback hooks. Split row and statistics fakes and spies so tests detect an incorrect route. Behavior intended for both operations assigns one private implementation to both corresponding hook names.
+
+The Mongo facade keeps static `db.query`; it has no row-execution method named `query` and no compatibility `db.execute`. Build with `db.query`, obtain the connected runtime, and call `(await db.runtime()).query(plan)`. Leave genuine statistics calls, migration runners, and unrelated APIs named `execute` unchanged.
+
+## `config-file-is-prisma-config-with-an-orm-section`
+
+Two mechanical steps, in either order:
+
+1. `git mv prisma-next.config.ts prisma.config.ts` (same for `.mts` / `.mjs` variants).
+2. Wrap the flat export in the engine shape:
+
+```ts
+// before
+import { defineConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ ... });
+
+// after
+import { defineConfig } from '@prisma/cli-engine';
+import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ orm: ormConfig({ ... }) });
+```
+
+Add `@prisma/cli-engine` to `devDependencies`. The inner config is unchanged — only the file
+name and the outer wrapper move. The loader still discovers the deprecated filename and still
+accepts the flat shape, each with a stderr deprecation warning, so nothing breaks mid-rename;
+finish both steps to silence the warnings.
+
+## `published-prisma-next-bin-retired`
+
+`prisma-next ...` in a package script resolved through a bin the database facades forwarded
+from the toolchain. That chain is gone: the published toolchain is bin-less and exports the
+`orm` command family at `@prisma/orm-toolchain/cli` for the unified `prisma` CLI (the
+prisma-cli distribution) to mount. Point scripts and CI at the unified CLI, which serves the
+same command paths.

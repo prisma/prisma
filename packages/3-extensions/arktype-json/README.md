@@ -41,13 +41,13 @@ After emit, `Product.spec` in `contract.d.ts` resolves to `{ name: string; price
 
 ## Pack registration
 
-Add the runtime descriptor to your runtime stack and the control descriptor to your `prisma-next.config.ts` `extensions`:
+Add the runtime descriptor to your runtime stack and the control descriptor to your `prisma.config.ts` `extensions`:
 
 ```ts
 import arktypeJsonPack from '@internal/extension-arktype-json/pack';
 import arktypeJsonRuntime from '@internal/extension-arktype-json/runtime';
 
-// prisma-next.config.ts
+// prisma.config.ts
 export default {
   extensions: { arktypeJson: arktypeJsonPack },
   // ...
