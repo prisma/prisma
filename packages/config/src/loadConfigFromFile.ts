@@ -30,11 +30,16 @@ const LEGACY_SUPPORTED_EXTENSIONS = [
   '.toml',
 ] as const
 
-const LEGACY_CONFIG_FILE_CANDIDATES = [
-  ...LEGACY_SUPPORTED_EXTENSIONS.map((extension) => `prisma.config${extension}`),
-  ...LEGACY_SUPPORTED_EXTENSIONS.map((extension) => path.join('.config', `prisma${extension}`)),
-  ...LEGACY_SUPPORTED_EXTENSIONS.map((extension) => path.join('.config', `prisma.config${extension}`)),
-] as const satisfies readonly string[]
+const LEGACY_CONFIG_FILE_BASENAMES = [
+  'prisma.config',
+  path.join('.config', 'prisma'),
+  path.join('.config', 'prisma.config'),
+] as const
+
+const LEGACY_CONFIG_FILE_CANDIDATES = LEGACY_CONFIG_FILE_BASENAMES.flatMap((basename) => [
+  ...LEGACY_SUPPORTED_EXTENSIONS.map((extension) => `${basename}${extension}`),
+  ...LEGACY_SUPPORTED_EXTENSIONS.map((extension) => path.join(basename, `index${extension}`)),
+])
 
 /**
  * Find the highest-precedence Prisma 7-specific config file without loading it.

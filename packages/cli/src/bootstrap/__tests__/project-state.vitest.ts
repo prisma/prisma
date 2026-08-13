@@ -111,6 +111,16 @@ model User {
     expect(detectProjectState(tmpDir).hasPrismaConfig).toBe(true)
   })
 
+  test.each([
+    path.join('prisma.config', 'index.ts'),
+    path.join('.config', 'prisma', 'index.ts'),
+    path.join('.config', 'prisma.config', 'index.ts'),
+  ])('detects the legacy index config at %s', (configPath) => {
+    writeConfig(configPath)
+
+    expect(detectProjectState(tmpDir).hasPrismaConfig).toBe(true)
+  })
+
   test('detects .env', () => {
     fs.writeFileSync(path.join(tmpDir, '.env'), 'DATABASE_URL=test', 'utf-8')
     const state = detectProjectState(tmpDir)
@@ -200,6 +210,22 @@ model User {
 
     expect(detectProjectState(tmpDir).hasSeedScript).toBe(true)
   })
+
+  test.each([
+    {
+      selected: path.join('prisma.config', 'index.cts'),
+      lowerPrecedence: path.join('.config', 'prisma.js'),
+    },
+    {
+      selected: path.join('.config', 'prisma', 'index.cts'),
+      lowerPrecedence: path.join('.config', 'prisma.config.js'),
+    },
+  ])('inspects $selected before $lowerPrecedence for seed metadata', ({ selected, lowerPrecedence }) => {
+    writeConfig(selected)
+    writeConfig(lowerPrecedence, `export default { migrations: { seed: 'node ignored-seed.js' } }`)
+
+    expect(detectProjectState(tmpDir).hasSeedScript).toBe(false)
+  })
 })
 
 describe('getModelNames', () => {
@@ -272,6 +298,15 @@ describe('getSeedCommand', () => {
     writeConfig('prisma7.config.cjs', `module.exports = { migrations: { seed: 'node selected-seed.js' } }`)
     writeConfig(path.join('.config', 'prisma7.js'), `export default { migrations: { seed: 'node ignored-seed.js' } }`)
     writeConfig('prisma.config.js', `export default { migrations: { seed: 'node legacy-seed.js' } }`)
+
+    expect(getSeedCommand(tmpDir)).toBe('node selected-seed.js')
+  })
+
+  test('returns the seed command from the final legacy index location', () => {
+    writeConfig(
+      path.join('.config', 'prisma.config', 'index.mts'),
+      `export default { migrations: { seed: 'node selected-seed.js' } }`,
+    )
 
     expect(getSeedCommand(tmpDir)).toBe('node selected-seed.js')
   })
