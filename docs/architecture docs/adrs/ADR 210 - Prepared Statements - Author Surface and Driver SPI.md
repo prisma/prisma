@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. May 5, 2026.
+Accepted. May 5, 2026. Amended August 12, 2026 to reflect the shipped two-method SQL driver surface and the current error namespace.
 
 ## Overview
 
@@ -105,7 +105,7 @@ The async return reflects an existing constraint, not a new one. `beforeCompile`
 
 ## Driver SPI
 
-Prepared execution uses the existing `SqlQueryable.query()` method. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
+The SQL driver surface has two semantic methods: `query()` streams rows and `execute()` returns statement statistics. Prepared-ness is a property of the request, not a third method. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
 
 ```ts
 interface PreparedStatementHandle {
@@ -121,10 +121,11 @@ interface SqlExecuteRequest {
 
 interface SqlQueryable {
   query<Row>(request: SqlExecuteRequest): AsyncIterable<Row>;
+  execute(request: SqlExecuteRequest): Promise<{ affectedRows: number }>;
 }
 ```
 
-The driver receives the lowered SQL, encoded params, and a slot wrapper — never the `PreparedStatement` object. The runtime constructs the slot wrapper around the `PreparedStatement`'s handle field; reads and writes flow through that single field on the user's object.
+`query()` is the row-streaming path. `execute()` is the non-row path for a single statement and returns the driver's actual affected-row statistic. Both methods accept the same request shape, including the optional prepared handle. The driver receives the lowered SQL, encoded params, and a slot wrapper — never the `PreparedStatement` object. The runtime constructs the slot wrapper around the `PreparedStatement`'s handle field; reads and writes flow through that single field on the user's object.
 
 ### Lazy handle allocation
 
@@ -156,7 +157,7 @@ The framework guarantees one retry path:
 - On detection, the driver clears the slot and allocates a fresh handle (calls `req.preparedStatementHandle.set(newHandle)` with a new value).
 - The driver retries the query exactly once.
 - On retry success, the user observes one `.query()` call that succeeded.
-- On retry failure, the driver surfaces `DRIVER.PREPARE_FAILED`, preserving the originating error as `cause`. The error envelope is defined by [ADR 027 — Error Envelope Stable Codes](./ADR%20027%20-%20Error%20Envelope%20Stable%20Codes.md), which reserves `DRIVER.PREPARE_FAILED` for exactly this surface.
+- On retry failure, the driver surfaces `DRIVER.PREPARE_FAILED`, preserving the originating error as `cause`. The error envelope is defined by [ADR 239 — Errors are structural envelopes with dotted namespace codes](./ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md), which reserves `DRIVER.PREPARE_FAILED` for exactly this surface.
 
 Detection sensitivity is a per-driver tradeoff. Some targets surface a clean signal that says "this prepared plan is gone"; the driver retries narrowly. Others have no such signal; the driver may treat any error originating from a cached query as a candidate for re-prepare. In the second case the false-positive cost is one extra preparation, paid only on otherwise-failing queries — the bound is small and self-correcting. The framework neither prefers nor mandates either policy; it pins the contract (clear, allocate, retry once, surface) and leaves the trigger to the driver (see [design principle #4](#design-principles)).
 
@@ -208,5 +209,5 @@ The following are deliberate exclusions, not omissions:
 ## References
 
 - [ADR 016 — Adapter SPI for Lowering](./ADR%20016%20-%20Adapter%20SPI%20for%20Lowering.md) defines the adapter SPI used by prepared queries. Lowering runs once at `prepare` time and is bypassed on the prepared query path.
-- [ADR 027 — Error Envelope Stable Codes](./ADR%20027%20-%20Error%20Envelope%20Stable%20Codes.md) defines the `DRIVER.PREPARE_FAILED` envelope returned when stale-handle retry fails.
+- [ADR 239 — Errors are structural envelopes with dotted namespace codes](./ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md) defines the `DRIVER.PREPARE_FAILED` envelope returned when stale-handle retry fails.
 - [ADR 205 — SQL cast emission is adapter policy](./ADR%20205%20-%20SQL%20cast%20emission%20is%20adapter%20policy.md) describes when adapters emit explicit type casts on parameter sites. A cached prepared plan keeps parameter types stable across queries, so unconditional casts are not required for correctness on the prepared path.

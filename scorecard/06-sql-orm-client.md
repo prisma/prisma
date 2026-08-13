@@ -27,10 +27,10 @@ Legend:
 | `update` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/update.test.ts`; `test/e2e/framework/test/sqlite/orm.test.ts` (`update`) |
 | Empty-data `update` returns the matched row | ❌ | 🟡 | — | `test/integration/test/ports/prisma/functional/extended-where/extended-where.test.ts` (`update with where 1 unique (PK)`) |
 | `updateAll` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/update.test.ts` (`updateAll`) |
-| `updateAndCount` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/update.test.ts` (`updateAndCount`) |
+| `updateAndCount` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/update.test.ts` (`updateAndCount`, one write statement); `test/integration/test/sql-orm-client/count-terminal-interleaving.test.ts` (write-derived count) |
 | `delete` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/delete.test.ts` (`delete`) |
 | `deleteAll` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/delete.test.ts` (`deleteAll`) |
-| `deleteAndCount` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/delete.test.ts` (`deleteAndCount`); `test/e2e/framework/test/sqlite/orm.test.ts` (`deleteAndCount`) |
+| `deleteAndCount` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/delete.test.ts` (`deleteAndCount`, one write statement); `test/e2e/framework/test/sqlite/orm.test.ts` (`deleteAndCount`) |
 | `upsert` (conflict fallback + explicit criteria) | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/upsert.test.ts` |
 | Mutation result reload by `Bytes` primary/unique key | ❌ | 🟡 | — | `test/integration/test/ports/prisma/functional/bytes-upsert/bytes-upsert.test.ts`; `test/integration/test/ports/prisma/functional/issues-27455-bytes-id/issues-27455-bytes-id.test.ts` |
 | `aggregate(spec)` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/aggregate.test.ts` |
@@ -64,3 +64,5 @@ Legend:
 | `Prisma.skip` | ❌ | ❌ | — | |
 | `strictUndefinedChecks` | ❌ | ❌ | — | |
 | `findUnique` auto-batching (dataloader) | ❌ | ❌ | — | |
+
+Count terminals use the write statement's native statistic. Postgres reports command-tag matched rows, including no-op updates; SQLite reports `StatementSync.run().changes` (`sqlite3_changes64()`), so its count is target-specific rather than a cross-database normalization. `updateAndCount` support is shipped for both SQL targets; the SQLite row remains 🟡 until a qualifying SQLite integration assertion is added. `deleteAndCount` has SQLite end-to-end evidence above.
