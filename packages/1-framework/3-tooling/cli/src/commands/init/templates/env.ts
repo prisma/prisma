@@ -14,7 +14,7 @@ import type { TargetId } from './code-templates';
  * lies to every freshly initialised user.
  */
 export const MIN_SERVER_VERSION: Record<TargetId, string> = {
-  postgres: '17',
+  postgres: '15',
   mongo: '8.0',
 };
 

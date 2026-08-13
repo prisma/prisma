@@ -44,7 +44,7 @@ $ pnpm prisma-next migrate --to prod --db $DB --config fixtures/diamond/prisma-n
 **Workaround.** Treat the fixtures as offline-only (graph rendering) for now. For a live apply walkthrough, create a fresh fixture with the current CLI (`contract emit` + `migration plan`) instead of reusing the committed ones.
 
 **Reproduction.**
-1. `docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=postgres postgres:17-alpine`, create any empty database.
+1. `docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=postgres postgres:15-alpine`, create any empty database.
 2. `cd examples/prisma-8-demo && pnpm prisma-next contract emit --config fixtures/diamond/prisma-next.config.ts`
 3. `pnpm prisma-next migrate --to prod --db <url> --config fixtures/diamond/prisma-next.config.ts` → PN-CLI-4003 as above.
 
