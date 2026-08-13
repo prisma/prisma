@@ -513,33 +513,33 @@ describe('loadConfigFromFile', () => {
       expect(diagnostics).toEqual([])
     })
 
-    describe.each([
-      { configPath: 'prisma7.config.ts' },
-      { configPath: path.join('.config', 'prisma7.ts') },
-    ])('$configPath', ({ configPath }) => {
-      it('resolves relative paths from the selected config file', async () => {
-        ctx.fixture('loadConfigFromFile/default-location/ignore')
-        writeConfig(configPath, {
-          schema: path.join('custom', 'schema.prisma'),
-          migrations: { path: path.join('custom', 'migrations') },
-          typedSql: { path: path.join('custom', 'typedSql') },
-          views: { path: path.join('custom', 'views') },
-        })
-        const configDirectory = path.dirname(path.join(ctx.fs.cwd(), configPath))
+    describe.each([{ configPath: 'prisma7.config.ts' }, { configPath: path.join('.config', 'prisma7.ts') }])(
+      '$configPath',
+      ({ configPath }) => {
+        it('resolves relative paths from the selected config file', async () => {
+          ctx.fixture('loadConfigFromFile/default-location/ignore')
+          writeConfig(configPath, {
+            schema: path.join('custom', 'schema.prisma'),
+            migrations: { path: path.join('custom', 'migrations') },
+            typedSql: { path: path.join('custom', 'typedSql') },
+            views: { path: path.join('custom', 'views') },
+          })
+          const configDirectory = path.dirname(path.join(ctx.fs.cwd(), configPath))
 
-        const { config, error, resolvedPath } = await loadConfigFromFile({})
+          const { config, error, resolvedPath } = await loadConfigFromFile({})
 
-        expect(resolvedPath).toBe(path.join(ctx.fs.cwd(), configPath))
-        expect(config).toMatchObject({
-          loadedFromFile: resolvedPath,
-          schema: path.join(configDirectory, 'custom', 'schema.prisma'),
-          migrations: { path: path.join(configDirectory, 'custom', 'migrations') },
-          typedSql: { path: path.join(configDirectory, 'custom', 'typedSql') },
-          views: { path: path.join(configDirectory, 'custom', 'views') },
+          expect(resolvedPath).toBe(path.join(ctx.fs.cwd(), configPath))
+          expect(config).toMatchObject({
+            loadedFromFile: resolvedPath,
+            schema: path.join(configDirectory, 'custom', 'schema.prisma'),
+            migrations: { path: path.join(configDirectory, 'custom', 'migrations') },
+            typedSql: { path: path.join(configDirectory, 'custom', 'typedSql') },
+            views: { path: path.join(configDirectory, 'custom', 'views') },
+          })
+          expect(error).toBeUndefined()
         })
-        expect(error).toBeUndefined()
-      })
-    })
+      },
+    )
   })
 
   describe('precedence', () => {
