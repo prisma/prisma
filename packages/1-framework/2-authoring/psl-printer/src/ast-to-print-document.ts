@@ -2,6 +2,7 @@ import type {
   PslAttribute,
   PslAttributeArgument,
   PslDocumentAst,
+  PslExtensionBlock,
   PslField,
   PslModel,
   PslNamedTypeDeclaration,
@@ -45,17 +46,30 @@ export function astDocumentToPrintDocument(ast: PslDocumentAst): PrintDocument {
     ? ast.types.declarations.map(namedTypeDeclarationToPrinterNamedType)
     : [];
 
-  const namespaceSections: PrintNamespaceSection[] = ast.namespaces.map((namespace) => {
-    const namespaceModels = sortedModels.filter(
-      (model) => modelNamespaceIndex.get(model.name) === namespace.name,
-    );
-    const printerModels = namespaceModels.map((m) => modelToPrinterModel(m));
-    return {
-      name: namespace.name,
-      models: printerModels,
-      extensionBlocks: namespacePslExtensionBlocks(namespace),
-    };
-  });
+  // A namespace's name is its identity, but `ast.namespaces` is an array, so
+  // a producer can hand over two entries sharing one name. Models are
+  // bucketed by name, so a section per entry would claim the same models
+  // twice and print each of them twice. One section per distinct name, taking
+  // the union of the entries' extension blocks.
+  const extensionBlocksByName = new Map<string, PslExtensionBlock[]>();
+  for (const namespace of ast.namespaces) {
+    const blocks = extensionBlocksByName.get(namespace.name);
+    if (blocks) {
+      blocks.push(...namespacePslExtensionBlocks(namespace));
+    } else {
+      extensionBlocksByName.set(namespace.name, [...namespacePslExtensionBlocks(namespace)]);
+    }
+  }
+
+  const namespaceSections: PrintNamespaceSection[] = [...extensionBlocksByName].map(
+    ([name, extensionBlocks]) => ({
+      name,
+      models: sortedModels
+        .filter((model) => modelNamespaceIndex.get(model.name) === name)
+        .map((m) => modelToPrinterModel(m)),
+      extensionBlocks,
+    }),
+  );
 
   // Ensure the synthesised `__unspecified__` bucket sorts first so top-level
   // declarations print before any `namespace { … }` blocks — matches what a
