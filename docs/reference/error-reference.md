@@ -37,6 +37,14 @@ Namespaces:
 
 The `contract` section is missing (or incomplete) in `prisma.config.ts` when a command needs it — raised by `prisma-next contract emit` when the config has no contract configuration, no schema path, or the referenced authoring entrypoint cannot be resolved. Meta: none.
 
+### CONFIG.DEPRECATED_FILENAME
+
+The config was discovered under the deprecated `prisma-next.config.ts` filename. The load succeeds; the config loader prints a deprecation warning on stderr for every command that reads config. The fix is to rename the file to `prisma.config.ts`. Meta: none.
+
+### CONFIG.DEPRECATED_SHAPE
+
+The config module exports the deprecated flat Prisma Next shape (the target `defineConfig` result at top level). The load succeeds; the config loader prints a deprecation warning on stderr for every command that reads config. The fix is to wrap the config in an `orm` section with `defineConfig` from `@prisma/cli-engine`: `export default defineConfig({ orm: { … } })`. Meta: none.
+
 ### CONFIG.DB_CONNECTION_REQUIRED
 
 A DB-connected command (`migrate`, `db init`, `db sign`, `db verify`, `db update`, `inspect-live-schema`, and the migration scaffold commands) was run with no database connection available — no `--db <url>` flag and no `db.connection` in `prisma.config.ts`. The fix text names the exact retry command when known. Meta: `missingFlags` (optional).
