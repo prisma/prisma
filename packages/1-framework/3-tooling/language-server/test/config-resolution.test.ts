@@ -24,7 +24,9 @@ function mockLoadedConfig(
   config: PrismaNextConfig,
   diagnostics: readonly CliStructuredError[] = [],
 ): void {
-  vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(ok({ config, diagnostics }));
+  vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(
+    ok({ config, diagnostics, deprecations: [] }),
+  );
 }
 
 function mockLoadFailure(failure: CliStructuredError): void {
