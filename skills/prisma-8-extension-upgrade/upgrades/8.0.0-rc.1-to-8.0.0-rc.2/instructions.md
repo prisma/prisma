@@ -303,6 +303,27 @@ changes:
       contains:
         - "prisma-next"
       anyMatch: true
+  - id: prepared-statements-split-by-declared-result
+    summary: |
+      `runtime.prepare()` now returns one of two handles, chosen from the plan the callback
+      builds: a rows plan gives the `PreparedStatement<Params, Row>` you already have,
+      consumed with `.query(target, params)`; a plan whose declared result is an affected-row
+      count gives a `PreparedExecution<Params>`, consumed with `.execute(target, params)` and
+      resolving `SqlStatementStats`. Two things follow for an extension. A facade that
+      redeclares `prepare()` changes its return type from
+      `Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>>` to
+      `Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>>`, importing `PreparedFor` from
+      `@internal/sql-runtime` — no logic changes. A scope of your own that installs the
+      prepared-query bridge (`preparedStatementQuery`) must also install the execute bridge
+      (`preparedStatementExecute`, from `@internal/sql-runtime/internal/prepared-query`),
+      routing it to your bound queryable exactly as the query bridge does; without it,
+      `prepared.execute(yourScope, ...)` throws on the bridge invariant.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      contains:
+        - "preparedStatementQuery"
+        - "PreparedStatement<ParamsFromDeclaration"
+      anyMatch: true
 ---
 
 # 8.0.0-rc.1 → 8.0.0-rc.2 — Extension-author upgrade instructions
@@ -643,3 +664,44 @@ from the toolchain. That chain is gone: the published toolchain is bin-less and 
 `orm` command family at `@prisma/orm-toolchain/cli` for the unified `prisma` CLI (the
 prisma-cli distribution) to mount. Point scripts and CI at the unified CLI, which serves the
 same command paths.
+
+## `prepared-statements-split-by-declared-result`
+
+The prepared surface answers what the plan declared. A rows plan still prepares into a
+`PreparedStatement` you consume by querying it; a plan built from a statement that reports an
+affected-row count prepares into a `PreparedExecution` you consume by executing it, which
+resolves `SqlStatementStats` rather than streaming rows. The two handles share no consumption
+method, so neither can be read the wrong way round.
+
+Extensions meet this in two places.
+
+**A facade that redeclares `prepare()`** — as the in-tree database facades do — swaps the
+declared return type and nothing else:
+
+```ts
+// Before
+): Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>> {
+// After
+): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>> {
+```
+
+`PreparedFor` comes from `@internal/sql-runtime` and resolves to whichever handle the plan
+earns.
+
+**A scope of your own** — a session, a role context, any object you hand to
+`prepared.query(...)` — carries the prepared bridges. If it installs `preparedStatementQuery`,
+it must now also install `preparedStatementExecute` beside it, routing to the same queryable:
+
+```ts
+[preparedStatementExecute]<Params>(
+  prepared: PreparedExecution<Params>,
+  params: Params,
+  options?: RuntimeExecuteOptions,
+): Promise<SqlStatementStats> {
+  return runPreparedExecuteAgainstYourQueryable(prepared, params, yourQueryable, options);
+}
+```
+
+Both symbols come from `@internal/sql-runtime/internal/prepared-query`. A scope missing the
+execute bridge typechecks but throws on the bridge invariant the first time someone executes a
+prepared statement against it.
