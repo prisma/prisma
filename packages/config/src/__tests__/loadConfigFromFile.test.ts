@@ -459,6 +459,23 @@ describe('loadConfigFromFile', () => {
       expect(error).toBeUndefined()
     })
 
+    it.each([
+      { configPath: 'prisma7.config.ts', description: 'Prisma 7-specific' },
+      { configPath: path.join('custom', 'selected.ts'), description: 'custom' },
+    ])('attributes an explicit invalid $description config to its requested path', async ({ configPath }) => {
+      ctx.fixture('loadConfigFromFile/default-location/ignore')
+      ctx.fs.write(configPath, 'export default {')
+      writeConfig(path.join('.config', 'prisma7.js'))
+      writeConfig('prisma.config.js')
+      const expectedResolvedPath = path.resolve(ctx.fs.cwd(), configPath)
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({ configFile: configPath })
+
+      expect(resolvedPath).toBe(expectedResolvedPath)
+      expect(config).toBeUndefined()
+      assertErrorConfigLoadError(error)
+    })
+
     it('does not fall back when the selected versioned config fails to load', async () => {
       ctx.fixture('loadConfigFromFile/default-location/ignore')
       ctx.fs.write('prisma7.config.ts', 'export default {')
