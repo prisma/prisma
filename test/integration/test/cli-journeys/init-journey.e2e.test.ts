@@ -59,7 +59,7 @@ describe.each(ALL_CELLS.map((cell) => ({ cell, label: cellLabel(cell) })))(
     afterAll(async () => {
       await ctx?.database?.close();
       ctx?.project?.cleanup();
-    });
+    }, timeouts.spinUpDbServer);
 
     it('step 1 (init): scaffolds the expected project skeleton', () => {
       expect(ctx.project.initResult.exitCode, formatInitDiagnostic(ctx.project)).toBe(0);
