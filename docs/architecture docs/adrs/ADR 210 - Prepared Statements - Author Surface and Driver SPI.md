@@ -10,7 +10,7 @@ Executing a SQL DSL query end to end has three costs: lowering the relational AS
 
 Two of those costs are amortizable. Lowering depends only on the AST, so the result can be cached. Most SQL servers can keep a parsed plan keyed by a name in the connection's session and reuse it on subsequent executions; the client sends `EXECUTE` once the plan is registered, skipping the parse.
 
-The SQL DSL exposes one primitive that opts into both kinds of reuse: a *prepared statement*. The user calls `db.prepare(declaration, callback)` once and gets back a `PreparedStatement<Params, Row>` object. The runtime invokes the callback to obtain a plan, runs the `beforeCompile` middleware chain on it, lowers the result once, and freezes the lowered SQL onto the object. On the first `.query()` against a connection, the driver allocates whatever per-target handle it needs — a name, a statement reference, an integer, anything — and stores it back on the `PreparedStatement` through a slot wrapper. Subsequent queries reuse the lowered SQL and the handle until the connection ends. Ad-hoc low-level requests without a `preparedStatementHandle` are one-shot requests; the driver does not read or initialize a slot for them.
+The SQL DSL exposes one primitive that opts into both kinds of reuse: a *prepared statement*. The user calls `db.prepare(declaration, callback)` once and gets back a `PreparedStatement<Params, Row>` object. The runtime invokes the callback to obtain a plan, runs the `beforeCompile` middleware chain on it, lowers the result once, and freezes the lowered SQL onto the object. On the first `.query()` against a connection, the driver allocates whatever per-target handle it needs — a name, a statement reference, an integer, anything — and stores it back on the `PreparedStatement` through a slot wrapper. Subsequent queries reuse the lowered SQL and the handle until the connection ends.
 
 The primitive lives on the runtime: the underlying call is `runtime.prepare(declaration, callback)`. It lives there because the `beforeCompile` middleware chain is owned and invoked by the runtime, and `prepare` has to run that chain so AST rewrites are baked into the lowered SQL. Each DB-specific facade (the Postgres client, the SQLite client, etc.) re-exposes `prepare(declaration, callback)` as a top-level convenience method that delegates to the runtime. The `db` proxy returned by `sql({ context })` itself is unchanged — it still maps top-level keys to user-defined tables and exposes nothing else.
 
@@ -105,7 +105,7 @@ The async return reflects an existing constraint, not a new one. `beforeCompile`
 
 ## Driver SPI
 
-`SqlQueryable.query()` streams rows; `SqlQueryable.execute()` returns statement statistics. Prepared statements are row queries, so the public prepared-statement API uses `query()` and does not add a public prepared-statistics runtime API. A low-level request may carry an opaque handle slot:
+`SqlQueryable.query()` streams rows; `SqlQueryable.execute()` returns statement statistics. Prepared statements use the row-query operation. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
 
 ```ts
 interface PreparedStatementHandle {
@@ -117,10 +117,6 @@ interface SqlExecuteRequest {
   readonly sql: string;
   readonly params?: readonly unknown[];
   readonly preparedStatementHandle?: PreparedStatementHandle;
-}
-
-interface PreparedExecuteRequest extends SqlExecuteRequest {
-  readonly preparedStatementHandle: PreparedStatementHandle;
 }
 
 interface SqlStatementStats {
@@ -142,7 +138,7 @@ The driver receives the lowered SQL, encoded params, and a slot wrapper — neve
 
 ### Lazy handle allocation
 
-The slot starts unset for a prepared request. `preparedStatementHandle` is optional on `SqlExecuteRequest`, so the driver MUST first branch on whether it is present. When it is `undefined`, `query()` or `execute()` performs a one-shot parameterized request without reading or initializing a slot. When it is present, the expected pattern is to read `req.preparedStatementHandle.get()`; if it is undefined, mint a handle of the driver's choosing and call `req.preparedStatementHandle.set(handle)`; thereafter, reuse the handle while the underlying server-side prepared plan is valid. `PreparedStatement.query()` is the public prepared path; a low-level caller may also pass a `PreparedExecuteRequest` to `SqlQueryable.execute()`, which follows the same handle, stale-plan, and retry rules. The runtime does not expose a public prepared-statistics API.
+The slot starts unset. On each call, the driver decides whether to allocate. The expected pattern is: read `req.preparedStatementHandle.get()`; if undefined, mint a handle of the driver's choosing and call `req.preparedStatementHandle.set(handle)`; thereafter, reuse the handle on calls against connections where the underlying server-side prepared plan is still valid.
 
 Handle shape is the driver's choice and opaque to the runtime. The runtime never branches on the handle's shape, never logs it, and never compares two handles for equality. Allocation MUST be cheap and synchronous — the call sits inside an async-iterable query path, and the framework guarantees no I/O cost for handle allocation itself. Beyond that, the driver is free.
 
@@ -164,15 +160,13 @@ Memory upper bound is roughly *(distinct PreparedStatements) × (live connection
 
 Server-side prepared plans outlive any single `.query()` call. A schema migration can change a column type, an administrator can reset the session, or a connection-internal eviction can drop the plan — any of which leaves the cached plan out of sync with the server's view.
 
-The framework guarantees one retry path for a prepared `query()` or a low-level `execute()` request that carries a handle:
+The framework guarantees one retry path:
 
 - The driver detects the staleness signal — its mechanism, its detection sensitivity.
 - On detection, the driver clears the slot and allocates a fresh handle (calls `req.preparedStatementHandle.set(newHandle)` with a new value).
-- The driver retries the same terminal exactly once.
-- On retry success, the user observes one query or execute call that succeeded.
-- On retry failure, the driver surfaces `DRIVER.PREPARE_FAILED`, preserving the originating error as `cause`. The error envelope is defined by [ADR 027 — Error Envelope Stable Codes](./ADR%20027%20-%20Error%20Envelope Stable Codes.md), which reserves `DRIVER.PREPARE_FAILED` for exactly this surface.
-
-Requests without a handle do not enter this lifecycle: they are one-shot calls and have no slot to clear or reinitialize.
+- The driver retries the query exactly once.
+- On retry success, the user observes one `.query()` call that succeeded.
+- On retry failure, the driver surfaces `DRIVER.PREPARE_FAILED`, preserving the originating error as `cause`. The error envelope is defined by [ADR 027 — Error Envelope Stable Codes](./ADR%20027%20-%20Error%20Envelope%20Stable%20Codes.md), which reserves `DRIVER.PREPARE_FAILED` for exactly this surface.
 
 Detection sensitivity is a per-driver tradeoff. Some targets surface a clean signal that says "this prepared plan is gone"; the driver retries narrowly. Others have no such signal; the driver may treat any error originating from a cached query as a candidate for re-prepare. In the second case the false-positive cost is one extra preparation, paid only on otherwise-failing queries — the bound is small and self-correcting. The framework neither prefers nor mandates either policy; it pins the contract (clear, allocate, retry once, surface) and leaves the trigger to the driver (see [design principle #4](#design-principles)).
 
@@ -182,7 +176,7 @@ The runtime never re-lowers on retry. The lowered SQL on the `PreparedStatement`
 
 Some deployment topologies cannot rely on server-side prepared-plan persistence. The most common case is a connection multiplexer or pooling proxy that may switch the underlying physical connection between calls — a plan registered on one physical connection isn't visible on the next, and the cached handle silently breaks. Whether server-side reuse is safe is a topology question, not a target-version question, so neither the contract nor the driver tries to auto-detect it.
 
-The supported escape hatch is an explicit driver option: `preparedStatements: boolean`, default `true`. When `false`, prepared `query()` runs a one-shot parameterized query and leaves the handle slot unset. A low-level `execute()` request can likewise omit the handle and run one-shot. The lowered SQL on the `PreparedStatement` is still reused — that is the universal half of the benefit, independent of server-side preparation. Users keep the lowering reuse and lose the parse-skip; the tradeoff is explicit.
+The supported escape hatch is an explicit driver option: `preparedStatements: boolean`, default `true`. When `false`, prepared `query()` runs a one-shot parameterized query and leaves the handle slot unset. The lowered SQL on the `PreparedStatement` is still reused — that is the universal half of the benefit, independent of server-side preparation. Users keep the lowering reuse and lose the parse-skip; the tradeoff is explicit.
 
 The driver does not auto-detect topology. Auto-detection is unreliable (greeting strings vary, transparent proxies exist) and shifts a correctness decision from configuration to heuristics. Users opt out explicitly and own the decision.
 
