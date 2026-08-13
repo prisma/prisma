@@ -397,6 +397,12 @@ describe('transitiveImports', () => {
     expect(transitiveImports(clean, postgresFacade)).toEqual([]);
   });
 
+  it('allows @prisma/cli-engine, which init installs into the application directly', () => {
+    const configImport = importing('@prisma/cli-engine', '@prisma/orm-postgres/config');
+
+    expect(transitiveImports(configImport, postgresFacade)).toEqual([]);
+  });
+
   it('reports a published package the application does not install directly', () => {
     const leaky = importing(
       '@prisma/orm-postgres/contract/types',

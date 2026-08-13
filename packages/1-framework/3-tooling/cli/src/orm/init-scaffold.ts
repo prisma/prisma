@@ -44,7 +44,7 @@ interface FileEntry {
   readonly note?: string;
 }
 
-const CONFIG_FILE = 'prisma-next.config.ts';
+const CONFIG_FILE = 'prisma.config.ts';
 const QUICK_REFERENCE_FILE = 'prisma-next.md';
 const ENV_EXAMPLE_FILE = '.env.example';
 
@@ -178,7 +178,7 @@ function planScaffold(ctx: {
   const configContractPath = isAbsolute(inputs.schemaPath)
     ? inputs.schemaPath
     : `./${inputs.schemaPath}`;
-  const runPrefix = formatRunCommand(packageManager, 'prisma-next', '').trimEnd();
+  const runPrefix = formatRunCommand(packageManager, 'prisma-cli', '').trimEnd();
 
   const files: FileEntry[] = [
     {

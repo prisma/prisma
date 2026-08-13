@@ -38,17 +38,20 @@ If you use a framework like Next.js or Vite, the Prisma Next plugin will do this
 
 ## Configuration
 
-[`prisma-next.config.ts`](prisma-next.config.ts) tells the CLI where your contract lives and how to connect to your database. It loads environment variables from `.env` automatically:
+[`prisma.config.ts`](prisma.config.ts) tells the CLI where your contract lives and how to connect to your database. It loads environment variables from `.env` automatically:
 
 ```typescript
 import 'dotenv/config';
-import { defineConfig } from '{{configEntrypoint}}';
+import { defineConfig } from '@prisma/cli-engine';
+import { defineConfig as ormConfig } from '{{configEntrypoint}}';
 
 export default defineConfig({
-  contract: './{{schemaPath}}',
-  db: {
-    connection: process.env['DATABASE_URL']!,
-  },
+  orm: ormConfig({
+    contract: './{{schemaPath}}',
+    db: {
+      connection: process.env['DATABASE_URL']!,
+    },
+  }),
 });
 ```
 
@@ -75,7 +78,7 @@ You can customize how your environment variables are loaded by changing or remov
 | File | Purpose |
 |---|---|
 | [`{{schemaPath}}`]({{schemaPath}}) | Your data contract — define your models here |
-| [`prisma-next.config.ts`](prisma-next.config.ts) | CLI configuration |
+| [`prisma.config.ts`](prisma.config.ts) | CLI configuration |
 | [`{{schemaDir}}/db.ts`]({{schemaDir}}/db.ts) | Database client — `import { db } from '{{dbImportPath}}'` |
 | `{{schemaDir}}/contract.json` | Compiled contract (generated) |
 | `{{schemaDir}}/contract.d.ts` | Contract types (generated) |

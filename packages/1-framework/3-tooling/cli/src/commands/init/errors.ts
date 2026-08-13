@@ -8,7 +8,7 @@ import { CliStructuredError } from '../../utils/cli-errors';
  */
 export function errorInitReinitNeedsForce(): CliStructuredError {
   return new CliStructuredError('CLI.INIT_REINIT_NEEDS_FORCE', 'Project is already initialized', {
-    why: 'A `prisma-next.config.ts` already exists in this directory. Re-running `init` would overwrite the scaffolded files; in non-interactive mode `init` will not do that without `--force`.',
+    why: 'A `prisma.config.ts` already exists in this directory. Re-running `init` would overwrite the scaffolded files; in non-interactive mode `init` will not do that without `--force`.',
     fix: 'Pass `--force` to overwrite the existing scaffold, or run `init` interactively to confirm.',
     docsUrl: docsUrlFor('CLI.INIT_REINIT_NEEDS_FORCE'),
   });

@@ -7,7 +7,7 @@ import {
 } from 'jsonc-parser';
 
 /**
- * Compiler options the scaffolded `prisma-next.config.ts` and `db.ts` need
+ * Compiler options the scaffolded `prisma.config.ts` and `db.ts` need
  * to typecheck:
  *
  * - `module: 'preserve'` + `moduleResolution: 'bundler'` align with how

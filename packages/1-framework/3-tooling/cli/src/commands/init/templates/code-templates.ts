@@ -301,13 +301,16 @@ export function configFile(
 ): string {
   const configEntrypoint = targetEntrypoint(target, 'config', resolveImportSpecifier);
   return `import 'dotenv/config';
-import { defineConfig } from '${configEntrypoint}';
+import { defineConfig } from '@prisma/cli-engine';
+import { defineConfig as ormConfig } from '${configEntrypoint}';
 
 export default defineConfig({
-  contract: ${JSON.stringify(contractPath)},
-  db: {
-    connection: process.env['DATABASE_URL']!,
-  },
+  orm: ormConfig({
+    contract: ${JSON.stringify(contractPath)},
+    db: {
+      connection: process.env['DATABASE_URL']!,
+    },
+  }),
 });
 `;
 }

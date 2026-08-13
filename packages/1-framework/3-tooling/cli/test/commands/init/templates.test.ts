@@ -220,7 +220,7 @@ describe('templates', () => {
       expect(md).toContain('src/prisma/contract.prisma');
       expect(md).toContain('src/prisma/contract.json');
       expect(md).toContain('src/prisma/db.ts');
-      expect(md).toContain('prisma-next.config.ts');
+      expect(md).toContain('prisma.config.ts');
     });
 
     it('contains postgres-specific content', () => {
