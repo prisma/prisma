@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import packageJson from '../package.json' with { type: 'json' };
@@ -6,7 +7,9 @@ import packageJson from '../package.json' with { type: 'json' };
 const binPath = join(import.meta.dirname, '../dist/bin.mjs');
 
 describe('prisma-next --version', () => {
-  it('--version reports the package.json version in the completed envelope', () => {
+  it('--version reports the package.json version in the completed envelope', {
+    timeout: timeouts.coldTransformImport,
+  }, () => {
     const result = spawnSync(process.execPath, [binPath, '--version', '--format', 'json'], {
       encoding: 'utf8',
     });
