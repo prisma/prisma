@@ -27,7 +27,7 @@ Legend:
 | `update` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/update.test.ts`; `test/e2e/framework/test/sqlite/orm.test.ts` (`update`) |
 | Empty-data `update` returns the matched row | ❌ | 🟡 | — | `test/integration/test/ports/prisma/functional/extended-where/extended-where.test.ts` (`update with where 1 unique (PK)`) |
 | `updateAll` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/update.test.ts` (`updateAll`) |
-| `updateAndCount` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/update.test.ts` (`updateAndCount`, one write statement); `test/integration/test/sql-orm-client/count-terminal-interleaving.test.ts` (write-derived count) |
+| `updateAndCount` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/update.test.ts` (`updateAndCount`, one write statement); `test/integration/test/sql-orm-client/count-terminal-interleaving.test.ts` (SQLite real-driver write-derived count) |
 | `delete` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/delete.test.ts` (`delete`) |
 | `deleteAll` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/delete.test.ts` (`deleteAll`) |
 | `deleteAndCount` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/delete.test.ts` (`deleteAndCount`, one write statement); `test/e2e/framework/test/sqlite/orm.test.ts` (`deleteAndCount`) |
@@ -65,4 +65,4 @@ Legend:
 | `strictUndefinedChecks` | ❌ | ❌ | — | |
 | `findUnique` auto-batching (dataloader) | ❌ | ❌ | — | |
 
-Count terminals use the write statement's native statistic. Postgres reports command-tag matched rows, including no-op updates; SQLite reports `StatementSync.run().changes` (`sqlite3_changes64()`), so its count is target-specific rather than a cross-database normalization. `updateAndCount` support is shipped for both SQL targets; the SQLite row remains 🟡 until a qualifying SQLite integration assertion is added. `deleteAndCount` has SQLite end-to-end evidence above.
+Count terminals use the write statement's native statistic. Postgres reports command-tag matched rows, including no-op updates; SQLite reports `StatementSync.run().changes` (`sqlite3_changes64()`), so its count is target-specific rather than a cross-database normalization. `updateAndCount` support is shipped and proven for both SQL targets; the SQLite interleaving test exercises the real SQLite driver and asserts the write-derived count. `deleteAndCount` has SQLite end-to-end evidence above.

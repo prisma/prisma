@@ -32,7 +32,7 @@ In addition to the canonical slice DoR:
 
 In addition to the canonical dispatch DoR:
 
-- [ ] If a dispatch changes a public or cross-family API shape, the brief names the design owner who approved that exact shape and links the durable decision record. An agent-authored spec is not evidence of operator approval. If the shape is unsettled, route to `drive-discussion` before implementation. (Added by the `affected-row-counts` final retro after an unapproved operation-discriminated middleware SPI was implemented and later reverted.)
+- [ ] If a dispatch changes a public or cross-family API shape, the brief names the design owner who approved that exact shape and links the durable decision record. An agent-authored spec is not evidence of operator approval. If the shape is unsettled, route to `drive-discussion` before implementation. (Added after a final retro on an unapproved operation-discriminated middleware SPI that was implemented and later reverted.)
 - [ ] Brief's "Inputs" section references the applicable [`failure-modes.md`](./failure-modes.md) entries with their dispositions in the edge-case table.
 - [ ] Brief's "Inputs" section references the applicable [`grep-library.md`](./grep-library.md) entries this dispatch should run.
 - [ ] Brief's tier is one of the three the team uses (orchestrator / mid / cheap — see [`model-tier.md`](./model-tier.md)).
