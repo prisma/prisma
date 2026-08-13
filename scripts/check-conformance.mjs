@@ -341,6 +341,44 @@ export function findEnginePinViolations({ packedPins, sourcePin }) {
 }
 
 const JS_FILE_RE = /\.m?js$/;
+const CJS_FILE_RE = /\.cjs$/;
+
+/**
+ * The manifest's bin entries as `[name, path]` pairs. npm permits the
+ * string shorthand (`"bin": "./cli.mjs"`), named after the unscoped
+ * package name; `Object.entries` over that string would yield one entry
+ * per character. Pure / side-effect-free; exported for tests.
+ *
+ * @param {Record<string, unknown>} manifest
+ * @returns {Array<[string, string]>}
+ */
+export function declaredBins(manifest) {
+  const bin = manifest.bin;
+  if (typeof bin === 'string') {
+    const name =
+      String(manifest.name ?? 'bin')
+        .split('/')
+        .pop() ?? 'bin';
+    return [[name, bin]];
+  }
+  if (bin && typeof bin === 'object') return Object.entries(bin);
+  return [];
+}
+
+/**
+ * CommonJS files inside the tarball. The lexer sweep reads ES modules;
+ * a `.cjs` file's `require()` calls are function calls, not imports, so
+ * the sweep cannot see them. Every publishable package is
+ * `type: module` today — if a `.cjs` file ever ships, the check reports
+ * it loudly instead of silently not sweeping it.
+ */
+function listPackedCommonJs(tgzPath) {
+  return execFileSync('tar', ['-tzf', tgzPath], { encoding: 'utf-8' })
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => CJS_FILE_RE.test(line))
+    .map((line) => line.replace(/^package\//, ''));
+}
 
 function readPackedManifest(tgzPath) {
   const out = execFileSync('tar', ['-xzOf', tgzPath, 'package/package.json'], {
@@ -468,6 +506,7 @@ const DEFAULT_IO = {
   readdirSync,
   readPackedManifest,
   readPackedJsSources,
+  listPackedCommonJs,
   loadOrmConfigSection,
   readSourceCliEnginePin,
   installSandbox,
@@ -497,6 +536,7 @@ export async function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
     readdirSync: readDir,
     readPackedManifest: readPacked,
     readPackedJsSources: readJsSources,
+    listPackedCommonJs: listCommonJs,
     loadOrmConfigSection: loadSection,
     readSourceCliEnginePin: readSourcePin,
     installSandbox: install,
@@ -545,6 +585,17 @@ export async function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
     const tarballPath = join(tarballDir, tarballName);
     const manifest = readPacked(tarballPath);
     packedByName.set(sourcePkg.name, { tarballPath, manifest });
+
+    const commonJsFiles = listCommonJs(tarballPath);
+    if (commonJsFiles.length > 0) {
+      findings.push({
+        check: 'import-purity',
+        kind: 'unswept-commonjs',
+        subject: sourcePkg.name,
+        summary: `${commonJsFiles.length} CommonJS file(s) in the tarball cannot be swept — require() calls are invisible to the ESM lexer, so their dependencies go unchecked`,
+        detail: commonJsFiles.join('\n'),
+      });
+    }
 
     const sources = readJsSources(tarballPath);
     totalJsFiles += sources.size;
@@ -633,7 +684,7 @@ export async function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
         detail: installed.output,
       });
     } else {
-      const bins = Object.entries(toolchain.manifest.bin ?? {});
+      const bins = declaredBins(toolchain.manifest);
       if (bins.length === 0) {
         findings.push({
           check: 'tarball',

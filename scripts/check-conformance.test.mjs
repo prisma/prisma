@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   bareImportSpecifiersIn,
   computeOverrides,
+  declaredBins,
   findEnginePinViolations,
   findImportPurityViolations,
   findValidatorViolations,
@@ -328,6 +329,7 @@ describe('runCheck', () => {
         bin: { 'prisma-next': './dist/bin__prisma-next.mjs' },
       }),
       readPackedJsSources: () => new Map([['dist/index.mjs', cleanJs]]),
+      listPackedCommonJs: () => [],
       loadOrmConfigSection: async () => ({
         name: 'orm',
         validate: () => ({ ok: false, diagnostics: [] }),
@@ -514,5 +516,24 @@ describe('runCheck', () => {
       '@prisma/orm-framework@8.0.0-rc.1':
         'file:/fake/.conformance/tarballs/prisma-orm-framework-8.0.0-rc.1.tgz',
     });
+  });
+});
+
+describe('declaredBins', () => {
+  it('expands the string shorthand under the unscoped package name', () => {
+    assert.deepEqual(declaredBins({ name: '@prisma/orm-toolchain', bin: './dist/cli.mjs' }), [
+      ['orm-toolchain', './dist/cli.mjs'],
+    ]);
+  });
+
+  it('passes the object form through', () => {
+    assert.deepEqual(declaredBins({ name: 'x', bin: { a: './a.mjs', b: './b.mjs' } }), [
+      ['a', './a.mjs'],
+      ['b', './b.mjs'],
+    ]);
+  });
+
+  it('yields nothing for a manifest with no bin', () => {
+    assert.deepEqual(declaredBins({ name: 'x' }), []);
   });
 });
