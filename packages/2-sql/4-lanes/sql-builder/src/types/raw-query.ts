@@ -34,14 +34,26 @@ export interface ContractColumnRef<
   readonly [columnOutput]?: Output;
 }
 
-/** One entry of a contract-bound row spec. */
-export type ContractRawSpecEntry =
-  | string
-  | { readonly codecId: string; readonly nullable?: boolean }
+/**
+ * One entry of a contract-bound row spec: a codec id the contract knows, that
+ * id with nullability, or a column reference.
+ *
+ * The id members are keyed on the contract's codec map rather than `string`,
+ * which is what makes an entry's literal survive inference — a `string` member
+ * inside the record constraint widens `'pg/int8@1'` to `string`, and a widened
+ * id resolves to `unknown`. Naming the map also means every id the contract
+ * carries is offered at the call site. `ParamSpec` keys its declaration the
+ * same way.
+ */
+export type ContractRawSpecEntry<CT extends Record<string, { readonly output: unknown }>> =
+  | (keyof CT & string)
+  | { readonly codecId: keyof CT & string; readonly nullable?: boolean }
   | ContractColumnRef;
 
 /** A contract-bound row spec: result-column name to the codec that decodes it. */
-export type ContractRawRowSpec = Readonly<Record<string, ContractRawSpecEntry>>;
+export type ContractRawRowSpec<CT extends Record<string, { readonly output: unknown }>> = Readonly<
+  Record<string, ContractRawSpecEntry<CT>>
+>;
 
 type EntryScopeField<Entry> = Entry extends string
   ? { codecId: Entry; nullable: false }
@@ -49,7 +61,10 @@ type EntryScopeField<Entry> = Entry extends string
     ? { codecId: Id; nullable: [N] extends [true] ? true : false }
     : never;
 
-type SpecScopeFields<Spec extends ContractRawRowSpec> = {
+type SpecScopeFields<
+  Spec extends ContractRawRowSpec<CT>,
+  CT extends Record<string, { readonly output: unknown }>,
+> = {
   [K in keyof Spec]: EntryScopeField<Spec[K]> extends infer F extends ScopeField ? F : never;
 };
 
@@ -58,7 +73,10 @@ type SpecScopeFields<Spec extends ContractRawRowSpec> = {
  * Everything else resolves from its codec id through the codec-type map, the
  * same route the query builders take.
  */
-type SpecPreResolved<Spec extends ContractRawRowSpec> = {
+type SpecPreResolved<
+  Spec extends ContractRawRowSpec<CT>,
+  CT extends Record<string, { readonly output: unknown }>,
+> = {
   [K in keyof Spec as typeof columnOutput extends keyof Spec[K] ? K : never]: NonNullable<
     Spec[K][typeof columnOutput & keyof Spec[K]]
   >;
@@ -66,9 +84,9 @@ type SpecPreResolved<Spec extends ContractRawRowSpec> = {
 
 /** The row a spec declares, resolved against the contract's codec types. */
 export type RawRowFor<
-  Spec extends ContractRawRowSpec,
+  Spec extends ContractRawRowSpec<CodecTypes>,
   CodecTypes extends Record<string, { readonly output: unknown }>,
-> = ResolveRow<SpecScopeFields<Spec>, CodecTypes, SpecPreResolved<Spec>>;
+> = ResolveRow<SpecScopeFields<Spec, CodecTypes>, CodecTypes, SpecPreResolved<Spec, CodecTypes>>;
 
 /**
  * A raw template bound to the contract: the same builder the target-agnostic
@@ -76,7 +94,9 @@ export type RawRowFor<
  */
 export interface ContractRawBuilder<CodecTypes extends Record<string, { readonly output: unknown }>>
   extends RawSqlBuilder {
-  returnsRow<Spec extends ContractRawRowSpec>(spec: Spec): RawRowQuery<RawRowFor<Spec, CodecTypes>>;
+  returnsRow<Spec extends ContractRawRowSpec<CodecTypes>>(
+    spec: Spec,
+  ): RawRowQuery<RawRowFor<Spec, CodecTypes>>;
   affectedCount(): RawAffectedCountQuery;
 }
 
