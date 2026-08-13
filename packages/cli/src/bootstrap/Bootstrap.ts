@@ -17,7 +17,7 @@ import { Init } from '../Init'
 import { Link, type LinkResult } from '../postgres/link/Link'
 import { isAlreadyLinked } from '../postgres/link/local-setup'
 import { LinkApiError, sanitizeErrorMessage } from '../postgres/link/management-api'
-import type { CliDistributionIdentity } from '../utils/cli-distribution-identity'
+import { type CliDistributionIdentity, getCliDistributionPackageName } from '../utils/cli-distribution-identity'
 import { type BootstrapStepStatus, formatBootstrapOutput } from './completion-output'
 import { detectProjectState, getModelNames, getSeedCommand } from './project-state'
 import { emitFlowCompleted, emitFlowStarted, emitStepCompleted, emitStepFailed, emitStepSkipped } from './telemetry'
@@ -128,7 +128,7 @@ export class Bootstrap implements Command {
     baseDir: string,
   ): Promise<string | HelpError> {
     const flowStart = performance.now()
-    const cliPackage = this.identity
+    const cliPackage = getCliDistributionPackageName(this.identity)
     const stepsCompleted: string[] = []
     const steps: BootstrapStepStatus = {
       init: 'skipped',
@@ -186,12 +186,12 @@ export class Bootstrap implements Command {
             templateScaffolded = steps.template === 'completed'
             if (!templateScaffolded) {
               return new HelpError(
-                `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold(`${this.identity} bootstrap`)}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx ${this.identity} bootstrap`,
+                `\n${bold(red('!'))} Template download failed and no project exists to fall back to.\n\nInitialize a project first, then re-run ${bold(`${this.identity} bootstrap`)}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx ${getCliDistributionPackageName(this.identity)}@latest bootstrap`,
               )
             }
           } else {
             return new HelpError(
-              `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold(`${this.identity} bootstrap`)}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx ${this.identity} bootstrap`,
+              `\n${bold(red('!'))} Cannot proceed without a project.\n\nInitialize a project first, then re-run ${bold(`${this.identity} bootstrap`)}:\n  ${dim('$')} npm init -y ${dim('  (or pnpm init / yarn init / bun init)')}\n  ${dim('$')} npx ${getCliDistributionPackageName(this.identity)}@latest bootstrap`,
             )
           }
         } else if (templateName) {
@@ -321,7 +321,7 @@ export class Bootstrap implements Command {
                 : `${pm} add -D ${missingDevDeps.join(' ')}`
             console.log(`  ${dim('$')} ${installHint}`)
           }
-          console.log(`  ${dim('$')} npx ${this.identity}@latest bootstrap`)
+          console.log(`  ${dim('$')} npx ${getCliDistributionPackageName(this.identity)}@latest bootstrap`)
 
           return formatBootstrapOutput({
             databaseId: telemetryCtx.linkResult?.databaseId ?? databaseId ?? 'unknown',

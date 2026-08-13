@@ -17,9 +17,9 @@ importers:
       '@prisma/client-runtime-utils':
         specifier: /tmp/prisma-client-runtime-utils-0.0.0.tgz
         version: file:../../tmp/prisma-client-runtime-utils-0.0.0.tgz
-      prisma7:
-        specifier: /tmp/prisma7-0.0.0.tgz
-        version: file:../../tmp/prisma7-0.0.0.tgz(@types/react@19.2.18)(better-sqlite3@12.11.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.7.3)
+      '@prisma/prisma7':
+        specifier: /tmp/prisma-prisma7-0.0.0.tgz
+        version: file:../../tmp/prisma-prisma7-0.0.0.tgz(@types/react@19.2.18)(better-sqlite3@12.11.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.7.3)
     devDependencies:
       '@types/better-sqlite3':
         specifier: ^7.6.13
@@ -224,7 +224,7 @@ packages:
     version: 0.0.0
 
   '@prisma/client@file:../../tmp/prisma-client-0.0.0.tgz':
-    resolution: {integrity: sha512-VbT8sKUi3MJAwE5lSQ3zCZjlOjGexCNrkOLfg5vXUnDbPWBBjXV/kqQFr4FOCN2ZI0zzKRgOL00ljyrUJ8DDDg==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
+    resolution: {integrity: sha512-7w0D4yqPSQTjDUH+JQEbKRQhW4AUiFMlU9zeyXazg25spyp/AVMnP8qFLKVl/VBMMps3JeF/V2+yLWFbfODkLg==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
     version: 0.0.0
     engines: {node: ^20.19 || ^22.12 || >=24.0}
     peerDependencies:
@@ -237,7 +237,7 @@ packages:
         optional: true
 
   '@prisma/config@file:../../tmp/prisma-config-0.0.0.tgz':
-    resolution: {integrity: sha512-OhJrxnCO5BlGkBzH6/eOkBQlZeDZ2U1D8jlpiHgP06yYUpiu7W7sK37fHkm2OxITlkHFnXJALDscPWiIvXq54Q==, tarball: file:../../tmp/prisma-config-0.0.0.tgz}
+    resolution: {integrity: sha512-caKMWXW0EP/WRUw7w6BANiM9fmS4WcM5kfljGoiUaTMPyCSGIjgRY/ZnKXwietT1h5kBuLvDh5nzjldC4hPiKA==, tarball: file:../../tmp/prisma-config-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/debug@7.2.0':
@@ -258,7 +258,7 @@ packages:
     resolution: {integrity: sha512-8OJ6RuZTZ06eFUOtBwxVmv8XMmOW6HWN5F+uxUbZkGxR0Bfab1dfAdXaHPmR5mb59E+fmUo8IOzXlbLY1SClbw==}
 
   '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
-    resolution: {integrity: sha512-nb2E3UEjXR0hR+Jxo5uPYvQqRFLNSnGlB0muzpDsNWdpe23sLhAu3QwwkNZwWcDX92t4srtaiMQDavg5kzl9Sw==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
+    resolution: {integrity: sha512-eaIUpBNLPIruofksXs+25i17JDNBU0RQAi88dqurlF7ObOHgeq5p3pCTz2XqqWRfIKQWalfBVZPxscfWR1FfHA==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
@@ -271,6 +271,12 @@ packages:
   '@prisma/get-platform@file:../../tmp/prisma-get-platform-0.0.0.tgz':
     resolution: {integrity: sha512-0GQnyJw0dEurECARYcJwaSHvbNAcuKgEj6FVQS0+9ZmgwLL8caFGxt62xSDou4QNo8H070ikKU7W3V3iC5OSPQ==, tarball: file:../../tmp/prisma-get-platform-0.0.0.tgz}
     version: 0.0.0
+
+  '@prisma/prisma7@file:../../tmp/prisma-prisma7-0.0.0.tgz':
+    resolution: {integrity: sha512-702+WDh5L2d9qGSz+kxSJkR4rAw1uPLHvdxrLJzNt9JuLzsaZivKqFQN3ieGt8OOU8EIbINav/aQCxGRa8KcWQ==, tarball: file:../../tmp/prisma-prisma7-0.0.0.tgz}
+    version: 0.0.0
+    engines: {node: ^20.19 || ^22.12 || >=24.0}
+    hasBin: true
 
   '@prisma/query-plan-executor@7.2.0':
     resolution: {integrity: sha512-EOZmNzcV8uJ0mae3DhTsiHgoNCuu1J9mULQpGCh62zN3PxPTd+qI9tJvk5jOst8WHKQNwJWR3b39t0XvfBB0WQ==}
@@ -975,14 +981,8 @@ packages:
     deprecated: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
     hasBin: true
 
-  prisma7@file:../../tmp/prisma7-0.0.0.tgz:
-    resolution: {integrity: sha512-T6GftfFpinrEIyUpZgexG1JmhLsNId00ULzesbda+v2Fc52uotaLphPcznG2YJBQQrHXttQWqOLiPwp/W8lLqA==, tarball: file:../../tmp/prisma7-0.0.0.tgz}
-    version: 0.0.0
-    engines: {node: ^20.19 || ^22.12 || >=24.0}
-    hasBin: true
-
   prisma@file:../../tmp/prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-rLJnqR+odkYbA/2TFUGVuscCN51thVBm/0Ppmtjv5Jh9cQ9rHWfcL0wQorKP22NhLNfBNAy+PEXNcoxgaM+TBQ==, tarball: file:../../tmp/prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-X0HcqFt4WE3SrZSMTCdoxh3Vy364ZCKVOe9ThHEs9PSaYbCyjntpQUyvaXEsDnmVRNQZaByY6eZWn5COfCB78Q==, tarball: file:../../tmp/prisma-0.0.0.tgz}
     version: 0.0.0
     engines: {node: ^20.19 || ^22.12 || >=24.0}
     hasBin: true
@@ -1418,6 +1418,18 @@ snapshots:
   '@prisma/get-platform@file:../../tmp/prisma-get-platform-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
+
+  '@prisma/prisma7@file:../../tmp/prisma-prisma7-0.0.0.tgz(@types/react@19.2.18)(better-sqlite3@12.11.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.7.3)':
+    dependencies:
+      prisma: file:../../tmp/prisma-0.0.0.tgz(@types/react@19.2.18)(better-sqlite3@12.11.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.7.3)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
+      - better-sqlite3
+      - magicast
+      - react
+      - react-dom
+      - typescript
 
   '@prisma/query-plan-executor@7.2.0': {}
 
@@ -2101,18 +2113,6 @@ snapshots:
       simple-get: 4.0.1
       tar-fs: 2.1.5
       tunnel-agent: 0.6.0
-
-  prisma7@file:../../tmp/prisma7-0.0.0.tgz(@types/react@19.2.18)(better-sqlite3@12.11.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.7.3):
-    dependencies:
-      prisma: file:../../tmp/prisma-0.0.0.tgz(@types/react@19.2.18)(better-sqlite3@12.11.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.7.3)
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@types/react-dom'
-      - better-sqlite3
-      - magicast
-      - react
-      - react-dom
-      - typescript
 
   prisma@file:../../tmp/prisma-0.0.0.tgz(@types/react@19.2.18)(better-sqlite3@12.11.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.7.3):
     dependencies:

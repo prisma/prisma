@@ -79,6 +79,19 @@ describe('getGlobalLocalVersionMismatchWarning', () => {
     expect(result).toContain('@prisma/client@7.3.0')
   })
 
+  test('warns with the scoped prisma7 package name and prisma7 command guidance', async () => {
+    const result = await buildWarning({
+      identity: 'prisma7',
+      getInstalledPackageVersion: (packageName) =>
+        Promise.resolve(packageName === '@prisma/prisma7' ? '7.4.0' : GLOBAL_VERSION),
+    })
+
+    expect(result).toContain('@prisma/prisma7@7.5.0')
+    expect(result).toContain('@prisma/prisma7@7.4.0')
+    expect(result).not.toContain('The globally installed prisma7@7.5.0')
+    expect(result).toContain('npx prisma7 generate')
+  })
+
   test('returns null for an empty global version', async () => {
     const getInstalledPackageVersion = jest.fn()
     const result = await buildWarning({
@@ -102,13 +115,15 @@ describe('getInstalledPackageVersionFromNodeModules', () => {
     await fs.promises.rm(tempDir, { force: true, recursive: true })
   })
 
-  test('reads local prisma and @prisma/client versions from an ancestor node_modules directory', async () => {
+  test('reads local prisma, @prisma/prisma7, and @prisma/client versions from an ancestor node_modules directory', async () => {
     const schemaRootDir = path.join(tempDir, 'prisma')
     await fs.promises.mkdir(schemaRootDir)
     await writePackageVersion('prisma', '7.4.0')
+    await writePackageVersion('@prisma/prisma7', '7.4.1')
     await writePackageVersion('@prisma/client', '7.3.0')
 
     await expect(getInstalledPackageVersionFromNodeModules('prisma', schemaRootDir)).resolves.toBe('7.4.0')
+    await expect(getInstalledPackageVersionFromNodeModules('@prisma/prisma7', schemaRootDir)).resolves.toBe('7.4.1')
     await expect(getInstalledPackageVersionFromNodeModules('@prisma/client', schemaRootDir)).resolves.toBe('7.3.0')
   })
 
@@ -116,7 +131,10 @@ describe('getInstalledPackageVersionFromNodeModules', () => {
     await expect(getInstalledPackageVersionFromNodeModules('prisma', tempDir)).resolves.toBeNull()
   })
 
-  async function writePackageVersion(packageName: 'prisma' | '@prisma/client', version: string): Promise<void> {
+  async function writePackageVersion(
+    packageName: 'prisma' | '@prisma/prisma7' | '@prisma/client',
+    version: string,
+  ): Promise<void> {
     const packageDir = path.join(tempDir, 'node_modules', ...packageName.split('/'))
     await fs.promises.mkdir(packageDir, { recursive: true })
     await fs.promises.writeFile(path.join(packageDir, 'package.json'), JSON.stringify({ version }), 'utf-8')
