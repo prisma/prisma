@@ -83,11 +83,11 @@ const fixtureConfigSource = [
   `import sql from '${familySqlControlExport}';`,
   `import postgres from '${targetPostgresControlExport}';`,
   '',
-  'export default defineConfig({',
+  'export default { $prismaConfig: 1, orm: defineConfig({',
   '  family: sql,',
   '  target: postgres,',
   '  adapter: postgresAdapter,',
-  '});',
+  '}) };',
   '',
 ].join('\n');
 

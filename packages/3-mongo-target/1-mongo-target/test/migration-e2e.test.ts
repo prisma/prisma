@@ -47,11 +47,11 @@ const fixtureConfigSource = [
   `import { mongoFamilyDescriptor } from '${familyMongoControlExport}';`,
   `import { mongoTargetDescriptor } from '${targetMongoControlExport}';`,
   '',
-  'export default defineConfig({',
+  'export default { $prismaConfig: 1, orm: defineConfig({',
   '  family: mongoFamilyDescriptor,',
   '  target: mongoTargetDescriptor,',
   '  adapter: mongoAdapter,',
-  '});',
+  '}) };',
   '',
 ].join('\n');
 

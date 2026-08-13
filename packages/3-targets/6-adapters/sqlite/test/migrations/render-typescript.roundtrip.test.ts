@@ -70,11 +70,11 @@ const fixtureConfigSource = [
   `import sql from '${familySqlControlExport}';`,
   `import sqlite from '${targetSqliteControlExport}';`,
   '',
-  'export default defineConfig({',
+  'export default { $prismaConfig: 1, orm: defineConfig({',
   '  family: sql,',
   '  target: sqlite,',
   '  adapter: sqliteAdapter,',
-  '});',
+  '}) };',
   '',
 ].join('\n');
 
