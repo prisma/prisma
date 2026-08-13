@@ -109,6 +109,50 @@ describe.sequential('check-constraint introspection', () => {
     ]);
   });
 
+  it('pins every membership reprint shape the domain-enum harvest reads', {
+    timeout: testTimeout,
+  }, async () => {
+    await driver!.query(
+      `CREATE TABLE t (
+           role text,
+           status varchar(20),
+           tags text[],
+           surname text,
+           CONSTRAINT t_array_contains CHECK ("tags"::text[] <@ ARRAY['user', 'admin']::text[]),
+           CONSTRAINT t_quoted_member CHECK (surname IN ('O''Brien', 'plain')),
+           CONSTRAINT t_text_many CHECK (role IN ('user', 'admin')),
+           CONSTRAINT t_text_one CHECK (role IN ('user')),
+           CONSTRAINT t_varchar_many CHECK (status IN ('a', 'b')),
+           CONSTRAINT t_varchar_one CHECK (status IN ('a'))
+         )`,
+    );
+
+    const checks = await checksFor('t');
+
+    // A one-member IN collapses to bare `=` — no ANY, no ARRAY. The `<@`
+    // containment is created exactly as authoring renders a list-typed domain
+    // enum; the reprint drops the column cast and folds the array cast into
+    // per-element casts. A doubled quote inside a value stays doubled.
+    expect(
+      checks
+        .map((c) => ({ name: c.name, expression: c.expression }))
+        .sort((x, y) => (x.name < y.name ? -1 : 1)),
+    ).toEqual([
+      { name: 't_array_contains', expression: `(tags <@ ARRAY['user'::text, 'admin'::text])` },
+      {
+        name: 't_quoted_member',
+        expression: `(surname = ANY (ARRAY['O''Brien'::text, 'plain'::text]))`,
+      },
+      { name: 't_text_many', expression: `(role = ANY (ARRAY['user'::text, 'admin'::text]))` },
+      { name: 't_text_one', expression: `(role = 'user'::text)` },
+      {
+        name: 't_varchar_many',
+        expression: `((status)::text = ANY ((ARRAY['a'::character varying, 'b'::character varying])::text[]))`,
+      },
+      { name: 't_varchar_one', expression: `((status)::text = 'a'::text)` },
+    ]);
+  });
+
   it('a partitioned table yields one node for the parent and none for the partition', {
     timeout: testTimeout,
   }, async () => {

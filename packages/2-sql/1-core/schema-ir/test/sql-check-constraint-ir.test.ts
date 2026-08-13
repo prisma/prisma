@@ -64,7 +64,7 @@ describe('SqlCheckConstraintIR', () => {
       const expected = wireCheck('T_status_check', expression);
       const live = new SqlCheckConstraintIR({
         naming: { kind: 'wire', prefix: 'T_status_check', hash },
-        expression: `((status)::text = ANY ((ARRAY['active'::character varying])::text[]))`,
+        expression: `((status)::text = 'active'::text)`,
         dependsOn: undefined,
       });
       expect(expected.isEqualTo(live)).toBe(true);

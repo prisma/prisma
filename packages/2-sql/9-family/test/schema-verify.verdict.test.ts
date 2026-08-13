@@ -787,9 +787,7 @@ describe('differ verdict — check constraints', () => {
     const wire = { name: 'post_status_check_0a1b2c3d', prefix: 'post_status_check' };
     const issues = checkIssues(
       postWithChecks([{ ...wire, expression: `"status" IN ('a', 'b')` }]),
-      postWithChecks([
-        { ...wire, expression: `((status)::text = ANY ((ARRAY['a'::text])::text[]))` },
-      ]),
+      postWithChecks([{ ...wire, expression: `((status)::text = 'a'::text)` }]),
       wire.name,
     );
     expect(issues).toHaveLength(0);
