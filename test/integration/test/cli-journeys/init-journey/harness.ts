@@ -491,8 +491,12 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
   };
   // No `prisma-next` devDependency: the standalone CLI package stopped
   // being published; journey steps invoke the workspace-built engine bin.
+  // `@prisma/cli-engine` is the scaffolded prisma.config.ts's defineConfig
+  // import, installed from the registry exactly as `init`'s own install
+  // would.
   pkg.devDependencies = {
     ...(pkg.devDependencies ?? {}),
+    '@prisma/cli-engine': '0.0.9',
     '@types/node': '^24.10.4',
     typescript: '^5.9.3',
   };
