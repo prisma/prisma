@@ -65,11 +65,7 @@ export interface PostgresClient<TContract extends Contract<SqlStorage>> {
   connect(bindingInput?: PostgresBindingInput): Promise<Runtime>;
   runtime(): Runtime;
   transaction<R>(fn: (tx: PostgresTransactionContext<TContract>) => PromiseLike<R>): Promise<R>;
-  prepare<
-    D extends Declaration<CT>,
-    Row,
-    CT extends CodecTypesBase = ExtractCodecTypes<TContract> & CodecTypesBase,
-  >(
+  prepare<D extends Declaration<CT>, Row, CT extends CodecTypesBase = ExtractCodecTypes<TContract>>(
     declaration: D,
     callback: (sql: Db<TContract>, params: BindSiteParams<D>) => SqlQueryPlan<Row>,
   ): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>>;
@@ -332,7 +328,7 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
     prepare<
       D extends Declaration<CT>,
       Row,
-      CT extends CodecTypesBase = ExtractCodecTypes<TContract> & CodecTypesBase,
+      CT extends CodecTypesBase = ExtractCodecTypes<TContract>,
     >(
       declaration: D,
       callback: (sql: Db<TContract>, params: BindSiteParams<D>) => SqlQueryPlan<Row>,
