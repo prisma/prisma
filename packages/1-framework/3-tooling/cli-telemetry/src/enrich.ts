@@ -38,14 +38,22 @@ const EMPTY_PROJECT_CONFIG: ProjectConfigFields = {
 export async function loadProjectConfig(projectRoot: string): Promise<ProjectConfigFields> {
   try {
     const { loadConfig } = await import('c12');
-    const result = await loadConfig<Record<string, unknown>>({
-      name: 'prisma-next',
-      cwd: projectRoot,
-      dotenv: false,
-      rcFile: false,
-      globalRc: false,
-    });
-    const config = result.config ?? null;
+    const load = (name: string) =>
+      loadConfig<Record<string, unknown>>({
+        name,
+        cwd: projectRoot,
+        dotenv: false,
+        rcFile: false,
+        globalRc: false,
+      });
+    // `prisma.config.*` is the canonical filename; `prisma-next.config.*`
+    // is the deprecated one the config-loader still discovers, so mirror
+    // its fallback here.
+    let result = await load('prisma');
+    if (!result.config || Object.keys(result.config).length === 0) {
+      result = await load('prisma-next');
+    }
+    let config: Record<string, unknown> | null = result.config ?? null;
     // c12 returns an empty object when no config file exists in the
     // search path — distinct from "file existed but parsed to an empty
     // object". Either way, the canonical validator below would reject
@@ -53,6 +61,17 @@ export async function loadProjectConfig(projectRoot: string): Promise<ProjectCon
     // without paying the import cost.
     if (config === null || Object.keys(config).length === 0) {
       return EMPTY_PROJECT_CONFIG;
+    }
+    // The engine shape nests the Prisma Next config as the `orm` section.
+    if (config['$prismaConfig'] !== undefined) {
+      const orm = config['orm'];
+      if (orm === null || typeof orm !== 'object' || Array.isArray(orm)) {
+        return EMPTY_PROJECT_CONFIG;
+      }
+      config = blindCast<
+        Record<string, unknown>,
+        'a non-null non-array object indexes by string keys'
+      >(orm);
     }
     const validation = await import('@internal/config/config-validation');
     if (validation.collectConfigIssues(config).length > 0) {

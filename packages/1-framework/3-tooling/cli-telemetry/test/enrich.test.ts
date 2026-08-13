@@ -261,6 +261,25 @@ describe('loadProjectConfig', () => {
     });
   });
 
+  it('unwraps the orm section of an engine-shaped config', async () => {
+    writeFileSync(
+      join(projectDir, 'prisma.config.mjs'),
+      `const orm = ${validConfigSource().replace('export default ', '').trimEnd().replace(/;$/, '')};\nexport default { $prismaConfig: 1, orm };\n`,
+    );
+    expect(await loadProjectConfig(projectDir)).toEqual({
+      databaseTarget: 'postgres',
+      extensions: [],
+    });
+  });
+
+  it('falls back to the deprecated prisma-next.config.* filename', async () => {
+    writeFileSync(join(projectDir, 'prisma-next.config.mjs'), validConfigSource());
+    expect(await loadProjectConfig(projectDir)).toEqual({
+      databaseTarget: 'postgres',
+      extensions: [],
+    });
+  });
+
   it('returns empty extensions when extensions is truly omitted from an otherwise valid config', async () => {
     // Exercises the validator's absent-field branch, which is
     // distinct from the empty-array branch. The projection collapses
