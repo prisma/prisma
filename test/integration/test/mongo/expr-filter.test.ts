@@ -40,7 +40,7 @@ describeWithMongoDB('MongoExprFilter integration ($expr)', (ctx) => {
     );
     const command = new AggregateCommand(col, [new MongoMatchStage(filter)]);
 
-    const results = await ctx.runtime.execute(plan(col, command));
+    const results = await ctx.runtime.query(plan(col, command));
     expect(results).toHaveLength(1);
     expect(results[0]).toMatchObject({ item: 'A', qty: 100, minQty: 50 });
   });
@@ -61,7 +61,7 @@ describeWithMongoDB('MongoExprFilter integration ($expr)', (ctx) => {
     );
     const command = new AggregateCommand(col, [new MongoMatchStage(filter)]);
 
-    const results = await ctx.runtime.execute(plan(col, command));
+    const results = await ctx.runtime.query(plan(col, command));
     expect(results).toHaveLength(2);
     const items = (results as Array<{ item: string }>).map((r) => r.item).sort();
     expect(items).toEqual(['X', 'Z']);
@@ -83,7 +83,7 @@ describeWithMongoDB('MongoExprFilter integration ($expr)', (ctx) => {
     ]);
     const command = new AggregateCommand(col, [new MongoMatchStage(filter)]);
 
-    const results = await ctx.runtime.execute(plan(col, command));
+    const results = await ctx.runtime.query(plan(col, command));
     expect(results).toHaveLength(1);
     expect(results[0]).toMatchObject({ item: 'A', status: 'active' });
   });

@@ -233,7 +233,7 @@ describeWithMongoDB('Pipeline builder integration (mongoQuery DSL)', (ctx) => {
   }
 
   async function exec(plan: MongoQueryPlan): Promise<Row[]> {
-    const rows = await ctx.runtime.execute(plan).toArray();
+    const rows = await ctx.runtime.query(plan).toArray();
     return rows as Row[];
   }
 

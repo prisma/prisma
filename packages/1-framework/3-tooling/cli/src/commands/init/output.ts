@@ -23,14 +23,21 @@ export const InitOutputSchema = type({
   schemaPath: 'string',
   filesWritten: 'string[]',
   /**
-   * FR9.1 — files removed from disk during this run. Populated only on
-   * re-init when previously-emitted contract artifacts (`contract.json`,
-   * `contract.d.ts`, `ops.json`, `migration.json`) were left behind by an
-   * earlier run. Empty on a green-field init.
+   * FR9.1 — paths removed from disk during this run: contract artifacts
+   * (`contract.json`, `contract.d.ts`, `ops.json`, `migration.json`) an
+   * earlier run left behind, which only a re-init has, and the retired
+   * agent-skill directories, which every run removes when it finds them.
    */
   filesDeleted: 'string[]',
+  /**
+   * What became of the dependency install. `skipped` is the deliberate
+   * `--skip-install`; `failed` is an install that ran and did not succeed,
+   * which leaves a scaffolded project that cannot run yet. `deps` and
+   * `devDeps` list what was installed, so both non-`installed` states
+   * carry them empty.
+   */
   packagesInstalled: {
-    skipped: 'boolean',
+    status: "'installed'|'skipped'|'failed'",
     deps: 'string[]',
     devDeps: 'string[]',
   },
@@ -40,6 +47,9 @@ export const InitOutputSchema = type({
 });
 
 export type InitOutput = typeof InitOutputSchema.infer;
+
+/** What became of the dependency install, as the document reports it. */
+export type InstallStatus = InitOutput['packagesInstalled']['status'];
 
 /**
  * Serialises the output document for `--json`. Sorted keys are not enforced
@@ -79,13 +89,13 @@ export function renderInitOutro(ui: TerminalUI, output: InitOutput, flags: Globa
 
   if (output.filesDeleted.length > 0) {
     lines.push('');
-    lines.push('Files deleted (stale contract artifacts):');
+    lines.push('Removed (stale artifacts and retired skill directories):');
     for (const file of output.filesDeleted) {
       lines.push(`  • ${file}`);
     }
   }
 
-  if (!output.packagesInstalled.skipped) {
+  if (output.packagesInstalled.status === 'installed') {
     lines.push('');
     lines.push('Packages installed:');
     for (const dep of output.packagesInstalled.deps) {
@@ -107,8 +117,9 @@ export function renderInitOutro(ui: TerminalUI, output: InitOutput, flags: Globa
 
 /**
  * Builds the `nextSteps` array from the resolved scaffold state. Steps are
- * ordered by the workflow a user needs to follow: configure connection →
- * (emit if not yet done) → run a starter query → docs / agent skill.
+ * ordered by the workflow a user needs to follow: install what is missing →
+ * configure connection → (emit if not yet done) → run a starter query →
+ * docs / agent skill.
  *
  * The strings are stable and human-readable; agents wanting to act on them
  * should match on substrings (e.g. "DATABASE_URL") rather than exact text,
@@ -116,6 +127,12 @@ export function renderInitOutro(ui: TerminalUI, output: InitOutput, flags: Globa
  */
 export function buildNextSteps(options: {
   readonly target: 'postgres' | 'mongodb';
+  /**
+   * A project whose dependencies are not installed cannot emit or run,
+   * whether the install was skipped or attempted and failed. Both states put
+   * the install back at the top of the list, saying which happened.
+   */
+  readonly packagesInstalled: InstallStatus;
   readonly contractEmitted: boolean;
   readonly emitCommand: string;
   readonly schemaPath: string;
@@ -134,6 +151,14 @@ export function buildNextSteps(options: {
     steps.push(`${stepNumber}. ${text}`);
     stepNumber += 1;
   };
+  if (options.packagesInstalled === 'failed') {
+    push(
+      'Install the project dependencies with your package manager — the install this run attempted failed, so nothing else here will work yet.',
+    );
+  }
+  if (options.packagesInstalled === 'skipped') {
+    push('Install the project dependencies with your package manager (this run skipped them).');
+  }
   push('Set DATABASE_URL in your environment (export it or add it to .env).');
   if (!options.contractEmitted) {
     push(`Emit the contract: \`${options.emitCommand}\``);

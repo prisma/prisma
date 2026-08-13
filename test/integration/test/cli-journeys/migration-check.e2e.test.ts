@@ -1,15 +1,11 @@
 /**
  * `migration check` adversarial fixtures.
  *
- * Exercises each PN code under INTEGRITY_FAILED (exit 4) and the
- * clean-graph pass (exit 0). Each test plants a specific corruption
- * after a successful plan+emit and asserts the expected PN code.
- *
- * The clean-graph and PRECONDITION tests use the in-process helper
- * (exit 0 and exit 2 are captured reliably). Adversarial tests that
- * expect exit 4 assert on the JSON output's `failures[].code`
- * without asserting the exit code, since the in-process test mock
- * captures commander's re-thrown exit rather than the command's own.
+ * Each test plants one corruption after a successful plan+emit, then asserts
+ * the whole settlement: the exit code, the dotted codes of the findings on the
+ * envelope, and the `--json` document. A finding is a completed run at exit 4;
+ * only a check that could not run at all — an unresolvable target — errors at
+ * exit 2.
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -18,14 +14,21 @@ import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  engineDiagnosticCodes,
+  engineDocument,
   type JourneyContext,
-  parseJsonOutput,
   runContractEmit,
   runMigrationCheck,
   runMigrationPlanAndEmit,
   setupJourney,
   timeouts,
 } from '../utils/journey-test-helpers';
+
+interface CheckDocument {
+  readonly ok: boolean;
+  readonly failures: ReadonlyArray<{ readonly code: string }>;
+  readonly summary: string;
+}
 
 function findLatestMigrationDir(ctx: JourneyContext): string {
   const appDir = join(ctx.testDir, 'migrations', 'app');
@@ -55,8 +58,8 @@ withTempDir(({ createTempDir }) => {
 
         const check = await runMigrationCheck(ctx, ['--json']);
         expect(check.exitCode, 'check exit code').toBe(0);
-        const json = parseJsonOutput(check);
-        expect(json?.['ok']).toBe(true);
+        expect(engineDiagnosticCodes(check)).toEqual([]);
+        expect(engineDocument<CheckDocument>(check).ok).toBe(true);
       },
       timeouts.typeScriptCompilation,
     );
@@ -78,11 +81,13 @@ withTempDir(({ createTempDir }) => {
         writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
         const check = await runMigrationCheck(ctx, ['--json']);
-        const json = parseJsonOutput(check);
-        expect(json?.['ok']).toBe(false);
-        const failures = json?.['failures'] as readonly Record<string, string>[];
-        expect(failures.length).toBeGreaterThan(0);
-        expect(failures.some((f) => f['code'] === 'MIGRATION.CHECK_HASH_MISMATCH')).toBe(true);
+        expect(check.exitCode, 'check exit code').toBe(4);
+        expect(engineDiagnosticCodes(check)).toContain('MIGRATION.CHECK_HASH_MISMATCH');
+        const document = engineDocument<CheckDocument>(check);
+        expect(document.ok).toBe(false);
+        expect(document.failures.some((f) => f.code === 'MIGRATION.CHECK_HASH_MISMATCH')).toBe(
+          true,
+        );
       },
       timeouts.typeScriptCompilation,
     );
@@ -102,10 +107,9 @@ withTempDir(({ createTempDir }) => {
         mkdirSync(emptyDir, { recursive: true });
 
         const check = await runMigrationCheck(ctx, ['--json']);
-        const json = parseJsonOutput(check);
-        expect(json?.['ok']).toBe(false);
-        const failures = json?.['failures'] as readonly Record<string, string>[];
-        expect(failures.some((f) => f['code'] === 'MIGRATION.CHECK_FILE_MISSING')).toBe(true);
+        expect(check.exitCode, 'check exit code').toBe(4);
+        expect(engineDiagnosticCodes(check)).toContain('MIGRATION.CHECK_FILE_MISSING');
+        expect(engineDocument<CheckDocument>(check).ok).toBe(false);
       },
       timeouts.typeScriptCompilation,
     );
@@ -142,12 +146,9 @@ withTempDir(({ createTempDir }) => {
         writeFileSync(join(orphanDir, 'ops.json'), orphanOps);
 
         const check = await runMigrationCheck(ctx, ['--json']);
-        const json = parseJsonOutput(check);
-        expect(json?.['ok']).toBe(false);
-        const failures = json?.['failures'] as readonly Record<string, string>[];
-        expect(failures.some((f) => f['code'] === 'MIGRATION.CHECK_UNREACHABLE_MIGRATION')).toBe(
-          true,
-        );
+        expect(check.exitCode, 'check exit code').toBe(4);
+        expect(engineDiagnosticCodes(check)).toContain('MIGRATION.CHECK_UNREACHABLE_MIGRATION');
+        expect(engineDocument<CheckDocument>(check).ok).toBe(false);
       },
       timeouts.typeScriptCompilation,
     );
@@ -171,10 +172,9 @@ withTempDir(({ createTempDir }) => {
         );
 
         const check = await runMigrationCheck(ctx, ['--json']);
-        const json = parseJsonOutput(check);
-        expect(json?.['ok']).toBe(false);
-        const failures = json?.['failures'] as readonly Record<string, string>[];
-        expect(failures.some((f) => f['code'] === 'MIGRATION.CHECK_DANGLING_REF')).toBe(true);
+        expect(check.exitCode, 'check exit code').toBe(4);
+        expect(engineDiagnosticCodes(check)).toContain('MIGRATION.CHECK_DANGLING_REF');
+        expect(engineDocument<CheckDocument>(check).ok).toBe(false);
       },
       timeouts.typeScriptCompilation,
     );
@@ -197,13 +197,9 @@ withTempDir(({ createTempDir }) => {
         writeFileSync(snapshotPath, JSON.stringify(contract, null, 2));
 
         const check = await runMigrationCheck(ctx, ['--json']);
-        const json = parseJsonOutput(check);
-        expect(json?.['ok']).toBe(false);
-        const failures = json?.['failures'] as readonly Record<string, string>[];
-        expect(failures.length).toBeGreaterThan(0);
-        expect(failures.some((f) => f['code'] === 'MIGRATION.CHECK_SNAPSHOT_HASH_MISMATCH')).toBe(
-          true,
-        );
+        expect(check.exitCode, 'check exit code').toBe(4);
+        expect(engineDiagnosticCodes(check)).toContain('MIGRATION.CHECK_SNAPSHOT_HASH_MISMATCH');
+        expect(engineDocument<CheckDocument>(check).ok).toBe(false);
       },
       timeouts.typeScriptCompilation,
     );
@@ -233,19 +229,18 @@ withTempDir(({ createTempDir }) => {
         writeFileSync(snapshotPath, JSON.stringify(contract, null, 2));
 
         const check = await runMigrationCheck(ctx, [dirName, '--json']);
-        const json = parseJsonOutput(check);
-        expect(json?.['ok'], 'per-migration check reports failure').toBe(false);
-        const failures = json?.['failures'] as readonly Record<string, string>[];
+        expect(check.exitCode, 'per-migration check exit code').toBe(4);
         expect(
-          failures.some((f) => f['code'] === 'MIGRATION.CHECK_SNAPSHOT_HASH_MISMATCH'),
+          engineDiagnosticCodes(check),
           'per-migration check carries MIGRATION.CHECK_SNAPSHOT_HASH_MISMATCH',
-        ).toBe(true);
+        ).toContain('MIGRATION.CHECK_SNAPSHOT_HASH_MISMATCH');
+        expect(engineDocument<CheckDocument>(check).ok).toBe(false);
       },
       timeouts.typeScriptCompilation,
     );
 
     it(
-      'non-existent named migration → exit 2, PRECONDITION',
+      'non-existent named migration → errored at exit 2, no findings',
       async () => {
         const ctx: JourneyContext = setupJourney({ createTempDir });
 
@@ -256,6 +251,7 @@ withTempDir(({ createTempDir }) => {
 
         const check = await runMigrationCheck(ctx, ['nonexistent-migration', '--json']);
         expect(check.exitCode, 'check exit code').toBe(2);
+        expect(check.presented, 'an errored run presents nothing').toBeUndefined();
       },
       timeouts.typeScriptCompilation,
     );

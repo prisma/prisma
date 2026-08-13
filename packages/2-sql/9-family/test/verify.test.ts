@@ -179,6 +179,29 @@ describe('marker parser', () => {
     });
   });
 
+  it('carries typed nextActions whose command writes {bin}, not a literal binary', () => {
+    const error = (() => {
+      try {
+        parseContractMarkerRow({ core_hash: 123, profile_hash: 'def456' });
+        return undefined;
+      } catch (err) {
+        return err;
+      }
+    })();
+
+    expect(error).toMatchObject({
+      fix: 'Re-sign the database with `prisma-next db sign`, or repair the marker table.',
+      nextActions: [
+        { kind: 'run-command', label: 'Re-sign the database', command: '{bin} db sign' },
+        {
+          kind: 'user-choice',
+          label: 'Repair the marker table by hand',
+          reason: expect.stringContaining('core_hash'),
+        },
+      ],
+    });
+  });
+
   it('throws error for invalid row structure', () => {
     const row = {
       core_hash: 123, // Invalid type

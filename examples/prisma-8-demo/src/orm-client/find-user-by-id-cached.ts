@@ -20,7 +20,7 @@
  *   a write terminal (`create`, `update`, `delete`) is a type error
  *   *and* a runtime error — it cannot be smuggled through with a cast
  *   on one side without failing on the other.
- * - On a cache hit, every registered middleware's `afterExecute` still
+ * - On a cache hit, every registered middleware's `afterQuery` still
  *   fires and reports `source: 'middleware'` — the `slowQueryWarning`
  *   middleware in `db.ts` observes cached reads too — so observability
  *   is preserved even though the driver is skipped.

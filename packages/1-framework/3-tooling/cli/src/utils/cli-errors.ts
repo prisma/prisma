@@ -25,13 +25,15 @@ import {
   errorTargetMigrationNotSupported,
   errorUnexpected,
 } from '@internal/errors/control';
-import { errorRuntime } from '@internal/errors/execution';
 import type { RefResolutionError } from '@internal/migration-tools/ref-resolution';
 import { ifDefined } from '@internal/utils/defined';
+import type { NextAction } from '@prisma/cli-engine/protocol';
 import type { MigrateFailure } from '../control-api/types';
+import { chooseAction, runCommandAction } from './next-actions';
 
 export {
   ERROR_CODE_DESTRUCTIVE_CHANGES,
+  errorConsentPlanMismatch,
   errorDestructiveChanges,
   errorHashMismatch,
   errorMarkerMissing,
@@ -69,11 +71,64 @@ export {
   errorUnexpected,
 };
 
+/**
+ * A CLI-raised error that carries the typed remediation as well as the prose.
+ * Only the CLI knows which invocation fixes a failure, so only errors raised
+ * here spell one; the foundation classes every library also raises keep
+ * carrying `code`, `why` and `fix` alone.
+ *
+ * Both fields are required: the `fix` prose is what the commander shell still
+ * renders, and the handler boundary drops it in favour of `nextActions` when it
+ * settles the engine's envelope.
+ */
+export class ActionableCliError extends CliStructuredError {
+  override readonly nextActions: readonly NextAction[];
+
+  constructor(
+    code: `${string}.${string}`,
+    summary: string,
+    options: {
+      readonly why: string;
+      readonly fix: string;
+      readonly nextActions: readonly NextAction[];
+      readonly meta?: Record<string, unknown>;
+      readonly docsUrl?: string;
+      readonly cause?: unknown;
+    },
+  ) {
+    super(code, summary, options);
+    this.nextActions = options.nextActions;
+  }
+}
+
+/**
+ * A command that accepts a contract reference both as a positional and as a
+ * flag was given both. Structured rather than a bare stderr line, so a script
+ * sees the same envelope every other invocation failure produces.
+ */
+export function errorContractArgConflict(options: {
+  readonly positional: string;
+  readonly flag: string;
+}): ActionableCliError {
+  const fix =
+    'Pass the contract reference once — either as the positional argument or as --contract.';
+  return new ActionableCliError(
+    'CLI.CONTRACT_ARG_CONFLICT',
+    'Cannot specify both a positional contract argument and --contract',
+    {
+      why: `The positional argument names "${options.positional}" and --contract names "${options.flag}"; there is no rule for which wins.`,
+      fix,
+      nextActions: [chooseAction(fix)],
+      meta: { positional: options.positional, flag: options.flag },
+    },
+  );
+}
+
 export function errorRefSetHashNotInGraph(
   resolvedHash: string,
   reachableHashes: readonly string[],
   graphTipHash: string | null,
-): CliStructuredError {
+): ActionableCliError {
   const reachableList =
     reachableHashes.length > 0 ? reachableHashes.join(', ') : '(none — migration graph is empty)';
   const fix =
@@ -82,7 +137,16 @@ export function errorRefSetHashNotInGraph(
         ? `Set the ref to a graph-node hash such as ${graphTipHash}, or run \`prisma-next migration plan\` to extend the graph.`
         : 'Set the ref to a hash that appears in the migration graph.'
       : 'Run `prisma-next migration plan` first.';
-  return errorRuntime(
+  const nextActions =
+    reachableHashes.length > 0
+      ? graphTipHash !== null
+        ? [
+            chooseAction(`Set the ref to a graph-node hash such as ${graphTipHash}`),
+            runCommandAction('Extend the migration graph', 'prisma-next migration plan'),
+          ]
+        : [chooseAction('Set the ref to a hash that appears in the migration graph')]
+      : [runCommandAction('Plan the first migration', 'prisma-next migration plan')];
+  return new ActionableCliError(
     'MIGRATION.HASH_NOT_IN_GRAPH',
     `Resolved contract hash is not in the migration graph: ${resolvedHash}`,
     {
@@ -91,6 +155,7 @@ export function errorRefSetHashNotInGraph(
           ? `The migration graph reaches ${reachableList}; resolved ${resolvedHash} isn't a graph node.`
           : 'The migration graph is empty — no hashes reachable.',
       fix,
+      nextActions,
       meta: {
         resolvedHash,
         reachableHashes: [...reachableHashes],
@@ -100,13 +165,17 @@ export function errorRefSetHashNotInGraph(
   );
 }
 
-export function errorRefSetEmptySentinel(hash: string): CliStructuredError {
-  return errorRuntime(
+export function errorRefSetEmptySentinel(hash: string): ActionableCliError {
+  return new ActionableCliError(
     'MIGRATION.REF_SET_EMPTY_SENTINEL',
     `Cannot set ref to the empty-database sentinel: ${hash}`,
     {
       why: 'The empty-database sentinel is a planner internal; it is not a valid ref target.',
       fix: 'Set the ref to a contract hash from the migration graph, or use another ref name.',
+      nextActions: [
+        chooseAction('Set the ref to a contract hash from the migration graph'),
+        chooseAction('Or use another ref name'),
+      ],
       meta: {
         hash,
       },
@@ -120,13 +189,17 @@ export function errorRefSetEmptySentinel(hash: string): CliStructuredError {
  */
 export function errorLegendHumanOnly(
   conflictingFlag: '--json' | '--dot' | '--quiet',
-): CliStructuredError {
-  return errorRuntime(
+): ActionableCliError {
+  return new ActionableCliError(
     'MIGRATION.LEGEND_HUMAN_ONLY',
     '`--legend` is only available for human-readable output',
     {
       why: `\`--legend\` prints a glyph key to stderr and cannot be combined with ${conflictingFlag}.`,
       fix: `Omit ${conflictingFlag} to print the legend alongside the tree, or omit --legend when using ${conflictingFlag}.`,
+      nextActions: [
+        chooseAction(`Omit ${conflictingFlag} to print the legend alongside the tree`),
+        chooseAction(`Or omit --legend when using ${conflictingFlag}`),
+      ],
       meta: {
         conflictingFlag,
       },
@@ -140,14 +213,22 @@ export function errorLegendHumanOnly(
  * any fs work — the input is syntactically rejected the same way an on-disk
  * directory with that name would be skipped by the enumerator.
  */
-export function errorInvalidSpaceId(spaceId: string): CliStructuredError {
-  return errorRuntime('MIGRATION.INVALID_SPACE_ID', `Invalid contract space id: ${spaceId}`, {
-    why: 'Contract space ids must match [a-z][a-z0-9_-]{0,63} (lowercase, starts with a letter, max 64 characters — the rule applied to every on-disk space directory).',
-    fix: 'Pass a space id that matches the directory naming rule, or omit --space to list every space.',
-    meta: {
-      spaceId,
+export function errorInvalidSpaceId(spaceId: string): ActionableCliError {
+  return new ActionableCliError(
+    'MIGRATION.INVALID_SPACE_ID',
+    `Invalid contract space id: ${spaceId}`,
+    {
+      why: 'Contract space ids must match [a-z][a-z0-9_-]{0,63} (lowercase, starts with a letter, max 64 characters — the rule applied to every on-disk space directory).',
+      fix: 'Pass a space id that matches the directory naming rule, or omit --space to list every space.',
+      nextActions: [
+        chooseAction('Pass a space id matching [a-z][a-z0-9_-]{0,63}'),
+        runCommandAction('Or list every space', 'prisma-next migration list'),
+      ],
+      meta: {
+        spaceId,
+      },
     },
-  });
+  );
 }
 
 /**
@@ -164,7 +245,7 @@ export function errorInvalidSpaceId(spaceId: string): CliStructuredError {
 export function errorSpaceNotFound(
   spaceId: string,
   availableSpaces: readonly string[],
-): CliStructuredError {
+): ActionableCliError {
   const availableList =
     availableSpaces.length > 0
       ? availableSpaces.join(', ')
@@ -173,9 +254,22 @@ export function errorSpaceNotFound(
     availableSpaces.length > 0
       ? `Pick one of: ${availableList}. Run \`prisma-next migration list\` (no --space) to see every space's migrations.`
       : 'Author a migration with `prisma-next migration new` to create the first contract-space directory.';
-  return errorRuntime('MIGRATION.SPACE_NOT_FOUND', `Unknown contract space: ${spaceId}`, {
+  const nextActions =
+    availableSpaces.length > 0
+      ? [
+          chooseAction(`Pick one of: ${availableList}`),
+          runCommandAction("See every space's migrations", 'prisma-next migration list'),
+        ]
+      : [
+          runCommandAction(
+            'Author the first migration, which creates the contract-space directory',
+            'prisma-next migration new',
+          ),
+        ];
+  return new ActionableCliError('MIGRATION.SPACE_NOT_FOUND', `Unknown contract space: ${spaceId}`, {
     why: `No directory named "${spaceId}" exists under the migrations root.`,
     fix,
+    nextActions,
     meta: {
       spaceId,
       availableSpaces: [...availableSpaces],
@@ -183,13 +277,43 @@ export function errorSpaceNotFound(
   });
 }
 
-export function errorRefSetBundleNotFound(hash: string): CliStructuredError {
-  return errorRuntime(
+/**
+ * A `migration show` target resolved to a directory or a graph node, but no
+ * on-disk package was loaded for it.
+ */
+export function errorMigrationPackageNotFound(why: string): ActionableCliError {
+  return new ActionableCliError('MIGRATION.PACKAGE_NOT_FOUND', 'Migration package not found', {
+    why,
+    fix: 'Pass a directory name, hash prefix, or path to an on-disk app-space migration package.',
+    nextActions: [
+      chooseAction(
+        'Pass a directory name, hash prefix, or path to an on-disk app-space migration package',
+      ),
+      runCommandAction('List what is on disk', 'prisma-next migration list'),
+    ],
+  });
+}
+
+/** The app space has no migration packages at all, so no target can resolve. */
+export function errorNoMigrations(appMigrationsRelative: string): ActionableCliError {
+  return new ActionableCliError('MIGRATION.NO_MIGRATIONS', 'No migrations found', {
+    why: `No migration packages found in ${appMigrationsRelative}`,
+    fix: 'Run `prisma-next migration plan` to create a migration first.',
+    nextActions: [runCommandAction('Create the first migration', 'prisma-next migration plan')],
+  });
+}
+
+export function errorRefSetBundleNotFound(hash: string): ActionableCliError {
+  return new ActionableCliError(
     'MIGRATION.REF_SET_BUNDLE_NOT_FOUND',
     `No migration bundle matches graph-node hash ${hash}`,
     {
       why: `The hash is a graph node but no on-disk bundle has metadata.to = ${hash}.`,
       fix: 'Run `pnpm fixtures:check`, or re-emit the migration that produces this hash so its bundle is restored.',
+      nextActions: [
+        runCommandAction('Restore the checked-in fixtures', 'pnpm fixtures:check'),
+        chooseAction('Or re-emit the migration that produces this hash'),
+      ],
       meta: {
         hash,
       },
@@ -202,7 +326,7 @@ export function errorPlanForgotTheFlag(
   reachableRefs: ReadonlyArray<{ readonly name: string; readonly hash: string }>,
   graphTipHash: string | null,
   options?: { readonly cause?: unknown },
-): CliStructuredError {
+): ActionableCliError {
   const reachableList =
     reachableRefs.length > 0
       ? reachableRefs.map((r) => `${r.name} (${r.hash})`).join(', ')
@@ -213,12 +337,29 @@ export function errorPlanForgotTheFlag(
       : graphTipHash !== null
         ? `Run migration plan --from ${graphTipHash}.`
         : 'Commit pending migrations first, then run migration plan.';
-  return errorRuntime(
+  const nextActions =
+    reachableRefs.length > 0
+      ? reachableRefs.map((ref) =>
+          runCommandAction(
+            `Plan from ${ref.name}`,
+            `prisma-next migration plan --from ${ref.name}`,
+          ),
+        )
+      : graphTipHash !== null
+        ? [
+            runCommandAction(
+              'Plan from the graph tip',
+              `prisma-next migration plan --from ${graphTipHash}`,
+            ),
+          ]
+        : [chooseAction('Commit pending migrations first, then run migration plan')];
+  return new ActionableCliError(
     'MIGRATION.HASH_NOT_IN_GRAPH',
     `Resolved from-hash is not in the migration graph: ${resolvedHash}`,
     {
       why: `The migration graph reaches ${reachableList}; resolved ${resolvedHash} isn't a graph node.`,
       fix: refFix,
+      nextActions,
       meta: {
         resolvedHash,
         reachableRefs: reachableRefs.map((r) => r.name),
@@ -240,12 +381,28 @@ export function errorPlanForgotTheFlag(
 export function errorSnapshotMissing(
   identifier: string,
   options?: { readonly viaRef?: boolean; readonly cause?: unknown },
-): CliStructuredError {
+): ActionableCliError {
   const viaRef = options?.viaRef !== false;
   const fix = viaRef
     ? `Create the ref with "prisma-next ref set ${identifier} <hash>" (or advance it via "prisma-next db update --advance-ref ${identifier}"), or pass a hash that is a node in the migration graph.`
     : `No contract source exists for hash "${identifier}" on an empty migration graph. Use --from with a ref name (its contract resolves through the snapshot store), or run db update first.`;
-  return errorRuntime(
+  const nextActions = viaRef
+    ? [
+        runCommandAction(
+          `Create the ref "${identifier}"`,
+          `prisma-next ref set ${identifier} <hash>`,
+        ),
+        runCommandAction(
+          'Or advance it from the database',
+          `prisma-next db update --advance-ref ${identifier}`,
+        ),
+        chooseAction('Or pass a hash that is a node in the migration graph'),
+      ]
+    : [
+        chooseAction('Pass --from a ref name, whose contract resolves through the snapshot store'),
+        runCommandAction('Or populate the graph first', 'prisma-next db update'),
+      ];
+  return new ActionableCliError(
     'MIGRATION.SNAPSHOT_MISSING',
     viaRef
       ? `Ref "${identifier}" is not resolvable`
@@ -255,6 +412,7 @@ export function errorSnapshotMissing(
         ? `Ref "${identifier}" has no pointer file, and the hash being resolved is not a node in the migration graph either.`
         : `Hash "${identifier}" is not a node in the migration graph (the graph is empty), and it does not name a ref either.`,
       fix,
+      nextActions,
       meta: {
         identifier,
         viaRef,
@@ -268,14 +426,18 @@ export function errorMarkerMismatch(
   markerHash: string,
   reachableHashes: readonly string[],
   graphTip: string | null,
-): CliStructuredError {
+): ActionableCliError {
   const reachableList =
     reachableHashes.length > 0 ? reachableHashes.join(', ') : '(none — migration graph is empty)';
   const planFromFix =
     graphTip !== null
       ? `Run \`prisma-next migration plan --from ${graphTip}\` if the live marker is canonical and the on-disk graph needs catching up.`
       : 'Run `prisma-next migration plan` if the live marker is canonical and the on-disk graph needs catching up.';
-  return errorRuntime(
+  const planCommand =
+    graphTip !== null
+      ? `prisma-next migration plan --from ${graphTip}`
+      : 'prisma-next migration plan';
+  return new ActionableCliError(
     'MIGRATION.MARKER_MISMATCH',
     'Database marker is not reachable in the on-disk migration graph',
     {
@@ -285,6 +447,14 @@ export function errorMarkerMismatch(
         `Run \`prisma-next ref set db ${markerHash}\` if the on-disk graph is canonical and the local \`db\` ref drifted.`,
         'Investigate whether the database was migrated by an out-of-band process.',
       ].join('\n'),
+      nextActions: [
+        runCommandAction('Catch the on-disk graph up to the live marker', planCommand),
+        runCommandAction(
+          'Point the local db ref at the live marker',
+          `prisma-next ref set db ${markerHash}`,
+        ),
+        chooseAction('Investigate whether the database was migrated by an out-of-band process'),
+      ],
       meta: {
         markerHash,
         reachableHashes: [...reachableHashes],
@@ -294,7 +464,12 @@ export function errorMarkerMismatch(
   );
 }
 
-export function errorPathUnreachable(failure: MigrateFailure): CliStructuredError {
+const ROLLBACK_IS_DESTRUCTIVE =
+  'A rollback (reverse) plan is expected to contain destructive (DROP) operations — review them before applying';
+const NARROWER_CASES_NEED_A_HINT =
+  'Narrower cases (rename inference, re-adding a required field without a safe default, or a type change that needs data) may additionally need a hint in the planned migration';
+
+export function errorPathUnreachable(failure: MigrateFailure): ActionableCliError {
   const meta = failure.meta ?? {};
   const fromHashMeta = typeof meta['fromHash'] === 'string' ? meta['fromHash'] : null;
   // `buildPathNotFoundFailure` uses this sentinel in meta when the live marker is null.
@@ -340,7 +515,7 @@ export function errorPathUnreachable(failure: MigrateFailure): CliStructuredErro
     targetHash !== null && !neverPlanned
       ? `prisma-next migrate --to ${targetHash}`
       : 'prisma-next migrate';
-  return errorRuntime('MIGRATION.PATH_UNREACHABLE', failure.summary, {
+  return new ActionableCliError('MIGRATION.PATH_UNREACHABLE', failure.summary, {
     why:
       failure.why ??
       `Cannot reach target "${targetHash ?? '<unknown>'}" from current marker "${fromHashMeta ?? '<unknown>'}".${deadEndsSuffix}`,
@@ -348,10 +523,21 @@ export function errorPathUnreachable(failure: MigrateFailure): CliStructuredErro
       'Plan the missing edge, then apply it:',
       `  1. ${planCommand}`,
       `  2. ${applyCommand}`,
-      'A rollback (reverse) plan is expected to contain destructive (DROP) operations — review them before applying.',
-      'Narrower cases (rename inference, re-adding a NOT NULL column without a safe default, or a type change that needs data) may additionally need a hint in the planned migration.',
+      `${ROLLBACK_IS_DESTRUCTIVE}.`,
+      `${NARROWER_CASES_NEED_A_HINT}.`,
       'Inspect the on-disk graph with `prisma-next migration list`, or `prisma-next migration show <bundle>` for any bundle in the path you expected.',
     ].join('\n'),
+    nextActions: [
+      runCommandAction('Plan the missing edge', planCommand),
+      runCommandAction('Apply it', applyCommand),
+      chooseAction(ROLLBACK_IS_DESTRUCTIVE),
+      chooseAction(NARROWER_CASES_NEED_A_HINT),
+      runCommandAction('Inspect the on-disk graph', 'prisma-next migration list'),
+      runCommandAction(
+        'Inspect a bundle in the path you expected',
+        'prisma-next migration show <bundle>',
+      ),
+    ],
     meta: {
       ...meta,
     },
@@ -396,14 +582,15 @@ export function requireLiveDatabase(args: {
 export function errorAmbiguousMigrationRef(
   ref: string,
   spaceIds: readonly string[],
-): CliStructuredError {
+): ActionableCliError {
   const spaceList = spaceIds.join(', ');
-  return errorRuntime(
+  return new ActionableCliError(
     'MIGRATION.AMBIGUOUS_MIGRATION_REF',
     `Ambiguous migration reference: "${ref}" resolves in multiple spaces — qualify with --space <id>`,
     {
       why: `"${ref}" matches migrations in spaces: ${spaceList}.`,
       fix: `Qualify with --space <id> to select one space. Available matching spaces: ${spaceList}.`,
+      nextActions: [chooseAction(`Qualify with --space <id>, one of: ${spaceList}`)],
       meta: {
         ref,
         spaceIds: [...spaceIds],
@@ -412,44 +599,54 @@ export function errorAmbiguousMigrationRef(
   );
 }
 
-export function mapRefResolutionError(error: RefResolutionError): CliStructuredError {
+export function mapRefResolutionError(error: RefResolutionError): ActionableCliError {
   switch (error.kind) {
-    case 'not-found':
-      return errorRuntime(
+    case 'not-found': {
+      const fix =
+        error.grammar === 'contract'
+          ? 'Provide a valid contract hash, ref name, or migration directory name.'
+          : 'Provide a valid migration directory name or migration hash.';
+      return new ActionableCliError(
         'MIGRATION.REF_NOT_FOUND',
         `Not a known ${error.grammar} reference: "${error.input}"`,
         {
           why: `No ${error.grammar} matching "${error.input}" exists in the migration graph or refs index.`,
-          fix:
-            error.grammar === 'contract'
-              ? 'Provide a valid contract hash, ref name, or migration directory name.'
-              : 'Provide a valid migration directory name or migration hash.',
+          fix,
+          nextActions: [chooseAction(fix)],
           meta: { input: error.input, grammar: error.grammar },
         },
       );
+    }
     case 'ambiguous':
-      return errorRuntime(
+      return new ActionableCliError(
         'MIGRATION.REF_AMBIGUOUS',
         `Ambiguous ${error.grammar} reference: "${error.input}"`,
         {
           why: `"${error.input}" matches multiple ${error.grammar}s: ${error.candidates.join(', ')}`,
           fix: 'Provide a longer prefix or use the full hash to disambiguate.',
+          nextActions: [
+            chooseAction('Provide a longer prefix or use the full hash to disambiguate'),
+          ],
           meta: { input: error.input, candidates: error.candidates, grammar: error.grammar },
         },
       );
     case 'wrong-grammar':
-      return errorRuntime('MIGRATION.REF_WRONG_GRAMMAR', error.message, {
+      return new ActionableCliError('MIGRATION.REF_WRONG_GRAMMAR', error.message, {
         why: error.message,
         fix: error.fix,
+        nextActions: [chooseAction(error.fix)],
         meta: { input: error.input, expectedGrammar: error.expectedGrammar },
       });
     case 'invalid-format':
-      return errorRuntime(
+      return new ActionableCliError(
         'MIGRATION.REF_INVALID_FORMAT',
         `Invalid reference format: "${error.input}"`,
         {
           why: error.reason,
           fix: 'Provide a valid contract hash, ref name, or migration directory name.',
+          nextActions: [
+            chooseAction('Provide a valid contract hash, ref name, or migration directory name'),
+          ],
           meta: { input: error.input },
         },
       );

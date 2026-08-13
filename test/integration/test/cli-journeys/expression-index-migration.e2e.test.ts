@@ -85,9 +85,9 @@ async function runInitialFlow(ctx: JourneyContext, connectionString: string): Pr
     client.query('DROP INDEX "public"."users_email_eq_adef23ad"'),
   );
   const verifyFail = await runDbVerify(ctx, ['--schema-only']);
-  expect(verifyFail.exitCode, 'verify fails after out-of-band drop').toBe(1);
-  // The drift listing is a diagnostic: ui.log routes it to stderr (stdout
-  // carries data output only, per the terminal-ui contract).
+  expect(verifyFail.exitCode, 'verify reports drift after out-of-band drop').toBe(4);
+  // The drift tree is a human block, so it renders to stderr; stdout carries
+  // only machine-consumable lines, of which this command has none.
   expect(stripAnsi(verifyFail.stderr), 'verify names the dropped index').toContain(
     'users_email_eq_adef23ad',
   );

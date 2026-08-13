@@ -20,6 +20,7 @@ import {
 } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   resolveContractPath,
   resolveMigrationPaths,
@@ -106,7 +107,7 @@ async function executeDbSignCommand(
 
   if (effectiveContractArg) {
     try {
-      const { migrationsDir } = resolveMigrationPaths(options.config, config);
+      const { migrationsDir } = resolveMigrationPaths(options.config, config, process.cwd());
       const resolved = await resolveContractRefToSnapshot({
         config,
         migrationsDir,
@@ -230,7 +231,7 @@ async function executeDbSignCommand(
       }),
     );
   } finally {
-    await client.close();
+    await closeQuietly(client);
   }
 }
 

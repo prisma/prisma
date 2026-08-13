@@ -72,11 +72,12 @@ changes:
       extension manages is visible for the first time: it verifies as an undeclared extra under
       `--strict` and becomes a `dropCheckConstraint` under a policy that allows `destructive`.
       If your extension installs checks out of band — through a raw-SQL migration step rather
-      than through the contract — there is no way to declare them in 8.0.0-rc.2 (checks have no
-      authoring surface, and derivation from column shape is not one). Keep the tables carrying
-      them under an additive-only policy — the checks survive, and only `--strict` verify
-      reports them — or expect the first destructive plan against an upgraded database to
-      offer to drop them. An authoring/opt-out surface is planned for a later release.
+      than through the contract — declare them instead: `@@check(expression: "…", map: "<physical
+      name>")` adopts a constraint under the name it already carries. Until they are declared,
+      keep the tables carrying them under an additive-only policy — the checks survive, and only
+      `--strict` verify reports them — or expect the first destructive plan against an upgraded
+      database to offer to drop them. Declaring them is the durable fix; see
+      `authored-check-constraints` in this transition.
     detection:
       glob: "**/contract.json"
       contains:
@@ -243,6 +244,34 @@ changes:
         - "encodeJson"
         - "decodeJson"
         - "codec.encode"
+      anyMatch: true
+  - id: authored-check-constraints
+    summary: |
+      Two things change for packs. `sql.checkConstraint` is a new adapter-reported capability: an
+      adapter whose target implements CHECK constraint DDL reports it, and the `@@check` authoring
+      surface is gated on it. And a check is no longer "derived" merely by being wire-named —
+      user-authored checks are wire-named too. Derivation is now decided by whether the wire prefix
+      is one derivation would produce for a column of that table. A pack that read
+      `check.prefix !== undefined` to mean "Prisma Next generated this" must use the same
+      prefix-shape test, `derivedCheckPrefixes` from `@internal/sql-schema-ir/naming`. An authored
+      name that collides with a derived prefix shape is rejected at authoring with
+      `CONTRACT.CHECK_NAME_RESERVED`.
+    detection:
+      glob: "**/*.{ts,tsx}"
+      contains:
+        - 'checkConstraint'
+        - 'derivedCheckPrefixes'
+      anyMatch: true
+  - id: runtime-query-execute-hard-cut
+    summary: |
+      Runtime and scope implementations expose `query()` for rows, while rc.1 prepared rows use `target.queryPrepared(prepared, params, options?)` and rc.2 uses `prepared.query(target, params, options?)`; statistics-returning `execute()` remains for non-returning statements. Classify callers and helpers by the result they consume; do not globally rename `execute`. Route row plans to `query`, prepared row plans to `prepared.query(target, params, options?)`, and non-returning writes to `execute`, reading `stats.affectedRows` when a count is needed. Preserve the bound connection, row-result laziness, and eager statistics result. Middleware uses `beforeQuery` → `interceptQuery` → driver query → `onRow` → `afterQuery` for rows and `beforeExecute` → `interceptExecute` → driver execute → `afterExecute` for statistics. Query interception returns `{ rows }`; execute interception returns `{ stats }`. There is no operation discriminator, compatibility alias, or generic fallback hook. The Mongo facade keeps static `db.query` and removes row-execution `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "beforeQuery"
+        - "interceptExecute"
+        - ".queryPrepared("
+        - ".execute("
       anyMatch: true
 ---
 
@@ -502,12 +531,11 @@ Two consequences for a pack:
   A `Date` is the one authored value JSON has no notation for, so it is the one that arrives as itself.
 
 <!--
-PR #29910: `changes: []`. Binding internal mutation-reload filters and repairing Supabase runtime coverage after the driver SPI split require no downstream extension source translation.
-
 PR #29920: `changes: []`. Adds prepared-statement test coverage to the Supabase runtime suite (test-fixture codec registration only) and fixes a postgres direct-driver transaction defect; neither requires downstream extension source translation. The SPI split itself is recorded as `driver-spi-splits-query-and-execute` in the 0.17-to-8.0.0-rc.1 transition.
 
 PR #29902: `changes: []`. Generated contracts gain additive aggregate rows for new opt-in integer representation codecs, but existing extension schemas and source require no migration; extension authors re-emit only when adopting the new target-scoped types.
 PR #29940: `changes: []`. Dependabot's weekly dev-dependency bumps, which move `@biomejs/biome` to 2.5.6 and realign every `biome.jsonc` `$schema` URL to match. The extension-package diff is that URL and nothing else, so it requires no downstream extension source translation.
+PR #29965: `changes: []`. The same shape again: `@biomejs/biome` moves to 2.5.7 and every `biome.jsonc` `$schema` URL is realigned to match. The extension-package diff is that URL and nothing else, so it requires no downstream extension source translation.
 -->
 
 ## Why checks stopped being structured
@@ -538,9 +566,19 @@ whose control policy allows `destructive`.
 
 For an extension this matters in one specific case — a check your extension installs through a
 raw-SQL migration step rather than deriving in its contract space. That constraint used to be
-invisible and is now drop-eligible against any database the extension manages. Declaring it is
-not possible in 8.0.0-rc.2: a contract space derives checks from column shape (enum membership,
-list element-non-null) and has no surface for an arbitrary hand-written predicate. Document
-that the tables carrying it stay under an additive-only policy — the check survives, plain
-`db verify` tolerates it, and only `--strict` reports it — or accept the drop under a
-destructive plan. An authoring/opt-out surface for checks is planned for a later release.
+invisible and is now drop-eligible against any database the extension manages. Declare it:
+`@@check(expression: "…", map: "<its physical name>")` in the contract space adopts the
+constraint under the name it already carries, after which it is owned rather than extra and no
+plan drops it — see `authored-check-constraints` in this transition. Until you do, keep the
+tables carrying it under an additive-only policy: the check survives, plain `db verify`
+tolerates it, and only `--strict` reports it.
+
+## `runtime-query-execute-hard-cut`
+
+The runtime SPI separates row streams from statement statistics. Inspect what each caller consumes rather than applying a global `execute` → `query` replacement: selects, returning writes, Mongo command-result plans, and other iterated or decoded results use `query`; non-returning DML uses eager `execute` and returns `{ affectedRows: number }`. Prepared row callers move from `target.queryPrepared(prepared, params, options?)` to `prepared.query(target, params, options?)`.
+
+Connection, transaction, and role-bound scopes preserve their existing bound resource for both operations. Keep row results lazy and fully consume them inside a scope when required; statistics execution is eager. A count terminal must use `stats.affectedRows` from the write and never derive it from a row array.
+
+Middleware hooks are operation-specific: query uses `beforeQuery`, `interceptQuery`, `onRow`, and `afterQuery`; statistics uses `beforeExecute`, `interceptExecute`, and `afterExecute`; `beforeCompile` remains shared. `interceptQuery` returns `{ rows }`, `interceptExecute` returns `{ stats }`, and hook selection carries the operation distinction, so contexts and results have no operation discriminator. Do not add compatibility aliases or generic fallback hooks. Split row and statistics fakes and spies so tests detect an incorrect route. Behavior intended for both operations assigns one private implementation to both corresponding hook names.
+
+The Mongo facade keeps static `db.query`; it has no row-execution method named `query` and no compatibility `db.execute`. Build with `db.query`, obtain the connected runtime, and call `(await db.runtime()).query(plan)`. Leave genuine statistics calls, migration runners, and unrelated APIs named `execute` unchanged.

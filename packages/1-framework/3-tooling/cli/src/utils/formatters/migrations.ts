@@ -14,7 +14,7 @@ import { createColorFormatter, formatDim, isVerbose } from './helpers';
  * preview is byte-identical to the legacy `string[]`-based renderer for SQL
  * targets. Other languages (`'mongodb-shell'`) render verbatim.
  */
-function renderPreviewStatement(text: string, language: string): string | undefined {
+export function renderPreviewStatement(text: string, language: string): string | undefined {
   const trimmed = text.trim();
   if (!trimmed) return undefined;
   if (language === 'sql') {
@@ -334,7 +334,7 @@ export function formatMigrationApplyCommandOutput(
   return lines.join('\n');
 }
 
-interface MigrationShowPresent {
+export interface MigrationShowPresent {
   readonly name: string;
   readonly fromContract: string | null;
   readonly toContract: string;
@@ -350,6 +350,17 @@ interface MigrationShowPresent {
 
 interface MigrationShowResult {
   readonly migration: MigrationShowPresent;
+}
+
+/**
+ * The lines `migration show` puts on stdout: metadata, the operation tree, and
+ * the statement preview.
+ */
+export function renderMigrationShowLines(
+  space: MigrationShowPresent,
+  options: { readonly colorize: boolean },
+): readonly string[] {
+  return formatSpaceShowBlock(space, options.colorize);
 }
 
 function formatSpaceShowBlock(space: MigrationShowPresent, useColor: boolean): readonly string[] {

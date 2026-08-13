@@ -22,14 +22,14 @@ import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-co
 import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
-import type { SqlMiddleware } from '../src/middleware/sql-middleware';
+import type { SqlMiddleware, SqlMiddlewareContext } from '../src/middleware/sql-middleware';
 import type {
   SqlRuntimeAdapterDescriptor,
   SqlRuntimeAdapterInstance,
   SqlRuntimeTargetDescriptor,
 } from '../src/sql-context';
 import { createExecutionContext, createSqlExecutionStack } from '../src/sql-context';
-import { withTransaction } from '../src/sql-runtime';
+import { type TransactionContext, withTransaction } from '../src/sql-runtime';
 import { createAsyncSecretCodec, decryptSecret } from './seeded-secret-codec';
 import { defineTestCodec } from './test-codec';
 import { createTestRuntime as createRuntime, descriptorsFromCodecs, stubAst } from './utils';
@@ -57,6 +57,9 @@ interface DriverMockSpies {
   rootExecute: ReturnType<typeof vi.fn>;
   connectionExecute: ReturnType<typeof vi.fn>;
   transactionExecute: ReturnType<typeof vi.fn>;
+  rootStats: ReturnType<typeof vi.fn>;
+  connectionStats: ReturnType<typeof vi.fn>;
+  transactionStats: ReturnType<typeof vi.fn>;
   connectionRelease: ReturnType<typeof vi.fn>;
   connectionDestroy: ReturnType<typeof vi.fn>;
   transactionCommit: ReturnType<typeof vi.fn>;
@@ -118,15 +121,19 @@ function createMockDriver(): MockSqlDriver {
     yield { id: 3 };
   });
 
+  const rootStats = vi.fn().mockResolvedValue({ affectedRows: 7 });
+  const connectionStats = vi.fn().mockResolvedValue({ affectedRows: 8 });
+  const transactionStats = vi.fn().mockResolvedValue({ affectedRows: 9 });
+
   const transaction = {
-    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    execute: transactionStats,
     query: transactionExecute,
     commit: vi.fn().mockResolvedValue(undefined),
     rollback: vi.fn().mockResolvedValue(undefined),
   };
 
   const connection = {
-    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    execute: connectionStats,
     query: connectionExecute,
     release: vi.fn().mockResolvedValue(undefined),
     destroy: vi.fn().mockResolvedValue(undefined),
@@ -136,7 +143,7 @@ function createMockDriver(): MockSqlDriver {
   const driverClose = vi.fn().mockResolvedValue(undefined);
 
   const driver: SqlDriver = {
-    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    execute: rootStats,
     query: rootExecute,
     connect: vi.fn().mockImplementation(async (_binding?: undefined) => undefined),
     acquireConnection: vi.fn().mockResolvedValue(connection),
@@ -148,6 +155,9 @@ function createMockDriver(): MockSqlDriver {
       rootExecute,
       connectionExecute,
       transactionExecute,
+      rootStats,
+      connectionStats,
+      transactionStats,
       connectionRelease: connection.release,
       connectionDestroy: connection.destroy,
       transactionCommit: transaction.commit,
@@ -252,7 +262,7 @@ describe('SqlRuntime', () => {
     });
 
     expect(runtime).toBeDefined();
-    expect(runtime.execute).toBeDefined();
+    expect(runtime.query).toBeDefined();
     expect(runtime.telemetry).toBeDefined();
     expect(runtime.close).toBeDefined();
   });
@@ -296,7 +306,7 @@ describe('SqlRuntime', () => {
     expect(runtime).toBeDefined();
   });
 
-  it('uses acquired connection queryable for connection.execute', async () => {
+  it('uses acquired connection queryable for connection.query', async () => {
     const { stackInstance, context, driver } = createTestSetup();
     const runtime = createRuntime({
       stackInstance,
@@ -306,7 +316,7 @@ describe('SqlRuntime', () => {
     });
 
     const connection = await runtime.connection();
-    await connection.execute(createRawExecutionPlan()).toArray();
+    await connection.query(createRawExecutionPlan()).toArray();
 
     expect(driver.__spies.connectionExecute).toHaveBeenCalledTimes(1);
     expect(driver.__spies.transactionExecute).not.toHaveBeenCalled();
@@ -333,7 +343,7 @@ describe('SqlRuntime', () => {
     expect(driver.__spies.connectionRelease).not.toHaveBeenCalled();
   });
 
-  it('uses transaction queryable for transaction.execute', async () => {
+  it('uses transaction queryable for transaction.query', async () => {
     const { stackInstance, context, driver } = createTestSetup();
     const runtime = createRuntime({
       stackInstance,
@@ -344,7 +354,7 @@ describe('SqlRuntime', () => {
 
     const connection = await runtime.connection();
     const transaction = await connection.transaction();
-    await transaction.execute(createRawExecutionPlan()).toArray();
+    await transaction.query(createRawExecutionPlan()).toArray();
 
     expect(driver.__spies.transactionExecute).toHaveBeenCalledTimes(1);
     expect(driver.__spies.connectionExecute).not.toHaveBeenCalled();
@@ -354,7 +364,7 @@ describe('SqlRuntime', () => {
     await connection.release();
   });
 
-  it('keeps root execute on driver queryable for runtime.execute', async () => {
+  it('keeps root query on the driver queryable', async () => {
     const { stackInstance, context, driver } = createTestSetup();
     const runtime = createRuntime({
       stackInstance,
@@ -363,11 +373,186 @@ describe('SqlRuntime', () => {
       verifyMarker: false,
     });
 
-    await runtime.execute(createRawExecutionPlan()).toArray();
+    await runtime.query(createRawExecutionPlan()).toArray();
 
     expect(driver.__spies.rootExecute).toHaveBeenCalledTimes(1);
     expect(driver.__spies.connectionExecute).not.toHaveBeenCalled();
     expect(driver.__spies.transactionExecute).not.toHaveBeenCalled();
+  });
+
+  it('returns unchanged statistics from root, connection, and transaction queryables', async () => {
+    const { stackInstance, context, driver } = createTestSetup();
+    const runtime = createRuntime({
+      stackInstance,
+      context,
+      driver,
+      verifyMarker: false,
+    });
+    const plan = createRawExecutionPlan();
+    const rootStats = { affectedRows: 7 };
+    const connectionStats = { affectedRows: 8 };
+    const transactionStats = { affectedRows: 9 };
+    driver.__spies.rootStats.mockResolvedValueOnce(rootStats);
+    driver.__spies.connectionStats.mockResolvedValueOnce(connectionStats);
+    driver.__spies.transactionStats.mockResolvedValueOnce(transactionStats);
+
+    await expect(runtime.execute(plan)).resolves.toBe(rootStats);
+
+    const connection = await runtime.connection();
+    await expect(connection.execute(plan)).resolves.toBe(connectionStats);
+
+    const transaction = await connection.transaction();
+    await expect(transaction.execute(plan)).resolves.toBe(transactionStats);
+
+    expect(driver.__spies.rootStats).toHaveBeenCalledOnce();
+    expect(driver.__spies.connectionStats).toHaveBeenCalledOnce();
+    expect(driver.__spies.transactionStats).toHaveBeenCalledOnce();
+    expect(driver.__spies.rootExecute).not.toHaveBeenCalled();
+    expect(driver.__spies.connectionExecute).not.toHaveBeenCalled();
+    expect(driver.__spies.transactionExecute).not.toHaveBeenCalled();
+    expect(runtime.telemetry()).toEqual(
+      expect.objectContaining({ lane: 'raw', target: 'postgres', outcome: 'success' }),
+    );
+
+    await transaction.rollback();
+    await connection.release();
+  });
+
+  it('intercepts execute statistics through only execute hooks', async () => {
+    const { stackInstance, context, driver } = createTestSetup();
+    const calls: string[] = [];
+    const contexts: SqlMiddlewareContext[] = [];
+    const controller = new AbortController();
+    const runtime = createRuntime({
+      stackInstance,
+      context,
+      driver,
+      verifyMarker: false,
+      middleware: [
+        {
+          name: 'observer',
+          async beforeQuery() {
+            calls.push('beforeQuery');
+          },
+          async interceptQuery() {
+            calls.push('interceptQuery');
+            return undefined;
+          },
+          async afterQuery() {
+            calls.push('afterQuery');
+          },
+          async beforeExecute(_plan, ctx) {
+            calls.push('beforeExecute');
+            contexts.push(ctx);
+          },
+          async interceptExecute(_plan, ctx) {
+            calls.push('passthrough');
+            contexts.push(ctx);
+            return undefined;
+          },
+          async afterExecute(_plan, result, ctx) {
+            calls.push(`afterExecute:${result.completed ? result.stats.affectedRows : 'failed'}`);
+            contexts.push(ctx);
+          },
+        },
+        {
+          name: 'winner',
+          async interceptExecute(_plan, ctx) {
+            calls.push('winner');
+            contexts.push(ctx);
+            return { stats: { affectedRows: 12 } };
+          },
+        },
+        {
+          name: 'tail',
+          async interceptExecute() {
+            calls.push('tail');
+            return { stats: { affectedRows: 13 } };
+          },
+        },
+      ],
+    });
+
+    await expect(
+      runtime.execute(createRawExecutionPlan(), { signal: controller.signal }),
+    ).resolves.toEqual({ affectedRows: 12 });
+
+    expect(driver.__spies.rootStats).not.toHaveBeenCalled();
+    expect(calls).toEqual(['beforeExecute', 'passthrough', 'winner', 'afterExecute:12']);
+    expect(contexts).toHaveLength(4);
+    expect(contexts.every((ctx) => ctx === contexts[0])).toBe(true);
+    expect(contexts[0]?.contract).toEqual(testContract);
+    expect(contexts[0]?.signal).toBe(controller.signal);
+    expect(contexts[0]?.scope).toBe('runtime');
+    expect(contexts[0]?.planExecutionId).toBeTypeOf('string');
+  });
+
+  it('selects execute hooks and preserves connection and transaction scopes', async () => {
+    const { stackInstance, context, driver } = createTestSetup();
+    const scopes: string[] = [];
+    const queryHook = vi.fn();
+    const runtime = createRuntime({
+      stackInstance,
+      context,
+      driver,
+      verifyMarker: false,
+      middleware: [
+        {
+          name: 'scope-observer',
+          beforeQuery: queryHook,
+          beforeExecute(_plan, ctx) {
+            scopes.push(ctx.scope);
+          },
+        },
+      ],
+    });
+    const plan = createRawExecutionPlan();
+
+    await runtime.execute(plan);
+    const connection = await runtime.connection();
+    await connection.execute(plan);
+    const transaction = await connection.transaction();
+    await transaction.execute(plan);
+
+    expect(scopes).toEqual(['runtime', 'connection', 'transaction']);
+    expect(queryHook).not.toHaveBeenCalled();
+    await transaction.rollback();
+    await connection.release();
+  });
+
+  it('uses execute-shaped middleware results without delegating to the driver', async () => {
+    const { stackInstance, context, driver } = createTestSetup();
+    const completions: unknown[] = [];
+    const runtime = createRuntime({
+      stackInstance,
+      context,
+      driver,
+      verifyMarker: false,
+      middleware: [
+        {
+          name: 'statistics-cache',
+          async interceptExecute() {
+            return { stats: { affectedRows: 12 } };
+          },
+          async afterExecute(_plan, result) {
+            completions.push(result);
+          },
+        },
+      ],
+    });
+
+    await expect(runtime.execute(createRawExecutionPlan())).resolves.toEqual({
+      affectedRows: 12,
+    });
+
+    expect(driver.__spies.rootStats).not.toHaveBeenCalled();
+    expect(completions).toEqual([
+      expect.objectContaining({
+        completed: true,
+        source: 'middleware',
+        stats: { affectedRows: 12 },
+      }),
+    ]);
   });
 
   it('accepts a generic middleware (no familyId)', () => {
@@ -448,7 +633,7 @@ describe('SqlRuntime', () => {
       },
     };
 
-    await runtime.execute(queryPlan).toArray();
+    await runtime.query(queryPlan).toArray();
 
     expect(driver.__spies.rootExecute).toHaveBeenCalledTimes(1);
     const request = driver.__spies.rootExecute.mock.calls[0]?.[0] as SqlExecuteRequest;
@@ -525,9 +710,11 @@ describe('SqlRuntime', () => {
       },
     };
 
-    await runtime.execute(queryPlan).toArray();
+    await runtime.execute(queryPlan);
 
     expect(lowerSpy).toHaveBeenCalledTimes(1);
+    expect(driver.__spies.rootStats).toHaveBeenCalledOnce();
+    expect(driver.__spies.rootExecute).not.toHaveBeenCalled();
     const loweredAst = lowerSpy.mock.calls[0]?.[0] as SelectAst;
     expect(loweredAst.where?.kind).toBe('binary');
   });
@@ -551,7 +738,7 @@ describe('SqlRuntime', () => {
       log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug },
     });
 
-    await runtime.execute(createRawExecutionPlan()).toArray();
+    await runtime.query(createRawExecutionPlan()).toArray();
 
     expect(beforeCompile).not.toHaveBeenCalled();
     expect(debug).not.toHaveBeenCalled();
@@ -593,7 +780,7 @@ describe('SqlRuntime', () => {
       },
     };
 
-    await runtime.execute(plan).toArray();
+    await runtime.query(plan).toArray();
 
     expect(driver.__spies.rootExecute).toHaveBeenCalledOnce();
     const sentRequest = driver.__spies.rootExecute.mock.calls[0]?.[0] as
@@ -643,7 +830,7 @@ describe('SqlRuntime', () => {
       },
     };
 
-    await expect(runtime.execute(plan).toArray()).rejects.toMatchObject({
+    await expect(runtime.query(plan).toArray()).rejects.toMatchObject({
       code: 'RUNTIME.ENCODE_FAILED',
       details: expect.objectContaining({
         label: 'secret',
@@ -670,7 +857,7 @@ describe('withTransaction', () => {
     const { runtime, driver } = createRuntimeForTransaction();
 
     const result = await withTransaction(runtime, async (tx) => {
-      await tx.execute(createRawExecutionPlan()).toArray();
+      await tx.query(createRawExecutionPlan()).toArray();
       return 42;
     });
 
@@ -755,7 +942,7 @@ describe('withTransaction', () => {
     const { runtime, driver } = createRuntimeForTransaction();
 
     await withTransaction(runtime, async (tx) => {
-      await tx.execute(createRawExecutionPlan()).toArray();
+      await tx.query(createRawExecutionPlan()).toArray();
     });
 
     expect(driver.__spies.transactionExecute).toHaveBeenCalledOnce();
@@ -763,28 +950,42 @@ describe('withTransaction', () => {
     expect(driver.__spies.connectionExecute).not.toHaveBeenCalled();
   });
 
-  it('throws on execute after commit (invalidation)', async () => {
+  it('throws on query creation after commit', async () => {
     const { runtime } = createRuntimeForTransaction();
-    let savedTx: { execute: (plan: SqlExecutionPlan) => unknown } | undefined;
+    let savedTx: TransactionContext | undefined;
 
     await withTransaction(runtime, async (tx) => {
       savedTx = tx;
     });
 
-    expect(() => savedTx!.execute(createRawExecutionPlan())).toThrow(
-      'Cannot read from a query result after the transaction has ended',
+    expect(() => savedTx!.query(createRawExecutionPlan())).toThrow(
+      'Cannot use a transaction operation after the transaction has ended',
     );
+  });
+
+  it('rejects execute after commit before driver delegation', async () => {
+    const { runtime, driver } = createRuntimeForTransaction();
+    let savedTx: TransactionContext | undefined;
+
+    await withTransaction(runtime, async (tx) => {
+      savedTx = tx;
+    });
+
+    await expect(savedTx!.execute(createRawExecutionPlan())).rejects.toMatchObject({
+      code: 'RUNTIME.TRANSACTION_CLOSED',
+    });
+    expect(driver.__spies.transactionStats).not.toHaveBeenCalled();
   });
 
   it('throws on iteration of escaped AsyncIterableResult after commit', async () => {
     const { runtime } = createRuntimeForTransaction();
 
     const escaped = await withTransaction(runtime, async (tx) => {
-      return { result: tx.execute(createRawExecutionPlan()) };
+      return { result: tx.query(createRawExecutionPlan()) };
     });
 
     await expect(escaped.result.toArray()).rejects.toThrow(
-      'Cannot read from a query result after the transaction has ended',
+      'Cannot use a transaction operation after the transaction has ended',
     );
   });
 
@@ -798,7 +999,7 @@ describe('withTransaction', () => {
     });
 
     const escaped = await withTransaction(runtime, async (tx) => {
-      return { result: tx.execute(createRawExecutionPlan()) };
+      return { result: tx.query(createRawExecutionPlan()) };
     });
 
     await expect(escaped.result.toArray()).rejects.toMatchObject({
@@ -820,7 +1021,7 @@ describe('withTransaction', () => {
 
     // Escape a partially-consumed iterator: pull the first row inside the transaction, then let it commit.
     const escapedIterator = await withTransaction(runtime, async (tx) => {
-      const iter = tx.execute(createRawExecutionPlan())[Symbol.asyncIterator]();
+      const iter = tx.query(createRawExecutionPlan())[Symbol.asyncIterator]();
       await iter.next(); // pulls row 1 — driver body entered, driverNextCallCount === 1
       return iter;
     });
@@ -921,11 +1122,11 @@ describe('withTransaction', () => {
     const { runtime, driver } = createRuntimeForTransaction();
 
     await withTransaction(runtime, async (tx) => {
-      await tx.execute(createRawExecutionPlan()).toArray();
+      await tx.query(createRawExecutionPlan()).toArray();
     });
 
     await withTransaction(runtime, async (tx) => {
-      await tx.execute(createRawExecutionPlan()).toArray();
+      await tx.query(createRawExecutionPlan()).toArray();
     });
 
     await withTransaction(runtime, async () => {

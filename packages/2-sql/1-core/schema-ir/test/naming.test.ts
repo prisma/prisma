@@ -3,14 +3,127 @@ import { describe, expect, it } from 'vitest';
 
 import {
   assertWireNamePrefixLength,
+  composeCheckWirePrefix,
   computeCheckContentHash,
   computeIndexContentHash,
+  defaultIndexName,
+  derivedCheckPrefixes,
   formatWireName,
+  nameOf,
+  namingOf,
+  namingOfLiveName,
+  normalizeIndexOptionValue,
   normalizeSqlBody,
+  parseNaming,
   parseWireName,
   truncateToWireNamePrefixBytes,
   WIRE_NAME_PREFIX_MAX_BYTES,
 } from '../src/exports/naming';
+
+describe('defaultIndexName', () => {
+  it('joins the table and column tuple into the conventional suffix', () => {
+    expect(defaultIndexName('users', ['tenant_id', 'email'])).toBe('users_tenant_id_email_idx');
+  });
+});
+
+describe('the naming union', () => {
+  describe('nameOf / namingOf round-trip', () => {
+    it('an exact name keeps its author-owned spelling', () => {
+      const naming = namingOf('users_pkey', undefined);
+
+      expect(naming).toEqual({ kind: 'exact', name: 'users_pkey' });
+      expect(nameOf(naming)).toBe('users_pkey');
+    });
+
+    it('a wire name splits back into the prefix it was built from', () => {
+      const naming = namingOf('users_email_idx_ab12cd34', 'users_email_idx');
+
+      expect(naming).toEqual({
+        kind: 'wire',
+        prefix: 'users_email_idx',
+        hash: 'ab12cd34',
+      });
+      expect(nameOf(naming)).toBe('users_email_idx_ab12cd34');
+    });
+  });
+
+  describe('parseNaming (flat data from outside the process)', () => {
+    it('reads a wire name back when the declared prefix agrees', () => {
+      expect(parseNaming('p_read_ab12cd34', 'p_read')).toEqual({
+        kind: 'wire',
+        prefix: 'p_read',
+        hash: 'ab12cd34',
+      });
+    });
+
+    it('treats an absent prefix as an exact name', () => {
+      expect(parseNaming('handwritten', undefined)).toEqual({
+        kind: 'exact',
+        name: 'handwritten',
+      });
+    });
+
+    it('rejects a declared prefix that disagrees with the name', () => {
+      expect(() => parseNaming('p_read_ab12cd34', 'p_write')).toThrow(
+        '"p_read_ab12cd34": prefix "p_write" does not match the wire name',
+      );
+    });
+
+    it('rejects a declared prefix on a name with no hash suffix', () => {
+      expect(() => parseNaming('handwritten', 'handwritten')).toThrow(
+        'does not match the wire name',
+      );
+    });
+  });
+
+  describe('namingOfLiveName (a name read out of the catalog)', () => {
+    it('claims the wire arm for a wire-shaped name', () => {
+      expect(namingOfLiveName('users_email_idx_ab12cd34')).toEqual({
+        kind: 'wire',
+        prefix: 'users_email_idx',
+        hash: 'ab12cd34',
+      });
+    });
+
+    it('claims the exact arm for anything else', () => {
+      expect(namingOfLiveName('users_pkey')).toEqual({ kind: 'exact', name: 'users_pkey' });
+    });
+  });
+});
+
+describe('composeCheckWirePrefix', () => {
+  it('spells the membership and element-not-null kinds distinctly', () => {
+    expect({
+      membership: composeCheckWirePrefix('User', 'role', 'membership'),
+      elementNotNull: composeCheckWirePrefix('User', 'tags', 'elementNotNull'),
+    }).toEqual({
+      membership: 'User_role_check',
+      elementNotNull: 'User_tags_elem_not_null',
+    });
+  });
+
+  it('truncates a derived prefix to the wire-name byte budget', () => {
+    const prefix = composeCheckWirePrefix('t'.repeat(60), 'column', 'membership');
+
+    expect(new TextEncoder().encode(prefix).length).toBe(WIRE_NAME_PREFIX_MAX_BYTES);
+  });
+});
+
+describe('normalizeIndexOptionValue', () => {
+  it('canonicalizes every boolean spelling the catalog may reprint', () => {
+    expect({
+      trueValues: [true, 'true', 'on'].map(normalizeIndexOptionValue),
+      falseValues: [false, 'false', 'off'].map(normalizeIndexOptionValue),
+    }).toEqual({
+      trueValues: ['on', 'on', 'on'],
+      falseValues: ['off', 'off', 'off'],
+    });
+  });
+
+  it('String()-coerces everything else', () => {
+    expect([70, '70', null].map(normalizeIndexOptionValue)).toEqual(['70', '70', 'null']);
+  });
+});
 
 describe('formatWireName', () => {
   it('joins prefix and hash with an underscore', () => {
@@ -140,6 +253,56 @@ describe('computeCheckContentHash', () => {
     expect(computeCheckContentHash(`"role" IN ('user')`)).not.toBe(
       computeCheckContentHash(`"role" IN ('admin')`),
     );
+  });
+});
+
+describe('derivedCheckPrefixes', () => {
+  it('crosses every column with every CheckKind', () => {
+    const prefixes = derivedCheckPrefixes('User', ['role', 'tags']);
+    expect(prefixes).toEqual(
+      new Set([
+        composeCheckWirePrefix('User', 'role', 'membership'),
+        composeCheckWirePrefix('User', 'role', 'elementNotNull'),
+        composeCheckWirePrefix('User', 'tags', 'membership'),
+        composeCheckWirePrefix('User', 'tags', 'elementNotNull'),
+      ]),
+    );
+  });
+
+  it('returns an empty set for a table with no columns', () => {
+    expect(derivedCheckPrefixes('User', [])).toEqual(new Set());
+  });
+
+  it('does not include a prefix no column of the table could produce', () => {
+    const prefixes = derivedCheckPrefixes('User', ['role', 'tags']);
+    expect(prefixes.has('User_status_active')).toBe(false);
+  });
+
+  it('truncates a composed prefix that overruns the byte budget (literal expected value)', () => {
+    // The ADR 244 worked example: a 22-character table name plus a
+    // 21-character column name pushes the `elem_not_null`-suffixed prefix to
+    // 58 bytes, 4 over budget, so it truncates to exactly 54 — cutting into
+    // the kind marker itself (`_elem_not_` with `null` gone).
+    const prefixes = derivedCheckPrefixes('custom_oauth_providers', ['acceptable_client_ids']);
+    expect(prefixes).toEqual(
+      new Set([
+        'custom_oauth_providers_acceptable_client_ids_check',
+        'custom_oauth_providers_acceptable_client_ids_elem_not_',
+      ]),
+    );
+  });
+
+  it('dedups two columns whose composed prefixes collide after truncation', () => {
+    // Both column names share their first 60 bytes and differ only in the
+    // last character — a difference the 54-byte truncation cuts away before
+    // it, and before either kind suffix, ever survives. The non-injective
+    // case ADR 244's "Truncation is safe because identity does not live in
+    // the prefix" argument depends on: two different columns, four nominal
+    // (column x kind) prefixes, one surviving entry.
+    const columnA = `${'a'.repeat(60)}A`;
+    const columnB = `${'a'.repeat(60)}B`;
+    const prefixes = derivedCheckPrefixes('t', [columnA, columnB]);
+    expect(prefixes).toEqual(new Set([`t_${'a'.repeat(52)}`]));
   });
 });
 

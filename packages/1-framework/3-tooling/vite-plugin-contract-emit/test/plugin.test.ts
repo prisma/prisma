@@ -69,7 +69,7 @@ function createDeferred<T>() {
   return { promise, resolve, reject };
 }
 
-async function flushMicrotasks(turns = 8): Promise<void> {
+async function flushMicrotasks(turns = 16): Promise<void> {
   for (let index = 0; index < turns; index += 1) {
     await Promise.resolve();
   }
@@ -441,7 +441,7 @@ describe('prismaVitePlugin', () => {
       expect(mockServer.moduleGraph.onFileChange).toHaveBeenCalledWith('/out/contract.d.ts');
     });
 
-    it('loads config once on startup before the initial emit', async () => {
+    it('loads config for watch resolution and for the initial emit', async () => {
       const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
@@ -453,7 +453,7 @@ describe('prismaVitePlugin', () => {
       ) => Promise<void>;
       await configureServer(mockServer);
 
-      expect(mockedLoadConfig).toHaveBeenCalledTimes(1);
+      expect(mockedLoadConfig).toHaveBeenCalledTimes(2);
       expect(mockedExecuteContractEmit).toHaveBeenCalledTimes(1);
       expect(mockedLoadConfig.mock.invocationCallOrder[0]!).toBeLessThan(
         mockedExecuteContractEmit.mock.invocationCallOrder[0]!,
@@ -516,7 +516,8 @@ describe('prismaVitePlugin', () => {
     });
 
     it('falls back to watching the config file and warns when loadConfig fails', async () => {
-      mockedLoadConfig.mockRejectedValue(new Error('config load failed'));
+      // Only the watch-resolution load fails; the emit's own load still succeeds.
+      mockedLoadConfig.mockRejectedValueOnce(new Error('config load failed'));
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -549,9 +550,11 @@ describe('prismaVitePlugin', () => {
     });
 
     it('keeps existing watched dependencies while config loading falls back', async () => {
-      let shouldFailLoad = false;
+      // Fails the watch-resolution load only; the emit's own load still succeeds.
+      let failNextLoad = false;
       mockedLoadConfig.mockImplementation(async () => {
-        if (shouldFailLoad) {
+        if (failNextLoad) {
+          failNextLoad = false;
           throw new Error('config load failed');
         }
         return createLoadedConfig({ inputs: undefined });
@@ -583,7 +586,7 @@ describe('prismaVitePlugin', () => {
       mockServer.watcher.add.mockClear();
       mockServer.watcher.unwatch.mockClear();
 
-      shouldFailLoad = true;
+      failNextLoad = true;
 
       const handleHotUpdate = plugin.handleHotUpdate as unknown as (ctx: { file: string }) => void;
       handleHotUpdate({ file: '/project/config-shared.ts' });
@@ -598,7 +601,6 @@ describe('prismaVitePlugin', () => {
       );
 
       mockedExecuteContractEmit.mockClear();
-      shouldFailLoad = false;
 
       handleHotUpdate({ file: '/project/config-shared.ts' });
       await vi.advanceTimersByTimeAsync(100);

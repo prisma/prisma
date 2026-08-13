@@ -68,7 +68,7 @@ withTempDir(({ createTempDir }) => {
         expect(emit1.exitCode, `emit required-name: ${emit1.stderr}`).toBe(0);
 
         const planResult = await runMigrationPlan(ctx, ['--name', 'add-required-name']);
-        expect(planResult.exitCode, `plan: ${planResult.stdout}\n${planResult.stderr}`).toBe(0);
+        expect(planResult.exitCode, `plan: ${planResult.stderr}\n${planResult.stderr}`).toBe(0);
 
         const migrationsDir = join(ctx.testDir, 'migrations', 'app');
         const migrationDirs = readdirSync(migrationsDir)
@@ -157,7 +157,7 @@ withTempDir(({ createTempDir }) => {
         // check-driven skip path (spec AC4.2 idempotency half).
         const reapply = await runMigrate(ctx);
         expect(reapply.exitCode, `reapply: ${reapply.stdout}\n${reapply.stderr}`).toBe(0);
-        expect(reapply.stdout).toContain('Already up to date');
+        expect(reapply.stderr).toContain('Already up to date');
       },
       timeouts.spinUpPpgDev,
     );

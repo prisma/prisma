@@ -20,6 +20,7 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  engineDiagnosticCodes,
   type JourneyContext,
   runContractEmit,
   runDbInit,
@@ -109,8 +110,11 @@ withTempDir(({ createTempDir }) => {
 
         // U.01: db verify (fails — contract says "mysql", config says "postgres")
         const verify = await runDbVerify(ctx);
-        expect(verify.exitCode, 'U.01: db verify target mismatch').toBe(2);
-        expect(stripAnsi(verify.stdout), 'U.01: mentions target mismatch').toContain(
+        expect(verify.exitCode, 'U.01: db verify target mismatch').toBe(4);
+        expect(engineDiagnosticCodes(verify), 'U.01: reported as a finding').toEqual([
+          'CONTRACT.TARGET_MISMATCH',
+        ]);
+        expect(stripAnsi(verify.stderr), 'U.01: mentions target mismatch').toContain(
           'Target mismatch',
         );
       },

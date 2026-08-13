@@ -23,11 +23,11 @@ changes:
       is an extra: `prisma-next db verify --strict` reports it, and a plan run under a policy
       that allows `destructive` emits a `dropCheckConstraint` operation for it. Read the first
       plan for `dropCheckConstraint` operations naming constraints you wrote by hand. There is
-      no way to declare a hand-written check in 8.0.0-rc.2 — checks have no authoring surface — so
-      to keep one, run plans for that table under an additive-only policy: the constraint
-      stays enforced, plain `db verify` tolerates it, and only `--strict` lists it. Let the
-      drop through only when the constraint is deliberately retired. An authoring/opt-out
-      surface for checks is planned for a later release.
+      To keep one, declare it: `@@check(expression: "…", map: "<its physical name>")` adopts the
+      constraint under the name it already has, after which `db verify` is clean and no plan drops
+      it. `contract infer` writes that form for you, so re-running a pull is the quickest route.
+      Let a drop through only when the constraint is deliberately retired. Running the table under
+      an additive-only policy also keeps it, but leaves it reported by `--strict` as undeclared.
     detection:
       glob: "**/contract.json"
       contains:
@@ -180,6 +180,36 @@ changes:
       contains:
         - "bigint"
         - "BigInt"
+      anyMatch: true
+  - id: authored-check-constraints
+    summary: |
+      A CHECK constraint can now be declared in the contract: `@@check(expression: "…", name: "…")`
+      in PSL, `check({ expression, name })` in the TypeScript builder. `name:` is a wire-name
+      prefix — the physical constraint becomes `name_<8hex>`, hashed over the predicate, and
+      compared by name, so Postgres reprinting the expression never causes drift. Use `map:`
+      instead to adopt a constraint that already exists under its own physical name; that form
+      compares the predicate byte-for-byte, and warns whenever the body was not captured from the
+      database — including on contracts `contract infer` wrote, which warn on the next
+      `contract emit`. `contract infer` now writes the `map:` form for you: pulling a database
+      emits `@@check` for every live check Prisma Next did not derive, so a hand-written constraint
+      is declared from the first pull instead of reading as an undeclared extra that a plan allowing
+      destructive changes would drop. Nothing is required of an existing contract — the surface is
+      additive.
+    detection:
+      glob: "**/*.{prisma,ts}"
+      contains:
+        - '@@check'
+      anyMatch: true
+  - id: runtime-query-execute-hard-cut
+    summary: |
+      Runtime row execution uses `query()`, while rc.1 prepared rows use `target.queryPrepared(prepared, params, options?)` and rc.2 uses `prepared.query(target, params, options?)`. Classify each call by its consumed result rather than replacing every `execute`: move row plans to `query`, prepared rows to `prepared.query(target, params, options?)`, and keep non-returning writes on `execute` while reading `affectedRows` when needed. Middleware uses operation-specific `beforeQuery` / `interceptQuery` / `afterQuery` and `beforeExecute` / `interceptExecute` / `afterExecute` hooks, with shared `beforeCompile`; interception returns `{ rows }` for queries and `{ stats }` for execution. There is no operation discriminator, compatibility alias, or generic fallback hook. The Mongo facade keeps static `db.query` and removes row `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - ".execute("
+        - ".queryPrepared("
+        - "beforeQuery"
+        - "interceptExecute"
       anyMatch: true
 ---
 
@@ -348,6 +378,7 @@ PR #29902: `changes: []`. Generated contracts gain additive aggregate rows for n
 PR #29950: `changes: []`. The demo applications adopt the integer representation types and the precision-preserving aggregates on their own models, and the reference docs gain the matching examples; the diff is confined to example apps and documentation and requires no user API, contract, configuration, generated-artifact, or source translation.
 PR #29939: `changes: []`. Dependabot's weekly runtime-dependency bumps (`ws`, `lucide-react`, `postcss`, `uniku`, `@vercel/detect-agent`, and the `@types/node` / `@types/pg` / `tsx` catalog entries). The example diff is dependency version strings, and requires no user API, contract, configuration, generated-artifact, or source translation.
 PR #29940: `changes: []`. Dependabot's weekly dev-dependency bumps (type packages, wrangler, biome, test tooling) plus the matching `biome.jsonc` `$schema` realignment; the example diffs are devDependency version strings and a schema URL, and require no user API, contract, configuration, generated-artifact, or source translation.
+PR #29965: `changes: []`. Dependabot's dev-dependency bumps (`wrangler`, `@cloudflare/vitest-pool-workers`, `@biomejs/biome`) plus the matching `biome.jsonc` `$schema` realignment to 2.5.7; the example diffs are devDependency version strings and a schema URL, and require no user API, contract, configuration, generated-artifact, or source translation.
 -->
 
 ## Regenerating is the first step
@@ -374,12 +405,31 @@ data all along. Grep the first plan for `dropCheckConstraint` and check every co
 
 - to keep it, run plans for that table under an additive-only policy. The constraint stays in
   place and keeps enforcing; plain `db verify` tolerates it, and only `--strict` reports it as
-  an undeclared extra. Declaring it is not an option in 8.0.0-rc.2 — there is no authoring surface
-  for a hand-written check (in PSL or in a TypeScript contract), and `contract infer` does not
-  read checks back out of the catalog. An authoring/opt-out surface is planned for a later
-  release;
+  an undeclared extra. Better: declare it with `@@check(expression: "…", map: "<physical name>")`,
+  or re-run `contract infer`, which now emits exactly that for every live check Prisma Next did
+  not derive — the constraint becomes declared and stops being an extra at all;
 - if it was already dead, let the drop through under the destructive plan.
 
 Nothing drops silently — an additive-only policy never emits the operation at all — but the
 first plan after upgrading is the moment to look, because it is the first plan that can see
 these constraints.
+
+## `runtime-query-execute-hard-cut`
+
+Runtime operations state whether the caller expects rows or statement statistics. Do not apply a global `execute` → `query` replacement: an insert, update, or delete that does not return rows belongs on `execute`, while a select, a returning write, a Mongo command-result plan, or any plan whose result is iterated, awaited as an array, indexed, decoded, or otherwise read belongs on `query`.
+
+| 8.0.0-rc.1 | 8.0.0-rc.2 |
+| --- | --- |
+| `await runtime.execute(rowPlan)` | `await runtime.query(rowPlan)` |
+| `runtime.execute(rowPlan).toArray()` | `runtime.query(rowPlan).toArray()` |
+| `await target.queryPrepared(prepared, params, options?)` | `await prepared.query(target, params, options?)` |
+| `await runtime.execute(nonReturningWrite)` with ignored rows | `await runtime.execute(nonReturningWrite)` and ignore the returned statistics |
+| A count or status derived from rows returned by a non-returning write | `const stats = await runtime.execute(writePlan)` and use `stats.affectedRows` |
+
+Apply the same classification to connection and transaction scopes. `query()` and `prepared.query(target, params, options?)` remain lazy row results, so consume them inside the scope when their connection or transaction must remain valid. `execute()` is eager and resolves to `{ affectedRows: number }`; it does not return an iterable, and `affectedRows` must not be synthesized from a row array's length.
+
+If the application defines runtime middleware, use the operation-specific hooks: query interception returns `{ rows }`, execute interception returns `{ stats }`, and completion handlers use their matching `afterQuery` or `afterExecute` result. `beforeQuery` / `interceptQuery` / `onRow` / `afterQuery` and `beforeExecute` / `interceptExecute` / `afterExecute` are distinct capabilities, while `beforeCompile` remains shared. Hook selection carries the operation distinction; contexts and results have no operation discriminator. Row-oriented middleware must not derive statistics from rows, and no compatibility aliases or generic fallback hooks are provided.
+
+Tests that observe row queries should spy on `driver.query`, not `driver.execute`; statistics tests should observe `driver.execute`. Keep separate row-result and statistics queues so a wrong route fails loudly. Behavior intended for both operations assigns one private implementation to both corresponding hook names. Mongo keeps `db.query` as the static builder and has no row-execution `db.execute` facade method: build with `db.query`, obtain the connected runtime, then query through `(await db.runtime()).query(plan)`.
+
+Search broadly for `.execute(` and retired prepared execution, then inspect each candidate's plan and downstream use. Rows being iterated, indexed, decoded, compared as arrays, or passed to a row mapper identify `query`; reads of `affectedRows` or ignored results from non-returning DML identify `execute`. Leave unrelated APIs such as migration runners alone.

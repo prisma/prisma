@@ -1,3 +1,4 @@
+import type { PrismaNextConfig } from '@internal/config-loader';
 import { loadConfigForSections } from '@internal/config-loader';
 import { getEmittedArtifactPaths } from '@internal/emitter';
 import { errorContractConfigMissing } from '@internal/errors/control';
@@ -30,27 +31,33 @@ interface ContractEmitOptions extends CommonCommandOptions {
   readonly outputPath?: string;
 }
 
-interface HeaderPaths {
+interface EmitContext {
+  readonly config: PrismaNextConfig;
   readonly displayConfigPath: string;
   readonly outputJsonPath: string;
   readonly outputDtsPath: string;
 }
 
 /**
- * Pre-load the config just to compute display paths for the styled header. The
- * actual emit work goes through `executeContractEmit`, which loads the config
- * itself; the redundant load here is bounded and lets the header render before
- * the emit spans start.
+ * Loads the config once, for both the styled header's display paths and the
+ * emit itself — `executeContractEmit` takes the loaded config rather than
+ * reading it a second time.
  */
-async function resolveHeaderPaths(
+async function resolveEmitContext(
   configOption: string | undefined,
   outputPath: string | undefined,
-): Promise<Result<HeaderPaths, CliStructuredError>> {
+): Promise<Result<EmitContext, CliStructuredError>> {
   const displayConfigPath = configOption
     ? relative(process.cwd(), resolve(configOption))
     : 'prisma-next.config.ts';
 
-  const configResult = await loadConfigForSections(configOption, ['contract']);
+  const configResult = await loadConfigForSections(configOption, [
+    'contract',
+    'family',
+    'target',
+    'adapter',
+    'extensions',
+  ]);
   if (!configResult.ok) {
     return configResult;
   }
@@ -70,7 +77,7 @@ async function resolveHeaderPaths(
   try {
     const { jsonPath: outputJsonPath, dtsPath: outputDtsPath } =
       getEmittedArtifactPaths(effectiveJsonPath);
-    return ok({ displayConfigPath, outputJsonPath, outputDtsPath });
+    return ok({ config, displayConfigPath, outputJsonPath, outputDtsPath });
   } catch (error) {
     return notOk(
       errorContractConfigMissing({
@@ -88,11 +95,11 @@ async function executeContractEmitCommand(
 ): Promise<Result<EmitContractResult, CliStructuredError>> {
   const outputPath = options.outputPath !== undefined ? resolve(options.outputPath) : undefined;
 
-  const headerPathsResult = await resolveHeaderPaths(options.config, outputPath);
-  if (!headerPathsResult.ok) {
-    return headerPathsResult;
+  const emitContextResult = await resolveEmitContext(options.config, outputPath);
+  if (!emitContextResult.ok) {
+    return emitContextResult;
   }
-  const { displayConfigPath, outputJsonPath, outputDtsPath } = headerPathsResult.value;
+  const { config, displayConfigPath, outputJsonPath, outputDtsPath } = emitContextResult.value;
 
   if (!flags.json && !flags.quiet) {
     ui.stderr(
@@ -116,6 +123,8 @@ async function executeContractEmitCommand(
   let result: ContractEmitResult;
   try {
     result = await executeContractEmit({
+      config,
+      cwd: process.cwd(),
       configPath,
       onProgress,
       ...ifDefined('outputPath', outputPath),

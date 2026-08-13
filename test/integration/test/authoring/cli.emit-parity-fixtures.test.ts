@@ -1,6 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
 import type { ContractSourceContext, PrismaNextConfig } from '@internal/cli/config-types';
 import { enrichContract } from '@internal/cli/control-api';
 import { loadConfig } from '@internal/config-loader';
@@ -8,9 +7,9 @@ import { createControlStack } from '@internal/framework-components/control';
 import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
 import { sqlEmission } from '@internal/sql-contract-emitter';
 import { timeouts } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { emit } from '../../utils/emit';
-import { executeCommand, setupCommandMocks } from '../utils/cli-test-helpers';
+import { runOnEngine } from '../utils/cli-test-helpers';
 import {
   listAuthoringDiagnosticsFixtureCases,
   listAuthoringParityFixtureCases,
@@ -219,21 +218,8 @@ describe('emit parity fixtures', () => {
 });
 
 describe('emit parity fixture diagnostics', () => {
-  let consoleErrors: string[] = [];
-  let cleanupMocks: () => void;
-
   it('discovers at least one diagnostics fixture case', () => {
     expect(diagnosticsCases.length).toBeGreaterThan(0);
-  });
-
-  beforeEach(() => {
-    const mocks = setupCommandMocks();
-    consoleErrors = mocks.consoleErrors;
-    cleanupMocks = mocks.cleanup;
-  });
-
-  afterEach(() => {
-    cleanupMocks();
   });
 
   for (const diagnosticsCase of diagnosticsCases) {
@@ -241,7 +227,6 @@ describe('emit parity fixture diagnostics', () => {
       timeout: timeouts.typeScriptCompilation,
     }, async () => {
       const testSetup = setupIntegrationTestDirectoryForAuthoringParityCase(coreSurfaceCase);
-      const command = createContractEmitCommand();
       const expectedFixture = parseExpectedDiagnosticsFixture(
         readFileSync(diagnosticsCase.expectedDiagnosticsPath, 'utf-8'),
       );
@@ -290,22 +275,24 @@ describe('emit parity fixture diagnostics', () => {
           ),
         );
 
-        const commandCwd = process.cwd();
-        try {
-          process.chdir(testSetup.testDir);
-          await expect(
-            executeCommand(command, ['--config', 'prisma-next.config.parity-psl.ts']),
-          ).rejects.toThrow();
-        } finally {
-          process.chdir(commandCwd);
-        }
+        const run = await runOnEngine(
+          { testDir: testSetup.testDir, configPath: testSetup.pslConfigPath },
+          ['contract', 'emit', '--json'],
+        );
+        const terminal = run.json.at(-1);
+        const envelope =
+          terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
 
-        const errorOutput = consoleErrors.join('\n');
-        expect(errorOutput).toContain(expectedFixture.failureSummary);
+        expect(run.exitCode).toBe(2);
+        expect(envelope).toMatchObject({
+          ok: false,
+          error: { code: 'CONTRACT.SOURCE_LOAD_FAILED', why: expectedFixture.failureSummary },
+        });
+        const reported = JSON.stringify(envelope);
         for (const diagnostic of expectedFixture.diagnostics) {
-          expect(errorOutput).toContain(diagnostic.code);
+          expect(reported).toContain(diagnostic.code);
         }
-        expect(errorOutput).toMatch(/schema\.prisma:\d+:\d+/);
+        expect(reported).toMatch(/schema\.prisma:\d+:\d+/);
       } finally {
         testSetup.cleanup();
       }

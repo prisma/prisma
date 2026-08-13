@@ -88,10 +88,11 @@ The CLI checks `process.stdout.isTTY` once at startup to determine the output mo
 - Human layout (TTY):
   - First line: `✖` concise summary + code
   - Why: one line cause
-  - Next: one `→` line per entry in `nextActions`, label first, command after it
+  - Next: one `→` line per entry in `nextActions`, label first, command after it. Until the `fix` → `nextActions` sweep completes, the human renderer still prints the single `Fix:` prose line instead; the `→` block replaces it once every raise site carries actions.
   - Where: `file:line` when applicable
   - More: hint to rerun with `-v`/`--trace`; docs link by code (`docs.prisma.io/docs/orm/next/reference/error-reference#<CODE>`)
-- JSON schema (single object): `{ code, severity, summary, why, nextActions, where: { path, line }, meta, docsUrl }`. `nextActions` is always present and is `[]` when there is nothing to suggest; each entry is `{ kind: 'run-command' | 'user-choice' | 'edit-file' | 'done', label, command?, commands?, reason? }`. It replaces the freeform `fix` string — see [ADR 239](architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md#remediation-is-typed-not-prose). During the conversion ratchet some producers still emit `fix`; consumers should accept either field until the sweep completes.
+- JSON schema (single object): `{ code, severity, summary, why, nextActions, where: { path, line }, meta, docsUrl }`. Each `nextActions` entry is `{ kind: 'run-command' | 'open-url' | 'user-choice' | 'edit-file' | 'done', label, command?, commands?, url?, reason? }`. It replaces the freeform `fix` string — see [ADR 239](architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md#remediation-is-typed-not-prose). The field is always present in JSON output and is `[]` when there is nothing to suggest, so a consumer never has to tell an absent field from an empty array. Omitting `nextActions` is raise-side behaviour only: a producer that has not converted yet carries prose in `fix` and no actions, and the CLI normalizes that to `nextActions: []` when it serializes the envelope, so consumers should keep reading `fix` until the sweep completes ([which surface guarantees what](architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md#which-surface-guarantees-nextactions)).
+- A `command` is authored with a `{bin}` placeholder (`{bin} ref set <name> <hash>`) because the library that raises the error does not know which binary the user ran. The CLI substitutes the running binary's name before the envelope is serialized, so `{bin}` never reaches a consumer. Angle-bracket placeholders are different and are left in place: they mark a value only the user can supply.
 - Exit code: a structured failure exits `2` (precondition; see [Exit Codes](#exit-codes)), except a user-declined prompt which exits `3`. Only an internal bug or uncaught error exits `1`. A command that **ran to its end and found problems** is not a failure: its findings are diagnostics on a completed result with a documented `4`–`99` exit code, never a thrown error.
 - **Missing-input failures**: when a command fails because required flags are missing in non-interactive mode, the envelope MUST set `meta.missingFlags: string[]` listing each missing flag's long form (e.g. `["--target", "--authoring"]`) so callers can react programmatically. `nextActions` SHOULD carry a `run-command` action whose `command` is the same invocation with those flags supplied, copy-pasteable.
 
@@ -111,28 +112,30 @@ The CLI checks `process.stdout.isTTY` once at startup to determine the output mo
 - Non‑TTY/CI: never prompt; fail with a structured precondition error if input is required.
 - `--interactive`/`--no-interactive` override the TTY detection.
 - **Every interactive prompt MUST have a flag-driven equivalent.** A command that requires user input without a corresponding flag is broken in non-interactive mode. Adding a new prompt requires adding the matching flag in the same change.
-- **Interactivity requires both stdin and stdout to be TTYs.** Commands that prompt MUST check `process.stdin.isTTY && process.stdout.isTTY`. A closed stdin (`< /dev/null`, common in CI and AI agents) is non-interactive even when stdout is a TTY. `--interactive` overrides this only when both streams are actually capable of carrying input/output.
-- **`-y`/`--yes` auto-accepts non-destructive prompts only.** It does NOT consent to data loss, overwriting generated files, or any other destructive action. Destructive operations require an explicit `--force` flag (see [Destructive operation confirmation](#destructive-operation-confirmation)).
+- **Interactivity is derived from stdin, and the engine owns it.** A run is interactive when stdin is a TTY and the run is not in CI; `--interactive`/`--no-interactive` override that, and the output format never decides it. Commands do not read `process.stdin.isTTY` (or any other stream) themselves — they call `ctx.prompt.*` and the engine settles what happens when there is nobody to ask. A closed stdin (`< /dev/null`, common in CI and AI agents) is therefore non-interactive even when stdout is a TTY.
+- **`-y`/`--yes` accepts declared prompt defaults only.** It does NOT consent to data loss, overwriting generated files, or any other destructive action: a consent prompt is structurally undefaultable, so `--yes` cannot answer one. Destructive actions are consented to by name (see [Destructive operation confirmation](#destructive-operation-confirmation)).
 
 ### Destructive operation confirmation
 
-Destructive operations (drops, type changes, overwriting generated files, overwriting an existing signature marker, …) require **explicit consent via `--force`**, separate from the `-y` "skip non-destructive prompts" mechanism.
+Destructive operations (drops, type changes, overwriting generated files, overwriting an existing signature marker, …) require **explicit consent**: the user types the name of the thing being changed, or passes that name as `--confirm <token>`. Consent is separate from the `-y` "accept prompt defaults" mechanism, and no command invents a flag that skips it.
 
-This is a deliberate divergence from clig.dev §Arguments §Confirmation. AI agents and CI scripts routinely pass `-y` to suppress prompts on long-running pipelines; conflating "skip prompts" with "consent to destruction" is a footgun the project has decided to avoid.
+This is a deliberate divergence from clig.dev §Arguments §Confirmation. AI agents and CI scripts routinely pass `-y` to suppress prompts on long-running pipelines; conflating "skip prompts" with "consent to destruction" is a footgun the project has decided to avoid. Typing a name also rules out the other accident a yes/no prompt allows — consenting to the right operation against the wrong database.
 
 #### Rules
 
-- A command that performs a destructive action MUST prompt for confirmation in interactive mode AND require `--force` to skip the prompt or to run the action non-interactively.
-- The prompt MUST list the destructive operations (or describe them concretely, e.g. "this will overwrite all generated files") so the user can decline knowing what's at stake.
-- In non-interactive mode (piped stdout, closed stdin, `--no-interactive`, `--json`) without `--force`: no prompt is shown; the command fails with a structured precondition error (exit code `2`) whose `nextActions` carry the same invocation with `--force` added.
-- `-y`/`--yes` MUST NOT be a substitute for `--force`. A non-interactive invocation with `-y` but without `--force` against a destructive operation MUST still fail.
-- The internal control API retains a programmatic equivalent (e.g. `acceptDataLoss: boolean`) for consumers that drive the planner directly; `--force` is the user-facing CLI flag.
+- A command that performs a destructive action MUST ask for it with `ctx.prompt.consent(question, { token })`. The token is the natural noun of what is at stake: the database name for `db update`, the working directory's basename for an `init` re-scaffold. Interactively the user types the token; non-interactively `--confirm <token>` grants it. There is no `--force`.
+- The question MUST list the destructive operations (or describe them concretely, e.g. "this will overwrite all generated files") so the user can decline knowing what's at stake. A command that cannot fill the list, or cannot derive a token, MUST fail with a structured error rather than ask a question that says nothing or accepts anything.
+- The token MUST identify the thing being changed as precisely as the invocation allows. Falling back to something a whole class of runs shares — a target id, a product name — makes one `--confirm` value grant data loss in every project that shares it.
+- Non-interactively (closed stdin, CI, `--no-interactive`) without `--confirm`: no prompt is shown; the command fails with the engine's `CLI.CONSENT_REQUIRED` (exit `2`), whose `meta.consentToken` and `nextActions` name the token to pass. A cancelled prompt is `CLI.PROMPT_CANCELLED` (exit `3`); a mistyped token is `CLI.PROMPT_INVALID` (exit `2`).
+- `--confirm` is read only when the run is non-interactive or `--yes` is set. A script that runs from a terminal must pass `--no-interactive --confirm <token>`, or it will stop at the prompt.
+- Each `--confirm` value grants at most one consent; a command that asks twice needs two.
+- The internal control API retains a programmatic equivalent (e.g. `acceptDataLoss: boolean`) for consumers that drive the planner directly; `--confirm` is the user-facing CLI form. Note that consent authorises the operations the user was shown, and the plan is recomputed on the call that carries it — a command that cannot bind the two SHOULD report what it applied beyond what was consented to.
 
 #### Examples
 
-- `migrate` / `db update`: when the plan includes destructive ops, prompts in interactive mode; requires `--force` to apply without a prompt or in non-interactive mode.
-- `db sign`: requires `--force` to overwrite an existing marker with a different hash (already documented in [Database Commands](#database-commands)).
-- `prisma-next init`: re-running `init` in a directory with a generated `prisma-next.config.ts` requires `--force`; `-y` alone is not sufficient to authorise overwriting generated files.
+- `db update`: when the plan includes destructive ops, asks the user to type the database name; `--no-interactive --confirm <database>` applies without a prompt. The name is the `database` a driver connection object carries, or the connection URL's first path segment, else its host, falling back to the target id.
+- `prisma-next init`: re-running `init` in a directory with a generated `prisma-next.config.ts` asks the user to type the directory's basename; `-y` alone is not sufficient to authorise overwriting generated files. It is still on the commander shell, whose `--force` predates this rule and retires with its port.
+- `db sign`: the `--force` this guide lists in its flags was never implemented. When overwriting a marker with a different hash grows a switch, it takes the consent form above.
 
 ## Config & Environment
 - Config file names: `prisma-next.config.ts|.mjs|.js` (ESM); optional CJS fallback.

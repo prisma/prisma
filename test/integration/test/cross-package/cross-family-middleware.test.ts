@@ -1,6 +1,6 @@
 import type { PlanMeta } from '@internal/contract/types';
 import type {
-  AfterExecuteResult,
+  AfterQueryResult,
   CrossFamilyMiddleware,
   ExecutionPlan,
   QueryPlan,
@@ -21,8 +21,8 @@ import mongoRuntimeTarget from '@internal/target-mongo/runtime';
 import { describe, expect, it, vi } from 'vitest';
 
 /**
- * Minimal cross-family observer for tests. Records `beforeExecute` and
- * `afterExecute` events into an array; declares no `familyId`/`targetId`
+ * Minimal cross-family observer for tests. Records `beforeQuery` and
+ * `afterQuery` events into an array; declares no `familyId`/`targetId`
  * so it composes against any runtime that satisfies the framework SPI.
  *
  * This is the structural shape that the (now-retired)
@@ -35,7 +35,7 @@ import { describe, expect, it, vi } from 'vitest';
  * specific middleware package.
  */
 interface ObservedEvent {
-  readonly phase: 'beforeExecute' | 'afterExecute';
+  readonly phase: 'beforeQuery' | 'afterQuery';
   readonly lane: string;
   readonly target: string;
   readonly storageHash: string;
@@ -48,21 +48,21 @@ function collectingObserver() {
   const events: ObservedEvent[] = [];
   const middleware: CrossFamilyMiddleware = {
     name: 'observer',
-    async beforeExecute(plan: { readonly meta: PlanMeta }, _ctx: RuntimeMiddlewareContext) {
+    async beforeQuery(plan: { readonly meta: PlanMeta }, _ctx: RuntimeMiddlewareContext) {
       events.push({
-        phase: 'beforeExecute',
+        phase: 'beforeQuery',
         lane: plan.meta.lane,
         target: plan.meta.target,
         storageHash: plan.meta.storageHash,
       });
     },
-    async afterExecute(
+    async afterQuery(
       plan: { readonly meta: PlanMeta },
-      result: AfterExecuteResult,
+      result: AfterQueryResult,
       _ctx: RuntimeMiddlewareContext,
     ) {
       events.push({
-        phase: 'afterExecute',
+        phase: 'afterQuery',
         lane: plan.meta.lane,
         target: plan.meta.target,
         storageHash: plan.meta.storageHash,
@@ -87,7 +87,7 @@ interface MockSqlExec extends ExecutionPlan {
 
 class MockSqlRuntime extends RuntimeCore<MockSqlPlan, MockSqlExec, RuntimeMiddleware<MockSqlExec>> {
   // Exposed so tests can assert whether the underlying "driver" was hit
-  // (e.g. confirming that an `intercept` middleware short-circuited
+  // (e.g. confirming that an `interceptQuery` middleware short-circuited
   // execution). Symmetric with the Mongo mock's `driver.execute` spy.
   readonly driverSpy = vi.fn<(exec: MockSqlExec) => void>();
 
@@ -113,6 +113,10 @@ class MockSqlRuntime extends RuntimeCore<MockSqlPlan, MockSqlExec, RuntimeMiddle
         }
       },
     };
+  }
+
+  protected runExecute(): Promise<{ affectedRows: number }> {
+    return Promise.resolve({ affectedRows: 0 });
   }
 
   async close(): Promise<void> {}
@@ -221,19 +225,19 @@ describe('cross-family middleware proof', () => {
       },
     };
 
-    for await (const _row of sqlRuntime.execute(sqlPlan)) {
+    for await (const _row of sqlRuntime.query(sqlPlan)) {
       void _row;
     }
 
     expect(events).toHaveLength(2);
     expect(events[0]).toMatchObject({
-      phase: 'beforeExecute',
+      phase: 'beforeQuery',
       lane: 'sql',
       target: 'postgres',
       storageHash: 'sql-test',
     });
     expect(events[1]).toMatchObject({
-      phase: 'afterExecute',
+      phase: 'afterQuery',
       lane: 'sql',
       target: 'postgres',
       rowCount: 1,
@@ -256,19 +260,19 @@ describe('cross-family middleware proof', () => {
 
     const plan = createMongoPlan(mongoMeta);
 
-    for await (const _row of mongoRuntime.execute(plan)) {
+    for await (const _row of mongoRuntime.query(plan)) {
       void _row;
     }
 
     expect(events).toHaveLength(2);
     expect(events[0]).toMatchObject({
-      phase: 'beforeExecute',
+      phase: 'beforeQuery',
       lane: 'orm',
       target: 'mongo',
       storageHash: 'mongo-test',
     });
     expect(events[1]).toMatchObject({
-      phase: 'afterExecute',
+      phase: 'afterQuery',
       rowCount: 2,
       completed: true,
     });
@@ -296,7 +300,7 @@ describe('cross-family middleware proof', () => {
       },
     };
 
-    for await (const _row of sqlRuntime.execute(sqlPlan2)) {
+    for await (const _row of sqlRuntime.query(sqlPlan2)) {
       void _row;
     }
 
@@ -307,7 +311,7 @@ describe('cross-family middleware proof', () => {
       lane: 'orm',
     });
 
-    for await (const _row of mongoRuntime.execute(mongoPlan)) {
+    for await (const _row of mongoRuntime.query(mongoPlan)) {
       void _row;
     }
 
@@ -318,32 +322,32 @@ describe('cross-family middleware proof', () => {
     expect(events[3]).toMatchObject({ target: 'mongo', completed: true });
   });
 
-  it('same intercept middleware short-circuits queries in both SQL and Mongo runtimes', async () => {
-    // A generic interceptor with no familyId. The same instance is registered
+  it('same interceptQuery middleware short-circuits queries in both SQL and Mongo runtimes', async () => {
+    // A generic interceptQueryor with no familyId. The same instance is registered
     // on both runtimes and short-circuits execution in each. Demonstrates
-    // that the intercept hook is family-agnostic by construction: both
-    // SqlRuntime and MongoRuntimeImpl inherit it from runWithMiddleware
+    // that the interceptQuery hook is family-agnostic by construction: both
+    // SqlRuntime and MongoRuntimeImpl inherit it from runQueryWithMiddleware
     // via RuntimeCore, so no per-family wiring is needed.
     const { middleware: observer, events } = collectingObserver();
 
-    const interceptCalls: string[] = [];
-    const intercepted: CrossFamilyMiddleware = {
-      name: 'mock-interceptor',
-      async intercept(plan) {
-        interceptCalls.push(plan.meta.target);
-        return { rows: [{ intercepted: true }] };
+    const interceptQueryCalls: string[] = [];
+    const interceptQueryed: CrossFamilyMiddleware = {
+      name: 'mock-interceptQueryor',
+      async interceptQuery(plan) {
+        interceptQueryCalls.push(plan.meta.target);
+        return { rows: [{ interceptQueryed: true }] };
       },
     };
 
     const sqlDriverRows: Record<string, unknown>[] = [{ id: 'should-not-appear' }];
-    const sqlRuntime = new MockSqlRuntime([intercepted, observer], sqlCtx, sqlDriverRows);
+    const sqlRuntime = new MockSqlRuntime([interceptQueryed, observer], sqlCtx, sqlDriverRows);
 
     const mongoAdapter = createMockMongoAdapter();
     const mongoDriver = createMockMongoDriver([{ _id: 'should-not-appear' }]);
     const mongoRuntime = createMongoRuntime({
       context: makeMongoContext(mongoAdapter),
       driver: mongoDriver,
-      middleware: [intercepted, observer],
+      middleware: [interceptQueryed, observer],
     });
 
     const sqlPlan: MockSqlPlan = {
@@ -357,7 +361,7 @@ describe('cross-family middleware proof', () => {
     };
 
     const sqlOut: unknown[] = [];
-    for await (const row of sqlRuntime.execute(sqlPlan)) {
+    for await (const row of sqlRuntime.query(sqlPlan)) {
       sqlOut.push(row);
     }
 
@@ -369,43 +373,43 @@ describe('cross-family middleware proof', () => {
     });
 
     const mongoOut: unknown[] = [];
-    for await (const row of mongoRuntime.execute(mongoPlan)) {
+    for await (const row of mongoRuntime.query(mongoPlan)) {
       mongoOut.push(row);
     }
 
-    // The same intercepted rows came out of both runtimes.
-    expect(sqlOut).toEqual([{ intercepted: true }]);
-    expect(mongoOut).toEqual([{ intercepted: true }]);
+    // The same interceptQueryed rows came out of both runtimes.
+    expect(sqlOut).toEqual([{ interceptQueryed: true }]);
+    expect(mongoOut).toEqual([{ interceptQueryed: true }]);
 
-    // The interceptor was invoked once per family.
-    expect(interceptCalls).toEqual(['postgres', 'mongo']);
+    // The interceptQueryor was invoked once per family.
+    expect(interceptQueryCalls).toEqual(['postgres', 'mongo']);
 
-    // Neither underlying driver was invoked: `intercept` short-circuited
+    // Neither underlying driver was invoked: `interceptQuery` short-circuited
     // execution before lowering on both sides.
     expect(sqlRuntime.driverSpy).not.toHaveBeenCalled();
     expect(mongoDriver.execute).not.toHaveBeenCalled();
 
-    // The observer saw both beforeExecute and afterExecute for each run
-    // (beforeExecute fires pre-encode regardless of whether intercept
+    // The observer saw both beforeQuery and afterQuery for each run
+    // (beforeQuery fires pre-encode regardless of whether interceptQuery
     // short-circuits the driver path) and saw source: 'middleware' on the
-    // afterExecute events.
+    // afterQuery events.
     expect(events).toHaveLength(4);
     expect(events[0]).toMatchObject({
-      phase: 'beforeExecute',
+      phase: 'beforeQuery',
       target: 'postgres',
     });
     expect(events[1]).toMatchObject({
-      phase: 'afterExecute',
+      phase: 'afterQuery',
       target: 'postgres',
       completed: true,
       source: 'middleware',
     });
     expect(events[2]).toMatchObject({
-      phase: 'beforeExecute',
+      phase: 'beforeQuery',
       target: 'mongo',
     });
     expect(events[3]).toMatchObject({
-      phase: 'afterExecute',
+      phase: 'afterQuery',
       target: 'mongo',
       completed: true,
       source: 'middleware',

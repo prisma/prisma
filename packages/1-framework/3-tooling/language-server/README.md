@@ -46,7 +46,10 @@ Supported capabilities are intentionally narrow: parse diagnostics, whole-docume
 - `completion-context.ts` — pure cursor classifier for PSL completion contexts, currently routing model field type positions, descriptor-backed generic block parameter-key positions, and declaration keyword positions while marking everything outside slice scope unsupported.
 - `completion-provider.ts` — pure completion item provider for supported model field type, generic block parameter, and declaration keyword contexts.
 - `server.ts` — `createServer(connection)` wires diagnostics, whole-document formatting, folding ranges, semantic-token handlers, completion, config watching, and project-artifact access onto an injected connection.
-- `start-server.ts` — `startServer()` creates a stdio connection and starts the server. This is what the CLI delegates to.
+- `start-server.ts` — `startServer()` and `startServer(streams)`, the two ways in, kept apart by overloads so neither can be awaited wrongly. With no argument it builds its own stdio connection from the process arguments and returns nothing: `vscode-languageserver/node` ends the process itself on disconnect, so there is no exit code to hand back. With the host's streams it resolves with one.
+- `stream-server.ts` — runs the server over an injected stream pair and resolves with the exit code the client's departure implies: 0 after a `shutdown`, 1 otherwise (and 1 for a frame the reader cannot make sense of, which leaves it desynchronised for good). It waits for the work in flight to finish first — end of input is not the end of the conversation — and redirects the global console to the host's stderr for the length of the run, so nothing but frames reaches the client. Nothing here ends the process; the host owns it.
+- `stdio-transport.ts` — the byte adapter between a host's streams (`AsyncIterable<Uint8Array>` in, `write(text: string)` out) and the Node streams `vscode-languageserver`'s reader and writer want. Output is decoded through a `StringDecoder`, so a body split mid-character across two writes still declares the `Content-Length` it has.
+- `guarded-connection.ts` — wraps the connection so a send the departed client cannot receive does nothing. Without it a send after the input ends throws, and a throw escaping a notification handler ends the process.
 
 ## Package Location
 

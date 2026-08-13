@@ -128,9 +128,9 @@ describe('transaction e2e via sqlite() facade', { timeout: timeouts.databaseOper
     // it so we can consume it after the transaction ends.
     const escaped = await db.transaction(async (tx) => {
       await tx.orm.User.create({ id: 400, name: 'EscapeUser', email: 'escape@example.com' });
-      // Build a query plan through tx.sql and call tx.execute to get an
+      // Build a query plan through tx.sql and call tx.query to get an
       // AsyncIterableResult; do not await it — just capture the reference.
-      return { rows: tx.execute(tx.sql.users.select('id').build()) };
+      return { rows: tx.query(tx.sql.users.select('id').build()) };
     });
 
     await expect(escaped.rows.toArray()).rejects.toMatchObject({

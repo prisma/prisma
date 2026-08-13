@@ -20,6 +20,7 @@ import { withClient } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  engineDiagnosticCodes,
   type JourneyContext,
   runContractEmit,
   runDbInit,
@@ -54,11 +55,17 @@ withTempDir(({ createTempDir }) => {
 
         // K.01: db verify (fails — marker missing)
         const verifyFail = await runDbVerify(ctx);
-        expect(verifyFail.exitCode, 'K.01: db verify fails').toBe(2);
+        expect(verifyFail.exitCode, 'K.01: db verify reports a finding').toBe(4);
+        expect(engineDiagnosticCodes(verifyFail)).toEqual(['CONTRACT.MARKER_MISSING']);
 
         // K.02: db verify --schema-only (fails — missing tables)
         const schemaVerifyFail = await runDbVerify(ctx, ['--schema-only']);
-        expect(schemaVerifyFail.exitCode, 'K.02: db verify --schema-only fails').toBe(1);
+        expect(schemaVerifyFail.exitCode, 'K.02: db verify --schema-only reports a finding').toBe(
+          4,
+        );
+        expect(engineDiagnosticCodes(schemaVerifyFail)).toContain(
+          'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        );
 
         // K.03: db schema (empty schema)
         const schema = await runDbSchema(ctx);
@@ -103,11 +110,17 @@ withTempDir(({ createTempDir }) => {
 
         // L.01: db verify (fails — hash mismatch)
         const verifyFail = await runDbVerify(ctx);
-        expect(verifyFail.exitCode, 'L.01: db verify fails').toBe(2);
+        expect(verifyFail.exitCode, 'L.01: db verify reports a finding').toBe(4);
+        expect(engineDiagnosticCodes(verifyFail)).toEqual(['CONTRACT.MARKER_MISMATCH']);
 
         // L.02: db verify --schema-only (fails — missing name column)
         const schemaVerifyFail = await runDbVerify(ctx, ['--schema-only']);
-        expect(schemaVerifyFail.exitCode, 'L.02: db verify --schema-only fails').toBe(1);
+        expect(schemaVerifyFail.exitCode, 'L.02: db verify --schema-only reports a finding').toBe(
+          4,
+        );
+        expect(engineDiagnosticCodes(schemaVerifyFail)).toContain(
+          'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        );
 
         // L.03: db update (recovery)
         const update = await runDbUpdate(ctx);
@@ -198,7 +211,8 @@ withTempDir(({ createTempDir }) => {
 
         // P2.01: db verify (fails — corrupt marker)
         const verifyFail = await runDbVerify(ctx);
-        expect(verifyFail.exitCode, 'P2.01: db verify fails').toBe(2);
+        expect(verifyFail.exitCode, 'P2.01: db verify reports a finding').toBe(4);
+        expect(engineDiagnosticCodes(verifyFail)).toEqual(['CONTRACT.MARKER_MISMATCH']);
 
         // P2.02: db verify --schema-only (passes — schema is intact)
         const schemaVerify = await runDbVerify(ctx, ['--schema-only']);

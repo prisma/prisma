@@ -1,6 +1,7 @@
 import type {
   ContractSourceDiagnostics,
   ContractSourceProvider,
+  PrismaNextConfig,
 } from '@internal/config/config-types';
 import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
@@ -56,6 +57,12 @@ export interface ControlClientOptions {
    */
   readonly connection?: unknown;
 }
+
+/**
+ * Builds a {@link ControlClient} from descriptors. Commands take this as a
+ * dependency so tests can hand them a double instead of the real client.
+ */
+export type CreateControlClient = (options: ControlClientOptions) => ControlClient;
 
 // ============================================================================
 // Progress Events
@@ -227,10 +234,18 @@ export interface DbUpdateOptions {
    * When true, allows applying plans that contain destructive operations
    * (e.g., DROP TABLE, DROP COLUMN, ALTER TYPE).
    * When false (default), the operation returns a failure if the plan
-   * includes destructive operations, prompting the user to confirm interactively
-   * or re-run with -y/--yes.
+   * includes destructive operations, which `db update` turns into its consent
+   * prompt: the user types the database name, or passes `--confirm <database>`
+   * where there is nobody to ask.
    */
   readonly acceptDataLoss?: boolean;
+  /**
+   * Consent to the destructive plan a prior `DESTRUCTIVE_CHANGES` refusal
+   * named, identified by that refusal's `planHash`. The apply recomputes its
+   * plan and refuses with `CONSENT_PLAN_MISMATCH` when the fresh plan is not
+   * the one that was consented to.
+   */
+  readonly consent?: { readonly planHash: string };
   /**
    * On-disk migrations directory. Always required — every `db update`
    * routes through the per-space flow, which reads on-disk
@@ -241,6 +256,13 @@ export interface DbUpdateOptions {
   /** Optional progress callback for observing operation progress */
   readonly onProgress?: OnControlProgress;
 }
+
+/**
+ * The verification lanes the client offers: `full` runs the marker check and
+ * the schema check, `marker-only` maps to `skipSchema: true`, and
+ * `schema-only` runs {@link ControlClient.dbVerify} with `skipMarker: true`.
+ */
+export type DbVerifyMode = 'full' | 'marker-only' | 'schema-only';
 
 /**
  * Options for the dbVerify operation.
@@ -475,7 +497,40 @@ export interface DbUpdateSuccess {
 /**
  * Failure codes for dbUpdate operation.
  */
-export type DbUpdateFailureCode = 'PLANNING_FAILED' | 'RUNNER_FAILED' | 'DESTRUCTIVE_CHANGES';
+export type DbUpdateFailureCode =
+  | 'PLANNING_FAILED'
+  | 'RUNNER_FAILED'
+  | 'DESTRUCTIVE_CHANGES'
+  | 'CONSENT_PLAN_MISMATCH';
+
+/** One planned operation whose class is destructive, as the refusal names it. */
+export interface DestructivePlanOperation {
+  readonly id: string;
+  readonly label: string;
+}
+
+/**
+ * The verdict a `DESTRUCTIVE_CHANGES` refusal carries: what the plan would
+ * destroy, the database it would destroy it in, and the identity of the plan
+ * that was refused. Consent is granted against `planHash` — the caller passes
+ * it back as `DbUpdateOptions.consent`.
+ */
+export interface DestructiveChangesVerdict {
+  readonly destructiveOperations: ReadonlyArray<DestructivePlanOperation>;
+  /** The connected database's name, when the driver can name it. */
+  readonly databaseName: string | undefined;
+  /** Content hash of the refused plan. */
+  readonly planHash: string;
+}
+
+/**
+ * Why an apply carrying consent was refused: the plan recomputed for the
+ * apply is not the plan that was consented to.
+ */
+export interface ConsentPlanMismatchVerdict {
+  readonly consentedPlanHash: string;
+  readonly planHash: string;
+}
 
 /**
  * Failure details for dbUpdate operation.
@@ -487,6 +542,10 @@ export interface DbUpdateFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
+  /** Present exactly when `code` is `'DESTRUCTIVE_CHANGES'`. */
+  readonly destructiveChanges?: DestructiveChangesVerdict;
+  /** Present exactly when `code` is `'CONSENT_PLAN_MISMATCH'`. */
+  readonly consentPlanMismatch?: ConsentPlanMismatchVerdict;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }
@@ -723,8 +782,18 @@ export type MigrateResult = Result<MigrateSuccess, MigrateFailure>;
  * a FIFO queue; concurrent calls for distinct outputs run in parallel.
  */
 export interface ContractEmitOptions {
-  /** Path to the prisma-next.config.ts file */
-  readonly configPath: string;
+  /** The already-loaded config. Callers own loading; this operation never reads it from disk. */
+  readonly config: PrismaNextConfig;
+  /** Directory the caller was invoked from. */
+  readonly cwd: string;
+  /**
+   * Path to the prisma-next.config.ts file. Used to find the project manifest
+   * whose dependencies decide the import specifiers in emitted files; the
+   * config itself is never read from it. Omit it and the manifest is looked up
+   * from the directory the artifacts are written to, which is the package that
+   * will import them.
+   */
+  readonly configPath?: string;
   /**
    * Directory to write contract artifacts into. When set, `contract.json` and
    * `contract.d.ts` are written inside this directory, taking precedence over

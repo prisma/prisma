@@ -12,8 +12,8 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  engineDocument,
   type JourneyContext,
-  parseJsonOutput,
   runContractEmit,
   runDbInit,
   runDbSchema,
@@ -43,8 +43,8 @@ withTempDir(({ createTempDir }) => {
         // A.02: db init --dry-run
         const dryRun = await runDbInit(ctx, ['--dry-run']);
         expect(dryRun.exitCode, 'A.02: db init dry-run').toBe(0);
-        expect(stripAnsi(dryRun.stdout), 'A.02: shows planned ops').toContain('Planned');
-        expect(stripAnsi(dryRun.stdout), 'A.02: mentions dry run').toContain('dry run');
+        expect(stripAnsi(dryRun.stderr), 'A.02: shows planned ops').toContain('Planned');
+        expect(stripAnsi(dryRun.stderr), 'A.02: mentions dry run').toContain('dry run');
         // Verify database not modified
         const tablesAfterDryRun = await sql(
           db.connectionString,
@@ -55,7 +55,7 @@ withTempDir(({ createTempDir }) => {
         // A.03: db init
         const init = await runDbInit(ctx);
         expect(init.exitCode, 'A.03: db init').toBe(0);
-        expect(stripAnsi(init.stdout), 'A.03: reports applied').toContain('Applied');
+        expect(stripAnsi(init.stderr), 'A.03: reports applied').toContain('Applied');
         // Verify table created
         const tablesAfterInit = await sql(
           db.connectionString,
@@ -73,7 +73,7 @@ withTempDir(({ createTempDir }) => {
         // A.04: db init (idempotent)
         const initAgain = await runDbInit(ctx);
         expect(initAgain.exitCode, 'A.04: db init idempotent').toBe(0);
-        expect(stripAnsi(initAgain.stdout), 'A.04: reports already matches').toContain('already');
+        expect(stripAnsi(initAgain.stderr), 'A.04: reports already matches').toContain('already');
 
         // A.05: db verify
         const verify = await runDbVerify(ctx);
@@ -90,13 +90,12 @@ withTempDir(({ createTempDir }) => {
         // A.08: db schema
         const schema = await runDbSchema(ctx);
         expect(schema.exitCode, 'A.08: db schema').toBe(0);
-        expect(stripAnsi(schema.stdout), 'A.08: shows user table').toContain('user');
+        expect(stripAnsi(schema.stderr), 'A.08: shows user table').toContain('user');
 
         // A.09: db verify --json
         const verifyJson = await runDbVerify(ctx, ['--json']);
         expect(verifyJson.exitCode, 'A.09: db verify json').toBe(0);
-        const verifyData = parseJsonOutput(verifyJson);
-        expect(verifyData, 'A.09: json ok').toMatchObject({
+        expect(engineDocument(verifyJson), 'A.09: json ok').toMatchObject({
           ok: true,
           contract: { storageHash: expect.any(String) },
           marker: { storageHash: expect.any(String) },
@@ -105,8 +104,7 @@ withTempDir(({ createTempDir }) => {
         // A.10: db verify --schema-only --json
         const schemaVerifyJson = await runDbVerify(ctx, ['--schema-only', '--json']);
         expect(schemaVerifyJson.exitCode, 'A.10: db verify schema-only json').toBe(0);
-        const svData = parseJsonOutput(schemaVerifyJson);
-        expect(svData, 'A.10: json ok').toMatchObject({ ok: true });
+        expect(engineDocument(schemaVerifyJson), 'A.10: json ok').toMatchObject({ ok: true });
       },
       timeouts.spinUpPpgDev,
     );

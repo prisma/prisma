@@ -5,7 +5,7 @@ describe('integration: JOIN', { timeout: timeouts.databaseOperation }, () => {
   const { db, runtime } = setupIntegrationTest();
 
   it('INNER JOIN returns matched rows', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.users.innerJoin(db().public.posts, (f, fns) => fns.eq(f.users.id, f.posts.user_id))
         .select('name', 'title')
@@ -19,7 +19,7 @@ describe('integration: JOIN', { timeout: timeouts.databaseOperation }, () => {
   });
 
   it('LEFT JOIN returns all left rows with nulls for unmatched', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.users.outerLeftJoin(db().public.profiles, (f, fns) =>
           fns.eq(f.users.id, f.profiles.user_id),
@@ -37,7 +37,7 @@ describe('integration: JOIN', { timeout: timeouts.databaseOperation }, () => {
 
   it('self-join via .as()', async () => {
     const d = db();
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       d.public.users
         .as('invitee')
         .innerJoin(d.public.users.as('inviter'), (f, fns) =>
@@ -54,7 +54,7 @@ describe('integration: JOIN', { timeout: timeouts.databaseOperation }, () => {
   it('subquery as join source', async () => {
     const d = db();
     const sub = d.public.posts.select('user_id', 'title').as('sub');
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       d.public.users
         .innerJoin(sub, (f, fns) => fns.eq(f.users.id, f.sub.user_id))
         .select('name', 'title')

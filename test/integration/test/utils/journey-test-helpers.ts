@@ -17,39 +17,19 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { promisify } from 'node:util';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
-import { createContractInferCommand } from '@internal/cli/commands/contract-infer';
-import { createDbInitCommand } from '@internal/cli/commands/db-init';
-import { createDbSchemaCommand } from '@internal/cli/commands/db-schema';
-import { createDbSignCommand } from '@internal/cli/commands/db-sign';
-import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
-import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
-import { createMigrateCommand } from '@internal/cli/commands/migrate';
-import { createMigrationCheckCommand } from '@internal/cli/commands/migration-check';
-import { createMigrationGraphCommand } from '@internal/cli/commands/migration-graph';
-import { createMigrationListCommand } from '@internal/cli/commands/migration-list';
-import { createMigrationLogCommand } from '@internal/cli/commands/migration-log';
-import { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
-import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
-import { createMigrationShowCommand } from '@internal/cli/commands/migration-show';
-import { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
-import { createRefCommand } from '@internal/cli/commands/ref';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { EngineEvent, PresentedResult, StreamEvent } from '@prisma/cli-engine';
+import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
-import type { Command } from 'commander';
 import { isAbsolute, join, resolve } from 'pathe';
 import { afterAll, beforeAll } from 'vitest';
 
 const execFileAsync = promisify(execFile);
 const TSX_BIN = resolve(import.meta.dirname, '../../../../node_modules/.bin/tsx');
 
-// Not exported from the CLI package subpath map.
-import { createFormatCommand } from '../../../../packages/1-framework/3-tooling/cli/src/commands/format';
 import {
   appendImplicitMigrationPlanFrom,
-  executeCommand,
-  getExitCode,
-  setupCommandMocks,
+  runOnEngine as runCommandOnEngine,
   writeProjectManifest,
 } from './cli-test-helpers';
 
@@ -278,63 +258,23 @@ export interface RunCommandOptions {
 }
 
 /**
- * Core execution helper — all run* functions delegate to this.
- * Creates fresh mocks for each invocation so steps don't interfere.
- *
- * NOTE: Uses `process.chdir()`, which is process-global. This is safe because
- * `vitest.journeys.config.ts` uses `pool: 'forks'` (each file runs in its own
- * process) and tests within a file run sequentially. Do NOT switch to `pool: 'threads'`.
+ * What a step run through the engine reports. A superset of
+ * {@link CommandResult}, so a wrapper can move onto the engine without every
+ * journey that calls it changing at once.
  */
-async function runCommandCore(
-  command: Command,
-  testDir: string,
-  args: readonly string[],
-  options?: RunCommandOptions,
-): Promise<CommandResult> {
-  const mocks = setupCommandMocks({ isTTY: options?.isTTY });
-  const originalCwd = process.cwd();
-  try {
-    process.chdir(testDir);
-    try {
-      await executeCommand(command, ['--no-color', ...args]);
-      return {
-        exitCode: 0,
-        stdout: mocks.consoleOutput.join('\n'),
-        stderr: mocks.consoleErrors.join('\n'),
-      };
-    } catch (error) {
-      const exitCode = getExitCode();
-      if (exitCode == null) throw error; // unexpected error, not a CLI exit
-      return {
-        exitCode,
-        stdout: mocks.consoleOutput.join('\n'),
-        stderr: mocks.consoleErrors.join('\n'),
-      };
-    }
-  } finally {
-    process.chdir(originalCwd);
-    mocks.cleanup();
-  }
+export interface EngineCommandResult extends CommandResult {
+  readonly events: readonly EngineEvent[];
+  readonly json: readonly StreamEvent[];
+  readonly presented: PresentedResult<unknown> | undefined;
 }
 
-/** Runs a CLI command with --config in the journey's test directory. */
-async function runCommand(
-  command: Command,
+/** Runs one journey step through the engine's own harness. */
+export async function runOnEngine(
   ctx: JourneyContext,
-  args: readonly string[],
+  argv: readonly string[],
   options?: RunCommandOptions,
-): Promise<CommandResult> {
-  return runCommandCore(command, ctx.testDir, ['--config', ctx.configPath, ...args], options);
-}
-
-/** Runs a CLI command without --config (for commands that don't need it, or error tests). */
-async function runCommandRaw(
-  command: Command,
-  testDir: string,
-  args: readonly string[],
-  options?: RunCommandOptions,
-): Promise<CommandResult> {
-  return runCommandCore(command, testDir, args, options);
+): Promise<EngineCommandResult> {
+  return runCommandOnEngine(ctx, argv, options);
 }
 
 // ---------------------------------------------------------------------------
@@ -345,118 +285,147 @@ export async function runContractEmit(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
   options?: RunCommandOptions,
-): Promise<CommandResult> {
-  return runCommand(createContractEmitCommand(), ctx, extraArgs, options);
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['contract', 'emit', ...extraArgs], options);
 }
 
 export async function runContractInfer(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createContractInferCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['contract', 'infer', ...extraArgs], options);
 }
 
 export async function runDbInit(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbInitCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'init', ...extraArgs], options);
 }
 
 export async function runDbUpdate(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbUpdateCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'update', ...extraArgs], options);
+}
+
+/**
+ * What `db update` asks the user to type before it destroys anything: the name
+ * of the connected database, which for these Postgres-backed tests is the
+ * database segment of the connection URL. A run that means to accept data loss
+ * passes it as `--confirm`, because `--yes` cannot grant a consent.
+ */
+export function consentTokenFor(connectionString: string): string {
+  const parsed = new URL(connectionString);
+  const name = parsed.pathname.split('/').filter((segment) => segment.length > 0)[0];
+  if (name === undefined) {
+    throw new Error(`Connection URL names no database: ${connectionString}`);
+  }
+  return decodeURIComponent(name);
 }
 
 export async function runDbVerify(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbVerifyCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'verify', ...extraArgs], options);
 }
 
 export async function runDbSign(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbSignCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'sign', ...extraArgs], options);
 }
 
 export async function runDbSchema(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbSchemaCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'schema', ...extraArgs], options);
 }
 
 export async function runMigrationPlan(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(
-    createMigrationPlanCommand(),
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(
     ctx,
-    appendImplicitMigrationPlanFrom(ctx.testDir, extraArgs),
+    ['migration', 'plan', ...appendImplicitMigrationPlanFrom(ctx.testDir, extraArgs)],
+    options,
   );
 }
 
 export async function runMigrationNew(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationNewCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'new', ...extraArgs], options);
 }
 
 export async function runMigrate(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrateCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migrate', ...extraArgs], options);
 }
 
 export async function runMigrationStatus(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationStatusCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'status', ...extraArgs], options);
 }
 
 export async function runMigrationShow(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationShowCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'show', ...extraArgs], options);
 }
 
 export async function runMigrationLog(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationLogCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'log', ...extraArgs], options);
 }
 
 export async function runMigrationList(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationListCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'list', ...extraArgs], options);
 }
 
 export async function runMigrationGraph(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
   options?: RunCommandOptions,
-): Promise<CommandResult> {
-  return runCommand(createMigrationGraphCommand(), ctx, extraArgs, options);
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'graph', ...extraArgs], options);
 }
 
 export async function runMigrationCheck(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createMigrationCheckCommand(), ctx, extraArgs);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['migration', 'check', ...extraArgs], options);
 }
 
 // The generator emits `import endContract from '<specifier>' with { type: "json" };`
@@ -586,37 +555,32 @@ export async function runMigrationPlanAndEmit(
 export async function runRef(
   ctx: JourneyContext,
   subcommandArgs: readonly string[],
-): Promise<CommandResult> {
-  const [subcommand, ...rest] = subcommandArgs;
-  return runCommandRaw(createRefCommand(), ctx.testDir, [
-    subcommand!,
-    '--config',
-    ctx.configPath,
-    '--no-color',
-    ...rest,
-  ]);
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['ref', ...subcommandArgs], options);
 }
 
 /**
- * Runs a command with explicit config path (for error tests with custom configs).
+ * Runs `contract emit` against a config file the test wrote itself — including
+ * files that do not evaluate, which settle as the run's error rather than
+ * failing the harness.
  */
 export async function runContractEmitWithConfig(
   testDir: string,
   configPath: string,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommandRaw(createContractEmitCommand(), testDir, [
-    '--config',
-    configPath,
-    ...extraArgs,
-  ]);
+): Promise<EngineCommandResult> {
+  return runCommandOnEngine({ testDir, configPath }, ['contract', 'emit', ...extraArgs], {
+    settleConfigFailures: true,
+  });
 }
 
-export async function runFormatWithConfig(
-  testDir: string,
-  configPath: string,
-): Promise<CommandResult> {
-  return runCommandRaw(createFormatCommand(), testDir, ['--config', configPath]);
+export async function runFormat(
+  ctx: JourneyContext,
+  extraArgs: readonly string[] = [],
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['format', ...extraArgs], options);
 }
 
 /**
@@ -626,8 +590,8 @@ export async function runDbVerifyWithDb(
   ctx: JourneyContext,
   dbUrl: string,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
-  return runCommand(createDbVerifyCommand(), ctx, ['--db', dbUrl, ...extraArgs]);
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['db', 'verify', '--db', dbUrl, ...extraArgs]);
 }
 
 // ---------------------------------------------------------------------------
@@ -635,25 +599,87 @@ export async function runDbVerifyWithDb(
 // ---------------------------------------------------------------------------
 
 /**
- * Parses the JSON output from a --json command result.
- * Extracts the last valid JSON object from stdout (in case decoration preceded it).
+ * The document a step's `--json` run produced.
+ *
+ * The two shells frame it differently and this unwraps both. The commander
+ * writes the document itself; the engine writes one `StreamEvent` per line and
+ * carries the document inside the terminal `result` frame's envelope — under
+ * `result` when the command completed and under `error` when it did not, which
+ * is where the commander put its error envelope too.
  */
-export function parseJsonOutput<T = Record<string, unknown>>(result: CommandResult): T {
+/**
+ * The `--json` document a step produced. A step run through the engine already
+ * carries it as the presented result — the engine's json mode writes NDJSON
+ * frames rather than the bare document, so the document is read from the run
+ * rather than parsed back out of stdout.
+ */
+export function parseJsonOutput<T = Record<string, unknown>>(
+  result: CommandResult | EngineCommandResult,
+): T {
+  const presented = 'presented' in result ? result.presented : undefined;
+  if (presented !== undefined) {
+    return (presented.presentation.json ?? presented.data) as T;
+  }
   const output = result.stdout.trim();
-  // JSON output goes to stdout. Try parsing the full output first.
+  const parsed = lastJsonValue(output);
+  if (parsed === undefined) {
+    throw new Error(`Failed to parse JSON from command output:\n${output}`);
+  }
+  const document = frameDocument(parsed);
+  return (document === undefined ? parsed : document) as T;
+}
+
+function lastJsonValue(output: string): unknown {
   try {
-    return JSON.parse(output) as T;
+    return JSON.parse(output);
   } catch {
-    // If mixed output, find the last JSON block
     const lines = output.split('\n');
     for (let i = lines.length - 1; i >= 0; i--) {
       const candidate = lines.slice(i).join('\n').trim();
       try {
-        return JSON.parse(candidate) as T;
+        return JSON.parse(candidate);
       } catch {}
     }
-    throw new Error(`Failed to parse JSON from command output:\n${output}`);
+    return undefined;
   }
+}
+
+/**
+ * The document an engine-run step presented — what `--json` would print inside
+ * the result frame — without going back through the frame stream.
+ */
+export function engineDocument<T = Record<string, unknown>>(run: EngineCommandResult): T {
+  const presented = run.presented;
+  if (presented === undefined) {
+    throw new Error(`Step never presented a result (exit ${run.exitCode}):\n${run.stderr}`);
+  }
+  return presented.data as T;
+}
+
+/**
+ * The dotted codes of the findings an engine-run step carried on its envelope.
+ * Throws on a step that errored rather than reporting no findings — an empty
+ * list has to mean "settled with none", or `toEqual([])` would pass against a
+ * run that never presented at all.
+ */
+export function engineDiagnosticCodes(run: EngineCommandResult): readonly string[] {
+  const presented = run.presented;
+  if (presented === undefined) {
+    throw new Error(`Step never presented a result (exit ${run.exitCode}):\n${run.stderr}`);
+  }
+  return presented.diagnostics.map((diagnostic) => diagnostic.code);
+}
+
+function frameDocument(parsed: unknown): unknown {
+  if (typeof parsed !== 'object' || parsed === null) {
+    return undefined;
+  }
+  const frame = parsed as { kind?: unknown; envelope?: unknown };
+  if (frame.kind !== 'result' || typeof frame.envelope !== 'object' || frame.envelope === null) {
+    return undefined;
+  }
+  const envelope = frame.envelope as { ok?: unknown; result?: unknown; error?: unknown };
+  return envelope.ok === true ? envelope.result : envelope.error;
 }
 
 export { EMPTY_CONTRACT_HASH };
@@ -694,6 +720,19 @@ export function readEmittedContractStorageHash(ctx: JourneyContext): string {
     storage: { storageHash: string };
   };
   return contractJson.storage.storageHash;
+}
+
+/**
+ * The primary error an errored engine run settled with. An errored run
+ * presents nothing, so its envelope is read from the terminal stream frame
+ * rather than from a presented document.
+ */
+export function engineError(result: EngineCommandResult): Diagnostic | undefined {
+  const terminal = result.json.at(-1);
+  if (terminal === undefined || terminal.kind !== 'result' || terminal.envelope.ok) {
+    return undefined;
+  }
+  return terminal.envelope.error;
 }
 
 export function parseMigrationStatusJson(result: CommandResult): MigrationStatusJson {

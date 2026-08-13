@@ -80,7 +80,7 @@ async function checkFromDisk(migrationsDir: string): Promise<MigrationCheckResul
     appContract: TEST_APP_CONTRACT,
     deserializeContract: identityDeserialize,
   });
-  const spaces = await enumerateCheckSpaces(aggregate, migrationsDir);
+  const spaces = await enumerateCheckSpaces(aggregate, migrationsDir, process.cwd());
   const outcome = await runMigrationCheck({ spaces });
   if (!outcome.ok) throw new Error('runMigrationCheck rejected unexpectedly');
   return outcome.value;

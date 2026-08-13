@@ -18,6 +18,8 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  consentTokenFor,
+  engineDiagnosticCodes,
   type JourneyContext,
   runContractEmit,
   runDbInit,
@@ -58,7 +60,10 @@ withTempDir(({ createTempDir }) => {
 
         // M.01: db verify (fails — schema verification detects the missing column)
         const verify = await runDbVerify(ctx);
-        expect(verify.exitCode, 'M.01: db verify detects drift').toBe(1);
+        expect(verify.exitCode, 'M.01: db verify detects drift').toBe(4);
+        expect(engineDiagnosticCodes(verify), 'M.01: drift rides as a finding').toContain(
+          'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        );
 
         // M.02: db verify --marker-only (passes — marker hash still matches)
         const markerOnlyVerify = await runDbVerify(ctx, ['--marker-only']);
@@ -66,7 +71,10 @@ withTempDir(({ createTempDir }) => {
 
         // M.03: db verify --schema-only (fails — missing email column)
         const schemaVerify = await runDbVerify(ctx, ['--schema-only']);
-        expect(schemaVerify.exitCode, 'M.03: db verify --schema-only fails').toBe(1);
+        expect(schemaVerify.exitCode, 'M.03: db verify --schema-only fails').toBe(4);
+        expect(engineDiagnosticCodes(schemaVerify)).toContain(
+          'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        );
 
         // M.04: db schema (shows schema without email)
         const schema = await runDbSchema(ctx);
@@ -74,7 +82,7 @@ withTempDir(({ createTempDir }) => {
 
         // M.05: db update recovers by re-adding the NOT NULL column with a temporary default,
         // then dropping that default so future inserts must provide an explicit value.
-        const update = await runDbUpdate(ctx, ['-y']);
+        const update = await runDbUpdate(ctx, ['--confirm', consentTokenFor(db.connectionString)]);
         expect(update.exitCode, 'M.05: db update recovers dropped column drift').toBe(0);
 
         // M.06: db verify passes after reconciliation
@@ -136,12 +144,15 @@ withTempDir(({ createTempDir }) => {
 
         // N.03: db verify --strict (fails — extra age column)
         const strict = await runDbVerify(ctx, ['--strict']);
-        expect(strict.exitCode, 'N.03: db verify strict fails').toBe(1);
+        expect(strict.exitCode, 'N.03: db verify strict fails').toBe(4);
+        expect(engineDiagnosticCodes(strict), 'N.03: the extra column is the finding').toEqual([
+          'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        ]);
 
         // N.04: db schema
         const schema = await runDbSchema(ctx);
         expect(schema.exitCode, 'N.04: db schema').toBe(0);
-        expect(stripAnsi(schema.stdout), 'N.04: shows age column').toContain('age');
+        expect(stripAnsi(schema.stderr), 'N.04: shows age column').toContain('age');
 
         // N.05: Evolve contract (adds 'name' column — 'age' remains as unmanaged extra)
         swapContract(ctx, 'contract-additive');
@@ -153,9 +164,12 @@ withTempDir(({ createTempDir }) => {
         const update = await runDbUpdate(ctx, ['--no-interactive']);
         expect(update.exitCode, 'N.06: --no-interactive rejects destructive').toBe(2);
 
-        // N.07: db update -y explicitly accepts the destructive plan
-        const updateY = await runDbUpdate(ctx, ['-y']);
-        expect(updateY.exitCode, 'N.07: db update -y accepts').toBe(0);
+        // N.07: db update --confirm <database> explicitly accepts the destructive plan
+        const updateConfirmed = await runDbUpdate(ctx, [
+          '--confirm',
+          consentTokenFor(db.connectionString),
+        ]);
+        expect(updateConfirmed.exitCode, 'N.07: db update --confirm accepts').toBe(0);
 
         // N.08: db verify --schema-only tolerant (passes — all contract columns present; 'age' tolerated as extra)
         const tolerantAfter = await runDbVerify(ctx, ['--schema-only']);

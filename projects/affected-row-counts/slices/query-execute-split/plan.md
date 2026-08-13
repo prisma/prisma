@@ -11,12 +11,14 @@ Six dispatches in the repo's **hard-cut migration of one substrate concept** sha
 
 Two calibration patterns drove the boundaries. **"Mechanical fan-out + design judgment in one dispatch"** is why the runtime merge (D4), the supabase judgment (D5), and the 18-file fake migration (D6) are three dispatches rather than one — the judgment sites would otherwise be buried in the fan-out's diff where the reviewer misses them. **"While I'm in there cleanup"** is why the `ADAPTER.PREPARE_FAILED` fix is D1 with its own brief rather than riding inside the SPI diff.
 
-### Dispatch 1: `ADAPTER.PREPARE_FAILED` conformance
+### Dispatch 1: `DRIVER.PREPARE_FAILED` conformance
 
-- **Outcome:** A failed stale-handle retry surfaces `ADAPTER.PREPARE_FAILED` with the originating error as `cause`, and a test asserts it. The code is currently absent from all source — it appears only in ADR 210, ADR 027, and this project's docs.
+- **Outcome:** A failed stale-handle retry surfaces `DRIVER.PREPARE_FAILED` with the originating error as `cause`, and a test asserts it. No stale-retry stable code is emitted anywhere in source today.
 - **Builds on:** None. Runs against today's unmodified SPI.
-- **Hands to:** A `withStaleHandleRetry` that is ADR-210-conformant *before* it gets rewritten — so D2's reshape carries the fix forward rather than being asked to introduce it mid-refactor.
-- **Focus:** `postgres-driver.ts` `withStaleHandleRetry` (currently `:190`; the retry-failure path at `:214` rethrows a generic `normalizePgError`). Read ADR 210 § Stale-handle retry and ADR 027 for the envelope shape — this is a **single-file judgment call**, and the envelope's exact shape is the thing to get right. Deliberately out of scope: any SPI shape change. Gates green throughout; this dispatch does not break the build.
+- **Hands to:** A `withStaleHandleRetry` that is ADR-conformant *before* it gets rewritten — so D2's reshape carries the fix forward rather than being asked to introduce it mid-refactor.
+- **Focus:** `postgres-driver.ts` `withStaleHandleRetry` (currently `:190`; the retry-failure path at `:214` rethrows a generic `normalizePgError`). This is a **single-file judgment call** — the envelope's shape is the thing to get right.
+- **Amended 2026-08-05 (operator decision, D1 R1 stop-condition).** The dispatch originally specified `ADAPTER.PREPARE_FAILED` per ADR 210 + ADR 027. [ADR 239](../../../../docs/architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md) (Accepted) supersedes ADR 027 and closes the namespace list with no `ADAPTER` on it. Use `DRIVER.PREPARE_FAILED` via the drivers' existing `driverError` idiom, **not** the legacy `runtimeError` (its `category` field was deleted by ADR 239, and it yields `category: 'RUNTIME'` beside a `DRIVER.*` code). Correcting ADR 210's own stale reference rides with slice 3's amendment (TML-3169), not here.
+- Deliberately out of scope: any SPI shape change. Gates green throughout; this dispatch does not break the build.
 
 ### Dispatch 2: the interface, with postgres as its reference implementation
 
@@ -51,7 +53,7 @@ Two calibration patterns drove the boundaries. **"Mechanical fan-out + design ju
 - **Outcome:** Every driver fake implements the new surface; `grep -rn 'executePrepared' --include='*.ts' packages/ test/` returns zero outside `node_modules`/`dist` (baseline: 96 occurrences across 25 files); repo-wide `pnpm typecheck`, `pnpm lint:deps`, and `pnpm test:packages` are green.
 - **Builds on:** D5's state — all production implementations conforming, so the fakes have a settled contract to mirror.
 - **Hands to:** Slice DoD. The SPI is two methods wide end-to-end with no remaining references to the retired pair.
-- **Focus:** 18 test files carrying a fake, 12 clustered in `packages/2-sql/5-runtime/test/`, plus `relational-core/test/ast/driver-types.test.ts`, four postgres/sqlite driver + adapter test files, and `supabase/test/supabase-runtime.test.ts`. A **mechanical fan-out** — uniform transformation, file count irrelevant, verification is one grep plus workspace typecheck. Any fake that needs a *judgment* call rather than a mechanical rewrite is a signal the contract from D2–D5 is underspecified: halt and surface rather than inventing per-fake semantics.
+- **Focus:** 18 test files carrying a fake, 12 clustered in `packages/2-sql/5-runtime/test/`, plus `relational-core/test/ast/driver-types.test.ts`, four postgres/sqlite driver + adapter test files, and `supabase/test/supabase-runtime.test.ts`. **Amended 2026-08-06:** D5 package tests identified two additional mechanical consumers of the retired buffered API: the Supabase recording fake and PostgreSQL adapter marker read. Migrate them here with the fakes; no semantic choice is involved. This remains a **mechanical fan-out** — uniform transformation, file count irrelevant, verification is one grep plus workspace typecheck. Any fake that needs a *judgment* call rather than a mechanical rewrite is a signal the contract from D2–D5 is underspecified: halt and surface rather than inventing per-fake semantics.
 
 ## Handoff linearity
 
@@ -66,7 +68,7 @@ D1 → D2 → D3 → D4 → D5 → D6 is linear; each `builds on` references the
 | --- | --- |
 | Zero `executePrepared` occurrences | D6 (grep gate) |
 | `SqlQueryResult` deleted, not orphaned | D2 (deleted) · D6 (verified unreferenced) |
-| `ADAPTER.PREPARE_FAILED` emitted + asserted | D1 |
+| `DRIVER.PREPARE_FAILED` emitted + asserted | D1 |
 | Per-driver count-source tests | D2 (pg command tag) · D3 (sqlite `run().changes` + `RETURNING` guard) |
 | `pnpm lint:deps` clean | D6 |
 | No net increase in bare-`as` casts | D2 (`handle as string` removed) · D6 (repo-wide check) |

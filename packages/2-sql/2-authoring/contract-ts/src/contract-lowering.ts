@@ -16,6 +16,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import type {
   AttachedEntities,
+  CheckNode,
   ContractDefinition,
   FieldNode,
   ForeignKeyNode,
@@ -840,6 +841,13 @@ function resolveModelNode(
           ),
         };
   });
+  const checks = (spec.sqlSpec?.checks ?? []).map(
+    (authoredCheck): CheckNode => ({
+      expression: authoredCheck.expression,
+      name: authoredCheck.name,
+      map: authoredCheck.map,
+    }),
+  );
   const foreignKeys = resolveForeignKeyNodes(spec, allSpecs, extensions);
   const relations = Object.entries(spec.relations).map(([relationName, relationBuilder]) =>
     resolveRelationNode(relationName, relationBuilder.build(), spec, allSpecs, extensions),
@@ -864,6 +872,7 @@ function resolveModelNode(
       : {}),
     ...(uniques.length > 0 ? { uniques } : {}),
     ...(indexes.length > 0 ? { indexes } : {}),
+    ...(checks.length > 0 ? { checks } : {}),
     ...(foreignKeys.length > 0 ? { foreignKeys } : {}),
     ...(relations.length > 0 ? { relations } : {}),
     ...ifDefined('control', spec.sqlSpec?.control),

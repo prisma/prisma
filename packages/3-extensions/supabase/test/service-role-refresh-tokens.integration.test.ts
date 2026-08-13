@@ -87,7 +87,7 @@ describe('service_role reads auth.refresh_tokens via the .supabase secondary roo
         const internal = db.asServiceRole().supabase;
 
         const rows = await internal
-          .execute(
+          .query(
             internal.sql.auth.refresh_tokens
               .select('token', 'revoked')
               .where((f, fns) => fns.eq(f.token, token))

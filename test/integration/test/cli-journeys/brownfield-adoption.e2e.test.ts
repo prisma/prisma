@@ -15,8 +15,9 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  engineDiagnosticCodes,
+  engineDocument,
   type JourneyContext,
-  parseJsonOutput,
   runContractEmit,
   runContractInfer,
   runDbSign,
@@ -77,8 +78,7 @@ withTempDir(({ createTempDir }) => {
 
         const signJson = await runDbSign(ctx, ['--json']);
         expect(signJson.exitCode, 'F.08: db sign json').toBe(0);
-        const signData = parseJsonOutput(signJson);
-        expect(signData, 'F.08: json ok').toMatchObject({ ok: true });
+        expect(engineDocument(signJson), 'F.08: json ok').toMatchObject({ ok: true });
       },
       timeouts.spinUpPpgDev,
     );
@@ -106,18 +106,23 @@ withTempDir(({ createTempDir }) => {
         expect(emit.exitCode, `G.02: contract emit mismatch\n${stripAnsi(emit.stderr)}`).toBe(0);
 
         const schemaVerifyFail = await runDbVerify(ctx, ['--schema-only']);
-        expect(schemaVerifyFail.exitCode, 'G.03: db verify --schema-only fails').toBe(1);
+        expect(schemaVerifyFail.exitCode, 'G.03: db verify --schema-only reports drift').toBe(4);
+        expect(engineDiagnosticCodes(schemaVerifyFail)).toContain(
+          'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        );
 
         const signFail = await runDbSign(ctx);
-        expect(signFail.exitCode, 'G.04: db sign fails').toBe(1);
+        expect(signFail.exitCode, 'G.04: db sign refuses to sign').toBe(4);
 
         const signJsonFail = await runDbSign(ctx, ['--json']);
-        expect(signJsonFail.exitCode, 'G.05: db sign json fails').toBe(1);
-        const signError = parseJsonOutput(signJsonFail);
-        expect(signError, 'G.05: error envelope').toMatchObject({
-          ok: false,
-          code: 'CONTRACT.SCHEMA_VERIFICATION_FAILED',
-        });
+        expect(signJsonFail.exitCode, 'G.05: db sign json refuses to sign').toBe(4);
+        expect(engineDiagnosticCodes(signJsonFail), 'G.05: the refusal is the finding').toEqual([
+          'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+        ]);
+        expect(
+          engineDocument(signJsonFail),
+          'G.05: the verify report is the document',
+        ).toMatchObject({ ok: false, code: 'CONTRACT.SCHEMA_VERIFICATION_FAILED' });
 
         swapPslContract(ctx, 'contract-base');
         const emitFixed = await runContractEmit(ctx);

@@ -121,7 +121,8 @@ Both commands share the same flag surface:
 | `--db <url>` | Database connection string |
 | `--config <path>` | Path to `prisma-next.config.ts` |
 | `--dry-run` | Preview planned operations without applying |
-| `-y, --yes` | Auto-accept prompts (skips destructive operation confirmation for `db update`) |
+| `-y, --yes` | Accept the declared default of every prompt. It cannot grant consent, so it never authorises `db update`'s destructive operations |
+| `--confirm <database>` | Grant `db update`'s destructive consent without being asked. Read only when the run is non-interactive, so a script running from a terminal needs `--no-interactive --confirm <database>` |
 | `--json [format]` | Output as JSON (`object` format only) |
 | `-q, --quiet` | Quiet mode: errors only |
 | `-v, --verbose` | Verbose output: debug info, timings |

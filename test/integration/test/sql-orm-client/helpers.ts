@@ -11,7 +11,7 @@ const POSTGRES_DEFAULT_NAMESPACE_ID = 'public' as const;
 import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { RuntimeQueryable } from '@internal/sql-orm-client';
-import type { SelectAst } from '@internal/sql-relational-core/ast';
+import type { SelectAst, SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
@@ -151,13 +151,16 @@ export function getPolyTestContext(): ExecutionContext<PolyContract> {
 }
 
 export interface MockExecution {
-  plan: SqlExecutionPlan | SqlQueryPlan<unknown>;
-  rows: Record<string, unknown>[];
+  readonly operation: 'query' | 'execute';
+  readonly plan: SqlExecutionPlan | SqlQueryPlan<unknown>;
+  readonly rows: Record<string, unknown>[];
+  readonly stats?: SqlStatementStats;
 }
 
 export interface MockRuntime extends RuntimeQueryable {
   readonly executions: MockExecution[];
   setNextResults(results: Record<string, unknown>[][]): void;
+  setNextStats(stats: readonly SqlStatementStats[]): void;
 }
 
 /**
@@ -302,18 +305,23 @@ export function buildStiPolyContract(): TestContract {
 
 export function createMockRuntime(): MockRuntime {
   const executions: MockExecution[] = [];
-  let nextResult: Record<string, unknown>[][] = [];
+  let nextResults: Record<string, unknown>[][] = [];
+  let nextStats: SqlStatementStats[] = [];
 
   const runtime: MockRuntime = {
     executions,
     setNextResults(results: Record<string, unknown>[][]) {
-      nextResult = [...results];
+      nextResults = [...results];
     },
-    execute<Row>(
+    setNextStats(stats: readonly SqlStatementStats[]) {
+      nextStats = [...stats];
+    },
+    query<Row>(
       plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row },
     ): AsyncIterableResult<Row> {
-      const rows = (nextResult.shift() ?? []) as Row[];
+      const rows = (nextResults.shift() ?? []) as Row[];
       executions.push({
+        operation: 'query',
         plan,
         rows: rows as Record<string, unknown>[],
       });
@@ -323,6 +331,11 @@ export function createMockRuntime(): MockRuntime {
         }
       };
       return new AsyncIterableResult(gen());
+    },
+    async execute(plan: SqlExecutionPlan | SqlQueryPlan): Promise<SqlStatementStats> {
+      const stats = nextStats.shift() ?? { affectedRows: 0 };
+      executions.push({ operation: 'execute', plan, rows: [], stats });
+      return stats;
     },
   };
 

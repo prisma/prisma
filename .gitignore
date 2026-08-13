@@ -53,6 +53,12 @@ test/**/fixtures/generated/
 !test/integration/test/mongo/fixtures/generated/**
 !test/integration/test/namespaced-accessors/fixtures/generated/
 !test/integration/test/namespaced-accessors/fixtures/generated/**
+!test/integration/test/sql-builder/fixtures/generated/
+!test/integration/test/sql-builder/fixtures/generated/**
+!test/integration/test/sql-orm-client/fixtures/generated/
+!test/integration/test/sql-orm-client/fixtures/generated/**
+!test/integration/test/value-objects/fixtures/generated/
+!test/integration/test/value-objects/fixtures/generated/**
 
 # Ignore everything under `.agents/` except the canonical rules home.
 # The `.cursor/rules` and `.claude/rules` presentation trees are git-ignored
@@ -76,3 +82,7 @@ projects/*/reference/
 # project close-out, not PR content).
 projects/*/reviews/
 projects/*/learnings.md
+
+# Conformance-check sandbox (scripts/check-conformance.mjs). Deleted at the
+# start of each run so a failed run leaves evidence behind; never committed.
+.conformance/

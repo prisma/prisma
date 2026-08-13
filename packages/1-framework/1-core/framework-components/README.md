@@ -12,7 +12,7 @@ Framework component types, authoring logic, control stack assembly, and emission
 - **Control stack** (`./control`): Assembly functions that combine component descriptors into a unified `ControlStack` with derived state (codec imports, renderers, authoring contributions)
 - **Emission SPI** (`./emission`): Types for the emission pipeline — `TargetFamilyHook`, `ValidationContext`, `GenerateContractTypesOptions`, `TypeRenderEntry`, `TypeRenderer`, `ParameterizedCodecDescriptor`, and related types
 - **Execution types** (`./execution`): Execution-plane stack and instance interfaces
-- **Runtime SPI** (`./runtime`): Abstract `RuntimeCore<TPlan, TExec, TMiddleware>` base class, `RuntimeMiddleware` interface, and the canonical `runWithMiddleware` orchestrator helper. Family runtimes (`@internal/sql-runtime`, `@internal/mongo-runtime`) extend `RuntimeCore` directly per [ADR 204](../../../../../docs/architecture%20docs/adrs/ADR%20204%20-%20Single-tier%20runtime.md).
+- **Runtime SPI** (`./runtime`): Abstract `RuntimeCore<TPlan, TExec, TMiddleware>` base class, `RuntimeMiddleware` interface, and the canonical `runQueryWithMiddleware` and `runExecuteWithMiddleware` orchestrator helpers. Family runtimes (`@internal/sql-runtime`, `@internal/mongo-runtime`) extend `RuntimeCore` directly per [ADR 204](../../../../../docs/architecture%20docs/adrs/ADR%20204%20-%20Single-tier%20runtime.md).
 
 ## Subpath exports
 
@@ -22,7 +22,7 @@ import { AuthoringContributions, instantiateAuthoringTypeConstructor } from '@in
 import type { Codec } from '@internal/framework-components/codec';
 import { createControlStack, ControlStack } from '@internal/framework-components/control';
 import type { EmissionSpi } from '@internal/framework-components/emission';
-import { RuntimeCore, runWithMiddleware, type RuntimeMiddleware } from '@internal/framework-components/runtime';
+import { RuntimeCore, runQueryWithMiddleware, runExecuteWithMiddleware, type RuntimeMiddleware } from '@internal/framework-components/runtime';
 ```
 
 ## `Codec` interface
@@ -36,7 +36,7 @@ There is no `runtime` / `kind` / equivalent async marker on the interface and no
 
 ### Codec call context (`ctx`)
 
-Codecs receive a second `ctx` options argument; you may ignore it. The runtime allocates one `CodecCallContext` per `execute()` call and threads the same reference to every codec dispatch site as a non-optional argument — when no `signal` is supplied the runtime still threads an empty `{}`, never `undefined`. The framework `CodecCallContext` is signal-only:
+Codecs receive a second `ctx` options argument; you may ignore it. The runtime allocates one `CodecCallContext` per `query()` or `execute()` call and threads the same reference to every codec dispatch site as a non-optional argument — when no `signal` is supplied the runtime still threads an empty `{}`, never `undefined`. The framework `CodecCallContext` is signal-only:
 
 ```ts
 export interface CodecCallContext {

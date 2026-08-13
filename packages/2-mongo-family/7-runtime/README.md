@@ -47,10 +47,10 @@ Custom or third-party codecs (encryption, vendor scalars) are contributed via an
 ## Responsibilities
 
 - **Stack/context composition**: `createMongoExecutionStack` and `createMongoExecutionContext` mirror SQL's `createSqlExecutionStack` / `createExecutionContext`. The context aggregates codec contributions from `[stack.target, stack.adapter, ...stack.extensions]` into a single `MongoCodecRegistry`.
-- **Runtime executor**: `createMongoRuntime({ context, driver, ... })` composes context and driver into a `MongoRuntime` with a single `execute(plan)` entry point accepting `MongoQueryPlan<Row>` from `@internal/mongo-query-ast`. The adapter is reached via `context.stack.adapter` (instantiated lazily through the stack's `create(stack)` factory). Execution lowers the plan through the adapter, runs the wire command on the driver, then **optionally decodes** each row when `plan.resultShape` is present.
-- **Unified flow**: There is no separate `execute` vs `executeCommand`; all operations use `execute(plan)`.
+- **Runtime executor**: `createMongoRuntime({ context, driver, ... })` composes context and driver into a `MongoRuntime` with separate `query(plan)` and `execute(plan)` operations accepting `MongoQueryPlan<Row>` from `@internal/mongo-query-ast`. `query()` yields decoded rows, while `execute()` returns statement statistics. Both operations reach the adapter via `context.stack.adapter` (instantiated lazily through the stack's `create(stack)` factory), lower the plan, and run the wire command on the driver; `query()` **optionally decodes** each row when `plan.resultShape` is present.
+- **Operation flow**: Row-producing work uses `query(plan)` and the query middleware lifecycle; statistics-producing work uses `execute(plan)` and the execute middleware lifecycle. Each operation allocates its own `CodecCallContext` and threads it through its codec dispatches.
 - **Lowering**: Happens in the adapter (`lower(plan)`), wrapped by the runtime's `lower` override into a `MongoExecutionPlan`.
-- **Middleware lifecycle inheritance**: `MongoRuntime` extends `RuntimeCore<MongoQueryPlan, MongoExecutionPlan, MongoMiddleware>` and inherits the `beforeExecute` / `onRow` / `afterExecute` lifecycle from the framework via `runWithMiddleware`. Mongo does **not** override `runBeforeCompile` (Mongo middleware has no `beforeCompile` hook today).
+- **Middleware lifecycle inheritance**: `MongoRuntime` extends `RuntimeCore<MongoQueryPlan, MongoExecutionPlan, MongoMiddleware>` and uses the framework query lifecycle (`beforeQuery` / `interceptQuery` / `onRow` / `afterQuery`) and execute lifecycle (`beforeExecute` / `interceptExecute` / `afterExecute`). Mongo does **not** override `runBeforeCompile` (Mongo middleware has no `beforeCompile` hook today).
 - **Lifecycle management**: Connection lifecycle via `close()`.
 
 ## Dependencies
@@ -59,7 +59,7 @@ Custom or third-party codecs (encryption, vendor scalars) are contributed via an
   - `@internal/mongo-codec` (`MongoCodecRegistry` for decode)
   - `@internal/mongo-lowering` (`MongoAdapter`, `MongoDriver` interfaces)
   - `@internal/mongo-query-ast` (`MongoQueryPlan`, `AnyMongoCommand` — the typed plan shape)
-  - `@internal/framework-components` (`RuntimeCore` base class, `runWithMiddleware` helper, `RuntimeMiddleware` SPI, `AsyncIterableResult` return type, `RuntimeAdapterDescriptor` / `ExecutionStack` for the stack composition model)
+  - `@internal/framework-components` (`RuntimeCore` base class, operation-specific middleware runners, `RuntimeMiddleware` SPI, `AsyncIterableResult` return type, `RuntimeAdapterDescriptor` / `ExecutionStack` for the stack composition model)
 - **Depended on by**:
   - Integration tests (`test/integration/test/mongo/` and `test/integration/test/cross-package/cross-family-middleware.test.ts`)
 
@@ -71,9 +71,9 @@ Custom or third-party codecs (encryption, vendor scalars) are contributed via an
 - `runDriver(exec)` — dispatches the wire command to the Mongo driver via `driver.execute(exec.command)`.
 - `close()` — closes the underlying driver.
 
-`MongoRuntimeImpl` extends `RuntimeCore` but **overrides `execute`** so that after `runWithMiddleware` yields a raw driver row, the runtime can **`decodeMongoRow`** when the lowered plan carries `resultShape`, then yield the decoded row. `lower(plan)` copies `resultShape` from the query plan onto `MongoExecutionPlan`. Middleware `onRow` still sees the raw driver row (decode happens after the middleware loop for that row, before the consumer receives the value).
+`MongoRuntimeImpl` extends `RuntimeCore` but **overrides `query`** so that after `runQueryWithMiddleware` yields a raw driver row, the runtime can **`decodeMongoRow`** when the lowered plan carries `resultShape`, then yield the decoded row. `lower(plan)` copies `resultShape` from the query plan onto `MongoExecutionPlan`. Middleware `onRow` still sees the raw driver row (decode happens after the middleware loop for that row, before the consumer receives the value).
 
-The execution template is: `lower` → `runWithMiddleware` (driver loop + middleware) → **per-row decode when `exec.resultShape` is set** → yield to consumer.
+The execution template is: `lower` → `runQueryWithMiddleware` (driver loop + query middleware) → **per-row decode when `exec.resultShape` is set** → yield to consumer.
 
 ```mermaid
 flowchart LR

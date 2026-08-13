@@ -35,8 +35,13 @@ function formatIssueMessage(issue: SchemaDiffIssue): string {
 // Verify Output Formatters
 // ============================================================================
 
-export interface DbVerifyCommandSuccessResult {
-  readonly ok: true;
+/**
+ * What a verify run reports, minus the verdict flag. Consumers compose their
+ * own envelope around it: the commander shell wraps it as
+ * {@link DbVerifyCommandSuccessResult}, the engine bin as a document whose
+ * `ok` carries the verdict either way.
+ */
+export interface DbVerifyReport {
   readonly mode: 'full' | 'marker-only';
   readonly summary: string;
   readonly contract: VerifyDatabaseResult['contract'];
@@ -71,6 +76,10 @@ export interface DbVerifyCommandSuccessResult {
   readonly timings: {
     readonly total: number;
   };
+}
+
+export interface DbVerifyCommandSuccessResult extends DbVerifyReport {
+  readonly ok: true;
 }
 
 /**

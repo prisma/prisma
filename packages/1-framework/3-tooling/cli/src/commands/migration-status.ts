@@ -36,6 +36,7 @@ import { readMigrationRefs } from '../control-api/operations/refs';
 import { CliStructuredError, errorUnexpected, requireLiveDatabase } from '../utils/cli-errors';
 import {
   addGlobalOptions,
+  closeQuietly,
   maskConnectionUrl,
   readContractEnvelope,
   resolveMigrationPaths,
@@ -283,6 +284,7 @@ export async function executeMigrationStatusCommand(
   const { configPath, migrationsDir, migrationsRelative, refsDir } = resolveMigrationPaths(
     options.config,
     config,
+    process.cwd(),
   );
 
   const dbConnection = options.db ?? config.db?.connection;
@@ -440,7 +442,7 @@ export async function executeMigrationStatusCommand(
         }),
       );
     } finally {
-      await client.close();
+      await closeQuietly(client);
     }
   }
 
@@ -576,6 +578,7 @@ export async function executeMigrationStatusCommand(
     if (missing.length > 0) {
       diagnostics.push({
         code: 'MIGRATION.MISSING_INVARIANTS',
+        severity: 'warn',
         ...ifDefined('ref', activeRefName),
         invariants: missing,
         message: `missing invariant(s): ${missing.join(', ')}`,

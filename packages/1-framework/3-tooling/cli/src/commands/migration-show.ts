@@ -19,7 +19,8 @@ import {
   type CliStructuredError,
   errorContractValidationFailed,
   errorFileNotFound,
-  errorRuntime,
+  errorMigrationPackageNotFound,
+  errorNoMigrations,
   errorUnexpected,
 } from '../utils/cli-errors';
 import {
@@ -105,7 +106,7 @@ async function executeMigrationShowCommand(
   }
   const config = configResult.value;
   const { configPath, migrationsDir, appMigrationsDir, appMigrationsRelative } =
-    resolveMigrationPaths(options.config, config);
+    resolveMigrationPaths(options.config, config, process.cwd());
 
   const contractPathAbsolute = resolveContractPath(config);
   const contractPath = relative(process.cwd(), contractPathAbsolute);
@@ -187,26 +188,25 @@ async function executeMigrationShowCommand(
 
   let appPkg: OnDiskMigrationPackage;
   if (looksLikePath(target)) {
-    const resolved = resolveAppTargetPath(target, appMigrationsDir, appMigrationsRelative);
+    const resolved = resolveAppTargetPath(
+      process.cwd(),
+      target,
+      appMigrationsDir,
+      appMigrationsRelative,
+    );
     if (!resolved.ok) return resolved;
     const matched = findPackageByDirPath(packages, resolved.value);
     if (!matched) {
       return notOk(
-        errorRuntime('MIGRATION.PACKAGE_NOT_FOUND', 'Migration package not found', {
-          why: `No loaded migration package at ${relative(process.cwd(), resolved.value)}`,
-          fix: 'Pass a directory name, hash prefix, or path to an on-disk app-space migration package.',
-        }),
+        errorMigrationPackageNotFound(
+          `No loaded migration package at ${relative(process.cwd(), resolved.value)}`,
+        ),
       );
     }
     appPkg = matched;
   } else {
     if (packages.length === 0) {
-      return notOk(
-        errorRuntime('MIGRATION.NO_MIGRATIONS', 'No migrations found', {
-          why: `No migration packages found in ${appMigrationsRelative}`,
-          fix: 'Run `prisma-next migration plan` to create a migration first.',
-        }),
-      );
+      return notOk(errorNoMigrations(appMigrationsRelative));
     }
     const migResult = resolveMigrationRef(target, { graph, refs });
     if (!migResult.ok) {
@@ -217,10 +217,9 @@ async function executeMigrationShowCommand(
     );
     if (!matchedPkg) {
       return notOk(
-        errorRuntime('MIGRATION.PACKAGE_NOT_FOUND', 'Migration package not found', {
-          why: `Resolved migration "${migResult.value.dirName}" but the package was not loaded`,
-          fix: 'The migrations directory may be corrupted. Inspect the migration.json files.',
-        }),
+        errorMigrationPackageNotFound(
+          `Resolved migration "${migResult.value.dirName}" but the package was not loaded`,
+        ),
       );
     }
     appPkg = matchedPkg;

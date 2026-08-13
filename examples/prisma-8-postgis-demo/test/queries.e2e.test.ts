@@ -54,7 +54,7 @@ describe.runIf(await isPostgisAvailable())('postgis e2e', () => {
   });
 
   it('seed data round-trips Point/LineString/Polygon geometry intact', async () => {
-    const cafeRows = await runtime.execute(
+    const cafeRows = await runtime.query(
       db.sql.public.cafe.select('id', 'name', 'location').build(),
     );
     expect(cafeRows).toHaveLength(cafes.length);
@@ -65,16 +65,14 @@ describe.runIf(await isPostgisAvailable())('postgis e2e', () => {
       srid: 4326,
     });
 
-    const hoodRows = await runtime.execute(
+    const hoodRows = await runtime.query(
       db.sql.public.neighborhood.select('id', 'name', 'boundary').build(),
     );
     const soma = hoodRows.find((r) => r.id === SOMA.id);
     expect(soma?.boundary.type).toBe('Polygon');
     expect(soma?.boundary.srid).toBe(4326);
 
-    const routeRows = await runtime.execute(
-      db.sql.public.route.select('id', 'name', 'path').build(),
-    );
+    const routeRows = await runtime.query(db.sql.public.route.select('id', 'name', 'path').build());
     const market = routeRows.find((r) => r.name === 'Market Street stroll');
     expect(market?.path.type).toBe('LineString');
     expect(market?.path.coordinates).toEqual([

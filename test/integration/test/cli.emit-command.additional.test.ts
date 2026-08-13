@@ -1,40 +1,21 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
 import { loadConfig } from '@internal/config-loader';
 import { createControlStack } from '@internal/framework-components/control';
 import { timeouts } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  executeCommand,
-  getExitCode,
   integrationFixtureAppDir,
-  setupCommandMocks,
+  runOnEngine,
   setupIntegrationTestDirectoryFromFixtures,
 } from './utils/cli-test-helpers';
 
 const fixtureSubdir = 'emit-command';
 
 describe('emit command: additional fixtures', () => {
-  let consoleOutput: string[] = [];
-  let consoleErrors: string[] = [];
-  let cleanupMocks: () => void;
-
-  beforeEach(() => {
-    const mocks = setupCommandMocks();
-    consoleOutput = mocks.consoleOutput;
-    consoleErrors = mocks.consoleErrors;
-    cleanupMocks = mocks.cleanup;
-  });
-
-  afterEach(() => {
-    cleanupMocks();
-  });
-
   it('emits equivalent hashes from psl and ts providers', {
     timeout: timeouts.typeScriptCompilation,
   }, async () => {
-    const command = createContractEmitCommand();
     const tsSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
       'prisma-next.config.parity-ts.ts',
@@ -45,31 +26,18 @@ describe('emit command: additional fixtures', () => {
     );
 
     try {
-      const originalCwd = process.cwd();
-      let tsProviderStorageHash = '';
-      let tsProviderProfileHash = '';
-
-      try {
-        process.chdir(tsSetup.testDir);
-        const exitCode = await executeCommand(command, [
-          '--config',
-          'prisma-next.config.ts',
-          '--json',
-        ]);
-        expect(exitCode).toBe(0);
-        const tsContract = JSON.parse(
-          readFileSync(join(tsSetup.outputDir, 'contract.json'), 'utf-8'),
-        ) as Record<string, unknown>;
-        const storage = tsContract['storage'] as Record<string, unknown>;
-        const storageHash = storage['storageHash'];
-        const profileHash = tsContract['profileHash'];
-        expect(storageHash).toMatch(/^[a-f0-9]{64}$/);
-        expect(profileHash).toMatch(/^[a-f0-9]{64}$/);
-        tsProviderStorageHash = storageHash as string;
-        tsProviderProfileHash = profileHash as string;
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const tsRun = await runOnEngine(tsSetup, ['contract', 'emit', '--json']);
+      expect(tsRun.exitCode).toBe(0);
+      const tsContract = JSON.parse(
+        readFileSync(join(tsSetup.outputDir, 'contract.json'), 'utf-8'),
+      ) as Record<string, unknown>;
+      const storage = tsContract['storage'] as Record<string, unknown>;
+      const storageHash = storage['storageHash'];
+      const profileHash = tsContract['profileHash'];
+      expect(storageHash).toMatch(/^[a-f0-9]{64}$/);
+      expect(profileHash).toMatch(/^[a-f0-9]{64}$/);
+      const tsProviderStorageHash = storageHash as string;
+      const tsProviderProfileHash = profileHash as string;
 
       writeFileSync(
         join(pslSetup.testDir, 'schema.prisma'),
@@ -80,17 +48,8 @@ describe('emit command: additional fixtures', () => {
         'utf-8',
       );
 
-      try {
-        process.chdir(pslSetup.testDir);
-        const exitCode = await executeCommand(command, [
-          '--config',
-          'prisma-next.config.ts',
-          '--json',
-        ]);
-        expect(exitCode).toBe(0);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const pslRun = await runOnEngine(pslSetup, ['contract', 'emit', '--json']);
+      expect(pslRun.exitCode).toBe(0);
 
       const contractJsonPath = join(pslSetup.testDir, 'output/contract.json');
       const contractDtsPath = join(pslSetup.testDir, 'output/contract.d.ts');
@@ -126,7 +85,6 @@ describe('emit command: additional fixtures', () => {
   it('renders provider diagnostics when psl provider fails', {
     timeout: timeouts.typeScriptCompilation,
   }, async () => {
-    const command = createContractEmitCommand();
     const testSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
       'prisma-next.config.parity-psl.ts',
@@ -149,30 +107,21 @@ describe('emit command: additional fixtures', () => {
       const contractConfig = providerConfig.contract;
       expect(contractConfig).toBeDefined();
 
-      const originalCwd = process.cwd();
-      let sourceResult: Awaited<
-        ReturnType<NonNullable<typeof providerConfig.contract>['source']['load']>
-      >;
-      try {
-        process.chdir(testSetup.testDir);
-        const stack = createControlStack({
-          family: providerConfig.family,
-          target: providerConfig.target,
-          adapter: providerConfig.adapter,
-          extensions: providerConfig.extensions ?? [],
-        });
-        sourceResult = await contractConfig!.source.load({
-          composedExtensions: stack.extensions.map((p) => p.id),
-          composedExtensionContracts: new Map(),
-          authoringContributions: stack.authoringContributions,
-          codecLookup: stack.codecLookup,
-          controlMutationDefaults: stack.controlMutationDefaults,
-          resolvedInputs: contractConfig!.source.inputs ?? [],
-          capabilities: stack.capabilities,
-        });
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const stack = createControlStack({
+        family: providerConfig.family,
+        target: providerConfig.target,
+        adapter: providerConfig.adapter,
+        extensions: providerConfig.extensions ?? [],
+      });
+      const sourceResult = await contractConfig!.source.load({
+        composedExtensions: stack.extensions.map((p) => p.id),
+        composedExtensionContracts: new Map(),
+        authoringContributions: stack.authoringContributions,
+        codecLookup: stack.codecLookup,
+        controlMutationDefaults: stack.controlMutationDefaults,
+        resolvedInputs: contractConfig!.source.inputs ?? [],
+        capabilities: stack.capabilities,
+      });
 
       expect(sourceResult.ok).toBe(false);
       if (sourceResult.ok) {
@@ -191,20 +140,23 @@ describe('emit command: additional fixtures', () => {
         ]),
       );
 
-      const commandCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        await expect(
-          executeCommand(command, ['--config', 'prisma-next.config.ts']),
-        ).rejects.toThrow();
-      } finally {
-        process.chdir(commandCwd);
-      }
+      const run = await runOnEngine(testSetup, ['contract', 'emit', '--json']);
+      expect(run.exitCode).toBe(2);
 
-      const errorOutput = consoleErrors.join('\n');
-      expect(errorOutput).toContain('PSL to SQL contract interpretation failed');
-      expect(errorOutput).toContain('PSL_UNSUPPORTED_FIELD_TYPE');
-      expect(errorOutput).toContain('schema.prisma');
+      const terminal = run.json.at(-1);
+      const envelope =
+        terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+      expect(envelope).toMatchObject({
+        ok: false,
+        error: {
+          code: 'CONTRACT.SOURCE_LOAD_FAILED',
+          why: 'PSL to SQL contract interpretation failed',
+        },
+      });
+
+      const reported = JSON.stringify(envelope);
+      expect(reported).toContain('PSL_UNSUPPORTED_FIELD_TYPE');
+      expect(reported).toContain('schema.prisma');
     } finally {
       testSetup.cleanup();
     }
@@ -213,25 +165,24 @@ describe('emit command: additional fixtures', () => {
   it('rejects plain-object configs that were not created by defineConfig', {
     timeout: timeouts.typeScriptCompilation,
   }, async () => {
-    const command = createContractEmitCommand();
     const testSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
       'prisma-next.config.missing-output.ts',
     );
 
     try {
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        await expect(
-          executeCommand(command, ['--config', 'prisma-next.config.ts', '--json']),
-        ).rejects.toThrow('process.exit called');
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['contract', 'emit', '--json'], {
+        settleConfigFailures: true,
+      });
+      expect(run.exitCode).toBe(2);
 
-      expect(getExitCode()).toBe(2);
-      expect(consoleOutput.join('\n')).toContain('CONFIG.VERSION_MARKER_MISSING');
+      const terminal = run.json.at(-1);
+      const envelope =
+        terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+      expect(envelope).toMatchObject({
+        ok: false,
+        error: { code: 'CONFIG.VERSION_MARKER_MISSING' },
+      });
       expect(existsSync(join(testSetup.testDir, 'src/prisma/contract.json'))).toBe(false);
     } finally {
       testSetup.cleanup();
@@ -241,7 +192,6 @@ describe('emit command: additional fixtures', () => {
   it('emits contract.json and contract.d.ts with Mongo config', {
     timeout: timeouts.typeScriptCompilation,
   }, async () => {
-    const command = createContractEmitCommand();
     const testSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
       'prisma-next.config.mongo.ts',
@@ -269,18 +219,8 @@ model Post {
         'utf-8',
       );
 
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        const exitCode = await executeCommand(command, [
-          '--config',
-          'prisma-next.config.ts',
-          '--json',
-        ]);
-        expect(exitCode).toBe(0);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['contract', 'emit', '--json']);
+      expect(run.exitCode).toBe(0);
 
       const contractJsonPath = join(testSetup.outputDir, 'contract.json');
       const contractDtsPath = join(testSetup.outputDir, 'contract.d.ts');
@@ -326,9 +266,7 @@ model Post {
       expect(contractDts).toContain('export type Contract');
       expect(contractDts).toContain('CodecTypes');
 
-      const jsonOutput = consoleOutput.join('\n');
-      const parsed = JSON.parse(jsonOutput);
-      expect(parsed).toMatchObject({
+      expect(run.presented?.data).toMatchObject({
         ok: true,
         storageHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         files: {
@@ -344,25 +282,14 @@ model Post {
   it('emits contract.json and contract.d.ts with Mongo contract.ts config', {
     timeout: timeouts.typeScriptCompilation,
   }, async () => {
-    const command = createContractEmitCommand();
     const testSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
       'prisma-next.config.mongo-contract-ts.ts',
     );
 
     try {
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        const exitCode = await executeCommand(command, [
-          '--config',
-          'prisma-next.config.ts',
-          '--json',
-        ]);
-        expect(exitCode).toBe(0);
-      } finally {
-        process.chdir(originalCwd);
-      }
+      const run = await runOnEngine(testSetup, ['contract', 'emit', '--json']);
+      expect(run.exitCode).toBe(0);
 
       const contractJsonPath = join(testSetup.outputDir, 'contract.json');
       const contractDtsPath = join(testSetup.outputDir, 'contract.d.ts');
@@ -434,9 +361,7 @@ model Post {
       expect(contractDts).toContain("readonly locale: 'en'");
       expect(contractDts).toContain('readonly strength: 2');
 
-      const jsonOutput = consoleOutput.join('\n');
-      const parsed = JSON.parse(jsonOutput);
-      expect(parsed).toMatchObject({
+      expect(run.presented?.data).toMatchObject({
         ok: true,
         storageHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         files: {

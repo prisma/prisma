@@ -20,6 +20,7 @@ import {
 } from './migration-graph-labels';
 import type { Cell, CellLine, Grid } from './migration-graph-model';
 import { renderGridRow } from './migration-graph-occlusion-render';
+import type { MigrationGraphPalette } from './migration-graph-palette';
 import type { ClassifiedEdge, MigrationGraphRowModel } from './migration-graph-rows';
 import type { MigrationListStyler } from './migration-list-render';
 
@@ -38,6 +39,8 @@ export interface RenderMigrationGraphCommandInput {
   readonly isAppSpace?: boolean;
   readonly activeRefName?: string;
   readonly styler?: MigrationListStyler;
+  /** Where the gutter and the labels get their colour. */
+  readonly palette?: MigrationGraphPalette;
   /** Cross-space override for the gutter→label column (max gutter width). */
   readonly globalLabelColumn?: number;
   /** Cross-space override for the migration-name column width. */
@@ -198,6 +201,7 @@ export function renderMigrationGraphCommand(input: RenderMigrationGraphCommandIn
     ...ifDefined('isAppSpace', input.isAppSpace),
     ...ifDefined('activeRefName', input.activeRefName),
     ...ifDefined('styler', input.styler),
+    ...ifDefined('palette', input.palette),
   };
 
   const nodeHighlights = resolveNodeHighlights(rowModel, input.edgeAnnotationsByHash);
@@ -210,7 +214,11 @@ export function renderMigrationGraphCommand(input: RenderMigrationGraphCommandIn
 
   const lines: string[] = [];
   for (const row of grid) {
-    const gutter = renderGridRow(row, { colorize: input.colorize, glyphMode });
+    const gutter = renderGridRow(row, {
+      colorize: input.colorize,
+      glyphMode,
+      ...ifDefined('palette', input.palette),
+    });
     const identity = classifyRow(row, edgesByHash);
 
     if (identity.kind === 'none') {

@@ -2,36 +2,7 @@
   "scopes": [
     {
       "path": "packages/1-framework",
-      "forbidden": [
-        "nativeType",
-        "native-type",
-        "postgres",
-        "postgresql",
-        "sqlite",
-        "mysql",
-        "mariadb",
-        "mssql",
-        "sqlserver",
-        "cockroach",
-        "pglite",
-        "mongo",
-        "mongodb",
-        "collection",
-        "column",
-        "table",
-        "constraint",
-        "sql",
-        "varchar",
-        "jsonb",
-        "dialect",
-        "rls",
-        "primaryKey",
-        "primary key",
-        "foreignKey",
-        "foreign key"
-      ],
-      "allow": ["SymbolTable"],
-      "threshold": 801
+      "threshold": 364
     }
   ]
 }

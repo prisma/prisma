@@ -50,14 +50,9 @@ export interface PreparedStatement<Params, Row> {
   readonly ast: AnyQueryAst;
   readonly meta: PlanMeta;
   readonly slots: readonly LoweredParam[];
-
-  /**
-   * Run this prepared statement against the given target. The target carries
-   * the execution scope (top-level runtime, an explicit connection, an active
-   * transaction). It is required and explicit — there is no implicit binding
-   * back to the runtime that produced this statement.
-   */
-  execute(
+  readonly _params?: Params;
+  readonly _row?: Row;
+  query(
     target: RuntimeQueryable,
     params: Params,
     options?: RuntimeExecuteOptions,

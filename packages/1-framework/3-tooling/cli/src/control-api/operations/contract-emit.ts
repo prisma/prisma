@@ -1,5 +1,4 @@
 import { mkdir } from 'node:fs/promises';
-import { loadConfigForSections } from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import { emit, getEmittedArtifactPaths } from '@internal/emitter';
 import { createControlStack } from '@internal/framework-components/control';
@@ -22,6 +21,12 @@ import type {
 } from '../types';
 
 const EMIT_ACTION: ControlActionName = 'emit';
+
+type ContractEmitDependencies = {
+  readonly emit: typeof emit;
+};
+
+const defaultContractEmitDependencies: ContractEmitDependencies = { emit };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -159,17 +164,16 @@ function validateProviderResult(providerResult: unknown): ValidatedProviderResul
  */
 export async function executeContractEmit(
   options: ContractEmitOptions,
+  dependencies: ContractEmitDependencies = defaultContractEmitDependencies,
 ): Promise<ContractEmitResult> {
-  const { configPath, outputPath, signal = new AbortController().signal, onProgress } = options;
+  const {
+    config,
+    configPath,
+    outputPath,
+    signal = new AbortController().signal,
+    onProgress,
+  } = options;
   const unlessAborted = abortable(signal);
-
-  const configResult = await unlessAborted(
-    loadConfigForSections(configPath, ['contract', 'family', 'target', 'adapter', 'extensions']),
-  );
-  if (!configResult.ok) {
-    throw configResult.failure;
-  }
-  const config = configResult.value;
 
   if (!config.contract) {
     throw errorContractConfigMissing({
@@ -276,10 +280,15 @@ export async function executeContractEmit(
       const serializeContract = (c: Contract): JsonObject =>
         contractSerializer.serializeContract(c);
       emitResult = await unlessAborted(
-        emit(deserializedContract, stack, config.family.emission, {
+        dependencies.emit(deserializedContract, stack, config.family.emission, {
           outputJsonPath,
           serializeContract,
-          resolveImportSpecifier: createProjectSpecifierResolver(configPath),
+          // Which package names the generated files may import is decided by
+          // the nearest manifest above the file being written — the package
+          // that will import it, and the same directory `validateContractDeps`
+          // resolves against below. A caller holding the config file's path
+          // may name it instead.
+          resolveImportSpecifier: createProjectSpecifierResolver(configPath ?? outputJsonPath),
           ...ifDefined('shouldPreserveEmpty', contractSerializer.shouldPreserveEmpty),
           ...ifDefined('sortStorage', contractSerializer.sortStorage),
         }),

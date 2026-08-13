@@ -12,7 +12,7 @@ describe('insertMany integration', () => {
         { name: new MongoParamRef('Alice'), age: 30 },
         { name: new MongoParamRef('Bob'), age: 25 },
       ]);
-      const rows = await ctx.runtime.execute({
+      const rows = await ctx.runtime.query({
         collection: collectionName,
         command,
         meta: ctx.stubMeta,
