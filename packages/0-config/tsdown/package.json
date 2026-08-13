@@ -17,6 +17,7 @@
     "lint": "biome check . --error-on-warnings",
     "lint:fix": "biome check --write .",
     "lint:fix:unsafe": "biome check --write --unsafe .",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "exports": {
