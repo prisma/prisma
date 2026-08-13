@@ -95,7 +95,7 @@ export function integrityViolationToCheckFailure(
         nextActions: [
           runCommandAction(
             'Re-emit the extension contract-space artefacts, then plan its migrations',
-            'prisma-next contract emit',
+            'prisma-cli contract emit',
           ),
           chooseAction('Or remove the extension from `extensions` if it is unused'),
         ],
@@ -160,7 +160,7 @@ export function integrityViolationToCheckFailure(
         where: migrationFileRelative(join(migrationsDir, violation.spaceId), 'contract.json'),
         why: `Contract for space "${violation.spaceId}" is unreadable: ${violation.detail}`,
         nextActions: [
-          runCommandAction('Re-emit the extension contract artefacts', 'prisma-next contract emit'),
+          runCommandAction('Re-emit the extension contract artefacts', 'prisma-cli contract emit'),
           chooseAction('Or fix the descriptor producing the invalid contract'),
         ],
       };

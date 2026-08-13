@@ -149,7 +149,7 @@ function planNextActions(
   }
   return [
     { kind: 'edit-file', label: `Review ${written.join(' and ')}` },
-    runCommandAction('Apply the migration', 'prisma-next migrate'),
+    runCommandAction('Apply the migration', 'prisma-cli migrate'),
   ];
 }
 

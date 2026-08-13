@@ -123,7 +123,7 @@ withTempDir(({ createTempDir }) => {
 
           expect(status.exitCode).toBe(0);
           expect(out).toMatch(/pending/);
-          expect(out).toContain('prisma-next migrate');
+          expect(out).toContain('prisma-cli migrate');
         },
         timeouts.spinUpPpgDev,
       );
@@ -201,7 +201,7 @@ withTempDir(({ createTempDir }) => {
 
           expect(status.exitCode).toBe(0);
           expect(out).toMatch(/1 pending/);
-          expect(out).toContain('prisma-next migrate');
+          expect(out).toContain('prisma-cli migrate');
         },
         timeouts.spinUpPpgDev,
       );
@@ -275,7 +275,7 @@ withTempDir(({ createTempDir }) => {
           expect(status.exitCode).toBe(0);
           expect(out).toContain('@contract');
           expect(out).toContain("to the application's contract");
-          expect(out).toContain('prisma-next migration plan --name');
+          expect(out).toContain('prisma-cli migration plan --name');
         },
         timeouts.spinUpPpgDev,
       );
@@ -495,7 +495,7 @@ withTempDir(({ createTempDir }) => {
           expect(status.exitCode).toBe(0);
           const json = parseMigrationStatusJson(status);
           expect(json.summary).toContain("to the application's contract");
-          expect(json.summary).toContain('prisma-next migration plan --name');
+          expect(json.summary).toContain('prisma-cli migration plan --name');
         },
         timeouts.spinUpPpgDev,
       );
@@ -568,7 +568,7 @@ withTempDir(({ createTempDir }) => {
           expect(status.exitCode).toBe(0);
           expect(out).toContain('No migration path from the database state');
           expect(out).toContain('via `production`');
-          expect(out).toContain('prisma-next migration plan');
+          expect(out).toContain('prisma-cli migration plan');
         },
         timeouts.spinUpPpgDev,
       );
@@ -635,7 +635,7 @@ withTempDir(({ createTempDir }) => {
           expect(status.exitCode).toBe(0);
           expect(out).not.toContain('multiple valid migration paths');
           expect(out).toMatch(/1 pending/);
-          expect(out).toContain('prisma-next migrate');
+          expect(out).toContain('prisma-cli migrate');
         },
         timeouts.spinUpPpgDev,
       );

@@ -196,7 +196,7 @@ export const createInitCommand = (injected: InitCommandDependencies) =>
               {
                 why: `The success document failed schema validation: ${String(validated)}`,
                 nextActions: [
-                  chooseAction('This is a bug in prisma-next. Please report it with `-v` output.'),
+                  chooseAction('This is a bug in Prisma Next. Please report it with `-v` output.'),
                 ],
                 docsUrl: docsUrlFor('CLI.INIT_INVALID_OUTPUT_DOCUMENT'),
               },

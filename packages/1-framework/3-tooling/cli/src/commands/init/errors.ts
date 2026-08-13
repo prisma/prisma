@@ -44,7 +44,7 @@ export function errorInitMissingFlags(options: {
     .join(' ');
   return new CliStructuredError('CLI.INIT_MISSING_FLAGS', 'Missing required flags', {
     why: `${options.why} Missing required flag(s): ${flagList}.`,
-    fix: `Re-run with the missing flag(s) supplied, e.g. \`prisma-next init --yes ${fixList}\`. Use \`prisma-next init --help\` to see every flag.`,
+    fix: `Re-run with the missing flag(s) supplied, e.g. \`prisma-cli init --yes ${fixList}\`. Use \`prisma-cli init --help\` to see every flag.`,
     docsUrl: docsUrlFor('CLI.INIT_MISSING_FLAGS'),
     meta: { missingFlags: options.missing },
   });
@@ -115,7 +115,7 @@ export function errorInitAuthoringSchemaPathMismatch(options: {
 export function errorInitUserAborted(): CliStructuredError {
   return new CliStructuredError('CLI.INIT_USER_ABORTED', 'Init cancelled', {
     why: 'The interactive prompt was cancelled before all required inputs were supplied. No files were modified.',
-    fix: 'Re-run `prisma-next init` and complete the prompts, or pass the required inputs as flags (see `--help`) for a non-interactive run.',
+    fix: 'Re-run `prisma-cli init` and complete the prompts, or pass the required inputs as flags (see `--help`) for a non-interactive run.',
     severity: 'info',
   });
 }
@@ -187,7 +187,7 @@ export function errorInitInvalidManifest(options: {
 }): CliStructuredError {
   return new CliStructuredError('CLI.INIT_INVALID_MANIFEST', `Failed to parse ${options.path}`, {
     why: `\`${options.path}\` is not valid JSON: ${options.cause}`,
-    fix: `Fix the JSON syntax in \`${options.path}\` (a missing comma or unbalanced brace is the most common cause), then re-run \`prisma-next init\`.`,
+    fix: `Fix the JSON syntax in \`${options.path}\` (a missing comma or unbalanced brace is the most common cause), then re-run \`prisma-cli init\`.`,
     docsUrl: docsUrlFor('CLI.INIT_INVALID_MANIFEST'),
     meta: { path: options.path, cause: options.cause },
   });
@@ -213,7 +213,7 @@ export function errorInitInvalidTsconfig(options: {
 }): CliStructuredError {
   return new CliStructuredError('CLI.INIT_INVALID_TSCONFIG', `Failed to parse ${options.path}`, {
     why: `\`${options.path}\` is not valid JSON or JSONC: ${options.cause}`,
-    fix: `Fix the syntax in \`${options.path}\` and re-run \`prisma-next init\`. \`init\` accepts JSONC (comments and trailing commas) but cannot recover from unbalanced braces or missing commas.`,
+    fix: `Fix the syntax in \`${options.path}\` and re-run \`prisma-cli init\`. \`init\` accepts JSONC (comments and trailing commas) but cannot recover from unbalanced braces or missing commas.`,
     docsUrl: docsUrlFor('CLI.INIT_INVALID_TSCONFIG'),
     meta: { path: options.path, cause: options.cause },
   });
@@ -249,7 +249,7 @@ export function errorInitProbeFailed(options: {
 }
 
 /**
- * `prisma-next contract emit` failed after a successful install. Surface
+ * `prisma-cli contract emit` failed after a successful install. Surface
  * the underlying error so the user can fix it and re-run; files and
  * dependencies remain on disk untouched. Maps to exit code
  * `5 = EMIT_FAILED`.
@@ -260,7 +260,7 @@ export function errorInitEmitFailed(options: {
   readonly cause: string;
 }): CliStructuredError {
   return new CliStructuredError('CLI.INIT_EMIT_FAILED', 'Failed to emit contract', {
-    why: `\`prisma-next contract emit\` failed: ${options.cause}`,
+    why: `\`prisma-cli contract emit\` failed: ${options.cause}`,
     fix: `Inspect your contract file, fix the underlying issue, then re-run \`${options.emitCommand}\`. Pass \`-v\` for the full error envelope.`,
     docsUrl: docsUrlFor('CLI.INIT_EMIT_FAILED'),
     meta: {
@@ -285,7 +285,7 @@ export function errorInitWriteFailed(options: {
 }): CliStructuredError {
   return new CliStructuredError('CLI.INIT_WRITE_FAILED', `Failed to write ${options.path}`, {
     why: `\`${options.path}\` could not be written: ${options.cause}`,
-    fix: 'Fix what stopped the write — a directory sitting where the file goes, permissions, a full disk — then run `prisma-next init` again. It will ask you to confirm replacing the files this run already wrote (listed in `meta.filesWritten`).',
+    fix: 'Fix what stopped the write — a directory sitting where the file goes, permissions, a full disk — then run `prisma-cli init` again. It will ask you to confirm replacing the files this run already wrote (listed in `meta.filesWritten`).',
     docsUrl: docsUrlFor('CLI.INIT_WRITE_FAILED'),
     meta: { path: options.path, cause: options.cause, filesWritten: options.filesWritten },
   });
@@ -314,7 +314,7 @@ export function errorInitSkillInstallFailed(options: {
       why: `\`${options.skillInstallCommand}\` exited with an error: ${options.cause}`,
       fix:
         'Either:\n' +
-        `  - Re-run \`prisma-next init --no-skill${options.filesWritten.length > 0 ? ' --force' : ''}\` to skip the skill install for this run, or\n` +
+        `  - Re-run \`prisma-cli init --no-skill${options.filesWritten.length > 0 ? ' --force' : ''}\` to skip the skill install for this run, or\n` +
         `  - Fix the underlying issue (network, npm registry, \`npx skills\` on PATH) and install manually:\n      ${options.skillInstallCommand}`,
       docsUrl: docsUrlFor('CLI.INIT_SKILL_INSTALL_FAILED'),
       meta: {

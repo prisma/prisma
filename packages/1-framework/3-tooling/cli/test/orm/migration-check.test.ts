@@ -284,7 +284,7 @@ describe('migration check', () => {
             {
               kind: 'run-command',
               label: 'Point the ref at a graph node',
-              command: 'prisma-next ref set staging <valid-hash>',
+              command: 'prisma-cli ref set staging <valid-hash>',
             },
             { kind: 'user-choice', label: 'Or delete the ref' },
           ],

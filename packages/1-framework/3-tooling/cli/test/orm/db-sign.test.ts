@@ -281,7 +281,7 @@ describe('db sign', () => {
         {
           kind: 'run-command',
           label: 'Bring the database up to the contract, then sign again',
-          command: 'prisma-next db update',
+          command: 'prisma-cli db update',
         },
       ]);
     });

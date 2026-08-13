@@ -263,7 +263,7 @@ describe('migrate', () => {
       {
         kind: 'run-command',
         label: 'Check every space against the database',
-        command: 'prisma-next migration status',
+        command: 'prisma-cli migration status',
       },
     ]);
   });

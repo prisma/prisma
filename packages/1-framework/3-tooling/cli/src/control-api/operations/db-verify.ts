@@ -337,7 +337,7 @@ function mapMarkerCheckFailures(
         spaceId,
         remediation:
           spaceId === appSpaceId
-            ? 'Run `prisma-next db update` to advance the marker, or roll the database back to the recorded hash.'
+            ? 'Run `prisma-cli db update` to advance the marker, or roll the database back to the recorded hash.'
             : `Apply on-disk migrations under \`migrations/${spaceId}/\` to advance the marker, or remove the conflicting marker row.`,
       });
       continue;

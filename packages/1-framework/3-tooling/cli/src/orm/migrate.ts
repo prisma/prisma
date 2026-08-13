@@ -78,7 +78,7 @@ interface MigrateDocument {
 
 const STATUS_ACTION = runCommandAction(
   'Check every space against the database',
-  'prisma-next migration status',
+  'prisma-cli migration status',
 );
 
 /**

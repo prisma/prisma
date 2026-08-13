@@ -72,7 +72,7 @@ describe('ormConfigSection', () => {
               {
                 kind: 'run-command',
                 label: 'Create a config file',
-                command: 'prisma-next init',
+                command: 'prisma-cli init',
               },
             ],
           },
