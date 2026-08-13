@@ -324,6 +324,22 @@ changes:
         - "preparedStatementQuery"
         - "PreparedStatement<ParamsFromDeclaration"
       anyMatch: true
+  - id: prepare-defaults-to-the-contract-codec-map
+    summary: |
+      A facade that redeclares `prepare()` should default its codec-map parameter to
+      `ExtractCodecTypes<TContract>` alone. Intersecting it with `CodecTypesBase` — the shape
+      the in-tree facades used — collapses `keyof CT` to `string` through that type's index
+      signature, which costs a caller every codec-id completion in the declaration and lets an
+      id no registry carries typecheck. Drop the intersection; the `CT extends CodecTypesBase`
+      constraint stays and nothing else in the signature changes. If your facade exposes a
+      contract-bound raw tag, its `.returns()` now narrows to the contract's ids the same way,
+      with no change on your side; a contract-free tag keeps accepting any string.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      contains:
+        - "ExtractCodecTypes<TContract> & CodecTypesBase"
+        - "CodecTypesBase ="
+      anyMatch: true
 ---
 
 # 8.0.0-rc.1 → 8.0.0-rc.2 — Extension-author upgrade instructions
@@ -705,3 +721,24 @@ it must now also install `preparedStatementExecute` beside it, routing to the sa
 Both symbols come from `@internal/sql-runtime/internal/prepared-query`. A scope missing the
 execute bridge typechecks but throws on the bridge invariant the first time someone executes a
 prepared statement against it.
+
+## `prepare-defaults-to-the-contract-codec-map`
+
+```ts
+// Before — the index signature on CodecTypesBase widens keyof CT to string
+CT extends CodecTypesBase = ExtractCodecTypes<TContract> & CodecTypesBase,
+
+// After
+CT extends CodecTypesBase = ExtractCodecTypes<TContract>,
+```
+
+Only the default changes. The constraint, `Declaration<CT>`, `ParamsFromDeclaration`, and the
+returned prepared handle are all as they were, and what infers at existing call sites is
+unchanged — this is about what the caller is offered and what the compiler refuses. With the
+intersection in place, `prepare({ id: 'pg/int4' }, ...)` typechecks and then fails at
+execution with `RUNTIME.PARAM_REF_MISSING_CODEC`; without it, the wrong id is a compile
+error and the right ones complete.
+
+The same narrowing reaches `.returns()` on a contract-bound raw tag through
+`@internal/sql-builder`, so a facade that re-exposes that tag inherits it without doing
+anything. Tags built for a contract-free lane are deliberately left open.
