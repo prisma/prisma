@@ -1,6 +1,7 @@
 import type { ExtractCodecTypes } from '@internal/sql-contract/types';
 import type {
   Expression,
+  NoReservedRowColumn,
   RawAffectedCountQuery,
   RawRowQuery,
   RawSqlBuilder,
@@ -51,10 +52,15 @@ export type ContractRawSpecEntry<CT extends Record<string, { readonly output: un
   | { readonly codecId: keyof CT & string; readonly nullable?: boolean }
   | ContractColumnRef;
 
-/** A contract-bound row spec: result-column name to the codec that decodes it. */
+/**
+ * A contract-bound row spec: result-column name to the codec that decodes it.
+ * It inherits the target-agnostic spec's one reserved name, so `db.raw` refuses
+ * a `__proto__` column exactly where the contract-free tag does.
+ */
 export type ContractRawRowSpec<CT extends Record<string, { readonly output: unknown }>> = Readonly<
   Record<string, ContractRawSpecEntry<CT>>
->;
+> &
+  NoReservedRowColumn;
 
 type EntryScopeField<Entry> = Entry extends string
   ? { codecId: Entry; nullable: false }

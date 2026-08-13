@@ -163,6 +163,28 @@ describe('integration: whole-query raw statements', { timeout: timeouts.database
     expect(rows).toEqual([{ invited_count: 2 }]);
   });
 
+  it('refuses a __proto__ column before the statement reaches the database', () => {
+    const spec: Record<string, string> = Object.fromEntries([['__proto__', 'pg/int4@1']]);
+
+    expect(() => rawSql()`SELECT 1 AS "__proto__"`.returnsRow(spec)).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.AST_INVALID',
+        meta: expect.objectContaining({ column: '__proto__' }),
+      }),
+    );
+  });
+
+  it('round-trips a column named constructor', async () => {
+    const plan = rawSql()`SELECT id AS "constructor" FROM users WHERE id = ${1}`
+      .returnsRow({ constructor: 'pg/int4@1' })
+      .build();
+
+    const rows = await runtime.query(plan);
+
+    expect(rows).toEqual([{ constructor: 1 }]);
+    expect(Object.hasOwn(rows[0] as object, 'constructor')).toBe(true);
+  });
+
   it('raises RUNTIME.RAW_ROW_COLUMN_MISSING when the result omits a declared column', async () => {
     const plan = rawSql()`SELECT id FROM users WHERE id = ${1}`
       .returnsRow({ id: 'pg/int4@1', name: 'pg/text@1' })

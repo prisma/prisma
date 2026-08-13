@@ -96,3 +96,29 @@ test('the tag type inferred from createRawSql is the expression tag', () => {
 
   assertType<RawSqlTag>(tag);
 });
+
+// ── Column names that collide with object machinery ──────────────────────────
+
+test('a __proto__ column is rejected at the authoring site', () => {
+  // @ts-expect-error — a __proto__ key never survives as a row column
+  rawSql`select 1 as "__proto__"`.returnsRow({ __proto__: 'pg/int4@1' });
+});
+
+test('the computed form of a __proto__ column is rejected the same way', () => {
+  // @ts-expect-error — a __proto__ key never survives as a row column
+  rawSql`select 1 as "__proto__"`.returnsRow({ ['__proto__']: 'pg/int4@1' });
+});
+
+test('a constructor column is a column like any other', () => {
+  const plan = rawSql`select 1 as "constructor"`.returnsRow({ constructor: 'pg/int4@1' }).build();
+
+  assertType<SqlQueryPlan<{ constructor: unknown }>>(plan);
+});
+
+test('a row spec assembled at runtime is still accepted', () => {
+  const spec: Record<string, string> = { id: 'pg/int4@1' };
+
+  assertType<SqlQueryPlan<Record<string, unknown>>>(
+    rawSql`select id from "user"`.returnsRow(spec).build(),
+  );
+});

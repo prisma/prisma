@@ -84,6 +84,30 @@ describe('raw statement terminators', () => {
     });
   });
 
+  describe('row-spec column names that collide with object machinery', () => {
+    it('refuses a computed __proto__ key rather than losing it in normalization', () => {
+      const spec: Record<string, string> = Object.fromEntries([['__proto__', 'pg/int4@1']]);
+
+      expect(() => rawSql`select 1 as "__proto__"`.returnsRow(spec)).toThrow(
+        expect.objectContaining({
+          code: 'RUNTIME.AST_INVALID',
+          meta: expect.objectContaining({ column: '__proto__' }),
+        }),
+      );
+    });
+
+    it('normalizes a constructor column like any other', () => {
+      const plan = rawSql`select 1 as "constructor"`
+        .returnsRow({ constructor: 'pg/int4@1' })
+        .build();
+
+      expect((plan.ast as RawQueryAst).result).toEqual({
+        kind: 'rows',
+        columns: { constructor: { codecId: 'pg/int4@1', nullable: false } },
+      });
+    });
+  });
+
   describe('expression terminator alongside the statement terminators', () => {
     it('still produces a RawExpr from .returns()', () => {
       const expr = rawSql`now()`.returns('pg/timestamptz@1');

@@ -2143,12 +2143,29 @@ export type RawQueryResult =
   | { readonly kind: 'rows'; readonly columns: Readonly<Record<string, RawQueryColumn>> }
   | { readonly kind: 'affected-count' };
 
+/**
+ * The one column name a declared result cannot carry. Writing `__proto__` onto
+ * an object literal sets that object's prototype instead of adding a property,
+ * so a column so named would disappear between the declaration and the decoded
+ * row — and the row type would still promise it. Every other name that shadows
+ * something on `Object.prototype` (`constructor`, `prototype`) is an ordinary
+ * own property when assigned, and passes through as declared.
+ */
+const RESERVED_RESULT_COLUMN = '__proto__';
+
 function frozenRawQueryResult(result: RawQueryResult): RawQueryResult {
   if (result.kind === 'affected-count') {
     return Object.freeze({ kind: 'affected-count' as const });
   }
   const columns: Record<string, RawQueryColumn> = {};
   for (const [name, column] of Object.entries(result.columns)) {
+    if (name === RESERVED_RESULT_COLUMN) {
+      throw structuredError(
+        'RUNTIME.AST_INVALID',
+        `A raw query result cannot declare a "${RESERVED_RESULT_COLUMN}" column: alias the column in SQL and declare the alias instead`,
+        { meta: { kind: 'raw-query', field: 'result.columns', column: name } },
+      );
+    }
     columns[name] = Object.freeze({ codecId: column.codecId, nullable: column.nullable });
   }
   return Object.freeze({ kind: 'rows' as const, columns: Object.freeze(columns) });
