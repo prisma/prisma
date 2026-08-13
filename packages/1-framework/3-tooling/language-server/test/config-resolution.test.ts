@@ -103,7 +103,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
     await writeFile(
       configPath,
       "const config = { contract: { source: { format: 'psl', inputs: ['./schema.psl'] }, output: './contract.json' } };\n" +
-        "Object.defineProperty(config, Symbol.for('prisma.config-format-version'), { value: 1, enumerable: false });\n" +
+        "Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), { value: 1, enumerable: false });\n" +
         'export default config;\n',
     );
 
@@ -122,7 +122,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
         '  family: {},\n' +
         "  contract: { source: { format: 'typescript', inputs: ['./contract.ts'], load: async () => ({}) }, output: './contract.json' },\n" +
         '};\n' +
-        "Object.defineProperty(config, Symbol.for('prisma.config-format-version'), { value: 1, enumerable: false });\n" +
+        "Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), { value: 1, enumerable: false });\n" +
         'export default config;\n',
     );
 

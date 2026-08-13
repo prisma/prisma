@@ -21,7 +21,7 @@ const config = {
   driver: { ...descriptorBase, kind: 'driver', id: 'postgres', create: () => ({}) },
 ${brokenSection}
 };
-Object.defineProperty(config, Symbol.for('prisma.config-format-version'), {
+Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), {
   value: 1,
   enumerable: false,
 });
