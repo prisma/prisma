@@ -2,7 +2,12 @@ import type { SqlDescribedContractSpace } from '@internal/family-sql/control';
 import type { EnumInfo, PslPrinterOptions } from '@internal/family-sql/psl-infer';
 import { inferRelations, parseRawDefault, toModelName } from '@internal/family-sql/psl-infer';
 import { coordinateKey } from '@internal/framework-components/ir';
-import type { PslDocumentAst, PslModel } from '@internal/framework-components/psl-ast';
+import type {
+  PslDocumentAst,
+  PslExtensionBlock,
+  PslModel,
+  PslNamespace,
+} from '@internal/framework-components/psl-ast';
 import {
   makePslNamespace,
   makePslNamespaceEntries,
@@ -310,28 +315,57 @@ export function buildPslDocumentAst(
 
   const sortedModels = topologicalSort(models, schemaIR.tables, modelNameMap);
 
-  // Inferred PSL nodes will eventually be routed into per-namespace buckets
-  // matching the source storage; for now everything lands in a single bucket.
-  // Without a `namespaceName` that bucket is the synthesised `__unspecified__`
-  // one, which the framework printer emits at top level with no
-  // `namespace { … }` wrapper — preserving the existing flat introspection
-  // output verbatim. With a `namespaceName` (enum-bearing output) the bucket
-  // is a real named namespace, printed as an explicit block.
+  // The named bucket below carries models, native-enum blocks, and policy
+  // blocks exactly as before: named `namespaceName` when the introspected
+  // content needs a schema wrap (native enums or RLS policies), otherwise the
+  // synthesised `__unspecified__` bucket, which the framework printer emits
+  // flat with no `namespace { … }` wrapper.
+  //
+  // A second, always-`__unspecified__` bucket carries schema-less top-level
+  // content — the printer sorts it before any named namespace and never
+  // wraps it either. Nothing fills `topLevelExtensionBlocks` yet (domain-enum
+  // recovery, a later slice, is the first producer), so it is only pushed
+  // onto `namespaces` when non-empty: an empty flat bucket must stay
+  // invisible, or every existing `contract infer` output would change shape.
+  const topLevelExtensionBlocks: PslExtensionBlock[] = [];
+
+  // Without a namespace wrap both buckets would be `__unspecified__`, and two
+  // buckets of the same name is a distinction the document does not carry —
+  // so the top-level blocks join the single flat bucket instead.
+  const separateTopLevelBucket = namespaceName !== undefined && topLevelExtensionBlocks.length > 0;
+
+  const namespaces: PslNamespace[] = [];
+  if (separateTopLevelBucket) {
+    namespaces.push(
+      makePslNamespace({
+        kind: 'namespace',
+        name: UNSPECIFIED_PSL_NAMESPACE_ID,
+        entries: makePslNamespaceEntries([], [], topLevelExtensionBlocks),
+        span: SYNTHETIC_SPAN,
+      }),
+    );
+  }
+  namespaces.push(
+    makePslNamespace({
+      kind: 'namespace',
+      name: namespaceName ?? UNSPECIFIED_PSL_NAMESPACE_ID,
+      entries: makePslNamespaceEntries(
+        sortedModels,
+        [],
+        [
+          ...(separateTopLevelBucket ? [] : topLevelExtensionBlocks),
+          ...enumBlocks,
+          ...policyEmission.blocks,
+        ],
+      ),
+      span: SYNTHETIC_SPAN,
+    }),
+  );
+
   const ast: PslDocumentAst = {
     kind: 'document',
     sourceId: '<sql-schema-ir>',
-    namespaces: [
-      makePslNamespace({
-        kind: 'namespace',
-        name: namespaceName ?? UNSPECIFIED_PSL_NAMESPACE_ID,
-        entries: makePslNamespaceEntries(
-          sortedModels,
-          [],
-          [...enumBlocks, ...policyEmission.blocks],
-        ),
-        span: SYNTHETIC_SPAN,
-      }),
-    ],
+    namespaces,
     span: SYNTHETIC_SPAN,
   };
 
