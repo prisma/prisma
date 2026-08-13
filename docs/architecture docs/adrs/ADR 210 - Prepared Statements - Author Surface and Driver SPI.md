@@ -105,7 +105,7 @@ The async return reflects an existing constraint, not a new one. `beforeCompile`
 
 ## Driver SPI
 
-`SqlQueryable.query()` streams rows; `SqlQueryable.execute()` returns statement statistics. Prepared statements are row queries, so prepared execution uses `query()`. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
+`SqlQueryable.query()` streams rows; `SqlQueryable.execute()` returns statement statistics. Prepared statements use the row-query operation. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
 
 ```ts
 interface PreparedStatementHandle {
@@ -119,9 +119,18 @@ interface SqlExecuteRequest {
   readonly preparedStatementHandle?: PreparedStatementHandle;
 }
 
+interface SqlStatementStats {
+  readonly affectedRows: number;
+}
+
+interface SqlExplainResult<Row = Record<string, unknown>> {
+  readonly rows: ReadonlyArray<Row>;
+}
+
 interface SqlQueryable {
   query<Row>(request: SqlExecuteRequest): AsyncIterable<Row>;
-  execute(request: SqlExecuteRequest): Promise<{ affectedRows: number }>;
+  execute(request: SqlExecuteRequest): Promise<SqlStatementStats>;
+  explain?(request: SqlExecuteRequest): Promise<SqlExplainResult>;
 }
 ```
 

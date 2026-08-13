@@ -11,16 +11,18 @@ Accepted. The shipped runtime uses operation-specific query and execute middlewa
 Runtime operations answer two different questions. `query()` streams rows, while `execute()` runs a non-row statement and returns statement statistics. The middleware contract mirrors that distinction in its hook names and result shapes:
 
 ```text
-SQL beforeCompile (shared for both operations)
+SQL beforeCompile (AST-backed plans only; shared for both operations)
   ├─ query:   beforeQuery → encodeParams → interceptQuery → driver query → onRow → afterQuery
   └─ execute: beforeExecute → encodeParams → interceptExecute → driver execute → afterExecute
+
+Raw SQL plans are already lowered and bypass `beforeCompile`; they enter the operation-specific path directly.
 ```
 
 The `encodeParams` step is shown between the before and intercept hooks because parameter-mutating middleware must see user-domain values before encoding, while interceptors see the fully encoded execution plan. The public lifecycle is operation-specific; there is no operation discriminator on the middleware context or completion result.
 
 ### Context
 
-The generic `RuntimeCore` first applies its compile hook, lowers the plan to an executable plan, and then runs the selected operation-specific before hook. SQL and Mongo production overrides refine that ordering: they lower to a structural draft containing user-domain parameter values, run `beforeQuery` or `beforeExecute` with the family mutator, and then encode or resolve the mutated values before passing the final execution plan to the matching interceptor and driver terminal.
+The generic `RuntimeCore` first applies its compile hook when the family supplies one, lowers the plan to an executable plan, and then runs the selected operation-specific before hook. For AST-backed SQL plans, `beforeCompile` is the SQL compile hook; already-lowered raw SQL plans bypass it. SQL and Mongo production overrides refine that ordering: they lower to a structural draft containing user-domain parameter values, run `beforeQuery` or `beforeExecute` with the family mutator, and then encode or resolve the mutated values before passing the final execution plan to the matching interceptor and driver terminal.
 
 This ordering keeps parameter-mutating middleware structurally possible. For example, encryption middleware can populate a value's ciphertext before the codec encodes it. It also keeps interception truthful: a query interceptor supplies rows, and an execute interceptor supplies statistics. No runtime path derives a count from a row array.
 
@@ -30,9 +32,9 @@ The earlier implementation used one generic lifecycle and one `intercept` hook. 
 
 ### Shared compilation and operation selection
 
-SQL runs `beforeCompile` once for the plan before choosing the operation. This hook rewrites the SQL AST and is shared by row and statistics operations. It is not a query or execute hook and does not carry an operation discriminator.
+For an AST-backed SQL plan, SQL runs `beforeCompile` once before choosing the operation. This hook rewrites the SQL AST and is shared by row and statistics operations. Already-lowered raw SQL plans bypass it. `beforeCompile` is not a query or execute hook and does not carry an operation discriminator.
 
-After compilation, the runtime chooses one of these explicit paths:
+After compilation or the raw-plan bypass, the runtime chooses one of these explicit paths:
 
 - `query(plan, options?)` returns `AsyncIterableResult<Row>`. It runs `beforeQuery`, encodes parameters, runs `interceptQuery`, and either consumes the intercepted rows or calls `SqlQueryable.query()`. Driver rows pass through `onRow` and are then decoded for the consumer. `afterQuery` receives row count, completion, latency, and source.
 - `execute(plan, options?)` returns `Promise<RuntimeStatementStats>`. It runs `beforeExecute`, encodes parameters, runs `interceptExecute`, and either returns intercepted statistics or calls `SqlQueryable.execute()`. `afterExecute` receives the statistics on success, or a completion failure without statistics.
@@ -43,7 +45,7 @@ The SQL runtime uses one preparation structure for both paths: lower to a pre-en
 
 The query lifecycle is, in order:
 
-1. `beforeCompile` runs once for SQL and may return a rewritten AST.
+1. On an AST-backed SQL plan, `beforeCompile` runs once and may return a rewritten AST. An already-lowered raw SQL plan bypasses this hook.
 2. `beforeQuery` runs in middleware registration order on the lowered draft. It may use the SQL parameter mutator; errors abort before interception and do not invoke `afterQuery`.
 3. The runtime encodes the possibly mutated parameter values.
 4. `interceptQuery` runs in registration order on the encoded execution plan. The first non-`undefined` `{ rows }` result wins. A hit skips the driver and `onRow`; the intercepted rows still flow to the consumer and `afterQuery` reports `source: 'middleware'`.
@@ -62,7 +64,7 @@ interface QueryInterceptResult {
 
 The execute lifecycle is, in order:
 
-1. `beforeCompile` runs once for SQL and may return a rewritten AST.
+1. On an AST-backed SQL plan, `beforeCompile` runs once and may return a rewritten AST. An already-lowered raw SQL plan bypasses this hook.
 2. `beforeExecute` runs in middleware registration order on the lowered draft. It may use the SQL parameter mutator; errors abort before interception and do not invoke `afterExecute`.
 3. The runtime encodes the possibly mutated parameter values.
 4. `interceptExecute` runs in registration order on the encoded execution plan. The first non-`undefined` `{ stats }` result wins. A hit skips the driver and returns the supplied statistics eagerly.
