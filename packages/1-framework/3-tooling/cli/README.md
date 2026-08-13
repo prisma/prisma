@@ -1,8 +1,10 @@
 # @internal/cli
 
-> **For the CLI command, install [`prisma-next`](https://www.npmjs.com/package/prisma-next).**
-> The public `prisma-next` package ships the `prisma-next` binary and nothing
-> else — it has no library exports.
+> **For the CLI command, install [`@prisma/cli`](https://www.npmjs.com/package/@prisma/cli) (`@next` dist-tag).**
+> The unified `prisma-cli` binary mounts this package's `orm` command family;
+> the standalone `prisma-next` npm package is no longer published. Inside this
+> workspace a `prisma-next` bin still exists for examples and development — it
+> is the same engine entry (`dist/bin.mjs`), just workspace-local.
 >
 > This package (`@internal/cli`) is both the CLI's implementation and the
 > documented programmatic-API import target. Authors of build integrations,
@@ -13,8 +15,9 @@
 > (`@internal/postgres/config`, `@internal/mongo/config`); prefer those
 > for application-level config.
 >
-> This README is architecture and internal documentation for contributors;
-> the user-facing README lives in the `prisma-next` package.
+> This README is architecture and internal documentation for contributors.
+> Command examples below use the workspace-local `prisma-next` bin; end users
+> run the same commands through `prisma-cli`.
 
 Command-line interface for Prisma Next contract emission and management.
 
@@ -57,12 +60,7 @@ If you hit a wiring validation error: add the required descriptors to `config.ex
 
 ## Command Descriptions
 
-Commands use separate short and long descriptions via `setCommandDescriptions()`:
-
-- **Short description**: One-liner used in command trees and headers (e.g., "Emit signed contract artifacts")
-- **Long description**: Multiline text shown at the bottom of help output with detailed context
-
-See `src/utils/command-helpers.ts` for `setCommandDescriptions()` and `getLongDescription()`.
+Each engine command declares a `brief` (one-liner used in command trees and headers) and a `description` (multiline text shown in help output). Both live on the command definitions under `src/orm/`; the engine renders them.
 
 ## Commands
 
@@ -1064,7 +1062,7 @@ node migrations/<dir>/migration.ts
 
 The scaffolded `migration.ts` calls `MigrationCLI.run(import.meta.url, ...)` from `@internal/cli/migration-cli` when invoked as the entrypoint. (Postgres and SQLite scaffolds re-export `MigrationCLI` through `@internal/postgres/migration` or `@internal/sqlite/migration` so a `migration.ts` only needs the single facade import; Mongo scaffolds still pull from `@internal/cli/migration-cli` directly.) The CLI entrypoint loads `prisma.config.ts`, assembles a `ControlStack`, instantiates the migration with that stack (so `dataTransform` and other adapter-aware helpers can materialize a real adapter), and serializes operations to `ops.json` while writing the content-addressed `migrationHash` into `migration.json`. If `migration.ts` contains unfilled `placeholder()` slots, the script exits with `PN-MIG-2001` and reports the slot to fill in.
 
-`MigrationCLI.run` accepts an optional third argument `{ argv?, stdout?, stderr? }` for in-process testability (default: `process.argv` / `process.stdout` / `process.stderr`) and returns the exit code as a `Promise<number>`. The flag surface is `--help` / `--dry-run` / `--config <path>`, parsed by [`clipanion`](https://github.com/arcanis/clipanion). The main multi-command surface (`prisma-next contract emit`, `db verify`, etc.) uses Commander; the per-migration `MigrationCLI.run` entrypoint uses clipanion to keep authored migration files lightweight and in-process testable.
+`MigrationCLI.run` accepts an optional third argument `{ argv?, stdout?, stderr? }` for in-process testability (default: `process.argv` / `process.stdout` / `process.stderr`) and returns the exit code as a `Promise<number>`. The flag surface is `--help` / `--dry-run` / `--config <path>`, parsed by [`clipanion`](https://github.com/arcanis/clipanion). The main multi-command surface (`contract emit`, `db verify`, etc.) runs on `@prisma/cli-engine`; the per-migration `MigrationCLI.run` entrypoint uses clipanion to keep authored migration files lightweight and in-process testable.
 
 ### `prisma-next migration ref`
 
@@ -1159,20 +1157,15 @@ See `.cursor/rules/config-validation-and-normalization.mdc` for detailed pattern
 
 ## Components
 
-### CLI Entry Point (`cli.ts`)
-- Main entry point using commander
-- Parses arguments and routes to command handlers
-- Handles global flags (`--help`, `--version`)
-- Exit codes: 0 (success), 1 (runtime error), 2 (usage/config error)
-- **Error Handling**: Uses `exitOverride()` to catch unhandled errors (non-structured errors that fail fast) and print stack traces. Commands handle structured errors themselves via `process.exit()`.
-- **Command Taxonomy**: Groups commands by domain/plane (e.g., `contract emit`)
-- **Help Formatting**: Uses `configureHelp()` to customize help output with styled format matching normal command output. Root help shows "prisma-next" title with command tree; command help shows "prisma-next <command> ➜ <description>" with options and docs URLs. See `utils/formatters/help.ts` for help formatters.
-- **Command Descriptions**: See the “Command Descriptions” section above for `setCommandDescriptions()` usage.
+### CLI Entry Point (`src/orm/cli.ts` + `src/bin.ts`)
+- `createOrmCli()` mounts the `orm` command family, groups, and command tree on `createCli()` from `@prisma/cli-engine`; the engine parses arguments, prints help, and settles result envelopes
+- `src/bin.ts` is the thin process entry: it adapts the host process into the engine's `Runtime` (`runtimeFromProcess`) and exits with the settled code
+- Exit codes, help output, `--json`, and shared flags (`--config`, `-q`, `-v`, `--color`) are engine policy, not implemented here
+- The unified `prisma-cli` bin mounts the same family from `@prisma/orm-toolchain/cli`
 
-### Contract Emit Command (`commands/contract-emit.ts`)
-- Canonical command implementation using commander
-- Supports global flags (JSON, verbosity, color, interactive, yes)
-- **Error Handling**: Uses structured errors (`CliStructuredError`), Result pattern, and `process.exit()`. Commands return `Result<T, CliStructuredError>`, process results with `handleResult()`, and call `process.exit(exitCode)` directly. See `.cursor/rules/cli-error-handling.mdc` for details.
+### Contract Emit Command (`src/orm/contract/emit.ts`)
+- Engine command definition; the handler returns a settled envelope and the engine renders it
+- **Error Handling**: Structured errors (`CliStructuredError` from `@prisma/cli-engine/protocol`) carry `why`/`fix`/`nextActions`; the engine maps them to exit codes and output
 - Loads the user's config module (`prisma.config.ts`)
 - Resolves contract from provider:
   - Calls `config.contract.source.load(context)` — `context.resolvedInputs` carries the absolute paths the CLI loader resolved from `source.inputs` — and expects `Result<Contract, ContractSourceDiagnostics>`
@@ -1191,17 +1184,11 @@ See `.cursor/rules/config-validation-and-normalization.mdc` for detailed pattern
   - Returns result with hashes, file paths, and timings
   - Used by CLI command internally
 
-### Error Handling (`utils/errors.ts`, `utils/cli-errors.ts`, `utils/result.ts`, `utils/result-handler.ts`)
-- **Structured Errors**: Call sites throw `CliStructuredError` instances with full context (why, fix, docsUrl, etc.)
-- **Result Pattern**: Commands return `Result<T, CliStructuredError>` and use `handleResult()` for output and exit codes
-- **Error Conversion**: `CliStructuredError.toEnvelope()` converts errors to envelopes for output formatting
-- **Result Processing**: `handleResult()` processes Results, formats output, and returns exit codes
-- **Exit Codes**:
-  - Usage/config errors (PN-CLI-4001-4007) → exit code 2
-  - Runtime errors (PN-RUN-3xxx) → exit code 1
-  - Success → exit code 0
-- **Fail Fast**: Non-structured errors propagate and are caught by Commander.js's `exitOverride()` with stack traces
-- See `.cursor/rules/cli-error-handling.mdc` for detailed patterns
+### Error Handling (`utils/cli-errors.ts`, `src/orm/normalize-error.ts`)
+- **Structured Errors**: Call sites raise `CliStructuredError` (from `@prisma/cli-engine/protocol`) with full context (why, fix, nextActions, docsUrl)
+- **Settlement**: Handlers return settled envelopes; the engine renders them and maps them to exit codes (0 success, 1 runtime, 2 usage/config)
+- **Normalization**: `normalizeError` adapts legacy library errors into the engine envelope shape
+- **Fail Fast**: Non-structured errors propagate to the engine, which reports them as internal errors
 
 ### Pack Assembly
 - **Family instances** now handle pack assembly internally. The CLI creates a family instance via `config.family.create()` and reads assembly data (operation registry, type imports, extension IDs) from the instance.
@@ -1213,20 +1200,7 @@ See `.cursor/rules/config-validation-and-normalization.mdc` for detailed pattern
   - Paths are shown as relative paths from current working directory (using `relative(process.cwd(), path)`)
   - Success indicators use consistent checkmark (✔) throughout
 - **Error Output Formatters**: Format error output for human-readable and JSON display
-- **Styled Headers**: `formatStyledHeader()` creates styled headers for command output with "prisma-next <command> ➜ <description>" format
-  - Parameter labels include colons (e.g., `config:`, `contract:`)
-  - Uses fixed 20-character left column width for consistent alignment
-- **Help Formatters**:
-  - `formatRootHelp()` - Formats root help with "prisma-next" title, command tree, and multiline description
-  - `formatCommandHelp()` - Formats command help with "prisma-next <command> ➜ <description>", options, subcommands, docs URLs, and multiline description
-  - `renderCommandTree()` - Shared function to render hierarchical command trees with tree characters (├─, └─, │)
-  - **Fixed-Width Formatting**: All two-column output (help, styled headers) uses fixed 20-character left column width
-  - **Text Wrapping**: Right column wraps at 90 characters using `wrap-ansi` for ANSI-aware wrapping
-  - **Default Values**: Options with default values display `default: <value>` on the following line (dimmed)
-  - **ANSI-Aware Padding**: Uses `string-width` and `strip-ansi` to measure and pad text correctly with ANSI codes
-  - Help formatters use the same styling system as normal command output (colors, dim text, badges)
-  - Short descriptions appear in command trees and headers; long descriptions appear at the bottom of help output
-  - Help formatting is configured via `configureHelp()` in `cli.ts` to apply to all commands
+- **Help and headers**: Help output, styled headers, and command trees are rendered by `@prisma/cli-engine`; the remaining formatters here build presentation models (migration graph/list/log geometry) that commands emit as data
 
 ### Family Descriptor (provided by family /cli entrypoint)
 - The SQL family (and other families) provide:
@@ -1299,7 +1273,8 @@ export default defineConfig({
 
 ## Dependencies
 
-- **`commander`**: CLI argument parsing and command routing
+- **`@prisma/cli-engine`**: Command tree, argument parsing, help, settlement, telemetry hooks
+- **`clipanion`**: Flag parsing for the per-migration `MigrationCLI.run` entrypoint only
 - **`esbuild`**: Bundling TypeScript contract files with import allowlisting
 - **`@internal/emitter`**: Contract emission engine (returns strings)
 - **`@internal/migration-tools`**: On-disk migration I/O, hash verification, and history reconstruction
@@ -1310,7 +1285,7 @@ export default defineConfig({
 
 1. **Import Allowlist**: Only `@internal/*` packages allowed (MVP). Expand later if needed.
 2. **Utility Separation**: TS contract loading is a utility function, not a command. Commands use utilities.
-3. **CLI Framework**: Use `commander` library for robust CLI argument parsing.
+3. **CLI Framework**: Commands are `@prisma/cli-engine` definitions; the engine owns parsing, help, and settlement. (The commander shell was deleted in the S5 cutover.)
 4. **File I/O**: CLI handles all I/O; emitter returns strings (no file operations in emitter).
 5. **Generated File Metadata**: Adds `_generated` metadata field to `contract.json` to indicate it's a generated artifact. This field is excluded from canonicalization/hashing to ensure determinism. The `contract.d.ts` file includes warning header comments generated by the emitter hook.
 
