@@ -225,3 +225,26 @@ jobs:
               --notes-file "docs/releases/v$VERSION.md" \
               $PRERELEASE_FLAG
           fi
+
+      # Tell prisma-cli a family package shipped, so its auto-repin
+      # workflow can open the repin PR that deploys a dev CLI carrying
+      # this publish (prisma-cli docs/oss/versioning.md, operator ruling
+      # 2026-08-13). Guarded on the PAT and never fails the publish: the
+      # repin has a daily scheduled backstop in prisma-cli, so a missed
+      # dispatch delays it by at most a day.
+      - name: Notify prisma-cli
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.dry-run != 'true' }}
+        continue-on-error: true
+        env:
+          DISPATCH_PAT: ${{ secrets.PRISMA_CLI_DISPATCH_PAT }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [ -z "$DISPATCH_PAT" ]; then
+            echo "PRISMA_CLI_DISPATCH_PAT is not configured; skipping (the daily backstop covers this)."
+            exit 0
+          fi
+          curl -sf -X POST \
+            -H "Authorization: Bearer $DISPATCH_PAT" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/prisma/prisma-cli/dispatches \
+            -d "{\"event_type\":\"family-published\",\"client_payload\":{\"repo\":\"prisma/prisma\",\"version\":\"$VERSION\"}}"
