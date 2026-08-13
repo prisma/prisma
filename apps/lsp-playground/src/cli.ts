@@ -67,9 +67,10 @@ async function stageSchema(sourceFile?: string): Promise<string> {
 function resolveCliEntry(): string {
   // Nothing published carries a bin anymore (the unified `prisma` CLI is the
   // only user-facing binary), so the playground spawns the workspace-local
-  // engine entry, resolved relative to `@internal/cli`'s root export
-  // (dist/exports/index.mjs → dist/bin.mjs).
-  return fileURLToPath(new URL('../bin.mjs', import.meta.resolve('@internal/cli')));
+  // engine entry directly. The path is repo-relative rather than resolved
+  // through the `@internal/cli` package name so this app's manifest stays
+  // shaped like a consumer's (ADR 242, lint:consumer-internal-imports).
+  return resolve(PACKAGE_ROOT, '../../packages/1-framework/3-tooling/cli/dist/bin.mjs');
 }
 
 async function main(): Promise<void> {

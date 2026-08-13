@@ -30,7 +30,6 @@
     "react-router": "^8.1.0"
   },
   "devDependencies": {
-    "@internal/cli": "workspace:8.0.0-rc.1",
     "@prisma/cli-engine": "0.0.9",
     "@prisma/dev": "catalog:",
     "@react-router/dev": "^8.1.0",
