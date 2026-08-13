@@ -9,7 +9,7 @@
         "prisma/**",
         "src/**",
         "test/**",
-        "prisma-next.config.ts",
+        "prisma.config.ts",
         "react-router.config.ts",
         "vite.config.ts",
         "vitest.config.ts",
@@ -23,7 +23,7 @@
         "prisma/**",
         "src/**",
         "test/**",
-        "prisma-next.config.ts",
+        "prisma.config.ts",
         "react-router.config.ts",
         "vite.config.ts",
         "tsconfig.json"

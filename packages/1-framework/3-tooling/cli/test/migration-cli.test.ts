@@ -206,9 +206,7 @@ describe('MigrationCLI.run', () => {
   });
 
   it('exits non-zero with the loader diagnostic when config is missing', async () => {
-    loadConfigMock.mockResolvedValue(
-      notOk(errorConfigFileNotFound('/path/to/prisma-next.config.ts')),
-    );
+    loadConfigMock.mockResolvedValue(notOk(errorConfigFileNotFound('/path/to/prisma.config.ts')));
     const stdout = new BufferStream();
     const stderr = new BufferStream();
 

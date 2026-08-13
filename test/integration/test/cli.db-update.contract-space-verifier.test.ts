@@ -78,7 +78,7 @@ withTempDir(({ createTempDir }) => {
           const testSetup = setupTestDirectoryFromFixtures(
             createTempDir,
             'db-init-with-contract-space',
-            'prisma-next.config.with-db.ts',
+            'prisma.config.with-db.ts',
             { '{{DB_URL}}': connectionString },
           );
           const { configPath } = testSetup;

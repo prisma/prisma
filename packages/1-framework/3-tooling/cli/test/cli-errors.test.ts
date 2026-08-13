@@ -24,7 +24,7 @@ describe('CliStructuredError.toEnvelope()', () => {
     expect(envelope.code).toBe('CONFIG.DRIVER_REQUIRED');
     expect(envelope.summary).toBe('Driver is required for DB-connected commands');
     expect(envelope.fix).toBe(
-      'Add a control-plane driver to prisma-next.config.ts (e.g. import a driver descriptor and set `driver: postgresDriver`)',
+      'Add a control-plane driver to prisma.config.ts (e.g. import a driver descriptor and set `driver: postgresDriver`)',
     );
     expect(envelope.docsUrl).toBe(docsUrlFor('CONFIG.DRIVER_REQUIRED'));
   });

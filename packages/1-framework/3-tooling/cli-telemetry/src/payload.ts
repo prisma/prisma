@@ -6,7 +6,7 @@ import { type } from 'arktype';
  * start: installation id, sanitised command + flags, CLI version, and
  * the project root the child uses to discover everything else. The
  * child probes its own process (runtime/os/arch, package manager, ts
- * version, agent) and reads the user's `prisma-next.config.*` via
+ * version, agent) and reads the user's `prisma.config.*` via
  * c12 to derive `databaseTarget` and `extensions`.
  *
  * Loading c12 on the parent side would put a `loadConfig()` await on
@@ -37,7 +37,7 @@ export interface ParentToSenderPayload {
   /**
    * Absolute path of the user's project. The child reads
    * `<projectRoot>/package.json` for `tsVersion` and loads
-   * `<projectRoot>/prisma-next.config.*` via c12 for `databaseTarget`
+   * `<projectRoot>/prisma.config.*` via c12 for `databaseTarget`
    * + `extensions`.
    */
   readonly projectRoot: string;

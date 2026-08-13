@@ -16,7 +16,7 @@ function recordingLoader(): {
     loadConfig: (configPath) => {
       asked.push(configPath ?? '(none)');
       return Promise.resolve({
-        path: configPath ?? 'prisma-next.config.ts',
+        path: configPath ?? 'prisma.config.ts',
         sections: {},
         diagnostics: [],
       });

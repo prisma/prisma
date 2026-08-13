@@ -44,7 +44,7 @@ async function setupControlPolicyMongoFixture(
   const testSetup = setupTestDirectoryFromFixtures(
     createTempDir,
     fixtureSubdir,
-    'prisma-next.config.with-db.ts',
+    'prisma.config.with-db.ts',
     { '{{MONGO_URI}}': mongoUri },
   );
   mkdirSync(join(testSetup.testDir, 'migrations', 'app'), { recursive: true });

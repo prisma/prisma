@@ -194,7 +194,7 @@
 > prisma-next contract emit
 prisma-next contract emit → Emit your contract artifacts
 │
-│ config:               prisma-next.config.ts
+│ config:               prisma.config.ts
 │ contract:             contract.json
 │ types:                contract.d.ts
 │

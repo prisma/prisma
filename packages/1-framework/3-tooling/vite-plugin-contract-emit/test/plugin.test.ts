@@ -160,7 +160,7 @@ function getWatcherHandler(
 
 async function configurePlugin({
   options = { logLevel: 'silent', debounceMs: 100 },
-  moduleGraph = { '/project/prisma-next.config.ts': {} },
+  moduleGraph = { '/project/prisma.config.ts': {} },
 }: {
   options?: Parameters<typeof prismaVitePlugin>[1];
   moduleGraph?: Record<string, { file?: string; imports?: readonly string[] }>;
@@ -168,7 +168,7 @@ async function configurePlugin({
   readonly mockServer: ReturnType<typeof createMockServer>;
   readonly handleHotUpdate: (ctx: { file: string }) => void;
 }> {
-  const plugin = prismaVitePlugin('prisma-next.config.ts', options);
+  const plugin = prismaVitePlugin('prisma.config.ts', options);
   const mockServer = createMockServer();
 
   applyModuleGraph(mockServer, moduleGraph);
@@ -203,13 +203,13 @@ describe('prismaVitePlugin', () => {
   });
 
   it('returns a Vite plugin with the correct name', () => {
-    const plugin = prismaVitePlugin('prisma-next.config.ts');
+    const plugin = prismaVitePlugin('prisma.config.ts');
 
     expect(plugin.name).toBe('prisma-vite-plugin-contract-emit');
   });
 
   it('accepts optional configuration', () => {
-    const plugin = prismaVitePlugin('prisma-next.config.ts', {
+    const plugin = prismaVitePlugin('prisma.config.ts', {
       debounceMs: 500,
       logLevel: 'silent',
     });
@@ -218,26 +218,26 @@ describe('prismaVitePlugin', () => {
   });
 
   it('has configResolved hook', () => {
-    const plugin = prismaVitePlugin('prisma-next.config.ts');
+    const plugin = prismaVitePlugin('prisma.config.ts');
 
     expect(typeof plugin.configResolved).toBe('function');
   });
 
   it('has configureServer hook', () => {
-    const plugin = prismaVitePlugin('prisma-next.config.ts');
+    const plugin = prismaVitePlugin('prisma.config.ts');
 
     expect(typeof plugin.configureServer).toBe('function');
   });
 
   it('has handleHotUpdate hook', () => {
-    const plugin = prismaVitePlugin('prisma-next.config.ts');
+    const plugin = prismaVitePlugin('prisma.config.ts');
 
     expect(typeof plugin.handleHotUpdate).toBe('function');
   });
 
   describe('configResolved', () => {
     it('resolves config path relative to vite root', async () => {
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -250,13 +250,13 @@ describe('prismaVitePlugin', () => {
 
       expect(mockedExecuteContractEmit).toHaveBeenCalledWith(
         expect.objectContaining({
-          configPath: '/project/prisma-next.config.ts',
+          configPath: '/project/prisma.config.ts',
         }),
       );
     });
 
     it('preserves absolute config path', async () => {
-      const plugin = prismaVitePlugin('/absolute/prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('/absolute/prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -269,7 +269,7 @@ describe('prismaVitePlugin', () => {
 
       expect(mockedExecuteContractEmit).toHaveBeenCalledWith(
         expect.objectContaining({
-          configPath: '/absolute/prisma-next.config.ts',
+          configPath: '/absolute/prisma.config.ts',
         }),
       );
     });
@@ -283,11 +283,11 @@ describe('prismaVitePlugin', () => {
         }),
       );
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       applyModuleGraph(mockServer, {
-        '/project/prisma-next.config.ts': {
+        '/project/prisma.config.ts': {
           imports: ['/project/config-shared.ts'],
         },
         '/project/config-shared.ts': {},
@@ -301,8 +301,8 @@ describe('prismaVitePlugin', () => {
       ) => Promise<void>;
       await configureServer(mockServer);
 
-      expect(mockServer.ssrLoadModule).toHaveBeenCalledWith('/project/prisma-next.config.ts');
-      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma-next.config.ts');
+      expect(mockServer.ssrLoadModule).toHaveBeenCalledWith('/project/prisma.config.ts');
+      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma.config.ts');
       expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/config-shared.ts');
     });
 
@@ -313,11 +313,11 @@ describe('prismaVitePlugin', () => {
         }),
       );
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       applyModuleGraph(mockServer, {
-        '/project/prisma-next.config.ts': {
+        '/project/prisma.config.ts': {
           imports: ['/project/config-shared.ts'],
         },
         '/project/config-shared.ts': {},
@@ -331,8 +331,8 @@ describe('prismaVitePlugin', () => {
       ) => Promise<void>;
       await configureServer(mockServer);
 
-      expect(mockServer.ssrLoadModule).toHaveBeenCalledWith('/project/prisma-next.config.ts');
-      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma-next.config.ts');
+      expect(mockServer.ssrLoadModule).toHaveBeenCalledWith('/project/prisma.config.ts');
+      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma.config.ts');
       expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/config-shared.ts');
       expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma/schema.prisma');
     });
@@ -348,11 +348,11 @@ describe('prismaVitePlugin', () => {
         }),
       );
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       applyModuleGraph(mockServer, {
-        '/project/prisma-next.config.ts': {},
+        '/project/prisma.config.ts': {},
       });
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -363,7 +363,7 @@ describe('prismaVitePlugin', () => {
       ) => Promise<void>;
       await configureServer(mockServer);
 
-      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma-next.config.ts');
+      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma.config.ts');
       expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma/schema.prisma');
       expect(mockServer.watcher.add).not.toHaveBeenCalledWith('/project/src/prisma/contract.json');
       expect(mockServer.watcher.add).not.toHaveBeenCalledWith('/project/src/prisma/contract.d.ts');
@@ -376,11 +376,11 @@ describe('prismaVitePlugin', () => {
         }),
       );
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       applyModuleGraph(mockServer, {
-        '/project/prisma-next.config.ts': {
+        '/project/prisma.config.ts': {
           imports: ['/project/config-shared.ts'],
         },
         '/project/config-shared.ts': {},
@@ -398,16 +398,16 @@ describe('prismaVitePlugin', () => {
       ) => Promise<void>;
       await configureServer(mockServer);
 
-      expect(mockServer.ssrLoadModule).toHaveBeenCalledWith('/project/prisma-next.config.ts');
+      expect(mockServer.ssrLoadModule).toHaveBeenCalledWith('/project/prisma.config.ts');
       expect(mockServer.ssrLoadModule).toHaveBeenCalledWith('/project/prisma/contract.ts');
-      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma-next.config.ts');
+      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma.config.ts');
       expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/config-shared.ts');
       expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma/contract.ts');
       expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma/models.ts');
     });
 
     it('triggers initial emit on server start', async () => {
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -420,13 +420,13 @@ describe('prismaVitePlugin', () => {
 
       expect(mockedExecuteContractEmit).toHaveBeenCalledWith(
         expect.objectContaining({
-          configPath: expect.stringContaining('prisma-next.config.ts'),
+          configPath: expect.stringContaining('prisma.config.ts'),
         }),
       );
     });
 
     it('invalidates emitted artifacts after successful emit', async () => {
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -442,7 +442,7 @@ describe('prismaVitePlugin', () => {
     });
 
     it('loads config for watch resolution and for the initial emit', async () => {
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -461,7 +461,7 @@ describe('prismaVitePlugin', () => {
     });
 
     it('registers cleanup hooks for server close', async () => {
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -500,7 +500,7 @@ describe('prismaVitePlugin', () => {
       mockedLoadConfig.mockResolvedValue(createLoadedConfig({ inputs: undefined }));
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'info' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'info' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -511,7 +511,7 @@ describe('prismaVitePlugin', () => {
       ) => Promise<void>;
       await configureServer(mockServer);
 
-      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma-next.config.ts');
+      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma.config.ts');
       expect(consoleWarnSpy).not.toHaveBeenCalled();
     });
 
@@ -521,7 +521,7 @@ describe('prismaVitePlugin', () => {
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'info' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'info' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -532,16 +532,16 @@ describe('prismaVitePlugin', () => {
       ) => Promise<void>;
       await configureServer(mockServer);
 
-      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma-next.config.ts');
+      expect(mockServer.watcher.add).toHaveBeenCalledWith('/project/prisma.config.ts');
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Watching only /project/prisma-next.config.ts'),
+        expect.stringContaining('Watching only /project/prisma.config.ts'),
       );
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('Contract watch coverage is partial'),
       );
       expect(mockedExecuteContractEmit).toHaveBeenCalledWith(
         expect.objectContaining({
-          configPath: '/project/prisma-next.config.ts',
+          configPath: '/project/prisma.config.ts',
         }),
       );
       expect(consoleErrorSpy).not.toHaveBeenCalledWith(
@@ -561,14 +561,14 @@ describe('prismaVitePlugin', () => {
       });
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const plugin = prismaVitePlugin('prisma-next.config.ts', {
+      const plugin = prismaVitePlugin('prisma.config.ts', {
         logLevel: 'info',
         debounceMs: 100,
       });
       const mockServer = createMockServer();
 
       applyModuleGraph(mockServer, {
-        '/project/prisma-next.config.ts': {
+        '/project/prisma.config.ts': {
           imports: ['/project/config-shared.ts'],
         },
         '/project/config-shared.ts': {},
@@ -596,7 +596,7 @@ describe('prismaVitePlugin', () => {
       expect(mockServer.watcher.unwatch).not.toHaveBeenCalledWith('/project/config-shared.ts');
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Watching the previous dependency set plus /project/prisma-next.config.ts',
+          'Watching the previous dependency set plus /project/prisma.config.ts',
         ),
       );
 
@@ -611,7 +611,7 @@ describe('prismaVitePlugin', () => {
 
   describe('handleHotUpdate', () => {
     it('does not throw when called with untracked file', () => {
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
       configResolved({ root: '/project' });
@@ -627,14 +627,14 @@ describe('prismaVitePlugin', () => {
         }),
       );
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', {
+      const plugin = prismaVitePlugin('prisma.config.ts', {
         logLevel: 'silent',
         debounceMs: 100,
       });
       const mockServer = createMockServer();
 
       applyModuleGraph(mockServer, {
-        '/project/prisma-next.config.ts': {},
+        '/project/prisma.config.ts': {},
       });
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -648,7 +648,7 @@ describe('prismaVitePlugin', () => {
       mockedExecuteContractEmit.mockClear();
 
       const handleHotUpdate = plugin.handleHotUpdate as unknown as (ctx: { file: string }) => void;
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
 
       expect(mockedExecuteContractEmit).not.toHaveBeenCalled();
 
@@ -665,14 +665,14 @@ describe('prismaVitePlugin', () => {
         }),
       );
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', {
+      const plugin = prismaVitePlugin('prisma.config.ts', {
         logLevel: 'silent',
         debounceMs: 100,
       });
       const mockServer = createMockServer();
 
       applyModuleGraph(mockServer, {
-        '/project/prisma-next.config.ts': {},
+        '/project/prisma.config.ts': {},
       });
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -702,14 +702,14 @@ describe('prismaVitePlugin', () => {
         }),
       );
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', {
+      const plugin = prismaVitePlugin('prisma.config.ts', {
         logLevel: 'silent',
         debounceMs: 100,
       });
       const mockServer = createMockServer();
 
       applyModuleGraph(mockServer, {
-        '/project/prisma-next.config.ts': {},
+        '/project/prisma.config.ts': {},
       });
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -747,14 +747,14 @@ describe('prismaVitePlugin', () => {
       });
       mockedLoadConfig.mockImplementation(async () => currentConfig);
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', {
+      const plugin = prismaVitePlugin('prisma.config.ts', {
         logLevel: 'silent',
         debounceMs: 100,
       });
       const mockServer = createMockServer();
 
       applyModuleGraph(mockServer, {
-        '/project/prisma-next.config.ts': {
+        '/project/prisma.config.ts': {
           imports: ['/project/config-shared-a.ts'],
         },
         '/project/config-shared-a.ts': {},
@@ -776,14 +776,14 @@ describe('prismaVitePlugin', () => {
         inputs: ['./prisma/schema-alt.prisma'],
       });
       applyModuleGraph(mockServer, {
-        '/project/prisma-next.config.ts': {
+        '/project/prisma.config.ts': {
           imports: ['/project/config-shared-b.ts'],
         },
         '/project/config-shared-b.ts': {},
       });
 
       const handleHotUpdate = plugin.handleHotUpdate as unknown as (ctx: { file: string }) => void;
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(100);
 
       expect(mockedExecuteContractEmit).toHaveBeenCalledTimes(1);
@@ -803,11 +803,11 @@ describe('prismaVitePlugin', () => {
       const { handleHotUpdate } = await configurePlugin();
       mockedExecuteContractEmit.mockClear();
 
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(50);
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(50);
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(100);
 
       expect(mockedExecuteContractEmit).toHaveBeenCalledTimes(1);
@@ -825,12 +825,12 @@ describe('prismaVitePlugin', () => {
       });
       mockedExecuteContractEmit.mockRejectedValueOnce(new Error('latest source invalid'));
 
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(100);
 
       expect(mockedExecuteContractEmit).toHaveBeenCalledTimes(1);
 
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(100);
 
       expect(mockedExecuteContractEmit).toHaveBeenCalledTimes(1);
@@ -852,14 +852,14 @@ describe('prismaVitePlugin', () => {
       mockedExecuteContractEmit.mockImplementationOnce(async () => firstEmit.promise);
       mockedExecuteContractEmit.mockResolvedValueOnce(successfulEmitResult);
 
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(100);
 
       expect(mockedExecuteContractEmit).toHaveBeenCalledTimes(1);
 
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(100);
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(100);
 
       expect(mockedExecuteContractEmit).toHaveBeenCalledTimes(1);
@@ -880,9 +880,9 @@ describe('prismaVitePlugin', () => {
       mockedExecuteContractEmit.mockImplementationOnce(async () => firstEmit.promise);
       mockedExecuteContractEmit.mockRejectedValueOnce(new Error('latest source invalid'));
 
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(100);
-      handleHotUpdate({ file: '/project/prisma-next.config.ts' });
+      handleHotUpdate({ file: '/project/prisma.config.ts' });
       await vi.advanceTimersByTimeAsync(100);
 
       firstEmit.resolve(successfulEmitResult);
@@ -910,7 +910,7 @@ describe('prismaVitePlugin', () => {
 
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'info' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'info' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -931,7 +931,7 @@ describe('prismaVitePlugin', () => {
 
       vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'silent' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;
@@ -959,7 +959,7 @@ describe('prismaVitePlugin', () => {
 
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const plugin = prismaVitePlugin('prisma-next.config.ts', { logLevel: 'info' });
+      const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'info' });
       const mockServer = createMockServer();
 
       const configResolved = plugin.configResolved as unknown as (config: { root: string }) => void;

@@ -18,7 +18,7 @@ Pick the facade that matches your deployment lifecycle. The asymmetry is intenti
 ## Quick Start
 
 ```typescript
-// prisma-next.config.ts
+// prisma.config.ts
 import { defineConfig } from '@internal/postgres/config';
 
 export default defineConfig({

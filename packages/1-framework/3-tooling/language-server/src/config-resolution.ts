@@ -7,7 +7,7 @@ import { hasPslInterpreter, type PslInterpretCapable } from '@internal/psl-parse
 import type { PipelineInputs } from './pipeline';
 import { hasPslInputs, resolveSchemaInputs, type SchemaInputSet } from './schema-inputs';
 
-export const CONFIG_FILENAME = 'prisma-next.config.ts';
+export const CONFIG_FILENAME = 'prisma.config.ts';
 
 export interface ProjectInterpretation {
   readonly source: PslInterpretCapable;

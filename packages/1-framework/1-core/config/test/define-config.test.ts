@@ -139,7 +139,7 @@ describe('config format version marker', () => {
 
   it('keeps the marker out of enumeration and JSON serialization', () => {
     const result = defineConfig(createValidConfig());
-    const markerSymbol = Symbol.for('prisma-next.config-format-version');
+    const markerSymbol = Symbol.for('prisma.config-format-version');
     expect(Object.getOwnPropertySymbols(result)).toContain(markerSymbol);
     expect(Object.getOwnPropertyDescriptor(result, markerSymbol)?.enumerable).toBe(false);
     expect(JSON.stringify({ marker: readConfigFormatVersion(result) })).toContain('1');
@@ -170,7 +170,7 @@ describe('config format version marker', () => {
 
   it('rejects a stale format version', () => {
     const stale = {};
-    Object.defineProperty(stale, Symbol.for('prisma-next.config-format-version'), {
+    Object.defineProperty(stale, Symbol.for('prisma.config-format-version'), {
       value: CONFIG_FORMAT_VERSION - 1,
       enumerable: false,
     });

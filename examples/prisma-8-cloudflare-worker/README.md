@@ -45,7 +45,7 @@ examples/prisma-8-cloudflare-worker/
 │   └── cloudflare-test.d.ts            # Pulls in `cloudflare:test` ambient types
 ├── docker-compose.yml                  # Local Postgres origin (port 5433)
 ├── wrangler.jsonc                      # Hyperdrive binding declaration
-├── prisma-next.config.ts               # Contract emit config
+├── prisma.config.ts               # Contract emit config
 ├── vitest.config.ts                    # cloudflareTest plugin + globalSetup
 └── .env.example                        # Copy → .env (Hyperdrive local URL)
 ```

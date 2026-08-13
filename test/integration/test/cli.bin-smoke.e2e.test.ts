@@ -74,7 +74,7 @@ describe('shipped bin (process smoke)', () => {
     'starts on plain Node, settles a real command, and exits 0 with artifacts written',
     async () => {
       const run = await spawnBin(
-        ['contract', 'emit', '--config', 'prisma-next.config.ts'],
+        ['contract', 'emit', '--config', 'prisma.config.ts'],
         setup.testDir,
       );
 

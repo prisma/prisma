@@ -13,7 +13,7 @@ import {
 /**
  * `migration list` is the first command running on the engine, so this journey
  * is also the proof that the harness works against a real project on disk: a
- * real `prisma-next.config.ts`, evaluated through the same adapter the binary
+ * real `prisma.config.ts`, evaluated through the same adapter the binary
  * uses, with the step's directory passed as `cwd` instead of chdir'ed into.
  */
 withTempDir(({ createTempDir }) => {

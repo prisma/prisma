@@ -14,7 +14,7 @@ applications) uses the **same** on-disk shape:
 
 ```text
 <package>/
-├── prisma-next.config.ts            ← project config (at package root)
+├── prisma.config.ts            ← project config (at package root)
 ├── migrations/
 │   ├── refs/head.json               ← hand-pinned head ref
 │   ├── snapshots/                   ← content-addressed contract store, keyed by storage hash
@@ -38,7 +38,7 @@ applications) uses the **same** on-disk shape:
 
 ## Rules (these are the spots where mistakes recur)
 
-- **Pick the contract source by what the space contributes.** Three cases, each wired in `prisma-next.config.ts`:
+- **Pick the contract source by what the space contributes.** Three cases, each wired in `prisma.config.ts`:
   - *App-visible schema* (models, storage types, namespaces) → author PSL in `src/contract.prisma`; wire `prismaContract('./src/contract.prisma', { output: 'src/contract.json', target })`. PSL is the canonical authoring surface: it reads as a schema (not as builder calls), interoperates with brownfield Prisma schemas, and keeps the contract decoupled from the workspace's TS type system.
   - *Migrations only* — installs invariants (e.g. a Postgres extension) but ships no tables or native types → omit the contract source entirely; wire `emptyContract({ output: 'src/contract.json', target })`. Example: `@internal/extension-paradedb`.
   - *Typed objects PSL can't yet express* (e.g. pgvector's parameterised `vector` registration under `storage.types`) → keep `src/contract.ts`; wire `typescriptContract(contract, 'src/contract.json')`, with a comment in the source naming the missing PSL surface.
@@ -49,7 +49,7 @@ applications) uses the **same** on-disk shape:
   `migrations.dir: 'migrations'` — not `migrations/<space-id>`.
 - **No `src/contract/` subdirectory.** The contract source and the
   emitted `contract.json` / `contract.d.ts` sit *directly* in `src/`.
-- **`prisma-next.config.ts` lives at the package root**, not under `src/`.
+- **`prisma.config.ts` lives at the package root**, not under `src/`.
 
 ## Contrast with the consuming app layout
 

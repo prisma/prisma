@@ -27,7 +27,7 @@ withTempDir(({ createTempDir }) => {
         const testSetup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
-          'prisma-next.config.emit.ts',
+          'prisma.config.emit.ts',
         );
         const outputDir = testSetup.outputDir;
 
@@ -87,7 +87,7 @@ withTempDir(({ createTempDir }) => {
         const testSetup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
-          'prisma-next.config.emit.ts',
+          'prisma.config.emit.ts',
         );
 
         const run = await runOnEngine(testSetup, ['contract', 'emit', '--json']);
@@ -116,7 +116,7 @@ withTempDir(({ createTempDir }) => {
         const testSetup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
-          'prisma-next.config.emit.ts',
+          'prisma.config.emit.ts',
         );
 
         const run = await runOnEngine(
@@ -148,7 +148,7 @@ withTempDir(({ createTempDir }) => {
         const testSetup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
-          'prisma-next.config.no-contract.ts',
+          'prisma.config.no-contract.ts',
         );
 
         const run = await runOnEngine(testSetup, ['contract', 'emit', '--json']);
@@ -174,7 +174,7 @@ withTempDir(({ createTempDir }) => {
         const testSetup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
-          'prisma-next.config.emit.ts',
+          'prisma.config.emit.ts',
         );
 
         const run = await runOnEngine(testSetup, ['contract', 'emit', '--verbose']);
@@ -191,7 +191,7 @@ withTempDir(({ createTempDir }) => {
         const testSetup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
-          'prisma-next.config.emit.ts',
+          'prisma.config.emit.ts',
         );
 
         const quiet = await runOnEngine(testSetup, ['contract', 'emit', '--quiet']);

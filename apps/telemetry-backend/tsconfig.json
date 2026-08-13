@@ -5,6 +5,6 @@
     "lib": ["ES2022"],
     "types": ["bun", "node"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "prisma-next.config.ts", "vitest.config.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "prisma.config.ts", "vitest.config.ts"],
   "exclude": ["dist"]
 }

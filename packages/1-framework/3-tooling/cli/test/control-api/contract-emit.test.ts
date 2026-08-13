@@ -132,10 +132,7 @@ describe('executeContractEmit', () => {
     // modules from other test files loaded in this worker (e.g. node:child_process).
   });
 
-  function emitOptions(
-    config: configLoader.PrismaNextConfig,
-    configPath = 'prisma-next.config.ts',
-  ) {
+  function emitOptions(config: configLoader.PrismaNextConfig, configPath = 'prisma.config.ts') {
     return { config, cwd: tmpDir, configPath };
   }
 
@@ -237,7 +234,7 @@ describe('executeContractEmit', () => {
     await executeContractEmitWithMock(
       emitOptions(
         { ...config, family: familyWithHydration as unknown as typeof config.family },
-        join(tmpDir, 'prisma-next.config.ts'),
+        join(tmpDir, 'prisma.config.ts'),
       ),
     );
 
@@ -266,7 +263,7 @@ describe('executeContractEmit', () => {
         options.namesConfig
           ? emitOptions(
               createSuccessfulConfig(outputJsonPath),
-              join(tmpDir, project, 'prisma-next.config.ts'),
+              join(tmpDir, project, 'prisma.config.ts'),
             )
           : { config: createSuccessfulConfig(outputJsonPath), cwd: tmpDir },
       );
@@ -304,7 +301,7 @@ describe('executeContractEmit', () => {
     try {
       const options = emitOptions(
         createSuccessfulConfig(outputJsonPath),
-        join(tmpDir, 'prisma-next.config.ts'),
+        join(tmpDir, 'prisma.config.ts'),
       );
       const first = executeContractEmitWithMock(options);
       await firstEntered.promise;

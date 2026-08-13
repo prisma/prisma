@@ -47,7 +47,7 @@ describe('mongo db schema command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
 
@@ -79,7 +79,7 @@ describe('mongo db schema command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
 

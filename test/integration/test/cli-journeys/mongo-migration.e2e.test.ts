@@ -83,12 +83,12 @@ function setupMongoJourney(connectionString: string | undefined): JourneyContext
 
   copyFileSync(join(FIXTURES_DIR, 'contract-base.ts'), join(testDir, 'contract.ts'));
 
-  let configContent = readFileSync(join(FIXTURES_DIR, 'prisma-next.config.with-db.ts'), 'utf-8');
+  let configContent = readFileSync(join(FIXTURES_DIR, 'prisma.config.with-db.ts'), 'utf-8');
   configContent = configContent.replace(
     /\{\{DB_URL\}\}/g,
     () => connectionString ?? 'mongodb://localhost:27017/unused',
   );
-  const configPath = join(testDir, 'prisma-next.config.ts');
+  const configPath = join(testDir, 'prisma.config.ts');
   writeFileSync(configPath, configContent, 'utf-8');
 
   return { testDir, configPath, outputDir };

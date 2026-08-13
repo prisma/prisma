@@ -43,7 +43,7 @@ async function emitVariant(variant: (typeof MAP_VARIANTS)[number]): Promise<Engi
   const outputPath = mkdtempSync(join(tmpdir(), 'mton-map-emit-'));
   const testDir = join(import.meta.dirname, '_fixture', variant);
   try {
-    return await runOnEngine({ testDir, configPath: join(testDir, 'prisma-next.config.ts') }, [
+    return await runOnEngine({ testDir, configPath: join(testDir, 'prisma.config.ts') }, [
       'contract',
       'emit',
       '--output-path',

@@ -39,8 +39,8 @@ src/
     └── worker-emit.ts               # emit:     postgresServerless<Contract>({ contractJson })
                                        # reuses ../postgres/{contract.ts, generated/}
 
-prisma-next.config.postgres.ts       # `--config` for emit:pg
-prisma-next.config.mongo.ts          # `--config` for emit:mongo
+prisma.config.postgres.ts       # `--config` for emit:pg
+prisma.config.mongo.ts          # `--config` for emit:mongo
 wrangler.worker.jsonc                # wrangler config: src/postgres-worker/worker.ts
 wrangler.worker-emit.jsonc           # wrangler config: src/postgres-worker/worker-emit.ts
 scripts/bundle.ts                    # builds all 6 entries (esbuild + wrangler), reports sizes

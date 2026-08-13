@@ -24,7 +24,7 @@ This package is part of the SQL family namespace (`packages/2-sql/2-authoring/co
 - **SQL contract authoring**: Build SQL contracts programmatically with type safety
 - **Pack-composed helper vocabulary**: Merge family, target, and extension authoring contributions into the callback helper namespaces
 - **Lowering pipeline**: Turn authored model definitions into the canonical SQL contract artifacts consumed by the rest of the stack
-- **Config helper**: Provide `typescriptContract(...)` for `prisma-next.config.ts`
+- **Config helper**: Provide `typescriptContract(...)` for `prisma.config.ts`
 - **Schema validation**: Contract JSON validation flows through the per-target descriptor SPI (`descriptor.contractSerializer.deserializeContract(json)`)
 
 ## Package Status
@@ -303,7 +303,7 @@ const contract = postgresTarget.contractSerializer.deserializeContract(
 
 ### Config Helper
 
-Use `typescriptContract` from this package when wiring TS-authored contracts in `prisma-next.config.ts`.
+Use `typescriptContract` from this package when wiring TS-authored contracts in `prisma.config.ts`.
 
 ```typescript
 import { defineConfig } from '@internal/cli/config-types';

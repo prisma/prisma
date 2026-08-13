@@ -91,7 +91,7 @@ async function main(): Promise<void> {
   // Resolve the schema the editor opens and the config the server will find for
   // it. The language server discovers a document's config by walking up from
   // the document's own path, so the schema must sit at or under a directory
-  // that contains a resolvable `prisma-next.config.ts`. (There is deliberately
+  // that contains a resolvable `prisma.config.ts`. (There is deliberately
   // no `--config` flag: the server has no way to be pointed at an arbitrary
   // config path, so accepting one would be misleading.)
   //

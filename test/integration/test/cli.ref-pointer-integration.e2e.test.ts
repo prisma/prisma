@@ -58,7 +58,7 @@ async function seedPlannedMigration(
   const { testDir, configPath } = setupTestDirectoryFromFixtures(
     createTempDir,
     fixtureSubdir,
-    'prisma-next.config.with-db.ts',
+    'prisma.config.with-db.ts',
     { '{{DB_URL}}': connectionString },
   );
   const ctx = { testDir, configPath, outputDir: join(testDir, 'output') };

@@ -198,7 +198,7 @@ describe('buildTelemetryEvent', () => {
 });
 
 /**
- * Build a `prisma-next.config.mjs` source string that satisfies
+ * Build a `prisma.config.mjs` source string that satisfies
  * `validateConfig` from `@internal/config/config-validation`.
  * `target.targetId` is the only structurally-significant variable
  * the telemetry projection cares about; `extensions` defaults to
@@ -243,13 +243,13 @@ describe('loadProjectConfig', () => {
     rmSync(projectDir, { recursive: true, force: true });
   });
 
-  it('returns empty config when no prisma-next.config.* exists in projectRoot', async () => {
+  it('returns empty config when no prisma.config.* exists in projectRoot', async () => {
     expect(await loadProjectConfig(projectDir)).toEqual(EMPTY_PROJECT_CONFIG);
   });
 
   it('extracts target.targetId and extensions[].id from a validated .mjs config', async () => {
     writeFileSync(
-      join(projectDir, 'prisma-next.config.mjs'),
+      join(projectDir, 'prisma.config.mjs'),
       validConfigSource({
         extensionsLiteral:
           "[{ kind: 'extension', id: 'pgvector', familyId: 'sql', targetId: 'postgres', version: '0.0.1', create: () => ({}) }, { kind: 'extension', id: 'paradedb', familyId: 'sql', targetId: 'postgres', version: '0.0.1', create: () => ({}) }]",
@@ -267,7 +267,7 @@ describe('loadProjectConfig', () => {
     // both to `extensions: []` via `(config.extensions ?? []).map(…)`,
     // but the validator paths differ — worth covering directly.
     writeFileSync(
-      join(projectDir, 'prisma-next.config.mjs'),
+      join(projectDir, 'prisma.config.mjs'),
       validConfigSource({ omitExtensions: true }),
     );
     expect(await loadProjectConfig(projectDir)).toEqual({
@@ -278,7 +278,7 @@ describe('loadProjectConfig', () => {
 
   it('returns empty config when the canonical validator rejects a missing target descriptor', async () => {
     writeFileSync(
-      join(projectDir, 'prisma-next.config.mjs'),
+      join(projectDir, 'prisma.config.mjs'),
       `export default { family: { kind: 'family', id: 'sql', familyId: 'sql', version: '0.0.1', emission: {}, create: () => ({}) } };\n`,
     );
     // Validator throws on missing `target` -> caught -> EMPTY_PROJECT_CONFIG.
@@ -287,7 +287,7 @@ describe('loadProjectConfig', () => {
 
   it('returns empty config when an extensions entry fails validation', async () => {
     writeFileSync(
-      join(projectDir, 'prisma-next.config.mjs'),
+      join(projectDir, 'prisma.config.mjs'),
       validConfigSource({
         // Missing `create: function` field on the pack — validator rejects.
         extensionsLiteral:
@@ -299,7 +299,7 @@ describe('loadProjectConfig', () => {
 
   it('swallows errors from a config file that throws during load', async () => {
     writeFileSync(
-      join(projectDir, 'prisma-next.config.mjs'),
+      join(projectDir, 'prisma.config.mjs'),
       `throw new Error('boom — user config crashed');\n`,
     );
     expect(await loadProjectConfig(projectDir)).toEqual(EMPTY_PROJECT_CONFIG);
@@ -319,7 +319,7 @@ describe('buildTelemetryEventFromProcess — parent databaseTarget override', ()
 
   it('overrides the c12-derived databaseTarget when payload.databaseTarget is a string', async () => {
     writeFileSync(
-      join(projectDir, 'prisma-next.config.mjs'),
+      join(projectDir, 'prisma.config.mjs'),
       validConfigSource({ targetId: 'postgres' }),
     );
     const event = await buildTelemetryEventFromProcess({
@@ -336,7 +336,7 @@ describe('buildTelemetryEventFromProcess — parent databaseTarget override', ()
 
   it('falls back to the c12-derived databaseTarget when payload.databaseTarget is omitted', async () => {
     writeFileSync(
-      join(projectDir, 'prisma-next.config.mjs'),
+      join(projectDir, 'prisma.config.mjs'),
       validConfigSource({ targetId: 'postgres' }),
     );
     const event = await buildTelemetryEventFromProcess({
@@ -350,7 +350,7 @@ describe('buildTelemetryEventFromProcess — parent databaseTarget override', ()
     expect(event.databaseTarget).toBe('postgres');
   });
 
-  it('uses the override even when no prisma-next.config.* exists on disk (first-init shape)', async () => {
+  it('uses the override even when no prisma.config.* exists on disk (first-init shape)', async () => {
     const event = await buildTelemetryEventFromProcess({
       installationId: 'install-1',
       version: '0.9.0',

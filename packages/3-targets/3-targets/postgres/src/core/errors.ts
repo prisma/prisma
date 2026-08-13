@@ -35,7 +35,7 @@ export function postgresError(
  * — named by `operation` (e.g. `createTable`, `dropColumn`, `dataTransform`) —
  * was invoked, but the migration was constructed without a `ControlStack`.
  * Concrete authoring usage always goes through the migration CLI entrypoint,
- * which assembles a stack from the loaded `prisma-next.config.ts`; reaching this
+ * which assembles a stack from the loaded `prisma.config.ts`; reaching this
  * error means a test fixture or ad-hoc consumer instantiated `PostgresMigration`
  * with the no-arg form (legal for `operations` / `describe` introspection only).
  *
@@ -58,7 +58,7 @@ export function errorPostgresMigrationStackMissing(operation: string): CliStruct
     `PostgresMigration.${operation} requires a control adapter`,
     {
       why: `PostgresMigration.${operation} was invoked on an instance constructed without a ControlStack, so the stored controlAdapter is undefined and the operation cannot lower its plan.`,
-      fix: 'Construct the migration via the migration CLI entrypoint (which assembles a ControlStack from the loaded prisma-next.config.ts), or pass a ControlStack containing a Postgres adapter to the migration constructor in test fixtures.',
+      fix: 'Construct the migration via the migration CLI entrypoint (which assembles a ControlStack from the loaded prisma.config.ts), or pass a ControlStack containing a Postgres adapter to the migration constructor in test fixtures.',
       meta: { operation },
     },
   );

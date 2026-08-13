@@ -10,7 +10,7 @@ Applications get it as an exact-pinned dependency of their database facade (`@pr
 | --- | --- |
 | `/cli` | The `orm` command family (`ormCommandFamily`, `ormConfigSection`) and CLI programmatic surface |
 | `/emitter` | contract emitter |
-| `/config-loader` | `prisma-next.config.ts` loading |
+| `/config-loader` | `prisma.config.ts` loading |
 | `/language-server` | PSL language server |
 | `/migration-tools` | migration graph, packages, refs, IO |
 | `/cli-telemetry` | CLI telemetry |

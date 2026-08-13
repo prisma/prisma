@@ -107,7 +107,7 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
       writeContractJson(testSetup.testDir, testContract);
@@ -132,7 +132,7 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
       writeContractJson(testSetup.testDir, testContract);
@@ -153,7 +153,7 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
       writeContractJson(testSetup.testDir, testContract);
@@ -174,7 +174,7 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
       writeContractJson(testSetup.testDir, testContract);
@@ -194,7 +194,7 @@ describe('mongo db verify command (e2e)', { timeout: timeouts.spinUpMongoMemoryS
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         'mongo-db-commands',
-        'prisma-next.config.with-db.ts',
+        'prisma.config.with-db.ts',
         { '{{MONGO_URI}}': mongoUri },
       );
       writeContractJson(testSetup.testDir, testContract);

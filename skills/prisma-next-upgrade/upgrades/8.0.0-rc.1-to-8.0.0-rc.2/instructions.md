@@ -54,7 +54,7 @@ changes:
       anyMatch: true
   - id: specifier-default-control-policy-requires-create-namespace
     summary: |
-      If your `prisma-next.config.ts` passes `defaultControlPolicy` in the options bag of
+      If your `prisma.config.ts` passes `defaultControlPolicy` in the options bag of
       `typescriptContract` or `typescriptContractFromPath`, that bag now also requires
       `createNamespace`. Stamping a default policy strips derived CHECK constraints from
       tables the policy leaves non-managed, and the strip rebuilds storage namespaces through

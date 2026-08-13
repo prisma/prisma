@@ -89,7 +89,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
 
   it('rejects when no config exists', async () => {
     const root = await mkdtemp(join(tmpdir(), 'pn-lsp-noconfig-'));
-    const configPath = join(root, 'prisma-next.config.ts');
+    const configPath = join(root, 'prisma.config.ts');
 
     await expect(resolveConfigInputs(configPath)).rejects.toMatchObject({
       name: 'CliStructuredError',
@@ -99,11 +99,11 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
 
   it('rejects when the contract section the project needs is invalid', async () => {
     const root = await mkdtemp(join(tmpdir(), 'pn-lsp-badcontract-'));
-    const configPath = join(root, 'prisma-next.config.ts');
+    const configPath = join(root, 'prisma.config.ts');
     await writeFile(
       configPath,
       "const config = { contract: { source: { format: 'psl', inputs: ['./schema.psl'] }, output: './contract.json' } };\n" +
-        "Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), { value: 1, enumerable: false });\n" +
+        "Object.defineProperty(config, Symbol.for('prisma.config-format-version'), { value: 1, enumerable: false });\n" +
         'export default config;\n',
     );
 
@@ -115,14 +115,14 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
 
   it('resolves a typescript contract project whose control sections are invalid', async () => {
     const root = await mkdtemp(join(tmpdir(), 'pn-lsp-tscontract-'));
-    const configPath = join(root, 'prisma-next.config.ts');
+    const configPath = join(root, 'prisma.config.ts');
     await writeFile(
       configPath,
       'const config = {\n' +
         '  family: {},\n' +
         "  contract: { source: { format: 'typescript', inputs: ['./contract.ts'], load: async () => ({}) }, output: './contract.json' },\n" +
         '};\n' +
-        "Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), { value: 1, enumerable: false });\n" +
+        "Object.defineProperty(config, Symbol.for('prisma.config-format-version'), { value: 1, enumerable: false });\n" +
         'export default config;\n',
     );
 
@@ -133,7 +133,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
 
   it('rejects a config that was not created by defineConfig', async () => {
     const root = await mkdtemp(join(tmpdir(), 'pn-lsp-unmarked-'));
-    const configPath = join(root, 'prisma-next.config.ts');
+    const configPath = join(root, 'prisma.config.ts');
     await writeFile(configPath, 'export default { family: {} };\n');
 
     await expect(resolveConfigInputs(configPath)).rejects.toMatchObject({
@@ -145,7 +145,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
   it('re-throws unexpected structured errors', async () => {
     mockLoadFailure(errorUnexpected('boom', { why: 'Failed to load config: boom' }));
     const root = await mkdtemp(join(tmpdir(), 'pn-lsp-unexpected-'));
-    const configPath = join(root, 'prisma-next.config.ts');
+    const configPath = join(root, 'prisma.config.ts');
 
     await expect(resolveConfigInputs(configPath)).rejects.toMatchObject({
       name: 'CliStructuredError',
@@ -161,7 +161,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
       }),
     ]);
 
-    const result = await resolveConfigInputs('/abs/prisma-next.config.ts');
+    const result = await resolveConfigInputs('/abs/prisma.config.ts');
 
     expect(result.controlStack).toEqual({ scalarTypes: [], pslBlockDescriptors: {} });
   });
@@ -174,7 +174,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
       }),
     ]);
 
-    await expect(resolveConfigInputs('/abs/prisma-next.config.ts')).rejects.toMatchObject({
+    await expect(resolveConfigInputs('/abs/prisma.config.ts')).rejects.toMatchObject({
       name: 'CliStructuredError',
       code: 'CONFIG.VALIDATION_FAILED',
     });
@@ -188,7 +188,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
       }),
     ]);
 
-    await expect(resolveConfigInputs('/abs/prisma-next.config.ts')).rejects.toMatchObject({
+    await expect(resolveConfigInputs('/abs/prisma.config.ts')).rejects.toMatchObject({
       name: 'CliStructuredError',
       code: 'CONFIG.VALIDATION_FAILED',
     });
@@ -198,7 +198,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
     mockLoadedConfig(loadedConfig('psl', ['/abs/schema.psl']));
     vi.spyOn(control, 'createControlStack').mockReturnValue(stubStack(['Int'], {}));
 
-    const result = await resolveConfigInputs('/abs/prisma-next.config.ts');
+    const result = await resolveConfigInputs('/abs/prisma.config.ts');
 
     expect(result.controlStack).toEqual({ scalarTypes: ['Int'], pslBlockDescriptors: {} });
     expect(result.inputs.includes(pathToFileURL('/abs/schema.psl').toString())).toBe(true);
@@ -215,7 +215,7 @@ describe('control-stack input derivation', () => {
     mockLoadedConfig(loadedConfig('typescript', ['/abs/schema.psl']));
     const createControlStack = vi.spyOn(control, 'createControlStack');
 
-    const result = await resolveConfigInputs('/abs/prisma-next.config.ts');
+    const result = await resolveConfigInputs('/abs/prisma.config.ts');
 
     expect(result.controlStack).toEqual({ scalarTypes: [], pslBlockDescriptors: {} });
     expect(createControlStack).not.toHaveBeenCalled();
@@ -237,7 +237,7 @@ describe('control-stack input derivation', () => {
       stubStack(['Int', 'String'], pslBlockDescriptors),
     );
 
-    const result = await resolveConfigInputs('/abs/prisma-next.config.ts');
+    const result = await resolveConfigInputs('/abs/prisma.config.ts');
 
     expect(result.controlStack).toEqual({ scalarTypes: ['Int', 'String'], pslBlockDescriptors });
   });
@@ -248,7 +248,7 @@ describe('control-stack input derivation', () => {
       throw new Error('boom');
     });
 
-    await expect(resolveConfigInputs('/abs/prisma-next.config.ts')).rejects.toThrow('boom');
+    await expect(resolveConfigInputs('/abs/prisma.config.ts')).rejects.toThrow('boom');
   });
 });
 
@@ -264,7 +264,7 @@ describe('interpretation resolution', () => {
     mockLoadedConfig(config);
     vi.spyOn(control, 'createControlStack').mockReturnValue(stack);
 
-    const result = await resolveConfigInputs('/abs/prisma-next.config.ts');
+    const result = await resolveConfigInputs('/abs/prisma.config.ts');
 
     expect(result.interpretation).toBeDefined();
     expect(result.interpretation?.source).toBe(config.contract?.source);
@@ -285,7 +285,7 @@ describe('interpretation resolution', () => {
       .spyOn(control, 'createControlStack')
       .mockReturnValue(stubStackWithContext());
 
-    await resolveConfigInputs('/abs/prisma-next.config.ts');
+    await resolveConfigInputs('/abs/prisma.config.ts');
 
     expect(createControlStack).toHaveBeenCalledTimes(1);
   });
@@ -293,7 +293,7 @@ describe('interpretation resolution', () => {
   it('carries no interpretation for a typescript source', async () => {
     mockLoadedConfig(loadedConfig('typescript', ['/abs/contract.ts']));
 
-    const result = await resolveConfigInputs('/abs/prisma-next.config.ts');
+    const result = await resolveConfigInputs('/abs/prisma.config.ts');
 
     expect(result.interpretation).toBeUndefined();
   });
@@ -302,7 +302,7 @@ describe('interpretation resolution', () => {
     mockLoadedConfig(loadedConfig('psl', ['/abs/schema.prisma']));
     vi.spyOn(control, 'createControlStack').mockReturnValue(stubStack(['Int'], {}));
 
-    const result = await resolveConfigInputs('/abs/prisma-next.config.ts');
+    const result = await resolveConfigInputs('/abs/prisma.config.ts');
 
     expect(result.interpretation).toBeUndefined();
   });
@@ -310,7 +310,7 @@ describe('interpretation resolution', () => {
   it('carries no interpretation when the config has no contract', async () => {
     mockLoadedConfig({} as unknown as PrismaNextConfig);
 
-    const result = await resolveConfigInputs('/abs/prisma-next.config.ts');
+    const result = await resolveConfigInputs('/abs/prisma.config.ts');
 
     expect(result.interpretation).toBeUndefined();
   });

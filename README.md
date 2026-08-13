@@ -47,7 +47,7 @@ Run this from your repo root:
 npx prisma-next@latest init
 ```
 
-`prisma-next@latest init` writes `prisma-next.config.ts`, scaffolds a starter contract and `db.ts` under `src/prisma/`, installs the runtime, emits the contract, and registers the agent skills. It does not touch your framework or build setup.
+`prisma-next@latest init` writes `prisma.config.ts`, scaffolds a starter contract and `db.ts` under `src/prisma/`, installs the runtime, emits the contract, and registers the agent skills. It does not touch your framework or build setup.
 
 ### 3. Use your AI agent for everything Prisma Next
 

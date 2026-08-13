@@ -34,8 +34,8 @@ packages/framework/tooling/cli/test/cli-e2e-test-app/
   fixtures/
     {command}/          # Fixtures organized by command
       contract.ts
-      prisma-next.config.ts
-      prisma-next.config.{variant}.ts
+      prisma.config.ts
+      prisma.config.{variant}.ts
 ```
 
 **Test execution:**
@@ -61,7 +61,7 @@ withTempDir(({ createTempDir }) => {
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         fixtureSubdir,
-        'prisma-next.config.emit.ts', // Config file name
+        'prisma.config.emit.ts', // Config file name
         { '{{PLACEHOLDER}}': 'value' }, // Optional replacements
       );
       const testDir = testSetup.testDir;
@@ -71,7 +71,7 @@ withTempDir(({ createTempDir }) => {
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        await executeCommand(command, ['--config', 'prisma-next.config.ts']);
+        await executeCommand(command, ['--config', 'prisma.config.ts']);
       } finally {
         process.chdir(originalCwd);
       }
@@ -86,7 +86,7 @@ withTempDir(({ createTempDir }) => {
 
 - **`createTempDir`**: Required. Function that returns a new ephemeral test directory path.
 - **`fixtureSubdir`**: Name of the fixture subdirectory (e.g., `'emit'`, `'db-verify'`)
-- **`configFileName`**: Optional. Name of the config file to copy (defaults to `'prisma-next.config.ts'`)
+- **`configFileName`**: Optional. Name of the config file to copy (defaults to `'prisma.config.ts'`)
 - **`replacements`**: Optional. Object mapping placeholders to values (e.g., `{ '{{DB_URL}}': connectionString }`)
 
 **Returns:**
@@ -131,10 +131,10 @@ withTempDir(({ createTempDir }) => {
 ```
 fixtures/db-verify/
   contract.ts
-  prisma-next.config.ts                    # Basic config
-  prisma-next.config.with-db.ts           # Config with database
-  prisma-next.config.no-driver.ts         # Config missing driver
-  prisma-next.config.no-verify.ts         # Config missing verify.readMarkerSql
+  prisma.config.ts                    # Basic config
+  prisma.config.with-db.ts           # Config with database
+  prisma.config.no-driver.ts         # Config missing driver
+  prisma.config.no-verify.ts         # Config missing verify.readMarkerSql
 ```
 
 **Using placeholders:**
@@ -143,7 +143,7 @@ withTempDir(({ createTempDir }) => {
   const testSetup = setupTestDirectoryFromFixtures(
     createTempDir,
     'db-verify',
-    'prisma-next.config.with-db.ts',
+    'prisma.config.with-db.ts',
     { '{{DB_URL}}': connectionString },
   );
 
@@ -191,7 +191,7 @@ describe('CLI process e2e', () => {
       // Set cwd for spawned process so relative paths in config resolve correctly
       await execFileAsync(
         'node',
-        [cliPath, 'contract', 'emit', '--config', 'prisma-next.config.ts'],
+        [cliPath, 'contract', 'emit', '--config', 'prisma.config.ts'],
         {
           cwd: testDir, // Set working directory for spawned process
         },

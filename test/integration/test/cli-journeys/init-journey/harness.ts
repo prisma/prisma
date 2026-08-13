@@ -560,7 +560,7 @@ const DATABASE_URL_FILE = '.env';
 
 /**
  * Writes a `.env` file inside the project so that the scaffolded
- * `prisma-next.config.ts` (which uses `dotenv/config`) picks up the
+ * `prisma.config.ts` (which uses `dotenv/config`) picks up the
  * connection string when emit/dbInit/runtime are invoked.
  */
 export function attachDatabase(project: JourneyProject, connectionString: string): void {

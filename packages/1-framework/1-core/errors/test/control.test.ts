@@ -423,13 +423,13 @@ describe('Config Errors', () => {
   });
 
   it('errorConfigEvaluationFailed creates correct error', () => {
-    const error = errorConfigEvaluationFailed('/project/prisma-next.config.ts', {
+    const error = errorConfigEvaluationFailed('/project/prisma.config.ts', {
       why: 'ParseError: Unexpected token',
     });
     expect(error.code).toBe('CONFIG.EVALUATION_FAILED');
     expect(error.message).toBe('Config file could not be evaluated');
     expect(error.why).toBe('ParseError: Unexpected token');
-    expect(error.where?.path).toBe('/project/prisma-next.config.ts');
+    expect(error.where?.path).toBe('/project/prisma.config.ts');
     expect(error.docsUrl).toBe(docsUrlFor('CONFIG.EVALUATION_FAILED'));
   });
 
@@ -441,11 +441,11 @@ describe('Config Errors', () => {
   });
 
   it('errorConfigVersionMarkerMissing creates correct error', () => {
-    const error = errorConfigVersionMarkerMissing('/project/prisma-next.config.ts');
+    const error = errorConfigVersionMarkerMissing('/project/prisma.config.ts');
     expect(error.code).toBe('CONFIG.VERSION_MARKER_MISSING');
     expect(error.message).toBe('Config is not a defineConfig result');
     expect(error.fix).toContain('defineConfig');
-    expect(error.where?.path).toBe('/project/prisma-next.config.ts');
+    expect(error.where?.path).toBe('/project/prisma.config.ts');
     expect(error.docsUrl).toBe(docsUrlFor('CONFIG.VERSION_MARKER_MISSING'));
   });
 

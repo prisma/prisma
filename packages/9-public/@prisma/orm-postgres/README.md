@@ -22,7 +22,7 @@ The one package a PostgreSQL application installs. It wires the framework, the S
 | `/runtime` | `postgres(url)` — the lazy query client |
 | `/serverless` | the serverless runtime variant |
 | `/static` | statically composed runtime for pre-wired deployments |
-| `/config` | `defineConfig` for `prisma-next.config.ts` |
+| `/config` | `defineConfig` for `prisma.config.ts` |
 | `/contract-builder` | `defineContract`, Postgres enums, RLS authoring |
 | `/target`, `/family` | the Postgres target pack and the SQL family pack |
 | `/migration`, `/control` | migration planning and the control client |

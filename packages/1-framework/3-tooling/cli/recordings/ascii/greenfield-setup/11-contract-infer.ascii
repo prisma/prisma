@@ -194,7 +194,7 @@
 > prisma-next contract infer
 prisma-next contract infer → Infer a PSL contract from the live database schema
 │
-│ config:               prisma-next.config.ts
+│ config:               prisma.config.ts
 │ database:             postgres://****:****@127.0.0.1:5433/postgres
 │
 │ Read more             https://pris.ly/contract-infer

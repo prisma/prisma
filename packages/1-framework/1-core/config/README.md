@@ -4,7 +4,7 @@
 > and is published only to support its runtime. Its API is unstable and may change
 > without notice. Do not depend on this package directly; install `prisma-next` instead.
 
-Config authoring types and validation for `prisma-next.config.ts`.
+Config authoring types and validation for `prisma.config.ts`.
 
 ## Overview
 

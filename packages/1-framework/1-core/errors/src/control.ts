@@ -161,7 +161,7 @@ export function errorConfigEvaluationFailed(
 ): CliStructuredError {
   return new CliStructuredError('CONFIG.EVALUATION_FAILED', 'Config file could not be evaluated', {
     why: options.why,
-    fix: 'Fix the error in your prisma-next.config.ts so the module evaluates, then rerun the command',
+    fix: 'Fix the error in your prisma.config.ts so the module evaluates, then rerun the command',
     docsUrl: docsUrlFor('CONFIG.EVALUATION_FAILED'),
     ...(configPath ? { where: { path: configPath } } : {}),
     ...(options.cause !== undefined ? { cause: options.cause } : {}),
@@ -179,7 +179,7 @@ export function errorConfigVersionMarkerMissing(configPath?: string): CliStructu
     'Config is not a defineConfig result',
     {
       why: 'The config module evaluated, but its default export was not created by a current defineConfig',
-      fix: "Create the config with defineConfig (imported from your target's '/config' entrypoint) and export its return value directly",
+      fix: "Create the config with defineConfig from '@prisma/cli-engine', nest your settings under its `orm` section, and export its return value directly",
       docsUrl: docsUrlFor('CONFIG.VERSION_MARKER_MISSING'),
       ...(configPath ? { where: { path: configPath } } : {}),
     },
@@ -194,7 +194,7 @@ export function errorContractConfigMissing(options?: {
 }): CliStructuredError {
   return new CliStructuredError('CONFIG.CONTRACT_MISSING', 'Contract configuration missing', {
     why: options?.why ?? 'The contract configuration is required for emit',
-    fix: 'Add contract configuration to your prisma-next.config.ts',
+    fix: 'Add contract configuration to your prisma.config.ts',
     docsUrl: docsUrlFor('CONFIG.CONTRACT_MISSING'),
   });
 }
@@ -266,7 +266,7 @@ export function errorDatabaseConnectionRequired(options?: {
     'Database connection is required',
     {
       why: options?.why ?? 'Database connection is required for this command',
-      fix: `${runHint}, or set \`db: { connection: "postgres://…" }\` in prisma-next.config.ts`,
+      fix: `${runHint}, or set \`db: { connection: "postgres://…" }\` in prisma.config.ts`,
       ...(options?.missingFlags !== undefined
         ? { meta: { missingFlags: [...options.missingFlags] } }
         : {}),
@@ -285,7 +285,7 @@ export function errorQueryRunnerFactoryRequired(options?: {
     'Query runner factory is required',
     {
       why: options?.why ?? 'Config.db.queryRunnerFactory is required for db verify',
-      fix: 'Add db.queryRunnerFactory to prisma-next.config.ts',
+      fix: 'Add db.queryRunnerFactory to prisma.config.ts',
       docsUrl: docsUrlFor('CONFIG.QUERY_RUNNER_FACTORY_REQUIRED'),
     },
   );
@@ -336,7 +336,7 @@ export function errorDriverRequired(options?: { readonly why?: string }): CliStr
     'Driver is required for DB-connected commands',
     {
       why: options?.why ?? 'Config.driver is required for DB-connected commands',
-      fix: 'Add a control-plane driver to prisma-next.config.ts (e.g. import a driver descriptor and set `driver: postgresDriver`)',
+      fix: 'Add a control-plane driver to prisma.config.ts (e.g. import a driver descriptor and set `driver: postgresDriver`)',
       docsUrl: docsUrlFor('CONFIG.DRIVER_REQUIRED'),
     },
   );
@@ -358,7 +358,7 @@ export function errorContractMissingExtensions(options: {
         missing.length === 1
           ? `Contract requires extension pack '${missing[0]}', but CLI config does not provide a matching descriptor.`
           : `Contract requires extension packs ${missing.map((p) => `'${p}'`).join(', ')}, but CLI config does not provide matching descriptors.`,
-      fix: 'Add the missing extension descriptors to `extensions` in prisma-next.config.ts',
+      fix: 'Add the missing extension descriptors to `extensions` in prisma.config.ts',
       docsUrl: docsUrlFor('CONFIG.MISSING_EXTENSION_PACKS'),
       meta: {
         missingExtensions: missing,
@@ -493,7 +493,7 @@ export function errorConfigValidation(
 ): CliStructuredError {
   return new CliStructuredError('CONFIG.VALIDATION_FAILED', 'Config validation error', {
     why: options?.why ?? `Config must have a "${field}" field`,
-    fix: 'Check your prisma-next.config.ts and ensure all required fields are provided',
+    fix: 'Check your prisma.config.ts and ensure all required fields are provided',
     docsUrl: docsUrlFor('CONFIG.VALIDATION_FAILED'),
     meta: { field, ...(options?.section !== undefined ? { section: options.section } : {}) },
   });

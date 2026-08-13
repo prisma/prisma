@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@internal/cli": "workspace:8.0.0-rc.1",
+    "@prisma/cli-engine": "0.0.9",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "@types/node": "catalog:",
     "mongodb-memory-server": "catalog:",

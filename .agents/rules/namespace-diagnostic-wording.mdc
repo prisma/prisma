@@ -13,4 +13,4 @@ Use clear user-facing wording such as:
 
 Preferred guidance in messages:
 - Name the namespace explicitly.
-- Tell the user to add the corresponding extension pack to `extensions` in `prisma-next.config.ts`.
+- Tell the user to add the corresponding extension pack to `extensions` in `prisma.config.ts`.

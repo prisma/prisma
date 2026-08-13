@@ -5,7 +5,7 @@ End-to-end example of Prisma Next with MongoDB, demonstrating the full **authori
 ## What it shows
 
 - PSL schema (`prisma/contract.prisma`) as the authoring surface for MongoDB
-- Contract emission via `prisma-next.config.ts` and the CLI (`prisma-next contract emit`)
+- Contract emission via `prisma.config.ts` and the CLI (`prisma-next contract emit`)
 - Runtime query execution using `mongoOrm()` with the emitted contract
 - Reference relation resolution via `$lookup` (Post → User)
 - Integration tests against an in-memory MongoDB replica set
@@ -48,7 +48,7 @@ pnpm migration:plan --name add-email-index
 ### Apply migrations
 
 ```bash
-# Set your MongoDB URL (or use the default in prisma-next.config.ts)
+# Set your MongoDB URL (or use the default in prisma.config.ts)
 export MONGODB_URL=mongodb://localhost:27017/mongo-demo
 
 pnpm migration:apply
@@ -93,9 +93,9 @@ The Mongo query builder doesn't yet expose a chainable `.annotate(...)` surface 
 
 ## How emission works
 
-`prisma-next.config.ts` wires the Mongo family, target, and adapter descriptors together with a `mongoContract()` provider. Running `pnpm emit` invokes the CLI's `contract emit` command, which:
+`prisma.config.ts` wires the Mongo family, target, and adapter descriptors together with a `mongoContract()` provider. Running `pnpm emit` invokes the CLI's `contract emit` command, which:
 
-1. Loads `prisma-next.config.ts` and creates a control stack
+1. Loads `prisma.config.ts` and creates a control stack
 2. Reads and parses `prisma/contract.prisma` via the `mongoContract()` provider
 3. Interprets the parsed document into a `Contract`
 4. Emits `src/contract.json` and `src/contract.d.ts`
@@ -114,7 +114,7 @@ The Mongo query builder doesn't yet expose a chainable `.annotate(...)` surface 
 | File                            | Purpose                                            |
 | ------------------------------- | -------------------------------------------------- |
 | `prisma/contract.prisma`       | PSL schema (authoring surface)                     |
-| `prisma-next.config.ts`        | CLI config (family + target + adapter + driver + contract provider) |
+| `prisma.config.ts`        | CLI config (family + target + adapter + driver + contract provider) |
 | `src/contract.json`            | Emitted contract with hand-added indexes (see note above) |
 | `src/contract.d.ts`            | Emitted type definitions (generated, do not edit)   |
 | `src/db.ts`                    | Runtime composition (adapter → driver → runtime → ORM) |

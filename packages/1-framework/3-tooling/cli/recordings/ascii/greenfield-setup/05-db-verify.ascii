@@ -194,7 +194,7 @@
 > prisma-next db verify
 prisma-next db verify → Check whether the database marker and live schema match your contract
 │
-│ config:               prisma-next.config.ts
+│ config:               prisma.config.ts
 │ contract:             contract.json
 │ mode:                 full (marker + schema, tolerant)
 │

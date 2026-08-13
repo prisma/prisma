@@ -10,7 +10,7 @@
 
 ## Expected agent behavior
 
-- [ ] Confirms the Supabase pack is composed (`extensions: [supabasePack]` in `prisma-next.config.ts`); wires it if absent.
+- [ ] Confirms the Supabase pack is composed (`extensions: [supabasePack]` in `prisma.config.ts`); wires it if absent.
 - [ ] Declares (or confirms) the `Profile` model with a cross-space FK typed `supabase:auth.AuthUser` and `@@rls`.
 - [ ] Authors the policies in the contract — a `policy_select` for `anon`/`authenticated` browse and a `policy_update` with `using` **and** `withCheck` scoped to `auth.uid()` — not hand-written `CREATE POLICY` SQL.
 - [ ] Quotes camelCase columns and casts appropriately inside predicate strings (`"userId"::uuid = auth.uid()`).

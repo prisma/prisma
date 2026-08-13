@@ -206,7 +206,7 @@
 > prisma-next db update --dry-run
 prisma-next db update → Update your database schema to match your contract
 │
-│ config:               prisma-next.config.ts
+│ config:               prisma.config.ts
 │ contract:             contract.json
 │ mode:                 dry run
 │

@@ -19,7 +19,7 @@ Extensions must be discoverable, versionable, and enforceable across local build
 
 Introduce a namespaced PSL extension syntax and mapping rules that produce deterministic contract JSON under `contract.extensions.<namespace>` and optional capabilities claims.
 
-**Composition constraint:** PSL does not “activate” extensions or carry extension configuration. Extension packs are composed via `prisma-next.config.ts`, which determines which namespaces/attributes exist. The emitter/interpreter then **infers** the PSL authoring surface (valid namespaces, attributes, and argument schemas) from the composed pack’s existing manifest/metadata. PSL remains versionless and purely declarative.
+**Composition constraint:** PSL does not “activate” extensions or carry extension configuration. Extension packs are composed via `prisma.config.ts`, which determines which namespaces/attributes exist. The emitter/interpreter then **infers** the PSL authoring surface (valid namespaces, attributes, and argument schemas) from the composed pack’s existing manifest/metadata. PSL remains versionless and purely declarative.
 
 The emitter validates extension usage against pack-provided (or core-convention) schemas and capability gates and refuses to emit on violations.
 
@@ -123,7 +123,7 @@ model Place {
 
 ### Versioning model
 
-- Versions are pinned in `prisma-next.config.ts` where packs are composed (e.g. `extensions: [pgvector]`)
+- Versions are pinned in `prisma.config.ts` where packs are composed (e.g. `extensions: [pgvector]`)
 - Attributes omit version for readability and are validated against the composed/pinned pack version
 - The emitter records the resolved version under `contract.extensions.<namespace>.version`
 - Version changes are reflected in the contract hash and capability surface
@@ -151,7 +151,7 @@ Extension attributes attach **extra meaning** to a field (for example, “this `
 
 - `@vector.column(...)` is only valid on compatible base types (e.g. `Bytes`) or on named type instances defined in `types { ... }` whose base is compatible.
 - If applied to an incompatible base type, emission fails with a targeted diagnostic.
-- If the pack is not composed in `prisma-next.config.ts`, the namespace is unknown and emission fails.
+- If the pack is not composed in `prisma.config.ts`, the namespace is unknown and emission fails.
 
 ### Error taxonomy
 

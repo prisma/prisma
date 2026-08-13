@@ -106,7 +106,7 @@ withTempDir(({ createTempDir }) => {
           const project = setupTestDirectoryFromFixtures(
             createTempDir,
             'migrate-external-space',
-            'prisma-next.config.with-db.ts',
+            'prisma.config.with-db.ts',
             { '{{DB_URL}}': connectionString },
           );
 
@@ -173,7 +173,7 @@ withTempDir(({ createTempDir }) => {
           const project = setupTestDirectoryFromFixtures(
             createTempDir,
             'migration-apply',
-            'prisma-next.config.with-db.ts',
+            'prisma.config.with-db.ts',
             { '{{DB_URL}}': connectionString },
           );
 

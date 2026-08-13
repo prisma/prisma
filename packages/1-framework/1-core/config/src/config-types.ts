@@ -119,7 +119,7 @@ export interface PrismaNextConfig<
  */
 export const CONFIG_FORMAT_VERSION = 1;
 
-const CONFIG_FORMAT_VERSION_KEY = Symbol.for('prisma-next.config-format-version');
+const CONFIG_FORMAT_VERSION_KEY = Symbol.for('prisma.config-format-version');
 
 function stampConfigFormatVersion<T extends object>(config: T): T {
   Object.defineProperty(config, CONFIG_FORMAT_VERSION_KEY, {

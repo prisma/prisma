@@ -4,6 +4,6 @@
     "outDir": "dist",
     "lib": ["ES2022"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts", "prisma-next.config.*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts", "prisma.config.*.ts"],
   "exclude": ["dist"]
 }

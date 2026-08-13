@@ -10,7 +10,7 @@
  * change to the ORM client or the query lane is involved.
  *
  * The descriptor is listed on both planes: the control descriptor goes in
- * `prisma-next.config.ts`, so `contract emit` writes `stddev` into the emitted
+ * `prisma.config.ts`, so `contract emit` writes `stddev` into the emitted
  * types, and the runtime descriptor goes in `src/prisma/db.ts`, so the registry
  * can resolve it when a query asks for it. Listing only one of the two gives
  * you a method the types promise and the runtime cannot answer.
@@ -61,7 +61,7 @@ const standardDeviation: SqlAggregateDescriptor = {
 
 const aggregateDescriptors: readonly SqlAggregateDescriptor[] = [standardDeviation];
 
-/** Composed into `prisma-next.config.ts` so `contract emit` types the operation. */
+/** Composed into `prisma.config.ts` so `contract emit` types the operation. */
 export const engagementStatsControl: SqlControlExtensionDescriptor<'postgres'> = {
   kind: 'extension',
   id: EXTENSION_ID,

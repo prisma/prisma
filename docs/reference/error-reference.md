@@ -16,7 +16,7 @@ Namespaces:
 
 | Namespace | Covers |
 |---|---|
-| `CONFIG` | Loading and validating `prisma-next.config.ts` |
+| `CONFIG` | Loading and validating `prisma.config.ts` |
 | `CLI` | Command-line argument and invocation errors |
 | `CONTRACT` | Contract authoring, emission, validation, and the contract↔database relationship (markers, schema verification) |
 | `PSL` | The PSL source text itself (parse/format) |
@@ -35,19 +35,19 @@ Namespaces:
 
 ### CONFIG.CONTRACT_MISSING
 
-The `contract` section is missing (or incomplete) in `prisma-next.config.ts` when a command needs it — raised by `prisma-next contract emit` when the config has no contract configuration, no schema path, or the referenced authoring entrypoint cannot be resolved. Meta: none.
+The `contract` section is missing (or incomplete) in `prisma.config.ts` when a command needs it — raised by `prisma-next contract emit` when the config has no contract configuration, no schema path, or the referenced authoring entrypoint cannot be resolved. Meta: none.
 
 ### CONFIG.DB_CONNECTION_REQUIRED
 
-A DB-connected command (`migrate`, `db init`, `db sign`, `db verify`, `db update`, `inspect-live-schema`, and the migration scaffold commands) was run with no database connection available — no `--db <url>` flag and no `db.connection` in `prisma-next.config.ts`. The fix text names the exact retry command when known. Meta: `missingFlags` (optional).
+A DB-connected command (`migrate`, `db init`, `db sign`, `db verify`, `db update`, `inspect-live-schema`, and the migration scaffold commands) was run with no database connection available — no `--db <url>` flag and no `db.connection` in `prisma.config.ts`. The fix text names the exact retry command when known. Meta: `missingFlags` (optional).
 
 ### CONFIG.DRIVER_REQUIRED
 
-A DB-connected command was run but `prisma-next.config.ts` has no control-plane `driver` entry (e.g. `driver: postgresDriver`). Raised by the migration command scaffold, `migrate`, `db sign`, `db verify`, and `inspect-live-schema`. Meta: none.
+A DB-connected command was run but `prisma.config.ts` has no control-plane `driver` entry (e.g. `driver: postgresDriver`). Raised by the migration command scaffold, `migrate`, `db sign`, `db verify`, and `inspect-live-schema`. Meta: none.
 
 ### CONFIG.EVALUATION_FAILED
 
-The config module could not be evaluated at all — a syntax error in `prisma-next.config.ts`, or the module threw during import. Raised by the config loader for any command that needs config; loading fails outright (no per-section diagnostics are possible for a module that does not evaluate) and every command exits `2` with this error. The underlying evaluation error's message is carried in `why` and the original error in `cause` (in-process only). The path, when known, is carried in `where.path`. Meta: none.
+The config module could not be evaluated at all — a syntax error in `prisma.config.ts`, or the module threw during import. Raised by the config loader for any command that needs config; loading fails outright (no per-section diagnostics are possible for a module that does not evaluate) and every command exits `2` with this error. The underlying evaluation error's message is carried in `why` and the original error in `cause` (in-process only). The path, when known, is carried in `where.path`. Meta: none.
 
 ### CONFIG.FAMILY_READ_MARKER_REQUIRED
 
@@ -55,19 +55,19 @@ Reserved: `db verify` needs the family package to export `verify.readMarker()` a
 
 ### CONFIG.FILE_NOT_FOUND
 
-No `prisma-next.config.ts` (or the explicitly passed config path) could be found when loading configuration — raised by the config loader for any command that needs config. The fix is to run `prisma-next init` to create one. The path, when known, is carried in `where.path`. Meta: none.
+No `prisma.config.ts` (or the explicitly passed config path) could be found when loading configuration — raised by the config loader for any command that needs config. The fix is to run `prisma-next init` to create one. The path, when known, is carried in `where.path`. Meta: none.
 
 ### CONFIG.MISSING_EXTENSION_PACKS
 
-The contract declares extension packs that the CLI config does not provide matching descriptors for; raised when resolving framework components for any command that loads the contract. The fix is to add the missing extension descriptors to `extensions` in `prisma-next.config.ts`. Meta: `missingExtensionPacks`, `providedComponentIds`.
+The contract declares extension packs that the CLI config does not provide matching descriptors for; raised when resolving framework components for any command that loads the contract. The fix is to add the missing extension descriptors to `extensions` in `prisma.config.ts`. Meta: `missingExtensionPacks`, `providedComponentIds`.
 
 ### CONFIG.QUERY_RUNNER_FACTORY_REQUIRED
 
-Reserved: `db verify` needs `db.queryRunnerFactory` in `prisma-next.config.ts` and it is absent. Declared in the shared error factories but not raised by any command today.
+Reserved: `db verify` needs `db.queryRunnerFactory` in `prisma.config.ts` and it is absent. Declared in the shared error factories but not raised by any command today.
 
 ### CONFIG.VALIDATION_FAILED
 
-`prisma-next.config.ts` loaded but a config section is missing or malformed. The config loader validates the evaluated config and returns one diagnostic per problem, each tagged with the top-level config section it concerns (`meta.section`: `family`, `target`, `adapter`, `driver`, `extensions`, `db`, `contract`, `migrations`, or `formatter`); a command fails with the diagnostic (exit `2`) only when it reads that section. Also raised by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`, and by contract-path resolution when `config.contract.output` is absent (those sites carry no `section`). Meta: `field` (loader diagnostics), `section` (loader diagnostics; optional elsewhere).
+`prisma.config.ts` loaded but a config section is missing or malformed. The config loader validates the evaluated config and returns one diagnostic per problem, each tagged with the top-level config section it concerns (`meta.section`: `family`, `target`, `adapter`, `driver`, `extensions`, `db`, `contract`, `migrations`, or `formatter`); a command fails with the diagnostic (exit `2`) only when it reads that section. Also raised by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`, and by contract-path resolution when `config.contract.output` is absent (those sites carry no `section`). Meta: `field` (loader diagnostics), `section` (loader diagnostics; optional elsewhere).
 
 ### CONFIG.VERSION_MARKER_MISSING
 
@@ -137,7 +137,7 @@ A flag passed to `prisma-next init` has a value outside its allowed set (for exa
 
 ### CLI.INIT_REINIT_NEEDS_FORCE
 
-`prisma-next init` ran non-interactively in a directory that already has a `prisma-next.config.ts`, and consent to overwrite the existing scaffold was not given. Re-scaffolding is destructive, so it needs explicit consent: interactively, `init` asks the user to type the working directory's name back; non-interactively, the same consent is granted by `--confirm <directory name>`. Neither `--yes` nor any flag skips it. Maps to init exit code 2 (PRECONDITION). Meta: none.
+`prisma-next init` ran non-interactively in a directory that already has a `prisma.config.ts`, and consent to overwrite the existing scaffold was not given. Re-scaffolding is destructive, so it needs explicit consent: interactively, `init` asks the user to type the working directory's name back; non-interactively, the same consent is granted by `--confirm <directory name>`. Neither `--yes` nor any flag skips it. Maps to init exit code 2 (PRECONDITION). Meta: none.
 
 The code is raised by the commander `prisma-next init`, whose consent flag is `--force`. The engine-hosted `init` reaches the same outcome through the engine's own `CLI.CONSENT_REQUIRED`, which names the exact `--confirm` value to pass.
 
@@ -403,7 +403,7 @@ A foreign key or index references a table name that disagrees with the table the
 
 ### CONTRACT.TARGET_MISMATCH
 
-The contract's target does not match the target configured in `prisma-next.config.ts` (e.g. a Postgres contract with a SQLite config). `db verify` reports it as an `error` diagnostic on a completed run that exits `4`. Meta: `expected`, `actual`.
+The contract's target does not match the target configured in `prisma.config.ts` (e.g. a Postgres contract with a SQLite config). `db verify` reports it as an `error` diagnostic on a completed run that exits `4`. Meta: `expected`, `actual`.
 
 ### CONTRACT.TYPE_UNKNOWN
 
@@ -1067,7 +1067,7 @@ After executing a migration operation, one of its postcheck steps (a query expec
 
 ### MIGRATION.POSTGRES_CONTROL_STACK_MISSING
 
-A `PostgresMigration` operation (e.g. `createTable`, `dataTransform`) was invoked on an instance constructed without a control stack — normal CLI-driven runs always assemble one from `prisma-next.config.ts`, so this indicates a test fixture or ad-hoc consumer used the no-arg constructor (valid only for introspection). Meta: `operation`.
+A `PostgresMigration` operation (e.g. `createTable`, `dataTransform`) was invoked on an instance constructed without a control stack — normal CLI-driven runs always assemble one from `prisma.config.ts`, so this indicates a test fixture or ad-hoc consumer used the no-arg constructor (valid only for introspection). Meta: `operation`.
 
 ### MIGRATION.PRECHECK_FAILED
 
@@ -1131,7 +1131,7 @@ SQLite twin of `MIGRATION.POSTGRES_CONTROL_STACK_MISSING`: a `SqliteMigration` o
 
 ### MIGRATION.TARGET_MISMATCH
 
-A migration script declares one `targetId` but the loaded `prisma-next.config.ts` declares another; the script can only run against a config targeting the same database. Switch configs or pass `--config <path>`. Meta: `migrationTargetId`, `configTargetId`.
+A migration script declares one `targetId` but the loaded `prisma.config.ts` declares another; the script can only run against a config targeting the same database. Switch configs or pass `--config <path>`. Meta: `migrationTargetId`, `configTargetId`.
 
 ### MIGRATION.TARGET_NOT_APP_SPACE
 

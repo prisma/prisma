@@ -13,7 +13,7 @@ import { readUserConfig, type UserConfig } from './user-config';
  * the project root together; the telemetry module does no I/O of its
  * own except for the user-config read (skipped when `userConfig` is
  * provided). `extensions` is deliberately absent: the detached child
- * loads `prisma-next.config.*` via c12 itself and derives the
+ * loads `prisma.config.*` via c12 itself and derives the
  * extension-pack ids from the validated config — see the rationale
  * on `ParentToSenderPayload` for why c12 lives in the child rather
  * than on the parent's hot path.

@@ -66,7 +66,7 @@ function groupsFor(commands: MountedTree): Record<string, { readonly brief: stri
  * Runs one CLI invocation through the engine's own harness.
  *
  * The harness takes config as an already-evaluated record and has no config
- * option on `run()`, so the project's `prisma-next.config.ts` is evaluated here
+ * option on `run()`, so the project's `prisma.config.ts` is evaluated here
  * — through the same adapter the binary uses — and a fresh `TestCli` is built
  * per run. That is what lets a step which writes or rewrites the config be
  * picked up by the next one. The project directory is passed as `cwd` rather
@@ -213,7 +213,7 @@ export const contract = {
 export function setupTestDirectoryFromFixtures(
   createTempDir: () => string,
   fixtureSubdir: string,
-  configFileName = 'prisma-next.config.ts',
+  configFileName = 'prisma.config.ts',
   replacements?: Record<string, string>,
 ) {
   const testDir = createTempDir();
@@ -248,7 +248,7 @@ export function setupTestDirectoryFromFixtures(
   }
 
   // Copy and process config file
-  const configPath = join(testDir, 'prisma-next.config.ts');
+  const configPath = join(testDir, 'prisma.config.ts');
   const fixtureConfigPath = join(fixturesSubdirPath, configFileName);
   if (existsSync(fixtureConfigPath)) {
     let configContent = readFileSync(fixtureConfigPath, 'utf-8');
@@ -274,7 +274,7 @@ export function setupTestDirectoryFromFixtures(
  */
 export function setupIntegrationTestDirectoryFromFixtures(
   fixtureSubdir: string,
-  configFileName = 'prisma-next.config.ts',
+  configFileName = 'prisma.config.ts',
   replacements?: Record<string, string>,
 ) {
   const testDir = createIntegrationTestDir();
@@ -299,7 +299,7 @@ export function setupIntegrationTestDirectoryFromFixtures(
   }
 
   // Copy and process config file
-  const configPath = join(testDir, 'prisma-next.config.ts');
+  const configPath = join(testDir, 'prisma.config.ts');
   const fixtureConfigPath = join(fixturesSubdirPath, configFileName);
   if (existsSync(fixtureConfigPath)) {
     let configContent = readFileSync(fixtureConfigPath, 'utf-8');
@@ -366,7 +366,7 @@ export function setupTestDirectory(): {
   const testDir = createTestDir();
   const contractPath = createContractFile(testDir);
   const outputDir = join(testDir, 'output');
-  const configPath = join(testDir, 'prisma-next.config.ts');
+  const configPath = join(testDir, 'prisma.config.ts');
 
   const cleanup = () => {
     if (existsSync(testDir)) {
@@ -405,7 +405,7 @@ export async function setupDbTestFixture(
   const testSetup = setupTestDirectoryFromFixtures(
     createTempDir,
     fixtureSubdir,
-    'prisma-next.config.with-db.ts',
+    'prisma.config.with-db.ts',
     { '{{DB_URL}}': connectionString },
   );
   const configPath = testSetup.configPath;

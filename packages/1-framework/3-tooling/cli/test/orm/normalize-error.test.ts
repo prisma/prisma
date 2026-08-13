@@ -182,17 +182,17 @@ describe('normalizeError', () => {
 describe('toEngineDiagnostic', () => {
   it('projects an error onto the protocol diagnostic shape', () => {
     const raised = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Config file not found', {
-      why: 'No prisma-next.config.ts in /app',
+      why: 'No prisma.config.ts in /app',
       fix: "Run 'prisma-next init' to create a config file",
-      where: { path: '/app/prisma-next.config.ts' },
+      where: { path: '/app/prisma.config.ts' },
     });
 
     expect(toEngineDiagnostic(raised)).toEqual({
       code: 'CONFIG.FILE_NOT_FOUND',
       severity: 'error',
       summary: 'Config file not found',
-      why: 'No prisma-next.config.ts in /app',
-      where: { path: '/app/prisma-next.config.ts' },
+      why: 'No prisma.config.ts in /app',
+      where: { path: '/app/prisma.config.ts' },
       nextActions: [
         { kind: 'user-choice', label: "Run 'prisma-next init' to create a config file" },
       ],

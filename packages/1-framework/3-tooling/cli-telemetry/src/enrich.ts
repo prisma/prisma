@@ -6,7 +6,7 @@ import { join } from 'pathe';
 import type { ParentToSenderPayload, TelemetryEvent } from './payload';
 
 /**
- * Subset of the user's `prisma-next.config.*` the telemetry event
+ * Subset of the user's `prisma.config.*` the telemetry event
  * surfaces. Loaded inside the detached child via {@link loadProjectConfig}
  * — see the design rationale on {@link ParentToSenderPayload} for why
  * this side runs c12 instead of the parent CLI.
@@ -22,7 +22,7 @@ const EMPTY_PROJECT_CONFIG: ProjectConfigFields = {
 };
 
 /**
- * Best-effort load of `prisma-next.config.*` from `projectRoot`,
+ * Best-effort load of `prisma.config.*` from `projectRoot`,
  * validated against the canonical `@internal/config` schema.
  * Returns `{ databaseTarget: null, extensions: [] }` on any failure
  * mode — missing config file (e.g. before `prisma-next init`), c12
@@ -224,7 +224,7 @@ async function resolveAgentLabel(): Promise<string | null> {
 
 /**
  * Convenience for the sender entry: build the event from the live
- * `process` plus a c12 load of `prisma-next.config.*` from
+ * `process` plus a c12 load of `prisma.config.*` from
  * `payload.projectRoot` plus a real project-package.json reader,
  * swallowing any I/O errors in the file read.
  *

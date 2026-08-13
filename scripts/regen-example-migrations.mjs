@@ -9,7 +9,7 @@
  * For each migration directory in chain order the script:
  *
  *   1. Writes a temporary `.prisma-next-regen.config.ts` inside the migration
- *      dir that imports the example's real `prisma-next.config.ts` and
+ *      dir that imports the example's real `prisma.config.ts` and
  *      overrides only the `contract` field to point at the migration's
  *      `contract.prisma`. This keeps `extensions`, `db`, and `family` correct
  *      for every family without any per-family template.
@@ -122,7 +122,7 @@ const childEnv = {
  *
  * exampleDir      — path to the example package root, relative to repoRoot.
  * migrationsDir   — path to the namespace chain directory, relative to exampleDir.
- * realConfigPath  — path to the example's real `prisma-next.config.ts`, relative
+ * realConfigPath  — path to the example's real `prisma.config.ts`, relative
  *                   to repoRoot. The temp config imports this and overrides only
  *                   the `contract` field, so `extensions`, `db`, and `family` are
  *                   always correct by construction.
@@ -138,25 +138,25 @@ const CHAINS = [
   {
     exampleDir: 'examples/retail-store',
     migrationsDir: 'migrations/app',
-    realConfigPath: 'examples/retail-store/prisma-next.config.ts',
+    realConfigPath: 'examples/retail-store/prisma.config.ts',
     contractFamily: 'mongo',
   },
   {
     exampleDir: 'examples/mongo-demo',
     migrationsDir: 'migrations/app',
-    realConfigPath: 'examples/mongo-demo/prisma-next.config.ts',
+    realConfigPath: 'examples/mongo-demo/prisma.config.ts',
     contractFamily: 'mongo',
   },
   {
     exampleDir: 'examples/prisma-8-demo',
     migrationsDir: 'migrations/app',
-    realConfigPath: 'examples/prisma-8-demo/prisma-next.config.ts',
+    realConfigPath: 'examples/prisma-8-demo/prisma.config.ts',
     contractFamily: 'sql',
   },
   {
     exampleDir: 'examples/prisma-8-postgis-demo',
     migrationsDir: 'migrations/app',
-    realConfigPath: 'examples/prisma-8-postgis-demo/prisma-next.config.ts',
+    realConfigPath: 'examples/prisma-8-postgis-demo/prisma.config.ts',
     contractFamily: 'sql',
   },
 ];
@@ -338,7 +338,7 @@ function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
  *
  * A temporary config file is written into `migrationDir`, used for the emit
  * call, and deleted immediately after. It imports the example's real
- * `prisma-next.config.ts` and overrides only the `contract` field to point at
+ * `prisma.config.ts` and overrides only the `contract` field to point at
  * the migration's `contract.prisma` (using an absolute path so resolution is
  * independent of where the temp file sits). All other config (extensions, db,
  * family) comes from the real config unchanged.
