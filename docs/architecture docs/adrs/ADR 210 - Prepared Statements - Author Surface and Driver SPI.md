@@ -1,5 +1,7 @@
 # ADR 210 — Prepared Statements: Author Surface and Driver SPI
 
+> **Update — the prepared handle is one of two shapes, per [ADR 247](<./ADR 247 - Whole-query raw SQL is the fragment mechanism at statement position.md>):** `prepare()` reads the plan's declared result. A rows plan returns the `PreparedStatement<Params, Row>` this ADR describes, consumed with `.query(target, params)`. A plan declaring an affected-row count returns a `PreparedExecution<Params>`, consumed with `.execute(target, params)` and resolving `SqlStatementStats`. Everything below — the declaration, the bind-site callback, the per-target handle slot, the lower-once contract, and the driver SPI — holds for both.
+
 ## Status
 
 Accepted. May 5, 2026.
