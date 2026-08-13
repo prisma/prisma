@@ -59,7 +59,7 @@ describe('namespace-facet table resolution', () => {
     const deleteTable = (
       db()
         .public.users.delete()
-        .where((f, fns) => fns.eq(f.id, '1'))
+        .where((f, fns) => fns.eq(f.id, 1))
         .build().ast as { table: TableSource }
     ).table;
     expect(deleteTable.namespaceId).toBe('public');
