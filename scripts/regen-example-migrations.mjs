@@ -358,7 +358,9 @@ function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
  * Returns `{ storageHash, contractJson, contractDts }`.
  */
 function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, contractFamily) {
-  const prismaNextBin = join(exampleDir, 'node_modules', '.bin', 'prisma-next');
+  // The workspace root carries the local prisma-next bin (examples name no
+  // @internal/* package, per lint:consumer-internal-imports).
+  const prismaNextBin = join(repoRoot, 'node_modules', '.bin', 'prisma-next');
   if (!existsSync(prismaNextBin)) {
     throw new Error(
       `regen-example-migrations: prisma-next not found at ${prismaNextBin}; run pnpm install`,

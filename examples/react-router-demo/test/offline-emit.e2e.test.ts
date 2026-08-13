@@ -9,7 +9,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 const execFileAsync = promisify(execFile);
 
 const exampleDir = dirname(dirname(fileURLToPath(import.meta.url)));
-const prismaNextBin = join(exampleDir, 'node_modules', '.bin', 'prisma-next');
+// The workspace root links the local prisma-next bin; the example itself
+// names no @internal/* package (lint:consumer-internal-imports).
+const prismaNextBin = join(exampleDir, '..', '..', 'node_modules', '.bin', 'prisma-next');
 const contractJsonPath = join(exampleDir, 'src', 'prisma', 'contract.json');
 const contractDtsPath = join(exampleDir, 'src', 'prisma', 'contract.d.ts');
 
