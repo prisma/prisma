@@ -8,7 +8,7 @@ the project into this package's `node_modules`.
 Project directories in the OS temp directory cannot do that. pnpm links
 dependencies per package, and the CLI package itself does not declare
 `@prisma/orm-postgres`, `@prisma/orm-mongo` or `dotenv`, so a scaffolded
-`prisma-next.config.ts` written outside the repo fails to import them.
+`prisma.config.ts` written outside the repo fails to import them.
 
 A test project here sits inside the repository's own pnpm workspace, so
 package-manager detection resolves to pnpm. That is the correct answer for a

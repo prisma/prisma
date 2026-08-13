@@ -88,6 +88,7 @@ describe('telemetry POST /events', () => {
       tsVersion: '5.9.3',
       agent: 'claude-code',
       extensions: ['pgvector', 'paradedb'],
+      exitCode: 4,
       // Forward-compat unknown keys; the backend must silently drop these.
       crashStackHash: 'abcdef',
       gpuVendor: 'apple',
@@ -111,6 +112,7 @@ describe('telemetry POST /events', () => {
     expect(row.tsVersion).toBe('5.9.3');
     expect(row.agent).toBe('claude-code');
     expect(row.extensions).toEqual(['pgvector', 'paradedb']);
+    expect(row.exitCode).toBe(4);
     expect(row.ingestedAt).toBeInstanceOf(Date);
     expect(row).not.toHaveProperty('crashStackHash');
     expect(row).not.toHaveProperty('gpuVendor');
@@ -133,6 +135,7 @@ describe('telemetry POST /events', () => {
     expect(row.packageManager).toBeNull();
     expect(row.databaseTarget).toBeNull();
     expect(row.tsVersion).toBeNull();
+    expect(row.exitCode).toBeNull();
     expect(row.agent).toBeNull();
   });
 

@@ -133,12 +133,12 @@ changes:
   - id: extension-packs-config-key-renamed-to-extensions
     summary: |
       The `extensionPacks` key is renamed to `extensions` everywhere: the
-      low-level `defineConfig` in `prisma-next.config.ts`, the TS builder's
+      low-level `defineConfig` in `prisma.config.ts`, the TS builder's
       `defineContract` (record form), runtime/control client options, and the
       top-level key of the emitted `contract.json` / `contract.d.ts`. The old
       config key now fails loudly with "Config.extensionPacks is no longer
       supported; rename it to Config.extensions" — it is never silently
-      ignored. Rename the key in `prisma-next.config.ts` (and `contract.ts` /
+      ignored. Rename the key in `prisma.config.ts` (and `contract.ts` /
       `db.ts` if they pass `extensionPacks` to client factories). The target
       façades' `defineConfig` already used `extensions`; only projects on the
       low-level config change. Because the key sits in the canonicalized bytes
@@ -149,7 +149,7 @@ changes:
       (a schema-unchanged project needs a hash-advance migration or a
       re-baseline; the database schema itself does not change).
     detection:
-      glob: "**/{prisma-next.config.ts,contract.ts,db.ts}"
+      glob: "**/{prisma.config.ts,contract.ts,db.ts}"
       contains:
         - "extensionPacks"
   - id: contract-source-format-key-renamed
@@ -160,16 +160,16 @@ changes:
       automatically once upgraded). Rename any literal `sourceFormat:` in
       hand-written provider objects or config assertions.
     detection:
-      glob: "**/prisma-next.config.ts"
+      glob: "**/prisma.config.ts"
       contains:
         - "sourceFormat"
   - id: sugar-output-path-key-renamed-to-output
     summary: |
       The target façades' `defineConfig` option `outputPath` is renamed to
       `output`. Semantics are unchanged (a directory; `contract.json` is
-      written inside it). Rename the key in `prisma-next.config.ts`.
+      written inside it). Rename the key in `prisma.config.ts`.
     detection:
-      glob: "**/prisma-next.config.ts"
+      glob: "**/prisma.config.ts"
       contains:
         - "outputPath"
   - id: orm-count-only-mutation-terminals-renamed

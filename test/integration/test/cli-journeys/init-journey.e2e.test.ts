@@ -59,7 +59,7 @@ describe.each(ALL_CELLS.map((cell) => ({ cell, label: cellLabel(cell) })))(
     afterAll(async () => {
       await ctx?.database?.close();
       ctx?.project?.cleanup();
-    });
+    }, timeouts.spinUpDbServer);
 
     it('step 1 (init): scaffolds the expected project skeleton', () => {
       expect(ctx.project.initResult.exitCode, formatInitDiagnostic(ctx.project)).toBe(0);
@@ -344,7 +344,7 @@ const TML_2314_seam = seamExpectation<StepResult>({
 function expectScaffoldedFiles(project: JourneyProject): void {
   const required = [
     'package.json',
-    'prisma-next.config.ts',
+    'prisma.config.ts',
     schemaPath(project.cell),
     'src/prisma/db.ts',
     'tsconfig.json',
@@ -386,7 +386,7 @@ function expectSchemaFile(project: JourneyProject, cell: CellId): void {
 }
 
 function expectConfigFile(project: JourneyProject, cell: CellId): void {
-  const contents = readFileSync(join(project.dir, 'prisma-next.config.ts'), 'utf-8');
+  const contents = readFileSync(join(project.dir, 'prisma.config.ts'), 'utf-8');
   expect(contents, 'config imports postgres/mongo facade only').toContain(
     `from '${facadeFor(cell)}/config'`,
   );

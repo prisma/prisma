@@ -1,9 +1,14 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import type {
+  MigrationPlanOperation,
   SchemaDiffIssue,
   SignDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
+import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { blindCast } from '@internal/utils/casts';
 import type { MountedTree, PresentedResult } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
@@ -276,7 +281,7 @@ describe('db sign', () => {
         {
           kind: 'run-command',
           label: 'Bring the database up to the contract, then sign again',
-          command: 'prisma-next db update',
+          command: 'prisma-cli db update',
         },
       ]);
     });
@@ -370,6 +375,46 @@ describe('db sign', () => {
         ok: false,
         error: { code: 'CONFIG.DRIVER_REQUIRED' },
       });
+    });
+
+    it('signs against the destination contract of a named migration dir', async () => {
+      const dir = await projectDir();
+      const HASH_B = `55bada2${'0'.repeat(57)}`;
+      const dirName = '20260102T0000_add_users';
+      const ops = [
+        blindCast<MigrationPlanOperation, 'db sign reads only the destination hash'>({
+          id: 'table.users',
+          label: 'Create users',
+          operationClass: 'additive',
+        }),
+      ];
+      const base = blindCast<
+        Omit<MigrationMetadata, 'migrationHash'>,
+        'db sign reads only from/to'
+      >({
+        from: HASH_A,
+        to: HASH_B,
+        providedInvariants: [],
+        createdAt: '2026-01-02T10:00:00.000Z',
+      });
+      const metadata: MigrationMetadata = {
+        ...base,
+        migrationHash: computeMigrationHash(base, ops),
+      };
+      await writeMigrationPackage(join(dir, 'migrations', 'app', dirName), metadata, ops);
+      await writeContractSnapshot(join(dir, 'migrations'), HASH_B, {
+        contractJson: { storage: { storageHash: HASH_B }, target: 'postgres' },
+        contractDts: 'export type Contract = unknown;\n',
+      });
+
+      const run = await harness(ormConfig()).run(['db', 'sign', dirName, '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(0);
+      expect(mocks.sign).toHaveBeenCalledTimes(1);
+      const signArg = mocks.sign.mock.calls[0]?.[0] as {
+        contract: { storage: { storageHash: string } };
+      };
+      expect(signArg.contract.storage.storageHash).toBe(HASH_B);
     });
 
     it('errors at exit 2 when the named contract reference resolves against nothing', async () => {

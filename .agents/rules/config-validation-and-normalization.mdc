@@ -1,6 +1,6 @@
 ---
 description: Config validation and normalization responsibilities (defineConfig normalizes, loader validates into section diagnostics)
-globs: ["packages/1-framework/1-core/config/**", "packages/1-framework/3-tooling/config-loader/**", "packages/1-framework/3-tooling/cli/**", "**/prisma-next.config.ts"]
+globs: ["packages/1-framework/1-core/config/**", "packages/1-framework/3-tooling/config-loader/**", "packages/1-framework/3-tooling/cli/**", "**/prisma.config.ts"]
 alwaysApply: false
 ---
 

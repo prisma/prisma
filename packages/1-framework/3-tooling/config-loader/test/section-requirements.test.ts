@@ -10,7 +10,7 @@ import { type LoadedConfig, loadConfigForSections, requireConfigSections } from 
 const config = { family: {}, target: {}, adapter: {} } as unknown as PrismaNextConfig;
 
 function loaded(diagnostics: readonly CliStructuredError[]): LoadedConfig {
-  return { config, diagnostics };
+  return { config, diagnostics, deprecations: [] };
 }
 
 describe('requireConfigSections', () => {
@@ -104,6 +104,22 @@ describe('loadConfigForSections', () => {
       const result = await loadConfigForSections(join(tempDir, 'missing.config.ts'), ['target']);
 
       expect(result.assertNotOk().code).toBe('CONFIG.FILE_NOT_FOUND');
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'reports deprecations through onDeprecation',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(configPath, PARTIAL_CONFIG_SOURCE);
+      const seen: string[] = [];
+
+      await loadConfigForSections(configPath, ['migrations'], {
+        onDeprecation: (deprecation) => seen.push(deprecation.code),
+      });
+
+      expect(seen).toEqual(['CONFIG.DEPRECATED_FILENAME', 'CONFIG.DEPRECATED_SHAPE']);
     },
     timeouts.typeScriptCompilation,
   );

@@ -13,7 +13,7 @@ let harness: BackendHarness;
 let projectDir: string;
 
 /**
- * Build a `prisma-next.config.mjs` source string with the minimum
+ * Build a `prisma.config.mjs` source string with the minimum
  * descriptor shape that `validateConfig` (from
  * `@internal/config/config-validation`) accepts. The integration
  * test exercises the full c12 + validator pipeline in the detached
@@ -45,16 +45,13 @@ beforeAll(async () => {
     join(projectDir, 'package.json'),
     JSON.stringify({ name: 'fixture', devDependencies: { typescript: '^5.9.3' } }),
   );
-  // The detached child reads `prisma-next.config.*` via c12 and runs
+  // The detached child reads `prisma.config.*` via c12 and runs
   // it through `@internal/config`'s `validateConfig` to derive
   // `databaseTarget` + `extensions`. The integration suite exercises
   // the full pipeline; write a `.mjs` fixture that satisfies the
   // canonical validator so the happy-path assertions on those fields
   // stay end-to-end.
-  writeFileSync(
-    join(projectDir, 'prisma-next.config.mjs'),
-    validConfigSource(['pgvector', 'paradedb']),
-  );
+  writeFileSync(join(projectDir, 'prisma.config.mjs'), validConfigSource(['pgvector', 'paradedb']));
 }, timeouts.spinUpPpgDev);
 
 beforeEach(async () => {
@@ -223,11 +220,11 @@ describe('cli-telemetry end-to-end via telemetry backend', () => {
     expect(serialised).not.toMatch(/\/Users\/alice\/secrets/);
   });
 
-  it('round-trips a string[] of declared extension-pack ids verbatim from prisma-next.config', async () => {
+  it('round-trips a string[] of declared extension-pack ids verbatim from prisma.config', async () => {
     // Override the suite's shared fixture for this test so the child's
     // c12 load resolves a different extension-pack set. Restored in
     // the `finally` so the rest of the suite keeps seeing the default.
-    const configPath = join(projectDir, 'prisma-next.config.mjs');
+    const configPath = join(projectDir, 'prisma.config.mjs');
     const previous = readFileSync(configPath, 'utf-8');
     writeFileSync(configPath, validConfigSource(['pgvector', 'paradedb', 'myorg-custom-ext']));
     try {

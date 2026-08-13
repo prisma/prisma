@@ -10,7 +10,7 @@ This extension pack adds support for the `vector` data type and vector similarit
 
 - **Vector Codec**: Provides codec for `pg/vector@1` mapping to `number[]` at runtime, and a `Vector<N>` type for dimensioned typing in `contract.d.ts`
 - **Vector Operations**: Registers vector similarity operations (e.g., `cosineDistance`) for use in queries
-- **CLI Integration**: Provides extension descriptor for `prisma-next.config.ts` configuration
+- **CLI Integration**: Provides extension descriptor for `prisma.config.ts` configuration
 - **Runtime Extension**: Registers codecs and operations at runtime for vector column operations
 - **Pack Ref Export**: Ships a pure `/pack` entrypoint for TypeScript contract authoring without runtime filesystem access
 - **Baseline Migration**: Ships an on-disk baseline migration in its contract space that installs the `vector` Postgres extension (`CREATE EXTENSION IF NOT EXISTS vector`) when the extension is composed into an application
@@ -42,7 +42,7 @@ Ensure the baseline migration (or equivalent DDL) has been applied before runnin
 
 ## Configuration
 
-Add the extension to your `prisma-next.config.ts`:
+Add the extension to your `prisma.config.ts`:
 
 ```typescript
 import { defineConfig } from '@internal/cli/config-types';

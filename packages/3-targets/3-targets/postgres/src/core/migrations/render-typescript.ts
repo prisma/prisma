@@ -46,7 +46,7 @@ export interface RenderMigrationMeta {
  *   to `'postgres'`, so user-authored migrations don't need to thread
  *   target-details or redeclare `targetId`.
  * - `MigrationCLI` — the migration-file CLI entrypoint, re-exported from
- *   `@internal/cli/migration-cli`. Loads `prisma-next.config.ts`,
+ *   `@internal/cli/migration-cli`. Loads `prisma.config.ts`,
  *   assembles a `ControlStack`, and instantiates the migration class.
  *   The migration file owns this dependency directly: pulling CLI
  *   machinery in at script run time is acceptable because the script's

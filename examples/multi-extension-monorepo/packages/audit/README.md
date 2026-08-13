@@ -12,7 +12,7 @@ This package follows the contract-space package layout convention described in [
 
    ```sh
    pnpm exec tsx "$PWD/migrations/<dir>/migration.ts" \
-     --config "$PWD/prisma-next.config.ts"
+     --config "$PWD/prisma.config.ts"
    ```
 
    The verbose absolute-path incantation is necessary because this subdirectory has no `package.json`: `pnpm exec` rewinds cwd to the monorepo root (`examples/multi-extension-monorepo/`) before exec, which would otherwise resolve the migration path / config path against the wrong directory. (`tsx` rather than bare `node` because the Migration subclass imports relative TypeScript siblings which Node's native loader can't resolve without a TS-aware loader. `migration plan` is **not** chained into the package's build script — it's non-idempotent and runs manually when the schema changes.)

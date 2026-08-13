@@ -8,7 +8,7 @@ import type { PrismaVitePluginOptions } from './types';
 
 const PLUGIN_NAME = 'prisma-vite-plugin-contract-emit';
 const DEFAULT_DEBOUNCE_MS = 150;
-const DEFAULT_CONFIG_PATH = 'prisma-next.config.ts';
+const DEFAULT_CONFIG_PATH = 'prisma.config.ts';
 const MODULE_GRAPH_EXTENSIONS = new Set([
   '.js',
   '.jsx',
@@ -27,7 +27,7 @@ const MODULE_GRAPH_EXTENSIONS = new Set([
  * re-emitting contract artifacts on changes with debounce while serializing
  * overlapping emits into a single follow-up run.
  *
- * @param configPath - Path to prisma-next.config.ts (relative or absolute). Defaults to 'prisma-next.config.ts'
+ * @param configPath - Path to prisma.config.ts (relative or absolute). Defaults to 'prisma.config.ts'
  * @param options - Optional plugin configuration
  * @returns Vite plugin
  *
@@ -43,7 +43,7 @@ const MODULE_GRAPH_EXTENSIONS = new Set([
  *
  * // Or specify a custom path
  * export default defineConfig({
- *   plugins: [prismaVitePlugin('custom/prisma-next.config.ts')],
+ *   plugins: [prismaVitePlugin('custom/prisma.config.ts')],
  * });
  * ```
  */

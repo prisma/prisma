@@ -43,6 +43,13 @@
                   "kind": "scalar"
                 }
               },
+              "exitCode": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "extensions": {
                 "nullable": false,
                 "type": {
@@ -136,6 +143,9 @@
                 "databaseTarget": {
                   "column": "databaseTarget"
                 },
+                "exitCode": {
+                  "column": "exitCode"
+                },
                 "extensions": {
                   "column": "extensions"
                 },
@@ -203,6 +213,11 @@
                 "databaseTarget": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
+                  "nullable": true
+                },
+                "exitCode": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
                   "nullable": true
                 },
                 "extensions": {
@@ -293,7 +308,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "7291093cc59a8f9401652a170628b4208ea9c0048b179543f6af8a37afa51595"
+    "storageHash": "ee6dd37f6c09336d8fa37508fb4401ad0351f580f215a0dc992cc3c584424e6f"
   },
   "capabilities": {
     "postgres": {

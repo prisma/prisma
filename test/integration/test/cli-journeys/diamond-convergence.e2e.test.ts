@@ -37,7 +37,7 @@ import {
 
 function createSecondDbContext(baseCtx: JourneyContext, connectionString: string): JourneyContext {
   const configTemplate = readFileSync(baseCtx.configPath, 'utf-8');
-  const prodConfigPath = join(baseCtx.testDir, 'prisma-next.config.prod.ts');
+  const prodConfigPath = join(baseCtx.testDir, 'prisma.config.prod.ts');
   const existingUrl = configTemplate.match(/connection:\s*'([^']+)'/)?.[1];
   if (!existingUrl) throw new Error('Could not extract DB URL from config');
   writeFileSync(prodConfigPath, configTemplate.replace(existingUrl, connectionString), 'utf-8');

@@ -12,7 +12,7 @@ import { join } from 'pathe';
 export async function emitScaffoldedContract(ctx: { readonly cwd: string }): Promise<void> {
   const { executeContractEmit } = await import('../control-api/operations/contract-emit');
   const { loadConfigForSections } = await import('@internal/config-loader');
-  const configPath = join(ctx.cwd, 'prisma-next.config.ts');
+  const configPath = join(ctx.cwd, 'prisma.config.ts');
   const loaded = await loadConfigForSections(configPath, [
     'contract',
     'family',

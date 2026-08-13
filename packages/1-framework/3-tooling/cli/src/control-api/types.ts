@@ -787,7 +787,7 @@ export interface ContractEmitOptions {
   /** Directory the caller was invoked from. */
   readonly cwd: string;
   /**
-   * Path to the prisma-next.config.ts file. Used to find the project manifest
+   * Path to the prisma.config.ts file. Used to find the project manifest
    * whose dependencies decide the import specifiers in emitted files; the
    * config itself is never read from it. Omit it and the manifest is looked up
    * from the directory the artifacts are written to, which is the package that

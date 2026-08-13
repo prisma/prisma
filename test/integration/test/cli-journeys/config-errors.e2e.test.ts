@@ -70,7 +70,7 @@ withTempDir(({ createTempDir }) => {
         const ctx = setupJourney({ createTempDir });
 
         // Overwrite config with invalid TS
-        const invalidConfigPath = join(ctx.testDir, 'prisma-next.config.ts');
+        const invalidConfigPath = join(ctx.testDir, 'prisma.config.ts');
         writeFileSync(invalidConfigPath, 'export default {{{INVALID SYNTAX', 'utf-8');
 
         const result = await runContractEmitWithConfig(ctx.testDir, invalidConfigPath, ['--json']);
@@ -87,7 +87,7 @@ withTempDir(({ createTempDir }) => {
         const ctx = setupJourney({ createTempDir });
 
         // Overwrite config with valid TS but missing contract field
-        const emptyConfigPath = join(ctx.testDir, 'prisma-next.config.ts');
+        const emptyConfigPath = join(ctx.testDir, 'prisma.config.ts');
         writeFileSync(
           emptyConfigPath,
           `

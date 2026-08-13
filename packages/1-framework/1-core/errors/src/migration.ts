@@ -124,7 +124,7 @@ export function errorMigrationInvalidDefaultExport(
 
 /**
  * The migration class declares one `targetId` but the loaded
- * `prisma-next.config.ts` declares another. Thrown by `MigrationCLI.run`
+ * `prisma.config.ts` declares another. Thrown by `MigrationCLI.run`
  * when a migration script is invoked against a config whose target
  * descriptor disagrees with the migration's own `targetId`. Distinct from generic
  * config-validation errors because the mismatch is between two valid
@@ -138,7 +138,7 @@ export function errorMigrationTargetMismatch(options: {
     'MIGRATION.TARGET_MISMATCH',
     'Migration target does not match config target',
     {
-      why: `This migration is for target "${options.migrationTargetId}" but the loaded prisma-next.config.ts declares target "${options.configTargetId}". The migration script can only be run against a config that targets the same database.`,
+      why: `This migration is for target "${options.migrationTargetId}" but the loaded prisma.config.ts declares target "${options.configTargetId}". The migration script can only be run against a config that targets the same database.`,
       fix: "Switch to a config whose `target` matches the migration's target, or pass `--config <path>` to point at the right config file.",
       meta: {
         migrationTargetId: options.migrationTargetId,

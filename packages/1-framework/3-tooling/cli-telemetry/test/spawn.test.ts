@@ -17,6 +17,7 @@ function makeInputs(overrides: Partial<RunTelemetryInputs> = {}): RunTelemetryIn
     command: commandInput,
     version: '0.9.0',
     projectRoot: process.cwd(),
+    exitCode: undefined,
     senderPath: '/non/existent/path/never-forked.mjs',
     isCI: false,
     env: {},

@@ -18,7 +18,7 @@ One-package MongoDB setup for Prisma Next. Install this single package to get co
 ## Quick Start
 
 ```typescript
-// prisma-next.config.ts
+// prisma.config.ts
 import { defineConfig } from '@internal/mongo/config';
 
 export default defineConfig({

@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="./LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" /></a>
-  <a href="https://www.npmjs.com/package/prisma-next"><img alt="npm" src="https://img.shields.io/npm/v/prisma-next?label=prisma-next" /></a>
+  <a href="https://www.npmjs.com/package/@prisma/cli"><img alt="npm" src="https://img.shields.io/npm/v/%40prisma%2Fcli/next?label=%40prisma%2Fcli" /></a>
   <a href="https://github.com/prisma/prisma/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/prisma/prisma/actions/workflows/ci.yml/badge.svg" /></a>
 </p>
 
@@ -44,14 +44,14 @@ You finish with a runnable app, a starter contract, and the agent skills already
 Run this from your repo root:
 
 ```bash
-npx prisma-next@latest init
+npx @prisma/cli@next init
 ```
 
-`prisma-next@latest init` writes `prisma-next.config.ts`, scaffolds a starter contract and `db.ts` under `src/prisma/`, installs the runtime, emits the contract, and registers the agent skills. It does not touch your framework or build setup.
+`init` writes `prisma.config.ts`, scaffolds a starter contract and `db.ts` under `src/prisma/`, installs the runtime, emits the contract, and registers the agent skills. It does not touch your framework or build setup.
 
 ### 3. Use your AI agent for everything Prisma Next
 
-Both installers leave a top-level **`prisma-next.md`** primer at your project root for any agent to read first. `prisma-next@latest init` additionally materialises one **`SKILL.md`** per workflow in two places, so different agent runtimes can find them at their expected paths:
+Both installers leave a top-level **`prisma-next.md`** primer at your project root for any agent to read first. `init` additionally materialises one **`SKILL.md`** per workflow in two places, so different agent runtimes can find them at their expected paths:
 
 - `.claude/skills/<skill-name>/SKILL.md` — picked up by Claude Code
 - `.agents/skills/<skill-name>/SKILL.md` — universal location for Cursor, Copilot Agent, and other runtimes

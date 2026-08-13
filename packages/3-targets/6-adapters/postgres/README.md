@@ -112,7 +112,7 @@ flowchart TD
 
 **Control Entry Point (`control.ts`)**
 - Exports the control-plane adapter descriptor for CLI config
-- Used by `prisma-next.config.ts` to declare the adapter
+- Used by `prisma.config.ts` to declare the adapter
 
 **Runtime Entry Point (`runtime.ts`)**
 - Exports the runtime-plane adapter descriptor

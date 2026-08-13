@@ -77,7 +77,7 @@ describe('executeMigrateShowPlan', () => {
     migrationsDir = join(tempDir, 'migrations');
     appMigrationsDir = join(migrationsDir, 'app');
     await mkdir(join(appMigrationsDir, 'refs'), { recursive: true });
-    configPath = join(tempDir, 'prisma-next.config.ts');
+    configPath = join(tempDir, 'prisma.config.ts');
     await writeFile(join(tempDir, 'contract.json'), JSON.stringify(contractJsonForHash(HASH_B)));
 
     const first = await writeAttestedMigration({

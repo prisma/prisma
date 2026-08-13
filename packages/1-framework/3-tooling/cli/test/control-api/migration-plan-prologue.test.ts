@@ -22,7 +22,7 @@ const config = { migrations: { dir: 'migrations' } } as unknown as PrismaNextCon
 
 describe('executeMigrationPlanCommand — mutation-prologue guard', () => {
   it('maps a MigrationToolsError thrown in the prologue to a structured failure', async () => {
-    const toolsError = errorInvalidJson('/project/prisma-next.config.ts', 'Unexpected token');
+    const toolsError = errorInvalidJson('/project/prisma.config.ts', 'Unexpected token');
     mocks.resolveMigrationPaths.mockImplementationOnce(() => {
       throw toolsError;
     });
@@ -32,7 +32,7 @@ describe('executeMigrationPlanCommand — mutation-prologue guard', () => {
     );
 
     const result = await executeMigrationPlanCommand(
-      { config, cwd: '/project', configPath: '/project/prisma-next.config.ts' },
+      { config, cwd: '/project', configPath: '/project/prisma.config.ts' },
       Date.now(),
     );
 
@@ -54,7 +54,7 @@ describe('executeMigrationPlanCommand — mutation-prologue guard', () => {
     );
 
     const result = await executeMigrationPlanCommand(
-      { config, cwd: '/project', configPath: '/project/prisma-next.config.ts' },
+      { config, cwd: '/project', configPath: '/project/prisma.config.ts' },
       Date.now(),
     );
 

@@ -16,6 +16,7 @@ model TelemetryEvent {
   tsVersion      String?
   agent          String?
   extensions     Jsonb
+  exitCode       Int?
 
   @@index([ingestedAt])
   @@map("telemetry_event")

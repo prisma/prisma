@@ -9,13 +9,15 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 const execFileAsync = promisify(execFile);
 
 const exampleDir = dirname(dirname(fileURLToPath(import.meta.url)));
-const prismaNextBin = join(exampleDir, 'node_modules', '.bin', 'prisma-next');
+// The workspace root links the local prisma-next bin; the example itself
+// names no @internal/* package (lint:consumer-internal-imports).
+const prismaNextBin = join(exampleDir, '..', '..', 'node_modules', '.bin', 'prisma-next');
 const contractJsonPath = join(exampleDir, 'src', 'prisma', 'contract.json');
 const contractDtsPath = join(exampleDir, 'src', 'prisma', 'contract.d.ts');
 
 // Locks in AC9: `prisma-next contract emit` must succeed when DATABASE_URL is
 // unset, so a fresh checkout / CI typegen step does not need a database. The
-// example's `prisma-next.config.ts` was specifically modified (commit
+// example's `prisma.config.ts` was specifically modified (commit
 // `6d11148af`) to keep `db.connection` undefined when DATABASE_URL is missing
 // rather than throwing at config-load time. Without this test, a future
 // regression of that path would only surface as a CI failure outside this

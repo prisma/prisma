@@ -149,14 +149,14 @@ export function setupJourney(options: JourneySetupOptions): JourneyContext {
   // Copy and process config
   const configFileName = connectionString
     ? contractMode === 'psl'
-      ? 'prisma-next.config.with-db.psl.ts'
-      : 'prisma-next.config.with-db.ts'
-    : 'prisma-next.config.ts';
+      ? 'prisma.config.with-db.psl.ts'
+      : 'prisma.config.with-db.ts'
+    : 'prisma.config.ts';
   let configContent = readFileSync(join(JOURNEY_FIXTURES_DIR, configFileName), 'utf-8');
   if (connectionString) {
     configContent = configContent.replace(/\{\{DB_URL\}\}/g, () => connectionString);
   }
-  const configPath = join(testDir, 'prisma-next.config.ts');
+  const configPath = join(testDir, 'prisma.config.ts');
   writeFileSync(configPath, configContent, 'utf-8');
 
   // The journey's project says which import root it is on, rather than

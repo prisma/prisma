@@ -30,7 +30,7 @@ This skill covers the **runtime entry point** — `db.ts` — and how to compose
 - **The façade's runtime factory is the only surface user-authored `db.ts` imports from.** Each factory is a *default* export. For Postgres: `import postgres from '@internal/postgres/runtime'`; SQLite: `import sqlite from '@internal/sqlite/runtime'`; Mongo: `import mongo from '@internal/mongo/runtime'`. The factory signature is `<Target><Contract>(options)` — a single type parameter (the `Contract` type from `contract.d.ts`), and one options object.
 - **Lazy connect.** The factory does not connect to the database synchronously. Static query surfaces (`db.sql`, `db.orm`) are available immediately; the driver / pool is instantiated on the first call that needs a runtime (or when you explicitly call `await db.connect({ url })`). This is why `db.ts` can be imported in modules that load before the env is ready.
 - **Middleware composes in order.** The first middleware in the `middleware: [...]` array runs *outermost* — it sees the operation first on the way in and last on the way out. Telemetry first means budget / lint failures show up inside telemetry spans.
-- **`prisma-next.config.ts` vs `.env`.** The config (`defineConfig({ contract, db, extensions, migrations })`) is for static project shape: contract path, installed extensions, migrations directory, default connection string. `.env` is for per-environment values (`DATABASE_URL`, secrets). The config reads `.env` automatically via `dotenv/config`. Hardcoding `DATABASE_URL` in the config file leaks credentials and bypasses per-env overrides.
+- **`prisma.config.ts` vs `.env`.** The config (`defineConfig({ contract, db, extensions, migrations })`) is for static project shape: contract path, installed extensions, migrations directory, default connection string. `.env` is for per-environment values (`DATABASE_URL`, secrets). The config reads `.env` automatically via `dotenv/config`. Hardcoding `DATABASE_URL` in the config file leaks credentials and bypasses per-env overrides.
 - **Build-system / dev-server integration is a separate skill.** `vite dev` auto-emit lives in `references/build.md`. The runtime side (this skill) reads `contract.json` / `contract.d.ts` regardless of how they got onto disk, so the two skills compose cleanly.
 
 ## Workflow — Basic `db.ts`
@@ -269,7 +269,7 @@ The callback returns whatever you return from it — the transaction wrapper pas
 
 ## Workflow — Switch between Postgres, SQLite, and Mongo
 
-The concept: the façade selection is baked into `db.ts` (`@internal/postgres`, `@internal/sqlite`, or `@internal/mongo`) and `prisma-next.config.ts` (which `defineConfig` you import from). To switch a project's target, re-run `prisma-next init` in the same directory and pick the other target — the init flow detects the existing scaffold and prompts to reinit (`--force` skips the prompt). PN re-scaffolds `prisma-next.config.ts` and `db.ts` for the new façade. The contract source needs to be re-authored for the new target's idioms (Mongo expresses nested documents; Postgres/SQLite express relations).
+The concept: the façade selection is baked into `db.ts` (`@internal/postgres`, `@internal/sqlite`, or `@internal/mongo`) and `prisma.config.ts` (which `defineConfig` you import from). To switch a project's target, re-run `prisma-next init` in the same directory and pick the other target — the init flow detects the existing scaffold and prompts to reinit (`--force` skips the prompt). PN re-scaffolds `prisma.config.ts` and `db.ts` for the new façade. The contract source needs to be re-authored for the new target's idioms (Mongo expresses nested documents; Postgres/SQLite express relations).
 
 After the switch (Mongo):
 
@@ -301,14 +301,14 @@ The `db.sql` / `db.orm` surfaces stay the same in name; the operators each surfa
 
 If you want contract artefacts to re-emit automatically while the dev server is running (instead of running `prisma-next contract emit` by hand each time the contract source changes), reach for the build-tool plugin from `references/build.md`:
 
-- **Vite**: install `@internal/vite-plugin-contract-emit` and register `prismaVitePlugin('prisma-next.config.ts')` in `vite.config.ts`.
+- **Vite**: install `@internal/vite-plugin-contract-emit` and register `prismaVitePlugin('prisma.config.ts')` in `vite.config.ts`.
 - **Next.js, Webpack, esbuild, Rollup, Turbopack**: no first-party plugin yet — the workaround is a `prebuild` script that runs `prisma-next contract emit`. See `references/build.md` for the walkthrough.
 
 The runtime side (this skill) is the same regardless: `db.ts` reads `contract.json` + `contract.d.ts` from disk. The build-system plugin's job is to keep those files current during development.
 
 ## Common Pitfalls
 
-1. **Hardcoding `DATABASE_URL` in `prisma-next.config.ts`.** Leaks credentials; bypasses per-environment overrides. Use `.env`.
+1. **Hardcoding `DATABASE_URL` in `prisma.config.ts`.** Leaks credentials; bypasses per-environment overrides. Use `.env`.
 2. **Omitting the `<Contract>` type parameter** in `postgres<Contract>(...)`. Without it, static surfaces collapse to a generic shape and you lose autocomplete for models. There is no second type parameter — the older two-param signature (`postgres<Contract, TypeMaps>`) is gone.
 3. **Forgetting `with { type: 'json' }` on the contract import.** Required by Node's ESM JSON-import-attribute spec.
 4. **Middleware order matters.** Outermost wraps. Put telemetry first if you want it to capture inner-middleware errors.
@@ -333,7 +333,7 @@ This skill is intentionally body-only; `prisma-next init --help`, the `defineCon
 - [ ] `db.ts` imports the runtime factory from `@internal/<target>/runtime` (`postgres`, `sqlite`, or `mongo`) and the `Contract` type from `./contract.d`.
 - [ ] `with { type: 'json' }` on the contract JSON import.
 - [ ] `<Contract>` is the single type parameter on `postgres<Contract>(...)` (no second parameter).
-- [ ] `DATABASE_URL` lives in `.env`, not in `prisma-next.config.ts`.
+- [ ] `DATABASE_URL` lives in `.env`, not in `prisma.config.ts`.
 - [ ] Middleware ordered intentionally (telemetry outermost typically).
 - [ ] `lints` / `budgets` use the verified option keys (`severities`, `maxLatencyMs`, `maxRows`, `tableRows`).
 - [ ] Per-env divergence (if any) gated by `NODE_ENV` or similar.

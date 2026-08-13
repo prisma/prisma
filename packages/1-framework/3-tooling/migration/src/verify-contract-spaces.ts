@@ -90,7 +90,7 @@ export interface VerifyContractSpacesInputs {
    * Set of contract spaces the project declares: `'app'` plus each
    * extension space in `extensions`. The caller's discovery path
    * never reads the extension descriptor module — it walks the
-   * `extensions` configuration in `prisma-next.config.ts` for the
+   * `extensions` configuration in `prisma.config.ts` for the
    * space ids.
    */
   readonly loadedSpaces: ReadonlySet<string>;

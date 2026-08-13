@@ -40,7 +40,7 @@ import { defineConfig } from 'vite';
 import { prismaVitePlugin } from '@internal/vite-plugin-contract-emit';
 
 export default defineConfig({
-  plugins: [prismaVitePlugin('prisma-next.config.ts')],
+  plugins: [prismaVitePlugin('prisma.config.ts')],
 });
 ```
 
@@ -52,7 +52,7 @@ Creates a Vite plugin configured to emit contract artifacts.
 
 #### Parameters
 
-- `configPath: string` — Path to your `prisma-next.config.ts` file (relative to Vite root)
+- `configPath: string` — Path to your `prisma.config.ts` file (relative to Vite root)
 - `options?: PrismaVitePluginOptions` — Optional configuration
 
 #### Options
@@ -71,7 +71,7 @@ interface PrismaVitePluginOptions {
 
 ## How It Works
 
-1. **On server start**: The plugin loads `prisma-next.config.ts` via the CLI config loader
+1. **On server start**: The plugin loads `prisma.config.ts` via the CLI config loader
 2. **Resolve paths in the loader**: The loader returns absolute `contract.source.inputs` and `contract.output`
 3. **Resolve watched files**: The plugin crawls the Vite module graph from the config entrypoint
 4. **Merge declared inputs**: It adds any explicit `contract.source.inputs`, and treats JS/TS inputs as additional module-graph roots

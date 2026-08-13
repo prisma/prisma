@@ -34,7 +34,7 @@ import {
 const FINDINGS_EXIT_CODE = 4;
 
 /** The config file this bin reads; the handler is not told which one was loaded. */
-const CONFIG_DISPLAY_PATH = 'prisma-next.config.ts';
+const CONFIG_DISPLAY_PATH = 'prisma.config.ts';
 
 /**
  * The refusal document. `schemaVerify` never evaluates unclaimed elements, so
@@ -222,7 +222,7 @@ export function createDbSignCommand(
                     nextActions: [
                       runCommandAction(
                         'Bring the database up to the contract, then sign again',
-                        'prisma-next db update',
+                        'prisma-cli db update',
                       ),
                     ],
                   }),

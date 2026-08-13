@@ -26,7 +26,7 @@ pnpm add @internal/extension-postgis
 
 A complete five-step example — see [`examples/prisma-8-postgis-demo`](../../../examples/prisma-8-postgis-demo) for the full version with a seeded database, a Next.js UI, and e2e tests.
 
-**1. Register the extension in `prisma-next.config.ts`:**
+**1. Register the extension in `prisma.config.ts`:**
 
 ```typescript
 import { defineConfig } from '@internal/cli/config-types';

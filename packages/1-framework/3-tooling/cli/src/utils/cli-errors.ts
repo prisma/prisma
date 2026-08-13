@@ -134,18 +134,18 @@ export function errorRefSetHashNotInGraph(
   const fix =
     reachableHashes.length > 0
       ? graphTipHash !== null
-        ? `Set the ref to a graph-node hash such as ${graphTipHash}, or run \`prisma-next migration plan\` to extend the graph.`
+        ? `Set the ref to a graph-node hash such as ${graphTipHash}, or run \`prisma-cli migration plan\` to extend the graph.`
         : 'Set the ref to a hash that appears in the migration graph.'
-      : 'Run `prisma-next migration plan` first.';
+      : 'Run `prisma-cli migration plan` first.';
   const nextActions =
     reachableHashes.length > 0
       ? graphTipHash !== null
         ? [
             chooseAction(`Set the ref to a graph-node hash such as ${graphTipHash}`),
-            runCommandAction('Extend the migration graph', 'prisma-next migration plan'),
+            runCommandAction('Extend the migration graph', 'prisma-cli migration plan'),
           ]
         : [chooseAction('Set the ref to a hash that appears in the migration graph')]
-      : [runCommandAction('Plan the first migration', 'prisma-next migration plan')];
+      : [runCommandAction('Plan the first migration', 'prisma-cli migration plan')];
   return new ActionableCliError(
     'MIGRATION.HASH_NOT_IN_GRAPH',
     `Resolved contract hash is not in the migration graph: ${resolvedHash}`,
@@ -222,7 +222,7 @@ export function errorInvalidSpaceId(spaceId: string): ActionableCliError {
       fix: 'Pass a space id that matches the directory naming rule, or omit --space to list every space.',
       nextActions: [
         chooseAction('Pass a space id matching [a-z][a-z0-9_-]{0,63}'),
-        runCommandAction('Or list every space', 'prisma-next migration list'),
+        runCommandAction('Or list every space', 'prisma-cli migration list'),
       ],
       meta: {
         spaceId,
@@ -252,18 +252,18 @@ export function errorSpaceNotFound(
       : '(none — no contract spaces on disk yet)';
   const fix =
     availableSpaces.length > 0
-      ? `Pick one of: ${availableList}. Run \`prisma-next migration list\` (no --space) to see every space's migrations.`
-      : 'Author a migration with `prisma-next migration new` to create the first contract-space directory.';
+      ? `Pick one of: ${availableList}. Run \`prisma-cli migration list\` (no --space) to see every space's migrations.`
+      : 'Author a migration with `prisma-cli migration new` to create the first contract-space directory.';
   const nextActions =
     availableSpaces.length > 0
       ? [
           chooseAction(`Pick one of: ${availableList}`),
-          runCommandAction("See every space's migrations", 'prisma-next migration list'),
+          runCommandAction("See every space's migrations", 'prisma-cli migration list'),
         ]
       : [
           runCommandAction(
             'Author the first migration, which creates the contract-space directory',
-            'prisma-next migration new',
+            'prisma-cli migration new',
           ),
         ];
   return new ActionableCliError('MIGRATION.SPACE_NOT_FOUND', `Unknown contract space: ${spaceId}`, {
@@ -289,7 +289,7 @@ export function errorMigrationPackageNotFound(why: string): ActionableCliError {
       chooseAction(
         'Pass a directory name, hash prefix, or path to an on-disk app-space migration package',
       ),
-      runCommandAction('List what is on disk', 'prisma-next migration list'),
+      runCommandAction('List what is on disk', 'prisma-cli migration list'),
     ],
   });
 }
@@ -298,8 +298,8 @@ export function errorMigrationPackageNotFound(why: string): ActionableCliError {
 export function errorNoMigrations(appMigrationsRelative: string): ActionableCliError {
   return new ActionableCliError('MIGRATION.NO_MIGRATIONS', 'No migrations found', {
     why: `No migration packages found in ${appMigrationsRelative}`,
-    fix: 'Run `prisma-next migration plan` to create a migration first.',
-    nextActions: [runCommandAction('Create the first migration', 'prisma-next migration plan')],
+    fix: 'Run `prisma-cli migration plan` to create a migration first.',
+    nextActions: [runCommandAction('Create the first migration', 'prisma-cli migration plan')],
   });
 }
 
@@ -340,16 +340,13 @@ export function errorPlanForgotTheFlag(
   const nextActions =
     reachableRefs.length > 0
       ? reachableRefs.map((ref) =>
-          runCommandAction(
-            `Plan from ${ref.name}`,
-            `prisma-next migration plan --from ${ref.name}`,
-          ),
+          runCommandAction(`Plan from ${ref.name}`, `prisma-cli migration plan --from ${ref.name}`),
         )
       : graphTipHash !== null
         ? [
             runCommandAction(
               'Plan from the graph tip',
-              `prisma-next migration plan --from ${graphTipHash}`,
+              `prisma-cli migration plan --from ${graphTipHash}`,
             ),
           ]
         : [chooseAction('Commit pending migrations first, then run migration plan')];
@@ -384,23 +381,23 @@ export function errorSnapshotMissing(
 ): ActionableCliError {
   const viaRef = options?.viaRef !== false;
   const fix = viaRef
-    ? `Create the ref with "prisma-next ref set ${identifier} <hash>" (or advance it via "prisma-next db update --advance-ref ${identifier}"), or pass a hash that is a node in the migration graph.`
+    ? `Create the ref with "prisma-cli ref set ${identifier} <hash>" (or advance it via "prisma-cli db update --advance-ref ${identifier}"), or pass a hash that is a node in the migration graph.`
     : `No contract source exists for hash "${identifier}" on an empty migration graph. Use --from with a ref name (its contract resolves through the snapshot store), or run db update first.`;
   const nextActions = viaRef
     ? [
         runCommandAction(
           `Create the ref "${identifier}"`,
-          `prisma-next ref set ${identifier} <hash>`,
+          `prisma-cli ref set ${identifier} <hash>`,
         ),
         runCommandAction(
           'Or advance it from the database',
-          `prisma-next db update --advance-ref ${identifier}`,
+          `prisma-cli db update --advance-ref ${identifier}`,
         ),
         chooseAction('Or pass a hash that is a node in the migration graph'),
       ]
     : [
         chooseAction('Pass --from a ref name, whose contract resolves through the snapshot store'),
-        runCommandAction('Or populate the graph first', 'prisma-next db update'),
+        runCommandAction('Or populate the graph first', 'prisma-cli db update'),
       ];
   return new ActionableCliError(
     'MIGRATION.SNAPSHOT_MISSING',
@@ -431,12 +428,12 @@ export function errorMarkerMismatch(
     reachableHashes.length > 0 ? reachableHashes.join(', ') : '(none — migration graph is empty)';
   const planFromFix =
     graphTip !== null
-      ? `Run \`prisma-next migration plan --from ${graphTip}\` if the live marker is canonical and the on-disk graph needs catching up.`
-      : 'Run `prisma-next migration plan` if the live marker is canonical and the on-disk graph needs catching up.';
+      ? `Run \`prisma-cli migration plan --from ${graphTip}\` if the live marker is canonical and the on-disk graph needs catching up.`
+      : 'Run `prisma-cli migration plan` if the live marker is canonical and the on-disk graph needs catching up.';
   const planCommand =
     graphTip !== null
-      ? `prisma-next migration plan --from ${graphTip}`
-      : 'prisma-next migration plan';
+      ? `prisma-cli migration plan --from ${graphTip}`
+      : 'prisma-cli migration plan';
   return new ActionableCliError(
     'MIGRATION.MARKER_MISMATCH',
     'Database marker is not reachable in the on-disk migration graph',
@@ -444,14 +441,14 @@ export function errorMarkerMismatch(
       why: `DB marker is ${markerHash}, but the on-disk migration graph reaches: ${reachableList}.`,
       fix: [
         planFromFix,
-        `Run \`prisma-next ref set db ${markerHash}\` if the on-disk graph is canonical and the local \`db\` ref drifted.`,
+        `Run \`prisma-cli ref set db ${markerHash}\` if the on-disk graph is canonical and the local \`db\` ref drifted.`,
         'Investigate whether the database was migrated by an out-of-band process.',
       ].join('\n'),
       nextActions: [
         runCommandAction('Catch the on-disk graph up to the live marker', planCommand),
         runCommandAction(
           'Point the local db ref at the live marker',
-          `prisma-next ref set db ${markerHash}`,
+          `prisma-cli ref set db ${markerHash}`,
         ),
         chooseAction('Investigate whether the database was migrated by an out-of-band process'),
       ],
@@ -498,23 +495,23 @@ export function errorPathUnreachable(failure: MigrateFailure): ActionableCliErro
   const neverPlanned = meta['kind'] === 'neverPlanned';
   const planCommand = (() => {
     if (neverPlanned) {
-      return 'prisma-next migration plan --name <slug>';
+      return 'prisma-cli migration plan --name <slug>';
     }
     if (planFromHash !== null && targetHash !== null) {
-      return `prisma-next migration plan --from ${planFromHash} --to ${targetHash} --name <slug>`;
+      return `prisma-cli migration plan --from ${planFromHash} --to ${targetHash} --name <slug>`;
     }
     if (targetHash !== null) {
-      return `prisma-next migration plan --to ${targetHash} --name <slug>`;
+      return `prisma-cli migration plan --to ${targetHash} --name <slug>`;
     }
     if (planFromHash !== null) {
-      return `prisma-next migration plan --from ${planFromHash} --name <slug>`;
+      return `prisma-cli migration plan --from ${planFromHash} --name <slug>`;
     }
-    return 'prisma-next migration plan';
+    return 'prisma-cli migration plan';
   })();
   const applyCommand =
     targetHash !== null && !neverPlanned
-      ? `prisma-next migrate --to ${targetHash}`
-      : 'prisma-next migrate';
+      ? `prisma-cli migrate --to ${targetHash}`
+      : 'prisma-cli migrate';
   return new ActionableCliError('MIGRATION.PATH_UNREACHABLE', failure.summary, {
     why:
       failure.why ??
@@ -525,17 +522,17 @@ export function errorPathUnreachable(failure: MigrateFailure): ActionableCliErro
       `  2. ${applyCommand}`,
       `${ROLLBACK_IS_DESTRUCTIVE}.`,
       `${NARROWER_CASES_NEED_A_HINT}.`,
-      'Inspect the on-disk graph with `prisma-next migration list`, or `prisma-next migration show <bundle>` for any bundle in the path you expected.',
+      'Inspect the on-disk graph with `prisma-cli migration list`, or `prisma-cli migration show <bundle>` for any bundle in the path you expected.',
     ].join('\n'),
     nextActions: [
       runCommandAction('Plan the missing edge', planCommand),
       runCommandAction('Apply it', applyCommand),
       chooseAction(ROLLBACK_IS_DESTRUCTIVE),
       chooseAction(NARROWER_CASES_NEED_A_HINT),
-      runCommandAction('Inspect the on-disk graph', 'prisma-next migration list'),
+      runCommandAction('Inspect the on-disk graph', 'prisma-cli migration list'),
       runCommandAction(
         'Inspect a bundle in the path you expected',
-        'prisma-next migration show <bundle>',
+        'prisma-cli migration show <bundle>',
       ),
     ],
     meta: {

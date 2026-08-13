@@ -65,10 +65,12 @@ async function stageSchema(sourceFile?: string): Promise<string> {
 }
 
 function resolveCliEntry(): string {
-  // The facade puts the `prisma-next` command on an application's PATH and
-  // publishes the same launcher as an entrypoint, so the playground can spawn
-  // the one published CLI without depending on the toolchain itself.
-  return fileURLToPath(import.meta.resolve('@prisma/orm-postgres/bin/prisma-next'));
+  // Nothing published carries a bin anymore (the unified `prisma` CLI is the
+  // only user-facing binary), so the playground spawns the workspace-local
+  // engine entry directly. The path is repo-relative rather than resolved
+  // through the `@internal/cli` package name so this app's manifest stays
+  // shaped like a consumer's (ADR 242, lint:consumer-internal-imports).
+  return resolve(PACKAGE_ROOT, '../../packages/1-framework/3-tooling/cli/dist/bin.mjs');
 }
 
 async function main(): Promise<void> {
@@ -90,7 +92,7 @@ async function main(): Promise<void> {
   // Resolve the schema the editor opens and the config the server will find for
   // it. The language server discovers a document's config by walking up from
   // the document's own path, so the schema must sit at or under a directory
-  // that contains a resolvable `prisma-next.config.ts`. (There is deliberately
+  // that contains a resolvable `prisma.config.ts`. (There is deliberately
   // no `--config` flag: the server has no way to be pointed at an arbitrary
   // config path, so accepting one would be misleading.)
   //

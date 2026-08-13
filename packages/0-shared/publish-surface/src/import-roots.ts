@@ -306,6 +306,14 @@ export function transitiveImports(source: string, root: ImportRoot): string[] {
     if (specifier.startsWith(INTERNAL_SCOPE)) return true;
     if (!specifier.startsWith(PUBLISHED_SCOPE)) return false;
     const [scope, shell] = specifier.split('/');
-    return !direct.has(`${scope}/${shell}`);
+    const name = `${scope}/${shell}`;
+    return !direct.has(name) && !EXTERNAL_DIRECT_DEPENDENCIES.has(name);
   });
 }
+
+/**
+ * Published packages this workspace does not own but `init` installs into a
+ * scaffolded application directly, so its files may import them:
+ * `@prisma/cli-engine` is the config file's `defineConfig` import.
+ */
+const EXTERNAL_DIRECT_DEPENDENCIES: ReadonlySet<string> = new Set(['@prisma/cli-engine']);

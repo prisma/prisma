@@ -136,7 +136,7 @@ After the package rename (section 5), the old name survives in places that are e
 
 <details><summary>⬜ <b>Decide the config filename and the command name</b></summary>
 
-Two uses of the old name are different in kind from the rest of the sweep, because they are not ours to change quietly: `prisma-next.config.ts` is a file in the user's repository, and `prisma-next` is the command they type and script into their CI. The packages have moved to `@prisma/*` and the examples now read `prisma-8-*`, so a user who installs Prisma 8 and is told to create a `prisma-next.config.ts` and run `prisma-next migration plan` is being asked to write a name that appears nowhere else in what they installed.
+Two uses of the old name are different in kind from the rest of the sweep, because they are not ours to change quietly: `prisma.config.ts` is a file in the user's repository, and `prisma-next` is the command they type and script into their CI. The packages have moved to `@prisma/*` and the examples now read `prisma-8-*`, so a user who installs Prisma 8 and is told to create a `prisma.config.ts` and run `prisma-next migration plan` is being asked to write a name that appears nowhere else in what they installed.
 
 The config filename is in 894 places across 333 files in this repository alone, and every one of those is mirrored in every user project that has run `init`. Renaming it is a breaking change: the config loader discovers the file by name, so a project that upgrades without renaming stops being found. The command name is worse, because it is also the published bin, so renaming it changes what `npx` resolves and what a CI script invokes.
 

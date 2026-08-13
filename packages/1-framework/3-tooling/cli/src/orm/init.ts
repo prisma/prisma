@@ -145,10 +145,15 @@ export const createInitCommand = (injected: InitCommandDependencies) =>
       }
 
       const deps = [targetPackageName(inputs.target, scaffold.resolveImportSpecifier), 'dotenv'];
-      // Under moduleResolution 'bundler' the scaffolded files reference
-      // process.env, which only typechecks with Node's ambient types present.
-      // A project that already pins @types/node keeps its own major.
-      const devDeps = scaffold.hasTypesNode ? ['prisma-next'] : ['prisma-next', '@types/node'];
+      // The CLI the scaffolded scripts run is the unified `@prisma/cli`, whose
+      // v8 line publishes under the `next` dist-tag (the `prisma-next` shim is
+      // no longer published). `@prisma/cli-engine` is the config file's
+      // defineConfig import. Under moduleResolution 'bundler' the scaffolded
+      // files reference process.env, which only typechecks with Node's ambient
+      // types present; a project that already pins @types/node keeps its own
+      // major.
+      const cliDevDeps = ['@prisma/cli@next', '@prisma/cli-engine'];
+      const devDeps = scaffold.hasTypesNode ? cliDevDeps : [...cliDevDeps, '@types/node'];
 
       const findings: Diagnostic[] = [];
       const extraActions: NextAction[] = [];
@@ -191,7 +196,7 @@ export const createInitCommand = (injected: InitCommandDependencies) =>
               {
                 why: `The success document failed schema validation: ${String(validated)}`,
                 nextActions: [
-                  chooseAction('This is a bug in prisma-next. Please report it with `-v` output.'),
+                  chooseAction('This is a bug in Prisma Next. Please report it with `-v` output.'),
                 ],
                 docsUrl: docsUrlFor('CLI.INIT_INVALID_OUTPUT_DOCUMENT'),
               },

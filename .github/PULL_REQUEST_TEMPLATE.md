@@ -26,7 +26,7 @@ Before you submit:
 ## Skill update
 
 <!-- If this PR changes any user-facing surface (CLI commands or flags, public
-     TypeScript APIs, `prisma-next.config.ts` fields, error codes, glossary
+     TypeScript APIs, `prisma.config.ts` fields, error codes, glossary
      terminology, etc.), describe the skill update made in this PR (typically
      under `packages/0-shared/skills/`) or state why no update is required.
      If the change is purely internal / refactor with no user-visible delta,

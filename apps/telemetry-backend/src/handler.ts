@@ -176,6 +176,7 @@ export function createHandler(deps: HandlerDeps) {
           tsVersion: parsed.tsVersion,
           agent: parsed.agent,
           extensions: parsed.extensions,
+          exitCode: parsed.exitCode,
         },
       ])
       .build();

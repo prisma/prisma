@@ -181,7 +181,7 @@ describe('init prompts', () => {
           ok: false,
           error: { code: 'CLI.INIT_MISSING_FLAGS', meta: { missingFlags: ['target'] } },
         });
-        expect(existsSync(join(projectDir, 'prisma-next.config.ts'))).toBe(false);
+        expect(existsSync(join(projectDir, 'prisma.config.ts'))).toBe(false);
       },
       timeouts.coldTransformImport,
     );
@@ -262,7 +262,7 @@ describe('init prompts', () => {
           ok: false,
           error: { code: 'CLI.INIT_INVALID_MANIFEST' },
         });
-        expect(existsSync(join(projectDir, 'prisma-next.config.ts'))).toBe(false);
+        expect(existsSync(join(projectDir, 'prisma.config.ts'))).toBe(false);
       },
       timeouts.coldTransformImport,
     );
@@ -282,7 +282,7 @@ describe('init prompts', () => {
           ok: false,
           error: { code: 'CLI.INIT_INVALID_TSCONFIG' },
         });
-        expect(existsSync(join(projectDir, 'prisma-next.config.ts'))).toBe(false);
+        expect(existsSync(join(projectDir, 'prisma.config.ts'))).toBe(false);
       },
       timeouts.coldTransformImport,
     );
@@ -359,7 +359,7 @@ describe('init prompts', () => {
     it(
       'removes the stale contract artifacts a previous run emitted',
       async () => {
-        writeFileSync(join(projectDir, 'prisma-next.config.ts'), 'export default {}\n', 'utf-8');
+        writeFileSync(join(projectDir, 'prisma.config.ts'), 'export default {}\n', 'utf-8');
         mkdirSync(join(projectDir, 'src/prisma'), { recursive: true });
         writeFileSync(join(projectDir, 'src/prisma/contract.json'), '{}', 'utf-8');
 

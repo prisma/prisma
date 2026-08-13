@@ -18,11 +18,11 @@ describe('emit command: additional fixtures', () => {
   }, async () => {
     const tsSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.parity-ts.ts',
+      'prisma.config.parity-ts.ts',
     );
     const pslSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.parity-psl.ts',
+      'prisma.config.parity-psl.ts',
     );
 
     try {
@@ -87,7 +87,7 @@ describe('emit command: additional fixtures', () => {
   }, async () => {
     const testSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.parity-psl.ts',
+      'prisma.config.parity-psl.ts',
     );
 
     try {
@@ -102,7 +102,7 @@ describe('emit command: additional fixtures', () => {
       );
 
       const providerConfig = (
-        await loadConfig(join(testSetup.testDir, 'prisma-next.config.ts'))
+        await loadConfig(join(testSetup.testDir, 'prisma.config.ts'))
       ).assertOk().config;
       const contractConfig = providerConfig.contract;
       expect(contractConfig).toBeDefined();
@@ -167,7 +167,7 @@ describe('emit command: additional fixtures', () => {
   }, async () => {
     const testSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.missing-output.ts',
+      'prisma.config.missing-output.ts',
     );
 
     try {
@@ -194,7 +194,7 @@ describe('emit command: additional fixtures', () => {
   }, async () => {
     const testSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.mongo.ts',
+      'prisma.config.mongo.ts',
     );
 
     try {
@@ -284,7 +284,7 @@ model Post {
   }, async () => {
     const testSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.mongo-contract-ts.ts',
+      'prisma.config.mongo-contract-ts.ts',
     );
 
     try {

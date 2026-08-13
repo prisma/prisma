@@ -65,7 +65,7 @@ export async function readEmittedContract(inputs: {
         missing
           ? errorFileNotFound(path, {
               why: `Contract file not found at ${path}`,
-              fix: `Run \`prisma-next contract emit\` to generate ${relativePath}, or update \`contract.output\` in prisma-next.config.ts`,
+              fix: `Run \`prisma-cli contract emit\` to generate ${relativePath}, or update \`contract.output\` in prisma.config.ts`,
             })
           : errorUnexpected(error instanceof Error ? error.message : String(error), {
               why: `Failed to read contract file: ${error instanceof Error ? error.message : String(error)}`,
@@ -107,9 +107,9 @@ export function requireVerifyConnection(inputs: {
     return notOk(
       normalizeError(
         errorDatabaseConnectionRequired({
-          why: `Database connection is required for ${inputs.invocation} (set db.connection in prisma-next.config.ts, or pass --db <url>)`,
+          why: `Database connection is required for ${inputs.invocation} (set db.connection in prisma.config.ts, or pass --db <url>)`,
           missingFlags: ['--db'],
-          retryCommand: `prisma-next ${inputs.invocation} --db <url>`,
+          retryCommand: `prisma-cli ${inputs.invocation} --db <url>`,
         }),
       ),
     );

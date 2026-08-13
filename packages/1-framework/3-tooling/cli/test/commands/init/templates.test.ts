@@ -214,13 +214,13 @@ describe('templates', () => {
         'postgres',
         'psl',
         'src/prisma/contract.prisma',
-        'pnpm prisma-next',
+        'pnpm prisma-cli',
       );
 
       expect(md).toContain('src/prisma/contract.prisma');
       expect(md).toContain('src/prisma/contract.json');
       expect(md).toContain('src/prisma/db.ts');
-      expect(md).toContain('prisma-next.config.ts');
+      expect(md).toContain('prisma.config.ts');
     });
 
     it('contains postgres-specific content', () => {
@@ -228,7 +228,7 @@ describe('templates', () => {
         'postgres',
         'psl',
         'src/prisma/contract.prisma',
-        'pnpm prisma-next',
+        'pnpm prisma-cli',
       );
 
       expect(md).toContain('PostgreSQL');
@@ -241,7 +241,7 @@ describe('templates', () => {
         'postgres',
         'psl',
         'src/prisma/contract.prisma',
-        'pnpm prisma-next',
+        'pnpm prisma-cli',
       );
 
       expect(md).toContain('db.orm.User');
@@ -254,7 +254,7 @@ describe('templates', () => {
         'postgres',
         'psl',
         'src/prisma/contract.prisma',
-        'pnpm prisma-next',
+        'pnpm prisma-cli',
       );
 
       expect(md).toContain('contract emit');
@@ -262,7 +262,7 @@ describe('templates', () => {
     });
 
     it('contains mongo-specific content', () => {
-      const md = quickReferenceMd('mongo', 'psl', 'src/prisma/contract.prisma', 'pnpm prisma-next');
+      const md = quickReferenceMd('mongo', 'psl', 'src/prisma/contract.prisma', 'pnpm prisma-cli');
 
       expect(md).toContain('MongoDB');
       expect(md).toContain('@internal/mongo');
@@ -270,7 +270,7 @@ describe('templates', () => {
     });
 
     it('contains lazy ORM query example for mongo (no manual connect step)', () => {
-      const md = quickReferenceMd('mongo', 'psl', 'src/prisma/contract.prisma', 'pnpm prisma-next');
+      const md = quickReferenceMd('mongo', 'psl', 'src/prisma/contract.prisma', 'pnpm prisma-cli');
 
       expect(md).toContain('db.orm.users');
       expect(md).toContain('.where({ email:');
@@ -288,7 +288,7 @@ describe('templates', () => {
           'postgres',
           'psl',
           'src/prisma/contract.prisma',
-          'pnpm prisma-next',
+          'pnpm prisma-cli',
         );
 
         expect(md).toMatch(/## Requirements/);
@@ -304,7 +304,7 @@ describe('templates', () => {
           'mongo',
           'psl',
           'src/prisma/contract.prisma',
-          'pnpm prisma-next',
+          'pnpm prisma-cli',
         );
 
         expect(md).toMatch(/## Requirements/);
@@ -320,7 +320,7 @@ describe('templates', () => {
           'postgres',
           'psl',
           'src/prisma/contract.prisma',
-          'pnpm prisma-next',
+          'pnpm prisma-cli',
         );
 
         expect(md).toContain('--probe-db');
@@ -328,14 +328,14 @@ describe('templates', () => {
     });
 
     it('documents the replica-set requirement for transactions and change streams', () => {
-      const md = quickReferenceMd('mongo', 'psl', 'src/prisma/contract.prisma', 'pnpm prisma-next');
+      const md = quickReferenceMd('mongo', 'psl', 'src/prisma/contract.prisma', 'pnpm prisma-cli');
 
       expect(md).toContain('replica set');
       expect(md).toContain('TML-2313');
     });
 
     it('documents the escape hatches and steers users away from db.runtime() for mongo', () => {
-      const md = quickReferenceMd('mongo', 'psl', 'src/prisma/contract.prisma', 'pnpm prisma-next');
+      const md = quickReferenceMd('mongo', 'psl', 'src/prisma/contract.prisma', 'pnpm prisma-cli');
 
       expect(md).toContain('db.query');
       expect(md).toContain('mongoClient');
@@ -350,7 +350,7 @@ describe('templates', () => {
           'postgres',
           'psl',
           'src/prisma/contract.prisma',
-          'pnpm prisma-next',
+          'pnpm prisma-cli',
         );
 
         expect(md).toContain('```prisma');
@@ -364,7 +364,7 @@ describe('templates', () => {
           'postgres',
           'typescript',
           'src/prisma/contract.ts',
-          'pnpm prisma-next',
+          'pnpm prisma-cli',
         );
 
         expect(md).toContain('```typescript');
@@ -379,7 +379,7 @@ describe('templates', () => {
           'mongo',
           'psl',
           'src/prisma/contract.prisma',
-          'pnpm prisma-next',
+          'pnpm prisma-cli',
         );
 
         expect(md).toContain('```prisma');
@@ -393,7 +393,7 @@ describe('templates', () => {
           'mongo',
           'typescript',
           'src/prisma/contract.ts',
-          'pnpm prisma-next',
+          'pnpm prisma-cli',
         );
 
         expect(md).toContain('```typescript');
@@ -544,7 +544,7 @@ describe('templates', () => {
 
         it('quickReferenceMd is stable', () => {
           expect(
-            quickReferenceMd(target, authoring, schemaPath, 'pnpm prisma-next'),
+            quickReferenceMd(target, authoring, schemaPath, 'pnpm prisma-cli'),
           ).toMatchSnapshot();
         });
       });

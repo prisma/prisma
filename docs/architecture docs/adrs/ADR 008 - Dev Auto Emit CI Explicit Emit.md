@@ -48,7 +48,7 @@
 
 - Re-emit triggers when any of the following change:
   - PSL file or TS builder entry
-  - `prisma-next.config.ts` fields that affect naming, target, or capabilities
+  - `prisma.config.ts` fields that affect naming, target, or capabilities
   - Adapter version that changes capability flags
 - Derived artifacts are replaced atomically to avoid partial reads
 

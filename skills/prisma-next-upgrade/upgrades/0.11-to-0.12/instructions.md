@@ -263,7 +263,7 @@ Run the colocated script from your project root:
 pnpm exec tsx ./re-emit-closed-mongo-contracts.ts
 ```
 
-It finds every directory with a `prisma-next.config.ts` and a committed Mongo `contract.json`, then runs `pnpm emit` (or `prisma-next contract emit` when no emit script exists) in each. The regenerated `contract.json` / `contract.d.ts` pick up closed validators and an updated `storageHash`.
+It finds every directory with a `prisma.config.ts` and a committed Mongo `contract.json`, then runs `pnpm emit` (or `prisma-next contract emit` when no emit script exists) in each. The regenerated `contract.json` / `contract.d.ts` pick up closed validators and an updated `storageHash`.
 
 Use `--check` to list contracts that still need re-emitting without writing files:
 

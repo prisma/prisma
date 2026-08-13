@@ -1,6 +1,4 @@
 import { type } from 'arktype';
-import type { GlobalFlags } from '../../utils/global-flags';
-import type { TerminalUI } from '../../utils/terminal-ui';
 
 /**
  * arktype schema for the structured success document `init --json` writes
@@ -59,60 +57,6 @@ export type InstallStatus = InitOutput['packagesInstalled']['status'];
  */
 export function formatInitJson(output: InitOutput): string {
   return JSON.stringify(output, null, 2);
-}
-
-/**
- * Renders the human-readable outro on stderr (FR10.1). Re-uses the same
- * data structure as the JSON output so the two stay in lock-step.
- *
- * Warnings come before "Next steps" because they describe state the user
- * needs to be aware of before acting on the next-steps list.
- */
-export function renderInitOutro(ui: TerminalUI, output: InitOutput, flags: GlobalFlags): void {
-  if (flags.quiet || flags.json) {
-    return;
-  }
-
-  for (const warning of output.warnings) {
-    ui.warn(warning);
-  }
-
-  const lines: string[] = [];
-  lines.push(`Target:    ${output.target}`);
-  lines.push(`Authoring: ${output.authoring}`);
-  lines.push(`Schema:    ${output.schemaPath}`);
-  lines.push('');
-  lines.push('Files written:');
-  for (const file of output.filesWritten) {
-    lines.push(`  • ${file}`);
-  }
-
-  if (output.filesDeleted.length > 0) {
-    lines.push('');
-    lines.push('Removed (stale artifacts and retired skill directories):');
-    for (const file of output.filesDeleted) {
-      lines.push(`  • ${file}`);
-    }
-  }
-
-  if (output.packagesInstalled.status === 'installed') {
-    lines.push('');
-    lines.push('Packages installed:');
-    for (const dep of output.packagesInstalled.deps) {
-      lines.push(`  • ${dep}`);
-    }
-    for (const dep of output.packagesInstalled.devDeps) {
-      lines.push(`  • ${dep} (dev)`);
-    }
-  }
-
-  lines.push('');
-  lines.push('Next steps:');
-  for (const step of output.nextSteps) {
-    lines.push(`  ${step}`);
-  }
-
-  ui.note(lines.join('\n'), 'Done');
 }
 
 /**

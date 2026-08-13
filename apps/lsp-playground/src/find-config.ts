@@ -1,7 +1,7 @@
 import { access } from 'node:fs/promises';
 import { dirname, join, parse } from 'node:path';
 
-const CONFIG_FILENAME = 'prisma-next.config.ts';
+const CONFIG_FILENAME = 'prisma.config.ts';
 
 async function exists(path: string): Promise<boolean> {
   try {
@@ -14,7 +14,7 @@ async function exists(path: string): Promise<boolean> {
 
 /**
  * Walks up from the directory containing `absoluteSchemaPath` looking for an
- * existing `prisma-next.config.ts`. Returns its absolute path, or `undefined`
+ * existing `prisma.config.ts`. Returns its absolute path, or `undefined`
  * when none is found up to the filesystem root — in which case the caller
  * falls back to a generated default-postgres config.
  */

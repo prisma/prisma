@@ -22,7 +22,7 @@ The journey should pass on each of:
 ## Expected agent behavior
 
 - [ ] Recognises this as orientation, not a request to lecture about Prisma Next, recite features, or list CLI commands.
-- [ ] Reads `prisma-next.config.ts` to confirm target, authoring mode, contract source path, and `db.ts` location.
+- [ ] Reads `prisma.config.ts` to confirm target, authoring mode, contract source path, and `db.ts` location.
 - [ ] Reads the contract source to see what starter models exist.
 - [ ] Reads `.env` / `.env.example` to confirm `DATABASE_URL` is set (or proposes setting it).
 - [ ] **Names the contract path back to the user and frames its role**: something equivalent to *"Your contract is at `<path>`. It describes your app — your query types, migrations, and runtime types all flow from it."* This anchors the rest of the response.
@@ -42,7 +42,7 @@ The journey should pass on each of:
 - [ ] The user has one row written to the DB and one row read back, against a real database connection, within a single short interaction.
 - [ ] The user can answer *"where is my data described, and what does that file control?"* — i.e. the contract was named and its role explained.
 - [ ] `contract.json` and `contract.d.ts` were not regenerated unnecessarily (the agent didn't re-emit if no contract changes happened).
-- [ ] The agent did NOT walk the user through `prisma-next.config.ts` keys or PSL syntax before the first query landed.
+- [ ] The agent did NOT walk the user through `prisma.config.ts` keys or PSL syntax before the first query landed.
 - [ ] The agent did NOT propose adding multiple models, planning a migration, or wiring middleware as the first move.
 - [ ] The agent did NOT open with a Prisma Next tour, a "what is an ORM" explanation, a feature inventory, or a list of CLI commands.
 

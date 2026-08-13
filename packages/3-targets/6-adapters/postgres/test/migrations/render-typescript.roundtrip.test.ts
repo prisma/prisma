@@ -70,7 +70,7 @@ const adapterPostgresControlExport = pathToFileURL(
 ).href;
 
 /**
- * `MigrationCLI.run` requires a `prisma-next.config.ts` to assemble a
+ * `MigrationCLI.run` requires a `prisma.config.ts` to assemble a
  * `ControlStack`. Tests have no workspace `node_modules` resolution from
  * `tmpDir`, so we write a bespoke config alongside `migration.ts` whose
  * imports all use absolute `file://` URLs into the live workspace
@@ -83,11 +83,11 @@ const fixtureConfigSource = [
   `import sql from '${familySqlControlExport}';`,
   `import postgres from '${targetPostgresControlExport}';`,
   '',
-  'export default defineConfig({',
+  'export default { $prismaConfig: 1, orm: defineConfig({',
   '  family: sql,',
   '  target: postgres,',
   '  adapter: postgresAdapter,',
-  '});',
+  '}) };',
   '',
 ].join('\n');
 
@@ -206,7 +206,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
   beforeEach(async () => {
     tmpDir = await mkdtemp(join(tmpdir(), 'postgres-render-roundtrip-'));
     await writeFile(join(tmpDir, 'package.json'), '{"type":"module"}');
-    await writeFile(join(tmpDir, 'prisma-next.config.ts'), fixtureConfigSource);
+    await writeFile(join(tmpDir, 'prisma.config.ts'), fixtureConfigSource);
     // The rendered scaffold imports its from/to identity from committed
     // contract JSON (the base derives describe() from `storage.storageHash`)
     // and the matching `Contract` types. Write minimal fixtures so the

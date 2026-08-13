@@ -134,14 +134,14 @@ This is a deliberate divergence from clig.dev §Arguments §Confirmation. AI age
 #### Examples
 
 - `db update`: when the plan includes destructive ops, asks the user to type the database name; `--no-interactive --confirm <database>` applies without a prompt. The name is the `database` a driver connection object carries, or the connection URL's first path segment, else its host, falling back to the target id.
-- `prisma-next init`: re-running `init` in a directory with a generated `prisma-next.config.ts` asks the user to type the directory's basename; `-y` alone is not sufficient to authorise overwriting generated files. It is still on the commander shell, whose `--force` predates this rule and retires with its port.
+- `init`: re-running `init` in a directory with a generated `prisma.config.ts` asks the user to type the directory's basename; `-y` alone is not sufficient to authorise overwriting generated files. (The commander-era `--force` retired with the commander shell in the S5 cutover; the engine-hosted `init` uses the consent form above.)
 - `db sign`: the `--force` this guide lists in its flags was never implemented. When overwriting a marker with a different hash grows a switch, it takes the consent form above.
 
 ## Config & Environment
-- Config file names: `prisma-next.config.ts|.mjs|.js` (ESM); optional CJS fallback.
-- Discovery precedence: `--config <path>` > `PRISMA_NEXT_CONFIG` > nearest `prisma-next.config.*` in CWD (no upward search).
+- Config file names: `prisma.config.ts|.mjs|.js` (ESM); optional CJS fallback.
+- Discovery precedence: `--config <path>` > `PRISMA_NEXT_CONFIG` > nearest `prisma.config.*` in CWD (no upward search).
 - Precedence: flags > config > defaults.
-- Env policy: the CLI does not auto‑load `.env`. Apps may do so in `prisma-next.config.*` and pass values (e.g., `db.connection`).
+- Env policy: the CLI does not auto‑load `.env`. Apps may do so in `prisma.config.*` and pass values (e.g., `db.connection`).
 - Contract source: defined in config; no flag override.
 - Contract output directory: `--output-path <dir>` on `contract emit` sets the directory where `contract.json` and `contract.d.ts` are written. The filenames are canonical and not user-controlled. Precedence: `--output-path` flag > `output` in config > derived default (directory of the contract source file). The path is resolved relative to CWD. Extension wrappers (`defineConfig` from `@internal/mongo` and `@internal/postgres`) expose an `output?: string` option that maps directly to this config field.
 - Migration directory: defined in config; no flag override.
@@ -161,7 +161,7 @@ These codes have a fixed meaning across every Prisma Next CLI command. Specific 
 |---|---|---|
 | `0` | `OK` | The command completed and found nothing to report. |
 | `1` | `INTERNAL_ERROR` | Unexpected internal failure, crash, or bug. The command did not reach a documented outcome. Reserved for "this should not have happened". |
-| `2` | `PRECONDITION` | The command could not do its job: bad flags, missing required input, conflicting flags, missing prerequisite file. "Your invocation was wrong, fix it and try again." Matches commander.js and Linux convention (`misuse of shell builtin`). Never used for problems the command was asked to look for — those are findings; see [Completed with findings](#completed-with-findings). |
+| `2` | `PRECONDITION` | The command could not do its job: bad flags, missing required input, conflicting flags, missing prerequisite file. "Your invocation was wrong, fix it and try again." Matches Linux convention (`misuse of shell builtin`). Never used for problems the command was asked to look for — those are findings; see [Completed with findings](#completed-with-findings). |
 | `3` | `USER_ABORTED` | The user explicitly declined an interactive prompt (e.g. did not consent to a destructive overwrite). Distinct from signal-based interruption. |
 | `130` | — | Interrupted by SIGINT (Ctrl+C). POSIX convention (`128 + 2`). |
 | `143` | — | Terminated by SIGTERM. POSIX convention (`128 + 15`). |
@@ -207,10 +207,10 @@ Structured error codes (`CLI.INIT_MISSING_FLAGS`, `MIGRATION.UNFILLED_PLACEHOLDE
 When a verb or flag is removed from the CLI surface (e.g. during a surface refactor that promotes a subcommand to top-level, or splits a flag-overloaded verb into separate verbs), the CLI MUST emit a **targeted redirect** rather than a generic "unknown command" error. The redirect:
 
 - exits `2` (`PRECONDITION`),
-- prints `Unknown command: <name>` (or `Unknown option: <flag>`) followed by a single `Use \`prisma-next <new-form>\` instead.` line on stderr, and
+- prints `Unknown command: <name>` (or `Unknown option: <flag>`) followed by a single `Use \`<bin> <new-form>\` instead.` line on stderr (the engine renders the invoking bin), and
 - does **not** execute the new verb on the user's behalf (the redirect is a diagnostic, not a backwards-compat alias).
 
-Implementation: a small lookup table keyed by `<parent>:<subcommand>` (for verbs) or `<parent>:<subcommand>:<flag>` (for flags) is consulted during the pre-parse argv scan, before commander parses options. This keeps the redirect tied to a verb-and-flag form that is no longer registered while letting the new form's own help text and error envelopes work normally.
+Implementation: redirects are data on the command family (`RedirectSpec` in `src/orm/family.ts`); `@prisma/cli-engine` consults them before command resolution and substitutes `{bin}` in the replacement with the invoking bin's name. This keeps the redirect tied to a verb-and-flag form that is no longer registered while letting the new form's own help text and error envelopes work normally.
 
 Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry below is one row in the redirect table; the left column is the old form (no longer registered), the right column is the new top-level form:
 
@@ -249,7 +249,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
 - Prompts: target (Postgres or Mongo, default Postgres) and schema location (default `prisma/contract.prisma`). The contract output path is derived from the schema path (replace extension with `.json`); no separate prompt.
 - Detects the package manager from lockfiles (`pnpm-lock.yaml`, `yarn.lock`, `bun.lock`/`bun.lockb`, `package.json#packageManager`, falls back to npm), installs the target facade package as a dependency and `prisma-next` as a dev dependency, then runs `prisma-next contract emit` programmatically to produce `contract.json` and `contract.d.ts`.
 - Scaffolds (all colocated; no `src/prisma/` split):
-  - `prisma-next.config.ts` at the project root, importing `defineConfig` from the target facade (`@internal/postgres/config` or `@internal/mongo/config`). One import line, one function call.
+  - `prisma.config.ts` at the project root, importing `defineConfig` from the target facade (`@internal/postgres/config` or `@internal/mongo/config`). One import line, one function call.
   - `prisma/contract.prisma` (PSL) — starter schema with two related models so the user has something to query immediately.
   - `prisma/db.ts` — runtime client (e.g. `postgres<Contract>({ contractJson })`) typed against the emitted contract.
   - `prisma/contract.json` and `prisma/contract.d.ts` — emitted by the post-install `contract emit` step.
@@ -257,7 +257,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
   - `.agents/skills/prisma-next/SKILL.md` — agent skill so AI tooling in the project knows the layout and conventions.
   - `.env.example` with `DATABASE_URL=`; CLI still does not read `.env`.
   - After-init output: small celebratory header + a numbered "Next steps" list (edit the schema, run `pnpm prisma-next contract emit`, import `db` from `./prisma/db`).
-- Re-init detection: if `prisma-next.config.ts` already exists, init prompts once — *"This project is already initialized. Re-initialize? This will overwrite all generated files."* — and then either overwrites everything or exits. No per-file overwrite prompts.
+- Re-init detection: if `prisma.config.ts` already exists, init prompts once — *"This project is already initialized. Re-initialize? This will overwrite all generated files."* — and then either overwrites everything or exits. No per-file overwrite prompts.
 - `--no-install` skips dependency installation and contract emission, scaffolds the source files only, and prints the manual install + emit commands.
 - Artifacts: commit `contract.json` and `contract.d.ts` to VCS by default.
 - Adopter-visible dependency envelope after init: exactly two new entries in `package.json` (target facade + `prisma-next`); every other `@internal/*` package is pulled in transitively via the facade so emitted `contract.d.ts` imports resolve without `skipLibCheck` hiding broken types. The emitter additionally runs a post-emit dependency check and warns (non-blocking) when a `contract.d.ts` import is not resolvable.

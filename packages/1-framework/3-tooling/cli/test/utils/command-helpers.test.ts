@@ -1,13 +1,11 @@
 import { resolve } from 'node:path';
 import type { MigrationEdge } from '@internal/migration-tools/graph';
-import type { PathDecision } from '@internal/migration-tools/migration-graph';
 import { describe, expect, it } from 'vitest';
 import {
   maskConnectionUrl,
   resolveContractPath,
   resolveMigrationPaths,
   sanitizeErrorMessage,
-  toPathDecisionResult,
   toStructuralEdge,
 } from '../../src/utils/command-helpers';
 
@@ -109,107 +107,18 @@ describe('sanitizeErrorMessage', () => {
   });
 });
 
-describe('toPathDecisionResult', () => {
-  function decision(overrides: Partial<PathDecision> = {}): PathDecision {
-    return {
-      fromHash: 'from',
-      toHash: 'to',
-      alternativeCount: 0,
-      tieBreakReasons: [],
-      requiredInvariants: [],
-      satisfiedInvariants: [],
-      selectedPath: [],
-      ...overrides,
-    };
-  }
-
-  it('passes through requiredInvariants and satisfiedInvariants', () => {
-    const result = toPathDecisionResult(
-      decision({
-        requiredInvariants: ['X', 'Y'],
-        satisfiedInvariants: ['X'],
-      }),
-    );
-    expect(result.requiredInvariants).toEqual(['X', 'Y']);
-    expect(result.satisfiedInvariants).toEqual(['X']);
-  });
-
-  it('defaults requiredInvariants and satisfiedInvariants to empty arrays', () => {
-    // PathDecision declares these arrays required; wire inputs may omit keys.
-    // Exercise the ?? [] fallback inside toPathDecisionResult.
-    const input = { ...(decision() as unknown as Record<string, unknown>) };
-    delete input['requiredInvariants'];
-    delete input['satisfiedInvariants'];
-    // last-resort cast: PathDecision is strict; we omit keys to exercise ?? [] in implementation
-    const result = toPathDecisionResult(input as unknown as PathDecision);
-    expect(result.requiredInvariants).toEqual([]);
-    expect(result.satisfiedInvariants).toEqual([]);
-  });
-
-  it('emits per-edge invariants on each selectedPath entry', () => {
-    const result = toPathDecisionResult(
-      decision({
-        selectedPath: [
-          {
-            from: 'A',
-            to: 'B',
-            migrationHash: 'mh:1',
-            dirName: 'm1',
-            createdAt: '2026-01-01T00:00:00.000Z',
-            invariants: ['X', 'Y'],
-          },
-          {
-            from: 'B',
-            to: 'C',
-            migrationHash: 'mh:2',
-            dirName: 'm2',
-            createdAt: '2026-01-02T00:00:00.000Z',
-            invariants: [],
-          },
-        ],
-      }),
-    );
-    expect(result.selectedPath.map((e) => e.invariants)).toEqual([['X', 'Y'], []]);
-  });
-
-  it('omits createdAt from per-edge entries (slim view)', () => {
-    const result = toPathDecisionResult(
-      decision({
-        selectedPath: [
-          {
-            from: 'A',
-            to: 'B',
-            migrationHash: 'mh:1',
-            dirName: 'm1',
-            createdAt: '2026-01-01T00:00:00.000Z',
-            invariants: [],
-          },
-        ],
-      }),
-    );
-    const entry = result.selectedPath[0]!;
-    expect(Object.keys(entry).sort()).toEqual([
-      'dirName',
-      'from',
-      'invariants',
-      'migrationHash',
-      'to',
-    ]);
-  });
-});
-
 describe('resolveMigrationPaths', () => {
   describe('a relative --config naming a project other than the invocation directory', () => {
     it('resolves the config path against cwd, not the process working directory', () => {
-      const paths = resolveMigrationPaths('../app/prisma-next.config.ts', {}, '/work/scratch');
+      const paths = resolveMigrationPaths('../app/prisma.config.ts', {}, '/work/scratch');
 
       expect(paths.migrationsDir).toBe('/work/app/migrations');
-      expect(paths.configPath).toBe('../app/prisma-next.config.ts');
+      expect(paths.configPath).toBe('../app/prisma.config.ts');
     });
 
     it('anchors an explicit migrations dir on the config file directory', () => {
       const paths = resolveMigrationPaths(
-        '../app/prisma-next.config.ts',
+        '../app/prisma.config.ts',
         { migrations: { dir: 'db' } },
         '/work/scratch',
       );
@@ -220,7 +129,7 @@ describe('resolveMigrationPaths', () => {
 
   describe('an absolute --config', () => {
     it('is unaffected by cwd', () => {
-      const paths = resolveMigrationPaths('/app/prisma-next.config.ts', {}, '/tmp');
+      const paths = resolveMigrationPaths('/app/prisma.config.ts', {}, '/tmp');
 
       expect(paths.migrationsDir).toBe('/app/migrations');
     });
@@ -231,7 +140,7 @@ describe('resolveMigrationPaths', () => {
       const paths = resolveMigrationPaths(undefined, {}, '/work/app');
 
       expect(paths).toMatchObject({
-        configPath: 'prisma-next.config.ts',
+        configPath: 'prisma.config.ts',
         migrationsDir: '/work/app/migrations',
         migrationsRelative: 'migrations',
       });

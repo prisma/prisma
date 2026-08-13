@@ -14,7 +14,7 @@ description: >-
 
 # Upgrade Prisma Next (extension)
 
-This skill upgrades a project that **is** a Prisma Next extension — a package that consumes the framework SPI (`@internal/contract`, `@internal/framework-components`, `@internal/migration-tools`, etc.) and exposes contract / middleware / codec / migration surfaces that downstream apps install via `prisma-next.config.ts`.
+This skill upgrades a project that **is** a Prisma Next extension — a package that consumes the framework SPI (`@internal/contract`, `@internal/framework-components`, `@internal/migration-tools`, etc.) and exposes contract / middleware / codec / migration surfaces that downstream apps install via `prisma.config.ts`.
 
 If the project you are upgrading is a consumer **app** (it imports `@internal/postgres` or `@internal/mongo` from its application code), use the `prisma-next-upgrade` skill instead — or both, if the repo contains both a consumer app and an extension package, in which case run the user flow first then the extension flow in the same session.
 
@@ -38,7 +38,7 @@ This skill applies when the project **is** a Prisma Next extension. Heuristics:
 
 - `package.json` declares `@internal/contract` (or another SPI package) under `dependencies` or `peerDependencies`, and
 - the package's `name` matches `^@.*/extension-` (the in-tree convention used by `@internal/extension-pgvector`, etc.), or
-- the package is referenced as an `extensions` entry from a sibling app's `prisma-next.config.ts` in the same monorepo.
+- the package is referenced as an `extensions` entry from a sibling app's `prisma.config.ts` in the same monorepo.
 
 If the project additionally consumes Prisma Next from its own app code, install the `prisma-next-upgrade` skill (`pnpm dlx skills add prisma/prisma/skills --skill prisma-next-upgrade -y`) and run the user flow first, then this flow in the same session.
 

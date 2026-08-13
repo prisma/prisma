@@ -21,7 +21,7 @@ Every event is a single JSON object with the fields below. Nothing else is sent.
 | `os` | string | `"darwin"` | From Node's `process.platform` |
 | `arch` | string | `"arm64"` | From Node's `process.arch` |
 | `packageManager` | string \| null | `"pnpm/10.27.0"` | Parsed from the `npm_config_user_agent` env var your package manager sets when invoking the CLI |
-| `databaseTarget` | string \| null | `"postgres"` | The `target.targetId` field from your `prisma-next.config.ts`, if a config is loaded |
+| `databaseTarget` | string \| null | `"postgres"` | The `target.targetId` field from your `prisma.config.ts`, if a config is loaded |
 | `tsVersion` | string \| null | `"5.9.3"` | The TypeScript version declared in your project's `package.json`, if readable |
 | `agent` | string \| null | `"claude"` | The detected AI coding agent, or `null`. See [Agent detection](#agent-detection) |
 | `extensions` | string[] | `["pgvector"]` | The `.id` values of the `extensions` declared in your config |
@@ -159,7 +159,7 @@ When `enableTelemetry` is absent — because you've never made an explicit choic
 
 ## Per-user, not per-project
 
-Your telemetry preference lives in your user-level config file, not in your project's `prisma-next.config.ts`. There is intentionally no project-level telemetry toggle.
+Your telemetry preference lives in your user-level config file, not in your project's `prisma.config.ts`. There is intentionally no project-level telemetry toggle.
 
 The reason is straightforward: one developer's telemetry choice should not be imposed on their teammates. A project-level setting committed to a repository would do exactly that — one person opting out (or in) would silently flip everyone who cloned the repo. The per-user file means each person on a team makes their own choice, and changing it never produces a diff in version control.
 

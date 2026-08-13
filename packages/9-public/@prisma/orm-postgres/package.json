@@ -49,7 +49,6 @@
     "./adapter/runtime": "./dist/adapter__runtime.mjs",
     "./adapter/sql-renderer": "./dist/adapter__sql-renderer.mjs",
     "./adapter/types": "./dist/adapter__types.mjs",
-    "./bin/prisma-next": "./dist/bin__prisma-next.mjs",
     "./builder": "./dist/builder.mjs",
     "./builder/runtime": "./dist/builder__runtime.mjs",
     "./builder/types": "./dist/builder__types.mjs",
@@ -109,6 +108,7 @@
     "./family-contract/validators": "./dist/family-contract__validators.mjs",
     "./family-contract/value-set-derivation-hook": "./dist/family-contract__value-set-derivation-hook.mjs",
     "./family-runtime": "./dist/family-runtime.mjs",
+    "./family-runtime/internal/prepared-query": "./dist/family-runtime__internal__prepared-query.mjs",
     "./migration": "./dist/migration.mjs",
     "./migration-tools/aggregate": "./dist/migration-tools__aggregate.mjs",
     "./migration-tools/contract-snapshot-store": "./dist/migration-tools__contract-snapshot-store.mjs",
@@ -180,9 +180,6 @@
     "./utils/types": "./dist/utils__types.mjs",
     "./vite-plugin-contract-emit": "./dist/vite-plugin-contract-emit.mjs",
     "./package.json": "./package.json"
-  },
-  "bin": {
-    "prisma-next": "./dist/bin__prisma-next.mjs"
   },
   "repository": {
     "type": "git",

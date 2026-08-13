@@ -62,7 +62,7 @@ type SchemaVerifyDocument = CombinedVerifyResult['result'] & {
 
 const PUSH_THE_CONTRACT = runCommandAction(
   'Push the contract to the database',
-  'prisma-next db update',
+  'prisma-cli db update',
 );
 const RECONCILE_BY_HAND: NextAction = {
   kind: 'user-choice',

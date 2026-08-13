@@ -10,7 +10,7 @@ import { slowQueryWarning } from './slow-query-warning';
 export const db = postgres<Contract>({
   contractJson,
   // The runtime half of the `stddev` contribution; its control half is
-  // composed in `prisma-next.config.ts`, where the emitted types come from.
+  // composed in `prisma.config.ts`, where the emitted types come from.
   extensions: [pgvector, engagementStatsRuntime],
   middleware: [
     // Cache first: interceptors are consulted in registration order and

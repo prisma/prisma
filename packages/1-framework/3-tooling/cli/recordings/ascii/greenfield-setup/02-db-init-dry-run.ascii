@@ -194,7 +194,7 @@
 > prisma-next db init --dry-run
 prisma-next db init → Bootstrap a database to match the current contract
 │
-│ config:               prisma-next.config.ts
+│ config:               prisma.config.ts
 │ contract:             contract.json
 │ mode:                 dry run
 │

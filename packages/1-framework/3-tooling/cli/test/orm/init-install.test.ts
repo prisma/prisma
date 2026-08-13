@@ -89,7 +89,7 @@ describe('init installs', () => {
         },
         {
           file: expect.any(String),
-          args: ['add', '-D', 'prisma-next', '@types/node'],
+          args: ['add', '-D', '@prisma/cli@next', '@prisma/cli-engine', '@types/node'],
           cwd: projectDir,
         },
       ]);
@@ -98,7 +98,7 @@ describe('init installs', () => {
         packagesInstalled: {
           status: 'installed',
           deps: ['@prisma/orm-postgres', 'dotenv'],
-          devDeps: ['prisma-next', '@types/node'],
+          devDeps: ['@prisma/cli@next', '@prisma/cli-engine', '@types/node'],
         },
         contractEmitted: true,
       });
@@ -257,7 +257,7 @@ describe('init installs', () => {
         expect(calls.map((call) => `${call.file} ${call.args.join(' ')}`)).toEqual([
           'pnpm add @prisma/orm-postgres dotenv',
           'npm add @prisma/orm-postgres dotenv',
-          'npm add -D prisma-next @types/node',
+          'npm add -D @prisma/cli@next @prisma/cli-engine @types/node',
         ]);
         expect(run.events).toContainEqual(
           expect.objectContaining({
@@ -370,7 +370,7 @@ describe('init installs', () => {
           contractEmitted: false,
         });
         expect(run.presented?.presentation.next).toContainEqual(
-          expect.objectContaining({ kind: 'run-command', command: 'prisma-next contract emit' }),
+          expect.objectContaining({ kind: 'run-command', command: 'prisma-cli contract emit' }),
         );
       },
       timeouts.coldTransformImport,

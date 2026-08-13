@@ -3,7 +3,7 @@
 // Declares one user-owned `User` table. The two internal extension
 // packages (`packages/audit`, `packages/feature-flags`) contribute
 // their own tables via separate contract spaces composed in
-// `prisma-next.config.ts` under `extensions`.
+// `prisma.config.ts` under `extensions`.
 
 model User {
   id    String @id

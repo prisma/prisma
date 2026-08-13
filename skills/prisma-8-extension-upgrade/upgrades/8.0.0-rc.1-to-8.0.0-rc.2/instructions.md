@@ -273,6 +273,36 @@ changes:
         - ".queryPrepared("
         - ".execute("
       anyMatch: true
+  - id: config-file-is-prisma-config-with-an-orm-section
+    summary: |
+      The CLI config file is `prisma.config.ts` — the `prisma-next.config.ts` name is
+      deprecated — and the config value is engine-shaped: `defineConfig` from
+      `@prisma/cli-engine` wraps the whole ORM config as its `orm` section. Rename the file,
+      then wrap the existing export: alias the current `defineConfig` import (from the target
+      facade or CLI config-types) as `ormConfig` and write
+      `export default defineConfig({ orm: ormConfig({ ...existing config... }) })`, adding
+      `@prisma/cli-engine` to devDependencies. Both the deprecated filename and the flat shape
+      still load, each printing a deprecation warning on stderr, so the two steps can land
+      separately; anything asserting clean stderr around CLI invocations sees the warning
+      until both are done.
+    detection:
+      glob: "**/prisma*.config.*"
+      contains:
+        - "defineConfig"
+      anyMatch: true
+  - id: published-prisma-next-bin-retired
+    summary: |
+      Nothing published ships a `prisma-next` bin anymore: `@prisma/orm-toolchain` publishes
+      the `orm` command family at `@prisma/orm-toolchain/cli` and no bin, and the database
+      facades forward no launcher. The only user-facing binary is the unified `prisma` CLI
+      (the prisma-cli distribution), which mounts the same commands. Replace
+      `prisma-next <command>` invocations in package scripts and CI with the unified CLI's
+      equivalent, and drop any dependency that was taken only to put the bin on PATH.
+    detection:
+      glob: "**/package.json"
+      contains:
+        - "prisma-next"
+      anyMatch: true
 ---
 
 # 8.0.0-rc.1 → 8.0.0-rc.2 — Extension-author upgrade instructions
@@ -582,3 +612,34 @@ Connection, transaction, and role-bound scopes preserve their existing bound res
 Middleware hooks are operation-specific: query uses `beforeQuery`, `interceptQuery`, `onRow`, and `afterQuery`; statistics uses `beforeExecute`, `interceptExecute`, and `afterExecute`; `beforeCompile` remains shared. `interceptQuery` returns `{ rows }`, `interceptExecute` returns `{ stats }`, and hook selection carries the operation distinction, so contexts and results have no operation discriminator. Do not add compatibility aliases or generic fallback hooks. Split row and statistics fakes and spies so tests detect an incorrect route. Behavior intended for both operations assigns one private implementation to both corresponding hook names.
 
 The Mongo facade keeps static `db.query`; it has no row-execution method named `query` and no compatibility `db.execute`. Build with `db.query`, obtain the connected runtime, and call `(await db.runtime()).query(plan)`. Leave genuine statistics calls, migration runners, and unrelated APIs named `execute` unchanged.
+
+## `config-file-is-prisma-config-with-an-orm-section`
+
+Two mechanical steps, in either order:
+
+1. `git mv prisma-next.config.ts prisma.config.ts` (same for `.mts` / `.mjs` variants).
+2. Wrap the flat export in the engine shape:
+
+```ts
+// before
+import { defineConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ ... });
+
+// after
+import { defineConfig } from '@prisma/cli-engine';
+import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ orm: ormConfig({ ... }) });
+```
+
+Add `@prisma/cli-engine` to `devDependencies`. The inner config is unchanged — only the file
+name and the outer wrapper move. The loader still discovers the deprecated filename and still
+accepts the flat shape, each with a stderr deprecation warning, so nothing breaks mid-rename;
+finish both steps to silence the warnings.
+
+## `published-prisma-next-bin-retired`
+
+`prisma-next ...` in a package script resolved through a bin the database facades forwarded
+from the toolchain. That chain is gone: the published toolchain is bin-less and exports the
+`orm` command family at `@prisma/orm-toolchain/cli` for the unified `prisma` CLI (the
+prisma-cli distribution) to mount. Point scripts and CI at the unified CLI, which serves the
+same command paths.

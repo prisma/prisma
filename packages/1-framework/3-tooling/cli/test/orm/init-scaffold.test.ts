@@ -190,7 +190,7 @@ describe('init scaffold', () => {
               path: '.env.example',
               filesWritten: [
                 'src/prisma/contract.prisma',
-                'prisma-next.config.ts',
+                'prisma.config.ts',
                 'src/prisma/db.ts',
                 'prisma-next.md',
               ],
@@ -216,7 +216,7 @@ describe('init scaffold', () => {
 
         expect(envelopeOf(run)).toMatchObject({ ok: true });
         expect(run.exitCode).toBe(0);
-        expect(calls[1]?.args).toEqual(['add', '-D', 'prisma-next']);
+        expect(calls[1]?.args).toEqual(['add', '-D', '@prisma/cli@next', '@prisma/cli-engine']);
       },
       timeouts.coldTransformImport,
     );

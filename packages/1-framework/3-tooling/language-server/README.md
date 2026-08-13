@@ -2,7 +2,7 @@
 
 > **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next) and is published only to support its runtime. Its API is unstable and may change without notice. Do not depend on this package directly; install `prisma-next` instead.
 
-The Prisma Next language server speaks the Language Server Protocol over stdio for PSL schema inputs declared in a project's `prisma-next.config.ts`. It is launched by the `prisma-next lsp` subcommand, so editor features come from the project's own Prisma Next version and stay version-matched by construction.
+The Prisma Next language server speaks the Language Server Protocol over stdio for PSL schema inputs declared in a project's `prisma.config.ts`. It is launched by the `prisma-next lsp` subcommand, so editor features come from the project's own Prisma Next version and stay version-matched by construction.
 
 ## Scope
 

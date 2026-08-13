@@ -26,7 +26,7 @@ const tscPath = resolve(__dirname, '../node_modules/.bin/tsc');
  * Mirrors the file set `runInit` writes for a fresh project (no pre-existing
  * tsconfig). We exercise the templates directly rather than calling `runInit`
  * because the FR2.3 acceptance criterion is about the templates' composition
- * (`prisma-next.config.ts` + `prisma/db.ts` + `tsconfig.json` + emitted
+ * (`prisma.config.ts` + `prisma/db.ts` + `tsconfig.json` + emitted
  * contract artefacts) typechecking together; `runInit`'s surrounding I/O
  * (hygiene file merges, install spawn, prompts) is unit-tested elsewhere
  * (`init.test.ts`, `hygiene.test.ts`, `tsconfig-env.test.ts`) and is not what
@@ -44,7 +44,7 @@ function writeInitFiles(
   mkdirSync(join(testDir, schemaDir), { recursive: true });
   writeFileSync(join(testDir, schemaPath), starterSchema(target, authoring), 'utf-8');
 
-  const configPath = join(testDir, 'prisma-next.config.ts');
+  const configPath = join(testDir, 'prisma.config.ts');
   writeFileSync(configPath, configFile(target, `./${schemaPath}`), 'utf-8');
 
   writeFileSync(join(testDir, schemaDir, 'db.ts'), dbFile(target), 'utf-8');
@@ -128,7 +128,7 @@ describe('init generates a typecheckable project', () => {
 
   // FR2.3: a freshly-initialised project typechecks across all four
   // (target × authoring) cells. Each cell is the full chain `init` users
-  // see: scaffolded contract source + `prisma-next.config.ts` (with the
+  // see: scaffolded contract source + `prisma.config.ts` (with the
   // `import 'dotenv/config'` and `process.env['DATABASE_URL']!` shape that
   // requires `@types/node`) + `prisma/db.ts` (which imports `./contract.d`
   // and `./contract.json`) + emitted contract artefacts.

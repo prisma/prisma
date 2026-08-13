@@ -100,7 +100,7 @@ Decide, per PR, whether it earns a line in the public notes. The rubric biases t
 **Always include:**
 
 - Anything flagged **breaking**.
-- Anything touching the **public surface**: package exports (`@internal/*` public API), CLI commands/flags, `prisma-next.config.ts` fields, the contract format (`contract.json` / `contract.d.ts` shape), on-disk migration shape, or error codes.
+- Anything touching the **public surface**: package exports (`@internal/*` public API), CLI commands/flags, `prisma.config.ts` fields, the contract format (`contract.json` / `contract.d.ts` shape), on-disk migration shape, or error codes.
 
 **Default-exclude unless user-relevant:**
 

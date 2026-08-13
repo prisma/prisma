@@ -1,8 +1,10 @@
 # @internal/cli
 
-> **For the CLI command, install [`prisma-next`](https://www.npmjs.com/package/prisma-next).**
-> The public `prisma-next` package ships the `prisma-next` binary and nothing
-> else — it has no library exports.
+> **For the CLI command, install [`@prisma/cli`](https://www.npmjs.com/package/@prisma/cli) (`@next` dist-tag).**
+> The unified `prisma-cli` binary mounts this package's `orm` command family;
+> the standalone `prisma-next` npm package is no longer published. Inside this
+> workspace a `prisma-next` bin still exists for examples and development — it
+> is the same engine entry (`dist/bin.mjs`), just workspace-local.
 >
 > This package (`@internal/cli`) is both the CLI's implementation and the
 > documented programmatic-API import target. Authors of build integrations,
@@ -13,8 +15,9 @@
 > (`@internal/postgres/config`, `@internal/mongo/config`); prefer those
 > for application-level config.
 >
-> This README is architecture and internal documentation for contributors;
-> the user-facing README lives in the `prisma-next` package.
+> This README is architecture and internal documentation for contributors.
+> Command examples below use the workspace-local `prisma-next` bin; end users
+> run the same commands through `prisma-cli`.
 
 Command-line interface for Prisma Next contract emission and management.
 
@@ -33,16 +36,15 @@ Provide a command-line interface that:
 ## Responsibilities
 
 - **TS Contract Loading**: Bundle and load TypeScript contract files with import allowlist enforcement
-- **CLI Command Interface**: Parse arguments and route to command handlers using commander
+- **CLI Command Interface**: Contribute the `orm` command family to the `@prisma/cli-engine` shell; the engine parses arguments, prints help, and settles results
 - **File I/O**: Read TS contracts, write emitted artifacts (`contract.json`, `contract.d.ts`)
 - **Extension Pack Descriptor Assembly**: Collect adapter and extension descriptors for emission
-- **Help Output Formatting**: Custom styled help output with command trees and formatted descriptions
-- **Config Management**: Load and validate `prisma-next.config.ts` files using Arktype validation
-- **CLI Binary Compatibility**: Build emits `dist/cli.mjs` and also writes a compatibility shim at `dist/cli.js`
+- **Config Management**: Load and validate `prisma.config.ts` files using Arktype validation
+- **Workspace-local bin**: Build emits `dist/bin.mjs`, the engine entry the workspace's `prisma-next` bin points at (the published toolchain ships no bin; the unified `prisma` CLI mounts the family instead)
 
 ### Wiring validation
 
-The CLI performs **wiring validation** at the composition boundary: it ensures the emitted contract artifacts are compatible with the descriptors wired in `prisma-next.config.ts`.
+The CLI performs **wiring validation** at the composition boundary: it ensures the emitted contract artifacts are compatible with the descriptors wired in `prisma.config.ts`.
 
 This prevents runtime mismatches (for example: a contract that declares extension packs, but a config that doesn’t provide the matching descriptors).
 
@@ -58,12 +60,7 @@ If you hit a wiring validation error: add the required descriptors to `config.ex
 
 ## Command Descriptions
 
-Commands use separate short and long descriptions via `setCommandDescriptions()`:
-
-- **Short description**: One-liner used in command trees and headers (e.g., "Emit signed contract artifacts")
-- **Long description**: Multiline text shown at the bottom of help output with detailed context
-
-See `src/utils/command-helpers.ts` for `setCommandDescriptions()` and `getLongDescription()`.
+Each engine command declares a `brief` (one-liner used in command trees and headers) and a `description` (multiline text shown in help output). Both live on the command definitions under `src/orm/`; the engine renders them.
 
 ## Commands
 
@@ -98,7 +95,7 @@ export default defineConfig({
 ```
 
 Options:
-- `--config <path>`: Optional. Path to `prisma-next.config.ts` (defaults to `./prisma-next.config.ts` if present)
+- `--config <path>`: Optional. Path to `prisma.config.ts` (defaults to `./prisma.config.ts` if present)
 - `--json`: Output as JSON object
 - `-q, --quiet`: Quiet mode (errors only)
 - `-v, --verbose`: Verbose output (debug info, timings)
@@ -128,7 +125,7 @@ prisma-next db verify [--db <url>] [--config <path>] [--marker-only | --schema-o
 
 Options:
 - `--db <url>`: Database connection string (optional; defaults to `config.db.connection` if set)
-- `--config <path>`: Optional. Path to `prisma-next.config.ts` (defaults to `./prisma-next.config.ts` if present)
+- `--config <path>`: Optional. Path to `prisma.config.ts` (defaults to `./prisma.config.ts` if present)
 - `--marker-only`: Skip schema verification and only check the database marker
 - `--schema-only`: Skip marker verification and only check whether the live schema satisfies the contract
 - `--strict`: When schema verification runs, schema elements not present in the contract are considered an error
@@ -264,7 +261,7 @@ Schema drift failure:
     "strict": false
   },
   "meta": {
-    "configPath": "/path/to/prisma-next.config.ts",
+    "configPath": "/path/to/prisma.config.ts",
     "contractPath": "/path/to/src/prisma/contract.json",
     "schemaVerification": "performed"
   },
@@ -326,7 +323,7 @@ prisma-next db schema [--db <url>] [--config <path>] [--json] [-v] [-q] [--color
 
 Options:
 - `--db <url>`: Database connection string (optional; defaults to `config.db.connection` if set)
-- `--config <path>`: Optional. Path to `prisma-next.config.ts` (defaults to `./prisma-next.config.ts` if present)
+- `--config <path>`: Optional. Path to `prisma.config.ts` (defaults to `./prisma.config.ts` if present)
 - `--json`: Output as JSON object
 - `-q, --quiet`: Quiet mode (errors only)
 - `-v, --verbose`: Verbose output (debug info, timings)
@@ -359,7 +356,7 @@ prisma-next contract infer [--db <url>] [--config <path>] [--output <path>] [--j
 
 Options:
 - `--db <url>`: Database connection string (optional; defaults to `config.db.connection` if set)
-- `--config <path>`: Optional. Path to `prisma-next.config.ts` (defaults to `./prisma-next.config.ts` if present)
+- `--config <path>`: Optional. Path to `prisma.config.ts` (defaults to `./prisma.config.ts` if present)
 - `--output <path>`: Write the inferred PSL contract to the specified path
 - `--json`: Output a JSON result envelope (includes `psl.path`)
 - `-q, --quiet`: Quiet mode (errors only)
@@ -470,7 +467,7 @@ sql schema (tables: 2)
     }
   },
   "meta": {
-    "configPath": "/path/to/prisma-next.config.ts",
+    "configPath": "/path/to/prisma.config.ts",
     "dbUrl": "postgresql://user:pass@localhost/db"
   },
   "timings": {
@@ -516,7 +513,7 @@ prisma-next db sign [--db <url>] [--config <path>] [--json] [-v] [-q] [--color/-
 
 Options:
 - `--db <url>`: Database connection string (optional; defaults to `config.db.connection` if set)
-- `--config <path>`: Optional. Path to `prisma-next.config.ts` (defaults to `./prisma-next.config.ts` if present)
+- `--config <path>`: Optional. Path to `prisma.config.ts` (defaults to `./prisma.config.ts` if present)
 - `--json`: Output as JSON object
 - `-q, --quiet`: Quiet mode (errors only)
 - `-v, --verbose`: Verbose output (debug info, timings)
@@ -631,7 +628,7 @@ Failure (schema mismatch):
     "updated": false
   },
   "meta": {
-    "configPath": "/path/to/prisma-next.config.ts",
+    "configPath": "/path/to/prisma.config.ts",
     "contractPath": "/path/to/src/prisma/contract.json"
   },
   "timings": {
@@ -662,7 +659,7 @@ For updated markers:
     }
   },
   "meta": {
-    "configPath": "/path/to/prisma-next.config.ts",
+    "configPath": "/path/to/prisma.config.ts",
     "contractPath": "/path/to/src/prisma/contract.json"
   },
   "timings": {
@@ -720,7 +717,7 @@ prisma-next db init [--db <url>] [--config <path>] [--dry-run] [--json] [-v] [-q
 
 Options:
 - `--db <url>`: Database connection string (optional; defaults to `config.db.connection` if set)
-- `--config <path>`: Optional. Path to `prisma-next.config.ts` (defaults to `./prisma-next.config.ts` if present)
+- `--config <path>`: Optional. Path to `prisma.config.ts` (defaults to `./prisma.config.ts` if present)
 - `--dry-run`: Only show the migration plan, do not apply it
 - `--json [format]`: Output as JSON (`object` only; `ndjson` is not supported for this command)
 - `-q, --quiet`: Quiet mode (errors only)
@@ -792,7 +789,7 @@ export default defineConfig({
 
 ```
 prisma-next db init ➜ Bootstrap a database to match the current contract
-  config:          prisma-next.config.ts
+  config:          prisma.config.ts
   contract:        src/prisma/contract.json
   mode:            plan (dry run)
 
@@ -813,7 +810,7 @@ Run without --dry-run to apply changes.
 
 ```
 prisma-next db init ➜ Bootstrap a database to match the current contract
-  config:          prisma-next.config.ts
+  config:          prisma.config.ts
   contract:        src/prisma/contract.json
 
 Applying migration plan and verifying schema...
@@ -889,13 +886,13 @@ prisma-next db update [--db <url>] [--config <path>] [--dry-run] [-y|--yes] [--i
 **Error codes (additional to shared CLI/runtime codes):**
 - `RUNNER_FAILED`: runner rejected apply (origin mismatch, failed checks, policy failures, or execution errors)
 
-**Config File (`prisma-next.config.ts`):**
+**Config File (`prisma.config.ts`):**
 
 The CLI uses a config file to specify the target family, target, adapter, extensions, and contract.
 
 **Config Discovery:**
 - `--config <path>`: Explicit path (relative or absolute)
-- Default: `./prisma-next.config.ts` in current working directory
+- Default: `./prisma.config.ts` in current working directory
 - No upward search (stays in CWD)
 
 **Note:** The CLI uses `c12` for config loading, but constrains it to the current working directory (no upward search) to match the style guide's discovery precedence.
@@ -939,7 +936,7 @@ prisma-next migration plan [--config <path>] [--name <slug>] [--from <contract>]
 ```
 
 **Options:**
-- `--config <path>`: Path to `prisma-next.config.ts`
+- `--config <path>`: Path to `prisma.config.ts`
 - `--name <slug>`: Name slug for the migration directory (default: `migration`)
 - `--from <contract>`: Starting contract reference (hash, prefix, ref name, migration directory, `<dir>^`, or filesystem path). Defaults to the `db` ref (greenfield when absent).
 - `--to <contract>`: Destination contract reference (same grammar as `--from`). Defaults to the emitted `contract.json`. Use `--to <migration-dir>^` to plan a rollback toward a predecessor state.
@@ -973,7 +970,7 @@ prisma-next migration show [target] [--config <path>] [--json] [-v] [-q] [--colo
 
 **Options:**
 - `[target]`: Migration directory path or `migrationHash` prefix (defaults to latest)
-- `--config <path>`: Path to `prisma-next.config.ts`
+- `--config <path>`: Path to `prisma.config.ts`
 - `--json`: Output as JSON object
 - `-q, --quiet`: Quiet mode (errors only)
 - `-v, --verbose`: Verbose output
@@ -1001,7 +998,7 @@ prisma-next migration status [--db <url>] [--ref <name>] [--config <path>] [--js
 **Options:**
 - `--db <url>`: Database connection string (enables online mode)
 - `--ref <name>`: Target a named ref from `migrations/refs.json` instead of the current contract hash
-- `--config <path>`: Path to `prisma-next.config.ts`
+- `--config <path>`: Path to `prisma.config.ts`
 - `--json`: Output as JSON object
 - `-q, --quiet`: Quiet mode (errors only)
 - `-v, --verbose`: Verbose output
@@ -1029,7 +1026,7 @@ prisma-next migrate [--db <url>] [--to <contract>] [--config <path>] [--json] [-
 - `--db <url>`: Database connection string (optional; defaults to `config.db.connection`)
 - `--to <contract>`: Target contract reference (hash, prefix, ref name, migration directory, `<dir>^`, or filesystem path). When omitted, applies toward the emitted `contract.json`. When `--to` resolves to an on-disk graph node, verification and apply use the snapshot store entry for that node's hash — so a planned rollback or other arbitrary-target edge applies without editing contract source.
 - `--ref <name>`: Target a named ref from `migrations/refs.json` instead of the current contract hash
-- `--config <path>`: Path to `prisma-next.config.ts`
+- `--config <path>`: Path to `prisma.config.ts`
 - `--json`: Output as JSON object
 - `-q, --quiet`: Quiet mode (errors only)
 - `-v, --verbose`: Verbose output (debug info, timings)
@@ -1063,9 +1060,9 @@ run `migration.ts` directly with Node to produce `ops.json` and attest
 node migrations/<dir>/migration.ts
 ```
 
-The scaffolded `migration.ts` calls `MigrationCLI.run(import.meta.url, ...)` from `@internal/cli/migration-cli` when invoked as the entrypoint. (Postgres and SQLite scaffolds re-export `MigrationCLI` through `@internal/postgres/migration` or `@internal/sqlite/migration` so a `migration.ts` only needs the single facade import; Mongo scaffolds still pull from `@internal/cli/migration-cli` directly.) The CLI entrypoint loads `prisma-next.config.ts`, assembles a `ControlStack`, instantiates the migration with that stack (so `dataTransform` and other adapter-aware helpers can materialize a real adapter), and serializes operations to `ops.json` while writing the content-addressed `migrationHash` into `migration.json`. If `migration.ts` contains unfilled `placeholder()` slots, the script exits with `PN-MIG-2001` and reports the slot to fill in.
+The scaffolded `migration.ts` calls `MigrationCLI.run(import.meta.url, ...)` from `@internal/cli/migration-cli` when invoked as the entrypoint. (Postgres and SQLite scaffolds re-export `MigrationCLI` through `@internal/postgres/migration` or `@internal/sqlite/migration` so a `migration.ts` only needs the single facade import; Mongo scaffolds still pull from `@internal/cli/migration-cli` directly.) The CLI entrypoint loads `prisma.config.ts`, assembles a `ControlStack`, instantiates the migration with that stack (so `dataTransform` and other adapter-aware helpers can materialize a real adapter), and serializes operations to `ops.json` while writing the content-addressed `migrationHash` into `migration.json`. If `migration.ts` contains unfilled `placeholder()` slots, the script exits with `PN-MIG-2001` and reports the slot to fill in.
 
-`MigrationCLI.run` accepts an optional third argument `{ argv?, stdout?, stderr? }` for in-process testability (default: `process.argv` / `process.stdout` / `process.stderr`) and returns the exit code as a `Promise<number>`. The flag surface is `--help` / `--dry-run` / `--config <path>`, parsed by [`clipanion`](https://github.com/arcanis/clipanion). The main multi-command surface (`prisma-next contract emit`, `db verify`, etc.) uses Commander; the per-migration `MigrationCLI.run` entrypoint uses clipanion to keep authored migration files lightweight and in-process testable.
+`MigrationCLI.run` accepts an optional third argument `{ argv?, stdout?, stderr? }` for in-process testability (default: `process.argv` / `process.stdout` / `process.stderr`) and returns the exit code as a `Promise<number>`. The flag surface is `--help` / `--dry-run` / `--config <path>`, parsed by [`clipanion`](https://github.com/arcanis/clipanion). The main multi-command surface (`contract emit`, `db verify`, etc.) runs on `@prisma/cli-engine`; the per-migration `MigrationCLI.run` entrypoint uses clipanion to keep authored migration files lightweight and in-process testable.
 
 ### `prisma-next migration ref`
 
@@ -1078,7 +1075,7 @@ prisma-next ref delete <name>                  # Delete a ref
 ```
 
 **Options (all subcommands):**
-- `--config <path>`: Path to `prisma-next.config.ts`
+- `--config <path>`: Path to `prisma.config.ts`
 - `--json`: Output as JSON object
 - `-q, --quiet`: Quiet mode (errors only)
 
@@ -1160,21 +1157,16 @@ See `.cursor/rules/config-validation-and-normalization.mdc` for detailed pattern
 
 ## Components
 
-### CLI Entry Point (`cli.ts`)
-- Main entry point using commander
-- Parses arguments and routes to command handlers
-- Handles global flags (`--help`, `--version`)
-- Exit codes: 0 (success), 1 (runtime error), 2 (usage/config error)
-- **Error Handling**: Uses `exitOverride()` to catch unhandled errors (non-structured errors that fail fast) and print stack traces. Commands handle structured errors themselves via `process.exit()`.
-- **Command Taxonomy**: Groups commands by domain/plane (e.g., `contract emit`)
-- **Help Formatting**: Uses `configureHelp()` to customize help output with styled format matching normal command output. Root help shows "prisma-next" title with command tree; command help shows "prisma-next <command> ➜ <description>" with options and docs URLs. See `utils/formatters/help.ts` for help formatters.
-- **Command Descriptions**: See the “Command Descriptions” section above for `setCommandDescriptions()` usage.
+### CLI Entry Point (`src/orm/cli.ts` + `src/bin.ts`)
+- `createOrmCli()` mounts the `orm` command family, groups, and command tree on `createCli()` from `@prisma/cli-engine`; the engine parses arguments, prints help, and settles result envelopes
+- `src/bin.ts` is the thin process entry: it adapts the host process into the engine's `Runtime` (`runtimeFromProcess`) and exits with the settled code
+- Exit codes, help output, `--json`, and shared flags (`--config`, `-q`, `-v`, `--color`) are engine policy, not implemented here
+- The unified `prisma-cli` bin mounts the same family from `@prisma/orm-toolchain/cli`
 
-### Contract Emit Command (`commands/contract-emit.ts`)
-- Canonical command implementation using commander
-- Supports global flags (JSON, verbosity, color, interactive, yes)
-- **Error Handling**: Uses structured errors (`CliStructuredError`), Result pattern, and `process.exit()`. Commands return `Result<T, CliStructuredError>`, process results with `handleResult()`, and call `process.exit(exitCode)` directly. See `.cursor/rules/cli-error-handling.mdc` for details.
-- Loads the user's config module (`prisma-next.config.ts`)
+### Contract Emit Command (`src/orm/contract/emit.ts`)
+- Engine command definition; the handler returns a settled envelope and the engine renders it
+- **Error Handling**: Structured errors (`CliStructuredError` from `@prisma/cli-engine/protocol`) carry `why`/`fix`/`nextActions`; the engine maps them to exit codes and output
+- Loads the user's config module (`prisma.config.ts`)
 - Resolves contract from provider:
   - Calls `config.contract.source.load(context)` — `context.resolvedInputs` carries the absolute paths the CLI loader resolved from `source.inputs` — and expects `Result<Contract, ContractSourceDiagnostics>`
   - Source-specific parsing/loading stays inside providers
@@ -1192,17 +1184,11 @@ See `.cursor/rules/config-validation-and-normalization.mdc` for detailed pattern
   - Returns result with hashes, file paths, and timings
   - Used by CLI command internally
 
-### Error Handling (`utils/errors.ts`, `utils/cli-errors.ts`, `utils/result.ts`, `utils/result-handler.ts`)
-- **Structured Errors**: Call sites throw `CliStructuredError` instances with full context (why, fix, docsUrl, etc.)
-- **Result Pattern**: Commands return `Result<T, CliStructuredError>` and use `handleResult()` for output and exit codes
-- **Error Conversion**: `CliStructuredError.toEnvelope()` converts errors to envelopes for output formatting
-- **Result Processing**: `handleResult()` processes Results, formats output, and returns exit codes
-- **Exit Codes**:
-  - Usage/config errors (PN-CLI-4001-4007) → exit code 2
-  - Runtime errors (PN-RUN-3xxx) → exit code 1
-  - Success → exit code 0
-- **Fail Fast**: Non-structured errors propagate and are caught by Commander.js's `exitOverride()` with stack traces
-- See `.cursor/rules/cli-error-handling.mdc` for detailed patterns
+### Error Handling (`utils/cli-errors.ts`, `src/orm/normalize-error.ts`)
+- **Structured Errors**: Call sites raise `CliStructuredError` (from `@prisma/cli-engine/protocol`) with full context (why, fix, nextActions, docsUrl)
+- **Settlement**: Handlers return settled envelopes; the engine renders them and maps them to exit codes (0 success, 1 runtime, 2 usage/config)
+- **Normalization**: `normalizeError` adapts legacy library errors into the engine envelope shape
+- **Fail Fast**: Non-structured errors propagate to the engine, which reports them as internal errors
 
 ### Pack Assembly
 - **Family instances** now handle pack assembly internally. The CLI creates a family instance via `config.family.create()` and reads assembly data (operation registry, type imports, extension IDs) from the instance.
@@ -1214,20 +1200,7 @@ See `.cursor/rules/config-validation-and-normalization.mdc` for detailed pattern
   - Paths are shown as relative paths from current working directory (using `relative(process.cwd(), path)`)
   - Success indicators use consistent checkmark (✔) throughout
 - **Error Output Formatters**: Format error output for human-readable and JSON display
-- **Styled Headers**: `formatStyledHeader()` creates styled headers for command output with "prisma-next <command> ➜ <description>" format
-  - Parameter labels include colons (e.g., `config:`, `contract:`)
-  - Uses fixed 20-character left column width for consistent alignment
-- **Help Formatters**:
-  - `formatRootHelp()` - Formats root help with "prisma-next" title, command tree, and multiline description
-  - `formatCommandHelp()` - Formats command help with "prisma-next <command> ➜ <description>", options, subcommands, docs URLs, and multiline description
-  - `renderCommandTree()` - Shared function to render hierarchical command trees with tree characters (├─, └─, │)
-  - **Fixed-Width Formatting**: All two-column output (help, styled headers) uses fixed 20-character left column width
-  - **Text Wrapping**: Right column wraps at 90 characters using `wrap-ansi` for ANSI-aware wrapping
-  - **Default Values**: Options with default values display `default: <value>` on the following line (dimmed)
-  - **ANSI-Aware Padding**: Uses `string-width` and `strip-ansi` to measure and pad text correctly with ANSI codes
-  - Help formatters use the same styling system as normal command output (colors, dim text, badges)
-  - Short descriptions appear in command trees and headers; long descriptions appear at the bottom of help output
-  - Help formatting is configured via `configureHelp()` in `cli.ts` to apply to all commands
+- **Help and headers**: Help output, styled headers, and command trees are rendered by `@prisma/cli-engine`; the remaining formatters here build presentation models (migration graph/list/log geometry) that commands emit as data
 
 ### Family Descriptor (provided by family /cli entrypoint)
 - The SQL family (and other families) provide:
@@ -1300,7 +1273,8 @@ export default defineConfig({
 
 ## Dependencies
 
-- **`commander`**: CLI argument parsing and command routing
+- **`@prisma/cli-engine`**: Command tree, argument parsing, help, settlement, telemetry hooks
+- **`clipanion`**: Flag parsing for the per-migration `MigrationCLI.run` entrypoint only
 - **`esbuild`**: Bundling TypeScript contract files with import allowlisting
 - **`@internal/emitter`**: Contract emission engine (returns strings)
 - **`@internal/migration-tools`**: On-disk migration I/O, hash verification, and history reconstruction
@@ -1311,7 +1285,7 @@ export default defineConfig({
 
 1. **Import Allowlist**: Only `@internal/*` packages allowed (MVP). Expand later if needed.
 2. **Utility Separation**: TS contract loading is a utility function, not a command. Commands use utilities.
-3. **CLI Framework**: Use `commander` library for robust CLI argument parsing.
+3. **CLI Framework**: Commands are `@prisma/cli-engine` definitions; the engine owns parsing, help, and settlement. (The commander shell was deleted in the S5 cutover.)
 4. **File I/O**: CLI handles all I/O; emitter returns strings (no file operations in emitter).
 5. **Generated File Metadata**: Adds `_generated` metadata field to `contract.json` to indicate it's a generated artifact. This field is excluded from canonicalization/hashing to ensure determinism. The `contract.d.ts` file includes warning header comments generated by the emitter hook.
 
@@ -1343,7 +1317,7 @@ const fixtureSubdir = 'emit';
 it('test description', async () => {
   const testSetup = setupTestDirectoryFromFixtures(
     fixtureSubdir,
-    'prisma-next.config.emit.ts',
+    'prisma.config.emit.ts',
   );
   const cleanupDir = testSetup.cleanup;
 
@@ -1446,7 +1420,7 @@ Operations return structured result types:
 
 | Aspect | CLI | Control API |
 |--------|-----|-------------|
-| Config | Reads `prisma-next.config.ts` | Accepts descriptors directly |
+| Config | Reads `prisma.config.ts` | Accepts descriptors directly |
 | File I/O | Reads contract.json from disk | Accepts contract directly |
 | Output | Formats for console | Returns structured data |
 | Exit codes | Uses `process.exit()` | Returns results/throws |

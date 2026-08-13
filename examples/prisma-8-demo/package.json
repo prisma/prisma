@@ -9,8 +9,8 @@
     "dev": "vite",
     "emit": "prisma-next contract emit",
     "emit:check": "pnpm emit && git diff --exit-code src/prisma/contract.json src/prisma/contract.d.ts",
-    "emit:psl": "prisma-next contract emit --config prisma-next.config.ts",
-    "emit:ts": "prisma-next contract emit --config prisma-next.config.ts-contract.ts",
+    "emit:psl": "prisma-next contract emit --config prisma.config.ts",
+    "emit:ts": "prisma-next contract emit --config prisma.config.contract-ts.ts",
     "db:init": "prisma-next db init",
     "db:drop": "tsx scripts/drop-db.ts",
     "seed": "tsx scripts/seed.ts",
@@ -32,6 +32,7 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@prisma/cli-engine": "0.0.9",
     "@prisma/dev": "catalog:",
     "@repo/test-utils": "workspace:8.0.0-rc.1",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",

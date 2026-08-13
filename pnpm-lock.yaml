@@ -73,6 +73,9 @@ importers:
       '@cursor/sdk':
         specifier: ^1.0.26
         version: 1.0.27
+      '@internal/cli':
+        specifier: workspace:8.0.0-rc.1
+        version: link:packages/1-framework/3-tooling/cli
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.1
         version: link:packages/1-framework/1-core/framework-components
@@ -219,6 +222,9 @@ importers:
         specifier: ^2.22.4
         version: 2.22.4(express@5.2.1)(hono@4.11.4)(next@16.2.12(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@prisma/compute-sdk':
         specifier: ^0.38.0
         version: 0.38.0(@prisma/management-api-sdk@1.53.0)(encoding@0.1.13)(rollup@4.59.0)
@@ -274,6 +280,9 @@ importers:
       '@cloudflare/workers-types':
         specifier: 4.20260702.1
         version: 4.20260702.1
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@prisma/dev':
         specifier: 'catalog:'
         version: 0.25.1(typescript@5.9.3)(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
@@ -323,6 +332,9 @@ importers:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.1
         version: link:../../packages/0-config/tsconfig
@@ -363,6 +375,9 @@ importers:
         specifier: ^19.2.8
         version: 19.2.8(react@19.2.8)
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../test/utils
@@ -406,6 +421,9 @@ importers:
         specifier: workspace:8.0.0-rc.1
         version: link:../../packages/9-public/@prisma/orm-postgres
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../test/utils
@@ -440,6 +458,9 @@ importers:
         specifier: 'catalog:'
         version: 8.22.0
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../test/utils
@@ -480,6 +501,9 @@ importers:
       '@cloudflare/workers-types':
         specifier: 4.20260702.1
         version: 4.20260702.1
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.1
         version: link:../../packages/0-config/tsconfig
@@ -529,6 +553,9 @@ importers:
         specifier: ^19.2.8
         version: 19.2.8(react@19.2.8)
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@prisma/dev':
         specifier: 'catalog:'
         version: 0.25.1(typescript@5.9.3)(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
@@ -587,6 +614,9 @@ importers:
         specifier: ^17.4.2
         version: 17.4.2
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.1
         version: link:../../packages/0-config/tsconfig
@@ -633,6 +663,9 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0(leaflet@1.9.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../test/utils
@@ -694,6 +727,9 @@ importers:
         specifier: ^8.1.0
         version: 8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@prisma/dev':
         specifier: 'catalog:'
         version: 0.25.1(typescript@5.9.3)(vite@8.1.4(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
@@ -794,6 +830,9 @@ importers:
         specifier: ^4.3.3
         version: 4.3.3
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../test/utils
@@ -840,6 +879,9 @@ importers:
         specifier: 'catalog:'
         version: 8.22.0
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../test/utils
@@ -1215,9 +1257,6 @@ importers:
 
   packages/1-framework/3-tooling/cli:
     dependencies:
-      '@clack/prompts':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@internal/cli-telemetry':
         specifier: workspace:8.0.0-rc.1
         version: link:../cli-telemetry
@@ -1275,9 +1314,6 @@ importers:
       colorette:
         specifier: ^2.0.20
         version: 2.0.20
-      commander:
-        specifier: ^15.0.0
-        version: 15.0.0
       esbuild:
         specifier: ^0.28.1
         version: 0.28.1
@@ -3000,6 +3036,9 @@ importers:
       '@internal/target-postgres':
         specifier: workspace:8.0.0-rc.1
         version: link:../../3-targets/3-targets/postgres
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../test/utils
@@ -3085,6 +3124,9 @@ importers:
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.1
         version: link:../../2-sql/2-authoring/contract-ts
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../test/utils
@@ -3164,6 +3206,9 @@ importers:
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.1
         version: link:../../2-sql/2-authoring/contract-ts
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../test/utils
@@ -3510,6 +3555,9 @@ importers:
       '@internal/sql-contract-psl':
         specifier: workspace:8.0.0-rc.1
         version: link:../../2-sql/2-authoring/contract-psl
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../test/utils
@@ -4991,9 +5039,6 @@ importers:
 
   packages/9-public/@prisma/orm-toolchain:
     dependencies:
-      '@clack/prompts':
-        specifier: ^1.7.0
-        version: 1.7.0
       '@prisma/cli-engine':
         specifier: 0.0.9
         version: 0.0.9(magicast@0.5.3)
@@ -5021,9 +5066,6 @@ importers:
       colorette:
         specifier: ^2.0.20
         version: 2.0.20
-      commander:
-        specifier: ^15.0.0
-        version: 15.0.0
       esbuild:
         specifier: ^0.28.1
         version: 0.28.1
@@ -5095,15 +5137,6 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
-  packages/9-public/prisma-next:
-    dependencies:
-      '@prisma/orm-toolchain':
-        specifier: workspace:8.0.0-rc.1
-        version: link:../@prisma/orm-toolchain
-      typescript:
-        specifier: '>=5.9'
-        version: 5.9.3
-
   test/e2e/framework:
     dependencies:
       '@prisma/orm-extension-arktype-json':
@@ -5146,6 +5179,9 @@ importers:
 
   test/e2e/framework/test/fixtures:
     dependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@prisma/orm-extension-arktype-json':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../../../packages/9-public/@prisma/orm-extension-arktype-json
@@ -5161,6 +5197,9 @@ importers:
 
   test/e2e/framework/test/sqlite/fixtures:
     dependencies:
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@prisma/orm-sqlite':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../../../../packages/9-public/@prisma/orm-sqlite
@@ -5432,6 +5471,9 @@ importers:
       '@internal/utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../../../../packages/1-framework/0-foundation/utils
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@prisma/orm-extension-pgvector':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../../../../packages/9-public/@prisma/orm-extension-pgvector
@@ -5504,6 +5546,9 @@ importers:
       '@internal/utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../../../../packages/1-framework/0-foundation/utils
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@prisma/orm-extension-pgvector':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../../../../packages/9-public/@prisma/orm-extension-pgvector
@@ -5841,16 +5886,8 @@ packages:
     resolution: {integrity: sha512-7Wctjq6f7c1CPz8sPpkwUnz8yRgVANkpNupb81q432FjcJg4l+Sw7XANdNSdWfAKq0IHI0JTcUeK5dxs/HrGPw==}
     engines: {node: '>= 20.12.0'}
 
-  '@clack/core@1.4.3':
-    resolution: {integrity: sha512-/kr3UWNtdJfxZtPgDqUOmG2pvwlmcLGheex5yiZKdwbzZJxhV+HMNR9QNmyY5cGwTNV6LrR7Jtp+KjhUAP1qBQ==}
-    engines: {node: '>= 20.12.0'}
-
   '@clack/prompts@1.5.0':
     resolution: {integrity: sha512-wKh+wTjmrUoUdkZg8KpJO5X+p9PWV+KE9mePseq9UYWkukgTKsGS47RRL2HstwVcvDQH+PenrPJWII8+MfiiyA==}
-    engines: {node: '>= 20.12.0'}
-
-  '@clack/prompts@1.7.0':
-    resolution: {integrity: sha512-y7/yvZ2TPAnR9+jnc00klvNNLkJiXFFrQA/hlLCcxA9a2A4zQIOimyFQ9XfwYKiGD1fb5GY8vbKIIgO8d5Tb2A==}
     engines: {node: '>= 20.12.0'}
 
   '@cloudflare/kv-asset-handler@0.5.0':
@@ -11507,21 +11544,9 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
 
-  '@clack/core@1.4.3':
-    dependencies:
-      fast-wrap-ansi: 0.2.2
-      sisteransi: 1.0.5
-
   '@clack/prompts@1.5.0':
     dependencies:
       '@clack/core': 1.4.0
-      fast-string-width: 3.0.2
-      fast-wrap-ansi: 0.2.2
-      sisteransi: 1.0.5
-
-  '@clack/prompts@1.7.0':
-    dependencies:
-      '@clack/core': 1.4.3
       fast-string-width: 3.0.2
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5

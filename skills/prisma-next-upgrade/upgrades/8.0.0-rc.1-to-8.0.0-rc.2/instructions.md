@@ -54,7 +54,7 @@ changes:
       anyMatch: true
   - id: specifier-default-control-policy-requires-create-namespace
     summary: |
-      If your `prisma-next.config.ts` passes `defaultControlPolicy` in the options bag of
+      If your `prisma.config.ts` passes `defaultControlPolicy` in the options bag of
       `typescriptContract` or `typescriptContractFromPath`, that bag now also requires
       `createNamespace`. Stamping a default policy strips derived CHECK constraints from
       tables the policy leaves non-managed, and the strip rebuilds storage namespaces through
@@ -210,6 +210,36 @@ changes:
         - ".queryPrepared("
         - "beforeQuery"
         - "interceptExecute"
+      anyMatch: true
+  - id: config-file-is-prisma-config-with-an-orm-section
+    summary: |
+      The CLI config file is `prisma.config.ts` — the `prisma-next.config.ts` name is
+      deprecated — and the config value is engine-shaped: `defineConfig` from
+      `@prisma/cli-engine` wraps the whole ORM config as its `orm` section. Rename the file,
+      then wrap the existing export: alias the current `defineConfig` import (from the target
+      facade or CLI config-types) as `ormConfig` and write
+      `export default defineConfig({ orm: ormConfig({ ...existing config... }) })`, adding
+      `@prisma/cli-engine` to devDependencies. Both the deprecated filename and the flat shape
+      still load, each printing a deprecation warning on stderr, so the two steps can land
+      separately; anything asserting clean stderr around CLI invocations sees the warning
+      until both are done.
+    detection:
+      glob: "**/prisma*.config.*"
+      contains:
+        - "defineConfig"
+      anyMatch: true
+  - id: published-prisma-next-bin-retired
+    summary: |
+      Nothing published ships a `prisma-next` bin anymore: `@prisma/orm-toolchain` publishes
+      the `orm` command family at `@prisma/orm-toolchain/cli` and no bin, and the database
+      facades forward no launcher. The only user-facing binary is the unified `prisma` CLI
+      (the prisma-cli distribution), which mounts the same commands. Replace
+      `prisma-next <command>` invocations in package scripts and CI with the unified CLI's
+      equivalent, and drop any dependency that was taken only to put the bin on PATH.
+    detection:
+      glob: "**/package.json"
+      contains:
+        - "prisma-next"
       anyMatch: true
 ---
 
@@ -371,6 +401,38 @@ No typed call site changes, because a `BigInt` column's application type has alw
 Convert each to the column's own type — `BigInt(value)` for a `bigint` column, and a plain number for a `BigIntNumber` one.
 
 Schema-written defaults need nothing. `BigInt @default(0)` still emits and still migrates: the JSON side of these codecs accepts a safe-integer number, because a schema language writes no `bigint` literal, and only the query-parameter side requires the exact type.
+
+
+## `config-file-is-prisma-config-with-an-orm-section`
+
+Two mechanical steps, in either order:
+
+1. `git mv prisma-next.config.ts prisma.config.ts` (same for `.mts` / `.mjs` variants).
+2. Wrap the flat export in the engine shape:
+
+```ts
+// before
+import { defineConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ ... });
+
+// after
+import { defineConfig } from '@prisma/cli-engine';
+import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ orm: ormConfig({ ... }) });
+```
+
+Add `@prisma/cli-engine` to `devDependencies`. The inner config is unchanged — only the file
+name and the outer wrapper move. The loader still discovers the deprecated filename and still
+accepts the flat shape, each with a stderr deprecation warning, so nothing breaks mid-rename;
+finish both steps to silence the warnings.
+
+## `published-prisma-next-bin-retired`
+
+`prisma-next ...` in a package script resolved through a bin the database facades forwarded
+from the toolchain. That chain is gone: the published toolchain is bin-less and exports the
+`orm` command family at `@prisma/orm-toolchain/cli` for the unified `prisma` CLI (the
+prisma-cli distribution) to mount. Point scripts and CI at the unified CLI, which serves the
+same command paths.
 
 <!--
 PR #29910: `changes: []`. The example changes repair test instrumentation and fixture/runtime isolation after the driver SPI split; they require no user API, contract, configuration, generated-artifact, or source translation.

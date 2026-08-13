@@ -25,7 +25,7 @@ export function appMigrationsDirFor(config: PrismaNextConfig, cwd: string): stri
  * invocation whose config sits in the invocation directory.
  */
 export function projectConfigPathFor(cwd: string): string {
-  return resolve(cwd, 'prisma-next.config.ts');
+  return resolve(cwd, 'prisma.config.ts');
 }
 
 /**
