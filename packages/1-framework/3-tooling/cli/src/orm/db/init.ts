@@ -30,6 +30,7 @@ function initPresentations(inputs: {
 }): Presentations {
   const { document, database, dryRun } = inputs;
   return {
+    stdout: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',

@@ -240,6 +240,8 @@ function verifyPresentations(inputs: {
   const warnings = document.schema?.warnings ?? [];
   const unclaimed = document.unclaimed ?? [];
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
       { kind: 'summary', status: document.ok ? 'ok' : 'error', text: document.summary },
@@ -303,6 +305,8 @@ function schemaPresentations(inputs: {
   readonly strict: boolean;
 }): Presentations {
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
       ...schemaFindingBlocks({

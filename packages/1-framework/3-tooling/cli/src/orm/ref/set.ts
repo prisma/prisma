@@ -9,6 +9,8 @@ import { normalizeError } from '../normalize-error';
 
 function setPresentations(document: RefSetResult): Presentations {
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'summary',

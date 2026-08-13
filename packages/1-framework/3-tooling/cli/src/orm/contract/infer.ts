@@ -38,6 +38,8 @@ function inferPresentations(inputs: {
 }): Presentations {
   const { document, database } = inputs;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       ...(database === undefined
         ? []

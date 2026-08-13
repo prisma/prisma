@@ -124,6 +124,8 @@ function schemaPresentations(inputs: {
 }): Presentations {
   const { document, schemaView, database } = inputs;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       ...(database === undefined
         ? []
