@@ -506,7 +506,7 @@ This project is set up for PostgreSQL. Prisma Next also supports other databases
 
 ## Requirements
 
-- **PostgreSQL 17 or newer.** Older servers are not supported. Run \`SELECT version()\` against your server to verify.
+- **PostgreSQL 15 or newer.** Older servers are not supported. Run \`SELECT version()\` against your server to verify.
 - The CLI never connects to your database without explicit consent. Pass \`--probe-db\` to \`prisma-cli init\` if you want \`init\` to verify the server version itself.
 
 ## Your data contract
@@ -669,7 +669,7 @@ This project is set up for PostgreSQL. Prisma Next also supports other databases
 
 ## Requirements
 
-- **PostgreSQL 17 or newer.** Older servers are not supported. Run \`SELECT version()\` against your server to verify.
+- **PostgreSQL 15 or newer.** Older servers are not supported. Run \`SELECT version()\` against your server to verify.
 - The CLI never connects to your database without explicit consent. Pass \`--probe-db\` to \`prisma-cli init\` if you want \`init\` to verify the server version itself.
 
 ## Your data contract

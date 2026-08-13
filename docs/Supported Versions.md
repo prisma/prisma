@@ -2,7 +2,7 @@
 
 This page states the minimum versions of each runtime, database, and tool that Prisma Next supports. These are hard floors, not "tested with" suggestions: versions below the listed minimums are untested and unsupported.
 
-See [ADR 222](./architecture%20docs/adrs/ADR%20222%20-%20Version%20support%20policy.md) for the rationale and the policy that governs how these floors change over time.
+See [ADR 222](./architecture%20docs/adrs/ADR%20222%20-%20Version%20support%20policy.md) for the rationale and the policy that governs how these floors change over time. The PostgreSQL floor was lowered from 17 to 15 by [ADR 244](./architecture%20docs/adrs/ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md), which also records what PostgreSQL 16 and 17 would offer and the market data behind the choice.
 
 ## Runtime
 
@@ -18,7 +18,7 @@ Node.js is the primary supported runtime. Bun and Deno are supported on a best-e
 
 | Database | Minimum version |
 |---|---|
-| PostgreSQL | 17 |
+| PostgreSQL | 15 |
 | MongoDB | 8.0 |
 
 The minimum version for each database is declared in the corresponding target package's `package.json` (`prismaNext.minServerVersion`) and mirrored in the CLI's `MIN_SERVER_VERSION` constant. A workspace-level test asserts these never drift. The `prisma-next init` scaffold generates a `.env.example` with a `# Requires <db> >= <version>` comment so fresh users see the requirement before they connect.
