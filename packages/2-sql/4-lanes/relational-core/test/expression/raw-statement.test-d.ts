@@ -2,6 +2,7 @@ import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { assertType, test } from 'vitest';
 import type { RawSqlLiteral, SqlStatementStats } from '../../src/exports/ast';
+import type { AffectedCount } from '../../src/exports/expression';
 import { createRawSql, type RawSqlTag } from '../../src/exports/expression';
 import type { SqlQueryPlan } from '../../src/exports/plan';
 
@@ -30,10 +31,19 @@ test('.returnsRow() mints a plan keyed by the declared row spec', () => {
   assertType<SqlQueryPlan<{ id: unknown; email: unknown }>>(plan);
 });
 
-test('.affectedCount() mints a plan carrying statement stats', () => {
+test('.affectedCount() mints a plan carrying branded statement stats', () => {
   const plan = rawSql`delete from "user"`.affectedCount().build();
 
-  assertType<SqlQueryPlan<SqlStatementStats>>(plan);
+  assertType<SqlQueryPlan<AffectedCount>>(plan);
+  // The statistics are readable as such; the brand only says where they came from.
+  assertType<SqlStatementStats>(null as unknown as AffectedCount);
+});
+
+test('a row spec shaped like statistics does not mint the branded row', () => {
+  const plan = rawSql`select 1 as "affectedRows"`.returnsRow({ affectedRows: 'pg/int4@1' });
+
+  // @ts-expect-error — only .affectedCount() mints the branded row type
+  assertType<SqlQueryPlan<AffectedCount>>(plan.build());
 });
 
 // ── Only row-returning raw queries are embeddable ────────────────────────────

@@ -9,6 +9,7 @@ import type {
   SqlStatementStats,
 } from '@internal/sql-relational-core/ast';
 import type {
+  AffectedCount,
   CodecTypesBase,
   CodecValue,
   Expression,
@@ -87,7 +88,12 @@ export interface PreparedExecution<Params> {
  * statistics prepare into a {@link PreparedExecution}, rows into a
  * {@link PreparedStatement}. The two faces share no consumption method, so a
  * handle cannot be read the wrong way round.
+ *
+ * The key is `AffectedCount`'s brand rather than the statistics shape, so a
+ * row spec free to declare a column named `affectedRows` cannot select the
+ * execution face by coincidence. This is the same fact `prepare()` reads at
+ * runtime from the AST's declared result — one decision, stated twice.
  */
-export type PreparedFor<Params, Row> = [Row] extends [SqlStatementStats]
+export type PreparedFor<Params, Row> = [Row] extends [AffectedCount]
   ? PreparedExecution<Params>
   : PreparedStatement<Params, Row>;

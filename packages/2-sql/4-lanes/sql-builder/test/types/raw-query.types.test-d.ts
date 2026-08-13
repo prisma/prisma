@@ -7,6 +7,7 @@
 
 import type { ResultType } from '@internal/framework-components/runtime';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
+import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import { expectTypeOf, test } from 'vitest';
 import type { Db } from '../../src/exports/types';
 import type { Contract } from '../fixtures/generated/contract';
@@ -73,11 +74,14 @@ test('a mixed spec resolves each entry by its own form', () => {
   expectTypeOf<keyof Row>().toEqualTypeOf<'id' | 'email' | 'post_count'>();
 });
 
-test('an affected-count statement mints a statement-stats plan', () => {
+test('an affected-count statement mints a branded statement-stats plan', () => {
   const plan = db.raw`UPDATE users SET name = ${'Ada'} WHERE id = ${1}`.affectedCount().build();
   type Row = ResultType<typeof plan>;
 
-  expectTypeOf<Row>().toEqualTypeOf<SqlStatementStats>();
+  // The brand is what tells this plan apart from a row spec that happens to
+  // declare an `affectedRows` column; the statistics read the same either way.
+  expectTypeOf<Row>().toEqualTypeOf<AffectedCount>();
+  expectTypeOf<Row>().toExtend<SqlStatementStats>();
   expectTypeOf<Row['affectedRows']>().toEqualTypeOf<number>();
 });
 

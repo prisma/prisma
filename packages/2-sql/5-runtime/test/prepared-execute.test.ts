@@ -1,9 +1,6 @@
-import type {
-  SqlDriver,
-  SqlExecuteRequest,
-  SqlStatementStats,
-} from '@internal/sql-relational-core/ast';
+import type { SqlDriver, SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { type PreparedParamRef, RawQueryAst } from '@internal/sql-relational-core/ast';
+import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { planFromAst } from '@internal/sql-relational-core/plan';
 import { describe, expect, it, vi } from 'vitest';
@@ -61,7 +58,7 @@ function setup(middleware: readonly SqlMiddleware[] = []) {
 }
 
 /** `update "user" set seen = now() where id = :id` — a bind site, no row spec. */
-function affectedCountPlan(id: PreparedParamRef): SqlQueryPlan<SqlStatementStats> {
+function affectedCountPlan(id: PreparedParamRef): SqlQueryPlan<AffectedCount> {
   return planFromAst(
     RawQueryAst.affectedCount(['update "user" set seen = now() where id = ', id]),
     contract,
