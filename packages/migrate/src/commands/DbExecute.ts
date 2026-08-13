@@ -24,7 +24,7 @@ function renderHelpOptions(cliCommand: string): string {
 
   ${dim('$')} ${cliCommand} db execute [options]
 
-  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma7.config.ts')}).
 
 ${bold('Options')}
 
@@ -44,7 +44,7 @@ function renderHelp(cliCommand: string): string {
   return format(`
 ${process.platform === 'win32' ? '' : '📝 '}Execute native commands to your database
 
-This command takes as input a datasource defined in ${italic('prisma.config.ts')} and a script, using ${green(
+This command takes as input a datasource defined in ${italic('prisma7.config.ts')} and a script, using ${green(
     `--stdin`,
   )} or ${green(`--file`)}.
 The script input parameters are mutually exclusive, only 1 must be provided.
@@ -59,7 +59,7 @@ ${italic(`This command is currently not supported on MongoDB.`)}
 ${renderHelpOptions(cliCommand)}
 ${bold('Examples')}
 
-  Execute the content of a SQL script file using the datasource configured in prisma.config.ts
+  Execute the content of a SQL script file using the datasource configured in prisma7.config.ts
   ${dim('$')} ${cliCommand} db execute --file ./script.sql
 
   Execute the SQL script from stdin using the configured datasource

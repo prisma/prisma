@@ -86,7 +86,7 @@ async function main(): Promise<number> {
   }
 
   if (!config) {
-    console.error('`prisma.config.ts` not found')
+    console.error('`prisma7.config.ts` not found')
     return 1
   }
 

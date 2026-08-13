@@ -168,7 +168,7 @@ export class Bootstrap implements Command {
       //   (b) run `prisma init` for a minimal empty setup (requires an existing package.json)
       //
       // Empty directories without a package.json need special handling: prisma init creates
-      // a prisma.config.ts that depends on `dotenv`, which can't be installed without a
+      // a prisma7.config.ts that depends on `dotenv`, which can't be installed without a
       // Node.js project. We surface this clearly and require either a template (which
       // provides its own package.json) or manual project initialization first.
       if (!initialState.hasSchemaFile) {
@@ -282,11 +282,11 @@ export class Bootstrap implements Command {
 
       // --- Deps gate: check if Prisma dependencies are available ---
       //
-      // The generated prisma.config.ts imports dotenv/config, and migrate/generate
+      // The generated prisma7.config.ts imports dotenv/config, and migrate/generate
       // shell out to the local prisma binary when a schema file exists. Both must
       // be installed for subsequent steps to work.
       //
-      // This runs BEFORE config reload — prisma.config.ts imports dotenv/config,
+      // This runs BEFORE config reload — prisma7.config.ts imports dotenv/config,
       // so dotenv must be installed first or the config load will fail.
       const missingDevDeps: string[] = []
       const missingDeps: string[] = []
@@ -363,7 +363,7 @@ export class Bootstrap implements Command {
         }
       }
 
-      // Reload config after deps are installed — prisma.config.ts imports
+      // Reload config after deps are installed — prisma7.config.ts imports
       // dotenv/config, so this must happen after the deps gate above.
       let activeConfig = config
       if (!initialState.hasPrismaConfig && updatedState.hasPrismaConfig) {

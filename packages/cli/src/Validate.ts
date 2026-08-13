@@ -118,7 +118,7 @@ ${bold('Examples')}
     ${dim('$')} ${identity} validate
 
   With a Prisma config file
-    ${dim('$')} ${identity} validate --config=./prisma.config.ts
+    ${dim('$')} ${identity} validate --config=./prisma7.config.ts
 
   Or specify a Prisma schema path
     ${dim('$')} ${identity} validate --schema=./schema.prisma

@@ -10,7 +10,7 @@ import type { PrismaConfigWithDatasource } from '../utils/validatePrismaConfigWi
  */
 export const forbiddenCmdWithDataProxyFlagMessage = (command: string) => `
 Using an Accelerate URL is not supported for this CLI command ${green(command)} yet.
-Please use a direct connection to your database in \`prisma.config.ts\`.
+Please use a direct connection to your database in \`prisma7.config.ts\`.
 
 More information about this limitation: ${link('https://pris.ly/d/accelerate-limitations')}
 `

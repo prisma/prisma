@@ -95,6 +95,15 @@ beforeEach(() => {
   getPortMock.mockResolvedValue(55_555)
 })
 
+test('uses the Prisma 7 config filename in help examples', async () => {
+  const { Studio } = await import('../Studio')
+  const help = Studio.new('prisma').help()
+
+  expect(help).toEqual(expect.any(String))
+  expect(help).toContain('studio --config=./prisma7.config.ts')
+  expect(help).not.toContain('studio --config=./prisma.config.ts')
+})
+
 describe('Studio URL validation', () => {
   beforeEach(() => {
     vi.resetModules()

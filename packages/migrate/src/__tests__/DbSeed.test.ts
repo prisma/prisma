@@ -22,7 +22,7 @@ describe('seed', () => {
       await expect(result).resolves.toContain('No seed command configured')
       await expect(result).resolves.toContain('migrations')
       await expect(result).resolves.toContain('seed')
-      await expect(result).resolves.toContain('prisma.config.ts')
+      await expect(result).resolves.toContain('prisma7.config.ts')
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
 

@@ -1,5 +1,5 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import process from 'node:process'
 
 import { Debug } from '@prisma/debug'
@@ -20,11 +20,38 @@ export const PRISMA7_CONFIG_FILE_CANDIDATES = [
   ...SUPPORTED_EXTENSIONS.map((extension) => path.join('.config', `prisma7${extension}`)),
 ] as const satisfies readonly string[]
 
+const LEGACY_SUPPORTED_EXTENSIONS = [
+  ...SUPPORTED_EXTENSIONS,
+  '.json',
+  '.jsonc',
+  '.json5',
+  '.yaml',
+  '.yml',
+  '.toml',
+] as const
+
+const LEGACY_CONFIG_FILE_CANDIDATES = [
+  ...LEGACY_SUPPORTED_EXTENSIONS.map((extension) => `prisma.config${extension}`),
+  ...LEGACY_SUPPORTED_EXTENSIONS.map((extension) => path.join('.config', `prisma${extension}`)),
+  ...LEGACY_SUPPORTED_EXTENSIONS.map((extension) => path.join('.config', `prisma.config${extension}`)),
+] as const satisfies readonly string[]
+
 /**
  * Find the highest-precedence Prisma 7-specific config file without loading it.
  */
 export function findPrisma7ConfigFile(configRoot = process.cwd()): string | null {
-  for (const candidate of PRISMA7_CONFIG_FILE_CANDIDATES) {
+  return findFirstConfigFile(PRISMA7_CONFIG_FILE_CANDIDATES, configRoot)
+}
+
+/**
+ * Find the config file selected by automatic Prisma 7 discovery without loading it.
+ */
+export function findPrismaConfigFile(configRoot = process.cwd()): string | null {
+  return findPrisma7ConfigFile(configRoot) ?? findFirstConfigFile(LEGACY_CONFIG_FILE_CANDIDATES, configRoot)
+}
+
+function findFirstConfigFile(candidates: readonly string[], configRoot: string): string | null {
+  for (const candidate of candidates) {
     const resolvedPath = path.resolve(configRoot, candidate)
 
     if (fs.statSync(resolvedPath, { throwIfNoEntry: false })?.isFile()) {

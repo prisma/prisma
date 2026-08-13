@@ -42,6 +42,13 @@ describe('completion command', () => {
     ])
   })
 
+  test('completes the default Prisma 7 config path', () => {
+    const { result, output } = captureCompletionOutput(['--', 'generate', '--config', ''])
+
+    expect(result).toBe('')
+    expect(output).toEqual(['prisma7.config.ts\tDefault config path', ':4'])
+  })
+
   test('generates a shell integration script', () => {
     const { result, output } = captureCompletionOutput(['fish'])
 
