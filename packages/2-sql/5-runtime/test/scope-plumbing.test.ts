@@ -13,7 +13,10 @@ import type {
   SqlDriver,
   SqlExecuteRequest,
 } from '@internal/sql-relational-core/ast';
+import { RawQueryAst } from '@internal/sql-relational-core/ast';
+import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
+import { planFromAst } from '@internal/sql-relational-core/plan';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
@@ -24,6 +27,7 @@ import type {
   SqlRuntimeTargetDescriptor,
 } from '../src/sql-context';
 import { createExecutionContext, createSqlExecutionStack } from '../src/sql-context';
+import type { Runtime } from '../src/sql-runtime';
 import { defineTestCodec } from './test-codec';
 import { createTestRuntime as createRuntime, descriptorsFromCodecs, stubAst } from './utils';
 
@@ -385,5 +389,81 @@ describe('SQL runtime scope plumbing', () => {
     await runtime.query(createRawExecutionPlan()).toArray();
 
     expect(seen).toEqual(['runtime', 'connection', 'transaction', 'runtime']);
+  });
+
+  // The execute twin of the three statement.query scope cases above: the cache
+  // middleware reads ctx.scope, and a wrong scope string is otherwise silent.
+  const prepareAffectedCount = async (runtime: Runtime) =>
+    runtime.prepare({}, () =>
+      planFromAst<AffectedCount>(
+        RawQueryAst.affectedCount(['update "user" set seen = now()']),
+        testContract,
+      ),
+    );
+
+  it('populates ctx.scope = "runtime" on top-level statement.execute(runtime, ...)', async () => {
+    const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
+    const observer: SqlMiddleware = {
+      name: 'scope-observer',
+      familyId: 'sql',
+      async beforeExecute(_plan, ctx) {
+        seen.push(ctx.scope);
+      },
+    };
+
+    const { runtime } = createTestSetup([observer]);
+    const ps = await prepareAffectedCount(runtime);
+
+    await ps.execute(runtime, {});
+
+    expect(seen).toEqual(['runtime']);
+  });
+
+  it('populates ctx.scope = "connection" on statement.execute(connection, ...)', async () => {
+    const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
+    const observer: SqlMiddleware = {
+      name: 'scope-observer',
+      familyId: 'sql',
+      async beforeExecute(_plan, ctx) {
+        seen.push(ctx.scope);
+      },
+    };
+
+    const { runtime } = createTestSetup([observer]);
+    const ps = await prepareAffectedCount(runtime);
+
+    const connection = await runtime.connection();
+    try {
+      await ps.execute(connection, {});
+    } finally {
+      await connection.release();
+    }
+
+    expect(seen).toEqual(['connection']);
+  });
+
+  it('populates ctx.scope = "transaction" on statement.execute(transaction, ...)', async () => {
+    const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
+    const observer: SqlMiddleware = {
+      name: 'scope-observer',
+      familyId: 'sql',
+      async beforeExecute(_plan, ctx) {
+        seen.push(ctx.scope);
+      },
+    };
+
+    const { runtime } = createTestSetup([observer]);
+    const ps = await prepareAffectedCount(runtime);
+
+    const connection = await runtime.connection();
+    const transaction = await connection.transaction();
+    try {
+      await ps.execute(transaction, {});
+      await transaction.commit();
+    } finally {
+      await connection.release();
+    }
+
+    expect(seen).toEqual(['transaction']);
   });
 });
