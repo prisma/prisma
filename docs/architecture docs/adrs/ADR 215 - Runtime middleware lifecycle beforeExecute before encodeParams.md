@@ -2,7 +2,7 @@
 
 ## Current status
 
-Accepted ([TML-2375](https://linear.app/prisma-company/issue/TML-2375)). The shipped runtime uses operation-specific query and execute middleware lifecycles. In the current SQL runtime, `query()` streams rows through `queryAgainstQueryable` and `execute()` returns statistics through `executeStatisticsAgainstQueryable`. The operation-specific lifecycle amendment below supersedes only the SPI lifecycle shape and terminology; the original May 2026 decision and its rationale remain preserved in the historical section.
+Accepted. The shipped runtime uses operation-specific query and execute middleware lifecycles. In the current SQL runtime, `query()` streams rows through `queryAgainstQueryable` and `execute()` returns statistics through `executeStatisticsAgainstQueryable`. The operation-specific lifecycle amendment below supersedes only the SPI lifecycle shape and terminology; the original May 2026 decision and its rationale remain preserved in the historical section.
 
 ## Amendment (August 12, 2026) — operation-specific lifecycle
 
@@ -20,7 +20,7 @@ The `encodeParams` step is shown between the before and intercept hooks because 
 
 ### Context
 
-A family runtime first applies its shared compile lifecycle, lowers the plan, and then runs the selected operation. SQL lowers into a draft containing user-domain parameter values before codec encoding. `beforeQuery` and `beforeExecute` run at that seam and receive the optional family-specific parameter mutator. The runtime then encodes the mutated values and passes the final execution plan to the matching interceptor and driver terminal.
+The generic `RuntimeCore` first applies its compile hook, lowers the plan to an executable plan, and then runs the selected operation-specific before hook. SQL and Mongo production overrides refine that ordering: they lower to a structural draft containing user-domain parameter values, run `beforeQuery` or `beforeExecute` with the family mutator, and then encode or resolve the mutated values before passing the final execution plan to the matching interceptor and driver terminal.
 
 This ordering keeps parameter-mutating middleware structurally possible. For example, encryption middleware can populate a value's ciphertext before the codec encodes it. It also keeps interception truthful: a query interceptor supplies rows, and an execute interceptor supplies statistics. No runtime path derives a count from a row array.
 
@@ -172,7 +172,7 @@ The three observability middleware never touch `params`. The audit was independe
 
 #### Lifecycle reorder
 
-The SQL family runtime (and, by template-method composition, every other family runtime) composes the per-query lifecycle as:
+The historical decision described the SQL family runtime's per-operation lifecycle as:
 
 ```text
 runBeforeCompile(plan)
@@ -206,11 +206,11 @@ The `beforeExecute` chain always fires, even when a later `intercept` short-circ
 
 The alternative reading (`beforeExecute` skipped on intercept short-circuit) would have been principled if no middleware needed param-mutation semantics for caching purposes. The cipherstash case in particular needs ciphertexts populated before the content-hash is computed so the cache key reflects the actual driver-bound payload. The chosen reading is the defensible one.
 
-#### Template-method composition for non-SQL family runtimes
+#### Implementation boundary in the shipped runtime
 
-`RuntimeCore.execute` (in `@internal/framework-components`) implements the same `lower → beforeExecute → encode → runWithMiddleware` interleaving as a default template. Family runtimes that override `execute` (the SQL runtime, today; future non-SQL families) inline the same interleaving at their own override site, calling the shared `runBeforeExecuteChain` helper. Family runtimes that do *not* override `execute` inherit the ordering by composition.
+The generic `RuntimeCore.execute` does not implement this split. In the current source it runs `runBeforeCompile(plan)`, calls the abstract `lower(compiled, codecCtx)` to obtain the executable `TExec`, then invokes `runBeforeExecuteChain` and `runExecuteWithMiddleware` on that executable plan. It has no generic pre-encode draft or encode step. The pre-encode split is family override behavior: SQL's `prepareOperation` calls `lowerToDraft`, runs the selected before chain, and then calls `encodeDraftParams`; Mongo's `prepareOperation` calls `structuralLower`, runs the selected before chain, and then calls `resolveParams`.
 
-The SQL runtime overrides `execute` to thread its family-specific `SqlParamRefMutator` (constructed over the draft's params) and `SqlCodecCallContext` (carrying per-query `AbortSignal`) explicitly. The override site is also where the SQL runtime decides between the "pre-lowered fixture path" (caller hands in a `SqlExecutionPlan` directly; runtime still fires `beforeExecute` and then re-encodes to apply any mutations) and the standard AST → exec path. Both paths thread through the same `runBeforeExecuteChain` helper.
+The SQL runtime override threads its family-specific `SqlParamRefMutator` (constructed over the draft's params) and `SqlCodecCallContext` (carrying per-query `AbortSignal`) explicitly. That override path also distinguishes the "pre-lowered fixture path" (caller hands in a `SqlExecutionPlan` directly; runtime still fires `beforeExecute` and then re-encodes to apply any mutations) from the standard AST → exec path. Both paths thread through the same `runBeforeExecuteChain` helper.
 
 ### Consequences
 
@@ -219,13 +219,13 @@ The SQL runtime overrides `execute` to thread its family-specific `SqlParamRefMu
 - **Param-mutating middleware is now structurally possible.** The cipherstash bulk-encrypt middleware works end-to-end without changes to the cell codec's strict `handle.ciphertext === undefined` guard. Future param-mutating middleware (deterministic-encryption codec adapters, server-side value-elaboration policies, masked-column rewrites) inherit the same ordering.
 - **No SPI change.** `RuntimeMiddleware.beforeExecute` retains its `(plan, ctx, params?)` shape and its registration semantics. Existing middleware bodies compile and run unchanged. The three observability middleware in tree (`middleware-telemetry`, `budgets`, `lints`) are reorder-neutral.
 - **Cache content-hash stability.** Interceptors observe the fully-mutated plan, so the content-hash they compute is consistent between cold and warm paths. A naïve cache implementation works correctly with param-mutating middleware in the chain.
-- **Template-method composition for non-SQL families.** The `runBeforeExecuteChain` helper is family-agnostic and composes into `RuntimeCore.execute`'s default template; family runtimes that don't override `execute` inherit the ordering automatically.
+- **Family-specific placement of the split.** `runBeforeExecuteChain` is family-agnostic, but the pre-encode draft seam is not supplied by `RuntimeCore`. SQL and Mongo call it from their own split preparation paths; a future family must choose and implement its own equivalent seam if it needs mutation before encoding.
 - **Pre-lowered fixture path preserved.** Test fixtures that hand in a `SqlExecutionPlan` directly (skipping the AST → draft lower step) still fire `beforeExecute` and then re-encode to apply any mutations. The fixture-path encoder runs a second encode in this branch, which is intentional — the alternative (skip the second encode and trust the fixture's pre-encoded params) would defeat any mutation the middleware made.
 
 #### Trade-offs
 
 - **Param encoding cost on the fixture path.** The pre-lowered fixture path re-encodes params even when no middleware mutated them. The cost is proportional to the param count and codec complexity, negligible relative to a driver round-trip. Documented inline at the override site.
-- **Two engagement points for `beforeExecute`.** The chain is invoked by `RuntimeCore.execute` (default template) *and* by family runtimes that override `execute` to thread their own mutators. A future family that forgets to call the helper at its override site silently skips `beforeExecute`. Mitigated by `RuntimeCore.execute`'s default template carrying the call (so a family that doesn't override gets it for free) and by the cipherstash bulk-encrypt middleware tests pinning the end-to-end behaviour.
+- **Two engagement points for `beforeExecute`.** The generic `RuntimeCore.execute` invokes the chain after its family-supplied `lower` result, while SQL and Mongo invoke it in their own pre-encode split preparation paths. A family override that replaces `execute` must call the helper at its chosen seam; the generic base does not provide pre-encode mutation automatically.
 - **Order semantics for `intercept` slightly more subtle.** Documented in the SPI JSDoc: interceptors see a post-`beforeExecute` plan. A middleware author who relied on the old ordering (`intercept` first, `beforeExecute` only on non-intercept paths) needs to update. The audit found no such in-tree consumer; external consumers (when this project ships outside the prototype) need release-notes coverage.
 
 #### Non-goals
@@ -274,19 +274,19 @@ The same shape applies to any future param-mutating middleware: any middleware t
 
 ### Mongo family: lifecycle parity and intentional placement asymmetries
 
-Mongo execute ([`packages/2-mongo-family/7-runtime/src/mongo-runtime.ts`](../../../packages/2-mongo-family/7-runtime/src/mongo-runtime.ts)) now follows the same pre-resolve middleware lifecycle invariant as SQL: `beforeCompile` → structural draft (user-domain `MongoParamRef` leaves) → `beforeExecute` with a param mutator → resolve/encode params → `intercept` / driver → row hooks → `afterExecute`. Content hashing ([`content-hash.ts`](../../../packages/2-mongo-family/7-runtime/src/content-hash.ts)) runs only on the post-resolution wire command, so interceptors and cache keys observe the driver-bound payload after middleware mutations — the same load-bearing property ADR 215 establishes for SQL.
+Mongo uses the same pre-resolve invariant as SQL, but its operation paths are explicit: query uses `structuralLower` → `beforeQuery` with a param mutator → `resolveParams` → `interceptQuery` / driver rows → `onRow` → `afterQuery`; execute uses `structuralLower` → `beforeExecute` with a param mutator → `resolveParams` → `interceptExecute` / driver statistics → `afterExecute`. Content hashing ([`content-hash.ts`](../../../packages/2-mongo-family/7-runtime/src/content-hash.ts)) runs on the post-resolution execution plan, so interceptors and cache keys observe the driver-bound payload after middleware mutations — the same load-bearing property ADR 215 establishes for SQL.
 
 The SQL and Mongo stacks differ in *where* the two lowering phases and the param mutator live. Those differences are intentional family shape, not drift.
 
 | Concern | SQL | Mongo |
 |---|---|---|
-| Two-phase lowering API | `lowerToDraft` / `encodeDraftParams` are **private** methods on `SqlRuntime` ([`packages/2-sql/5-runtime/src/sql-runtime.ts`](../../../packages/2-sql/5-runtime/src/sql-runtime.ts)); lowering walks the SQL adapter inside the runtime package. | `structuralLower` / `resolveParams` are **public** methods on the `MongoAdapter` SPI ([`packages/2-mongo-family/6-transport/mongo-lowering/src/adapter-types.ts`](../../../packages/2-mongo-family/6-transport/mongo-lowering/src/adapter-types.ts)); the target-owned implementation lives in [`@internal/adapter-mongo`](../../../packages/3-mongo-target/2-mongo-adapter/). |
+| Two-phase lowering API | `lowerToDraft` / `encodeDraftParams` are **private** methods on `SqlRuntimeBase` ([`packages/2-sql/5-runtime/src/sql-runtime.ts`](../../../packages/2-sql/5-runtime/src/sql-runtime.ts)); lowering walks the SQL adapter inside the runtime package. | `structuralLower` / `resolveParams` are **public** methods on the `MongoAdapter` SPI ([`packages/2-mongo-family/6-transport/mongo-lowering/src/adapter-types.ts`](../../../packages/2-mongo-family/6-transport/mongo-lowering/src/adapter-types.ts)); the target-owned implementation lives in [`@internal/adapter-mongo`](../../../packages/3-mongo-target/2-mongo-adapter/). |
 | Param mutator home | `SqlParamRefMutator` in [`packages/2-sql/4-lanes/relational-core`](../../../packages/2-sql/4-lanes/relational-core) (middleware module), composed by the SQL runtime. | `MongoParamRefMutator` in [`packages/2-mongo-family/7-runtime`](../../../packages/2-mongo-family/7-runtime/src/param-ref-mutator.ts) alongside `MongoMiddleware`, because Mongo has no `relational-core`-equivalent lanes layer — the runtime is the first layer that composes middleware and execute. |
-| Pre-resolve draft type | Reuses `SqlExecutionPlan` for both the pre-encode draft and the post-encode exec (params slot mutates; same interface type). | Introduces a distinct `MongoLoweredDraft` union (not a wire command) for phase 1; `MongoExecutionPlan.command` is typed as `AnyMongoWireCommand` but holds the draft only during `beforeExecute` ([`mongo-execution-plan.ts`](../../../packages/2-mongo-family/7-runtime/src/mongo-execution-plan.ts)). Mongo's typology is the stricter, preferable shape: phase 1 cannot be mistaken for a driver-ready command at the type level. |
+| Pre-resolve draft type | Reuses `SqlExecutionPlan` for both the pre-encode draft and the post-encode exec (params slot mutates; same interface type). | Introduces a distinct `MongoLoweredDraft` union (not a wire command) for phase 1; `MongoExecutionPlan.command` is typed as `AnyMongoWireCommand` but holds the draft only during the selected before hook ([`mongo-execution-plan.ts`](../../../packages/2-mongo-family/7-runtime/src/mongo-execution-plan.ts)). Mongo's typology is the stricter, preferable shape: phase 1 cannot be mistaken for a driver-ready command at the type level. |
 
 **Why the phase API is public on Mongo but private on SQL.** SQL structural lowering and param encoding are orchestrated entirely inside `@internal/sql-runtime` against the generic SQL `Adapter` surface. Mongo lowering is target-owned: the runtime invokes `MongoAdapter` on the execution stack, and the two-phase contract must be auditable at the adapter SPI so implementors (`adapter-mongo`) and reviewers can see exactly where `MongoParamRef` resolution is deferred relative to middleware. Exposing `structuralLower` / `resolveParams` on the SPI documents that contract; hiding them inside the runtime would obscure the target boundary.
 
-**Convenience `lower`.** `MongoAdapter.lower` remains the one-shot `resolveParams(structuralLower(plan))` for callers that do not need the split; production execute uses the split explicitly.
+**Convenience `lower`.** `MongoAdapter.lower` remains the one-shot `resolveParams(structuralLower(plan))` for callers that do not need the split; production runtime query and execute paths use `structuralLower` and `resolveParams` separately around their matching before hook.
 
 ## Related
 
