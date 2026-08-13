@@ -122,7 +122,7 @@ interface CreateJourneyProjectOptions {
 /**
  * Materialises a fresh project tmpdir, writes a minimal `package.json` (init
  * requires one to attach to), runs `prisma-next init --target <t> --authoring
- * <a> --yes --no-install` via the workspace-built CLI binary as a real
+ * <a> --yes --skip-install` via the workspace-built CLI binary as a real
  * subprocess, then optionally runs `pnpm install` against the workspace's
  * pre-packed tarballs with `node-linker=isolated`.
  *
@@ -146,7 +146,7 @@ export async function createJourneyProject(
     writeMinimalPackageJson(dir);
 
     const target = cell.target === 'mongo' ? 'mongodb' : 'postgres';
-    // `--no-skill` is load-bearing: this journey verifies
+    // `--skip-skills` matters here: this journey verifies
     // scaffold/install/emit/migrate only; skill registration is
     // intentionally not exercised. Without the flag, project-level skill
     // install pulls the `prisma/prisma/skills#v<cliVersion>` tag from
@@ -161,8 +161,8 @@ export async function createJourneyProject(
         '--authoring',
         cell.authoring,
         '--yes',
-        '--no-install',
-        '--no-skill',
+        '--skip-install',
+        '--skip-skills',
       ],
       dir,
     );
@@ -467,7 +467,6 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
 
   const facade = cell.target === 'mongo' ? '@prisma/orm-mongo' : '@prisma/orm-postgres';
   const facadeTarball = requireTarball(tarballs, facade);
-  const prismaNextTarball = requireTarball(tarballs, 'prisma-next');
 
   // The framework-emitted `migration.ts` imports the target package
   // directly rather than through the user-facing facade. Under
@@ -490,9 +489,10 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
     ...migrationDepEntries,
     dotenv: '^16.4.5',
   };
+  // No `prisma-next` devDependency: the standalone CLI package stopped
+  // being published; journey steps invoke the workspace-built engine bin.
   pkg.devDependencies = {
     ...(pkg.devDependencies ?? {}),
-    'prisma-next': `file:${prismaNextTarball}`,
     '@types/node': '^24.10.4',
     typescript: '^5.9.3',
   };
@@ -569,20 +569,22 @@ export function attachDatabase(project: JourneyProject, connectionString: string
 }
 
 /**
- * Emits the contract via the locally-installed CLI. Equivalent to what a
- * user runs as `pnpm prisma-next contract emit` after install.
+ * Emits the contract. The standalone `prisma-next` package is no longer
+ * published (the user-facing bin is the unified `prisma` CLI, which lives
+ * outside this repo), so journey steps invoke the workspace-built engine
+ * bin in the project directory instead of `pnpm exec prisma-next`.
  */
 export async function emitContract(project: JourneyProject): Promise<StepResult> {
-  return runStep(project, ['pnpm', 'exec', 'prisma-next', 'contract', 'emit']);
+  return runStep(project, ['node', CLI_BIN, 'contract', 'emit']);
 }
 
 /**
- * Runs `prisma-next db init`. Retained as a primitive for callers that
+ * Runs `db init`. Retained as a primitive for callers that
  * want the single-shot provisioning path; the journey itself drives
  * the schema in via `migrationPlan` + `migrationApply`.
  */
 export async function dbInit(project: JourneyProject): Promise<StepResult> {
-  return runStep(project, ['pnpm', 'exec', 'prisma-next', 'db', 'init']);
+  return runStep(project, ['node', CLI_BIN, 'db', 'init']);
 }
 
 /**
@@ -593,7 +595,7 @@ export async function dbInit(project: JourneyProject): Promise<StepResult> {
  * `selfEmitLatestMigration`) and then running `migrationApply`.
  */
 export async function migrationPlan(project: JourneyProject, name: string): Promise<StepResult> {
-  return runStep(project, ['pnpm', 'exec', 'prisma-next', 'migration', 'plan', '--name', name]);
+  return runStep(project, ['node', CLI_BIN, 'migration', 'plan', '--name', name]);
 }
 
 /**
@@ -636,7 +638,7 @@ export async function selfEmitLatestMigration(project: JourneyProject): Promise<
  * seam (TML-2486) surfaces here when the bug is present.
  */
 export async function migrationApply(project: JourneyProject): Promise<StepResult> {
-  return runStep(project, ['pnpm', 'exec', 'prisma-next', 'migrate']);
+  return runStep(project, ['node', CLI_BIN, 'migrate']);
 }
 
 /**
