@@ -82,3 +82,7 @@ projects/*/reference/
 # project close-out, not PR content).
 projects/*/reviews/
 projects/*/learnings.md
+
+# Conformance-check sandbox (scripts/check-conformance.mjs). Deleted at the
+# start of each run so a failed run leaves evidence behind; never committed.
+.conformance/

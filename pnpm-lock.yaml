@@ -94,6 +94,9 @@ importers:
       dependency-cruiser:
         specifier: ^18.1.0
         version: 18.1.0
+      es-module-lexer:
+        specifier: 2.3.1
+        version: 2.3.1
       gray-matter:
         specifier: 'catalog:'
         version: 4.0.3
