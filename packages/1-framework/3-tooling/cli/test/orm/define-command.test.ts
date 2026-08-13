@@ -125,7 +125,12 @@ describe('defineOrmCommand', () => {
               ok(
                 ctx.present(
                   { data: { count: 1 }, exitCode: 0 },
-                  { human: () => [], json: () => ({ ok: true }) },
+                  {
+                    human: () => [],
+                    stdout: () => [],
+                    json: () => ({ ok: true }),
+                    next: () => [],
+                  },
                 ),
               ),
           }),

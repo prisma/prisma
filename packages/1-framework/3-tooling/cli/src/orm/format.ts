@@ -12,6 +12,8 @@ const NOTHING_TO_FORMAT = 'Nothing to format (contract source is not PSL).';
 function formatPresentations(document: FormatOperationResult, cwd: string): Presentations {
   const path = document.path;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] =>
       document.formatted && path !== undefined
         ? [

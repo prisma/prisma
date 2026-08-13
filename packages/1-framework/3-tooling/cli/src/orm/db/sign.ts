@@ -61,6 +61,8 @@ function signPresentations(inputs: {
 }): Presentations {
   const marker = inputs.document.marker;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
       { kind: 'summary', status: 'ok', text: 'Database signed' },
@@ -90,6 +92,8 @@ function refusedPresentations(inputs: {
   readonly header: Block;
 }): Presentations {
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
       ...schemaFindingBlocks({ result: inputs.document, unclaimed: [], strict: false }),

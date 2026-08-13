@@ -106,6 +106,8 @@ function showPresentations(inputs: {
 }): Presentations {
   const migration = inputs.document.migration;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',

@@ -163,6 +163,7 @@ function planPresentations(inputs: {
   readonly name: string | undefined;
 }): Presentations {
   return {
+    stdout: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',

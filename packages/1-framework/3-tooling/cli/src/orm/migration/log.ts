@@ -82,6 +82,8 @@ function logPresentations(inputs: {
 }): Presentations {
   const grid = inputs.grid;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       ...(inputs.database === undefined
         ? []

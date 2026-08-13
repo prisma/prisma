@@ -184,6 +184,8 @@ function statusPresentations(inputs: {
 }): Presentations {
   const legend = inputs.legend;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',
