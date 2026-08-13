@@ -133,6 +133,12 @@ describe.sequential('check-constraint introspection', () => {
     // containment is created exactly as authoring renders a list-typed domain
     // enum; the reprint drops the column cast and folds the array cast into
     // per-element casts. A doubled quote inside a value stays doubled.
+    //
+    // These literals are what Postgres itself prints, not what was authored,
+    // and they are the reference the unit-test fixtures elsewhere are written
+    // against. Observed on PGlite 17.5 (via `@prisma/dev`) and re-run
+    // identical on PostgreSQL 15.18, the supported floor — so the shapes hold
+    // across the whole supported range, not just the newest server.
     expect(
       checks
         .map((c) => ({ name: c.name, expression: c.expression }))
