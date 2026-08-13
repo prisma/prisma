@@ -93,7 +93,9 @@ A wrong or failed harvest on Path B produces a wrong TypeScript union on one col
 
 ## Structural work this requires
 
-**Domain `enum` blocks must be top-level; infer currently wraps every block in one namespace.** A family `enum` inside `namespace { … }` is a hard diagnostic (`PSL_ENUM_NAMESPACE_NOT_SUPPORTED`), and that wrap is applied whenever the pulled database has a native enum or an RLS policy. So on such a database, a recovered domain enum and the wrap are mutually exclusive today. The emitter's single-bucket document shape has to learn to place top-level blocks outside the namespace wrapper. This is the largest piece of work in the project and is not optional — without it, recovery works only on databases with no native enums and no policies.
+**Domain `enum` blocks must be top-level; infer currently emits one namespace.** A family `enum` inside `namespace { … }` is a hard diagnostic (`PSL_ENUM_NAMESPACE_NOT_SUPPORTED`), and infer applies that wrap whenever the pulled database has a native enum or an RLS policy — so on such a database a recovered domain enum and the wrap are mutually exclusive today.
+
+This is smaller than it first appears. `PslDocumentAst.namespaces` is already an array; `UNSPECIFIED_PSL_NAMESPACE_ID` already names the flat bucket; the printer already sorts that bucket first (`ast-to-print-document.ts:65-66`) and prints its contents with no wrapper, precisely so top-level declarations round-trip to top-level output (`serialize-print-document.ts:94-99`). Nothing about the document shape needs to change. What needs to change is that `buildPslDocumentAst` constructs exactly one namespace: it must construct two when there is top-level content — the flat bucket for recovered enums, the named one for models, native enums and policies.
 
 **Infer's `@noCheck` emission is gated on list columns.** The waiver block only runs for `column.many === true`, so a scalar domain-enum column cannot currently be given `@noCheck(membership)`. Path B needs that gate lifted. The authoring side already accepts a membership waiver on any domain-enum column, so this is an infer-side change only.
 
