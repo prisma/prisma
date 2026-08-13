@@ -38,11 +38,13 @@ import { SYNTHETIC_SPAN } from './psl-literals';
  * Relation inference, name transforms, generic default mapping, and raw-default
  * parsing are shape-neutral utilities imported from the SQL family.
  *
- * This slice emits relational-only PSL, byte-identical to the prior flat
- * inference: the tree's tables (across its namespaces — `contract infer`
- * introspects a single live namespace) are gathered into the model set and
- * emitted as one `UNSPECIFIED_PSL_NAMESPACE_ID` bucket. Top-level entities
- * (policies/roles → PSL extension blocks) are a later slice.
+ * The tree's tables (across its namespaces — `contract infer` introspects a
+ * single live namespace) are gathered into the model set and emitted in one
+ * bucket, alongside native-enum and RLS policy blocks. That bucket is named
+ * after the introspected schema when the content needs a `namespace { … }`
+ * wrap, and is the flat `UNSPECIFIED_PSL_NAMESPACE_ID` bucket otherwise.
+ * Content that must stay top-level even under a wrap goes in a second,
+ * always-flat bucket — see {@link buildPslDocumentAst}.
  *
  * `describedContracts` — the stack's extension packs' already-assembled
  * contracts, each paired with its space id — is consulted while gathering
@@ -245,6 +247,7 @@ export function buildPslDocumentAst(
   >,
   namespaceName?: string,
   rlsExtras?: RlsEmissionExtras,
+  topLevelExtensionBlocks: readonly PslExtensionBlock[] = [],
 ): PslDocumentAst {
   const { typeMap, defaultMapping, parseRawDefault: rawDefaultParser } = options;
   const { extraRelationsByTable, crossSpaceFieldNamesByTable, danglingForeignKeysByTable } =
@@ -323,12 +326,12 @@ export function buildPslDocumentAst(
   //
   // A second, always-`__unspecified__` bucket carries schema-less top-level
   // content — the printer sorts it before any named namespace and never
-  // wraps it either. Nothing fills `topLevelExtensionBlocks` yet (domain-enum
-  // recovery, a later slice, is the first producer), so it is only pushed
-  // onto `namespaces` when non-empty: an empty flat bucket must stay
-  // invisible, or every existing `contract infer` output would change shape.
-  const topLevelExtensionBlocks: PslExtensionBlock[] = [];
-
+  // wraps it either. No production caller passes `topLevelExtensionBlocks`
+  // yet (domain-enum recovery, a later slice, is the first producer), so the
+  // bucket is only pushed onto `namespaces` when non-empty: an empty flat
+  // bucket must stay invisible, or every existing `contract infer` output
+  // would change shape.
+  //
   // Without a namespace wrap both buckets would be `__unspecified__`, and two
   // buckets of the same name is a distinction the document does not carry —
   // so the top-level blocks join the single flat bucket instead.
