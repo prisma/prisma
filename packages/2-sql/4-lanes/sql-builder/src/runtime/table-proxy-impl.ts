@@ -93,10 +93,12 @@ export class TableProxyImpl<
    * value carries what the storage table states.
    */
   get columns(): TableProxy<C, NsId, Name, Alias, AvailableScope, QC>['columns'] {
-    const refs: Record<string, { codecId: string; nullable: boolean }> = {};
-    for (const [name, column] of Object.entries(this.#table.columns)) {
-      refs[name] = { codecId: column.codecId, nullable: column.nullable };
-    }
+    const refs = Object.fromEntries(
+      Object.entries(this.#table.columns).map(([name, column]) => [
+        name,
+        { codecId: column.codecId, nullable: column.nullable },
+      ]),
+    );
     return blindCast<
       TableProxy<C, NsId, Name, Alias, AvailableScope, QC>['columns'],
       "the storage table states each column's codec and nullability at runtime; the declared type is the contract's own statement about the same columns, which a runtime value cannot carry"
