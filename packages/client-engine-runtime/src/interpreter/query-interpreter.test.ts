@@ -1,3 +1,5 @@
+import timers from 'node:timers/promises'
+
 import {
   ColumnTypeEnum,
   SqlDriverAdapter,
@@ -107,16 +109,16 @@ test('loads join children in parallel', async () => {
     adapterName: 'test',
     queryRaw: async () => {
       maxInFlight = Math.max(maxInFlight, ++inFlight)
-      await new Promise((resolve) => setImmediate(resolve))
+      await timers.setImmediate()
       inFlight--
       return userResultSet(1, 'Alice')
     },
     executeRaw: () => Promise.resolve(0),
   }
 
-  const joinChild = (parentField: string) => ({
+  const joinChild = (parentField: string): Extract<QueryPlanNode, { type: 'join' }>['args']['children'][number] => ({
     child: queryNode(`SELECT * FROM ${parentField}`),
-    on: [['id', 'id']] as [string, string][],
+    on: [['id', 'id']],
     parentField,
     isRelationUnique: true,
   })

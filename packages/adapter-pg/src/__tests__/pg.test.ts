@@ -1,3 +1,5 @@
+import timers from 'node:timers/promises'
+
 import { getLogs } from '@prisma/debug'
 import type { SqlQuery } from '@prisma/driver-adapter-utils'
 import pg, { DatabaseError } from 'pg'
@@ -165,7 +167,7 @@ describe('query serialization', () => {
     const mock = vi.fn(async ({ text }: { text: string }) => {
       started.push(text)
       maxInFlight = Math.max(maxInFlight, ++inFlight)
-      await new Promise((resolve) => setImmediate(resolve))
+      await timers.setImmediate()
       inFlight--
       return emptyResult
     })

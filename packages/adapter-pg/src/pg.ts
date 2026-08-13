@@ -37,7 +37,9 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
   // be serialized. `pg.Pool` handles concurrency itself and must not be
   // serialized, or the whole pool would be limited to one query at a time.
   protected readonly serializeQueries: boolean = true
-  #queryLock: Promise<unknown> = Promise.resolve()
+  // Resolve-only lock: it tracks completion of the previous query and can
+  // never carry its error, so a failed query rejects only its own caller.
+  #queryLock: Promise<void> = Promise.resolve()
 
   constructor(
     protected readonly client: ClientT,
@@ -110,11 +112,14 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
       return this.#performIO(query)
     }
     const previous = this.#queryLock
-    const current = previous.then(() => this.#performIO(query))
-    // Keep the lock chain alive even if the query fails; the failure still
-    // propagates to the caller through `current`.
-    this.#queryLock = current.catch(() => {})
-    return current
+    let release!: () => void
+    this.#queryLock = new Promise((resolve) => (release = resolve))
+    await previous
+    try {
+      return await this.#performIO(query)
+    } finally {
+      release()
+    }
   }
 
   async #performIO(query: SqlQuery): Promise<pg.QueryArrayResult<any>> {
