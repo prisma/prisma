@@ -306,28 +306,34 @@ function rewriteContractSnapshotSpecifiers(source, snapshotsImportPath, toHash, 
 function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
   if (contractFamily === 'sql') {
     return (
+      `import { defineConfig as engineDefineConfig } from '@prisma/cli-engine';\n` +
       `import { defineConfig } from '${frameworkConfigTypes}';\n` +
       `import { prismaContract } from '${sqlContractPslProvider}';\n` +
       `import postgresPackRef from '${targetPostgresPack}';\n` +
       `import { postgresCreateNamespace } from '${targetPostgresTypes}';\n` +
       `import realConfig from '${realConfigAbsPath}';\n\n` +
-      'export default defineConfig({\n' +
-      '  ...realConfig,\n' +
-      `  contract: prismaContract('${schemaSrc}', {\n` +
-      '    target: postgresPackRef,\n' +
-      '    createNamespace: postgresCreateNamespace,\n' +
+      'export default engineDefineConfig({\n' +
+      '  orm: defineConfig({\n' +
+      '    ...realConfig.orm,\n' +
+      `    contract: prismaContract('${schemaSrc}', {\n` +
+      '      target: postgresPackRef,\n' +
+      '      createNamespace: postgresCreateNamespace,\n' +
+      '    }),\n' +
       '  }),\n' +
       '});\n'
     );
   }
   // Default: mongo
   return (
+    `import { defineConfig as engineDefineConfig } from '@prisma/cli-engine';\n` +
     `import { defineConfig } from '${frameworkConfigTypes}';\n` +
     `import { mongoContract } from '${mongoContractPslProvider}';\n` +
     `import realConfig from '${realConfigAbsPath}';\n\n` +
-    'export default defineConfig({\n' +
-    '  ...realConfig,\n' +
-    `  contract: mongoContract('${schemaSrc}'),\n` +
+    'export default engineDefineConfig({\n' +
+    '  orm: defineConfig({\n' +
+    '    ...realConfig.orm,\n' +
+    `    contract: mongoContract('${schemaSrc}'),\n` +
+    '  }),\n' +
     '});\n'
   );
 }
@@ -391,9 +397,11 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
     }
   }
 
+  // The engine bin emits NDJSON events; the last line is the result envelope.
   let parsed;
   try {
-    parsed = JSON.parse(emitOutput);
+    const lines = emitOutput.trim().split('\n');
+    parsed = JSON.parse(lines[lines.length - 1]);
   } catch {
     rmSync(tmpEmitDir, { recursive: true, force: true });
     throw new Error(
@@ -401,7 +409,7 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
     );
   }
 
-  const storageHash = parsed?.storageHash;
+  const storageHash = parsed?.envelope?.result?.storageHash ?? parsed?.storageHash;
   if (typeof storageHash !== 'string' || !/^(?:[0-9a-f]{64}|empty)$/.test(storageHash)) {
     rmSync(tmpEmitDir, { recursive: true, force: true });
     throw new Error(

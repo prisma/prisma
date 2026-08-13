@@ -5194,6 +5194,9 @@ importers:
         specifier: 'catalog:'
         version: 2.2.3
     devDependencies:
+      '@internal/cli':
+        specifier: workspace:8.0.0-rc.1
+        version: link:../../../packages/1-framework/3-tooling/cli
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../packages/0-config/tsconfig
