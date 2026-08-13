@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. May 5, 2026. Amended August 12, 2026 to reflect the shipped two-method SQL driver surface and the current error namespace.
+Accepted. May 5, 2026.
 
 ## Overview
 
@@ -10,11 +10,11 @@ Executing a SQL DSL query end to end has three costs: lowering the relational AS
 
 Two of those costs are amortizable. Lowering depends only on the AST, so the result can be cached. Most SQL servers can keep a parsed plan keyed by a name in the connection's session and reuse it on subsequent executions; the client sends `EXECUTE` once the plan is registered, skipping the parse.
 
-The SQL DSL exposes one primitive that opts into both kinds of reuse: a *prepared statement*. The user calls `db.prepare(declaration, callback)` once and gets back a `PreparedStatement<Params, Row>` object. The runtime invokes the callback to obtain a plan, runs the `beforeCompile` middleware chain on it, lowers the result once, and freezes the lowered SQL onto the object. On the first `.query()` for that statement, the runtime supplies the driver with a slot backed by a private `WeakMap` keyed by the `PreparedStatement` object. The driver allocates whatever opaque handle it needs — a name, a statement reference, an integer, anything — and writes it through that slot. The same runtime-owned entry is reused when the statement is routed through the top-level runtime, a checked-out connection, or a transaction; server-side state remains the driver's responsibility for each physical connection.
+The SQL DSL exposes one primitive that opts into both kinds of reuse: a *prepared statement*. The user calls `db.prepare(declaration, callback)` once and gets back a `PreparedStatement<Params, Row>` object. The runtime invokes the callback to obtain a plan, runs the `beforeCompile` middleware chain on it, lowers the result once, and freezes the lowered SQL onto the object. On the first `.query()` against a connection, the driver allocates whatever per-target handle it needs — a name, a statement reference, an integer, anything — and stores it back on the `PreparedStatement` through a slot wrapper. Subsequent queries reuse the lowered SQL and the handle until the connection ends.
 
 The primitive lives on the runtime: the underlying call is `runtime.prepare(declaration, callback)`. It lives there because the `beforeCompile` middleware chain is owned and invoked by the runtime, and `prepare` has to run that chain so AST rewrites are baked into the lowered SQL. Each DB-specific facade (the Postgres client, the SQLite client, etc.) re-exposes `prepare(declaration, callback)` as a top-level convenience method that delegates to the runtime. The `db` proxy returned by `sql({ context })` itself is unchanged — it still maps top-level keys to user-defined tables and exposes nothing else.
 
-There is no global cache. The lowered SQL lives on the user's `PreparedStatement` object. The runtime's opaque-handle map is private to that runtime instance, weakly keyed by the statement object, and shared by its runtime, connection, and transaction targets. Server-side prepared state remains in the driver's physical connection or session and ends when that connection or session ends.
+There is no global cache. The lowered SQL lives on the user's `PreparedStatement` reference; the per-connection server-side state lives on the connection. When either ends, that state ends with it.
 
 This ADR is family-level: it pins the author surface, the driver SPI shape, the lifetime model, and the retry contract. Per-driver caching strategies and per-driver staleness detection live in the drivers, not here.
 
@@ -45,15 +45,15 @@ A few things to notice:
 - **The callback receives a `params` object whose values are bind-site references.** It is the *only* callback argument; the DSL root (`db`) is captured from the enclosing scope. `params.userId` flowing into `fns.eq(f.id, …)` slots in like any other expression — the type at that position is the same arm of `CodecExpression` that the DSL accepts wherever a literal would normally go (`eq`, `update`, `where` predicates, and so on). Slot reuse is implicit by reference equality: referring to `params.userId` twice is one slot used twice.
 - **`.query(target, params, options?)` is typed end to end.** `Params` comes from the declaration via each codec's `TInput` mapping; `Row` comes from the plan returned by the callback.
 - **The execution scope is always explicit.** The first argument is a `RuntimeQueryable` — the top-level runtime, an explicit connection, or an active transaction (or its `TransactionContext`). The same `PreparedStatement` redirects between them without re-preparation; there is no implicit binding back to the runtime that produced it.
-- **The first query initializes the runtime's handle slot; later queries reuse it.** Subsequent queries reuse the frozen lowering. The driver decides how that opaque handle maps to server-side preparation on the physical connection.
+- **The first query allocates a server-side handle; the second reuses it.** Subsequent queries against the same connection skip both lowering and parsing.
 
-Without `prepare`, an ad-hoc `db.user.select(...).where(...).all()` (or `.build()` + `runtime.execute(plan)`) runs as before: lowered every time, parsed by the server every time, and the framework keeps no state about it.
+Without `prepare`, an ad-hoc `db.user.select(...).where(...).all()` (or `.build()` + `runtime.query(plan)`) runs as before: lowered every time, parsed by the server every time, and the framework keeps no state about it.
 
 ## Design principles
 
 1. **Reuse is opt-in and explicit.** Two `prepare` calls with identical SQL produce two independent `PreparedStatement` handles. The framework does not deduplicate, does not maintain a global shape-keyed cache, and does not infer reuse from call patterns. Users hold the reference; users decide when to reuse.
 
-2. **The framework handle follows the statement and runtime; server state follows the physical connection.** The lowered SQL lives on the `PreparedStatement` object. The runtime stores its opaque handle in a private `WeakMap` keyed by that object, so the map does not retain an otherwise unreachable statement and the same entry is available through the runtime's connection and transaction targets. Server-side prepared-plan state is owned by the driver and the physical connection or session; when that resource ends, its server-side state ends with it. There is no framework dispose path.
+2. **Cache lifetime equals the user's reference, bounded by connection lifetime.** The lowered SQL lives on the `PreparedStatement` object — when it goes out of scope, so does the cache. Server-side prepared-plan state lives on the connection — when the connection ends, the plan ends with it. There is no dispose path, because there is nothing for one to do beyond what these two natural boundaries already do.
 
 3. **The runtime treats the handle as opaque.** The runtime has no concept of the handle's shape. It hands the driver a getter/setter slot and the driver fills it. This keeps the runtime agnostic to per-target preparation primitives, which differ widely across SQL dialects.
 
@@ -95,7 +95,7 @@ The alternative — letting `.query(params)` default to "the runtime that built 
 
 ### Why `prepare` is async with no driver I/O
 
-`prepare` performs no driver I/O. Internally it invokes the callback, awaits the async `beforeCompile` middleware chain on the resulting plan's AST so AST rewrites are baked into the lowered SQL, calls the adapter's `lower()`, and freezes the lowered SQL plus the parameter slot order onto the `PreparedStatement`. The runtime's WeakMap entry starts absent and is created lazily when the statement is queried.
+`prepare` performs no driver I/O. Internally it invokes the callback, awaits the async `beforeCompile` middleware chain on the resulting plan's AST so AST rewrites are baked into the lowered SQL, calls the adapter's `lower()`, and freezes the lowered SQL plus the parameter slot order onto the `PreparedStatement`. The handle slot starts unset.
 
 The async return reflects an existing constraint, not a new one. `beforeCompile` is async-typed across the rest of the system. A sync `prepare` would force one of two compromises: split the chain into sync and async variants (inflating the hook surface), or defer the chain to the first query (defeating the "no I/O at prepare time" property by pushing middleware work into the I/O path). Returning `Promise<PreparedStatement<Params, Row>>` keeps the chain intact and costs one `await` at call sites. Driver I/O still happens only on `.query()`.
 
@@ -105,7 +105,7 @@ The async return reflects an existing constraint, not a new one. `beforeCompile`
 
 ## Driver SPI
 
-The SQL driver surface has two semantic methods: `query()` streams rows and `execute()` returns statement statistics. Prepared-ness is a property of the request, not a third method. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
+`SqlQueryable.query()` streams rows; `SqlQueryable.execute()` returns statement statistics. Prepared statements are row queries, so prepared execution uses `query()`. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
 
 ```ts
 interface PreparedStatementHandle {
@@ -125,7 +125,7 @@ interface SqlQueryable {
 }
 ```
 
-`query()` is the row-streaming path. `execute()` is the non-row path for a single statement and returns the driver's actual affected-row statistic. Both methods accept the same request shape, including the optional prepared handle. The driver receives the lowered SQL, encoded params, and a slot wrapper — never the `PreparedStatement` object. The runtime constructs the slot wrapper around its private `WeakMap` entry keyed by the `PreparedStatement`; reads and writes flow through that wrapper for every runtime, connection, or transaction target.
+The driver receives the lowered SQL, encoded params, and a slot wrapper — never the `PreparedStatement` object. The runtime constructs the slot wrapper around the `PreparedStatement`'s handle field; reads and writes flow through that single field on the user's object.
 
 ### Lazy handle allocation
 
@@ -141,11 +141,11 @@ The slot pattern also covers the case where a driver does not implement server-s
 
 ## Lifetime and memory
 
-The `PreparedStatement` carries the lowered SQL text and its immutable query metadata. It does not carry the opaque handle, parameter values, or row data. The SQL runtime keeps the handle in a private `WeakMap` keyed by the statement object, with one entry per statement/runtime pair rather than one framework entry per connection. The driver remains responsible for server-side prepared state on each physical connection or session.
+The `PreparedStatement` carries the lowered SQL text and (lazily) one opaque handle — nothing else. No parameter values, no row data. Server-side state lives on the connection; reusing a `PreparedStatement` across two connections gives each connection its own server-side entry, allocated on its first query against that connection.
 
-A `PreparedStatement` reused through the runtime, a connection, and a transaction uses the same runtime-owned handle slot. The driver may map that slot to connection-specific server state; consumers MUST NOT infer handle identity or server preparation behavior from the scope used to execute the statement.
+A `PreparedStatement` reused across two connections may end up with handles that are byte-identical or distinct, depending on what the driver finds convenient. The runtime makes no claims either way; consumers MUST NOT depend on either property.
 
-The framework's handle-map memory is bounded by reachable `PreparedStatement` keys and is weakly keyed; driver-side server state is bounded by the driver's live physical connections or sessions. The cleanup mechanisms are garbage collection for the runtime map and connection/session teardown for server-side state (see [design principle #2](#design-principles)).
+Memory upper bound is roughly *(distinct PreparedStatements) × (live connections that have queried each)*, sized in low kilobytes per pair. Long-lived connections holding many `PreparedStatement` references will accumulate prepared-plan memory until the connection recycles. The cleanup mechanism is connection recycling; the system has no other dispose path (see [design principle #2](#design-principles)).
 
 ## Stale-handle retry
 
@@ -157,7 +157,7 @@ The framework guarantees one retry path:
 - On detection, the driver clears the slot and allocates a fresh handle (calls `req.preparedStatementHandle.set(newHandle)` with a new value).
 - The driver retries the query exactly once.
 - On retry success, the user observes one `.query()` call that succeeded.
-- On retry failure, the driver surfaces `DRIVER.PREPARE_FAILED`, preserving the originating error as `cause`. The error envelope is defined by [ADR 239 — Errors are structural envelopes with dotted namespace codes](./ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md), which reserves `DRIVER.PREPARE_FAILED` for exactly this surface.
+- On retry failure, the driver surfaces `DRIVER.PREPARE_FAILED`, preserving the originating error as `cause`. The error envelope is defined by [ADR 027 — Error Envelope Stable Codes](./ADR%20027%20-%20Error%20Envelope%20Stable%20Codes.md), which reserves `DRIVER.PREPARE_FAILED` for exactly this surface.
 
 Detection sensitivity is a per-driver tradeoff. Some targets surface a clean signal that says "this prepared plan is gone"; the driver retries narrowly. Others have no such signal; the driver may treat any error originating from a cached query as a candidate for re-prepare. In the second case the false-positive cost is one extra preparation, paid only on otherwise-failing queries — the bound is small and self-correcting. The framework neither prefers nor mandates either policy; it pins the contract (clear, allocate, retry once, surface) and leaves the trigger to the driver (see [design principle #4](#design-principles)).
 
@@ -187,8 +187,8 @@ The following are deliberate exclusions, not omissions:
 - **Global shape cache.** Two `prepare` calls with identical SQL produce two handles. Deduplication is the user's responsibility — they hold the reference, they decide whether to reuse it. A global cache would invert ownership and force lifetime decisions onto the framework (see [design principle #1](#design-principles)).
 - **Cross-process or persistent caches.** All state is in-process and tied to live connections.
 - **Cross-adapter reuse.** A `PreparedStatement` is bound to the runtime it was created from. The surface is SQL-only; non-SQL families do not have a `prepare` semantic.
-- **Explicit dispose.** No `.dispose()` method. The runtime handle entry is weakly keyed by the `PreparedStatement`, and driver-side state ends with the physical connection or session. A framework dispose method would add lifecycle bookkeeping without owning either resource.
-- **Pre-warming server-side preparation at pool init.** The first query on each physical connection may pay the driver's preparation cost. Pre-warming would require the framework to know the full set of `PreparedStatement`s ahead of time; the user-owned-statement model puts that knowledge on the user.
+- **Explicit dispose.** No `.dispose()` method. The leak is bounded and self-heals on connection recycle. A dispose method would require tracking which connections have seen which handles, which is the cache the system explicitly avoids.
+- **Pre-warming server-side preparation at pool init.** The first `.query()` per connection pays the preparation cost. Pre-warming would require the framework to know the full set of `PreparedStatement`s ahead of time; the user-owned-handle model puts that knowledge on the user.
 - **Observability surface for prepared-statement execution.** Tracing, metrics, counters, structured logs — drivers may add their own; the framework does not standardise one.
 - **List/array parameter slots.** The codec registry has no list codecs; `prepare` accepts only scalar slots. The design accommodates list codecs without further changes — adding a list codec extends `prepare` to array-typed slots automatically.
 
@@ -209,5 +209,5 @@ The following are deliberate exclusions, not omissions:
 ## References
 
 - [ADR 016 — Adapter SPI for Lowering](./ADR%20016%20-%20Adapter%20SPI%20for%20Lowering.md) defines the adapter SPI used by prepared queries. Lowering runs once at `prepare` time and is bypassed on the prepared query path.
-- [ADR 239 — Errors are structural envelopes with dotted namespace codes](./ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md) defines the `DRIVER.PREPARE_FAILED` envelope returned when stale-handle retry fails.
+- [ADR 027 — Error Envelope Stable Codes](./ADR%20027%20-%20Error%20Envelope%20Stable%20Codes.md) defines the `DRIVER.PREPARE_FAILED` envelope returned when stale-handle retry fails.
 - [ADR 205 — SQL cast emission is adapter policy](./ADR%20205%20-%20SQL%20cast%20emission%20is%20adapter%20policy.md) describes when adapters emit explicit type casts on parameter sites. A cached prepared plan keeps parameter types stable across queries, so unconditional casts are not required for correctness on the prepared path.
