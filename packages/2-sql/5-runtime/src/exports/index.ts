@@ -20,6 +20,7 @@ export type { LintsOptions } from '../middleware/lints';
 export { lints } from '../middleware/lints';
 export type { SqlMiddleware, SqlMiddlewareContext } from '../middleware/sql-middleware';
 export {
+  PreparedExecutionImpl,
   PreparedStatementImpl,
   type PreparedStatementInternals,
 } from '../prepared/prepared-statement';
@@ -31,6 +32,8 @@ export type {
   ParamSpec,
   ParamsFromDeclaration,
   PrepareCallback,
+  PreparedExecution,
+  PreparedFor,
   PreparedStatement,
 } from '../prepared/types';
 export type {

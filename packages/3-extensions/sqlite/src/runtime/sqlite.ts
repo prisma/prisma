@@ -15,7 +15,7 @@ import type {
   Declaration,
   ExecutionContext,
   ParamsFromDeclaration,
-  PreparedStatement,
+  PreparedFor,
   Runtime,
   SqlExecutionStackWithDriver,
   SqlMiddleware,
@@ -83,7 +83,7 @@ export interface SqliteClient<TContract extends Contract<SqlStorage>> {
   >(
     declaration: D,
     callback: (sql: UnboundSql<TContract>, params: BindSiteParams<D>) => SqlQueryPlan<Row>,
-  ): Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>>;
+  ): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>>;
   transaction<R>(fn: (tx: SqliteTransactionContext<TContract>) => PromiseLike<R>): Promise<R>;
   close(): Promise<void>;
   [Symbol.asyncDispose](): Promise<void>;
@@ -293,7 +293,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     >(
       declaration: D,
       callback: (sql: UnboundSql<TContract>, params: BindSiteParams<D>) => SqlQueryPlan<Row>,
-    ): Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>> {
+    ): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>> {
       return getRuntime().prepare<D, Row, CT>(declaration, (params) => callback(sql, params));
     },
 

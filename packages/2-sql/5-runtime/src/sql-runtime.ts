@@ -50,11 +50,17 @@ import type { SqlMiddleware, SqlMiddlewareContext } from './middleware/sql-middl
 import { buildBindSiteParams } from './prepared/bind-site-params';
 import { resolvePreparedSlotValues } from './prepared/encode-prepared';
 import {
+  type PreparedStatementExecuteTarget,
+  preparedStatementExecute,
+  runPreparedExecute,
+} from './prepared/prepared-execute';
+import {
   type PreparedStatementQueryTarget,
   preparedStatementQuery,
   runPreparedQuery,
 } from './prepared/prepared-query';
 import {
+  PreparedExecutionImpl,
   PreparedStatementImpl,
   type PreparedStatementInternals,
 } from './prepared/prepared-statement';
@@ -62,6 +68,8 @@ import type {
   Declaration,
   ParamsFromDeclaration,
   PrepareCallback,
+  PreparedExecution,
+  PreparedFor,
   PreparedStatement,
 } from './prepared/types';
 import type {
@@ -102,7 +110,7 @@ export interface Runtime extends RuntimeQueryable {
   prepare<D extends Declaration<CT>, Row, CT extends CodecTypesBase = CodecTypesBase>(
     declaration: D,
     callback: PrepareCallback<D, Row>,
-  ): Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>>;
+  ): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>>;
 }
 
 export interface RuntimeConnection extends RuntimeQueryable {
@@ -328,6 +336,22 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     );
   }
 
+  [preparedStatementExecute]<Params>(
+    ps: PreparedExecution<Params>,
+    params: Params,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats> {
+    return this.runPreparedExecuteAgainstQueryable<Params>(
+      blindCast<
+        PreparedExecutionImpl<Params>,
+        'prepared statements are created by this runtime implementation'
+      >(ps),
+      params,
+      this.driver,
+      options,
+    );
+  }
+
   /**
    * Returns the raw driver connection. The connection is a `SqlQueryable` — SQL
    * issued on it runs below the middleware/codec/telemetry pipeline. It carries
@@ -525,24 +549,13 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   async prepare<D extends Declaration<CT>, Row, CT extends CodecTypesBase = CodecTypesBase>(
     declaration: D,
     callback: PrepareCallback<D, Row>,
-  ): Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>> {
+  ): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>> {
     this.ensureCodecRegistryValidated();
 
     const bindSiteParams = buildBindSiteParams(declaration);
 
     const userPlan = callback(bindSiteParams);
     const finalPlan = await this.runBeforeCompile(userPlan);
-
-    // A prepared statement is executed through the row path, and a statement
-    // whose declared result is an affected-row count produces no rows — it
-    // would stream nothing at all. Refuse it where the statement is declared
-    // rather than at the silent execution.
-    if (finalPlan.ast.kind === 'raw-query' && finalPlan.ast.result.kind === 'affected-count') {
-      throw runtimeError(
-        'RUNTIME.PREPARE_AFFECTED_COUNT_UNSUPPORTED',
-        'A raw statement terminated with `.affectedCount()` cannot be prepared: prepared statements execute through the row path, which reports no statistics. Execute the plan directly with `runtime.execute(plan)`, or declare a row spec with `.returnsRow(spec)` if the statement returns rows.',
-      );
-    }
 
     const orderedRefs = collectOrderedParamRefs(finalPlan.ast);
 
@@ -577,7 +590,19 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       paramMetadata,
     });
 
-    return new PreparedStatementImpl<ParamsFromDeclaration<D, CT>, Row>(internals);
+    // The plan's declared result picks the handle: a statement reporting an
+    // affected-row count prepares into one that executes, everything else into
+    // one that streams rows. The cast carries that runtime choice into the
+    // conditional type `PreparedFor` states for the caller.
+    const prepared =
+      finalPlan.ast.kind === 'raw-query' && finalPlan.ast.result.kind === 'affected-count'
+        ? new PreparedExecutionImpl<ParamsFromDeclaration<D, CT>>(internals)
+        : new PreparedStatementImpl<ParamsFromDeclaration<D, CT>, Row>(internals);
+
+    return blindCast<
+      PreparedFor<ParamsFromDeclaration<D, CT>, Row>,
+      "the plan's declared result decides the handle, and PreparedFor states that same choice in the type"
+    >(prepared);
   }
 
   /** Query prepared rows against a caller-supplied queryable through the full pipeline. */
@@ -651,11 +676,83 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     return new AsyncIterableResult(generator());
   }
 
+  /** Execute a prepared statement's statistics against a caller-supplied queryable through the full pipeline. */
+  protected async runPreparedExecuteAgainstQueryable<P>(
+    ps: PreparedExecutionImpl<P>,
+    userParams: unknown,
+    queryable: SqlQueryable,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats> {
+    this.ensureCodecRegistryValidated();
+
+    const { codecCtx, middlewareCtx } = this.createQueryContexts(options);
+    checkAborted(codecCtx, 'stream');
+
+    // Slot order resolves to unencoded values first so `beforeExecute`'s
+    // mutator sees pre-encode user values and can override them before encode
+    // runs — the same split the ad-hoc execute path takes.
+    const preEncodeValues = resolvePreparedSlotValues(ps, userParams);
+    const preEncodeExec: SqlExecutionPlan = {
+      sql: ps.sql,
+      params: preEncodeValues,
+      ast: ps.ast,
+      meta: ps.meta,
+    };
+
+    const mutator: SqlParamRefMutatorInternal = createSqlParamRefMutator(preEncodeExec);
+    await runBeforeExecuteChain<SqlExecutionPlan, SqlParamRefMutator>(
+      preEncodeExec,
+      this.middleware,
+      middlewareCtx,
+      mutator,
+    );
+
+    const exec: SqlExecutionPlan = {
+      sql: ps.sql,
+      params: await encodeParamsWithMetadata(
+        mutator.currentParams(),
+        ps.paramMetadata,
+        codecCtx,
+        this.contractCodecs,
+      ),
+      ast: ps.ast,
+      meta: ps.meta,
+    };
+    await this.setupDriverExecution(exec);
+
+    const handles = this.#preparedStatementHandles;
+    const request: PreparedExecuteRequest = {
+      sql: exec.sql,
+      params: exec.params,
+      preparedStatementHandle: {
+        get: () => handles.get(ps),
+        set: (value) => {
+          handles.set(ps, value);
+        },
+      },
+    };
+
+    const startedAt = Date.now();
+    let outcome: TelemetryOutcome = 'success';
+    try {
+      return await runExecuteWithMiddleware(exec, this.middleware, middlewareCtx, () =>
+        queryable.execute(request),
+      );
+    } catch (error) {
+      outcome = 'runtime-error';
+      throw error;
+    } finally {
+      this.recordTelemetry(exec, outcome, Date.now() - startedAt);
+    }
+  }
+
   async connection(): Promise<RuntimeConnection> {
     const driverConn = await this.driver.acquireConnection();
     const self = this;
 
-    const wrappedConnection: RuntimeConnection & PreparedStatementQueryTarget = {
+    const wrappedConnection: RuntimeConnection &
+      PreparedStatementQueryTarget &
+      PreparedStatementExecuteTarget = {
       async transaction(): Promise<RuntimeTransaction> {
         const driverTx = await driverConn.beginTransaction();
         return self.wrapTransaction(driverTx);
@@ -699,6 +796,21 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
           { ...options, scope: 'connection' },
         );
       },
+      [preparedStatementExecute]<Params>(
+        ps: PreparedExecution<Params>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        return self.runPreparedExecuteAgainstQueryable<Params>(
+          blindCast<
+            PreparedExecutionImpl<Params>,
+            'prepared statements are created by this runtime implementation'
+          >(ps),
+          params,
+          driverConn,
+          { ...options, scope: 'connection' },
+        );
+      },
     };
 
     return wrappedConnection;
@@ -706,7 +818,9 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
 
   private wrapTransaction(driverTx: SqlTransaction): RuntimeTransaction {
     const self = this;
-    const wrappedTransaction: RuntimeTransaction & PreparedStatementQueryTarget = {
+    const wrappedTransaction: RuntimeTransaction &
+      PreparedStatementQueryTarget &
+      PreparedStatementExecuteTarget = {
       async commit(): Promise<void> {
         await driverTx.commit();
       },
@@ -739,6 +853,21 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         return self.runPreparedQueryAgainstQueryable<Params, Row>(
           blindCast<
             PreparedStatementImpl<Params, Row>,
+            'prepared statements are created by this runtime implementation'
+          >(ps),
+          params,
+          driverTx,
+          { ...options, scope: 'transaction' },
+        );
+      },
+      [preparedStatementExecute]<Params>(
+        ps: PreparedExecution<Params>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        return self.runPreparedExecuteAgainstQueryable<Params>(
+          blindCast<
+            PreparedExecutionImpl<Params>,
             'prepared statements are created by this runtime implementation'
           >(ps),
           params,
@@ -851,7 +980,9 @@ export async function withTransaction<R>(
     }
   }
 
-  const txContext: TransactionContext & PreparedStatementQueryTarget = {
+  const txContext: TransactionContext &
+    PreparedStatementQueryTarget &
+    PreparedStatementExecuteTarget = {
     get invalidated() {
       return invalidated;
     },
@@ -884,6 +1015,16 @@ export async function withTransaction<R>(
       return new AsyncIterableResult(
         guardedStream(runPreparedQuery(transaction, ps, params, options)),
       );
+    },
+    [preparedStatementExecute]<Params>(
+      ps: PreparedExecution<Params>,
+      params: Params,
+      options?: RuntimeExecuteOptions,
+    ): Promise<SqlStatementStats> {
+      if (invalidated) {
+        throw transactionClosedError();
+      }
+      return runPreparedExecute(transaction, ps, params, options);
     },
   };
 

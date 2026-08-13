@@ -3,7 +3,11 @@ import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
 } from '@internal/framework-components/runtime';
-import type { AnyQueryAst, LoweredParam } from '@internal/sql-relational-core/ast';
+import type {
+  AnyQueryAst,
+  LoweredParam,
+  SqlStatementStats,
+} from '@internal/sql-relational-core/ast';
 import type {
   CodecTypesBase,
   CodecValue,
@@ -58,3 +62,32 @@ export interface PreparedStatement<Params, Row> {
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row>;
 }
+
+/**
+ * A prepared statement whose plan declares statement statistics rather than
+ * rows. It carries the same lowered statement and bind slots as its
+ * row-streaming sibling and differs in one way: it is consumed by executing
+ * it, which resolves the statistics the statement reports.
+ */
+export interface PreparedExecution<Params> {
+  readonly sql: string;
+  readonly ast: AnyQueryAst;
+  readonly meta: PlanMeta;
+  readonly slots: readonly LoweredParam[];
+  readonly _params?: Params;
+  execute(
+    target: RuntimeQueryable,
+    params: Params,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats>;
+}
+
+/**
+ * The prepared handle a plan earns, keyed on the result the plan declares:
+ * statistics prepare into a {@link PreparedExecution}, rows into a
+ * {@link PreparedStatement}. The two faces share no consumption method, so a
+ * handle cannot be read the wrong way round.
+ */
+export type PreparedFor<Params, Row> = [Row] extends [SqlStatementStats]
+  ? PreparedExecution<Params>
+  : PreparedStatement<Params, Row>;

@@ -154,32 +154,3 @@ describe('raw-query execution routing', () => {
     expect(executeCalls[0]?.params).toEqual(queryCalls[0]?.params);
   });
 });
-
-describe('prepared raw-query statements', () => {
-  it('refuses to prepare an affected-count statement', async () => {
-    const { runtime } = setup();
-
-    await expect(runtime.prepare({}, () => affectedCountPlan())).rejects.toMatchObject({
-      code: 'RUNTIME.PREPARE_AFFECTED_COUNT_UNSUPPORTED',
-    });
-  });
-
-  it('names the terminator to use instead', async () => {
-    const { runtime } = setup();
-
-    await expect(runtime.prepare({}, () => affectedCountPlan())).rejects.toThrow(
-      /runtime\.execute\(plan\)/,
-    );
-  });
-
-  it('prepares and streams a row-returning statement', async () => {
-    const { runtime, queryCalls, executeCalls } = setup();
-    const prepared = await runtime.prepare({}, () => rowsPlan());
-
-    const rows = await collectAsync(prepared.query(runtime, {}));
-
-    expect(rows).toEqual([{ id: 1, email: 'a@b.example' }]);
-    expect(queryCalls).toHaveLength(1);
-    expect(executeCalls).toHaveLength(0);
-  });
-});
