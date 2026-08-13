@@ -14,7 +14,6 @@
     "clean": "rm -rf dist src-gen"
   },
   "dependencies": {
-    "@prisma/cli-engine": "0.0.9",
     "@prisma/orm-framework": "workspace:8.0.0-rc.1",
     "@vercel/detect-agent": "^1.2.4",
     "arktype": "catalog:",
@@ -49,6 +48,7 @@
     "typescript": "catalog:"
   },
   "peerDependencies": {
+    "@prisma/cli-engine": "0.0.9",
     "typescript": ">=5.9",
     "vite": "^7.0.0 || ^8.0.0"
   },
