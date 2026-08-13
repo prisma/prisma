@@ -243,7 +243,7 @@ jobs:
             echo "PRISMA_CLI_DISPATCH_PAT is not configured; skipping (the daily backstop covers this)."
             exit 0
           fi
-          curl -sf -X POST \
+          curl -sSf --connect-timeout 10 --max-time 30 -X POST \
             -H "Authorization: Bearer $DISPATCH_PAT" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/prisma/prisma-cli/dispatches \
