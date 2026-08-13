@@ -18,7 +18,7 @@ export function resolveContractPath(config: { contract?: { output?: string } }):
       'config.contract.output is required to resolve the contract path',
       {
         why: 'CLI commands read the emitted contract from config.contract.output; the config has no value to read.',
-        fix: 'Ensure your prisma-next.config.ts goes through `defineConfig()`, which normalises a default output when the provider supplies an input path, or set `contract.output` explicitly.',
+        fix: 'Ensure your prisma.config.ts goes through `defineConfig()`, which normalises a default output when the provider supplies an input path, or set `contract.output` explicitly.',
       },
     );
   }
@@ -55,9 +55,7 @@ export function resolveMigrationPaths(
   refsDir: string;
 } {
   const resolvedConfigPath = configOption ? resolve(cwd, configOption) : undefined;
-  const configPath = resolvedConfigPath
-    ? relative(cwd, resolvedConfigPath)
-    : 'prisma-next.config.ts';
+  const configPath = resolvedConfigPath ? relative(cwd, resolvedConfigPath) : 'prisma.config.ts';
   const migrationsDir = resolve(
     resolvedConfigPath ? resolve(resolvedConfigPath, '..') : cwd,
     config.migrations?.dir ?? 'migrations',

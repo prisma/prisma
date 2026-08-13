@@ -22,7 +22,7 @@ const MISSING_CONFIG_ACTION: NextAction = {
 };
 
 function editConfigAction(field: string): NextAction {
-  return { kind: 'edit-file', label: `Correct ${field} in prisma-next.config.ts` };
+  return { kind: 'edit-file', label: `Correct ${field} in prisma.config.ts` };
 }
 
 function issueDiagnostic(issue: ConfigValidationIssue): Diagnostic {
@@ -41,7 +41,7 @@ function sectionAbsentDiagnostic(): Diagnostic {
     code: 'CONFIG.FILE_NOT_FOUND',
     severity: 'error',
     summary: 'No Prisma Next configuration was loaded',
-    why: `The ${ORM_CONFIG_SECTION_NAME} config section is absent, so prisma-next.config.ts was never evaluated.`,
+    why: `The ${ORM_CONFIG_SECTION_NAME} config section is absent, so prisma.config.ts was never evaluated.`,
     nextActions: [MISSING_CONFIG_ACTION],
   };
 }
@@ -53,7 +53,7 @@ function notAnObjectDiagnostic(): Diagnostic {
     summary: 'Prisma Next configuration must be an object',
     why: `The ${ORM_CONFIG_SECTION_NAME} config section is not an object, so no section can be read from it.`,
     nextActions: [
-      { kind: 'edit-file', label: 'Export a configuration object from prisma-next.config.ts' },
+      { kind: 'edit-file', label: 'Export a configuration object from prisma.config.ts' },
     ],
   };
 }
@@ -67,7 +67,7 @@ function unreadableDiagnostic(error: unknown): Diagnostic {
     nextActions: [
       {
         kind: 'edit-file',
-        label: 'Export a plain configuration object from prisma-next.config.ts',
+        label: 'Export a plain configuration object from prisma.config.ts',
       },
     ],
   };

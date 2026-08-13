@@ -354,7 +354,7 @@ function mapMarkerCheckFailures(
     violations.push({
       kind: 'orphanMarker',
       spaceId: orphan.spaceId,
-      remediation: `Add the corresponding extension to \`extensions\` in \`prisma-next.config.ts\`, or delete the orphan marker row for "${orphan.spaceId}".`,
+      remediation: `Add the corresponding extension to \`extensions\` in \`prisma.config.ts\`, or delete the orphan marker row for "${orphan.spaceId}".`,
     });
   }
   if (violations.length === 0) return null;

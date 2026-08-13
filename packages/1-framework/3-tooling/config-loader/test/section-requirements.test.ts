@@ -107,4 +107,20 @@ describe('loadConfigForSections', () => {
     },
     timeouts.typeScriptCompilation,
   );
+
+  it(
+    'reports deprecations through onDeprecation',
+    async () => {
+      const configPath = join(tempDir, 'prisma-next.config.ts');
+      writeFileSync(configPath, PARTIAL_CONFIG_SOURCE);
+      const seen: string[] = [];
+
+      await loadConfigForSections(configPath, ['migrations'], {
+        onDeprecation: (deprecation) => seen.push(deprecation.code),
+      });
+
+      expect(seen).toEqual(['CONFIG.DEPRECATED_FILENAME', 'CONFIG.DEPRECATED_SHAPE']);
+    },
+    timeouts.typeScriptCompilation,
+  );
 });

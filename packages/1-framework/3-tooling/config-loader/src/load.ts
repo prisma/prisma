@@ -305,10 +305,16 @@ export function requireConfigSections(
 export async function loadConfigForSections(
   configPath: string | undefined,
   sections: readonly ConfigSection[],
+  options?: { readonly onDeprecation?: (deprecation: ConfigDeprecation) => void },
 ): Promise<Result<PrismaNextConfig, CliStructuredError>> {
   const loaded = await loadConfig(configPath);
   if (!loaded.ok) {
     return loaded;
+  }
+  if (options?.onDeprecation) {
+    for (const deprecation of loaded.value.deprecations) {
+      options.onDeprecation(deprecation);
+    }
   }
   return requireConfigSections(loaded.value, sections);
 }

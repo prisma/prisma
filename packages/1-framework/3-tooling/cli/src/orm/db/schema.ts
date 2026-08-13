@@ -161,7 +161,7 @@ export function createDbSchemaCommand(createClient: CreateControlClient) {
         return notOk(
           normalizeError(
             errorDatabaseConnectionRequired({
-              why: 'Database connection is required for db schema (set db.connection in prisma-next.config.ts, or pass --db <url>)',
+              why: 'Database connection is required for db schema (set db.connection in prisma.config.ts, or pass --db <url>)',
               commandName: 'db schema',
               missingFlags: ['--db'],
             }),

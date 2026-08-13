@@ -110,15 +110,15 @@ describe('sanitizeErrorMessage', () => {
 describe('resolveMigrationPaths', () => {
   describe('a relative --config naming a project other than the invocation directory', () => {
     it('resolves the config path against cwd, not the process working directory', () => {
-      const paths = resolveMigrationPaths('../app/prisma-next.config.ts', {}, '/work/scratch');
+      const paths = resolveMigrationPaths('../app/prisma.config.ts', {}, '/work/scratch');
 
       expect(paths.migrationsDir).toBe('/work/app/migrations');
-      expect(paths.configPath).toBe('../app/prisma-next.config.ts');
+      expect(paths.configPath).toBe('../app/prisma.config.ts');
     });
 
     it('anchors an explicit migrations dir on the config file directory', () => {
       const paths = resolveMigrationPaths(
-        '../app/prisma-next.config.ts',
+        '../app/prisma.config.ts',
         { migrations: { dir: 'db' } },
         '/work/scratch',
       );
@@ -129,7 +129,7 @@ describe('resolveMigrationPaths', () => {
 
   describe('an absolute --config', () => {
     it('is unaffected by cwd', () => {
-      const paths = resolveMigrationPaths('/app/prisma-next.config.ts', {}, '/tmp');
+      const paths = resolveMigrationPaths('/app/prisma.config.ts', {}, '/tmp');
 
       expect(paths.migrationsDir).toBe('/app/migrations');
     });
@@ -140,7 +140,7 @@ describe('resolveMigrationPaths', () => {
       const paths = resolveMigrationPaths(undefined, {}, '/work/app');
 
       expect(paths).toMatchObject({
-        configPath: 'prisma-next.config.ts',
+        configPath: 'prisma.config.ts',
         migrationsDir: '/work/app/migrations',
         migrationsRelative: 'migrations',
       });

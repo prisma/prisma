@@ -153,7 +153,12 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
       };
     },
     loadConfig: (configPath) =>
-      loadOrmConfig({ cwd: proc.cwd(), ...ifDefined('configPath', configPath) }),
+      loadOrmConfig({
+        cwd: proc.cwd(),
+        ...ifDefined('configPath', configPath),
+        // Mirrors the engine's warn-diagnostic line shape on stderr.
+        warn: (message) => void proc.stderr.write(`⚠ ${message}\n`),
+      }),
     managementApi: { baseUrl: 'https://api.prisma.io' },
     // No `packageManager`: a host's answer overrides the engine's detection
     // outright, and this bin knows nothing the engine's own walk from cwd —
