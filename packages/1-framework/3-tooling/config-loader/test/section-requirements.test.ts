@@ -10,7 +10,7 @@ import { type LoadedConfig, loadConfigForSections, requireConfigSections } from 
 const config = { family: {}, target: {}, adapter: {} } as unknown as PrismaNextConfig;
 
 function loaded(diagnostics: readonly CliStructuredError[]): LoadedConfig {
-  return { config, diagnostics };
+  return { config, diagnostics, deprecations: [] };
 }
 
 describe('requireConfigSections', () => {

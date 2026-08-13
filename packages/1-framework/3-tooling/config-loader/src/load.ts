@@ -17,12 +17,34 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
-import { dirname, join, resolve } from 'pathe';
+import { basename, dirname, join, resolve } from 'pathe';
 import { finalizeContractConfig, finalizeMigrationsConfig } from './finalize-config';
 
-const CONFIG_FILENAME = 'prisma-next.config.ts';
+const CONFIG_FILENAME = 'prisma.config.ts';
+const DEPRECATED_CONFIG_FILENAME = 'prisma-next.config.ts';
 
 export type { ConfigSection };
+
+/** A deprecated spelling the loader accepted; callers surface it as a warning. */
+export interface ConfigDeprecation {
+  readonly code: 'CONFIG.DEPRECATED_FILENAME' | 'CONFIG.DEPRECATED_SHAPE';
+  readonly message: string;
+}
+
+function deprecatedFilenameWarning(): ConfigDeprecation {
+  return {
+    code: 'CONFIG.DEPRECATED_FILENAME',
+    message: `${DEPRECATED_CONFIG_FILENAME} is deprecated; rename the file to ${CONFIG_FILENAME}.`,
+  };
+}
+
+function deprecatedShapeWarning(): ConfigDeprecation {
+  return {
+    code: 'CONFIG.DEPRECATED_SHAPE',
+    message:
+      'The flat Prisma Next config shape is deprecated; wrap it in an `orm` section with defineConfig from @prisma/cli-engine: export default defineConfig({ orm: { … } }).',
+  };
+}
 
 /**
  * A successfully evaluated config plus the structural diagnostics found in it.
@@ -34,15 +56,18 @@ export type { ConfigSection };
 export interface LoadedConfig {
   readonly config: PrismaNextConfig;
   readonly diagnostics: readonly CliStructuredError[];
+  readonly deprecations: readonly ConfigDeprecation[];
 }
 
 export async function findNearestConfigPathForFile(filePath: string): Promise<string | undefined> {
   let current = dirname(resolve(process.cwd(), filePath));
 
   while (true) {
-    const candidate = join(current, CONFIG_FILENAME);
-    if (await fileExists(candidate)) {
-      return candidate;
+    for (const filename of [CONFIG_FILENAME, DEPRECATED_CONFIG_FILENAME]) {
+      const candidate = join(current, filename);
+      if (await fileExists(candidate)) {
+        return candidate;
+      }
     }
     const parent = dirname(current);
     if (parent === current) {
@@ -59,6 +84,10 @@ async function fileExists(path: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function collectArtifactCollisionDiagnostics(
@@ -95,7 +124,10 @@ function collectArtifactCollisionDiagnostics(
   return [];
 }
 
-function buildLoadedConfig(rawConfig: Record<string, unknown>, configDir: string): LoadedConfig {
+function buildLoadedConfig(
+  rawConfig: Record<string, unknown>,
+  configDir: string,
+): Omit<LoadedConfig, 'deprecations'> {
   const issues = collectConfigIssues(rawConfig);
   const diagnostics = issues.map((issue) =>
     errorConfigValidation(issue.field, { why: issue.message, section: issue.section }),
@@ -166,11 +198,25 @@ export async function loadConfig(
   const resolvedConfigPath = configPath ? resolve(cwd, configPath) : undefined;
   const configCwd = resolvedConfigPath ? dirname(resolvedConfigPath) : cwd;
 
+  const deprecations: ConfigDeprecation[] = [];
+  let discoveryName = 'prisma';
+  if (resolvedConfigPath === undefined) {
+    if (
+      !(await fileExists(join(configCwd, CONFIG_FILENAME))) &&
+      (await fileExists(join(configCwd, DEPRECATED_CONFIG_FILENAME)))
+    ) {
+      discoveryName = 'prisma-next';
+      deprecations.push(deprecatedFilenameWarning());
+    }
+  } else if (basename(resolvedConfigPath) === DEPRECATED_CONFIG_FILENAME) {
+    deprecations.push(deprecatedFilenameWarning());
+  }
+
   let result: Awaited<ReturnType<typeof import('c12').loadConfig<Record<string, unknown>>>>;
   try {
     const c12 = await import('c12');
     result = await c12.loadConfig<Record<string, unknown>>({
-      name: 'prisma-next',
+      name: discoveryName,
       ...ifDefined('configFile', resolvedConfigPath),
       cwd: configCwd,
     });
@@ -188,20 +234,51 @@ export async function loadConfig(
     return notOk(errorConfigFileNotFound(displayPath));
   }
 
-  // c12's merge drops non-enumerable properties, so the marker is read from
-  // the raw module export in c12's first layer — the requested config file.
-  // (`extends` bases and rc files follow it, and their markers must not vouch
-  // for a file that does not carry one itself.)
-  /* v8 ignore next -- c12 always returns layers for a config it evaluated */
-  const [requestedLayer] = result.layers ?? [];
-  if (!hasCurrentConfigFormatVersion(requestedLayer?.config)) {
-    /* v8 ignore next -- a config that evaluated always carries its resolved path */
-    return notOk(errorConfigVersionMarkerMissing(result.configFile ?? resolvedConfigPath));
-  }
-
   /* v8 ignore next -- @preserve */
   const loadedConfigDir = result.configFile ? dirname(result.configFile) : configCwd;
-  return ok(buildLoadedConfig(result.config, loadedConfigDir));
+
+  // c12's merge drops non-enumerable properties, so both markers are read
+  // from the raw module export in c12's first layer — the requested config
+  // file. (`extends` bases and rc files follow it, and their markers must not
+  // vouch for a file that does not carry one itself.)
+  /* v8 ignore next -- c12 always returns layers for a config it evaluated */
+  const [requestedLayer] = result.layers ?? [];
+  const layerConfig = requestedLayer?.config;
+
+  // The engine's shape: defineConfig from @prisma/cli-engine stamps the
+  // enumerable `$prismaConfig` key and nests the whole Prisma Next config as
+  // the `orm` section.
+  const engineMarker = isRecord(layerConfig) ? layerConfig['$prismaConfig'] : undefined;
+  if (engineMarker !== undefined) {
+    if (engineMarker !== 1) {
+      /* v8 ignore next -- a config that evaluated always carries its resolved path */
+      return notOk(errorConfigVersionMarkerMissing(result.configFile ?? resolvedConfigPath));
+    }
+    const orm = result.config['orm'];
+    if (orm !== undefined && !isRecord(orm)) {
+      const base = buildLoadedConfig({}, loadedConfigDir);
+      return ok({
+        config: base.config,
+        diagnostics: [
+          errorConfigValidation('orm', {
+            why: `The orm section of ${CONFIG_FILENAME} must be an object`,
+          }),
+        ],
+        deprecations,
+      });
+    }
+    return ok({ ...buildLoadedConfig(orm ?? {}, loadedConfigDir), deprecations });
+  }
+
+  // The deprecated flat shape: the whole Prisma Next config at top level,
+  // stamped by the target defineConfig's non-enumerable symbol marker.
+  if (hasCurrentConfigFormatVersion(layerConfig)) {
+    deprecations.push(deprecatedShapeWarning());
+    return ok({ ...buildLoadedConfig(result.config, loadedConfigDir), deprecations });
+  }
+
+  /* v8 ignore next -- a config that evaluated always carries its resolved path */
+  return notOk(errorConfigVersionMarkerMissing(result.configFile ?? resolvedConfigPath));
 }
 
 /**
