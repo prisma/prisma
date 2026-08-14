@@ -1,13 +1,32 @@
 import { spawnSync } from 'node:child_process'
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import os from 'node:os'
 import path from 'node:path'
 
 import { expect, test } from 'vitest'
 
 const rootDir = process.cwd()
+const fixtureRequire = createRequire(path.join(rootDir, 'package.json'))
+const prisma7PackageRequire = createRequire(fixtureRequire.resolve('@prisma/prisma7/package.json'))
 const prisma7Bin = path.join(rootDir, 'node_modules', '.bin', 'prisma7')
+const prismaBin = prisma7PackageRequire.resolve('prisma/build/index.js')
 const ansiPattern = new RegExp(String.raw`\u001B\[[0-9;]*m`, 'g')
+
+const cliEntrypoints = [
+  {
+    identity: 'prisma7',
+    command: prisma7Bin,
+    argsPrefix: [],
+    configImport: '@prisma/prisma7/config',
+  },
+  {
+    identity: 'prisma',
+    command: process.execPath,
+    argsPrefix: [prismaBin],
+    configImport: 'prisma/config',
+  },
+] as const
 
 type CommandOutput = {
   status: number | null
@@ -166,6 +185,61 @@ async function writeProject(dir: string, files: ProjectFiles): Promise<void> {
   await writeFile(path.join(dir, 'prisma', 'schema.prisma'), files.schema)
 }
 
+for (const cli of cliEntrypoints) {
+  test(`${cli.identity} honors the installed Prisma 7 config contract`, async () => {
+    const precedenceProjectDir = await mkdtemp(path.join(os.tmpdir(), `${cli.identity}-config-precedence-`))
+    const invalidProjectDir = await mkdtemp(path.join(os.tmpdir(), `${cli.identity}-config-invalid-`))
+    const legacyProjectDir = await mkdtemp(path.join(os.tmpdir(), `${cli.identity}-config-legacy-`))
+    const initProjectDir = await mkdtemp(path.join(os.tmpdir(), `${cli.identity}-config-init-`))
+
+    const runCli = (args: string[], cwd: string) => run(cli.command, [...cli.argsPrefix, ...args], cwd)
+    const runCliExpectFailure = (args: string[], cwd: string) =>
+      runExpectFailure(cli.command, [...cli.argsPrefix, ...args], cwd)
+
+    try {
+      await writeFile(path.join(precedenceProjectDir, 'package.json'), '{"private":true}\n')
+      await writeFile(path.join(precedenceProjectDir, 'prisma7.config.ts'), 'export default {}\n')
+      await writeFile(path.join(precedenceProjectDir, 'prisma.config.ts'), 'export default {}\n')
+
+      const precedence = runCli(['--help'], precedenceProjectDir)
+      expect(normalizeText(precedence.stderr, [])).toBe('Loaded Prisma config from prisma7.config.ts.')
+
+      await writeFile(path.join(invalidProjectDir, 'package.json'), '{"private":true}\n')
+      await writeFile(
+        path.join(invalidProjectDir, 'prisma7.config.ts'),
+        'throw new Error("installed versioned config failure")\n',
+      )
+      await writeFile(path.join(invalidProjectDir, 'prisma.config.ts'), 'export default {}\n')
+
+      const invalid = runCliExpectFailure(['--help'], invalidProjectDir)
+      const invalidOutput = combinedOutput(invalid, [])
+      expect(invalidOutput).toContain('prisma7.config.ts')
+      expect(invalidOutput).toContain('installed versioned config failure')
+      expect(invalidOutput).not.toContain('Loaded Prisma config from prisma.config.ts.')
+
+      await writeFile(path.join(legacyProjectDir, 'package.json'), '{"private":true}\n')
+      await writeFile(path.join(legacyProjectDir, 'prisma.config.ts'), 'export default {}\n')
+
+      const legacy = runCli(['--help'], legacyProjectDir)
+      expect(normalizeText(legacy.stderr, [])).toBe('Loaded Prisma config from prisma.config.ts.')
+
+      await writeFile(path.join(initProjectDir, 'package.json'), '{"private":true}\n')
+      runCli(['init', '--datasource-provider', 'postgresql', '--no-skills'], initProjectDir)
+
+      const initFiles = await readdir(initProjectDir)
+      const generatedConfig = await readFile(path.join(initProjectDir, 'prisma7.config.ts'), 'utf8')
+      expect(initFiles).toContain('prisma7.config.ts')
+      expect(initFiles).not.toContain('prisma.config.ts')
+      expect(generatedConfig).toContain(`from "${cli.configImport}"`)
+    } finally {
+      await rm(precedenceProjectDir, { recursive: true, force: true })
+      await rm(invalidProjectDir, { recursive: true, force: true })
+      await rm(legacyProjectDir, { recursive: true, force: true })
+      await rm(initProjectDir, { recursive: true, force: true })
+    }
+  }, 120_000)
+}
+
 test('prisma7 snapshots real CLI-owned identity surfaces and keeps the packed smoke green', async () => {
   const initProjectDir = await mkdtemp(path.join(os.tmpdir(), 'prisma7-init-'))
   const migrateProjectDir = await mkdtemp(path.join(os.tmpdir(), 'prisma7-migrate-'))
@@ -316,7 +390,7 @@ model User {
 
     const initFiles = (await readdir(initProjectDir)).sort()
     const prismaFiles = (await readdir(path.join(initProjectDir, 'prisma'))).sort()
-    const prismaConfig = await readFile(path.join(initProjectDir, 'prisma.config.ts'), 'utf8')
+    const prismaConfig = await readFile(path.join(initProjectDir, 'prisma7.config.ts'), 'utf8')
     const env = await readFile(path.join(initProjectDir, '.env'), 'utf8')
 
     expect(normalizeValue({ stdout: topLevelHelp.stdout, stderr: topLevelHelp.stderr }, replacements))
@@ -417,7 +491,7 @@ model User {
           $ prisma7 validate
 
         With a Prisma config file
-          $ prisma7 validate --config=./prisma.config.ts
+          $ prisma7 validate --config=./prisma7.config.ts
 
         Or specify a Prisma schema path
           $ prisma7 validate --schema=./schema.prisma",
@@ -479,11 +553,11 @@ model User {
     expect(normalizedCompletionZsh.stdout).not.toContain('#compdef prisma\n')
     expect(normalizedCompletionZsh.stdout).not.toContain('requestComp="prisma complete -- ${quoted_args[*]}"')
 
-    expect(initFiles).toEqual(['.env', '.gitignore', 'package.json', 'prisma', 'prisma.config.ts'])
+    expect(initFiles).toEqual(['.env', '.gitignore', 'package.json', 'prisma', 'prisma7.config.ts'])
     expect(prismaFiles).toEqual(['schema.prisma'])
     expect(normalizeText(env, replacements)).toMatchInlineSnapshot(`
       "# Environment variables declared in this file are NOT automatically loaded by Prisma.
-      # Please add \`import \"dotenv/config\";\` to your \`prisma.config.ts\` file, or use the Prisma CLI with Bun
+      # Please add \`import \"dotenv/config\";\` to your \`prisma7.config.ts\` file, or use the Prisma CLI with Bun
       # to load environment variables from .env files: https://pris.ly/prisma-config-env-vars.
 
       # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
@@ -514,14 +588,14 @@ model User {
 
         prisma/
           schema.prisma
-        prisma.config.ts
+        prisma7.config.ts
         .env
         .gitignore
 
       Next, choose how you want to set up your database:
 
       CONNECT EXISTING DATABASE:
-        1. Configure your DATABASE_URL in prisma.config.ts
+        1. Configure your DATABASE_URL in prisma7.config.ts
         2. Run prisma7 db pull to introspect your database.
 
       CREATE NEW DATABASE:

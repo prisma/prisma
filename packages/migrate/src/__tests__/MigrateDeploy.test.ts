@@ -26,7 +26,7 @@ describe('common', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
-      set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
+      set it in your Prisma Config file (e.g., \`prisma7.config.ts\`),
       set it as \`prisma.schema\` in your package.json,
       or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
@@ -206,7 +206,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       Using an Accelerate URL is not supported for this CLI command prisma migrate deploy yet.
-      Please use a direct connection to your database in \`prisma.config.ts\`.
+      Please use a direct connection to your database in \`prisma7.config.ts\`.
 
       More information about this limitation: https://pris.ly/d/accelerate-limitations
       "

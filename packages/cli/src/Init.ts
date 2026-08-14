@@ -148,7 +148,7 @@ export const defaultEnv = async (
 
   let env = comments
     ? `# Environment variables declared in this file are NOT automatically loaded by Prisma.
-# Please add \`import "dotenv/config";\` to your \`prisma.config.ts\` file, or use the Prisma CLI with Bun
+# Please add \`import "dotenv/config";\` to your \`prisma7.config.ts\` file, or use the Prisma CLI with Bun
 # to load environment variables from .env files: https://pris.ly/prisma-config-env-vars.
 
 # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
@@ -609,7 +609,7 @@ export class Init implements Command {
     const warnings: string[] = []
 
     writer.write(
-      path.join(outputDir, 'prisma.config.ts'),
+      path.join(outputDir, 'prisma7.config.ts'),
       defaultConfig({
         prismaFolder,
         runtime: isBun ? 'bun' : 'other',
@@ -682,7 +682,7 @@ export class Init implements Command {
 
     const cliCommand = this.identity
     const connectExistingDatabaseSteps = `\
-  1. Configure your DATABASE_URL in ${green('prisma.config.ts')}
+  1. Configure your DATABASE_URL in ${green('prisma7.config.ts')}
   2. Run ${green(getCommandWithExecutor(`${cliCommand} db pull`))} to introspect your database.`
 
     const postgresProviders: ConnectorType[] = ['postgres', 'postgresql', 'prisma+postgres']

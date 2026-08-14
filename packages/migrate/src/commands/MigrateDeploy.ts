@@ -31,7 +31,7 @@ ${bold('Usage')}
 
   ${dim('$')} ${cliCommand} migrate deploy [options]
 
-  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma7.config.ts')}).
 
 ${bold('Options')}
 

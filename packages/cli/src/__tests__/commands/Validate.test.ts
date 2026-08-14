@@ -32,6 +32,14 @@ describe('validate', () => {
   beforeEach(() => {
     restoreEnv()
   })
+
+  test('uses the Prisma 7 config filename in help examples', () => {
+    const help = Validate.new('prisma').help()
+
+    expect(help).toEqual(expect.any(String))
+    expect(help).toContain('validate --config=./prisma7.config.ts')
+    expect(help).not.toContain('validate --config=./prisma.config.ts')
+  })
   afterAll(() => {
     restoreEnv()
   })

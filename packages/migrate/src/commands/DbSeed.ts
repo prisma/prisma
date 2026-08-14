@@ -67,7 +67,7 @@ To seed your database, add a ${bold('seed')} property to the ${bold('migrations'
 
 ${bold('Example')}
 
-  ${dim('// prisma.config.ts')}
+  ${dim('// prisma7.config.ts')}
   export default defineConfig({
     ${bold('migrations: {')}
       ${bold(`seed: 'bun·./prisma/seed.ts'`)},

@@ -348,7 +348,7 @@ ${bold('Examples')}
     ${dim('$')} BROWSER=none ${identity} studio --port 5555
 
   Specify a custom prisma config file
-    ${dim('$')} ${identity} studio --config=./prisma.config.ts
+    ${dim('$')} ${identity} studio --config=./prisma7.config.ts
 
   Specify a direct database connection string
     ${dim('$')} ${identity} studio --url="postgresql://user:password@localhost:5432/dbname"
