@@ -93,7 +93,14 @@ export interface PreparedExecution<Params> {
  * row spec free to declare a column named `affectedRows` cannot select the
  * execution face by coincidence. This is the same fact `prepare()` reads at
  * runtime from the AST's declared result — one decision, stated twice.
+ *
+ * `never` is answered first because it satisfies every `extends`: a builder
+ * state that projects nothing types its rows as `never`, and such a plan
+ * declares rows in its AST, so it earns the statement face the runtime builds
+ * for it.
  */
-export type PreparedFor<Params, Row> = [Row] extends [AffectedCount]
-  ? PreparedExecution<Params>
-  : PreparedStatement<Params, Row>;
+export type PreparedFor<Params, Row> = [Row] extends [never]
+  ? PreparedStatement<Params, Row>
+  : [Row] extends [AffectedCount]
+    ? PreparedExecution<Params>
+    : PreparedStatement<Params, Row>;
