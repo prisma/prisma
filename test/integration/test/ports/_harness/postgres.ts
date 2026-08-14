@@ -52,6 +52,8 @@ const frameworkComponents = [
 type PortClient<TContract extends Contract<SqlStorage>> = ReturnType<typeof postgres<TContract>>;
 
 export interface PortContext<TContract extends Contract<SqlStorage>> {
+  /** Full Postgres facade for SQL builder and runtime access. */
+  readonly client: PortClient<TContract>;
   /** ORM handle: `db.<namespace>.<Model>...` (the facade's `orm`). */
   readonly db: PortClient<TContract>['orm'];
   /** Interactive transaction: `transaction(async (tx) => { tx.orm.<ns>.<Model>... })`. */
@@ -139,10 +141,15 @@ export async function withPostgresPort<TContract extends Contract<SqlStorage>>(
       // facade over the same dev database (the pushed schema persists across the
       // separate connection).
       await pushContract(connectionString, options.contractJson);
-      const db = postgres<TContract>({ contract, url: connectionString, verifyMarker: false });
-      const runtime = await db.connect();
+      const client = postgres<TContract>({ contract, url: connectionString, verifyMarker: false });
+      const runtime = await client.connect();
       try {
-        await fn({ db: db.orm, transaction: db.transaction.bind(db), contract });
+        await fn({
+          client,
+          db: client.orm,
+          transaction: client.transaction.bind(client),
+          contract,
+        });
       } finally {
         await runtime.close();
       }

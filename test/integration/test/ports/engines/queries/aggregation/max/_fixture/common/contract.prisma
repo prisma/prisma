@@ -1,0 +1,7 @@
+model TestModel {
+  id     Int    @id
+  int    Int
+  bInt   BigInt
+  float  Float
+  string String
+}
