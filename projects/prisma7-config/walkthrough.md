@@ -1,12 +1,12 @@
 ## Sources
 
-- Commit range: `cf2bc1f4b2...b949a1b9f5`
+- Commit range: `cf2bc1f4b2...be55dae684`
 - Project intent: [projects/prisma7-config/spec.md](projects/prisma7-config/spec.md)
 - Review ledger: [projects/prisma7-config/reviews/code-review.md](projects/prisma7-config/reviews/code-review.md)
 
 ## Intent
 
-Let Prisma 7 and Prisma 8 coexist without competing for the same automatically discovered config file. Prisma 7 gains the canonical root filename `prisma7.config.ts` while preserving existing `prisma.config.*` projects as a quiet compatibility path.
+Let Prisma 7 and Prisma 8 coexist without competing for the same automatically discovered config file. Prisma 7 gains a canonical `prisma7.config.*` namespace while preserving existing `prisma.config.*` projects as a quiet compatibility path.
 
 ## Change map
 
@@ -28,16 +28,16 @@ Let Prisma 7 and Prisma 8 coexist without competing for the same automatically d
 
 ## The story
 
-1. Define one narrow Prisma 7 discovery order: root `prisma7.config.ts`, then the existing c12-backed legacy search. Alternate versioned extensions and `.config/` variants are not added.
+1. Define one deterministic Prisma 7 discovery order: all root `prisma7.config.*` candidates, then all `.config/prisma7.*` candidates, then the existing c12-backed legacy search.
 2. Make the selected versioned file authoritative. Only absence reaches legacy discovery; a broken versioned config reports its own path and error instead of silently loading another contract.
-3. Teach bootstrap the same exact root filename without importing project code. Project detection and seed inspection prefer `prisma7.config.ts` over their existing root `prisma.config.ts` fallback.
+3. Share supported JavaScript/TypeScript selection with bootstrap without importing project code. Project detection and seed inspection cover the versioned family and supported legacy flat and `index.*` forms, without adding legacy data-format candidates.
 4. Teach the new convention everywhere a user creates or is directed to a concrete default file. Both CLI identities generate `prisma7.config.ts`, while retaining their respective config-package imports.
 5. Verify the contract at the installed-package boundary through both Prisma 7 entrypoints, rather than relying only on loader unit tests.
 
 ## Behavior changes & evidence
 
-- **The exact Prisma 7 filename takes precedence**: automatic discovery checks only root `prisma7.config.ts` before legacy candidates. Explicit config paths still win, and paths declared inside the versioned file remain relative to that file.
-  - **Why**: Prisma 7 needs an independent default without broadening the requested convention into an alternate extension/location family.
+- **Prisma 7-specific files take precedence across the full supported family**: automatic discovery checks `prisma7.config.{js,ts,mjs,cjs,mts,cts}` at the root, then `.config/prisma7.*`, before legacy candidates. Explicit config paths still win, and paths declared inside either versioned location remain relative to the selected file.
+  - **Why**: Prisma 7 needs an independent namespace, but should retain the loader's existing extension and path-resolution behavior.
   - **Implementation**:
     - [packages/config/src/loadConfigFromFile.ts](packages/config/src/loadConfigFromFile.ts)
   - **Tests**:
@@ -51,9 +51,10 @@ Let Prisma 7 and Prisma 8 coexist without competing for the same automatically d
     - [packages/config/src/**tests**/loadConfigFromFile.test.ts](packages/config/src/__tests__/loadConfigFromFile.test.ts)
     - [packages/client/tests/e2e/prisma7-compatibility/tests/main.test.ts](packages/client/tests/e2e/prisma7-compatibility/tests/main.test.ts)
 
-- **Bootstrap recognizes the same exact filename without executing config**: project-state detection and seed inspection check root `prisma7.config.ts` before their existing root `prisma.config.ts` fallback, while `package.json` remains the first source for seed commands.
-  - **Why**: bootstrap must recognize the newly generated filename and inspect seed metadata from the higher-precedence file without executing arbitrary project config.
+- **Bootstrap matches supported runtime selection without executing config**: project-state detection and seed inspection use the exported non-executing selector instead of checking only `prisma.config.ts`. Its legacy mirror covers supported JavaScript/TypeScript flat and `index.*` candidates in c12 order, while deliberately excluding JSON, JSONC, JSON5, YAML, YML, and TOML. `package.json` remains the first source for seed commands.
+  - **Why**: bootstrap must not initialize over an existing project or inspect seed metadata from a lower-precedence file, and it must not execute arbitrary project config merely to detect state.
   - **Implementation**:
+    - [packages/config/src/loadConfigFromFile.ts](packages/config/src/loadConfigFromFile.ts)
     - [packages/cli/src/bootstrap/project-state.ts](packages/cli/src/bootstrap/project-state.ts)
   - **Tests**:
     - [packages/config/src/**tests**/loadConfigFromFile.test.ts](packages/config/src/__tests__/loadConfigFromFile.test.ts)
@@ -82,8 +83,8 @@ Let Prisma 7 and Prisma 8 coexist without competing for the same automatically d
 
 - Existing projects that only contain `prisma.config.*` need no rename and receive no new fallback warning; the installed E2E locks the existing loaded-file diagnostic exactly.
 - An explicit `--config` path remains authoritative regardless of filename.
-- A present but invalid root `prisma7.config.ts` intentionally blocks legacy fallback. Fix or remove that file to resume legacy discovery.
-- Alternate versioned extensions and `.config/` variants are not automatically discovered; explicit `--config` remains available for custom paths.
+- A present but invalid `prisma7.config.*` intentionally blocks legacy fallback. Fix or remove that file to resume legacy discovery.
+- Bootstrap's non-executing legacy selector mirrors the supported JavaScript/TypeScript portion of c12 3.3.4 discovery; parity tests cover flat/index locations and ordering, and exclusion tests ensure data-format candidates are not added.
 - The review ledger records all 12 acceptance criteria as passing with no open findings, backed by the linked loader, bootstrap, init/guidance, and packed E2E tests.
 
 ## Non-goals / intentionally out of scope
