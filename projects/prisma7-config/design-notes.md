@@ -12,16 +12,16 @@
 
 ## The model
 
-Prisma 7 treats `prisma7.config.*` as its canonical automatic-discovery family and `prisma.config.*` as a compatibility fallback. Both root-level and `.config/` locations participate, preserving the supported extension family and existing ordering within each family.
+Prisma 7 treats the exact root-level `prisma7.config.ts` as its version-specific automatic config and preserves the existing `prisma.config.*` discovery as a compatibility fallback. Alternate Prisma 7 extensions and `.config/` variants are intentionally not added.
 
-An explicit `--config` path remains authoritative. Automatic fallback occurs only when no Prisma 7-specific candidate exists; a discovered but invalid Prisma 7 config hard-fails. Both CLI entry points implemented by the Prisma 7 code in this branch use this policy. The future Prisma 8 package owns Prisma 8 config behavior.
+An explicit `--config` path remains authoritative. Automatic fallback occurs only when root `prisma7.config.ts` does not exist; a present but invalid file hard-fails. Both CLI entry points implemented by the Prisma 7 code in this branch use this policy. The future Prisma 8 package owns Prisma 8 config behavior.
 
 Initialization generates `prisma7.config.ts`. Bootstrap project-state detection, seed inspection, completion, and user-facing default-path guidance recognize the same Prisma 7 convention. Loading a legacy fallback adds no warning beyond the existing loaded-file diagnostic.
 
 ## Alternatives considered
 
 - **Change only the `prisma7` wrapper** — attractive because it isolates the compatibility executable. **Rejected because:** both CLI entry points in this branch are Prisma 7 implementations and are intended to remain behaviorally identical.
-- **Support only `prisma7.config.ts`** — attractive because it minimizes discovery work. **Rejected because:** Prisma config discovery already supports an extension family and a `.config/` location; a partial mirror would be inconsistent.
+- **Mirror the full extension family and `.config/` location** — attractive for symmetry with legacy c12 discovery. **Rejected because:** the requested coexistence convention is specifically `prisma7.config.ts`; expanding automatic discovery beyond it adds unrequested behavior and maintenance surface.
 - **Fall back after a Prisma 7 config load error** — attractive as resilience. **Rejected because:** it could silently load Prisma 8's config and conceal the exact migration failure the filename split is intended to prevent.
 - **Warn when using `prisma.config.*`** — attractive as migration encouragement. **Rejected because:** legacy fallback is a compatibility guarantee and new stderr output would create noise or disrupt automation.
 

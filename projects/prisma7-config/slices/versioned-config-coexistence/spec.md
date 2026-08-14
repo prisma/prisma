@@ -4,7 +4,7 @@ _(Parent project `projects/prisma7-config/`. This slice gives Prisma 7 an indepe
 
 ## At a glance
 
-Teach the shared Prisma 7 implementation to prefer `prisma7.config.*` and `.config/prisma7.*`, then fall back to existing config discovery only when that family is absent. Land the runtime contract together with bootstrap recognition, `prisma7.config.ts` generation, user-facing guidance, and dual-entrypoint proof.
+Teach the shared Prisma 7 implementation to prefer root `prisma7.config.ts`, then fall back to existing config discovery only when that exact file is absent. Land the runtime contract together with bootstrap recognition, `prisma7.config.ts` generation, user-facing guidance, and dual-entrypoint proof.
 
 ## Chosen design
 
@@ -15,14 +15,13 @@ explicit --config
   └─ exact requested path
 
 automatic discovery
-  ├─ prisma7.config.{js,ts,mjs,cjs,mts,cts}
-  ├─ .config/prisma7.{js,ts,mjs,cjs,mts,cts}
+  ├─ prisma7.config.ts at the project root
   └─ existing prisma.config.* / .config/prisma.* discovery
 ```
 
-The existing supported-extension order is preserved within each location. Automatic discovery distinguishes “no Prisma 7 candidate exists” from “the selected Prisma 7 candidate failed”: only absence enters legacy discovery. Load, import, syntax, default-export, and config-shape failures retain the selected Prisma 7 path in diagnostics and terminate the command.
+No alternate Prisma 7 extensions or `.config/` variants are added. Automatic discovery distinguishes “root `prisma7.config.ts` does not exist” from “that file failed”: only absence enters legacy discovery. Load, import, syntax, default-export, and config-shape failures retain the selected Prisma 7 path in diagnostics and terminate the command.
 
-Candidate ordering has a single lower-layer definition. Runtime loading consumes it, while bootstrap uses a non-executing selection path so project-state and seed inspection identify the same effective config without importing arbitrary project code. Existing package.json seed precedence remains unchanged.
+Bootstrap uses a non-executing root-file check so project-state and seed inspection prefer `prisma7.config.ts` over their existing `prisma.config.ts` fallback without importing arbitrary project code. Existing package.json seed precedence remains unchanged.
 
 Both executable identities in this branch use this policy without identity branching. `Init` always writes `prisma7.config.ts`, retaining its existing identity-specific import (`prisma/config` or `@prisma/prisma7/config`). Shared completion and concrete default-path guidance switch to `prisma7.config.ts`; generic “Prisma config file” language and stable Prisma domain terminology remain generic.
 
@@ -40,14 +39,14 @@ This is one reviewable compatibility contract: discovery, non-executing detectio
 
 ## Pre-investigated edge cases
 
-| Edge case                                                                   | Disposition                                  | Notes                                                                                                           |
-| --------------------------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Both config families exist.                                                 | Select the Prisma 7 family.                  | The complete versioned family precedes every legacy candidate.                                                  |
-| The selected Prisma 7 config is invalid while a valid legacy config exists. | Hard-fail the Prisma 7 error.                | Falling through could load Prisma 8's incompatible contract.                                                    |
-| No Prisma 7 config exists.                                                  | Preserve legacy behavior silently.           | No new warning beyond the existing loaded-file diagnostic.                                                      |
-| A config lives under `.config/`.                                            | Support both versioned and legacy locations. | Root versioned candidates precede `.config/prisma7.*`; the complete versioned family precedes legacy discovery. |
-| The user supplies `--config`.                                               | Load only the explicit path.                 | Filename and family precedence do not apply.                                                                    |
-| Commands are invoked through `prisma` rather than `prisma7`.                | Use the same Prisma 7 policy.                | Both entrypoints in this branch intentionally remain identical.                                                 |
+| Edge case                                                               | Disposition                             | Notes                                                              |
+| ----------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------ |
+| Root `prisma7.config.ts` and a legacy config both exist.                | Select `prisma7.config.ts`.             | The exact versioned file precedes legacy discovery.                |
+| Root `prisma7.config.ts` is invalid while a valid legacy config exists. | Hard-fail the Prisma 7 error.           | Falling through could load Prisma 8's incompatible contract.       |
+| Root `prisma7.config.ts` does not exist.                                | Preserve legacy behavior silently.      | No new warning beyond the existing loaded-file diagnostic.         |
+| An alternate versioned extension or `.config/` variant exists.          | Do not treat it as versioned discovery. | Only the requested root `prisma7.config.ts` convention is special. |
+| The user supplies `--config`.                                           | Load only the explicit path.            | Filename and automatic precedence do not apply.                    |
+| Commands are invoked through `prisma` rather than `prisma7`.            | Use the same Prisma 7 policy.           | Both entrypoints in this branch intentionally remain identical.    |
 
 ## Slice-specific done conditions
 

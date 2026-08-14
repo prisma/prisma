@@ -12,10 +12,10 @@ This is a single-slice project. Config discovery, bootstrap recognition, initial
 ### Stack (deliver in order)
 
 1. **Slice `versioned-config-coexistence`** — Linear: N/A
-   - **Outcome:** Both Prisma 7 entry points automatically prefer the complete `prisma7.config.*` family across root and `.config/` locations, hard-fail selected-file errors, fall back quietly to existing `prisma.config.*` discovery only when the Prisma 7 family is absent, generate `prisma7.config.ts` from init, and recognize or advertise that filename consistently across bootstrap and user-facing default-path guidance.
+   - **Outcome:** Both Prisma 7 entry points automatically prefer root `prisma7.config.ts`, hard-fail errors from that selected file, fall back quietly to existing `prisma.config.*` discovery only when it is absent, generate `prisma7.config.ts` from init, and recognize or advertise that filename consistently across bootstrap and user-facing default-path guidance.
    - **Builds on:** The current c12-backed loader in `@prisma/config`, the existing CLI distribution-identity seam, bootstrap's project-state inspection, and the packed Prisma 7 compatibility E2E.
    - **Hands to:** A complete, backward-compatible Prisma 7 config contract that projects can use beside Prisma 8 without routine `--config` arguments, with focused loader/CLI tests and installed-artifact evidence suitable for release.
-   - **Focus:** Centralized candidate selection and error attribution; root and `.config/` extension-family precedence; explicit-path preservation; legacy fallback; relative-path behavior; bootstrap config/seed selection; init output; completion, help, and actionable default-filename guidance; focused unit, snapshot, and packed dual-entrypoint coverage. Prisma 8 parsing, config conversion, warnings, and unrelated Prisma naming remain out of scope.
+   - **Focus:** Exact root-file selection and error attribution; explicit-path preservation; legacy fallback; relative-path behavior; bootstrap config/seed selection; init output; completion, help, and actionable default-filename guidance; focused unit, snapshot, and packed dual-entrypoint coverage. Alternate versioned extensions/locations, Prisma 8 parsing, config conversion, warnings, and unrelated Prisma naming remain out of scope.
 
 ## Dependencies (external)
 

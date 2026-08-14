@@ -16,13 +16,12 @@ prisma.config.ts   # Prisma 8
 When no explicit `--config` path is supplied, both Prisma 7 CLI entry points implemented in this branch use the same discovery policy:
 
 ```text
-1. prisma7.config.{js,ts,mjs,cjs,mts,cts}
-2. .config/prisma7.{js,ts,mjs,cjs,mts,cts}
-3. existing prisma.config.* / .config/prisma.* discovery
-4. default config when neither family exists
+1. prisma7.config.ts at the project root
+2. existing prisma.config.* / .config/prisma.* discovery
+3. default config when neither exists
 ```
 
-Within each location, the existing supported-extension ordering is preserved. A discovered Prisma 7-specific config is authoritative: if loading or validation fails, Prisma 7 reports the error and stops rather than falling back to `prisma.config.*`. Fallback occurs only when no Prisma 7-specific candidate exists.
+Only the exact root-level `prisma7.config.ts` receives version-specific automatic discovery; alternate extensions and `.config/` variants are not added. A discovered `prisma7.config.ts` is authoritative: if loading or validation fails, Prisma 7 reports the error and stops rather than falling back to `prisma.config.*`. Fallback occurs only when that exact file does not exist.
 
 `prisma init` and `prisma7 init` generate `prisma7.config.ts`. Bootstrap project-state detection, seed inspection, shell completion, help examples, and other default-path guidance recognize or advertise the Prisma 7 filename consistently. Loading a legacy `prisma.config.*` fallback remains silent apart from the existing loaded-file diagnostic.
 
@@ -48,9 +47,9 @@ Within each location, the existing supported-extension ordering is preserved. A 
 
 ## Cross-cutting requirements
 
-- **Deterministic precedence:** an explicit `--config` path wins; otherwise every supported Prisma 7-specific root candidate precedes every `.config/prisma7.*` candidate, and the complete Prisma 7 family precedes existing legacy discovery.
-- **Absence-only fallback:** legacy discovery runs only when no Prisma 7-specific candidate exists. Syntax errors, invalid exports, unsupported content, dependency/import failures, and config-shape validation errors in a selected Prisma 7 file hard-fail.
-- **Complete family symmetry:** the version-specific family supports the same JavaScript and TypeScript extensions as the existing config loader in both root and `.config/` locations.
+- **Deterministic precedence:** an explicit `--config` path wins; otherwise root `prisma7.config.ts` precedes existing legacy discovery.
+- **Absence-only fallback:** legacy discovery runs only when root `prisma7.config.ts` does not exist. Syntax errors, invalid exports, unsupported content, dependency/import failures, and config-shape validation errors in that file hard-fail.
+- **Narrow versioned convention:** automatic version-specific discovery adds only `prisma7.config.ts`; alternate extensions and `.config/` variants remain outside the contract.
 - **Backward compatibility:** a project containing only `prisma.config.*` behaves as it did before this project, including path resolution relative to the selected config and the existing loaded-file diagnostic.
 - **Quiet compatibility:** legacy fallback introduces no warning, deprecation message, or other new stderr output.
 - **Shared selection semantics:** loader discovery and bootstrap's non-executing project/seed inspection must not disagree about which config wins.
@@ -65,13 +64,13 @@ N/A — this is intended as a single-slice project. The slice must land discover
 
 The team-DoD floor document is absent in this checkout; the standard repository floor applies. Project-specific conditions:
 
-- [ ] Without `--config`, each supported `prisma7.config.*` extension is discovered at the project root and under `.config/`.
-- [ ] When both config families exist, Prisma 7 selects the Prisma 7-specific family according to the documented location and extension ordering.
+- [ ] Without `--config`, root `prisma7.config.ts` is discovered; alternate versioned extensions and `.config/` variants are not.
+- [ ] When root `prisma7.config.ts` and a legacy config both exist, Prisma 7 selects `prisma7.config.ts`.
 - [ ] An explicit `--config` path takes precedence over both automatically discovered families.
 - [ ] If the selected Prisma 7-specific config cannot be loaded or validated, the command fails with that file's error and does not read a valid legacy config beside it.
 - [ ] When no Prisma 7-specific config exists, existing `prisma.config.*` and `.config/prisma.*` discovery behaves unchanged and emits no new warning.
 - [ ] Relative schema, migration, Typed SQL, and view paths continue resolving from the selected config file's directory.
-- [ ] Bootstrap recognizes the complete Prisma 7-specific family for project-state detection and inspects seed metadata from the same effective config candidate that runtime discovery would select.
+- [ ] Bootstrap recognizes root `prisma7.config.ts` for project-state detection and seed inspection, preferring it over its existing root `prisma.config.ts` fallback.
 - [ ] Both `prisma init` and `prisma7 init` generate `prisma7.config.ts` with their existing identity-appropriate config-package imports.
 - [ ] Shell completion, initialization output, help examples, and concrete default-path guidance use `prisma7.config.ts`; generic references remain phrased as “Prisma config file.”
 - [ ] Focused CLI or installed-artifact coverage proves that both Prisma 7 entry points use the same precedence and fallback policy.

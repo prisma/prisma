@@ -1,12 +1,12 @@
 ## Overview
 
-Give Prisma 7 its own canonical config filename so Prisma 7 and Prisma 8 can coexist during migration. Automatic discovery now prefers `prisma7.config.*`, while existing `prisma.config.*` projects continue to work through a quiet compatibility fallback.
+Give Prisma 7 its own canonical config filename so Prisma 7 and Prisma 8 can coexist during migration. Automatic discovery now prefers root `prisma7.config.ts`, while existing `prisma.config.*` projects continue to work through a quiet compatibility fallback.
 
 ## Changes
 
-- Prefer the complete `prisma7.config.{js,ts,mjs,cjs,mts,cts}` family at the project root, then `.config/prisma7.*`, before invoking legacy discovery. Explicit `--config` paths remain authoritative, and relative schema, migration, Typed SQL, and view paths still resolve from the selected file.
+- Prefer the exact root-level `prisma7.config.ts` before invoking legacy discovery. Alternate versioned extensions and `.config/` variants are not added. Explicit `--config` paths remain authoritative, and relative schema, migration, Typed SQL, and view paths still resolve from the selected file.
 - Treat a discovered Prisma 7 config as authoritative: load or validation failures report that file and stop instead of falling through to a valid legacy config. Legacy fallback occurs only when no versioned candidate exists and adds no warning beyond the existing loaded-file diagnostic.
-- Reuse the same non-executing selection policy for bootstrap project detection and seed inspection, including c12 3.3.4's legacy flat and `index.*` locations and ordering, while preserving `package.json` seed precedence.
+- Make bootstrap project detection and seed inspection prefer root `prisma7.config.ts` over their existing root `prisma.config.ts` fallback without executing config code, while preserving `package.json` seed precedence.
 - Make both `prisma init` and `prisma7 init` generate `prisma7.config.ts` with their identity-appropriate config imports, and update completion, help, initialization output, and actionable CLI guidance to teach the versioned filename.
 - Extend the packed Prisma 7 compatibility E2E to prove precedence, hard-failure behavior, quiet fallback, and init output through both installed entrypoints: `.bin/prisma7` and the packed transitive `prisma` CLI entry.
 
