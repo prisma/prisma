@@ -1,12 +1,14 @@
 # ADR 012 — Raw SQL escape hatch with required annotations
 
-> **Update — retired by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md):** the optional structured-annotations branch (`refs`, `projection`, `codecs` / `paramDescriptors`) on raw plans has been removed. The minimal annotation schema below (`intent`, `isMutation`, `hasWhere`, `hasLimit`) is unchanged and continues to drive policy routing and lint dispatch. Raw plans now pass parameters to the driver as supplied by the caller and surface wire-level row values back without codec-based transformation; the unindexed-predicate lint and the refs-based row-count budget heuristic only apply to AST-backed plans. See ADR 205 for rationale.
+> **Update — retired by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md):** the optional structured-annotations branch (`refs`, `projection`, `codecs` / `paramDescriptors`) on raw plans has been removed. The minimal annotation schema below (`intent`, `isMutation`, `hasWhere`, `hasLimit`) is unchanged and continues to drive policy routing and lint dispatch. Raw plans now pass parameters to the driver as supplied by the caller and surface wire-level row values back without codec-based transformation; the unindexed-predicate lint and the refs-based row-count budget heuristic ran off the removed sidecar and no longer run for any plan — ADR 205 § Consequences records them as gone. See ADR 205 for rationale.
 
 ## Context
 
 We intentionally keep the SQL DSL small and composable. Teams still need to run hand-authored SQL for advanced features, engine extensions, or when SQL is clearer than any builder. Safety and observability cannot be optional just because the query is raw. We need a defined way to create a Plan from raw SQL that keeps guardrails and verification intact without requiring the core to parse SQL.
 
 ## Decision
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
 
 Introduce a Raw SQL escape hatch that constructs Plans without an AST but with required annotations for basic policy checks:
 - Define a minimal annotation schema so guardrails can operate lane-agnostically
@@ -24,11 +26,16 @@ Raw Plans use the unified Plan shape from ADR 011 with ast omitted and meta.lane
 - `meta.annotations` with the minimal set below
 
 ### Optional fields
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
+
 - `meta.refs` and `meta.projection` for stronger linting and diagnostics
 - `meta.codecs` for boundary validation of params and rows
 - `meta.annotations.ext` for extension-specific claims
 
 ## Helper sketch
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
 
 ```typescript
 const plan = raw({
@@ -56,6 +63,9 @@ These fields are mandatory for every raw Plan so baseline guardrails can run:
 If a required annotation is omitted, the runtime fails fast in strict mode or warns in permissive mode
 
 ## Optional structure for stronger safety
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
+
 - `refs` - list of tables and columns the query touches to power unindexed predicate lints, sensitivity policies, and audit
 - `projection` - alias → fully qualified column mapping to validate result typing and enable plan change detection
 - `codecs` - optional param and row validators to catch boundary errors early
@@ -63,12 +73,17 @@ If a required annotation is omitted, the runtime fails fast in strict mode or wa
 When present, these unlock the same quality of guardrails available to AST-backed Plans
 
 ## Runtime behavior
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
+
 - **Contract check**: verify meta.coreHash matches the active data contract marker
 - **Policy and lints**: evaluate rules against annotations when ast is absent; rules that depend on structure degrade gracefully if refs or projection are missing
 - **Budgets**: enforce latency and row budgets based on runtime measurements
 - **Telemetry**: record timing, row count, and violations using lane-agnostic plan identity from ADR 013
 
 ## Adapter enrichment (optional)
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
 
 Adapters may offer an opt-in enrichment step:
 - Light parsing to infer refs for common cases
@@ -120,6 +135,9 @@ raw({
 - Undermines guardrails and creates a bypass path that weakens the safety story
 
 ### Require full refs and projection for all raw Plans
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
+
 - Too strict for many advanced queries and reduces escape-hatch usefulness
 
 ## Consequences
@@ -130,6 +148,9 @@ raw({
 - Avoids a heavy SQL parser in core while allowing adapters to add value off the hot path
 
 ### Trade-offs
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
+
 - Some lints are weaker without refs or projection
 - Requires discipline from authors to supply truthful annotations or to enable adapter enrichment where needed
 
@@ -141,10 +162,16 @@ raw({
 - Runtime guardrails that operate on annotations
 
 ### Out of scope for MVP
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
+
 - SQL parsing in core
 - Automatic extraction of refs and projection for raw Plans
 
 ## Testing
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
+
 - Unit tests validating annotation requirements and error modes
 - Integration tests ensuring guardrails behave identically for equivalent DSL and raw Plans when refs/projection are supplied
 - Golden tests confirming plan identity hashing ignores lane and depends on sql, params, and normalized metadata
@@ -154,4 +181,7 @@ raw({
 - TypedSQL will later produce raw-style Plans with annotations and optional structure
 
 ## Decision record
+
+> **Superseded** — the sidecar fields (`refs`, `projection`, `codecs`) this section describes were removed by [ADR 205](ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md); see the update note above.
+
 Adopt a Raw SQL escape hatch with a minimal required annotation set. Strengthen safety via optional structured refs, projection, and codecs. Keep core free of SQL parsing and allow optional adapter enrichment behind an explicit flag.
