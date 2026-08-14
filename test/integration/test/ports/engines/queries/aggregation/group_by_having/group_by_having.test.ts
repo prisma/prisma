@@ -25,24 +25,27 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
           { id: 4, float: 10, int: 5, bInt: 3n, string: 'group3' },
         ]);
 
-        const result = await client.runtime().execute(
-          client.sql.public.testModel
-            .select('string', 'int')
-            .select('count', (_fields, functions) => functions.count())
-            .select('sum', (fields, functions) => functions.sum(fields.testModel.int))
-            .groupBy('string', 'int')
-            .having((fields, functions) =>
-              functions.and(
-                functions.in(fields.testModel.string, ['group1', 'group2']),
-                functions.eq(fields.testModel.int, 5),
-              ),
-            )
-            .build(),
-        );
+        const result = await client
+          .runtime()
+          .query(
+            client.sql.public.testModel
+              .select('string', 'int')
+              .select('count', (_fields, functions) => functions.count())
+              .select('sum', (fields, functions) => functions.sum(fields.testModel.int))
+              .groupBy('string', 'int')
+              .having((fields, functions) =>
+                functions.and(
+                  functions.in(fields.testModel.string, ['group1', 'group2']),
+                  functions.eq(fields.testModel.int, 5),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
 
         expect(result).toEqual([
-          { string: 'group1', int: 5, count: 1n, sum: 5n },
-          { string: 'group2', int: 5, count: 1n, sum: 5n },
+          { string: 'group1', int: 5, count: 1, sum: 5 },
+          { string: 'group2', int: 5, count: 1, sum: 5 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -68,32 +71,41 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
             .groupBy('string')
             .orderBy('string');
 
-        const equals = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) => functions.eq(functions.count(fields.testModel.int), 2n))
-            .build(),
-        );
-        const notEquals = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) => functions.ne(functions.count(fields.testModel.int), 2n))
-            .build(),
-        );
-        const included = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.in(functions.count(fields.testModel.int), [0n, 2n]),
-            )
-            .build(),
-        );
+        const equals = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) => functions.eq(functions.count(fields.testModel.int), 2))
+              .build(),
+          )
+          .toArray();
+        const notEquals = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) => functions.ne(functions.count(fields.testModel.int), 2))
+              .build(),
+          )
+          .toArray();
+        const included = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.in(functions.count(fields.testModel.int), [0, 2]),
+              )
+              .build(),
+          )
+          .toArray();
 
-        expect(equals).toEqual([{ string: 'group1', count: 2n }]);
+        expect(equals).toEqual([{ string: 'group1', count: 2 }]);
         expect(notEquals).toEqual([
-          { string: 'group2', count: 1n },
-          { string: 'group3', count: 0n },
+          { string: 'group2', count: 1 },
+          { string: 'group3', count: 0 },
         ]);
         expect(included).toEqual([
-          { string: 'group1', count: 2n },
-          { string: 'group3', count: 0n },
+          { string: 'group1', count: 2 },
+          { string: 'group3', count: 0 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -119,42 +131,51 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
             .select('int', (fields, functions) => functions.sum(fields.testModel.int))
             .groupBy('string')
             .orderBy('string');
-        const equals = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.and(
-                functions.eq(functions.sum(fields.testModel.float), 16),
-                functions.eq(functions.sum(fields.testModel.int), 16n),
-              ),
-            )
-            .build(),
-        );
-        const notEquals = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.and(
-                functions.ne(functions.sum(fields.testModel.float), 16),
-                functions.ne(functions.sum(fields.testModel.int), 16n),
-              ),
-            )
-            .build(),
-        );
-        const included = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.and(
-                functions.in(functions.sum(fields.testModel.float), [16, 5]),
-                functions.in(functions.sum(fields.testModel.int), [16n, 5n]),
-              ),
-            )
-            .build(),
-        );
+        const equals = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.and(
+                  functions.eq(functions.sum(fields.testModel.float), 16),
+                  functions.eq(functions.sum(fields.testModel.int), 16),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
+        const notEquals = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.and(
+                  functions.ne(functions.sum(fields.testModel.float), 16),
+                  functions.ne(functions.sum(fields.testModel.int), 16),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
+        const included = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.and(
+                  functions.in(functions.sum(fields.testModel.float), [16, 5]),
+                  functions.in(functions.sum(fields.testModel.int), [16, 5]),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
 
-        expect(equals).toEqual([{ string: 'group1', float: 16, int: 16n }]);
-        expect(notEquals).toEqual([{ string: 'group2', float: 5, int: 5n }]);
+        expect(equals).toEqual([{ string: 'group1', float: 16, int: 16 }]);
+        expect(notEquals).toEqual([{ string: 'group2', float: 5, int: 5 }]);
         expect(included).toEqual([
-          { string: 'group1', float: 16, int: 16n },
-          { string: 'group2', float: 5, int: 5n },
+          { string: 'group1', float: 16, int: 16 },
+          { string: 'group2', float: 5, int: 5 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -181,36 +202,45 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
             .groupBy('string')
             .orderBy('string');
 
-        const equals = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.and(
-                functions.eq(functions.min(fields.testModel.float), 0),
-                functions.eq(functions.min(fields.testModel.int), 0),
-              ),
-            )
-            .build(),
-        );
-        const notEquals = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.and(
-                functions.ne(functions.min(fields.testModel.float), 0),
-                functions.ne(functions.min(fields.testModel.int), 0),
-              ),
-            )
-            .build(),
-        );
-        const included = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.and(
-                functions.in(functions.min(fields.testModel.float), [0]),
-                functions.in(functions.min(fields.testModel.int), [0]),
-              ),
-            )
-            .build(),
-        );
+        const equals = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.and(
+                  functions.eq(functions.min(fields.testModel.float), 0),
+                  functions.eq(functions.min(fields.testModel.int), 0),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
+        const notEquals = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.and(
+                  functions.ne(functions.min(fields.testModel.float), 0),
+                  functions.ne(functions.min(fields.testModel.int), 0),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
+        const included = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.and(
+                  functions.in(functions.min(fields.testModel.float), [0]),
+                  functions.in(functions.min(fields.testModel.int), [0]),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
 
         expect(equals).toEqual([
           { string: 'group1', float: 0, int: 0 },
@@ -246,36 +276,45 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
             .groupBy('string')
             .orderBy('string');
 
-        const equals = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.and(
-                functions.eq(functions.max(fields.testModel.float), 10),
-                functions.eq(functions.max(fields.testModel.int), 10),
-              ),
-            )
-            .build(),
-        );
-        const notEquals = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.and(
-                functions.ne(functions.max(fields.testModel.float), 10),
-                functions.ne(functions.max(fields.testModel.int), 10),
-              ),
-            )
-            .build(),
-        );
-        const included = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.and(
-                functions.in(functions.max(fields.testModel.float), [10]),
-                functions.in(functions.max(fields.testModel.int), [10]),
-              ),
-            )
-            .build(),
-        );
+        const equals = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.and(
+                  functions.eq(functions.max(fields.testModel.float), 10),
+                  functions.eq(functions.max(fields.testModel.int), 10),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
+        const notEquals = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.and(
+                  functions.ne(functions.max(fields.testModel.float), 10),
+                  functions.ne(functions.max(fields.testModel.int), 10),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
+        const included = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.and(
+                  functions.in(functions.max(fields.testModel.float), [10]),
+                  functions.in(functions.max(fields.testModel.int), [10]),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
 
         expect(equals).toEqual([
           { string: 'group1', float: 10, int: 10 },
@@ -299,18 +338,21 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
           { id: 2, float: 0, int: 0, string: 'group1' },
         ]);
 
-        const result = await client.runtime().execute(
-          client.sql.public.testModel
-            .select('string')
-            .select('count', (fields, functions) => functions.count(fields.testModel.string))
-            .groupBy('string')
-            .having((fields, functions) =>
-              functions.gt(functions.count(fields.testModel.string), 1n),
-            )
-            .build(),
-        );
+        const result = await client
+          .runtime()
+          .query(
+            client.sql.public.testModel
+              .select('string')
+              .select('count', (fields, functions) => functions.count(fields.testModel.string))
+              .groupBy('string')
+              .having((fields, functions) =>
+                functions.gt(functions.count(fields.testModel.string), 1),
+              )
+              .build(),
+          )
+          .toArray();
 
-        expect(result).toEqual([{ string: 'group1', count: 2n }]);
+        expect(result).toEqual([{ string: 'group1', count: 2 }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -329,21 +371,27 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
         ]);
 
         const grouped = () => client.sql.public.testModel.select('string').groupBy('string');
-        const maxResult = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) => functions.gt(functions.max(fields.testModel.int), 1))
-            .build(),
-        );
-        const combinedResult = await client.runtime().execute(
-          grouped()
-            .having((fields, functions) =>
-              functions.and(
-                functions.gt(functions.max(fields.testModel.int), 1),
-                functions.gt(functions.sum(fields.testModel.int), 1n),
-              ),
-            )
-            .build(),
-        );
+        const maxResult = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) => functions.gt(functions.max(fields.testModel.int), 1))
+              .build(),
+          )
+          .toArray();
+        const combinedResult = await client
+          .runtime()
+          .query(
+            grouped()
+              .having((fields, functions) =>
+                functions.and(
+                  functions.gt(functions.max(fields.testModel.int), 1),
+                  functions.gt(functions.sum(fields.testModel.int), 1),
+                ),
+              )
+              .build(),
+          )
+          .toArray();
         const acceptedOrders = [
           [{ string: 'group1' }, { string: 'group2' }],
           [{ string: 'group2' }, { string: 'group1' }],
@@ -411,27 +459,36 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
               .orderBy('string');
           const filterValues =
             operation === 'sum' ? ['16', '5'] : operation === 'min' ? ['0'] : ['10'];
-          const equals = await client.runtime().execute(
-            grouped()
-              .having((fields, functions) =>
-                functions.eq(functions[operation](fields.testModel.decimal), filterValues[0]!),
-              )
-              .build(),
-          );
-          const notEquals = await client.runtime().execute(
-            grouped()
-              .having((fields, functions) =>
-                functions.ne(functions[operation](fields.testModel.decimal), filterValues[0]!),
-              )
-              .build(),
-          );
-          const included = await client.runtime().execute(
-            grouped()
-              .having((fields, functions) =>
-                functions.in(functions[operation](fields.testModel.decimal), filterValues),
-              )
-              .build(),
-          );
+          const equals = await client
+            .runtime()
+            .query(
+              grouped()
+                .having((fields, functions) =>
+                  functions.eq(functions[operation](fields.testModel.decimal), filterValues[0]!),
+                )
+                .build(),
+            )
+            .toArray();
+          const notEquals = await client
+            .runtime()
+            .query(
+              grouped()
+                .having((fields, functions) =>
+                  functions.ne(functions[operation](fields.testModel.decimal), filterValues[0]!),
+                )
+                .build(),
+            )
+            .toArray();
+          const included = await client
+            .runtime()
+            .query(
+              grouped()
+                .having((fields, functions) =>
+                  functions.in(functions[operation](fields.testModel.decimal), filterValues),
+                )
+                .build(),
+            )
+            .toArray();
 
           const selected =
             operation === 'sum'

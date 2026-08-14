@@ -1,5 +1,3 @@
-import { postgresRawCodecInferer } from '@internal/adapter-postgres/adapter';
-import { sql } from '@internal/sql-builder/runtime';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withPostgresPort } from '../../../../_harness/postgres';
 import type { Contract } from './_fixture/generated/contract';
@@ -14,7 +12,7 @@ describe('ports/engines/queries/aggregation/count', () => {
           count: aggregate.count(),
         }));
 
-        expect(result).toEqual({ count: 0n });
+        expect(result).toEqual({ count: 0 });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -22,26 +20,24 @@ describe('ports/engines/queries/aggregation/count', () => {
   it(
     'counts non-null values in nullable fields',
     () =>
-      withPostgresPort<Contract>({ contractJson }, async ({ db }) => {
-        await db.public.TestModel.createAll([
+      withPostgresPort<Contract>({ contractJson }, async ({ client }) => {
+        await client.orm.public.TestModel.createAll([
           { id: 1, string: 'test1' },
           { id: 2, int: 1 },
         ]);
 
-        const collection = db.public.TestModel;
-        const query = sql<Contract>({
-          context: collection.ctx.context,
-          rawCodecInferer: postgresRawCodecInferer,
-        });
-        const result = await collection.ctx.runtime.execute(
-          query.public.testModel
-            .select('_all', (_fields, functions) => functions.count())
-            .select('string', (fields, functions) => functions.count(fields.testModel.string))
-            .select('int', (fields, functions) => functions.count(fields.testModel.int))
-            .build(),
-        );
+        const result = await client
+          .runtime()
+          .query(
+            client.sql.public.testModel
+              .select('_all', (_fields, functions) => functions.count())
+              .select('string', (fields, functions) => functions.count(fields.testModel.string))
+              .select('int', (fields, functions) => functions.count(fields.testModel.int))
+              .build(),
+          )
+          .toArray();
 
-        expect(result).toEqual([{ _all: 2n, string: 1n, int: 1n }]);
+        expect(result).toEqual([{ _all: 2, string: 1, int: 1 }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -49,30 +45,31 @@ describe('ports/engines/queries/aggregation/count', () => {
   it(
     'preserves requested field order for empty counts',
     () =>
-      withPostgresPort<Contract>({ contractJson }, async ({ db }) => {
-        const collection = db.public.TestModel;
-        const query = sql<Contract>({
-          context: collection.ctx.context,
-          rawCodecInferer: postgresRawCodecInferer,
-        });
-        const allStringInt = await collection.ctx.runtime.execute(
-          query.public.testModel
-            .select('_all', (_fields, functions) => functions.count())
-            .select('string', (fields, functions) => functions.count(fields.testModel.string))
-            .select('int', (fields, functions) => functions.count(fields.testModel.int))
-            .build(),
-        );
-        const stringAllInt = await collection.ctx.runtime.execute(
-          query.public.testModel
-            .select('string', (fields, functions) => functions.count(fields.testModel.string))
-            .select('_all', (_fields, functions) => functions.count())
-            .select('int', (fields, functions) => functions.count(fields.testModel.int))
-            .build(),
-        );
+      withPostgresPort<Contract>({ contractJson }, async ({ client }) => {
+        const allStringInt = await client
+          .runtime()
+          .query(
+            client.sql.public.testModel
+              .select('_all', (_fields, functions) => functions.count())
+              .select('string', (fields, functions) => functions.count(fields.testModel.string))
+              .select('int', (fields, functions) => functions.count(fields.testModel.int))
+              .build(),
+          )
+          .toArray();
+        const stringAllInt = await client
+          .runtime()
+          .query(
+            client.sql.public.testModel
+              .select('string', (fields, functions) => functions.count(fields.testModel.string))
+              .select('_all', (_fields, functions) => functions.count())
+              .select('int', (fields, functions) => functions.count(fields.testModel.int))
+              .build(),
+          )
+          .toArray();
 
-        expect(allStringInt).toEqual([{ _all: 0n, string: 0n, int: 0n }]);
+        expect(allStringInt).toEqual([{ _all: 0, string: 0, int: 0 }]);
         expect(Object.keys(allStringInt[0]!)).toEqual(['_all', 'string', 'int']);
-        expect(stringAllInt).toEqual([{ string: 0n, _all: 0n, int: 0n }]);
+        expect(stringAllInt).toEqual([{ string: 0, _all: 0, int: 0 }]);
         expect(Object.keys(stringAllInt[0]!)).toEqual(['string', '_all', 'int']);
       }),
     timeouts.spinUpPpgDev,

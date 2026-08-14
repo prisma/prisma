@@ -210,6 +210,53 @@
         "entries": {
           "table": {
             "child": {
+              "checks": [
+                {
+                  "expression": "array_position(\"bInt\", NULL) IS NULL",
+                  "name": "child_bInt_elem_not_null_9451bcb8",
+                  "prefix": "child_bInt_elem_not_null"
+                },
+                {
+                  "expression": "array_position(\"bool\", NULL) IS NULL",
+                  "name": "child_bool_elem_not_null_94b92b30",
+                  "prefix": "child_bool_elem_not_null"
+                },
+                {
+                  "expression": "array_position(\"bytes\", NULL) IS NULL",
+                  "name": "child_bytes_elem_not_null_a0ea8e67",
+                  "prefix": "child_bytes_elem_not_null"
+                },
+                {
+                  "expression": "array_position(\"dt\", NULL) IS NULL",
+                  "name": "child_dt_elem_not_null_c2c390e2",
+                  "prefix": "child_dt_elem_not_null"
+                },
+                {
+                  "expression": "array_position(\"empty\", NULL) IS NULL",
+                  "name": "child_empty_elem_not_null_452337ec",
+                  "prefix": "child_empty_elem_not_null"
+                },
+                {
+                  "expression": "array_position(\"float\", NULL) IS NULL",
+                  "name": "child_float_elem_not_null_37a1906a",
+                  "prefix": "child_float_elem_not_null"
+                },
+                {
+                  "expression": "array_position(\"int\", NULL) IS NULL",
+                  "name": "child_int_elem_not_null_f4d3a68a",
+                  "prefix": "child_int_elem_not_null"
+                },
+                {
+                  "expression": "array_position(\"string\", NULL) IS NULL",
+                  "name": "child_string_elem_not_null_0d3545b4",
+                  "prefix": "child_string_elem_not_null"
+                },
+                {
+                  "expression": "array_position(\"unset\", NULL) IS NULL",
+                  "name": "child_unset_elem_not_null_d4726b52",
+                  "prefix": "child_unset_elem_not_null"
+                }
+              ],
               "columns": {
                 "bInt": {
                   "codecId": "pg/int8@1",
@@ -334,7 +381,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "32ed9afb79b60ea99a6df2839c049a6e2e08f6c593445209f78015d9209ca2b6"
+    "storageHash": "6f937039a90ba2e6c016f31497d2e408f0b1beff9382a376dff300ddb5f98412"
   },
   "capabilities": {
     "postgres": {
@@ -346,6 +393,7 @@
       "returning": true
     },
     "sql": {
+      "checkConstraint": true,
       "defaultInInsert": true,
       "enums": true,
       "lateral": true,

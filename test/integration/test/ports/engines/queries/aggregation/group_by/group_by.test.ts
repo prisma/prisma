@@ -1,5 +1,3 @@
-import { postgresRawCodecInferer } from '@internal/adapter-postgres/adapter';
-import { sql } from '@internal/sql-builder/runtime';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withPostgresPort } from '../../../../_harness/postgres';
 import type { Contract as MainContract } from './_fixture/main/generated/contract';
@@ -9,17 +7,16 @@ import regression21789ContractJson from './_fixture/regression-21789/generated/c
   type: 'json',
 };
 
-type MainDb = import('../../../../_harness/postgres').PortContext<MainContract>['db'];
+type MainContext = import('../../../../_harness/postgres').PortContext<MainContract>;
+type MainClient = MainContext['client'];
+type MainDb = MainContext['db'];
 
 function withMainGroupBy(fn: Parameters<typeof withPostgresPort<MainContract>>[1]) {
   return withPostgresPort<MainContract>({ contractJson: mainContractJson }, fn);
 }
 
-function mainSql(db: MainDb) {
-  return sql<MainContract>({
-    context: db.public.A.ctx.context,
-    rawCodecInferer: postgresRawCodecInferer,
-  });
+function mainSql(client: MainClient) {
+  return client.sql;
 }
 
 function sqlQueryError(sqlState: string, message: string) {
@@ -48,16 +45,19 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'returns no groups with no records',
     () =>
-      withMainGroupBy(async ({ db }) => {
-        const query = mainSql(db);
-        const result = await db.public.A.ctx.runtime.execute(
-          query.public.a
-            .select('count', (fields, functions) => functions.count(fields.a.id))
-            .select('float')
-            .select('sum', (fields, functions) => functions.sum(fields.a.int))
-            .groupBy('id', 'float', 'int')
-            .build(),
-        );
+      withMainGroupBy(async ({ client }) => {
+        const query = mainSql(client);
+        const result = await client
+          .runtime()
+          .query(
+            query.public.a
+              .select('count', (fields, functions) => functions.count(fields.a.id))
+              .select('float')
+              .select('sum', (fields, functions) => functions.sum(fields.a.int))
+              .groupBy('id', 'float', 'int')
+              .build(),
+          )
+          .toArray();
 
         expect(result).toEqual([]);
       }),
@@ -67,23 +67,26 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'groups records with field count and sum',
     () =>
-      withMainGroupBy(async ({ db }) => {
+      withMainGroupBy(async ({ client, db }) => {
         await seedBasicRows(db);
-        const query = mainSql(db);
-        const result = await db.public.A.ctx.runtime.execute(
-          query.public.a
-            .select('string')
-            .select('count', (fields, functions) => functions.count(fields.a.string))
-            .select('sum', (fields, functions) => functions.sum(fields.a.float))
-            .groupBy('string')
-            .orderBy('string')
-            .build(),
-        );
+        const query = mainSql(client);
+        const result = await client
+          .runtime()
+          .query(
+            query.public.a
+              .select('string')
+              .select('count', (fields, functions) => functions.count(fields.a.string))
+              .select('sum', (fields, functions) => functions.sum(fields.a.float))
+              .groupBy('string')
+              .orderBy('string')
+              .build(),
+          )
+          .toArray();
 
         expect(result).toEqual([
-          { string: 'group1', count: 2n, sum: 15.6 },
-          { string: 'group2', count: 1n, sum: 10 },
-          { string: 'group3', count: 1n, sum: 10 },
+          { string: 'group1', count: 2, sum: 15.6 },
+          { string: 'group2', count: 1, sum: 10 },
+          { string: 'group3', count: 1, sum: 10 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -92,23 +95,26 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'orders grouped records in reverse',
     () =>
-      withMainGroupBy(async ({ db }) => {
+      withMainGroupBy(async ({ client, db }) => {
         await seedBasicRows(db);
-        const query = mainSql(db);
-        const result = await db.public.A.ctx.runtime.execute(
-          query.public.a
-            .select('string')
-            .select('count', (fields, functions) => functions.count(fields.a.string))
-            .select('sum', (fields, functions) => functions.sum(fields.a.float))
-            .groupBy('string')
-            .orderBy('string', { direction: 'desc' })
-            .build(),
-        );
+        const query = mainSql(client);
+        const result = await client
+          .runtime()
+          .query(
+            query.public.a
+              .select('string')
+              .select('count', (fields, functions) => functions.count(fields.a.string))
+              .select('sum', (fields, functions) => functions.sum(fields.a.float))
+              .groupBy('string')
+              .orderBy('string', { direction: 'desc' })
+              .build(),
+          )
+          .toArray();
 
         expect(result).toEqual([
-          { string: 'group3', count: 1n, sum: 10 },
-          { string: 'group2', count: 1n, sum: 10 },
-          { string: 'group1', count: 2n, sum: 15.6 },
+          { string: 'group3', count: 1, sum: 10 },
+          { string: 'group2', count: 1, sum: 10 },
+          { string: 'group1', count: 2, sum: 15.6 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -117,7 +123,7 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'orders groups by multiple fields',
     () =>
-      withMainGroupBy(async ({ db }) => {
+      withMainGroupBy(async ({ client, db }) => {
         await db.public.A.createAll([
           { id: 1, float: 10.1, int: 5, string: 'group1' },
           { id: 2, float: 5.5, int: 0, string: 'group1' },
@@ -125,24 +131,27 @@ describe('ports/engines/queries/aggregation/group_by', () => {
           { id: 4, float: 10, int: 5, string: 'group3' },
           { id: 5, float: 15, int: 5, string: 'group3' },
         ]);
-        const query = mainSql(db);
-        const result = await db.public.A.ctx.runtime.execute(
-          query.public.a
-            .select('string')
-            .select('count', (fields, functions) => functions.count(fields.a.string))
-            .select('sum', (fields, functions) => functions.sum(fields.a.float))
-            .select('min', (fields, functions) => functions.min(fields.a.int))
-            .groupBy('string', 'int')
-            .orderBy('string', { direction: 'desc' })
-            .orderBy('int')
-            .build(),
-        );
+        const query = mainSql(client);
+        const result = await client
+          .runtime()
+          .query(
+            query.public.a
+              .select('string')
+              .select('count', (fields, functions) => functions.count(fields.a.string))
+              .select('sum', (fields, functions) => functions.sum(fields.a.float))
+              .select('min', (fields, functions) => functions.min(fields.a.int))
+              .groupBy('string', 'int')
+              .orderBy('string', { direction: 'desc' })
+              .orderBy('int')
+              .build(),
+          )
+          .toArray();
 
         expect(result).toEqual([
-          { string: 'group3', count: 2n, sum: 25, min: 5 },
-          { string: 'group2', count: 1n, sum: 10, min: 5 },
-          { string: 'group1', count: 1n, sum: 5.5, min: 0 },
-          { string: 'group1', count: 1n, sum: 10.1, min: 5 },
+          { string: 'group3', count: 2, sum: 25, min: 5 },
+          { string: 'group2', count: 1, sum: 10, min: 5 },
+          { string: 'group1', count: 1, sum: 5.5, min: 0 },
+          { string: 'group1', count: 1, sum: 10.1, min: 5 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -151,7 +160,7 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'applies scalar filters before grouping',
     () =>
-      withMainGroupBy(async ({ db }) => {
+      withMainGroupBy(async ({ client, db }) => {
         await db.public.A.createAll([
           { id: 1, float: 10.1, int: 5, string: 'group1' },
           { id: 2, float: 5.5, int: 0, string: 'group1' },
@@ -159,25 +168,28 @@ describe('ports/engines/queries/aggregation/group_by', () => {
           { id: 4, float: 10, int: 5, string: 'group3' },
           { id: 5, float: 15, int: 5, string: 'group3' },
         ]);
-        const query = mainSql(db);
-        const result = await db.public.A.ctx.runtime.execute(
-          query.public.a
-            .select('string')
-            .select('count', (fields, functions) => functions.count(fields.a.string))
-            .select('sum', (fields, functions) => functions.sum(fields.a.float))
-            .select('min', (fields, functions) => functions.min(fields.a.int))
-            .where((fields, functions) =>
-              functions.and(functions.eq(fields.a.int, 5), functions.lt(fields.a.float, 15)),
-            )
-            .groupBy('string', 'int')
-            .orderBy('string', { direction: 'desc' })
-            .build(),
-        );
+        const query = mainSql(client);
+        const result = await client
+          .runtime()
+          .query(
+            query.public.a
+              .select('string')
+              .select('count', (fields, functions) => functions.count(fields.a.string))
+              .select('sum', (fields, functions) => functions.sum(fields.a.float))
+              .select('min', (fields, functions) => functions.min(fields.a.int))
+              .where((fields, functions) =>
+                functions.and(functions.eq(fields.a.int, 5), functions.lt(fields.a.float, 15)),
+              )
+              .groupBy('string', 'int')
+              .orderBy('string', { direction: 'desc' })
+              .build(),
+          )
+          .toArray();
 
         expect(result).toEqual([
-          { string: 'group3', count: 1n, sum: 10, min: 5 },
-          { string: 'group2', count: 1n, sum: 10, min: 5 },
-          { string: 'group1', count: 1n, sum: 10.1, min: 5 },
+          { string: 'group3', count: 1, sum: 10, min: 5 },
+          { string: 'group2', count: 1, sum: 10, min: 5 },
+          { string: 'group1', count: 1, sum: 10.1, min: 5 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -186,7 +198,7 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'applies relation filters before grouping',
     () =>
-      withMainGroupBy(async ({ db }) => {
+      withMainGroupBy(async ({ client, db }) => {
         await db.public.A.create({
           id: 1,
           float: 10.1,
@@ -211,7 +223,7 @@ describe('ports/engines/queries/aggregation/group_by', () => {
           b: (relation) => relation.create({ id: 3, field: 'b' }),
         });
 
-        const query = mainSql(db);
+        const query = mainSql(client);
         const selectedRelations = () =>
           query.public.a
             .innerJoin(query.public.b, (fields, functions) =>
@@ -221,25 +233,31 @@ describe('ports/engines/queries/aggregation/group_by', () => {
             .select('count', (fields, functions) => functions.count(fields.a.string))
             .select('sum', (fields, functions) => functions.sum(fields.a.float))
             .select('min', (fields, functions) => functions.min(fields.a.int));
-        const relationExists = await db.public.A.ctx.runtime.execute(
-          selectedRelations()
-            .groupBy('string', 'int')
-            .orderBy('string', { direction: 'desc' })
-            .build(),
-        );
-        const relationFieldB = await db.public.A.ctx.runtime.execute(
-          selectedRelations()
-            .where((fields, functions) => functions.eq(fields.b.field, 'b'))
-            .groupBy('string', 'int')
-            .orderBy('string', { direction: 'desc' })
-            .build(),
-        );
+        const relationExists = await client
+          .runtime()
+          .query(
+            selectedRelations()
+              .groupBy('string', 'int')
+              .orderBy('string', { direction: 'desc' })
+              .build(),
+          )
+          .toArray();
+        const relationFieldB = await client
+          .runtime()
+          .query(
+            selectedRelations()
+              .where((fields, functions) => functions.eq(fields.b.field, 'b'))
+              .groupBy('string', 'int')
+              .orderBy('string', { direction: 'desc' })
+              .build(),
+          )
+          .toArray();
 
         expect(relationExists).toEqual([
-          { string: 'group3', count: 2n, sum: 25, min: 5 },
-          { string: 'group1', count: 1n, sum: 10.1, min: 5 },
+          { string: 'group3', count: 2, sum: 25, min: 5 },
+          { string: 'group1', count: 1, sum: 10.1, min: 5 },
         ]);
-        expect(relationFieldB).toEqual([{ string: 'group3', count: 2n, sum: 25, min: 5 }]);
+        expect(relationFieldB).toEqual([{ string: 'group3', count: 2, sum: 25, min: 5 }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -247,34 +265,40 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'orders groups by count aggregation',
     () =>
-      withMainGroupBy(async ({ db }) => {
+      withMainGroupBy(async ({ client, db }) => {
         await seedOrderingRows(db);
-        const query = mainSql(db);
+        const query = mainSql(client);
         const grouped = () =>
           query.public.a
             .select('float')
             .select('count', (fields, functions) => functions.count(fields.a.float))
             .groupBy('float');
-        const ascending = await db.public.A.ctx.runtime.execute(
-          grouped()
-            .orderBy((fields, functions) => functions.count(fields.a.float))
-            .build(),
-        );
-        const descending = await db.public.A.ctx.runtime.execute(
-          grouped()
-            .orderBy((fields, functions) => functions.count(fields.a.float), {
-              direction: 'desc',
-            })
-            .build(),
-        );
+        const ascending = await client
+          .runtime()
+          .query(
+            grouped()
+              .orderBy((fields, functions) => functions.count(fields.a.float))
+              .build(),
+          )
+          .toArray();
+        const descending = await client
+          .runtime()
+          .query(
+            grouped()
+              .orderBy((fields, functions) => functions.count(fields.a.float), {
+                direction: 'desc',
+              })
+              .build(),
+          )
+          .toArray();
 
         expect(ascending).toEqual([
-          { float: 4, count: 1n },
-          { float: 1.1, count: 3n },
+          { float: 4, count: 1 },
+          { float: 1.1, count: 3 },
         ]);
         expect(descending).toEqual([
-          { float: 1.1, count: 3n },
-          { float: 4, count: 1n },
+          { float: 1.1, count: 3 },
+          { float: 4, count: 1 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -283,26 +307,32 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'orders groups by sum aggregation',
     () =>
-      withMainGroupBy(async ({ db }) => {
+      withMainGroupBy(async ({ client, db }) => {
         await seedOrderingRows(db);
-        const query = mainSql(db);
+        const query = mainSql(client);
         const grouped = () =>
           query.public.a
             .select('float')
             .select('sum', (fields, functions) => functions.sum(fields.a.float))
             .groupBy('float');
-        const ascending = await db.public.A.ctx.runtime.execute(
-          grouped()
-            .orderBy((fields, functions) => functions.sum(fields.a.float))
-            .build(),
-        );
-        const descending = await db.public.A.ctx.runtime.execute(
-          grouped()
-            .orderBy((fields, functions) => functions.sum(fields.a.float), {
-              direction: 'desc',
-            })
-            .build(),
-        );
+        const ascending = await client
+          .runtime()
+          .query(
+            grouped()
+              .orderBy((fields, functions) => functions.sum(fields.a.float))
+              .build(),
+          )
+          .toArray();
+        const descending = await client
+          .runtime()
+          .query(
+            grouped()
+              .orderBy((fields, functions) => functions.sum(fields.a.float), {
+                direction: 'desc',
+              })
+              .build(),
+          )
+          .toArray();
 
         expect(ascending).toEqual([
           { float: 1.1, sum: 3.3000000000000003 },
@@ -320,26 +350,32 @@ describe('ports/engines/queries/aggregation/group_by', () => {
     it(
       `orders groups by ${operation} aggregation`,
       () =>
-        withMainGroupBy(async ({ db }) => {
+        withMainGroupBy(async ({ client, db }) => {
           await seedOrderingRows(db);
-          const query = mainSql(db);
+          const query = mainSql(client);
           const grouped = () =>
             query.public.a
               .select('float')
               .select(operation, (fields, functions) => functions[operation](fields.a.float))
               .groupBy('float');
-          const ascending = await db.public.A.ctx.runtime.execute(
-            grouped()
-              .orderBy((fields, functions) => functions[operation](fields.a.float))
-              .build(),
-          );
-          const descending = await db.public.A.ctx.runtime.execute(
-            grouped()
-              .orderBy((fields, functions) => functions[operation](fields.a.float), {
-                direction: 'desc',
-              })
-              .build(),
-          );
+          const ascending = await client
+            .runtime()
+            .query(
+              grouped()
+                .orderBy((fields, functions) => functions[operation](fields.a.float))
+                .build(),
+            )
+            .toArray();
+          const descending = await client
+            .runtime()
+            .query(
+              grouped()
+                .orderBy((fields, functions) => functions[operation](fields.a.float), {
+                  direction: 'desc',
+                })
+                .build(),
+            )
+            .toArray();
 
           expect(ascending).toEqual([
             { float: 1.1, [operation]: 1.1 },
@@ -357,7 +393,7 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'orders groups by multiple aggregations',
     () =>
-      withMainGroupBy(async ({ db }) => {
+      withMainGroupBy(async ({ client, db }) => {
         await db.public.A.createAll([
           { id: 1, float: 1.1, int: 1, string: 'group1' },
           { id: 2, float: 1.1, int: 1, string: 'group1' },
@@ -365,24 +401,27 @@ describe('ports/engines/queries/aggregation/group_by', () => {
           { id: 4, float: 3, int: 3, string: 'group3' },
           { id: 5, float: 4, int: 4, string: 'group3' },
         ]);
-        const query = mainSql(db);
-        const result = await db.public.A.ctx.runtime.execute(
-          query.public.a
-            .select('float')
-            .select('count', (fields, functions) => functions.count(fields.a.float))
-            .select('sum', (fields, functions) => functions.sum(fields.a.int))
-            .groupBy('float', 'int')
-            .orderBy((fields, functions) => functions.count(fields.a.float), {
-              direction: 'desc',
-            })
-            .orderBy((fields, functions) => functions.sum(fields.a.int))
-            .build(),
-        );
+        const query = mainSql(client);
+        const result = await client
+          .runtime()
+          .query(
+            query.public.a
+              .select('float')
+              .select('count', (fields, functions) => functions.count(fields.a.float))
+              .select('sum', (fields, functions) => functions.sum(fields.a.int))
+              .groupBy('float', 'int')
+              .orderBy((fields, functions) => functions.count(fields.a.float), {
+                direction: 'desc',
+              })
+              .orderBy((fields, functions) => functions.sum(fields.a.int))
+              .build(),
+          )
+          .toArray();
 
         expect(result).toEqual([
-          { float: 1.1, count: 3n, sum: 3n },
-          { float: 3, count: 1n, sum: 3n },
-          { float: 4, count: 1n, sum: 4n },
+          { float: 1.1, count: 3, sum: 3 },
+          { float: 3, count: 1, sum: 3 },
+          { float: 4, count: 1, sum: 4 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -391,7 +430,7 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'combines aggregate ordering with having',
     () =>
-      withMainGroupBy(async ({ db }) => {
+      withMainGroupBy(async ({ client, db }) => {
         await db.public.A.createAll([
           { id: 1, float: 1.1, int: 1, string: 'group1' },
           { id: 2, float: 1.1, int: 1, string: 'group1' },
@@ -399,24 +438,27 @@ describe('ports/engines/queries/aggregation/group_by', () => {
           { id: 4, float: 3, int: 3, string: 'group3' },
           { id: 5, float: 4, int: 4, string: 'group3' },
         ]);
-        const query = mainSql(db);
-        const result = await db.public.A.ctx.runtime.execute(
-          query.public.a
-            .select('float')
-            .select('count', (fields, functions) => functions.count(fields.a.float))
-            .select('sum', (fields, functions) => functions.sum(fields.a.int))
-            .groupBy('float', 'int')
-            .having((fields, functions) => functions.lt(fields.a.float, 4))
-            .orderBy((fields, functions) => functions.count(fields.a.float), {
-              direction: 'desc',
-            })
-            .orderBy((fields, functions) => functions.sum(fields.a.int))
-            .build(),
-        );
+        const query = mainSql(client);
+        const result = await client
+          .runtime()
+          .query(
+            query.public.a
+              .select('float')
+              .select('count', (fields, functions) => functions.count(fields.a.float))
+              .select('sum', (fields, functions) => functions.sum(fields.a.int))
+              .groupBy('float', 'int')
+              .having((fields, functions) => functions.lt(fields.a.float, 4))
+              .orderBy((fields, functions) => functions.count(fields.a.float), {
+                direction: 'desc',
+              })
+              .orderBy((fields, functions) => functions.sum(fields.a.int))
+              .build(),
+          )
+          .toArray();
 
         expect(result).toEqual([
-          { float: 1.1, count: 3n, sum: 3n },
-          { float: 3, count: 1n, sum: 3n },
+          { float: 1.1, count: 3, sum: 3 },
+          { float: 3, count: 1, sum: 3 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -425,24 +467,27 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'orders by an aggregation without selecting it',
     () =>
-      withMainGroupBy(async ({ db }) => {
+      withMainGroupBy(async ({ client, db }) => {
         await db.public.A.createAll([
           { id: 1, float: 1.1, int: 1, string: 'group1' },
           { id: 2, float: 1.1, int: 1, string: 'group1' },
           { id: 3, float: 1.1, int: 1, string: 'group2' },
         ]);
-        const query = mainSql(db);
-        const result = await db.public.A.ctx.runtime.execute(
-          query.public.a
-            .select('sum', (fields, functions) => functions.sum(fields.a.int))
-            .groupBy('float')
-            .orderBy((fields, functions) => functions.count(fields.a.float), {
-              direction: 'desc',
-            })
-            .build(),
-        );
+        const query = mainSql(client);
+        const result = await client
+          .runtime()
+          .query(
+            query.public.a
+              .select('sum', (fields, functions) => functions.sum(fields.a.int))
+              .groupBy('float')
+              .orderBy((fields, functions) => functions.count(fields.a.float), {
+                direction: 'desc',
+              })
+              .build(),
+          )
+          .toArray();
 
-        expect(result).toEqual([{ sum: 3n }]);
+        expect(result).toEqual([{ sum: 3 }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -452,33 +497,34 @@ describe('ports/engines/queries/aggregation/group_by', () => {
     () =>
       withPostgresPort<Regression21789Contract>(
         { contractJson: regression21789ContractJson },
-        async ({ db }) => {
+        async ({ client, db }) => {
           await db.public.Test.createAll([
             { id: 1, group: 1, color: 'red' },
             { id: 2, group: 2, color: 'green' },
             { id: 3, group: 1, color: 'blue' },
           ]);
 
-          const collection = db.public.Test;
-          const query = sql<Regression21789Contract>({
-            context: collection.ctx.context,
-            rawCodecInferer: postgresRawCodecInferer,
-          });
-          const aggregateResult = await collection.ctx.runtime.execute(
-            query.public.test
-              .select('max', (fields, functions) => functions.max(fields.test.color))
-              .select('min', (fields, functions) => functions.min(fields.test.color))
-              .build(),
-          );
-          const groupedResult = await collection.ctx.runtime.execute(
-            query.public.test
-              .select('group')
-              .select('max', (fields, functions) => functions.max(fields.test.color))
-              .select('min', (fields, functions) => functions.min(fields.test.color))
-              .groupBy('group')
-              .orderBy('group')
-              .build(),
-          );
+          const aggregateResult = await client
+            .runtime()
+            .query(
+              client.sql.public.test
+                .select('max', (fields, functions) => functions.max(fields.test.color))
+                .select('min', (fields, functions) => functions.min(fields.test.color))
+                .build(),
+            )
+            .toArray();
+          const groupedResult = await client
+            .runtime()
+            .query(
+              client.sql.public.test
+                .select('group')
+                .select('max', (fields, functions) => functions.max(fields.test.color))
+                .select('min', (fields, functions) => functions.min(fields.test.color))
+                .groupBy('group')
+                .orderBy('group')
+                .build(),
+            )
+            .toArray();
 
           expect(aggregateResult).toEqual([{ max: 'green', min: 'blue' }]);
           expect(groupedResult).toEqual([
@@ -493,8 +539,8 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'rejects scalar selection with no grouping fields',
     () =>
-      withMainGroupBy(async ({ db }) => {
-        const query = mainSql(db);
+      withMainGroupBy(async ({ client }) => {
+        const query = mainSql(client);
 
         expect(() => query.public.a.select('string').groupBy()).toThrow(
           expect.objectContaining({
@@ -510,18 +556,21 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'rejects a selected scalar absent from grouping fields',
     () =>
-      withMainGroupBy(async ({ db }) => {
-        const query = mainSql(db);
+      withMainGroupBy(async ({ client }) => {
+        const query = mainSql(client);
 
         await expect(
-          db.public.A.ctx.runtime.execute(
-            query.public.a
-              .select('string')
-              .select('count', (fields, functions) => functions.count(fields.a.string))
-              .select('sum', (fields, functions) => functions.sum(fields.a.float))
-              .groupBy('int')
-              .build(),
-          ),
+          client
+            .runtime()
+            .query(
+              query.public.a
+                .select('string')
+                .select('count', (fields, functions) => functions.count(fields.a.string))
+                .select('sum', (fields, functions) => functions.sum(fields.a.float))
+                .groupBy('int')
+                .build(),
+            )
+            .toArray(),
         ).rejects.toMatchObject(
           sqlQueryError(
             '42803',
@@ -535,18 +584,21 @@ describe('ports/engines/queries/aggregation/group_by', () => {
   it(
     'rejects an ordered scalar absent from grouping fields',
     () =>
-      withMainGroupBy(async ({ db }) => {
-        const query = mainSql(db);
+      withMainGroupBy(async ({ client }) => {
+        const query = mainSql(client);
 
         await expect(
-          db.public.A.ctx.runtime.execute(
-            query.public.a
-              .select('count', (fields, functions) => functions.count(fields.a.int))
-              .select('sum', (fields, functions) => functions.sum(fields.a.float))
-              .groupBy('int')
-              .orderBy('string', { direction: 'desc' })
-              .build(),
-          ),
+          client
+            .runtime()
+            .query(
+              query.public.a
+                .select('count', (fields, functions) => functions.count(fields.a.int))
+                .select('sum', (fields, functions) => functions.sum(fields.a.float))
+                .groupBy('int')
+                .orderBy('string', { direction: 'desc' })
+                .build(),
+            )
+            .toArray(),
         ).rejects.toMatchObject(
           sqlQueryError(
             '42803',

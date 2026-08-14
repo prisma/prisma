@@ -33,7 +33,7 @@ describe('ports/engines/queries/aggregation/uniq-count-relation', () => {
           .include('categories', (categories) => categories.count())
           .first({ id: 1 });
 
-        expect(post).toEqual({ id: 1, comments: 0n, categories: 0n });
+        expect(post).toEqual({ id: 1, comments: 0, categories: 0 });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -55,7 +55,7 @@ describe('ports/engines/queries/aggregation/uniq-count-relation', () => {
           .include('categories', (categories) => categories.count())
           .first({ id: 1 });
 
-        expect(post).toEqual({ id: 1, comments: 1n, categories: 2n });
+        expect(post).toEqual({ id: 1, comments: 1, categories: 2 });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -96,8 +96,8 @@ describe('ports/engines/queries/aggregation/uniq-count-relation', () => {
 
         expect(post).toEqual({
           id: 1,
-          comments: { rows: [{ id: 1 }], total: 4n },
-          categories: { rows: [{ id: 1 }], total: 4n },
+          comments: { rows: [{ id: 1 }], total: 4 },
+          categories: { rows: [{ id: 1 }], total: 4 },
         });
       }),
     timeouts.spinUpPpgDev,
@@ -137,8 +137,8 @@ describe('ports/engines/queries/aggregation/uniq-count-relation', () => {
 
         expect(post).toEqual({
           id: 1,
-          comments: { rows: [{ id: 1 }], total: 4n },
-          categories: { rows: [{ id: 1 }], total: 4n },
+          comments: { rows: [{ id: 1 }], total: 4 },
+          categories: { rows: [{ id: 1 }], total: 4 },
         });
       }),
     timeouts.spinUpPpgDev,
@@ -178,8 +178,8 @@ describe('ports/engines/queries/aggregation/uniq-count-relation', () => {
 
         expect(post).toEqual({
           id: 1,
-          comments: { rows: [{ id: 3 }, { id: 4 }], total: 4n },
-          categories: { rows: [{ id: 3 }, { id: 4 }], total: 4n },
+          comments: { rows: [{ id: 3 }, { id: 4 }], total: 4 },
+          categories: { rows: [{ id: 3 }, { id: 4 }], total: 4 },
         });
       }),
     timeouts.spinUpPpgDev,
@@ -213,8 +213,8 @@ describe('ports/engines/queries/aggregation/uniq-count-relation', () => {
 
         expect(post).toEqual({
           id: 1,
-          comments: { rows: [{ id: 2 }], total: 4n },
-          categories: { rows: [{ id: 2 }], total: 4n },
+          comments: { rows: [{ id: 2 }], total: 4 },
+          categories: { rows: [{ id: 2 }], total: 4 },
         });
       }),
     timeouts.spinUpPpgDev,
@@ -242,7 +242,7 @@ describe('ports/engines/queries/aggregation/uniq-count-relation', () => {
           )
           .first({ id: 1 });
 
-        expect(category).toEqual({ id: 1, posts: { rows: [{ id: 1 }], total: 2n } });
+        expect(category).toEqual({ id: 1, posts: { rows: [{ id: 1 }], total: 2 } });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -306,15 +306,15 @@ describe('ports/engines/queries/aggregation/uniq-count-relation', () => {
                   rows: [
                     {
                       body: 'Amazing',
-                      tags: { rows: [{ name: 'LALA' }, { name: 'LOLO' }], total: 2n },
+                      tags: { rows: [{ name: 'LALA' }, { name: 'LOLO' }], total: 2 },
                     },
                   ],
-                  total: 1n,
+                  total: 1,
                 },
-                tags: { rows: [{ name: 'A' }, { name: 'B' }, { name: 'C' }], total: 3n },
+                tags: { rows: [{ name: 'A' }, { name: 'B' }, { name: 'C' }], total: 3 },
               },
             ],
-            total: 1n,
+            total: 1,
           },
         });
       }),

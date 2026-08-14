@@ -148,14 +148,9 @@
             "child": {
               "checks": [
                 {
-                  "column": "enum",
-                  "name": "child_enum_check",
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "Color",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
+                  "expression": "\"enum\" IN ('Red', 'Green', 'Blue')",
+                  "name": "child_enum_check_0b2b6fc4",
+                  "prefix": "child_enum_check"
                 }
               ],
               "columns": {
@@ -249,7 +244,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "79b59dbe6072a96602cfb45b8ad7bf8dd5ee6c86d167b69d4d6c8765cd68b0b4"
+    "storageHash": "baf50ffc509012e4d35040ca0adaa3737fdb34ac96369122468aea0893b728d5"
   },
   "capabilities": {
     "postgres": {
@@ -261,6 +256,7 @@
       "returning": true
     },
     "sql": {
+      "checkConstraint": true,
       "defaultInInsert": true,
       "enums": true,
       "lateral": true,

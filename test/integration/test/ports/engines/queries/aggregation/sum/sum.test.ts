@@ -39,7 +39,7 @@ describe('ports/engines/queries/aggregation/sum', () => {
           float: aggregate.sum('float'),
         }));
 
-        expect(result).toEqual({ int: 15n, bInt: '15', float: 10 });
+        expect(result).toEqual({ int: 15, bInt: 15, float: 10 });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -88,12 +88,12 @@ describe('ports/engines/queries/aggregation/sum', () => {
             float: aggregate.sum('float'),
           }));
 
-        expect(takeTwo).toEqual({ int: 15n, bInt: '15', float: 10 });
-        expect(takeFive).toEqual({ int: 18n, bInt: '18', float: 11.5 });
-        expect(takeNegativeFive).toEqual({ int: 18n, bInt: '18', float: 11.5 });
-        expect(whereIdGreaterThanTwo).toEqual({ int: 3n, bInt: '3', float: 1.5 });
-        expect(skipTwo).toEqual({ int: 3n, bInt: '3', float: 1.5 });
-        expect(cursorAtThree).toEqual({ int: 3n, bInt: '3', float: 1.5 });
+        expect(takeTwo).toEqual({ int: 15, bInt: 15, float: 10 });
+        expect(takeFive).toEqual({ int: 18, bInt: 18, float: 11.5 });
+        expect(takeNegativeFive).toEqual({ int: 18, bInt: 18, float: 11.5 });
+        expect(whereIdGreaterThanTwo).toEqual({ int: 3, bInt: 3, float: 1.5 });
+        expect(skipTwo).toEqual({ int: 3, bInt: 3, float: 1.5 });
+        expect(cursorAtThree).toEqual({ int: 3, bInt: 3, float: 1.5 });
       }),
     timeouts.spinUpPpgDev,
   );

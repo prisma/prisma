@@ -37,11 +37,7 @@ describe('ports/engines/queries/aggregation/avg', () => {
           float: aggregate.avg('float'),
         }));
 
-        expect(result).toEqual({
-          int: '7.5000000000000000',
-          bInt: '7.5000000000000000',
-          float: 5,
-        });
+        expect(result).toEqual({ int: 7.5, bInt: 7.5, float: 5 });
       }),
     timeouts.spinUpPpgDev,
   );

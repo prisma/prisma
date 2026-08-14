@@ -81,14 +81,9 @@
             "testModel": {
               "checks": [
                 {
-                  "column": "my_enum",
-                  "name": "testModel_my_enum_check",
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "MyEnum",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
+                  "expression": "\"my_enum\" IN ('A', 'B', 'C')",
+                  "name": "testModel_my_enum_check_ebadb58f",
+                  "prefix": "testModel_my_enum_check"
                 }
               ],
               "columns": {
@@ -134,7 +129,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b66d96a2f60ee56f52aea20b8760243cd9af2ddab417edd9ed2fba62271620a4"
+    "storageHash": "1d02568c88e977691ecbe6ae418b77fbdb2999801cd483aa408a2e0bebe0aeaa"
   },
   "capabilities": {
     "postgres": {
@@ -146,6 +141,7 @@
       "returning": true
     },
     "sql": {
+      "checkConstraint": true,
       "defaultInInsert": true,
       "enums": true,
       "lateral": true,

@@ -87,7 +87,7 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
           .include('categories', (categories) => categories.count())
           .all();
 
-        expect(result).toEqual([{ id: 1, comments: 0n, categories: 0n }]);
+        expect(result).toEqual([{ id: 1, comments: 0, categories: 0 }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -105,8 +105,8 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
           .all();
 
         expect(result).toEqual([
-          { id: 1, comments: 1n, categories: 2n },
-          { id: 2, comments: 3n, categories: 4n },
+          { id: 1, comments: 1, categories: 2 },
+          { id: 2, comments: 3, categories: 4 },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -143,8 +143,8 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
         expect(result).toEqual([
           {
             id: 1,
-            comments: { rows: [{ id: 1 }], count: 4n },
-            categories: { rows: [{ id: 1 }], count: 4n },
+            comments: { rows: [{ id: 1 }], count: 4 },
+            categories: { rows: [{ id: 1 }], count: 4 },
           },
         ]);
       }),
@@ -174,8 +174,8 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
         expect(result).toEqual([
           {
             id: 1,
-            comments: { rows: [{ id: 1 }], count: 4n },
-            categories: { rows: [{ id: 1 }], count: 4n },
+            comments: { rows: [{ id: 1 }], count: 4 },
+            categories: { rows: [{ id: 1 }], count: 4 },
           },
         ]);
       }),
@@ -205,8 +205,8 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
         expect(result).toEqual([
           {
             id: 1,
-            comments: { rows: [{ id: 4 }], count: 4n },
-            categories: { rows: [{ id: 4 }], count: 4n },
+            comments: { rows: [{ id: 4 }], count: 4 },
+            categories: { rows: [{ id: 4 }], count: 4 },
           },
         ]);
       }),
@@ -238,8 +238,8 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
         expect(result).toEqual([
           {
             id: 1,
-            comments: { rows: [{ id: 2 }], count: 4n },
-            categories: { rows: [{ id: 2 }], count: 4n },
+            comments: { rows: [{ id: 2 }], count: 4 },
+            categories: { rows: [{ id: 2 }], count: 4 },
           },
         ]);
       }),
@@ -270,7 +270,7 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
           )
           .all();
 
-        expect(result).toEqual([{ id: 1, posts: { rows: [{ id: 1 }], count: 2n } }]);
+        expect(result).toEqual([{ id: 1, posts: { rows: [{ id: 1 }], count: 2 } }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -339,19 +339,19 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
                         body: 'Amazing',
                         tags: {
                           rows: [{ name: 'LALA' }, { name: 'LOLO' }],
-                          count: 2n,
+                          count: 2,
                         },
                       },
                     ],
-                    count: 1n,
+                    count: 1,
                   },
                   tags: {
                     rows: [{ name: 'A' }, { name: 'B' }, { name: 'C' }],
-                    count: 3n,
+                    count: 3,
                   },
                 },
               ],
-              count: 1n,
+              count: 1,
             },
           },
         ]);
@@ -391,13 +391,13 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
             id: 1,
             comments: {
               rows: [
-                { id: 1, post: { id: 1, comments: 2n } },
-                { id: 2, post: { id: 1, comments: 2n } },
+                { id: 1, post: { id: 1, comments: 2 } },
+                { id: 2, post: { id: 1, comments: 2 } },
               ],
-              count: 2n,
+              count: 2,
             },
           },
-          { id: 2, comments: { rows: [], count: 0n } },
+          { id: 2, comments: { rows: [], count: 0 } },
         ]);
 
         const nestedRows = await base
@@ -422,17 +422,17 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
               rows: [
                 {
                   id: 1,
-                  post: { id: 1, comments: { rows: [{ id: 1 }, { id: 2 }], count: 2n } },
+                  post: { id: 1, comments: { rows: [{ id: 1 }, { id: 2 }], count: 2 } },
                 },
                 {
                   id: 2,
-                  post: { id: 1, comments: { rows: [{ id: 1 }, { id: 2 }], count: 2n } },
+                  post: { id: 1, comments: { rows: [{ id: 1 }, { id: 2 }], count: 2 } },
                 },
               ],
-              count: 2n,
+              count: 2,
             },
           },
-          { id: 2, comments: { rows: [], count: 0n } },
+          { id: 2, comments: { rows: [], count: 0 } },
         ]);
 
         const filteredNestedRows = await base
@@ -455,13 +455,13 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
             id: 1,
             comments: {
               rows: [
-                { id: 1, post: { id: 1, comments: { rows: [{ id: 1 }], count: 2n } } },
-                { id: 2, post: { id: 1, comments: { rows: [{ id: 1 }], count: 2n } } },
+                { id: 1, post: { id: 1, comments: { rows: [{ id: 1 }], count: 2 } } },
+                { id: 2, post: { id: 1, comments: { rows: [{ id: 1 }], count: 2 } } },
               ],
-              count: 2n,
+              count: 2,
             },
           },
-          { id: 2, comments: { rows: [], count: 0n } },
+          { id: 2, comments: { rows: [], count: 0 } },
         ]);
 
         const filteredOuterRows = await base
@@ -489,13 +489,13 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
               rows: [
                 {
                   id: 1,
-                  post: { id: 1, comments: { rows: [{ id: 1 }, { id: 2 }], count: 2n } },
+                  post: { id: 1, comments: { rows: [{ id: 1 }, { id: 2 }], count: 2 } },
                 },
               ],
-              count: 2n,
+              count: 2,
             },
           },
-          { id: 2, comments: { rows: [], count: 0n } },
+          { id: 2, comments: { rows: [], count: 0 } },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -533,18 +533,18 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
         expect(result).toEqual([
           {
             name: 'Alice',
-            following: { rows: [{ name: 'Justin' }], count: 1n },
-            followers: { rows: [{ name: 'Bob' }], count: 1n },
+            following: { rows: [{ name: 'Justin' }], count: 1 },
+            followers: { rows: [{ name: 'Bob' }], count: 1 },
           },
           {
             name: 'Bob',
-            following: { rows: [{ name: 'Alice' }], count: 1n },
-            followers: { rows: [], count: 0n },
+            following: { rows: [{ name: 'Alice' }], count: 1 },
+            followers: { rows: [], count: 0 },
           },
           {
             name: 'Justin',
-            following: { rows: [], count: 0n },
-            followers: { rows: [{ name: 'Alice' }], count: 1n },
+            following: { rows: [], count: 0 },
+            followers: { rows: [{ name: 'Alice' }], count: 1 },
           },
         ]);
 
@@ -559,8 +559,8 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
           .first();
         expect(alice).toEqual({
           name: 'Alice',
-          following: { rows: [{ name: 'Justin' }], count: 1n },
-          followers: { rows: [{ name: 'Bob' }], count: 1n },
+          following: { rows: [{ name: 'Justin' }], count: 1 },
+          followers: { rows: [{ name: 'Bob' }], count: 1 },
         });
       }),
     timeouts.spinUpPpgDev,
@@ -581,7 +581,7 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
         const result = await db.public.UserToObjective.select('userId', 'objectiveId')
           .include('votes', (votes) => votes.count())
           .all();
-        expect(result).toEqual([{ userId: 1, objectiveId: 1, votes: 2n }]);
+        expect(result).toEqual([{ userId: 1, objectiveId: 1, votes: 2 }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -604,8 +604,8 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
           .all();
 
         expect(result).toEqual([
-          { id: 1, post: { id: 1, comments: 2n } },
-          { id: 2, post: { id: 1, comments: 2n } },
+          { id: 1, post: { id: 1, comments: 2 } },
+          { id: 2, post: { id: 1, comments: 2 } },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -627,8 +627,8 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
           .all();
 
         expect(result).toEqual([
-          { id: 1, comments: 0n },
-          { id: 2, comments: 1n },
+          { id: 1, comments: 0 },
+          { id: 2, comments: 1 },
         ]);
       }),
     timeouts.spinUpPpgDev,
