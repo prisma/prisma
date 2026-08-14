@@ -3,10 +3,5 @@ export { defaultTestConfig } from './defaultTestConfig'
 export { defineConfig } from './defineConfig'
 export { env, PrismaConfigEnvError } from './env'
 export type { ConfigDiagnostic, ConfigFromFile, InjectFormatters, LoadConfigFromFileError } from './loadConfigFromFile'
-export {
-  findPrisma7ConfigFile,
-  findPrismaConfigFile,
-  loadConfigFromFile,
-  PRISMA7_CONFIG_FILE_CANDIDATES,
-} from './loadConfigFromFile'
+export { loadConfigFromFile } from './loadConfigFromFile'
 export type { Datasource, PrismaConfig, PrismaConfigInternal, SchemaEngineConfigInternal } from './PrismaConfig'

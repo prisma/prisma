@@ -88,38 +88,20 @@ model User {
     expect(state.hasPrismaConfig).toBe(true)
   })
 
-  describe.each([
-    { directory: '', basename: 'prisma7.config' },
-    { directory: '.config', basename: 'prisma7' },
-  ])('$directory', ({ directory, basename }) => {
-    test.each(['js', 'ts', 'mjs', 'cjs', 'mts', 'cts'])('detects the .%s config extension', (extension) => {
-      writeConfig(path.join(directory, `${basename}.${extension}`))
-
-      expect(detectProjectState(tmpDir).hasPrismaConfig).toBe(true)
-    })
-  })
-
-  test('detects a legacy fallback extension and location', () => {
-    writeConfig(path.join('.config', 'prisma.cts'))
+  test('detects prisma7.config.ts', () => {
+    writeConfig('prisma7.config.ts')
 
     expect(detectProjectState(tmpDir).hasPrismaConfig).toBe(true)
   })
 
-  test('detects the legacy .config/prisma.config basename', () => {
-    writeConfig(path.join('.config', 'prisma.config.ts'))
+  test.each(['prisma7.config.js', path.join('.config', 'prisma7.ts'), path.join('.config', 'prisma7.config.ts')])(
+    'does not detect %s',
+    (configPath) => {
+      writeConfig(configPath)
 
-    expect(detectProjectState(tmpDir).hasPrismaConfig).toBe(true)
-  })
-
-  test.each([
-    path.join('prisma.config', 'index.ts'),
-    path.join('.config', 'prisma', 'index.ts'),
-    path.join('.config', 'prisma.config', 'index.ts'),
-  ])('detects the legacy index config at %s', (configPath) => {
-    writeConfig(configPath)
-
-    expect(detectProjectState(tmpDir).hasPrismaConfig).toBe(true)
-  })
+      expect(detectProjectState(tmpDir).hasPrismaConfig).toBe(false)
+    },
+  )
 
   test('detects .env', () => {
     fs.writeFileSync(path.join(tmpDir, '.env'), 'DATABASE_URL=test', 'utf-8')
@@ -186,43 +168,18 @@ model User {
     expect(state.hasSeedScript).toBe(false)
   })
 
-  test('reads seed metadata from the selected config without executing it', () => {
+  test('reads seed metadata from prisma7.config.ts without executing it', () => {
     writeConfig(
-      'prisma7.config.cts',
+      'prisma7.config.ts',
       `throw new Error('must not execute')\nexport default { migrations: { seed: 'node selected-seed.js' } }`,
     )
-    writeConfig(path.join('.config', 'prisma7.js'), `export default {}`)
-    writeConfig('prisma.config.js', `export default {}`)
 
     expect(detectProjectState(tmpDir).hasSeedScript).toBe(true)
   })
 
-  test('uses extension precedence when inspecting seed metadata', () => {
-    writeConfig('prisma7.config.js')
-    writeConfig('prisma7.config.ts', `export default { migrations: { seed: 'node ignored-seed.js' } }`)
-
-    expect(detectProjectState(tmpDir).hasSeedScript).toBe(false)
-  })
-
-  test('uses the versioned .config location before a legacy root config', () => {
-    writeConfig(path.join('.config', 'prisma7.mts'), `export default { migrations: { seed: 'node selected-seed.js' } }`)
-    writeConfig('prisma.config.js')
-
-    expect(detectProjectState(tmpDir).hasSeedScript).toBe(true)
-  })
-
-  test.each([
-    {
-      selected: path.join('prisma.config', 'index.cts'),
-      lowerPrecedence: path.join('.config', 'prisma.js'),
-    },
-    {
-      selected: path.join('.config', 'prisma', 'index.cts'),
-      lowerPrecedence: path.join('.config', 'prisma.config.js'),
-    },
-  ])('inspects $selected before $lowerPrecedence for seed metadata', ({ selected, lowerPrecedence }) => {
-    writeConfig(selected)
-    writeConfig(lowerPrecedence, `export default { migrations: { seed: 'node ignored-seed.js' } }`)
+  test('prefers prisma7.config.ts over prisma.config.ts for seed metadata', () => {
+    writeConfig('prisma7.config.ts')
+    writeConfig('prisma.config.ts', `export default { migrations: { seed: 'node ignored-seed.js' } }`)
 
     expect(detectProjectState(tmpDir).hasSeedScript).toBe(false)
   })
@@ -294,33 +251,20 @@ describe('getSeedCommand', () => {
     expect(getSeedCommand(tmpDir)).toBe('npx tsx prisma/seed.ts')
   })
 
-  test('returns the seed command from the effective versioned config', () => {
-    writeConfig('prisma7.config.cjs', `module.exports = { migrations: { seed: 'node selected-seed.js' } }`)
-    writeConfig(path.join('.config', 'prisma7.js'), `export default { migrations: { seed: 'node ignored-seed.js' } }`)
-    writeConfig('prisma.config.js', `export default { migrations: { seed: 'node legacy-seed.js' } }`)
+  test('returns the seed command from prisma7.config.ts', () => {
+    writeConfig('prisma7.config.ts', `export default { migrations: { seed: 'node selected-seed.js' } }`)
+    writeConfig('prisma.config.ts', `export default { migrations: { seed: 'node ignored-seed.js' } }`)
 
     expect(getSeedCommand(tmpDir)).toBe('node selected-seed.js')
   })
 
-  test('returns the seed command from the final legacy index location', () => {
-    writeConfig(
-      path.join('.config', 'prisma.config', 'index.mts'),
-      `export default { migrations: { seed: 'node selected-seed.js' } }`,
-    )
-
-    expect(getSeedCommand(tmpDir)).toBe('node selected-seed.js')
-  })
-
-  test('prefers package.json over the effective config file', () => {
+  test('prefers package.json over prisma7.config.ts', () => {
     fs.writeFileSync(
       path.join(tmpDir, 'package.json'),
       JSON.stringify({ prisma: { seed: 'ts-node prisma/seed.ts' } }),
       'utf-8',
     )
-    writeConfig(
-      path.join('.config', 'prisma7.cts'),
-      `export default defineConfig({ migrations: { seed: 'npx tsx prisma/seed.ts' } })`,
-    )
+    writeConfig('prisma7.config.ts', `export default defineConfig({ migrations: { seed: 'npx tsx prisma/seed.ts' } })`)
 
     expect(getSeedCommand(tmpDir)).toBe('ts-node prisma/seed.ts')
   })
