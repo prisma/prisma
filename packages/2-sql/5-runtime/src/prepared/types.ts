@@ -3,8 +3,13 @@ import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
 } from '@internal/framework-components/runtime';
-import type { AnyQueryAst, LoweredParam } from '@internal/sql-relational-core/ast';
 import type {
+  AnyQueryAst,
+  LoweredParam,
+  SqlStatementStats,
+} from '@internal/sql-relational-core/ast';
+import type {
+  AffectedCount,
   CodecTypesBase,
   CodecValue,
   Expression,
@@ -58,3 +63,44 @@ export interface PreparedStatement<Params, Row> {
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row>;
 }
+
+/**
+ * A prepared statement whose plan declares statement statistics rather than
+ * rows. It carries the same lowered statement and bind slots as its
+ * row-streaming sibling and differs in one way: it is consumed by executing
+ * it, which resolves the statistics the statement reports.
+ */
+export interface PreparedExecution<Params> {
+  readonly sql: string;
+  readonly ast: AnyQueryAst;
+  readonly meta: PlanMeta;
+  readonly slots: readonly LoweredParam[];
+  readonly _params?: Params;
+  execute(
+    target: RuntimeQueryable,
+    params: Params,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats>;
+}
+
+/**
+ * The prepared handle a plan earns, keyed on the result the plan declares:
+ * statistics prepare into a {@link PreparedExecution}, rows into a
+ * {@link PreparedStatement}. The two faces share no consumption method, so a
+ * handle cannot be read the wrong way round.
+ *
+ * The key is `AffectedCount`'s brand rather than the statistics shape, so a
+ * row spec free to declare a column named `affectedRows` cannot select the
+ * execution face by coincidence. This is the same fact `prepare()` reads at
+ * runtime from the AST's declared result — one decision, stated twice.
+ *
+ * `never` is answered first because it satisfies every `extends`: a builder
+ * state that projects nothing types its rows as `never`, and such a plan
+ * declares rows in its AST, so it earns the statement face the runtime builds
+ * for it.
+ */
+export type PreparedFor<Params, Row> = [Row] extends [never]
+  ? PreparedStatement<Params, Row>
+  : [Row] extends [AffectedCount]
+    ? PreparedExecution<Params>
+    : PreparedStatement<Params, Row>;

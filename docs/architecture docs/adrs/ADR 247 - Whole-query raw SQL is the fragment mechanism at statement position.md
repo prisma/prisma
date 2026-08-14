@@ -48,7 +48,7 @@ const plan = db.sql.raw`
 **2. The result is declared at the terminator, once.** A raw template is unfinished until it is terminated:
 
 - `.returnsRow(rowSpec)` declares the result columns and yields a buildable that mints a row-streaming plan.
-- `.affectedCount()` declares no columns and yields a buildable that mints `SqlQueryPlan<SqlStatementStats>`.
+- `.affectedCount()` declares no columns and yields a buildable that mints `SqlQueryPlan<AffectedCount>` — statement statistics carrying the brand that names where they came from, and assignable to `SqlStatementStats` wherever a caller wants the plain shape.
 
 A bare template builds nothing. The node's `result` field is the discriminator the rest of the system reads: `{ kind: 'rows', columns }` or `{ kind: 'affected-count' }`.
 
@@ -116,11 +116,15 @@ A mutation without `RETURNING` terminates with `.affectedCount()`, which is a pl
 - **Lane (`@internal/sql-relational-core`)** owns the node, the terminators, spec normalization (a bare codec id becomes `{ codecId, nullable: false }`), and the splice.
 - **Contract-typed lane (`@internal/sql-builder`)** owns the `raw` key on the SQL DSL object (`db.sql.raw` where the client composes that object as `db.sql`), the table proxy's `columns` accessor, and the resolution of spec entries to TypeScript row types.
 - **Adapters** render the node by walking its parts through the same expression renderer that serves `RawExpr`, emitting each target's placeholder form (`$N` for Postgres, `?` for SQLite).
-- **Runtime** reads the node's `result` where it decodes: a row spec becomes the decode context's aliases and per-column codecs. Which runtime operation a plan belongs to needs no raw-specific code — a row-returning statement is run through `runtime.query(plan)`, which streams decoded rows, and a statement declaring an affected-row count through `runtime.execute(plan)`, which resolves to `SqlStatementStats`. Guardrails run over the SQL text via `evaluateRawGuardrails`, because a raw statement has no structural shape for the AST lints to inspect.
+- **Runtime** reads the node's `result` twice: where it decodes, a row spec becomes the decode context's aliases and per-column codecs; where it prepares, the declared result picks which prepared handle the statement earns. Which runtime operation a plan belongs to needs no raw-specific code — a row-returning statement is run through `runtime.query(plan)`, which streams decoded rows, and a statement declaring an affected-row count through `runtime.execute(plan)`, which resolves to `SqlStatementStats`. Guardrails run over the SQL text via `evaluateRawGuardrails`, because a raw statement has no structural shape for the AST lints to inspect.
 
 ## Result semantics
 
 **The declared result picks the runtime operation.** A row-returning statement is run through `runtime.query(plan)` and streams rows decoded against its spec; a statement declaring an affected-row count is run through `runtime.execute(plan)`, which resolves to `SqlStatementStats`. The terminator and the operation say the same thing, so a raw statement needs no dispatch of its own — the row type each terminator mints is what tells a caller which operation its plan belongs to.
+
+**Preparing a statement keeps that answer.** `runtime.prepare()` reads the declared result too: a rows plan prepares into a statement consumed with `prepared.query(target, params)`, and an affected-count plan into one consumed with `prepared.execute(target, params)`, resolving `SqlStatementStats`. The two prepared faces share no consumption method, so neither can be read the wrong way round, and the choice is made twice over — from the AST's declared result where the implementation is picked, and in the type where the caller's handle is named.
+
+**`AffectedCount` is the public row type `.affectedCount()` mints**, exported from `@internal/sql-relational-core/expression`: statement statistics carrying a required unique-symbol brand. The brand, not the statistics shape, is what selects the execution face — a row spec is free to declare a column named `affectedRows`, and a plan that does so prepares as a row statement like any other. Nothing holds the brand at runtime, since the plan's row type is phantom.
 
 **A declared column the result omits is an error.** The runtime never parses the SQL, so the spec is its only description of what comes back; a spec naming a column the statement does not return is a mismatch the caller has to see. It raises `RUNTIME.RAW_ROW_COLUMN_MISSING`, naming the column and both column lists. This is distinct from `RUNTIME.DECODE_FAILED`, which means a codec rejected a value the runtime did expect.
 
@@ -129,8 +133,6 @@ A mutation without `RETURNING` terminates with `.affectedCount()`, which is a pl
 ## Deliberate limitations
 
 **Raw statement plans carry no annotations.** `.annotations()` is not part of this surface. One consequence is concrete: `evaluateRawGuardrails` reads `meta.annotations.intent` to decide whether a mutation contradicts a read-only intent, so `LINT.READ_ONLY_MUTATION` cannot fire for a raw statement plan until annotations reach it. The text-derived lints do apply: `LINT.SELECT_STAR` and `LINT.NO_LIMIT` both fire for a raw statement. `evaluateRawGuardrails` also computes an unbounded-select budget finding, but the lint middleware reads only the lints it returns, so that finding reaches no consumer — for raw statements as for any other plan the function evaluates.
-
-**An affected-count statement cannot be prepared.** A prepared statement executes through the row path, which reports no statistics, so a prepared `.affectedCount()` plan would stream nothing at all. `prepare()` refuses one with `RUNTIME.PREPARE_AFFECTED_COUNT_UNSUPPORTED` where the statement is declared, rather than leaving the emptiness to be discovered at execution. Row-returning raw statements prepare and stream normally; a prepared path that reports statistics is a separate surface.
 
 **`raw` is a reserved storage-namespace name.** `raw` is the key the SQL DSL object answers with the tag (`db.sql.raw`), so a contract declaring a storage namespace named `raw` would have that namespace shadowed while the type still promised its tables. `sql()` refuses such a contract at construction with `ORM.NAMESPACE_RESERVED` rather than answering `undefined` for every table in it. The check reads storage namespaces only, because storage is what the surface dispatches on.
 

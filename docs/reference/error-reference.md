@@ -733,10 +733,6 @@ While building a query expression, a plain JS value was passed where no codec co
 
 The Postgres SQL renderer reached lowering with a ParamRef that carries no bound `CodecRef` — an internal invariant of the AST-bound codec contract, usually indicating a builder path that constructed a ParamRef without threading the column codec. Meta: `paramIndex`, `name`.
 
-### RUNTIME.PREPARE_AFFECTED_COUNT_UNSUPPORTED
-
-`runtime.prepare()` was given a raw statement terminated with `.affectedCount()`. A prepared statement executes through the row path, which reports no statistics, so such a plan would stream nothing at all — the error is raised where the statement is declared rather than at the silent execution. Execute the plan directly with `runtime.execute(plan)`, or declare a row spec with `.returnsRow(spec)` if the statement returns rows. Meta: none.
-
 ### RUNTIME.PREPARE_BIND_ON_ADHOC
 
 An AST containing a prepared-statement bind-site reference (`PreparedParamRef`) was submitted to the ad-hoc `execute()` path. Bind-site references are only valid inside `runtime.prepare(...)`. Meta: `name`.

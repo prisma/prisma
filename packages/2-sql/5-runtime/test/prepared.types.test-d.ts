@@ -1,10 +1,16 @@
-import type { CodecTypesBase, Expression } from '@internal/sql-relational-core/expression';
+import type {
+  AffectedCount,
+  CodecTypesBase,
+  Expression,
+} from '@internal/sql-relational-core/expression';
 import { expectTypeOf, test } from 'vitest';
 import type {
   BindSiteParams,
   Declaration,
   ParamsFromDeclaration,
   PrepareCallback,
+  PreparedExecution,
+  PreparedFor,
   PreparedStatement,
   Runtime,
 } from '../src/exports';
@@ -99,4 +105,25 @@ test('PrepareCallback returns the plan whose Row drives the statement', () => {
   // Callback receives the bind-site params and returns a plan with Row inferred.
   const fn = ((_params) => ({}) as never) as Cb;
   void fn;
+});
+
+// ── Which face a plan earns ──────────────────────────────────────────────────
+
+test('a rows plan earns the statement face and an affected-count plan the execution face', () => {
+  type Params = { readonly userId: number };
+
+  expectTypeOf<PreparedFor<Params, { id: number }>>().toEqualTypeOf<
+    PreparedStatement<Params, { id: number }>
+  >();
+  expectTypeOf<PreparedFor<Params, AffectedCount>>().toEqualTypeOf<PreparedExecution<Params>>();
+});
+
+test('a plan whose row type is never still earns the statement face', () => {
+  type Params = { readonly userId: number };
+
+  // A builder state that projects nothing types its rows as `never` — a
+  // mutation before `.returning()`, for one. `never` satisfies every
+  // `extends`, so without a guard it would select the execution face while
+  // `prepare()` reads the AST's declared result and builds a statement.
+  expectTypeOf<PreparedFor<Params, never>>().toEqualTypeOf<PreparedStatement<Params, never>>();
 });

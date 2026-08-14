@@ -14,7 +14,7 @@ import type {
   Declaration,
   ExecutionContext,
   ParamsFromDeclaration,
-  PreparedStatement,
+  PreparedFor,
   Runtime,
   SqlExecutionStackWithDriver,
   SqlMiddleware,
@@ -72,7 +72,7 @@ export interface PostgresClient<TContract extends Contract<SqlStorage>> {
   >(
     declaration: D,
     callback: (sql: Db<TContract>, params: BindSiteParams<D>) => SqlQueryPlan<Row>,
-  ): Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>>;
+  ): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>>;
   close(): Promise<void>;
   [Symbol.asyncDispose](): Promise<void>;
 }
@@ -336,7 +336,7 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
     >(
       declaration: D,
       callback: (sql: Db<TContract>, params: BindSiteParams<D>) => SqlQueryPlan<Row>,
-    ): Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>> {
+    ): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>> {
       return getRuntime().prepare<D, Row, CT>(declaration, (params) => callback(sql, params));
     },
 

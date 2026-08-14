@@ -1,5 +1,7 @@
 # ADR 210 — Prepared Statements: Author Surface and Driver SPI
 
+> **Update — the prepared handle is one of two shapes, per [ADR 247](<./ADR 247 - Whole-query raw SQL is the fragment mechanism at statement position.md>):** `prepare()` reads the plan's declared result. A rows plan returns the `PreparedStatement<Params, Row>` this ADR describes, consumed with `.query(target, params)`. A plan declaring an affected-row count returns a `PreparedExecution<Params>`, consumed with `.execute(target, params)` and resolving `SqlStatementStats`. The declaration, the bind-site callback, the lower-once contract, and the internal bridge below hold for both. So does the request record the driver receives — the same lowered SQL, encoded params, and opaque `preparedStatementHandle` slot, with the driver still never seeing the `PreparedStatement` object. What differs is the method that request goes to: the "Driver SPI" section below describes rows going to `SqlQueryable.query()`, and the statistics face goes to `SqlQueryable.execute()` instead, which resolves `SqlStatementStats` rather than streaming rows.
+
 ## Status
 
 Accepted. May 5, 2026.
@@ -104,6 +106,8 @@ The async return reflects an existing constraint, not a new one. `beforeCompile`
 `prepare` is available on every SQL target with no contract capability flag. Lowering reuse is universal — every adapter's `lower()` is pure work that can be cached. The server-side reuse benefit is opportunistic: the driver may or may not deliver it, and may be told not to via the per-driver opt-out described below. Gating `prepare` on a capability would force users to inspect the contract before deciding whether to call a method whose API is identical regardless. The call is exposed unconditionally; the driver decides what to do underneath.
 
 ## Driver SPI
+
+> **Superseded in part** — "prepared statements are row queries" holds only for the rows face; a plan declaring an affected-row count prepares into a `PreparedExecution` that goes to `SqlQueryable.execute()`. See the update note above.
 
 `SqlQueryable.query()` streams rows; `SqlQueryable.execute()` returns statement statistics. Prepared statements are row queries, so prepared execution uses `query()`. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
 

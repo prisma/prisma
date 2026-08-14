@@ -256,6 +256,21 @@ export interface RawRowQuery<Row = unknown> {
   build(): SqlQueryPlan<Row>;
 }
 
+declare const affectedCountResult: unique symbol;
+
+/**
+ * The row type of a plan that reports how many rows a statement affected.
+ *
+ * The brand is what a consumer keys on to tell such a plan from one that
+ * returns rows: the statistics shape alone cannot carry that meaning, because
+ * a row spec is free to declare a column named `affectedRows`. Nothing holds
+ * the brand at runtime — `_row` is phantom — so declaring it required costs
+ * nothing and makes the claim unforgeable by coincidence.
+ */
+export interface AffectedCount extends SqlStatementStats {
+  readonly [affectedCountResult]: true;
+}
+
 /**
  * A raw statement that reports how many rows it affected, terminated by
  * `.affectedCount()`. It is not an expression and carries no row spec, so it
@@ -263,7 +278,7 @@ export interface RawRowQuery<Row = unknown> {
  * `RETURNING` and `.returnsRow()`.
  */
 export interface RawAffectedCountQuery {
-  build(): SqlQueryPlan<SqlStatementStats>;
+  build(): SqlQueryPlan<AffectedCount>;
 }
 
 /**
@@ -422,7 +437,7 @@ class RawSqlStatementBuilderImpl extends RawSqlBuilderImpl implements RawSqlStat
   affectedCount(): RawAffectedCountQuery {
     const node = RawQueryAst.affectedCount(this.parts);
     return {
-      build: () => this.planFor<SqlStatementStats>(node),
+      build: () => this.planFor<AffectedCount>(node),
     };
   }
 
