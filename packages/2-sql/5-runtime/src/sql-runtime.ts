@@ -719,6 +719,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       meta: ps.meta,
     };
     await this.setupDriverExecution(exec);
+    checkAborted(codecCtx, 'stream');
 
     const handles = this.#preparedStatementHandles;
     const request: PreparedExecuteRequest = {

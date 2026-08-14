@@ -1,8 +1,13 @@
-import type { SqlDriver, SqlExecuteRequest } from '@internal/sql-relational-core/ast';
+import type {
+  MarkerReadResult,
+  SqlDriver,
+  SqlExecuteRequest,
+} from '@internal/sql-relational-core/ast';
 import { type PreparedParamRef, RawQueryAst } from '@internal/sql-relational-core/ast';
 import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { planFromAst } from '@internal/sql-relational-core/plan';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import type { SqlMiddleware } from '../src/middleware/sql-middleware';
 import {
@@ -152,5 +157,68 @@ describe('prepared statements that stream rows', () => {
     expect(rows).toEqual([{ id: 1, email: 'a@b.example' }]);
     expect(queryCalls).toHaveLength(1);
     expect(executeCalls).toHaveLength(0);
+  });
+});
+
+describe('aborting a prepared execute', () => {
+  /**
+   * Marker verification is the one await between the caller's last chance to
+   * abort and the driver call, so it is where a signal has to be honoured: a
+   * runtime that only checked on entry would verify the marker, notice
+   * nothing, and execute the statement the caller had already given up on.
+   */
+  function setupWithSlowMarker() {
+    const { driver, queryCalls, executeCalls } = createRecordingDriver();
+    const stackInstance = createTestStackInstance();
+
+    let releaseMarker: (() => void) | undefined;
+    const markerRead = new Promise<void>((resolve) => {
+      releaseMarker = resolve;
+    });
+    const readingMarker = new Promise<void>((resolve) => {
+      (
+        stackInstance.adapter.profile as unknown as { readMarker: () => Promise<MarkerReadResult> }
+      ).readMarker = async () => {
+        resolve();
+        await markerRead;
+        return { kind: 'absent' as const };
+      };
+    });
+
+    const runtime = createTestRuntime({
+      stackInstance,
+      context: createTestContext(contract, createStubAdapter()),
+      driver,
+      verifyMarker: 'onFirstUse',
+    });
+
+    return {
+      runtime,
+      queryCalls,
+      executeCalls,
+      readingMarker,
+      releaseMarker: () => releaseMarker?.(),
+    };
+  }
+
+  it('raises before reaching the driver when the signal aborts during marker verification', {
+    timeout: timeouts.databaseOperation,
+  }, async () => {
+    const { runtime, executeCalls, queryCalls, readingMarker, releaseMarker } =
+      setupWithSlowMarker();
+    const prepared = await runtime.prepare({ id: 'pg/int4@1' }, (p) =>
+      affectedCountPlan(p.id.buildAst() as PreparedParamRef),
+    );
+
+    const controller = new AbortController();
+    const pending = prepared.execute(runtime, { id: 7 }, { signal: controller.signal });
+
+    await readingMarker;
+    controller.abort();
+    releaseMarker();
+
+    await expect(pending).rejects.toMatchObject({ code: 'RUNTIME.ABORTED' });
+    expect(executeCalls).toEqual([]);
+    expect(queryCalls).toEqual([]);
   });
 });
