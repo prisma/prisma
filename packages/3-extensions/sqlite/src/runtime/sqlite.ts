@@ -76,11 +76,7 @@ export interface SqliteClient<TContract extends Contract<SqlStorage>> {
   readonly stack: SqlExecutionStackWithDriver<SqliteTargetId>;
   connect(bindingInput?: { readonly path: string }): Promise<Runtime>;
   runtime(): Runtime;
-  prepare<
-    D extends Declaration<CT>,
-    Row,
-    CT extends CodecTypesBase = ExtractCodecTypes<TContract> & CodecTypesBase,
-  >(
+  prepare<D extends Declaration<CT>, Row, CT extends CodecTypesBase = ExtractCodecTypes<TContract>>(
     declaration: D,
     callback: (sql: UnboundSql<TContract>, params: BindSiteParams<D>) => SqlQueryPlan<Row>,
   ): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>>;
@@ -289,7 +285,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     prepare<
       D extends Declaration<CT>,
       Row,
-      CT extends CodecTypesBase = ExtractCodecTypes<TContract> & CodecTypesBase,
+      CT extends CodecTypesBase = ExtractCodecTypes<TContract>,
     >(
       declaration: D,
       callback: (sql: UnboundSql<TContract>, params: BindSiteParams<D>) => SqlQueryPlan<Row>,

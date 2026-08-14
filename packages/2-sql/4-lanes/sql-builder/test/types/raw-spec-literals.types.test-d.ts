@@ -44,3 +44,29 @@ test('an id the contract does not carry is rejected at the call site', () => {
   // @ts-expect-error — the entry names a codec the contract's map has no row for
   raw.returnsRow({ total: 'syn/nonexistent@1' });
 });
+
+// ── The fragment terminator on the contract-bound tag ────────────────────────
+
+test('a fragment codec id keeps its literal through .returns()', () => {
+  const expr = raw.returns('syn/int8@1');
+
+  expectTypeOf(expr.returnType.codecId).toEqualTypeOf<'syn/int8@1'>();
+  expectTypeOf(expr.returnType.nullable).toEqualTypeOf<false>();
+});
+
+test('the object form of .returns() keeps its literal and its nullability', () => {
+  const expr = raw.returns({ codecId: 'syn/text@1', nullable: true });
+
+  expectTypeOf(expr.returnType.codecId).toEqualTypeOf<'syn/text@1'>();
+  expectTypeOf(expr.returnType.nullable).toEqualTypeOf<true>();
+});
+
+test('a fragment naming an id the contract does not carry is rejected', () => {
+  // @ts-expect-error — the fragment names a codec the contract's map has no row for
+  raw.returns('syn/nonexistent@1');
+});
+
+test('the object form rejects an unknown id too', () => {
+  // @ts-expect-error — same rejection through the descriptor form
+  raw.returns({ codecId: 'syn/nonexistent@1' });
+});

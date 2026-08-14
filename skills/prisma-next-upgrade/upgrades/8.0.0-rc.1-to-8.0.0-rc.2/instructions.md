@@ -255,6 +255,24 @@ changes:
         - '@@schema("raw")'
         - '"raw": {'
       anyMatch: true
+  - id: codec-ids-are-checked-where-they-are-authored
+    summary: |
+      A codec id you write in a prepared declaration or in a contract-bound raw fragment is
+      now checked against your contract's codec map, so an id the contract does not carry is
+      a compile error where before it compiled and failed at execution with
+      `RUNTIME.PARAM_REF_MISSING_CODEC`. The usual cause is an unversioned id:
+      `db.prepare({ id: 'pg/int4' }, ...)` becomes `db.prepare({ id: 'pg/int4@1' }, ...)`, and
+      `fns.raw\`...\`.returns('pg/text')` becomes `.returns('pg/text@1')`. Take the id from your
+      emitted `contract.d.ts` — every id it carries now completes at both positions, so the
+      editor offers the correct spelling rather than accepting a wrong one. Raw fragments
+      built through a contract-free lane are unaffected; they have no map to check against.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "prepare({"
+        - ".returns('pg/"
+        - ".returns(\"pg/"
+      anyMatch: true
 ---
 
 # 8.0.0-rc.1 → 8.0.0-rc.2 — User upgrade instructions
@@ -540,3 +558,29 @@ model Event {
 Then re-emit the contract, and plan the rename against the database as you would any
 other namespace rename — the physical schema still carries the old name until a plan moves it.
 Only `raw` is reserved; no other namespace name is affected.
+
+## `codec-ids-are-checked-where-they-are-authored`
+
+Two places where you write a codec id by hand now check it against the codec map your
+contract emitted: the declaration passed to `db.prepare(...)`, and `.returns(...)` on a raw
+fragment built from a contract-bound tag.
+
+```ts
+// Before: compiled, then failed at execution with RUNTIME.PARAM_REF_MISSING_CODEC
+await db.prepare({ id: 'pg/int4' }, (sql, params) => ...);
+const upper = fns.raw`UPPER(${f.email})`.returns('pg/text');
+
+// After: the id is the one your contract carries
+await db.prepare({ id: 'pg/int4@1' }, (sql, params) => ...);
+const upper = fns.raw`UPPER(${f.email})`.returns('pg/text@1');
+```
+
+The compile error is the messenger, not the injury: an id no codec registry carries could
+never have executed. If a declaration or fragment of yours stops compiling, the id in it was
+already wrong at runtime.
+
+Read the correct spelling off your emitted `contract.d.ts`, or let the editor offer it — the
+ids now complete at both positions, which is the other half of this change.
+
+A raw fragment built through a contract-free lane keeps accepting any string: that lane has
+no contract map to check an id against.

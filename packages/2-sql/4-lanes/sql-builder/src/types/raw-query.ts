@@ -1,5 +1,6 @@
 import type { ExtractCodecTypes } from '@internal/sql-contract/types';
 import type {
+  Expression,
   RawAffectedCountQuery,
   RawRowQuery,
   RawSqlBuilder,
@@ -94,6 +95,21 @@ export type RawRowFor<
  */
 export interface ContractRawBuilder<CodecTypes extends Record<string, { readonly output: unknown }>>
   extends RawSqlBuilder {
+  /**
+   * The expression terminator, narrowed to the contract's codec ids. The
+   * target-agnostic tag takes any string, because the contract-free lane has
+   * no map to key against; a contract-bound fragment does, so the ids it can
+   * name are the ones the contract carries — and naming them makes them
+   * complete at the call site.
+   */
+  returns<S extends keyof CodecTypes & string>(
+    spec: S,
+  ): Expression<{ codecId: S; nullable: false }>;
+  returns<S extends keyof CodecTypes & string, N extends boolean = false>(spec: {
+    readonly codecId: S;
+    readonly nullable?: N;
+  }): Expression<{ codecId: S; nullable: N }>;
+
   returnsRow<Spec extends ContractRawRowSpec<CodecTypes>>(
     spec: Spec,
   ): RawRowQuery<RawRowFor<Spec, CodecTypes>>;
