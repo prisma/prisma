@@ -11,7 +11,7 @@ One-package SQLite setup for Prisma Next. Install this single package to get con
 ## Quick Start
 
 ```typescript
-// prisma-next.config.ts
+// prisma.config.ts
 import { defineConfig } from '@internal/sqlite/config';
 
 export default defineConfig({

@@ -166,7 +166,7 @@ describe('migration plan', () => {
 
     expect(run.presented?.presentation.next).toEqual([
       { kind: 'edit-file', label: `Review ${dir}` },
-      { kind: 'run-command', label: 'Apply the migration', command: 'prisma-next migrate' },
+      { kind: 'run-command', label: 'Apply the migration', command: 'prisma-cli migrate' },
     ]);
   });
 

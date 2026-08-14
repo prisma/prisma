@@ -11,7 +11,7 @@ import {
 let project: string;
 
 function writeManifest(dependencies: Record<string, string>): string {
-  const configPath = join(project, 'prisma-next.config.ts');
+  const configPath = join(project, 'prisma.config.ts');
   writeFileSync(join(project, 'package.json'), JSON.stringify({ name: 'app', dependencies }));
   writeFileSync(configPath, 'export default {};');
   return configPath;
@@ -56,7 +56,7 @@ describe('projectImportRoot', () => {
     const nested = join(project, 'prisma', 'nested');
     mkdirSync(nested, { recursive: true });
 
-    expect(projectImportRoot(join(nested, 'prisma-next.config.ts'))).toEqual({
+    expect(projectImportRoot(join(nested, 'prisma.config.ts'))).toEqual({
       mode: 'facade',
       facade: '@prisma/orm-mongo',
     });
@@ -74,14 +74,14 @@ describe('projectImportRoot', () => {
       JSON.stringify({ name: 'inner', dependencies: { '@prisma/orm-postgres': '0.16.0' } }),
     );
 
-    expect(projectImportRoot(join(inner, 'prisma-next.config.ts'))).toEqual({
+    expect(projectImportRoot(join(inner, 'prisma.config.ts'))).toEqual({
       mode: 'facade',
       facade: '@prisma/orm-postgres',
     });
   });
 
   it('names the file when a manifest on the way up is not valid JSON', () => {
-    const configPath = join(project, 'prisma-next.config.ts');
+    const configPath = join(project, 'prisma.config.ts');
     writeFileSync(join(project, 'package.json'), '{ name: "app" }');
     writeFileSync(configPath, 'export default {};');
 
@@ -96,7 +96,7 @@ describe('projectImportRoot', () => {
   });
 
   it('reads the facade from devDependencies as well as dependencies', () => {
-    const configPath = join(project, 'prisma-next.config.ts');
+    const configPath = join(project, 'prisma.config.ts');
     writeFileSync(
       join(project, 'package.json'),
       JSON.stringify({ name: 'app', devDependencies: { '@prisma/orm-sqlite': '0.16.0' } }),
@@ -112,14 +112,14 @@ describe('projectImportRoot', () => {
   it('stays on the internal root when no manifest exists anywhere above the config', () => {
     // `mkdtemp` under the OS temp dir has no manifest above it, so the walk
     // reaches the filesystem root without finding one.
-    const configPath = join(project, 'prisma-next.config.ts');
+    const configPath = join(project, 'prisma.config.ts');
     writeFileSync(configPath, 'export default {};');
 
     expect(projectImportRoot(configPath)).toEqual({ mode: 'internal' });
   });
 
   it('rejects a manifest that is valid JSON but not an object', () => {
-    const configPath = join(project, 'prisma-next.config.ts');
+    const configPath = join(project, 'prisma.config.ts');
     writeFileSync(join(project, 'package.json'), '["not", "a", "manifest"]');
     writeFileSync(configPath, 'export default {};');
 
@@ -134,7 +134,7 @@ describe('projectImportRoot', () => {
   it('reports an unreadable manifest instead of walking past it', () => {
     // A directory named `package.json` makes `readFileSync` fail with EISDIR,
     // which is a read failure rather than "there is no manifest here".
-    const configPath = join(project, 'prisma-next.config.ts');
+    const configPath = join(project, 'prisma.config.ts');
     mkdirSync(join(project, 'package.json'));
     writeFileSync(configPath, 'export default {};');
 

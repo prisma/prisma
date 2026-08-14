@@ -1,7 +1,7 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { setupCommandMocks, withTempDir } from './utils/cli-test-helpers';
+import { describe, expect, it } from 'vitest';
+import { withTempDir } from './utils/cli-test-helpers';
 import { runDbInit, setupDbInitFixture } from './utils/db-init-test-helpers';
 
 // Fixture subdirectory for db-init e2e tests
@@ -9,17 +9,6 @@ const fixtureSubdir = 'db-init';
 
 withTempDir(({ createTempDir }) => {
   describe('db init command (e2e)', () => {
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      const mocks = setupCommandMocks();
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     describe('empty database (happy path)', () => {
       it(
         'applies migration plan to empty database',

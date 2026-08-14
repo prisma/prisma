@@ -34,7 +34,7 @@ import {
 const FINDINGS_EXIT_CODE = 4;
 
 /** The config file this bin reads; the handler is not told which one was loaded. */
-const CONFIG_DISPLAY_PATH = 'prisma-next.config.ts';
+const CONFIG_DISPLAY_PATH = 'prisma.config.ts';
 
 /**
  * The refusal document. `schemaVerify` never evaluates unclaimed elements, so
@@ -61,6 +61,8 @@ function signPresentations(inputs: {
 }): Presentations {
   const marker = inputs.document.marker;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
       { kind: 'summary', status: 'ok', text: 'Database signed' },
@@ -90,6 +92,8 @@ function refusedPresentations(inputs: {
   readonly header: Block;
 }): Presentations {
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
       ...schemaFindingBlocks({ result: inputs.document, unclaimed: [], strict: false }),
@@ -222,7 +226,7 @@ export function createDbSignCommand(
                     nextActions: [
                       runCommandAction(
                         'Bring the database up to the contract, then sign again',
-                        'prisma-next db update',
+                        'prisma-cli db update',
                       ),
                     ],
                   }),

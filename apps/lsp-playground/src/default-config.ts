@@ -8,7 +8,7 @@ const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 export const PLAYGROUND_DIR = join(packageRoot, '.playground');
 
 /**
- * Writes a default-postgres `prisma-next.config.ts` into {@link PLAYGROUND_DIR}
+ * Writes a default-postgres `prisma.config.ts` into {@link PLAYGROUND_DIR}
  * whose contract source is `absoluteSchemaPath`, and returns the config's path.
  * This is the "without a config, assume default postgres" path.
  *
@@ -25,7 +25,7 @@ export const PLAYGROUND_DIR = join(packageRoot, '.playground');
  */
 export async function generateDefaultPostgresConfig(absoluteSchemaPath: string): Promise<string> {
   await mkdir(PLAYGROUND_DIR, { recursive: true });
-  const configPath = join(PLAYGROUND_DIR, 'prisma-next.config.ts');
+  const configPath = join(PLAYGROUND_DIR, 'prisma.config.ts');
   const json = JSON.stringify(absoluteSchemaPath);
   const contents = `import { defineConfig } from '@prisma/orm-postgres/config';
 

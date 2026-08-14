@@ -18,7 +18,7 @@
  * `destructive`; without `-y` the apply step refuses to run.
  *
  * Dispatch: walks the project root for directories that contain both
- * `prisma-next.config.ts` and a committed `contract.json` whose storage
+ * `prisma.config.ts` and a committed `contract.json` whose storage
  * tree includes `"kind": "mongo-database"`. In each match, runs
  * `pnpm emit` when a `package.json` scripts.emit entry exists, otherwise
  * `pnpm exec prisma-next contract emit`.
@@ -62,7 +62,7 @@ async function findPrismaNextConfigDirs(root: string): Promise<string[]> {
       if (entry.isDirectory()) {
         if (SKIP_DIRS.has(entry.name)) continue;
         await walk(join(dir, entry.name));
-      } else if (entry.isFile() && entry.name === 'prisma-next.config.ts') {
+      } else if (entry.isFile() && entry.name === 'prisma.config.ts') {
         out.push(dir);
       }
     }

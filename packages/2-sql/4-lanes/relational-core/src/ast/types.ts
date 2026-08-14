@@ -2125,48 +2125,103 @@ export class DeleteAst extends QueryAst {
 }
 
 /**
- * Raw-SQL query AST node carrying interpolated parameter / expression nodes
- * embedded inside literal SQL fragments.
- *
- * `fragments` and `args` are interleaved during lowering:
- * `fragments[0] + lower(args[0]) + fragments[1] + ... + fragments[n]`.
- * Construction enforces `fragments.length === args.length + 1`.
- *
- * Extends {@link QueryAst} (whole-query AST, not a sub-expression).
- * Construction does not validate that each arg is a `ParamRef` /
- * `AnyExpression`: the type system already rejects bare values because
- * `args` is typed `readonly AnyExpression[]`. The user-facing `raw\`...\``
- * factory (separate `sql-raw-factory` component) layers stricter
- * type-level rejection on top of this AST node.
+ * One column of a raw query's declared result row: the codec that decodes the
+ * column and whether it may carry `null`. Structurally identical to the
+ * contract-free lane's `ColumnDescriptor`, so a spec written for one reads as
+ * a spec for the other.
  */
-export class RawSqlExpr extends QueryAst {
-  readonly kind = 'raw-sql' as const;
-  readonly fragments: readonly string[];
-  readonly args: readonly AnyExpression[];
+export interface RawQueryColumn {
+  readonly codecId: string;
+  readonly nullable: boolean;
+}
 
-  constructor(fragments: readonly string[], args: readonly AnyExpression[]) {
-    super();
-    if (fragments.length !== args.length + 1) {
-      throw new InternalError(
-        `RawSqlExpr: fragments.length must equal args.length + 1 (got fragments=${fragments.length}, args=${args.length})`,
+/**
+ * What a raw statement yields: rows decoded against a declared column set, or
+ * the number of rows the statement affected.
+ */
+export type RawQueryResult =
+  | { readonly kind: 'rows'; readonly columns: Readonly<Record<string, RawQueryColumn>> }
+  | { readonly kind: 'affected-count' };
+
+/**
+ * The one column name a declared result cannot carry. Writing `__proto__` onto
+ * an object literal sets that object's prototype instead of adding a property,
+ * so a column so named would disappear between the declaration and the decoded
+ * row — and the row type would still promise it. Every other name that shadows
+ * something on `Object.prototype` (`constructor`, `prototype`) is an ordinary
+ * own property when assigned, and passes through as declared.
+ */
+const RESERVED_RESULT_COLUMN = '__proto__';
+
+function frozenRawQueryResult(result: RawQueryResult): RawQueryResult {
+  if (result.kind === 'affected-count') {
+    return Object.freeze({ kind: 'affected-count' as const });
+  }
+  const columns: Record<string, RawQueryColumn> = {};
+  for (const [name, column] of Object.entries(result.columns)) {
+    if (name === RESERVED_RESULT_COLUMN) {
+      throw structuredError(
+        'RUNTIME.AST_INVALID',
+        `A raw query result cannot declare a "${RESERVED_RESULT_COLUMN}" column: alias the column in SQL and declare the alias instead`,
+        { meta: { kind: 'raw-query', field: 'result.columns', column: name } },
       );
     }
-    this.fragments = Object.freeze([...fragments]);
-    this.args = Object.freeze([...args]);
+    columns[name] = Object.freeze({ codecId: column.codecId, nullable: column.nullable });
+  }
+  return Object.freeze({ kind: 'rows' as const, columns: Object.freeze(columns) });
+}
+
+/**
+ * Raw-SQL statement AST node: a whole query authored as a template, carrying
+ * the same `parts` representation as {@link RawExpr} (literal SQL fragments
+ * interleaved with interpolated expressions and `ParamRef`s) plus the result
+ * the author declared for it.
+ *
+ * The shared `parts` shape is what lets a row-returning raw query be spliced
+ * into another raw template: the inner parts are concatenated into the outer
+ * list, so parameters keep their template order and lowering walks one flat
+ * sequence.
+ */
+export class RawQueryAst extends QueryAst {
+  readonly kind = 'raw-query' as const;
+  readonly parts: ReadonlyArray<string | AnyExpression>;
+  readonly result: RawQueryResult;
+
+  constructor(options: {
+    readonly parts: ReadonlyArray<string | AnyExpression>;
+    readonly result: RawQueryResult;
+  }) {
+    super();
+    this.parts = frozenArrayCopy(options.parts);
+    this.result = frozenRawQueryResult(options.result);
     this.freeze();
   }
 
-  static of(fragments: readonly string[], args: readonly AnyExpression[]): RawSqlExpr {
-    return new RawSqlExpr(fragments, args);
+  static rows(
+    parts: ReadonlyArray<string | AnyExpression>,
+    columns: Readonly<Record<string, RawQueryColumn>>,
+  ): RawQueryAst {
+    return new RawQueryAst({ parts, result: { kind: 'rows', columns } });
+  }
+
+  static affectedCount(parts: ReadonlyArray<string | AnyExpression>): RawQueryAst {
+    return new RawQueryAst({ parts, result: { kind: 'affected-count' } });
+  }
+
+  rewrite(rewriter: AstRewriter): RawQueryAst {
+    return new RawQueryAst({
+      parts: this.parts.map((part) =>
+        typeof part === 'string' ? part : rewriteComparable(part, rewriter),
+      ),
+      result: this.result,
+    });
   }
 
   override collectParamRefs(): AnyParamRef[] {
     const refs: AnyParamRef[] = [];
-    for (const arg of this.args) {
-      if (arg.kind === 'param-ref') {
-        refs.push(arg);
-      } else {
-        refs.push(...arg.collectParamRefs());
+    for (const part of this.parts) {
+      if (typeof part !== 'string') {
+        refs.push(...part.collectParamRefs());
       }
     }
     return refs;
@@ -2177,7 +2232,7 @@ export class RawSqlExpr extends QueryAst {
   }
 }
 
-export type AnyQueryAst = SelectAst | InsertAst | UpdateAst | DeleteAst | RawSqlExpr;
+export type AnyQueryAst = SelectAst | InsertAst | UpdateAst | DeleteAst | RawQueryAst;
 export type AnyFromSource = TableSource | DerivedTableSource | FunctionSource;
 export type AnyExpression =
   | ColumnRef
@@ -2212,7 +2267,7 @@ export const queryAstKinds: ReadonlySet<string> = new Set<AnyQueryAst['kind']>([
   'insert',
   'update',
   'delete',
-  'raw-sql',
+  'raw-query',
 ]);
 export const whereExprKinds: ReadonlySet<string> = new Set<AnyExpression['kind']>([
   'binary',

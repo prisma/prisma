@@ -1,0 +1,15 @@
+enum Color {
+  Red
+  Green
+  Blue
+}
+model Parent {
+  id Int @id
+  children Child[]
+}
+model Child {
+  childId Int @id
+  parentId Int?
+  parent Parent? @relation(fields: [parentId], references: [id])
+  enum Color
+}

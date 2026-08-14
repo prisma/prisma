@@ -62,7 +62,7 @@ type SchemaVerifyDocument = CombinedVerifyResult['result'] & {
 
 const PUSH_THE_CONTRACT = runCommandAction(
   'Push the contract to the database',
-  'prisma-next db update',
+  'prisma-cli db update',
 );
 const RECONCILE_BY_HAND: NextAction = {
   kind: 'user-choice',
@@ -240,6 +240,8 @@ function verifyPresentations(inputs: {
   const warnings = document.schema?.warnings ?? [];
   const unclaimed = document.unclaimed ?? [];
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
       { kind: 'summary', status: document.ok ? 'ok' : 'error', text: document.summary },
@@ -303,6 +305,8 @@ function schemaPresentations(inputs: {
   readonly strict: boolean;
 }): Presentations {
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       inputs.header,
       ...schemaFindingBlocks({

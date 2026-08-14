@@ -72,7 +72,7 @@ describe('emit command', () => {
     // Test with custom output path in config
     const customSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.custom-output.ts',
+      'prisma.config.custom-output.ts',
       { '{{OUTPUT_DIR}}': newOutputDir },
     );
 
@@ -93,7 +93,7 @@ describe('emit command', () => {
   }, async () => {
     const noContractSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.no-contract.ts',
+      'prisma.config.no-contract.ts',
     );
 
     try {
@@ -120,7 +120,7 @@ describe('emit command', () => {
   }, async () => {
     const defaultsSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.defaults.ts',
+      'prisma.config.defaults.ts',
     );
 
     try {
@@ -142,7 +142,7 @@ describe('emit command', () => {
   }, async () => {
     const invalidSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.invalid-contract.ts',
+      'prisma.config.invalid-contract.ts',
     );
 
     try {
@@ -160,7 +160,7 @@ describe('emit command', () => {
   it('handles unsupported target family', { timeout: timeouts.typeScriptCompilation }, async () => {
     const documentSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.document-family.ts',
+      'prisma.config.document-family.ts',
     );
 
     try {
@@ -235,7 +235,7 @@ describe('emit command', () => {
   }, async () => {
     const asyncSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.async-source.ts',
+      'prisma.config.async-source.ts',
       { '{{OUTPUT_DIR}}': setup.outputDir },
     );
 
@@ -253,7 +253,7 @@ describe('emit command', () => {
   it('handles provider source function', { timeout: timeouts.typeScriptCompilation }, async () => {
     const syncSetup = setupIntegrationTestDirectoryFromFixtures(
       fixtureSubdir,
-      'prisma-next.config.sync-source.ts',
+      'prisma.config.sync-source.ts',
       { '{{OUTPUT_DIR}}': setup.outputDir },
     );
 

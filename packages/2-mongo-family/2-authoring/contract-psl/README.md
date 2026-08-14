@@ -23,4 +23,4 @@ PSL-to-Mongo contract interpreter for Prisma Next. Transforms Prisma Schema Lang
   - `@internal/utils` (result types)
 - **Depended on by**:
   - `@internal/family-mongo` (control stack composition)
-  - `examples/mongo-demo` (via `prisma-next.config.ts`)
+  - `examples/mongo-demo` (via `prisma.config.ts`)

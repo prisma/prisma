@@ -246,7 +246,7 @@ prisma-next db update → Update your database schema to match your contract
 │ --no-interactive      Disable interactive prompts
 │ -y, --yes             Auto-accept prompts
 │ --db <url>            Database connection string
-│ --config <path>       Path to prisma-next.config.ts
+│ --config <path>       Path to prisma.config.ts
 │ --dry-run             Preview planned operations without applying
 │                       default: false
 │

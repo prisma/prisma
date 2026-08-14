@@ -34,7 +34,7 @@ const adapterMongoControlExport = pathToFileURL(
 ).href;
 
 /**
- * `MigrationCLI.run` requires a `prisma-next.config.ts` to assemble a
+ * `MigrationCLI.run` requires a `prisma.config.ts` to assemble a
  * `ControlStack`. Tests have no workspace `node_modules` resolution from
  * `tmpDir`, so we write a bespoke config alongside `migration.ts` whose
  * imports all use absolute `file://` URLs into the live workspace
@@ -47,11 +47,11 @@ const fixtureConfigSource = [
   `import { mongoFamilyDescriptor } from '${familyMongoControlExport}';`,
   `import { mongoTargetDescriptor } from '${targetMongoControlExport}';`,
   '',
-  'export default defineConfig({',
+  'export default { $prismaConfig: 1, orm: defineConfig({',
   '  family: mongoFamilyDescriptor,',
   '  target: mongoTargetDescriptor,',
   '  adapter: mongoAdapter,',
-  '});',
+  '}) };',
   '',
 ].join('\n');
 
@@ -73,7 +73,7 @@ describe('migration file E2E', () => {
   beforeEach(async () => {
     tmpDir = await mkdtemp(join(tmpdir(), 'migration-e2e-'));
     await writeFile(join(tmpDir, 'package.json'), '{"type":"module"}');
-    await writeFile(join(tmpDir, 'prisma-next.config.ts'), fixtureConfigSource);
+    await writeFile(join(tmpDir, 'prisma.config.ts'), fixtureConfigSource);
   });
 
   afterEach(async () => {

@@ -1,7 +1,7 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { setupCommandMocks, withTempDir } from './utils/cli-test-helpers';
+import { describe, expect, it } from 'vitest';
+import { withTempDir } from './utils/cli-test-helpers';
 import { runDbInit } from './utils/db-init-test-helpers';
 import { runDbUpdate, setupDbUpdateFixture } from './utils/db-update-test-helpers';
 
@@ -9,18 +9,6 @@ const fixtureSubdir = 'db-init';
 
 withTempDir(({ createTempDir }) => {
   describe('db update command (e2e) - errors', () => {
-    let cleanupMocks: () => void;
-
-    // `db init` and the emit steps still run on the commander shell, whose
-    // output goes to the console this keeps out of the test log.
-    beforeEach(() => {
-      cleanupMocks = setupCommandMocks().cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     it(
       'succeeds on a fresh database without prior db init',
       async () => {

@@ -6,7 +6,7 @@ Accepted (TML-2397). Supersedes the schema-contribution half of [ADR 154 — Com
 
 ## At a glance
 
-A Prisma Next application's database is the integration point for many parties: the application itself, plus every schema-contributing extension installed in `prisma-next.config.ts`. This ADR makes each of those parties a **contract space** — a disjoint `(contract.json, migration-graph, head-ref)` tuple — and runs the same per-space planner, runner, and verifier across all of them. The user's repo holds a pinned mirror of every space the database depends on, so apply-time and verify-time flows never need to read an extension package from `node_modules`.
+A Prisma Next application's database is the integration point for many parties: the application itself, plus every schema-contributing extension installed in `prisma.config.ts`. This ADR makes each of those parties a **contract space** — a disjoint `(contract.json, migration-graph, head-ref)` tuple — and runs the same per-space planner, runner, and verifier across all of them. The user's repo holds a pinned mirror of every space the database depends on, so apply-time and verify-time flows never need to read an extension package from `node_modules`.
 
 ```mermaid
 flowchart TB
@@ -93,7 +93,7 @@ Every package that exposes a contract space — published extensions (`packages/
 
 ```text
 <package>/
-├── prisma-next.config.ts            ← contract-space-as-project config
+├── prisma.config.ts            ← contract-space-as-project config
 ├── migrations/
 │   ├── refs/head.json               ← hand-pinned (cf. "Open work" below)
 │   └── <timestamp>_<name>/          ← emitted by `migration plan` (one dir per migration)
@@ -114,13 +114,13 @@ Every package that exposes a contract space — published extensions (`packages/
 
 Key rules (these are the spots where mistakes recur, so the convention spells them out explicitly):
 
-- **Pick the contract source by what the space contributes.** Three cases, each wired in `prisma-next.config.ts`:
+- **Pick the contract source by what the space contributes.** Three cases, each wired in `prisma.config.ts`:
   - *App-visible schema* (models, storage types, namespaces) → author PSL in `src/contract.prisma`; wire `prismaContract('./src/contract.prisma', { output: 'src/contract.json', target })`. PSL is the canonical authoring surface: it reads as a schema (not as builder calls), interoperates with brownfield Prisma schemas, and keeps the contract decoupled from the workspace's TS type system.
   - *Migrations only* — installs invariants (e.g. a Postgres extension) but ships no tables or native types → omit the contract source entirely; wire `emptyContract({ output: 'src/contract.json', target })`. Example: `@internal/extension-paradedb`.
   - *Typed objects PSL can't yet express* (e.g. pgvector's parameterised `vector` registration under `storage.types` — `types {}` blocks instantiate, they don't register a parameterised base type) → keep `src/contract.ts`; wire `typescriptContract(contract, 'src/contract.json')`, with a comment in the source naming the missing PSL surface.
 - **No `<space-id>` subdirectory inside `migrations/`.** A package owns exactly one contract space, so the space-id directory adds no information. Migration directories sit *directly* under `migrations/`, and `refs/` sits at `migrations/refs/`. Configure this with `migrations.dir: 'migrations'` (not `migrations/<space-id>`).
 - **No `src/contract/` subdirectory.** The contract source, emitted `contract.json`, and emitted `contract.d.ts` sit *directly* in `src/`.
-- **`prisma-next.config.ts` is at the package root.** The CLI treats each contract-space package as a self-contained "project"; the in-package config is the source of truth for that project's emit and migration paths.
+- **`prisma.config.ts` is at the package root.** The CLI treats each contract-space package as a self-contained "project"; the in-package config is the source of truth for that project's emit and migration paths.
 
 The contrast with the consuming app's on-disk layout: when an application composes multiple contract spaces, *its* `migrations/` directory ends up with one subdirectory per space (`migrations/<space-id>/`) because there are multiple spaces. That's an emergent shape from composition, not a per-package authoring convention. Inside a contract-space package, the space-id subdirectory does not belong.
 

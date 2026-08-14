@@ -106,6 +106,8 @@ function showPresentations(inputs: {
 }): Presentations {
   const migration = inputs.document.migration;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',
@@ -246,7 +248,7 @@ export const migrationShowCommand = defineOrmCommand({
           missing
             ? errorFileNotFound(contractPath, {
                 why: `Contract file not found at ${contractPath}`,
-                fix: `Run \`prisma-next contract emit\` to generate ${relative(ctx.cwd, contractPath)}`,
+                fix: `Run \`prisma-cli contract emit\` to generate ${relative(ctx.cwd, contractPath)}`,
               })
             : errorUnexpected(error instanceof Error ? error.message : String(error), {
                 why: 'Failed to read contract file',

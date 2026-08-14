@@ -70,6 +70,8 @@ function checkPresentations(inputs: {
       ? inputs.document.summary
       : `${inputs.document.summary}  (space: ${inputs.resolvedSpaceId})`;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',

@@ -15,7 +15,7 @@ withTempDir(({ createTempDir }) => {
         const defaultSetup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
-          'prisma-next.config.emit.ts',
+          'prisma.config.emit.ts',
         );
         const defaultRun = await runOnEngine(defaultSetup, ['contract', 'emit']);
         expect(defaultRun.exitCode).toBe(0);
@@ -31,7 +31,7 @@ withTempDir(({ createTempDir }) => {
         const overrideSetup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
-          'prisma-next.config.emit.ts',
+          'prisma.config.emit.ts',
         );
         const customDir = join(overrideSetup.testDir, 'custom-out');
         mkdirSync(customDir, { recursive: true });
@@ -69,7 +69,7 @@ withTempDir(({ createTempDir }) => {
         const setup = setupTestDirectoryFromFixtures(
           createTempDir,
           fixtureSubdir,
-          'prisma-next.config.emit.ts',
+          'prisma.config.emit.ts',
         );
 
         const run = await runOnEngine(setup, ['contract', 'emit']);

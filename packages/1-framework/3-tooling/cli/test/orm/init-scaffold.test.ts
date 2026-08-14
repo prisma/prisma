@@ -38,6 +38,26 @@ function scaffoldArgv(...extra: string[]): string[] {
 
 const SKIP_ALL = ['--skip-install', '--skip-skills'] as const;
 
+/**
+ * The emit step spawns the project-local `@prisma/cli` bin, which the mocked
+ * package-manager runner never installs — seed a no-op stand-in for runs that
+ * do not pass `--skip-install`.
+ */
+function installFakeProjectLocalCli(dir: string): void {
+  const packageDir = join(dir, 'node_modules/@prisma/cli');
+  mkdirSync(join(packageDir, 'bin'), { recursive: true });
+  writeFileSync(
+    join(packageDir, 'package.json'),
+    JSON.stringify({
+      name: '@prisma/cli',
+      version: '0.0.0-test',
+      type: 'module',
+      bin: { 'prisma-cli': './bin/prisma-cli.mjs' },
+    }),
+  );
+  writeFileSync(join(packageDir, 'bin/prisma-cli.mjs'), '');
+}
+
 function envelopeOf(run: { readonly json: readonly { readonly kind: string }[] }) {
   const terminal = run.json.at(-1);
   return terminal !== undefined && terminal.kind === 'result'
@@ -190,7 +210,7 @@ describe('init scaffold', () => {
               path: '.env.example',
               filesWritten: [
                 'src/prisma/contract.prisma',
-                'prisma-next.config.ts',
+                'prisma.config.ts',
                 'src/prisma/db.ts',
                 'prisma-next.md',
               ],
@@ -211,12 +231,13 @@ describe('init scaffold', () => {
           `${JSON.stringify({ name: 'app', devDependencies: { '@types/node': '^18' } }, null, 2)}\n`,
           'utf-8',
         );
+        installFakeProjectLocalCli(projectDir);
 
         const run = await harness().run(scaffoldArgv('--skip-skills'), { cwd: projectDir });
 
         expect(envelopeOf(run)).toMatchObject({ ok: true });
         expect(run.exitCode).toBe(0);
-        expect(calls[1]?.args).toEqual(['add', '-D', 'prisma-next']);
+        expect(calls[1]?.args).toEqual(['add', '-D', '@prisma/cli@next', '@prisma/cli-engine']);
       },
       timeouts.coldTransformImport,
     );

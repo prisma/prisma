@@ -7,7 +7,7 @@ import {
   DerivedTableSource,
   ParamRef,
   ProjectionItem,
-  RawSqlExpr,
+  RawQueryAst,
   SelectAst,
   TableSource,
   UpdateAst,
@@ -271,11 +271,13 @@ describe('lints middleware', () => {
   );
 
   it(
-    'routes raw-sql plans through the raw guardrails when an ast is present',
+    'routes raw-query plans through the raw guardrails when an ast is present',
     async () => {
       const plan = createPlan({
         sql: 'SELECT * FROM "user"',
-        ast: RawSqlExpr.of(['SELECT * FROM "user"'], []),
+        ast: RawQueryAst.rows(['SELECT * FROM "user"'], {
+          id: { codecId: 'pg/int4@1', nullable: false },
+        }),
       });
       const mw = lints();
       const ctx = createMiddlewareContext();

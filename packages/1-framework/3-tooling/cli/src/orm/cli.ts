@@ -1,6 +1,6 @@
 import { ifDefined } from '@internal/utils/defined';
 import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine';
-import { createCli } from '@prisma/cli-engine';
+import { createCli, telemetryCommandGroup } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
 import { createControlClient } from '../control-api/client';
 import type { CreateControlClient } from '../control-api/types';
@@ -35,6 +35,15 @@ import { resolveTelemetryHooks } from './telemetry/reporting';
 
 export const BIN_NAME = 'prisma-next';
 
+export const TELEMETRY_DOCS_URL = 'https://prisma-next.dev/docs/cli/telemetry';
+
+/**
+ * The engine's consent surface — `telemetry status|enable|disable` and the
+ * group help that belongs to them. Mounted whole, mirroring the unified
+ * `prisma` bin's mount points.
+ */
+const telemetry = telemetryCommandGroup({ docsUrl: TELEMETRY_DOCS_URL });
+
 export const BIN_GROUPS = {
   contract: {
     brief: 'Contract management commands',
@@ -62,6 +71,7 @@ export const BIN_GROUPS = {
       'environment name — staging, production — to a contract hash, so a command\n' +
       'can name the environment instead of the hash.',
   },
+  ...telemetry.groups,
 } as const;
 
 /**
@@ -92,6 +102,7 @@ export function createBinCommands(createClient: CreateControlClient): MountedTre
     'ref delete': refDeleteCommand,
     'ref list': refListCommand,
     'ref set': refSetCommand,
+    ...telemetry.commands,
   };
 }
 
@@ -142,7 +153,12 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
       };
     },
     loadConfig: (configPath) =>
-      loadOrmConfig({ cwd: proc.cwd(), ...ifDefined('configPath', configPath) }),
+      loadOrmConfig({
+        cwd: proc.cwd(),
+        ...ifDefined('configPath', configPath),
+        // Mirrors the engine's warn-diagnostic line shape on stderr.
+        warn: (message) => void proc.stderr.write(`⚠ ${message}\n`),
+      }),
     managementApi: { baseUrl: 'https://api.prisma.io' },
     // No `packageManager`: a host's answer overrides the engine's detection
     // outright, and this bin knows nothing the engine's own walk from cwd —

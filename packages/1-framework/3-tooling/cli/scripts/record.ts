@@ -141,7 +141,7 @@ const MONOREPO_ROOT = findMonorepoRoot(CLI_ROOT);
 /**
  * Workspace is created inside the test fixture app so jiti can resolve
  * workspace packages (adapter-postgres, driver-postgres, etc.) when
- * loading prisma-next.config.ts.
+ * loading prisma.config.ts.
  */
 const FIXTURE_APP_DIR = join(MONOREPO_ROOT, 'test/integration/test/fixtures/cli/cli-e2e-test-app');
 
@@ -374,9 +374,9 @@ function setupWorkspace(workspaceDir: string, contractFile: string, connStr: str
 
   copyFileSync(join(FIXTURES_DIR, contractFile), join(workspaceDir, 'contract.ts'));
 
-  const configTemplate = readFileSync(join(FIXTURES_DIR, 'prisma-next.config.ts'), 'utf-8');
+  const configTemplate = readFileSync(join(FIXTURES_DIR, 'prisma.config.ts'), 'utf-8');
   writeFileSync(
-    join(workspaceDir, 'prisma-next.config.ts'),
+    join(workspaceDir, 'prisma.config.ts'),
     configTemplate.replace('{{DB_URL}}', connStr),
   );
 }
@@ -386,7 +386,7 @@ function emitContractIn(workspaceDir: string, connStr: string): void {
     'contract',
     'emit',
     '--config',
-    join(workspaceDir, 'prisma-next.config.ts'),
+    join(workspaceDir, 'prisma.config.ts'),
   ]);
 }
 
@@ -395,7 +395,7 @@ function initDatabaseIn(workspaceDir: string, connStr: string): void {
     'db',
     'init',
     '--config',
-    join(workspaceDir, 'prisma-next.config.ts'),
+    join(workspaceDir, 'prisma.config.ts'),
     '--db',
     connStr,
   ]);

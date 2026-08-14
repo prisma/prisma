@@ -1,5 +1,4 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -86,12 +85,11 @@ describe('an application that installs only the Postgres facade', () => {
     expect(runInScratch(scratch, script)).toContain('platform ok');
   });
 
-  it('puts a working prisma-next command on PATH', () => {
-    const help = execFileSync('pnpm', ['exec', 'prisma-next', '--help'], {
-      cwd: scratch,
-      encoding: 'utf8',
-    });
-    expect(help).toContain('prisma-next');
+  it('puts no prisma-next command on PATH — the unified prisma CLI is the only binary', () => {
+    // The published surface is bin-less (the facade forwards no launcher);
+    // the unified `prisma` CLI imports the orm command family from
+    // @prisma/orm-toolchain/cli instead.
+    expect(existsSync(join(scratch, 'node_modules', '.bin', 'prisma-next'))).toBe(false);
   });
 
   it('bundles only its own wiring code', () => {

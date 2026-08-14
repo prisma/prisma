@@ -104,7 +104,7 @@ Cache directory `.prisma-next/cache` with pruning on a size budget.
 ## Configuration
 
 ```typescript
-// prisma-next.config.ts
+// prisma.config.ts
 import { defineConfig } from 'prisma-next/config'
 
 export default defineConfig({

@@ -277,7 +277,7 @@ Non-goals for this ADR:
 
 - **Refactor surface area**: Touching core and multiple packs risks breakage
   - Mitigation: First phase is limited to control plane and the SQL + Postgres stack
-  - Tests that exercise `prisma-next.config.ts`, adapters, and drivers provide guardrails
+  - Tests that exercise `prisma.config.ts`, adapters, and drivers provide guardrails
 - **Runtime vs control drift**: Control and runtime planes might diverge over time
   - Mitigation: A follow-up ADR defines a mirrored pattern for the execution plane
 

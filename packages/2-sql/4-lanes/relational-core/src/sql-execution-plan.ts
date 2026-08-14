@@ -17,9 +17,8 @@ import type { AnyQueryAst } from './ast/types';
  * can be parameterized over it.
  *
  * Co-located with `SqlQueryPlan` (its pre-lowering counterpart) in the lanes
- * layer because lane-level utilities (`RawTemplateFactory`, `RawFactory`,
- * `SqlPlan`) compose against the executable shape and the lanes layer cannot
- * depend on the runtime layer.
+ * layer because lane-level utilities (`SqlPlan`) compose against the
+ * executable shape and the lanes layer cannot depend on the runtime layer.
  */
 export interface SqlExecutionPlan<Row = unknown> extends ExecutionPlan<Row> {
   readonly sql: string;

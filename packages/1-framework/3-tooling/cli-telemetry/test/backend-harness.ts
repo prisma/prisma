@@ -23,7 +23,7 @@ const REPO_ROOT = resolve(PACKAGE_DIR, '../../../..');
 const BACKEND_DIR = join(REPO_ROOT, 'apps', 'telemetry-backend');
 const SENDER_PATH = resolve(PACKAGE_DIR, 'dist', 'sender.mjs');
 const CLI_DIR = resolve(REPO_ROOT, 'packages', '1-framework', '3-tooling', 'cli');
-const CLI_BIN_PATH = resolve(CLI_DIR, 'dist', 'cli.js');
+const CLI_BIN_PATH = resolve(CLI_DIR, 'dist', 'bin.mjs');
 
 export const HARNESS_PATHS = {
   TEST_DIR,
@@ -49,6 +49,7 @@ export interface TelemetryEventRow {
   readonly tsVersion: string | null;
   readonly agent: string | null;
   readonly extensions: readonly string[];
+  readonly exitCode: number | null;
 }
 
 interface BackendProcess {
@@ -251,9 +252,8 @@ async function stopBackend(backend: BackendProcess): Promise<void> {
 // cases gets killed server-side, which the production driver's pool
 // surfaces as an unhandled `'error'` event and crashes the backend
 // process (Node's default behaviour for emitter `'error'` events with
-// no listener). Cases that sleep ≥2s in the parent CLI (e.g. the
-// `__telemetry-crash-test` action body, which holds the parent open
-// long enough for the detached sender to fork) reliably trip this.
+// no listener). Cases whose parent CLI runs longer than a second
+// between rows reliably trip this.
 //
 // 60_000ms comfortably exceeds any single test file's wall-clock so
 // no idle connection gets reaped during a run. Teardown is fast
@@ -317,7 +317,7 @@ export async function startBackendHarness(): Promise<BackendHarness> {
   const readRows = (): Promise<TelemetryEventRow[]> =>
     withClient(database.connectionString, async (client) => {
       const { rows } = await client.query<TelemetryEventRow>(
-        'select "installationId", version, command, flags, "runtimeName", "runtimeVersion", os, arch, "packageManager", "databaseTarget", "tsVersion", agent, extensions from telemetry_event order by id asc',
+        'select "installationId", version, command, flags, "runtimeName", "runtimeVersion", os, arch, "packageManager", "databaseTarget", "tsVersion", agent, extensions, "exitCode" from telemetry_event order by id asc',
       );
       return rows;
     });
@@ -325,7 +325,7 @@ export async function startBackendHarness(): Promise<BackendHarness> {
   const readRowsForInstallation = (installationId: string): Promise<TelemetryEventRow[]> =>
     withClient(database.connectionString, async (client) => {
       const { rows } = await client.query<TelemetryEventRow>(
-        'select "installationId", version, command, flags, "runtimeName", "runtimeVersion", os, arch, "packageManager", "databaseTarget", "tsVersion", agent, extensions from telemetry_event where "installationId" = $1 order by id asc',
+        'select "installationId", version, command, flags, "runtimeName", "runtimeVersion", os, arch, "packageManager", "databaseTarget", "tsVersion", agent, extensions, "exitCode" from telemetry_event where "installationId" = $1 order by id asc',
         [installationId],
       );
       return rows;

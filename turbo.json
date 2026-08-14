@@ -38,8 +38,13 @@
       "outputs": ["coverage/**"],
       "env": ["TEST_TIMEOUT_MULTIPLIER"]
     },
+    // `build` as well as `^build`: several packages import their own published
+    // subpaths (e.g. `@internal/extension-pgvector/pack`), which resolve into
+    // their own dist. Without the self-edge those typechecks read whatever dist
+    // happens to be on disk — TS2307 when it is absent, a stale cache replay
+    // when it is not.
     "typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "build"],
       "inputs": ["src/**", "test/**", "tsconfig.json"]
     },
     "lint": {

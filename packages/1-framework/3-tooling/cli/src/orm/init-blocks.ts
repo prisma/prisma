@@ -82,6 +82,7 @@ export function initPresentations(inputs: {
 }): Presentations {
   const { document } = inputs;
   return {
+    stdout: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',

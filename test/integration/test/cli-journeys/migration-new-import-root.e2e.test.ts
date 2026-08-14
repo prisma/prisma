@@ -122,7 +122,7 @@ function facadeOnlyProject(migrationTs: string): string {
   mkdirSync(join(projectDir, 'migrations', 'app', '00001_new'), { recursive: true });
   writeFileSync(join(projectDir, 'package.json'), JSON.stringify(FACADE_MANIFEST, null, 2));
   writeFileSync(
-    join(projectDir, 'prisma-next.config.ts'),
+    join(projectDir, 'prisma.config.ts'),
     `import postgres from '${FACADE}/control';\nexport default postgres;\n`,
   );
   writeFileSync(join(projectDir, 'migrations', 'app', '00001_new', 'migration.ts'), migrationTs);

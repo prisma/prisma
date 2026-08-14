@@ -13,7 +13,7 @@ The canonical runnable Prisma Next + Supabase app, and the walking skeleton the 
 
 ## The stack
 
-[`prisma-next.config.ts`](prisma-next.config.ts) wires the SQL family + Postgres target and composes the Supabase pack:
+[`prisma.config.ts`](prisma.config.ts) wires the SQL family + Postgres target and composes the Supabase pack:
 
 ```ts
 extensions: [supabasePack],

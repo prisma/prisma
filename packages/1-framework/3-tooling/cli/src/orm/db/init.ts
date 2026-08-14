@@ -30,6 +30,7 @@ function initPresentations(inputs: {
 }): Presentations {
   const { document, database, dryRun } = inputs;
   return {
+    stdout: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',
@@ -43,7 +44,7 @@ function initPresentations(inputs: {
       ...migrationResultBlocks(document),
     ],
     json: () => document,
-    next: () => migrationResultNextActions(document, 'prisma-next db init'),
+    next: () => migrationResultNextActions(document, 'prisma-cli db init'),
   };
 }
 

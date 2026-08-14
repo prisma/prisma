@@ -97,20 +97,40 @@ class PostgresAdapterImpl
   }
 }
 
-/** Codec-id lookup for bare-literal interpolations used by `fns.raw` on a postgres client. Contributed as the descriptor's static `rawCodecInferer` slot. */
+const INT4_MIN = -2_147_483_648;
+const INT4_MAX = 2_147_483_647;
+
+/**
+ * The codec a bare JS number is bound through.
+ *
+ * An integer picks the narrowest column type that holds it: `int4` while it
+ * fits the signed 32-bit range, `int8` (number-valued) up to the safe-integer
+ * limit. Past that limit a JS number is no longer an exact integer, so it
+ * binds as `float8` rather than pretending to a precision it does not have.
+ */
+function inferNumberCodecId(value: number): string {
+  if (!Number.isSafeInteger(value)) return 'pg/float8@1';
+  return value >= INT4_MIN && value <= INT4_MAX ? 'pg/int4@1' : 'pg/int8number@1';
+}
+
+/**
+ * Codec-id lookup for bare-literal interpolations used by `fns.raw` on a postgres client. Contributed as the descriptor's static `rawCodecInferer` slot.
+ *
+ * The ids are versioned because that is how the codec registry keys them: lowering resolves an interpolated value's codec by exact id through `descriptorFor`.
+ */
 export const postgresRawCodecInferer: RawCodecInferer = {
   inferCodec(value: RawSqlLiteral): string {
     switch (typeof value) {
       case 'number':
-        return Number.isSafeInteger(value) && value % 1 === 0 ? 'pg/int4' : 'pg/float8';
+        return inferNumberCodecId(value);
       case 'bigint':
-        return 'pg/int8';
+        return 'pg/int8@1';
       case 'string':
-        return 'pg/text';
+        return 'pg/text@1';
       case 'boolean':
-        return 'pg/bool';
+        return 'pg/bool@1';
       case 'object':
-        if (value instanceof Uint8Array) return 'pg/bytea';
+        if (value instanceof Uint8Array) return 'pg/bytea@1';
     }
     throw adapterError(
       'RUNTIME.RAW_SQL_UNSUPPORTED_INTERPOLATION',

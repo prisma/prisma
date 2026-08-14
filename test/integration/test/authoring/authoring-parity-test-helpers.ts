@@ -7,8 +7,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const authoringParityFixtureDir = join(__dirname, 'parity');
 const authoringDiagnosticsFixtureDir = join(__dirname, 'diagnostics');
 const authoringTemplateDir = join(__dirname, 'templates');
-const parityTsConfigTemplatePath = join(authoringTemplateDir, 'prisma-next.config.parity-ts.ts');
-const parityPslConfigTemplatePath = join(authoringTemplateDir, 'prisma-next.config.parity-psl.ts');
+const parityTsConfigTemplatePath = join(authoringTemplateDir, 'prisma.config.parity-ts.ts');
+const parityPslConfigTemplatePath = join(authoringTemplateDir, 'prisma.config.parity-psl.ts');
 
 const parityRequiredFileNames = [
   'schema.prisma',
@@ -118,8 +118,8 @@ export function setupIntegrationTestDirectoryForAuthoringParityCase(
   copyFileSync(fixtureCase.schemaPath, join(testDir, 'schema.prisma'));
   copyFileSync(fixtureCase.packsPath, join(testDir, 'packs.ts'));
 
-  const tsConfigPath = join(testDir, 'prisma-next.config.parity-ts.ts');
-  const pslConfigPath = join(testDir, 'prisma-next.config.parity-psl.ts');
+  const tsConfigPath = join(testDir, 'prisma.config.parity-ts.ts');
+  const pslConfigPath = join(testDir, 'prisma.config.parity-psl.ts');
 
   copyFileSync(parityTsConfigTemplatePath, tsConfigPath);
   copyFileSync(parityPslConfigTemplatePath, pslConfigPath);

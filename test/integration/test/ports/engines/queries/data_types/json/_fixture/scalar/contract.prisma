@@ -1,0 +1,4 @@
+model TestModel {
+  id   Int @id
+  json Jsonb?
+}

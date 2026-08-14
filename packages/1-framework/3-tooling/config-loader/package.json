@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Prisma Next config loader: discovers, validates, and finalizes prisma-next.config.ts",
+  "description": "Prisma Next config loader: discovers, validates, and finalizes prisma.config.ts",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",

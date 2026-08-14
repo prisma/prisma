@@ -41,6 +41,8 @@ function refsGrid(refs: Refs): Block {
 
 function listPresentations(document: RefListResult): Presentations {
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] =>
       Object.keys(document.refs).length === 0
         ? [{ kind: 'summary', status: 'info', text: EMPTY_MESSAGE }]

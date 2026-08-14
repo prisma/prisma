@@ -1,0 +1,14 @@
+import { defineConfig } from '@prisma/cli-engine';
+import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
+
+export default defineConfig({
+  orm: ormConfig({
+    contract: './contract.prisma',
+    db: {
+      connection: 'postgresql://multi-branch:multi-branch@localhost:5432/multi-branch',
+    },
+    migrations: {
+      dir: './migrations',
+    },
+  }),
+});

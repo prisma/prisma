@@ -83,7 +83,7 @@ const RAISED_BY_PRISMA = new CliStructuredError(
   'Prisma Next configuration is not usable',
   {
     why: 'contract.source.inputs names a file that does not exist.',
-    fix: 'Correct contract.source.inputs in prisma-next.config.ts and re-run',
+    fix: 'Correct contract.source.inputs in prisma.config.ts and re-run',
   },
 );
 
@@ -124,7 +124,7 @@ describe.each(CASES)('$command', ({ argv, operation }) => {
       expect(envelope.nextActions).toEqual([
         {
           kind: 'user-choice',
-          label: 'Correct contract.source.inputs in prisma-next.config.ts and re-run',
+          label: 'Correct contract.source.inputs in prisma.config.ts and re-run',
         },
       ]);
     });

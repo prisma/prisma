@@ -38,6 +38,8 @@ function inferPresentations(inputs: {
 }): Presentations {
   const { document, database } = inputs;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       ...(database === undefined
         ? []
@@ -104,7 +106,7 @@ export function createContractInferCommand({
         return notOk(
           normalizeError(
             errorDatabaseConnectionRequired({
-              why: 'Database connection is required for contract infer (set db.connection in prisma-next.config.ts, or pass --db <url>)',
+              why: 'Database connection is required for contract infer (set db.connection in prisma.config.ts, or pass --db <url>)',
               commandName: 'contract infer',
               missingFlags: ['--db'],
             }),

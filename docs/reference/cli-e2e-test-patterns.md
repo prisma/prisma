@@ -19,7 +19,7 @@ There are two approaches to CLI testing:
 ### Subprocess Tests (True E2E, e.g., `cli.emit-cli-process.e2e.test.ts`)
 
 - Spawn the CLI as a separate Node process using `execFileAsync('node', [cliPath, ...])`
-- Test the actual built CLI binary (`dist/cli.js`)
+- Test the actual built CLI binary (`dist/bin.mjs`)
 - **Pros**: Tests real CLI behavior, catches ESM/CJS issues
 - **Cons**: Slower, requires build first, harder to mock
 
@@ -34,8 +34,8 @@ packages/framework/tooling/cli/test/cli-e2e-test-app/
   fixtures/
     {command}/          # Fixtures organized by command
       contract.ts
-      prisma-next.config.ts
-      prisma-next.config.{variant}.ts
+      prisma.config.ts
+      prisma.config.{variant}.ts
 ```
 
 **Test execution:**
@@ -61,7 +61,7 @@ withTempDir(({ createTempDir }) => {
       const testSetup = setupTestDirectoryFromFixtures(
         createTempDir,
         fixtureSubdir,
-        'prisma-next.config.emit.ts', // Config file name
+        'prisma.config.emit.ts', // Config file name
         { '{{PLACEHOLDER}}': 'value' }, // Optional replacements
       );
       const testDir = testSetup.testDir;
@@ -71,7 +71,7 @@ withTempDir(({ createTempDir }) => {
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        await executeCommand(command, ['--config', 'prisma-next.config.ts']);
+        await executeCommand(command, ['--config', 'prisma.config.ts']);
       } finally {
         process.chdir(originalCwd);
       }
@@ -86,7 +86,7 @@ withTempDir(({ createTempDir }) => {
 
 - **`createTempDir`**: Required. Function that returns a new ephemeral test directory path.
 - **`fixtureSubdir`**: Name of the fixture subdirectory (e.g., `'emit'`, `'db-verify'`)
-- **`configFileName`**: Optional. Name of the config file to copy (defaults to `'prisma-next.config.ts'`)
+- **`configFileName`**: Optional. Name of the config file to copy (defaults to `'prisma.config.ts'`)
 - **`replacements`**: Optional. Object mapping placeholders to values (e.g., `{ '{{DB_URL}}': connectionString }`)
 
 **Returns:**
@@ -131,10 +131,10 @@ withTempDir(({ createTempDir }) => {
 ```
 fixtures/db-verify/
   contract.ts
-  prisma-next.config.ts                    # Basic config
-  prisma-next.config.with-db.ts           # Config with database
-  prisma-next.config.no-driver.ts         # Config missing driver
-  prisma-next.config.no-verify.ts         # Config missing verify.readMarkerSql
+  prisma.config.ts                    # Basic config
+  prisma.config.with-db.ts           # Config with database
+  prisma.config.no-driver.ts         # Config missing driver
+  prisma.config.no-verify.ts         # Config missing verify.readMarkerSql
 ```
 
 **Using placeholders:**
@@ -143,7 +143,7 @@ withTempDir(({ createTempDir }) => {
   const testSetup = setupTestDirectoryFromFixtures(
     createTempDir,
     'db-verify',
-    'prisma-next.config.with-db.ts',
+    'prisma.config.with-db.ts',
     { '{{DB_URL}}': connectionString },
   );
 
@@ -185,13 +185,13 @@ describe('CLI process e2e', () => {
   it('executes CLI as separate process', async () => {
     const testSetup = setupIntegrationTestDirectoryFromFixtures('emit-command');
     const { testDir, cleanup } = testSetup;
-    const cliPath = resolve(__dirname, '../dist/cli.js');
+    const cliPath = resolve(__dirname, '../dist/bin.mjs');
 
     try {
       // Set cwd for spawned process so relative paths in config resolve correctly
       await execFileAsync(
         'node',
-        [cliPath, 'contract', 'emit', '--config', 'prisma-next.config.ts'],
+        [cliPath, 'contract', 'emit', '--config', 'prisma.config.ts'],
         {
           cwd: testDir, // Set working directory for spawned process
         },
@@ -234,45 +234,12 @@ await execFileAsync('node', [cliPath, 'emit'], {
 - `execFile` captures stdout/stderr by default in the result object
 - Only log output on errors for cleaner test output
 
-## Commander.js Argument Parsing in Test Helpers
+## In-Process Command Tests
 
-**CRITICAL**: When using Commander's `parseAsync()` in test helpers, you must use `{ from: 'user' }` to tell Commander that the arguments are user-supplied.
-
-**✅ CORRECT: Use `{ from: 'user' }` option**
-
-```typescript
-export async function executeCommand(command: Command, args: string[]): Promise<number> {
-  try {
-    // Use { from: 'user' } to tell Commander these are user args, not process.argv format
-    // process.argv format would be ['node', 'script.js', '--option', 'value']
-    await command.parseAsync(args, { from: 'user' });
-    return 0;
-  } catch (error) {
-    // ... error handling ...
-  }
-}
-```
-
-**❌ WRONG: Passing args without `{ from: 'user' }`**
-
-```typescript
-// ❌ WRONG: Commander interprets first two args as 'node' and 'script.js'
-await command.parseAsync(args);  // '--config' and 'file.ts' are silently ignored!
-
-// ❌ WRONG: Prepending 'node' and 'cli.js' to simulate process.argv
-await command.parseAsync(['node', 'cli.js', ...args]);  // Works but verbose
-```
-
-**Why?**
-- Without `{ from: 'user' }`, Commander assumes `process.argv` format where first two elements are `node` executable and script path
-- This causes user arguments like `['--config', 'file.ts']` to be treated as the node/script path, not as options
-- Arguments are silently ignored, making tests pass when they shouldn't
-- Using `{ from: 'user' }` tells Commander to treat all provided args as user-supplied options
-
-**See also:** `packages/framework/tooling/cli/test/utils/test-helpers.ts` for the `executeCommand` implementation.
+The commander shell and its `test-helpers.ts` harness were deleted in the S5 cutover. In-process command tests now mount the engine command tree with `createTestCli` (see `test/orm/` in the CLI package) and assert on settled envelopes, events, and exit codes; only the small smoke set (`test/integration/test/cli.bin-smoke.e2e.test.ts`) spawns the real `dist/bin.mjs`.
 
 ## Related Patterns
 
 - `docs/Testing Guide.md`: General testing patterns
 - `docs/reference/test-import-patterns.md`: Test import patterns
-- `packages/framework/tooling/cli/test/utils/test-helpers.ts`: Implementation of `setupTestDirectoryFromFixtures` and `setupIntegrationTestDirectoryFromFixtures`
+- `test/integration/test/utils/cli-test-helpers.ts`: In-process engine harness (`createTestCli`, `runOnEngine`) used by CLI integration tests

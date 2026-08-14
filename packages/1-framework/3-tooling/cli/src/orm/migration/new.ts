@@ -20,6 +20,7 @@ function newPresentations(inputs: {
   const { document } = inputs;
   const migrationTs = join(document.dir, 'migration.ts');
   return {
+    stdout: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',

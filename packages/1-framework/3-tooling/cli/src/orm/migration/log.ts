@@ -82,6 +82,8 @@ function logPresentations(inputs: {
 }): Presentations {
   const grid = inputs.grid;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       ...(inputs.database === undefined
         ? []
@@ -128,7 +130,7 @@ export const migrationLogCommand = defineOrmCommand({
     const missingDb = requireLiveDatabase({
       dbConnection,
       hasDriver: ctx.config.driver !== undefined,
-      why: 'migration log needs a database connection and driver to read the ledger (set db.connection in prisma-next.config.ts, or pass --db <url>)',
+      why: 'migration log needs a database connection and driver to read the ledger (set db.connection in prisma.config.ts, or pass --db <url>)',
       commandName: 'migration log',
     });
     if (missingDb !== null) {

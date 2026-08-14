@@ -142,7 +142,7 @@ This ADR collapsed five parallel error systems — a numeric `PN-DOMAIN-NNNN` cl
 | Namespace | Meaning | Owning module |
 |---|---|---|
 | `CONFIG` | Config file load + validation, missing required config | `1-core/config` |
-| `CLI` | Invocation: flag parsing, output format, `init`, command usage | `1-core/errors` + `cli` |
+| `CLI` | Invocation: flag parsing, output format, `init`, command usage | `1-core/errors` + `cli`; shared with `@prisma/cli-engine` since the S5 cutover — the engine mints its own `CLI.*` codes (`CLI.UNKNOWN_COMMAND`, `CLI.INVALID_ARGUMENTS`, `CLI.PROMPT_CANCELLED`, `CLI.INTERNAL_ERROR`, …) while this repo keeps `CLI.INIT_*` and the other ORM-tooling codes |
 | `CONTRACT` | Contract authoring (TS builders), emit, validation, marker/sign/verify | `0-foundation/contract` + `1-core/errors` + sql runtime |
 | `PSL` | PSL parse / format / interpret | `psl-parser` + `contract-psl` |
 | `PLAN` | Query planning | `relational-core` + `1-core/errors` |

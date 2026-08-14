@@ -97,7 +97,7 @@ function evaluateAstLints(ast: AnyQueryAst): LintFinding[] {
     case 'insert':
       break;
 
-    case 'raw-sql':
+    case 'raw-query':
       // Raw-SQL ASTs opt out of structural lints (LIMIT / WHERE etc.) —
       // the embedded SQL fragments are caller-authored and the lint's
       // shape-based heuristics don't apply.
@@ -155,11 +155,11 @@ export function lints(options?: LintsOptions): SqlMiddleware {
     const findings: LintFinding[] = [];
     if (isQueryAst(plan.ast)) {
       findings.push(...evaluateAstLints(plan.ast));
-      // Raw-SQL ASTs opt out of structural AST lints (no LIMIT /
-      // WHERE shape to inspect) but the embedded SQL text still
-      // wants the raw-heuristic guardrails. Without this the lint
-      // middleware would silently disable both for raw plans.
-      if (plan.ast.kind === 'raw-sql') {
+      // A raw statement has no structural shape to lint (no LIMIT / WHERE
+      // clause the runtime authored), but its SQL text still wants the
+      // heuristic guardrails. Without this the lint middleware would
+      // silently disable both for raw plans.
+      if (plan.ast.kind === 'raw-query') {
         findings.push(...evaluateRawGuardrails(plan).lints);
       }
     } else if (fallback !== 'skip') {

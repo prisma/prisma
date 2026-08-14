@@ -1,7 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
-import { RawSqlExpr } from '../src/exports/ast';
+import { RawQueryAst } from '../src/exports/ast';
 import { planFromAst } from '../src/plan';
 
 const CONTRACT = {
@@ -12,7 +12,7 @@ const CONTRACT = {
 
 describe('planFromAst', () => {
   it('wraps the AST in a SqlQueryPlan whose meta is sourced from the contract', () => {
-    const ast = RawSqlExpr.of(['select 1'], []);
+    const ast = RawQueryAst.rows(['select 1'], { one: { codecId: 'pg/int4@1', nullable: false } });
     const plan = planFromAst(ast, CONTRACT);
 
     expect(plan.ast).toBe(ast);
@@ -26,7 +26,7 @@ describe('planFromAst', () => {
   });
 
   it('honours an explicit laneId override', () => {
-    const ast = RawSqlExpr.of(['select 1'], []);
+    const ast = RawQueryAst.rows(['select 1'], { one: { codecId: 'pg/int4@1', nullable: false } });
     const plan = planFromAst(ast, CONTRACT, 'cipherstash:migration');
 
     expect(plan.meta.lane).toBe('cipherstash:migration');

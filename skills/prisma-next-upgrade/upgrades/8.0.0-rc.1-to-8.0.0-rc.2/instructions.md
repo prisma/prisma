@@ -54,7 +54,7 @@ changes:
       anyMatch: true
   - id: specifier-default-control-policy-requires-create-namespace
     summary: |
-      If your `prisma-next.config.ts` passes `defaultControlPolicy` in the options bag of
+      If your `prisma.config.ts` passes `defaultControlPolicy` in the options bag of
       `typescriptContract` or `typescriptContractFromPath`, that bag now also requires
       `createNamespace`. Stamping a default policy strips derived CHECK constraints from
       tables the policy leaves non-managed, and the strip rebuilds storage namespaces through
@@ -210,6 +210,68 @@ changes:
         - ".queryPrepared("
         - "beforeQuery"
         - "interceptExecute"
+      anyMatch: true
+  - id: config-file-is-prisma-config-with-an-orm-section
+    summary: |
+      The CLI config file is `prisma.config.ts` — the `prisma-next.config.ts` name is
+      deprecated — and the config value is engine-shaped: `defineConfig` from
+      `@prisma/cli-engine` wraps the whole ORM config as its `orm` section. Rename the file,
+      then wrap the existing export: alias the current `defineConfig` import (from the target
+      facade or CLI config-types) as `ormConfig` and write
+      `export default defineConfig({ orm: ormConfig({ ...existing config... }) })`, adding
+      `@prisma/cli-engine` to devDependencies. Both the deprecated filename and the flat shape
+      still load, each printing a deprecation warning on stderr, so the two steps can land
+      separately; anything asserting clean stderr around CLI invocations sees the warning
+      until both are done.
+    detection:
+      glob: "**/prisma*.config.*"
+      contains:
+        - "defineConfig"
+      anyMatch: true
+  - id: published-prisma-next-bin-retired
+    summary: |
+      Nothing published ships a `prisma-next` bin anymore: `@prisma/orm-toolchain` publishes
+      the `orm` command family at `@prisma/orm-toolchain/cli` and no bin, and the database
+      facades forward no launcher. The only user-facing binary is the unified `prisma` CLI
+      (the prisma-cli distribution), which mounts the same commands. Replace
+      `prisma-next <command>` invocations in package scripts and CI with the unified CLI's
+      equivalent, and drop any dependency that was taken only to put the bin on PATH.
+    detection:
+      glob: "**/package.json"
+      contains:
+        - "prisma-next"
+      anyMatch: true
+  - id: raw-is-a-reserved-storage-namespace
+    summary: |
+      A storage namespace named `raw` is refused: the SQL surface exposes the whole-query raw
+      statement tag as `db.sql.raw`, so a namespace of that name would be unreachable through
+      the builder while the emitted types still promised its tables. Building the client raises
+      `ORM.NAMESPACE_RESERVED` naming the namespace. Rename the namespace in your schema —
+      `@@schema("raw")` becomes any other name — re-emit the contract, and plan the rename
+      against the database as you would any other namespace rename. Only `raw` is reserved; every other namespace name is unaffected.
+    detection:
+      glob: "**/*.{prisma,json}"
+      contains:
+        - '@@schema("raw")'
+        - '"raw": {'
+      anyMatch: true
+  - id: codec-ids-are-checked-where-they-are-authored
+    summary: |
+      A codec id you write in a prepared declaration or in a contract-bound raw fragment is
+      now checked against your contract's codec map, so an id the contract does not carry is
+      a compile error where before it compiled and failed at execution with
+      `RUNTIME.PARAM_REF_MISSING_CODEC`. The usual cause is an unversioned id:
+      `db.prepare({ id: 'pg/int4' }, ...)` becomes `db.prepare({ id: 'pg/int4@1' }, ...)`, and
+      `fns.raw\`...\`.returns('pg/text')` becomes `.returns('pg/text@1')`. Take the id from your
+      emitted `contract.d.ts` — every id it carries now completes at both positions, so the
+      editor offers the correct spelling rather than accepting a wrong one. Raw fragments
+      built through a contract-free lane are unaffected; they have no map to check against.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "prepare({"
+        - ".returns('pg/"
+        - ".returns(\"pg/"
       anyMatch: true
 ---
 
@@ -372,6 +434,38 @@ Convert each to the column's own type — `BigInt(value)` for a `bigint` column,
 
 Schema-written defaults need nothing. `BigInt @default(0)` still emits and still migrates: the JSON side of these codecs accepts a safe-integer number, because a schema language writes no `bigint` literal, and only the query-parameter side requires the exact type.
 
+
+## `config-file-is-prisma-config-with-an-orm-section`
+
+Two mechanical steps, in either order:
+
+1. `git mv prisma-next.config.ts prisma.config.ts` (same for `.mts` / `.mjs` variants).
+2. Wrap the flat export in the engine shape:
+
+```ts
+// before
+import { defineConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ ... });
+
+// after
+import { defineConfig } from '@prisma/cli-engine';
+import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ orm: ormConfig({ ... }) });
+```
+
+Add `@prisma/cli-engine` to `devDependencies`. The inner config is unchanged — only the file
+name and the outer wrapper move. The loader still discovers the deprecated filename and still
+accepts the flat shape, each with a stderr deprecation warning, so nothing breaks mid-rename;
+finish both steps to silence the warnings.
+
+## `published-prisma-next-bin-retired`
+
+`prisma-next ...` in a package script resolved through a bin the database facades forwarded
+from the toolchain. That chain is gone: the published toolchain is bin-less and exports the
+`orm` command family at `@prisma/orm-toolchain/cli` for the unified `prisma` CLI (the
+prisma-cli distribution) to mount. Point scripts and CI at the unified CLI, which serves the
+same command paths.
+
 <!--
 PR #29910: `changes: []`. The example changes repair test instrumentation and fixture/runtime isolation after the driver SPI split; they require no user API, contract, configuration, generated-artifact, or source translation.
 PR #29902: `changes: []`. Generated contracts gain additive aggregate rows for new opt-in integer representation codecs, but existing schemas and source require no migration; users re-emit only when adopting the new target-scoped types.
@@ -433,3 +527,60 @@ If the application defines runtime middleware, use the operation-specific hooks:
 Tests that observe row queries should spy on `driver.query`, not `driver.execute`; statistics tests should observe `driver.execute`. Keep separate row-result and statistics queues so a wrong route fails loudly. Behavior intended for both operations assigns one private implementation to both corresponding hook names. Mongo keeps `db.query` as the static builder and has no row-execution `db.execute` facade method: build with `db.query`, obtain the connected runtime, then query through `(await db.runtime()).query(plan)`.
 
 Search broadly for `.execute(` and retired prepared execution, then inspect each candidate's plan and downstream use. Rows being iterated, indexed, decoded, compared as arrays, or passed to a row mapper identify `query`; reads of `affectedRows` or ignored results from non-returning DML identify `execute`. Leave unrelated APIs such as migration runners alone.
+
+## `raw-is-a-reserved-storage-namespace`
+
+The SQL surface answers `db.sql.raw` with the whole-query raw statement tag, so `raw` is no
+longer available as a storage namespace name. A contract that declares one is refused where the
+client is built, before any query runs:
+
+```text
+ORM.NAMESPACE_RESERVED: The SQL surface exposes the raw statement tag as "db.raw", so a storage
+namespace named "raw" cannot be reached through it. Rename the namespace in the schema.
+```
+
+Rename the namespace and re-emit:
+
+```prisma
+// Before: unreachable through the builder
+model Event {
+  id String @id
+  @@schema("raw")
+}
+
+// After: any other name
+model Event {
+  id String @id
+  @@schema("ingest")
+}
+```
+
+Then re-emit the contract, and plan the rename against the database as you would any
+other namespace rename — the physical schema still carries the old name until a plan moves it.
+Only `raw` is reserved; no other namespace name is affected.
+
+## `codec-ids-are-checked-where-they-are-authored`
+
+Two places where you write a codec id by hand now check it against the codec map your
+contract emitted: the declaration passed to `db.prepare(...)`, and `.returns(...)` on a raw
+fragment built from a contract-bound tag.
+
+```ts
+// Before: compiled, then failed at execution with RUNTIME.PARAM_REF_MISSING_CODEC
+await db.prepare({ id: 'pg/int4' }, (sql, params) => ...);
+const upper = fns.raw`UPPER(${f.email})`.returns('pg/text');
+
+// After: the id is the one your contract carries
+await db.prepare({ id: 'pg/int4@1' }, (sql, params) => ...);
+const upper = fns.raw`UPPER(${f.email})`.returns('pg/text@1');
+```
+
+The compile error is the messenger, not the injury: an id no codec registry carries could
+never have executed. If a declaration or fragment of yours stops compiling, the id in it was
+already wrong at runtime.
+
+Read the correct spelling off your emitted `contract.d.ts`, or let the editor offer it — the
+ids now complete at both positions, which is the other half of this change.
+
+A raw fragment built through a contract-free lane keeps accepting any string: that lane has
+no contract map to check an id against.

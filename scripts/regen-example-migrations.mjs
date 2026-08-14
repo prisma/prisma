@@ -9,7 +9,7 @@
  * For each migration directory in chain order the script:
  *
  *   1. Writes a temporary `.prisma-next-regen.config.ts` inside the migration
- *      dir that imports the example's real `prisma-next.config.ts` and
+ *      dir that imports the example's real `prisma.config.ts` and
  *      overrides only the `contract` field to point at the migration's
  *      `contract.prisma`. This keeps `extensions`, `db`, and `family` correct
  *      for every family without any per-family template.
@@ -122,7 +122,7 @@ const childEnv = {
  *
  * exampleDir      — path to the example package root, relative to repoRoot.
  * migrationsDir   — path to the namespace chain directory, relative to exampleDir.
- * realConfigPath  — path to the example's real `prisma-next.config.ts`, relative
+ * realConfigPath  — path to the example's real `prisma.config.ts`, relative
  *                   to repoRoot. The temp config imports this and overrides only
  *                   the `contract` field, so `extensions`, `db`, and `family` are
  *                   always correct by construction.
@@ -138,25 +138,25 @@ const CHAINS = [
   {
     exampleDir: 'examples/retail-store',
     migrationsDir: 'migrations/app',
-    realConfigPath: 'examples/retail-store/prisma-next.config.ts',
+    realConfigPath: 'examples/retail-store/prisma.config.ts',
     contractFamily: 'mongo',
   },
   {
     exampleDir: 'examples/mongo-demo',
     migrationsDir: 'migrations/app',
-    realConfigPath: 'examples/mongo-demo/prisma-next.config.ts',
+    realConfigPath: 'examples/mongo-demo/prisma.config.ts',
     contractFamily: 'mongo',
   },
   {
     exampleDir: 'examples/prisma-8-demo',
     migrationsDir: 'migrations/app',
-    realConfigPath: 'examples/prisma-8-demo/prisma-next.config.ts',
+    realConfigPath: 'examples/prisma-8-demo/prisma.config.ts',
     contractFamily: 'sql',
   },
   {
     exampleDir: 'examples/prisma-8-postgis-demo',
     migrationsDir: 'migrations/app',
-    realConfigPath: 'examples/prisma-8-postgis-demo/prisma-next.config.ts',
+    realConfigPath: 'examples/prisma-8-postgis-demo/prisma.config.ts',
     contractFamily: 'sql',
   },
 ];
@@ -306,28 +306,34 @@ function rewriteContractSnapshotSpecifiers(source, snapshotsImportPath, toHash, 
 function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
   if (contractFamily === 'sql') {
     return (
+      `import { defineConfig as engineDefineConfig } from '@prisma/cli-engine';\n` +
       `import { defineConfig } from '${frameworkConfigTypes}';\n` +
       `import { prismaContract } from '${sqlContractPslProvider}';\n` +
       `import postgresPackRef from '${targetPostgresPack}';\n` +
       `import { postgresCreateNamespace } from '${targetPostgresTypes}';\n` +
       `import realConfig from '${realConfigAbsPath}';\n\n` +
-      'export default defineConfig({\n' +
-      '  ...realConfig,\n' +
-      `  contract: prismaContract('${schemaSrc}', {\n` +
-      '    target: postgresPackRef,\n' +
-      '    createNamespace: postgresCreateNamespace,\n' +
+      'export default engineDefineConfig({\n' +
+      '  orm: defineConfig({\n' +
+      '    ...realConfig.orm,\n' +
+      `    contract: prismaContract('${schemaSrc}', {\n` +
+      '      target: postgresPackRef,\n' +
+      '      createNamespace: postgresCreateNamespace,\n' +
+      '    }),\n' +
       '  }),\n' +
       '});\n'
     );
   }
   // Default: mongo
   return (
+    `import { defineConfig as engineDefineConfig } from '@prisma/cli-engine';\n` +
     `import { defineConfig } from '${frameworkConfigTypes}';\n` +
     `import { mongoContract } from '${mongoContractPslProvider}';\n` +
     `import realConfig from '${realConfigAbsPath}';\n\n` +
-    'export default defineConfig({\n' +
-    '  ...realConfig,\n' +
-    `  contract: mongoContract('${schemaSrc}'),\n` +
+    'export default engineDefineConfig({\n' +
+    '  orm: defineConfig({\n' +
+    '    ...realConfig.orm,\n' +
+    `    contract: mongoContract('${schemaSrc}'),\n` +
+    '  }),\n' +
     '});\n'
   );
 }
@@ -338,7 +344,7 @@ function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
  *
  * A temporary config file is written into `migrationDir`, used for the emit
  * call, and deleted immediately after. It imports the example's real
- * `prisma-next.config.ts` and overrides only the `contract` field to point at
+ * `prisma.config.ts` and overrides only the `contract` field to point at
  * the migration's `contract.prisma` (using an absolute path so resolution is
  * independent of where the temp file sits). All other config (extensions, db,
  * family) comes from the real config unchanged.
@@ -352,7 +358,9 @@ function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
  * Returns `{ storageHash, contractJson, contractDts }`.
  */
 function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, contractFamily) {
-  const prismaNextBin = join(exampleDir, 'node_modules', '.bin', 'prisma-next');
+  // The workspace root carries the local prisma-next bin (examples name no
+  // @internal/* package, per lint:consumer-internal-imports).
+  const prismaNextBin = join(repoRoot, 'node_modules', '.bin', 'prisma-next');
   if (!existsSync(prismaNextBin)) {
     throw new Error(
       `regen-example-migrations: prisma-next not found at ${prismaNextBin}; run pnpm install`,
@@ -391,9 +399,11 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
     }
   }
 
+  // The engine bin emits NDJSON events; the last line is the result envelope.
   let parsed;
   try {
-    parsed = JSON.parse(emitOutput);
+    const lines = emitOutput.trim().split('\n');
+    parsed = JSON.parse(lines[lines.length - 1]);
   } catch {
     rmSync(tmpEmitDir, { recursive: true, force: true });
     throw new Error(
@@ -401,7 +411,7 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
     );
   }
 
-  const storageHash = parsed?.storageHash;
+  const storageHash = parsed?.envelope?.result?.storageHash ?? parsed?.storageHash;
   if (typeof storageHash !== 'string' || !/^(?:[0-9a-f]{64}|empty)$/.test(storageHash)) {
     rmSync(tmpEmitDir, { recursive: true, force: true });
     throw new Error(

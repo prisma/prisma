@@ -32,7 +32,7 @@ export interface RenderMigrationMeta {
  *   `@internal/family-mongo`; subclasses don't need to redeclare
  *   `targetId` or thread family/target generics.
  * - `MigrationCLI` — the migration-file CLI entrypoint that loads
- *   `prisma-next.config.ts`, assembles a `ControlStack`, and instantiates
+ *   `prisma.config.ts`, assembles a `ControlStack`, and instantiates
  *   the migration class. The migration file owns this dependency directly:
  *   pulling CLI machinery in at script run time is acceptable because the
  *   script's whole purpose is to be invoked from the project that owns the

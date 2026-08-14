@@ -41,6 +41,7 @@ function updatePresentations(inputs: {
 }): Presentations {
   const { document, database, dryRun } = inputs;
   return {
+    stdout: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',
@@ -55,7 +56,7 @@ function updatePresentations(inputs: {
       ...migrationResultBlocks(document),
     ],
     json: () => document,
-    next: () => migrationResultNextActions(document, 'prisma-next db update'),
+    next: () => migrationResultNextActions(document, 'prisma-cli db update'),
   };
 }
 

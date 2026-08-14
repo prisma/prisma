@@ -69,6 +69,17 @@
  * - similarity-search <vec>    Vector similarity search (pgvector)
  * - raw-sql-demo [limit]         `fns.raw` in projection + filter + typed-expression
  *                              interpolation, in one query
+ * - raw-query-report [limit]     Whole-query raw read: one template, a row spec mixing
+ *                              contract columns with a computed count, decoded typed rows
+ * - raw-query-bump-views [kind]
+ *                              Whole-query raw mutation terminated with `.affectedCount()`,
+ *                              reporting how many rows it touched
+ * - raw-query-active-authors [minPosts]
+ *                              A CTE built by interpolating one row-spec'd raw query into
+ *                              another — parts and params splice in, in order
+ * - raw-query-promote <titleTerm>
+ *                              A data-modifying CTE: `UPDATE … RETURNING` composed into an
+ *                              outer query, which is what row-returning embeddability buys
  * - cross-author-similarity [limit]
  *                              SQL DSL escape-hatch: closest post pairs across different
  *                              authors via a self-join on a non-relation predicate, with
@@ -148,6 +159,12 @@ import { getUserById } from './queries/get-user-by-id';
 import { getUserPosts } from './queries/get-user-posts';
 import { getUsers } from './queries/get-users';
 import { getUsersCached } from './queries/get-users-cached';
+import {
+  rawQueryActiveAuthors,
+  rawQueryBumpViews,
+  rawQueryPromoteAndList,
+  rawQueryReport,
+} from './queries/raw-query-demo';
 import { rawSqlDemo } from './queries/raw-sql-demo';
 import { similaritySearch } from './queries/similarity-search';
 
@@ -169,6 +186,19 @@ function describe(value: unknown): string {
   if (typeof value === 'bigint') return `${value}n (bigint)`;
   if (typeof value === 'string') return `'${value}' (string)`;
   return `${String(value)} (${typeof value})`;
+}
+
+/**
+ * `JSON.stringify` refuses a `bigint`, and a raw row spec naming an
+ * `pg/int8@1` column decodes to one — so counts come back as bigints. Render
+ * them with the `n` suffix the value would carry in source.
+ */
+function toJson(value: unknown): string {
+  return JSON.stringify(
+    value,
+    (_key, entry) => (typeof entry === 'bigint' ? `${entry}n` : entry),
+    2,
+  );
 }
 
 async function main() {
@@ -533,6 +563,32 @@ async function main() {
       const results = await rawSqlDemo(limit);
 
       console.log(JSON.stringify(results, null, 2));
+    } else if (cmd === 'raw-query-report') {
+      const [limitStr] = args;
+      const limit = limitStr ? Number.parseInt(limitStr, 10) : 10;
+      const results = await rawQueryReport(limit);
+
+      console.log(toJson(results));
+    } else if (cmd === 'raw-query-bump-views') {
+      const [kind] = args;
+      const stats = await rawQueryBumpViews(kind ?? 'admin');
+
+      console.log(toJson(stats));
+    } else if (cmd === 'raw-query-active-authors') {
+      const [minPostsStr] = args;
+      const minPosts = minPostsStr ? Number.parseInt(minPostsStr, 10) : 1;
+      const results = await rawQueryActiveAuthors(minPosts);
+
+      console.log(toJson(results));
+    } else if (cmd === 'raw-query-promote') {
+      const [titleTerm] = args;
+      if (!titleTerm) {
+        console.error('Usage: pnpm start -- raw-query-promote <titleTerm>');
+        process.exit(1);
+      }
+      const results = await rawQueryPromoteAndList(titleTerm);
+
+      console.log(toJson(results));
     } else if (cmd === 'cross-author-similarity') {
       const [limitStr] = args;
       const limit = limitStr ? Number.parseInt(limitStr, 10) : 10;
@@ -752,6 +808,8 @@ async function main() {
           'repo-similar-posts <postId> [limit] | repo-search-posts <embedding> <maxDistance> [limit] | ' +
           'users-paginate [cursor] [limit] | users-paginate-back <cursor> [limit] | ' +
           'similarity-search <vec> [limit] | cross-author-similarity [limit] | raw-sql-demo [limit] | ' +
+          'raw-query-report [limit] | raw-query-bump-views [kind] | raw-query-active-authors [minPosts] | ' +
+          'raw-query-promote <titleTerm> | ' +
           'cache-demo-user <userId> | cache-demo-users [limit] | cache-demo-sql [limit] | ' +
           'enum-priority [limit] | enum-priority-filter [member] [limit] | enum-default-demo | ' +
           'integer-representations [limit] | aggregate-precision | aggregate-stddev | ' +

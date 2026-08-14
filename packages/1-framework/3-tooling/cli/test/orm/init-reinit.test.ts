@@ -54,7 +54,7 @@ function readProjectFile(relative: string): string {
 describe('re-scaffolding over an existing project', () => {
   describe('a project with a generated config', () => {
     beforeEach(() => {
-      writeProjectFile('prisma-next.config.ts', HAND_WRITTEN_CONFIG);
+      writeProjectFile('prisma.config.ts', HAND_WRITTEN_CONFIG);
     });
 
     it(
@@ -67,7 +67,7 @@ describe('re-scaffolding over an existing project', () => {
         });
 
         expect(run.exitCode).toBe(0);
-        expect(readProjectFile('prisma-next.config.ts')).toContain('defineConfig');
+        expect(readProjectFile('prisma.config.ts')).toContain('defineConfig');
       },
       timeouts.coldTransformImport,
     );
@@ -83,7 +83,7 @@ describe('re-scaffolding over an existing project', () => {
 
         expect(run.exitCode).toBe(2);
         expect(envelopeOf(run)).toMatchObject({ ok: false, error: { code: 'CLI.PROMPT_INVALID' } });
-        expect(readProjectFile('prisma-next.config.ts')).toBe(HAND_WRITTEN_CONFIG);
+        expect(readProjectFile('prisma.config.ts')).toBe(HAND_WRITTEN_CONFIG);
       },
       timeouts.coldTransformImport,
     );
@@ -133,7 +133,7 @@ describe('re-scaffolding over an existing project', () => {
             meta: { consentToken: basename(projectDir) },
           },
         });
-        expect(readProjectFile('prisma-next.config.ts')).toBe(HAND_WRITTEN_CONFIG);
+        expect(readProjectFile('prisma.config.ts')).toBe(HAND_WRITTEN_CONFIG);
       },
       timeouts.coldTransformImport,
     );
@@ -219,7 +219,7 @@ describe('re-scaffolding over an existing project', () => {
 
   describe('the schema file the consent is really about', () => {
     beforeEach(() => {
-      writeProjectFile('prisma-next.config.ts', HAND_WRITTEN_CONFIG);
+      writeProjectFile('prisma.config.ts', HAND_WRITTEN_CONFIG);
       writeProjectFile(SCHEMA_PATH, HAND_WRITTEN_SCHEMA);
     });
 
@@ -281,7 +281,7 @@ describe('re-scaffolding over an existing project', () => {
           },
         });
         expect(readProjectFile(SCHEMA_PATH)).toBe(HAND_WRITTEN_SCHEMA);
-        expect(existsSync(join(projectDir, 'prisma-next.config.ts'))).toBe(false);
+        expect(existsSync(join(projectDir, 'prisma.config.ts'))).toBe(false);
       },
       timeouts.coldTransformImport,
     );
@@ -308,7 +308,7 @@ describe('re-scaffolding over an existing project', () => {
     beforeEach(() => {
       spacedDir = join(projectDir, 'my app ');
       mkdirSync(spacedDir, { recursive: true });
-      writeFileSync(join(spacedDir, 'prisma-next.config.ts'), HAND_WRITTEN_CONFIG, 'utf-8');
+      writeFileSync(join(spacedDir, 'prisma.config.ts'), HAND_WRITTEN_CONFIG, 'utf-8');
     });
 
     it(

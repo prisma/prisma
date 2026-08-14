@@ -2,12 +2,8 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  setupCommandMocks,
-  setupTestDirectoryFromFixtures,
-  withTempDir,
-} from './utils/cli-test-helpers';
+import { describe, expect, it } from 'vitest';
+import { setupTestDirectoryFromFixtures, withTempDir } from './utils/cli-test-helpers';
 import { runDbInit, runDbInitAllowFailure, setupDbInitFixture } from './utils/db-init-test-helpers';
 import { runDbUpdate, setupDbUpdateFixture } from './utils/db-update-test-helpers';
 
@@ -54,17 +50,6 @@ function noRefFilesUnder(refsDir: string): boolean {
 
 withTempDir(({ createTempDir }) => {
   describe('db init ref advancement (e2e)', () => {
-    let cleanupMocks: () => void;
-
-    beforeEach(() => {
-      const mocks = setupCommandMocks();
-      cleanupMocks = mocks.cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     it(
       'advances the implicit db ref on the default database',
       async () => {
@@ -273,7 +258,7 @@ withTempDir(({ createTempDir }) => {
           const testSetup = setupTestDirectoryFromFixtures(
             createTempDir,
             fixtureSubdir,
-            'prisma-next.config.with-db.ts',
+            'prisma.config.with-db.ts',
             { '{{DB_URL}}': connectionString },
           );
           const refsDir = appRefsDir(testSetup.testDir);
@@ -293,18 +278,6 @@ withTempDir(({ createTempDir }) => {
   });
 
   describe('db update ref advancement (e2e)', () => {
-    let cleanupMocks: () => void;
-
-    // `db init` still runs on the commander shell, whose output goes to the
-    // console this keeps out of the test log.
-    beforeEach(() => {
-      cleanupMocks = setupCommandMocks().cleanup;
-    });
-
-    afterEach(() => {
-      cleanupMocks();
-    });
-
     it(
       'advances the implicit db ref on the default database',
       async () => {

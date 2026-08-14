@@ -103,7 +103,7 @@ The returned `MongoClient` exposes:
 | Path | Purpose |
 | --- | --- |
 | `src/contract.prisma` | PSL authoring surface |
-| `prisma-next.config.ts` | CLI config (uses `@prisma/orm-mongo/config`) |
+| `prisma.config.ts` | CLI config (uses `@prisma/orm-mongo/config`) |
 | `src/contract.json` | Emitted contract (regenerate with `pnpm emit`) |
 | `src/contract.d.ts` | Emitted typed contract (do not edit) |
 | `src/db.ts` | Runtime composition via the `mongo()` facade |

@@ -1,0 +1,5 @@
+model TestModel {
+  id      Int      @id
+  string  String?
+  decimal Decimal?
+}

@@ -1,5 +1,7 @@
 # ADR 210 — Prepared Statements: Author Surface and Driver SPI
 
+> **Update — the prepared handle is one of two shapes, per [ADR 247](<./ADR 247 - Whole-query raw SQL is the fragment mechanism at statement position.md>):** `prepare()` reads the plan's declared result. A rows plan returns the `PreparedStatement<Params, Row>` this ADR describes, consumed with `.query(target, params)`. A plan declaring an affected-row count returns a `PreparedExecution<Params>`, consumed with `.execute(target, params)` and resolving `SqlStatementStats`. The declaration, the bind-site callback, the lower-once contract, and the internal bridge below hold for both. So does the request record the driver receives — the same lowered SQL, encoded params, and opaque `preparedStatementHandle` slot, with the driver still never seeing the `PreparedStatement` object. What differs is the method that request goes to: the "Driver SPI" section below describes rows going to `SqlQueryable.query()`, and the statistics face goes to `SqlQueryable.execute()` instead, which resolves `SqlStatementStats` rather than streaming rows.
+
 ## Status
 
 Accepted. May 5, 2026.
@@ -47,7 +49,7 @@ A few things to notice:
 - **The execution scope is always explicit.** The first argument is a `RuntimeQueryable` — the top-level runtime, an explicit connection, or an active transaction (or its `TransactionContext`). The same `PreparedStatement` redirects between them without re-preparation; there is no implicit binding back to the runtime that produced it.
 - **The first query allocates a server-side handle; the second reuses it.** Subsequent queries against the same connection skip both lowering and parsing.
 
-Without `prepare`, an ad-hoc `db.user.select(...).where(...).all()` (or `.build()` + `runtime.execute(plan)`) runs as before: lowered every time, parsed by the server every time, and the framework keeps no state about it.
+Without `prepare`, an ad-hoc `db.user.select(...).where(...).all()` (or `.build()` + `runtime.query(plan)`) runs as before: lowered every time, parsed by the server every time, and the framework keeps no state about it.
 
 ## Design principles
 
@@ -105,7 +107,9 @@ The async return reflects an existing constraint, not a new one. `beforeCompile`
 
 ## Driver SPI
 
-Prepared execution uses the existing `SqlQueryable.query()` method. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
+> **Superseded in part** — "prepared statements are row queries" holds only for the rows face; a plan declaring an affected-row count prepares into a `PreparedExecution` that goes to `SqlQueryable.execute()`. See the update note above.
+
+`SqlQueryable.query()` streams rows; `SqlQueryable.execute()` returns statement statistics. Prepared statements are row queries, so prepared execution uses `query()`. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
 
 ```ts
 interface PreparedStatementHandle {
@@ -121,6 +125,7 @@ interface SqlExecuteRequest {
 
 interface SqlQueryable {
   query<Row>(request: SqlExecuteRequest): AsyncIterable<Row>;
+  execute(request: SqlExecuteRequest): Promise<{ affectedRows: number }>;
 }
 ```
 

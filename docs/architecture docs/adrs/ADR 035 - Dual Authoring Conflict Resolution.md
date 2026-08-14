@@ -28,7 +28,7 @@ Teams may temporarily keep both PSL and TS side by side during migration or expe
 Add a small config to declare the canonical authoring mode:
 
 ```typescript
-// prisma-next.config.ts
+// prisma.config.ts
 export default defineConfig({
   contract: {
     authoring: 'ts' | 'psl' | 'json',  // canonical source

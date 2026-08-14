@@ -40,7 +40,7 @@ export interface RenderMigrationMeta {
  *   generic to `SqlitePlanTargetDetails` and the abstract `targetId` to
  *   `'sqlite'`.
  * - `MigrationCLI` — the migration-file CLI entrypoint, re-exported from
- *   `@internal/cli/migration-cli`. Loads `prisma-next.config.ts`,
+ *   `@internal/cli/migration-cli`. Loads `prisma.config.ts`,
  *   assembles a `ControlStack`, and instantiates the migration class.
  */
 const BASE_IMPORTS: readonly ImportRequirement[] = [

@@ -4,3 +4,6 @@ early_access: false
 reviews:
   path_filters:
     - "!projects/**"
+  auto_review:
+    base_branches:
+      - ".*"

@@ -208,7 +208,7 @@ Run the colocated script from your project root:
 pnpm exec tsx ./re-emit-mti-variant-link-columns.ts
 ```
 
-It walks the project for `prisma-next.config.ts` directories, resolves each space's committed `contract.json`, and re-emits any contract whose MTI variant table still lacks its link column (an MTI variant model whose storage table has no `primaryKey`). It prefers a package's `emit` script when present, otherwise runs `prisma-next contract emit --config <path>`.
+It walks the project for `prisma.config.ts` directories, resolves each space's committed `contract.json`, and re-emits any contract whose MTI variant table still lacks its link column (an MTI variant model whose storage table has no `primaryKey`). It prefers a package's `emit` script when present, otherwise runs `prisma-next contract emit --config <path>`.
 
 Use `--check` for a dry-run that lists the contract-spaces still needing re-emit and exits non-zero if any remain:
 

@@ -14,7 +14,7 @@ import type {
   Declaration,
   ExecutionContext,
   ParamsFromDeclaration,
-  PreparedStatement,
+  PreparedFor,
   Runtime,
   SqlExecutionStackWithDriver,
   SqlMiddleware,
@@ -65,14 +65,10 @@ export interface PostgresClient<TContract extends Contract<SqlStorage>> {
   connect(bindingInput?: PostgresBindingInput): Promise<Runtime>;
   runtime(): Runtime;
   transaction<R>(fn: (tx: PostgresTransactionContext<TContract>) => PromiseLike<R>): Promise<R>;
-  prepare<
-    D extends Declaration<CT>,
-    Row,
-    CT extends CodecTypesBase = ExtractCodecTypes<TContract> & CodecTypesBase,
-  >(
+  prepare<D extends Declaration<CT>, Row, CT extends CodecTypesBase = ExtractCodecTypes<TContract>>(
     declaration: D,
     callback: (sql: Db<TContract>, params: BindSiteParams<D>) => SqlQueryPlan<Row>,
-  ): Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>>;
+  ): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>>;
   close(): Promise<void>;
   [Symbol.asyncDispose](): Promise<void>;
 }
@@ -332,11 +328,11 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
     prepare<
       D extends Declaration<CT>,
       Row,
-      CT extends CodecTypesBase = ExtractCodecTypes<TContract> & CodecTypesBase,
+      CT extends CodecTypesBase = ExtractCodecTypes<TContract>,
     >(
       declaration: D,
       callback: (sql: Db<TContract>, params: BindSiteParams<D>) => SqlQueryPlan<Row>,
-    ): Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>> {
+    ): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>> {
       return getRuntime().prepare<D, Row, CT>(declaration, (params) => callback(sql, params));
     },
 

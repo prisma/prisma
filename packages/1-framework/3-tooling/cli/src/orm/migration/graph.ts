@@ -51,6 +51,8 @@ function graphPresentations(inputs: {
 }): Presentations {
   const { tree, dot, legend } = inputs;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',

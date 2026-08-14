@@ -273,6 +273,73 @@ changes:
         - ".queryPrepared("
         - ".execute("
       anyMatch: true
+  - id: config-file-is-prisma-config-with-an-orm-section
+    summary: |
+      The CLI config file is `prisma.config.ts` — the `prisma-next.config.ts` name is
+      deprecated — and the config value is engine-shaped: `defineConfig` from
+      `@prisma/cli-engine` wraps the whole ORM config as its `orm` section. Rename the file,
+      then wrap the existing export: alias the current `defineConfig` import (from the target
+      facade or CLI config-types) as `ormConfig` and write
+      `export default defineConfig({ orm: ormConfig({ ...existing config... }) })`, adding
+      `@prisma/cli-engine` to devDependencies. Both the deprecated filename and the flat shape
+      still load, each printing a deprecation warning on stderr, so the two steps can land
+      separately; anything asserting clean stderr around CLI invocations sees the warning
+      until both are done.
+    detection:
+      glob: "**/prisma*.config.*"
+      contains:
+        - "defineConfig"
+      anyMatch: true
+  - id: published-prisma-next-bin-retired
+    summary: |
+      Nothing published ships a `prisma-next` bin anymore: `@prisma/orm-toolchain` publishes
+      the `orm` command family at `@prisma/orm-toolchain/cli` and no bin, and the database
+      facades forward no launcher. The only user-facing binary is the unified `prisma` CLI
+      (the prisma-cli distribution), which mounts the same commands. Replace
+      `prisma-next <command>` invocations in package scripts and CI with the unified CLI's
+      equivalent, and drop any dependency that was taken only to put the bin on PATH.
+    detection:
+      glob: "**/package.json"
+      contains:
+        - "prisma-next"
+      anyMatch: true
+  - id: prepared-statements-split-by-declared-result
+    summary: |
+      `runtime.prepare()` now returns one of two handles, chosen from the plan the callback
+      builds: a rows plan gives the `PreparedStatement<Params, Row>` you already have,
+      consumed with `.query(target, params)`; a plan whose declared result is an affected-row
+      count gives a `PreparedExecution<Params>`, consumed with `.execute(target, params)` and
+      resolving `SqlStatementStats`. Two things follow for an extension. A facade that
+      redeclares `prepare()` changes its return type from
+      `Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>>` to
+      `Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>>`, importing `PreparedFor` from
+      `@internal/sql-runtime` — no logic changes. A scope of your own that installs the
+      prepared-query bridge (`preparedStatementQuery`) must also install the execute bridge
+      (`preparedStatementExecute`, from `@internal/sql-runtime/internal/prepared-query`),
+      routing it to your bound queryable exactly as the query bridge does; without it,
+      `prepared.execute(yourScope, ...)` throws on the bridge invariant.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      contains:
+        - "preparedStatementQuery"
+        - "PreparedStatement<ParamsFromDeclaration"
+      anyMatch: true
+  - id: prepare-defaults-to-the-contract-codec-map
+    summary: |
+      A facade that redeclares `prepare()` should default its codec-map parameter to
+      `ExtractCodecTypes<TContract>` alone. Intersecting it with `CodecTypesBase` — the shape
+      the in-tree facades used — collapses `keyof CT` to `string` through that type's index
+      signature, which costs a caller every codec-id completion in the declaration and lets an
+      id no registry carries typecheck. Drop the intersection; the `CT extends CodecTypesBase`
+      constraint stays and nothing else in the signature changes. If your facade exposes a
+      contract-bound raw tag, its `.returns()` now narrows to the contract's ids the same way,
+      with no change on your side; a contract-free tag keeps accepting any string.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      contains:
+        - "ExtractCodecTypes<TContract> & CodecTypesBase"
+        - "CodecTypesBase ="
+      anyMatch: true
 ---
 
 # 8.0.0-rc.1 → 8.0.0-rc.2 — Extension-author upgrade instructions
@@ -582,3 +649,96 @@ Connection, transaction, and role-bound scopes preserve their existing bound res
 Middleware hooks are operation-specific: query uses `beforeQuery`, `interceptQuery`, `onRow`, and `afterQuery`; statistics uses `beforeExecute`, `interceptExecute`, and `afterExecute`; `beforeCompile` remains shared. `interceptQuery` returns `{ rows }`, `interceptExecute` returns `{ stats }`, and hook selection carries the operation distinction, so contexts and results have no operation discriminator. Do not add compatibility aliases or generic fallback hooks. Split row and statistics fakes and spies so tests detect an incorrect route. Behavior intended for both operations assigns one private implementation to both corresponding hook names.
 
 The Mongo facade keeps static `db.query`; it has no row-execution method named `query` and no compatibility `db.execute`. Build with `db.query`, obtain the connected runtime, and call `(await db.runtime()).query(plan)`. Leave genuine statistics calls, migration runners, and unrelated APIs named `execute` unchanged.
+
+## `config-file-is-prisma-config-with-an-orm-section`
+
+Two mechanical steps, in either order:
+
+1. `git mv prisma-next.config.ts prisma.config.ts` (same for `.mts` / `.mjs` variants).
+2. Wrap the flat export in the engine shape:
+
+```ts
+// before
+import { defineConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ ... });
+
+// after
+import { defineConfig } from '@prisma/cli-engine';
+import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
+export default defineConfig({ orm: ormConfig({ ... }) });
+```
+
+Add `@prisma/cli-engine` to `devDependencies`. The inner config is unchanged — only the file
+name and the outer wrapper move. The loader still discovers the deprecated filename and still
+accepts the flat shape, each with a stderr deprecation warning, so nothing breaks mid-rename;
+finish both steps to silence the warnings.
+
+## `published-prisma-next-bin-retired`
+
+`prisma-next ...` in a package script resolved through a bin the database facades forwarded
+from the toolchain. That chain is gone: the published toolchain is bin-less and exports the
+`orm` command family at `@prisma/orm-toolchain/cli` for the unified `prisma` CLI (the
+prisma-cli distribution) to mount. Point scripts and CI at the unified CLI, which serves the
+same command paths.
+
+## `prepared-statements-split-by-declared-result`
+
+The prepared surface answers what the plan declared. A rows plan still prepares into a
+`PreparedStatement` you consume by querying it; a plan built from a statement that reports an
+affected-row count prepares into a `PreparedExecution` you consume by executing it, which
+resolves `SqlStatementStats` rather than streaming rows. The two handles share no consumption
+method, so neither can be read the wrong way round.
+
+Extensions meet this in two places.
+
+**A facade that redeclares `prepare()`** — as the in-tree database facades do — swaps the
+declared return type and nothing else:
+
+```ts
+// Before
+): Promise<PreparedStatement<ParamsFromDeclaration<D, CT>, Row>> {
+// After
+): Promise<PreparedFor<ParamsFromDeclaration<D, CT>, Row>> {
+```
+
+`PreparedFor` comes from `@internal/sql-runtime` and resolves to whichever handle the plan
+earns.
+
+**A scope of your own** — a session, a role context, any object you hand to
+`prepared.query(...)` — carries the prepared bridges. If it installs `preparedStatementQuery`,
+it must now also install `preparedStatementExecute` beside it, routing to the same queryable:
+
+```ts
+[preparedStatementExecute]<Params>(
+  prepared: PreparedExecution<Params>,
+  params: Params,
+  options?: RuntimeExecuteOptions,
+): Promise<SqlStatementStats> {
+  return runPreparedExecuteAgainstYourQueryable(prepared, params, yourQueryable, options);
+}
+```
+
+Both symbols come from `@internal/sql-runtime/internal/prepared-query`. A scope missing the
+execute bridge typechecks but throws on the bridge invariant the first time someone executes a
+prepared statement against it.
+
+## `prepare-defaults-to-the-contract-codec-map`
+
+```ts
+// Before — the index signature on CodecTypesBase widens keyof CT to string
+CT extends CodecTypesBase = ExtractCodecTypes<TContract> & CodecTypesBase,
+
+// After
+CT extends CodecTypesBase = ExtractCodecTypes<TContract>,
+```
+
+Only the default changes. The constraint, `Declaration<CT>`, `ParamsFromDeclaration`, and the
+returned prepared handle are all as they were, and what infers at existing call sites is
+unchanged — this is about what the caller is offered and what the compiler refuses. With the
+intersection in place, `prepare({ id: 'pg/int4' }, ...)` typechecks and then fails at
+execution with `RUNTIME.PARAM_REF_MISSING_CODEC`; without it, the wrong id is a compile
+error and the right ones complete.
+
+The same narrowing reaches `.returns()` on a contract-bound raw tag through
+`@internal/sql-builder`, so a facade that re-exposes that tag inherits it without doing
+anything. Tags built for a contract-free lane are deliberately left open.

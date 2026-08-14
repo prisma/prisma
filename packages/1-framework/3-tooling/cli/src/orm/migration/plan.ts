@@ -149,7 +149,7 @@ function planNextActions(
   }
   return [
     { kind: 'edit-file', label: `Review ${written.join(' and ')}` },
-    runCommandAction('Apply the migration', 'prisma-next migrate'),
+    runCommandAction('Apply the migration', 'prisma-cli migrate'),
   ];
 }
 
@@ -163,6 +163,7 @@ function planPresentations(inputs: {
   readonly name: string | undefined;
 }): Presentations {
   return {
+    stdout: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',

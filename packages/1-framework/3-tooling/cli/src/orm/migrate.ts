@@ -78,7 +78,7 @@ interface MigrateDocument {
 
 const STATUS_ACTION = runCommandAction(
   'Check every space against the database',
-  'prisma-next migration status',
+  'prisma-cli migration status',
 );
 
 /**
@@ -98,6 +98,8 @@ function showPresentations(inputs: {
   const { document, graph, runList } = inputs;
   const count = document.migrations.length;
   return {
+    stdout: () => [],
+    next: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',
@@ -134,6 +136,7 @@ function applyPresentations(inputs: {
   const { document } = inputs;
   const advanced = document.advancedRef;
   return {
+    stdout: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',

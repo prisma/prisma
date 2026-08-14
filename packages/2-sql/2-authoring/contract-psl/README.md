@@ -130,7 +130,7 @@ Contract-level default (specifier options bag):
 
 ```mermaid
 flowchart LR
-  config[prisma-next.config.ts] --> providerHelper[@internal/sql-contract-psl/provider]
+  config[prisma.config.ts] --> providerHelper[@internal/sql-contract-psl/provider]
   providerHelper --> fsRead[read schema.prisma]
   fsRead --> parse[parse]
   parse --> parsed[DocumentAst + SourceFile + parser diagnostics]

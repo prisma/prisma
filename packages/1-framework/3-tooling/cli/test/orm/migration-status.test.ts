@@ -1,4 +1,5 @@
 import { rm } from 'node:fs/promises';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { writeRef } from '@internal/migration-tools/refs';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { createTestCli } from '@prisma/cli-engine/testing';
@@ -299,7 +300,7 @@ describe('migration status', () => {
     expect(run.presented?.presentation.human.at(-1)).toEqual({
       kind: 'summary',
       status: 'warn',
-      text: `1 pending — run \`prisma-next migrate --to ${HASH_HEAD.slice(0, 12)}\``,
+      text: `1 pending — run \`prisma-cli migrate --to ${HASH_HEAD.slice(0, 12)}\``,
     });
   });
 
@@ -327,7 +328,29 @@ describe('migration status', () => {
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
       kind: 'result',
-      envelope: { ok: false, error: { code: 'CONFIG.DB_CONNECTION_REQUIRED' } },
+      envelope: {
+        ok: false,
+        error: { code: 'CONFIG.DB_CONNECTION_REQUIRED', meta: { missingFlags: ['--db'] } },
+      },
+    });
+  });
+
+  it('uses the same envelope with no missing flags when only the driver is absent', async () => {
+    const project = await projectWithOneMigration();
+    const config = driverConfig(project);
+
+    const run = await harness({ ...config, driver: undefined }).run(
+      ['migration', 'status', '--json'],
+      { cwd: project.dir },
+    );
+
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: {
+        ok: false,
+        error: { code: 'CONFIG.DB_CONNECTION_REQUIRED', meta: { missingFlags: [] } },
+      },
     });
   });
 
@@ -354,9 +377,31 @@ describe('migration status', () => {
       isTty: { stdout: true },
     });
     const blocks = run.presented?.presentation.human ?? [];
+    const legend = JSON.stringify(blocks.at(1));
 
     expect(blocks.at(1)).toMatchObject({ kind: 'drawing' });
-    expect(JSON.stringify(blocks.at(1))).toContain('applied');
+    expect(legend).toContain('applied');
+    expect(legend).toContain('reserved markers — also typeable as --from/--to tokens');
+    expect(legend).toContain('user-defined refs');
+  });
+
+  it('renders the tree with ASCII glyphs under --ascii', async () => {
+    const project = await projectWithOneMigration();
+
+    const run = await harness(driverConfig(project)).run(
+      ['migration', 'status', '--ascii', '--from', EMPTY_CONTRACT_HASH],
+      { cwd: project.dir, isTty: { stdout: true, stderr: true } },
+    );
+    const migrationLine = stripAnsi(run.stderr)
+      .split('\n')
+      .find((line) => line.includes('20260101T0000_initial'));
+
+    expect(run.exitCode).toBe(0);
+    expect(migrationLine).toBeDefined();
+    expect(migrationLine).toContain('|^');
+    expect(migrationLine).toContain(`- -> ${HASH_HEAD.slice(0, 7)}`);
+    expect(migrationLine).not.toContain('│↑');
+    expect(migrationLine).not.toContain('→');
   });
 
   it('closes the connection and keeps the structured error when the marker read fails', async () => {
