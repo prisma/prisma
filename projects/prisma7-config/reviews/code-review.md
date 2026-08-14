@@ -21,7 +21,7 @@
 | AC-5  | Legacy discovery remains quiet and compatible                          | D1/D3    | PASS   | Unit coverage plus exact installed stderr for both entrypoints (`Loaded Prisma config from prisma.config.ts.`) in `packages/client/tests/e2e/prisma7-compatibility/tests/main.test.ts`, commits `817c176693`, `cbdef5fd11`                                                           |
 | AC-6  | Relative config paths resolve from the selected file                   | D1       | PASS   | Both versioned locations cover schema, migrations, Typed SQL, and views paths in `packages/config/src/__tests__/loadConfigFromFile.test.ts`, commit `817c176693`                                                                                                                     |
 | AC-7  | Bootstrap config and seed selection matches runtime precedence         | D2       | PASS   | Selector mirrors c12 3.3.4's three flat/index locations, suffix-before-extension precedence, and extension order; runtime-parity and bootstrap consumption tests, commit `14d5c875bb`                                                                                                |
-| AC-8  | Both init identities generate `prisma7.config.ts` with correct imports | D2/D3    | PASS   | Unit and installed coverage verifies both identities write only the versioned file with `prisma/config` or `@prisma/prisma7/config`, commits `8c0a07a5b6`, `cbdef5fd11`                                                                                                              |
+| AC-8  | Both init identities generate `prisma7.config.ts` with correct imports | D2/D3    | PASS   | Unit and installed coverage verifies both identities write only the versioned file with `prisma/config` or `@prisma/prisma7/config`; Bun E2E reads the canonical filename and snapshots the full generated config, commits `8c0a07a5b6`, `cbdef5fd11`, `1f650903c2`                  |
 | AC-9  | Completion/help/concrete default guidance teaches `prisma7.config.ts`  | D2       | PASS   | Focused CLI, completion, internals, and migrate assertions including `packages/migrate/src/__tests__/config-guidance.test.ts`, commit `8c0a07a5b6`                                                                                                                                   |
 | AC-10 | Both Prisma 7 entrypoints share one policy                             | D3       | PASS   | Installed `.bin/prisma7` and the packed transitive `prisma/build/index.js` bin target run the same precedence, failure, fallback, and init matrix in `packages/client/tests/e2e/prisma7-compatibility/tests/main.test.ts`, commit `cbdef5fd11`                                       |
 | AC-11 | Production literal audit has no stale concrete default guidance        | D2/D3    | PASS   | Final production scan at `cbdef5fd11` leaves only the accepted Prisma 6 compatibility comment and concrete legacy panic fixture lookup                                                                                                                                               |
@@ -129,3 +129,15 @@ None.
 **Findings:** none; final slice has no open findings.
 
 **For orchestrator:** slice DoD met; transient-ID scans of D3 and the cumulative slice diff emitted zero hits.
+
+### D3 R2 — SATISFIED
+
+**Scope:** CI correction. Commit `1f650903c2b43be8aea6cefee0481f3f90af3077` against parent `996f10510e4c4e840c7a70f3191d2b77e6b5f343`.
+
+**Tasks:** Bun init E2E clean: test filename and lookup use `prisma7.config.ts`; the full generated-content snapshot remains intact; README matches. Diff is limited to the fixture's two files.
+
+**AC delta:** AC-8 evidence widened by Bun E2E coverage; totals remain 12 PASS / 0 FAIL / 0 NOT VERIFIED.
+
+**Findings:** none; old Bun fixture references and transient-ID scan both emitted zero hits. Focused ESLint, Prettier, and diff checks pass; implementer reports Docker E2E 1/1 PASS.
+
+**For orchestrator:** CI correction is review-satisfied; no scope expansion or follow-up finding.
