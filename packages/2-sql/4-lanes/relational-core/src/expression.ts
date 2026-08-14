@@ -224,8 +224,19 @@ export interface RawSqlBuilder {
  */
 export type RawRowSpecEntry = string | { readonly codecId: string; readonly nullable?: boolean };
 
+/**
+ * Declares the one column name a row spec cannot use. TypeScript types
+ * `{ __proto__: 'pg/int4@1' }` and `{ ['__proto__']: 'pg/int4@1' }` alike — as
+ * a spec with a `__proto__` column — while JavaScript keeps the key in neither
+ * object. Rejecting the name here is what makes the two agree; the AST refuses
+ * the computed form again at runtime, where it does arrive.
+ */
+export type NoReservedRowColumn = {
+  readonly __proto__?: 'A raw row spec cannot declare a __proto__ column: alias the column in SQL and declare the alias instead';
+};
+
 /** The declared result row of a raw query: result-column name to codec. */
-export type RawRowSpec = Readonly<Record<string, RawRowSpecEntry>>;
+export type RawRowSpec = Readonly<Record<string, RawRowSpecEntry>> & NoReservedRowColumn;
 
 /**
  * Row type minted for a {@link RawRowSpec}. Column names carry through; the
@@ -364,15 +375,22 @@ function templateParts(
   return parts;
 }
 
+/**
+ * Normalizes each authored entry to a {@link RawQueryColumn}. The record is
+ * assembled with `Object.fromEntries`, which defines each key as an own
+ * property: a spec built at runtime with a `__proto__` key reaches the AST,
+ * which refuses it by name, rather than silently setting the record's
+ * prototype and leaving the column to vanish.
+ */
 function resolveRowSpec(spec: RawRowSpec): Record<string, RawQueryColumn> {
-  const columns: Record<string, RawQueryColumn> = {};
-  for (const [name, entry] of Object.entries(spec)) {
-    columns[name] =
+  return Object.fromEntries(
+    Object.entries(spec).map(([name, entry]) => [
+      name,
       typeof entry === 'string'
         ? { codecId: entry, nullable: false }
-        : { codecId: entry.codecId, nullable: entry.nullable ?? false };
-  }
-  return columns;
+        : { codecId: entry.codecId, nullable: entry.nullable ?? false },
+    ]),
+  );
 }
 
 /**

@@ -58,6 +58,47 @@ describe('ast/RawQueryAst', () => {
     });
   });
 
+  describe('column names that collide with object machinery', () => {
+    const protoColumns = Object.fromEntries([
+      ['__proto__', { codecId: 'pg/int4@1', nullable: false }],
+    ]) as Record<string, { codecId: string; nullable: boolean }>;
+
+    it('refuses a __proto__ column instead of dropping it', () => {
+      expect(() => RawQueryAst.rows(['select 1 as "__proto__"'], protoColumns)).toThrow(
+        /__proto__/,
+      );
+    });
+
+    it('names the offending column in the structured error', () => {
+      expect(() => RawQueryAst.rows(['select 1 as "__proto__"'], protoColumns)).toThrow(
+        expect.objectContaining({
+          code: 'RUNTIME.AST_INVALID',
+          meta: expect.objectContaining({ column: '__proto__' }),
+        }),
+      );
+    });
+
+    it('keeps a constructor column as an own property of the frozen record', () => {
+      const node = RawQueryAst.rows(['select 1 as "constructor"'], {
+        constructor: { codecId: 'pg/int4@1', nullable: false },
+        id: { codecId: 'pg/int4@1', nullable: false },
+      });
+      const result = node.result;
+      if (result.kind !== 'rows') throw new Error('expected a row-returning result');
+
+      expect(Object.keys(result.columns)).toEqual(['constructor', 'id']);
+      expect(result.columns['constructor']).toEqual({ codecId: 'pg/int4@1', nullable: false });
+    });
+
+    it('leaves the frozen column record on the ordinary object prototype', () => {
+      const node = RawQueryAst.rows(['select 1'], columns);
+      const result = node.result;
+      if (result.kind !== 'rows') throw new Error('expected a row-returning result');
+
+      expect(Object.getPrototypeOf(result.columns)).toBe(Object.prototype);
+    });
+  });
+
   describe('affected-count node', () => {
     it('carries the affected-count result marker and no columns', () => {
       const node = RawQueryAst.affectedCount(['update "user" set seen = now()']);

@@ -1,13 +1,15 @@
 import type { Contract as FrameworkContract } from '@internal/contract/types';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
-import type { SqlStorage } from '@internal/sql-contract/types';
+import { type SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { validateSqlContractFully } from '@internal/sql-contract/validators';
 import { defineContract } from '@internal/sql-contract-ts/contract-builder';
 import { type ParamRef, RawQueryAst } from '@internal/sql-relational-core/ast';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../../1-core/contract/test/test-support';
+import type { BuilderContext } from '../../src/runtime/builder-base';
 import { sql } from '../../src/runtime/sql';
+import { TableProxyImpl } from '../../src/runtime/table-proxy-impl';
 import { contract as contractJson } from '../fixtures/contract';
 import type { Contract } from '../fixtures/generated/contract';
 
@@ -166,5 +168,46 @@ describe('reserved surface keys', () => {
         rawCodecInferer: { inferCodec: () => 'pg/text@1' },
       }),
     ).toThrow(expect.objectContaining({ code: 'ORM.NAMESPACE_RESERVED' }));
+  });
+});
+
+describe('storage column names that collide with object machinery', () => {
+  // A quoted SQL identifier may be anything, so storage can carry a column
+  // named `__proto__` — StorageTable keeps it as an own property, and the
+  // proxy has to report what storage states. The contract-builder DSL cannot
+  // express the name, so the getter is exercised against its own typed input.
+  const table = new StorageTable({
+    columns: Object.fromEntries([
+      ['id', { codecId: 'pg/text@1', nullable: false, nativeType: 'text' }],
+      ['__proto__', { codecId: 'pg/text@1', nullable: true, nativeType: 'text' }],
+    ]),
+    uniques: [],
+    indexes: [],
+    foreignKeys: [],
+  });
+
+  const proxy = () =>
+    new TableProxyImpl(
+      'Note',
+      table,
+      'Note',
+      { ...stubBase, storage: undefined } as unknown as BuilderContext,
+      'public',
+    );
+
+  it('reports a __proto__ column as an own property of the refs record', () => {
+    const columns = proxy().columns;
+    const byName = new Map(Object.entries(columns));
+
+    expect(Object.keys(columns)).toEqual(['id', '__proto__']);
+    expect(Object.hasOwn(columns, '__proto__')).toBe(true);
+    expect(byName.get('__proto__')).toEqual({ codecId: 'pg/text@1', nullable: true });
+  });
+
+  it('leaves the refs record frozen on the ordinary object prototype', () => {
+    const columns = proxy().columns;
+
+    expect(Object.getPrototypeOf(columns)).toBe(Object.prototype);
+    expect(Object.isFrozen(columns)).toBe(true);
   });
 });

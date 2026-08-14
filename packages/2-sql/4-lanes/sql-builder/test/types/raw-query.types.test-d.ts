@@ -116,3 +116,17 @@ test('a column reference from the table proxy carries the contract codec id', ()
   expectTypeOf(users.columns.invited_by_id.nullable).toEqualTypeOf<true>();
   expectTypeOf(users.columns.id.nullable).toEqualTypeOf<false>();
 });
+
+test('a __proto__ column is rejected on the contract-typed tag too', () => {
+  // @ts-expect-error — a __proto__ key never survives as a row column
+  db.raw`SELECT 1 AS "__proto__"`.returnsRow({ __proto__: 'pg/int4@1' });
+});
+
+test('a constructor column cannot be declared against the contract codec map', () => {
+  // TypeScript contextually types a `constructor` key from `Object`, so the
+  // codec id widens to `string` and no longer matches a key of the codec map.
+  // The rejection is the compiler's, not a rule this surface imposes: the
+  // contract-free tag takes the same spec and carries the column through.
+  // @ts-expect-error — the codec id cannot stay literal under this key
+  db.raw`SELECT 1 AS "constructor"`.returnsRow({ constructor: 'pg/int4@1' });
+});

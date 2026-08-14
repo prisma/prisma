@@ -97,3 +97,40 @@ describe('raw-query row decoding', () => {
     expect(decoded).toEqual({ affectedRows: 3 });
   });
 });
+
+describe('column names that collide with object machinery', () => {
+  const oddNamesAst = RawQueryAst.rows(['select 1 as "constructor"'], {
+    constructor: { codecId: 'test/int@1', nullable: false },
+  });
+
+  it('keys the alias list and codec map by the declared name', () => {
+    const ctx = buildDecodeContext(oddNamesAst, contractCodecs);
+
+    expect(ctx.aliases).toEqual(['constructor']);
+    expect(ctx.codecs.get('constructor')?.id).toBe('test/int@1');
+  });
+
+  it('decodes a constructor column into an own property of the row', async () => {
+    const decoded = await decodeRow(
+      { constructor: 4 },
+      buildDecodeContext(oddNamesAst, contractCodecs),
+      {},
+    );
+
+    expect(Object.hasOwn(decoded, 'constructor')).toBe(true);
+    expect(decoded['constructor']).toBe(40);
+  });
+
+  it('ignores a __proto__ column the result carries but the spec does not declare', async () => {
+    const wireRow = Object.fromEntries([
+      ['id', 4],
+      ['email', 'a@b.example'],
+      ['__proto__', { polluted: true }],
+    ]);
+
+    const decoded = await decodeRow(wireRow, buildDecodeContext(rowsAst, contractCodecs), {});
+
+    expect(decoded).toEqual({ id: 40, email: 'decoded:a@b.example' });
+    expect(Object.getPrototypeOf(decoded)).toBe(Object.prototype);
+  });
+});
