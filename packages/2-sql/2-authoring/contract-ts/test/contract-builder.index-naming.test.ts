@@ -160,6 +160,39 @@ describe('index naming at TS lowering', () => {
     ]);
   });
 
+  it('truncates a synthesized FK-backing index prefix to the 54-byte cap', () => {
+    const Category = model('Category', {
+      fields: {
+        id: field.column(int4Column).id(),
+      },
+    }).sql({ table: 'category' });
+
+    const CategoryPost = model('CategoryPost', {
+      fields: {
+        id: field.column(int4Column).id(),
+        categoryId: field.column(int4Column).sql({ column: 'categoryId_AtMap' }),
+      },
+      relations: {
+        category: rel
+          .belongsTo(Category, { from: 'categoryId', to: 'id' })
+          .sql({ fk: { index: true } }),
+      },
+    }).sql({ table: 'CategoriesOnPostsManyToMany_AtAtMap' });
+
+    const contract = defineTestContract({ models: { Category, CategoryPost } });
+
+    expect(unboundTables(contract.storage)['CategoriesOnPostsManyToMany_AtAtMap']!.indexes).toEqual(
+      [
+        {
+          name: 'CategoriesOnPostsManyToMany_AtAtMap_categoryId_AtMap_i_4870b374',
+          prefix: 'CategoriesOnPostsManyToMany_AtAtMap_categoryId_AtMap_i',
+          columns: ['categoryId_AtMap'],
+          unique: false,
+        },
+      ],
+    );
+  });
+
   it('rejects an authored index name over the 54-byte prefix cap', () => {
     const longName = 'a'.repeat(55);
     expect(() =>

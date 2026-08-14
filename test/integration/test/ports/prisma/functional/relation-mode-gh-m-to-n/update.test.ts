@@ -28,13 +28,12 @@ import {
 //   → describe('[update]') block, m:n mandatory (explicit) — SQL Databases.
 //
 // Scope: relationMode=foreignKeys only (relationMode=prisma entries non-ported).
-// Only isSchemaUsingMap=false (`-nomap`) variants run here; @map only changes
-// physical names which never surface through the domain-facing ORM API, and the
-// faithful @map schema is currently un-emittable (prisma-next #1047
-// index-name-length gap) — those map cells live in emit-map.test.ts as
-// `it.fails` gap trackers (see failing.md). Every fixture variant is run under
-// one representative Contract type; the DB-level FK actions that distinguish
-// them are exercised at runtime.
+// Only isSchemaUsingMap=false (`-nomap`) variants run here. @map changes only
+// physical names, which never surface through the domain-facing ORM API, so
+// the map variants add emit coverage in emit-map.test.ts rather than duplicate
+// this runtime matrix. Every fixture variant is run under one representative
+// Contract type; the DB-level FK actions that distinguish them are exercised
+// at runtime.
 //
 // Each [update] test seeds two posts each with two categories first (upstream
 // `beforeEach` → `createXPostsWith2CategoriesSQLDb({ count: 2 })`), reproduced

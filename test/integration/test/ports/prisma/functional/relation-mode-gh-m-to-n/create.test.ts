@@ -23,12 +23,10 @@ import { allCategories, allJunction, allPosts } from './_shared';
 // non-ported — prisma-next relies on real DB foreign keys and has no
 // client-side relationMode=prisma referential-action emulation.
 //
-// Only isSchemaUsingMap=false (`-nomap`) variants run here. @map only changes
-// physical names (which never surface through the domain-facing ORM API), so
-// the map variants cover no additional runtime behaviour — and their faithful
-// @map schema is currently un-emittable (prisma-next #1047 index-name-length
-// gap), so the map matrix cells live in emit-map.test.ts as `it.fails` gap
-// trackers. See failing.md.
+// Only isSchemaUsingMap=false (`-nomap`) variants run here. @map changes only
+// physical names, which never surface through the domain-facing ORM API, so
+// the map variants add emit coverage in emit-map.test.ts rather than duplicate
+// this runtime matrix.
 //
 // Every fixture variant emits the same logical models, so its `contractJson`
 // is run under one representative Contract type (the DB-level FK actions that
