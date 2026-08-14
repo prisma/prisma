@@ -1,5 +1,7 @@
 # ADR 205 — Execution metadata lives on AST
 
+> **Update — the raw construction path this ADR contrasts with is superseded by [ADR 247](ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md):** a whole-query raw statement carries an AST, so the SQL family has one construction path rather than two. The `RawFunctionOptions` / `RawTemplateOptions` surface named in "Implementation notes" no longer exists; a raw statement declares its result through a row spec on the `raw-query` node. This ADR's invariant — the AST is the execution-metadata source when one exists — is what ADR 247 extends to raw.
+
 ## Context
 
 Query plans reach the runtime through two distinct construction paths. A builder path (SQL builder lane, SQL ORM client) constructs an AST and lowers it to `sql + params`. The raw SQL escape hatch, per [ADR 012](ADR%20012%20-%20Raw%20SQL%20Escape%20Hatch.md), skips the AST entirely and accepts a sql string with caller-supplied metadata. Both paths produce an `ExecutionPlan` with the same shape defined in [ADR 011](ADR%20011%20-%20Unified%20Plan%20Model.md).

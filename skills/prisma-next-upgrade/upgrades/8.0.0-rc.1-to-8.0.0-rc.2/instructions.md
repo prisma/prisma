@@ -241,6 +241,20 @@ changes:
       contains:
         - "prisma-next"
       anyMatch: true
+  - id: raw-is-a-reserved-storage-namespace
+    summary: |
+      A storage namespace named `raw` is refused: the SQL surface exposes the whole-query raw
+      statement tag as `db.sql.raw`, so a namespace of that name would be unreachable through
+      the builder while the emitted types still promised its tables. Building the client raises
+      `ORM.NAMESPACE_RESERVED` naming the namespace. Rename the namespace in your schema —
+      `@@schema("raw")` becomes any other name — re-emit the contract, and plan the rename
+      against the database as you would any other namespace rename. Only `raw` is reserved; every other namespace name is unaffected.
+    detection:
+      glob: "**/*.{prisma,json}"
+      contains:
+        - '@@schema("raw")'
+        - '"raw": {'
+      anyMatch: true
 ---
 
 # 8.0.0-rc.1 → 8.0.0-rc.2 — User upgrade instructions
@@ -495,3 +509,34 @@ If the application defines runtime middleware, use the operation-specific hooks:
 Tests that observe row queries should spy on `driver.query`, not `driver.execute`; statistics tests should observe `driver.execute`. Keep separate row-result and statistics queues so a wrong route fails loudly. Behavior intended for both operations assigns one private implementation to both corresponding hook names. Mongo keeps `db.query` as the static builder and has no row-execution `db.execute` facade method: build with `db.query`, obtain the connected runtime, then query through `(await db.runtime()).query(plan)`.
 
 Search broadly for `.execute(` and retired prepared execution, then inspect each candidate's plan and downstream use. Rows being iterated, indexed, decoded, compared as arrays, or passed to a row mapper identify `query`; reads of `affectedRows` or ignored results from non-returning DML identify `execute`. Leave unrelated APIs such as migration runners alone.
+
+## `raw-is-a-reserved-storage-namespace`
+
+The SQL surface answers `db.sql.raw` with the whole-query raw statement tag, so `raw` is no
+longer available as a storage namespace name. A contract that declares one is refused where the
+client is built, before any query runs:
+
+```text
+ORM.NAMESPACE_RESERVED: The SQL surface exposes the raw statement tag as "db.raw", so a storage
+namespace named "raw" cannot be reached through it. Rename the namespace in the schema.
+```
+
+Rename the namespace and re-emit:
+
+```prisma
+// Before: unreachable through the builder
+model Event {
+  id String @id
+  @@schema("raw")
+}
+
+// After: any other name
+model Event {
+  id String @id
+  @@schema("ingest")
+}
+```
+
+Then re-emit the contract, and plan the rename against the database as you would any
+other namespace rename — the physical schema still carries the old name until a plan moves it.
+Only `raw` is reserved; no other namespace name is affected.

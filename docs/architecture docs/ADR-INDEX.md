@@ -39,7 +39,7 @@ This document provides a comprehensive index of all Architectural Decision Recor
 | ADR | Title | Description | Link |
 |-----|-------|-------------|------|
 | 011 | Unified Plan Model | Establishes common Plan structure across all query lanes with AST, SQL, and metadata | [ADR 011 - Unified Plan Model.md](adrs/ADR%20011%20-%20Unified%20Plan%20Model.md) |
-| 012 | Raw SQL Escape Hatch | Provides safe raw SQL execution with required annotations and verification | [ADR 012 - Raw SQL Escape Hatch.md](adrs/ADR%20012%20-%20Raw%20SQL%20Escape%20Hatch.md) |
+| 012 | Raw SQL Escape Hatch | **Plan construction superseded by ADR 247.** Provides safe raw SQL execution with required annotations and verification; the annotation schema stands, the AST-less plan shape does not | [ADR 012 - Raw SQL Escape Hatch.md](adrs/ADR%20012%20-%20Raw%20SQL%20Escape%20Hatch.md) |
 | 013 | Lane Agnostic Plan Identity | Ensures Plan identity and hashing work consistently across all query lanes | [ADR 013 - Lane Agnostic Plan Identity.md](adrs/ADR%20013%20-%20Lane%20Agnostic%20Plan%20Identity.md) |
 | 162 | Kysely lane emits PN SQL AST | **Superseded.** The Kysely lane was removed from Prisma Next; this ADR is retained for historical context only | [ADR 162 - Kysely lane emits PN SQL AST.md](adrs/ADR%20162%20-%20Kysely%20lane%20emits%20PN%20SQL%20AST.md) |
 | 165 | ORM WhereArg literal normalization | Records Phase 2 decision to validate bound ToWhereExpr payloads then normalize ParamRef values into literals at ORM boundaries | [ADR 165 - ORM WhereArg literal normalization.md](adrs/ADR%20165%20-%20ORM%20WhereArg%20literal%20normalization.md) |
@@ -49,6 +49,7 @@ This document provides a comprehensive index of all Architectural Decision Recor
 | 025 | Plan Caching Memoization | Establishes Plan caching strategy with memoization and invalidation | [ADR 025 - Plan Caching Memoization.md](adrs/ADR%20025%20-%20Plan%20Caching%20Memoization.md) |
 | 180 | Dot-path field accessor | Callable string accessor (`u("homeAddress.city")`) for value object fields and Mongo update operators; unified `FieldAccessor` used by both read and write callbacks in the Mongo query builder | [ADR 180 - Dot-path field accessor.md](adrs/ADR%20180%20-%20Dot-path%20field%20accessor.md) |
 | 201 | State-machine pattern for typed DSL builders | Three-class state machine (`CollectionHandle` → `FilteredCollection` → `PipelineChain`) with phantom marker types gating conditional terminals; pattern used in `mongo-query-builder`, candidate for reuse in a typed SQL query builder | [ADR 201 - State-machine pattern for typed DSL builders.md](adrs/ADR%20201%20-%20State-machine%20pattern%20for%20typed%20DSL%20builders.md) |
+| 247 | Whole-query raw SQL is the fragment mechanism at statement position | A `raw-query` node in `AnyQueryAst` sharing the fragment tag's parts representation; `.returnsRow(spec)` / `.affectedCount()` terminators, a hybrid row spec (contract column refs or explicit codec ids), embeddable iff row-returning (so data-modifying CTEs compose), strict-on-missing / drop-surplus decode. Supersedes ADR 012's AST-less plan construction | [ADR 247 - Whole-query raw SQL is the fragment mechanism at statement position.md](adrs/ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md) |
 
 ## Runtime & Execution
 

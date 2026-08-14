@@ -31,6 +31,7 @@ import type {
   ProjectionExpr,
   ProjectionItem,
   RawExpr,
+  RawQueryAst,
   RawSqlLiteral,
   SelectAst,
   SqlQueryable,
@@ -210,6 +211,9 @@ export function renderLoweredSql(
       break;
     case 'delete':
       sql = renderDelete(node, ctx);
+      break;
+    case 'raw-query':
+      sql = renderParts(node.parts, ctx);
       break;
     default:
       throw new InternalError(`Unsupported AST node kind: ${nodeKind(node)}`);
@@ -416,10 +420,15 @@ function renderExpr(expr: AnyExpression, ctx: SqliteRenderContext): string {
   }
 }
 
+function renderParts(
+  parts: RawExpr['parts'] | RawQueryAst['parts'],
+  ctx: SqliteRenderContext,
+): string {
+  return parts.map((part) => (typeof part === 'string' ? part : renderExpr(part, ctx))).join('');
+}
+
 function renderRawExpr(node: RawExpr, ctx: SqliteRenderContext): string {
-  return node.parts
-    .map((part) => (typeof part === 'string' ? part : renderExpr(part, ctx)))
-    .join('');
+  return renderParts(node.parts, ctx);
 }
 
 // `excluded` is a pseudo-table in ON CONFLICT DO UPDATE that references the row proposed for insertion. It is not quoted because it's a keyword.

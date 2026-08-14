@@ -31,7 +31,7 @@ import {
   type ProjectionExpr,
   type ProjectionItem,
   type RawExpr,
-  type RawSqlExpr,
+  type RawQueryAst,
   type SelectAst,
   type SubqueryExpr,
   type TableSource,
@@ -178,8 +178,8 @@ export function renderLoweredSql(
     case 'delete':
       sql = renderDelete(node, contract, pim);
       break;
-    case 'raw-sql':
-      sql = renderRawSql(node, contract, pim);
+    case 'raw-query':
+      sql = renderParts(node.parts, contract, pim);
       break;
     // v8 ignore next 4
     default:
@@ -1128,22 +1128,16 @@ function renderDelete(ast: DeleteAst, contract: PostgresContract, pim: ParamInde
   return `DELETE FROM ${table}${whereClause}${returningClause}`;
 }
 
-function renderRawSql(ast: RawSqlExpr, contract: PostgresContract, pim: ParamIndexMap): string {
-  const out: string[] = [];
-  for (let i = 0; i < ast.fragments.length; i++) {
-    out.push(ast.fragments[i] ?? '');
-    if (i < ast.args.length) {
-      const arg = ast.args[i];
-      if (arg !== undefined) {
-        out.push(renderExpr(arg, contract, pim));
-      }
-    }
-  }
-  return out.join('');
+function renderParts(
+  parts: RawExpr['parts'] | RawQueryAst['parts'],
+  contract: PostgresContract,
+  pim: ParamIndexMap,
+): string {
+  return parts
+    .map((part) => (typeof part === 'string' ? part : renderExpr(part, contract, pim)))
+    .join('');
 }
 
 function renderRawExpr(node: RawExpr, contract: PostgresContract, pim: ParamIndexMap): string {
-  return node.parts
-    .map((part) => (typeof part === 'string' ? part : renderExpr(part, contract, pim)))
-    .join('');
+  return renderParts(node.parts, contract, pim);
 }

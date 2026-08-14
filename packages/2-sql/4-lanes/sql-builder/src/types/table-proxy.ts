@@ -19,6 +19,7 @@ import type {
 } from '../scope';
 import type { NamespaceTable, TableProxyContract } from './db';
 import type { DeleteQuery, InsertQuery, InsertValues, UpdateQuery } from './mutation-query';
+import type { ContractColumnRef } from './raw-query';
 import type { WithJoin, WithSelect } from './shared';
 
 // Homomorphic mapped form: result is always `Record<string, unknown>` even when
@@ -61,6 +62,25 @@ type ResolvedUpdateExpressions<Table extends StorageTable> = {
   }>;
 };
 
+/**
+ * The table's columns as raw row specs read them: each carries its codec id,
+ * its nullability, and the type the contract resolved it to, so naming one in
+ * a spec inherits all three.
+ */
+export type ColumnRefs<
+  C extends TableProxyContract,
+  NsId extends string,
+  Name extends string,
+  Columns = NamespaceTable<C, NsId, Name>['columns'],
+  Resolved = ResolvedColumnTypes<C, NsId, Name>,
+> = {
+  readonly [K in keyof Columns & string]: ContractColumnRef<
+    Columns[K] extends { readonly codecId: infer Id extends string } ? Id : string,
+    Columns[K] extends { readonly nullable: infer N extends boolean } ? N : boolean,
+    K extends keyof Resolved ? Resolved[K] : unknown
+  >;
+};
+
 export type ContractToQC<
   C extends TableProxyContract,
   NsId extends string = string,
@@ -83,6 +103,9 @@ export interface TableProxy<
 > extends JoinSource<StorageTableToScopeTable<NamespaceTable<C, NsId, Name>>, Alias>,
     WithSelect<QC, AvailableScope, EmptyRow>,
     WithJoin<QC, AvailableScope, C['capabilities']> {
+  /** The table's columns, for naming in a raw statement's row spec. */
+  readonly columns: ColumnRefs<C, NsId, Name>;
+
   as<NewAlias extends string>(
     newAlias: NewAlias,
   ): TableProxy<C, NsId, Name, NewAlias, RebindScope<AvailableScope, Alias, NewAlias>, QC>;
