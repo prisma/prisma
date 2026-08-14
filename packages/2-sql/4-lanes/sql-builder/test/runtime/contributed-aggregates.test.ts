@@ -208,7 +208,7 @@ describe('projection-only operations', () => {
       grouped.having((fields, aggregates) =>
         aggregates.gt(
           (aggregates as unknown as DynamicAggregates)['median']!(fields.id) as never,
-          1,
+          1 as never,
         ),
       ),
     ).toThrow(
