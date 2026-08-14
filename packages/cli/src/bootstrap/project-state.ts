@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { findPrismaConfigFile } from '@prisma/config'
+
 export interface ProjectState {
   hasPackageJson: boolean
   hasSchemaFile: boolean
@@ -11,16 +13,7 @@ export interface ProjectState {
 }
 
 const SCHEMA_CANDIDATES = ['prisma/schema.prisma', 'schema.prisma']
-const CONFIG_CANDIDATES = ['prisma7.config.ts', 'prisma.config.ts']
 const MODEL_PATTERN = /^\s*model\s+\w+/m
-
-function findPrismaConfigPath(baseDir: string): string | null {
-  for (const candidate of CONFIG_CANDIDATES) {
-    const fullPath = path.join(baseDir, candidate)
-    if (fs.existsSync(fullPath)) return fullPath
-  }
-  return null
-}
 
 function findSchemaPath(baseDir: string): string | null {
   for (const candidate of SCHEMA_CANDIDATES) {
@@ -50,7 +43,7 @@ function checkSeedInPackageJson(baseDir: string): boolean {
 const SEED_PATTERN = /seed\s*[:=]\s*['"`]/
 
 function checkSeedInPrismaConfig(baseDir: string): boolean {
-  const configPath = findPrismaConfigPath(baseDir)
+  const configPath = findPrismaConfigFile(baseDir)
   if (!configPath) return false
 
   try {
@@ -84,7 +77,7 @@ export function getSeedCommand(baseDir: string): string | null {
     } catch {}
   }
 
-  const configPath = findPrismaConfigPath(baseDir)
+  const configPath = findPrismaConfigFile(baseDir)
   if (configPath) {
     try {
       const content = fs.readFileSync(configPath, 'utf-8')
@@ -111,7 +104,7 @@ export function detectProjectState(baseDir: string): ProjectState {
   return {
     hasPackageJson: fs.existsSync(path.join(baseDir, 'package.json')),
     hasSchemaFile,
-    hasPrismaConfig: findPrismaConfigPath(baseDir) !== null,
+    hasPrismaConfig: findPrismaConfigFile(baseDir) !== null,
     hasEnvFile: fs.existsSync(path.join(baseDir, '.env')),
     hasModels,
     hasSeedScript: checkSeedScript(baseDir),

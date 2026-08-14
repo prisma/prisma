@@ -15,11 +15,46 @@ const debug = Debug('prisma:config:loadConfigFromFile')
 // See: https://github.com/unjs/c12/blob/1efbcbce0e094a8f8a0ba676324affbef4a0ba8b/src/loader.ts#L35-L42
 export const SUPPORTED_EXTENSIONS = ['.js', '.ts', '.mjs', '.cjs', '.mts', '.cts'] as const satisfies string[]
 
-const PRISMA7_CONFIG_FILE = 'prisma7.config.ts'
+const PRISMA7_CONFIG_FILE_CANDIDATES = [
+  ...SUPPORTED_EXTENSIONS.map((extension) => `prisma7.config${extension}`),
+  ...SUPPORTED_EXTENSIONS.map((extension) => path.join('.config', `prisma7${extension}`)),
+] as const satisfies readonly string[]
 
-function findPrisma7ConfigFile(configRoot: string): string | null {
-  const resolvedPath = path.resolve(configRoot, PRISMA7_CONFIG_FILE)
-  return fs.statSync(resolvedPath, { throwIfNoEntry: false })?.isFile() ? resolvedPath : null
+const LEGACY_CONFIG_FILE_BASENAMES = [
+  'prisma.config',
+  path.join('.config', 'prisma'),
+  path.join('.config', 'prisma.config'),
+] as const
+
+const LEGACY_CONFIG_FILE_CANDIDATES = LEGACY_CONFIG_FILE_BASENAMES.flatMap((basename) => [
+  ...SUPPORTED_EXTENSIONS.map((extension) => `${basename}${extension}`),
+  ...SUPPORTED_EXTENSIONS.map((extension) => path.join(basename, `index${extension}`)),
+])
+
+/**
+ * Find the highest-precedence Prisma 7-specific config file without loading it.
+ */
+function findPrisma7ConfigFile(configRoot = process.cwd()): string | null {
+  return findFirstConfigFile(PRISMA7_CONFIG_FILE_CANDIDATES, configRoot)
+}
+
+/**
+ * Find the config file selected by automatic Prisma 7 discovery without loading it.
+ */
+export function findPrismaConfigFile(configRoot = process.cwd()): string | null {
+  return findPrisma7ConfigFile(configRoot) ?? findFirstConfigFile(LEGACY_CONFIG_FILE_CANDIDATES, configRoot)
+}
+
+function findFirstConfigFile(candidates: readonly string[], configRoot: string): string | null {
+  for (const candidate of candidates) {
+    const resolvedPath = path.resolve(configRoot, candidate)
+
+    if (fs.statSync(resolvedPath, { throwIfNoEntry: false })?.isFile()) {
+      return resolvedPath
+    }
+  }
+
+  return null
 }
 
 type LoadConfigFromFileInput = {
