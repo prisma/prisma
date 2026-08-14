@@ -1,4 +1,5 @@
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { WIRE_NAME_PREFIX_MAX_BYTES } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { type ContractInput, defineContract, field, model, rel } from '../src/contract-builder';
@@ -158,6 +159,75 @@ describe('index naming at TS lowering', () => {
         unique: false,
       },
     ]);
+  });
+
+  it('truncates a synthesized FK-backing index prefix to the 54-byte cap', () => {
+    const Category = model('Category', {
+      fields: {
+        id: field.column(int4Column).id(),
+      },
+    }).sql({ table: 'category' });
+
+    const CategoryPost = model('CategoryPost', {
+      fields: {
+        id: field.column(int4Column).id(),
+        categoryId: field.column(int4Column).sql({ column: 'categoryId_AtMap' }),
+      },
+      relations: {
+        category: rel
+          .belongsTo(Category, { from: 'categoryId', to: 'id' })
+          .sql({ fk: { index: true } }),
+      },
+    }).sql({ table: 'CategoriesOnPostsManyToMany_AtAtMap' });
+
+    const contract = defineTestContract({ models: { Category, CategoryPost } });
+
+    expect(unboundTables(contract.storage)['CategoriesOnPostsManyToMany_AtAtMap']!.indexes).toEqual(
+      [
+        {
+          name: 'CategoriesOnPostsManyToMany_AtAtMap_categoryId_AtMap_i_4870b374',
+          prefix: 'CategoriesOnPostsManyToMany_AtAtMap_categoryId_AtMap_i',
+          columns: ['categoryId_AtMap'],
+          unique: false,
+        },
+      ],
+    );
+  });
+
+  it('truncates a synthesized FK-backing index prefix without splitting multibyte mapped names', () => {
+    const mappedTable = 'я'.repeat(28);
+    const mappedColumn = 'категорияId';
+    const Category = model('Category', {
+      fields: {
+        id: field.column(int4Column).id(),
+      },
+    }).sql({ table: 'category' });
+
+    const CategoryPost = model('CategoryPost', {
+      fields: {
+        id: field.column(int4Column).id(),
+        categoryId: field.column(int4Column).sql({ column: mappedColumn }),
+      },
+      relations: {
+        category: rel
+          .belongsTo(Category, { from: 'categoryId', to: 'id' })
+          .sql({ fk: { index: true } }),
+      },
+    }).sql({ table: mappedTable });
+
+    const contract = defineTestContract({ models: { Category, CategoryPost } });
+    const [index] = unboundTables(contract.storage)[mappedTable]!.indexes;
+    const synthesizedPrefix = `${mappedTable}_${mappedColumn}_idx`;
+
+    expect(index).toMatchObject({
+      prefix: 'я'.repeat(27),
+      columns: [mappedColumn],
+      unique: false,
+    });
+    expect(Buffer.byteLength(index?.prefix ?? '', 'utf8')).toBeLessThanOrEqual(
+      WIRE_NAME_PREFIX_MAX_BYTES,
+    );
+    expect(synthesizedPrefix.startsWith(index?.prefix ?? '')).toBe(true);
   });
 
   it('rejects an authored index name over the 54-byte prefix cap', () => {

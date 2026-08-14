@@ -1,3 +1,4 @@
+import { defaultIndexName, truncateToWireNamePrefixBytes } from '@internal/sql-schema-ir/naming';
 import { lowerAuthoredIndex } from './index-naming';
 import type { ForeignKeyInput, ReferentialAction } from './ir/foreign-key';
 import type { ForeignKeyReferenceInput } from './ir/foreign-key-reference';
@@ -69,9 +70,9 @@ export interface MaterializedTableConstraints {
  * `contract.json` persists: a `constraint: false` FK contributes no
  * `foreignKeys[]` entry, and an `index: true` FK whose columns aren't already
  * backed by a declared index/unique/primary-key contributes a wire-named
- * `indexes[]` entry (default prefix + content-hash wire name). Declared
- * indexes always survive unchanged; a second FK sharing already-synthesized
- * backing columns does not mint a duplicate index.
+ * `indexes[]` entry (byte-budgeted default prefix + content-hash wire name).
+ * Declared indexes always survive unchanged; a second FK sharing an already
+ * synthesized backing index does not mint a duplicate.
  */
 export function materializeForeignKeysAndIndexes(
   tableName: string,
@@ -99,7 +100,9 @@ export function materializeForeignKeysAndIndexes(
             where: undefined,
             unique: undefined,
             map: undefined,
-            name: undefined,
+            name: truncateToWireNamePrefixBytes(
+              defaultIndexName(tableName, reference.source.columns),
+            ),
             type: undefined,
             options: undefined,
           }),

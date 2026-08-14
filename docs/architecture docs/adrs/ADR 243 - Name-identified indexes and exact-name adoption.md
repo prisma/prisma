@@ -94,7 +94,7 @@ The index content tuple is a stability commitment — changing it re-suffixes ev
 
 `sortedOptions` is `[key, String(value)]` pairs sorted by key. Prefix, schema, and table are excluded, for ADR 234's reasons. The RLS tuple is unchanged. A table of literal content-to-hash pairs is pinned in the naming tests, so a change to the tuple encoding fails the suite rather than silently renaming every user's indexes.
 
-Default prefixes for unnamed authoring are ADR 009's existing default names, so an unnamed `@@index([a,b])` becomes `t_a_b_idx_<8hex>`. An expression index has no derivable default and must be named with `name:` or `map:`; an authoring diagnostic enforces it.
+Default prefixes for unnamed authoring are ADR 009's existing default names, so an unnamed `@@index([a,b])` becomes `t_a_b_idx_<8hex>`. An expression index has no derivable default and must be named with `name:` or `map:`; an authoring diagnostic enforces it. A synthesized FK-backing index is the exception to authored-prefix rejection: its default prefix is derived during FK materialization and truncated to the 54-byte wire-name budget before the content-hash suffix is appended. The emitted storage contract persists that truncated prefix and full physical name; authored index prefixes remain fail-loud when over budget.
 
 ## Equivalence matrix
 
