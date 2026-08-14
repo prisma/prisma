@@ -107,6 +107,8 @@ The async return reflects an existing constraint, not a new one. `beforeCompile`
 
 ## Driver SPI
 
+> **Superseded in part** — "prepared statements are row queries" holds only for the rows face; a plan declaring an affected-row count prepares into a `PreparedExecution` that goes to `SqlQueryable.execute()`. See the update note above.
+
 `SqlQueryable.query()` streams rows; `SqlQueryable.execute()` returns statement statistics. Prepared statements are row queries, so prepared execution uses `query()`. A prepared request carries the lowered SQL, encoded parameters, and an opaque handle slot:
 
 ```ts

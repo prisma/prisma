@@ -48,7 +48,7 @@ const plan = db.sql.raw`
 **2. The result is declared at the terminator, once.** A raw template is unfinished until it is terminated:
 
 - `.returnsRow(rowSpec)` declares the result columns and yields a buildable that mints a row-streaming plan.
-- `.affectedCount()` declares no columns and yields a buildable that mints `SqlQueryPlan<SqlStatementStats>`.
+- `.affectedCount()` declares no columns and yields a buildable that mints `SqlQueryPlan<AffectedCount>` — statement statistics carrying the brand that names where they came from, and assignable to `SqlStatementStats` wherever a caller wants the plain shape.
 
 A bare template builds nothing. The node's `result` field is the discriminator the rest of the system reads: `{ kind: 'rows', columns }` or `{ kind: 'affected-count' }`.
 
