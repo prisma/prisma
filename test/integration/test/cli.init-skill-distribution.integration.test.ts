@@ -166,6 +166,8 @@ function integrationTempRoot(): string {
  * binary, not a re-implementation. So the harness replaces `pnpm` on
  * `PATH` with a Node script that:
  *   - logs every invocation (for assertions on the install URL form)
+ *   - leaves behind the part of the "installed" project that init reads next
+ *     (a stub `@prisma/cli` with a `prisma-cli` bin — see the shim body)
  *   - forwards `pnpm dlx skills@latest add <args>` to the workspace's
  *     `node_modules/.bin/skills` invoked from the consumer's cwd.
  */
@@ -180,6 +182,7 @@ function createFakeDlxHarness(testDir: string): {
     join(fakeBinDir, 'pnpm'),
     `#!/usr/bin/env node
 import fs from 'node:fs';
+import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const args = process.argv.slice(2);
@@ -187,10 +190,35 @@ const cwd = process.cwd();
 const logPath = process.env.TEST_FAKE_DLX_LOG;
 
 if (args[0] === 'add' || args[0] === 'install' || args[0] === 'prisma-next') {
+  if (args[0] !== 'prisma-next') {
+    materializePrismaCliStub(cwd);
+  }
   if (logPath) {
     fs.appendFileSync(logPath, JSON.stringify({ cwd, args, status: 0 }) + '\\n', 'utf8');
   }
   process.exit(0);
+}
+
+/**
+ * The shim reports a successful install without fetching anything, so the
+ * project it leaves behind has to contain what \`init\` reads next: init emits
+ * by spawning the project-local \`prisma-cli\` binary it resolves through
+ * \`@prisma/cli/package.json\`. Without this stub the emit step fails, init
+ * settles at exit 5, and the skill install this file is about never runs.
+ *
+ * The binary only has to exit 0 — no assertion here reads the emitted
+ * contract, and the emit path itself is covered by the CLI's own unit tests
+ * and by test/e2e/framework/test/init-emit-subprocess.test.ts.
+ */
+function materializePrismaCliStub(projectDir) {
+  const packageDir = path.join(projectDir, 'node_modules', '@prisma', 'cli');
+  fs.mkdirSync(packageDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(packageDir, 'package.json'),
+    JSON.stringify({ name: '@prisma/cli', version: '0.0.0-test', bin: { 'prisma-cli': 'bin.mjs' } }),
+    'utf8',
+  );
+  fs.writeFileSync(path.join(packageDir, 'bin.mjs'), 'process.exit(0);\\n', 'utf8');
 }
 
 if (args[0] === 'dlx' && (args[1] === 'skills' || args[1] === 'skills@latest') && args[2] === 'add') {
