@@ -100,3 +100,107 @@ describe('decodeRow — include aggregate (JSON) columns', () => {
     expect(result).toEqual({ posts: 42 });
   });
 });
+
+describe('buildDecodeContext — raw-query row spec', () => {
+  it('builds decode context from row spec columns without contractCodecs', () => {
+    const ast = {
+      kind: 'raw-query',
+      result: {
+        kind: 'columns',
+        columns: { id: { codecId: 'test/int@1' } },
+      },
+    } as unknown as Parameters<typeof buildDecodeContext>[0];
+
+    const ctx = buildDecodeContext(ast, undefined);
+    expect(ctx.aliasSource).toBe('row-spec');
+    expect(ctx.aliases).toEqual(['id']);
+    expect(ctx.codecs.size).toBe(0);
+  });
+
+  it('builds decode context from row spec columns with contractCodecs resolving each codec', () => {
+    const registry = [
+      defineTestCodec({
+        typeId: 'test/int@1',
+        targetTypes: ['int4'],
+        encode: (v: number) => v,
+        decode: (v: unknown) => Number(v),
+      }),
+    ];
+    const ast = {
+      kind: 'raw-query',
+      result: {
+        kind: 'columns',
+        columns: { id: { codecId: 'test/int@1' } },
+      },
+    } as unknown as Parameters<typeof buildDecodeContext>[0];
+
+    const ctx = buildDecodeContext(ast, buildTestContractCodecs(registry));
+    expect(ctx.codecs.has('id')).toBe(true);
+  });
+
+  it('returns an undecoded context for an affected-count raw-query result', () => {
+    const ast = {
+      kind: 'raw-query',
+      result: { kind: 'affected-count' },
+    } as unknown as Parameters<typeof buildDecodeContext>[0];
+
+    const ctx = buildDecodeContext(ast, undefined);
+    expect(ctx.aliases).toBeUndefined();
+  });
+});
+
+describe('decodeRow — wire preview truncation', () => {
+  it('truncates long wire values in the DECODE_FAILED wirePreview', async () => {
+    const longValue = 'x'.repeat(150);
+    const ast = SelectAst.from(TableSource.named('users')).withProjection([
+      ProjectionItem.of('value', ColumnRef.of('users', 'value'), { codecId: 'test/broken@1' }),
+    ]);
+    const registry = [
+      defineTestCodec({
+        typeId: 'test/broken@1',
+        targetTypes: ['text'],
+        encode: (v: string) => v,
+        decode: () => {
+          throw new Error('boom');
+        },
+      }),
+    ];
+
+    await expect(
+      decodeRow(
+        { value: longValue },
+        buildDecodeContext(ast, buildTestContractCodecs(registry)),
+        {},
+      ),
+    ).rejects.toMatchObject({
+      details: expect.objectContaining({
+        wirePreview: `${'x'.repeat(100)}...`,
+      }),
+    });
+  });
+});
+
+describe('decodeRow — decode failures without a resolvable column ref', () => {
+  it('reports { alias } (not { table, column }) when the failing projection item has no column-ref', async () => {
+    const ast = SelectAst.from(TableSource.named('users')).withProjection([
+      ProjectionItem.of('total', { kind: 'aggregate' } as never, { codecId: 'test/broken@1' }),
+    ]);
+    const registry = [
+      defineTestCodec({
+        typeId: 'test/broken@1',
+        targetTypes: ['int4'],
+        encode: (v: number) => v,
+        decode: () => {
+          throw new Error('boom');
+        },
+      }),
+    ];
+
+    await expect(
+      decodeRow({ total: '5' }, buildDecodeContext(ast, buildTestContractCodecs(registry)), {}),
+    ).rejects.toMatchObject({
+      code: 'RUNTIME.DECODE_FAILED',
+      details: expect.objectContaining({ alias: 'total' }),
+    });
+  });
+});
