@@ -75,7 +75,16 @@ function interactiveTransactionDefinition(context: GenerateContext) {
 
   const callbackType = ts
     .functionType()
-    .addParameter(ts.parameter('prisma', tsx.omit(ts.namedType('PrismaClient'), itxTransactionClientDenyList(context))))
+    .addParameter(
+      ts.parameter(
+        'prisma',
+        ts
+          .namedType('PrismaClientBase')
+          .addGenericArgument(ts.namedType('LogOpts'))
+          .addGenericArgument(ts.namedType('OmitOpts'))
+          .addGenericArgument(ts.namedType('ExtArgs')),
+      ),
+    )
     .setReturnType(returnType)
 
   const method = ts
@@ -86,14 +95,6 @@ function interactiveTransactionDefinition(context: GenerateContext) {
     .setReturnType(returnType)
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
-}
-
-function itxTransactionClientDenyList(context: GenerateContext) {
-  if (!context.isSqlProvider()) {
-    return ts.unionType([ts.namedType('runtime.ITXClientDenyList'), ts.stringLiteral('$transaction')])
-  }
-
-  return ts.namedType('runtime.ITXClientDenyList')
 }
 
 function queryRawDefinition(context: GenerateContext) {
@@ -262,6 +263,47 @@ export class PrismaClientClass {
 
   public toTS(): string {
     const { dmmf } = this.context
+    const isSql = this.context.isSqlProvider()
+
+    const sharedMethods = [
+      executeRawDefinition(this.context),
+      queryRawDefinition(this.context),
+      queryRawTypedDefinition(this.context),
+      ...(isSql ? [batchingTransactionDefinition(this.context), interactiveTransactionDefinition(this.context)] : []),
+      runCommandRawDefinition(this.context),
+    ]
+      .filter((d) => d !== null)
+      .join('\n')
+      .trim()
+
+    const exclusiveMethods = [
+      ...(!isSql ? [batchingTransactionDefinition(this.context), interactiveTransactionDefinition(this.context)] : []),
+      extendsPropertyDefinition(),
+    ]
+      .filter((d) => d !== null)
+      .join('\n')
+      .trim()
+
+    const modelOperations = dmmf.mappings.modelOperations
+      .filter((m) => m.findMany)
+      .map((m) => {
+        let methodName = uncapitalize(m.model)
+        if (methodName === 'constructor') {
+          methodName = '["constructor"]'
+        }
+        const generics = ['ExtArgs', '{ omit: OmitOpts }']
+        return `\
+/**
+ * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
+  * Example usage:
+  * \`\`\`ts
+  * // Fetch zero or more ${capitalize(m.plural)}
+  * const ${uncapitalize(m.plural)} = await prisma.${methodName}.findMany()
+  * \`\`\`
+  */
+get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
+      })
+      .join('\n\n')
 
     return `\
 export type LogOptions<ClientOptions extends Prisma.PrismaClientOptions> =
@@ -277,14 +319,35 @@ export interface PrismaClientConstructor {
   >(options: Prisma.PrismaClientConstructorArgs<Options>): PrismaClient<LogOpts, OmitOpts, ExtArgs>
 }
 
-${this.jsDoc}
-export interface PrismaClient<
+/**
+ * \`PrismaClient\` members shared between \`PrismaClient\` and \`TransactionClient\`.
+ *
+ * This interface exists so that \`TransactionClient\` does not have to be defined
+ * as a separate structural copy of \`PrismaClient\` (e.g. via \`Omit\`). Sharing the
+ * same member surface keeps property resolution on \`TransactionClient\` and on
+ * unions of \`PrismaClient\` and \`TransactionClient\` cheap, since TypeScript can
+ * resolve each member as a direct reference instead of instantiating a mapped type.
+ *
+ * This is an internal type and is not part of the public API.
+ */
+export interface PrismaClientBase<
   in LogOpts extends Prisma.LogLevel = never,
   in out OmitOpts extends Prisma.PrismaClientOptions['omit'] = Prisma.PrismaClientOptions['omit'],
   in out ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
+${sharedMethods}
+
+    ${indent(modelOperations, 2)}
+}
+
+${this.jsDoc}
+export interface PrismaClient<
+  in LogOpts extends Prisma.LogLevel = never,
+  in out OmitOpts extends Prisma.PrismaClientOptions['omit'] = Prisma.PrismaClientOptions['omit'],
+  in out ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
+> extends PrismaClientBase<LogOpts, OmitOpts, ExtArgs> {
   $on<V extends LogOpts>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;
 
   /**
@@ -297,42 +360,7 @@ export interface PrismaClient<
    */
   $disconnect(): runtime.Types.Utils.JsPromise<void>;
 
-${[
-  executeRawDefinition(this.context),
-  queryRawDefinition(this.context),
-  queryRawTypedDefinition(this.context),
-  batchingTransactionDefinition(this.context),
-  interactiveTransactionDefinition(this.context),
-  runCommandRawDefinition(this.context),
-  extendsPropertyDefinition(),
-]
-  .filter((d) => d !== null)
-  .join('\n')
-  .trim()}
-
-    ${indent(
-      dmmf.mappings.modelOperations
-        .filter((m) => m.findMany)
-        .map((m) => {
-          let methodName = uncapitalize(m.model)
-          if (methodName === 'constructor') {
-            methodName = '["constructor"]'
-          }
-          const generics = ['ExtArgs', '{ omit: OmitOpts }']
-          return `\
-/**
- * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
-  * Example usage:
-  * \`\`\`ts
-  * // Fetch zero or more ${capitalize(m.plural)}
-  * const ${uncapitalize(m.plural)} = await prisma.${methodName}.findMany()
-  * \`\`\`
-  */
-get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
-        })
-        .join('\n\n'),
-      2,
-    )}
+${exclusiveMethods}
 }`
   }
 }

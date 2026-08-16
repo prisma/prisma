@@ -24,16 +24,15 @@ export function createPrismaNamespaceFile(context: GenerateContext, options: TSC
   const imports = [
     ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
     ts.moduleImport(context.importFileName(`../models`)).asNamespace('Prisma').typeOnly(),
-    ts.moduleImport(context.importFileName(`./class`)).named(ts.namedImport('PrismaClient').typeOnly()),
+    ts
+      .moduleImport(context.importFileName(`./class`))
+      .named(ts.namedImport('PrismaClient').typeOnly())
+      .named(ts.namedImport('PrismaClientBase').typeOnly()),
   ].map((i) => ts.stringify(i))
 
   const prismaEnums = context.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
 
   const fieldRefs = context.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
-
-  const transactionClientDenyList = context.isSqlProvider()
-    ? 'runtime.ITXClientDenyList'
-    : "runtime.ITXClientDenyList | '$transaction'"
 
   return `${jsDocHeader}
 ${imports.join('\n')}
@@ -140,7 +139,7 @@ export type PrismaAction =
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
-export type TransactionClient = Omit<DefaultPrismaClient, ${transactionClientDenyList}>
+export type TransactionClient = PrismaClientBase
 
 `
 }

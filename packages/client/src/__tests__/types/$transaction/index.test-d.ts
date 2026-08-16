@@ -1,6 +1,6 @@
-import { expectError } from 'tsd'
+import { expectAssignable, expectError, expectNotAssignable } from 'tsd'
 
-import { PrismaClient } from '.'
+import { PrismaClient, Prisma } from '.'
 
 const prisma = new PrismaClient()
 
@@ -13,3 +13,19 @@ const prisma = new PrismaClient()
   expectError(await prisma.$transaction(['str']))
   expectError(await prisma.$transaction([{}]))
 })()
+
+declare const tx: Prisma.TransactionClient
+
+// PrismaClient is assignable to TransactionClient.
+expectAssignable<Prisma.TransactionClient>(prisma)
+
+// TransactionClient is not assignable to PrismaClient (it is missing the
+// members denied inside interactive transactions).
+expectNotAssignable<PrismaClient>(tx)
+
+// Members denied on TransactionClient are absent from it.
+expectNotAssignable<{ $connect: () => void }>(tx)
+expectNotAssignable<{ $disconnect: () => void }>(tx)
+expectNotAssignable<{ $on: () => void }>(tx)
+expectNotAssignable<{ $use: () => void }>(tx)
+expectNotAssignable<{ $extends: () => void }>(tx)
