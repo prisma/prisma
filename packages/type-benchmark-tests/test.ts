@@ -33,6 +33,8 @@ async function main() {
       }
       if (shouldOnlyGenerate) continue
 
+      results.push(await runTypecheck(dir, cwd))
+
       const benchFiles = getBenchmarkFiles(dir)
       for (const benchFile of benchFiles) {
         if (testFilter && !`${dir}/${benchFile}`.includes(testFilter)) {
@@ -107,6 +109,22 @@ function getBenchmarkFiles(dir: string) {
   return readdirSync(dir).filter((item) => {
     return statSync(join(dir, item)).isFile() && item.endsWith('.bench.ts')
   })
+}
+
+async function runTypecheck(dir: string, cwd: string) {
+  console.log(`Running tsc typecheck in ${dir}...`)
+  try {
+    await execa('tsc', ['--noEmit', '-p', 'tsconfig.json'], { cwd, stdio: 'inherit' })
+    return {
+      directory: `${dir}/typecheck`,
+      success: true,
+    }
+  } catch {
+    return {
+      directory: `${dir}/typecheck`,
+      success: false,
+    }
+  }
 }
 
 async function runGenerate(dir: string, cwd: string) {
