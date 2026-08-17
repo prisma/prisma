@@ -349,7 +349,16 @@ describe('buildPslDocumentAst and the top-level bucket', () => {
       buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, 'app', undefined, [
         enumBlock('Widget', { small: 'small' }),
       ]),
-    ).toThrow(/collides with a model, native enum, or policy/);
+    ).toThrow(/collides with a model, a native enum, a policy, a PSL scalar type/);
+  });
+
+  it('refuses two top-level blocks that share a name', () => {
+    expect(() =>
+      buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, 'app', undefined, [
+        enumBlock('Kind', { small: 'small' }),
+        enumBlock('Kind', { large: 'large' }),
+      ]),
+    ).toThrow(/another recovered declaration/);
   });
 
   it('refuses a top-level block named after a PSL scalar type', () => {
@@ -357,7 +366,7 @@ describe('buildPslDocumentAst and the top-level bucket', () => {
       buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, 'app', undefined, [
         enumBlock('Int', { small: 'small' }),
       ]),
-    ).toThrow(/collides with a model, native enum, or policy/);
+    ).toThrow(/collides with a model, a native enum, a policy, a PSL scalar type/);
   });
 
   it('splits into a flat bucket and a named one when both have content', () => {
