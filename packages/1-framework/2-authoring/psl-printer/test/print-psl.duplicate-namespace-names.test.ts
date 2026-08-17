@@ -98,7 +98,18 @@ function print(ast: PslDocumentAst): string {
 }
 
 describe('two namespace entries sharing one name', () => {
-  it('prints each model once, not once per entry sharing the name', () => {
+  it('prints a model declared by both entries once, not twice', () => {
+    const printed = print(
+      document([
+        bucket(UNSPECIFIED_PSL_NAMESPACE_ID, [idModel('Widget')], []),
+        bucket(UNSPECIFIED_PSL_NAMESPACE_ID, [idModel('Widget')], []),
+      ]),
+    );
+    expect(printed).toContain('model Widget {');
+    expect(printed.match(/model Widget \{/g)).toHaveLength(1);
+  });
+
+  it('prints each model once when only one entry declares it', () => {
     const printed = print(
       document([
         bucket(UNSPECIFIED_PSL_NAMESPACE_ID, [idModel('Widget')], []),
@@ -159,14 +170,16 @@ describe('two namespaces with different names declaring the same model name', ()
 
 describe('namespace section order', () => {
   it('orders named namespaces by code point, independent of host locale', () => {
-    // `Ä` is U+00C4 and `z` is U+007A, so `zebra` sorts first by code point.
-    // Every ICU collation does the opposite, folding `Ä` to primary weight
-    // `a` — so this ordering fails under `localeCompare` in any locale.
+    // `B` is U+0042 and `a` is U+0061, so code point puts `B` first. Every ICU
+    // collation puts `a` first, in every locale — so restoring `localeCompare`
+    // fails this on any host. An accented pair would not: sv, fi, da, nb and
+    // et collate `Ä` after `z`, agreeing with code point, so a `Ä`/`z` fixture
+    // stays green under `localeCompare` on those hosts.
     const printed = print(
-      document([bucket('Ärlig', [idModel('A')], []), bucket('zebra', [idModel('Z')], [])]),
+      document([bucket('a', [idModel('Lower')], []), bucket('B', [idModel('Upper')], [])]),
     );
-    expect(printed).toContain('namespace Ärlig {');
-    expect(printed).toContain('namespace zebra {');
-    expect(printed.indexOf('namespace zebra {')).toBeLessThan(printed.indexOf('namespace Ärlig {'));
+    expect(printed).toContain('namespace a {');
+    expect(printed).toContain('namespace B {');
+    expect(printed.indexOf('namespace B {')).toBeLessThan(printed.indexOf('namespace a {'));
   });
 });

@@ -136,11 +136,15 @@ describe.sequential('check-constraint introspection', () => {
     //
     // These literals are what Postgres itself prints, not what was authored,
     // and they are the reference the unit-test fixtures elsewhere are written
-    // against. This suite runs on the PGlite server `@repo/test-utils` starts,
-    // so these are that server's 17.x output and nothing here establishes them
-    // for any other version. Postgres's predicate printer is version-dependent
-    // and the supported floor is 15, so a change to these literals on an
-    // upgrade is a real signal, not noise to be re-recorded.
+    // against. Postgres's predicate printer is version-dependent, so a change
+    // here on an upgrade is a real signal, not noise to be re-recorded.
+    //
+    // What this suite proves is one version: it runs on the PGlite server
+    // `@repo/test-utils` starts, so these are that server's 17.x output. Every
+    // shape was also run by hand against 15.18 — the supported floor — and was
+    // byte-identical, which is why nothing downstream branches on version. That
+    // second run is not reproducible from this suite, so treat it as a recorded
+    // observation rather than a guarantee CI re-establishes.
     expect(
       checks
         .map((c) => ({ name: c.name, expression: c.expression }))

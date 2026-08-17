@@ -248,10 +248,14 @@ export interface RlsEmissionExtras {
  * top-level even when a wrap applies, such as a recovered domain enum — a
  * family `enum` inside a namespace is a hard diagnostic. They land in their
  * own always-flat bucket when a wrap applies, and in the single flat bucket
- * when none does; either way they print unwrapped. Each name must be distinct
- * from every model, native enum, policy and PSL scalar type this schema emits,
- * and from the other blocks in the list — a block's name is its contract key
- * and cannot be rewritten here, so a collision throws.
+ * when none does; either way they print unwrapped.
+ *
+ * Their names are reserved before the policy blocks are built, so a policy
+ * renames itself out of the way. Against the rest of the top-level scope — the
+ * models, the native enums, PSL's scalar type names, and the other blocks in
+ * the list — a clash throws instead: a block's name is its contract key
+ * (`entries.valueSet[name]`, with no `@@map` escape), so it cannot be rewritten
+ * here.
  */
 export function buildPslDocumentAst(
   schemaIR: SqlSchemaIR,
@@ -314,28 +318,28 @@ export function buildPslDocumentAst(
     ]),
   );
 
-  // A caller's block shares the document's top-level name scope with models,
-  // with PSL's scalar type names, with the blocks generated below, and with
-  // the caller's other blocks. PSL resolves a name to an enum before a
-  // scalar, so a block named `Widget` or `Int` would retype fields across the
-  // whole contract, and two blocks sharing a name either collapse during AST
-  // assembly or print two conflicting declarations. The generators uniquify
-  // against each other's names; a caller's block cannot be renamed here,
-  // because its name is its contract key, so a collision is refused instead.
+  // A caller's block shares one top-level name scope with the models, the
+  // native enums, PSL's scalar type names, and the caller's other blocks. A
+  // clash costs differently depending on the partner: against a scalar name
+  // the enum wins the type lookup and retypes every field of that type
+  // (`psl-column-resolution` consults enums before scalars), while against a
+  // model it is two declarations claiming one top-level name, which does not
+  // parse back. Either way the block cannot be renamed here, so it is refused.
+  // Policies are absent from this set on purpose — they were handed these
+  // names above and have already renamed themselves out of the way.
   const claimedTopLevelNames = new Set([
     ...PSL_SCALAR_TYPE_NAMES,
     ...modelNameMap.values(),
     ...bareEnumNameMap.values(),
-    ...policyEmission.blocks.map((block) => block.name),
   ]);
   for (const block of topLevelExtensionBlocks) {
     if (claimedTopLevelNames.has(block.name)) {
       throw postgresError(
         'CONTRACT.NAME_DUPLICATE',
         `contract infer: recovered ${block.keyword} "${block.name}" collides with a model, a ` +
-          'native enum, a policy, a PSL scalar type, or another recovered declaration of the ' +
-          'same name. Rename the recovered declaration, or exclude it.',
-        { meta: { name: block.name, keyword: block.keyword } },
+          'native enum, a PSL scalar type, or another recovered declaration of the same name. ' +
+          'Rename the recovered declaration, or exclude it.',
+        { meta: { kind: block.keyword, name: block.name } },
       );
     }
     claimedTopLevelNames.add(block.name);

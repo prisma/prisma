@@ -109,7 +109,7 @@ This is smaller than it first appears. `PslDocumentAst.namespaces` is already an
 - A predicate that is not a membership test (`cardinality(tags) > 0`, a composite `AND`, a numeric comparison) recovers nothing and still emits its `@@check`.
 - Recovery works on a database that also has a native enum and an RLS policy — the namespace-wrap conflict is resolved, not avoided.
 - Enum naming never throws: collisions with models, native enums, and PSL keywords all disambiguate.
-- The reprint corpus is captured first, against a real database, for every shape recovery claims to handle: `text` with one member, `text` with 2+, `varchar` with one, `varchar` with 2+, and the enum-array `<@` form. Two `varchar` single-member fixtures currently in the tree are hand-written and suspect; they are replaced with captured output.
+- The reprint corpus is captured first, against a real database, for every shape recovery claims to handle: `text` with one member, `text` with 2+, `varchar` with one, `varchar` with 2+, and the enum-array `<@` form. Two single-member fixtures currently in the tree are hand-written and suspect — one on a `text` column, one on `varchar`; each is replaced with the captured reprint for its own column type.
 - Existing infer tests that assume no domain enum is recovered are updated deliberately, each diff reviewed as intent.
 
 ## Non-goals

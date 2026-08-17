@@ -43,31 +43,44 @@ export function astDocumentToPrintDocument(ast: PslDocumentAst): PrintDocument {
 
   // A namespace's name is its identity, but `ast.namespaces` is an array, so a
   // producer can hand over two entries sharing one name. One section per
-  // distinct name, and each section takes its models from its own entries
+  // distinct name, and each section takes its content from its own entries
   // rather than from a document-wide name lookup: a model name is unique
   // within a namespace but not across them, so a lookup keyed on the name
   // alone attributes both to whichever namespace came last and drops the
-  // other. Blocks are keyed by kind and name, the way a single namespace
-  // stores them (`entries[kind][name]`), so two entries declaring the same
-  // block print it once rather than emitting a duplicate declaration.
-  type Section = { readonly models: PslModel[]; readonly blocks: Map<string, PslExtensionBlock> };
+  // other.
+  //
+  // Models and blocks are both keyed the way a single namespace keys them
+  // (`entries[kind][name]`, last one wins), so two entries declaring the same
+  // model or block print it once instead of emitting a duplicate declaration
+  // that would not parse back.
+  type Section = {
+    readonly models: Map<string, PslModel>;
+    readonly blocks: Map<string, PslExtensionBlock>;
+  };
   const sectionsByName = new Map<string, Section>();
   for (const namespace of ast.namespaces) {
     const section: Section = sectionsByName.get(namespace.name) ?? {
-      models: [],
+      models: new Map(),
       blocks: new Map(),
     };
-    section.models.push(...namespace.models);
+    for (const model of namespace.models) {
+      section.models.set(model.name, model);
+    }
     for (const block of namespacePslExtensionBlocks(namespace)) {
       section.blocks.set(`${block.kind} ${block.name}`, block);
     }
     sectionsByName.set(namespace.name, section);
   }
 
+  // Absent from the order map means absent from `flatPslModels`, which reads
+  // the same `entries['model']` the section did — so it cannot happen. Sorting
+  // such a model to the tail keeps the failure visible if it ever does, rather
+  // than tying it with the genuine first model.
+  const unranked = sortedModels.length;
   const namespaceSections: PrintNamespaceSection[] = [...sectionsByName].map(([name, section]) => ({
     name,
-    models: section.models
-      .sort((a, b) => (modelOrder.get(a.name) ?? 0) - (modelOrder.get(b.name) ?? 0))
+    models: [...section.models.values()]
+      .sort((a, b) => (modelOrder.get(a.name) ?? unranked) - (modelOrder.get(b.name) ?? unranked))
       .map((m) => modelToPrinterModel(m)),
     extensionBlocks: [...section.blocks.values()],
   }));

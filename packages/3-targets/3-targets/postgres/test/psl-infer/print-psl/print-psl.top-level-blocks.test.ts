@@ -349,7 +349,7 @@ describe('buildPslDocumentAst and the top-level bucket', () => {
       buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, 'app', undefined, [
         enumBlock('Widget', { small: 'small' }),
       ]),
-    ).toThrow(/collides with a model, a native enum, a policy, a PSL scalar type/);
+    ).toThrow(/collides with a model, a native enum, a PSL scalar type/);
   });
 
   it('refuses two top-level blocks that share a name', () => {
@@ -366,7 +366,7 @@ describe('buildPslDocumentAst and the top-level bucket', () => {
       buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, 'app', undefined, [
         enumBlock('Int', { small: 'small' }),
       ]),
-    ).toThrow(/collides with a model, a native enum, a policy, a PSL scalar type/);
+    ).toThrow(/collides with a model, a native enum, a PSL scalar type/);
   });
 
   it('splits into a flat bucket and a named one when both have content', () => {
@@ -402,12 +402,16 @@ describe('buildPslDocumentAst and the top-level bucket', () => {
     const split = print(
       buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, 'app', undefined, blocks),
     );
+    expect(split).toContain('enum WidgetKind {');
+    expect(split).toContain('namespace app {');
+    expect(split).not.toMatch(/namespace\s+__unspecified__/);
     expect(split.indexOf('enum WidgetKind {')).toBeLessThan(split.indexOf('namespace app {'));
 
     const merged = print(
       buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, undefined, undefined, blocks),
     );
     expect(merged).toContain('enum WidgetKind {');
+    expect(merged).toContain('model Widget {');
     expect(merged).not.toMatch(/namespace\s/);
     expect(merged.indexOf('model Widget {')).toBeLessThan(merged.indexOf('enum WidgetKind {'));
   });

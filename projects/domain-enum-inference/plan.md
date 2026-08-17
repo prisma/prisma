@@ -30,7 +30,7 @@ Two things belong to it, both prerequisites rather than deliverables:
 
 Slice 1 does **not** emit any enum. It proves the seam by moving something that already exists into the flat bucket, or by a print-level test that a two-bucket document renders correctly — whichever the slice spec settles. Nothing about recovery depends on which.
 
-**The reprint corpus is captured first.** `text` with 2+ members is nowhere pinned as a literal, and two `varchar` single-member fixtures in the tree are hand-written and suspect (`schema-verify.verdict.test.ts:791`, `sql-check-constraint-ir.test.ts:67`). Slices 2 and 3 both harvest from these shapes, so the shapes must be observed output before either is written, not after. This is cheap — one integration test that creates each shape and asserts the introspected body — and it protects both downstream slices from being built against a guess.
+**The reprint corpus is captured first.** `text` with 2+ members was nowhere pinned as a literal, and the two single-member fixtures in the tree were hand-written and suspect (`schema-verify.verdict.test.ts`, `sql-check-constraint-ir.test.ts`) — slice 1 pinned the corpus and corrected both. Slices 2 and 3 both harvest from these shapes, so the shapes must be observed output before either is written, not after. This is cheap — one integration test that creates each shape and asserts the introspected body — and it protects both downstream slices from being built against a guess.
 
 **Builds on:** current main. **Hands to:** a flat-bucket emitter both recovery slices put enum blocks into, and a verified corpus they harvest from.
 
@@ -59,7 +59,7 @@ The end-to-end proof lives here: seed a never-migrated database with a hand-writ
 
 ## Close-out obligations
 
-- An ADR recording the harvest-decides-the-type-only rule and why it is not the parser ADR 244 rejected. It amends ADR 244's § "Consequences" where that ADR states inference does not recover domain enums.
+- An ADR recording the harvest-decides-the-type-only rule and why it is not the parser ADR 244 rejected. The claim it displaces lives in code, not in ADR 244: `infer-model-blocks.ts` notes that infer never emits domain enums because `enumType()` is not inferred.
 - The user-facing brownfield story in `skills/prisma-8/references/quickstart.md` and the enum section of `skills/prisma-8/references/contract.md`.
 - `projects/sql-check-constraint-unification/spec.md` § Non-goals — its "still open" note about enum-membership inference is closed by this project.
 - `projects/domain-enum-inference/` is deleted at close-out per the project lifecycle.
