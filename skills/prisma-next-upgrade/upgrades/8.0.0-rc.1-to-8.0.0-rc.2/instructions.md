@@ -473,6 +473,7 @@ PR #29950: `changes: []`. The demo applications adopt the integer representation
 PR #29939: `changes: []`. Dependabot's weekly runtime-dependency bumps (`ws`, `lucide-react`, `postcss`, `uniku`, `@vercel/detect-agent`, and the `@types/node` / `@types/pg` / `tsx` catalog entries). The example diff is dependency version strings, and requires no user API, contract, configuration, generated-artifact, or source translation.
 PR #29940: `changes: []`. Dependabot's weekly dev-dependency bumps (type packages, wrangler, biome, test tooling) plus the matching `biome.jsonc` `$schema` realignment; the example diffs are devDependency version strings and a schema URL, and require no user API, contract, configuration, generated-artifact, or source translation.
 PR #29965: `changes: []`. Dependabot's dev-dependency bumps (`wrangler`, `@cloudflare/vitest-pool-workers`, `@biomejs/biome`) plus the matching `biome.jsonc` `$schema` realignment to 2.5.7; the example diffs are devDependency version strings and a schema URL, and require no user API, contract, configuration, generated-artifact, or source translation.
+PR #30031: `changes: []`. Dependabot's weekly runtime-dependency bumps (`esbuild`, `evlog`, `next`). The example diff is dependency version strings, and requires no user API, contract, configuration, generated-artifact, or source translation.
 -->
 
 ## Regenerating is the first step
