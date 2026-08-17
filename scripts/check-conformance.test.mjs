@@ -325,7 +325,8 @@ describe('runCheck', () => {
       readPackedManifest: () => ({
         name: '@prisma/orm-toolchain',
         version: '8.0.0-rc.1',
-        dependencies: { declared: '1.0.0', '@prisma/cli-engine': '0.0.9' },
+        dependencies: { declared: '1.0.0' },
+        peerDependencies: { '@prisma/cli-engine': '0.0.9' },
         bin: { 'prisma-next': './dist/bin__prisma-next.mjs' },
       }),
       readPackedJsSources: () => new Map([['dist/index.mjs', cleanJs]]),
@@ -440,7 +441,8 @@ describe('runCheck', () => {
       readPackedManifest: () => ({
         name: '@prisma/orm-toolchain',
         version: '8.0.0-rc.1',
-        dependencies: { declared: '1.0.0', '@prisma/cli-engine': '0.0.9' },
+        dependencies: { declared: '1.0.0' },
+        peerDependencies: { '@prisma/cli-engine': '0.0.9' },
         bin: { 'prisma-next': './dist/bin__prisma-next.mjs', other: './dist/other.mjs' },
       }),
       runBin: async (...args) => {
@@ -454,6 +456,22 @@ describe('runCheck', () => {
       './dist/bin__prisma-next.mjs',
       './dist/other.mjs',
     ]);
+  });
+
+  it('an engine in a packed dependencies field is a wrong-field finding, per ADR 0004', async () => {
+    const stdoutWrite = recorder();
+    const io = makeIo({
+      readPackedManifest: () => ({
+        name: '@prisma/orm-toolchain',
+        version: '8.0.0-rc.1',
+        dependencies: { declared: '1.0.0', '@prisma/cli-engine': '0.0.9' },
+        bin: { 'prisma-next': './dist/bin__prisma-next.mjs' },
+      }),
+      stdoutWrite,
+    });
+    assert.equal(await runCheck({ argv: ['--json'], io }), 1);
+    const payload = JSON.parse(stdoutWrite.calls[0][0]);
+    assert.ok(payload.findings.some((f) => f.kind === 'wrong-field'));
   });
 
   it('fails when the engine pin disagrees between a packed manifest and the source cli', async () => {
@@ -480,9 +498,9 @@ describe('runCheck', () => {
         version: '8.0.0-rc.1',
         dependencies: {
           declared: '1.0.0',
-          '@prisma/cli-engine': '0.0.9',
           '@prisma/orm-framework': '8.0.0-rc.1',
         },
+        peerDependencies: { '@prisma/cli-engine': '0.0.9' },
         bin: { 'prisma-next': './dist/bin__prisma-next.mjs' },
       },
       'prisma-orm-framework-8.0.0-rc.1.tgz': {
@@ -516,6 +534,43 @@ describe('runCheck', () => {
       '@prisma/orm-framework@8.0.0-rc.1':
         'file:/fake/.conformance/tarballs/prisma-orm-framework-8.0.0-rc.1.tgz',
     });
+  });
+
+  it('a manifest with no bin smokes the published cli entry instead', async () => {
+    const importEntry = recorder();
+    const io = makeIo({
+      readPackedManifest: () => ({
+        name: '@prisma/orm-toolchain',
+        version: '8.0.0-rc.1',
+        dependencies: { declared: '1.0.0' },
+        peerDependencies: { '@prisma/cli-engine': '0.0.9' },
+      }),
+      importEntry: async (...args) => {
+        importEntry(...args);
+        return { exitCode: 0, stdout: '', stderr: '', timedOut: false };
+      },
+    });
+    assert.equal(await runCheck({ argv: [], io }), 0);
+    assert.equal(importEntry.calls.length, 1);
+    assert.equal(importEntry.calls[0][0].specifier, '@prisma/orm-toolchain/cli');
+  });
+
+  it('a failing entry import in the sandbox is a finding', async () => {
+    const io = makeIo({
+      readPackedManifest: () => ({
+        name: '@prisma/orm-toolchain',
+        version: '8.0.0-rc.1',
+        dependencies: { declared: '1.0.0' },
+        peerDependencies: { '@prisma/cli-engine': '0.0.9' },
+      }),
+      importEntry: async () => ({
+        exitCode: 1,
+        stdout: '',
+        stderr: 'ERR_MODULE_NOT_FOUND',
+        timedOut: false,
+      }),
+    });
+    assert.equal(await runCheck({ argv: [], io }), 1);
   });
 });
 

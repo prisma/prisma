@@ -110,8 +110,10 @@ async function askAuthoring(prompt: PromptSurface): Promise<AuthoringId> {
  * style.
  */
 async function askSchemaPath(prompt: PromptSurface, authoring: AuthoringId): Promise<string> {
+  const fallback = defaultSchemaPath(authoring);
   const answer = await prompt.text('Where should the schema file go?', {
-    default: defaultSchemaPath(authoring),
+    placeholder: fallback,
+    default: fallback,
   });
   return validateSchemaPath(answer, authoring);
 }

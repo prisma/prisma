@@ -1,0 +1,10 @@
+model TestModel {
+  id Int @id
+  my_enum MyEnum?
+}
+
+enum MyEnum {
+  A
+  B
+  C
+}

@@ -1,10 +1,13 @@
+import type { Contract } from '@internal/contract/types';
 import { runtimeError } from '@internal/framework-components/runtime';
 import type { ParamSpec } from '@internal/operations';
-import type { QueryOperationReturn } from '@internal/sql-contract/types';
+import type { QueryOperationReturn, SqlStorage } from '@internal/sql-contract/types';
 import type { SqlLoweringSpec } from '@internal/sql-operations';
 import type { CodecRef } from './ast/codec-types';
-import type { AnyExpression as AstExpression, RawSqlLiteral } from './ast/types';
-import { OperationExpr, ParamRef, RawExpr } from './ast/types';
+import type { SqlStatementStats } from './ast/driver-types';
+import type { AnyExpression as AstExpression, RawQueryColumn, RawSqlLiteral } from './ast/types';
+import { OperationExpr, ParamRef, RawExpr, RawQueryAst } from './ast/types';
+import { planFromAst, type SqlQueryPlan } from './plan';
 
 export type ScopeField = {
   codecId: string;
@@ -213,17 +216,113 @@ export interface RawSqlBuilder {
   }): Expression<{ codecId: S; nullable: N }>;
 }
 
+/**
+ * One column of a raw query's declared result row, as authored: a codec id, or
+ * a codec id plus nullability. Mirrors the contract-free lane's
+ * `ColumnDescriptor`; contract-column references are sugar layered on top of
+ * this form by the contract-typed builder.
+ */
+export type RawRowSpecEntry = string | { readonly codecId: string; readonly nullable?: boolean };
+
+/**
+ * Declares the one column name a row spec cannot use. TypeScript types
+ * `{ __proto__: 'pg/int4@1' }` and `{ ['__proto__']: 'pg/int4@1' }` alike — as
+ * a spec with a `__proto__` column — while JavaScript keeps the key in neither
+ * object. Rejecting the name here is what makes the two agree; the AST refuses
+ * the computed form again at runtime, where it does arrive.
+ */
+export type NoReservedRowColumn = {
+  readonly __proto__?: 'A raw row spec cannot declare a __proto__ column: alias the column in SQL and declare the alias instead';
+};
+
+/** The declared result row of a raw query: result-column name to codec. */
+export type RawRowSpec = Readonly<Record<string, RawRowSpecEntry>> & NoReservedRowColumn;
+
+/**
+ * Row type minted for a {@link RawRowSpec}. Column names carry through; the
+ * per-column JS type is `unknown` here, where codec ids are opaque strings —
+ * the contract-typed builder resolves them against the contract's codec map.
+ */
+export type RawRow<Spec extends RawRowSpec> = { readonly [K in keyof Spec]: unknown };
+
+/**
+ * What a raw statement needs in order to mint a plan: the contract the plan's
+ * metadata is sourced from, and the lane the plan is tagged with.
+ */
+export interface RawPlanContext {
+  readonly contract: Contract<SqlStorage>;
+  readonly laneId?: string;
+}
+
+/**
+ * A raw query that returns rows, terminated by `.returnsRow(spec)`.
+ *
+ * Row-returning raw queries are embeddable: interpolating one into another raw
+ * template splices its parts in, which is what makes derived tables and CTEs
+ * (including data-modifying CTEs, whose `RETURNING` is what earns them a row
+ * spec) expressible.
+ */
+export interface RawRowQuery<Row = unknown> {
+  buildAst(): RawQueryAst;
+  build(): SqlQueryPlan<Row>;
+}
+
+declare const affectedCountResult: unique symbol;
+
+/**
+ * The row type of a plan that reports how many rows a statement affected.
+ *
+ * The brand is what a consumer keys on to tell such a plan from one that
+ * returns rows: the statistics shape alone cannot carry that meaning, because
+ * a row spec is free to declare a column named `affectedRows`. Nothing holds
+ * the brand at runtime — `_row` is phantom — so declaring it required costs
+ * nothing and makes the claim unforgeable by coincidence.
+ */
+export interface AffectedCount extends SqlStatementStats {
+  readonly [affectedCountResult]: true;
+}
+
+/**
+ * A raw statement that reports how many rows it affected, terminated by
+ * `.affectedCount()`. It is not an expression and carries no row spec, so it
+ * is not embeddable — a mutation reaches expression position only through
+ * `RETURNING` and `.returnsRow()`.
+ */
+export interface RawAffectedCountQuery {
+  build(): SqlQueryPlan<AffectedCount>;
+}
+
+/**
+ * The builder returned by a raw template that can also terminate in statement
+ * position. `returns*` terminators yield something usable where expressions
+ * go; `.affectedCount()` yields a plan handle only.
+ */
+export interface RawSqlStatementBuilder extends RawSqlBuilder {
+  returnsRow<Spec extends RawRowSpec>(spec: Spec): RawRowQuery<RawRow<Spec>>;
+  affectedCount(): RawAffectedCountQuery;
+}
+
 /** Tagged-template function returned by {@link createRawSql}. */
 export type RawSqlTag = (
   strings: TemplateStringsArray,
   ...values: RawSqlInterpolation[]
 ) => RawSqlBuilder;
 
-type RawSqlInterpolation = Expression<ScopeField> | ParamRef | RawSqlLiteral;
+/** Tagged-template function returned by {@link createRawSql} when given a {@link RawPlanContext}. */
+export type RawSqlStatementTag = (
+  strings: TemplateStringsArray,
+  ...values: RawSqlInterpolation[]
+) => RawSqlStatementBuilder;
+
+/** Interpolations that occupy a single position in the parts list. */
+type RawExprInterpolation = Expression<ScopeField> | ParamRef | RawSqlLiteral;
+
+/** Interpolations a raw template accepts; a {@link RawRowQuery} splices its own parts in. */
+export type RawSqlInterpolation = RawExprInterpolation | RawRowQuery;
 
 function resolveInterpolation(
   adapter: RawCodecInferer,
-  value: RawSqlInterpolation,
+  value: RawExprInterpolation,
 ): AstExpression | ParamRef {
   if (isExpressionLike(value)) {
     return value.buildAst();
@@ -248,25 +347,75 @@ function resolveInterpolation(
   );
 }
 
+function isRawRowQuery(value: unknown): value is RawRowQuery {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'buildAst' in value &&
+    typeof value.buildAst === 'function' &&
+    'build' in value &&
+    typeof value.build === 'function'
+  );
+}
+
+function templateParts(
+  adapter: RawCodecInferer,
+  strings: TemplateStringsArray,
+  values: readonly RawSqlInterpolation[],
+): Array<string | AstExpression> {
+  const parts: Array<string | AstExpression> = [strings[0] ?? ''];
+  values.forEach((value, i) => {
+    if (isRawRowQuery(value)) {
+      parts.push(...value.buildAst().parts);
+    } else {
+      parts.push(resolveInterpolation(adapter, value));
+    }
+    parts.push(strings[i + 1] ?? '');
+  });
+  return parts;
+}
+
 /**
- * Create a tagged-template builder for raw SQL expressions. The returned tag accepts SQL string fragments interleaved with typed {@link Expression}, {@link ParamRef}, or bare {@link RawSqlLiteral} interpolations. Call `.returns(spec)` on the result to obtain a typed {@link Expression} whose AST is a {@link RawExpr}.
+ * Normalizes each authored entry to a {@link RawQueryColumn}. The record is
+ * assembled with `Object.fromEntries`, which defines each key as an own
+ * property: a spec built at runtime with a `__proto__` key reaches the AST,
+ * which refuses it by name, rather than silently setting the record's
+ * prototype and leaving the column to vanish.
+ */
+function resolveRowSpec(spec: RawRowSpec): Record<string, RawQueryColumn> {
+  return Object.fromEntries(
+    Object.entries(spec).map(([name, entry]) => [
+      name,
+      typeof entry === 'string'
+        ? { codecId: entry, nullable: false }
+        : { codecId: entry.codecId, nullable: entry.nullable ?? false },
+    ]),
+  );
+}
+
+/**
+ * Create a tagged-template builder for raw SQL. The returned tag accepts SQL string fragments interleaved with typed {@link Expression}, {@link ParamRef}, row-returning {@link RawRowQuery}, or bare {@link RawSqlLiteral} interpolations. Call `.returns(spec)` on the result to obtain a typed {@link Expression} whose AST is a {@link RawExpr}.
+ *
+ * Supplied with a {@link RawPlanContext}, the tag also terminates in statement position: `.returnsRow(spec)` and `.affectedCount()` mint a {@link SqlQueryPlan} whose AST is a {@link RawQueryAst}. The context is stated once, here, so authoring sites carry nothing but the template and its terminator.
  *
  * Bare {@link RawSqlLiteral} interpolations are wrapped as `ParamRef` nodes with the codec resolved via `adapter.inferCodec(value)`. Use {@link param} when the codec cannot be inferred from the value alone (e.g. `Date`).
  */
-export function createRawSql(adapter: RawCodecInferer): RawSqlTag {
-  return (strings, ...values) => {
-    const parts: (string | AstExpression | ParamRef)[] = [];
-    parts.push(strings[0] ?? '');
-    values.forEach((value, i) => {
-      parts.push(resolveInterpolation(adapter, value));
-      parts.push(strings[i + 1] ?? '');
-    });
-    return new RawSqlBuilderImpl(parts);
-  };
+export function createRawSql(
+  adapter: RawCodecInferer,
+  planContext: RawPlanContext,
+): RawSqlStatementTag;
+export function createRawSql(adapter: RawCodecInferer): RawSqlTag;
+export function createRawSql(adapter: RawCodecInferer, planContext?: RawPlanContext): RawSqlTag {
+  if (planContext === undefined) {
+    return (strings, ...values) => new RawSqlBuilderImpl(templateParts(adapter, strings, values));
+  }
+  const context = planContext;
+  return (strings, ...values) =>
+    new RawSqlStatementBuilderImpl(templateParts(adapter, strings, values), context);
 }
 
 class RawSqlBuilderImpl implements RawSqlBuilder {
-  constructor(private readonly parts: readonly (string | AstExpression | ParamRef)[]) {}
+  constructor(protected readonly parts: readonly (string | AstExpression | ParamRef)[]) {}
 
   returns<S extends string>(spec: S): Expression<{ codecId: S; nullable: false }>;
   returns<S extends string, N extends boolean = false>(spec: {
@@ -284,5 +433,33 @@ class RawSqlBuilderImpl implements RawSqlBuilder {
       returnType: { codecId, nullable },
       buildAst: () => node,
     };
+  }
+}
+
+class RawSqlStatementBuilderImpl extends RawSqlBuilderImpl implements RawSqlStatementBuilder {
+  constructor(
+    parts: readonly (string | AstExpression | ParamRef)[],
+    private readonly planContext: RawPlanContext,
+  ) {
+    super(parts);
+  }
+
+  returnsRow<Spec extends RawRowSpec>(spec: Spec): RawRowQuery<RawRow<Spec>> {
+    const node = RawQueryAst.rows(this.parts, resolveRowSpec(spec));
+    return {
+      buildAst: () => node,
+      build: () => this.planFor<RawRow<Spec>>(node),
+    };
+  }
+
+  affectedCount(): RawAffectedCountQuery {
+    const node = RawQueryAst.affectedCount(this.parts);
+    return {
+      build: () => this.planFor<AffectedCount>(node),
+    };
+  }
+
+  private planFor<Row>(node: RawQueryAst): SqlQueryPlan<Row> {
+    return planFromAst<Row>(node, this.planContext.contract, this.planContext.laneId);
   }
 }

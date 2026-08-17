@@ -42,6 +42,7 @@ function emitPresentations(inputs: {
 }): Presentations {
   const { document, cwd } = inputs;
   return {
+    next: () => [],
     human: (): readonly Block[] => [
       {
         kind: 'fields',

@@ -28,7 +28,6 @@
     "pg": "catalog:"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20260702.1",
     "@prisma/cli-engine": "0.0.9",
     "@prisma/dev": "catalog:",
     "@repo/test-utils": "workspace:8.0.0-rc.1",

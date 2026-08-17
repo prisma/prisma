@@ -7,16 +7,26 @@ import {
   type RuntimeExtensionInstance,
 } from '@internal/framework-components/execution';
 import { SqlStorage } from '@internal/sql-contract/types';
-import type { Codec, SqlDriver, SqlExecuteRequest } from '@internal/sql-relational-core/ast';
+import type {
+  Codec,
+  PreparedStatementHandle,
+  SqlDriver,
+  SqlExecuteRequest,
+} from '@internal/sql-relational-core/ast';
 import {
   BinaryExpr,
   ColumnRef,
   collectOrderedParamRefs,
   ProjectionItem,
+  RawQueryAst,
   SelectAst as SelectAstCtor,
   TableSource,
 } from '@internal/sql-relational-core/ast';
-import type { Expression, ScopeField } from '@internal/sql-relational-core/expression';
+import type {
+  AffectedCount,
+  Expression,
+  ScopeField,
+} from '@internal/sql-relational-core/expression';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   SqlMiddleware,
@@ -59,6 +69,11 @@ type ExecuteSpy = ReturnType<
 
 interface RecordingTransaction {
   readonly id: symbol;
+  readonly executeCalls: Array<{
+    sql: string;
+    params: readonly unknown[] | undefined;
+    handle?: PreparedStatementHandle | undefined;
+  }>;
   readonly queryCalls: Array<{
     sql: string;
     params: readonly unknown[] | undefined;
@@ -72,7 +87,11 @@ interface RecordingTransaction {
 
 interface RecordingConnection {
   readonly id: symbol;
-  readonly executeCalls: Array<{ sql: string; params: readonly unknown[] | undefined }>;
+  readonly executeCalls: Array<{
+    sql: string;
+    params: readonly unknown[] | undefined;
+    handle?: PreparedStatementHandle | undefined;
+  }>;
   readonly queryCalls: Array<{
     sql: string;
     params: readonly unknown[] | undefined;
@@ -103,12 +122,13 @@ function createRecordingDriver(
 ): RecordingDriver {
   const txId = Symbol('transaction');
   const connId = Symbol('connection');
+  const txExecuteCalls: RecordingConnection['executeCalls'] = [];
   const txQueryCalls: Array<{
     sql: string;
     params: readonly unknown[] | undefined;
     handle: unknown;
   }> = [];
-  const connExecuteCalls: Array<{ sql: string; params: readonly unknown[] | undefined }> = [];
+  const connExecuteCalls: RecordingConnection['executeCalls'] = [];
   const connQueryCalls: Array<{
     sql: string;
     params: readonly unknown[] | undefined;
@@ -117,12 +137,22 @@ function createRecordingDriver(
 
   const transaction: RecordingTransaction = {
     id: txId,
+    get executeCalls() {
+      return txExecuteCalls;
+    },
     get queryCalls() {
       return txQueryCalls;
     },
     execute: vi
       .fn<(request: SqlExecuteRequest) => Promise<{ affectedRows: number }>>()
-      .mockResolvedValue({ affectedRows }),
+      .mockImplementation(async (request) => {
+        txExecuteCalls.push({
+          sql: request.sql,
+          params: request.params,
+          handle: request.preparedStatementHandle,
+        });
+        return { affectedRows };
+      }),
     query: vi.fn().mockImplementation(async function* (request: SqlExecuteRequest) {
       txQueryCalls.push({
         sql: request.sql,
@@ -151,7 +181,11 @@ function createRecordingDriver(
     execute: vi
       .fn<(request: SqlExecuteRequest) => Promise<{ affectedRows: number }>>()
       .mockImplementation(async (request) => {
-        connExecuteCalls.push({ sql: request.sql, params: request.params });
+        connExecuteCalls.push({
+          sql: request.sql,
+          params: request.params,
+          handle: request.preparedStatementHandle,
+        });
         return { affectedRows };
       }),
     query: vi.fn().mockImplementation(async function* (request: SqlExecuteRequest) {
@@ -316,6 +350,21 @@ function buildEqUserIdPlan(userId: Expression<ScopeField>): SqlQueryPlan<{ id: n
       target: testContract.target,
       storageHash: testContract.storage.storageHash,
       lane: 'dsl' as const,
+    },
+  });
+}
+
+function buildBumpSeenPlan(userId: Expression<ScopeField>): SqlQueryPlan<AffectedCount> {
+  return Object.freeze({
+    ast: RawQueryAst.affectedCount([
+      'update "users" set seen = now() where id = ',
+      userId.buildAst(),
+    ]),
+    params: [],
+    meta: {
+      target: testContract.target,
+      storageHash: testContract.storage.storageHash,
+      lane: 'raw' as const,
     },
   });
 }
@@ -665,6 +714,42 @@ describe('SupabaseRuntimeImpl', () => {
       expect(driver.connection.transaction.queryCalls[0]?.handle).toBeDefined();
       expect(driver.connection.queryCalls).toHaveLength(0);
       expect(driver.query).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('openRoleSession — prepared statements that report statistics', () => {
+    it('statement.execute on the session runs on the session connection', async () => {
+      const { runtime, driver } = createTestSetup();
+      const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
+        buildBumpSeenPlan(params.userId),
+      );
+      const session = await runtime.openRoleSession({ role: 'authenticated' });
+
+      const stats = await ps.execute(session, { userId: 1 });
+      await session.release();
+
+      expect(stats).toEqual({ affectedRows: 0 });
+      const preparedCalls = driver.connection.executeCalls.filter((call) => call.handle);
+      expect(preparedCalls).toHaveLength(1);
+      expect(driver.execute).not.toHaveBeenCalled();
+    });
+
+    it('statement.execute on a session transaction runs on that transaction', async () => {
+      const { runtime, driver } = createTestSetup();
+      const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
+        buildBumpSeenPlan(params.userId),
+      );
+      const session = await runtime.openRoleSession({ role: 'authenticated' });
+
+      const tx = await session.transaction();
+      const stats = await ps.execute(tx, { userId: 1 });
+      await tx.commit();
+      await session.release();
+
+      expect(stats).toEqual({ affectedRows: 0 });
+      expect(driver.connection.transaction.executeCalls).toHaveLength(1);
+      expect(driver.connection.transaction.executeCalls[0]?.handle).toBeDefined();
+      expect(driver.execute).not.toHaveBeenCalled();
     });
   });
 

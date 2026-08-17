@@ -1,0 +1,13 @@
+model Parent {
+  id Int @id
+  childId Int? @unique
+  child Child? @relation(fields: [childId], references: [id])
+}
+model Child {
+  id Int @id
+  bool Boolean
+  byteA Bytes
+  json Json
+  jsonb Jsonb
+  parent Parent?
+}

@@ -1,0 +1,19 @@
+model TestModel {
+  id     Int         @id
+  toMany OneToMany[]
+}
+
+model OneToMany {
+  id      Int        @id
+  testId  Int?
+  test    TestModel? @relation(fields: [testId], references: [id])
+  toOneId Int?       @unique
+  toOne   ToOne?     @relation(fields: [toOneId], references: [id])
+}
+
+model ToOne {
+  id      Int        @id
+  string1 String
+  string2 String
+  toMany  OneToMany?
+}
