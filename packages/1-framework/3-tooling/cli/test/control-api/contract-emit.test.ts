@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type * as configLoader from '@internal/config-loader';
@@ -11,20 +11,6 @@ import { disposeEmitQueue } from '../../src/utils/emit-queue';
 
 const mockedEmit = vi.fn<typeof import('@internal/emitter')['emit']>();
 
-vi.mock('node:fs/promises', async () => {
-  const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises');
-  return {
-    ...actual,
-    mkdir: vi.fn(actual.mkdir),
-    rename: vi.fn(actual.rename),
-    writeFile: vi.fn(actual.writeFile),
-  };
-});
-
-type FsModule = typeof import('node:fs/promises');
-
-const mockedRename = vi.mocked(rename);
-const mockedWriteFile = vi.mocked(writeFile);
 const emitDependencies = { emit: mockedEmit };
 
 function executeContractEmitWithMock(options: ContractEmitOptions) {
@@ -112,24 +98,16 @@ function createSuccessfulConfig(output: string) {
 
 describe('executeContractEmit', () => {
   let tmpDir = '';
-  let actualFs: FsModule;
 
   beforeEach(async () => {
-    actualFs = await vi.importActual<FsModule>('node:fs/promises');
     tmpDir = await mkdtemp(join(tmpdir(), 'contract-emit-'));
     mockedEmit.mockReset();
-    mockedRename.mockReset();
-    mockedWriteFile.mockReset();
-    mockedRename.mockImplementation(async (...args) => actualFs.rename(...args));
-    mockedWriteFile.mockImplementation(async (...args) => actualFs.writeFile(...args));
   });
 
   afterEach(async () => {
     if (tmpDir.length > 0) {
       await rm(tmpDir, { recursive: true, force: true });
     }
-    // isolate: false — avoid vi.restoreAllMocks(); it restores hoisted vi.mock
-    // modules from other test files loaded in this worker (e.g. node:child_process).
   });
 
   function emitOptions(config: configLoader.PrismaNextConfig, configPath = 'prisma.config.ts') {
@@ -248,8 +226,8 @@ describe('executeContractEmit', () => {
   describe('the import root the emitted files are written against', () => {
     async function emitInto(project: string, options: { readonly namesConfig: boolean }) {
       const outputJsonPath = join(tmpDir, project, 'generated/contract.json');
-      await actualFs.mkdir(join(tmpDir, project), { recursive: true });
-      await actualFs.writeFile(
+      await mkdir(join(tmpDir, project), { recursive: true });
+      await writeFile(
         join(tmpDir, project, 'package.json'),
         JSON.stringify({
           name: project,
