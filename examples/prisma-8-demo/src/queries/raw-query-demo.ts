@@ -6,7 +6,9 @@ import { db } from '../prisma/db';
  * (see `raw-sql-demo.ts`, which drops raw *fragments* into a typed builder
  * query).
  *
- * `db.raw.sql` is the same tagged template, terminated differently:
+ * `db.raw` is the client's raw lane, composed beside `sql` and `runtime()`.
+ * Its `sql` key is the same tagged template as `fns.raw`, with different
+ * terminators:
  *
  * - `.returnsRow(spec)` declares the result columns and yields a plan the
  *   runtime's `query()` streams decoded rows from.

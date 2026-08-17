@@ -389,7 +389,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 6. **Trying to `db.sql.from(tables.user)`.** That surface does not exist. The builder is table-shaped: `db.sql.<tableName>.select(...)`. There is no `db.schema.tables` either.
 7. **Trying to `db.execute(plan)` directly.** Plans execute through the runtime: `db.runtime().execute(plan)`. Inside a transaction, use `tx.execute(plan)`.
 8. **Setting `capabilities: { lateral: true }` in `prisma.config.ts`.** `defineConfig` does not take `capabilities`. Capabilities are declared by the active adapter and become part of the emitted contract; the Postgres adapter advertises `lateral`, `jsonAgg`, and `returning` out of the box. Enable extension capabilities through `extensions: [...]` in the config (see `references/contract.md`).
-9. **Confabulating a `db.sql.raw(...)`, TypedSQL, or `.stream()` surface.** None of those exist today. See *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md).
+9. **Confabulating a TypedSQL or `.stream()` surface.** Neither exists today. Raw SQL does: the client's raw lane, ``db.raw.sql`…` ``. See *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md) for all three.
 10. **Mixing the ORM mutation return with `runtime.execute(plan)`.** ORM terminals issue the query themselves and return rows. `runtime.execute` is for SQL-builder plans.
 11. **Top-N grouped queries written as `groupBy(...).aggregate(...).sort().slice()` in JS.** That's a fallback because the grouped collection doesn't expose `.orderBy(...)` / `.take(...)`. Fine at small cardinalities; for large grouped result sets, drop to `db.sql.<table>`.
 
@@ -412,4 +412,4 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 - [ ] Executed SQL-builder plans via `db.runtime().execute(plan)` (or `tx.execute(plan)` inside a transaction).
 - [ ] Wrapped multi-statement work in `db.transaction(async (tx) => { ... })` where atomicity matters.
 - [ ] For top-N grouped aggregates at meaningful scale, dropped to `db.sql.<table>` rather than JS-side sort + slice over `groupBy(...).aggregate(...)`.
-- [ ] Did NOT confabulate `db.sql.raw`, TypedSQL, `.stream()`, `db.batch`, `.between(...)`, a `capabilities` field on `defineConfig`, or a `db.sql.from(tables.user)` API — routed to *What Prisma Next doesn't do yet* / `references/feedback.md` instead.
+- [ ] Did NOT confabulate TypedSQL, `.stream()`, `db.batch`, `.between(...)`, a `capabilities` field on `defineConfig`, or a `db.sql.from(tables.user)` API — routed to *What Prisma Next doesn't do yet* / `references/feedback.md` instead. Raw SQL is spelled `db.raw.sql`, not `db.sql.raw`.

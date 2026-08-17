@@ -11,7 +11,7 @@ A raw statement is the same tagged template that produces raw *fragments* inside
 ```ts
 const user = db.sql.public.user;
 
-const plan = db.sql.raw`
+const plan = db.raw.sql`
   SELECT u.id, u.email, count(p.id) AS "postCount"
   FROM "user" u
   LEFT JOIN "post" p ON p."userId" = u.id
@@ -32,7 +32,7 @@ const plan = db.sql.raw`
 A statement that reports how many rows it touched terminates differently and declares nothing:
 
 ```ts
-const plan = db.sql.raw`
+const plan = db.raw.sql`
   UPDATE "post"
   SET "viewCount" = "viewCount" + 1
   WHERE "userId" IN (SELECT id FROM "user" WHERE kind = ${kind})
@@ -56,7 +56,7 @@ A bare template builds nothing. The node's `result` field is the discriminator t
 
 **4. A row spec is hybrid.** Each entry is either a contract column reference — `user.columns.email`, which carries the column's codec id, its nullability, and the TypeScript type the contract resolves it to — or an explicit codec id (`'pg/int8@1'`) or `{ codecId, nullable }` descriptor for a column the contract has no name for, such as a `count(*)`. Both forms resolve through the same codec-type map the query builders read, so a mixed spec types each entry by its own form. The explicit form is structurally the contract-free lane's `ColumnDescriptor`, so a spec written against one lane reads as a spec for the other.
 
-**5. The tag binds its context once.** `db.sql.raw` sits beside the namespace facets, not inside one: a raw statement names its own tables and is a peer of the table proxies. Constructing it binds the adapter's codec inferer and the contract, so an authoring site carries only its template, its spec, and a terminator — nothing about codecs or plan metadata is restated per call.
+**5. The tag binds its context once.** `db.raw.sql` sits beside the namespace map rather than inside it. A raw statement names its own tables, so it is a peer of the table proxies, and the client composes it as its own lane. Constructing the tag binds the adapter's codec inferer and the contract. An authoring site then carries only its template, its spec, and a terminator. Nothing about codecs or plan metadata is restated per call.
 
 ## Why the fragment mechanism rather than a new surface
 
@@ -69,7 +69,7 @@ It also settles composition for free, which a separate surface would have had to
 Interpolating a row-spec'd raw query into another raw template splices the inner parts into the outer parts list. Parameters keep their template order because the flattened list is the order:
 
 ```ts
-const authorsWithPosts = db.sql.raw`
+const authorsWithPosts = db.raw.sql`
   SELECT p."userId" AS "userId", count(*) AS "postCount"
   FROM "post" p
   GROUP BY p."userId"
@@ -79,7 +79,7 @@ const authorsWithPosts = db.sql.raw`
   postCount: 'pg/int8@1',
 });
 
-const plan = db.sql.raw`
+const plan = db.raw.sql`
   WITH active AS (${authorsWithPosts})
   SELECT u.email, active."postCount"
   FROM active
@@ -97,7 +97,7 @@ Two rules follow, both deliberate:
 **Embeddability keys on the declared result, not the statement keyword.** A mutation with `RETURNING` produces rows, so it takes a row spec and composes exactly like a `SELECT` — which is what makes data-modifying CTEs expressible:
 
 ```ts
-const promoted = db.sql.raw`
+const promoted = db.raw.sql`
   UPDATE "post"
   SET priority = 'high'
   WHERE title ILIKE ${`%${titleTerm}%`} AND priority <> 'high'
@@ -114,7 +114,7 @@ A mutation without `RETURNING` terminates with `.affectedCount()`, which is a pl
 ## Responsibilities
 
 - **Lane (`@internal/sql-relational-core`)** owns the node, the terminators, spec normalization (a bare codec id becomes `{ codecId, nullable: false }`), and the splice.
-- **Contract-typed lane (`@internal/sql-builder`)** owns the `raw` key on the SQL DSL object (`db.sql.raw` where the client composes that object as `db.sql`), the table proxy's `columns` accessor, and the resolution of spec entries to TypeScript row types.
+- **Contract-typed lane (`@internal/sql-builder`)** owns the lane type and its factory (`createRawLane`, which each facade composes as `db.raw`), the table proxy's `columns` accessor, and the resolution of spec entries to TypeScript row types.
 - **Adapters** render the node by walking its parts through the same expression renderer that serves `RawExpr`, emitting each target's placeholder form (`$N` for Postgres, `?` for SQLite).
 - **Runtime** reads the node's `result` twice: where it decodes, a row spec becomes the decode context's aliases and per-column codecs; where it prepares, the declared result picks which prepared handle the statement earns. Which runtime operation a plan belongs to needs no raw-specific code — a row-returning statement is run through `runtime.query(plan)`, which streams decoded rows, and a statement declaring an affected-row count through `runtime.execute(plan)`, which resolves to `SqlStatementStats`. Guardrails run over the SQL text via `evaluateRawGuardrails`, because a raw statement has no structural shape for the AST lints to inspect.
 
@@ -134,7 +134,7 @@ A mutation without `RETURNING` terminates with `.affectedCount()`, which is a pl
 
 **Raw statement plans carry no annotations.** `.annotations()` is not part of this surface. One consequence is concrete: `evaluateRawGuardrails` reads `meta.annotations.intent` to decide whether a mutation contradicts a read-only intent, so `LINT.READ_ONLY_MUTATION` cannot fire for a raw statement plan until annotations reach it. The text-derived lints do apply: `LINT.SELECT_STAR` and `LINT.NO_LIMIT` both fire for a raw statement. `evaluateRawGuardrails` also computes an unbounded-select budget finding, but the lint middleware reads only the lints it returns, so that finding reaches no consumer — for raw statements as for any other plan the function evaluates.
 
-**`raw` is a reserved storage-namespace name.** `raw` is the key the SQL DSL object answers with the tag (`db.sql.raw`), so a contract declaring a storage namespace named `raw` would have that namespace shadowed while the type still promised its tables. `sql()` refuses such a contract at construction with `ORM.NAMESPACE_RESERVED` rather than answering `undefined` for every table in it. The check reads storage namespaces only, because storage is what the surface dispatches on.
+**The lane is composed, not derived.** The client builds `db.raw` alongside `sql`, `runtime()` and `prepare`. It is not a key the namespace map answers, so nothing a contract declares can collide with it, and a storage namespace may be named `raw` like any other. The lane holds one key today: `sql`. That is the key an editor keys its SQL highlighting on, and the name the plans' `lane: 'raw'` already uses. Anything else raw authoring needs can join it later, without moving the address again.
 
 ## Consequences
 

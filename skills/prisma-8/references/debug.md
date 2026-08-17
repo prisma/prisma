@@ -123,7 +123,7 @@ If the envelope's `code` is not in this table, follow the envelope's `fix` field
 
 - **Studio / GUI database browser.** No first-party Studio. Workaround: `prisma-next db schema` for a CLI tree of the live schema, or use a third-party tool (TablePlus, DataGrip, `psql`) against your `DATABASE_URL`. If you need a built-in GUI, file a feature request via `references/feedback.md`.
 - **First-class query logger middleware.** No built-in "log every query" middleware ships with the framework. Workaround: write a small custom middleware that wraps each operation (see `references/runtime.md` for middleware composition). If you need a built-in query log, file a feature request via `references/feedback.md`.
-- **`EXPLAIN` integration.** No first-class `.explain()` on plans. Workaround: write the EXPLAIN as a raw query (`db.sql.raw\`EXPLAIN ANALYZE ...\``; see `references/queries.md`). If you need first-class EXPLAIN, file a feature request via `references/feedback.md`.
+- **`EXPLAIN` integration.** No first-class `.explain()` on plans. Workaround: write the EXPLAIN as a raw query (``db.raw.sql`EXPLAIN ANALYZE ...` ``; see `references/queries.md`). If you need first-class EXPLAIN, file a feature request via `references/feedback.md`.
 - **Prepared-statement caching as a user-facing surface.** Adapters prepare under the hood for parameterized queries, but you cannot pre-prepare and re-execute a statement by name. Workaround: use TypedSQL (see `references/queries.md`). If you need prepared statements as a first-class API, file a feature request via `references/feedback.md`.
 
 ## Asking for help when the envelope doesn't route

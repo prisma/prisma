@@ -37,7 +37,7 @@ The point: when the user asks about a feature Prisma Next doesn't have yet, the 
 > EXPLAIN this query.
 
 - [ ] Agent names the gap: no `.explain()` first-class method.
-- [ ] Agent suggests `db.sql.raw\`EXPLAIN ANALYZE ${...}\``.
+- [ ] Agent suggests ``db.raw.sql`EXPLAIN ANALYZE ${...}` ``.
 - [ ] Agent routes to `prisma-next-feedback` for the feature request.
 
 ### 03e — Runtime-apply migrations
