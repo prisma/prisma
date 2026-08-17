@@ -954,3 +954,86 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
     assert.match(result.stderr, /per-pr-declaration/);
   });
 });
+
+describe('check-upgrade-coverage — dependency-only substrate diffs need no declaration', () => {
+  function seedTransitionDir() {
+    writePackageJson('0.7.0');
+    writeRepoFile(
+      'skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
+    );
+    writeRepoFile(
+      'skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
+    );
+  }
+
+  function exampleManifest(deps) {
+    return `${JSON.stringify({ name: 'demo', devDependencies: deps }, null, 2)}\n`;
+  }
+
+  it('a version-only bump in an example manifest passes without touching instructions.md', () => {
+    seedTransitionDir();
+    writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^6.0.0' }));
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^8.1.4' }));
+    commitAll('head — dependency version bump only');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, result.stderr);
+  });
+
+  it('a $schema realignment in an extension biome config passes without touching instructions.md', () => {
+    seedTransitionDir();
+    const config = (v) =>
+      `{\n  // linter config\n  "$schema": "https://biomejs.dev/schemas/${v}/schema.json"\n}\n`;
+    writeRepoFile('packages/3-extensions/pgvector/biome.jsonc', config('2.5.7'));
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('packages/3-extensions/pgvector/biome.jsonc', config('2.5.8'));
+    commitAll('head — schema URL realignment only');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, result.stderr);
+  });
+
+  it('adding a dependency still requires a declaration', () => {
+    seedTransitionDir();
+    writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^8.1.4' }));
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^8.1.4', zod: '^3.0.0' }));
+    commitAll('head — new dependency');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /per-pr-declaration/);
+  });
+
+  it('a source change alongside a version bump still requires a declaration', () => {
+    seedTransitionDir();
+    writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^6.0.0' }));
+    writeRepoFile('examples/demo/src/main.ts', 'export const a = 1;\n');
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^8.1.4' }));
+    writeRepoFile('examples/demo/src/main.ts', 'export const a = 2;\n');
+    commitAll('head — bump plus source');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /per-pr-declaration/);
+  });
+
+  it('a non-dependency manifest field still requires a declaration', () => {
+    seedTransitionDir();
+    writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^8.1.4' }));
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile(
+      'examples/demo/package.json',
+      `${JSON.stringify({ name: 'demo', scripts: { build: 'vite build' }, devDependencies: { vite: '^8.1.4' } }, null, 2)}\n`,
+    );
+    commitAll('head — scripts added');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /per-pr-declaration/);
+  });
+});
