@@ -15,6 +15,29 @@ import semver from 'semver'
 const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split(',') : null
 const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
 
+async function validatePrismaBotNpmToken(token: string): Promise<void> {
+  let response: Response
+  try {
+    response = await fetch('https://registry.npmjs.org/-/whoami', {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    })
+  } catch (error) {
+    throw new Error(`Could not validate PRISMABOT_NPM_TOKEN with the npm registry: ${String(error)}`)
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      'PRISMABOT_NPM_TOKEN is invalid, expired, or revoked. Create a new npm access token and update the PRISMABOT_NPM_TOKEN GitHub Actions secret before publishing.',
+    )
+  }
+
+  if (!response.ok) {
+    throw new Error(`Could not validate PRISMABOT_NPM_TOKEN with the npm registry (HTTP ${response.status})`)
+  }
+}
+
 async function getLatestCommitHash(dir: string): Promise<string> {
   if (process.env.GITHUB_CONTEXT) {
     const context = JSON.parse(process.env.GITHUB_CONTEXT)
@@ -51,7 +74,13 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
  * @param cwd cwd for running the command
  * @param cmd command to run
  */
-async function run(cwd: string, cmd: string, dry = false, hidden = false): Promise<void> {
+async function run(
+  cwd: string,
+  cmd: string,
+  dry = false,
+  hidden = false,
+  envOverrides: NodeJS.ProcessEnv = {},
+): Promise<void> {
   const args = [underline('./' + cwd).padEnd(20), bold(cmd)]
   if (dry) {
     args.push(dim('(dry)'))
@@ -70,6 +99,7 @@ async function run(cwd: string, cmd: string, dry = false, hidden = false): Promi
       shell: true,
       env: {
         ...process.env,
+        ...envOverrides,
       },
     })
   } catch (_e) {
@@ -716,6 +746,15 @@ async function publishPackages(
 
   const publishStr = dryRun ? `${bold('Dry publish')} ` : releaseVersion ? 'Releasing ' : 'Publishing '
 
+  let prismaBotNpmToken: string | undefined
+  if (!dryRun && !isSkipped('prisma')) {
+    prismaBotNpmToken = process.env.PRISMABOT_NPM_TOKEN
+    if (!prismaBotNpmToken) {
+      throw new Error('Missing env var PRISMABOT_NPM_TOKEN required to publish the prisma package')
+    }
+    await validatePrismaBotNpmToken(prismaBotNpmToken)
+  }
+
   if (releaseVersion) {
     console.log(red(bold(`RELEASE. This will release ${underline(releaseVersion)} on latest!!!`)))
     if (dryRun) {
@@ -816,7 +855,12 @@ async function publishPackages(
          *  - Your working directory is clean (there are no uncommitted changes).
          *  - The branch is up-to-date.
          */
-        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
+        const publishEnv: NodeJS.ProcessEnv = {}
+        if (pkgName === 'prisma' && prismaBotNpmToken) {
+          publishEnv.NODE_AUTH_TOKEN = prismaBotNpmToken
+        }
+
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun, false, publishEnv)
       }
     }
   }
