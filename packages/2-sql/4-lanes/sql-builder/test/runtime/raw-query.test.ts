@@ -224,3 +224,41 @@ describe('storage column names that collide with object machinery', () => {
     expect(Object.isFrozen(columns)).toBe(true);
   });
 });
+
+describe("the refs a row-spec'd statement publishes", () => {
+  it('names each declared column with its codec and nullability', () => {
+    const inner = rawLane().sql`SELECT id, email FROM users`.returnsRow({
+      id: db().public.users.columns.id,
+      email: { codecId: 'pg/text@1', nullable: true },
+    });
+
+    expect(inner.returns).toEqual({
+      id: { codecId: 'pg/int4@1', nullable: false },
+      email: { codecId: 'pg/text@1', nullable: true },
+    });
+  });
+
+  it('is frozen, on the ordinary object prototype, and reusable as a spec entry', () => {
+    const inner = rawLane().sql`SELECT id FROM users`.returnsRow({
+      id: db().public.users.columns.id,
+    });
+
+    expect(Object.isFrozen(inner.returns)).toBe(true);
+    expect(Object.getPrototypeOf(inner.returns)).toBe(Object.prototype);
+
+    const outer = rawLane().sql`WITH i AS (${inner}) SELECT id FROM i`
+      .returnsRow({ id: inner.returns.id })
+      .build();
+
+    expect((outer.ast as RawQueryAst).result).toEqual({
+      kind: 'rows',
+      columns: { id: { codecId: 'pg/int4@1', nullable: false } },
+    });
+  });
+
+  it('is absent from an affected-count query', () => {
+    const bump = rawLane().sql`UPDATE users SET name = ${'Ada'}`.affectedCount();
+
+    expect(Object.hasOwn(bump, 'returns')).toBe(false);
+  });
+});
