@@ -996,6 +996,31 @@ describe('check-upgrade-coverage — dependency-only substrate diffs need no dec
     assert.equal(result.status, 0, result.stderr);
   });
 
+  it('a filename merely ending in biome.json is not a biome config', () => {
+    seedTransitionDir();
+    const config = (v) => `{\n  "$schema": "https://biomejs.dev/schemas/${v}/schema.json"\n}\n`;
+    writeRepoFile('examples/demo/notbiome.json', config('2.5.7'));
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/notbiome.json', config('2.5.8'));
+    commitAll('head — a non-biome file whose name ends in biome.json');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /per-pr-declaration/);
+  });
+
+  it('a filename merely ending in package.json is not a manifest', () => {
+    seedTransitionDir();
+    writeRepoFile('examples/demo/not-package.json', '{"devDependencies":{"vite":"^6.0.0"}}\n');
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/not-package.json', '{"devDependencies":{"vite":"^8.1.4"}}\n');
+    commitAll('head — a non-manifest file whose name ends in package.json');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /per-pr-declaration/);
+  });
+
   it('adding a dependency still requires a declaration', () => {
     seedTransitionDir();
     writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^8.1.4' }));

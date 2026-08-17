@@ -54,6 +54,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { basename } from 'node:path';
 import { argv, cwd, exit, stderr, stdout } from 'node:process';
 import { fileURLToPath } from 'node:url';
 
@@ -325,6 +326,8 @@ const DEPENDENCY_MAPS = [
   'optionalDependencies',
 ];
 
+const BIOME_CONFIG_NAMES = new Set(['biome.json', 'biome.jsonc']);
+
 /** Key-sorted JSON, so a reordered manifest compares equal to itself. */
 function canonicalJson(value) {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
@@ -364,14 +367,14 @@ function isTranslationIrrelevant(repoRoot, prev, head, path) {
   // An added or deleted file is a structural change, not a version move.
   if (before === null || after === null) return false;
 
-  if (path === 'package.json' || path.endsWith('/package.json')) {
+  if (basename(path) === 'package.json') {
     try {
       return manifestShapeIgnoringVersions(before) === manifestShapeIgnoringVersions(after);
     } catch {
       return false;
     }
   }
-  if (path.endsWith('biome.jsonc') || path.endsWith('biome.json')) {
+  if (BIOME_CONFIG_NAMES.has(basename(path))) {
     const blankSchema = (text) => text.replace(/"\$schema"\s*:\s*"[^"]*"/g, '"$schema":""');
     return blankSchema(before) === blankSchema(after);
   }
