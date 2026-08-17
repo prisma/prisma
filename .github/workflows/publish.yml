@@ -116,6 +116,8 @@ jobs:
           # Secrets
           # Note: must use personal access token
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
+          # The prisma package cannot use trusted publishing and requires the Prisma bot token.
+          PRISMABOT_NPM_TOKEN: ${{ secrets.PRISMABOT_NPM_TOKEN }}
           REDIS_URL: ${{ secrets.REDIS_URL }}
           SLACK_RELEASE_FEED_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
 
