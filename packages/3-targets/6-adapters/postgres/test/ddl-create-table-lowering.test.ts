@@ -53,6 +53,38 @@ describe('PostgresCreateTable DDL lowering', () => {
     expect(lowered.sql).not.toContain('autoincrement');
   });
 
+  it('throws when an autoincrement() default is paired with a non-SERIAL-family type', async () => {
+    const ast = new PostgresCreateTable({
+      table: 'defaults',
+      columns: [col('id', 'int4', { notNull: true, default: fn('autoincrement()') })],
+    });
+
+    const adapter = new PostgresControlAdapter(createPostgresBuiltinCodecLookup());
+    await expect(
+      adapter.lowerToExecuteRequest(ast, { contract: {} as PostgresContract }),
+    ).rejects.toMatchObject({
+      code: 'CONTRACT.DEFAULT_INVALID',
+      meta: { nativeType: 'int4' },
+    });
+  });
+
+  it('accepts lowercase SERIAL-family pseudo-types paired with autoincrement()', async () => {
+    const ast = new PostgresCreateTable({
+      table: 'defaults',
+      columns: [
+        col('a', 'serial', { default: fn('autoincrement()') }),
+        col('b', 'SMALLSERIAL', { default: fn('autoincrement()') }),
+      ],
+    });
+
+    const adapter = new PostgresControlAdapter(createPostgresBuiltinCodecLookup());
+    const lowered = await adapter.lowerToExecuteRequest(ast, { contract: {} as PostgresContract });
+
+    expect(lowered.sql).toContain('"a" serial');
+    expect(lowered.sql).toContain('"b" SMALLSERIAL');
+    expect(lowered.sql).not.toContain('autoincrement');
+  });
+
   it('escapes single quotes in string-literal defaults', async () => {
     const ast = new PostgresCreateTable({
       table: 'defaults',
