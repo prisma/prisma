@@ -1296,9 +1296,6 @@ importers:
       '@internal/utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../0-foundation/utils
-      '@prisma/cli-engine':
-        specifier: 0.0.9
-        version: 0.0.9(magicast@0.5.3)
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -1351,6 +1348,9 @@ importers:
       '@internal/sql-runtime':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../2-sql/5-runtime
+      '@prisma/cli-engine':
+        specifier: 0.0.9
+        version: 0.0.9(magicast@0.5.3)
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.1
         version: link:../../../../test/utils
