@@ -236,11 +236,11 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.dry-run != 'true' }}
         continue-on-error: true
         env:
-          DISPATCH_PAT: ${{ secrets.PRISMA_CLI_DISPATCH_PAT }}
+          DISPATCH_PAT: ${{ secrets.BOT_GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           if [ -z "$DISPATCH_PAT" ]; then
-            echo "PRISMA_CLI_DISPATCH_PAT is not configured; skipping (the daily backstop covers this)."
+            echo "BOT_GITHUB_TOKEN is not configured; skipping (the daily backstop covers this)."
             exit 0
           fi
           curl -sSf --connect-timeout 10 --max-time 30 -X POST \
