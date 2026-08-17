@@ -35,11 +35,13 @@ import { dirname, join } from 'pathe';
 import type { VersionResult } from './determine-version-utils.ts';
 import { assertCanonicalBase, composeDevVersion } from './determine-version-utils.ts';
 
-// `prisma-next` has the longest publish history (it carries dev builds from
-// the pre-monorepo repository), so its `dev` dist-tag is the high-water mark
-// for the build counter. Counting from any younger package would re-issue a
-// `<base>-dev.N` that npm already holds for the shim and fail the publish.
-const PACKAGE_NAME = process.argv[2] ?? 'prisma-next';
+// The counter reads one package's `dev` dist-tag as the high-water mark, so
+// that package must be one this repo still publishes on every dev build.
+// `prisma-next` used to be it, but #30005 retired the bin and stopped
+// publishing it — leaving its `dev` tag frozen one build behind the packages
+// that do ship. A frozen anchor re-issues a `<base>-dev.N` npm already holds
+// and fails the publish, so anchor on the toolchain shell instead.
+const PACKAGE_NAME = process.argv[2] ?? '@prisma/orm-toolchain';
 
 const rootDir = dirname(dirname(fileURLToPath(import.meta.url)));
 
