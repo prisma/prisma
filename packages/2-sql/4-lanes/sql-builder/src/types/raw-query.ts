@@ -96,6 +96,26 @@ export type RawRowFor<
 > = ResolveRow<SpecScopeFields<Spec, CodecTypes>, CodecTypes, SpecPreResolved<Spec, CodecTypes>>;
 
 /**
+ * What a row-spec'd statement publishes as `.returns`. Each declared key gets
+ * one column reference. The reference carries the codec id and nullability the
+ * entry stated, plus the type the row resolves for that key.
+ *
+ * A column reference keeps nullability in its own field rather than in the
+ * type it carries. These references do the same, so a ref fed back into a row
+ * spec resolves the type it came from, whichever form the inner entry took.
+ */
+export type ContractRawRefs<
+  Spec extends ContractRawRowSpec<CodecTypes>,
+  CodecTypes extends Record<string, { readonly output: unknown }>,
+> = {
+  readonly [K in keyof Spec]: ContractColumnRef<
+    EntryScopeField<Spec[K]>['codecId'],
+    EntryScopeField<Spec[K]>['nullable'],
+    NonNullable<RawRowFor<Spec, CodecTypes>[K]>
+  >;
+};
+
+/**
  * A raw template bound to the contract: the same builder the target-agnostic
  * surface returns, with terminators that resolve their row type from the spec.
  */
@@ -118,7 +138,7 @@ export interface ContractRawBuilder<CodecTypes extends Record<string, { readonly
 
   returnsRow<Spec extends ContractRawRowSpec<CodecTypes>>(
     spec: Spec,
-  ): RawRowQuery<RawRowFor<Spec, CodecTypes>>;
+  ): RawRowQuery<RawRowFor<Spec, CodecTypes>, ContractRawRefs<Spec, CodecTypes>>;
   affectedCount(): RawAffectedCountQuery;
 }
 

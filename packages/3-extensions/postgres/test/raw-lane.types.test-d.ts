@@ -46,3 +46,35 @@ test('an unknown codec id is rejected at the lane', () => {
   // @ts-expect-error — 'pg/nope@1' is not a key of the contract's codec map
   db.raw.sql`SELECT 1 AS one`.returnsRow({ one: 'pg/nope@1' });
 });
+
+test('an outer spec inherits an inner declaration through .returns', () => {
+  const users = db.sql.public.users;
+  const posts = db.sql.public.posts;
+  const minPosts = 3;
+
+  const authorsWithPosts = db.raw.sql`
+    SELECT p.user_id AS user_id, count(*) AS post_count
+    FROM posts p
+    GROUP BY p.user_id
+    HAVING count(*) >= ${minPosts}
+  `.returnsRow({
+    user_id: posts.columns.user_id,
+    post_count: 'pg/int8@1',
+  });
+
+  const plan = db.raw.sql`
+    WITH active AS (${authorsWithPosts})
+    SELECT u.email, active.post_count
+    FROM active
+    JOIN users u ON u.id = active.user_id
+  `
+    .returnsRow({
+      email: users.columns.email,
+      post_count: authorsWithPosts.returns.post_count,
+    })
+    .build();
+  type Row = ResultType<typeof plan>;
+
+  expectTypeOf<Row['email']>().toEqualTypeOf<string>();
+  expectTypeOf<Row['post_count']>().toEqualTypeOf<bigint>();
+});
