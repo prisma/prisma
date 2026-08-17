@@ -679,6 +679,17 @@ describe('packedEntrySpecifiers', () => {
     );
   });
 
+  it('recognises node-addons, which Node resolves before node', () => {
+    assert.deepEqual(
+      packedEntrySpecifiers({ name: 'x', exports: { 'node-addons': './dist/native.mjs' } }),
+      ['x'],
+    );
+    assert.deepEqual(
+      packedEntrySpecifiers({ name: 'x', exports: { './a': { 'node-addons': './dist/a.mjs' } } }),
+      ['x/a'],
+    );
+  });
+
   it('treats an array fallback as the root export', () => {
     assert.deepEqual(
       packedEntrySpecifiers({ name: 'x', exports: ['./dist/index.mjs', './dist/fallback.mjs'] }),

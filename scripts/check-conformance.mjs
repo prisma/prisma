@@ -419,6 +419,10 @@ export function packedEntrySpecifiers(manifest) {
 }
 
 /**
+ * Conditions Node can resolve to an ES module for `await import(...)`, in the
+ * order Node considers them. `require` is absent because a CommonJS-only
+ * target is not what this check imports.
+ *
  * @param {unknown} target
  * @returns {boolean}
  */
@@ -426,7 +430,7 @@ function importableTarget(target) {
   if (typeof target === 'string') return true;
   if (!target || typeof target !== 'object') return false;
   if (Array.isArray(target)) return target.some(importableTarget);
-  return ['import', 'module', 'default', 'node'].some((condition) =>
+  return ['node-addons', 'node', 'import', 'module', 'default'].some((condition) =>
     importableTarget(/** @type {Record<string, unknown>} */ (target)[condition]),
   );
 }
