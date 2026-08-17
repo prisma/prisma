@@ -1728,7 +1728,14 @@ function pgInlineLiteral(wire: unknown, nativeType: string): string {
   );
 }
 
-const SERIAL_FAMILY_TYPES = new Set(['serial', 'bigserial', 'smallserial']);
+const SERIAL_FAMILY_TYPES = new Set([
+  'serial',
+  'serial4',
+  'bigserial',
+  'serial8',
+  'smallserial',
+  'serial2',
+]);
 
 async function pgRenderDdlColumnDefault(
   def: LiteralColumnDefault | FunctionColumnDefault,
@@ -1742,8 +1749,8 @@ async function pgRenderDdlColumnDefault(
         throw postgresError(
           'CONTRACT.DEFAULT_INVALID',
           `Column type "${nativeType}" has an autoincrement() default but is not a SERIAL-family pseudo-type. ` +
-            'Autoincrement columns must declare their type as SERIAL, BIGSERIAL, or SMALLSERIAL — ' +
-            `e.g. col(name, "SERIAL", { default: fn("autoincrement()") }).`,
+            'Autoincrement columns must declare their type as SERIAL (or SERIAL4), BIGSERIAL (or SERIAL8), ' +
+            `or SMALLSERIAL (or SERIAL2) — e.g. col(name, "SERIAL", { default: fn("autoincrement()") }).`,
           { meta: { nativeType } },
         );
       }

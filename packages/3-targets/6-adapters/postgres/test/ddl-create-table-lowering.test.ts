@@ -85,6 +85,25 @@ describe('PostgresCreateTable DDL lowering', () => {
     expect(lowered.sql).not.toContain('autoincrement');
   });
 
+  it('accepts serial2/serial4/serial8 aliases paired with autoincrement()', async () => {
+    const ast = new PostgresCreateTable({
+      table: 'defaults',
+      columns: [
+        col('a', 'serial2', { default: fn('autoincrement()') }),
+        col('b', 'serial4', { default: fn('autoincrement()') }),
+        col('c', 'serial8', { default: fn('autoincrement()') }),
+      ],
+    });
+
+    const adapter = new PostgresControlAdapter(createPostgresBuiltinCodecLookup());
+    const lowered = await adapter.lowerToExecuteRequest(ast, { contract: {} as PostgresContract });
+
+    expect(lowered.sql).toContain('"a" serial2');
+    expect(lowered.sql).toContain('"b" serial4');
+    expect(lowered.sql).toContain('"c" serial8');
+    expect(lowered.sql).not.toContain('autoincrement');
+  });
+
   it('escapes single quotes in string-literal defaults', async () => {
     const ast = new PostgresCreateTable({
       table: 'defaults',
