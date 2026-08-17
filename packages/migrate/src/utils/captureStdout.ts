@@ -59,7 +59,7 @@ export class CaptureStdout {
    * @param string
    * @private
    */
-  _writeCapture(string) {
+  _writeCapture(string: string) {
     this._capturedText.push(string)
   }
 

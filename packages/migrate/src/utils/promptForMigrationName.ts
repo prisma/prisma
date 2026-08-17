@@ -44,6 +44,6 @@ export async function getMigrationName(name?: string): Promise<getMigrationNameO
   }
 
   return {
-    name: slugify(response.name, { separator: '_' }).substring(0, maxMigrationNameLength) || '',
+    name: slugify(response.name as string, { separator: '_' }).substring(0, maxMigrationNameLength) || '',
   }
 }
