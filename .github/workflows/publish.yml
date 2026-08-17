@@ -160,10 +160,36 @@ jobs:
       # Enable npm provenance attestations for each published package.
       # This requires a public source repository (npm rejects provenance from private repos).
       - name: Publish packages
+        id: publish
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.dry-run != 'true' }}
         env:
           NPM_CONFIG_PROVENANCE: "true"
         run: node scripts/publish-packages.mjs --tag "${{ steps.version.outputs.tag }}"
+
+      # Tell prisma-cli a package it mounts has shipped, so its
+      # update-product-versions workflow can open the version-update PR
+      # that deploys a dev CLI carrying this publish (see prisma-cli
+      # docs/oss/versioning.md; operator ruling 2026-08-13). Directly
+      # after the publish and keyed on that step's outcome: a later tag
+      # or release failure must not swallow the notification. Never fails
+      # the publish — prisma-cli also runs the same comparison daily, so
+      # a missed dispatch delays the update by at most a day.
+      - name: Notify prisma-cli
+        if: ${{ steps.publish.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [ -z "$DEPLOY_TOKEN" ]; then
+            echo "DEPLOY_GITHUB_TOKEN is not configured; skipping (the daily backstop covers this)."
+            exit 0
+          fi
+          curl -sSf --connect-timeout 10 --max-time 30 -X POST \
+            -H "Authorization: Bearer $DEPLOY_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/prisma/prisma-cli/dispatches \
+            -d "{\"event_type\":\"family-published\",\"client_payload\":{\"repo\":\"prisma/prisma\",\"version\":\"$VERSION\"}}"
 
       # Lightweight git tag for non-latest publishes (dev / beta / …).
       # `latest` publishes get a tag implicitly via `gh release create`
@@ -225,26 +251,3 @@ jobs:
               --notes-file "docs/releases/v$VERSION.md" \
               $PRERELEASE_FLAG
           fi
-
-      # Tell prisma-cli a family package shipped, so its auto-repin
-      # workflow can open the repin PR that deploys a dev CLI carrying
-      # this publish (prisma-cli docs/oss/versioning.md, operator ruling
-      # 2026-08-13). Guarded on the PAT and never fails the publish: the
-      # repin has a daily scheduled backstop in prisma-cli, so a missed
-      # dispatch delays it by at most a day.
-      - name: Notify prisma-cli
-        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.dry-run != 'true' }}
-        continue-on-error: true
-        env:
-          DISPATCH_PAT: ${{ secrets.BOT_GITHUB_TOKEN }}
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          if [ -z "$DISPATCH_PAT" ]; then
-            echo "BOT_GITHUB_TOKEN is not configured; skipping (the daily backstop covers this)."
-            exit 0
-          fi
-          curl -sSf --connect-timeout 10 --max-time 30 -X POST \
-            -H "Authorization: Bearer $DISPATCH_PAT" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/prisma/prisma-cli/dispatches \
-            -d "{\"event_type\":\"family-published\",\"client_payload\":{\"repo\":\"prisma/prisma\",\"version\":\"$VERSION\"}}"
