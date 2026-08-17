@@ -43,7 +43,7 @@ import {
   postgresAuthoringEntityTypes,
   postgresAuthoringPslBlockDescriptors,
 } from '../../../src/core/authoring';
-import { type PostgresSchema, postgresCreateNamespace } from '../../../src/core/postgres-schema';
+import { isPostgresSchema, postgresCreateNamespace } from '../../../src/core/postgres-schema';
 import { buildPslDocumentAst } from '../../../src/core/psl-infer/infer-psl-contract';
 import { createPostgresDefaultMapping } from '../../../src/core/psl-infer/postgres-default-mapping';
 import { createPostgresTypeMap } from '../../../src/core/psl-infer/postgres-type-map';
@@ -97,14 +97,21 @@ function print(ast: PslDocumentAst): string {
   return printPsl(ast, { pslBlockDescriptors: assembled.pslBlockDescriptors });
 }
 
+/**
+ * Reads the printed text back the way the CLI does. The parse and symbol-table
+ * diagnostics are returned alongside the interpreter result because the
+ * interpreter succeeds on a document the symbol table has already repaired: a
+ * duplicate declaration is reported there and dropped first-wins, so asserting
+ * only on the interpreter would accept printed text that is not valid PSL.
+ */
 function parseAndInterpret(source: string) {
-  const { document, sourceFile } = parse(source);
-  const { table: symbolTable } = buildSymbolTable({
+  const { document, sourceFile, diagnostics: parseDiagnostics } = parse(source);
+  const { table: symbolTable, diagnostics: symbolTableDiagnostics } = buildSymbolTable({
     document,
     sourceFile,
     pslBlockDescriptors: assembled.pslBlockDescriptors,
   });
-  return interpretPslDocumentToSqlContract({
+  const interpreted = interpretPslDocumentToSqlContract({
     symbolTable,
     sourceFile,
     sourceId: 'schema.prisma',
@@ -116,6 +123,7 @@ function parseAndInterpret(source: string) {
     createNamespace: postgresCreateNamespace,
     codecLookup,
   });
+  return { interpreted, sourceDiagnostics: [...parseDiagnostics, ...symbolTableDiagnostics] };
 }
 
 const ZERO_SPAN: PslSpan = {
@@ -208,15 +216,40 @@ describe('a document with both a flat top-level bucket and a named namespace', (
   });
 
   it('re-parses and re-interprets, with the enum recovered as a value set', () => {
-    const result = parseAndInterpret(print(ast));
-    if (!result.ok) {
-      assert.fail(JSON.stringify(result.failure.diagnostics));
+    const { interpreted, sourceDiagnostics } = parseAndInterpret(print(ast));
+    expect(sourceDiagnostics.map((d) => `${d.code}: ${d.message}`)).toEqual([]);
+    if (!interpreted.ok) {
+      assert.fail(interpreted.failure.diagnostics.map((d) => `${d.code}: ${d.message}`).join('\n'));
     }
-    expect(result.value.domain.namespaces['billing']?.models['Item']).toBeDefined();
-    const publicStorage = result.value.storage.namespaces['public'] as PostgresSchema;
+    expect(interpreted.value.domain.namespaces['billing']?.models['Item']).toBeDefined();
+    const publicStorage = interpreted.value.storage.namespaces['public'];
+    assert.ok(isPostgresSchema(publicStorage), 'the value set must land in the public namespace');
     expect(publicStorage.valueSet?.['ItemStatus']).toMatchObject({
       values: ['draft', 'shipped'],
     });
+  });
+});
+
+describe('two flat buckets in one document', () => {
+  it('prints text that re-parses cleanly, with the shared enum declared once', () => {
+    // The shape a producer reaches by splitting one logical bucket in two.
+    // Printing each entry separately would declare `ItemStatus` twice, which
+    // parses to a duplicate-declaration diagnostic rather than to a contract.
+    const ast: PslDocumentAst = {
+      kind: 'document',
+      sourceId: 't',
+      namespaces: [
+        flatBucket([enumBlock('ItemStatus', { draft: 'draft', shipped: 'shipped' })]),
+        flatBucket([enumBlock('ItemStatus', { draft: 'draft', shipped: 'shipped' })]),
+      ],
+      span: ZERO_SPAN,
+    };
+    const printed = print(ast);
+    expect(printed.match(/enum ItemStatus \{/g)).toHaveLength(1);
+
+    const { interpreted, sourceDiagnostics } = parseAndInterpret(printed);
+    expect(sourceDiagnostics.map((d) => `${d.code}: ${d.message}`)).toEqual([]);
+    expect(interpreted.ok).toBe(true);
   });
 });
 
@@ -282,6 +315,49 @@ describe('buildPslDocumentAst and the top-level bucket', () => {
     );
     expect(wrapped.namespaces).toHaveLength(1);
     expect(wrapped.namespaces[0]?.name).toBe('app');
+
+    const flat = buildPslDocumentAst(
+      schemaIR,
+      printerOptions,
+      foreignKeyExtras,
+      undefined,
+      undefined,
+      [],
+    );
+    expect(flat.namespaces).toHaveLength(1);
+    expect(flat.namespaces[0]?.name).toBe(UNSPECIFIED_PSL_NAMESPACE_ID);
+  });
+
+  it('does not split when the wrap name is itself the flat bucket name', () => {
+    // A live schema may be called `__unspecified__`. Splitting on it would put
+    // two same-named buckets in one document, and the printed output would
+    // carry no wrapper at all — so its tables would read back as `public`.
+    const ast = buildPslDocumentAst(
+      schemaIR,
+      printerOptions,
+      foreignKeyExtras,
+      UNSPECIFIED_PSL_NAMESPACE_ID,
+      undefined,
+      [enumBlock('WidgetKind', { small: 'small', large: 'large' })],
+    );
+    expect(ast.namespaces).toHaveLength(1);
+    expect(Object.keys(ast.namespaces[0]?.entries?.['enum'] ?? {})).toEqual(['WidgetKind']);
+  });
+
+  it('refuses a top-level block whose name a model already claims', () => {
+    expect(() =>
+      buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, 'app', undefined, [
+        enumBlock('Widget', { small: 'small' }),
+      ]),
+    ).toThrow(/collides with a model, native enum, or policy/);
+  });
+
+  it('refuses a top-level block named after a PSL scalar type', () => {
+    expect(() =>
+      buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, 'app', undefined, [
+        enumBlock('Int', { small: 'small' }),
+      ]),
+    ).toThrow(/collides with a model, native enum, or policy/);
   });
 
   it('splits into a flat bucket and a named one when both have content', () => {
@@ -305,5 +381,25 @@ describe('buildPslDocumentAst and the top-level bucket', () => {
     expect(ast.namespaces).toHaveLength(1);
     expect(ast.namespaces[0]?.name).toBe(UNSPECIFIED_PSL_NAMESPACE_ID);
     expect(Object.keys(ast.namespaces[0]?.entries?.['enum'] ?? {})).toEqual(['WidgetKind']);
+  });
+
+  it('prints the block unwrapped on both sides of the split, above the wrap and below the models', () => {
+    // Position differs between the two paths because a single bucket prints
+    // its models before its blocks. Both keep the block top-level, which is
+    // what a wrap would have broken; pinned here so the difference stays
+    // deliberate rather than being discovered on a re-emit.
+    const blocks = [enumBlock('WidgetKind', { small: 'small', large: 'large' })];
+
+    const split = print(
+      buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, 'app', undefined, blocks),
+    );
+    expect(split.indexOf('enum WidgetKind {')).toBeLessThan(split.indexOf('namespace app {'));
+
+    const merged = print(
+      buildPslDocumentAst(schemaIR, printerOptions, foreignKeyExtras, undefined, undefined, blocks),
+    );
+    expect(merged).toContain('enum WidgetKind {');
+    expect(merged).not.toMatch(/namespace\s/);
+    expect(merged.indexOf('model Widget {')).toBeLessThan(merged.indexOf('enum WidgetKind {'));
   });
 });

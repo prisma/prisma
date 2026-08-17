@@ -11,13 +11,13 @@ Two prerequisites for domain-enum recovery, neither of which emits an enum:
 
 ## Why this is not a document-shape change
 
-`buildPslDocumentAst` builds exactly one namespace (`infer-psl-contract.ts:320-337`), named either the introspected schema or `UNSPECIFIED_PSL_NAMESPACE_ID`, and puts every model and every extension block in it. That single bucket is the whole limitation.
+`buildPslDocumentAst` built exactly one namespace, named either the introspected schema or `UNSPECIFIED_PSL_NAMESPACE_ID`, and put every model and every extension block in it. That single bucket was the whole limitation.
 
 Everything downstream already supports two:
 
 - `PslDocumentAst.namespaces` is `readonly PslNamespace[]` (`psl-ast.ts:313-319`).
 - `UNSPECIFIED_PSL_NAMESPACE_ID` (`psl-ast.ts:197`) names the flat bucket.
-- The print-document builder sorts that bucket first (`ast-to-print-document.ts:65-66`).
+- The print-document builder sorts that bucket first (`astDocumentToPrintDocument`).
 - The serializer prints its contents with no wrapper, explicitly so top-level declarations round-trip to top-level output (`serialize-print-document.ts:94-99`).
 
 So this slice teaches one function to emit two buckets and proves the seam end to end. No change to `PslDocumentAst`, `makePslNamespace`, `makePslNamespaceEntries`, or the printer.
@@ -28,7 +28,7 @@ So this slice teaches one function to emit two buckets and proves the seam end t
 
 - `buildPslDocumentAst` emits a second `PslNamespace` named `UNSPECIFIED_PSL_NAMESPACE_ID` when there is top-level content, alongside the named one, and continues to emit exactly one bucket when there is not. Existing byte-level output for every current input must be unchanged — the flat bucket appears only when something is put in it, and nothing is put in it yet by this slice.
 - A seam test proving a two-bucket document prints as top-level declarations followed by `namespace <schema> { … }`, and that the result re-parses and re-interprets. Constructing the document directly in the test is acceptable and preferable to inventing a fake producer — but the flat bucket must carry an **extension block**, since that is the only thing the emitter ever puts there. A model in the flat bucket is today's shape for every inferred document and proves nothing new.
-- The reprint corpus, captured against a real database as an integration test that creates each shape and asserts the introspected body verbatim. **Capture must cover the supported floor.** [ADR 244 — PostgreSQL floor lowered to 15](../../../../docs/architecture%20docs/adrs/ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md) sets the minimum at 15. Postgres's predicate printer is version-dependent, so a literal captured on one version is not automatically evidence about another.
+- The reprint corpus, captured against a real database as an integration test that creates each shape and asserts the introspected body verbatim. **Capture must cover the supported floor.** [ADR 248 — PostgreSQL floor lowered to 15](../../../../docs/architecture%20docs/adrs/ADR%20248%20-%20PostgreSQL%20floor%20lowered%20to%2015.md) sets the minimum at 15. Postgres's predicate printer is version-dependent, so a literal captured on one version is not automatically evidence about another.
 
 **Resolved during the slice:** the integration harness is not the `postgres:15-alpine` image in `docker-compose.yaml` — it is PGlite via `@prisma/dev`, reporting PostgreSQL 17.5. The corpus is therefore captured on 17.5, and every shape was additionally run against 15.18 and found **byte-identical**, including the `pg_get_constraintdef` form. So the corpus is evidence for the floor as well as for what CI runs, and the harvest needs no version branching. If a future shape ever diverges across versions, that divergence is a finding the harvest design must accommodate rather than a choice between versions:
   - `text` scalar, one member
@@ -36,9 +36,9 @@ So this slice teaches one function to emit two buckets and proves the seam end t
   - `varchar(n)` scalar, one member
   - `varchar(n)` scalar, two or more members
   - `text[]` enum-array (`<@ ARRAY[…]`)
-- Replace two hand-written fixtures with faithful captured output if it differs. Neither is a *drift* fixture: both assert that a reprinted expression is **not** drift, so the bar is that the literal must be a genuine Postgres reprint **of that fixture's declared expression on that column's type** — matching the member count and the column's type, not merely some real reprint. Both declared expressions have two members: `packages/2-sql/9-family/test/schema-verify.verdict.test.ts:791` and `packages/2-sql/1-core/schema-ir/test/sql-check-constraint-ir.test.ts:67`. Both are drift fixtures whose bodies were written by hand and are suspected wrong (a one-element `IN` likely collapses to `=`, not `= ANY (ARRAY[…])`). If the captured output differs, the fixtures are wrong and change; if it matches, say so and leave them.
+- Replace two hand-written fixtures with faithful captured output if it differs. Neither asserts drift: both assert that a reprinted expression is **not** drift, so the literal must be a genuine Postgres reprint of that fixture's declared expression on that column's type, not merely some real reprint. Both declared expressions have two members, and both hand-written bodies enumerate one (a one-element `IN` collapses to `=`, not `= ANY (ARRAY[…])`), so they are suspected wrong on the shape. Keep the differing member count when correcting the shape — that difference is what proves pairing is by name and never by body; a fixture that agrees on members demonstrates only that cast spelling is ignored. Add a case rather than convert the existing one if that is cleaner.
 
-**Invariant this slice must preserve.** The flat bucket must never be pushed when there is no namespace wrap, because two same-named namespaces make the printer emit every model twice — `modelNamespaceIndex` keys on the namespace *name*, so both sections claim every flat model. Reproduced during review. The emitter merges instead; the printer should also stop the duplication being silent.
+**Invariant this slice must preserve.** The two buckets must never share a name. Both `undefined` and `__unspecified__` mean "no wrap" downstream, so the split applies only when the wrap name is a real schema; otherwise the top-level blocks join the single flat bucket. The printer collapses same-named entries into one section as a backstop, keying blocks the way a namespace does so a shared declaration prints once.
 
 **Out:**
 

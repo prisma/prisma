@@ -17,7 +17,7 @@ import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { postgresError } from '../errors';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import type { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
-import { buildNativeEnumBlocks } from './infer-enum-blocks';
+import { buildNativeEnumBlocks, PSL_SCALAR_TYPE_NAMES } from './infer-enum-blocks';
 import {
   describedContractOwners,
   type ForeignKeyResolution,
@@ -42,9 +42,11 @@ import { SYNTHETIC_SPAN } from './psl-literals';
  * single live namespace) are gathered into the model set and emitted in one
  * bucket, alongside native-enum and RLS policy blocks. That bucket is named
  * after the introspected schema when the content needs a `namespace { … }`
- * wrap, and is the flat `UNSPECIFIED_PSL_NAMESPACE_ID` bucket otherwise.
- * Content that must stay top-level even under a wrap goes in a second,
- * always-flat bucket — see {@link buildPslDocumentAst}.
+ * wrap, and is the flat `UNSPECIFIED_PSL_NAMESPACE_ID` bucket otherwise. This
+ * entry point emits nothing else, so its output is always exactly one bucket
+ * and byte-identical to the prior flat inference. {@link buildPslDocumentAst}
+ * can emit a second, always-flat bucket for content that must stay top-level
+ * even under a wrap; no caller asks for one yet.
  *
  * `describedContracts` — the stack's extension packs' already-assembled
  * contracts, each paired with its space id — is consulted while gathering
@@ -238,6 +240,18 @@ export interface RlsEmissionExtras {
   readonly policiesByTable: ReadonlyMap<string, readonly PostgresPolicySchemaNode[]>;
 }
 
+/**
+ * Builds the PSL document for one introspected schema.
+ *
+ * `namespaceName` wraps the output in `namespace <name> { … }`; omit it for
+ * flat output. `topLevelExtensionBlocks` are declarations that must stay
+ * top-level even when a wrap applies, such as a recovered domain enum — a
+ * family `enum` inside a namespace is a hard diagnostic. They land in their
+ * own always-flat bucket when a wrap applies, and in the single flat bucket
+ * when none does; either way they print unwrapped. Their names must not
+ * collide with a model, native enum, or policy this schema also emits, since
+ * a block's name is its contract key and cannot be rewritten here.
+ */
 export function buildPslDocumentAst(
   schemaIR: SqlSchemaIR,
   options: PslPrinterOptions,
@@ -292,8 +306,36 @@ export function buildPslDocumentAst(
   const policyEmission = buildPolicyBlocks(
     rlsExtras?.policiesByTable ?? new Map(),
     modelNameMap,
-    new Set([...modelNameMap.values(), ...bareEnumNameMap.values()]),
+    new Set([
+      ...modelNameMap.values(),
+      ...bareEnumNameMap.values(),
+      ...topLevelExtensionBlocks.map((block) => block.name),
+    ]),
   );
+
+  // A caller's block shares the document's top-level name scope with models
+  // and with the blocks generated below, and PSL resolves a name to an enum
+  // before a scalar — so a block named `Widget` or `Int` would retype fields
+  // across the whole contract. The generators uniquify against each other's
+  // names; a caller's block cannot be renamed here, because its name is its
+  // contract key, so a collision is refused instead.
+  const generatedTopLevelNames = new Set([
+    ...PSL_SCALAR_TYPE_NAMES,
+    ...modelNameMap.values(),
+    ...bareEnumNameMap.values(),
+    ...policyEmission.blocks.map((block) => block.name),
+  ]);
+  for (const block of topLevelExtensionBlocks) {
+    if (generatedTopLevelNames.has(block.name)) {
+      throw postgresError(
+        'CONTRACT.NAME_DUPLICATE',
+        `contract infer: recovered ${block.keyword} "${block.name}" collides with a model, ` +
+          'native enum, or policy of the same name already emitted for this schema. Rename the ' +
+          'recovered declaration, or exclude it.',
+        { meta: { name: block.name, keyword: block.keyword } },
+      );
+    }
+  }
 
   const models: PslModel[] = [];
   for (const table of Object.values(schemaIR.tables)) {
@@ -325,17 +367,26 @@ export function buildPslDocumentAst(
   // flat with no `namespace { … }` wrapper.
   //
   // A second, always-`__unspecified__` bucket carries schema-less top-level
-  // content — the printer sorts it before any named namespace and never
-  // wraps it either. No production caller passes `topLevelExtensionBlocks`
-  // yet (domain-enum recovery, a later slice, is the first producer), so the
-  // bucket is only pushed onto `namespaces` when non-empty: an empty flat
-  // bucket must stay invisible, or every existing `contract infer` output
-  // would change shape.
+  // content — the printer sorts it before any named namespace and never wraps
+  // it either. The bucket is only pushed when non-empty. Printed output would
+  // be the same either way, because the printer drops a section with no
+  // content; the reason is the AST, which callers index by position and
+  // assert the length of.
   //
-  // Without a namespace wrap both buckets would be `__unspecified__`, and two
-  // buckets of the same name is a distinction the document does not carry —
-  // so the top-level blocks join the single flat bucket instead.
-  const separateTopLevelBucket = namespaceName !== undefined && topLevelExtensionBlocks.length > 0;
+  // The two buckets must not share a name, so the split needs a wrap name
+  // that is a real schema. Both `undefined` and `__unspecified__` mean "no
+  // wrap" downstream, and a live schema can be called `__unspecified__` even
+  // though PSL reserves that name in source — so both are excluded and the
+  // top-level blocks join the single flat bucket instead.
+  //
+  // Within one bucket the printer emits models before blocks, so in the
+  // merged case a top-level block prints after the models rather than above
+  // them. It is still a top-level declaration, which is what the wrap would
+  // have broken; only its position in the file differs from the split case.
+  const separateTopLevelBucket =
+    namespaceName !== undefined &&
+    namespaceName !== UNSPECIFIED_PSL_NAMESPACE_ID &&
+    topLevelExtensionBlocks.length > 0;
 
   const namespaces: PslNamespace[] = [];
   if (separateTopLevelBucket) {

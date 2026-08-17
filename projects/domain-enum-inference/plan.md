@@ -26,7 +26,7 @@ Slices 2 and 3 may run in parallel after slice 1. They touch the same function (
 
 Two things belong to it, both prerequisites rather than deliverables:
 
-**The document can already hold a flat bucket — infer just never emits one.** `PslDocumentAst.namespaces` is an array, `UNSPECIFIED_PSL_NAMESPACE_ID` names the flat bucket, the printer sorts it first (`ast-to-print-document.ts:65-66`) and prints its contents with no wrapper (`serialize-print-document.ts:94-99`). So the fix is not a document-shape change, as first feared: `buildPslDocumentAst` builds exactly one namespace today, and slice 1 makes it build two when there is top-level content. That is a contained change with an existing printer contract to satisfy.
+**The document can already hold a flat bucket — infer just never emits one.** `PslDocumentAst.namespaces` is an array, `UNSPECIFIED_PSL_NAMESPACE_ID` names the flat bucket, the printer sorts it first (`astDocumentToPrintDocument`) and prints its contents with no wrapper (`serialize-print-document.ts:94-99`). So the fix is not a document-shape change, as first feared: `buildPslDocumentAst` builds exactly one namespace today, and slice 1 makes it build two when there is top-level content. That is a contained change with an existing printer contract to satisfy.
 
 Slice 1 does **not** emit any enum. It proves the seam by moving something that already exists into the flat bucket, or by a print-level test that a two-bucket document renders correctly — whichever the slice spec settles. Nothing about recovery depends on which.
 

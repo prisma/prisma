@@ -136,9 +136,11 @@ describe.sequential('check-constraint introspection', () => {
     //
     // These literals are what Postgres itself prints, not what was authored,
     // and they are the reference the unit-test fixtures elsewhere are written
-    // against. Observed on PGlite 17.5 (via `@prisma/dev`) and re-run
-    // identical on PostgreSQL 15.18, the supported floor — so the shapes hold
-    // across the whole supported range, not just the newest server.
+    // against. This suite runs on the PGlite server `@repo/test-utils` starts,
+    // so these are that server's 17.x output and nothing here establishes them
+    // for any other version. Postgres's predicate printer is version-dependent
+    // and the supported floor is 15, so a change to these literals on an
+    // upgrade is a real signal, not noise to be re-recorded.
     expect(
       checks
         .map((c) => ({ name: c.name, expression: c.expression }))

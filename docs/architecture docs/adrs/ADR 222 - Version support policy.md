@@ -1,6 +1,6 @@
 # ADR 222 — Version support policy for Prisma Next
 
-**Status:** Accepted — PostgreSQL floor amended by [ADR 244](ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md)
+**Status:** Accepted — PostgreSQL floor amended by [ADR 248](ADR%20248%20-%20PostgreSQL%20floor%20lowered%20to%2015.md)
 **Date:** 2026-05-31
 **Linear:** TML-1810, TML-1809
 
@@ -16,7 +16,7 @@ The ratified floor table:
 |---|---|---|
 | Node.js | `>=24` | `engines.node` on every publishable package |
 | TypeScript | `>=5.9` | optional `peerDependencies.typescript` on every publishable package + source-of-truth constant + drift test |
-| PostgreSQL (server) | `15` (lowered from `17` by [ADR 244](ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md)) | `prismaNext.minServerVersion` on `@internal/target-postgres` + CLI mirror + `postgres:15` CI service containers + `docker-compose.yaml` |
+| PostgreSQL (server) | `15` (lowered from `17` by [ADR 248](ADR%20248%20-%20PostgreSQL%20floor%20lowered%20to%2015.md)) | `prismaNext.minServerVersion` on `@internal/target-postgres` + CLI mirror + `postgres:15` CI service containers + `docker-compose.yaml` |
 | MongoDB (server) | `8.0` | `prismaNext.minServerVersion` on `@internal/target-mongo` + CLI mirror; MMS 11.x downloads 8.2.x by default |
 | Bun | `>=1.2` | documented; runtime detection already exists |
 | Deno | `>=2.0` | documented; runtime detection already exists |
@@ -42,7 +42,7 @@ The guiding insight: **lowering a floor is backwards-compatible; raising one is 
 
 **TypeScript 5.9**: The latest GA release at the time this policy was ratified, and the version pinned in the workspace catalog. TypeScript peer declarations are optional because TypeScript is a dev-time tool — plain-JS consumers must not be forced to install it. The optional peer allows type-checking consumers to get type information without requiring it universally.
 
-**PostgreSQL 15**: The floor was ratified at 17 (the latest GA release at the time, superseding our previous floor of 14) and lowered to 15 by [ADR 244](ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md), which records the feature audit and market context behind the change. The floor is exercised by the `postgres:15` service containers in `.github/workflows/ci.yml`, so it is directly tied to what CI runs.
+**PostgreSQL 15**: The floor was ratified at 17 (the latest GA release at the time, superseding our previous floor of 14) and lowered to 15 by [ADR 248](ADR%20248%20-%20PostgreSQL%20floor%20lowered%20to%2015.md), which records the feature audit and market context behind the change. The floor is exercised by the `postgres:15` service containers in `.github/workflows/ci.yml`, so it is directly tied to what CI runs.
 
 **MongoDB 8.0**: Released August 2024. Our test infra uses `mongodb-memory-server` 11.x (catalog-pinned at 11.1.0), which downloads MongoDB 8.2.x by default. The floor is therefore honest — it reflects the exact major version our integration tests run against. The `mongodb` npm driver v7 supports server 8.0; no driver upgrade is required.
 
@@ -87,7 +87,7 @@ The correct sequence for raising a DB floor:
 
 ## Consequences
 
-- The `prisma-next init` scaffold's `.env.example` and the "Requirements" section of `prisma-next.md` reflect accurate, tested server floors (PostgreSQL 15 per [ADR 244](ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md), MongoDB 8.0) rather than the out-of-date values that preceded this ADR.
+- The `prisma-next init` scaffold's `.env.example` and the "Requirements" section of `prisma-next.md` reflect accurate, tested server floors (PostgreSQL 15 per [ADR 248](ADR%20248%20-%20PostgreSQL%20floor%20lowered%20to%2015.md), MongoDB 8.0) rather than the out-of-date values that preceded this ADR.
 - Consumers running PostgreSQL 14 or older, or MongoDB 6.x–7.x, are outside our supported range; PostgreSQL 15 and 16 are supported. Given that PostgreSQL 14 reaches end of life in November 2026 and MongoDB 6.x is well behind the current release, this is an acceptable trade-off.
 - The TypeScript optional peer declaration allows downstream tooling (IDEs, LSPs, type-checking pipelines) to surface correct minimum version requirements without forcing a hard install dependency.
 - Raising any floor in the future requires updating the corresponding source-of-truth field (see the sequences above). The drift tests make silent drift impossible in CI.

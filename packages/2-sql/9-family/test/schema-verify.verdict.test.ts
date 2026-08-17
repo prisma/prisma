@@ -793,6 +793,19 @@ describe('differ verdict — check constraints', () => {
     expect(issues).toHaveLength(0);
   });
 
+  it('a wire-named check pairs by name even when the live value set differs', () => {
+    // The consequence of comparing names only, stated as its own case: the
+    // live body here is a faithful reprint that has lost a member (on `text` a
+    // one-member `IN` collapses to `=`), and it is still not reported.
+    const wire = { name: 'post_status_check_0a1b2c3d', prefix: 'post_status_check' };
+    const issues = checkIssues(
+      postWithChecks([{ ...wire, expression: `"status" IN ('a', 'b')` }]),
+      postWithChecks([{ ...wire, expression: `(status = 'a'::text)` }]),
+      wire.name,
+    );
+    expect(issues).toHaveLength(0);
+  });
+
   it('a declared check the database lacks is not-found', () => {
     const issues = checkIssues(
       postWithChecks([{ name: 'post_status_check', expression: `"status" IN ('a')` }]),
