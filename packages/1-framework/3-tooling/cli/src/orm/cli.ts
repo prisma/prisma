@@ -4,7 +4,6 @@ import { createCli, telemetryCommandGroup } from '@prisma/cli-engine';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
 import { createControlClient } from '../control-api/client';
 import type { CreateControlClient } from '../control-api/types';
-import { isCI } from '../utils/is-ci';
 import { contractEmitCommand } from './contract/emit';
 import { contractInferCommand } from './contract/infer';
 import { createDbInitCommand } from './db/init';
@@ -122,8 +121,20 @@ export function createOrmCli(): Cli {
  * Everything environmental the engine is given, adapted from the host process
  * once. The engine owns signal policy; the bin is dumb wiring.
  */
+/** Bun and Deno both announce themselves in process.versions; nothing
+ *  else does, so an absent marker means Node. */
+function describeHost(proc: HostProcess): Runtime['host'] {
+  const name = (['bun', 'deno'] as const).find((candidate) => proc.versions[candidate]) ?? 'node';
+  return {
+    runtime: { name, version: proc.versions[name] ?? proc.version },
+    platform: proc.platform,
+    arch: proc.arch,
+  };
+}
+
 export function runtimeFromProcess(proc: HostProcess): Runtime {
   return {
+    host: describeHost(proc),
     stdout: { write: (text) => void proc.stdout.write(text) },
     // The terminal width the drawings get to use, read once with everything
     // else the runtime carries.
@@ -140,7 +151,6 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
       stdout: proc.stdout.isTTY === true,
       stderr: proc.stderr.isTTY === true,
     },
-    isCI: isCI(),
     exit: (code) => proc.exit(code),
     onSignal: (callback) => {
       const onInterrupt = () => callback('SIGINT');

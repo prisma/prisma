@@ -74,7 +74,7 @@
     "@internal/framework-components": "workspace:8.0.0-rc.1",
     "@internal/middleware-cache": "workspace:8.0.0-rc.1",
     "@internal/mongo-lowering": "workspace:8.0.0-rc.1",
-    "@prisma/cli-engine": "0.0.9",
+    "@prisma/cli-engine": "0.1.0",
     "@repo/test-utils": "workspace:8.0.0-rc.1",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "@types/pg": "catalog:",

@@ -181,10 +181,15 @@ describe('contract emit', () => {
     });
   });
 
-  it('writes the emitted paths to stdout and the prose to stderr', async () => {
-    const run = await harness().run(['contract', 'emit'], {
+  it('writes the emitted paths to a piped stdout and the prose to stderr', async () => {
+    // Engine 0.1.0's output model: a piped stdout defaults the format
+    // to json (sniffFormat), and both-streams-TTY human suppresses the
+    // stdout mirror to avoid drawing twice on one screen. The scenario
+    // this test pins — human prose on stderr, machine lines on a piped
+    // stdout — is now the explicit `--format human` pipe case.
+    const run = await harness().run(['contract', 'emit', '--format', 'human'], {
       cwd: PROJECT_DIR,
-      isTty: { stdout: true, stderr: true },
+      isTty: { stderr: true },
     });
 
     expect(run.presented?.presentation.stdout).toEqual([
