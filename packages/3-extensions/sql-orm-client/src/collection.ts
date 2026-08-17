@@ -1141,7 +1141,7 @@ class CollectionImpl<
         this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.tableName,
-        this.state.filters,
+        this.state,
         aggregateSpec,
       ),
       annotationsMap,

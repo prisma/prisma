@@ -26,6 +26,7 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { compileAggregate, compileGroupedAggregate } from '../src/query-plan';
+import { emptyState } from '../src/types';
 import { bindWhereExpr } from '../src/where-binding';
 import { baseContract } from './collection-fixtures';
 import { getTestAggregates } from './helpers';
@@ -55,12 +56,12 @@ describe('query plan aggregate', () => {
 
   it('rejects empty aggregate specs and selectors without required fields', () => {
     expect(() =>
-      compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {}),
+      compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', emptyState(), {}),
     ).toThrow('aggregate() requires at least one aggregation selector');
     // Whether an operation answers a call without an input is the descriptor's
     // to declare; the target declares no such overload for sum.
     expect(() =>
-      compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {
+      compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', emptyState(), {
         totalViews: { kind: 'aggregate', fn: 'sum' },
       }),
     ).toThrow("The composed target declares no 'sum' aggregate for a call without an input");
@@ -225,7 +226,7 @@ describe('query plan aggregate', () => {
       getTestAggregates(),
       'public',
       'posts',
-      [filteredViews],
+      { ...emptyState(), filters: [filteredViews] },
       {
         totalViews: { kind: 'aggregate', fn: 'sum', column: 'views' },
       },
@@ -243,10 +244,17 @@ describe('query plan aggregate', () => {
   });
 
   it('stamps min/max ProjectionItem.codec from the underlying column', () => {
-    const plan = compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {
-      minViews: { kind: 'aggregate', fn: 'min', column: 'views' },
-      maxViews: { kind: 'aggregate', fn: 'max', column: 'views' },
-    });
+    const plan = compileAggregate(
+      baseContract,
+      getTestAggregates(),
+      'public',
+      'posts',
+      emptyState(),
+      {
+        minViews: { kind: 'aggregate', fn: 'min', column: 'views' },
+        maxViews: { kind: 'aggregate', fn: 'max', column: 'views' },
+      },
+    );
 
     expect(plan.ast.kind).toBe('select');
     const ast = plan.ast as SelectAst;
@@ -259,11 +267,18 @@ describe('query plan aggregate', () => {
   // `pg/int8number@1` and `avg` as `pg/float8@1`, whatever the database itself
   // computes them into.
   it('stamps the resolved output codec on count, sum, and avg', () => {
-    const plan = compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {
-      total: { kind: 'aggregate', fn: 'count' },
-      sumViews: { kind: 'aggregate', fn: 'sum', column: 'views' },
-      avgViews: { kind: 'aggregate', fn: 'avg', column: 'views' },
-    });
+    const plan = compileAggregate(
+      baseContract,
+      getTestAggregates(),
+      'public',
+      'posts',
+      emptyState(),
+      {
+        total: { kind: 'aggregate', fn: 'count' },
+        sumViews: { kind: 'aggregate', fn: 'sum', column: 'views' },
+        avgViews: { kind: 'aggregate', fn: 'avg', column: 'views' },
+      },
+    );
 
     const ast = plan.ast as SelectAst;
     const byAlias = Object.fromEntries(ast.projection.map((p) => [p.alias, p.codec?.codecId]));

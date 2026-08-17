@@ -7,6 +7,8 @@ import {
   BinaryExpr,
   type CodecRef,
   ColumnRef,
+  DerivedTableSource,
+  LiteralExpr,
   NotExpr,
   NullCheckExpr,
   OrExpr,
@@ -19,25 +21,32 @@ import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-co
 import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
+import { buildStateWhere } from './query-plan-scope';
 import { tableSourceForContract } from './storage-resolution';
-import type { AggregateSelector } from './types';
+import type { AggregateSelector, CollectionState } from './types';
 import { combineWhereExprs } from './where-utils';
 
+// The result's codec is always the aggregate's own contract table — `count`
+// is a wide integer, `sum` widens or preserves per input, `min`/`max` keep
+// the column's own codec — but the expression's `ColumnRef` reads off
+// whichever table the input is actually projected from, which differs from
+// the aggregate's table once `compileAggregate` scopes its source into a
+// derived table: codecs still resolve against `tableName`, the `ColumnRef`
+// points at `refTableName`. Mirrors `buildIncludeAggregateExpr`'s split at
+// `query-plan-select.ts`.
 function toAggregateProjection(
   contract: Contract<SqlStorage>,
   aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   tableName: string,
+  refTableName: string,
   selector: AggregateSelector<unknown>,
 ): { expr: AnyExpression; codec: CodecRef | undefined } {
-  // The result's codec is the target's to declare: `count` is a wide integer,
-  // `sum` widens or preserves per input, and `min`/`max` keep the column's own
-  // codec — all of which the aggregate registry answers per operation and input.
-  // Whether an operation answers a call without an input is equally the
-  // descriptor's to declare: a selector with no column resolves through the
-  // no-input rung and fails there when the target declares none. A target that
-  // also needs the result rendered a particular way says so with a lowering,
-  // which builds the expression in place of the plain call.
+  // Whether an operation answers a call without an input is the descriptor's
+  // to declare: a selector with no column resolves through the no-input rung
+  // and fails there when the target declares none. A target that also needs
+  // the result rendered a particular way says so with a lowering, which
+  // builds the expression in place of the plain call.
   const {
     codec,
     input: inputCodec,
@@ -52,7 +61,7 @@ function toAggregateProjection(
   });
 
   const inputExpr =
-    selector.column === undefined ? undefined : ColumnRef.of(tableName, selector.column);
+    selector.column === undefined ? undefined : ColumnRef.of(refTableName, selector.column);
   const expr =
     lower !== undefined
       ? lower({ expr: inputExpr, inputCodec })
@@ -177,12 +186,37 @@ function validateGroupedHavingExpr(expr: AnyExpression): AnyExpression {
   });
 }
 
+// One item per distinct `selector.column` across the spec, plus a constant
+// `__row` column when any selector has no column (a bare `count()`) — the
+// inner select only needs to carry what the outer aggregates read back.
+// Mirrors `buildIncludeChildScalarSelect`'s inner projection at
+// `query-plan-select.ts:1097-1102`, generalised from one selector to a spec.
+function scopedInnerProjection(
+  tableName: string,
+  entries: ReadonlyArray<[string, AggregateSelector<unknown>]>,
+): ProjectionItem[] {
+  const columns = new Set<string>();
+  let needsRowConstant = false;
+  for (const [, selector] of entries) {
+    if (selector.column === undefined) {
+      needsRowConstant = true;
+    } else {
+      columns.add(selector.column);
+    }
+  }
+
+  return [
+    ...Array.from(columns, (column) => ProjectionItem.of(column, ColumnRef.of(tableName, column))),
+    ...(needsRowConstant ? [ProjectionItem.of('__row', LiteralExpr.of(1))] : []),
+  ];
+}
+
 export function compileAggregate(
   contract: Contract<SqlStorage>,
   aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   tableName: string,
-  filters: readonly AnyExpression[],
+  state: CollectionState,
   aggregateSpec: Record<string, AggregateSelector<unknown>>,
 ): SqlQueryPlan<Record<string, unknown>> {
   const entries = Object.entries(aggregateSpec);
@@ -194,23 +228,65 @@ export function compileAggregate(
     );
   }
 
+  // `cursor` lowers to a WHERE boundary that `buildStateWhere` folds in
+  // regardless of pagination, exactly as the nested scalar-refine path does
+  // — so an unpaginated aggregate with a cursor changes today's output
+  // (correctly: today the cursor is silently dropped) without a wrap.
+  const where = buildStateWhere(contract, tableName, state, { namespaceId });
+  const needsRowScope = state.limit !== undefined || state.offset !== undefined;
+
+  if (!needsRowScope) {
+    const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
+      const { expr, codec } = toAggregateProjection(
+        contract,
+        aggregates,
+        namespaceId,
+        tableName,
+        tableName,
+        selector,
+      );
+      return ProjectionItem.of(alias, expr, codec);
+    });
+    let ast = SelectAst.from(
+      tableSourceForContract(contract, namespaceId, tableName),
+    ).withProjection(projection);
+    if (where) {
+      ast = ast.withWhere(where);
+    }
+
+    const { params } = deriveParamsFromAst(ast);
+    return buildOrmQueryPlan(contract, ast, params);
+  }
+
+  const innerAlias = `${tableName}__scoped`;
+  let inner = SelectAst.from(
+    tableSourceForContract(contract, namespaceId, tableName),
+  ).withProjection(scopedInnerProjection(tableName, entries));
+  if (where) {
+    inner = inner.withWhere(where);
+  }
+  if (state.orderBy !== undefined && state.orderBy.length > 0) {
+    inner = inner.withOrderBy(state.orderBy);
+  }
+  if (state.limit !== undefined) {
+    inner = inner.withLimit(state.limit);
+  }
+  if (state.offset !== undefined) {
+    inner = inner.withOffset(state.offset);
+  }
+
   const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
     const { expr, codec } = toAggregateProjection(
       contract,
       aggregates,
       namespaceId,
       tableName,
+      innerAlias,
       selector,
     );
     return ProjectionItem.of(alias, expr, codec);
   });
-  let ast = SelectAst.from(tableSourceForContract(contract, namespaceId, tableName)).withProjection(
-    projection,
-  );
-  const where = combineWhereExprs(filters);
-  if (where) {
-    ast = ast.withWhere(where);
-  }
+  const ast = SelectAst.from(DerivedTableSource.as(innerAlias, inner)).withProjection(projection);
 
   const { params } = deriveParamsFromAst(ast);
   return buildOrmQueryPlan(contract, ast, params);
@@ -254,6 +330,7 @@ export function compileGroupedAggregate(
         contract,
         aggregates,
         namespaceId,
+        tableName,
         tableName,
         selector,
       );
