@@ -28,7 +28,7 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "0.20.1",
     "@cloudflare/workers-types": "5.20260714.1",
-    "@prisma/cli-engine": "0.0.9",
+    "@prisma/cli-engine": "0.1.1",
     "@repo/tsconfig": "workspace:8.0.0-rc.2",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",

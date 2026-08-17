@@ -53,7 +53,7 @@
     "@internal/sql-contract-ts": "workspace:8.0.0-rc.2",
     "@internal/sql-operations": "workspace:8.0.0-rc.2",
     "@internal/sql-runtime": "workspace:8.0.0-rc.2",
-    "@prisma/cli-engine": "0.0.9",
+    "@prisma/cli-engine": "0.1.1",
     "@repo/test-utils": "workspace:8.0.0-rc.2",
     "@repo/tsconfig": "workspace:8.0.0-rc.2",
     "@repo/tsdown": "workspace:8.0.0-rc.2",
@@ -63,7 +63,7 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "@prisma/cli-engine": "0.0.9",
+    "@prisma/cli-engine": "0.1.1",
     "typescript": ">=5.9"
   },
   "peerDependenciesMeta": {

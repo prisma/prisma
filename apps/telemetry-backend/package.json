@@ -27,7 +27,7 @@
     "evlog": "^2.24.0"
   },
   "devDependencies": {
-    "@prisma/cli-engine": "0.0.9",
+    "@prisma/cli-engine": "0.1.1",
     "@prisma/compute-sdk": "^0.38.0",
     "@prisma/management-api-sdk": "^1.47.0",
     "@repo/test-utils": "workspace:8.0.0-rc.2",

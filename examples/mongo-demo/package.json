@@ -24,7 +24,7 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@prisma/cli-engine": "0.0.9",
+    "@prisma/cli-engine": "0.1.1",
     "@repo/test-utils": "workspace:8.0.0-rc.2",
     "@repo/tsconfig": "workspace:8.0.0-rc.2",
     "@types/node": "catalog:",
