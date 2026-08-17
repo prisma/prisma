@@ -187,6 +187,10 @@ function processWithUnreadableCwd(stderr: string[]): HostProcess {
   return {
     argv: ['node', 'prisma-next', 'migration', 'list'],
     env: {},
+    version: process.version,
+    versions: process.versions,
+    platform: process.platform,
+    arch: process.arch,
     cwd: () => {
       throw new Error('ENOENT: uv_cwd');
     },
