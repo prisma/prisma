@@ -340,6 +340,19 @@ changes:
         - "ExtractCodecTypes<TContract> & CodecTypesBase"
         - "CodecTypesBase ="
       anyMatch: true
+  - id: cli-engine-moves-to-0-1-1
+    summary: |
+      `@prisma/cli-engine` now versions independently of the CLI's release line and has moved
+      to `0.1.1` (it was `0.0.9` while it versioned in lockstep). An extension only sees this
+      if it writes a `prisma.config.ts`, which imports `defineConfig` from the engine: bump the
+      `@prisma/cli-engine` devDependency to `0.1.1`. No API an extension uses changed —
+      `defineConfig` is as it was. 0.1.1 fixes the engine reading ci-info's vendor table at
+      runtime, which broke config evaluation under Bun in any process that also loaded ci-info.
+    detection:
+      glob: "**/package.json"
+      contains:
+        - "@prisma/cli-engine"
+      anyMatch: true
 ---
 
 # 8.0.0-rc.1 → 8.0.0-rc.2 — Extension-author upgrade instructions
