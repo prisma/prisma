@@ -24,7 +24,7 @@
   "dependencies": {
     "@prisma/orm-postgres": "workspace:8.0.0-rc.1",
     "arktype": "catalog:",
-    "evlog": "^2.22.4"
+    "evlog": "^2.24.0"
   },
   "devDependencies": {
     "@prisma/cli-engine": "0.0.9",
