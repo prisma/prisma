@@ -38,7 +38,7 @@
 // Wired into `.github/workflows/publish.yml` immediately after
 // `check:publish-deps`. Also runnable locally: `pnpm check:conformance`.
 
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFile, execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { builtinModules } from 'node:module';
 import { join, resolve } from 'node:path';
@@ -291,16 +291,22 @@ export function computeOverrides({ rootName, packedByName }) {
 }
 
 /**
- * Checks that the `@prisma/cli-engine` pin is a single exact version,
- * identical across every packed publishable manifest that declares it and
- * the source `@internal/cli` manifest. Reports `no-subjects` when no
- * packed manifest declares the engine at all — a vacuous agreement is not
- * a pass. Pure; exported for tests.
+ * Checks the `@prisma/cli-engine` reference against ADR 0004 (recorded in
+ * prisma-cli, docs/architecture/adrs/0004-engine-version-pinning.md): a
+ * product CLI package declares the engine as an exact PEER dependency the
+ * consolidated CLI satisfies, never a dependency of its own — so one
+ * engine exists in any installed tree, and a mismatch fails at install
+ * time instead of resolving a second copy. Asserts the reference is a
+ * single exact version, sits in `peerDependencies` and nowhere else in a
+ * packed manifest, and agrees across every packed manifest and the source
+ * `@internal/cli` manifest. Reports `no-subjects` when no packed manifest
+ * declares the engine at all — a vacuous agreement is not a pass. Pure;
+ * exported for tests.
  *
  * @param {object} args
- * @param {Array<{ pkg: string; spec: string }>} args.packedPins
+ * @param {Array<{ pkg: string; spec: string; field?: string }>} args.packedPins
  * @param {{ pkg: string; spec: string | undefined }} args.sourcePin
- * @returns {Array<{ kind: 'no-subjects' | 'not-exact' | 'disagreement'; message: string }>}
+ * @returns {Array<{ kind: 'no-subjects' | 'not-exact' | 'wrong-field' | 'disagreement'; message: string }>}
  */
 export function findEnginePinViolations({ packedPins, sourcePin }) {
   if (packedPins.length === 0) {
@@ -310,6 +316,15 @@ export function findEnginePinViolations({ packedPins, sourcePin }) {
         message: `no packed publishable manifest declares ${ENGINE_PACKAGE}, so there is nothing to agree with ${sourcePin.pkg}`,
       },
     ];
+  }
+  const violationsForFields = [];
+  for (const { pkg, field } of packedPins) {
+    if (field !== undefined && field !== 'peerDependencies') {
+      violationsForFields.push({
+        kind: 'wrong-field',
+        message: `${pkg} declares ${ENGINE_PACKAGE} in ${field}; ADR 0004 requires an exact peerDependency and nothing else, or an install can resolve a second engine`,
+      });
+    }
   }
   const all = [...packedPins];
   if (typeof sourcePin.spec === 'string') {
@@ -337,7 +352,7 @@ export function findEnginePinViolations({ packedPins, sourcePin }) {
       message: `${ENGINE_PACKAGE} pins disagree: ${all.map((p) => `${p.pkg} pins ${p.spec}`).join(', ')}`,
     });
   }
-  return violations;
+  return [...violationsForFields, ...violations];
 }
 
 const JS_FILE_RE = /\.m?js$/;
@@ -448,8 +463,33 @@ async function loadOrmConfigSection() {
 }
 
 function readSourceCliEnginePin() {
+  // ADR 0004 (prisma-cli): the engine is an exact PEER of the CLI
+  // packages; @internal/cli's peer is where the toolchain's published
+  // peer comes from, so that is the source of truth to agree with.
   const manifest = JSON.parse(readFileSync(SOURCE_CLI_MANIFEST, 'utf-8'));
-  return manifest.dependencies?.[ENGINE_PACKAGE];
+  return manifest.peerDependencies?.[ENGINE_PACKAGE];
+}
+
+async function importEntry({ sandboxDir, specifier, timeoutMs }) {
+  return new Promise((resolvePromise) => {
+    execFile(
+      process.execPath,
+      ['--input-type=module', '-e', `await import(${JSON.stringify(specifier)});`],
+      { cwd: sandboxDir, timeout: timeoutMs, killSignal: 'SIGKILL' },
+      (error, stdout, stderr) => {
+        if (error === null) {
+          resolvePromise({ exitCode: 0, stdout, stderr, timedOut: false });
+          return;
+        }
+        resolvePromise({
+          exitCode: typeof error.code === 'number' ? error.code : null,
+          stdout: stdout ?? '',
+          stderr: stderr ?? '',
+          timedOut: error.killed === true,
+        });
+      },
+    );
+  });
 }
 
 async function installSandbox({ sandboxDir, rootName, rootTarball, overrides }) {
@@ -511,6 +551,7 @@ const DEFAULT_IO = {
   readSourceCliEnginePin,
   installSandbox,
   runBin,
+  importEntry,
   stdoutWrite: (s) => process.stdout.write(s),
   stderrWrite: (s) => process.stderr.write(s),
 };
@@ -541,6 +582,7 @@ export async function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
     readSourceCliEnginePin: readSourcePin,
     installSandbox: install,
     runBin: startBin,
+    importEntry: importEntryInSandbox,
     stdoutWrite,
     stderrWrite,
   } = { ...DEFAULT_IO, ...io };
@@ -686,12 +728,28 @@ export async function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
     } else {
       const bins = declaredBins(toolchain.manifest);
       if (bins.length === 0) {
-        findings.push({
-          check: 'tarball',
-          kind: 'no-subjects',
-          subject: TOOLCHAIN_PACKAGE,
-          summary: 'the packed manifest has no bin entries, so no executable was started',
+        // The toolchain stopped publishing a bin when the unified
+        // prisma-cli replaced prisma-next (#30005). The sandbox smoke
+        // for a bin-less package is importing its published CLI entry
+        // in a fresh node: the anti-vacuity guarantee survives — a
+        // package whose entry cannot even import fails here — without
+        // demanding an executable nobody ships.
+        const run = await importEntryInSandbox({
+          sandboxDir,
+          specifier: `${TOOLCHAIN_PACKAGE}/cli`,
+          timeoutMs: BIN_TIMEOUT_MS,
         });
+        if (run.timedOut || run.exitCode !== 0) {
+          findings.push({
+            check: 'tarball',
+            kind: 'bin-failed',
+            subject: TOOLCHAIN_PACKAGE,
+            summary: run.timedOut
+              ? `importing ${TOOLCHAIN_PACKAGE}/cli in the sandbox timed out`
+              : `importing ${TOOLCHAIN_PACKAGE}/cli in the sandbox exited ${run.exitCode}`,
+            detail: `stdout:\n${run.stdout}\nstderr:\n${run.stderr}`,
+          });
+        }
       }
       for (const [binName, relPath] of bins) {
         const run = await startBin({
@@ -726,7 +784,7 @@ export async function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
   for (const [name, { manifest }] of packedByName) {
     for (const field of SHIPPED_DEP_FIELDS) {
       const spec = manifest[field]?.[ENGINE_PACKAGE];
-      if (typeof spec === 'string') packedPins.push({ pkg: name, spec });
+      if (typeof spec === 'string') packedPins.push({ pkg: name, spec, field });
     }
   }
   const sourcePin = { pkg: '@internal/cli', spec: readSourcePin() };
