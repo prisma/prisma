@@ -1,11 +1,10 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import { buildNamespacedEnums, type NamespacedEnums } from '@internal/contract/enum-accessor';
 import type { Contract } from '@internal/contract/types';
-import { sql } from '@internal/sql-builder/runtime';
-import type { Db } from '@internal/sql-builder/types';
+import { createRawLane, sql } from '@internal/sql-builder/runtime';
+import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import type { RawCodecInferer, RawSqlTag } from '@internal/sql-relational-core/expression';
-import { createRawSql } from '@internal/sql-relational-core/expression';
+import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type { ExecutionContext, SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
@@ -19,7 +18,7 @@ export interface PostgresStaticContext<TContract extends Contract<SqlStorage>> {
   readonly enums: NamespacedEnums<TContract>;
   readonly nativeEnums: NamespacedNativeEnums<TContract>;
   readonly sql: Db<TContract>;
-  readonly raw: RawSqlTag;
+  readonly raw: RawLane<TContract>;
 }
 
 export function buildPostgresStaticContext<TContract extends Contract<SqlStorage>>(
@@ -27,7 +26,7 @@ export function buildPostgresStaticContext<TContract extends Contract<SqlStorage
   rawCodecInferer: RawCodecInferer,
 ): PostgresStaticContext<TContract> {
   const sqlDb: Db<TContract> = sql<TContract>({ context, rawCodecInferer });
-  const raw: RawSqlTag = createRawSql(rawCodecInferer);
+  const raw: RawLane<TContract> = createRawLane<TContract>({ context, rawCodecInferer });
   const enums = Object.freeze(buildNamespacedEnums<TContract>(context.contract.domain));
   const nativeEnums = blindCast<
     NamespacedNativeEnums<TContract>,

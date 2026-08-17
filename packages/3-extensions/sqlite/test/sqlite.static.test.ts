@@ -57,9 +57,10 @@ describe('sqliteStatic({ contractJson })', () => {
     expect(typeof result.sql).toBe('object');
   });
 
-  it('raw is a tagged template function', () => {
+  it('raw is the lane holding the statement tag', () => {
     const result = sqliteStatic<typeof contract>({ contractJson: contract });
-    expect(typeof result.raw).toBe('function');
+    expect(typeof result.raw).toBe('object');
+    expect(typeof result.raw.sql).toBe('function');
   });
 
   it('SqliteStaticContext type exposes context, contract, enums, sql, raw', () => {

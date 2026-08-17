@@ -11,5 +11,6 @@ export type {
 } from '../types/db';
 export type { GroupedQuery } from '../types/grouped-query';
 export type { DeleteQuery, InsertQuery, UpdateQuery } from '../types/mutation-query';
+export type { ContractRawTag, RawLane, RawTagFor } from '../types/raw-query';
 export type { SelectQuery } from '../types/select-query';
 export type { TableProxy } from '../types/table-proxy';

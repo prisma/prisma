@@ -41,9 +41,10 @@ describe('postgresStatic({ contractJson })', () => {
     expect(typeof result.sql).toBe('object');
   });
 
-  it('raw is a tagged template function', () => {
+  it('raw is the lane holding the statement tag', () => {
     const result = postgresStatic<typeof contract>({ contractJson: contract });
-    expect(typeof result.raw).toBe('function');
+    expect(typeof result.raw).toBe('object');
+    expect(typeof result.raw.sql).toBe('function');
   });
 
   it('enums matches what buildNamespacedEnums produces', () => {
