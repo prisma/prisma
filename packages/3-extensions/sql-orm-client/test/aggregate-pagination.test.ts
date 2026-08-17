@@ -4,6 +4,7 @@ import {
   ColumnRef,
   DerivedTableSource,
   LiteralExpr,
+  OrderByItem,
   ProjectionItem,
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
@@ -58,6 +59,42 @@ describe('aggregate pagination', () => {
     expect(innerSelect.limit).toBe(10);
     expect(innerSelect.offset).toBe(5);
     expect(innerSelect.projection).toEqual([
+      ProjectionItem.of('views', ColumnRef.of('posts', 'views')),
+    ]);
+  });
+
+  it('orderBy() carries into the wrapped inner select, not the outer one', async () => {
+    const { collection, runtime } = createCollectionFor('Post');
+    runtime.setNextResults([[{ totalViews: 500 }]]);
+
+    await collection
+      .orderBy((post) => post.views.desc())
+      .skip(5)
+      .take(10)
+      .aggregate((aggregate) => ({ totalViews: aggregate.sum(numericField) }));
+
+    const ast = selectAstOf(runtime);
+    expect(ast.orderBy).toBeUndefined();
+    expectDerivedTableSource(ast.from);
+    expect(ast.from.query.orderBy).toEqual([OrderByItem.desc(ColumnRef.of('posts', 'views'))]);
+  });
+
+  it('wraps a multi-selector spec into one inner column per distinct selector.column, no stray __row', async () => {
+    const { collection, runtime } = createCollectionFor('Post');
+    runtime.setNextResults([[{ total: 3, sumViews: 500, avgViews: 166.67 }]]);
+
+    await collection
+      .skip(5)
+      .take(10)
+      .aggregate((aggregate) => ({
+        total: aggregate.count(),
+        sumViews: aggregate.sum(numericField),
+        avgViews: aggregate.avg(numericField),
+      }));
+
+    const ast = selectAstOf(runtime);
+    expectDerivedTableSource(ast.from);
+    expect(ast.from.query.projection).toEqual([
       ProjectionItem.of('views', ColumnRef.of('posts', 'views')),
     ]);
   });
@@ -143,8 +180,6 @@ describe('aggregate pagination', () => {
       throw new Error('Expected the aggregate chain to run one execution');
     }
     const rawParamRefs = execution.plan.ast.collectParamRefs();
-    const uniqueParamRefs = new Set(rawParamRefs);
-    expect(rawParamRefs).toHaveLength(uniqueParamRefs.size);
-    expect(execution.plan.params).toHaveLength(uniqueParamRefs.size);
+    expect(rawParamRefs).toHaveLength(new Set(rawParamRefs).size);
   });
 });

@@ -186,29 +186,33 @@ function validateGroupedHavingExpr(expr: AnyExpression): AnyExpression {
   });
 }
 
-// One item per distinct `selector.column` across the spec, plus a constant
-// `__row` column when any selector has no column (a bare `count()`) — the
-// inner select only needs to carry what the outer aggregates read back.
-// Mirrors `buildIncludeChildScalarSelect`'s inner projection at
-// `query-plan-select.ts:1097-1102`, generalised from one selector to a spec.
+// One item per distinct `selector.column` across the spec, or — only when
+// no selector names a column at all — a constant `__row` column so the
+// projection isn't empty. Exclusive, not additive: mirrors
+// `buildIncludeChildScalarSelect`'s inner projection at
+// `query-plan-select.ts:1097-1102`, where a single selector is either a
+// column or `__row`, never both. A spec mixing a no-column `count()` with a
+// column selector needs no `__row` — the column already keeps the
+// projection non-empty — and adding it anyway would collide with a real
+// column actually named `__row`.
 function scopedInnerProjection(
   tableName: string,
   entries: ReadonlyArray<[string, AggregateSelector<unknown>]>,
 ): ProjectionItem[] {
   const columns = new Set<string>();
-  let needsRowConstant = false;
   for (const [, selector] of entries) {
-    if (selector.column === undefined) {
-      needsRowConstant = true;
-    } else {
+    if (selector.column !== undefined) {
       columns.add(selector.column);
     }
   }
 
-  return [
-    ...Array.from(columns, (column) => ProjectionItem.of(column, ColumnRef.of(tableName, column))),
-    ...(needsRowConstant ? [ProjectionItem.of('__row', LiteralExpr.of(1))] : []),
-  ];
+  if (columns.size === 0) {
+    return [ProjectionItem.of('__row', LiteralExpr.of(1))];
+  }
+
+  return Array.from(columns, (column) =>
+    ProjectionItem.of(column, ColumnRef.of(tableName, column)),
+  );
 }
 
 export function compileAggregate(
