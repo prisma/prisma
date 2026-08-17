@@ -521,10 +521,6 @@ The Mongo ORM client was asked to operate on a model name that is not in the con
 
 A mutation that expected the database to return a row got none — `create()`/`upsert()` read-back, MTI base or variant INSERT, or a nested create. The Prisma-classic analogue of P2025. Meta: `operation`, `model`, `tableName`, `phase`.
 
-### ORM.NAMESPACE_RESERVED
-
-The contract declares a storage namespace whose name the SQL surface reserves for itself, so every table in it would be unreachable through the builder while the type still promised them. `sql()` refuses such a contract at construction. One name is reserved: `raw`, the key the SQL DSL object answers with the whole-query raw statement tag (`db.sql.raw`, see [ADR 247](../architecture%20docs/adrs/ADR%20247%20-%20Whole-query%20raw%20SQL%20is%20the%20fragment%20mechanism%20at%20statement%20position.md)). Rename the namespace in the schema. Meta: `namespaceId`.
-
 ### ORM.OPERATION_UNSUPPORTED
 
 A valid ORM method was called in a configuration that does not support it: mutating an MTI variant collection with a method that requires `createAll()`, Mongo `upsert()` with dot-path field operations, or a Mongo mutation carrying windowing (`orderBy`/`skip`/`take`) or includes. Meta: `method`, `model`, `reason`, `field`.
