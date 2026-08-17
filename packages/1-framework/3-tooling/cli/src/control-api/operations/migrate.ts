@@ -184,7 +184,7 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       continue;
     }
     if (outcome.kind === 'never-planned') {
-      return notOk(buildNeverPlannedFailure(outcome.spaceId, outcome.targetHash));
+      return notOk(buildNeverPlannedFailure(outcome.spaceId, outcome.targetHash, migrationsDir));
     }
     if (outcome.kind === 'unreachable') {
       return notOk(
@@ -605,11 +605,15 @@ function buildSuccess(args: BuildSuccessArgs): MigrateSuccess {
  *
  * @internal Exported for testing only.
  */
-export function buildNeverPlannedFailure(spaceId: string, targetHash: string): MigrateFailure {
+export function buildNeverPlannedFailure(
+  spaceId: string,
+  targetHash: string,
+  migrationsDir: string,
+): MigrateFailure {
   return {
     code: 'MIGRATION_PATH_NOT_FOUND',
     summary: `No on-disk migrations for contract space "${spaceId}"`,
-    why: `migrate is replay-only: a contract space that declares managed storage elements must have an authored migration graph on disk. Space "${spaceId}" has no migrations under \`migrations/${spaceId}/\` but its head ref targets "${targetHash}".`,
+    why: `migrate is replay-only: a contract space that declares managed storage elements must have an authored migration graph on disk. Space "${spaceId}" has no migrations under \`${migrationsDir}/${spaceId}/\` but its head ref targets "${targetHash}".`,
     meta: { spaceId, target: targetHash, kind: 'neverPlanned' },
   };
 }
