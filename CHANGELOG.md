@@ -8,6 +8,7 @@ Changelog tracking starts at **v0.12.0**, the first release cut after this conve
 
 ## v8.0.0-rc.2
 
+
 This release retires the `prisma-next` binary in favour of the unified `prisma` CLI, returns the default aggregates to plain JavaScript numbers with lossless variants beside them, makes CHECK constraints a declared part of the contract, and splits runtime row queries from non-returning writes. Almost every application will need to re-emit its contract and rename its config file, so read the breaking changes before upgrading.
 
 Two upgrade recipes carry the mechanical translations for this hop: the [user recipe](https://github.com/prisma/prisma/blob/v8.0.0-rc.2/skills/prisma-next-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/) and the [extension-author recipe](https://github.com/prisma/prisma/blob/v8.0.0-rc.2/skills/prisma-8-extension-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/).
@@ -43,19 +44,25 @@ Two upgrade recipes carry the mechanical translations for this hop: the [user re
 
   ```ts
   const { total } = await db.User.aggregate((a) => ({ total: a.count() }));
-  total === 2n;                                    // bigint
-  .having((_f, fns) => fns.gt(fns.count(), 1n));   // bigint literal
+  total === 2n; // bigint
+
+  const busy = await db.sql.public.user
+    .groupBy('kind')
+    .having((_f, fns) => fns.gt(fns.count(), 1n)); // bigint literal
   ```
 
   After:
 
   ```ts
   const { total } = await db.User.aggregate((a) => ({ total: a.count() }));
-  total === 2;                                     // number; countBigInt() for a bigint
-  .having((_f, fns) => fns.gt(fns.count(), 1));    // plain number literal
+  total === 2; // number — countBigInt() returns the bigint
+
+  const busy = await db.sql.public.user
+    .groupBy('kind')
+    .having((_f, fns) => fns.gt(fns.count(), 1)); // plain number literal
   ```
 
-- **Which aggregate methods exist is now the contract's answer** — the aggregate methods are no longer declared on the ORM and SQL-builder surfaces outright. Each surface is derived from the operation names in the emitted `contract.d.ts`'s `AggregateTypes` block, so a target or extension can contribute an operation and it appears under its own name with no client change. PostgreSQL now contributes eight operations and SQLite seven. **Re-emit your contract** with the CLI's `contract emit`: against a contract with no `AggregateTypes` block — one authored in code with `defineContract(...)` and handed straight to the client, or emitted before `8.0.0-rc.1` — every aggregate surface resolves to `AggregateOperationsUnavailable`, an empty type, and each call becomes a compile error. Runtime behaviour is unchanged; this is a compile-time change. Separately, `count(field)` now renders `COUNT(<column>)` instead of accepting the argument and discarding it, so a call that got past the types — a `@ts-expect-error`, a `count(x as never)`, or dynamic dispatch — now counts that field's non-null values rather than rows. See the [user recipe](https://github.com/prisma/prisma/blob/v8.0.0-rc.2/skills/prisma-next-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/) and the [extension-author recipe](https://github.com/prisma/prisma/blob/v8.0.0-rc.2/skills/prisma-8-extension-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/). ([#29922](https://github.com/prisma/prisma/pull/29922))
+- **Which aggregate methods exist is now the contract's answer** — the aggregate methods are no longer declared on the ORM and SQL-builder surfaces outright. Each surface is derived from the operation names in the emitted `contract.d.ts`'s `AggregateTypes` block, so a target or extension can contribute an operation and it appears under its own name with no client change. PostgreSQL now contributes eight operations and SQLite seven. **Re-emit your contract** with the CLI's `contract emit`: against a contract with no `AggregateTypes` block — one authored in code with `defineContract(...)` and handed straight to the client, or emitted before `8.0.0-rc.1` — every aggregate surface resolves to `AggregateOperationsUnavailable`, an empty type, and each call becomes a compile error. What this release changes is compile-time only — the separate runtime guard introduced in `8.0.0-rc.1` still stands, rejecting an aggregate whose operation and input codec the composed target does not declare with `ORM.AGGREGATE_UNSUPPORTED` before the query runs. Separately, `count(field)` now renders `COUNT(<column>)` instead of accepting the argument and discarding it, so a call that got past the types — a `@ts-expect-error`, a `count(x as never)`, or dynamic dispatch — now counts that field's non-null values rather than rows. See the [user recipe](https://github.com/prisma/prisma/blob/v8.0.0-rc.2/skills/prisma-next-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/) and the [extension-author recipe](https://github.com/prisma/prisma/blob/v8.0.0-rc.2/skills/prisma-8-extension-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/). ([#29922](https://github.com/prisma/prisma/pull/29922))
 
 - **CHECK constraints are declared in the contract, and introspection now sees all of them** — the CHECK shape in `contract.json` changed from `{ name, column, valueSet }` to `{ name, prefix, expression }`, where `expression` is the raw SQL predicate and `name` is a content-addressed wire name (`<prefix>_<8hex>`, the convention indexes and RLS policies already use). An old-shape contract is rejected on read, so re-emitting is not optional. Three consequences to plan for. Your first migration plan after upgrading drops each old unsuffixed enum constraint and adds the wire-named one, which needs `destructive` to converge. Every list (`many`) column gains a declared element-non-null CHECK the planner previously created without declaring. And introspection stopped parsing predicates, so hand-written constraints earlier versions could not see are now visible — and an undeclared check is an extra that `db verify --strict` reports and a destructive-capable plan drops, so read the first plan for `dropCheckConstraint` operations naming constraints you wrote yourself, and declare each one you want to keep with `@@check(expression: "…", map: "<physical name>")`. Two API changes ride along: `addCheckConstraint` in committed migration files takes an `expression` instead of a `column`/`values` pair, and the `typescriptContract` options bag now requires `createNamespace` whenever it passes `defaultControlPolicy`. An `enumType()` whose codec is numeric now throws `CONTRACT.ENUM_INVALID` while the contract is being built rather than failing later at migrate time. See the [user recipe](https://github.com/prisma/prisma/blob/v8.0.0-rc.2/skills/prisma-next-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/) and the [extension-author recipe](https://github.com/prisma/prisma/blob/v8.0.0-rc.2/skills/prisma-8-extension-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/). ([#29892](https://github.com/prisma/prisma/pull/29892))
 
