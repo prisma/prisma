@@ -22,7 +22,9 @@
 //      (b) The `@prisma/orm-toolchain` tarball installs into a clean
 //      sandbox at `.conformance/` (npm, `--ignore-scripts`, workspace
 //      siblings supplied as version-qualified `file:` overrides) and every
-//      packed `bin` entry starts under plain `node <path> --version`.
+//      packed `bin` entry starts under plain `node <path> --version`. A
+//      package that publishes no bin has every subpath in its packed
+//      `exports` map imported in a fresh node instead.
 //      (c) The `@prisma/cli-engine` pin is a single exact version,
 //      identical across every packed publishable manifest that declares it
 //      and the source `@internal/cli` manifest.
@@ -381,6 +383,55 @@ export function declaredBins(manifest) {
 }
 
 /**
+ * Import specifiers for every subpath the manifest exports, sorted, as a
+ * consumer would write them: `@prisma/orm-toolchain/emitter`, not a file
+ * path. Skips `./package.json` (data, not a module), wildcard subpaths
+ * (they name no single module), and any export whose resolved target is
+ * not importable.
+ *
+ * `exports` has three shapes that all mean "the package root and nothing
+ * else": a string, an array fallback, and a bare conditions object. Only
+ * the fourth — an object whose keys are `.`-prefixed subpaths — enumerates
+ * more than the root. Pure / side-effect-free; exported for tests.
+ *
+ * @param {Record<string, unknown>} manifest
+ * @returns {string[]}
+ */
+export function packedEntrySpecifiers(manifest) {
+  const name = String(manifest.name ?? '');
+  const exports = manifest.exports;
+  if (typeof exports === 'string') return [name];
+  if (!exports || typeof exports !== 'object') return [];
+  if (Array.isArray(exports)) return importableTarget(exports) ? [name] : [];
+
+  const entries = Object.entries(exports);
+  if (!entries.some(([key]) => key.startsWith('.'))) {
+    return importableTarget(exports) ? [name] : [];
+  }
+
+  const specifiers = [];
+  for (const [subpath, target] of entries) {
+    if (subpath === './package.json' || subpath.includes('*')) continue;
+    if (!importableTarget(target)) continue;
+    specifiers.push(subpath === '.' ? name : `${name}/${subpath.replace(/^\.\//, '')}`);
+  }
+  return specifiers.sort();
+}
+
+/**
+ * @param {unknown} target
+ * @returns {boolean}
+ */
+function importableTarget(target) {
+  if (typeof target === 'string') return true;
+  if (!target || typeof target !== 'object') return false;
+  if (Array.isArray(target)) return target.some(importableTarget);
+  return ['import', 'module', 'default', 'node'].some((condition) =>
+    importableTarget(/** @type {Record<string, unknown>} */ (target)[condition]),
+  );
+}
+
+/**
  * CommonJS files inside the tarball. The lexer sweep reads ES modules;
  * a `.cjs` file's `require()` calls are function calls, not imports, so
  * the sweep cannot see them. Every publishable package is
@@ -730,25 +781,43 @@ export async function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
       if (bins.length === 0) {
         // The toolchain stopped publishing a bin when the unified
         // prisma-cli replaced prisma-next (#30005). The sandbox smoke
-        // for a bin-less package is importing its published CLI entry
+        // for a bin-less package is importing its published entry points
         // in a fresh node: the anti-vacuity guarantee survives — a
-        // package whose entry cannot even import fails here — without
+        // package whose entries cannot even import fails here — without
         // demanding an executable nobody ships.
-        const run = await importEntryInSandbox({
-          sandboxDir,
-          specifier: `${TOOLCHAIN_PACKAGE}/cli`,
-          timeoutMs: BIN_TIMEOUT_MS,
-        });
-        if (run.timedOut || run.exitCode !== 0) {
+        //
+        // Every exported subpath is smoked, not just `/cli`. The import
+        // purity sweep reads the imports inside packed files; it cannot
+        // see an exports subpath whose target file never made it into the
+        // tarball, and that entry is unreachable for every consumer who
+        // writes it.
+        const specifiers = packedEntrySpecifiers(toolchain.manifest);
+        if (specifiers.length === 0) {
           findings.push({
             check: 'tarball',
-            kind: 'bin-failed',
+            kind: 'no-subjects',
             subject: TOOLCHAIN_PACKAGE,
-            summary: run.timedOut
-              ? `importing ${TOOLCHAIN_PACKAGE}/cli in the sandbox timed out`
-              : `importing ${TOOLCHAIN_PACKAGE}/cli in the sandbox exited ${run.exitCode}`,
-            detail: `stdout:\n${run.stdout}\nstderr:\n${run.stderr}`,
+            summary:
+              'the packed manifest has neither a bin nor an importable export, so nothing was run',
           });
+        }
+        for (const specifier of specifiers) {
+          const run = await importEntryInSandbox({
+            sandboxDir,
+            specifier,
+            timeoutMs: BIN_TIMEOUT_MS,
+          });
+          if (run.timedOut || run.exitCode !== 0) {
+            findings.push({
+              check: 'tarball',
+              kind: 'entry-failed',
+              subject: TOOLCHAIN_PACKAGE,
+              summary: run.timedOut
+                ? `importing ${specifier} in the sandbox timed out`
+                : `importing ${specifier} in the sandbox exited ${run.exitCode}`,
+              detail: `stdout:\n${run.stdout}\nstderr:\n${run.stderr}`,
+            });
+          }
         }
       }
       for (const [binName, relPath] of bins) {
@@ -807,7 +876,8 @@ function report({ findings, json, stdoutWrite, stderrWrite }) {
     stderrWrite(
       '\nOK — packed output imports only declared packages, the shipped orm validator\n' +
         `     survives the hostile corpus, the ${TOOLCHAIN_PACKAGE} tarball installs\n` +
-        `     clean and its bins start, and every ${ENGINE_PACKAGE} pin agrees.\n`,
+        '     clean and its bins start or its entry points import, and every\n' +
+        `     ${ENGINE_PACKAGE} pin agrees.\n`,
     );
   } else {
     stderrWrite(`\nFAIL — ${findings.length} conformance finding(s):\n`);
