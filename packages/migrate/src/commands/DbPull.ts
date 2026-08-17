@@ -249,7 +249,7 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
         /* P1012: Schema parsing error */
         process.stdout.write('\n') // empty line
 
-        const message = relativizePathInPSLError(e.message)
+        const message = relativizePathInPSLError(e.message as string)
 
         throw new Error(`${red(message)}
 Introspection failed as your current Prisma schema file is invalid

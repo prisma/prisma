@@ -1,10 +1,11 @@
-import { execaCommand } from 'execa'
+import { execa } from 'execa'
 import globby from 'globby'
 
 async function main() {
-  let benchmarks = await globby(['./packages/**/*.bench.ts', '!./packages/type-benchmark-tests/**'], {
+  let benchmarks = await globby(['./packages/**/*.bench.ts', '!./packages/type-benchmark-tests/**', '!**/node_modules/**', '!**/.git/**', '!**/dist/**', '!**/build/**'], {
     gitignore: true,
   })
+  console.log('After globby, benchmarks count:', benchmarks.length)
 
   if (process.argv.length > 2) {
     const filterRegex = new RegExp(process.argv[2])
@@ -23,7 +24,7 @@ async function run(benchmarks: string[]) {
 
   for (const location of benchmarks) {
     try {
-      await execaCommand(`node -r esbuild-register ${location}`, {
+      await execa('node', ['-r', 'esbuild-register', location], {
         stdio: 'inherit',
       })
     } catch (e) {

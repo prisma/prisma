@@ -49,7 +49,7 @@ ${indent(printDatamodelObject(obj), tab)}
   }
 }
 
-export function printDatamodelObject(obj: any): string {
+export function printDatamodelObject(obj: Record<string, unknown>): string {
   const maxLength = Object.keys(obj).reduce((max, curr) => Math.max(max, curr.length), 0)
   return Object.entries(obj)
     .map(
