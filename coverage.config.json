@@ -75,7 +75,5 @@
       "notes": "Add direct unit tests for migration-check (command-level argument parsing, exit-code mapping, and one happy-path / one PN-code-per-failure-mode assertion) so per-package coverage recovers. Tracked alongside the residual internal-renames work in TML-2552. Renewed 2026-08-17: expired 2026-08-14 and turned the Coverage check red on every open PR; the underlying coverage situation is unchanged and the recovery above still applies (tracked on the entry's Linear issue)."
     }
   ],
-  "excludedPackages": [
-    "1-framework/3-tooling/eslint-plugin"
-  ]
+  "excludedPackages": ["1-framework/3-tooling/eslint-plugin"]
 }

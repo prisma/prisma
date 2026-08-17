@@ -28,8 +28,8 @@
   },
   "devDependencies": {
     "@prisma/cli-engine": "0.1.1",
-    "@prisma/compute-sdk": "^0.38.0",
-    "@prisma/management-api-sdk": "^1.47.0",
+    "@prisma/compute-sdk": "^0.39.0",
+    "@prisma/management-api-sdk": "^1.56.0",
     "@repo/test-utils": "workspace:8.0.0-rc.2",
     "@repo/tsconfig": "workspace:8.0.0-rc.2",
     "@types/bun": "^1.2.18",
