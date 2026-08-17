@@ -86,13 +86,17 @@ const plan = db.raw.sql`
   JOIN "user" u ON u.id = active."userId"
   ORDER BY active."postCount" DESC, u.email ASC
 `
-  .returnsRow({ email: user.columns.email, postCount: 'pg/int8@1' })
+  .returnsRow({ email: user.columns.email, postCount: authorsWithPosts.returns.postCount })
   .build();
 ```
 
 Two rules follow, both deliberate:
 
 **The inner spec is discarded on splice.** The outer template declares the row it returns; the inner declaration described a statement that is now a subquery, and a subquery's columns are not the outer result. Keeping the inner spec would mean deciding how two specs merge when the outer query renames, aggregates, or drops the inner columns — a question with no answer that holds for every SQL shape. Discarding is the rule that needs no exceptions.
+
+The author does not lose the inner declaration, though. A row-spec'd query publishes it as `.returns`, one column reference per declared key. Those references are row-spec entries like any other, so an outer spec can inherit `postCount: inner.returns.postCount` instead of restating the codec id the inner statement already named.
+
+The runtime still discards the inner spec. Merging two specs remains the question with no general answer. What the author reuses is the declaration, at the site where the outer spec is written, so declaring a column pays for itself twice: once where the inner statement decodes, and once where the outer one composes.
 
 **Embeddability keys on the declared result, not the statement keyword.** A mutation with `RETURNING` produces rows, so it takes a row spec and composes exactly like a `SELECT` — which is what makes data-modifying CTEs expressible:
 

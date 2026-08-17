@@ -74,7 +74,11 @@ export async function rawQueryBumpViews(kind = 'admin', runtime?: Runtime) {
  *
  * A row-returning raw query is embeddable: interpolating it splices its SQL
  * and its parameters into the outer template, in order. The inner row spec
- * describes the inner statement; the outer template declares its own.
+ * describes the inner statement, and the outer template declares its own.
+ *
+ * A column the inner query already declared can be inherited from its
+ * `.returns` record instead of restating the codec id. That keeps the two
+ * declarations from drifting apart.
  */
 export async function rawQueryActiveAuthors(minPosts = 1, runtime?: Runtime) {
   const authorsWithPosts = db.raw.sql`
@@ -96,7 +100,7 @@ export async function rawQueryActiveAuthors(minPosts = 1, runtime?: Runtime) {
   `
     .returnsRow({
       email: user.columns.email,
-      postCount: 'pg/int8@1',
+      postCount: authorsWithPosts.returns.postCount,
     })
     .build();
 
