@@ -11,8 +11,18 @@ import type {
   ControlMutationDefaultRegistry,
   MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
-import type { FieldSymbol, ModelSymbol, ResolvedAttribute } from '@internal/psl-parser';
-import type { SourceFile } from '@internal/psl-parser/syntax';
+import {
+  type FieldSymbol,
+  type ModelSymbol,
+  nodePslSpan,
+  type ResolvedAttribute,
+} from '@internal/psl-parser';
+import {
+  ArrayLiteralAst,
+  type ExpressionAst,
+  IdentifierAst,
+  type SourceFile,
+} from '@internal/psl-parser/syntax';
 import type { EnumTypeHandle } from '@internal/sql-contract-ts/contract-builder';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -56,6 +66,8 @@ function lowerEnumDefaultForField(input: {
   readonly enumHandle: EnumTypeHandle;
   readonly sourceId: string;
   readonly diagnostics: ContractSourceDiagnostic[];
+  readonly isList: boolean;
+  readonly elementNullable: boolean;
 }): LoweredFieldDefault {
   const { field, model, sourceFile, enumHandle, sourceId, diagnostics } = input;
   const node = findFieldAttributeNode(field, 'default');
@@ -64,10 +76,66 @@ function lowerEnumDefaultForField(input: {
   // A memberless enum is already a contract error at its declaration; there is no member a
   // `@default` could name, so skip lowering rather than invent a grammar for it.
   if (firstMember === undefined) return {};
-  const spec = buildEnumDefaultSpec([firstMember, ...restMembers]);
+  const memberNames: readonly [string, ...string[]] = [firstMember, ...restMembers];
+  if (input.isList) {
+    const interpreted = interpretFieldAttribute({
+      node,
+      spec: buildEnumDefaultSpec(memberNames, true),
+      model,
+      field,
+      sourceFile,
+      sourceId,
+      diagnostics,
+    });
+    if (interpreted === undefined) return {};
+    if (!input.elementNullable && interpreted.members.includes(null)) {
+      let positionalValue: ExpressionAst | undefined;
+      for (const arg of node.argList()?.args() ?? []) {
+        positionalValue = arg.value();
+        break;
+      }
+      const listExpression = positionalValue
+        ? ArrayLiteralAst.cast(positionalValue.syntax)
+        : undefined;
+      let nullExpression: IdentifierAst | undefined;
+      for (const element of listExpression?.elements() ?? []) {
+        const identifier = IdentifierAst.cast(element.syntax);
+        if (identifier?.token()?.text === 'null') {
+          nullExpression = identifier;
+          break;
+        }
+      }
+      diagnostics.push({
+        code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
+        message: `Field "${input.modelName}.${input.fieldName}" has strict list elements and cannot use null in a literal list default. Make the element type nullable or remove null from the default.`,
+        sourceId,
+        span: nullExpression
+          ? nodePslSpan(nullExpression.syntax, sourceFile)
+          : positionalValue
+            ? nodePslSpan(positionalValue.syntax, sourceFile)
+            : nodePslSpan(node.syntax, sourceFile),
+      });
+      return {};
+    }
+    const values = interpreted.members.map((member) => {
+      if (member === null) return null;
+      const match = enumHandle.enumMembers.find((candidate) => candidate.name === member);
+      return match?.value;
+    });
+    return {
+      defaultValue: {
+        kind: 'literal',
+        value: blindCast<
+          ColumnDefaultLiteralInputValue,
+          'enum member values are codec-validated JsonValue-compatible scalars'
+        >(values),
+      },
+    };
+  }
+
   const interpreted = interpretFieldAttribute({
     node,
-    spec,
+    spec: buildEnumDefaultSpec(memberNames, false),
     model,
     field,
     sourceFile,
@@ -75,12 +143,8 @@ function lowerEnumDefaultForField(input: {
     diagnostics,
   });
   if (interpreted === undefined) return {};
-  const member = interpreted.member;
-  // The grammar (one `identifier(member)` arm per enum member) guarantees a match; the guard
-  // keeps the narrowing total without a diagnostic — an unknown member already failed as syntax.
-  const match = enumHandle.enumMembers.find((m) => m.name === member);
+  const match = enumHandle.enumMembers.find((candidate) => candidate.name === interpreted.member);
   if (!match) return {};
-
   return {
     defaultValue: {
       kind: 'literal',
@@ -108,6 +172,7 @@ export type ResolvedField = {
   // Spelled literally because this package does not depend on
   // @internal/sql-schema-ir; the canonical alias is `CheckKind` there.
   readonly noCheck?: readonly ('membership' | 'elementNotNull')[];
+  readonly elementNullable?: true;
   readonly valueObjectTypeName?: string;
   readonly scalarCodecId?: string;
 };
@@ -332,6 +397,7 @@ function lowerNoCheckForField(input: {
   readonly sourceFile: SourceFile;
   readonly sourceId: string;
   readonly isListField: boolean;
+  readonly elementNullable: boolean;
   readonly isDomainEnum: boolean;
   readonly diagnostics: ContractSourceDiagnostic[];
 }): readonly NoCheckKind[] | undefined {
@@ -351,7 +417,7 @@ function lowerNoCheckForField(input: {
   const span = getAttribute(input.field.attributes, 'noCheck')?.span ?? input.field.span;
   const subject = `Field "${input.model.name}.${input.field.name}"`;
   const derivable: NoCheckKind[] = [];
-  if (input.isListField) derivable.push('elementNotNull');
+  if (input.isListField && !input.elementNullable) derivable.push('elementNotNull');
   if (input.isDomainEnum) derivable.push('membership');
 
   const authored = [interpreted.first, interpreted.second].filter(
@@ -374,7 +440,7 @@ function lowerNoCheckForField(input: {
       const explanation =
         kind === 'membership'
           ? 'membership checks are derived only from enum value sets'
-          : 'element-non-null checks are derived only for list columns';
+          : 'element-non-null checks are derived only for lists whose elements are semantically non-null';
       input.diagnostics.push({
         code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
         message: `${subject} @noCheck(${kind}) does not apply — ${explanation}`,
@@ -587,6 +653,8 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
             enumHandle,
             sourceId,
             diagnostics,
+            isList: isListField,
+            elementNullable: field.elementOptional,
           })
         : lowerDefaultForField({
             modelName: model.name,
@@ -600,6 +668,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
             defaultFunctionRegistry,
             diagnostics,
             isList: isListField,
+            elementNullable: field.elementOptional,
           })
       : {};
     const loweredOnCreate = loweredDefault.executionDefaults?.onCreate;
@@ -676,7 +745,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     const fieldExecutionDefaults =
       presetContributions?.executionDefaults ?? loweredDefault.executionDefaults;
     const fieldDefaultValue = presetContributions?.default ?? loweredDefault.defaultValue;
-    const noCheckKinds = modelDerivesChecks
+    const explicitNoCheckKinds = modelDerivesChecks
       ? lowerNoCheckForField({
           model,
           field,
@@ -687,6 +756,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
           // any waiver on it waives nothing and must be rejected here rather
           // than persisted as an inert flag.
           isListField: isListField && !isValueObjectField,
+          elementNullable: field.elementOptional,
           isDomainEnum: enumHandle !== undefined,
           diagnostics,
         })
@@ -703,7 +773,8 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       ...ifDefined('idName', idName),
       ...ifDefined('uniqueName', uniqueName),
       ...ifDefined('many', isListField ? (true as const) : undefined),
-      ...ifDefined('noCheck', noCheckKinds),
+      ...ifDefined('noCheck', explicitNoCheckKinds),
+      ...ifDefined('elementNullable', field.elementOptional ? (true as const) : undefined),
       ...ifDefined('valueObjectTypeName', isValueObjectField ? field.typeName : undefined),
       ...ifDefined('scalarCodecId', scalarCodecId),
     });

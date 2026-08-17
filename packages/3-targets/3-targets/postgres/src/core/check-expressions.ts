@@ -20,6 +20,7 @@ export interface PostgresCheckExpressionInput {
   readonly tableName: string;
   readonly columnName: string;
   readonly many: boolean;
+  readonly elementNullable?: boolean;
   readonly memberValues: readonly string[] | undefined;
 }
 
@@ -42,9 +43,9 @@ export interface PostgresCheckExpressionCandidate {
  *
  * A text-backed domain enum has no type-level enforcement, so membership is a
  * predicate: `IN` for a scalar, and `<@` containment for an array — an array
- * column cannot use `IN` at all (`operator does not exist: text[] = text`),
- * and containment additionally rejects NULL elements. Every list column also
- * gets an element-non-null check, which no Postgres column type can express.
+ * column cannot use `IN` at all (`operator does not exist: text[] = text`).
+ * Array membership strips NULL elements first, leaving element nullability to
+ * the separate element-non-null check emitted for semantically strict lists.
  *
  * The array side casts the COLUMN to `text[]` rather than assuming its element
  * type already is: `<@` needs both operands in one type, so a `varchar[]` or
@@ -68,12 +69,12 @@ export function postgresRenderCheckExpressions(
       kind: 'membership',
       columnName: input.columnName,
       expression: input.many
-        ? `${column}::text[] <@ ARRAY[${members}]::text[]`
+        ? `array_remove(${column}::text[], NULL) <@ ARRAY[${members}]::text[]`
         : `${column} IN (${members})`,
     });
   }
 
-  if (input.many) {
+  if (input.many && input.elementNullable !== true) {
     candidates.push({
       kind: 'elementNotNull',
       columnName: input.columnName,

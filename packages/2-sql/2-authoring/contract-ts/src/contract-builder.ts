@@ -26,6 +26,7 @@ import {
   extensionModel,
   field,
   isContractInput,
+  type ManyOptions,
   type ModelAttributesSpec,
   model,
   type RelationBuilder,
@@ -608,6 +609,7 @@ export type {
   ComposedAuthoringHelpers,
   ContractInput,
   ContractModelBuilder,
+  ManyOptions,
   ModelLike,
   ScalarFieldBuilder,
 };

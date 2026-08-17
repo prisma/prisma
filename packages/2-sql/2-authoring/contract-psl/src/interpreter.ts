@@ -1473,7 +1473,10 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
           descriptor: resolvedField.descriptor,
           nullable: resolvedField.nullable,
           ...(resolvedField.many && resolvedField.valueObjectTypeName === undefined
-            ? { many: true as const }
+            ? {
+                many: true as const,
+                ...ifDefined('elementNullable', resolvedField.elementNullable),
+              }
             : {}),
           ...ifDefined('default', resolvedField.defaultValue),
           ...ifDefined('executionDefaults', resolvedField.executionDefaults),
@@ -1533,7 +1536,13 @@ function buildValueObjects(input: BuildValueObjectsInput): Record<string, Contra
           type: { kind: 'valueObject', name: field.typeName },
           nullable: field.optional,
         };
-        fields[field.name] = field.list ? { ...result, many: true } : result;
+        fields[field.name] = field.list
+          ? {
+              ...result,
+              many: true,
+              ...ifDefined('elementNullable', field.elementOptional ? (true as const) : undefined),
+            }
+          : result;
         continue;
       }
       const resolved = resolveFieldTypeDescriptor({
@@ -1564,7 +1573,13 @@ function buildValueObjects(input: BuildValueObjectsInput): Record<string, Contra
         nullable: field.optional,
         type: { kind: 'scalar', codecId: resolved.descriptor.codecId },
       };
-      fields[field.name] = field.list ? { ...scalarField, many: true } : scalarField;
+      fields[field.name] = field.list
+        ? {
+            ...scalarField,
+            many: true,
+            ...ifDefined('elementNullable', field.elementOptional ? (true as const) : undefined),
+          }
+        : scalarField;
     }
     valueObjects[compositeType.name] = { fields };
   }
@@ -1592,6 +1607,7 @@ function patchModelDomainFields(
           nullable: rf.field.optional,
           type: { kind: 'valueObject', name: rf.valueObjectTypeName },
           ...(rf.many ? { many: true as const } : {}),
+          ...ifDefined('elementNullable', rf.elementNullable),
         };
       } else if (rf.many && rf.scalarCodecId) {
         needsPatch = true;
@@ -1599,6 +1615,7 @@ function patchModelDomainFields(
           nullable: rf.field.optional,
           type: { kind: 'scalar', codecId: rf.scalarCodecId },
           many: true as const,
+          ...ifDefined('elementNullable', rf.elementNullable),
         };
       }
     }

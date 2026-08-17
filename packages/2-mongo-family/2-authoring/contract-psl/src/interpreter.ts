@@ -852,7 +852,9 @@ function resolveNonRelationField(
       type: { kind: 'valueObject', name: field.typeName },
       nullable: field.optional,
     };
-    return field.list ? { ...result, many: true } : result;
+    return field.list
+      ? { ...result, many: true, ...(field.elementOptional ? { elementNullable: true } : {}) }
+      : result;
   }
 
   // If this field's declared type is a known enum name, treat the field as a scalar
@@ -870,7 +872,9 @@ function resolveNonRelationField(
       nullable: field.optional,
       valueSet,
     };
-    return field.list ? { ...result, many: true } : result;
+    return field.list
+      ? { ...result, many: true, ...(field.elementOptional ? { elementNullable: true } : {}) }
+      : result;
   }
 
   // Avoid cascading unsupported-type diagnostics after invalid qualification.
@@ -893,7 +897,9 @@ function resolveNonRelationField(
     type: { kind: 'scalar', codecId },
     nullable: field.optional,
   };
-  return field.list ? { ...result, many: true } : result;
+  return field.list
+    ? { ...result, many: true, ...(field.elementOptional ? { elementNullable: true } : {}) }
+    : result;
 }
 
 function processEnumDeclarations(input: {

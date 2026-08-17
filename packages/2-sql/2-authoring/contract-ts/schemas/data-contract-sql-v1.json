@@ -80,6 +80,9 @@
                           "many": {
                             "const": true
                           },
+                          "elementNullable": {
+                            "const": true
+                          },
                           "valueSet": {
                             "type": "object",
                             "properties": {
@@ -419,6 +422,9 @@
                                     "required": ["kind", "value"]
                                   }
                                 ]
+                              },
+                              "elementNullable": {
+                                "const": true
                               },
                               "many": {
                                 "type": "boolean"

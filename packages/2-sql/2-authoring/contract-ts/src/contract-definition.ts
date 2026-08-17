@@ -51,6 +51,7 @@ export interface FieldNode {
    * derivable kinds at contract build time.
    */
   readonly noCheck?: readonly CheckKind[];
+  readonly elementNullable?: true;
   /** Present when the field was authored with `field.namedType(enumHandle)`. */
   readonly enumTypeHandle?: EnumTypeHandle;
 }

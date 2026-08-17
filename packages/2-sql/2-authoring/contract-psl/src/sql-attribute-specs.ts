@@ -32,6 +32,7 @@ import {
 } from '@internal/psl-parser';
 import type { FieldAttributeAst, ModelAttributeAst, SourceFile } from '@internal/psl-parser/syntax';
 import { blindCast } from '@internal/utils/casts';
+import { ok } from '@internal/utils/result';
 
 export function findModelAttributeNode(
   model: ModelSymbol,
@@ -145,7 +146,20 @@ export function interpretFieldAttribute<Out>(input: {
 export const mapModelSpec = modelAttribute('map', { positional: [{ key: 'name', type: str() }] });
 export const mapFieldSpec = fieldAttribute('map', { positional: [{ key: 'name', type: str() }] });
 
-type DefaultArgValue = string | number | boolean | (string | number | boolean)[] | TypedFuncCall;
+type DefaultLiteral = string | number | boolean | null;
+type DefaultArgValue = DefaultLiteral | DefaultLiteral[] | TypedFuncCall;
+
+function nullLiteral(): ArgType<null> {
+  const nullIdentifier = identifier('null');
+  return {
+    kind: 'null',
+    label: 'null',
+    parse: (arg, ctx) => {
+      const result = nullIdentifier.parse(arg, ctx);
+      return result.ok ? ok(null) : result;
+    },
+  };
+}
 
 // Compose the non-enum `@default` value grammar for a single field: flexible literal arms
 // (string/number/boolean), a list arm only for list fields, and one typed `funcCall(name, signature)`
@@ -155,7 +169,7 @@ export function buildDefaultSpec(input: {
   readonly isList: boolean;
   readonly registry: ControlMutationDefaultRegistry;
 }) {
-  const literal = () => oneOf(str(), num(), bool());
+  const literal = () => oneOf(str(), num(), bool(), nullLiteral());
   const funcArms = [...input.registry.entries()].map(([name, entry]) =>
     funcCall(
       name,
@@ -173,14 +187,29 @@ export function buildDefaultSpec(input: {
 
 // Compose the enum `@default` value grammar from the enum's own member names: one
 // `identifier(member)` arm per member, so member-validity is a grammar concern — a non-member
-// identifier fails `oneOf` as invalid attribute syntax.
-export function buildEnumDefaultSpec(memberNames: readonly [string, ...string[]]) {
+// identifier fails `oneOf` with the same precise member diagnostic for scalar and list fields.
+export function buildEnumDefaultSpec(
+  memberNames: readonly [string, ...string[]],
+  isList: true,
+): AttributeSpec<{ members: (string | null)[] }>;
+export function buildEnumDefaultSpec(
+  memberNames: readonly [string, ...string[]],
+  isList?: false,
+): AttributeSpec<{ member: string }>;
+export function buildEnumDefaultSpec(memberNames: readonly [string, ...string[]], isList = false) {
   const [first, ...rest] = memberNames;
-  const arms: readonly [ArgType<string>, ...ArgType<string>[]] = [
+  const memberArms: readonly [ArgType<string>, ...ArgType<string>[]] = [
     identifier(first),
     ...rest.map((name) => identifier(name)),
   ];
-  return fieldAttribute('default', { positional: [{ key: 'member', type: oneOf(...arms) }] });
+  if (isList) {
+    return fieldAttribute('default', {
+      positional: [{ key: 'members', type: list(oneOf(...memberArms, nullLiteral())) }],
+    });
+  }
+  return fieldAttribute('default', {
+    positional: [{ key: 'member', type: oneOf(...memberArms) }],
+  });
 }
 
 export const idFieldSpec = fieldAttribute('id', { named: { map: optional(str()) } });

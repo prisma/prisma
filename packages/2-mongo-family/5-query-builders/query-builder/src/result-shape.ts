@@ -18,7 +18,7 @@ export function contractFieldToMongoFieldShape(field: ContractField): MongoField
     return freezeMongoFieldShape({
       kind: 'array',
       nullable,
-      element: { kind: 'leaf', codecId: type.codecId, nullable: false },
+      element: { kind: 'leaf', codecId: type.codecId, nullable: field.elementNullable === true },
     });
   }
   return freezeMongoFieldShape({

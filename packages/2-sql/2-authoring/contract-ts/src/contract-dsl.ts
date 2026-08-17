@@ -52,6 +52,7 @@ export type ScalarFieldState<
   IdSpec extends NamedConstraintSpec | undefined = undefined,
   UniqueSpec extends NamedConstraintSpec | undefined = undefined,
   Many extends boolean = false,
+  ElementNullable extends boolean = false,
 > = {
   readonly kind: 'scalar';
   readonly descriptor?: Descriptor | undefined;
@@ -61,6 +62,7 @@ export type ScalarFieldState<
   readonly default?: ColumnDefault | undefined;
   readonly executionDefaults?: ExecutionMutationDefaultPhases | undefined;
   readonly many?: Many extends true ? true : undefined;
+  readonly elementNullable?: ElementNullable extends true ? true : undefined;
   readonly noCheck?: readonly CheckKind[] | undefined;
 } & (IdSpec extends NamedConstraintSpec ? { readonly id: IdSpec } : { readonly id?: undefined }) &
   (UniqueSpec extends NamedConstraintSpec
@@ -76,6 +78,7 @@ type AnyScalarFieldState = {
   readonly default?: ColumnDefault | undefined;
   readonly executionDefaults?: ExecutionMutationDefaultPhases | undefined;
   readonly many?: boolean | undefined;
+  readonly elementNullable?: boolean | undefined;
   readonly noCheck?: readonly CheckKind[] | undefined;
   readonly id?: NamedConstraintSpec | undefined;
   readonly unique?: NamedConstraintSpec | undefined;
@@ -89,6 +92,7 @@ type HasNamedConstraintId<State extends AnyScalarFieldState> =
     string | undefined,
     infer IdSpec,
     NamedConstraintSpec | undefined,
+    boolean,
     boolean
   >
     ? IdSpec extends NamedConstraintSpec
@@ -104,6 +108,7 @@ type HasNamedConstraintUnique<State extends AnyScalarFieldState> =
     string | undefined,
     NamedConstraintSpec | undefined,
     infer UniqueSpec,
+    boolean,
     boolean
   >
     ? UniqueSpec extends NamedConstraintSpec
@@ -131,7 +136,8 @@ type ApplyFieldSqlSpec<
     infer ColumnName,
     infer IdSpec,
     infer UniqueSpec,
-    infer Many
+    infer Many,
+    infer ElementNullable
   >
     ? ScalarFieldState<
         Descriptor,
@@ -148,7 +154,8 @@ type ApplyFieldSqlSpec<
             ? NamedConstraintSpec<UniqueName>
             : UniqueSpec
           : UniqueSpec,
-        Many
+        Many,
+        ElementNullable
       >
     : AnyScalarFieldState;
 
@@ -164,6 +171,39 @@ function toColumnDefault(value: ColumnDefaultLiteralInputValue | ColumnDefault):
   }
   return { kind: 'literal', value };
 }
+
+type ApplyMany<
+  State extends AnyScalarFieldState,
+  ElementsNullable extends boolean,
+> = true extends ElementsNullable
+  ? State extends ScalarFieldState<
+      infer Descriptor,
+      infer TypeRef,
+      infer Nullable,
+      infer ColumnName,
+      infer IdSpec,
+      infer UniqueSpec,
+      boolean,
+      boolean
+    >
+    ? ScalarFieldState<Descriptor, TypeRef, Nullable, ColumnName, IdSpec, UniqueSpec, true, true>
+    : AnyScalarFieldState
+  : State extends ScalarFieldState<
+        infer Descriptor,
+        infer TypeRef,
+        infer Nullable,
+        infer ColumnName,
+        infer IdSpec,
+        infer UniqueSpec,
+        boolean,
+        boolean
+      >
+    ? ScalarFieldState<Descriptor, TypeRef, Nullable, ColumnName, IdSpec, UniqueSpec, true, false>
+    : AnyScalarFieldState;
+
+export type ManyOptions =
+  | { readonly elementsNullable: true }
+  | { readonly elementsNullable: false };
 
 export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFieldState> {
   declare readonly __state: State;
@@ -188,9 +228,19 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       infer ColumnName,
       infer IdSpec,
       infer UniqueSpec,
-      infer Many
+      infer Many,
+      infer ElementNullable
     >
-      ? ScalarFieldState<Descriptor, TypeRef, true, ColumnName, IdSpec, UniqueSpec, Many>
+      ? ScalarFieldState<
+          Descriptor,
+          TypeRef,
+          true,
+          ColumnName,
+          IdSpec,
+          UniqueSpec,
+          Many,
+          ElementNullable
+        >
       : AnyScalarFieldState
   > {
     return new ScalarFieldBuilder(
@@ -202,9 +252,19 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           infer ColumnName,
           infer IdSpec,
           infer UniqueSpec,
-          infer Many
+          infer Many,
+          infer ElementNullable
         >
-          ? ScalarFieldState<Descriptor, TypeRef, true, ColumnName, IdSpec, UniqueSpec, Many>
+          ? ScalarFieldState<
+              Descriptor,
+              TypeRef,
+              true,
+              ColumnName,
+              IdSpec,
+              UniqueSpec,
+              Many,
+              ElementNullable
+            >
           : AnyScalarFieldState,
         'object spread does not narrow the generic State conditional; runtime shape is correct'
       >({
@@ -224,9 +284,19 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       string | undefined,
       infer IdSpec,
       infer UniqueSpec,
-      infer Many
+      infer Many,
+      infer ElementNullable
     >
-      ? ScalarFieldState<Descriptor, TypeRef, Nullable, ColumnName, IdSpec, UniqueSpec, Many>
+      ? ScalarFieldState<
+          Descriptor,
+          TypeRef,
+          Nullable,
+          ColumnName,
+          IdSpec,
+          UniqueSpec,
+          Many,
+          ElementNullable
+        >
       : AnyScalarFieldState
   > {
     return new ScalarFieldBuilder(
@@ -238,9 +308,19 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           string | undefined,
           infer IdSpec,
           infer UniqueSpec,
-          infer Many
+          infer Many,
+          infer ElementNullable
         >
-          ? ScalarFieldState<Descriptor, TypeRef, Nullable, ColumnName, IdSpec, UniqueSpec, Many>
+          ? ScalarFieldState<
+              Descriptor,
+              TypeRef,
+              Nullable,
+              ColumnName,
+              IdSpec,
+              UniqueSpec,
+              Many,
+              ElementNullable
+            >
           : AnyScalarFieldState,
         'object spread does not narrow the generic State conditional; runtime shape is correct'
       >({
@@ -250,36 +330,19 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     );
   }
 
-  many(): ScalarFieldBuilder<
-    State extends ScalarFieldState<
-      infer Descriptor,
-      infer TypeRef,
-      infer Nullable,
-      infer ColumnName,
-      infer IdSpec,
-      infer UniqueSpec,
-      boolean
-    >
-      ? ScalarFieldState<Descriptor, TypeRef, Nullable, ColumnName, IdSpec, UniqueSpec, true>
-      : AnyScalarFieldState
-  > {
+  many(): ScalarFieldBuilder<ApplyMany<State, false>>;
+  many(options: { readonly elementsNullable: true }): ScalarFieldBuilder<ApplyMany<State, true>>;
+  many(options: { readonly elementsNullable: false }): ScalarFieldBuilder<ApplyMany<State, false>>;
+  many(options?: ManyOptions): ScalarFieldBuilder<AnyScalarFieldState> {
+    const elementNullable = options?.elementsNullable === true ? { elementNullable: true } : {};
     return new ScalarFieldBuilder(
       blindCast<
-        State extends ScalarFieldState<
-          infer Descriptor,
-          infer TypeRef,
-          infer Nullable,
-          infer ColumnName,
-          infer IdSpec,
-          infer UniqueSpec,
-          boolean
-        >
-          ? ScalarFieldState<Descriptor, TypeRef, Nullable, ColumnName, IdSpec, UniqueSpec, true>
-          : AnyScalarFieldState,
+        AnyScalarFieldState,
         'object spread does not narrow the generic State conditional; runtime shape is correct'
       >({
         ...this.state,
         many: true,
+        ...elementNullable,
       }),
     );
   }
@@ -334,7 +397,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       infer ColumnName,
       NamedConstraintSpec | undefined,
       infer UniqueSpec,
-      infer Many
+      infer Many,
+      infer ElementNullable
     >
       ? ScalarFieldState<
           Descriptor,
@@ -343,7 +407,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           ColumnName,
           NamedConstraintSpec<Name>,
           UniqueSpec,
-          Many
+          Many,
+          ElementNullable
         >
       : AnyScalarFieldState
   > {
@@ -356,7 +421,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           infer ColumnName,
           NamedConstraintSpec | undefined,
           infer UniqueSpec,
-          infer Many
+          infer Many,
+          infer ElementNullable
         >
           ? ScalarFieldState<
               Descriptor,
@@ -365,7 +431,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
               ColumnName,
               NamedConstraintSpec<Name>,
               UniqueSpec,
-              Many
+              Many,
+              ElementNullable
             >
           : AnyScalarFieldState,
         'object spread does not narrow the generic State conditional; runtime shape is correct'
@@ -386,7 +453,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       infer ColumnName,
       infer IdSpec,
       NamedConstraintSpec | undefined,
-      infer Many
+      infer Many,
+      infer ElementNullable
     >
       ? ScalarFieldState<
           Descriptor,
@@ -395,7 +463,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           ColumnName,
           IdSpec,
           NamedConstraintSpec<Name>,
-          Many
+          Many,
+          ElementNullable
         >
       : AnyScalarFieldState
   > {
@@ -408,7 +477,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           infer ColumnName,
           infer IdSpec,
           NamedConstraintSpec | undefined,
-          infer Many
+          infer Many,
+          infer ElementNullable
         >
           ? ScalarFieldState<
               Descriptor,
@@ -417,7 +487,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
               ColumnName,
               IdSpec,
               NamedConstraintSpec<Name>,
-              Many
+              Many,
+              ElementNullable
             >
           : AnyScalarFieldState,
         'object spread does not narrow the generic State conditional; runtime shape is correct'

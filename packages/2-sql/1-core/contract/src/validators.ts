@@ -364,6 +364,7 @@ const ModelFieldSchema = type({
   nullable: 'boolean',
   type: ContractFieldTypeSchema,
   'many?': 'true',
+  'elementNullable?': 'true',
   'dict?': 'true',
   'valueSet?': DomainEnumRefSchema,
 });

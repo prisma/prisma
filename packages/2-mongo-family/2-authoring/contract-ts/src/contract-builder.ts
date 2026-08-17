@@ -163,15 +163,23 @@ export interface FieldBuilder<
   Type extends ContractFieldType = ContractFieldType,
   Nullable extends boolean = boolean,
   Many extends boolean = boolean,
+  ElementsNullable extends boolean = boolean,
   Handle extends EnumTypeHandle | undefined = EnumTypeHandle | undefined,
 > {
   readonly __kind: 'field';
   readonly __type: Type;
   readonly __nullable: Nullable;
   readonly __many: Many;
+  readonly __elementsNullable: ElementsNullable;
   readonly __enumHandle: Handle;
-  optional(): FieldBuilder<Type, true, Many, Handle>;
-  many(): FieldBuilder<Type, Nullable, true, Handle>;
+  optional(): FieldBuilder<Type, true, Many, ElementsNullable, Handle>;
+  many(): FieldBuilder<Type, Nullable, true, false, Handle>;
+  many(options: {
+    readonly elementsNullable: false;
+  }): FieldBuilder<Type, Nullable, true, false, Handle>;
+  many(options: {
+    readonly elementsNullable: true;
+  }): FieldBuilder<Type, Nullable, true, true, Handle>;
 }
 
 export interface ValueObjectBuilder<
@@ -248,6 +256,7 @@ export interface ModelBuilder<
 
 type AnyFieldBuilder = FieldBuilder<
   ContractFieldType,
+  boolean,
   boolean,
   boolean,
   EnumTypeHandle | undefined
@@ -392,13 +401,15 @@ type ContractFieldFromBuilder<TBuilder> =
   TBuilder extends FieldBuilder<
     infer Type extends ContractFieldType,
     infer Nullable extends boolean,
-    infer Many extends boolean
+    infer Many extends boolean,
+    infer ElementsNullable extends boolean
   >
     ? Simplify<
         {
           readonly type: Type;
           readonly nullable: Nullable;
-        } & (Many extends true ? { readonly many: true } : EmptyObject)
+        } & (Many extends true ? { readonly many: true } : EmptyObject) &
+          (ElementsNullable extends true ? { readonly elementNullable: true } : EmptyObject)
       >
     : never;
 
@@ -641,6 +652,7 @@ type BuilderEnumValueUnion<TBuilder> =
     ContractFieldType,
     boolean,
     boolean,
+    boolean,
     infer Handle extends EnumTypeHandle | undefined
   >
     ? [Handle] extends [EnumTypeHandle<string, infer Values>]
@@ -661,6 +673,7 @@ type BuilderBaseChannelType<
 > =
   TBuilder extends FieldBuilder<
     infer Type extends ContractFieldType,
+    boolean,
     boolean,
     boolean,
     EnumTypeHandle | undefined
@@ -709,11 +722,15 @@ type BuilderFieldChannelType<
     ContractFieldType,
     infer Nullable extends boolean,
     infer Many extends boolean,
+    infer ElementsNullable extends boolean,
     EnumTypeHandle | undefined
   >
     ?
         | (Many extends true
-            ? BuilderBaseChannelType<TBuilder, TValueObjects, TCodecTypes, Channel>[]
+            ? Array<
+                | BuilderBaseChannelType<TBuilder, TValueObjects, TCodecTypes, Channel>
+                | (ElementsNullable extends true ? null : never)
+              >
             : BuilderBaseChannelType<TBuilder, TValueObjects, TCodecTypes, Channel>)
         | (Nullable extends true ? null : never)
     : never;
@@ -884,42 +901,65 @@ type FieldBuilderSpec<
   Type extends ContractFieldType,
   Nullable extends boolean,
   Many extends boolean,
+  ElementsNullable extends boolean,
 > = {
   readonly type: Type;
   readonly nullable: Nullable;
   readonly many: Many;
+  readonly elementsNullable: ElementsNullable;
 };
 
 function createFieldBuilder<
   Type extends ContractFieldType,
   Nullable extends boolean,
   Many extends boolean,
+  ElementsNullable extends boolean,
   Handle extends EnumTypeHandle | undefined = undefined,
 >(
-  spec: FieldBuilderSpec<Type, Nullable, Many>,
+  spec: FieldBuilderSpec<Type, Nullable, Many, ElementsNullable>,
   enumHandle?: Handle,
-): FieldBuilder<Type, Nullable, Many, Handle> {
+): FieldBuilder<Type, Nullable, Many, ElementsNullable, Handle> {
+  function many(): FieldBuilder<Type, Nullable, true, false, Handle>;
+  function many(options: {
+    readonly elementsNullable: false;
+  }): FieldBuilder<Type, Nullable, true, false, Handle>;
+  function many(options: {
+    readonly elementsNullable: true;
+  }): FieldBuilder<Type, Nullable, true, true, Handle>;
+  function many(options?: { readonly elementsNullable: boolean }) {
+    return createFieldBuilder<Type, Nullable, true, boolean, Handle>(
+      {
+        type: spec.type,
+        nullable: spec.nullable,
+        many: true,
+        elementsNullable: options?.elementsNullable ?? false,
+      },
+      enumHandle,
+    );
+  }
+
   return {
     __kind: 'field',
     __type: spec.type,
     __nullable: spec.nullable,
     __many: spec.many,
+    __elementsNullable: spec.elementsNullable,
     __enumHandle: blindCast<
       Handle,
       'optional param widens to Handle | undefined; Handle defaults to undefined when no enum handle is passed'
     >(enumHandle),
     optional() {
-      return createFieldBuilder<Type, true, Many, Handle>(
-        { type: spec.type, nullable: true, many: spec.many },
+      return createFieldBuilder<Type, true, Many, ElementsNullable, Handle>(
+        {
+          type: spec.type,
+          nullable: true,
+          many: spec.many,
+          elementsNullable: spec.elementsNullable,
+        },
         enumHandle,
       );
     },
-    many() {
-      return createFieldBuilder<Type, Nullable, true, Handle>(
-        { type: spec.type, nullable: spec.nullable, many: true },
-        enumHandle,
-      );
-    },
+    many,
   };
 }
 
@@ -945,6 +985,7 @@ function createScalarFieldBuilder<
     readonly codecId: CodecId;
   } & ([TypeParams] extends [undefined] ? EmptyObject : { readonly typeParams: TypeParams }),
   false,
+  false,
   false
 > {
   return createFieldBuilder({
@@ -958,6 +999,7 @@ function createScalarFieldBuilder<
     } & ([TypeParams] extends [undefined] ? EmptyObject : { readonly typeParams: TypeParams }),
     nullable: false,
     many: false,
+    elementsNullable: false,
   });
 }
 
@@ -997,6 +1039,7 @@ export const field = {
       },
       nullable: false,
       many: false,
+      elementsNullable: false,
     });
   },
   namedType<const Handle extends EnumTypeHandle>(handle: Handle) {
@@ -1011,6 +1054,7 @@ export const field = {
         }),
         nullable: false,
         many: false,
+        elementsNullable: false,
       },
       handle,
     );
@@ -1468,6 +1512,7 @@ function buildContractField(builder: AnyFieldBuilder): ContractField {
         type: builder.__type,
         nullable: builder.__nullable,
         many: true,
+        ...(builder.__elementsNullable ? { elementNullable: true } : {}),
         ...ifDefined('valueSet', valueSet),
       }
     : {
