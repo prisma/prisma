@@ -1,4 +1,4 @@
-import { execaCommand } from 'execa'
+import { execa } from 'execa'
 import globby from 'globby'
 
 async function main() {
@@ -23,7 +23,7 @@ async function run(benchmarks: string[]) {
 
   for (const location of benchmarks) {
     try {
-      await execaCommand(`node -r esbuild-register ${location}`, {
+      await execa('node', ['-r', 'esbuild-register', location], {
         stdio: 'inherit',
       })
     } catch (e) {
