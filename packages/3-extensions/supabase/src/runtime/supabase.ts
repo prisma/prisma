@@ -11,13 +11,11 @@ import {
   isPgPool,
   type NamespacedNativeEnums,
 } from '@internal/postgres/runtime';
-import { sql } from '@internal/sql-builder/runtime';
-import type { Db } from '@internal/sql-builder/types';
+import { createRawLane, sql } from '@internal/sql-builder/runtime';
+import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { orm } from '@internal/sql-orm-client';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
-import type { RawSqlTag } from '@internal/sql-relational-core/expression';
-import { createRawSql } from '@internal/sql-relational-core/expression';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   ExecutionContext,
@@ -58,7 +56,7 @@ type KeyMaterial =
 export interface RoleBoundDb<TContract extends Contract<SqlStorage>> {
   readonly sql: Db<TContract>;
   readonly orm: OrmClient<TContract>;
-  readonly raw: RawSqlTag;
+  readonly raw: RawLane<TContract>;
   query<Row>(
     plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
     options?: RuntimeExecuteOptions,
@@ -307,7 +305,6 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
 
   const context = createExecutionContext({ contract, stack });
   const rawCodecInferer = stack.adapter.rawCodecInferer;
-  const rawSqlTag: RawSqlTag = createRawSql(rawCodecInferer);
 
   const poolEntry = toPool(options);
   let closed = false;
@@ -358,6 +355,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
     roleRuntime: SupabaseRuntime & SupabaseRuntimeImpl<C>,
   ): RoleBoundDb<C> {
     const roleSql: Db<C> = sql<C>({ context: roleContext, rawCodecInferer });
+    const roleRaw: RawLane<C> = createRawLane<C>({ context: roleContext, rawCodecInferer });
     const roleOrm: OrmClient<C> = orm({
       runtime: {
         query(plan) {
@@ -374,7 +372,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
     return {
       sql: roleSql,
       orm: roleOrm,
-      raw: rawSqlTag,
+      raw: roleRaw,
       query<Row>(
         plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
         execOptions?: RuntimeExecuteOptions,
