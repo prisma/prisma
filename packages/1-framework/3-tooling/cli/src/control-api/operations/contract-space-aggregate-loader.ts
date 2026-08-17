@@ -100,6 +100,7 @@ function describeIntegrityViolation(violation: IntegrityViolation): string {
  */
 export function mapIntegrityViolations(
   violations: readonly IntegrityViolation[],
+  migrationsDir: string,
 ): CliStructuredError | null {
   if (violations.length === 0) return null;
 
@@ -114,8 +115,8 @@ export function mapIntegrityViolations(
         ? 'Contract-space layout violation detected'
         : `Contract-space layout violations detected (${layout.length})`;
     return new CliStructuredError('MIGRATION.CONTRACT_SPACE_LAYOUT_VIOLATION', summary, {
-      why: `The on-disk \`migrations/\` directory and your \`extensions\` declaration are not in agreement.\n${lines.join('\n')}`,
-      fix: 'Declare the extension in `extensions` and re-emit its contract-space artefacts, or remove the orphan `migrations/<space>` directory.',
+      why: `The on-disk \`${migrationsDir}/\` directory and your \`extensions\` declaration are not in agreement.\n${lines.join('\n')}`,
+      fix: `Declare the extension in \`extensions\` and re-emit its contract-space artefacts, or remove the orphan \`${migrationsDir}/<space>\` directory.`,
       docsUrl: CONTRACT_SPACES_DOCS_URL,
       meta: { violations: layout },
     });
@@ -161,7 +162,7 @@ export function mapIntegrityViolations(
   const spaceId = 'spaceId' in structural ? structural.spaceId : '*';
   return contractSpaceViolationError(`Contract-space integrity failure for "${spaceId}"`, {
     why: describeIntegrityViolation(structural),
-    fix: 'Re-emit the affected migration package(s) or restore the on-disk `migrations/` directory from version control.',
+    fix: `Re-emit the affected migration package(s) or restore the on-disk \`${migrationsDir}\` directory from version control.`,
     violations: [structural],
   });
 }
@@ -236,8 +237,9 @@ export async function loadContractSpaceAggregateForCli<
 export function refuseContractSpaceIntegrity(
   aggregate: ContractSpaceAggregate,
   options: IntegrityQueryOptions,
+  migrationsDir: string,
 ): CliStructuredError | null {
-  return mapIntegrityViolations(aggregate.checkIntegrity(options));
+  return mapIntegrityViolations(aggregate.checkIntegrity(options), migrationsDir);
 }
 
 const PACKAGE_CORRUPTION_KINDS = new Set<IntegrityViolation['kind']>([
@@ -253,9 +255,10 @@ const PACKAGE_CORRUPTION_KINDS = new Set<IntegrityViolation['kind']>([
  */
 export function refusePackageCorruptionOnAggregate(
   aggregate: ContractSpaceAggregate,
+  migrationsDir: string,
 ): CliStructuredError | null {
   const corruption = aggregate.checkIntegrity().filter((v) => PACKAGE_CORRUPTION_KINDS.has(v.kind));
-  return mapIntegrityViolations(corruption);
+  return mapIntegrityViolations(corruption, migrationsDir);
 }
 
 /**
@@ -276,10 +279,14 @@ export async function buildContractSpaceAggregate<
   if (!loaded.ok) {
     return loaded;
   }
-  const failure = refuseContractSpaceIntegrity(loaded.value, {
-    declaredExtensions,
-    checkContracts: true,
-  });
+  const failure = refuseContractSpaceIntegrity(
+    loaded.value,
+    {
+      declaredExtensions,
+      checkContracts: true,
+    },
+    inputs.migrationsDir,
+  );
   if (failure) {
     return notOk(failure);
   }

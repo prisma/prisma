@@ -324,12 +324,16 @@ export function createMigrateCommand(createClient: CreateControlClient) {
         return notOk(normalizeError(loaded.failure));
       }
       const aggregate = loaded.value;
-      const integrityFailure = refuseContractSpaceIntegrity(aggregate, {
-        declaredExtensions: toDeclaredExtensionsFromRaw(
-          castAs<ReadonlyArray<unknown>>(ctx.config.extensions ?? []),
-        ),
-        checkContracts: true,
-      });
+      const integrityFailure = refuseContractSpaceIntegrity(
+        aggregate,
+        {
+          declaredExtensions: toDeclaredExtensionsFromRaw(
+            castAs<ReadonlyArray<unknown>>(ctx.config.extensions ?? []),
+          ),
+          checkContracts: true,
+        },
+        migrationsDir,
+      );
       if (integrityFailure) {
         return notOk(normalizeError(integrityFailure));
       }
