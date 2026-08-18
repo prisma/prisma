@@ -57,8 +57,8 @@ import setnullPlainJson from './_fixture/setnull-plain/generated/contract.json' 
 //   prisma[model].upsert({where, create, update})       → db.public.Model.where(where).upsert({create, update})
 //   nested { profile: { create } / { connect } }        → profile: (p) => p.create(...) / p.connect(...)
 //
-// Each `it()` gets its own fresh dev database via `withPostgresPort`, so there
-// is no cross-test cleanup (upstream's beforeEach deleteMany is unnecessary).
+// Each `it()` gets a clean contract-matched database via `withPostgresPort`,
+// which truncates rows before reuse (upstream's beforeEach deleteMany is unnecessary).
 
 type Variant = {
   readonly name: string;
