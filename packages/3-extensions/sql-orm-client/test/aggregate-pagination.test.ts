@@ -213,12 +213,19 @@ describe('aggregate pagination', () => {
       expect(scopedSelect.from.alias).toBe('posts__scoped_distinct');
     });
 
+    // Postgres requires DISTINCT ON expressions to match the leading ORDER BY
+    // expressions (`orderBy((p) => p.title.asc())` leads with the same
+    // `title` column `distinctOn('title')` names, with `views` as a
+    // tiebreaker) — mirrors the valid usage documented at
+    // `collection.ts:920-924`. A chain whose orderBy doesn't lead with the
+    // distinctOn columns is a plan the database rejects, not one this test
+    // should assert.
     it('distinctOn() lowers to native DISTINCT ON with orderBy applied on the same select', async () => {
       const { collection, runtime } = createCollectionFor('Post');
       runtime.setNextResults([[{ totalViews: 500 }]]);
 
       await collection
-        .orderBy((post) => post.views.desc())
+        .orderBy([(post) => post.title.asc(), (post) => post.views.desc()])
         .distinctOn('title')
         .aggregate((aggregate) => ({ totalViews: aggregate.sum(numericField) }));
 
@@ -227,7 +234,10 @@ describe('aggregate pagination', () => {
       const scopedSelect = ast.from.query;
       expect(scopedSelect.from).not.toBeInstanceOf(DerivedTableSource);
       expect(scopedSelect.distinctOn).toEqual([ColumnRef.of('posts', 'title')]);
-      expect(scopedSelect.orderBy).toEqual([OrderByItem.desc(ColumnRef.of('posts', 'views'))]);
+      expect(scopedSelect.orderBy).toEqual([
+        OrderByItem.asc(ColumnRef.of('posts', 'title')),
+        OrderByItem.desc(ColumnRef.of('posts', 'views')),
+      ]);
     });
 
     // Discriminating case: the ROW_NUMBER dedup wrap strips ordering from
