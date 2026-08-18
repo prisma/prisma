@@ -37,9 +37,9 @@ with open(sys.argv[1]) as file:
     jobs = json.load(file)["jobs"]
 
 shards = [job for job in jobs if job["name"].startswith("Integration Tests (")]
-if len(shards) != 5 or any(job["conclusion"] != "success" for job in shards):
+if len(shards) != 4 or any(job["conclusion"] != "success" for job in shards):
     states = [(job["name"], job["conclusion"]) for job in shards]
-    raise SystemExit(f"Expected five successful integration shards, got {states}")
+    raise SystemExit(f"Expected four successful integration shards, got {states}")
 
 def seconds(start: str, end: str) -> float:
     start_at = datetime.fromisoformat(start.replace("Z", "+00:00"))
