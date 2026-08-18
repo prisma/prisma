@@ -39,7 +39,10 @@ interface MigrationGraphDotResult extends MigrationGraphJsonResult {
 
 /**
  * The tree is a drawing for a reader; the DOT document is a graph description
- * for another program, so it is the one thing here that belongs on stdout.
+ * for another program, so it is also the stdout payload. It appears in both
+ * surfaces because the engine treats the payload as a mirror of the human
+ * output: on one shared screen it suppresses the stdout copy, so the human
+ * block is what keeps `--dot` visible there, while split sinks receive both.
  */
 function graphPresentations(inputs: {
   readonly document: MigrationGraphJsonResult | MigrationGraphDotResult;
@@ -63,6 +66,7 @@ function graphPresentations(inputs: {
         ],
       },
       ...(tree === undefined ? [] : [{ kind: 'drawing' as const, lines: toneDrawing(tree) }]),
+      ...(dot === undefined ? [] : [{ kind: 'drawing' as const, lines: dot.split('\n') }]),
       ...(legend === undefined ? [] : [{ kind: 'drawing' as const, lines: toneDrawing(legend) }]),
     ],
     ...(dot === undefined ? {} : { stdout: () => dot.split('\n') }),
