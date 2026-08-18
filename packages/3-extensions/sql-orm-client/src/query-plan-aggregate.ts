@@ -11,6 +11,7 @@ import {
   LiteralExpr,
   NotExpr,
   NullCheckExpr,
+  OrderByItem,
   OrExpr,
   ProjectionItem,
   SelectAst,
@@ -21,7 +22,7 @@ import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-co
 import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
-import { buildStateWhere } from './query-plan-scope';
+import { buildStateWhere, wrapWithRowNumberDedup } from './query-plan-scope';
 import { tableSourceForContract } from './storage-resolution';
 import type { AggregateSelector, CollectionState } from './types';
 import { combineWhereExprs } from './where-utils';
@@ -237,7 +238,11 @@ export function compileAggregate(
   // — so an unpaginated aggregate with a cursor changes today's output
   // (correctly: today the cursor is silently dropped) without a wrap.
   const where = buildStateWhere(contract, tableName, state, { namespaceId });
-  const needsRowScope = state.limit !== undefined || state.offset !== undefined;
+  const hasPagination = state.limit !== undefined || state.offset !== undefined;
+  const hasDistinct =
+    (state.distinct !== undefined && state.distinct.length > 0) ||
+    (state.distinctOn !== undefined && state.distinctOn.length > 0);
+  const needsRowScope = hasPagination || hasDistinct;
 
   if (!needsRowScope) {
     const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
@@ -263,15 +268,59 @@ export function compileAggregate(
   }
 
   const innerAlias = `${tableName}__scoped`;
+  // Hidden order columns are needed only for `distinct` + `orderBy`: the
+  // ROW_NUMBER dedup wrap strips ordering from its output — Postgres offers
+  // no contract that rows exit a `WHERE rn = 1` wrap in any order — so the
+  // ordering is carried through the wrap as hidden columns and re-referenced
+  // on the ranked alias below. `distinctOn` orders natively and needs none.
+  // Mirrors `buildIncludeChildScalarSelect` at `query-plan-select.ts:1086-1096`.
+  const needsHiddenOrderProjection =
+    state.distinct !== undefined &&
+    state.distinct.length > 0 &&
+    state.orderBy !== undefined &&
+    state.orderBy.length > 0;
+  const hiddenOrderProjection: ReadonlyArray<ProjectionItem> = needsHiddenOrderProjection
+    ? state.orderBy.map((item, index) =>
+        ProjectionItem.of(`${tableName}__order_${index}`, item.expr),
+      )
+    : [];
+
   let inner = SelectAst.from(
     tableSourceForContract(contract, namespaceId, tableName),
-  ).withProjection(scopedInnerProjection(tableName, entries));
+  ).withProjection([...scopedInnerProjection(tableName, entries), ...hiddenOrderProjection]);
   if (where) {
     inner = inner.withWhere(where);
   }
-  if (state.orderBy !== undefined && state.orderBy.length > 0) {
+
+  // Clause order mirrors `query-plan-select.ts:1315-1355`: distinctOn lowers
+  // natively; distinct dedups via ROW_NUMBER then reapplies orderBy on the
+  // ranked alias so LIMIT/OFFSET below slices the ordered, deduped rows —
+  // getting this order wrong produces a plausible plan with the wrong answer.
+  if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
+    inner = inner.withDistinctOn(state.distinctOn.map((column) => ColumnRef.of(tableName, column)));
+    if (state.orderBy !== undefined && state.orderBy.length > 0) {
+      inner = inner.withOrderBy(state.orderBy);
+    }
+  } else if (state.distinct !== undefined && state.distinct.length > 0) {
+    const rankedAlias = `${tableName}__scoped_distinct`;
+    inner = wrapWithRowNumberDedup({
+      base: inner,
+      distinctColumnRefs: state.distinct.map((column) => ColumnRef.of(tableName, column)),
+      rankingOrderBy: state.orderBy ?? [],
+      rankedAlias,
+    });
+    if (state.orderBy !== undefined && state.orderBy.length > 0) {
+      inner = inner.withOrderBy(
+        state.orderBy.map(
+          (item, index) =>
+            new OrderByItem(ColumnRef.of(rankedAlias, `${tableName}__order_${index}`), item.dir),
+        ),
+      );
+    }
+  } else if (state.orderBy !== undefined && state.orderBy.length > 0) {
     inner = inner.withOrderBy(state.orderBy);
   }
+
   if (state.limit !== undefined) {
     inner = inner.withLimit(state.limit);
   }

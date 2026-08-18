@@ -182,4 +182,125 @@ describe('aggregate pagination', () => {
     const rawParamRefs = execution.plan.ast.collectParamRefs();
     expect(rawParamRefs).toHaveLength(new Set(rawParamRefs).size);
   });
+
+  it('every selector lacking a column wraps to an inner projection of exactly __row', async () => {
+    const { collection, runtime } = createCollectionFor('Post');
+    runtime.setNextResults([[{ total: 3 }]]);
+
+    await collection.take(10).aggregate((aggregate) => ({ total: aggregate.count() }));
+
+    const ast = selectAstOf(runtime);
+    expectDerivedTableSource(ast.from);
+    expect(ast.from.query.projection).toEqual([ProjectionItem.of('__row', LiteralExpr.of(1))]);
+  });
+
+  describe('distinct() / distinctOn()', () => {
+    it('distinct() alone wraps the source in a ROW_NUMBER dedup', async () => {
+      const { collection, runtime } = createCollectionFor('Post');
+      runtime.setNextResults([[{ totalViews: 500 }]]);
+
+      await collection
+        .distinct('title')
+        .aggregate((aggregate) => ({ totalViews: aggregate.sum(numericField) }));
+
+      const ast = selectAstOf(runtime);
+      expectDerivedTableSource(ast.from);
+      expect(ast.from.alias).toBe('posts__scoped');
+
+      const scopedSelect = ast.from.query;
+      expect(scopedSelect.orderBy).toBeUndefined();
+      expectDerivedTableSource(scopedSelect.from);
+      expect(scopedSelect.from.alias).toBe('posts__scoped_distinct');
+    });
+
+    it('distinctOn() lowers to native DISTINCT ON with orderBy applied on the same select', async () => {
+      const { collection, runtime } = createCollectionFor('Post');
+      runtime.setNextResults([[{ totalViews: 500 }]]);
+
+      await collection
+        .orderBy((post) => post.views.desc())
+        .distinctOn('title')
+        .aggregate((aggregate) => ({ totalViews: aggregate.sum(numericField) }));
+
+      const ast = selectAstOf(runtime);
+      expectDerivedTableSource(ast.from);
+      const scopedSelect = ast.from.query;
+      expect(scopedSelect.from).not.toBeInstanceOf(DerivedTableSource);
+      expect(scopedSelect.distinctOn).toEqual([ColumnRef.of('posts', 'title')]);
+      expect(scopedSelect.orderBy).toEqual([OrderByItem.desc(ColumnRef.of('posts', 'views'))]);
+    });
+
+    // Discriminating case: the ROW_NUMBER dedup wrap strips ordering from
+    // its own output, so orderBy must be reapplied on the ranked alias
+    // *after* the wrap — otherwise the take(2) below slices an
+    // arbitrarily-ordered set of deduped rows instead of the top 2 by
+    // views. An implementation that dropped the reapplication would still
+    // wrap with ROW_NUMBER but leave `scopedSelect.orderBy` undefined (or
+    // pointing at the pre-dedup table), failing the assertion below.
+    it('reapplies orderBy on the ranked alias after the ROW_NUMBER dedup wrap', async () => {
+      const { collection, runtime } = createCollectionFor('Post');
+      runtime.setNextResults([[{ totalViews: 500 }]]);
+
+      await collection
+        .distinct('title')
+        .orderBy((post) => post.views.desc())
+        .take(2)
+        .aggregate((aggregate) => ({ totalViews: aggregate.sum(numericField) }));
+
+      const ast = selectAstOf(runtime);
+      expectDerivedTableSource(ast.from);
+      expect(ast.from.alias).toBe('posts__scoped');
+
+      const scopedSelect = ast.from.query;
+      expect(scopedSelect.limit).toBe(2);
+      expectDerivedTableSource(scopedSelect.from);
+      expect(scopedSelect.from.alias).toBe('posts__scoped_distinct');
+      expect(scopedSelect.orderBy).toEqual([
+        new OrderByItem(ColumnRef.of('posts__scoped_distinct', 'posts__order_0'), 'desc'),
+      ]);
+    });
+
+    it('distinct() combined with skip() (no take()) emits OFFSET with no LIMIT on the deduped select', async () => {
+      const { collection, runtime } = createCollectionFor('Post');
+      runtime.setNextResults([[{ totalViews: 500 }]]);
+
+      await collection
+        .distinct('title')
+        .skip(3)
+        .aggregate((aggregate) => ({ totalViews: aggregate.sum(numericField) }));
+
+      const ast = selectAstOf(runtime);
+      expectDerivedTableSource(ast.from);
+      const scopedSelect = ast.from.query;
+      expect(scopedSelect.limit).toBeUndefined();
+      expect(scopedSelect.offset).toBe(3);
+      expectDerivedTableSource(scopedSelect.from);
+      expect(scopedSelect.from.alias).toBe('posts__scoped_distinct');
+    });
+
+    it('distinct() combined with cursor() carries the cursor boundary onto the pre-dedup select', async () => {
+      const { collection, runtime } = createCollectionFor('Post');
+      runtime.setNextResults([[{ totalViews: 500 }]]);
+
+      await collection
+        .orderBy((post) => post.views.asc())
+        .cursor({ views: 100 })
+        .distinct('title')
+        .aggregate((aggregate) => ({ totalViews: aggregate.sum(numericField) }));
+
+      const ast = selectAstOf(runtime);
+      expectDerivedTableSource(ast.from);
+      const scopedSelect = ast.from.query;
+      expectDerivedTableSource(scopedSelect.from);
+      expect(scopedSelect.from.alias).toBe('posts__scoped_distinct');
+
+      const dedupBase = scopedSelect.from.query;
+      expect(dedupBase.where).toEqual(
+        bindWhereExpr(
+          baseContract,
+          BinaryExpr.gt(ColumnRef.of('posts', 'views'), LiteralExpr.of(100)),
+        ),
+      );
+    });
+  });
 });
