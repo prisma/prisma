@@ -267,9 +267,9 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-      - name: Install dependencies
+      - name: Install dependencies (skip lifecycle scripts)
         if: needs.changes.outputs.inert != 'true'
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Build (restored from Turbo cache)
         if: needs.changes.outputs.inert != 'true'
         run: pnpm build
