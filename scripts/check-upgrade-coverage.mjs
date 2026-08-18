@@ -562,7 +562,26 @@ export function runCheck({ repoRoot, head, prev }) {
       // deliberate intent is recorded per PR, not just per transition
       // directory creation.
       const instructionsPath = `${skillPkg}/upgrades/${transition}/instructions.md`;
-      if (sweepOnly && !changedPaths.has(instructionsPath)) continue;
+      if (sweepOnly && !changedPaths.has(instructionsPath)) {
+        // No fresh declaration needed for a pure sweep — but the existing
+        // record must still be well-formed, or a bypassed earlier PR's
+        // malformed file rides through unexamined.
+        const raw = tryReadFileAtRef(repoRoot, head, instructionsPath);
+        const parsed = raw
+          ? parseChangesFrontmatter(raw)
+          : { ok: false, reason: 'file unreadable' };
+        if (!parsed.ok) {
+          violations.push({
+            rule: 'per-pr-declaration',
+            substrate,
+            instructionsPath,
+            malformed: true,
+            reason: parsed.reason,
+            sampleDiffPaths: substrateDiff.slice(0, 5),
+          });
+        }
+        continue;
+      }
       if (!changedPaths.has(instructionsPath)) {
         violations.push({
           rule: 'per-pr-declaration',

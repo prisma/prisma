@@ -1134,3 +1134,24 @@ describe('check-upgrade-coverage — release sweep per-PR declaration', () => {
     assert.match(result.stderr, /per-pr-declaration/);
   });
 });
+
+describe('check-upgrade-coverage — sweep path still validates the record', () => {
+  it('a pure sweep fails when the existing instructions file is malformed', () => {
+    writePackageJson('8.0.0-rc.3');
+    writeRepoFile('examples/demo/package.json', '{"name":"demo","version":"8.0.0-rc.3"}\n');
+    writeRepoFile(
+      'skills/prisma-next-upgrade/upgrades/8.0.0-rc.3-to-8.0.0-rc.4/instructions.md',
+      'no frontmatter at all\n',
+    );
+    commitAll('prev with a malformed record');
+    const prev = git('rev-parse', 'HEAD');
+
+    writePackageJson('8.0.0-rc.4');
+    writeRepoFile('examples/demo/package.json', '{"name":"demo","version":"8.0.0-rc.4"}\n');
+    commitAll('bump to 8.0.0-rc.4');
+
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /per-pr-declaration/);
+  });
+});
