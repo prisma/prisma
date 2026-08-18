@@ -1,4 +1,7 @@
+import { realpathSync } from 'node:fs';
 import { access } from 'node:fs/promises';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
 import {
   hasCurrentConfigFormatVersion,
   type PrismaNextConfig,
@@ -190,6 +193,19 @@ function toConfigLoadFailure(error: unknown, configPath?: string): CliStructured
  * fail the load: they are returned as section-tagged diagnostics so commands
  * fail only on the sections they read (via {@link requireConfigSections}).
  */
+/**
+ * Imports c12 by the realpath of its entry file. Under pnpm, resolving the
+ * bare specifier can pin c12 at its symlinked node_modules path — Node's
+ * synchronous ESM linker and some resolver states skip the realpath step —
+ * and from that path c12's own dependencies (`dotenv`) do not resolve, which
+ * fails every config load with CONFIG.EVALUATION_FAILED. Anchoring the import
+ * at the real on-disk location keeps every transitive resolution working.
+ */
+async function importC12(): Promise<typeof import('c12')> {
+  const entry = realpathSync(createRequire(import.meta.url).resolve('c12'));
+  return await import(pathToFileURL(entry).href);
+}
+
 export async function loadConfig(
   configPath?: string,
   options?: { readonly cwd?: string },
@@ -214,7 +230,7 @@ export async function loadConfig(
 
   let result: Awaited<ReturnType<typeof import('c12').loadConfig<Record<string, unknown>>>>;
   try {
-    const c12 = await import('c12');
+    const c12 = await importC12();
     result = await c12.loadConfig<Record<string, unknown>>({
       name: discoveryName,
       ...ifDefined('configFile', resolvedConfigPath),

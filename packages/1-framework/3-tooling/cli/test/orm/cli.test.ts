@@ -1,8 +1,15 @@
+import { closeSync, openSync } from 'node:fs';
 import type { HostProcess, LoadedConfig } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
-import { BIN_COMMANDS, BIN_GROUPS, createOrmCli, runOrmCli } from '../../src/orm/cli';
+import {
+  BIN_COMMANDS,
+  BIN_GROUPS,
+  createOrmCli,
+  runOrmCli,
+  runtimeFromProcess,
+} from '../../src/orm/cli';
 import { ormCommandFamily } from '../../src/orm/family';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
@@ -187,6 +194,10 @@ function processWithUnreadableCwd(stderr: string[]): HostProcess {
   return {
     argv: ['node', 'prisma-next', 'migration', 'list'],
     env: {},
+    version: process.version,
+    versions: process.versions,
+    platform: process.platform,
+    arch: process.arch,
     cwd: () => {
       throw new Error('ENOENT: uv_cwd');
     },
@@ -200,6 +211,78 @@ function processWithUnreadableCwd(stderr: string[]): HostProcess {
     },
   };
 }
+
+function processWithOutputStreams(
+  stdout: HostProcess['stdout'] & { readonly fd?: number },
+  stderr: HostProcess['stderr'] & { readonly fd?: number },
+): HostProcess {
+  return {
+    argv: ['node', 'prisma-next'],
+    env: {},
+    version: process.version,
+    versions: process.versions,
+    platform: process.platform,
+    arch: process.arch,
+    cwd: () => '/',
+    stdout,
+    stderr,
+    stdin: { [Symbol.asyncIterator]: () => [][Symbol.iterator]() as never },
+    on: () => undefined,
+    off: () => undefined,
+    exit: () => {
+      throw new Error('exit must not be called');
+    },
+  };
+}
+
+describe('runtimeFromProcess', () => {
+  it('reports that stdout and stderr share a device when their fds name the same file', () => {
+    const dir = createTestProjectDir('orm-share-device-same');
+    const first = openSync(join(dir, 'screen.log'), 'w');
+    const second = openSync(join(dir, 'screen.log'), 'w');
+    try {
+      const runtime = runtimeFromProcess(
+        processWithOutputStreams(
+          { write: () => true, fd: first },
+          { write: () => true, fd: second },
+        ),
+      );
+      expect(runtime.outputStreamsShareDevice).toBe(true);
+    } finally {
+      closeSync(first);
+      closeSync(second);
+    }
+  });
+
+  it('reports separate devices when the fds name different files', () => {
+    const dir = createTestProjectDir('orm-share-device-split');
+    const out = openSync(join(dir, 'out.log'), 'w');
+    const err = openSync(join(dir, 'err.log'), 'w');
+    try {
+      const runtime = runtimeFromProcess(
+        processWithOutputStreams({ write: () => true, fd: out }, { write: () => true, fd: err }),
+      );
+      expect(runtime.outputStreamsShareDevice).toBe(false);
+    } finally {
+      closeSync(out);
+      closeSync(err);
+    }
+  });
+
+  it('leaves the answer absent when a stream exposes no fd', () => {
+    const runtime = runtimeFromProcess(
+      processWithOutputStreams({ write: () => true }, { write: () => true }),
+    );
+    expect(runtime.outputStreamsShareDevice).toBeUndefined();
+  });
+
+  it('leaves the answer absent when an fd cannot be stat-ed', () => {
+    const runtime = runtimeFromProcess(
+      processWithOutputStreams({ write: () => true, fd: -1 }, { write: () => true, fd: -1 }),
+    );
+    expect(runtime.outputStreamsShareDevice).toBeUndefined();
+  });
+});
 
 describe('runOrmCli', () => {
   it('reports a startup failure as a structured line instead of a raw stack trace', async () => {

@@ -2,6 +2,7 @@ import type {
   PslAttribute,
   PslAttributeArgument,
   PslDocumentAst,
+  PslExtensionBlock,
   PslField,
   PslModel,
   PslNamedTypeDeclaration,
@@ -34,37 +35,66 @@ export function astDocumentToPrintDocument(ast: PslDocumentAst): PrintDocument {
   const deps = buildModelFkDeps(allModels, modelNames);
   const sortedModels = topologicalSortModels(allModels, deps);
 
-  const modelNamespaceIndex = new Map<string, string>();
-  for (const namespace of ast.namespaces) {
-    for (const model of namespace.models) {
-      modelNamespaceIndex.set(model.name, namespace.name);
-    }
-  }
-
   const namedTypes: PrinterNamedType[] = ast.types
     ? ast.types.declarations.map(namedTypeDeclarationToPrinterNamedType)
     : [];
 
-  const namespaceSections: PrintNamespaceSection[] = ast.namespaces.map((namespace) => {
-    const namespaceModels = sortedModels.filter(
-      (model) => modelNamespaceIndex.get(model.name) === namespace.name,
-    );
-    const printerModels = namespaceModels.map((m) => modelToPrinterModel(m));
-    return {
-      name: namespace.name,
-      models: printerModels,
-      extensionBlocks: namespacePslExtensionBlocks(namespace),
+  const modelOrder = new Map(sortedModels.map((model, index) => [model.name, index]));
+
+  // A namespace's name is its identity, but `ast.namespaces` is an array, so a
+  // producer can hand over two entries sharing one name. One section per
+  // distinct name, and each section takes its content from its own entries
+  // rather than from a document-wide name lookup: a model name is unique
+  // within a namespace but not across them, so a lookup keyed on the name
+  // alone attributes both to whichever namespace came last and drops the
+  // other.
+  //
+  // Models and blocks are both keyed the way a single namespace keys them
+  // (`entries[kind][name]`, last one wins), so two entries declaring the same
+  // model or block print it once instead of emitting a duplicate declaration
+  // that would not parse back.
+  type Section = {
+    readonly models: Map<string, PslModel>;
+    readonly blocks: Map<string, PslExtensionBlock>;
+  };
+  const sectionsByName = new Map<string, Section>();
+  for (const namespace of ast.namespaces) {
+    const section: Section = sectionsByName.get(namespace.name) ?? {
+      models: new Map(),
+      blocks: new Map(),
     };
-  });
+    for (const model of namespace.models) {
+      section.models.set(model.name, model);
+    }
+    for (const block of namespacePslExtensionBlocks(namespace)) {
+      section.blocks.set(`${block.kind} ${block.name}`, block);
+    }
+    sectionsByName.set(namespace.name, section);
+  }
+
+  // Absent from the order map means absent from `flatPslModels`, which reads
+  // the same `entries['model']` the section did — so it cannot happen. Sorting
+  // such a model to the tail keeps the failure visible if it ever does, rather
+  // than tying it with the genuine first model.
+  const unranked = sortedModels.length;
+  const namespaceSections: PrintNamespaceSection[] = [...sectionsByName].map(([name, section]) => ({
+    name,
+    models: [...section.models.values()]
+      .sort((a, b) => (modelOrder.get(a.name) ?? unranked) - (modelOrder.get(b.name) ?? unranked))
+      .map((m) => modelToPrinterModel(m)),
+    extensionBlocks: [...section.blocks.values()],
+  }));
 
   // Ensure the synthesised `__unspecified__` bucket sorts first so top-level
   // declarations print before any `namespace { … }` blocks — matches what a
-  // user would write by hand.
+  // user would write by hand. Remaining names compare by code point, not by
+  // `localeCompare`, so the emitted bytes do not depend on the host's locale
+  // or ICU build.
   namespaceSections.sort((a, b) => {
     if (a.name === b.name) return 0;
     if (a.name === UNSPECIFIED_PSL_NAMESPACE_ID) return -1;
     if (b.name === UNSPECIFIED_PSL_NAMESPACE_ID) return 1;
-    return a.name.localeCompare(b.name);
+    return a.name < b.name ? -1 : 1;
   });
 
   return {

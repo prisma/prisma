@@ -1,4 +1,4 @@
-# ADR 244 — PostgreSQL floor lowered to 15
+# ADR 248 — PostgreSQL floor lowered to 15
 
 **Status:** Accepted
 **Date:** 2026-08-11

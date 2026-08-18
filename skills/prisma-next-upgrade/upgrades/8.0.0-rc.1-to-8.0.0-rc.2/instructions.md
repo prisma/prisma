@@ -467,12 +467,14 @@ prisma-cli distribution) to mount. Point scripts and CI at the unified CLI, whic
 same command paths.
 
 <!--
+PR #30049: `changes: []`. The 8.0.0-rc.2 release cut. The example diff is the lockstep version bump, the `@prisma/cli-engine` peer moving to 0.1.1, and the supabase contract fixtures re-emitted so their embedded extension version matches. No user API, contract, configuration, generated-artifact, or source translation follows from it — the consumer-facing changes this release ships are the entries above, recorded by the PRs that made them.
 PR #29910: `changes: []`. The example changes repair test instrumentation and fixture/runtime isolation after the driver SPI split; they require no user API, contract, configuration, generated-artifact, or source translation.
 PR #29902: `changes: []`. Generated contracts gain additive aggregate rows for new opt-in integer representation codecs, but existing schemas and source require no migration; users re-emit only when adopting the new target-scoped types.
 PR #29950: `changes: []`. The demo applications adopt the integer representation types and the precision-preserving aggregates on their own models, and the reference docs gain the matching examples; the diff is confined to example apps and documentation and requires no user API, contract, configuration, generated-artifact, or source translation.
 PR #29939: `changes: []`. Dependabot's weekly runtime-dependency bumps (`ws`, `lucide-react`, `postcss`, `uniku`, `@vercel/detect-agent`, and the `@types/node` / `@types/pg` / `tsx` catalog entries). The example diff is dependency version strings, and requires no user API, contract, configuration, generated-artifact, or source translation.
 PR #29940: `changes: []`. Dependabot's weekly dev-dependency bumps (type packages, wrangler, biome, test tooling) plus the matching `biome.jsonc` `$schema` realignment; the example diffs are devDependency version strings and a schema URL, and require no user API, contract, configuration, generated-artifact, or source translation.
 PR #29965: `changes: []`. Dependabot's dev-dependency bumps (`wrangler`, `@cloudflare/vitest-pool-workers`, `@biomejs/biome`) plus the matching `biome.jsonc` `$schema` realignment to 2.5.7; the example diffs are devDependency version strings and a schema URL, and require no user API, contract, configuration, generated-artifact, or source translation.
+PR #30031: `changes: []`. Dependabot's weekly runtime-dependency bumps (`esbuild`, `evlog`, `next`). The example diff is dependency version strings, and requires no user API, contract, configuration, generated-artifact, or source translation.
 -->
 
 ## Regenerating is the first step

@@ -598,6 +598,8 @@ Two consequences for a pack:
   A `Date` is the one authored value JSON has no notation for, so it is the one that arrives as itself.
 
 <!--
+PR #30049: `changes: []`. The 8.0.0-rc.2 release cut. The extension-package diff is the lockstep version bump, the `@prisma/cli-engine` peer moving to 0.1.1, and the supabase contract fixtures re-emitted so their embedded extension version matches. The engine peer is a devDependency in every extension package here, so it reaches no downstream extension author; the consumer-facing changes this release ships are the entries above, recorded by the PRs that made them.
+
 PR #29920: `changes: []`. Adds prepared-statement test coverage to the Supabase runtime suite (test-fixture codec registration only) and fixes a postgres direct-driver transaction defect; neither requires downstream extension source translation. The SPI split itself is recorded as `driver-spi-splits-query-and-execute` in the 0.17-to-8.0.0-rc.1 transition.
 
 PR #29902: `changes: []`. Generated contracts gain additive aggregate rows for new opt-in integer representation codecs, but existing extension schemas and source require no migration; extension authors re-emit only when adopting the new target-scoped types.

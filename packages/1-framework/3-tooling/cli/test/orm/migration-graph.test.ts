@@ -173,6 +173,25 @@ describe('migration graph', () => {
     expect(run.exitCode).toBe(0);
     expect(run.presented?.presentation.stdout?.[0]).toBe('digraph migrations {');
     expect(run.presented?.presentation.stdout?.join('\n')).toContain(MIGRATION_DIR);
+    expect(run.stdout).toContain('digraph migrations {');
+  });
+
+  it('draws the DOT as a human block, so one shared screen still shows it', async () => {
+    const dir = await projectDir();
+    await seedMigration(join(dir, 'migrations'));
+
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--dot'], {
+      cwd: dir,
+      isTty: { stdout: true, stderr: true },
+    });
+    const drawing = run.presented?.presentation.human.at(-1);
+
+    expect(run.exitCode).toBe(0);
+    expect(drawing?.kind).toBe('drawing');
+    expect(JSON.stringify(drawing)).toContain('digraph migrations {');
+    expect(stripAnsi(run.stderr)).toContain('digraph migrations {');
+    expect(run.stdout).toBe('');
+    expect(run.presented?.presentation.stdout?.[0]).toBe('digraph migrations {');
   });
 
   it('carries the DOT text on the json result alongside the graph document', async () => {
