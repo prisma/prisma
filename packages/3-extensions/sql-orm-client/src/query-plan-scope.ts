@@ -9,6 +9,7 @@ import {
   ColumnRef,
   DerivedTableSource,
   EqColJoinOn,
+  JoinAst,
   LiteralExpr,
   OrderByItem,
   OrExpr,
@@ -17,8 +18,12 @@ import {
   TableSource,
   WindowFuncExpr,
 } from '@internal/sql-relational-core/ast';
+import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import { assertDefined } from '@internal/utils/assertions';
+import { type PolymorphismInfo, resolvePrimaryKeyColumn } from './collection-contract';
 import { ormError } from './orm-errors';
+import { resolveTableColumns } from './query-plan-meta';
+import { tableSourceForContract } from './storage-resolution';
 import type { CollectionState } from './types';
 import { bindWhereExpr } from './where-binding';
 import { combineWhereExprs } from './where-utils';
@@ -220,4 +225,52 @@ function wrapWithRowNumberDedup(options: {
     .withWhere(BinaryExpr.eq(ColumnRef.of(rankedAlias, rnAlias), LiteralExpr.of(1)));
 }
 
-export { buildStateWhere, createTableRefRemapper, wrapWithRowNumberDedup };
+function buildMtiJoins(
+  contract: Contract<SqlStorage>,
+  namespaceId: string,
+  polyInfo: PolymorphismInfo,
+  variantName: string | undefined,
+  selectedColumnsByTable: ReadonlyMap<string, ReadonlySet<string>> | undefined,
+): { joins: JoinAst[]; projection: ProjectionItem[] } {
+  const joins: JoinAst[] = [];
+  const projection: ProjectionItem[] = [];
+  const pkColumn = resolvePrimaryKeyColumn(contract, namespaceId, polyInfo.baseTable);
+
+  const variantsToJoin = variantName
+    ? polyInfo.mtiVariants.filter((v) => v.modelName === variantName)
+    : polyInfo.mtiVariants;
+
+  for (const variant of variantsToJoin) {
+    const joinType = variantName ? 'inner' : 'left';
+    const joinOn = EqColJoinOn.of(
+      ColumnRef.of(polyInfo.baseTable, pkColumn),
+      ColumnRef.of(variant.table, pkColumn),
+    );
+    const join =
+      joinType === 'inner'
+        ? JoinAst.inner(tableSourceForContract(contract, namespaceId, variant.table), joinOn)
+        : JoinAst.left(tableSourceForContract(contract, namespaceId, variant.table), joinOn);
+    joins.push(join);
+
+    const variantColumns = resolveTableColumns(contract, namespaceId, variant.table);
+    const selectedVariantColumns = selectedColumnsByTable?.get(variant.table);
+    for (const col of variantColumns) {
+      if (col === pkColumn) continue;
+      if (selectedColumnsByTable !== undefined && selectedVariantColumns?.has(col) !== true) {
+        continue;
+      }
+      const alias = `${variant.table}__${col}`;
+      projection.push(
+        ProjectionItem.of(
+          alias,
+          ColumnRef.of(variant.table, col),
+          codecRefForStorageColumn(contract.storage, namespaceId, variant.table, col),
+        ),
+      );
+    }
+  }
+
+  return { joins, projection };
+}
+
+export { buildMtiJoins, buildStateWhere, createTableRefRemapper, wrapWithRowNumberDedup };

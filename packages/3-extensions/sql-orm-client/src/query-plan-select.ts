@@ -11,7 +11,6 @@ import {
   type CodecRef,
   ColumnRef,
   DerivedTableSource,
-  EqColJoinOn,
   JoinAst,
   JsonArrayAggExpr,
   JsonDocumentProjection,
@@ -39,11 +38,11 @@ import {
   POLYMORPHIC_DISCRIMINATOR_ALIAS,
   type PolymorphismInfo,
   resolvePolymorphismInfo,
-  resolvePrimaryKeyColumn,
 } from './collection-contract';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst, resolveTableColumns } from './query-plan-meta';
 import {
+  buildMtiJoins,
   buildStateWhere,
   createTableRefRemapper,
   wrapWithRowNumberDedup,
@@ -1491,54 +1490,6 @@ function buildTopLevelDistinctRankedInner(
     inner = inner.withWhere(where);
   }
   return inner;
-}
-
-export function buildMtiJoins(
-  contract: Contract<SqlStorage>,
-  namespaceId: string,
-  polyInfo: PolymorphismInfo,
-  variantName: string | undefined,
-  selectedColumnsByTable: ReadonlyMap<string, ReadonlySet<string>> | undefined,
-): { joins: JoinAst[]; projection: ProjectionItem[] } {
-  const joins: JoinAst[] = [];
-  const projection: ProjectionItem[] = [];
-  const pkColumn = resolvePrimaryKeyColumn(contract, namespaceId, polyInfo.baseTable);
-
-  const variantsToJoin = variantName
-    ? polyInfo.mtiVariants.filter((v) => v.modelName === variantName)
-    : polyInfo.mtiVariants;
-
-  for (const variant of variantsToJoin) {
-    const joinType = variantName ? 'inner' : 'left';
-    const joinOn = EqColJoinOn.of(
-      ColumnRef.of(polyInfo.baseTable, pkColumn),
-      ColumnRef.of(variant.table, pkColumn),
-    );
-    const join =
-      joinType === 'inner'
-        ? JoinAst.inner(tableSourceForContract(contract, namespaceId, variant.table), joinOn)
-        : JoinAst.left(tableSourceForContract(contract, namespaceId, variant.table), joinOn);
-    joins.push(join);
-
-    const variantColumns = resolveTableColumns(contract, namespaceId, variant.table);
-    const selectedVariantColumns = selectedColumnsByTable?.get(variant.table);
-    for (const col of variantColumns) {
-      if (col === pkColumn) continue;
-      if (selectedColumnsByTable !== undefined && selectedVariantColumns?.has(col) !== true) {
-        continue;
-      }
-      const alias = `${variant.table}__${col}`;
-      projection.push(
-        ProjectionItem.of(
-          alias,
-          ColumnRef.of(variant.table, col),
-          codecRefForStorageColumn(contract.storage, namespaceId, variant.table, col),
-        ),
-      );
-    }
-  }
-
-  return { joins, projection };
 }
 
 export function compileSelect(
