@@ -917,10 +917,7 @@ class CollectionImpl<
    * prior `orderBy(...)`; replaces any previous `distinct(...)` /
    * `distinctOn(...)` selection.
    *
-   * Requires the contract capability `postgres.distinctOn` — a target
-   * without native `DISTINCT ON` (SQLite) rejects the call at compile
-   * time, and at runtime if the check is reached dynamically. `distinct()`
-   * needs no such capability: it lowers to a portable `ROW_NUMBER` dedup.
+   * Requires the `postgres.distinctOn` capability.
    *
    * ```typescript
    * // Latest post per user:
@@ -1096,9 +1093,7 @@ class CollectionImpl<
    * with the requested aggregate values keyed by the aliases supplied
    * in the spec.
    *
-   * Reduces over the rows the chain describes, not every matching row:
-   * `take`, `skip`, `cursor`, `distinct`, and `distinctOn` all shape
-   * what the aggregate sees, the same way they shape `all()`.
+   * Reduces over the rows the chain describes, not every matching row.
    *
    * ```typescript
    * const stats = await db.orm.Post
@@ -1109,20 +1104,6 @@ class CollectionImpl<
    *     maxViews: agg.max('views'),
    *   }));
    * // { total: 42, averageViews: 17.3, maxViews: 9001 }
-   *
-   * // Pagination narrows the scope the aggregate reduces over. Same
-   * // model, same aggregate, different windows, different answers:
-   * const allViews = await db.orm.Post
-   *   .where({ published: true })
-   *   .aggregate((agg) => ({ totalViews: agg.sum('views') }));
-   * // { totalViews: 150 }
-   *
-   * const topTwoViews = await db.orm.Post
-   *   .where({ published: true })
-   *   .orderBy((p) => p.views.desc())
-   *   .take(2)
-   *   .aggregate((agg) => ({ totalViews: agg.sum('views') }));
-   * // { totalViews: 90 }
    * ```
    *
    * Accepts an optional `configure` callback that receives a

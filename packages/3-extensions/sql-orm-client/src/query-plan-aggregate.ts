@@ -28,14 +28,6 @@ import { tableSourceForContract } from './storage-resolution';
 import type { AggregateSelector, CollectionState } from './types';
 import { combineWhereExprs } from './where-utils';
 
-// The result's codec is always the aggregate's own contract table — `count`
-// is a wide integer, `sum` widens or preserves per input, `min`/`max` keep
-// the column's own codec — but the expression's `ColumnRef` reads off
-// whichever table the input is actually projected from, which differs from
-// the aggregate's table once `compileAggregate` scopes its source into a
-// derived table: codecs still resolve against `tableName`, the `ColumnRef`
-// points at `refTableName`. Mirrors `buildIncludeAggregateExpr`'s split at
-// `query-plan-select.ts`.
 function toAggregateProjection(
   contract: Contract<SqlStorage>,
   aggregates: SqlAggregateDescriptorRegistry,
@@ -44,11 +36,14 @@ function toAggregateProjection(
   refTableName: string,
   selector: AggregateSelector<unknown>,
 ): { expr: AnyExpression; codec: CodecRef | undefined } {
-  // Whether an operation answers a call without an input is the descriptor's
-  // to declare: a selector with no column resolves through the no-input rung
-  // and fails there when the target declares none. A target that also needs
-  // the result rendered a particular way says so with a lowering, which
-  // builds the expression in place of the plain call.
+  // The result's codec is the target's to declare: `count` is a wide integer,
+  // `sum` widens or preserves per input, and `min`/`max` keep the column's own
+  // codec — all of which the aggregate registry answers per operation and input.
+  // Whether an operation answers a call without an input is equally the
+  // descriptor's to declare: a selector with no column resolves through the
+  // no-input rung and fails there when the target declares none. A target that
+  // also needs the result rendered a particular way says so with a lowering,
+  // which builds the expression in place of the plain call.
   const {
     codec,
     input: inputCodec,
@@ -188,15 +183,7 @@ function validateGroupedHavingExpr(expr: AnyExpression): AnyExpression {
   });
 }
 
-// One item per distinct `selector.column` across the spec, or — only when
-// no selector names a column at all — a constant `__row` column so the
-// projection isn't empty. Exclusive, not additive: mirrors
-// `buildIncludeChildScalarSelect`'s inner projection at
-// `query-plan-select.ts:1097-1102`, where a single selector is either a
-// column or `__row`, never both. A spec mixing a no-column `count()` with a
-// column selector needs no `__row` — the column already keeps the
-// projection non-empty — and adding it anyway would collide with a real
-// column actually named `__row`.
+// `__row` is exclusive, not additive: only used when no selector names a column.
 function scopedInnerProjection(
   tableName: string,
   entries: ReadonlyArray<[string, AggregateSelector<unknown>]>,
@@ -235,20 +222,10 @@ export function compileAggregate(
     );
   }
 
-  // The builder method already asserts this, but that guard is one entry
-  // point into `state.distinctOn` — a `Collection` constructed directly from
-  // a hand-built `CollectionState` (the constructor and `CollectionState`
-  // are both exported from `./exports`) never calls `distinctOn()`, so the
-  // capability can only be enforced for certain where the state is actually
-  // consumed and lowered to `withDistinctOn`.
   if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
     assertDistinctOnCapability(contract, 'distinctOn');
   }
 
-  // `cursor` lowers to a WHERE boundary that `buildStateWhere` folds in
-  // regardless of pagination, exactly as the nested scalar-refine path does
-  // — so an unpaginated aggregate with a cursor changes today's output
-  // (correctly: today the cursor is silently dropped) without a wrap.
   const where = buildStateWhere(contract, tableName, state, { namespaceId });
   const hasPagination = state.limit !== undefined || state.offset !== undefined;
   const hasDistinct =
@@ -256,12 +233,7 @@ export function compileAggregate(
     (state.distinctOn !== undefined && state.distinctOn.length > 0);
   const needsRowScope = hasPagination || hasDistinct;
 
-  // The join is unconditional on polymorphism + variant narrowing, not on
-  // which clause references the variant table: only `orderBy` can carry a
-  // variant-qualified `ColumnRef` into a root aggregate, since the
-  // aggregate selector's column and `distinct`/`distinctOn` always resolve
-  // against the base model. STI variants keep their columns on the base
-  // table and need no join.
+  // Unconditional on polymorphism + variant narrowing, not on which clause references it.
   const polyInfo = modelName
     ? resolvePolymorphismInfo(contract, namespaceId, modelName)
     : undefined;
@@ -297,12 +269,7 @@ export function compileAggregate(
   }
 
   const innerAlias = `${tableName}__scoped`;
-  // Hidden order columns are needed only for `distinct` + `orderBy`: the
-  // ROW_NUMBER dedup wrap strips ordering from its output — Postgres offers
-  // no contract that rows exit a `WHERE rn = 1` wrap in any order — so the
-  // ordering is carried through the wrap as hidden columns and re-referenced
-  // on the ranked alias below. `distinctOn` orders natively and needs none.
-  // Mirrors `buildIncludeChildScalarSelect` at `query-plan-select.ts:1086-1096`.
+  // Needed only for `distinct` + `orderBy`, to survive the ROW_NUMBER wrap.
   const needsHiddenOrderProjection =
     state.distinct !== undefined &&
     state.distinct.length > 0 &&
@@ -317,12 +284,7 @@ export function compileAggregate(
   let inner = SelectAst.from(
     tableSourceForContract(contract, namespaceId, tableName),
   ).withProjection([...scopedInnerProjection(tableName, entries), ...hiddenOrderProjection]);
-  // The variant join must land here, before the distinct branch: `withProjection`
-  // preserves joins through to `wrapWithRowNumberDedup`'s `base`, carrying the join
-  // into the ranked subquery — exactly where a variant-qualified hidden-order
-  // expression or `PARTITION BY` entry would need it in scope. Applied after the
-  // branch instead, it would sit on the outer dedup select, where those references
-  // are out of scope.
+  // Must land before the distinct branch to reach `wrapWithRowNumberDedup`'s `base`.
   if (variantJoins.length > 0) {
     inner = inner.withJoins(variantJoins);
   }
@@ -330,8 +292,6 @@ export function compileAggregate(
     inner = inner.withWhere(where);
   }
 
-  // Clause order mirrors `query-plan-select.ts:1315-1355` — getting it
-  // wrong produces a plausible plan with the wrong answer.
   if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
     inner = inner.withDistinctOn(state.distinctOn.map((column) => ColumnRef.of(tableName, column)));
     if (state.orderBy !== undefined && state.orderBy.length > 0) {

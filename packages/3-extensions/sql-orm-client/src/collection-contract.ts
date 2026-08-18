@@ -589,10 +589,6 @@ export function assertReturningCapability(contract: Contract<SqlStorage>, action
   });
 }
 
-// Message and subcode mirror the sql-builder lane's identical gate
-// (`assertCapability` in `sql-builder/src/runtime/builder-base.ts`), which
-// enforces the same `postgres.distinctOn` key the contract actually emits —
-// not the `projection.distinctOn` key the docs used to name.
 export function assertDistinctOnCapability(
   contract: Contract<SqlStorage>,
   methodName: string,
