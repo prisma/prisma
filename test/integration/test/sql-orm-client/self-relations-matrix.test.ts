@@ -78,9 +78,13 @@ describe('integration/self-relation matrix', () => {
           .include('reports', (reports) =>
             reports
               .select('id', 'name')
+              .distinct('name')
               .orderBy((report) => report.id.asc())
               .include('reports', (nested) =>
-                nested.select('id', 'name').orderBy((report) => report.id.asc()),
+                nested
+                  .select('id', 'name')
+                  .distinct('name')
+                  .orderBy((report) => report.id.asc()),
               ),
           )
           .all();
