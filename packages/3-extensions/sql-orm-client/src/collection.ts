@@ -27,6 +27,7 @@ import { emptyAggregateResult } from './aggregate-empty-result';
 import { aggregateOperationNames } from './aggregate-operations';
 import { mapCursorValuesToColumns, mapFieldsToColumns } from './collection-column-mapping';
 import {
+  assertDistinctOnCapability,
   assertReturningCapability,
   getColumnToFieldMap,
   getFieldToColumnMap,
@@ -916,6 +917,11 @@ class CollectionImpl<
    * prior `orderBy(...)`; replaces any previous `distinct(...)` /
    * `distinctOn(...)` selection.
    *
+   * Requires the contract capability `postgres.distinctOn` — a target
+   * without native `DISTINCT ON` (SQLite) rejects the call at compile
+   * time, and at runtime if the check is reached dynamically. `distinct()`
+   * needs no such capability: it lowers to a portable `ROW_NUMBER` dedup.
+   *
    * ```typescript
    * // Latest post per user:
    * const latestPerUser = await db.orm.Post
@@ -930,8 +936,13 @@ class CollectionImpl<
       ...(keyof DefaultModelRow<TContract, ModelName> & string)[],
     ],
   >(
-    ...fields: State['hasOrderBy'] extends true ? Fields : never
+    ...fields: TContract['capabilities'] extends { postgres: { distinctOn: true } }
+      ? State['hasOrderBy'] extends true
+        ? Fields
+        : never
+      : never
   ): Collection<TContract, ModelName, Row, State> {
+    assertDistinctOnCapability(this.contract, 'distinctOn');
     const distinctOnFields = mapFieldsToColumns(
       this.contract,
       this.namespaceId,

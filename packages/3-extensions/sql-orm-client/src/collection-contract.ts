@@ -589,6 +589,25 @@ export function assertReturningCapability(contract: Contract<SqlStorage>, action
   });
 }
 
+// Message and subcode mirror the sql-builder lane's identical gate
+// (`assertCapability` in `sql-builder/src/runtime/builder-base.ts`), which
+// enforces the same `postgres.distinctOn` key the contract actually emits —
+// not the `projection.distinctOn` key the docs used to name.
+export function assertDistinctOnCapability(
+  contract: Contract<SqlStorage>,
+  methodName: string,
+): void {
+  if (hasContractCapability(contract, 'distinctOn')) {
+    return;
+  }
+
+  throw ormError(
+    'ORM.CAPABILITY_MISSING',
+    `${methodName}() requires capability postgres.distinctOn`,
+    { meta: { capability: 'postgres.distinctOn', method: methodName } },
+  );
+}
+
 export function hasContractCapability(contract: Contract<SqlStorage>, capability: string): boolean {
   const capabilities = contract.capabilities;
   const value = capabilities[capability];
