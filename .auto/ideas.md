@@ -1,0 +1,3 @@
+- Reconsider caching one PGlite database per storage hash in the Postgres port harness if shard-level profiling becomes less noisy. It cut the two relation matrices locally from 69.80s to 20.07s and on hosted runners from 99.07s/72.96s to 30.14s/54.34s, but two full CI critical paths (548s and 569s) did not beat the retained 531s result.
+- Evaluate three-way Vitest sharding as a direct critical-path optimization; validate aggregate 379-file/2,129-test coverage and account explicitly for the added runner cost.
+- Profile CLI journey config loading and scratch-directory setup. Many journey files repeatedly evaluate TypeScript config and recreate fixture directories, but cache invalidation must preserve tests that mutate configs mid-run.
