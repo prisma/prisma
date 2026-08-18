@@ -340,9 +340,12 @@ function canonicalJson(value) {
   return JSON.stringify(value);
 }
 
-/** The manifest with every dependency *version* blanked; names are kept. */
-function manifestShapeIgnoringVersions(text) {
+/** The manifest with every dependency *version* blanked; names are kept.
+ *  With `ignoreOwnVersion`, the package's own `version` field is blanked
+ *  too — the shape a release sweep produces. */
+export function manifestShapeIgnoringVersions(text, ignoreOwnVersion = false) {
   const parsed = JSON.parse(text);
+  if (ignoreOwnVersion && typeof parsed.version === 'string') parsed.version = '';
   for (const map of DEPENDENCY_MAPS) {
     const deps = parsed[map];
     if (deps !== null && typeof deps === 'object' && !Array.isArray(deps)) {
@@ -361,7 +364,7 @@ function manifestShapeIgnoringVersions(text) {
  * a name appearing or disappearing can signal an API change, so it still wants
  * a human to say so.
  */
-function isTranslationIrrelevant(repoRoot, prev, head, path) {
+function isTranslationIrrelevant(repoRoot, prev, head, path, ignoreOwnVersion = false) {
   const before = tryReadFileAtRef(repoRoot, prev, path);
   const after = tryReadFileAtRef(repoRoot, head, path);
   // An added or deleted file is a structural change, not a version move.
@@ -369,7 +372,10 @@ function isTranslationIrrelevant(repoRoot, prev, head, path) {
 
   if (basename(path) === 'package.json') {
     try {
-      return manifestShapeIgnoringVersions(before) === manifestShapeIgnoringVersions(after);
+      return (
+        manifestShapeIgnoringVersions(before, ignoreOwnVersion) ===
+        manifestShapeIgnoringVersions(after, ignoreOwnVersion)
+      );
     } catch {
       return false;
     }
@@ -532,6 +538,13 @@ export function runCheck({ repoRoot, head, prev }) {
       (path) => !isTranslationIrrelevant(repoRoot, prev, head, path),
     );
     if (substrateDiff.length === 0) continue;
+    // A release sweep — every remaining substrate file differs only in
+    // version fields — keeps the coverage rule in force (the transition
+    // directory must exist), but demands no fresh per-PR declaration:
+    // the sweep declares nothing an earlier PR has not already recorded.
+    const sweepOnly = substrateDiff.every((path) =>
+      isTranslationIrrelevant(repoRoot, prev, head, path, true),
+    );
     for (const transition of coverageChain) {
       const requiredDir = `${skillPkg}/upgrades/${transition}`;
       if (!existsSync(`${repoRoot}/${requiredDir}`)) {
@@ -549,6 +562,7 @@ export function runCheck({ repoRoot, head, prev }) {
       // deliberate intent is recorded per PR, not just per transition
       // directory creation.
       const instructionsPath = `${skillPkg}/upgrades/${transition}/instructions.md`;
+      if (sweepOnly && !changedPaths.has(instructionsPath)) continue;
       if (!changedPaths.has(instructionsPath)) {
         violations.push({
           rule: 'per-pr-declaration',
