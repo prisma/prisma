@@ -1128,9 +1128,14 @@ class CollectionImpl<
    *   }));
    * // { total: 42, averageViews: 17.3, maxViews: 9001 }
    *
-   * // Pagination narrows the scope the aggregate reduces over: the top
-   * // 2 posts by views sum to 90, against 150 for every published post.
-   * const topTwo = await db.orm.Post
+   * // Pagination narrows the scope the aggregate reduces over. Same
+   * // model, same aggregate, different windows, different answers:
+   * const allViews = await db.orm.Post
+   *   .where({ published: true })
+   *   .aggregate((agg) => ({ totalViews: agg.sum('views') }));
+   * // { totalViews: 150 }
+   *
+   * const topTwoViews = await db.orm.Post
    *   .where({ published: true })
    *   .orderBy((p) => p.views.desc())
    *   .take(2)
