@@ -37,7 +37,7 @@ Before a local measurement or after changing production package source, run `pnp
 - Update this file's “What's Been Tried” section with retained wins, dead ends, and key profiling insights.
 
 ## What's Been Tried
-- Historical successful GitHub Actions runs before this branch put the `Run Integration tests` step at 1,249–1,328 seconds (20:49–22:08); use the draft PR's hosted-runner jobs to measure retained changes.
+- Ten historical successful GitHub Actions runs before this branch put the `Integration Tests` job at 1,100–1,451 seconds (median 1,392s) and its test step at 1,052–1,387 seconds (median 1,331.5s). The first draft-PR run passed in 1,134s job / 1,085s step, an 18.5% improvement against both medians. Repeat on hosted runners before drawing a final estimate.
 - The initial full-suite run took 1,515.29s of Vitest time (379 files, 2,129 tests) but failed 14 tests and one teardown hook because local default timeouts collapsed under load. Measurements now use `TEST_TIMEOUT_MULTIPLIER=2`, matching CI.
 - The ported Postgres harness started a fresh PGlite server for every test: 450 startups across 123 files. Reusing one server per contract within a file, truncating user tables between tests, and replacing the server only when the contract changes cut a representative 28-test file from 44s to 31s before row reuse and then to roughly 12–15s with row reuse.
 - PGlite transaction stress retains per-test server replacement: reused servers consistently broke the high-concurrency transaction case with `Connection terminated unexpectedly` after preceding transaction tests.
