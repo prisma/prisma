@@ -74,6 +74,16 @@ changes:
         - "ORM.NAMESPACE_RESERVED"
         - '@@schema("raw")'
       anyMatch: true
+  - id: contract-artifacts-restamp
+    summary: |
+      The emitted `contract.json` / `contract.d.ts` embed the toolchain version, which moves
+      to 8.0.0-rc.4. Run `contract emit` once after upgrading so the emitted artifacts match
+      the installed toolchain. This applies even to projects whose config needed no
+      migration — the restamp is independent of the config changes above.
+    detection:
+      glob: "**/contract.json"
+      contains:
+        - '"version": "8.0.0-rc.3"'
 ---
 
 # 8.0.0-rc.3 → 8.0.0-rc.4 — User upgrade instructions
