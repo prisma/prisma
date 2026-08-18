@@ -1,3 +1,4 @@
+import { fstatSync } from 'node:fs';
 import { ifDefined } from '@internal/utils/defined';
 import type { Cli, HostProcess, MountedTree, Runtime } from '@prisma/cli-engine';
 import { createCli, telemetryCommandGroup } from '@prisma/cli-engine';
@@ -118,10 +119,32 @@ export function createOrmCli(): Cli {
 }
 
 /**
+ * The file identity behind a stream's fd, or undefined where the host exposes
+ * no fd (a harness stream) or the fd cannot be stat-ed.
+ */
+function streamFileIdentity(
+  stream: HostProcess['stdout'] | HostProcess['stderr'],
+): string | undefined {
+  if (!('fd' in stream) || typeof stream.fd !== 'number') {
+    return undefined;
+  }
+  try {
+    const stat = fstatSync(stream.fd);
+    return `${stat.dev}:${stat.ino}`;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Everything environmental the engine is given, adapted from the host process
  * once. The engine owns signal policy; the bin is dumb wiring.
  */
 export function runtimeFromProcess(proc: HostProcess): Runtime {
+  const stdoutFile = streamFileIdentity(proc.stdout);
+  const stderrFile = streamFileIdentity(proc.stderr);
+  const outputStreamsShareDevice =
+    stdoutFile !== undefined && stderrFile !== undefined ? stdoutFile === stderrFile : undefined;
   return {
     stdout: { write: (text) => void proc.stdout.write(text) },
     // The terminal width the drawings get to use, read once with everything
@@ -139,6 +162,7 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
       stdout: proc.stdout.isTTY === true,
       stderr: proc.stderr.isTTY === true,
     },
+    ...ifDefined('outputStreamsShareDevice', outputStreamsShareDevice),
     host: {
       runtime: { name: 'node', version: proc.version },
       platform: proc.platform,
