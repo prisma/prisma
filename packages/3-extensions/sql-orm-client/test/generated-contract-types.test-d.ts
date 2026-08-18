@@ -176,11 +176,14 @@ type GeneratedLikeModels = {
   };
 };
 
-type GeneratedLikeContractBase = Omit<Contract<GeneratedLikeStorage>, 'domain'> & {
+type GeneratedLikeContractBase = Omit<Contract<GeneratedLikeStorage>, 'domain' | 'capabilities'> & {
   readonly domain: {
     readonly namespaces: {
       readonly __unbound__: { readonly models: GeneratedLikeModels };
     };
+  };
+  readonly capabilities: {
+    readonly postgres: { readonly distinctOn: true };
   };
 };
 
