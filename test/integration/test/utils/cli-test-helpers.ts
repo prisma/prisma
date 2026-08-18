@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import {
   copyFileSync,
   existsSync,
@@ -45,6 +46,8 @@ export interface RunOnEngineOptions {
    * throwing here.
    */
   readonly settleConfigFailures?: boolean;
+  /** Reuse evaluated config until an authored project file changes. */
+  readonly cacheConfig?: boolean;
 }
 
 /**
@@ -93,7 +96,10 @@ export async function runOnEngine(
             configPath: configPath ?? project.configPath,
           }),
       })
-    : createTestCli({ ...spec, config: await evaluatedSections(project) });
+    : createTestCli({
+        ...spec,
+        config: await evaluatedSections(project, options?.cacheConfig === true),
+      });
 
   const run = await cli.run(argv, {
     cwd: project.testDir,
@@ -110,16 +116,59 @@ export async function runOnEngine(
   };
 }
 
-async function evaluatedSections(project: {
-  readonly testDir: string;
-  readonly configPath: string;
-}): Promise<Readonly<Record<string, unknown>>> {
+interface EvaluatedSectionsCacheEntry {
+  readonly sourceHash: string;
+  readonly sections: Readonly<Record<string, unknown>>;
+}
+
+const evaluatedSectionsCache = new Map<string, EvaluatedSectionsCacheEntry>();
+const generatedProjectDirectories = new Set(['migrations', 'node_modules', 'output']);
+
+function authoredProjectHash(testDir: string): string {
+  const hash = createHash('sha256');
+
+  const visit = (directory: string, relativeDirectory: string): void => {
+    const entries = readdirSync(directory, { withFileTypes: true }).sort((left, right) =>
+      left.name.localeCompare(right.name),
+    );
+    for (const entry of entries) {
+      if (entry.isDirectory() && generatedProjectDirectories.has(entry.name)) {
+        continue;
+      }
+      const path = join(directory, entry.name);
+      const relativePath = join(relativeDirectory, entry.name);
+      if (entry.isDirectory()) {
+        visit(path, relativePath);
+      } else if (entry.isFile()) {
+        hash.update(relativePath);
+        hash.update(readFileSync(path));
+      }
+    }
+  };
+
+  visit(testDir, '');
+  return hash.digest('hex');
+}
+
+async function evaluatedSections(
+  project: { readonly testDir: string; readonly configPath: string },
+  cache: boolean,
+): Promise<Readonly<Record<string, unknown>>> {
+  const sourceHash = cache ? authoredProjectHash(project.testDir) : undefined;
+  const cached = evaluatedSectionsCache.get(project.configPath);
+  if (sourceHash !== undefined && cached?.sourceHash === sourceHash) {
+    return cached.sections;
+  }
+
   const loaded = await loadOrmConfig({ cwd: project.testDir, configPath: project.configPath });
   const fileLevel = loaded.diagnostics.find((entry) => entry.section === null);
   if (fileLevel !== undefined) {
     throw new Error(
       `runOnEngine: ${project.configPath} did not evaluate: ${fileLevel.diagnostic.code} — ${fileLevel.diagnostic.summary}`,
     );
+  }
+  if (sourceHash !== undefined) {
+    evaluatedSectionsCache.set(project.configPath, { sourceHash, sections: loaded.sections });
   }
   return loaded.sections;
 }

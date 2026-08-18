@@ -274,7 +274,7 @@ export async function runOnEngine(
   argv: readonly string[],
   options?: RunCommandOptions,
 ): Promise<EngineCommandResult> {
-  return runCommandOnEngine(ctx, argv, options);
+  return runCommandOnEngine(ctx, argv, { ...options, cacheConfig: true });
 }
 
 // ---------------------------------------------------------------------------
