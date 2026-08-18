@@ -6,9 +6,9 @@ description: >
   user-facing skills/ tree is NOT inert — `prisma-next init` installs it
   and an integration test covers it. Fail-safe: a diff is inert only if
   *every* changed file matches the allow-list below; any unrecognized path
-  yields inert=false. The caller must check out the repository with
-  fetch-depth: 0 first. Handles pull_request and merge_group; on any other
-  event inert is always false.
+  yields inert=false. Works from a shallow checkout by fetching the exact
+  base and head commits when absent. Handles pull_request and merge_group;
+  on any other event inert is always false.
 
 outputs:
   inert:
