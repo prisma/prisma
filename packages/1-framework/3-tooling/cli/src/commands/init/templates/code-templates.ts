@@ -301,10 +301,10 @@ export function configFile(
 ): string {
   const configEntrypoint = targetEntrypoint(target, 'config', resolveImportSpecifier);
   return `import 'dotenv/config';
-import { defineConfig } from '@prisma/cli-engine';
+import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '${configEntrypoint}';
 
-export default defineConfig({
+export default definePrismaConfig({
   orm: ormConfig({
     contract: ${JSON.stringify(contractPath)},
     db: {
