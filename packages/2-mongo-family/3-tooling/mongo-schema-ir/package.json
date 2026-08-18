@@ -1,7 +1,7 @@
 {
   "name": "@internal/mongo-schema-ir",
   "private": true,
-  "version": "8.0.0-rc.3",
+  "version": "8.0.0-rc.4",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -17,15 +17,15 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@internal/framework-components": "workspace:8.0.0-rc.3",
-    "@internal/mongo-contract": "workspace:8.0.0-rc.3",
-    "@internal/mongo-value": "workspace:8.0.0-rc.3",
+    "@internal/framework-components": "workspace:8.0.0-rc.4",
+    "@internal/mongo-contract": "workspace:8.0.0-rc.4",
+    "@internal/mongo-value": "workspace:8.0.0-rc.4",
     "mongodb": "catalog:"
   },
   "devDependencies": {
-    "@repo/test-utils": "workspace:8.0.0-rc.3",
-    "@repo/tsconfig": "workspace:8.0.0-rc.3",
-    "@repo/tsdown": "workspace:8.0.0-rc.3",
+    "@repo/test-utils": "workspace:8.0.0-rc.4",
+    "@repo/tsconfig": "workspace:8.0.0-rc.4",
+    "@repo/tsdown": "workspace:8.0.0-rc.4",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

@@ -69,6 +69,16 @@ changes:
       contains:
         - "ORM.NAMESPACE_RESERVED"
       anyMatch: true
+  - id: contract-fixture-restamp
+    summary: |
+      Committed contract artifacts (`contract.json` / `contract.d.ts`, including test
+      fixtures) embed the toolchain version, which moves to 8.0.0-rc.4. Regenerate them
+      with your emit script (`build:contract-space` or equivalent) after upgrading, or
+      fixture comparisons fail on the version stamp alone.
+    detection:
+      glob: "**/contract.json"
+      contains:
+        - '"version": "8.0.0-rc.3"'
 ---
 
 # 8.0.0-rc.3 → 8.0.0-rc.4 — Extension-author upgrade instructions
