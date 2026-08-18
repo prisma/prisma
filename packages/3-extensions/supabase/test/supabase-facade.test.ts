@@ -144,6 +144,23 @@ describe('supabase() factory — asUser', () => {
     await db.close();
   });
 
+  it('gives each role its own raw lane', async () => {
+    const jwt = await makeJwt({ sub: 'user-1', role: 'authenticated' });
+    const db = await supabase({
+      contract,
+      url: 'postgres://localhost/db',
+      jwtSecret: fixtureJwt,
+    });
+
+    const roleBoundDb = await db.asUser(jwt);
+
+    expect(Object.keys(roleBoundDb.raw)).toEqual(['sql']);
+    const plan = roleBoundDb.raw.sql`SELECT 1 AS one`.returnsRow({ one: 'pg/int4@1' }).build();
+    expect(plan.meta.lane).toBe('raw');
+    expect(plan.meta.target).toBe(contract.target);
+    await db.close();
+  });
+
   it('rejects with SUPABASE.JWT_INVALID for a JWT signed with the wrong secret', async () => {
     const jwt = await makeJwt(
       { sub: 'user-1', role: 'authenticated' },
