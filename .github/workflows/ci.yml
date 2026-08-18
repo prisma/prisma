@@ -248,7 +248,7 @@ jobs:
         run: pnpm check:clean-tree
 
   test-integration:
-    name: Integration Tests
+    name: Integration Tests (${{ matrix.shard }})
     needs: [build, changes]
     # Launch window (until ~2026-08-21): not run in merge-queue groups, so
     # queue throughput is not spent on a check that no longer blocks the
@@ -257,6 +257,10 @@ jobs:
     # the check becomes required again.
     if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/2', '2/2']
     env:
       TEST_TIMEOUT_MULTIPLIER: 2
     services:
@@ -286,7 +290,7 @@ jobs:
         run: pnpm build
       - name: Run Integration tests
         if: needs.changes.outputs.inert != 'true'
-        run: pnpm test:integration
+        run: pnpm test:integration --shard=${{ matrix.shard }}
       - name: Check working tree is clean
         if: needs.changes.outputs.inert != 'true'
         run: pnpm check:clean-tree
