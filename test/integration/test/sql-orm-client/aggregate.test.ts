@@ -310,7 +310,10 @@ describe('integration/aggregate', () => {
           // would either error or silently answer with the wrong rows.
           expect(stats).toEqual({ total: 70 });
           expect(runtime.executions).toHaveLength(1);
-          expect(runtime.executions[0]?.params).toHaveLength(2);
+          expect(runtime.executions[0]?.params).toEqual([
+            { kind: 'literal', value: 20 },
+            { kind: 'literal', value: 40 },
+          ]);
         });
       },
       timeouts.spinUpPpgDev,
