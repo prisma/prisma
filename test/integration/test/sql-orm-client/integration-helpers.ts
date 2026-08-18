@@ -9,7 +9,8 @@ import { Collection } from '@internal/sql-orm-client';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import type { SqlMiddleware, SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
 import postgresTargetControl from '@internal/target-postgres/control';
-import { timeouts, withDevDatabase } from '@repo/test-utils';
+import { createDevDatabase, type DevDatabase, timeouts, withDevDatabase } from '@repo/test-utils';
+import { afterAll } from 'vitest';
 import { withReturningCapability } from './collection-fixtures';
 import { getTestContext, getTestContract, type TestContract } from './helpers';
 import {
@@ -34,6 +35,19 @@ const frameworkComponents = [
   postgresAdapterControl,
   postgresDriverControl,
 ] as const;
+
+let collectionDatabase: DevDatabase | undefined;
+
+afterAll(async () => {
+  const database = collectionDatabase;
+  collectionDatabase = undefined;
+  await database?.close();
+}, timeouts.spinUpPpgDev);
+
+async function getCollectionDatabase(): Promise<DevDatabase> {
+  collectionDatabase ??= await createDevDatabase({ databaseIdleTimeoutMillis: 30_000 });
+  return collectionDatabase;
+}
 
 export function createUsersCollection(runtime: PgIntegrationRuntime) {
   return new Collection({ runtime, context: getTestContext() }, 'User', { namespaceId: 'public' });
@@ -141,27 +155,18 @@ export async function withCollectionRuntime(
   additionalExtensions: readonly SqlRuntimeExtensionDescriptor<'postgres'>[] = [],
   middleware: readonly SqlMiddleware[] = [],
 ): Promise<void> {
-  await withDevDatabase(
-    async ({ connectionString }) => {
-      const runtime = await createPgIntegrationRuntime(
-        connectionString,
-        contractOverride,
-        additionalExtensions,
-        middleware,
-      );
-
-      try {
-        await setupTestSchema(runtime);
-        await fn(runtime);
-      } finally {
-        await runtime.close();
-      }
-    },
-    // The runtime now drives a single long-lived client (so transactions hold one
-    // connection on the single-backend PGlite server). The server's default 1s
-    // idle timeout reaps that client during brief idle windows under full-suite
-    // load — a pool would reconnect, a lone client cannot — so give it generous
-    // headroom. No test holds the connection idle anywhere near this long.
-    { databaseIdleTimeoutMillis: 30_000 },
+  const { connectionString } = await getCollectionDatabase();
+  const runtime = await createPgIntegrationRuntime(
+    connectionString,
+    contractOverride,
+    additionalExtensions,
+    middleware,
   );
+
+  try {
+    await setupTestSchema(runtime);
+    await fn(runtime);
+  } finally {
+    await runtime.close();
+  }
 }

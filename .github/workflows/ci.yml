@@ -30,7 +30,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0
       - id: detect
         uses: ./.github/actions/detect-inert-diff
 
@@ -248,7 +247,7 @@ jobs:
         run: pnpm check:clean-tree
 
   test-integration:
-    name: Integration Tests
+    name: Integration Tests (${{ matrix.shard }})
     needs: [build, changes]
     # Launch window (until ~2026-08-21): not run in merge-queue groups, so
     # queue throughput is not spent on a check that no longer blocks the
@@ -257,22 +256,12 @@ jobs:
     # the check becomes required again.
     if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4', '2/4', '3/4', '4/4']
     env:
       TEST_TIMEOUT_MULTIPLIER: 2
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -286,7 +275,7 @@ jobs:
         run: pnpm build
       - name: Run Integration tests
         if: needs.changes.outputs.inert != 'true'
-        run: pnpm test:integration
+        run: pnpm test:integration --shard=${{ matrix.shard }}
       - name: Check working tree is clean
         if: needs.changes.outputs.inert != 'true'
         run: pnpm check:clean-tree
