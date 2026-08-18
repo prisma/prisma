@@ -1143,6 +1143,7 @@ class CollectionImpl<
         this.tableName,
         this.state,
         aggregateSpec,
+        this.modelName,
       ),
       annotationsMap,
     );

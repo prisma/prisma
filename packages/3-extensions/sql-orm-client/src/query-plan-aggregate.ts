@@ -20,9 +20,11 @@ import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-de
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
+import { resolvePolymorphismInfo } from './collection-contract';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
 import { buildStateWhere, wrapWithRowNumberDedup } from './query-plan-scope';
+import { buildMtiJoins } from './query-plan-select';
 import { tableSourceForContract } from './storage-resolution';
 import type { AggregateSelector, CollectionState } from './types';
 import { combineWhereExprs } from './where-utils';
@@ -223,6 +225,7 @@ export function compileAggregate(
   tableName: string,
   state: CollectionState,
   aggregateSpec: Record<string, AggregateSelector<unknown>>,
+  modelName?: string,
 ): SqlQueryPlan<Record<string, unknown>> {
   const entries = Object.entries(aggregateSpec);
   if (entries.length === 0) {
@@ -244,6 +247,24 @@ export function compileAggregate(
     (state.distinctOn !== undefined && state.distinctOn.length > 0);
   const needsRowScope = hasPagination || hasDistinct;
 
+  // MTI variant join, mirroring `compileSelect`'s strategy
+  // (`query-plan-select.ts:1544-1595`): a `.variant(...)`-narrowed model
+  // resolves variant-owned fields to a `ColumnRef` qualified against the
+  // variant table, which only `orderBy` can carry into a root aggregate —
+  // the aggregate selector's column and `distinct`/`distinctOn` always
+  // resolve against the base model (`aggregate-builder.ts`,
+  // `collection.ts`'s `mapFieldsToColumns` call). So the join is
+  // unconditional on polymorphism + variant narrowing, not on which clause
+  // references it — the same trigger `compileSelect` uses. STI variants
+  // keep their columns on the base table and need no join.
+  const polyInfo = modelName
+    ? resolvePolymorphismInfo(contract, namespaceId, modelName)
+    : undefined;
+  const variantJoins =
+    polyInfo && polyInfo.mtiVariants.length > 0
+      ? buildMtiJoins(contract, namespaceId, polyInfo, state.variantName, undefined).joins
+      : [];
+
   if (!needsRowScope) {
     const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
       const { expr, codec } = toAggregateProjection(
@@ -259,6 +280,9 @@ export function compileAggregate(
     let ast = SelectAst.from(
       tableSourceForContract(contract, namespaceId, tableName),
     ).withProjection(projection);
+    if (variantJoins.length > 0) {
+      ast = ast.withJoins(variantJoins);
+    }
     if (where) {
       ast = ast.withWhere(where);
     }
@@ -288,6 +312,15 @@ export function compileAggregate(
   let inner = SelectAst.from(
     tableSourceForContract(contract, namespaceId, tableName),
   ).withProjection([...scopedInnerProjection(tableName, entries), ...hiddenOrderProjection]);
+  // The variant join must land here, before the distinct branch: `withProjection`
+  // preserves joins through to `wrapWithRowNumberDedup`'s `base`, carrying the join
+  // into the ranked subquery — exactly where a variant-qualified hidden-order
+  // expression or `PARTITION BY` entry would need it in scope. Applied after the
+  // branch instead, it would sit on the outer dedup select, where those references
+  // are out of scope.
+  if (variantJoins.length > 0) {
+    inner = inner.withJoins(variantJoins);
+  }
   if (where) {
     inner = inner.withWhere(where);
   }

@@ -1493,7 +1493,7 @@ function buildTopLevelDistinctRankedInner(
   return inner;
 }
 
-function buildMtiJoins(
+export function buildMtiJoins(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   polyInfo: PolymorphismInfo,
