@@ -3,7 +3,7 @@ set -euo pipefail
 
 output_file=".auto/last-measurement.log"
 start_ns="$(node -e 'process.stdout.write(process.hrtime.bigint().toString())')"
-pnpm --filter integration-tests test 2>&1 | tee "$output_file"
+TEST_TIMEOUT_MULTIPLIER=2 pnpm -C test/integration exec vitest run 2>&1 | tee "$output_file"
 end_ns="$(node -e 'process.stdout.write(process.hrtime.bigint().toString())')"
 
 integration_seconds="$(node -e "process.stdout.write(((BigInt('$end_ns') - BigInt('$start_ns')) / 1000000n / 1000n).toString())")"

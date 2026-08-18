@@ -8,14 +8,15 @@ import postgres from '@internal/postgres/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import postgresTargetControl from '@internal/target-postgres/control';
 import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
-import { timeouts, withDevDatabase } from '@repo/test-utils';
+import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
+import { afterAll, beforeAll } from 'vitest';
 
 /**
  * Generic Postgres harness for ported tests.
  *
  * Each ported suite authors its schema as PSL (`_fixtures/<suite>/contract.prisma`)
  * and emits a `contract.json`/`contract.d.ts`. The harness:
- *   1. spins up a PGlite dev database,
+ *   1. reuses one PGlite dev database server per contract within the test file and clears rows per test,
  *   2. **pushes the contract to the database** through prisma-next's own
  *      plan → apply path (the same mechanism `prisma-next db init` uses) — no
  *      hand-written DDL, so the materialised schema can never drift from the
@@ -33,6 +34,18 @@ import { timeouts, withDevDatabase } from '@repo/test-utils';
  */
 
 const serializer = new PostgresContractSerializer();
+
+let database: DevDatabase;
+let currentStorageHash: string | undefined;
+let databaseNeedsReplacement = false;
+
+beforeAll(async () => {
+  database = await createDevDatabase({ databaseIdleTimeoutMillis: 30_000 });
+}, timeouts.spinUpPpgDev);
+
+afterAll(async () => {
+  await database.close();
+}, timeouts.spinUpPpgDev);
 
 const controlStack = createControlStack({
   family: sqlFamilyControl,
@@ -66,6 +79,8 @@ export interface WithPostgresPortOptions {
   readonly contractJson: unknown;
   /** Enable the `returning` capability (default true). */
   readonly returning?: boolean;
+  /** Replace the database server after this test (default false). */
+  readonly replaceDatabase?: boolean;
 }
 
 function enableReturning<T extends Contract<SqlStorage>>(contract: T): T {
@@ -75,7 +90,27 @@ function enableReturning<T extends Contract<SqlStorage>>(contract: T): T {
   } as T;
 }
 
-/** Pushes `contract` into a fresh database via plan → apply (greenfield init). */
+async function clearRows(connectionString: string): Promise<void> {
+  await withClient(connectionString, async (client) => {
+    const tables = await client.query<{ schemaName: string; tableName: string }>(`
+      select schemaname as "schemaName", tablename as "tableName"
+      from pg_tables
+      where schemaname not like 'pg_%'
+        and schemaname !~ '^_prisma_dev_'
+        and schemaname not in ('information_schema', 'prisma_contract')
+    `);
+    if (tables.rows.length === 0) {
+      return;
+    }
+    const names = tables.rows.map(
+      ({ schemaName, tableName }) =>
+        `${client.escapeIdentifier(schemaName)}.${client.escapeIdentifier(tableName)}`,
+    );
+    await client.query(`truncate table ${names.join(', ')} restart identity cascade`);
+  });
+}
+
+/** Pushes `contract` into a clean database via plan → apply (greenfield init). */
 async function pushContract(connectionString: string, contractJson: unknown): Promise<void> {
   const contract = controlFamily.deserializeContract(contractJson) as Contract<SqlStorage>;
   const driver = await postgresDriverControl.create(connectionString);
@@ -135,27 +170,41 @@ export async function withPostgresPort<TContract extends Contract<SqlStorage>>(
   ) as TContract;
   const contract = options.returning === false ? base : enableReturning(base);
 
-  await withDevDatabase(
-    async ({ connectionString }) => {
-      // Push the schema the way prisma-next itself does, then open the public
-      // facade over the same dev database (the pushed schema persists across the
-      // separate connection).
-      await pushContract(connectionString, options.contractJson);
-      const client = postgres<TContract>({ contract, url: connectionString, verifyMarker: false });
-      const runtime = await client.connect();
-      try {
-        await fn({
-          client,
-          db: client.orm,
-          transaction: client.transaction.bind(client),
-          contract,
-        });
-      } finally {
-        await runtime.close();
-      }
-    },
-    { databaseIdleTimeoutMillis: 30_000 },
-  );
+  if (databaseNeedsReplacement) {
+    await database.close();
+    database = await createDevDatabase({ databaseIdleTimeoutMillis: 30_000 });
+    databaseNeedsReplacement = false;
+  }
+
+  let { connectionString } = database;
+  if (currentStorageHash === undefined) {
+    await pushContract(connectionString, options.contractJson);
+    currentStorageHash = base.storage.storageHash;
+  } else if (currentStorageHash === base.storage.storageHash) {
+    await clearRows(connectionString);
+  } else {
+    await database.close();
+    database = await createDevDatabase({ databaseIdleTimeoutMillis: 30_000 });
+    connectionString = database.connectionString;
+    await pushContract(connectionString, options.contractJson);
+    currentStorageHash = base.storage.storageHash;
+  }
+  const client = postgres<TContract>({ contract, url: connectionString, verifyMarker: false });
+  const runtime = await client.connect();
+  try {
+    await fn({
+      client,
+      db: client.orm,
+      transaction: client.transaction.bind(client),
+      contract,
+    });
+  } finally {
+    await runtime.close();
+    if (options.replaceDatabase === true) {
+      currentStorageHash = undefined;
+      databaseNeedsReplacement = true;
+    }
+  }
 }
 
 export { timeouts };

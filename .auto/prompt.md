@@ -8,7 +8,7 @@ Reduce the wall-clock runtime of Prisma Next's complete integration test suite w
 - **Secondary**: `test_files`, `tests` — passed Vitest file/test counts, monitored to prevent accidental test exclusion
 
 ## How to Run
-`./.auto/measure.sh` — runs the full integration suite and outputs `METRIC name=number` lines.
+`./.auto/measure.sh` — runs the full integration suite with the CI timeout multiplier and outputs `METRIC name=number` lines.
 
 Before the first measurement or after changing production package source, run `pnpm build` so integration tests exercise current `dist` artifacts.
 
@@ -36,4 +36,10 @@ Before the first measurement or after changing production package source, run `p
 - Update this file's “What's Been Tried” section with retained wins, dead ends, and key profiling insights.
 
 ## What's Been Tried
-- Initial hypothesis: repeated per-file PGlite/Mongo startup and conservative Vitest worker scheduling dominate runtime. Establish a full-suite baseline and inspect Vitest per-file durations before changing code.
+- The initial full-suite run took 1,515.29s of Vitest time (379 files, 2,129 tests) but failed 14 tests and one teardown hook because local default timeouts collapsed under load. Measurements now use `TEST_TIMEOUT_MULTIPLIER=2`, matching CI.
+- The ported Postgres harness started a fresh PGlite server for every test: 450 startups across 123 files. Reusing one server per contract within a file, truncating user tables between tests, and replacing the server only when the contract changes cut a representative 28-test file from 44s to 31s before row reuse and then to roughly 12–15s with row reuse.
+- PGlite transaction stress retains per-test server replacement: reused servers consistently broke the high-concurrency transaction case with `Connection terminated unexpectedly` after preceding transaction tests.
+- Reusing one MongoMemoryReplSet per file produced no measurable gain on an 11-test Mongo port (7s both ways), so that added complexity was discarded.
+- All 123 Postgres port files pass after the reuse change: 713 tests in 218s wall time. A prior run before the transaction exception took 254s and had one deterministic transaction failure.
+- Fair full-suite comparison with `TEST_TIMEOUT_MULTIPLIER=2`: original harness 973.21s versus optimized harness 663.20s, a 310.01s (31.9%) reduction. Both runs retain the same unrelated deterministic `migration-graph-dot` assertion failure; the original additionally timed out in `cli.init-skill-distribution`, while the faster run did not.
+- Integration pretest previously selected the whole 109-package workspace. Filtering to integration dependencies plus the Postgres, Mongo, and pgvector public packages selects 77 package tasks and excludes unrelated examples, e2e apps, and public packages.
