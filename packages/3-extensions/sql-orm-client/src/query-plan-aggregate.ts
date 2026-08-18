@@ -256,16 +256,12 @@ export function compileAggregate(
     (state.distinctOn !== undefined && state.distinctOn.length > 0);
   const needsRowScope = hasPagination || hasDistinct;
 
-  // MTI variant join, mirroring `compileSelect`'s strategy
-  // (`query-plan-select.ts:1544-1595`): a `.variant(...)`-narrowed model
-  // resolves variant-owned fields to a `ColumnRef` qualified against the
-  // variant table, which only `orderBy` can carry into a root aggregate —
-  // the aggregate selector's column and `distinct`/`distinctOn` always
-  // resolve against the base model (`aggregate-builder.ts`,
-  // `collection.ts`'s `mapFieldsToColumns` call). So the join is
-  // unconditional on polymorphism + variant narrowing, not on which clause
-  // references it — the same trigger `compileSelect` uses. STI variants
-  // keep their columns on the base table and need no join.
+  // The join is unconditional on polymorphism + variant narrowing, not on
+  // which clause references the variant table: only `orderBy` can carry a
+  // variant-qualified `ColumnRef` into a root aggregate, since the
+  // aggregate selector's column and `distinct`/`distinctOn` always resolve
+  // against the base model. STI variants keep their columns on the base
+  // table and need no join.
   const polyInfo = modelName
     ? resolvePolymorphismInfo(contract, namespaceId, modelName)
     : undefined;
@@ -334,10 +330,8 @@ export function compileAggregate(
     inner = inner.withWhere(where);
   }
 
-  // Clause order mirrors `query-plan-select.ts:1315-1355`: distinctOn lowers
-  // natively; distinct dedups via ROW_NUMBER then reapplies orderBy on the
-  // ranked alias so LIMIT/OFFSET below slices the ordered, deduped rows —
-  // getting this order wrong produces a plausible plan with the wrong answer.
+  // Clause order mirrors `query-plan-select.ts:1315-1355` — getting it
+  // wrong produces a plausible plan with the wrong answer.
   if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
     inner = inner.withDistinctOn(state.distinctOn.map((column) => ColumnRef.of(tableName, column)));
     if (state.orderBy !== undefined && state.orderBy.length > 0) {

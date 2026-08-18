@@ -959,17 +959,8 @@ class CollectionImpl<
   /**
    * Apply `LIMIT n`. Replaces any previous limit set on this collection.
    *
-   * The window this sets applies to whatever terminal follows —
-   * `all()`, `first()`, `aggregate()` alike. `aggregate()` reduces over
-   * the limited rows, not every matching row.
-   *
    * ```typescript
    * const firstTen = await db.orm.User.orderBy((u) => u.id.asc()).take(10).all();
-   *
-   * const topTenViews = await db.orm.Post
-   *   .orderBy((p) => p.views.desc())
-   *   .take(10)
-   *   .aggregate((agg) => ({ totalViews: agg.sum('views') }));
    * ```
    */
   take(n: number): Collection<TContract, ModelName, Row, State> {
@@ -979,21 +970,12 @@ class CollectionImpl<
   /**
    * Apply `OFFSET n`. Replaces any previous offset set on this collection.
    *
-   * The window this sets applies to whatever terminal follows, `aggregate()`
-   * included: it reduces over the rows past the offset, not every matching
-   * row.
-   *
    * ```typescript
    * const page2 = await db.orm.User
    *   .orderBy((u) => u.id.asc())
    *   .skip(10)
    *   .take(10)
    *   .all();
-   *
-   * const viewsAfterFirstTen = await db.orm.Post
-   *   .orderBy((p) => p.id.asc())
-   *   .skip(10)
-   *   .aggregate((agg) => ({ totalViews: agg.sum('views') }));
    * ```
    */
   skip(n: number): Collection<TContract, ModelName, Row, State> {
