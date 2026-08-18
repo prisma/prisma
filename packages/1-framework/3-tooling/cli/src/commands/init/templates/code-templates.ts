@@ -219,40 +219,40 @@ model Post {
 function starterSchemaTsPostgres(builder: string): string {
   return `import { defineContract } from '${builder}';
 
-export const contract = defineContract(
-  {},
-  ({ field, model, rel }) => ({
-    models: {
-      User: model('User', {
-        fields: {
-          id: field.id.uuidv7String(),
-          email: field.text().unique(),
-          username: field.text().optional(),
-          name: field.text().optional(),
-          createdAt: field.temporal.createdAt(),
-          updatedAt: field.temporal.updatedAt(),
-        },
-        relations: {
-          posts: rel.hasMany('Post', { by: 'authorId' }),
-        },
-      }),
+export const contract = defineContract({}, ({ field, model, rel }) => {
+  const User = model('User', {
+    fields: {
+      id: field.id.uuidv7String(),
+      email: field.text().unique(),
+      username: field.text().optional(),
+      name: field.text().optional(),
+      createdAt: field.temporal.createdAt(),
+      updatedAt: field.temporal.updatedAt(),
+    },
+  });
 
-      Post: model('Post', {
-        fields: {
-          id: field.id.uuidv7String(),
-          title: field.text(),
-          content: field.text().optional(),
-          authorId: field.uuidString(),
-          createdAt: field.temporal.createdAt(),
-          updatedAt: field.temporal.updatedAt(),
-        },
-        relations: {
-          author: rel.belongsTo('User', { from: 'authorId', to: 'id' }),
-        },
+  const Post = model('Post', {
+    fields: {
+      id: field.id.uuidv7String(),
+      title: field.text(),
+      content: field.text().optional(),
+      authorId: field.uuidString(),
+      createdAt: field.temporal.createdAt(),
+      updatedAt: field.temporal.updatedAt(),
+    },
+  });
+
+  return {
+    models: {
+      User: User.relations({
+        posts: rel.hasMany(Post, { by: 'authorId' }),
+      }),
+      Post: Post.relations({
+        author: rel.belongsTo(User, { from: 'authorId', to: 'id' }),
       }),
     },
-  }),
-);
+  };
+});
 `;
 }
 

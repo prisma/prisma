@@ -388,16 +388,7 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
   try {
     emitOutput = execFileSync(
       prismaBin,
-      [
-        'orm',
-        'contract',
-        'emit',
-        '--config',
-        tmpConfigPath,
-        '--output-path',
-        tmpEmitDir,
-        '--quiet',
-      ],
+      ['contract', 'emit', '--config', tmpConfigPath, '--output-path', tmpEmitDir, '--quiet'],
       { cwd: exampleDir, encoding: 'utf8', env: childEnv },
     );
   } finally {

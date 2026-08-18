@@ -103,7 +103,7 @@ describe('shipped bin (process smoke)', () => {
         kind: 'result',
         envelope: {
           ok: false,
-          commandId: 'orm.contract.emit',
+          commandId: 'contract.emit',
           error: { code: 'CONFIG.FILE_NOT_FOUND' },
         },
       });

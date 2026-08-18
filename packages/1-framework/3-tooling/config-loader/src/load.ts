@@ -17,7 +17,7 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
-import { basename, dirname, join, resolve } from 'pathe';
+import { dirname, join, resolve } from 'pathe';
 import { finalizeContractConfig, finalizeMigrationsConfig } from './finalize-config';
 
 const CONFIG_FILENAME = 'prisma.config.ts';

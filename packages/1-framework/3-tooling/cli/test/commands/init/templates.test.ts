@@ -109,9 +109,13 @@ describe('templates', () => {
         const pg = starterSchema('postgres', 'typescript');
         const mongo = starterSchema('mongo', 'typescript');
 
+        // The SQL starter uses model tokens (models first, relations attached
+        // via .relations()), which needs a block-bodied callback; the mongo
+        // builder has no token chain, so its starter keeps the expression
+        // body. The shared signature is the callback destructure itself.
         for (const schema of [pg, mongo]) {
           expect(schema).toMatch(
-            /defineContract\(\s*\{\s*\},\s*\(\{ field, model, rel \}\) => \(\{/,
+            /defineContract\(\s*\{\s*\},\s*\(\{ field, model, rel \}\) => [({]/,
           );
           expect(schema).not.toMatch(/\{ family:/);
           expect(schema).toContain('models: {');
@@ -129,24 +133,23 @@ describe('templates', () => {
         }
       });
 
-      it('both targets use string relation references (no .ref() calls)', () => {
+      it('the SQL starter references models by token, the form the framework recommends', () => {
         const pg = starterSchema('postgres', 'typescript');
-        const mongo = starterSchema('mongo', 'typescript');
 
-        for (const schema of [pg, mongo]) {
-          expect(schema).toContain("rel.belongsTo('User'");
-          expect(schema).not.toMatch(/\.ref\(/);
-        }
+        // String refs here would make a fresh scaffold emit
+        // PN_CONTRACT_TYPED_FALLBACK_AVAILABLE warnings on its first emit.
+        expect(pg).toContain('rel.belongsTo(User');
+        expect(pg).toContain('rel.hasMany(Post');
+        expect(pg).not.toMatch(/rel\.\w+\('/);
+        expect(pg).toMatch(/\.relations\(\{/);
       });
 
-      it('both targets use inline `relations: { ... }` (no chained .relations())', () => {
-        const pg = starterSchema('postgres', 'typescript');
+      it('the mongo starter keeps string references and inline relations — its builder has no token chain', () => {
         const mongo = starterSchema('mongo', 'typescript');
 
-        for (const schema of [pg, mongo]) {
-          expect(schema).toContain('relations: {');
-          expect(schema).not.toMatch(/\}\)\.relations\(/);
-        }
+        expect(mongo).toContain("rel.belongsTo('User'");
+        expect(mongo).toContain('relations: {');
+        expect(mongo).not.toMatch(/\}\)\.relations\(/);
       });
     });
   });
