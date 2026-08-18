@@ -182,6 +182,8 @@ type GeneratedLikeContractBase = Omit<Contract<GeneratedLikeStorage>, 'domain' |
       readonly __unbound__: { readonly models: GeneratedLikeModels };
     };
   };
+  // Only the one capability this file's inference assertions exercise —
+  // deliberately minimal, not a stand-in for a real contract's full set.
   readonly capabilities: {
     readonly postgres: { readonly distinctOn: true };
   };

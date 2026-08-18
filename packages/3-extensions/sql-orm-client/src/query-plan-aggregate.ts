@@ -20,7 +20,7 @@ import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-de
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
-import { resolvePolymorphismInfo } from './collection-contract';
+import { assertDistinctOnCapability, resolvePolymorphismInfo } from './collection-contract';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
 import { buildMtiJoins, buildStateWhere, wrapWithRowNumberDedup } from './query-plan-scope';
@@ -233,6 +233,16 @@ export function compileAggregate(
       'aggregate() requires at least one aggregation selector',
       { meta: { method: 'aggregate', namespaceId, tableName } },
     );
+  }
+
+  // The builder method already asserts this, but that guard is one entry
+  // point into `state.distinctOn` — a `Collection` constructed directly from
+  // a hand-built `CollectionState` (the constructor and `CollectionState`
+  // are both exported from `./exports`) never calls `distinctOn()`, so the
+  // capability can only be enforced for certain where the state is actually
+  // consumed and lowered to `withDistinctOn`.
+  if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
+    assertDistinctOnCapability(contract, 'distinctOn');
   }
 
   // `cursor` lowers to a WHERE boundary that `buildStateWhere` folds in

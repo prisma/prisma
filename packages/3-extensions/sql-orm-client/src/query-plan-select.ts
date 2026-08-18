@@ -33,6 +33,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
 import {
+  assertDistinctOnCapability,
   getCompleteColumnToFieldMap,
   getFieldToColumnMap,
   POLYMORPHIC_DISCRIMINATOR_ALIAS,
@@ -1499,6 +1500,15 @@ export function compileSelect(
   state: CollectionState,
   modelName?: string,
 ): SqlQueryPlan<Record<string, unknown>> {
+  // The builder method already asserts this, but that guard is one entry
+  // point into `state.distinctOn` — a `Collection` constructed directly from
+  // a hand-built `CollectionState` never calls `distinctOn()`, so the
+  // capability can only be enforced for certain where the state is actually
+  // consumed and lowered to `withDistinctOn`.
+  if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
+    assertDistinctOnCapability(contract, 'distinctOn');
+  }
+
   const polyInfo = modelName
     ? resolvePolymorphismInfo(contract, namespaceId, modelName)
     : undefined;
