@@ -10,7 +10,7 @@ import {
 } from './infer-names';
 import { escapePslString, SYNTHETIC_SPAN } from './psl-literals';
 
-const PSL_SCALAR_TYPE_NAMES = new Set([
+export const PSL_SCALAR_TYPE_NAMES = new Set([
   'String',
   'Boolean',
   'Int',

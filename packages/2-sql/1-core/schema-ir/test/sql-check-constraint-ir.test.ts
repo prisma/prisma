@@ -64,7 +64,19 @@ describe('SqlCheckConstraintIR', () => {
       const expected = wireCheck('T_status_check', expression);
       const live = new SqlCheckConstraintIR({
         naming: { kind: 'wire', prefix: 'T_status_check', hash },
-        expression: `((status)::text = ANY ((ARRAY['active'::character varying])::text[]))`,
+        expression: `((status)::text = ANY ((ARRAY['active'::character varying, 'inactive'::character varying])::text[]))`,
+        dependsOn: undefined,
+      });
+      expect(expected.isEqualTo(live)).toBe(true);
+    });
+
+    it('true even when the live expression enumerates a different value set', () => {
+      // What "compares names only" costs: a faithful reprint that has lost a
+      // member still compares equal, because only the name is read.
+      const expected = wireCheck('T_status_check', expression);
+      const live = new SqlCheckConstraintIR({
+        naming: { kind: 'wire', prefix: 'T_status_check', hash },
+        expression: `((status)::text = 'active'::text)`,
         dependsOn: undefined,
       });
       expect(expected.isEqualTo(live)).toBe(true);

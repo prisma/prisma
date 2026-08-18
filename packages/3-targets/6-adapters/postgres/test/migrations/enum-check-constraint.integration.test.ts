@@ -190,9 +190,9 @@ describe.sequential('enum check-constraint — end-to-end PGlite', () => {
     expect(name).toMatch(/^User_role_check_[0-9a-f]{8}$/);
     const constraintDef = await queryPgConstraint(driver!, 'User', name);
     expect(constraintDef).not.toBeNull();
-    // Postgres reprints 'role IN (...)' as 'role = ANY (ARRAY[...])', so assert membership.
-    expect(constraintDef).toMatch(/user/);
-    expect(constraintDef).toMatch(/admin/);
+    // Postgres reprints 'role IN (...)' as 'role = ANY (ARRAY[...])'; the
+    // exact body is observed output, not a transcription of the authored text.
+    expect(constraintDef).toBe(`CHECK ((role = ANY (ARRAY['user'::text, 'admin'::text])))`);
 
     // Nothing installed it after the fact: the table came with it.
     const addOps = (await Promise.all(result.plan.operations)).map((op) => op.id);
