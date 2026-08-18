@@ -1,2 +1,1 @@
-- Profile CLI journey config loading and scratch-directory setup. Many journey files repeatedly evaluate TypeScript config and recreate fixture directories, but cache invalidation must preserve tests that mutate configs mid-run.
 - Reconsider a resettable per-file PGlite server for the ref/migration suites only if shard topology changes or aggregate runner time becomes a tracked optimization target. It cut focused runtime from 40.97s to 24.88s, but those files were not on the four-way critical shard and the hosted primary metric regressed.
