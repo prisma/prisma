@@ -93,9 +93,9 @@ async function withPostsRuntime(
 // silently stopped applying — or a ParamRef that desynced across the
 // derived-table boundary — would flip these numbers or error.
 //
-// `distinctOn` is out of scope here: it is gated on `postgres.distinctOn`
-// (D4c), which this contract does not declare, so the ORM refuses the call
-// before it ever reaches the renderer.
+// `distinctOn` is out of scope here: it is gated on `postgres.distinctOn`,
+// which this contract does not declare, so the ORM refuses the call before
+// it ever reaches the renderer.
 // The contract is authored in this file, so its static aggregate map is
 // unknown and the typed builder surface (`.sum()`, `.count()`) is empty —
 // dispatch dynamically, mirroring `sqlite-include-canonical-json.test.ts`.
@@ -172,11 +172,11 @@ describe('integration/aggregate (sqlite)', { timeout: timeouts.databaseOperation
         .aggregate((aggregate) => ({ total: dynamicAggregate(aggregate)['sum']!('views') }));
 
       // Ordered by id asc, skip(2) drops the 10/20 rows and reduces over
-      // 30 + 40 + 50; the unpaginated sum over all five rows is 150. D5b
-      // fixed the renderer to emit `LIMIT -1 OFFSET n` for a standalone
-      // OFFSET — this case previously failed with
-      // `near "OFFSET": syntax error`, confirmed by D5, and is no longer a
-      // known gap.
+      // 30 + 40 + 50; the unpaginated sum over all five rows is 150.
+      // SQLite's grammar has no standalone OFFSET clause, so this case
+      // used to fail with `near "OFFSET": syntax error`; the renderer now
+      // emits `LIMIT -1 OFFSET n` (SQLite's idiom for an unbounded limit)
+      // when an offset is present with no limit.
       expect(stats).toEqual({ total: 120 });
     });
   });
