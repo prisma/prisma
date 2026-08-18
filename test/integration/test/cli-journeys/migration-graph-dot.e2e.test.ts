@@ -3,9 +3,11 @@
  *
  * DOT is not a `--format` value — the engine reserves that flag — so `--dot`
  * stays a command-owned boolean and the old precedence quirk goes away: in
- * human mode the DOT text is the command's stdout payload, and in json mode
- * (which a non-TTY stdout selects) the result carries the DOT alongside the
- * graph document instead of replacing it.
+ * human mode the DOT text is both a human block and the stdout payload. On one
+ * shared screen the engine suppresses the stdout mirror and the human block is
+ * what the reader sees; with split sinks stdout carries the raw DOT too. In
+ * json mode (which a non-TTY stdout selects) the result carries the DOT
+ * alongside the graph document instead of replacing it.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -22,7 +24,7 @@ import {
 withTempDir(({ createTempDir }) => {
   describe('migration graph — DOT output', () => {
     it(
-      'puts DOT on stdout in human mode and on the result in json mode',
+      'shows DOT on the human screen and carries it on the json result',
       async () => {
         const ctx: JourneyContext = setupJourney({ createTempDir });
 
@@ -36,7 +38,11 @@ withTempDir(({ createTempDir }) => {
         expect(human.presented?.presentation.stdout?.[0], 'DOT preamble').toBe(
           'digraph migrations {',
         );
-        expect(human.stdout, 'DOT reaches stdout').toContain('digraph migrations {');
+        // Both streams are TTYs here — one shared screen — so the engine
+        // suppresses the stdout mirror and the human block is the copy the
+        // reader sees, on stderr.
+        expect(human.stderr, 'DOT reaches the reader').toContain('digraph migrations {');
+        expect(human.stdout, 'stdout mirror suppressed on one screen').toBe('');
 
         // Piping selects json, and the DOT rides the result rather than
         // shadowing it: a caller that asked for json never receives DOT where
