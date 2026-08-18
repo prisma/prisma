@@ -112,7 +112,38 @@ describe('SQLite adapter', () => {
       expect(lowered.params).toEqual(litParams('test@example.com'));
     });
 
-    it('renders ORDER BY, LIMIT, OFFSET', () => {
+    it('renders neither LIMIT nor OFFSET when neither is set', () => {
+      const ast = SelectAst.from(TableSource.named('user'))
+        .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
+        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc')]);
+
+      const { sql } = adapter.lower(ast, { contract });
+      expect(sql).toBe('SELECT "user"."id" AS "id" FROM "user" ORDER BY "user"."id" ASC');
+    });
+
+    it('renders LIMIT alone when only limit is set', () => {
+      const ast = SelectAst.from(TableSource.named('user'))
+        .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
+        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc')])
+        .withLimit(10);
+
+      const { sql } = adapter.lower(ast, { contract });
+      expect(sql).toBe('SELECT "user"."id" AS "id" FROM "user" ORDER BY "user"."id" ASC LIMIT 10');
+    });
+
+    it('renders LIMIT -1 OFFSET n when only offset is set, since SQLite has no standalone OFFSET clause', () => {
+      const ast = SelectAst.from(TableSource.named('user'))
+        .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
+        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc')])
+        .withOffset(5);
+
+      const { sql } = adapter.lower(ast, { contract });
+      expect(sql).toBe(
+        'SELECT "user"."id" AS "id" FROM "user" ORDER BY "user"."id" ASC LIMIT -1 OFFSET 5',
+      );
+    });
+
+    it('renders ORDER BY, LIMIT, OFFSET unchanged when both are set', () => {
       const ast = SelectAst.from(TableSource.named('user'))
         .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
         .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc')])

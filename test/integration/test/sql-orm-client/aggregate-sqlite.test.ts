@@ -164,22 +164,20 @@ describe('integration/aggregate (sqlite)', { timeout: timeouts.databaseOperation
     });
   });
 
-  // Confirmed prediction, not an obstacle: SQLite's grammar is
-  // `LIMIT expr [OFFSET expr]` with no standalone OFFSET, while
-  // `sqlite/src/core/adapter.ts:254-255` renders LIMIT and OFFSET as
-  // independently-omittable clauses. skip() without take() emits OFFSET
-  // with no LIMIT, and SQLite rejects the resulting SQL with exactly the
-  // predicted syntax error — verified via `node:sqlite`'s own error:
-  // `SqlQueryError: near "OFFSET": syntax error`. Left in place as the
-  // known gap; a separate authorised dispatch fixes the renderer.
-  it('skip() without take() fails on SQLite pending an adapter fix for standalone OFFSET', async () => {
+  it('skip() without take() reduces over all-but-the-first-n', async () => {
     await withPostsRuntime(async (_runtime, posts) => {
-      await expect(
-        posts
-          .orderBy((post) => post.id.asc())
-          .skip(2)
-          .aggregate((aggregate) => ({ total: dynamicAggregate(aggregate)['sum']!('views') })),
-      ).rejects.toThrow('near "OFFSET": syntax error');
+      const stats = await posts
+        .orderBy((post) => post.id.asc())
+        .skip(2)
+        .aggregate((aggregate) => ({ total: dynamicAggregate(aggregate)['sum']!('views') }));
+
+      // Ordered by id asc, skip(2) drops the 10/20 rows and reduces over
+      // 30 + 40 + 50; the unpaginated sum over all five rows is 150. D5b
+      // fixed the renderer to emit `LIMIT -1 OFFSET n` for a standalone
+      // OFFSET — this case previously failed with
+      // `near "OFFSET": syntax error`, confirmed by D5, and is no longer a
+      // known gap.
+      expect(stats).toEqual({ total: 120 });
     });
   });
 });
