@@ -11,6 +11,7 @@ import {
   comparePrecedence,
   coverageTransitionChain,
   inFlightTransitionLabel,
+  manifestShapeIgnoringVersions,
   parseChangesFrontmatter,
   parseTransitionFromPath,
   parseVersion,
@@ -1057,6 +1058,77 @@ describe('check-upgrade-coverage — dependency-only substrate diffs need no dec
       `${JSON.stringify({ name: 'demo', scripts: { build: 'vite build' }, devDependencies: { vite: '^8.1.4' } }, null, 2)}\n`,
     );
     commitAll('head — scripts added');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /per-pr-declaration/);
+  });
+});
+
+describe('manifestShapeIgnoringVersions', () => {
+  const manifest = (version, deps) =>
+    JSON.stringify({ name: 'fixture', version, dependencies: deps });
+
+  it('a release sweep compares equal only when the own version is ignored', () => {
+    const before = manifest('8.0.0-rc.3', { '@prisma/orm-postgres': 'workspace:8.0.0-rc.3' });
+    const after = manifest('8.0.0-rc.4', { '@prisma/orm-postgres': 'workspace:8.0.0-rc.4' });
+    assert.notEqual(manifestShapeIgnoringVersions(before), manifestShapeIgnoringVersions(after));
+    assert.equal(
+      manifestShapeIgnoringVersions(before, true),
+      manifestShapeIgnoringVersions(after, true),
+    );
+  });
+
+  it('an added dependency compares unequal — a new name can signal an API change', () => {
+    const before = manifest('1.0.0', {});
+    const after = manifest('1.0.0', { 'left-pad': '^1.0.0' });
+    assert.notEqual(manifestShapeIgnoringVersions(before), manifestShapeIgnoringVersions(after));
+  });
+
+  it('a changed script compares unequal even when versions are ignored', () => {
+    const before = JSON.stringify({ name: 'fixture', version: '1.0.0', scripts: { emit: 'a' } });
+    const after = JSON.stringify({ name: 'fixture', version: '2.0.0', scripts: { emit: 'b' } });
+    assert.notEqual(
+      manifestShapeIgnoringVersions(before, true),
+      manifestShapeIgnoringVersions(after, true),
+    );
+  });
+});
+
+describe('check-upgrade-coverage — release sweep per-PR declaration', () => {
+  it('a version-only sweep needs the transition directory but no fresh declaration', () => {
+    writePackageJson('8.0.0-rc.3');
+    writeRepoFile('examples/demo/package.json', '{"name":"demo","version":"8.0.0-rc.3"}\n');
+    writeRepoFile(
+      'skills/prisma-next-upgrade/upgrades/8.0.0-rc.3-to-8.0.0-rc.4/instructions.md',
+      '---\nfrom: "8.0.0-rc.3"\nto: "8.0.0-rc.4"\nchanges: []\n---\n',
+    );
+    commitAll('prev, directory already recorded by an earlier PR');
+    const prev = git('rev-parse', 'HEAD');
+
+    writePackageJson('8.0.0-rc.4');
+    writeRepoFile('examples/demo/package.json', '{"name":"demo","version":"8.0.0-rc.4"}\n');
+    commitAll('bump to 8.0.0-rc.4');
+
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
+  });
+
+  it('a sweep with a real substrate change still demands the declaration', () => {
+    writePackageJson('8.0.0-rc.3');
+    writeRepoFile('examples/demo/package.json', '{"name":"demo","version":"8.0.0-rc.3"}\n');
+    writeRepoFile('examples/demo/src/main.ts', 'export const a = 1;\n');
+    writeRepoFile(
+      'skills/prisma-next-upgrade/upgrades/8.0.0-rc.3-to-8.0.0-rc.4/instructions.md',
+      '---\nfrom: "8.0.0-rc.3"\nto: "8.0.0-rc.4"\nchanges: []\n---\n',
+    );
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+
+    writePackageJson('8.0.0-rc.4');
+    writeRepoFile('examples/demo/package.json', '{"name":"demo","version":"8.0.0-rc.4"}\n');
+    writeRepoFile('examples/demo/src/main.ts', 'export const a = 2;\n');
+    commitAll('bump with substrate change');
+
     const result = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /per-pr-declaration/);
