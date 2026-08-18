@@ -147,7 +147,7 @@ describe('defineOrmCommand', () => {
 
 describe('config finalization at the command boundary', () => {
   it('hands the handler absolute contract and migration paths whatever the loader left relative', async () => {
-    let seen: { output?: string; dir?: string } = {};
+    let seen: { output?: string | undefined; dir?: string | undefined } = {};
     const cli = createTestCli({
       commands: {
         probe: defineOrmCommand({
@@ -170,7 +170,7 @@ describe('config finalization at the command boundary', () => {
             seen = { output: config.contract?.output, dir: config.migrations?.dir };
             return ok(
               ctx.present(
-                { data: seen },
+                { data: seen, exitCode: 0 },
                 { stdout: () => [], next: () => [], human: () => [], json: () => seen },
               ),
             );
