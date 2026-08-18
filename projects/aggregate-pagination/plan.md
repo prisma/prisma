@@ -13,7 +13,7 @@ The work is split by what the code does, not by which method the user called. Th
 
 ### Stack (deliver in order)
 
-1. **Slice `aggregate-row-scope`** — tracked by its PR
+1. **Slice `aggregate-row-scope`** — **delivered 2026-08-18: [PR #30067](https://github.com/prisma/prisma/pull/30067)**, awaiting review
    - **Outcome:** One shared helper answers "which rows does this chain describe?" — honouring `take`, `skip`, `cursor`, `distinct`, and `distinctOn` — and root `.aggregate()` reduces over exactly those rows. When a chain has none of those clauses, the compiled SQL is byte-identical to today's, enforced by a CI guard rather than by review. `skip` without a paired `take` works.
    - **Builds on:** None.
    - **Hands to:** The row-scope helper itself, plus the supporting module (`src/query-plan-scope.ts`) holding the pieces lifted out of `query-plan-select.ts`, plus `compileAggregate`'s reworked signature, which receives the collection's full state instead of just its filters. `compileGroupedAggregate` keeps its `filters` parameter until slice 2: `GroupedCollection` carries `baseFilters`, not a state, so handing the grouped compile a scope it ignores would ship the exact shape this project exists to remove. Operator-confirmed 2026-08-17.

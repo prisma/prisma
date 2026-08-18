@@ -122,5 +122,6 @@ One reviewer holds a single question in one sitting: *which rows does this chain
 
 - Parent project: `projects/aggregate-pagination/spec.md`, `projects/aggregate-pagination/plan.md`
 - Linear issue: none — this project runs tracker-free; the PR is the record
+- **PR: https://github.com/prisma/prisma/pull/30067** — opened 2026-08-18 against `main` at merge commit `0c2eb1cd5a`. Slice-close walk at `slice-close.md`; manual-QA report at `manual-qa-reports/2026-08-18-qa-runner.md`.
 - Prior art: `packages/3-extensions/sql-orm-client/src/query-plan-select.ts:1237-1370` (the working wrap), `test/query-plan-select.test.ts:504` (pagination composes into the aggregate scope), `:545` (orderBy reapplied after the `ROW_NUMBER` dedup), `:486` (inert clauses dropped)
 - ADR 201 — State-machine pattern for typed DSL builders
