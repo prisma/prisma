@@ -29,12 +29,13 @@ function validConfigSource(extensionPackIds: readonly string[]): string {
     )
     .join(', ');
   return [
-    'export default {',
+    'const orm = {',
     `  family: { kind: 'family', id: 'sql', familyId: 'sql', version: '0.0.1', emission: {}, create: () => ({}) },`,
     `  target: ${descriptor('target')},`,
     `  adapter: ${descriptor('adapter')},`,
     `  extensions: [${packs}],`,
-    '};\n',
+    '};',
+    'export default { $prismaConfig: 1, orm };\n',
   ].join('\n');
 }
 

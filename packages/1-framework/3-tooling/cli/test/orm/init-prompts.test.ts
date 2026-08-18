@@ -39,7 +39,7 @@ describe('init prompts', () => {
     it(
       'asks for target, authoring, schema path and the .env file, in that order',
       async () => {
-        const run = await harness().run(['init', ...NO_PACKAGE_WORK], {
+        const run = await harness().run(['orm', 'init', ...NO_PACKAGE_WORK], {
           cwd: projectDir,
           isTty: { stdin: true },
           answers: ['postgres', 'psl', 'src/prisma/contract.prisma', true],
@@ -61,7 +61,7 @@ describe('init prompts', () => {
     it(
       'takes the schema path the text prompt answered, not the default',
       async () => {
-        const run = await harness().run(['init', ...NO_PACKAGE_WORK], {
+        const run = await harness().run(['orm', 'init', ...NO_PACKAGE_WORK], {
           cwd: projectDir,
           isTty: { stdin: true },
           answers: ['mongo', 'typescript', 'db/schema.ts', false],
@@ -81,7 +81,7 @@ describe('init prompts', () => {
     it(
       'rejects a schema path whose extension contradicts the authoring style',
       async () => {
-        const run = await harness().run(['init', ...NO_PACKAGE_WORK], {
+        const run = await harness().run(['orm', 'init', ...NO_PACKAGE_WORK], {
           cwd: projectDir,
           isTty: { stdin: true },
           answers: ['postgres', 'psl', 'db/schema.ts', false],
@@ -102,7 +102,16 @@ describe('init prompts', () => {
       'answers every defaulted prompt and still needs the two undefaulted flags',
       async () => {
         const run = await harness().run(
-          ['init', '--yes', '--target', 'postgresql', '--authoring', 'TS', ...NO_PACKAGE_WORK],
+          [
+            'orm',
+            'init',
+            '--yes',
+            '--target',
+            'postgresql',
+            '--authoring',
+            'TS',
+            ...NO_PACKAGE_WORK,
+          ],
           { cwd: projectDir, isTty: { stdin: true } },
         );
 
@@ -120,7 +129,7 @@ describe('init prompts', () => {
     it(
       'cannot answer the target prompt, which has no default',
       async () => {
-        const run = await harness().run(['init', '--yes', ...NO_PACKAGE_WORK], {
+        const run = await harness().run(['orm', 'init', '--yes', ...NO_PACKAGE_WORK], {
           cwd: projectDir,
           isTty: { stdin: true },
         });
@@ -144,6 +153,7 @@ describe('init prompts', () => {
       async () => {
         const run = await harness().run(
           [
+            'orm',
             'init',
             '--target',
             'mongodb',
@@ -172,7 +182,7 @@ describe('init prompts', () => {
     it(
       'names every missing required flag rather than prompting',
       async () => {
-        const run = await harness().run(['init', '--authoring', 'psl', ...NO_PACKAGE_WORK], {
+        const run = await harness().run(['orm', 'init', '--authoring', 'psl', ...NO_PACKAGE_WORK], {
           cwd: projectDir,
         });
 
@@ -190,7 +200,7 @@ describe('init prompts', () => {
       'falls back to the default schema path instead of asking for one',
       async () => {
         const run = await harness().run(
-          ['init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
+          ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
           { cwd: projectDir },
         );
 
@@ -204,7 +214,7 @@ describe('init prompts', () => {
       'rejects an unknown --target value with the allowed set',
       async () => {
         const run = await harness().run(
-          ['init', '--target', 'sqlite', '--authoring', 'psl', ...NO_PACKAGE_WORK],
+          ['orm', 'init', '--target', 'sqlite', '--authoring', 'psl', ...NO_PACKAGE_WORK],
           { cwd: projectDir },
         );
 
@@ -225,6 +235,7 @@ describe('init prompts', () => {
       async () => {
         const run = await harness().run(
           [
+            'orm',
             'init',
             '--target',
             'postgres',
@@ -253,7 +264,7 @@ describe('init prompts', () => {
         writeFileSync(join(projectDir, 'package.json'), '{ not json', 'utf-8');
 
         const run = await harness().run(
-          ['init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
+          ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
           { cwd: projectDir },
         );
 
@@ -273,7 +284,7 @@ describe('init prompts', () => {
         writeFileSync(join(projectDir, 'tsconfig.json'), '{ "compilerOptions": ', 'utf-8');
 
         const run = await harness().run(
-          ['init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
+          ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
           { cwd: projectDir },
         );
 
@@ -293,7 +304,7 @@ describe('init prompts', () => {
       'renders the scaffold as fields, a file tree and the next steps',
       async () => {
         const run = await harness().run(
-          ['init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
+          ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
           { cwd: projectDir, isTty: { stdout: true } },
         );
         const blocks = run.presented?.presentation.human ?? [];
@@ -319,7 +330,7 @@ describe('init prompts', () => {
       'writes the success document as the json presentation',
       async () => {
         const run = await harness().run(
-          ['init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
+          ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
           { cwd: projectDir },
         );
 
@@ -343,7 +354,16 @@ describe('init prompts', () => {
         writeFileSync(join(projectDir, '.env'), 'DATABASE_URL=keep-me\n', 'utf-8');
 
         const run = await harness().run(
-          ['init', '--target', 'postgres', '--authoring', 'psl', '--write-env', ...NO_PACKAGE_WORK],
+          [
+            'orm',
+            'init',
+            '--target',
+            'postgres',
+            '--authoring',
+            'psl',
+            '--write-env',
+            ...NO_PACKAGE_WORK,
+          ],
           { cwd: projectDir },
         );
 
@@ -365,6 +385,7 @@ describe('init prompts', () => {
 
         const run = await harness().run(
           [
+            'orm',
             'init',
             '--target',
             'postgres',

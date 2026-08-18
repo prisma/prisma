@@ -6,7 +6,7 @@ A minimal React Router v7 Framework Mode example that proves Prisma Next's Vite 
 
 - `@internal/vite-plugin-contract-emit` auto-emits `contract.json` + `contract.d.ts` on dev-server startup and on every contract edit.
 - A React Router `loader` and `action` on `/` exercise the Prisma Next runtime against Postgres via the emitted contract.
-- Editing `prisma/contract.prisma` (or `prisma/contract.ts`) while `pnpm dev` is running re-emits the artifacts — no manual `prisma-next contract emit`.
+- Editing `prisma/contract.prisma` (or `prisma/contract.ts`) while `pnpm dev` is running re-emits the artifacts — no manual `prisma orm contract emit`.
 
 ## Prerequisites
 

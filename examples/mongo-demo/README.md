@@ -5,7 +5,7 @@ End-to-end example of Prisma Next with MongoDB, demonstrating the full **authori
 ## What it shows
 
 - PSL schema (`prisma/contract.prisma`) as the authoring surface for MongoDB
-- Contract emission via `prisma.config.ts` and the CLI (`prisma-next contract emit`)
+- Contract emission via `prisma.config.ts` and the CLI (`prisma orm contract emit`)
 - Runtime query execution using `mongoOrm()` with the emitted contract
 - Reference relation resolution via `$lookup` (Post → User)
 - Integration tests against an in-memory MongoDB replica set
@@ -60,7 +60,7 @@ This creates the unique index on `users.email` and records the migration in the 
 
 | Script                | Description                                                                 |
 | --------------------- | --------------------------------------------------------------------------- |
-| `pnpm emit`           | Emit `src/contract.json` + `src/contract.d.ts` via `prisma-next contract emit` |
+| `pnpm emit`           | Emit `src/contract.json` + `src/contract.d.ts` via `prisma orm contract emit` |
 | `pnpm migration:plan` | Preview migration operations (offline, no DB needed)                        |
 | `pnpm migration:apply`| Apply pending migrations to the database                                    |
 | `pnpm test`           | Run integration tests against an in-memory MongoDB replica set              |
@@ -127,7 +127,7 @@ The Mongo query builder doesn't yet expose a chainable `.annotate(...)` surface 
 | ------------- | ------------------------------------------- | ------------------------------------------- |
 | Target        | PostgreSQL                                  | MongoDB                                     |
 | Schema        | `schema.prisma` (PSL)                       | `contract.prisma` (PSL)                     |
-| Emission      | CLI (`prisma-next contract emit`)           | CLI (`prisma-next contract emit`)           |
+| Emission      | CLI (`prisma orm contract emit`)           | CLI (`prisma orm contract emit`)           |
 | Runtime       | `postgres()` one-liner                      | `createMongoAdapter()` + `createMongoDriver()` + `createMongoRuntime()` + `mongoOrm()` |
 | Relations     | SQL joins                                   | `$lookup` aggregation pipeline              |
 | Tests         | Requires running PostgreSQL                 | Uses `mongodb-memory-server` (no external DB) |

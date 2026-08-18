@@ -37,7 +37,7 @@ The trigger depends on the *role* the operator is wearing in the moment, not on 
 | Adding a feature to PN's runtime | Maintaining | No |
 | Refactoring an internal package | Maintaining | No |
 
-**Worked example.** You change `schema.prisma`, run `prisma-next migration plan`, and the CLI reports *"No changes detected"* — because the contract was stale and you hadn't run `contract emit`. The CLI's mental model didn't match yours; a real user would hit this. That's a gotcha, even though you're sitting in `prisma-8-ws` and could fix it: you were *consuming* the migration workflow, not maintaining it.
+**Worked example.** You change `schema.prisma`, run `prisma orm migration plan`, and the CLI reports *"No changes detected"* — because the contract was stale and you hadn't run `contract emit`. The CLI's mental model didn't match yours; a real user would hit this. That's a gotcha, even though you're sitting in `prisma-8-ws` and could fix it: you were *consuming* the migration workflow, not maintaining it.
 
 **Ambiguous cases default to capture.** If you can't tell which role you were in, capture the gotcha. The team filters at triage.
 
@@ -308,13 +308,13 @@ The capture workflow is documented in [`.agents/skills/record-gotcha/SKILL.md`](
 > **First hit:** `examples/prisma-8-demo`, changing the schema while iterating on a demo
 > **Cost:** ~15 minutes
 >
-> **Symptom.** Edited `schema.prisma`, ran `pnpm prisma-next migration plan`, got `✔ No changes detected` with `from` and `to` hashes equal. No warning, no indication that the contract was out of date.
+> **Symptom.** Edited `schema.prisma`, ran `pnpm prisma orm migration plan`, got `✔ No changes detected` with `from` and `to` hashes equal. No warning, no indication that the contract was out of date.
 >
 > **Cause.** `migration plan` compares the *emitted* contract hash (`src/prisma/contract.json`) against the last applied migration's hash. Editing `schema.prisma` doesn't update the contract — `contract emit` does. The CLI doesn't detect the staleness or warn about it.
 >
-> **Workaround.** Run `pnpm prisma-next contract emit` before `migration plan` whenever the schema has changed. Or wire `emit` into your dev script.
+> **Workaround.** Run `pnpm prisma orm contract emit` before `migration plan` whenever the schema has changed. Or wire `emit` into your dev script.
 >
-> **Reproduction.** Edit `schema.prisma` in `examples/prisma-8-demo`, run `pnpm prisma-next migration plan` without re-emitting. Observe the spurious "No changes detected".
+> **Reproduction.** Edit `schema.prisma` in `examples/prisma-8-demo`, run `pnpm prisma orm migration plan` without re-emitting. Observe the spurious "No changes detected".
 
 Why it's good: symptom-led title, version captured, cost surfaced, cause cites the underlying mechanism, workaround is concrete, repro steps are minimal.
 

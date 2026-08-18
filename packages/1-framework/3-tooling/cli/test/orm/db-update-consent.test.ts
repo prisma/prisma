@@ -163,7 +163,7 @@ function applyCalls(): readonly { readonly consent?: { readonly planHash: string
 describe('db update consent', () => {
   describe('interactively', () => {
     it('applies the destructive plan once the database name is typed', async () => {
-      const run = await harness().run(['db', 'update', '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--json'], {
         cwd: projectDir,
         isTty: { stdin: true },
         answers: [TOKEN],
@@ -184,7 +184,7 @@ describe('db update consent', () => {
      * reaches stderr when the run reads it from the stream.
      */
     it('names the database and every destructive operation in the question', async () => {
-      const run = await harness().run(['db', 'update'], {
+      const run = await harness().run(['orm', 'db', 'update'], {
         cwd: projectDir,
         isTty: { stdin: true, stdout: true, stderr: true },
         stdin: `${TOKEN}\n`,
@@ -207,7 +207,7 @@ describe('db update consent', () => {
           ),
         );
 
-      const run = await harness().run(['db', 'update'], {
+      const run = await harness().run(['orm', 'db', 'update'], {
         cwd: projectDir,
         isTty: { stdin: true, stdout: true, stderr: true },
         stdin: `${TOKEN}\n`,
@@ -220,7 +220,7 @@ describe('db update consent', () => {
     });
 
     it('applies nothing when the answer is not the database name', async () => {
-      const run = await harness().run(['db', 'update', '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--json'], {
         cwd: projectDir,
         isTty: { stdin: true },
         answers: ['no'],
@@ -235,7 +235,7 @@ describe('db update consent', () => {
     });
 
     it('exits 3 when the prompt is cancelled', async () => {
-      const run = await harness().run(['db', 'update', '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--json'], {
         cwd: projectDir,
         isTty: { stdin: true },
         stdin: '',
@@ -252,7 +252,7 @@ describe('db update consent', () => {
 
   describe('non-interactively', () => {
     it('refuses without --confirm, naming the token to pass', async () => {
-      const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+      const run = await harness().run(['orm', 'db', 'update', '--json'], { cwd: projectDir });
 
       expect(run.exitCode).toBe(2);
       expect(envelopeOf(run.json)).toMatchObject({
@@ -263,7 +263,7 @@ describe('db update consent', () => {
     });
 
     it('applies when --confirm carries the database name', async () => {
-      const run = await harness().run(['db', 'update', '--confirm', TOKEN, '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--confirm', TOKEN, '--json'], {
         cwd: projectDir,
       });
 
@@ -276,7 +276,7 @@ describe('db update consent', () => {
     });
 
     it('refuses when --confirm carries another name', async () => {
-      const run = await harness().run(['db', 'update', '--confirm', 'otherdb', '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--confirm', 'otherdb', '--json'], {
         cwd: projectDir,
       });
 
@@ -291,7 +291,7 @@ describe('db update consent', () => {
 
   describe('--yes', () => {
     it('does not accept data loss on its own', async () => {
-      const run = await harness().run(['db', 'update', '--yes', '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--yes', '--json'], {
         cwd: projectDir,
         isTty: { stdin: true },
       });
@@ -305,9 +305,12 @@ describe('db update consent', () => {
     });
 
     it('does not stop --confirm from granting', async () => {
-      const run = await harness().run(['db', 'update', '--yes', '--confirm', TOKEN, '--json'], {
-        cwd: projectDir,
-      });
+      const run = await harness().run(
+        ['orm', 'db', 'update', '--yes', '--confirm', TOKEN, '--json'],
+        {
+          cwd: projectDir,
+        },
+      );
 
       expect(run.exitCode).toBe(0);
       expect(applyCalls().map((call) => call.consent)).toEqual([
@@ -331,7 +334,7 @@ describe('db update consent', () => {
         ),
       );
 
-      const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+      const run = await harness().run(['orm', 'db', 'update', '--json'], { cwd: projectDir });
 
       expect(envelopeOf(run.json)).toMatchObject({
         ok: false,
@@ -354,7 +357,7 @@ describe('db update consent', () => {
         ),
       );
 
-      const run = await harness().run(['db', 'update', '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--json'], {
         cwd: projectDir,
         isTty: { stdin: true },
         answers: [TOKEN],
@@ -381,7 +384,7 @@ describe('db update consent', () => {
         ),
       );
 
-      const run = await harness().run(['db', 'update', '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--json'], {
         cwd: projectDir,
         isTty: { stdin: true },
         answers: [TOKEN],
@@ -408,7 +411,7 @@ describe('db update consent', () => {
           ),
         );
 
-      const run = await harness().run(['db', 'update', '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--json'], {
         cwd: projectDir,
         isTty: { stdin: true },
         answers: [TOKEN],
@@ -426,7 +429,7 @@ describe('db update consent', () => {
     });
 
     it('carries the consented plan through the re-run untouched', async () => {
-      const run = await harness().run(['db', 'update', '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--json'], {
         cwd: projectDir,
         isTty: { stdin: true },
         answers: [TOKEN],
@@ -439,7 +442,7 @@ describe('db update consent', () => {
 
   describe('--dry-run', () => {
     it('never asks, even when the plan call comes back destructive', async () => {
-      const run = await harness().run(['db', 'update', '--dry-run', '--json'], {
+      const run = await harness().run(['orm', 'db', 'update', '--dry-run', '--json'], {
         cwd: projectDir,
         isTty: { stdin: true },
         answers: [TOKEN],
@@ -461,7 +464,7 @@ describe('db update consent', () => {
     });
 
     it('applies without asking, even non-interactively', async () => {
-      const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+      const run = await harness().run(['orm', 'db', 'update', '--json'], { cwd: projectDir });
 
       expect(run.exitCode).toBe(0);
       expect(applyCalls()).toHaveLength(1);
@@ -470,7 +473,9 @@ describe('db update consent', () => {
     });
 
     it('plans without asking under --dry-run', async () => {
-      const run = await harness().run(['db', 'update', '--dry-run', '--json'], { cwd: projectDir });
+      const run = await harness().run(['orm', 'db', 'update', '--dry-run', '--json'], {
+        cwd: projectDir,
+      });
 
       expect(run.exitCode).toBe(0);
       expect(mocks.dbUpdate).toHaveBeenCalledWith(expect.objectContaining({ mode: 'plan' }));

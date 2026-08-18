@@ -32,7 +32,7 @@ describe('migration new', () => {
   it('settles as a completed envelope carrying the scaffold document', async () => {
     const project = await createOfflineProject({ storageHash: HASH_TO });
 
-    const run = await harness(project).run(['migration', 'new', '--name', 'split-name'], {
+    const run = await harness(project).run(['orm', 'migration', 'new', '--name', 'split-name'], {
       cwd: project.dir,
     });
     const dirs = await scaffoldedDirs(project);
@@ -51,7 +51,7 @@ describe('migration new', () => {
   it('writes the package, its stub and the destination snapshot', async () => {
     const project = await createOfflineProject({ storageHash: HASH_TO });
 
-    await harness(project).run(['migration', 'new'], { cwd: project.dir });
+    await harness(project).run(['orm', 'migration', 'new'], { cwd: project.dir });
     const [dirName] = await scaffoldedDirs(project);
     const packageDir = join(project.appMigrationsDir, dirName ?? '');
 
@@ -66,7 +66,7 @@ describe('migration new', () => {
   it('presents the scaffold as a header, a confirmation and the contract edge', async () => {
     const project = await createOfflineProject({ storageHash: HASH_TO });
 
-    const run = await harness(project).run(['migration', 'new'], {
+    const run = await harness(project).run(['orm', 'migration', 'new'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -96,7 +96,7 @@ describe('migration new', () => {
   it('names editing and running the stub as the typed next actions', async () => {
     const project = await createOfflineProject({ storageHash: HASH_TO });
 
-    const run = await harness(project).run(['migration', 'new'], {
+    const run = await harness(project).run(['orm', 'migration', 'new'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -116,7 +116,7 @@ describe('migration new', () => {
   it('writes nothing to stdout in human mode', async () => {
     const project = await createOfflineProject({ storageHash: HASH_TO });
 
-    const run = await harness(project).run(['migration', 'new'], {
+    const run = await harness(project).run(['orm', 'migration', 'new'], {
       cwd: project.dir,
       isTty: { stdout: true, stderr: true },
     });
@@ -134,7 +134,9 @@ describe('migration new', () => {
       to: HASH_FROM,
     });
 
-    const run = await harness(project).run(['migration', 'new', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['orm', 'migration', 'new', '--json'], {
+      cwd: project.dir,
+    });
 
     expect(run.exitCode).toBe(0);
     expect(run.presented?.data).toMatchObject({ from: HASH_FROM, to: HASH_TO });
@@ -149,9 +151,12 @@ describe('migration new', () => {
       to: HASH_FROM,
     });
 
-    const run = await harness(project).run(['migration', 'new', '--from', 'beef1', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(project).run(
+      ['orm', 'migration', 'new', '--from', 'beef1', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(run.exitCode).toBe(0);
     expect(run.presented?.data).toMatchObject({ from: HASH_FROM });
@@ -166,9 +171,12 @@ describe('migration new', () => {
       to: HASH_FROM,
     });
 
-    const run = await harness(project).run(['migration', 'new', '--from', 'nope', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(project).run(
+      ['orm', 'migration', 'new', '--from', 'nope', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -186,7 +194,9 @@ describe('migration new', () => {
       to: HASH_TO,
     });
 
-    const run = await harness(project).run(['migration', 'new', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['orm', 'migration', 'new', '--json'], {
+      cwd: project.dir,
+    });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -204,9 +214,12 @@ describe('migration new', () => {
       to: HASH_TO,
     });
 
-    const run = await harness(project).run(['migration', 'new', '--from', HASH_TO, '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(project).run(
+      ['orm', 'migration', 'new', '--from', HASH_TO, '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(run.exitCode).toBe(0);
     expect(run.presented?.data).toMatchObject({ from: HASH_TO, to: HASH_TO });
@@ -220,7 +233,7 @@ describe('migration new', () => {
         source: { format: 'typescript', inputs: [], load: async () => ({}) },
         output: join(project.dir, 'output', 'missing.json'),
       },
-    }).run(['migration', 'new', '--json'], { cwd: project.dir });
+    }).run(['orm', 'migration', 'new', '--json'], { cwd: project.dir });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -234,7 +247,7 @@ describe('migration new', () => {
 
     const run = await harness(project, {
       ...offlineConfig({ project, targetSupportsMigrations: false }),
-    }).run(['migration', 'new', '--json'], { cwd: project.dir });
+    }).run(['orm', 'migration', 'new', '--json'], { cwd: project.dir });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -252,7 +265,9 @@ describe('migration new', () => {
       to: HASH_TO,
     });
 
-    const run = await harness(project).run(['migration', 'new', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['orm', 'migration', 'new', '--json'], {
+      cwd: project.dir,
+    });
     const terminal = run.json.at(-1);
     const envelope =
       terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;

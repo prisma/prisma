@@ -3,7 +3,7 @@
  * specifier into the name generated code should carry.
  *
  * Emission writes package names into files the user keeps — generated
- * contract types, scaffolded migrations, `prisma-next init` output. Which
+ * contract types, scaffolded migrations, `prisma orm init` output. Which
  * name is correct depends on how the application installed Prisma Next, so
  * every emitter resolves through an {@link ImportRoot} rather than hardcoding
  * a specifier. The mapping itself is `./shells`; nothing here duplicates it.
@@ -234,7 +234,7 @@ export function createImportSpecifierResolver(root: ImportRoot): ImportSpecifier
  * The import roots a scaffolded application can be generated against.
  *
  * `platform` is absent deliberately, and this is a modelling statement rather
- * than a limitation to be lifted: `prisma-next init` writes an application
+ * than a limitation to be lifted: `prisma orm init` writes an application
  * around a per-database facade, and that facade's `runtime` entrypoint is its
  * own wiring code, not a re-export of anything. A decomposed install has no
  * name for it because it has no such module — it wires the platform packages
@@ -244,7 +244,7 @@ export function createImportSpecifierResolver(root: ImportRoot): ImportSpecifier
 export type ScaffoldImportRoot = Extract<ImportRoot, { mode: 'internal' | 'facade' }>;
 
 /**
- * Builds the resolver `prisma-next init` scaffolds with. Identical to
+ * Builds the resolver `prisma orm init` scaffolds with. Identical to
  * {@link createImportSpecifierResolver} except that it will not accept a root
  * a scaffold cannot express, so the impossible case is rejected where the
  * resolver is made rather than when a template happens to hit a name.

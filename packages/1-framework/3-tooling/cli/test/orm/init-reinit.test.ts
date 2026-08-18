@@ -39,7 +39,7 @@ function envelopeOf(run: { readonly json: readonly { readonly kind: string }[] }
 }
 
 function scaffoldArgv(...extra: string[]): string[] {
-  return ['init', '--target', 'postgres', '--authoring', 'psl', ...extra];
+  return ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...extra];
 }
 
 function writeProjectFile(relative: string, content: string): void {
@@ -159,7 +159,7 @@ describe('re-scaffolding over an existing project', () => {
       'rejects an unknown --target before asking for anything',
       async () => {
         const run = await harness().run(
-          ['init', '--target', 'sqlite', '--authoring', 'psl', ...NO_PACKAGE_WORK],
+          ['orm', 'init', '--target', 'sqlite', '--authoring', 'psl', ...NO_PACKAGE_WORK],
           { cwd: projectDir },
         );
 

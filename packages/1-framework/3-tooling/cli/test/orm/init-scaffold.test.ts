@@ -33,7 +33,7 @@ function harness() {
 }
 
 function scaffoldArgv(...extra: string[]): string[] {
-  return ['init', '--target', 'postgres', '--authoring', 'psl', ...extra];
+  return ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...extra];
 }
 
 const SKIP_ALL = ['--skip-install', '--skip-skills'] as const;

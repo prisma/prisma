@@ -72,7 +72,7 @@ test/**/fixtures/generated/
 # Temp config written by scripts/regen-example-migrations.mjs during emit; it is
 # unlinked after each migration, but a signal-killed run must never leave one
 # committable.
-**/.prisma-next-regen.config.ts
+**/.prisma-regen.config.ts
 
 # Reference clones inside transient projects (browsing aids, not committed)
 projects/*/reference/

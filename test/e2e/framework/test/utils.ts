@@ -74,7 +74,7 @@ export async function emitAndVerifyContract(
   configPath: string,
   expectedContractJsonPath: string,
 ): Promise<Contract<SqlStorage>> {
-  await execFileAsync('node', [cliPath, 'contract', 'emit', '--config', configPath]);
+  await execFileAsync('node', [cliPath, 'orm', 'contract', 'emit', '--config', configPath]);
 
   // Read the emitted contract from the path specified in config.contract.output
   // For now, we'll read from expectedContractJsonPath since that's what the test expects

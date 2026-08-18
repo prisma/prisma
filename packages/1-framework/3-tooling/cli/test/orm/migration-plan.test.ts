@@ -78,7 +78,7 @@ describe('migration plan', () => {
   it('settles as a completed envelope carrying the plan document', async () => {
     const project = await plannableProject();
 
-    const run = await harness(project).run(['migration', 'plan', '--name', 'add-users'], {
+    const run = await harness(project).run(['orm', 'migration', 'plan', '--name', 'add-users'], {
       cwd: project.dir,
     });
     const dirs = await plannedDirs(project);
@@ -99,7 +99,7 @@ describe('migration plan', () => {
   it('presents the header, the planned operations and the contract edge', async () => {
     const project = await plannableProject();
 
-    const run = await harness(project).run(['migration', 'plan', '--name', 'add-users'], {
+    const run = await harness(project).run(['orm', 'migration', 'plan', '--name', 'add-users'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -133,7 +133,7 @@ describe('migration plan', () => {
 
     const run = await harness(project, {
       script: { operations: [ADDITIVE_OP, DESTRUCTIVE_OP] },
-    }).run(['migration', 'plan'], { cwd: project.dir, isTty: { stdout: true } });
+    }).run(['orm', 'migration', 'plan'], { cwd: project.dir, isTty: { stdout: true } });
     const blocks = run.presented?.presentation.human ?? [];
 
     expect(blocks[2]).toEqual({
@@ -158,7 +158,7 @@ describe('migration plan', () => {
   it('names reviewing and applying the migration as the typed next actions', async () => {
     const project = await plannableProject();
 
-    const run = await harness(project).run(['migration', 'plan'], {
+    const run = await harness(project).run(['orm', 'migration', 'plan'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -173,7 +173,7 @@ describe('migration plan', () => {
   it('reports no changes without writing a package', async () => {
     const project = await upToDateProject();
 
-    const run = await harness(project).run(['migration', 'plan'], {
+    const run = await harness(project).run(['orm', 'migration', 'plan'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -193,7 +193,7 @@ describe('migration plan', () => {
     await seedContractSnapshot({ migrationsDir: project.migrationsDir, storageHash: HASH_FROM });
     await seedDbRef({ appMigrationsDir: project.appMigrationsDir, storageHash: HASH_FROM });
 
-    const run = await harness(project).run(['migration', 'plan', '--name', 'delta'], {
+    const run = await harness(project).run(['orm', 'migration', 'plan', '--name', 'delta'], {
       cwd: project.dir,
     });
     const dirs = await plannedDirs(project);
@@ -249,7 +249,7 @@ describe('migration plan', () => {
           },
         ],
       },
-    }).run(['migration', 'plan', '--name', 'add-users'], {
+    }).run(['orm', 'migration', 'plan', '--name', 'add-users'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -272,7 +272,7 @@ describe('migration plan', () => {
   it('emits the total time only as a verbose message', async () => {
     const project = await plannableProject();
 
-    const run = await harness(project).run(['migration', 'plan'], { cwd: project.dir });
+    const run = await harness(project).run(['orm', 'migration', 'plan'], { cwd: project.dir });
 
     expect(run.events).toContainEqual({
       kind: 'message',
@@ -284,7 +284,7 @@ describe('migration plan', () => {
   it('writes nothing to stdout in human mode', async () => {
     const project = await plannableProject();
 
-    const run = await harness(project).run(['migration', 'plan'], {
+    const run = await harness(project).run(['orm', 'migration', 'plan'], {
       cwd: project.dir,
       isTty: { stdout: true, stderr: true },
     });
@@ -303,7 +303,7 @@ describe('migration plan', () => {
           output: join(project.dir, 'output', 'missing.json'),
         },
       },
-    }).run(['migration', 'plan', '--json'], { cwd: project.dir });
+    }).run(['orm', 'migration', 'plan', '--json'], { cwd: project.dir });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -317,7 +317,7 @@ describe('migration plan', () => {
 
     const run = await harness(project, {
       script: { conflicts: [{ kind: 'unsupportedChange', summary: 'cannot narrow this column' }] },
-    }).run(['migration', 'plan', '--json'], { cwd: project.dir });
+    }).run(['orm', 'migration', 'plan', '--json'], { cwd: project.dir });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -330,7 +330,7 @@ describe('migration plan', () => {
     const project = await plannableProject();
 
     const run = await harness(project).run(
-      ['migration', 'plan', '--from', `dead${'2'.repeat(60)}`, '--json'],
+      ['orm', 'migration', 'plan', '--from', `dead${'2'.repeat(60)}`, '--json'],
       { cwd: project.dir },
     );
 

@@ -145,7 +145,7 @@ describe('db update --to bundle resolution', () => {
     );
 
     const run = await harness(cwd).run(
-      ['db', 'update', '--to', dirNext, '--advance-ref', 'BAD NAME', '--json'],
+      ['orm', 'db', 'update', '--to', dirNext, '--advance-ref', 'BAD NAME', '--json'],
       { cwd },
     );
 
@@ -179,9 +179,12 @@ describe('db update --to bundle resolution', () => {
       }),
     );
 
-    const run = await harness(cwd).run(['db', 'update', '--to', dirNext, '--dry-run', '--json'], {
-      cwd,
-    });
+    const run = await harness(cwd).run(
+      ['orm', 'db', 'update', '--to', dirNext, '--dry-run', '--json'],
+      {
+        cwd,
+      },
+    );
 
     expect(run.exitCode).toBe(0);
     const callContract = mocks.dbUpdate.mock.calls[0]![0].contract as Record<string, unknown>;

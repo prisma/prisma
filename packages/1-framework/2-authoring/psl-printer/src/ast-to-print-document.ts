@@ -23,7 +23,7 @@ import type { PrinterField, PrinterModel, PrinterNamedType } from './types';
 // `contract emit` to produce the canonical artifacts. The header invites that
 // workflow rather than warning against it.
 const DEFAULT_AST_PRINT_HEADER =
-  '// use prisma-next\n// Contract inferred from the live database schema. Edit as needed, then run `prisma-next contract emit`.';
+  '// use prisma-next\n// Contract inferred from the live database schema. Edit as needed, then run `prisma orm contract emit`.';
 
 export function astDocumentToPrintDocument(ast: PslDocumentAst): PrintDocument {
   // FK dependencies are resolved across the whole document — a model in one

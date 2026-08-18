@@ -91,17 +91,19 @@ withTempDir(({ createTempDir }) => {
         writeFileSync(
           emptyConfigPath,
           `
-import { defineConfig } from '@prisma/orm-toolchain/cli/config-types';
+import { defineConfig } from '@prisma/cli-engine';
 import sql from '@prisma/orm-postgres/family/control';
 import postgres from '@prisma/orm-postgres/target/control';
 import postgresAdapter from '@prisma/orm-postgres/adapter/control';
 
 export default defineConfig({
-  family: sql,
-  target: postgres,
-  adapter: postgresAdapter,
-  extensions: [],
-} as any);
+  orm: {
+    family: sql,
+    target: postgres,
+    adapter: postgresAdapter,
+    extensions: [],
+  },
+});
 `,
           'utf-8',
         );

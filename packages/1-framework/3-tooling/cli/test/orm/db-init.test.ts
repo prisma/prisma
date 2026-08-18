@@ -135,7 +135,9 @@ function stepEvents(events: readonly EngineEvent[]): readonly EngineEvent[] {
 
 describe('db init', () => {
   it('settles as a completed envelope carrying the migration document', async () => {
-    const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+    const run = await harness(ormConfig()).run(['orm', 'db', 'init', '--json'], {
+      cwd: projectDir,
+    });
 
     expect(run.exitCode).toBe(0);
     expect(run.presented?.data).toMatchObject({
@@ -169,7 +171,9 @@ describe('db init', () => {
       },
     );
 
-    const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+    const run = await harness(ormConfig()).run(['orm', 'db', 'init', '--json'], {
+      cwd: projectDir,
+    });
 
     expect(stepEvents(run.events)).toEqual([
       { kind: 'step-started', step: 'Planning operations', id: 'plan' },
@@ -178,7 +182,7 @@ describe('db init', () => {
   });
 
   it('lays the applied operations out as a tree the engine draws', async () => {
-    const run = await harness(ormConfig()).run(['db', 'init'], {
+    const run = await harness(ormConfig()).run(['orm', 'db', 'init'], {
       cwd: projectDir,
       isTty: { stdout: true },
     });
@@ -223,7 +227,7 @@ describe('db init', () => {
   });
 
   it('renders the applied tree with the engine`s own connectors', async () => {
-    const run = await harness(ormConfig()).run(['db', 'init'], {
+    const run = await harness(ormConfig()).run(['orm', 'db', 'init'], {
       cwd: projectDir,
       isTty: { stdout: true, stderr: true },
     });
@@ -236,7 +240,7 @@ describe('db init', () => {
   });
 
   it('names the follow-up as a typed action instead of trailing prose', async () => {
-    const run = await harness(ormConfig()).run(['db', 'init'], {
+    const run = await harness(ormConfig()).run(['orm', 'db', 'init'], {
       cwd: projectDir,
       isTty: { stdout: true },
     });
@@ -256,7 +260,7 @@ describe('db init', () => {
     });
 
     it('plans without applying and says so', async () => {
-      const run = await harness(ormConfig()).run(['db', 'init', '--dry-run'], {
+      const run = await harness(ormConfig()).run(['orm', 'db', 'init', '--dry-run'], {
         cwd: projectDir,
         isTty: { stdout: true },
       });
@@ -277,7 +281,7 @@ describe('db init', () => {
     });
 
     it('shows the destination hash and the statement preview', async () => {
-      const run = await harness(ormConfig()).run(['db', 'init', '--dry-run'], {
+      const run = await harness(ormConfig()).run(['orm', 'db', 'init', '--dry-run'], {
         cwd: projectDir,
         isTty: { stdout: true },
       });
@@ -294,7 +298,7 @@ describe('db init', () => {
     });
 
     it('offers the apply as the next action', async () => {
-      const run = await harness(ormConfig()).run(['db', 'init', '--dry-run'], {
+      const run = await harness(ormConfig()).run(['orm', 'db', 'init', '--dry-run'], {
         cwd: projectDir,
         isTty: { stdout: true },
       });
@@ -309,7 +313,7 @@ describe('db init', () => {
     });
 
     it('marks the run as a dry run in the header', async () => {
-      const run = await harness(ormConfig()).run(['db', 'init', '--dry-run'], {
+      const run = await harness(ormConfig()).run(['orm', 'db', 'init', '--dry-run'], {
         cwd: projectDir,
         isTty: { stdout: true },
       });
@@ -323,7 +327,7 @@ describe('db init', () => {
   });
 
   it('takes the connection from --db over the config', async () => {
-    await harness(ormConfig()).run(['db', 'init', '--db', 'postgres://other/db', '--json'], {
+    await harness(ormConfig()).run(['orm', 'db', 'init', '--db', 'postgres://other/db', '--json'], {
       cwd: projectDir,
     });
 
@@ -331,7 +335,7 @@ describe('db init', () => {
   });
 
   it('errors when no connection is configured', async () => {
-    const run = await harness(ormConfig({ db: undefined })).run(['db', 'init', '--json'], {
+    const run = await harness(ormConfig({ db: undefined })).run(['orm', 'db', 'init', '--json'], {
       cwd: projectDir,
     });
 
@@ -345,7 +349,7 @@ describe('db init', () => {
   it('errors when the target has no migration runner', async () => {
     const run = await harness(
       ormConfig({ target: { ...DESCRIPTOR, kind: 'target', id: 'postgres' } }),
-    ).run(['db', 'init', '--json'], { cwd: projectDir });
+    ).run(['orm', 'db', 'init', '--json'], { cwd: projectDir });
 
     expect(run.exitCode).toBe(2);
     expect(envelopeOf(run.json)).toMatchObject({
@@ -362,7 +366,7 @@ describe('db init', () => {
           output: join(projectDir, 'absent.json'),
         },
       }),
-    ).run(['db', 'init', '--json'], { cwd: projectDir });
+    ).run(['orm', 'db', 'init', '--json'], { cwd: projectDir });
 
     expect(run.exitCode).toBe(2);
     expect(envelopeOf(run.json)).toMatchObject({
@@ -383,7 +387,9 @@ describe('db init', () => {
       }),
     );
 
-    const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+    const run = await harness(ormConfig()).run(['orm', 'db', 'init', '--json'], {
+      cwd: projectDir,
+    });
 
     expect(run.exitCode).toBe(2);
     expect(envelopeOf(run.json)).toMatchObject({
@@ -405,7 +411,9 @@ describe('db init', () => {
       }),
     );
 
-    const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+    const run = await harness(ormConfig()).run(['orm', 'db', 'init', '--json'], {
+      cwd: projectDir,
+    });
     const settled = JSON.stringify(run.json.at(-1));
 
     expect(run.exitCode).toBe(2);
@@ -419,7 +427,9 @@ describe('db init', () => {
       mocks.connect.mockRejectedValue(new Error('ECONNREFUSED 127.0.0.1:5432'));
       mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
 
-      const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+      const run = await harness(ormConfig()).run(['orm', 'db', 'init', '--json'], {
+        cwd: projectDir,
+      });
       const settled = JSON.stringify(run.json.at(-1));
 
       expect(run.exitCode).toBe(2);
@@ -430,7 +440,9 @@ describe('db init', () => {
     it('does not turn a successful apply into a failure', async () => {
       mocks.close.mockRejectedValue(new Error('close failed'));
 
-      const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+      const run = await harness(ormConfig()).run(['orm', 'db', 'init', '--json'], {
+        cwd: projectDir,
+      });
 
       expect(run.exitCode).toBe(0);
       expect(envelopeOf(run.json)).toMatchObject({ ok: true });

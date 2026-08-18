@@ -24,7 +24,7 @@ describe('errors.ts — converted factories carry typed nextActions', () => {
     const error = errorInvalidRefValue('not-a-hash');
 
     expect(error.fix).toBe(
-      'Use a valid storage hash from `prisma-next contract emit` output or an existing migration.',
+      'Use a valid storage hash from `prisma orm contract emit` output or an existing migration.',
     );
     expect(error.nextActions).toEqual([
       {

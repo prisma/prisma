@@ -9,7 +9,7 @@
     "lint": "biome check . --error-on-warnings",
     "lint:fix": "biome check --write .",
     "lint:fix:unsafe": "biome check --write --unsafe .",
-    "emit": "prisma-next contract emit --config test/fixtures/prisma.config.ts && prisma-next contract emit --config test/sqlite/fixtures/prisma.config.ts",
+    "emit": "prisma orm contract emit --config test/fixtures/prisma.config.ts && prisma orm contract emit --config test/sqlite/fixtures/prisma.config.ts",
     "emit:check": "pnpm emit && git diff --exit-code test/fixtures/generated/ test/sqlite/fixtures/generated/",
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },

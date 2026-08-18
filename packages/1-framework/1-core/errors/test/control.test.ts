@@ -132,12 +132,12 @@ describe('CliStructuredError', () => {
     it('keeps fix alongside nextActions — both survive the transition', () => {
       const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error', {
         why: 'No config file',
-        fix: "Run 'prisma-next init' to create a config file",
+        fix: "Run 'prisma orm init' to create a config file",
         nextActions,
       });
       const envelope = error.toEnvelope();
 
-      expect(envelope.fix).toBe("Run 'prisma-next init' to create a config file");
+      expect(envelope.fix).toBe("Run 'prisma orm init' to create a config file");
       expect(envelope.nextActions).toEqual(nextActions);
     });
   });
@@ -279,14 +279,14 @@ describe('Config Errors', () => {
 
   it('errorDatabaseConnectionRequired with commandName shows fully copyable command', () => {
     const error = errorDatabaseConnectionRequired({ commandName: 'db init' });
-    expect(error.fix).toContain('Run `prisma-next db init --db <url>`');
+    expect(error.fix).toContain('Run `prisma orm db init --db <url>`');
   });
 
   it('errorDatabaseConnectionRequired with retryCommand preserves command flags', () => {
     const error = errorDatabaseConnectionRequired({
-      retryCommand: 'prisma-next db verify --schema-only --strict --db <url>',
+      retryCommand: 'prisma orm db verify --schema-only --strict --db <url>',
     });
-    expect(error.fix).toContain('Run `prisma-next db verify --schema-only --strict --db <url>`');
+    expect(error.fix).toContain('Run `prisma orm db verify --schema-only --strict --db <url>`');
   });
 
   it('errorQueryRunnerFactoryRequired creates correct error', () => {

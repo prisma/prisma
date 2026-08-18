@@ -2,10 +2,7 @@ import { realpathSync } from 'node:fs';
 import { access } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import {
-  hasCurrentConfigFormatVersion,
-  type PrismaNextConfig,
-} from '@internal/config/config-types';
+import type { PrismaNextConfig } from '@internal/config/config-types';
 import type { ConfigSection } from '@internal/config/config-validation';
 import { collectConfigIssues } from '@internal/config/config-validation';
 import { getEmittedArtifactPaths } from '@internal/emitter';
@@ -24,30 +21,8 @@ import { basename, dirname, join, resolve } from 'pathe';
 import { finalizeContractConfig, finalizeMigrationsConfig } from './finalize-config';
 
 const CONFIG_FILENAME = 'prisma.config.ts';
-const DEPRECATED_CONFIG_FILENAME = 'prisma-next.config.ts';
 
 export type { ConfigSection };
-
-/** A deprecated spelling the loader accepted; callers surface it as a warning. */
-export interface ConfigDeprecation {
-  readonly code: 'CONFIG.DEPRECATED_FILENAME' | 'CONFIG.DEPRECATED_SHAPE';
-  readonly message: string;
-}
-
-function deprecatedFilenameWarning(): ConfigDeprecation {
-  return {
-    code: 'CONFIG.DEPRECATED_FILENAME',
-    message: `${DEPRECATED_CONFIG_FILENAME} is deprecated; rename the file to ${CONFIG_FILENAME}.`,
-  };
-}
-
-function deprecatedShapeWarning(): ConfigDeprecation {
-  return {
-    code: 'CONFIG.DEPRECATED_SHAPE',
-    message:
-      'The flat Prisma Next config shape is deprecated; wrap it in an `orm` section with defineConfig from @prisma/cli-engine: export default defineConfig({ orm: { … } }).',
-  };
-}
 
 /**
  * A successfully evaluated config plus the structural diagnostics found in it.
@@ -59,18 +34,15 @@ function deprecatedShapeWarning(): ConfigDeprecation {
 export interface LoadedConfig {
   readonly config: PrismaNextConfig;
   readonly diagnostics: readonly CliStructuredError[];
-  readonly deprecations: readonly ConfigDeprecation[];
 }
 
 export async function findNearestConfigPathForFile(filePath: string): Promise<string | undefined> {
   let current = dirname(resolve(process.cwd(), filePath));
 
   while (true) {
-    for (const filename of [CONFIG_FILENAME, DEPRECATED_CONFIG_FILENAME]) {
-      const candidate = join(current, filename);
-      if (await fileExists(candidate)) {
-        return candidate;
-      }
+    const candidate = join(current, CONFIG_FILENAME);
+    if (await fileExists(candidate)) {
+      return candidate;
     }
     const parent = dirname(current);
     if (parent === current) {
@@ -127,10 +99,7 @@ function collectArtifactCollisionDiagnostics(
   return [];
 }
 
-function buildLoadedConfig(
-  rawConfig: Record<string, unknown>,
-  configDir: string,
-): Omit<LoadedConfig, 'deprecations'> {
+function buildLoadedConfig(rawConfig: Record<string, unknown>, configDir: string): LoadedConfig {
   const issues = collectConfigIssues(rawConfig);
   const diagnostics = issues.map((issue) =>
     errorConfigValidation(issue.field, { why: issue.message, section: issue.section }),
@@ -194,12 +163,11 @@ function toConfigLoadFailure(error: unknown, configPath?: string): CliStructured
  * fail only on the sections they read (via {@link requireConfigSections}).
  */
 /**
- * Imports c12 by the realpath of its entry file. Under pnpm, resolving the
- * bare specifier can pin c12 at its symlinked node_modules path — Node's
- * synchronous ESM linker and some resolver states skip the realpath step —
- * and from that path c12's own dependencies (`dotenv`) do not resolve, which
- * fails every config load with CONFIG.EVALUATION_FAILED. Anchoring the import
- * at the real on-disk location keeps every transitive resolution working.
+ * c12 is resolved to its real on-disk entry before importing: jiti (inside
+ * c12) resolves its own transitive imports from the importing file's location,
+ * and a symlinked install (pnpm) would otherwise anchor them somewhere the
+ * packages are not. Importing at the real location keeps every transitive
+ * resolution working.
  */
 async function importC12(): Promise<typeof import('c12')> {
   const entry = realpathSync(createRequire(import.meta.url).resolve('c12'));
@@ -214,25 +182,11 @@ export async function loadConfig(
   const resolvedConfigPath = configPath ? resolve(cwd, configPath) : undefined;
   const configCwd = resolvedConfigPath ? dirname(resolvedConfigPath) : cwd;
 
-  const deprecations: ConfigDeprecation[] = [];
-  let discoveryName = 'prisma';
-  if (resolvedConfigPath === undefined) {
-    if (
-      !(await fileExists(join(configCwd, CONFIG_FILENAME))) &&
-      (await fileExists(join(configCwd, DEPRECATED_CONFIG_FILENAME)))
-    ) {
-      discoveryName = 'prisma-next';
-      deprecations.push(deprecatedFilenameWarning());
-    }
-  } else if (basename(resolvedConfigPath) === DEPRECATED_CONFIG_FILENAME) {
-    deprecations.push(deprecatedFilenameWarning());
-  }
-
   let result: Awaited<ReturnType<typeof import('c12').loadConfig<Record<string, unknown>>>>;
   try {
     const c12 = await importC12();
     result = await c12.loadConfig<Record<string, unknown>>({
-      name: discoveryName,
+      name: 'prisma',
       ...ifDefined('configFile', resolvedConfigPath),
       cwd: configCwd,
     });
@@ -253,10 +207,9 @@ export async function loadConfig(
   /* v8 ignore next -- @preserve */
   const loadedConfigDir = result.configFile ? dirname(result.configFile) : configCwd;
 
-  // c12's merge drops non-enumerable properties, so both markers are read
-  // from the raw module export in c12's first layer — the requested config
-  // file. (`extends` bases and rc files follow it, and their markers must not
-  // vouch for a file that does not carry one itself.)
+  // The marker is read from the raw module export in c12's first layer — the
+  // requested config file. (`extends` bases and rc files follow it, and their
+  // markers must not vouch for a file that does not carry one itself.)
   /* v8 ignore next -- c12 always returns layers for a config it evaluated */
   const [requestedLayer] = result.layers ?? [];
   const layerConfig = requestedLayer?.config;
@@ -280,17 +233,9 @@ export async function loadConfig(
             why: `The orm section of ${CONFIG_FILENAME} must be an object`,
           }),
         ],
-        deprecations,
       });
     }
-    return ok({ ...buildLoadedConfig(orm ?? {}, loadedConfigDir), deprecations });
-  }
-
-  // The deprecated flat shape: the whole Prisma Next config at top level,
-  // stamped by the target defineConfig's non-enumerable symbol marker.
-  if (hasCurrentConfigFormatVersion(layerConfig)) {
-    deprecations.push(deprecatedShapeWarning());
-    return ok({ ...buildLoadedConfig(result.config, loadedConfigDir), deprecations });
+    return ok(buildLoadedConfig(orm ?? {}, loadedConfigDir));
   }
 
   /* v8 ignore next -- a config that evaluated always carries its resolved path */
@@ -321,16 +266,10 @@ export function requireConfigSections(
 export async function loadConfigForSections(
   configPath: string | undefined,
   sections: readonly ConfigSection[],
-  options?: { readonly onDeprecation?: (deprecation: ConfigDeprecation) => void },
 ): Promise<Result<PrismaNextConfig, CliStructuredError>> {
   const loaded = await loadConfig(configPath);
   if (!loaded.ok) {
     return loaded;
-  }
-  if (options?.onDeprecation) {
-    for (const deprecation of loaded.value.deprecations) {
-      options.onDeprecation(deprecation);
-    }
   }
   return requireConfigSections(loaded.value, sections);
 }

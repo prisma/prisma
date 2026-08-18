@@ -16,7 +16,7 @@ import { createContractEmitCommand } from '../../src/orm/contract/emit';
 const executeContractEmit = vi.fn<ContractEmitCommandDeps['executeContractEmit']>();
 
 const commands: MountedTree = {
-  'contract emit': createContractEmitCommand({ executeContractEmit }),
+  'orm contract emit': createContractEmitCommand({ executeContractEmit }),
 };
 const groups = BIN_GROUPS;
 
@@ -111,7 +111,7 @@ function countingLoader(config: Record<string, unknown> = ormConfig()): {
 
 describe('contract emit', () => {
   it('settles as a completed envelope carrying the emit document', async () => {
-    const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
+    const run = await harness().run(['orm', 'contract', 'emit', '--json'], { cwd: PROJECT_DIR });
 
     expect(run.exitCode).toBe(0);
     expect(run.json.at(-1)).toMatchObject({ kind: 'result', envelope: { ok: true, exitCode: 0 } });
@@ -132,7 +132,7 @@ describe('contract emit', () => {
   it('hands the operation the config the engine already loaded', async () => {
     const config = ormConfig();
 
-    await harness(config).run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
+    await harness(config).run(['orm', 'contract', 'emit', '--json'], { cwd: PROJECT_DIR });
 
     expect(executeContractEmit).toHaveBeenCalledTimes(1);
     expect(executeContractEmit.mock.calls[0]?.[0]).toMatchObject({
@@ -145,7 +145,7 @@ describe('contract emit', () => {
     const loader = countingLoader();
 
     const run = await createTestCli({ commands, groups, loadConfig: loader.loadConfig }).run(
-      ['contract', 'emit', '--json'],
+      ['orm', 'contract', 'emit', '--json'],
       { cwd: PROJECT_DIR },
     );
 
@@ -154,7 +154,7 @@ describe('contract emit', () => {
   });
 
   it('anchors the emitted artifacts on the config file rather than the process directory', async () => {
-    await harness().run(['contract', 'emit', '--json'], { cwd: '/somewhere/else' });
+    await harness().run(['orm', 'contract', 'emit', '--json'], { cwd: '/somewhere/else' });
 
     const call = executeContractEmit.mock.calls[0]?.[0];
     expect(call?.outputPath).toBeUndefined();
@@ -162,7 +162,7 @@ describe('contract emit', () => {
   });
 
   it('resolves a relative --output-path against the invocation directory', async () => {
-    await harness().run(['contract', 'emit', '--output-path', 'custom/dir', '--json'], {
+    await harness().run(['orm', 'contract', 'emit', '--output-path', 'custom/dir', '--json'], {
       cwd: PROJECT_DIR,
     });
 
@@ -172,7 +172,7 @@ describe('contract emit', () => {
   });
 
   it('passes an absolute --output-path verbatim', async () => {
-    await harness().run(['contract', 'emit', '--output-path', '/tmp/abs-out', '--json'], {
+    await harness().run(['orm', 'contract', 'emit', '--output-path', '/tmp/abs-out', '--json'], {
       cwd: PROJECT_DIR,
     });
 
@@ -185,7 +185,7 @@ describe('contract emit', () => {
     // Only stdout is a terminal. Marking stderr one too makes the engine read
     // the pair as a single screen and drop the stdout mirror to avoid drawing
     // it twice; leaving stdout off a terminal switches it to the JSON stream.
-    const run = await harness().run(['contract', 'emit'], {
+    const run = await harness().run(['orm', 'contract', 'emit'], {
       cwd: PROJECT_DIR,
       isTty: { stdout: true },
     });
@@ -200,7 +200,7 @@ describe('contract emit', () => {
   });
 
   it('ships the header, the outcome and the hashes as blocks', async () => {
-    const run = await harness().run(['contract', 'emit'], {
+    const run = await harness().run(['orm', 'contract', 'emit'], {
       cwd: PROJECT_DIR,
       isTty: { stdout: true },
     });
@@ -227,7 +227,7 @@ describe('contract emit', () => {
   });
 
   it('renders the blocks to stderr with the hashes lined up', async () => {
-    const run = await harness().run(['contract', 'emit'], {
+    const run = await harness().run(['orm', 'contract', 'emit'], {
       cwd: PROJECT_DIR,
       isTty: { stdout: true, stderr: true },
       columns: { stderr: 100 },
@@ -246,7 +246,7 @@ describe('contract emit', () => {
   it('omits the execution hash the emitter did not produce', async () => {
     executeContractEmit.mockResolvedValue(emitResult({ executionHash: undefined }));
 
-    const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
+    const run = await harness().run(['orm', 'contract', 'emit', '--json'], { cwd: PROJECT_DIR });
 
     expect(run.presented?.data).not.toHaveProperty('executionHash');
   });
@@ -268,7 +268,7 @@ describe('contract emit', () => {
       return Promise.resolve(emitResult());
     });
 
-    const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
+    const run = await harness().run(['orm', 'contract', 'emit', '--json'], { cwd: PROJECT_DIR });
 
     expect(run.events).toEqual([
       { kind: 'step-started', step: 'Resolving contract source...', id: 'resolveSource' },
@@ -291,7 +291,7 @@ describe('contract emit', () => {
       emitResult({ validationWarning: 'sample dependency warning' }),
     );
 
-    const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
+    const run = await harness().run(['orm', 'contract', 'emit', '--json'], { cwd: PROJECT_DIR });
 
     expect(run.exitCode).toBe(0);
     expect(run.events).toContainEqual({
@@ -310,7 +310,7 @@ describe('contract emit', () => {
       }),
     );
 
-    const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
+    const run = await harness().run(['orm', 'contract', 'emit', '--json'], { cwd: PROJECT_DIR });
     const terminal = run.json.at(-1);
     const envelope =
       terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
@@ -339,7 +339,7 @@ describe('contract emit', () => {
         }),
       );
 
-      const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
+      const run = await harness().run(['orm', 'contract', 'emit', '--json'], { cwd: PROJECT_DIR });
       const envelope = erroredEnvelope(run);
 
       expect(run.exitCode).toBe(2);
@@ -353,7 +353,7 @@ describe('contract emit', () => {
     it('settles a bare throw as CLI.UNEXPECTED at exit 2, not an engine bug at exit 1', async () => {
       executeContractEmit.mockRejectedValue(new Error('the emitter crashed'));
 
-      const run = await harness().run(['contract', 'emit', '--json'], { cwd: PROJECT_DIR });
+      const run = await harness().run(['orm', 'contract', 'emit', '--json'], { cwd: PROJECT_DIR });
 
       expect(run.exitCode).toBe(2);
       expect(erroredEnvelope(run).error).toMatchObject({

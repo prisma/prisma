@@ -146,7 +146,7 @@ function validateProviderResult(providerResult: unknown): ValidatedProviderResul
  * Canonical contract emit operation.
  *
  * This is the SINGLE publication path used by both the CLI command
- * (`prisma-next contract emit`) and the Vite plugin
+ * (`prisma orm contract emit`) and the Vite plugin
  * (`@internal/vite-plugin-contract-emit`). New callers must go through this
  * function rather than re-implementing load → emit → publish.
  *

@@ -188,6 +188,9 @@ importers:
         specifier: ^8.21.2
         version: 8.21.3
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.1.1
+        version: 0.1.1(magicast@0.5.3)
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.3
         version: link:../../packages/0-config/tsconfig

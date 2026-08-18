@@ -29,7 +29,7 @@ describe('converted factories carry typed nextActions', () => {
   it('errorConfigFileNotFound', () => {
     const error = errorConfigFileNotFound();
 
-    expect(error.fix).toBe("Run 'prisma-next init' to create a config file");
+    expect(error.fix).toBe("Run 'prisma orm init' to create a config file");
     expect(error.nextActions).toEqual([
       { kind: 'run-command', label: 'Create a config file', command: '{bin} init' },
     ]);
@@ -39,7 +39,7 @@ describe('converted factories carry typed nextActions', () => {
     const error = errorContractValidationFailed('storage hash mismatch');
 
     expect(error.fix).toBe(
-      'Re-run `prisma-next contract emit`, or fix the contract file and try again',
+      'Re-run `prisma orm contract emit`, or fix the contract file and try again',
     );
     expect(error.nextActions).toEqual([
       { kind: 'run-command', label: 'Re-emit the contract', command: '{bin} contract emit' },
@@ -54,7 +54,7 @@ describe('converted factories carry typed nextActions', () => {
   it('errorMarkerMissing', () => {
     const error = errorMarkerMissing();
 
-    expect(error.fix).toBe('Run `prisma-next db sign --db <url>` to sign the database');
+    expect(error.fix).toBe('Run `prisma orm db sign --db <url>` to sign the database');
     expect(error.nextActions).toEqual([
       { kind: 'run-command', label: 'Sign the database', command: '{bin} db sign --db <url>' },
     ]);
@@ -81,7 +81,7 @@ describe('converted factories carry typed nextActions', () => {
   it('errorMarkerRequired defaults to signing the database', () => {
     const error = errorMarkerRequired();
 
-    expect(error.fix).toBe('Run `prisma-next db init` first to sign the database');
+    expect(error.fix).toBe('Run `prisma orm db init` first to sign the database');
     expect(error.nextActions).toEqual([
       { kind: 'run-command', label: 'Sign the database', command: '{bin} db init' },
     ]);
@@ -101,7 +101,7 @@ describe('converted factories carry typed nextActions', () => {
     });
 
     expect(error.fix).toBe(
-      'Run `prisma-next db update` to reconcile, or adjust your contract to match the database',
+      'Run `prisma orm db update` to reconcile, or adjust your contract to match the database',
     );
     expect(error.nextActions).toEqual([
       { kind: 'run-command', label: 'Reconcile the database', command: '{bin} db update' },
@@ -113,7 +113,7 @@ describe('converted factories carry typed nextActions', () => {
     const error = errorMigrationFileMissing('migrations/0001_init');
 
     expect(error.fix).toBe(
-      'Scaffold one with `prisma-next migration new` or `prisma-next migration plan`.',
+      'Scaffold one with `prisma orm migration new` or `prisma orm migration plan`.',
     );
     expect(error.nextActions).toEqual([
       {

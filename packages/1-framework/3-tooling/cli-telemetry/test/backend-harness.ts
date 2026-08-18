@@ -8,7 +8,7 @@ import { dirname, join, resolve } from 'pathe';
  * Shared end-to-end harness around the real Bun telemetry backend.
  *
  * Both `integration.test.ts` (which forks the sender script directly)
- * and `cli-e2e.test.ts` (which spawns the compiled `prisma-next` binary)
+ * and `cli-e2e.test.ts` (which spawns the compiled `prisma` binary)
  * stand up the same surface: a fresh dev Postgres database, the
  * backend's contract schema initialised against it, the
  * `apps/telemetry-backend` HTTP service started on an ephemeral port,
@@ -160,21 +160,10 @@ function runCommand(
 
 async function initializeBackendSchema(database: DevDatabase): Promise<void> {
   await runCommand(
-    'pnpm',
-    [
-      '--filter',
-      'telemetry-backend',
-      'exec',
-      'prisma-next',
-      'db',
-      'init',
-      '--db',
-      database.connectionString,
-      '--json',
-      '--no-color',
-    ],
+    'node',
+    [CLI_BIN_PATH, 'orm', 'db', 'init', '--db', database.connectionString, '--json', '--no-color'],
     {
-      cwd: REPO_ROOT,
+      cwd: BACKEND_DIR,
       env: { ...process.env, DATABASE_URL: database.connectionString },
     },
   );

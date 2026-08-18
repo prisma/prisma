@@ -21,7 +21,7 @@ Model points, lines, and polygons as first-class columns, query them with a type
 
 ## Responsibilities
 
-Geometry storage and query semantics: the `geometry` column type and its SRID parameter, GeoJSON-shaped runtime values, seven query operations (`distance`, `distanceSphere`, `dwithin`, `contains`, `within`, `intersects`, `intersectsBbox`), and the database-dependency declaration that makes `prisma-next db init` enable PostGIS before the first migration runs. Works with both PSL and TypeScript contract authoring.
+Geometry storage and query semantics: the `geometry` column type and its SRID parameter, GeoJSON-shaped runtime values, seven query operations (`distance`, `distanceSphere`, `dwithin`, `contains`, `within`, `intersects`, `intersectsBbox`), and the database-dependency declaration that makes `prisma orm db init` enable PostGIS before the first migration runs. Works with both PSL and TypeScript contract authoring.
 
 The PostGIS server extension must be installable on your PostgreSQL server. Most managed providers include it; locally, the `postgis/postgis` Docker image is the shortest route.
 

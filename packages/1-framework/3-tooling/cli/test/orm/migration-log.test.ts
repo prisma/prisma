@@ -95,7 +95,9 @@ describe('migration log', () => {
   it('settles as a completed envelope carrying the ledger document', async () => {
     mocks.readLedger.mockResolvedValue([ledgerEntry()]);
 
-    const run = await harness(ormConfig()).run(['migration', 'log', '--json'], { cwd: '/tmp' });
+    const run = await harness(ormConfig()).run(['orm', 'migration', 'log', '--json'], {
+      cwd: '/tmp',
+    });
 
     expect(run.exitCode).toBe(0);
     expect(run.json.at(-1)).toMatchObject({ kind: 'result', envelope: { ok: true, exitCode: 0 } });
@@ -119,7 +121,7 @@ describe('migration log', () => {
   it('ships the ledger as a table the engine sizes, masking the database', async () => {
     mocks.readLedger.mockResolvedValue([ledgerEntry()]);
 
-    const run = await harness(ormConfig()).run(['migration', 'log'], {
+    const run = await harness(ormConfig()).run(['orm', 'migration', 'log'], {
       cwd: '/tmp',
       isTty: { stdout: true },
     });
@@ -155,7 +157,7 @@ describe('migration log', () => {
   it('lines the table up under its headings', async () => {
     mocks.readLedger.mockResolvedValue([ledgerEntry()]);
 
-    const run = await harness(ormConfig()).run(['migration', 'log'], {
+    const run = await harness(ormConfig()).run(['orm', 'migration', 'log'], {
       cwd: '/tmp',
       isTty: { stdout: true, stderr: true },
     });
@@ -169,7 +171,7 @@ describe('migration log', () => {
   });
 
   it('reports an empty ledger with the empty-state line', async () => {
-    const run = await harness(ormConfig()).run(['migration', 'log'], {
+    const run = await harness(ormConfig()).run(['orm', 'migration', 'log'], {
       cwd: '/tmp',
       isTty: { stdout: true },
     });
@@ -183,17 +185,23 @@ describe('migration log', () => {
   });
 
   it('takes the connection from --db over the config', async () => {
-    await harness(ormConfig()).run(['migration', 'log', '--db', 'postgres://other/db', '--json'], {
-      cwd: '/tmp',
-    });
+    await harness(ormConfig()).run(
+      ['orm', 'migration', 'log', '--db', 'postgres://other/db', '--json'],
+      {
+        cwd: '/tmp',
+      },
+    );
 
     expect(mocks.connect).toHaveBeenCalledWith('postgres://other/db');
   });
 
   it('errors when no connection is configured', async () => {
-    const run = await harness(ormConfig({ db: undefined })).run(['migration', 'log', '--json'], {
-      cwd: '/tmp',
-    });
+    const run = await harness(ormConfig({ db: undefined })).run(
+      ['orm', 'migration', 'log', '--json'],
+      {
+        cwd: '/tmp',
+      },
+    );
     const terminal = run.json.at(-1);
     const envelope =
       terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
@@ -212,7 +220,7 @@ describe('migration log', () => {
     const run = await harness({
       ...config,
       target: { ...DESCRIPTOR, kind: 'target', id: 'postgres' },
-    }).run(['migration', 'log', '--json'], { cwd: '/tmp' });
+    }).run(['orm', 'migration', 'log', '--json'], { cwd: '/tmp' });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -224,7 +232,9 @@ describe('migration log', () => {
   it('closes the connection even when the ledger read fails', async () => {
     mocks.readLedger.mockRejectedValue(new Error('connection reset'));
 
-    const run = await harness(ormConfig()).run(['migration', 'log', '--json'], { cwd: '/tmp' });
+    const run = await harness(ormConfig()).run(['orm', 'migration', 'log', '--json'], {
+      cwd: '/tmp',
+    });
 
     expect(run.exitCode).toBe(2);
     expect(mocks.close).toHaveBeenCalled();
@@ -239,7 +249,9 @@ describe('migration log', () => {
       mocks.connect.mockRejectedValue(new Error('ECONNREFUSED 127.0.0.1:5432'));
       mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
 
-      const run = await harness(ormConfig()).run(['migration', 'log', '--json'], { cwd: '/tmp' });
+      const run = await harness(ormConfig()).run(['orm', 'migration', 'log', '--json'], {
+        cwd: '/tmp',
+      });
       const settled = JSON.stringify(run.json.at(-1));
 
       expect(run.exitCode).toBe(2);
@@ -251,7 +263,9 @@ describe('migration log', () => {
       mocks.readLedger.mockResolvedValue([ledgerEntry()]);
       mocks.close.mockRejectedValue(new Error('close failed'));
 
-      const run = await harness(ormConfig()).run(['migration', 'log', '--json'], { cwd: '/tmp' });
+      const run = await harness(ormConfig()).run(['orm', 'migration', 'log', '--json'], {
+        cwd: '/tmp',
+      });
 
       expect(run.exitCode).toBe(0);
       expect(run.json.at(-1)).toMatchObject({ kind: 'result', envelope: { ok: true } });

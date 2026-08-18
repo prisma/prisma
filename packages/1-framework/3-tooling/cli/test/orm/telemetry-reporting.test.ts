@@ -8,7 +8,7 @@ const summary: RunSummary = {
   exitCode: 2,
   durationMs: 12,
   snapshot: {
-    commandPath: ['migration', 'list'],
+    commandPath: ['orm', 'migration', 'list'],
     positionalCount: 0,
     flags: [{ name: 'json', source: 'cli' }],
   },
@@ -51,7 +51,7 @@ describe('resolveTelemetryHooks', () => {
     expect(fired[0]).toMatchObject({
       exitCode: 2,
       command: {
-        commandPath: ['prisma-next', 'migration', 'list'],
+        commandPath: ['prisma-next', 'orm', 'migration', 'list'],
         positionalArgs: [],
         options: [{ attributeName: 'json', longName: '--json', source: 'cli' }],
       },

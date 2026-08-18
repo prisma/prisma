@@ -63,6 +63,21 @@ function groupsFor(commands: MountedTree): Record<string, { readonly brief: stri
 }
 
 /**
+ * The ORM family mounted the way the real `prisma` bin mounts it: every
+ * command under `orm`, so the family's `orm …` redirect targets resolve.
+ * Shared by every helper that builds a test CLI over the family.
+ */
+export function ormEngineMount(): {
+  readonly commands: MountedTree;
+  readonly groups: Record<string, { readonly brief: string }>;
+} {
+  const commands = Object.fromEntries(
+    Object.entries(ormCommandFamily.commands).map(([path, command]) => [`orm ${path}`, command]),
+  );
+  return { commands, groups: groupsFor(commands) };
+}
+
+/**
  * Runs one CLI invocation through the engine's own harness.
  *
  * The harness takes config as an already-evaluated record and has no config
@@ -77,11 +92,11 @@ export async function runOnEngine(
   argv: readonly string[],
   options?: RunOnEngineOptions,
 ): Promise<EngineRunResult> {
-  const commands = ormCommandFamily.commands;
+  const { commands, groups } = ormEngineMount();
   const spec = {
     commandFamilies: [ormCommandFamily],
     commands,
-    groups: groupsFor(commands),
+    groups,
   };
 
   const cli = options?.settleConfigFailures
@@ -95,7 +110,7 @@ export async function runOnEngine(
       })
     : createTestCli({ ...spec, config: await evaluatedSections(project) });
 
-  const run = await cli.run(argv, {
+  const run = await cli.run(['orm', ...argv], {
     cwd: project.testDir,
     isTty: { stdout: options?.isTTY !== false, stderr: options?.isTTY !== false },
   });

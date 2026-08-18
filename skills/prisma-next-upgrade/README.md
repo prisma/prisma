@@ -16,7 +16,7 @@ pnpm dlx skills add prisma/prisma/skills --skill prisma-next-upgrade -y
 
 `--skill` selects this skill from the shared `skills` source and `-y` skips the confirmation prompt. To limit the install to one agent runtime, add `-a <agent>` (e.g. `-a claude-code`).
 
-The upgrade skill installs intentionally **unpinned** (always tracks `main`). Bug fixes to older per-transition upgrade instructions ship as part of the cumulative latest skill content; pinning to an older revision can apply a known-broken translation. The two upgrade skills are the only Prisma Next skills that are unpinned by design — the consolidated `prisma-8` usage skill installs pinned to the project's installed Prisma Next version (see [`prisma-next init`](../../packages/1-framework/3-tooling/cli/) for the canonical wiring).
+The upgrade skill installs intentionally **unpinned** (always tracks `main`). Bug fixes to older per-transition upgrade instructions ship as part of the cumulative latest skill content; pinning to an older revision can apply a known-broken translation. The two upgrade skills are the only Prisma Next skills that are unpinned by design — the consolidated `prisma-8` usage skill installs pinned to the project's installed Prisma Next version (see [`prisma orm init`](../../packages/1-framework/3-tooling/cli/) for the canonical wiring).
 
 ## Usage
 

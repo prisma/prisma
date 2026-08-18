@@ -6,7 +6,7 @@
   "type": "module",
   "sideEffects": false,
   "bin": {
-    "prisma-next": "./dist/bin.mjs"
+    "prisma": "./dist/bin.mjs"
   },
   "scripts": {
     "build": "tsdown",

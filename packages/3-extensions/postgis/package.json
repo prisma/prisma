@@ -6,7 +6,7 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "build:contract-space": "prisma-next contract emit",
+    "build:contract-space": "prisma orm contract emit",
     "build": "tsdown",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

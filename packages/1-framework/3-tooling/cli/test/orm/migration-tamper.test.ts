@@ -129,7 +129,7 @@ describe('migration tamper detection', () => {
     const project = await tamperedProject();
     const { config, counters } = driverConfig(project);
 
-    const run = await harness(config).run(['migrate', '--json'], { cwd: project.dir });
+    const run = await harness(config).run(['orm', 'migrate', '--json'], { cwd: project.dir });
 
     expectIntegrityRefusal(run);
     expect(counters.connections).toBe(0);
@@ -138,9 +138,12 @@ describe('migration tamper detection', () => {
   it('migration plan refuses before planning work', async () => {
     const project = await tamperedProject();
 
-    const run = await harness(offlineConfig({ project })).run(['migration', 'plan', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(offlineConfig({ project })).run(
+      ['orm', 'migration', 'plan', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expectIntegrityRefusal(run);
   });
@@ -149,7 +152,7 @@ describe('migration tamper detection', () => {
     const project = await tamperedProject();
     const { config } = driverConfig(project);
 
-    const run = await harness(config).run(['migration', 'status', '--json'], {
+    const run = await harness(config).run(['orm', 'migration', 'status', '--json'], {
       cwd: project.dir,
     });
 
@@ -161,7 +164,7 @@ describe('migration tamper detection', () => {
     await rm(project.contractPath);
     const { config } = driverConfig(project);
 
-    const run = await harness(config).run(['migration', 'status', '--json'], {
+    const run = await harness(config).run(['orm', 'migration', 'status', '--json'], {
       cwd: project.dir,
     });
 
@@ -175,7 +178,7 @@ describe('migration tamper detection', () => {
     const project = await tamperedProject();
 
     const run = await harness(offlineConfig({ project })).run(
-      ['migration', 'new', '--name', 'next', '--json'],
+      ['orm', 'migration', 'new', '--name', 'next', '--json'],
       { cwd: project.dir },
     );
 
@@ -197,7 +200,7 @@ describe('migration tamper detection', () => {
     await writeFile(join(orphanDir, 'contract.json'), JSON.stringify(contractJson(ORPHAN_HASH)));
 
     const run = await harness(offlineConfig({ project })).run(
-      ['migration', 'new', '--name', 'layout-drift-ok', '--json'],
+      ['orm', 'migration', 'new', '--name', 'layout-drift-ok', '--json'],
       { cwd: project.dir },
     );
 
@@ -212,7 +215,7 @@ describe('migration tamper detection', () => {
     const project = await tamperedProject();
 
     const run = await harness(offlineConfig({ project })).run(
-      ['migration', 'show', join('migrations', 'app', PACKAGE_DIR_NAME), '--json'],
+      ['orm', 'migration', 'show', join('migrations', 'app', PACKAGE_DIR_NAME), '--json'],
       { cwd: project.dir },
     );
 

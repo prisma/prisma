@@ -13,7 +13,7 @@ import {
 /**
  * Regression guard for TML-2485.
  *
- * When `prisma-next init --postgres|--mongo` ran on a default pnpm install
+ * When `prisma orm init --postgres|--mongo` ran on a default pnpm install
  * (`node-linker=isolated`), the generated `prisma/contract.ts` failed at
  * runtime with `ERR_MODULE_NOT_FOUND` because the templates imported from
  * `@internal/family-*`, `@internal/target-*`, and

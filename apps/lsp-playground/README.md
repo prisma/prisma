@@ -1,6 +1,6 @@
 # lsp-playground (private)
 
-A throwaway dev playground that opens a `.psl` file in a browser Monaco editor wired to the Prisma Next language server (`prisma-next lsp --stdio`) for live PSL diagnostics, folding ranges, whole-document formatting, and server-driven semantic tokens.
+A throwaway dev playground that opens a `.psl` file in a browser Monaco editor wired to the Prisma Next language server (`prisma orm lsp --stdio`) for live PSL diagnostics, folding ranges, whole-document formatting, and server-driven semantic tokens.
 
 It is a private, unpublished `apps/` package — not part of the framework build graph and exempt from `lint:deps` layering.
 
@@ -37,7 +37,7 @@ There is no `--config` flag: the language server discovers config purely by walk
 
 ```text
 Monaco editor + VS Code API shim  --LSP/WebSocket-->  ws bridge  --spawn+stdio-->  node cli.js lsp --stdio
-(monaco-languageclient + vscode-languageclient)       (vscode-ws-jsonrpc/server)   (prisma-next lsp)
+(monaco-languageclient + vscode-languageclient)       (vscode-ws-jsonrpc/server)   (prisma orm lsp)
 ```
 
 - `src/bridge.ts` — `ws` + `vscode-ws-jsonrpc/server` (`createServerProcess` + `forward`), adapted from the TypeFox example (MIT). Each browser WebSocket connection spawns `node <built-cli> lsp --stdio` and forwards JSON-RPC between the browser and the language server process.
@@ -50,7 +50,7 @@ The playground does not contain a PSL classifier. Semantic highlighting comes fr
 
 The client loads Monaco's VS Code theme service with the bundled Default Dark+ theme. A tiny local system extension contributes `semanticTokenScopes` for the `prisma` language so the server's standard semantic token types resolve to the theme's existing TextMate colors; it does not classify PSL or define a custom PSL color palette.
 
-Keep PSL meaning in the language server the `prisma-next lsp` command runs. If semantic-token traffic is present but colors are not visually distinct in Monaco, prefer the smallest Monaco-side setting or theme adjustment that enables standard semantic highlighting; do not add a playground-local tokenizer, custom token legend, CodeMirror adapter, or duplicate request loop.
+Keep PSL meaning in the language server the `prisma orm lsp` command runs. If semantic-token traffic is present but colors are not visually distinct in Monaco, prefer the smallest Monaco-side setting or theme adjustment that enables standard semantic highlighting; do not add a playground-local tokenizer, custom token legend, CodeMirror adapter, or duplicate request loop.
 
 ## Manual QA
 

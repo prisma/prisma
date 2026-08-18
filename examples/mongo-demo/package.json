@@ -6,9 +6,9 @@
     "node": ">=24"
   },
   "scripts": {
-    "emit": "prisma-next contract emit",
-    "migration:plan": "prisma-next migration plan",
-    "migration:apply": "prisma-next migration apply",
+    "emit": "prisma orm contract emit",
+    "migration:plan": "prisma orm migration plan",
+    "migration:apply": "prisma orm migrate",
     "db:seed": "tsx scripts/seed.ts",
     "dev:api": "tsx src/server.ts",
     "dev": "vite",

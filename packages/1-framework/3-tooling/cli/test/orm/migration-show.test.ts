@@ -104,7 +104,7 @@ describe('migration show', () => {
     await seedProject(dir);
 
     const run = await harness(ormConfig('contract.json')).run(
-      ['migration', 'show', MIGRATION_DIR, '--json'],
+      ['orm', 'migration', 'show', MIGRATION_DIR, '--json'],
       { cwd: dir },
     );
 
@@ -134,7 +134,7 @@ describe('migration show', () => {
     await seedProject(dir);
 
     const run = await harness(ormConfig('contract.json')).run(
-      ['migration', 'show', MIGRATION_DIR],
+      ['orm', 'migration', 'show', MIGRATION_DIR],
       {
         cwd: dir,
         isTty: { stdout: true },
@@ -192,7 +192,7 @@ describe('migration show', () => {
       }),
     };
 
-    const run = await harness(config).run(['migration', 'show', MIGRATION_DIR], {
+    const run = await harness(config).run(['orm', 'migration', 'show', MIGRATION_DIR], {
       cwd: dir,
       isTty: { stdout: true },
     });
@@ -208,7 +208,7 @@ describe('migration show', () => {
     await seedProject(dir);
 
     const run = await harness(ormConfig('contract.json')).run(
-      ['migration', 'show', MIGRATION_DIR],
+      ['orm', 'migration', 'show', MIGRATION_DIR],
       { cwd: dir, isTty: { stdout: true, stderr: true } },
     );
     const rendered = stripAnsi(run.stderr).split('\n');
@@ -238,7 +238,7 @@ describe('migration show', () => {
       }),
     };
 
-    const run = await harness(config).run(['migration', 'show', MIGRATION_DIR], {
+    const run = await harness(config).run(['orm', 'migration', 'show', MIGRATION_DIR], {
       cwd: dir,
       isTty: { stdout: true, stderr: true },
     });
@@ -254,7 +254,7 @@ describe('migration show', () => {
     await seedProject(dir);
 
     const run = await harness(ormConfig('contract.json')).run(
-      ['migration', 'show', MIGRATION_DIR, '--json'],
+      ['orm', 'migration', 'show', MIGRATION_DIR, '--json'],
       { cwd: dir },
     );
 
@@ -269,7 +269,7 @@ describe('migration show', () => {
     await seedProject(dir);
 
     const run = await harness(ormConfig('contract.json')).run(
-      ['migration', 'show', join('migrations', 'app', MIGRATION_DIR), '--json'],
+      ['orm', 'migration', 'show', join('migrations', 'app', MIGRATION_DIR), '--json'],
       { cwd: dir },
     );
 
@@ -282,7 +282,7 @@ describe('migration show', () => {
     await seedProject(dir);
 
     const run = await harness(ormConfig('contract.json')).run(
-      ['migration', 'show', join('migrations', 'pgvector', '0001-init'), '--json'],
+      ['orm', 'migration', 'show', join('migrations', 'pgvector', '0001-init'), '--json'],
       { cwd: dir },
     );
 
@@ -298,7 +298,7 @@ describe('migration show', () => {
     await seedProject(dir);
 
     const run = await harness(ormConfig('contract.json')).run(
-      ['migration', 'show', 'nonexistent123', '--json'],
+      ['orm', 'migration', 'show', 'nonexistent123', '--json'],
       { cwd: dir },
     );
     const terminal = run.json.at(-1);
@@ -320,7 +320,7 @@ describe('migration show', () => {
     );
 
     const run = await harness(ormConfig('contract.json')).run(
-      ['migration', 'show', 'anything', '--json'],
+      ['orm', 'migration', 'show', 'anything', '--json'],
       { cwd: dir },
     );
 
@@ -335,7 +335,7 @@ describe('migration show', () => {
     const dir = await projectDir();
 
     const run = await harness(ormConfig('contract.json')).run(
-      ['migration', 'show', MIGRATION_DIR, '--json'],
+      ['orm', 'migration', 'show', MIGRATION_DIR, '--json'],
       { cwd: dir },
     );
 
@@ -350,9 +350,12 @@ describe('migration show', () => {
     const dir = await projectDir();
     await seedProject(dir);
 
-    const run = await harness(ormConfig('contract.json')).run(['migration', 'show', '--json'], {
-      cwd: dir,
-    });
+    const run = await harness(ormConfig('contract.json')).run(
+      ['orm', 'migration', 'show', '--json'],
+      {
+        cwd: dir,
+      },
+    );
 
     expect(run.exitCode).not.toBe(0);
   });

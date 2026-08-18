@@ -30,7 +30,7 @@ pnpm add @internal/extension-pgvector
 
 ## Database Setup
 
-The pgvector extension ships an on-disk baseline migration in its contract space; applying that migration installs pgvector with `CREATE EXTENSION IF NOT EXISTS vector`. When the extension is composed into an application via `extensions`, `prisma-next db init` and `prisma-next db update` apply the baseline (and any subsequent migrations) automatically.
+The pgvector extension ships an on-disk baseline migration in its contract space; applying that migration installs pgvector with `CREATE EXTENSION IF NOT EXISTS vector`. When the extension is composed into an application via `extensions`, `prisma orm db init` and `prisma orm db update` apply the baseline (and any subsequent migrations) automatically.
 
 For manual database setup, the equivalent DDL is:
 

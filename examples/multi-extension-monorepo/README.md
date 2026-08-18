@@ -31,7 +31,7 @@ examples/multi-extension-monorepo/
 │       └── contract.d.ts                  ← emitted (do not edit)
 ├── packages/
 │   ├── audit/                           ← internal "package" #1
-│   │   ├── prisma.config.ts        ← `prisma-next contract emit` driver
+│   │   ├── prisma.config.ts        ← `prisma orm contract emit` driver
 │   │   ├── migrations/
 │   │   │   ├── refs/head.json           ← hand-pinned head ref
 │   │   │   └── <dir>/                   ← emitted migration package
@@ -65,14 +65,14 @@ Each internal "package" under `packages/` follows the **contract-space package l
 
    ```sh
    cd packages/<pkg>
-   pnpm exec prisma-next contract emit
+   pnpm exec prisma orm contract emit
    ```
 
    `prisma.config.ts` in the subdirectory wires the emit pipeline to the contract source.
 3. If the schema (or its set of typed objects) changed, scaffold a new migration directory:
 
    ```sh
-   pnpm exec prisma-next migration plan --name <slug>
+   pnpm exec prisma orm migration plan --name <slug>
    ```
 
    Then hand-edit the generated `migrations/<dir>/migration.ts`'s `operations` getter so each op carries the package's stable `<pkg>:<change>-vN` `invariantId` (invariant IDs cannot be renamed once published). Re-emit `ops.json` + `migration.json`:

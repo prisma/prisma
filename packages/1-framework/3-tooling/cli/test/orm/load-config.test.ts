@@ -25,18 +25,6 @@ function configModule(body: string): string {
   );
 }
 
-/** The deprecated flat shape, stamped the way the target defineConfigs do. */
-function flatConfigModule(body: string): string {
-  return [
-    `const config = ${body};`,
-    `Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), {`,
-    '  value: 1,',
-    '  enumerable: false,',
-    '});',
-    'export default config;',
-  ].join('\n');
-}
-
 const DESCRIPTOR = `{ kind: 'target', id: 'target-id', familyId: 'sql', targetId: 'postgres', version: '1.0.0', create: () => ({}) }`;
 
 const VALID_BODY = `{
@@ -142,7 +130,7 @@ describe('loadOrmConfig', () => {
 
     it('reports a missing version marker as file-level', async () => {
       const dir = projectDir();
-      writeFileSync(join(dir, 'prisma-next.config.ts'), 'export default { family: {} };', 'utf-8');
+      writeFileSync(join(dir, 'prisma.config.ts'), 'export default { family: {} };', 'utf-8');
 
       const loaded = await loadOrmConfig({ cwd: dir });
 
@@ -163,34 +151,6 @@ describe('loadOrmConfig', () => {
 
       expect(loaded.diagnostics).toEqual([]);
       expect(loaded.sections['orm']).toMatchObject({ migrations: { dir: 42 } });
-    });
-  });
-
-  describe('deprecated spellings', () => {
-    it('loads a flat-shape prisma-next.config.ts and warns once per deprecation', async () => {
-      const dir = projectDir();
-      writeFileSync(join(dir, 'prisma-next.config.ts'), flatConfigModule(VALID_BODY), 'utf-8');
-      const warnings: string[] = [];
-
-      const loaded = await loadOrmConfig({ cwd: dir, warn: (message) => warnings.push(message) });
-
-      expect(loaded.diagnostics).toEqual([]);
-      expect(loaded.path).toBe(join(dir, 'prisma-next.config.ts'));
-      expect(loaded.sections['orm']).toBeDefined();
-      expect(warnings).toEqual([
-        expect.stringContaining('prisma-next.config.ts is deprecated'),
-        expect.stringContaining('flat Prisma Next config shape is deprecated'),
-      ]);
-    });
-
-    it('does not warn for the primary filename and shape', async () => {
-      const dir = projectDir();
-      writeConfig(dir, VALID_BODY);
-      const warnings: string[] = [];
-
-      await loadOrmConfig({ cwd: dir, warn: (message) => warnings.push(message) });
-
-      expect(warnings).toEqual([]);
     });
   });
 });

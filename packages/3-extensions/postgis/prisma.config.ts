@@ -2,9 +2,9 @@
  * Prisma Next config for the `extension-postgis` package.
  *
  * The extension package is treated as a self-contained "project" for
- * the CLI: `prisma-next contract emit` writes
+ * the CLI: `prisma orm contract emit` writes
  * `<package>/src/contract.{json,d.ts}` (colocated with the
- * `src/contract.ts` source); `prisma-next migration plan` writes
+ * `src/contract.ts` source); `prisma orm migration plan` writes
  * `<package>/migrations/<dirName>/...`. The descriptor at
  * `src/exports/control.ts` then JSON-imports those artefacts.
  *

@@ -100,7 +100,9 @@ describe('migration check across spaces', () => {
     const project = await twoSpaceProject({});
     await seedDanglingRef(project.extMigrationsDir);
 
-    const run = await harness(project).run(['migration', 'check', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['orm', 'migration', 'check', '--json'], {
+      cwd: project.dir,
+    });
 
     expect(run.exitCode).toBe(4);
     const failures = documentOf(run).failures.filter(
@@ -119,7 +121,9 @@ describe('migration check across spaces', () => {
       invariants: [],
     });
 
-    const run = await harness(project).run(['migration', 'check', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['orm', 'migration', 'check', '--json'], {
+      cwd: project.dir,
+    });
 
     expect(run.exitCode).toBe(0);
     expect(documentOf(run)).toEqual({ ok: true, failures: [], summary: 'All checks passed' });
@@ -143,7 +147,9 @@ describe('migration check across spaces', () => {
     await seedHeadRef(extMigrationsDir, HASH_EXT);
     await seedContractSnapshot({ migrationsDir: project.migrationsDir, storageHash: HASH_EXT });
 
-    const run = await harness(project).run(['migration', 'check', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['orm', 'migration', 'check', '--json'], {
+      cwd: project.dir,
+    });
 
     expect(run.exitCode).toBe(4);
     const unreachable = documentOf(run).failures.filter(
@@ -158,9 +164,12 @@ describe('migration check across spaces', () => {
     await seedDanglingRef(project.appMigrationsDir);
     await seedDanglingRef(project.extMigrationsDir);
 
-    const run = await harness(project).run(['migration', 'check', '--space', 'postgis', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(project).run(
+      ['orm', 'migration', 'check', '--space', 'postgis', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(run.exitCode).toBe(4);
     const failures = documentOf(run).failures.filter(
@@ -175,9 +184,12 @@ describe('migration check across spaces', () => {
     await seedDanglingRef(project.appMigrationsDir);
     await seedDanglingRef(project.extMigrationsDir);
 
-    const run = await harness(project).run(['migration', 'check', '--space', 'app', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(project).run(
+      ['orm', 'migration', 'check', '--space', 'app', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(run.exitCode).toBe(4);
     const failures = documentOf(run).failures.filter(
@@ -192,10 +204,10 @@ describe('migration check across spaces', () => {
     await corruptStoredHash(join(project.appMigrationsDir, '20260101T0000_app_init'));
 
     const narrowed = await harness(project).run(
-      ['migration', 'check', '--space', 'postgis', '--json'],
+      ['orm', 'migration', 'check', '--space', 'postgis', '--json'],
       { cwd: project.dir },
     );
-    const whole = await harness(project).run(['migration', 'check', '--json'], {
+    const whole = await harness(project).run(['orm', 'migration', 'check', '--json'], {
       cwd: project.dir,
     });
 
@@ -215,7 +227,7 @@ describe('migration check with a single target across spaces', () => {
     const project = await twoSpaceProject({});
 
     const run = await harness(project).run(
-      ['migration', 'check', '20260601T0000_install_postgis', '--json'],
+      ['orm', 'migration', 'check', '20260601T0000_install_postgis', '--json'],
       { cwd: project.dir },
     );
 
@@ -227,7 +239,15 @@ describe('migration check with a single target across spaces', () => {
     const project = await twoSpaceProject({});
 
     const run = await harness(project).run(
-      ['migration', 'check', '20260601T0000_install_postgis', '--space', 'postgis', '--json'],
+      [
+        'orm',
+        'migration',
+        'check',
+        '20260601T0000_install_postgis',
+        '--space',
+        'postgis',
+        '--json',
+      ],
       { cwd: project.dir },
     );
 
@@ -239,7 +259,7 @@ describe('migration check with a single target across spaces', () => {
     const project = await twoSpaceProject({});
 
     const run = await harness(project).run(
-      ['migration', 'check', '20260601T0000_install_postgis', '--space', 'app', '--json'],
+      ['orm', 'migration', 'check', '20260601T0000_install_postgis', '--space', 'app', '--json'],
       { cwd: project.dir },
     );
 
@@ -254,7 +274,7 @@ describe('migration check with a single target across spaces', () => {
     });
 
     const run = await harness(project).run(
-      ['migration', 'check', '20260101T0000_shared_name', '--json'],
+      ['orm', 'migration', 'check', '20260101T0000_shared_name', '--json'],
       { cwd: project.dir },
     );
 
@@ -277,7 +297,7 @@ describe('migration check with a single target across spaces', () => {
     });
 
     const run = await harness(project).run(
-      ['migration', 'check', 'db', '--space', 'postgis', '--json'],
+      ['orm', 'migration', 'check', 'db', '--space', 'postgis', '--json'],
       { cwd: project.dir },
     );
 
@@ -292,7 +312,7 @@ describe('migration check with a single target across spaces', () => {
       invariants: [],
     });
 
-    const run = await harness(project).run(['migration', 'check', 'dbref', '--json'], {
+    const run = await harness(project).run(['orm', 'migration', 'check', 'dbref', '--json'], {
       cwd: project.dir,
     });
     const terminal = run.json.at(-1);
@@ -311,7 +331,7 @@ describe('migration check with a path target', () => {
     const project = await twoSpaceProject({});
 
     const run = await harness(project).run(
-      ['migration', 'check', './migrations/app/20260101T0000_app_init', '--json'],
+      ['orm', 'migration', 'check', './migrations/app/20260101T0000_app_init', '--json'],
       { cwd: project.dir },
     );
 
@@ -323,7 +343,13 @@ describe('migration check with a path target', () => {
     const project = await twoSpaceProject({});
 
     const run = await harness(project).run(
-      ['migration', 'check', join(project.migrationsDir, 'cipherstash', '00001_init'), '--json'],
+      [
+        'orm',
+        'migration',
+        'check',
+        join(project.migrationsDir, 'cipherstash', '00001_init'),
+        '--json',
+      ],
       { cwd: project.dir },
     );
 
@@ -342,9 +368,12 @@ describe('migration check snapshot consistency', () => {
       to: MALFORMED_HASH,
     });
 
-    const run = await harness(project, { declared: false }).run(['migration', 'check', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(project, { declared: false }).run(
+      ['orm', 'migration', 'check', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(run.exitCode).toBe(4);
     const failure = documentOf(run).failures.find(

@@ -21,7 +21,7 @@ The canonical map from internal workspace packages to the published `@prisma/orm
 
 Two consumers read this table and nothing copies it: the shell build (`@repo/tsdown/shell-build`), which turns each mapping into a generated entrypoint, and the CLI, which turns a project's manifest into a resolver.
 
-Emission itself does **not** read it. The contract emitters, the targets' migration renderers, and `prisma-next init` each receive an opaque `ImportSpecifierResolver` — a `(specifier) => string` declared in `@internal/framework-components/emission` — and never learn what the published names are. That keeps `packages/1-framework` free of family and target vocabulary, and keeps this package out of every published bundle. Whoever chooses the root builds the resolver here and passes it in.
+Emission itself does **not** read it. The contract emitters, the targets' migration renderers, and `prisma orm init` each receive an opaque `ImportSpecifierResolver` — a `(specifier) => string` declared in `@internal/framework-components/emission` — and never learn what the published names are. That keeps `packages/1-framework` free of family and target vocabulary, and keeps this package out of every published bundle. Whoever chooses the root builds the resolver here and passes it in.
 
 ## Why the name is declared, not read from disk
 

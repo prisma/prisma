@@ -297,7 +297,7 @@ export function errorNoTarget(reachableHashes: readonly string[]): MigrationTool
 export function errorInvalidRefValue(value: string): MigrationToolsError {
   return new MigrationToolsError('MIGRATION.INVALID_REF_VALUE', 'Invalid ref value', {
     why: `Ref value "${value}" is not a valid contract hash. Values must be a 64-character hex digest or "empty".`,
-    fix: 'Use a valid storage hash from `prisma-next contract emit` output or an existing migration.',
+    fix: 'Use a valid storage hash from `prisma orm contract emit` output or an existing migration.',
     nextActions: [
       {
         kind: 'run-command',
@@ -471,7 +471,7 @@ export function errorRefNotResolvable(refName: string): MigrationToolsError {
     `Ref "${refName}" is not resolvable`,
     {
       why: `Ref "${refName}" has no pointer file, and the hash being resolved is not a node in the migration graph either — there is nothing to materialize a contract from.`,
-      fix: `Create the ref with "prisma-next ref set ${refName} <hash>" (or advance it via "prisma-next db update --advance-ref ${refName}"), or pass a hash that is a node in the migration graph.`,
+      fix: `Create the ref with "prisma orm ref set ${refName} <hash>" (or advance it via "prisma orm db update --advance-ref ${refName}"), or pass a hash that is a node in the migration graph.`,
       nextActions: [
         {
           kind: 'run-command',
@@ -532,7 +532,7 @@ export function errorHashNotInGraph(hash: string, graph: MigrationGraph): Migrat
     `Hash "${hash}" is not a node in the migration graph`,
     {
       why: `The migration graph contains nodes ${reachableList}; "${hash}" isn't one of them.`,
-      fix: `Pass a hash that's the from-or-to of an on-disk migration bundle, use --from with a graph-node hash, or run "prisma-next migration plan" to introduce it.`,
+      fix: `Pass a hash that's the from-or-to of an on-disk migration bundle, use --from with a graph-node hash, or run "prisma orm migration plan" to introduce it.`,
       nextActions: [
         {
           kind: 'user-choice',
@@ -560,7 +560,7 @@ export function errorContractSnapshotMissing(
     'Contract snapshot is missing',
     {
       why: `Expected a contract snapshot for ${storageHash} at "${expectedPath}" but the file does not exist.`,
-      fix: "Re-emit the contract snapshot by re-running the command that authored the migration referencing this hash (`prisma-next migration plan` for app-space migrations; the extension's contract-space build for extension spaces), or restore migrations/snapshots/ from version control.",
+      fix: "Re-emit the contract snapshot by re-running the command that authored the migration referencing this hash (`prisma orm migration plan` for app-space migrations; the extension's contract-space build for extension spaces), or restore migrations/snapshots/ from version control.",
       nextActions: [
         {
           kind: 'run-command',

@@ -12,7 +12,7 @@ const emit = vi.fn();
 /** The production tree, with `init` rebuilt around the injected fake emit. */
 const commands: MountedTree = {
   ...BIN_COMMANDS,
-  init: createInitCommand({ emitScaffoldedContract: emit }),
+  'orm init': createInitCommand({ emitScaffoldedContract: emit }),
 };
 const groups = BIN_GROUPS;
 
@@ -60,7 +60,7 @@ function harness(packageManager?: PackageManagerId) {
 }
 
 function scaffoldArgv(...extra: string[]): string[] {
-  return ['init', '--target', 'postgres', '--authoring', 'psl', ...extra];
+  return ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...extra];
 }
 
 function envelopeOf(run: { readonly json: readonly { readonly kind: string }[] }) {

@@ -21,7 +21,7 @@ Node.js is the primary supported runtime. Bun and Deno are supported on a best-e
 | PostgreSQL | 15 |
 | MongoDB | 8.0 |
 
-The minimum version for each database is declared in the corresponding target package's `package.json` (`prismaNext.minServerVersion`) and mirrored in the CLI's `MIN_SERVER_VERSION` constant. A workspace-level test asserts these never drift. The `prisma-next init` scaffold generates a `.env.example` with a `# Requires <db> >= <version>` comment so fresh users see the requirement before they connect.
+The minimum version for each database is declared in the corresponding target package's `package.json` (`prismaNext.minServerVersion`) and mirrored in the CLI's `MIN_SERVER_VERSION` constant. A workspace-level test asserts these never drift. The `prisma orm init` scaffold generates a `.env.example` with a `# Requires <db> >= <version>` comment so fresh users see the requirement before they connect.
 
 ## TypeScript
 
@@ -44,7 +44,7 @@ Your project's `tsconfig.json` must set:
 }
 ```
 
-The `prisma-next init` command configures these automatically. If you are integrating Prisma Next into an existing project, the `prisma-next init --merge-tsconfig` flag applies these options non-destructively.
+The `prisma orm init` command configures these automatically. If you are integrating Prisma Next into an existing project, the `prisma orm init --merge-tsconfig` flag applies these options non-destructively.
 
 ## Module system
 

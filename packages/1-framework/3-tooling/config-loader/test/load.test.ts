@@ -12,19 +12,10 @@ vi.mock('@internal/emitter', async (importOriginal) => {
 });
 
 // Temp-dir fixtures cannot import @prisma/cli-engine or @internal/config, so
-// they stamp the markers structurally, the way the real defineConfigs do: the
-// engine's shape is the enumerable $prismaConfig key wrapping an `orm`
-// section; the deprecated flat shape is a non-enumerable well-known symbol.
+// they stamp the marker structurally, the way the real defineConfig does: an
+// enumerable $prismaConfig key wrapping an `orm` section.
 const NEW_SHAPE_STAMP = `
 export default { $prismaConfig: 1, orm: config };
-`;
-
-const FLAT_MARKER_STAMP = `
-Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), {
-  value: 1,
-  enumerable: false,
-});
-export default config;
 `;
 
 const CONFIG_BODY = `
@@ -66,8 +57,6 @@ const config = {
 `;
 
 const VALID_CONFIG_SOURCE = CONFIG_BODY + NEW_SHAPE_STAMP;
-
-const FLAT_CONFIG_SOURCE = CONFIG_BODY + FLAT_MARKER_STAMP;
 
 const INVALID_CONFIG_BODY = `
 const config = {
@@ -208,9 +197,8 @@ describe('loadConfig', () => {
 
       const result = await loadConfig();
 
-      const { config, diagnostics, deprecations } = result.assertOk();
+      const { config, diagnostics } = result.assertOk();
       expect(diagnostics).toEqual([]);
-      expect(deprecations).toEqual([]);
       expect(config.contract?.source.inputs).toEqual([join(tempDir, 'schema.prisma')]);
       expect(config.contract?.output).toBe(join(tempDir, 'generated', 'contract.json'));
     },
@@ -714,119 +702,6 @@ throw error;
           code: 'CONFIG.VALIDATION_FAILED',
           why: 'artifact path failure',
         }),
-      );
-    },
-    timeouts.typeScriptCompilation,
-  );
-});
-
-describe('deprecated config fallback', () => {
-  let originalCwd: string;
-  let tempDir: string;
-
-  beforeEach(() => {
-    originalCwd = process.cwd();
-    tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'prisma-8-config-deprecated-')));
-  });
-
-  afterEach(() => {
-    process.chdir(originalCwd);
-    rmSync(tempDir, { recursive: true, force: true });
-  });
-
-  it(
-    'accepts the flat shape in prisma.config.ts with a shape deprecation',
-    async () => {
-      writeFileSync(join(tempDir, 'prisma.config.ts'), FLAT_CONFIG_SOURCE);
-      process.chdir(tempDir);
-
-      const { config, diagnostics, deprecations } = (await loadConfig()).assertOk();
-
-      expect(diagnostics).toEqual([]);
-      expect(deprecations).toEqual([expect.objectContaining({ code: 'CONFIG.DEPRECATED_SHAPE' })]);
-      expect(config.target?.targetId).toBe('postgres');
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
-    'falls back to prisma-next.config.ts with a filename deprecation when prisma.config.ts is absent',
-    async () => {
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), VALID_CONFIG_SOURCE);
-      process.chdir(tempDir);
-
-      const { config, deprecations } = (await loadConfig()).assertOk();
-
-      expect(deprecations).toEqual([
-        expect.objectContaining({ code: 'CONFIG.DEPRECATED_FILENAME' }),
-      ]);
-      expect(config.target?.targetId).toBe('postgres');
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
-    'reports both deprecations for a flat-shape prisma-next.config.ts',
-    async () => {
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), FLAT_CONFIG_SOURCE);
-      process.chdir(tempDir);
-
-      const { deprecations } = (await loadConfig()).assertOk();
-
-      expect(deprecations).toEqual([
-        expect.objectContaining({ code: 'CONFIG.DEPRECATED_FILENAME' }),
-        expect.objectContaining({ code: 'CONFIG.DEPRECATED_SHAPE' }),
-      ]);
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
-    'prefers prisma.config.ts when both filenames exist',
-    async () => {
-      writeFileSync(join(tempDir, 'prisma.config.ts'), VALID_CONFIG_SOURCE);
-      writeFileSync(join(tempDir, 'prisma-next.config.ts'), INVALID_CONFIG_SOURCE);
-      process.chdir(tempDir);
-
-      const { diagnostics, deprecations } = (await loadConfig()).assertOk();
-
-      expect(diagnostics).toEqual([]);
-      expect(deprecations).toEqual([]);
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
-    'reports a filename deprecation when --config names prisma-next.config.ts explicitly',
-    async () => {
-      const configPath = join(tempDir, 'prisma-next.config.ts');
-      writeFileSync(configPath, VALID_CONFIG_SOURCE);
-
-      const { deprecations } = (await loadConfig(configPath)).assertOk();
-
-      expect(deprecations).toEqual([
-        expect.objectContaining({ code: 'CONFIG.DEPRECATED_FILENAME' }),
-      ]);
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
-    'walks to the deprecated filename from a PSL file, preferring the new name in the same directory',
-    async () => {
-      const appDir = join(tempDir, 'apps', 'shop');
-      const schemaPath = join(appDir, 'prisma', 'schema.psl');
-      mkdirSync(join(appDir, 'prisma'), { recursive: true });
-      writeFileSync(join(appDir, 'prisma-next.config.ts'), FLAT_CONFIG_SOURCE);
-
-      await expect(findNearestConfigPathForFile(schemaPath)).resolves.toBe(
-        join(appDir, 'prisma-next.config.ts'),
-      );
-
-      writeFileSync(join(appDir, 'prisma.config.ts'), VALID_CONFIG_SOURCE);
-
-      await expect(findNearestConfigPathForFile(schemaPath)).resolves.toBe(
-        join(appDir, 'prisma.config.ts'),
       );
     },
     timeouts.typeScriptCompilation,

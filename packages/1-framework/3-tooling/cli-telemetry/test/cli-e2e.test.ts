@@ -142,7 +142,7 @@ const V4_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f
 // A cheap run that errors but settles: `migration list` in a project
 // directory with no config file settles errored (CONFIG.FILE_NOT_FOUND)
 // at exit 2, which is exactly what the settlement hook reports.
-const SETTLING_COMMAND = ['migration', 'list'] as const;
+const SETTLING_COMMAND = ['orm', 'migration', 'list'] as const;
 
 describe('cli-telemetry e2e — engine bin against the real backend', () => {
   it('prisma-next --help on a fresh XDG_CONFIG_HOME writes no config.json and emits no event', async () => {
@@ -167,7 +167,7 @@ describe('cli-telemetry e2e — engine bin against the real backend', () => {
 
     expect(rows[0]?.installationId).toBe(installationId);
     expect(rows[0]?.installationId).toMatch(V4_UUID);
-    expect(rows[0]?.command).toBe('migration list');
+    expect(rows[0]?.command).toBe('orm migration list');
   });
 
   it('a second invocation reusing the same XDG_CONFIG_HOME produces a second row sharing the installationId', async () => {

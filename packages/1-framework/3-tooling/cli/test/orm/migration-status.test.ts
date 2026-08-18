@@ -123,9 +123,12 @@ describe('migration status', () => {
       ledger: [{ migrationHash: project.migrationHash }],
     });
 
-    const run = await harness(driverConfig(project, db)).run(['migration', 'status', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(driverConfig(project, db)).run(
+      ['orm', 'migration', 'status', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(run.exitCode).toBe(0);
     expect(run.json.at(-1)).toMatchObject({ kind: 'result', envelope: { ok: true, exitCode: 0 } });
@@ -149,9 +152,12 @@ describe('migration status', () => {
     await rm(project.contractPath);
     const db = fakeDatabase({ markers: markersAt(HASH_HEAD) });
 
-    const run = await harness(driverConfig(project, db)).run(['migration', 'status', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(driverConfig(project, db)).run(
+      ['orm', 'migration', 'status', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(run.exitCode).toBe(0);
     expect(codesAndSeverities(run.presented?.diagnostics ?? [])).toEqual([
@@ -167,9 +173,12 @@ describe('migration status', () => {
     const project = await projectWithOneMigration();
     const db = fakeDatabase({ markers: markersAt(HASH_UNKNOWN) });
 
-    const run = await harness(driverConfig(project, db)).run(['migration', 'status', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(driverConfig(project, db)).run(
+      ['orm', 'migration', 'status', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(run.exitCode).toBe(0);
     expect(codesAndSeverities(run.presented?.diagnostics ?? [])).toEqual([
@@ -203,7 +212,7 @@ describe('migration status', () => {
     const db = fakeDatabase({ markers: markersAt(HASH_BASE) });
 
     const run = await harness(driverConfig(project, db)).run(
-      ['migration', 'status', '--to', 'production', '--json'],
+      ['orm', 'migration', 'status', '--to', 'production', '--json'],
       { cwd: project.dir },
     );
 
@@ -221,9 +230,12 @@ describe('migration status', () => {
     const project = await projectWithOneMigration();
     const db = fakeDatabase({ markers: markersAt(HASH_UNKNOWN) });
 
-    const run = await harness(driverConfig(project, db)).run(['migration', 'status', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(driverConfig(project, db)).run(
+      ['orm', 'migration', 'status', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
     const document = run.presented?.data as { diagnostics: ReadonlyArray<{ code: string }> };
 
     expect(document.diagnostics).toEqual([
@@ -241,7 +253,7 @@ describe('migration status', () => {
     const project = await projectWithOneMigration();
     const db = fakeDatabase({ markers: markersAt(HASH_HEAD) });
 
-    const run = await harness(driverConfig(project, db)).run(['migration', 'status'], {
+    const run = await harness(driverConfig(project, db)).run(['orm', 'migration', 'status'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -260,7 +272,7 @@ describe('migration status', () => {
     const project = await projectWithOneMigration();
     const db = fakeDatabase({ markers: markersAt(HASH_HEAD) });
 
-    const run = await harness(driverConfig(project, db)).run(['migration', 'status'], {
+    const run = await harness(driverConfig(project, db)).run(['orm', 'migration', 'status'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -277,7 +289,7 @@ describe('migration status', () => {
     const project = await projectWithOneMigration();
     const db = fakeDatabase({ markers: markersAt(HASH_HEAD) });
 
-    const run = await harness(driverConfig(project, db)).run(['migration', 'status'], {
+    const run = await harness(driverConfig(project, db)).run(['orm', 'migration', 'status'], {
       cwd: project.dir,
       isTty: { stdout: true, stderr: true },
     });
@@ -292,7 +304,7 @@ describe('migration status', () => {
   it('closes the ends of the run summary line with the pending count', async () => {
     const project = await projectWithOneMigration();
 
-    const run = await harness(driverConfig(project)).run(['migration', 'status'], {
+    const run = await harness(driverConfig(project)).run(['orm', 'migration', 'status'], {
       cwd: project.dir,
       isTty: { stdout: true },
     });
@@ -309,7 +321,7 @@ describe('migration status', () => {
     const db = fakeDatabase();
 
     const run = await harness(driverConfig(project, db)).run(
-      ['migration', 'status', '--from', HASH_HEAD, '--json'],
+      ['orm', 'migration', 'status', '--from', HASH_HEAD, '--json'],
       { cwd: project.dir },
     );
 
@@ -321,9 +333,12 @@ describe('migration status', () => {
     const project = await projectWithOneMigration();
     const config = driverConfig(project);
 
-    const run = await harness({ ...config, db: undefined }).run(['migration', 'status', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness({ ...config, db: undefined }).run(
+      ['orm', 'migration', 'status', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -340,7 +355,7 @@ describe('migration status', () => {
     const config = driverConfig(project);
 
     const run = await harness({ ...config, driver: undefined }).run(
-      ['migration', 'status', '--json'],
+      ['orm', 'migration', 'status', '--json'],
       { cwd: project.dir },
     );
 
@@ -358,7 +373,7 @@ describe('migration status', () => {
     const project = await projectWithOneMigration();
 
     const run = await harness(driverConfig(project)).run(
-      ['migration', 'status', '--space', 'nope', '--json'],
+      ['orm', 'migration', 'status', '--space', 'nope', '--json'],
       { cwd: project.dir },
     );
 
@@ -372,10 +387,13 @@ describe('migration status', () => {
   it('prints the glyph key as its own drawing under --legend', async () => {
     const project = await projectWithOneMigration();
 
-    const run = await harness(driverConfig(project)).run(['migration', 'status', '--legend'], {
-      cwd: project.dir,
-      isTty: { stdout: true },
-    });
+    const run = await harness(driverConfig(project)).run(
+      ['orm', 'migration', 'status', '--legend'],
+      {
+        cwd: project.dir,
+        isTty: { stdout: true },
+      },
+    );
     const blocks = run.presented?.presentation.human ?? [];
     const legend = JSON.stringify(blocks.at(1));
 
@@ -389,7 +407,7 @@ describe('migration status', () => {
     const project = await projectWithOneMigration();
 
     const run = await harness(driverConfig(project)).run(
-      ['migration', 'status', '--ascii', '--from', EMPTY_CONTRACT_HASH],
+      ['orm', 'migration', 'status', '--ascii', '--from', EMPTY_CONTRACT_HASH],
       { cwd: project.dir, isTty: { stdout: true, stderr: true } },
     );
     const migrationLine = stripAnsi(run.stderr)
@@ -411,9 +429,12 @@ describe('migration status', () => {
       closeError: new Error('close failed'),
     });
 
-    const run = await harness(driverConfig(project, db)).run(['migration', 'status', '--json'], {
-      cwd: project.dir,
-    });
+    const run = await harness(driverConfig(project, db)).run(
+      ['orm', 'migration', 'status', '--json'],
+      {
+        cwd: project.dir,
+      },
+    );
 
     expect(db.counters.closes).toBe(1);
     expect(run.exitCode).toBe(2);

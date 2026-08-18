@@ -6,7 +6,7 @@ plus a Cloudflare Workers variant for `@internal/postgres/serverless`.
 For each shape there is a **no-emit** entry that builds the contract at
 runtime from a TypeScript-authored DSL and an **emit** entry that consumes
 the canonical `contract.json` + `contract.d.ts` produced by
-`prisma-next contract emit`. All entries do the same thing: connect to a
+`prisma orm contract emit`. All entries do the same thing: connect to a
 real database, run a single `SELECT id FROM "Note" LIMIT 10` (Postgres /
 cf-worker) or `db.notes.find().limit(10)` (Mongo) equivalent, and print or
 return the rows.
