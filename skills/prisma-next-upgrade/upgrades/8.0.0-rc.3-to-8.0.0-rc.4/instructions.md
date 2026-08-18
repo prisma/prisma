@@ -2,6 +2,37 @@
 from: "8.0.0-rc.3"
 to: "8.0.0-rc.4"
 changes:
+  - id: prisma-config-hard-cut-and-top-level-commands
+    summary: |
+      The deprecated fallbacks are gone: the CLI no longer reads
+      `prisma-next.config.ts`, no longer accepts the flat (un-nested) config shape, and the
+      `prisma-next` command no longer exists. The unified CLI (`@prisma/cli`, installed from
+      the `next` dist-tag; its binary is currently `prisma-cli`) runs the ORM commands at the
+      top level — `contract emit`, `db init`, `migration plan`, `migrate` — with only `init`
+      under the `orm` group (`orm init`), and the only config it reads is `prisma.config.ts`
+      in the engine envelope shape.
+
+      1. Rename `prisma-next.config.ts` to `prisma.config.ts` if you have not already.
+      2. Rewrite the export to the envelope shape. Old flat shape:
+         `import { defineConfig } from '@prisma/orm-postgres/config';`
+         `export default defineConfig({ contract: '…', db: { connection: … } });`
+         New shape:
+         `import { definePrismaConfig } from '@prisma/cli-engine';`
+         `import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';`
+         `export default definePrismaConfig({ orm: ormConfig({ contract: '…', db: { connection: … } }) });`
+         The options object moves into the target helper unchanged. The same pattern applies
+         to `@prisma/orm-sqlite/config` and `@prisma/orm-mongo/config`.
+      3. If the config reads `process.env`, keep (or add) `import 'dotenv/config';` as the
+         first import — the loader does not read `.env` for you.
+      4. In `package.json`, replace the `prisma-next` devDependency with `@prisma/cli@next`
+         plus `@prisma/cli-engine` at the exact version that `@prisma/cli` names in its own
+         dependencies, and rewrite scripts: `prisma-next <subcommand>` becomes
+         `prisma-cli <subcommand>` (`migration apply` becomes `migrate`; `init` alone moves
+         under the orm group as `prisma-cli orm init`).
+      5. Run `prisma-cli contract emit` to confirm the config loads and to regenerate the
+         artifacts (their generated-file headers change with this release).
+    detection:
+      glob: "**/prisma-next.config.ts"
   - id: raw-moves-to-its-own-lane
     summary: |
       Whole-query raw SQL moves address: ``db.sql.raw`SELECT ...` `` becomes
