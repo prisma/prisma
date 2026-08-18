@@ -848,13 +848,11 @@ function resolveNonRelationField(
   diagnostics: ContractSourceDiagnostic[],
 ): ContractField | undefined {
   if (compositeTypeNames.has(field.typeName)) {
-    const result: ContractField = {
+    return {
       type: { kind: 'valueObject', name: field.typeName },
       nullable: field.optional,
+      many: field.list ? { elementNullable: field.elementOptional } : false,
     };
-    return field.list
-      ? { ...result, many: true, ...(field.elementOptional ? { elementNullable: true } : {}) }
-      : result;
   }
 
   // If this field's declared type is a known enum name, treat the field as a scalar
@@ -867,14 +865,12 @@ function resolveNonRelationField(
       namespaceId: UNBOUND_NAMESPACE_ID,
       entityName: field.typeName,
     };
-    const result: ContractField = {
+    return {
       type: { kind: 'scalar', codecId: enumCodecId },
       nullable: field.optional,
+      many: field.list ? { elementNullable: field.elementOptional } : false,
       valueSet,
     };
-    return field.list
-      ? { ...result, many: true, ...(field.elementOptional ? { elementNullable: true } : {}) }
-      : result;
   }
 
   // Avoid cascading unsupported-type diagnostics after invalid qualification.
@@ -893,13 +889,11 @@ function resolveNonRelationField(
     return undefined;
   }
 
-  const result: ContractField = {
+  return {
     type: { kind: 'scalar', codecId },
     nullable: field.optional,
+    many: field.list ? { elementNullable: field.elementOptional } : false,
   };
-  return field.list
-    ? { ...result, many: true, ...(field.elementOptional ? { elementNullable: true } : {}) }
-    : result;
 }
 
 function processEnumDeclarations(input: {

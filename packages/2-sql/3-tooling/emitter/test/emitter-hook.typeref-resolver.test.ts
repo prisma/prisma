@@ -38,9 +38,10 @@ describe('sqlEmission.resolveFieldTypeParams (integration via generateContractDt
             },
           },
           fields: {
-            id: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
             embedding: {
               nullable: true,
+              many: false,
               type: { kind: 'scalar', codecId: 'pg/vector@1' },
             },
           },
@@ -108,6 +109,7 @@ describe('sqlEmission.resolveFieldTypeParams (integration via generateContractDt
           fields: {
             embedding: {
               nullable: false,
+              many: false,
               type: {
                 kind: 'scalar',
                 codecId: 'pg/vector@1',

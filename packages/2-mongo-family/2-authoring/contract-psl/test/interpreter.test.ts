@@ -164,11 +164,27 @@ describe('interpretPslDocumentToMongoContract', () => {
 
       expect(modelsOf(ir)['Item']).toMatchObject({
         fields: {
-          _id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false },
-          name: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-          count: { type: { kind: 'scalar', codecId: 'mongo/int32@1' }, nullable: false },
-          active: { type: { kind: 'scalar', codecId: 'mongo/bool@1' }, nullable: false },
-          at: { type: { kind: 'scalar', codecId: 'mongo/date@1' }, nullable: false },
+          _id: {
+            type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+            nullable: false,
+            many: false,
+          },
+          name: {
+            type: { kind: 'scalar', codecId: 'mongo/string@1' },
+            nullable: false,
+            many: false,
+          },
+          count: {
+            type: { kind: 'scalar', codecId: 'mongo/int32@1' },
+            nullable: false,
+            many: false,
+          },
+          active: {
+            type: { kind: 'scalar', codecId: 'mongo/bool@1' },
+            nullable: false,
+            many: false,
+          },
+          at: { type: { kind: 'scalar', codecId: 'mongo/date@1' }, nullable: false, many: false },
         },
       });
     });
@@ -217,13 +233,17 @@ describe('interpretPslDocumentToMongoContract', () => {
 
       expect(modelsOf(ir)['Item']).toMatchObject({
         fields: {
-          _id: { type: { kind: 'scalar', codecId: 'custom/oid@2' }, nullable: false },
-          name: { type: { kind: 'scalar', codecId: 'custom/text@2' }, nullable: false },
+          _id: { type: { kind: 'scalar', codecId: 'custom/oid@2' }, nullable: false, many: false },
+          name: {
+            type: { kind: 'scalar', codecId: 'custom/text@2' },
+            nullable: false,
+            many: false,
+          },
         },
       });
     });
 
-    it('emits many: true for scalar list fields', () => {
+    it('emits many: { elementNullable: false } for scalar list fields', () => {
       const ir = interpretOk(`
         model Item {
           id   ObjectId @id @map("_id")
@@ -236,7 +256,7 @@ describe('interpretPslDocumentToMongoContract', () => {
           tags: {
             type: { kind: 'scalar', codecId: 'mongo/string@1' },
             nullable: false,
-            many: true,
+            many: { elementNullable: false },
           },
         },
       });
@@ -791,9 +811,21 @@ describe('interpretPslDocumentToMongoContract', () => {
       expect(valueObjectsOf(ir)).toEqual({
         Address: {
           fields: {
-            street: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-            city: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-            zip: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
+            street: {
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              nullable: false,
+              many: false,
+            },
+            city: {
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              nullable: false,
+              many: false,
+            },
+            zip: {
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              nullable: false,
+              many: false,
+            },
           },
         },
       });
@@ -814,12 +846,16 @@ describe('interpretPslDocumentToMongoContract', () => {
 
       expect(modelsOf(ir)['User']).toMatchObject({
         fields: {
-          homeAddress: { type: { kind: 'valueObject', name: 'Address' }, nullable: true },
+          homeAddress: {
+            type: { kind: 'valueObject', name: 'Address' },
+            nullable: true,
+            many: false,
+          },
         },
       });
     });
 
-    it('emits many: true for value object array fields', () => {
+    it('emits many: { elementNullable: false } for value object array fields', () => {
       const ir = interpretOk(`
         type Address {
           street String
@@ -837,7 +873,7 @@ describe('interpretPslDocumentToMongoContract', () => {
           addresses: {
             type: { kind: 'valueObject', name: 'Address' },
             nullable: false,
-            many: true,
+            many: { elementNullable: false },
           },
         },
       });
@@ -870,15 +906,35 @@ describe('interpretPslDocumentToMongoContract', () => {
       expect(valueObjectsOf(ir)).toEqual({
         GeoPoint: {
           fields: {
-            lat: { type: { kind: 'scalar', codecId: 'mongo/double@1' }, nullable: false },
-            lng: { type: { kind: 'scalar', codecId: 'mongo/double@1' }, nullable: false },
+            lat: {
+              type: { kind: 'scalar', codecId: 'mongo/double@1' },
+              nullable: false,
+              many: false,
+            },
+            lng: {
+              type: { kind: 'scalar', codecId: 'mongo/double@1' },
+              nullable: false,
+              many: false,
+            },
           },
         },
         Address: {
           fields: {
-            street: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-            city: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-            location: { type: { kind: 'valueObject', name: 'GeoPoint' }, nullable: false },
+            street: {
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              nullable: false,
+              many: false,
+            },
+            city: {
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              nullable: false,
+              many: false,
+            },
+            location: {
+              type: { kind: 'valueObject', name: 'GeoPoint' },
+              nullable: false,
+              many: false,
+            },
           },
         },
       });
@@ -932,10 +988,26 @@ describe('interpretPslDocumentToMongoContract', () => {
               models: {
                 User: {
                   fields: {
-                    _id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false },
-                    name: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-                    email: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-                    bio: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: true },
+                    _id: {
+                      type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+                      nullable: false,
+                      many: false,
+                    },
+                    name: {
+                      type: { kind: 'scalar', codecId: 'mongo/string@1' },
+                      nullable: false,
+                      many: false,
+                    },
+                    email: {
+                      type: { kind: 'scalar', codecId: 'mongo/string@1' },
+                      nullable: false,
+                      many: false,
+                    },
+                    bio: {
+                      type: { kind: 'scalar', codecId: 'mongo/string@1' },
+                      nullable: true,
+                      many: false,
+                    },
                   },
                   relations: {
                     posts: {
@@ -948,19 +1020,30 @@ describe('interpretPslDocumentToMongoContract', () => {
                 },
                 Post: {
                   fields: {
-                    _id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false },
-                    title: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
+                    _id: {
+                      type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+                      nullable: false,
+                      many: false,
+                    },
+                    title: {
+                      type: { kind: 'scalar', codecId: 'mongo/string@1' },
+                      nullable: false,
+                      many: false,
+                    },
                     content: {
                       type: { kind: 'scalar', codecId: 'mongo/string@1' },
                       nullable: false,
+                      many: false,
                     },
                     authorId: {
                       type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
                       nullable: false,
+                      many: false,
                     },
                     createdAt: {
                       type: { kind: 'scalar', codecId: 'mongo/date@1' },
                       nullable: false,
+                      many: false,
                     },
                   },
                   relations: {
@@ -1748,10 +1831,10 @@ describe('interpretPslDocumentToMongoContract', () => {
         }
       `);
       expect(model(ir, 'User').fields).toMatchObject({
-        strict: { nullable: false, many: true },
-        nullableElements: { nullable: false, many: true, elementNullable: true },
-        nullableList: { nullable: true, many: true },
-        fullyNullable: { nullable: true, many: true, elementNullable: true },
+        strict: { nullable: false, many: { elementNullable: false } },
+        nullableElements: { nullable: false, many: { elementNullable: true } },
+        nullableList: { nullable: true, many: { elementNullable: false } },
+        fullyNullable: { nullable: true, many: { elementNullable: true } },
       });
       const validator = getValidator(ir, 'user');
       const schema = validator!['jsonSchema'] as Record<string, unknown>;
@@ -1797,8 +1880,7 @@ describe('interpretPslDocumentToMongoContract', () => {
         roles: {
           type: { kind: 'scalar', codecId: 'mongo/string@1' },
           nullable: false,
-          many: true,
-          elementNullable: true,
+          many: { elementNullable: true },
           valueSet: {
             plane: 'domain',
             entityKind: 'enum',
@@ -1809,8 +1891,7 @@ describe('interpretPslDocumentToMongoContract', () => {
         optionalRoles: {
           type: { kind: 'scalar', codecId: 'mongo/string@1' },
           nullable: true,
-          many: true,
-          elementNullable: true,
+          many: { elementNullable: true },
           valueSet: {
             plane: 'domain',
             entityKind: 'enum',
@@ -1854,14 +1935,12 @@ describe('interpretPslDocumentToMongoContract', () => {
         nullableElements: {
           type: { kind: 'valueObject', name: 'Address' },
           nullable: false,
-          many: true,
-          elementNullable: true,
+          many: { elementNullable: true },
         },
         fullyNullable: {
           type: { kind: 'valueObject', name: 'Address' },
           nullable: true,
-          many: true,
-          elementNullable: true,
+          many: { elementNullable: true },
         },
       });
     });

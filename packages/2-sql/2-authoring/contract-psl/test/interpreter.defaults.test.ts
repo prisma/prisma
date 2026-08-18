@@ -1042,6 +1042,7 @@ model UuidNativeBad {
       nativeType: 'timestamp',
       codecId: 'pg/timestamp@1',
       nullable: false,
+      many: false,
       typeParams: { precision: 3 },
     };
     const stampedRef = { namespace: 'public', table: 't', column: 'stamped' };
@@ -1067,6 +1068,7 @@ model UuidNativeBad {
         nativeType: 'timestamp',
         codecId: 'pg/timestamp@1',
         nullable: false,
+        many: false,
       });
       expect(column).not.toHaveProperty('typeParams');
       expect(defaults).toEqual([]);
@@ -1080,6 +1082,7 @@ model UuidNativeBad {
         nativeType: 'timestamptz',
         codecId: 'pg/timestamptz@1',
         nullable: false,
+        many: false,
       });
       expect(defaults).toEqual([{ ref: stampedRef, onCreate: nowPhase, onUpdate: nowPhase }]);
     });
@@ -1090,6 +1093,7 @@ model UuidNativeBad {
         nativeType: 'timestamptz',
         codecId: 'pg/timestamptz@1',
         nullable: false,
+        many: false,
       });
       expect(defaults).toEqual([{ ref: stampedRef, onUpdate: nowPhase }]);
     });
@@ -1132,6 +1136,7 @@ model UuidNativeBad {
         nativeType: 'text',
         codecId: 'sqlite/datetime@1',
         nullable: false,
+        many: false,
       });
       expect(result.value.execution?.mutations.defaults).toEqual([
         {
@@ -1234,6 +1239,7 @@ model UuidNativeBad {
         codecId: 'pg/uuid@1',
         nativeType: 'uuid',
         nullable: false,
+        many: false,
       });
       expect(result.value.execution?.mutations.defaults).toEqual([
         {
@@ -1260,6 +1266,7 @@ model E {
         codecId: 'pg/uuid@1',
         nativeType: 'uuid',
         nullable: false,
+        many: false,
         typeRef: 'TUuid',
       });
     });
@@ -1277,6 +1284,7 @@ model E {
         codecId: 'sql/char@1',
         nativeType: 'character',
         nullable: false,
+        many: false,
         typeParams: { length: 30 },
       });
       expect(result.value.execution?.mutations.defaults).toEqual([
@@ -1300,6 +1308,7 @@ model E {
         codecId: 'pg/text@1',
         nativeType: 'text',
         nullable: false,
+        many: false,
       });
       expect(result.value.execution?.mutations.defaults).toEqual([
         {
@@ -1322,6 +1331,7 @@ model E {
         codecId: 'pg/text@1',
         nativeType: 'text',
         nullable: false,
+        many: false,
       });
     });
 
@@ -1341,16 +1351,19 @@ model E {
         codecId: 'pg/text@1',
         nativeType: 'text',
         nullable: false,
+        many: false,
       });
       expect(columns?.['sized']).toEqual({
         codecId: 'pg/text@1',
         nativeType: 'text',
         nullable: false,
+        many: false,
       });
       expect(columns?.['ref']).toEqual({
         codecId: 'pg/text@1',
         nativeType: 'text',
         nullable: false,
+        many: false,
       });
       expect(result.value.execution?.mutations.defaults).toEqual(
         expect.arrayContaining([
@@ -1379,6 +1392,7 @@ model T {
         codecId: 'pg/text@1',
         nativeType: 'text',
         nullable: false,
+        many: false,
         typeRef: 'TId',
       });
     });

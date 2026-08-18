@@ -33,13 +33,14 @@ const mongoCodecLookup: CodecLookup = {
 };
 
 function scalarField(codecId: string, nullable = false): ContractField {
-  return { type: { kind: 'scalar', codecId }, nullable };
+  return { type: { kind: 'scalar', codecId }, nullable, many: false };
 }
 
 function enumField(codecId: string, enumName: string, nullable = false): ContractField {
   return {
     type: { kind: 'scalar', codecId },
     nullable,
+    many: false,
     valueSet: {
       plane: 'domain',
       entityKind: 'enum',
@@ -53,8 +54,7 @@ function arrayField(codecId: string, nullable = false, elementNullable = false):
   return {
     type: { kind: 'scalar', codecId },
     nullable,
-    many: true,
-    ...(elementNullable ? { elementNullable: true } : {}),
+    many: { elementNullable },
   };
 }
 
@@ -67,8 +67,7 @@ function arrayEnumField(
   return {
     type: { kind: 'scalar', codecId },
     nullable,
-    many: true,
-    ...(elementNullable ? { elementNullable: true } : {}),
+    many: { elementNullable },
     valueSet: {
       plane: 'domain',
       entityKind: 'enum',
@@ -79,15 +78,14 @@ function arrayEnumField(
 }
 
 function voField(name: string, nullable = false): ContractField {
-  return { type: { kind: 'valueObject', name }, nullable };
+  return { type: { kind: 'valueObject', name }, nullable, many: false };
 }
 
 function voArrayField(name: string, nullable = false, elementNullable = false): ContractField {
   return {
     type: { kind: 'valueObject', name },
     nullable,
-    many: true,
-    ...(elementNullable ? { elementNullable: true } : {}),
+    many: { elementNullable },
   };
 }
 
@@ -139,7 +137,7 @@ describe('deriveJsonSchema', () => {
     });
   });
 
-  it('handles array field (many: true)', () => {
+  it('handles array field (list)', () => {
     const result = deriveJsonSchema(
       { _id: scalarField('mongo/objectId@1'), tags: arrayField('mongo/string@1') },
       undefined,

@@ -14,11 +14,11 @@ export function contractFieldToMongoFieldShape(field: ContractField): MongoField
   if (field.dict === true) {
     return Object.freeze({ kind: 'unknown' as const });
   }
-  if (many === true) {
+  if (many !== false) {
     return freezeMongoFieldShape({
       kind: 'array',
       nullable,
-      element: { kind: 'leaf', codecId: type.codecId, nullable: field.elementNullable === true },
+      element: { kind: 'leaf', codecId: type.codecId, nullable: many.elementNullable },
     });
   }
   return freezeMongoFieldShape({
