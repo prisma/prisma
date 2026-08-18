@@ -1,3 +1,4 @@
+import { relative } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import {
   extractPackageSpecifiers,
@@ -47,6 +48,14 @@ describe('validateContractDeps', () => {
     const dts = `import type { Foo } from '@internal/contract/types';`;
 
     const result = validateContractDeps(dts, __dirname);
+
+    expect(result.missing).toEqual([]);
+  });
+
+  it('accepts a relative project root, resolving it against the working directory', () => {
+    const dts = `import type { Foo } from '@internal/contract/types';`;
+
+    const result = validateContractDeps(dts, relative(process.cwd(), __dirname));
 
     expect(result.missing).toEqual([]);
   });

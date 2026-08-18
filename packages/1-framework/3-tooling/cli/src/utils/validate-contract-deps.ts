@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import { join, resolve as resolvePath } from 'pathe';
 
 const IMPORT_PATTERN = /import\s+type\s+.*?\s+from\s+['"](@[^/]+\/[^/'"]+)/g;
 
@@ -21,7 +22,9 @@ export function validateContractDeps(
   projectRoot: string,
 ): ContractDepsValidation {
   const packages = extractPackageSpecifiers(dtsContent);
-  const resolve = createRequire(`${projectRoot}/package.json`);
+  // createRequire accepts only absolute paths; a relative project root
+  // (a relative contract path in prisma.config.ts) resolves against cwd.
+  const resolve = createRequire(join(resolvePath(projectRoot), 'package.json'));
 
   const missing: string[] = [];
   for (const pkg of packages) {
