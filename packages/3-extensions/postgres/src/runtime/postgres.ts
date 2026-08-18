@@ -4,10 +4,10 @@ import type { Contract } from '@internal/contract/types';
 import postgresDriver from '@internal/driver-postgres/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import { sql as sqlBuilder } from '@internal/sql-builder/runtime';
-import type { Db } from '@internal/sql-builder/types';
+import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
 import { orm as ormBuilder } from '@internal/sql-orm-client';
-import type { CodecTypesBase, RawSqlTag } from '@internal/sql-relational-core/expression';
+import type { CodecTypesBase } from '@internal/sql-relational-core/expression';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   BindSiteParams,
@@ -58,7 +58,7 @@ export interface PostgresClient<TContract extends Contract<SqlStorage>> {
   readonly orm: OrmClient<TContract>;
   readonly enums: NamespacedEnums<TContract>;
   readonly nativeEnums: NamespacedNativeEnums<TContract>;
-  readonly raw: RawSqlTag;
+  readonly raw: RawLane<TContract>;
   readonly context: ExecutionContext<TContract>;
   readonly contract: TContract;
   readonly stack: SqlExecutionStackWithDriver<PostgresTargetId>;

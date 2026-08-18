@@ -122,7 +122,7 @@ export interface ContractRawBuilder<CodecTypes extends Record<string, { readonly
   affectedCount(): RawAffectedCountQuery;
 }
 
-/** The contract-bound raw tag, as `db.raw` exposes it. */
+/** The contract-bound raw tag, as `db.raw.sql` exposes it. */
 export type ContractRawTag<CodecTypes extends Record<string, { readonly output: unknown }>> = (
   strings: TemplateStringsArray,
   ...values: RawSqlInterpolation[]
@@ -130,3 +130,17 @@ export type ContractRawTag<CodecTypes extends Record<string, { readonly output: 
 
 /** The raw tag for a contract, with its codec-type map already applied. */
 export type RawTagFor<C extends TableProxyContract> = ContractRawTag<ExtractCodecTypes<C>>;
+
+/**
+ * The raw lane, addressed as `db.raw`. It holds the whole-query statement tag
+ * under `sql`.
+ *
+ * Editors key their SQL highlighting on that name, and a raw plan's
+ * `lane: 'raw'` already uses it.
+ *
+ * The lane is one key wide on purpose. Anything else raw authoring needs can
+ * join it later, without moving the address again.
+ */
+export type RawLane<C extends TableProxyContract> = {
+  readonly sql: RawTagFor<C>;
+};

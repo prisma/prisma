@@ -2,11 +2,10 @@ import sqliteAdapter from '@internal/adapter-sqlite/runtime';
 import { buildNamespacedEnums, type NamespacedEnums } from '@internal/contract/enum-accessor';
 import type { Contract } from '@internal/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { sql } from '@internal/sql-builder/runtime';
-import type { Db } from '@internal/sql-builder/types';
+import { createRawLane, sql } from '@internal/sql-builder/runtime';
+import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import type { RawCodecInferer, RawSqlTag } from '@internal/sql-relational-core/expression';
-import { createRawSql } from '@internal/sql-relational-core/expression';
+import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type { ExecutionContext, SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import sqliteTarget, { SqliteContractSerializer } from '@internal/target-sqlite/runtime';
@@ -24,7 +23,7 @@ export interface SqliteStaticContext<TContract extends Contract<SqlStorage>> {
   readonly contract: TContract;
   readonly enums: UnboundEnums<TContract>;
   readonly sql: UnboundSql<TContract>;
-  readonly raw: RawSqlTag;
+  readonly raw: RawLane<TContract>;
 }
 
 export function buildSqliteStaticContext<TContract extends Contract<SqlStorage>>(
@@ -37,7 +36,7 @@ export function buildSqliteStaticContext<TContract extends Contract<SqlStorage>>
     UnboundSql<TContract>,
     'Db<TContract> indexed by a literal key widens NsId to string; TableProxy is invariant in NsId via insert()/update() parameter positions, so the indexed-access type cannot be proven to match the literal-keyed Namespace without this cast'
   >(sqlNamespace);
-  const raw: RawSqlTag = createRawSql(rawCodecInferer);
+  const raw: RawLane<TContract> = createRawLane<TContract>({ context, rawCodecInferer });
   const enums = Object.freeze(buildNamespacedEnums<TContract>(context.contract.domain))[
     UNBOUND_NAMESPACE_ID
   ];

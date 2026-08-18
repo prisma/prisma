@@ -5,10 +5,10 @@ import sqliteDriver from '@internal/driver-sqlite/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { sql as sqlBuilder } from '@internal/sql-builder/runtime';
-import type { Db } from '@internal/sql-builder/types';
+import type { Db, RawLane } from '@internal/sql-builder/types';
 import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
 import { orm as ormBuilder } from '@internal/sql-orm-client';
-import type { CodecTypesBase, RawSqlTag } from '@internal/sql-relational-core/expression';
+import type { CodecTypesBase } from '@internal/sql-relational-core/expression';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   BindSiteParams,
@@ -70,7 +70,7 @@ export interface SqliteClient<TContract extends Contract<SqlStorage>> {
   readonly sql: UnboundSql<TContract>;
   readonly orm: UnboundOrm<TContract>;
   readonly enums: SqliteStaticContext<TContract>['enums'];
-  readonly raw: RawSqlTag;
+  readonly raw: RawLane<TContract>;
   readonly context: ExecutionContext<TContract>;
   readonly contract: TContract;
   readonly stack: SqlExecutionStackWithDriver<SqliteTargetId>;
