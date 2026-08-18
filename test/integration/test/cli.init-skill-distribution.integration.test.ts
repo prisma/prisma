@@ -32,8 +32,8 @@ interface ParsedSkillMetadata {
 }
 
 /**
- * Hermetic fixture: a `git clone --depth 1` of the working tree at HEAD,
- * built once per test file. The clone reflects what an external consumer
+ * Hermetic fixture: a sparse local clone of the tracked skill surfaces at
+ * HEAD, built once per test file. The clone reflects what an external consumer
  * sees: tracked files only, no gitignored install targets like
  * `.agents/skills/`. Discovery against this fixture exercises the same
  * priority-dir traversal the upstream CLI does at consumer machines,
@@ -138,10 +138,9 @@ describe('init skill distribution (offline integration, real CLI)', () => {
 });
 
 /**
- * Build a fresh `git clone --depth 1` of the working tree at HEAD into a
- * tempdir. The clone reflects only tracked files (no `node_modules`, no
- * gitignored `.agents/skills/`), giving us the same view an external
- * consumer would see after `git clone`.
+ * Build a sparse local clone of the tracked skill surfaces at HEAD. Local
+ * object sharing avoids copying repository history, and sparse checkout avoids
+ * materialising thousands of unrelated tracked files.
  */
 function makeWorkspaceClone(): string {
   const cloneRoot = join(
@@ -149,9 +148,8 @@ function makeWorkspaceClone(): string {
     `skills-clone-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   mkdirSync(cloneRoot, { recursive: true });
-  execFileSync('git', ['clone', '--depth', '1', '--no-local', '-q', WORKSPACE_ROOT, cloneRoot], {
-    stdio: 'inherit',
-  });
+  execFileSync('git', ['clone', '--local', '--sparse', '-q', WORKSPACE_ROOT, cloneRoot]);
+  execFileSync('git', ['-C', cloneRoot, 'sparse-checkout', 'set', 'skills', 'skills-contrib']);
   return cloneRoot;
 }
 
