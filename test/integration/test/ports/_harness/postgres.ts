@@ -9,14 +9,14 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import postgresTargetControl from '@internal/target-postgres/control';
 import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
-import { afterAll, beforeAll } from 'vitest';
+import { afterAll } from 'vitest';
 
 /**
  * Generic Postgres harness for ported tests.
  *
  * Each ported suite authors its schema as PSL (`_fixtures/<suite>/contract.prisma`)
  * and emits a `contract.json`/`contract.d.ts`. The harness:
- *   1. reuses one PGlite dev database server per contract within the test file and clears rows per test,
+ *   1. reuses one PGlite dev database server for each contract used by the test file and clears rows per test,
  *   2. **pushes the contract to the database** through prisma-next's own
  *      plan → apply path (the same mechanism `prisma-next db init` uses) — no
  *      hand-written DDL, so the materialised schema can never drift from the
@@ -35,16 +35,13 @@ import { afterAll, beforeAll } from 'vitest';
 
 const serializer = new PostgresContractSerializer();
 
-let database: DevDatabase;
-let currentStorageHash: string | undefined;
-let databaseNeedsReplacement = false;
-
-beforeAll(async () => {
-  database = await createDevDatabase({ databaseIdleTimeoutMillis: 30_000 });
-}, timeouts.spinUpPpgDev);
+const databases = new Map<string, DevDatabase>();
 
 afterAll(async () => {
-  await database.close();
+  for (const database of databases.values()) {
+    await database.close();
+  }
+  databases.clear();
 }, timeouts.spinUpPpgDev);
 
 const controlStack = createControlStack({
@@ -170,26 +167,26 @@ export async function withPostgresPort<TContract extends Contract<SqlStorage>>(
   ) as TContract;
   const contract = options.returning === false ? base : enableReturning(base);
 
-  if (databaseNeedsReplacement) {
-    await database.close();
+  const storageHash = base.storage.storageHash;
+  let database = databases.get(storageHash);
+  if (database === undefined) {
     database = await createDevDatabase({ databaseIdleTimeoutMillis: 30_000 });
-    databaseNeedsReplacement = false;
+    try {
+      await pushContract(database.connectionString, options.contractJson);
+    } catch (error) {
+      await database.close();
+      throw error;
+    }
+    databases.set(storageHash, database);
+  } else {
+    await clearRows(database.connectionString);
   }
 
-  let { connectionString } = database;
-  if (currentStorageHash === undefined) {
-    await pushContract(connectionString, options.contractJson);
-    currentStorageHash = base.storage.storageHash;
-  } else if (currentStorageHash === base.storage.storageHash) {
-    await clearRows(connectionString);
-  } else {
-    await database.close();
-    database = await createDevDatabase({ databaseIdleTimeoutMillis: 30_000 });
-    connectionString = database.connectionString;
-    await pushContract(connectionString, options.contractJson);
-    currentStorageHash = base.storage.storageHash;
-  }
-  const client = postgres<TContract>({ contract, url: connectionString, verifyMarker: false });
+  const client = postgres<TContract>({
+    contract,
+    url: database.connectionString,
+    verifyMarker: false,
+  });
   const runtime = await client.connect();
   try {
     await fn({
@@ -201,8 +198,8 @@ export async function withPostgresPort<TContract extends Contract<SqlStorage>>(
   } finally {
     await runtime.close();
     if (options.replaceDatabase === true) {
-      currentStorageHash = undefined;
-      databaseNeedsReplacement = true;
+      databases.delete(storageHash);
+      await database.close();
     }
   }
 }
