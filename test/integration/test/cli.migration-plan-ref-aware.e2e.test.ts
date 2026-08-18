@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
-import { timeouts, withDevDatabase } from '@repo/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from './utils/cli-test-helpers';
 import {
@@ -18,6 +18,7 @@ import {
   runMigrationPlanAndEmit,
   setupJourney,
   swapContract,
+  useResettableDevDatabase,
 } from './utils/journey-test-helpers';
 
 const JOURNEY_FIXTURES_DIR = join(
@@ -192,6 +193,8 @@ async function withJourney(
   const ctx = setupJourney({ connectionString, createTempDir });
   await fn(ctx);
 }
+
+const withDevDatabase = useResettableDevDatabase();
 
 withTempDir(({ createTempDir }) => {
   describe('migration plan ref-aware resolution (e2e)', () => {
