@@ -259,7 +259,7 @@ export function errorDatabaseConnectionRequired(options?: {
   const runHint = options?.retryCommand
     ? `Run \`${options.retryCommand}\``
     : options?.commandName
-      ? `Run \`prisma orm ${options.commandName} --db <url>\``
+      ? `Run \`prisma ${options.commandName} --db <url>\``
       : 'Provide `--db <url>`';
   return new CliStructuredError(
     'CONFIG.DB_CONNECTION_REQUIRED',
