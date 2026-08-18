@@ -137,7 +137,7 @@ function stepEvents(events: readonly EngineEvent[]): readonly EngineEvent[] {
 
 describe('db update', () => {
   it('settles as a completed envelope carrying the migration document', async () => {
-    const run = await harness().run(['orm', 'db', 'update', '--json'], { cwd: projectDir });
+    const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
 
     expect(run.exitCode).toBe(0);
     expect(run.presented?.data).toMatchObject({
@@ -171,7 +171,7 @@ describe('db update', () => {
       },
     );
 
-    const run = await harness().run(['orm', 'db', 'update', '--json'], { cwd: projectDir });
+    const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
 
     expect(stepEvents(run.events)).toEqual([
       { kind: 'step-started', step: 'Planning operations', id: 'plan' },
@@ -180,7 +180,7 @@ describe('db update', () => {
   });
 
   it('heads the run with the contract and the masked database', async () => {
-    const run = await harness().run(['orm', 'db', 'update'], {
+    const run = await harness().run(['db', 'update'], {
       cwd: projectDir,
       isTty: { stdout: true },
     });
@@ -196,7 +196,7 @@ describe('db update', () => {
   });
 
   it('marks the destructive operation in the tree and warns about data loss', async () => {
-    const run = await harness().run(['orm', 'db', 'update'], {
+    const run = await harness().run(['db', 'update'], {
       cwd: projectDir,
       isTty: { stdout: true },
     });
@@ -233,7 +233,7 @@ describe('db update', () => {
   });
 
   it('renders the applied tree with the engine`s own connectors', async () => {
-    const run = await harness().run(['orm', 'db', 'update'], {
+    const run = await harness().run(['db', 'update'], {
       cwd: projectDir,
       isTty: { stdout: true, stderr: true },
     });
@@ -253,7 +253,7 @@ describe('db update', () => {
       }),
     );
 
-    const run = await harness().run(['orm', 'db', 'update'], {
+    const run = await harness().run(['db', 'update'], {
       cwd: projectDir,
       isTty: { stdout: true },
     });
@@ -269,7 +269,7 @@ describe('db update', () => {
   });
 
   it('names the follow-up as a typed action instead of trailing prose', async () => {
-    const run = await harness().run(['orm', 'db', 'update'], {
+    const run = await harness().run(['db', 'update'], {
       cwd: projectDir,
       isTty: { stdout: true },
     });
@@ -289,7 +289,7 @@ describe('db update', () => {
     });
 
     it('plans without applying and says so', async () => {
-      const run = await harness().run(['orm', 'db', 'update', '--dry-run'], {
+      const run = await harness().run(['db', 'update', '--dry-run'], {
         cwd: projectDir,
         isTty: { stdout: true },
       });
@@ -310,7 +310,7 @@ describe('db update', () => {
     });
 
     it('offers the apply as the next action', async () => {
-      const run = await harness().run(['orm', 'db', 'update', '--dry-run'], {
+      const run = await harness().run(['db', 'update', '--dry-run'], {
         cwd: projectDir,
         isTty: { stdout: true },
       });
@@ -326,7 +326,7 @@ describe('db update', () => {
   });
 
   it('takes the connection from --db over the config', async () => {
-    await harness().run(['orm', 'db', 'update', '--db', 'postgres://other/db', '--json'], {
+    await harness().run(['db', 'update', '--db', 'postgres://other/db', '--json'], {
       cwd: projectDir,
     });
 
@@ -334,7 +334,7 @@ describe('db update', () => {
   });
 
   it('errors when no connection is configured', async () => {
-    const run = await harness(ormConfig({ db: undefined })).run(['orm', 'db', 'update', '--json'], {
+    const run = await harness(ormConfig({ db: undefined })).run(['db', 'update', '--json'], {
       cwd: projectDir,
     });
 
@@ -354,7 +354,7 @@ describe('db update', () => {
           output: join(projectDir, 'absent.json'),
         },
       }),
-    ).run(['orm', 'db', 'update', '--json'], { cwd: projectDir });
+    ).run(['db', 'update', '--json'], { cwd: projectDir });
 
     expect(run.exitCode).toBe(2);
     expect(envelopeOf(run.json)).toMatchObject({
@@ -375,7 +375,7 @@ describe('db update', () => {
       }),
     );
 
-    const run = await harness().run(['orm', 'db', 'update', '--json'], { cwd: projectDir });
+    const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
 
     expect(run.exitCode).toBe(2);
     expect(envelopeOf(run.json)).toMatchObject({
@@ -396,7 +396,7 @@ describe('db update', () => {
       }),
     );
 
-    const run = await harness().run(['orm', 'db', 'update'], {
+    const run = await harness().run(['db', 'update'], {
       cwd: projectDir,
       isTty: { stdout: true, stderr: true },
     });
@@ -420,7 +420,7 @@ describe('db update', () => {
       }),
     );
 
-    const run = await harness().run(['orm', 'db', 'update', '--json'], { cwd: projectDir });
+    const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
 
     expect(run.exitCode).toBe(2);
     expect(envelopeOf(run.json)).toMatchObject({
@@ -430,7 +430,7 @@ describe('db update', () => {
   });
 
   it('refuses a --to reference no migration package produces', async () => {
-    const run = await harness().run(['orm', 'db', 'update', '--to', 'nope', '--json'], {
+    const run = await harness().run(['db', 'update', '--to', 'nope', '--json'], {
       cwd: projectDir,
     });
 
@@ -443,7 +443,7 @@ describe('db update', () => {
     it('keeps the connection string out of the settled error', async () => {
       mocks.connect.mockRejectedValue(new Error(`connect ECONNREFUSED for ${CONNECTION}`));
 
-      const run = await harness().run(['orm', 'db', 'update', '--json'], { cwd: projectDir });
+      const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
       const settled = JSON.stringify(run.json.at(-1));
 
       expect(run.exitCode).toBe(2);
@@ -455,7 +455,7 @@ describe('db update', () => {
       mocks.connect.mockRejectedValue(new Error('ECONNREFUSED 127.0.0.1:5432'));
       mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
 
-      const run = await harness().run(['orm', 'db', 'update', '--json'], { cwd: projectDir });
+      const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
       const settled = JSON.stringify(run.json.at(-1));
 
       expect(run.exitCode).toBe(2);

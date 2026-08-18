@@ -2,9 +2,9 @@
  * Prisma Next config for the `extension-pgvector` package.
  *
  * The extension package is treated as a self-contained "project" for
- * the CLI: `prisma orm contract emit` writes
+ * the CLI: `prisma contract emit` writes
  * `<package>/src/contract.{json,d.ts}` (colocated with the
- * `src/contract.ts` source); `prisma orm migration plan` writes
+ * `src/contract.ts` source); `prisma migration plan` writes
  * `<package>/migrations/<dirName>/...`. The descriptor at
  * `src/exports/control.ts` then JSON-imports those artefacts.
  *

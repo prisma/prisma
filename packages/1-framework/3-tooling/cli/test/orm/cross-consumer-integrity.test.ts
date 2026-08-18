@@ -157,12 +157,9 @@ describe('cross-consumer contract-space integrity matrix', () => {
   it('migration check reports the hash mismatch, self-edge and orphan dir in one run', async () => {
     const project = await allThreeFixture();
 
-    const run = await harness(offlineConfig({ project })).run(
-      ['orm', 'migration', 'check', '--json'],
-      {
-        cwd: project.dir,
-      },
-    );
+    const run = await harness(offlineConfig({ project })).run(['migration', 'check', '--json'], {
+      cwd: project.dir,
+    });
     const codes = documentOf(run).failures.map((failure) => failure.code);
 
     expect(run.exitCode).toBe(4);
@@ -200,7 +197,7 @@ describe('cross-consumer contract-space integrity matrix', () => {
     const run = await harness({
       ...offlineConfig({ project }),
       extensions: [extensionDescriptor('ext_a')],
-    }).run(['orm', 'migration', 'check', '--json'], { cwd: project.dir });
+    }).run(['migration', 'check', '--json'], { cwd: project.dir });
     const hashFailures = documentOf(run).failures.filter(
       (failure) => failure.code === 'MIGRATION.CHECK_HASH_MISMATCH',
     );
@@ -213,7 +210,7 @@ describe('cross-consumer contract-space integrity matrix', () => {
   it('migrate refuses the all-three project with layout drift taking precedence', async () => {
     const project = await allThreeFixture();
 
-    const run = await harness(driverConfig(project)).run(['orm', 'migrate', '--json'], {
+    const run = await harness(driverConfig(project)).run(['migrate', '--json'], {
       cwd: project.dir,
     });
     const terminal = run.json.at(-1) as
@@ -234,7 +231,7 @@ describe('cross-consumer contract-space integrity matrix', () => {
   it('migration status tolerates a self-edge and renders at exit 0', async () => {
     const project = await selfEdgeFixture();
 
-    const run = await harness(driverConfig(project)).run(['orm', 'migration', 'status', '--json'], {
+    const run = await harness(driverConfig(project)).run(['migration', 'status', '--json'], {
       cwd: project.dir,
     });
 
@@ -246,7 +243,7 @@ describe('cross-consumer contract-space integrity matrix', () => {
     const project = await selfEdgeFixture();
 
     const run = await harness(offlineConfig({ project })).run(
-      ['orm', 'migration', 'show', join('migrations', 'app', '00002_selfedge'), '--json'],
+      ['migration', 'show', join('migrations', 'app', '00002_selfedge'), '--json'],
       { cwd: project.dir },
     );
 

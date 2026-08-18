@@ -86,7 +86,7 @@ export function parseContractMarkerRow(row: unknown): ContractMarkerRecord {
       `Invalid contract marker row: ${messages}`,
       {
         why: 'The contract marker row read from the database does not match the expected marker shape.',
-        fix: 'Re-sign the database with `prisma orm db sign`, or repair the marker table.',
+        fix: 'Re-sign the database with `prisma db sign`, or repair the marker table.',
         nextActions: [
           { kind: 'run-command', label: 'Re-sign the database', command: '{bin} db sign' },
           { kind: 'user-choice', label: 'Repair the marker table by hand', reason: messages },

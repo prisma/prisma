@@ -38,7 +38,7 @@ const mocks = {
  */
 const commands: MountedTree = {
   ...BIN_COMMANDS,
-  'orm db sign': createDbSignCommand(() =>
+  'db sign': createDbSignCommand(() =>
     blindCast<ControlClient, 'the fake implements only what db sign touches'>({
       connect: mocks.connect,
       schemaVerify: mocks.schemaVerify,
@@ -163,7 +163,7 @@ describe('db sign', () => {
     it('signs and completes at exit 0 with no diagnostics', async () => {
       const dir = await projectDir();
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(0);
       expect(diagnosticsOf(run)).toEqual([]);
@@ -174,7 +174,7 @@ describe('db sign', () => {
     it('reads the contract through the family seam rather than a bare JSON.parse', async () => {
       const dir = await projectDir();
 
-      await harness(ormConfig()).run(['orm', 'db', 'sign', '--json'], { cwd: dir });
+      await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
 
       expect(mocks.schemaVerify).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -187,7 +187,7 @@ describe('db sign', () => {
     it('heads the human output with the contract and the masked database', async () => {
       const dir = await projectDir();
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign'], {
+      const run = await harness(ormConfig()).run(['db', 'sign'], {
         cwd: dir,
         isTty: { stdout: true },
       });
@@ -220,7 +220,7 @@ describe('db sign', () => {
       const dir = await projectDir();
       mocks.sign.mockResolvedValue({ ...signResult(), ok: false, summary: 'Marker not written' });
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(1);
       expect(envelopeOf(run)).toMatchObject({ ok: false, error: { code: 'CLI.INTERNAL_ERROR' } });
@@ -230,7 +230,7 @@ describe('db sign', () => {
       const dir = await projectDir();
       mocks.sign.mockResolvedValue({ ...signResult(), ok: false, summary: 'Marker not written' });
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign'], {
+      const run = await harness(ormConfig()).run(['db', 'sign'], {
         cwd: dir,
         isTty: { stdout: true },
       });
@@ -251,7 +251,7 @@ describe('db sign', () => {
       const dir = await projectDir();
       mocks.schemaVerify.mockResolvedValue(DRIFTED);
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(4);
       expect(mocks.sign).not.toHaveBeenCalled();
@@ -262,7 +262,7 @@ describe('db sign', () => {
       const dir = await projectDir();
       mocks.schemaVerify.mockResolvedValue(DRIFTED);
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
 
       expect(
         diagnosticsOf(run).map((entry) => ({
@@ -290,7 +290,7 @@ describe('db sign', () => {
       const dir = await projectDir();
       mocks.schemaVerify.mockResolvedValue(DRIFTED);
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
 
       expect(run.presented?.data).toEqual(DRIFTED);
       expect(run.presented?.data).not.toHaveProperty('unclaimed');
@@ -300,7 +300,7 @@ describe('db sign', () => {
       const dir = await projectDir();
       mocks.schemaVerify.mockResolvedValue(DRIFTED);
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign'], {
+      const run = await harness(ormConfig()).run(['db', 'sign'], {
         cwd: dir,
         isTty: { stdout: true },
       });
@@ -328,7 +328,7 @@ describe('db sign', () => {
       const dir = await projectDir();
 
       const run = await harness(ormConfig()).run(
-        ['orm', 'db', 'sign', 'production', '--contract', 'staging', '--json'],
+        ['db', 'sign', 'production', '--contract', 'staging', '--json'],
         { cwd: dir },
       );
 
@@ -343,7 +343,7 @@ describe('db sign', () => {
     it('errors at exit 2 when the contract has not been emitted', async () => {
       const dir = await projectDir({ contract: false });
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(2);
       expect(envelopeOf(run)).toMatchObject({ ok: false, error: { code: 'CLI.FILE_NOT_FOUND' } });
@@ -352,7 +352,7 @@ describe('db sign', () => {
     it('errors at exit 2 when no connection is configured', async () => {
       const dir = await projectDir();
 
-      const run = await harness(ormConfig({ db: undefined })).run(['orm', 'db', 'sign', '--json'], {
+      const run = await harness(ormConfig({ db: undefined })).run(['db', 'sign', '--json'], {
         cwd: dir,
       });
 
@@ -366,12 +366,9 @@ describe('db sign', () => {
     it('errors at exit 2 when no driver is configured', async () => {
       const dir = await projectDir();
 
-      const run = await harness(ormConfig({ driver: undefined })).run(
-        ['orm', 'db', 'sign', '--json'],
-        {
-          cwd: dir,
-        },
-      );
+      const run = await harness(ormConfig({ driver: undefined })).run(['db', 'sign', '--json'], {
+        cwd: dir,
+      });
 
       expect(run.exitCode).toBe(2);
       expect(envelopeOf(run)).toMatchObject({
@@ -410,7 +407,7 @@ describe('db sign', () => {
         contractDts: 'export type Contract = unknown;\n',
       });
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign', dirName, '--json'], {
+      const run = await harness(ormConfig()).run(['db', 'sign', dirName, '--json'], {
         cwd: dir,
       });
 
@@ -425,7 +422,7 @@ describe('db sign', () => {
     it('errors at exit 2 when the named contract reference resolves against nothing', async () => {
       const dir = await projectDir();
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign', 'production', '--json'], {
+      const run = await harness(ormConfig()).run(['db', 'sign', 'production', '--json'], {
         cwd: dir,
       });
 
@@ -441,7 +438,7 @@ describe('db sign', () => {
       const dir = await projectDir();
       mocks.schemaVerify.mockRejectedValue(new Error(`connect ECONNREFUSED for ${CONNECTION}`));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'sign', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(2);
       expect(envelopeOf(run)).toMatchObject({ ok: false, error: { code: 'CLI.UNEXPECTED' } });
@@ -453,7 +450,7 @@ describe('db sign', () => {
   it('spells its exit codes in --help, which does not render the exitCodes map', async () => {
     const dir = await projectDir();
 
-    const run = await harness(ormConfig()).run(['orm', 'db', 'sign', '--help'], { cwd: dir });
+    const run = await harness(ormConfig()).run(['db', 'sign', '--help'], { cwd: dir });
 
     expect(`${run.stdout}${run.stderr}`).toContain('4 = schema verification failed');
   });
@@ -462,7 +459,7 @@ describe('db sign', () => {
     const dir = await projectDir();
     mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
 
-    const run = await harness(ormConfig()).run(['orm', 'db', 'sign', '--json'], { cwd: dir });
+    const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
 
     expect(run.exitCode).toBe(0);
     expect(envelopeOf(run)?.ok).toBe(true);

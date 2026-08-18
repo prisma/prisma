@@ -1,4 +1,4 @@
-# `prisma orm db init` and `prisma orm db update`
+# `prisma db init` and `prisma db update`
 
 Two complementary commands for managing database schema lifecycle.
 
@@ -17,20 +17,20 @@ Two complementary commands for managing database schema lifecycle.
 
 ```bash
 # 1. Define schema and emit contract
-prisma orm contract emit --config prisma.config.ts
+prisma contract emit --config prisma.config.ts
 
 # 2. Sign the database (first time only)
-prisma orm db init --db $DATABASE_URL
+prisma db init --db $DATABASE_URL
 
 # 3. Evolve the schema: add a column, change a type, etc.
 #    Re-emit the contract after editing the schema
-prisma orm contract emit --config prisma.config.ts
+prisma contract emit --config prisma.config.ts
 
 # 4. Preview what db update would do
-prisma orm db update --db $DATABASE_URL --dry-run
+prisma db update --db $DATABASE_URL --dry-run
 
 # 5. Apply the update
-prisma orm db update --db $DATABASE_URL
+prisma db update --db $DATABASE_URL
 ```
 
 ## How `db update` reacts to database state
@@ -98,7 +98,7 @@ If the runner detects that the resulting schema does not match the contract, it 
 ```
 ✖ Schema verify failed (RUNNER_FAILED)
   Why: The resulting database schema does not satisfy the destination contract.
-  Fix: Inspect the reported conflict, reconcile schema drift if needed, then re-run `prisma orm db update`
+  Fix: Inspect the reported conflict, reconcile schema drift if needed, then re-run `prisma db update`
 ```
 
 ## Key differences between `db init` and `db update`

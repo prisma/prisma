@@ -35,7 +35,7 @@ const mocks = {
  */
 const commands: MountedTree = {
   ...BIN_COMMANDS,
-  'orm db verify': createDbVerifyCommand(() =>
+  'db verify': createDbVerifyCommand(() =>
     blindCast<ControlClient, 'the fake implements only what db verify touches'>({
       connect: mocks.connect,
       verify: mocks.verify,
@@ -169,7 +169,7 @@ describe('db verify', () => {
     it('completes at exit 0 with no diagnostics', async () => {
       const dir = await projectDir();
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(0);
       expect(diagnosticsOf(run)).toEqual([]);
@@ -184,7 +184,7 @@ describe('db verify', () => {
     it('heads the human output with the contract, the mode and the masked database', async () => {
       const dir = await projectDir();
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify'], {
+      const run = await harness(ormConfig()).run(['db', 'verify'], {
         cwd: dir,
         isTty: { stdout: true },
       });
@@ -210,12 +210,9 @@ describe('db verify', () => {
     it('says the schema check was skipped under --marker-only', async () => {
       const dir = await projectDir();
 
-      const run = await harness(ormConfig()).run(
-        ['orm', 'db', 'verify', '--marker-only', '--json'],
-        {
-          cwd: dir,
-        },
-      );
+      const run = await harness(ormConfig()).run(['db', 'verify', '--marker-only', '--json'], {
+        cwd: dir,
+      });
 
       expect(run.exitCode).toBe(0);
       expect(run.presented?.data).toMatchObject({
@@ -230,12 +227,9 @@ describe('db verify', () => {
     it('takes the connection from --db over the config', async () => {
       const dir = await projectDir();
 
-      await harness(ormConfig()).run(
-        ['orm', 'db', 'verify', '--db', 'postgres://other/db', '--json'],
-        {
-          cwd: dir,
-        },
-      );
+      await harness(ormConfig()).run(['db', 'verify', '--db', 'postgres://other/db', '--json'], {
+        cwd: dir,
+      });
 
       expect(mocks.verify).toHaveBeenCalledWith(
         expect.objectContaining({ connection: 'postgres://other/db' }),
@@ -250,7 +244,7 @@ describe('db verify', () => {
         verified({ ok: false, code: 'CONTRACT.MARKER_MISSING', summary: 'No marker found' }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(4);
       expect(
@@ -270,7 +264,7 @@ describe('db verify', () => {
         }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(4);
       expect(diagnosticsOf(run).map((entry) => entry.code)).toEqual(['CONTRACT.MARKER_MISMATCH']);
@@ -287,7 +281,7 @@ describe('db verify', () => {
         }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(4);
       expect(diagnosticsOf(run).map((entry) => entry.code)).toEqual(['CONTRACT.TARGET_MISMATCH']);
@@ -299,7 +293,7 @@ describe('db verify', () => {
         verified({ ok: false, code: 'CONTRACT.MARKER_MISSING', summary: 'No marker found' }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.presented?.data).toMatchObject({
         ok: false,
@@ -316,7 +310,7 @@ describe('db verify', () => {
         verified({ ok: false, code: 'CONTRACT.MARKER_MISSING', summary: 'No marker found' }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.presented?.data).toMatchObject({ meta: { schemaVerification: 'skipped' } });
     });
@@ -327,7 +321,7 @@ describe('db verify', () => {
         verified({ ok: false, code: 'CONTRACT.MARKER_MISSING', summary: 'No marker found' }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.presented?.data).not.toHaveProperty('unclaimed');
     });
@@ -338,7 +332,7 @@ describe('db verify', () => {
         verified({ ok: false, code: 'CONTRACT.MARKER_MISSING', summary: 'No marker found' }),
       );
 
-      await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(mocks.dbVerify).not.toHaveBeenCalled();
     });
@@ -349,7 +343,7 @@ describe('db verify', () => {
         verified({ ok: false, code: 'CONTRACT.MARKER_MISSING', summary: 'No marker found' }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
       const [finding] = diagnosticsOf(run);
 
       expect(finding?.nextActions.length).toBeGreaterThan(0);
@@ -371,7 +365,7 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.dbVerify.mockResolvedValue(aggregateOk({ markerDrift: DRIFT }));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(4);
       expect(envelopeOf(run)).toMatchObject({ ok: true, exitCode: 4 });
@@ -402,12 +396,9 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.dbVerify.mockResolvedValue(aggregateOk({ markerDrift: DRIFT }));
 
-      const run = await harness(ormConfig()).run(
-        ['orm', 'db', 'verify', '--marker-only', '--json'],
-        {
-          cwd: dir,
-        },
-      );
+      const run = await harness(ormConfig()).run(['db', 'verify', '--marker-only', '--json'], {
+        cwd: dir,
+      });
 
       expect(run.exitCode).toBe(4);
       expect(diagnosticsOf(run).map((entry) => entry.code)).toEqual([
@@ -434,7 +425,7 @@ describe('db verify', () => {
         aggregateOk({ perSpace: [['app', drifted]], markerDrift: DRIFT }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(4);
       expect(diagnosticsOf(run).map((entry) => entry.code)).toEqual([
@@ -461,7 +452,7 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.dbVerify.mockResolvedValue(aggregateOk({ perSpace: [['app', DRIFTED]] }));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(4);
       expect(
@@ -483,7 +474,7 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.dbVerify.mockResolvedValue(aggregateOk({ perSpace: [['app', DRIFTED]] }));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify'], {
+      const run = await harness(ormConfig()).run(['db', 'verify'], {
         cwd: dir,
         isTty: { stdout: true },
       });
@@ -505,7 +496,7 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.dbVerify.mockResolvedValue(aggregateOk({ perSpace: [['app', DRIFTED]] }));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.presented?.data).toMatchObject({
         ok: false,
@@ -519,12 +510,9 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.dbVerify.mockResolvedValue(aggregateOk({ perSpace: [['app', DRIFTED]] }));
 
-      const run = await harness(ormConfig()).run(
-        ['orm', 'db', 'verify', '--schema-only', '--json'],
-        {
-          cwd: dir,
-        },
-      );
+      const run = await harness(ormConfig()).run(['db', 'verify', '--schema-only', '--json'], {
+        cwd: dir,
+      });
 
       expect(run.exitCode).toBe(4);
       expect(mocks.verify).not.toHaveBeenCalled();
@@ -538,7 +526,7 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.dbVerify.mockResolvedValue(aggregateOk({ unclaimed: ['public/audit_log'] }));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--strict', '--json'], {
+      const run = await harness(ormConfig()).run(['db', 'verify', '--strict', '--json'], {
         cwd: dir,
       });
 
@@ -550,7 +538,7 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.dbVerify.mockResolvedValue(aggregateOk({ unclaimed: ['public/audit_log'] }));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify'], {
+      const run = await harness(ormConfig()).run(['db', 'verify'], {
         cwd: dir,
         isTty: { stdout: true },
       });
@@ -574,7 +562,7 @@ describe('db verify', () => {
       const dir = await projectDir();
 
       const run = await harness(ormConfig()).run(
-        ['orm', 'db', 'verify', '--marker-only', '--schema-only', '--json'],
+        ['db', 'verify', '--marker-only', '--schema-only', '--json'],
         { cwd: dir },
       );
 
@@ -589,7 +577,7 @@ describe('db verify', () => {
       const dir = await projectDir();
 
       const run = await harness(ormConfig()).run(
-        ['orm', 'db', 'verify', '--marker-only', '--strict', '--json'],
+        ['db', 'verify', '--marker-only', '--strict', '--json'],
         { cwd: dir },
       );
 
@@ -603,7 +591,7 @@ describe('db verify', () => {
     it('errors at exit 2 when the contract has not been emitted', async () => {
       const dir = await projectDir({ contract: false });
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(2);
       expect(envelopeOf(run)).toMatchObject({ ok: false, error: { code: 'CLI.FILE_NOT_FOUND' } });
@@ -613,12 +601,9 @@ describe('db verify', () => {
     it('errors at exit 2 when no connection is configured', async () => {
       const dir = await projectDir();
 
-      const run = await harness(ormConfig({ db: undefined })).run(
-        ['orm', 'db', 'verify', '--json'],
-        {
-          cwd: dir,
-        },
-      );
+      const run = await harness(ormConfig({ db: undefined })).run(['db', 'verify', '--json'], {
+        cwd: dir,
+      });
 
       expect(run.exitCode).toBe(2);
       expect(envelopeOf(run)).toMatchObject({
@@ -630,12 +615,9 @@ describe('db verify', () => {
     it('errors at exit 2 when no driver is configured', async () => {
       const dir = await projectDir();
 
-      const run = await harness(ormConfig({ driver: undefined })).run(
-        ['orm', 'db', 'verify', '--json'],
-        {
-          cwd: dir,
-        },
-      );
+      const run = await harness(ormConfig({ driver: undefined })).run(['db', 'verify', '--json'], {
+        cwd: dir,
+      });
 
       expect(run.exitCode).toBe(2);
       expect(envelopeOf(run)).toMatchObject({
@@ -656,7 +638,7 @@ describe('db verify', () => {
         ),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(2);
       expect(envelopeOf(run)).toMatchObject({
@@ -669,7 +651,7 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.verify.mockRejectedValue(new Error(`connect ECONNREFUSED for ${CONNECTION}`));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
       const settled = JSON.stringify(run.json.at(-1));
 
       expect(run.exitCode).toBe(2);
@@ -686,7 +668,7 @@ describe('db verify', () => {
         }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
       const settled = JSON.stringify(run.json.at(-1));
 
       expect(run.exitCode).toBe(2);
@@ -702,7 +684,7 @@ describe('db verify', () => {
         }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(JSON.stringify(run.json.at(-1))).not.toContain('secret');
     });
@@ -723,7 +705,7 @@ describe('db verify', () => {
         }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
       const settled = JSON.stringify(run.json.at(-1));
 
       expect(settled).not.toContain('secret');
@@ -738,7 +720,7 @@ describe('db verify', () => {
         }),
       );
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(envelopeOf(run)).toMatchObject({
         ok: false,
@@ -753,7 +735,7 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.dbVerify.mockResolvedValue(aggregateOk({ perSpace: [] }));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(run.exitCode).toBe(1);
       expect(envelopeOf(run)).toMatchObject({ ok: false, error: { code: 'CLI.INTERNAL_ERROR' } });
@@ -763,7 +745,7 @@ describe('db verify', () => {
       const dir = await projectDir();
       mocks.dbVerify.mockResolvedValue(aggregateOk({ perSpace: [] }));
 
-      await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+      await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
       expect(mocks.close).toHaveBeenCalled();
     });
@@ -772,7 +754,7 @@ describe('db verify', () => {
   it('spells its exit codes in --help, which does not render the exitCodes map', async () => {
     const dir = await projectDir();
 
-    const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--help'], { cwd: dir });
+    const run = await harness(ormConfig()).run(['db', 'verify', '--help'], { cwd: dir });
 
     expect(`${run.stdout}${run.stderr}`).toContain('4 = drift or a marker finding');
   });
@@ -781,7 +763,7 @@ describe('db verify', () => {
     const dir = await projectDir();
     mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
 
-    const run = await harness(ormConfig()).run(['orm', 'db', 'verify', '--json'], { cwd: dir });
+    const run = await harness(ormConfig()).run(['db', 'verify', '--json'], { cwd: dir });
 
     expect(run.exitCode).toBe(0);
     expect(envelopeOf(run)?.ok).toBe(true);

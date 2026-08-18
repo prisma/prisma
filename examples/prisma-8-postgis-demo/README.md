@@ -289,7 +289,7 @@ export const db = postgres<Contract>({ contractJson, extensions: [postgis] });
 ```
 
 The control descriptor declares `CREATE EXTENSION IF NOT EXISTS postgis`
-as a database dependency, so `prisma orm db init` enables PostGIS for
+as a database dependency, so `prisma db init` enables PostGIS for
 you on first use. The runtime descriptor registers the `pg/geometry@1`
 codec and the geospatial query operations (`distance`, `distanceSphere`,
 `dwithin`, `contains`, `within`, `intersects`, `intersectsBbox`).

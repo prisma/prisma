@@ -23,10 +23,10 @@ const operations = {
 };
 
 const commands: MountedTree = {
-  'orm format': createFormatCommand(operations.executeFormat),
-  'orm ref delete': createRefDeleteCommand(operations.executeRefDeleteCommand),
-  'orm ref list': createRefListCommand(operations.executeRefListCommand),
-  'orm ref set': createRefSetCommand(operations.executeRefSetCommand),
+  format: createFormatCommand(operations.executeFormat),
+  'ref delete': createRefDeleteCommand(operations.executeRefDeleteCommand),
+  'ref list': createRefListCommand(operations.executeRefListCommand),
+  'ref set': createRefSetCommand(operations.executeRefSetCommand),
 };
 
 beforeEach(() => {
@@ -96,20 +96,20 @@ interface BoundaryCase {
 const HASH = `4cb4256${'0'.repeat(57)}`;
 
 const CASES: readonly BoundaryCase[] = [
-  { command: 'format', argv: ['orm', 'format'], operation: operations.executeFormat },
+  { command: 'format', argv: ['format'], operation: operations.executeFormat },
   {
     command: 'ref delete',
-    argv: ['orm', 'ref', 'delete', 'staging'],
+    argv: ['ref', 'delete', 'staging'],
     operation: operations.executeRefDeleteCommand,
   },
   {
     command: 'ref list',
-    argv: ['orm', 'ref', 'list'],
+    argv: ['ref', 'list'],
     operation: operations.executeRefListCommand,
   },
   {
     command: 'ref set',
-    argv: ['orm', 'ref', 'set', 'staging', HASH],
+    argv: ['ref', 'set', 'staging', HASH],
     operation: operations.executeRefSetCommand,
   },
 ];

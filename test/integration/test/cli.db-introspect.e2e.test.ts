@@ -122,7 +122,7 @@ withTempDir(({ createTempDir }) => {
             const pslPath = join(testSetup.testDir, 'output/contract.prisma');
             expect(existsSync(pslPath)).toBe(true);
             expect(readFileSync(pslPath, 'utf-8')).toBe(`// use prisma-next
-// Contract inferred from the live database schema. Edit as needed, then run \`prisma orm contract emit\`.
+// Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.
 
 model User {
   id    Int     @id(map: "user_pkey") @default(autoincrement())

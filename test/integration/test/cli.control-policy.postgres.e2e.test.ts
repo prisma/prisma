@@ -131,7 +131,7 @@ function expectVerifyPassed(run: EngineRunResult): void {
 
 withTempDir(({ createTempDir }) => {
   describe('control policy postgres CLI (e2e)', () => {
-    // Pins `prisma orm contract emit` end-to-end for every ControlPolicy value:
+    // Pins `prisma contract emit` end-to-end for every ControlPolicy value:
     // per-table `control` survives canonicalisation, and missing-control on the
     // table left at the contract default is omitted (default-omission). The
     // contract-level `defaultControlPolicy` round-trip is pinned by the

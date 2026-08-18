@@ -12,7 +12,7 @@ if (contractSource !== 'psl' && contractSource !== 'ts') {
 }
 
 // Left undefined when DATABASE_URL is not set so emit-only flows
-// (`prisma orm contract emit`, CI typegen) work in fresh checkouts.
+// (`prisma contract emit`, CI typegen) work in fresh checkouts.
 export default defineConfig({
   orm: ormConfig({
     contract: contractSource === 'ts' ? './src/prisma/contract.ts' : './src/prisma/contract.prisma',

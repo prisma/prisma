@@ -104,7 +104,7 @@ describe('migration graph', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['orm', 'migration', 'graph', '--json'], {
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--json'], {
       cwd: dir,
     });
 
@@ -130,7 +130,7 @@ describe('migration graph', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['orm', 'migration', 'graph'], {
+    const run = await harness(ormConfig()).run(['migration', 'graph'], {
       cwd: dir,
       isTty: { stdout: true, stderr: true },
     });
@@ -152,7 +152,7 @@ describe('migration graph', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['orm', 'migration', 'graph'], {
+    const run = await harness(ormConfig()).run(['migration', 'graph'], {
       cwd: dir,
       isTty: { stdout: true, stderr: true },
     });
@@ -167,7 +167,7 @@ describe('migration graph', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['orm', 'migration', 'graph', '--dot'], {
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--dot'], {
       cwd: dir,
       isTty: { stdout: true },
     });
@@ -200,7 +200,7 @@ describe('migration graph', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['orm', 'migration', 'graph', '--dot', '--json'], {
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--dot', '--json'], {
       cwd: dir,
     });
     const document = run.presented?.data as { dot: string; spaces: readonly unknown[] };
@@ -215,7 +215,7 @@ describe('migration graph', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['orm', 'migration', 'graph', '--json'], {
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--json'], {
       cwd: dir,
     });
 
@@ -227,7 +227,7 @@ describe('migration graph', () => {
     await seedMigration(join(dir, 'migrations'));
 
     const run = await harness(ormConfig()).run(
-      ['orm', 'migration', 'graph', '--dot', '--legend', '--json'],
+      ['migration', 'graph', '--dot', '--legend', '--json'],
       {
         cwd: dir,
       },
@@ -248,7 +248,7 @@ describe('migration graph', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['orm', 'migration', 'graph', '--legend'], {
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--legend'], {
       cwd: dir,
       isTty: { stdout: true, stderr: true },
     });
@@ -262,7 +262,7 @@ describe('migration graph', () => {
     await seedMigration(join(dir, 'migrations'));
 
     const run = await harness(ormConfig()).run(
-      ['orm', 'migration', 'graph', '--space', 'nope', '--json'],
+      ['migration', 'graph', '--space', 'nope', '--json'],
       { cwd: dir },
     );
 
@@ -277,7 +277,7 @@ describe('migration graph', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['orm', 'migration', 'graph', '--space', 'app'], {
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--space', 'app'], {
       cwd: dir,
       isTty: { stdout: true },
     });

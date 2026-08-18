@@ -38,7 +38,7 @@ The CLI follows the Unix convention of separating human-readable decoration from
 
 1. **All `TerminalUI` methods except `output()` write to stderr** via Clack's `{ output: process.stderr }` option — but only in interactive mode.
 2. **`ui.output(data)` always writes to stdout** — call it only when there is data to emit (e.g., `--json` responses). Commands gate `ui.output()` behind `if (flags.json)`.
-3. **When stdout is piped, ALL decoration is suppressed** — `isInteractive` (`process.stdout.isTTY`) gates every decoration method. Only `ui.output()` writes in piped mode. This keeps `prisma orm db verify | jq` completely silent.
+3. **When stdout is piped, ALL decoration is suppressed** — `isInteractive` (`process.stdout.isTTY`) gates every decoration method. Only `ui.output()` writes in piped mode. This keeps `prisma db verify | jq` completely silent.
 4. **Action commands** (sign, init) produce no stdout data — they are purely decorative.
 5. **Data commands** (verify, emit, introspect, status) call both decoration (stderr) and `ui.output()` (stdout). In interactive mode, decoration is visible on stderr; `ui.output()` writes to stdout only when the command has data to emit (gated by `--json`).
 6. **Never write data to stderr** — decoration methods are for human context only.
@@ -66,7 +66,7 @@ The CLI checks `process.stdout.isTTY` once at startup to determine the output mo
 ## Help & Usage
 - **Styled Help Output**: Help output uses the same styled format as normal command output for consistency:
   - Root help (`prisma --help`): Shows the CLI title with subcommands listed
-  - Command help (`prisma orm db verify --help`): Shows `<command> ➜ <description>` with options, subcommands, and docs URLs
+  - Command help (`prisma db verify --help`): Shows `<command> ➜ <description>` with options, subcommands, and docs URLs
   - Help formatters are in `packages/1-framework/3-tooling/cli/src/utils/formatters/` (multiple focused modules)
 - **Routing**: explicit `--help` (and `--version`) prints to **stdout** with exit code 0; help printed as part of an error (unknown command, missing subcommand, bad flag) prints to **stderr** with the corresponding non-zero exit code. See [Output Conventions](#output-conventions-composable-cli-output) rule 8 for the rationale.
 - **Fixed-Width Columns**: All two-column output (help, styled headers) uses fixed 20-character left column width for consistent alignment
@@ -245,9 +245,9 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
   - Options: `--force`, `--dry-run`, `--include-contract-json`, `--app-tag`, `--canonical-version`.
 
 ## Init Flow
-- `prisma orm init` is the greenfield-app entry point (distinct from `prisma orm db init`, which adopts an existing database).
+- `prisma orm init` is the greenfield-app entry point (distinct from `prisma db init`, which adopts an existing database).
 - Prompts: target (Postgres or Mongo, default Postgres) and schema location (default `prisma/contract.prisma`). The contract output path is derived from the schema path (replace extension with `.json`); no separate prompt.
-- Detects the package manager from lockfiles (`pnpm-lock.yaml`, `yarn.lock`, `bun.lock`/`bun.lockb`, `package.json#packageManager`, falls back to npm), installs the target facade package as a dependency and `@prisma/cli` (from the `next` dist-tag) plus `@prisma/cli-engine` as dev dependencies, then runs `prisma orm contract emit` programmatically to produce `contract.json` and `contract.d.ts`.
+- Detects the package manager from lockfiles (`pnpm-lock.yaml`, `yarn.lock`, `bun.lock`/`bun.lockb`, `package.json#packageManager`, falls back to npm), installs the target facade package as a dependency and `@prisma/cli` (from the `next` dist-tag) plus `@prisma/cli-engine` as dev dependencies, then runs `prisma contract emit` programmatically to produce `contract.json` and `contract.d.ts`.
 - Scaffolds (all colocated; no `src/prisma/` split):
   - `prisma.config.ts` at the project root — the engine envelope: `defineConfig` from `@prisma/cli-engine` wrapping the target facade's `defineConfig` (e.g. `@prisma/orm-postgres/config`) under an `orm` key.
   - `prisma/contract.prisma` (PSL) — starter schema with two related models so the user has something to query immediately.
@@ -256,7 +256,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
   - `prisma-next.md` — short human-facing quick reference (file locations, common commands, minimal query example).
   - `.agents/skills/prisma-next/SKILL.md` — agent skill so AI tooling in the project knows the layout and conventions.
   - `.env.example` with `DATABASE_URL=`; CLI still does not read `.env`.
-  - After-init output: small celebratory header + a numbered "Next steps" list (edit the schema, run `pnpm prisma orm contract emit`, import `db` from `./prisma/db`).
+  - After-init output: small celebratory header + a numbered "Next steps" list (edit the schema, run `pnpm prisma contract emit`, import `db` from `./prisma/db`).
 - Re-init detection: if `prisma.config.ts` already exists, init prompts once — *"This project is already initialized. Re-initialize? This will overwrite all generated files."* — and then either overwrites everything or exits. No per-file overwrite prompts.
 - `--no-install` skips dependency installation and contract emission, scaffolds the source files only, and prints the manual install + emit commands.
 - Artifacts: commit `contract.json` and `contract.d.ts` to VCS by default.

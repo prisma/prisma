@@ -151,7 +151,7 @@ describe('migration check', () => {
       const dir = await projectDir();
       await seedMigration(join(dir, 'migrations'));
 
-      const run = await harness(ormConfig()).run(['orm', 'migration', 'check', '--json'], {
+      const run = await harness(ormConfig()).run(['migration', 'check', '--json'], {
         cwd: dir,
       });
 
@@ -167,7 +167,7 @@ describe('migration check', () => {
       const dir = await projectDir();
       await seedMigration(join(dir, 'migrations'));
 
-      const run = await harness(ormConfig()).run(['orm', 'migration', 'check', '--json'], {
+      const run = await harness(ormConfig()).run(['migration', 'check', '--json'], {
         cwd: dir,
       });
 
@@ -182,7 +182,7 @@ describe('migration check', () => {
       const dir = await projectDir();
       await seedMigration(join(dir, 'migrations'));
 
-      const run = await harness(ormConfig()).run(['orm', 'migration', 'check'], {
+      const run = await harness(ormConfig()).run(['migration', 'check'], {
         cwd: dir,
         isTty: { stdout: true },
       });
@@ -202,7 +202,7 @@ describe('migration check', () => {
       await seedMigration(join(dir, 'migrations'));
       await seedUnloadableDirectory(join(dir, 'migrations'));
 
-      const run = await harness(ormConfig()).run(['orm', 'migration', 'check', '--json'], {
+      const run = await harness(ormConfig()).run(['migration', 'check', '--json'], {
         cwd: dir,
       });
 
@@ -227,7 +227,7 @@ describe('migration check', () => {
       await seedMigration(join(dir, 'migrations'));
       await seedUnloadableDirectory(join(dir, 'migrations'));
 
-      const run = await harness(ormConfig()).run(['orm', 'migration', 'check', '--json'], {
+      const run = await harness(ormConfig()).run(['migration', 'check', '--json'], {
         cwd: dir,
       });
       const [first] = diagnosticsOf(run);
@@ -249,7 +249,7 @@ describe('migration check', () => {
       await seedMigration(join(dir, 'migrations'));
       await seedDanglingRef(join(dir, 'migrations'), 'staging');
 
-      const run = await harness(ormConfig()).run(['orm', 'migration', 'check', '--json'], {
+      const run = await harness(ormConfig()).run(['migration', 'check', '--json'], {
         cwd: dir,
       });
 
@@ -266,7 +266,7 @@ describe('migration check', () => {
         from: HASH_UNPRODUCED,
       });
 
-      const run = await harness(ormConfig()).run(['orm', 'migration', 'check', '--json'], {
+      const run = await harness(ormConfig()).run(['migration', 'check', '--json'], {
         cwd: dir,
       });
 
@@ -281,7 +281,7 @@ describe('migration check', () => {
       await seedMigration(join(dir, 'migrations'));
       await seedDanglingRef(join(dir, 'migrations'), 'staging');
 
-      const run = await harness(ormConfig()).run(['orm', 'migration', 'check', '--json'], {
+      const run = await harness(ormConfig()).run(['migration', 'check', '--json'], {
         cwd: dir,
       });
       const document = run.presented?.data as MigrationCheckResult;
@@ -312,13 +312,10 @@ describe('migration check', () => {
       const packageDir = await seedMigration(join(dir, 'migrations'));
       await corruptStoredHash(packageDir);
 
-      const run = await harness(ormConfig()).run(
-        ['orm', 'migration', 'check', '20250101T0000_initial'],
-        {
-          cwd: dir,
-          isTty: { stdout: true },
-        },
-      );
+      const run = await harness(ormConfig()).run(['migration', 'check', '20250101T0000_initial'], {
+        cwd: dir,
+        isTty: { stdout: true },
+      });
 
       expect(run.exitCode).toBe(4);
       expect(run.stderr).toContain('migrations/app/20250101T0000_initial/migration.json');
@@ -331,7 +328,7 @@ describe('migration check', () => {
       await corruptStoredHash(packageDir);
 
       const run = await harness(ormConfig()).run(
-        ['orm', 'migration', 'check', '20250101T0000_initial', '--json'],
+        ['migration', 'check', '20250101T0000_initial', '--json'],
         { cwd: dir },
       );
 
@@ -349,7 +346,7 @@ describe('migration check', () => {
       await seedMigration(join(dir, 'migrations'));
       await seedDanglingRef(join(dir, 'migrations'), 'staging');
 
-      const run = await harness(ormConfig()).run(['orm', 'migration', 'check'], {
+      const run = await harness(ormConfig()).run(['migration', 'check'], {
         cwd: dir,
         isTty: { stdout: true },
       });
@@ -368,7 +365,7 @@ describe('migration check', () => {
       await seedMigration(join(dir, 'migrations'));
 
       const run = await harness(ormConfig()).run(
-        ['orm', 'migration', 'check', '20250101T0000_initial', '--json'],
+        ['migration', 'check', '20250101T0000_initial', '--json'],
         { cwd: dir },
       );
 
@@ -380,13 +377,10 @@ describe('migration check', () => {
       const dir = await projectDir();
       await seedMigration(join(dir, 'migrations'));
 
-      const run = await harness(ormConfig()).run(
-        ['orm', 'migration', 'check', '20250101T0000_initial'],
-        {
-          cwd: dir,
-          isTty: { stdout: true },
-        },
-      );
+      const run = await harness(ormConfig()).run(['migration', 'check', '20250101T0000_initial'], {
+        cwd: dir,
+        isTty: { stdout: true },
+      });
 
       expect(run.presented?.presentation.human[0]).toEqual({
         kind: 'fields',
@@ -403,7 +397,7 @@ describe('migration check', () => {
       await seedMigration(join(dir, 'migrations'));
 
       const run = await harness(ormConfig()).run(
-        ['orm', 'migration', 'check', './migrations/app/20250909T0000_absent', '--json'],
+        ['migration', 'check', './migrations/app/20250909T0000_absent', '--json'],
         { cwd: dir },
       );
 
@@ -418,7 +412,7 @@ describe('migration check', () => {
       const dir = await projectDir();
       await seedMigration(join(dir, 'migrations'));
 
-      const run = await harness(ormConfig()).run(['orm', 'migration', 'check', 'nope', '--json'], {
+      const run = await harness(ormConfig()).run(['migration', 'check', 'nope', '--json'], {
         cwd: dir,
       });
 
@@ -442,7 +436,7 @@ describe('migration check', () => {
       await seedMigration(join(dir, 'migrations'));
 
       const run = await harness(ormConfig()).run(
-        ['orm', 'migration', 'check', '--space', 'nope', '--json'],
+        ['migration', 'check', '--space', 'nope', '--json'],
         { cwd: dir },
       );
 
@@ -459,7 +453,7 @@ describe('migration check', () => {
       await seedMigration(join(dir, 'migrations'));
 
       const run = await harness(ormConfig()).run(
-        ['orm', 'migration', 'check', '--space', 'Not Legal', '--json'],
+        ['migration', 'check', '--space', 'Not Legal', '--json'],
         { cwd: dir },
       );
 
@@ -475,7 +469,7 @@ describe('migration check', () => {
       await seedMigration(join(dir, 'migrations'));
 
       const run = await harness(ormConfig()).run(
-        ['orm', 'migration', 'check', '--space', 'nope', '--json'],
+        ['migration', 'check', '--space', 'nope', '--json'],
         { cwd: dir },
       );
       const terminal = run.json.at(-1);
@@ -490,7 +484,7 @@ describe('migration check', () => {
   it('spells its exit codes in --help, which does not render the exitCodes map', async () => {
     const dir = await projectDir();
 
-    const run = await harness(ormConfig()).run(['orm', 'migration', 'check', '--help'], {
+    const run = await harness(ormConfig()).run(['migration', 'check', '--help'], {
       cwd: dir,
     });
 
@@ -502,12 +496,9 @@ describe('migration check', () => {
     await seedMigration(join(dir, 'migrations'));
     await seedDanglingRef(join(dir, 'migrations'), 'staging');
 
-    const run = await harness(ormConfig()).run(
-      ['orm', 'migration', 'check', '--space', 'app', '--json'],
-      {
-        cwd: dir,
-      },
-    );
+    const run = await harness(ormConfig()).run(['migration', 'check', '--space', 'app', '--json'], {
+      cwd: dir,
+    });
 
     expect(run.exitCode).toBe(4);
     expect(diagnosticsOf(run).map((diagnostic) => diagnostic.code)).toEqual([
@@ -522,11 +513,11 @@ describe('migration check', () => {
     await seedMigration(join(second, 'db'));
     await seedDanglingRef(join(second, 'db'), 'staging');
 
-    const clean = await harness(ormConfig()).run(['orm', 'migration', 'check', '--json'], {
+    const clean = await harness(ormConfig()).run(['migration', 'check', '--json'], {
       cwd: first,
     });
     const dirty = await harness(ormConfig({ migrations: { dir: 'db' } })).run(
-      ['orm', 'migration', 'check', '--json'],
+      ['migration', 'check', '--json'],
       { cwd: second },
     );
 

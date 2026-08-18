@@ -74,7 +74,7 @@ describe('shipped bin (process smoke)', () => {
     'starts on plain Node, settles a real command, and exits 0 with artifacts written',
     async () => {
       const run = await spawnBin(
-        ['orm', 'contract', 'emit', '--config', 'prisma.config.ts'],
+        ['contract', 'emit', '--config', 'prisma.config.ts'],
         setup.testDir,
       );
 
@@ -94,7 +94,7 @@ describe('shipped bin (process smoke)', () => {
     'surfaces a structured failure as a settled envelope and a nonzero shell exit code',
     async () => {
       const run = await spawnBin(
-        ['orm', 'contract', 'emit', '--config', 'missing.config.ts', '--json'],
+        ['contract', 'emit', '--config', 'missing.config.ts', '--json'],
         setup.testDir,
       );
 

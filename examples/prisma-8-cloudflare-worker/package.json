@@ -6,7 +6,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "emit": "prisma orm contract emit",
+    "emit": "prisma contract emit",
     "emit:check": "pnpm emit && git diff --exit-code src/prisma/contract.json src/prisma/contract.d.ts",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down -v",

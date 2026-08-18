@@ -279,14 +279,14 @@ describe('Config Errors', () => {
 
   it('errorDatabaseConnectionRequired with commandName shows fully copyable command', () => {
     const error = errorDatabaseConnectionRequired({ commandName: 'db init' });
-    expect(error.fix).toContain('Run `prisma orm db init --db <url>`');
+    expect(error.fix).toContain('Run `prisma db init --db <url>`');
   });
 
   it('errorDatabaseConnectionRequired with retryCommand preserves command flags', () => {
     const error = errorDatabaseConnectionRequired({
-      retryCommand: 'prisma orm db verify --schema-only --strict --db <url>',
+      retryCommand: 'prisma db verify --schema-only --strict --db <url>',
     });
-    expect(error.fix).toContain('Run `prisma orm db verify --schema-only --strict --db <url>`');
+    expect(error.fix).toContain('Run `prisma db verify --schema-only --strict --db <url>`');
   });
 
   it('errorQueryRunnerFactoryRequired creates correct error', () => {

@@ -35,10 +35,12 @@ import { resolveTelemetryHooks } from './telemetry/reporting';
 
 /**
  * This repo's stand-in for the unified Prisma CLI: it mounts the ORM command
- * family under `orm` the way the real host does — same command paths, same
- * `prisma.config.ts` — so examples and e2e tests exercise the commands as
- * users run them. The real host lives in the prisma-cli repo and consumes
- * {@link ormCommandFamily} from this package's exports.
+ * family exactly the way the real host does — the commands at the top level
+ * and `init` under `orm` (the host reserves top-level `init` for compute) —
+ * same command paths, same `prisma.config.ts`, so examples and e2e tests
+ * exercise the commands as users run them. The real host lives in the
+ * prisma-cli repo and consumes {@link ormCommandFamily} from this package's
+ * exports.
  */
 export const BIN_NAME = 'prisma';
 
@@ -53,31 +55,32 @@ const telemetry = telemetryCommandGroup({ docsUrl: TELEMETRY_DOCS_URL });
 
 export const BIN_GROUPS = {
   orm: {
-    brief: 'Prisma ORM commands',
+    brief: 'Initialize a Prisma ORM project',
     description:
-      'Define an application data contract, emit typed artifacts, and keep the\n' +
-      'database aligned with it: verification, signing, and migrations.',
+      'Project initialization for the ORM. The other ORM commands mount at the\n' +
+      'top level; only init lives here, because the host reserves the top-level\n' +
+      'init for the compute config.',
   },
-  'orm contract': {
+  contract: {
     brief: 'Contract management commands',
     description:
       'Define and emit your application data contract. The contract describes your\n' +
       'schema as a declarative data structure that can be signed and verified\n' +
       'against your database.',
   },
-  'orm db': {
+  db: {
     brief: 'Live database commands',
     description:
       'Inspect, bootstrap, verify and sign the live database against the\n' +
       'emitted contract. Every command in this group needs a database connection.',
   },
-  'orm migration': {
+  migration: {
     brief: 'On-disk migration management commands',
     description:
       'Plan, apply, and scaffold on-disk migration packages. Migrations are\n' +
       'contract-to-contract edges stored as versioned directories under migrations/.',
   },
-  'orm ref': {
+  ref: {
     brief: 'Named pointers at contracts',
     description:
       'Manage the named refs under migrations/app/refs/. A ref maps a logical\n' +
@@ -93,28 +96,28 @@ export const BIN_GROUPS = {
  */
 export function createBinCommands(createClient: CreateControlClient): MountedTree {
   return {
-    'orm contract emit': contractEmitCommand,
-    'orm contract infer': contractInferCommand,
-    'orm db init': createDbInitCommand(createClient),
-    'orm db schema': createDbSchemaCommand(createClient),
-    'orm db sign': createDbSignCommand(createClient),
-    'orm db update': createDbUpdateCommand(createClient),
-    'orm db verify': createDbVerifyCommand(createClient),
-    'orm format': formatCommand,
+    'contract emit': contractEmitCommand,
+    'contract infer': contractInferCommand,
+    'db init': createDbInitCommand(createClient),
+    'db schema': createDbSchemaCommand(createClient),
+    'db sign': createDbSignCommand(createClient),
+    'db update': createDbUpdateCommand(createClient),
+    'db verify': createDbVerifyCommand(createClient),
+    format: formatCommand,
     'orm init': initCommand,
-    'orm lsp': lspCommand,
-    'orm migrate': createMigrateCommand(createClient),
-    'orm migration check': migrationCheckCommand,
-    'orm migration graph': migrationGraphCommand,
-    'orm migration list': migrationListCommand,
-    'orm migration log': migrationLogCommand,
-    'orm migration new': migrationNewCommand,
-    'orm migration plan': migrationPlanCommand,
-    'orm migration show': migrationShowCommand,
-    'orm migration status': migrationStatusCommand,
-    'orm ref delete': refDeleteCommand,
-    'orm ref list': refListCommand,
-    'orm ref set': refSetCommand,
+    lsp: lspCommand,
+    migrate: createMigrateCommand(createClient),
+    'migration check': migrationCheckCommand,
+    'migration graph': migrationGraphCommand,
+    'migration list': migrationListCommand,
+    'migration log': migrationLogCommand,
+    'migration new': migrationNewCommand,
+    'migration plan': migrationPlanCommand,
+    'migration show': migrationShowCommand,
+    'migration status': migrationStatusCommand,
+    'ref delete': refDeleteCommand,
+    'ref list': refListCommand,
+    'ref set': refSetCommand,
     ...telemetry.commands,
   };
 }

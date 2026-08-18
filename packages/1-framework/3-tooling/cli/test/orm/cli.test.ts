@@ -44,7 +44,7 @@ describe('the --config flag', () => {
   it('hands the separated path to the loader', async () => {
     const loader = recordingLoader();
 
-    await harness(loader.loadConfig).run(['orm', 'migration', 'list', '--config', 'custom.ts']);
+    await harness(loader.loadConfig).run(['migration', 'list', '--config', 'custom.ts']);
 
     expect(loader.asked).toEqual(['custom.ts']);
   });
@@ -52,7 +52,7 @@ describe('the --config flag', () => {
   it('hands the attached --config=<path> to the loader', async () => {
     const loader = recordingLoader();
 
-    await harness(loader.loadConfig).run(['orm', 'migration', 'list', '--config=/abs/custom.ts']);
+    await harness(loader.loadConfig).run(['migration', 'list', '--config=/abs/custom.ts']);
 
     expect(loader.asked).toEqual(['/abs/custom.ts']);
   });
@@ -60,7 +60,7 @@ describe('the --config flag', () => {
   it('asks for the default file when no path is given', async () => {
     const loader = recordingLoader();
 
-    await harness(loader.loadConfig).run(['orm', 'migration', 'list']);
+    await harness(loader.loadConfig).run(['migration', 'list']);
 
     expect(loader.asked).toEqual(['(none)']);
   });
@@ -84,26 +84,26 @@ describe('the orm command family', () => {
       })),
     ).toEqual([
       {
-        from: 'orm migration apply',
+        from: 'migration apply',
         flag: undefined,
-        replacement: '{bin} orm migrate --to <contract>',
+        replacement: '{bin} migrate --to <contract>',
       },
-      { from: 'orm migration ref', flag: undefined, replacement: '{bin} orm ref set|list|delete' },
-      { from: 'orm migration status', flag: 'graph', replacement: '{bin} orm migration graph' },
+      { from: 'migration ref', flag: undefined, replacement: '{bin} ref set|list|delete' },
+      { from: 'migration status', flag: 'graph', replacement: '{bin} migration graph' },
       {
-        from: 'orm migration status',
+        from: 'migration status',
         flag: 'all',
-        replacement: '{bin} orm migration log --db <url>',
+        replacement: '{bin} migration log --db <url>',
       },
       {
-        from: 'orm migration status',
+        from: 'migration status',
         flag: 'limit',
-        replacement: '{bin} orm migration log --db <url>',
+        replacement: '{bin} migration log --db <url>',
       },
       {
-        from: 'orm migration status',
+        from: 'migration status',
         flag: 'ref',
-        replacement: '{bin} orm migration status --to <contract>',
+        replacement: '{bin} migration status --to <contract>',
       },
     ]);
   });
@@ -146,7 +146,7 @@ describe('a retired invocation', () => {
   it('is answered with its replacement rather than a spelling suggestion', async () => {
     const loader = recordingLoader();
 
-    const run = await harness(loader.loadConfig).run(['orm', 'migration', 'apply', '--json']);
+    const run = await harness(loader.loadConfig).run(['migration', 'apply', '--json']);
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -155,13 +155,13 @@ describe('a retired invocation', () => {
         ok: false,
         error: {
           code: 'CLI.COMMAND_MOVED',
-          summary: '`orm migration apply` has been replaced',
+          summary: '`migration apply` has been replaced',
           why: 'Applying a migration is a move to a target contract, not a verb of its own.',
           nextActions: [
             {
               kind: 'run-command',
               label: 'Use the replacement',
-              command: 'prisma-test orm migrate --to <contract>',
+              command: 'prisma-test migrate --to <contract>',
             },
           ],
         },
@@ -173,13 +173,7 @@ describe('a retired invocation', () => {
   it('answers a retired status flag with the command that replaced it', async () => {
     const loader = recordingLoader();
 
-    const run = await harness(loader.loadConfig).run([
-      'orm',
-      'migration',
-      'status',
-      '--graph',
-      '--json',
-    ]);
+    const run = await harness(loader.loadConfig).run(['migration', 'status', '--graph', '--json']);
 
     expect(run.exitCode).not.toBe(0);
     expect(run.json.at(-1)).toMatchObject({
@@ -191,7 +185,7 @@ describe('a retired invocation', () => {
           {
             kind: 'run-command',
             label: 'Use the replacement',
-            command: 'prisma-test orm migration graph',
+            command: 'prisma-test migration graph',
           },
         ],
       },

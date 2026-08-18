@@ -4,8 +4,8 @@
  * **Contract-space package layout.** The extension's contract
  * + migrations are emitted by the same pipeline application authors use:
  *
- *   `prisma orm contract emit` → `<package>/src/contract.{json,d.ts}`
- *   `prisma orm migration plan` → `<package>/migrations/<dir>/...`
+ *   `prisma contract emit` → `<package>/src/contract.{json,d.ts}`
+ *   `prisma migration plan` → `<package>/migrations/<dir>/...`
  *
  * The descriptor wires those JSON artefacts via JSON-import declarations
  * so they flow through the consuming application's module resolver

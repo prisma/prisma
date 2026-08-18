@@ -93,7 +93,7 @@ function envelopeOf(json: readonly StreamEvent[]): unknown {
 
 describe('db schema', () => {
   it('settles as a completed envelope carrying the introspection document', async () => {
-    const run = await harness(ormConfig()).run(['orm', 'db', 'schema', '--json'], { cwd: '/tmp' });
+    const run = await harness(ormConfig()).run(['db', 'schema', '--json'], { cwd: '/tmp' });
 
     expect(run.exitCode).toBe(0);
     expect(run.presented?.data).toEqual({
@@ -107,14 +107,14 @@ describe('db schema', () => {
   });
 
   it('never asks the family to infer a contract it would throw away', async () => {
-    await harness(ormConfig()).run(['orm', 'db', 'schema', '--json'], { cwd: '/tmp' });
+    await harness(ormConfig()).run(['db', 'schema', '--json'], { cwd: '/tmp' });
 
     expect(mocks.introspect).toHaveBeenCalledTimes(1);
     expect(mocks.inferPslContract).not.toHaveBeenCalled();
   });
 
   it('ships the schema view as a tree whose spans carry tone', async () => {
-    const run = await harness(ormConfig()).run(['orm', 'db', 'schema'], {
+    const run = await harness(ormConfig()).run(['db', 'schema'], {
       cwd: '/tmp',
       isTty: { stdout: true },
     });
@@ -173,7 +173,7 @@ describe('db schema', () => {
   });
 
   it('lets the engine draw the connectors under the root', async () => {
-    const run = await harness(ormConfig()).run(['orm', 'db', 'schema'], {
+    const run = await harness(ormConfig()).run(['db', 'schema'], {
       cwd: '/tmp',
       isTty: { stdout: true, stderr: true },
     });
@@ -185,7 +185,7 @@ describe('db schema', () => {
   });
 
   it('writes nothing to stdout in human mode', async () => {
-    const run = await harness(ormConfig()).run(['orm', 'db', 'schema'], {
+    const run = await harness(ormConfig()).run(['db', 'schema'], {
       cwd: '/tmp',
       isTty: { stdout: true },
     });
@@ -197,7 +197,7 @@ describe('db schema', () => {
   it('falls back to the summary when the family produces no schema view', async () => {
     mocks.toSchemaView.mockReturnValue(undefined);
 
-    const run = await harness(ormConfig()).run(['orm', 'db', 'schema'], {
+    const run = await harness(ormConfig()).run(['db', 'schema'], {
       cwd: '/tmp',
       isTty: { stdout: true },
     });
@@ -211,12 +211,9 @@ describe('db schema', () => {
   });
 
   it('takes the connection from --db over the config', async () => {
-    await harness(ormConfig()).run(
-      ['orm', 'db', 'schema', '--db', 'postgres://other/db', '--json'],
-      {
-        cwd: '/tmp',
-      },
-    );
+    await harness(ormConfig()).run(['db', 'schema', '--db', 'postgres://other/db', '--json'], {
+      cwd: '/tmp',
+    });
 
     expect(mocks.introspect).toHaveBeenCalledWith(
       expect.objectContaining({ connection: 'postgres://other/db' }),
@@ -224,7 +221,7 @@ describe('db schema', () => {
   });
 
   it('errors when no connection is configured', async () => {
-    const run = await harness(ormConfig({ db: undefined })).run(['orm', 'db', 'schema', '--json'], {
+    const run = await harness(ormConfig({ db: undefined })).run(['db', 'schema', '--json'], {
       cwd: '/tmp',
     });
 
@@ -236,12 +233,9 @@ describe('db schema', () => {
   });
 
   it('errors when the config declares no driver', async () => {
-    const run = await harness(ormConfig({ driver: undefined })).run(
-      ['orm', 'db', 'schema', '--json'],
-      {
-        cwd: '/tmp',
-      },
-    );
+    const run = await harness(ormConfig({ driver: undefined })).run(['db', 'schema', '--json'], {
+      cwd: '/tmp',
+    });
 
     expect(run.exitCode).toBe(2);
     expect(envelopeOf(run.json)).toMatchObject({
@@ -255,7 +249,7 @@ describe('db schema', () => {
       new Error('connect failed for postgres://user:secret@localhost:5432/appdb'),
     );
 
-    const run = await harness(ormConfig()).run(['orm', 'db', 'schema', '--json'], { cwd: '/tmp' });
+    const run = await harness(ormConfig()).run(['db', 'schema', '--json'], { cwd: '/tmp' });
     const settled = JSON.stringify(run.json.at(-1));
 
     expect(run.exitCode).toBe(2);
@@ -269,7 +263,7 @@ describe('db schema', () => {
       mocks.introspect.mockRejectedValue(new Error('ECONNREFUSED 127.0.0.1:5432'));
       mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'schema', '--json'], {
+      const run = await harness(ormConfig()).run(['db', 'schema', '--json'], {
         cwd: '/tmp',
       });
       const settled = JSON.stringify(run.json.at(-1));
@@ -282,7 +276,7 @@ describe('db schema', () => {
     it('does not turn a successful read into a failure', async () => {
       mocks.close.mockRejectedValue(new Error('close failed'));
 
-      const run = await harness(ormConfig()).run(['orm', 'db', 'schema', '--json'], {
+      const run = await harness(ormConfig()).run(['db', 'schema', '--json'], {
         cwd: '/tmp',
       });
 

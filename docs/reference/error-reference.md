@@ -35,7 +35,7 @@ Namespaces:
 
 ### CONFIG.CONTRACT_MISSING
 
-The `contract` section is missing (or incomplete) in `prisma.config.ts` when a command needs it — raised by `prisma orm contract emit` when the config has no contract configuration, no schema path, or the referenced authoring entrypoint cannot be resolved. Meta: none.
+The `contract` section is missing (or incomplete) in `prisma.config.ts` when a command needs it — raised by `prisma contract emit` when the config has no contract configuration, no schema path, or the referenced authoring entrypoint cannot be resolved. Meta: none.
 
 ### CONFIG.DB_CONNECTION_REQUIRED
 
@@ -77,11 +77,11 @@ The config module evaluated, but its default export was not created by the curre
 
 ### CLI.CONFIG_ARG_MISSING_PATH
 
-The migration-file CLI (`prisma orm migration`) received `--config` without a path argument — either a bare trailing `--config`, or `--config` immediately followed by another flag (e.g. `--config --dry-run`). The CLI fails fast instead of consuming the next flag as the config path or silently falling back to default config discovery. Meta: `nextToken` (present only when another flag followed `--config`).
+The migration-file CLI (`prisma migration`) received `--config` without a path argument — either a bare trailing `--config`, or `--config` immediately followed by another flag (e.g. `--config --dry-run`). The CLI fails fast instead of consuming the next flag as the config path or silently falling back to default config discovery. Meta: `nextToken` (present only when another flag followed `--config`).
 
 ### CLI.CONSENT_OPERATIONS_MISSING
 
-`db update` was told the plan is destructive but was given no operations to name, so the consent prompt would have asked you to authorise a list of nothing. The command refuses instead of prompting. This is an inconsistency between the CLI and the control API rather than something your project can be wrong about; run `prisma orm db update --dry-run` to see the plan, and report the run. Meta: none.
+`db update` was told the plan is destructive but was given no operations to name, so the consent prompt would have asked you to authorise a list of nothing. The command refuses instead of prompting. This is an inconsistency between the CLI and the control API rather than something your project can be wrong about; run `prisma db update --dry-run` to see the plan, and report the run. Meta: none.
 
 ### CLI.CONSENT_TOKEN_UNRESOLVED
 
@@ -89,7 +89,7 @@ The migration-file CLI (`prisma orm migration`) received `--config` without a pa
 
 ### CLI.CONTRACT_ARG_CONFLICT
 
-`prisma orm db sign` was given a contract reference twice — once as the positional argument and once as `--contract` — and there is no rule for which one wins. Pass it once. Meta: `positional`, `flag`.
+`prisma db sign` was given a contract reference twice — once as the positional argument and once as `--contract` — and there is no rule for which one wins. Pass it once. Meta: `positional`, `flag`.
 
 ### CLI.FILE_NOT_FOUND
 
@@ -105,7 +105,7 @@ During `prisma orm init`, `--authoring` and `--schema-path` disagree on file ext
 
 ### CLI.INIT_EMIT_FAILED
 
-During `prisma orm init`, the `prisma orm contract emit` step failed after a successful dependency install. Scaffolded files and installed dependencies remain on disk; the user fixes the contract file and re-runs the emit command. `init` completes with this as a finding and exits 5. Meta: `filesWritten`, `cause`.
+During `prisma orm init`, the `prisma contract emit` step failed after a successful dependency install. Scaffolded files and installed dependencies remain on disk; the user fixes the contract file and re-runs the emit command. `init` completes with this as a finding and exits 5. Meta: `filesWritten`, `cause`.
 
 ### CLI.INIT_INSTALL_FAILED
 
@@ -165,7 +165,7 @@ The main CLI received a `--format` value other than `pretty` or `json`. Raised d
 
 ### CLI.INVALID_VERIFY_MODE
 
-`prisma orm db verify` was given a contradictory mode combination: `--marker-only` together with `--schema-only`, or `--strict` together with `--marker-only` (strict requires schema verification, which marker-only skips). Meta: none.
+`prisma db verify` was given a contradictory mode combination: `--marker-only` together with `--schema-only`, or `--strict` together with `--marker-only` (strict requires schema verification, which marker-only skips). Meta: none.
 
 ### CLI.JSON_FORMAT_UNSUPPORTED
 
@@ -193,7 +193,7 @@ Catch-all for an unanticipated failure inside a CLI command — an unclassified 
 
 ### CLI.UNKNOWN_FLAG
 
-The migration-file CLI (`prisma orm migration`) received a flag it does not recognise; wraps clipanion's unknown-syntax error at the parser boundary so consumers can build "did you mean" suggestions from meta instead of parsing the message. Meta: `flag`, `knownFlags`.
+The migration-file CLI (`prisma migration`) received a flag it does not recognise; wraps clipanion's unknown-syntax error at the parser boundary so consumers can build "did you mean" suggestions from meta instead of parsing the message. Meta: `flag`, `knownFlags`.
 
 ## CONTRACT
 
@@ -303,7 +303,7 @@ The contract hash does not match the marker (signature) stored in the database. 
 
 ### CONTRACT.MARKER_MISSING
 
-No contract marker (database signature) is found in the database at all. `db verify` reports it as an `error` diagnostic on a completed run that exits `4`; the runtime reports it as a warning during startup marker verification. Fix path: `prisma orm db sign`. Meta: none notable.
+No contract marker (database signature) is found in the database at all. `db verify` reports it as an `error` diagnostic on a completed run that exits `4`; the runtime reports it as a warning during startup marker verification. Fix path: `prisma db sign`. Meta: none notable.
 
 ### CONTRACT.MARKER_READ_FAILED
 
@@ -311,11 +311,11 @@ A driver-level failure occurred while reading the contract marker table — conn
 
 ### CONTRACT.MARKER_REQUIRED
 
-A command that requires a pre-signed database (marker present) as a precondition found none; also the default failure code stamped onto a non-ok verify result when no more specific code applies, which is how `db verify --strict` reports a database holding elements no contract declares. On `db verify` it is an `error` diagnostic on a completed run that exits `4`; everywhere else it is a precondition failure at exit `2`. Those are two unrelated jobs for one code — "sign the database first" and "strict mode found elements no contract declares" — and splitting them would let the exit code follow from the code alone. Fix path: run `prisma orm db init` first, or declare the extra elements in a contract. Meta: none notable.
+A command that requires a pre-signed database (marker present) as a precondition found none; also the default failure code stamped onto a non-ok verify result when no more specific code applies, which is how `db verify --strict` reports a database holding elements no contract declares. On `db verify` it is an `error` diagnostic on a completed run that exits `4`; everywhere else it is a precondition failure at exit `2`. Those are two unrelated jobs for one code — "sign the database first" and "strict mode found elements no contract declares" — and splitting them would let the exit code follow from the code alone. Fix path: run `prisma db init` first, or declare the extra elements in a contract. Meta: none notable.
 
 ### CONTRACT.MARKER_ROW_CORRUPT
 
-The marker row exists but its column values fail schema validation — the row is corrupt or written by an incompatible version. Fix path: delete the row and re-sign with `prisma orm db sign`. Meta: `space`.
+The marker row exists but its column values fail schema validation — the row is corrupt or written by an incompatible version. Fix path: delete the row and re-sign with `prisma db sign`. Meta: `space`.
 
 ### CONTRACT.MODEL_TOKEN_INVALID
 
@@ -383,7 +383,7 @@ A role entity is declared more than once in the entities list, or a role name is
 
 ### CONTRACT.SCHEMA_VERIFICATION_FAILED
 
-Schema verification found that the live database schema does not satisfy the contract — missing/extra/mismatched tables, columns, or other elements. `db verify` and `db sign` both report it as an `error` diagnostic on a completed run that exits `4`: for `db verify` that is the drift verdict, and for `db sign` it is the reason no signature was written. `db verify` raises one such diagnostic per contract space whose schema failed. Fix path: `prisma orm db update` or adjust the contract. Meta: `space` (the contract space, on `db verify`), `issues` (the drifted element paths); the underlying operation result also carries `verificationResult`.
+Schema verification found that the live database schema does not satisfy the contract — missing/extra/mismatched tables, columns, or other elements. `db verify` and `db sign` both report it as an `error` diagnostic on a completed run that exits `4`: for `db verify` that is the drift verdict, and for `db sign` it is the reason no signature was written. `db verify` raises one such diagnostic per contract space whose schema failed. Fix path: `prisma db update` or adjust the contract. Meta: `space` (the contract space, on `db verify`), `issues` (the drifted element paths); the underlying operation result also carries `verificationResult`.
 
 ### CONTRACT.SOURCE_IMPORT_DISALLOWED
 
@@ -411,7 +411,7 @@ A field references a storage type that cannot be resolved: a storage type instan
 
 ### CONTRACT.UNREADABLE
 
-The emitted contract file could not be read or parsed while computing `migration status`; reported as a warn-severity diagnostic on the status result rather than a thrown error, with the hint to re-run `prisma orm contract emit`. Meta: none (diagnostic carries `message` and `hints`).
+The emitted contract file could not be read or parsed while computing `migration status`; reported as a warn-severity diagnostic on the status result rather than a thrown error, with the hint to re-run `prisma contract emit`. Meta: none (diagnostic carries `message` and `hints`).
 
 ### CONTRACT.VALIDATION_FAILED
 
@@ -795,7 +795,7 @@ A `migration check` finding, carried as an `error` diagnostic on a completed run
 
 ### MIGRATION.CHECK_DANGLING_REF
 
-A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a ref file points at a contract hash that does not exist in the space's migration graph. Update the ref with `prisma orm ref set <name> <valid-hash>` or delete it.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a ref file points at a contract hash that does not exist in the space's migration graph. Update the ref with `prisma ref set <name> <valid-hash>` or delete it.
 
 ### MIGRATION.CHECK_DECLARED_BUT_UNMIGRATED
 
@@ -867,7 +867,7 @@ An apply carrying consent was refused because the plan recomputed for it is not 
 
 ### MIGRATION.CONTRACT_DESERIALIZATION_FAILED
 
-A contract JSON on disk failed to deserialize into a valid contract: either a snapshot-store entry read while migration tooling resolved a contract at a ref or hash, or the emitted `contract.json` read as the fallback source by `db sign` / `db update --to` (invalid JSON, or a value that is not a JSON object). Re-emit the owning migration package (or re-run `prisma orm contract emit` for the emitted contract), or restore the file from version control. Meta: `filePath`, `message`. Also raised by `migration new` when the emitted `contract.json` fails to deserialize; that site has no meta and attaches the deserialization failure as `cause`.
+A contract JSON on disk failed to deserialize into a valid contract: either a snapshot-store entry read while migration tooling resolved a contract at a ref or hash, or the emitted `contract.json` read as the fallback source by `db sign` / `db update --to` (invalid JSON, or a value that is not a JSON object). Re-emit the owning migration package (or re-run `prisma contract emit` for the emitted contract), or restore the file from version control. Meta: `filePath`, `message`. Also raised by `migration new` when the emitted `contract.json` fails to deserialize; that site has no meta and attaches the deserialization failure as `cause`.
 
 ### MIGRATION.CONTRACT_SNAPSHOT_HASH_MISMATCH
 
@@ -995,7 +995,7 @@ A contract-space id (e.g. via `--space` or in planner input) does not match the 
 
 ### MIGRATION.LEGACY_MARKER_SHAPE
 
-The database's marker table (`prisma_contract.marker` on Postgres, `_prisma_marker` on SQLite) has the pre-per-space shape (no `space` column). The transitional auto-migration has been removed; drop the marker table and re-run `prisma orm db init` to reinitialise from a clean baseline. Detected during `db init`/`db update`/apply. Meta: `table`, `columns` (runner variant) or `runnerErrorCode` (marker-read variant).
+The database's marker table (`prisma_contract.marker` on Postgres, `_prisma_marker` on SQLite) has the pre-per-space shape (no `space` column). The transitional auto-migration has been removed; drop the marker table and re-run `prisma db init` to reinitialise from a clean baseline. Detected during `db init`/`db update`/apply. Meta: `table`, `columns` (runner variant) or `runnerErrorCode` (marker-read variant).
 
 ### MIGRATION.LEGEND_HUMAN_ONLY
 
@@ -1023,7 +1023,7 @@ A diagnostic in `migration status`: the active ref requires data invariants that
 
 ### MIGRATION.NO_CHANGES
 
-`migration new` found the from and to contract hashes identical — there is nothing to migrate. Change the contract and re-run `prisma orm contract emit` first, or pass `--from <hash>` explicitly to author a data-only migration on the current contract hash. Meta: none.
+`migration new` found the from and to contract hashes identical — there is nothing to migrate. Change the contract and re-run `prisma contract emit` first, or pass `--from <hash>` explicitly to author a data-only migration on the current contract hash. Meta: none.
 
 ### MIGRATION.NO_INITIAL_MIGRATION
 
@@ -1035,7 +1035,7 @@ The target (or named ref) requires data invariants, and no path through the migr
 
 ### MIGRATION.NO_MIGRATIONS
 
-`migration show` was given a non-path reference but the app space has no migration packages at all, so there is nothing to resolve against. Create a migration with `prisma orm migration plan` first. Meta: none.
+`migration show` was given a non-path reference but the app space has no migration packages at all, so there is nothing to resolve against. Create a migration with `prisma migration plan` first. Meta: none.
 
 ### MIGRATION.NO_TARGET
 
@@ -1155,7 +1155,7 @@ A ref declares required invariants that no migration anywhere in the graph provi
 
 ### MIGRATION.UNKNOWN_REF
 
-A ref name was used (read, resolved, or deleted via `ref` commands) but no ref file with that name exists. Create it with `prisma orm ref set <name> <hash>`, or run `ref list` to see what exists. Meta: `refName`, `filePath` or `availableRefs` depending on the site.
+A ref name was used (read, resolved, or deleted via `ref` commands) but no ref file with that name exists. Create it with `prisma ref set <name> <hash>`, or run `ref list` to see what exists. Meta: `refName`, `filePath` or `availableRefs` depending on the site.
 
 ## PLAN
 

@@ -211,7 +211,7 @@ export function errorContractValidationFailed(
 ): CliStructuredError {
   return new CliStructuredError('CONTRACT.VALIDATION_FAILED', 'Contract validation failed', {
     why: reason,
-    fix: 'Re-run `prisma orm contract emit`, or fix the contract file and try again',
+    fix: 'Re-run `prisma contract emit`, or fix the contract file and try again',
     nextActions: [
       { kind: 'run-command', label: 'Re-emit the contract', command: '{bin} contract emit' },
       {

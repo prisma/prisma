@@ -773,7 +773,7 @@ export type MigrateResult = Result<MigrateSuccess, MigrateFailure>;
  * Options for the standalone executeContractEmit function.
  *
  * `executeContractEmit` is the canonical publication path for both the
- * `prisma orm contract emit` CLI command and the `@internal/vite-plugin-contract-emit`
+ * `prisma contract emit` CLI command and the `@internal/vite-plugin-contract-emit`
  * Vite plugin. Do not duplicate the load → emit → publish dance elsewhere; if a
  * caller needs additional behavior, extend this options shape and update the
  * single implementation rather than building a parallel publication path.

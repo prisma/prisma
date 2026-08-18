@@ -4,8 +4,8 @@
  * Authored against the contract-space package layout convention. The
  * same emit pipeline application authors use is applied here:
  *
- *   `prisma orm contract emit` → `<package>/src/contract.{json,d.ts}`
- *   `prisma orm migration plan` → `<package>/migrations/<dirName>/`
+ *   `prisma contract emit` → `<package>/src/contract.{json,d.ts}`
+ *   `prisma migration plan` → `<package>/migrations/<dirName>/`
  *
  * The descriptor at `src/exports/control.ts` then wires the emitted
  * JSON artefacts via JSON-import declarations.

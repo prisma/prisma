@@ -13,7 +13,7 @@
  *      overrides only the `contract` field to point at the migration's
  *      `contract.prisma`. This keeps `extensions`, `db`, and `family` correct
  *      for every family without any per-family template.
- *   2. Runs `prisma orm contract emit --config <tmp-config> --output-path <tmp-dir>`
+ *   2. Runs `prisma contract emit --config <tmp-config> --output-path <tmp-dir>`
  *      to emit fresh `contract.json` + `contract.d.ts` for that migration's
  *      end state into a scratch directory, then writes them into the
  *      migrations-root-wide content-addressed store
@@ -416,7 +416,7 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
   } catch {
     rmSync(tmpEmitDir, { recursive: true, force: true });
     throw new Error(
-      `regen-example-migrations: prisma orm contract emit produced non-JSON output for ${migrationDir}:\n${emitOutput}`,
+      `regen-example-migrations: prisma contract emit produced non-JSON output for ${migrationDir}:\n${emitOutput}`,
     );
   }
 

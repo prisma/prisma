@@ -63,16 +63,20 @@ function groupsFor(commands: MountedTree): Record<string, { readonly brief: stri
 }
 
 /**
- * The ORM family mounted the way the real `prisma` bin mounts it: every
- * command under `orm`, so the family's `orm …` redirect targets resolve.
- * Shared by every helper that builds a test CLI over the family.
+ * The ORM family mounted the way the real host mounts it: the commands at the
+ * top level and `init` under `orm` (the host reserves top-level `init` for
+ * the compute config). Shared by every helper that builds a test CLI over the
+ * family.
  */
 export function ormEngineMount(): {
   readonly commands: MountedTree;
   readonly groups: Record<string, { readonly brief: string }>;
 } {
   const commands = Object.fromEntries(
-    Object.entries(ormCommandFamily.commands).map(([path, command]) => [`orm ${path}`, command]),
+    Object.entries(ormCommandFamily.commands).map(([path, command]) => [
+      path === 'init' ? 'orm init' : path,
+      command,
+    ]),
   );
   return { commands, groups: groupsFor(commands) };
 }
@@ -110,7 +114,7 @@ export async function runOnEngine(
       })
     : createTestCli({ ...spec, config: await evaluatedSections(project) });
 
-  const run = await cli.run(['orm', ...argv], {
+  const run = await cli.run([...argv], {
     cwd: project.testDir,
     isTty: { stdout: options?.isTTY !== false, stderr: options?.isTTY !== false },
   });

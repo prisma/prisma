@@ -579,7 +579,7 @@ export function attachDatabase(project: JourneyProject, connectionString: string
  * `pnpm exec prisma`.
  */
 export async function emitContract(project: JourneyProject): Promise<StepResult> {
-  return runStep(project, ['node', CLI_BIN, 'orm', 'contract', 'emit']);
+  return runStep(project, ['node', CLI_BIN, 'contract', 'emit']);
 }
 
 /**
@@ -588,18 +588,18 @@ export async function emitContract(project: JourneyProject): Promise<StepResult>
  * the schema in via `migrationPlan` + `migrationApply`.
  */
 export async function dbInit(project: JourneyProject): Promise<StepResult> {
-  return runStep(project, ['node', CLI_BIN, 'orm', 'db', 'init']);
+  return runStep(project, ['node', CLI_BIN, 'db', 'init']);
 }
 
 /**
- * Runs `prisma orm migration plan --name <name>`. On a fresh scaffold
+ * Runs `prisma migration plan --name <name>`. On a fresh scaffold
  * this materialises `migrations/app/<timestamp>_<name>/` with a draft
  * `migration.ts` describing the create-from-scratch operations. The
  * caller is responsible for self-emitting that draft (via
  * `selfEmitLatestMigration`) and then running `migrationApply`.
  */
 export async function migrationPlan(project: JourneyProject, name: string): Promise<StepResult> {
-  return runStep(project, ['node', CLI_BIN, 'orm', 'migration', 'plan', '--name', name]);
+  return runStep(project, ['node', CLI_BIN, 'migration', 'plan', '--name', name]);
 }
 
 /**
@@ -637,12 +637,12 @@ export async function selfEmitLatestMigration(project: JourneyProject): Promise<
 }
 
 /**
- * Runs `prisma orm migrate`. Applies every pending migration
+ * Runs `prisma migrate`. Applies every pending migration
  * to the live database — the mongo planner's missing-`createCollection`
  * seam (TML-2486) surfaces here when the bug is present.
  */
 export async function migrationApply(project: JourneyProject): Promise<StepResult> {
-  return runStep(project, ['node', CLI_BIN, 'orm', 'migrate']);
+  return runStep(project, ['node', CLI_BIN, 'migrate']);
 }
 
 /**

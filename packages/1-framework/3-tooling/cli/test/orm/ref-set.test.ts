@@ -23,7 +23,7 @@ describe('ref set', () => {
   it('settles as a completed envelope and writes only the pointer', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(['orm', 'ref', 'set', 'staging', HASH_A, '--json'], {
+    const run = await harness().run(['ref', 'set', 'staging', HASH_A, '--json'], {
       cwd: dir,
     });
 
@@ -45,7 +45,7 @@ describe('ref set', () => {
   it('renders one summary block naming the ref and the contract it points at', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(['orm', 'ref', 'set', 'staging', HASH_A], {
+    const run = await harness().run(['ref', 'set', 'staging', HASH_A], {
       cwd: dir,
       isTty: { stdout: true },
     });
@@ -67,7 +67,7 @@ describe('ref set', () => {
   it('leaves stdout empty in human mode, having no machine-consumable lines', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(['orm', 'ref', 'set', 'staging', HASH_A], {
+    const run = await harness().run(['ref', 'set', 'staging', HASH_A], {
       cwd: dir,
       isTty: { stdout: true },
     });
@@ -80,7 +80,7 @@ describe('ref set', () => {
     const { dir } = await seedRefProject();
     await writeRef(refsDirIn(dir), 'production', { hash: HASH_B, invariants: [] });
 
-    const run = await harness().run(['orm', 'ref', 'set', 'staging', 'production', '--json'], {
+    const run = await harness().run(['ref', 'set', 'staging', 'production', '--json'], {
       cwd: dir,
     });
 
@@ -96,7 +96,7 @@ describe('ref set', () => {
   it('resolves a migration directory name to its destination contract', async () => {
     const { dir, initialDirName } = await seedRefProject();
 
-    const run = await harness().run(['orm', 'ref', 'set', 'staging', initialDirName, '--json'], {
+    const run = await harness().run(['ref', 'set', 'staging', initialDirName, '--json'], {
       cwd: dir,
     });
 
@@ -107,12 +107,9 @@ describe('ref set', () => {
   it('resolves <dir>^ to the source contract of that migration', async () => {
     const { dir, secondDirName } = await seedRefProject();
 
-    const run = await harness().run(
-      ['orm', 'ref', 'set', 'staging', `${secondDirName}^`, '--json'],
-      {
-        cwd: dir,
-      },
-    );
+    const run = await harness().run(['ref', 'set', 'staging', `${secondDirName}^`, '--json'], {
+      cwd: dir,
+    });
 
     expect(run.exitCode).toBe(0);
     expect(run.presented?.data).toMatchObject({ hash: HASH_A });
@@ -122,8 +119,8 @@ describe('ref set', () => {
     const { dir } = await seedRefProject();
     const cli = harness();
 
-    await cli.run(['orm', 'ref', 'set', 'staging', HASH_A, '--json'], { cwd: dir });
-    const run = await cli.run(['orm', 'ref', 'set', 'staging', HASH_B, '--json'], { cwd: dir });
+    await cli.run(['ref', 'set', 'staging', HASH_A, '--json'], { cwd: dir });
+    const run = await cli.run(['ref', 'set', 'staging', HASH_B, '--json'], { cwd: dir });
 
     expect(run.exitCode).toBe(0);
     expect(JSON.parse(await readFile(refPointerPath(dir, 'staging'), 'utf-8'))).toEqual({
@@ -135,7 +132,7 @@ describe('ref set', () => {
   it('refuses a hash the migration graph does not carry, writing no pointer', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(['orm', 'ref', 'set', 'staging', HASH_ABSENT, '--json'], {
+    const run = await harness().run(['ref', 'set', 'staging', HASH_ABSENT, '--json'], {
       cwd: dir,
     });
 
@@ -150,7 +147,7 @@ describe('ref set', () => {
   it('names the empty graph and offers planning when the project has no migrations', async () => {
     const dir = await emptyProject();
 
-    const run = await harness().run(['orm', 'ref', 'set', 'staging', HASH_A, '--json'], {
+    const run = await harness().run(['ref', 'set', 'staging', HASH_A, '--json'], {
       cwd: dir,
     });
     const terminal = run.json.at(-1);
@@ -168,12 +165,9 @@ describe('ref set', () => {
   it('refuses the empty-database sentinel hash', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(
-      ['orm', 'ref', 'set', 'staging', EMPTY_CONTRACT_HASH, '--json'],
-      {
-        cwd: dir,
-      },
-    );
+    const run = await harness().run(['ref', 'set', 'staging', EMPTY_CONTRACT_HASH, '--json'], {
+      cwd: dir,
+    });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -185,7 +179,7 @@ describe('ref set', () => {
   it('refuses a contract whose bundle never got its snapshot written', async () => {
     const dir = await seedProjectMissingSnapshot();
 
-    const run = await harness().run(['orm', 'ref', 'set', 'staging', HASH_A, '--json'], {
+    const run = await harness().run(['ref', 'set', 'staging', HASH_A, '--json'], {
       cwd: dir,
     });
 
@@ -200,7 +194,7 @@ describe('ref set', () => {
   it('refuses an invalid ref name', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(['orm', 'ref', 'set', '../evil', HASH_A, '--json'], {
+    const run = await harness().run(['ref', 'set', '../evil', HASH_A, '--json'], {
       cwd: dir,
     });
 
@@ -214,7 +208,7 @@ describe('ref set', () => {
   it('gives the errored envelope typed next actions and no fix prose', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(['orm', 'ref', 'set', 'staging', HASH_ABSENT, '--json'], {
+    const run = await harness().run(['ref', 'set', 'staging', HASH_ABSENT, '--json'], {
       cwd: dir,
     });
     const terminal = run.json.at(-1);
@@ -230,7 +224,7 @@ describe('ref set', () => {
     const { dir } = await seedRefProject('db');
 
     const run = await harness({ ...ormConfig(), migrations: { dir: 'db' } }).run(
-      ['orm', 'ref', 'set', 'staging', HASH_A, '--json'],
+      ['ref', 'set', 'staging', HASH_A, '--json'],
       { cwd: dir },
     );
 
@@ -242,7 +236,7 @@ describe('ref set', () => {
     const { dir } = await seedRefProject();
 
     const run = await harness({ migrations: { dir: 42 } }).run(
-      ['orm', 'ref', 'set', 'staging', HASH_A, '--json'],
+      ['ref', 'set', 'staging', HASH_A, '--json'],
       { cwd: dir },
     );
 

@@ -6,8 +6,8 @@
     "node": ">=24"
   },
   "scripts": {
-    "emit": "prisma orm contract emit",
-    "db:init": "prisma orm db init",
+    "emit": "prisma contract emit",
+    "db:init": "prisma db init",
     "db:drop": "tsx scripts/drop-db.ts",
     "seed": "tsx scripts/seed.ts",
     "start": "tsx src/main.ts",

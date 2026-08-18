@@ -9,7 +9,7 @@ Model points, lines, and polygons as first-class columns, query them with a type
 - **`Geometry` column type** — store Points, LineStrings, Polygons, and their Multi-\* variants as a single `geometry` column. Optional SRID parameter (e.g. `Geometry(4326)` for WGS84 lng/lat) flows through to `contract.d.ts` and DDL.
 - **GeoJSON-shaped runtime values** — read and write geometries as plain `{ type, coordinates }` objects. No PostGIS-specific client APIs to learn.
 - **Seven query operations** on geometry columns: `distance`, `distanceSphere`, `dwithin`, `contains`, `within`, `intersects`, `intersectsBbox`.
-- **Automatic `CREATE EXTENSION`** — the control descriptor declares `postgis` as a database dependency, so `prisma orm db init` ensures the server has it enabled before the first migration runs.
+- **Automatic `CREATE EXTENSION`** — the control descriptor declares `postgis` as a database dependency, so `prisma db init` ensures the server has it enabled before the first migration runs.
 - **Both authoring paths** — works with PSL schemas and the TypeScript contract builder.
 
 ## Prerequisites
@@ -63,8 +63,8 @@ model Cafe {
 **3. Emit the contract and apply the migration:**
 
 ```bash
-pnpm prisma orm contract emit   # generates contract.json + contract.d.ts
-pnpm prisma orm db init         # CREATE EXTENSION postgis + CREATE TABLE
+pnpm prisma contract emit   # generates contract.json + contract.d.ts
+pnpm prisma db init         # CREATE EXTENSION postgis + CREATE TABLE
 ```
 
 **4. Wire the extension into the runtime:**

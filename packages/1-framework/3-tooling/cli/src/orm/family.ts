@@ -66,37 +66,37 @@ const commands: Readonly<Record<string, AnyCommand>> = {
  */
 const redirects: readonly RedirectSpec[] = [
   {
-    from: 'orm migration apply',
-    replacement: '{bin} orm migrate --to <contract>',
+    from: 'migration apply',
+    replacement: '{bin} migrate --to <contract>',
     reason: 'Applying a migration is a move to a target contract, not a verb of its own.',
   },
   {
-    from: 'orm migration ref',
-    replacement: '{bin} orm ref set|list|delete',
+    from: 'migration ref',
+    replacement: '{bin} ref set|list|delete',
     reason: 'Refs are managed by their own command, for every space rather than migrations alone.',
   },
   {
-    from: 'orm migration status',
+    from: 'migration status',
     flag: 'graph',
-    replacement: '{bin} orm migration graph',
+    replacement: '{bin} migration graph',
     reason: 'Topology is its own command rather than a mode of the status report.',
   },
   {
-    from: 'orm migration status',
+    from: 'migration status',
     flag: 'all',
-    replacement: '{bin} orm migration log --db <url>',
+    replacement: '{bin} migration log --db <url>',
     reason: 'Execution history is read from the database ledger, which is what migration log does.',
   },
   {
-    from: 'orm migration status',
+    from: 'migration status',
     flag: 'limit',
-    replacement: '{bin} orm migration log --db <url>',
+    replacement: '{bin} migration log --db <url>',
     reason: 'Execution history is read from the database ledger, which is what migration log does.',
   },
   {
-    from: 'orm migration status',
+    from: 'migration status',
     flag: 'ref',
-    replacement: '{bin} orm migration status --to <contract>',
+    replacement: '{bin} migration status --to <contract>',
     reason: 'One flag names the target contract, whether it is a ref, a hash or a migration.',
   },
 ];

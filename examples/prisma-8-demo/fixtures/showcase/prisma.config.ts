@@ -10,7 +10,7 @@ import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
 // non-trunk lane plus the connector crossing it creates).
 //
 // Explore it from the CLI:
-//   pnpm exec prisma orm migration graph --config ./fixtures/showcase/prisma.config.ts
+//   pnpm exec prisma migration graph --config ./fixtures/showcase/prisma.config.ts
 export default defineConfig({
   orm: ormConfig({
     contract: './contract.prisma',

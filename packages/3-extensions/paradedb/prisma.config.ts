@@ -2,8 +2,8 @@
  * Prisma Next config for the `extension-paradedb` package.
  *
  * The extension package is treated as a self-contained "project" for
- * the CLI: `prisma orm contract emit` writes
- * `<package>/src/contract.{json,d.ts}`; `prisma orm migration plan` writes
+ * the CLI: `prisma contract emit` writes
+ * `<package>/src/contract.{json,d.ts}`; `prisma migration plan` writes
  * `<package>/migrations/<dirName>/...`. The descriptor at
  * `src/exports/control.ts` then JSON-imports those artefacts.
  *

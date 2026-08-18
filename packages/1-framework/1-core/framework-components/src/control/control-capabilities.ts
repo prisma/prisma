@@ -38,7 +38,7 @@ export function hasSchemaView<TFamilyId extends string, TSchemaIR>(
 
 /**
  * Capability declaring that a family can infer a PSL contract AST from its
- * opaque introspected schema IR. Consumed by `prisma orm contract infer`.
+ * opaque introspected schema IR. Consumed by `prisma contract infer`.
  */
 export interface PslContractInferCapable<TSchemaIR = unknown> {
   inferPslContract(schemaIR: TSchemaIR): PslDocumentAst;

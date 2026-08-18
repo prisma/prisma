@@ -66,7 +66,7 @@ export async function runDbInit(
   });
   // Format auto-selection is the engine's: json off a TTY. A step that asks for
   // human output has to say its streams are terminals, as the journey harness does.
-  const run = await cli.run(['orm', 'db', 'init', ...args], {
+  const run = await cli.run(['db', 'init', ...args], {
     cwd: testSetup.testDir,
     isTty: { stdout: true, stderr: true },
   });

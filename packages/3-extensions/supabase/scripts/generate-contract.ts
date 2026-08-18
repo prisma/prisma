@@ -499,7 +499,7 @@ async function main(): Promise<void> {
   writeFileSync(contractPrismaPath, pslContent, 'utf8');
   process.stderr.write(`generate-contract: wrote ${contractPrismaPath}\n`);
 
-  execFileSync(join(packageRoot, 'node_modules', '.bin', 'prisma'), ['orm', 'contract', 'emit'], {
+  execFileSync(join(packageRoot, 'node_modules', '.bin', 'prisma'), ['contract', 'emit'], {
     cwd: packageRoot,
     stdio: 'inherit',
   });

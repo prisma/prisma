@@ -190,7 +190,7 @@ describe('marker parser', () => {
     })();
 
     expect(error).toMatchObject({
-      fix: 'Re-sign the database with `prisma orm db sign`, or repair the marker table.',
+      fix: 'Re-sign the database with `prisma db sign`, or repair the marker table.',
       nextActions: [
         { kind: 'run-command', label: 'Re-sign the database', command: '{bin} db sign' },
         {

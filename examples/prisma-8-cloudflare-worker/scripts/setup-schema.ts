@@ -1,5 +1,5 @@
 /**
- * Applies the contract schema to a local Postgres origin via `prisma orm db init`.
+ * Applies the contract schema to a local Postgres origin via `prisma db init`.
  *
  * Loads `.env`, then reads WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE
  * (the same env var Wrangler uses for the Hyperdrive binding's local connection string),
@@ -19,7 +19,7 @@ if (!url) {
   process.exit(1);
 }
 
-const result = spawnSync('pnpm', ['exec', 'prisma', 'orm', 'db', 'init', '--db', url, '--yes'], {
+const result = spawnSync('pnpm', ['exec', 'prisma', 'db', 'init', '--db', url, '--yes'], {
   stdio: 'inherit',
 });
 

@@ -131,12 +131,12 @@ Both grammars borrow two ideas from Git (prefix-matching on hashes and the `^` o
 #### Examples
 
 ```sh
-prisma orm migrate --to production                            # ref name → contract
-prisma orm migrate --to 1f3b7c4a                              # hash prefix → contract
-prisma orm migrate --to 20260117T1042_add_users_table         # migration dir → to-contract
-prisma orm db update --to 20260117T1042_add_users_table^      # migration dir + ^ → from-contract
-prisma orm migration show 20260117T1042_add_users_table       # migration dir → migration
-prisma orm migration show 1f3b7c4a                            # hash prefix → migration (by migration hash)
+prisma migrate --to production                            # ref name → contract
+prisma migrate --to 1f3b7c4a                              # hash prefix → contract
+prisma migrate --to 20260117T1042_add_users_table         # migration dir → to-contract
+prisma db update --to 20260117T1042_add_users_table^      # migration dir + ^ → from-contract
+prisma migration show 20260117T1042_add_users_table       # migration dir → migration
+prisma migration show 1f3b7c4a                            # hash prefix → migration (by migration hash)
 ```
 
 ### Refs are defined by CD behavior, not Git habit
@@ -386,7 +386,7 @@ The choices below are the load-bearing ones — the ones that, if reversed, woul
   - **`db verify`** — live DB satisfies its contract (marker + introspection vs. the contract). Live, read-only.
   - **`migration check [<m>]`** — artifact / graph integrity. With `<m>`: that migration's hashes recompute and its on-disk artifacts are complete. Without: graph-wide consistency (every migration self-consistent; every edge's `from` and `to` line up with neighbouring contracts; no orphan nodes; no dangling refs). Offline, read-only. Verb borrowed from `cargo check` and Atlas's "pre-migration checks" — naturally scopes from a single artifact to a holistic sweep.
 - **`migration preflight` rejected.** An earlier draft included a third verification verb: sandbox execution of a migration against a shadow database. Rejected — diffing is fully offline against on-disk contract snapshots, and no shadow database will ever exist. Behavioural enforcement happens during the real apply (pre/post invariants, destination-hash check).
-- **`db init` and `prisma orm init` both kept.** The namespace disambiguates: `prisma orm init` is project scaffolding; `prisma orm db init` lays down DB structure. No rename needed.
+- **`db init` and `prisma orm init` both kept.** The namespace disambiguates: `prisma orm init` is project scaffolding; `prisma db init` lays down DB structure. No rename needed.
 - **`contract emit` and `migration plan + compile` are asymmetric on purpose — the asymmetry is structural, not stylistic.** The two operations have fundamentally different shapes:
 
   Contract authoring is **one-step**:

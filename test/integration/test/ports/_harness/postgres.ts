@@ -17,7 +17,7 @@ import { timeouts, withDevDatabase } from '@repo/test-utils';
  * and emits a `contract.json`/`contract.d.ts`. The harness:
  *   1. spins up a PGlite dev database,
  *   2. **pushes the contract to the database** through prisma-next's own
- *      plan → apply path (the same mechanism `prisma orm db init` uses) — no
+ *      plan → apply path (the same mechanism `prisma db init` uses) — no
  *      hand-written DDL, so the materialised schema can never drift from the
  *      contract under test,
  *   3. opens the public **`postgres(...)` facade** over the same database and

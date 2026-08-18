@@ -6,7 +6,7 @@ PSL-to-Mongo contract interpreter for Prisma Next. Transforms Prisma Schema Lang
 
 - **PSL interpretation**: `interpretPslDocumentToMongoContract()` maps a parsed PSL document to a Mongo `Contract` — scalar types, collection/field naming, `@id`/`@map`/`@@map` attributes, and N:1/1:N reference relations with backrelation disambiguation
 - **Scalar type mapping**: `createMongoScalarTypeDescriptors()` provides the default PSL-type → Mongo codec ID mapping (e.g. `String` → `mongo/string@1`, `ObjectId` → `mongo/objectId@1`)
-- **Contract provider**: `mongoContract()` (exported from `./provider`) integrates with the CLI's `prisma orm contract emit` command, reading a `.prisma` schema file and producing a `ContractConfig`
+- **Contract provider**: `mongoContract()` (exported from `./provider`) integrates with the CLI's `prisma contract emit` command, reading a `.prisma` schema file and producing a `ContractConfig`
 - **Diagnostics**: Emits structured diagnostics for unsupported field types (`PSL_UNSUPPORTED_FIELD_TYPE`), missing `@id` fields (`PSL_MISSING_ID_FIELD`), orphaned backrelations (`PSL_ORPHANED_BACKRELATION`), and ambiguous backrelations (`PSL_AMBIGUOUS_BACKRELATION`)
 
 ## Known limitations

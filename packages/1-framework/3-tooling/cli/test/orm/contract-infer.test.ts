@@ -25,7 +25,7 @@ const mocks = {
 };
 
 const commands: MountedTree = {
-  'orm contract infer': createContractInferCommand({
+  'contract infer': createContractInferCommand({
     createControlClient: () => ({
       introspect: mocks.introspect,
       inferPslContract: mocks.inferPslContract,
@@ -106,7 +106,7 @@ describe('contract infer', () => {
   it('settles as a completed envelope carrying the infer document', async () => {
     const dir = await projectDir();
 
-    const run = await harness(ormConfig(dir)).run(['orm', 'contract', 'infer', '--json'], {
+    const run = await harness(ormConfig(dir)).run(['contract', 'infer', '--json'], {
       cwd: dir,
     });
 
@@ -125,7 +125,7 @@ describe('contract infer', () => {
   it('writes the printed PSL beside the emitted contract', async () => {
     const dir = await projectDir();
 
-    await harness(ormConfig(dir)).run(['orm', 'contract', 'infer', '--json'], { cwd: dir });
+    await harness(ormConfig(dir)).run(['contract', 'infer', '--json'], { cwd: dir });
 
     expect(await readFile(join(dir, 'generated', 'contract.prisma'), 'utf-8')).toBe(PSL);
   });
@@ -133,7 +133,7 @@ describe('contract infer', () => {
   it('publishes through a staged rename, leaving no temporary file behind', async () => {
     const dir = await projectDir();
 
-    await harness(ormConfig(dir)).run(['orm', 'contract', 'infer', '--json'], { cwd: dir });
+    await harness(ormConfig(dir)).run(['contract', 'infer', '--json'], { cwd: dir });
 
     expect(await readdir(join(dir, 'generated'))).toEqual(['contract.prisma']);
   });
@@ -142,7 +142,7 @@ describe('contract infer', () => {
     const dir = await projectDir();
 
     const run = await harness(ormConfig(dir)).run(
-      ['orm', 'contract', 'infer', '--output', 'schema/live.prisma', '--json'],
+      ['contract', 'infer', '--output', 'schema/live.prisma', '--json'],
       { cwd: dir },
     );
 
@@ -150,27 +150,27 @@ describe('contract infer', () => {
     expect(run.presented?.data).toMatchObject({ psl: { path: 'schema/live.prisma' } });
   });
 
-  it('falls back to contract.prisma in the invocation directory with no configured output', async () => {
+  it('colocates contract.prisma with the default emit output when none is configured', async () => {
     const dir = await projectDir();
     const config = ormConfig(dir, {
       contract: { source: { format: 'psl', inputs: [], load: () => ({}) } },
     });
 
-    await harness(config).run(['orm', 'contract', 'infer', '--json'], { cwd: dir });
+    await harness(config).run(['contract', 'infer', '--json'], { cwd: dir });
 
-    expect(await readFile(join(dir, 'contract.prisma'), 'utf-8')).toBe(PSL);
+    expect(await readFile(join(dir, 'src', 'prisma', 'contract.prisma'), 'utf-8')).toBe(PSL);
   });
 
   it('overwrites an existing contract with a warning and no prompt', async () => {
     const dir = await projectDir();
     const run1 = await harness(ormConfig(dir)).run(
-      ['orm', 'contract', 'infer', '--output', 'contract.prisma', '--json'],
+      ['contract', 'infer', '--output', 'contract.prisma', '--json'],
       { cwd: dir },
     );
     await writeFile(join(dir, 'contract.prisma'), 'model Stale {}\n', 'utf-8');
 
     const run2 = await harness(ormConfig(dir)).run(
-      ['orm', 'contract', 'infer', '--output', 'contract.prisma', '--json'],
+      ['contract', 'infer', '--output', 'contract.prisma', '--json'],
       { cwd: dir },
     );
 
@@ -188,7 +188,7 @@ describe('contract infer', () => {
     const dir = await projectDir();
 
     await harness(ormConfig(dir)).run(
-      ['orm', 'contract', 'infer', '--db', 'postgres://other/db', '--json'],
+      ['contract', 'infer', '--db', 'postgres://other/db', '--json'],
       {
         cwd: dir,
       },
@@ -202,7 +202,7 @@ describe('contract infer', () => {
   it('ships the database header and the written path as blocks', async () => {
     const dir = await projectDir();
 
-    const run = await harness(ormConfig(dir)).run(['orm', 'contract', 'infer'], {
+    const run = await harness(ormConfig(dir)).run(['contract', 'infer'], {
       cwd: dir,
       isTty: { stdout: true, stderr: true },
     });
@@ -230,7 +230,7 @@ describe('contract infer', () => {
   it('errors when no connection is configured', async () => {
     const dir = await projectDir();
     const run = await harness(ormConfig(dir, { db: undefined })).run(
-      ['orm', 'contract', 'infer', '--json'],
+      ['contract', 'infer', '--json'],
       { cwd: dir },
     );
     const terminal = run.json.at(-1);
@@ -247,7 +247,7 @@ describe('contract infer', () => {
     const dir = await projectDir();
 
     const run = await harness(ormConfig(dir, { driver: undefined })).run(
-      ['orm', 'contract', 'infer', '--json'],
+      ['contract', 'infer', '--json'],
       { cwd: dir },
     );
 
@@ -262,7 +262,7 @@ describe('contract infer', () => {
     const dir = await projectDir();
     mocks.inferPslContract.mockReturnValue(undefined);
 
-    const run = await harness(ormConfig(dir)).run(['orm', 'contract', 'infer', '--json'], {
+    const run = await harness(ormConfig(dir)).run(['contract', 'infer', '--json'], {
       cwd: dir,
     });
 
@@ -278,7 +278,7 @@ describe('contract infer', () => {
     const dir = await projectDir();
     mocks.introspect.mockRejectedValue(new Error(`connect ECONNREFUSED for ${CONNECTION}`));
 
-    const run = await harness(ormConfig(dir)).run(['orm', 'contract', 'infer', '--json'], {
+    const run = await harness(ormConfig(dir)).run(['contract', 'infer', '--json'], {
       cwd: dir,
     });
     const terminal = run.json.at(-1);
@@ -295,7 +295,7 @@ describe('contract infer', () => {
     const dir = await projectDir();
     mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
 
-    const run = await harness(ormConfig(dir)).run(['orm', 'contract', 'infer', '--json'], {
+    const run = await harness(ormConfig(dir)).run(['contract', 'infer', '--json'], {
       cwd: dir,
     });
 
@@ -319,7 +319,7 @@ describe('contract infer', () => {
         });
       });
 
-      const run = await harness(ormConfig(dir)).run(['orm', 'contract', 'infer', '--json'], {
+      const run = await harness(ormConfig(dir)).run(['contract', 'infer', '--json'], {
         cwd: dir,
       });
       const envelope = erroredEnvelope(run);
@@ -339,7 +339,7 @@ describe('contract infer', () => {
       // which is past the handler's own catch and so reaches the boundary.
       await writeFile(join(dir, 'generated'), 'not a directory', 'utf-8');
 
-      const run = await harness(ormConfig(dir)).run(['orm', 'contract', 'infer', '--json'], {
+      const run = await harness(ormConfig(dir)).run(['contract', 'infer', '--json'], {
         cwd: dir,
       });
 

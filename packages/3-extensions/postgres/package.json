@@ -8,7 +8,7 @@
   "description": "One-liner lazy Postgres client composition for Prisma Next",
   "scripts": {
     "build": "tsdown",
-    "emit": "cd ../../../test/integration && node ../../packages/1-framework/3-tooling/cli/dist/bin.mjs orm contract emit --config test/sql-builder/fixtures/prisma.config.no-pgvector.ts && cp test/sql-builder/fixtures/generated-no-pgvector/contract.json test/sql-builder/fixtures/generated-no-pgvector/contract.d.ts ../../packages/3-extensions/postgres/test/fixtures/generated/",
+    "emit": "cd ../../../test/integration && node ../../packages/1-framework/3-tooling/cli/dist/bin.mjs contract emit --config test/sql-builder/fixtures/prisma.config.no-pgvector.ts && cp test/sql-builder/fixtures/generated-no-pgvector/contract.json test/sql-builder/fixtures/generated-no-pgvector/contract.d.ts ../../packages/3-extensions/postgres/test/fixtures/generated/",
     "emit:check": "pnpm emit && git diff --exit-code test/fixtures/generated/",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

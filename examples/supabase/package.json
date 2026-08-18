@@ -6,7 +6,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "emit": "prisma orm contract emit",
+    "emit": "prisma contract emit",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "vitest run",
     "lint": "biome check . --error-on-warnings"

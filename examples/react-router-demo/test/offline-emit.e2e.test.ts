@@ -15,7 +15,7 @@ const prismaBin = join(exampleDir, '..', '..', 'node_modules', '.bin', 'prisma')
 const contractJsonPath = join(exampleDir, 'src', 'prisma', 'contract.json');
 const contractDtsPath = join(exampleDir, 'src', 'prisma', 'contract.d.ts');
 
-// Locks in AC9: `prisma orm contract emit` must succeed when DATABASE_URL is
+// Locks in AC9: `prisma contract emit` must succeed when DATABASE_URL is
 // unset, so a fresh checkout / CI typegen step does not need a database. The
 // example's `prisma.config.ts` was specifically modified (commit
 // `6d11148af`) to keep `db.connection` undefined when DATABASE_URL is missing
@@ -62,7 +62,7 @@ describe('react-router-demo offline emit (e2e)', () => {
     delete baseEnv['PGPASSWORD'];
     delete baseEnv['PGDATABASE'];
 
-    const { stdout, stderr } = await execFileAsync(prismaBin, ['orm', 'contract', 'emit'], {
+    const { stdout, stderr } = await execFileAsync(prismaBin, ['contract', 'emit'], {
       cwd: exampleDir,
       env: baseEnv,
     });

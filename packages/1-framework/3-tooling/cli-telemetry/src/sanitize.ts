@@ -59,7 +59,7 @@ function flagNameFromLongName(longName: string | null): string | null {
  *
  * Sanitiser contract — no flag values, no positionals, no raw argv:
  *   - Drop the root program name (`commandPath[0]`); the wire ships
- *     `migration new`, not `prisma orm migration new`.
+ *     `migration new`, not `prisma migration new`.
  *   - Emit only options whose Commander source is `cli`.
  *   - Emit the long user-facing flag spelling without the `--` prefix;
  *     never emit Commander's camelCase attribute names.

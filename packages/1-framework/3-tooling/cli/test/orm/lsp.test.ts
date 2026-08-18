@@ -60,7 +60,7 @@ function harness(): ReturnType<typeof createTestCli> {
 
 describe('lsp', () => {
   it('answers initialize and exits 0 after shutdown', async () => {
-    const run = await harness().run(['orm', 'lsp'], {
+    const run = await harness().run(['lsp'], {
       stdin: `${initialize}${initialized}${shutdown}${exit}`,
     });
 
@@ -84,14 +84,14 @@ describe('lsp', () => {
   });
 
   it('exits 1 when the client disconnects without shutting down', async () => {
-    const run = await harness().run(['orm', 'lsp'], { stdin: initialize });
+    const run = await harness().run(['lsp'], { stdin: initialize });
 
     expect(parseFrames(run.stdout)).toHaveLength(1);
     expect(run.exitCode).toBe(1);
   });
 
   it('accepts --stdio and speaks the same protocol', async () => {
-    const run = await harness().run(['orm', 'lsp', '--stdio'], {
+    const run = await harness().run(['lsp', '--stdio'], {
       stdin: `${initialize}${shutdown}${exit}`,
     });
 
@@ -102,7 +102,7 @@ describe('lsp', () => {
   // `vscode-languageclient` appends `--clientProcessId=<pid>` to every server
   // its NodeModule form spawns, spelled exactly like this.
   it('accepts the parent process id the standard editor client appends', async () => {
-    const run = await harness().run(['orm', 'lsp', '--stdio', `--clientProcessId=${process.pid}`], {
+    const run = await harness().run(['lsp', '--stdio', `--clientProcessId=${process.pid}`], {
       stdin: `${initialize}${shutdown}${exit}`,
     });
 
@@ -111,7 +111,7 @@ describe('lsp', () => {
   });
 
   it('accepts the kebab-case spelling of the parent process id', async () => {
-    const run = await harness().run(['orm', 'lsp', '--client-process-id', `${process.pid}`], {
+    const run = await harness().run(['lsp', '--client-process-id', `${process.pid}`], {
       stdin: `${initialize}${shutdown}${exit}`,
     });
 
@@ -124,7 +124,7 @@ describe('lsp', () => {
       const host = new AbortController();
       host.abort('SIGTERM');
 
-      const run = await harness().run(['orm', 'lsp'], { stdin: initialize, abort: host.signal });
+      const run = await harness().run(['lsp'], { stdin: initialize, abort: host.signal });
 
       expect(run.exitCode).toBe(143);
     });
@@ -133,14 +133,14 @@ describe('lsp', () => {
       const host = new AbortController();
       host.abort('SIGINT');
 
-      const run = await harness().run(['orm', 'lsp'], { stdin: initialize, abort: host.signal });
+      const run = await harness().run(['lsp'], { stdin: initialize, abort: host.signal });
 
       expect(run.exitCode).toBe(130);
     });
   });
 
   it('presents nothing of its own on the streams the client owns', async () => {
-    const run = await harness().run(['orm', 'lsp'], { stdin: `${initialize}${shutdown}${exit}` });
+    const run = await harness().run(['lsp'], { stdin: `${initialize}${shutdown}${exit}` });
 
     // The frame count above is the harness's; this asserts the stronger thing
     // it can: every byte on stdout belongs to a frame.
