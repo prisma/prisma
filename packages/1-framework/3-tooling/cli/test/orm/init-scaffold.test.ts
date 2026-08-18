@@ -237,7 +237,8 @@ describe('init scaffold', () => {
 
         expect(envelopeOf(run)).toMatchObject({ ok: true });
         expect(run.exitCode).toBe(0);
-        expect(calls[1]?.args).toEqual(['add', '-D', '@prisma/cli@next', '@prisma/cli-engine']);
+        expect(calls[1]?.args).toEqual(['add', '-D', '@prisma/cli@next']);
+        expect(calls[2]?.args).toEqual(['add', '-D', '@prisma/cli-engine@next']);
       },
       timeouts.coldTransformImport,
     );

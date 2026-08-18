@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs';
 import { ifDefined } from '@internal/utils/defined';
 import type { PackageManagerId, PackageOperations } from '@prisma/cli-engine';
 import type { CliStructuredError } from '@prisma/cli-engine/protocol';
+import { join } from 'pathe';
 import { isRecognisedPnpmResolutionError } from '../commands/init/pnpm-fallback';
 import { redactSecrets } from '../commands/init/redact-secrets';
 import {
@@ -75,6 +77,37 @@ function retriedWarning(failure: CliStructuredError): string {
  * command, and this decides — from the stderr it returned — that another
  * manager is worth a try.
  */
+/**
+ * The engine dependency spec a fresh scaffold installs. The scaffolded
+ * `prisma.config.ts` imports `defineConfig` from `@prisma/cli-engine`, and the
+ * installed `@prisma/cli` names the exact engine version it runs against — so
+ * the spec is read from the manifest the install just placed, never guessed
+ * from a dist-tag (whose `latest` has lagged that version before and broken
+ * the very next command). A CLI without a readable engine entry falls back to
+ * the `next` tag, the release train the CLI itself publishes under.
+ */
+export function engineDevDependencySpec(cwd: string): string {
+  try {
+    const manifest: unknown = JSON.parse(
+      readFileSync(join(cwd, 'node_modules', '@prisma', 'cli', 'package.json'), 'utf-8'),
+    );
+    if (typeof manifest === 'object' && manifest !== null) {
+      for (const field of ['dependencies', 'peerDependencies'] as const) {
+        const block = Reflect.get(manifest, field);
+        if (typeof block === 'object' && block !== null) {
+          const engine = Reflect.get(block, '@prisma/cli-engine');
+          if (typeof engine === 'string' && engine.length > 0) {
+            return `@prisma/cli-engine@${engine}`;
+          }
+        }
+      }
+    }
+  } catch {
+    // The fallback below covers an unreadable or unparseable manifest.
+  }
+  return '@prisma/cli-engine@next';
+}
+
 export async function installProjectDependencies(ctx: {
   readonly packages: PackageOperations;
   readonly cwd: string;

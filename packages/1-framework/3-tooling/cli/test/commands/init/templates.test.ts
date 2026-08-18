@@ -244,7 +244,7 @@ describe('templates', () => {
         'pnpm prisma-cli',
       );
 
-      expect(md).toContain('db.orm.User');
+      expect(md).toContain('db.orm.public.User');
       expect(md).toContain('.where(');
       expect(md).toContain('.first()');
     });

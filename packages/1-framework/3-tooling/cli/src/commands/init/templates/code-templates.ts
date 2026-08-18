@@ -321,7 +321,8 @@ export function dbFile(
 ): string {
   const runtime = targetEntrypoint(target, 'runtime', resolveImportSpecifier);
   if (target === 'postgres') {
-    return `import postgres from '${runtime}';
+    return `import 'dotenv/config';
+import postgres from '${runtime}';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -332,7 +333,8 @@ export const db = postgres<Contract>({
 `;
   }
 
-  return `import mongo from '${runtime}';
+  return `import 'dotenv/config';
+import mongo from '${runtime}';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 

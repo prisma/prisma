@@ -94,7 +94,8 @@ export default definePrismaConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + psl > dbFile is stable 1`] = `
-"import mongo from '@internal/mongo/runtime';
+"import 'dotenv/config';
+import mongo from '@internal/mongo/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -277,7 +278,8 @@ export default definePrismaConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + typescript > dbFile is stable 1`] = `
-"import mongo from '@internal/mongo/runtime';
+"import 'dotenv/config';
+import mongo from '@internal/mongo/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -486,7 +488,8 @@ export default definePrismaConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + psl > dbFile is stable 1`] = `
-"import postgres from '@internal/postgres/runtime';
+"import 'dotenv/config';
+import postgres from '@internal/postgres/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -527,7 +530,7 @@ Every model you define in your contract can be queried from your app. Your edito
 \`\`\`typescript
 import { db } from './src/prisma/db';
 
-const user = await db.orm.User
+const user = await db.orm.public.User
   .where({ email: 'alice@example.com' })
   .first();
 
@@ -649,7 +652,8 @@ export default definePrismaConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + typescript > dbFile is stable 1`] = `
-"import postgres from '@internal/postgres/runtime';
+"import 'dotenv/config';
+import postgres from '@internal/postgres/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -701,7 +705,7 @@ Every model you define in your contract can be queried from your app. Your edito
 \`\`\`typescript
 import { db } from './src/prisma/db';
 
-const user = await db.orm.User
+const user = await db.orm.public.User
   .where({ email: 'alice@example.com' })
   .first();
 
