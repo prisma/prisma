@@ -1,5 +1,4 @@
 import type { StorageTable } from '@internal/sql-contract/types';
-import type { RawTagFor } from './raw-query';
 import type { TableProxy } from './table-proxy';
 
 export type CapabilitiesBase = Record<string, Record<string, boolean>>;
@@ -81,16 +80,13 @@ export type Namespace<
 };
 
 /**
- * The contract-bound SQL surface: one facet per storage namespace, plus the
- * raw tag for statements the builders do not express.
+ * The contract-bound SQL surface: one facet per storage namespace, and nothing
+ * else.
  *
- * `raw` sits beside the namespace facets because a whole-query raw statement
- * is a peer of the table proxies, not something reached through one — it names
- * its own tables. The tag binds the adapter's codec inferer and the contract
- * once, here, so an authoring site carries only its template and row spec.
+ * A namespace may be named anything the database allows, `raw` included. The
+ * client carries whole-query raw statements on its own lane, `db.raw.sql`.
+ * This map does not reach that lane.
  */
 export type Db<C extends TableProxyContract> = {
   readonly [Ns in keyof C['storage']['namespaces'] & string]: Namespace<C, Ns>;
-} & {
-  readonly raw: RawTagFor<C>;
 };

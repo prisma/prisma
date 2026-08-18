@@ -8,6 +8,7 @@ import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../../1-core/contract/test/test-support';
 import type { BuilderContext } from '../../src/runtime/builder-base';
+import { createRawLane } from '../../src/runtime/raw-lane';
 import { sql } from '../../src/runtime/sql';
 import { TableProxyImpl } from '../../src/runtime/table-proxy-impl';
 import { contract as contractJson } from '../fixtures/contract';
@@ -23,6 +24,15 @@ const stubBase = {
   types: {},
   applyMutationDefaults: () => [],
 };
+
+function rawLane() {
+  return createRawLane({
+    context: { ...stubBase, contract: sqlContract } as unknown as ExecutionContext<
+      typeof sqlContract
+    >,
+    rawCodecInferer: { inferCodec: () => 'pg/int4@1' },
+  });
+}
 
 function db() {
   return sql({
@@ -49,10 +59,10 @@ describe('contract-bound raw statements', () => {
   // Reads as the surface is meant to be used: one template, one row spec
   // mixing contract columns with a computed column, one terminator.
   it('builds a plan whose row spec resolves both entry forms', () => {
-    const d = db();
-    const users = d.public.users;
+    const d = rawLane();
+    const users = db().public.users;
 
-    const plan = d.raw`
+    const plan = d.sql`
       SELECT u.id, u.email, count(p.id) AS post_count
       FROM users u JOIN posts p ON p.user_id = u.id
       WHERE u.invited_by_id = ${1}
@@ -82,7 +92,7 @@ describe('contract-bound raw statements', () => {
   });
 
   it('binds interpolated values through the adapter inferer', () => {
-    const plan = db().raw`SELECT id FROM users WHERE id = ${7}`
+    const plan = rawLane().sql`SELECT id FROM users WHERE id = ${7}`
       .returnsRow({ id: 'pg/int4@1' })
       .build();
 
@@ -93,18 +103,20 @@ describe('contract-bound raw statements', () => {
   });
 
   it('builds an affected-count plan from a mutation template', () => {
-    const plan = db().raw`UPDATE users SET name = ${'Ada'} WHERE id = ${1}`.affectedCount().build();
+    const plan = rawLane().sql`UPDATE users SET name = ${'Ada'} WHERE id = ${1}`
+      .affectedCount()
+      .build();
 
     expect((plan.ast as RawQueryAst).result).toEqual({ kind: 'affected-count' });
   });
 
   it('splices a row-returning statement into another template', () => {
-    const d = db();
-    const invited = d.raw`SELECT id FROM users WHERE invited_by_id = ${1}`.returnsRow({
-      id: d.public.users.columns.id,
+    const d = rawLane();
+    const invited = d.sql`SELECT id FROM users WHERE invited_by_id = ${1}`.returnsRow({
+      id: db().public.users.columns.id,
     });
 
-    const plan = d.raw`WITH invited AS (${invited}) SELECT count(*) AS n FROM invited`
+    const plan = d.sql`WITH invited AS (${invited}) SELECT count(*) AS n FROM invited`
       .returnsRow({ n: 'pg/int8@1' })
       .build();
 
@@ -114,7 +126,7 @@ describe('contract-bound raw statements', () => {
   });
 });
 
-describe('reserved surface keys', () => {
+describe('a storage namespace named raw', () => {
   // Authored through the contract builder so the namespace is one the emitter
   // could really produce: the target pack's default namespace names it.
   const rawNamespaceContract = defineContract(
@@ -148,26 +160,27 @@ describe('reserved surface keys', () => {
       }) as const,
   ) as FrameworkContract<SqlStorage>;
 
-  it('refuses a contract whose storage claims the raw tag key', () => {
-    expect(() =>
-      sql({
-        context: { ...stubBase, contract: rawNamespaceContract } as unknown as ExecutionContext<
-          typeof rawNamespaceContract
-        >,
-        rawCodecInferer: { inferCodec: () => 'pg/text@1' },
-      }),
-    ).toThrow(/namespace named "raw" cannot be reached/);
+  it('is reachable like any other namespace', () => {
+    const db = sql({
+      context: { ...stubBase, contract: rawNamespaceContract } as unknown as ExecutionContext<
+        typeof rawNamespaceContract
+      >,
+      rawCodecInferer: { inferCodec: () => 'pg/text@1' },
+    });
+
+    expect(db['raw']?.['Note']?.columns['id']).toEqual({ codecId: 'pg/text@1', nullable: false });
   });
 
-  it('names the collision in a structured envelope', () => {
-    expect(() =>
-      sql({
-        context: { ...stubBase, contract: rawNamespaceContract } as unknown as ExecutionContext<
-          typeof rawNamespaceContract
-        >,
-        rawCodecInferer: { inferCodec: () => 'pg/text@1' },
-      }),
-    ).toThrow(expect.objectContaining({ code: 'ORM.NAMESPACE_RESERVED' }));
+  it('builds a query against its tables', () => {
+    const db = sql({
+      context: { ...stubBase, contract: rawNamespaceContract } as unknown as ExecutionContext<
+        typeof rawNamespaceContract
+      >,
+      rawCodecInferer: { inferCodec: () => 'pg/text@1' },
+    });
+    const plan = db['raw']?.['Note']?.select('id').build();
+
+    expect(plan?.ast.kind).toBe('select');
   });
 });
 

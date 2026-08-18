@@ -6,7 +6,7 @@ import { db } from '../prisma/db';
  * (see `raw-sql-demo.ts`, which drops raw *fragments* into a typed builder
  * query).
  *
- * `db.sql.raw` is the same tagged template, terminated differently:
+ * `db.raw.sql` is the same tagged template, terminated differently:
  *
  * - `.returnsRow(spec)` declares the result columns and yields a plan the
  *   runtime's `query()` streams decoded rows from.
@@ -30,7 +30,7 @@ const post = db.sql.public.post;
  * codec directly and reads back as a `bigint`.
  */
 export async function rawQueryReport(limit = 10, runtime?: Runtime) {
-  const plan = db.sql.raw`
+  const plan = db.raw.sql`
     SELECT u.id, u.email, count(p.id) AS "postCount"
     FROM "user" u
     LEFT JOIN "post" p ON p."userId" = u.id
@@ -56,7 +56,7 @@ export async function rawQueryReport(limit = 10, runtime?: Runtime) {
  * which answers with the statement's row count rather than a row stream.
  */
 export async function rawQueryBumpViews(kind = 'admin', runtime?: Runtime) {
-  const plan = db.sql.raw`
+  const plan = db.raw.sql`
     UPDATE "post"
     SET "viewCount" = "viewCount" + 1
     WHERE "userId" IN (SELECT id FROM "user" WHERE kind = ${kind})
@@ -75,7 +75,7 @@ export async function rawQueryBumpViews(kind = 'admin', runtime?: Runtime) {
  * describes the inner statement; the outer template declares its own.
  */
 export async function rawQueryActiveAuthors(minPosts = 1, runtime?: Runtime) {
-  const authorsWithPosts = db.sql.raw`
+  const authorsWithPosts = db.raw.sql`
     SELECT p."userId" AS "userId", count(*) AS "postCount"
     FROM "post" p
     GROUP BY p."userId"
@@ -85,7 +85,7 @@ export async function rawQueryActiveAuthors(minPosts = 1, runtime?: Runtime) {
     postCount: 'pg/int8@1',
   });
 
-  const plan = db.sql.raw`
+  const plan = db.raw.sql`
     WITH active AS (${authorsWithPosts})
     SELECT u.email, active."postCount"
     FROM active
@@ -110,7 +110,7 @@ export async function rawQueryActiveAuthors(minPosts = 1, runtime?: Runtime) {
  * and is rejected as an interpolation.
  */
 export async function rawQueryPromoteAndList(titleTerm: string, runtime?: Runtime) {
-  const promoted = db.sql.raw`
+  const promoted = db.raw.sql`
     UPDATE "post"
     SET priority = 'high'
     WHERE title ILIKE ${`%${titleTerm}%`} AND priority <> 'high'
@@ -121,7 +121,7 @@ export async function rawQueryPromoteAndList(titleTerm: string, runtime?: Runtim
     userId: post.columns.userId,
   });
 
-  const plan = db.sql.raw`
+  const plan = db.raw.sql`
     WITH promoted AS (${promoted})
     SELECT promoted.title, u.email
     FROM promoted
