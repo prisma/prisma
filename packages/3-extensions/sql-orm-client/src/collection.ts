@@ -959,8 +959,17 @@ class CollectionImpl<
   /**
    * Apply `LIMIT n`. Replaces any previous limit set on this collection.
    *
+   * The window this sets applies to whatever terminal follows —
+   * `all()`, `first()`, `aggregate()` alike. `aggregate()` reduces over
+   * the limited rows, not every matching row.
+   *
    * ```typescript
    * const firstTen = await db.orm.User.orderBy((u) => u.id.asc()).take(10).all();
+   *
+   * const topTenViews = await db.orm.Post
+   *   .orderBy((p) => p.views.desc())
+   *   .take(10)
+   *   .aggregate((agg) => ({ totalViews: agg.sum('views') }));
    * ```
    */
   take(n: number): Collection<TContract, ModelName, Row, State> {
@@ -970,12 +979,21 @@ class CollectionImpl<
   /**
    * Apply `OFFSET n`. Replaces any previous offset set on this collection.
    *
+   * The window this sets applies to whatever terminal follows, `aggregate()`
+   * included: it reduces over the rows past the offset, not every matching
+   * row.
+   *
    * ```typescript
    * const page2 = await db.orm.User
    *   .orderBy((u) => u.id.asc())
    *   .skip(10)
    *   .take(10)
    *   .all();
+   *
+   * const viewsAfterFirstTen = await db.orm.Post
+   *   .orderBy((p) => p.id.asc())
+   *   .skip(10)
+   *   .aggregate((agg) => ({ totalViews: agg.sum('views') }));
    * ```
    */
   skip(n: number): Collection<TContract, ModelName, Row, State> {
@@ -1096,6 +1114,10 @@ class CollectionImpl<
    * with the requested aggregate values keyed by the aliases supplied
    * in the spec.
    *
+   * Reduces over the rows the chain describes, not every matching row:
+   * `take`, `skip`, `cursor`, `distinct`, and `distinctOn` all shape
+   * what the aggregate sees, the same way they shape `all()`.
+   *
    * ```typescript
    * const stats = await db.orm.Post
    *   .where({ published: true })
@@ -1105,6 +1127,15 @@ class CollectionImpl<
    *     maxViews: agg.max('views'),
    *   }));
    * // { total: 42, averageViews: 17.3, maxViews: 9001 }
+   *
+   * // Pagination narrows the scope the aggregate reduces over: the top
+   * // 2 posts by views sum to 90, against 150 for every published post.
+   * const topTwo = await db.orm.Post
+   *   .where({ published: true })
+   *   .orderBy((p) => p.views.desc())
+   *   .take(2)
+   *   .aggregate((agg) => ({ totalViews: agg.sum('views') }));
+   * // { totalViews: 90 }
    * ```
    *
    * Accepts an optional `configure` callback that receives a
