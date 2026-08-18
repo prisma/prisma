@@ -62,7 +62,7 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //   'attempt to set isolation level on mongo' → mongo-skip (postgres port)
 
 function withInteractiveTx(fn: Parameters<typeof withPostgresPort<Contract>>[1]) {
-  return withPostgresPort<Contract>({ contractJson }, async (ctx) => {
+  return withPostgresPort<Contract>({ contractJson, replaceDatabase: true }, async (ctx) => {
     // Clear users before each test (upstream uses beforeEach deleteMany)
     await ctx.db.public.User.where((u) => u.id.like('%')).deleteAll();
     await fn(ctx);

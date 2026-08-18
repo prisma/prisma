@@ -45,7 +45,8 @@ import setnullPlainJson from './_fixture/setnull-plain/generated/contract.json' 
 // createXUsersWith2Posts(count): for i in 1..count, create User{id:i} plus posts
 // `${i}-post-a` and `${i}-post-b`, both authored by user i.
 //
-// Each `it()` gets its own fresh dev database via `withPostgresPort`.
+// Each `it()` gets a clean contract-matched database via `withPostgresPort`,
+// which truncates rows before reuse.
 
 type Variant = { readonly name: string; readonly json: unknown };
 
