@@ -54,4 +54,87 @@ describe('distinctOn() capability gate', () => {
 
     expect(() => collection.all()).toThrow('distinctOn() requires capability postgres.distinctOn');
   });
+
+  // `dispatchCollectionRows` routes to `compileSelect` only when
+  // `state.includes` is empty; any include routes to
+  // `compileSelectWithIncludes` instead — a different function, with its own
+  // path into `state.distinctOn` via the shared `buildSelectAst` helper.
+  it('throws when a root state carrying distinctOn also carries an include', async () => {
+    const contract = withCapabilities(baseContract, { sql: { defaultInInsert: true } });
+    const context = { ...getTestContext(), contract };
+    const runtime = createMockRuntime();
+    const userCollection = new Collection({ runtime, context }, 'User', {
+      namespaceId: soleDomainNamespaceId(contract.domain),
+      state: {
+        ...emptyState(),
+        orderBy: [OrderByItem.asc(ColumnRef.of('users', 'name'))],
+        distinctOn: ['name'],
+      },
+    });
+
+    const withPosts = userCollection.include('posts', (posts) => posts.select('id'));
+
+    // `compileSelectWithIncludes` runs inside an async generator, so the
+    // capability error surfaces on iteration, not on `.all()` itself.
+    await expect(withPosts.all().toArray()).rejects.toThrow(
+      'distinctOn() requires capability postgres.distinctOn',
+    );
+  });
+
+  // `include()` accepts whatever the refinement callback returns as long as
+  // it carries a `.state` (`isCollectionStateCarrier`) — with no identity
+  // check against the collection the callback was actually handed. A
+  // refinement can return an unrelated, hand-built collection whose own
+  // state carries `distinctOn`.
+  it('throws when an include() refinement returns an unrelated collection whose state carries distinctOn', async () => {
+    const contract = withCapabilities(baseContract, { sql: { defaultInInsert: true } });
+    const context = { ...getTestContext(), contract };
+    const runtime = createMockRuntime();
+    const unrelated = new Collection({ runtime, context }, 'Post', {
+      namespaceId: soleDomainNamespaceId(contract.domain),
+      state: {
+        ...emptyState(),
+        orderBy: [OrderByItem.asc(ColumnRef.of('posts', 'title'))],
+        distinctOn: ['title'],
+      },
+    });
+    const userCollection = new Collection({ runtime, context }, 'User', {
+      namespaceId: soleDomainNamespaceId(contract.domain),
+    });
+
+    const withPosts = userCollection.include('posts', () => unrelated);
+
+    await expect(withPosts.all().toArray()).rejects.toThrow(
+      'distinctOn() requires capability postgres.distinctOn',
+    );
+  });
+
+  // `includeRefinementMode` is a public constructor option: a hand-built
+  // collection constructed with it can legitimately call a scalar reducer
+  // (`.count()`, `.sum()`, …) on itself, and `#includeScalarReducer`
+  // captures `this.state` into the resulting `IncludeScalar` with no gate
+  // in between.
+  it('throws when an include-scalar reducer captures a state carrying distinctOn', async () => {
+    const contract = withCapabilities(baseContract, { sql: { defaultInInsert: true } });
+    const context = { ...getTestContext(), contract };
+    const runtime = createMockRuntime();
+    const scalarSource = new Collection({ runtime, context }, 'Post', {
+      namespaceId: soleDomainNamespaceId(contract.domain),
+      includeRefinementMode: true,
+      state: {
+        ...emptyState(),
+        orderBy: [OrderByItem.asc(ColumnRef.of('posts', 'title'))],
+        distinctOn: ['title'],
+      },
+    });
+    const userCollection = new Collection({ runtime, context }, 'User', {
+      namespaceId: soleDomainNamespaceId(contract.domain),
+    });
+
+    const withPostCount = userCollection.include('posts', () => scalarSource.count());
+
+    await expect(withPostCount.all().toArray()).rejects.toThrow(
+      'distinctOn() requires capability postgres.distinctOn',
+    );
+  });
 });

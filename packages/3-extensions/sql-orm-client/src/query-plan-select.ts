@@ -533,6 +533,13 @@ function buildIncludeChildRowsSelect(
   readonly aggregateOrderBy: ReadonlyArray<OrderByItem> | undefined;
 } {
   const childState = include.nested;
+  // `include()`'s refinement callback result is accepted with no identity
+  // check against the collection it was handed (`isCollectionStateCarrier`),
+  // so a hand-built child state can carry `distinctOn` with nothing upstream
+  // having asserted the capability.
+  if (childState.distinctOn !== undefined && childState.distinctOn.length > 0) {
+    assertDistinctOnCapability(contract, 'distinctOn');
+  }
   const parentLocalRefs = resolveParentLocalRefs(
     parentSource,
     include,
@@ -997,6 +1004,13 @@ function buildIncludeChildScalarSelect(
   const childTableAlias = childSource.alias;
   const childTableRef = childSource.tableRef;
   const state = scalar.state;
+  // `includeRefinementMode` is a public constructor option, so a hand-built
+  // collection constructed with it can legitimately reach a scalar reducer
+  // (`.sum()`, `.count()`, …) whose captured state carries `distinctOn` with
+  // no gate in between.
+  if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
+    assertDistinctOnCapability(contract, 'distinctOn');
+  }
   const childWhere = buildStateWhere(contract, childTableRef, state, {
     filterTableName: include.relatedTableName,
     namespaceId: include.relatedNamespaceId,
@@ -1389,6 +1403,13 @@ function buildSelectAst(
   },
 ): SelectAst {
   const namespaceId = options.namespaceId;
+  // The private helper both `compileSelect` and `compileSelectWithIncludes`
+  // lower `state.distinctOn` through — guarding here closes both callers in
+  // one place. `compileSelect` already asserts this itself (defence in
+  // depth); `compileSelectWithIncludes` had no assert on any path until now.
+  if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
+    assertDistinctOnCapability(contract, 'distinctOn');
+  }
   const scalarProjection = buildProjection(
     contract,
     namespaceId,
