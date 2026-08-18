@@ -2,7 +2,7 @@
 
 This page states the minimum versions of each runtime, database, and tool that Prisma Next supports. These are hard floors, not "tested with" suggestions: versions below the listed minimums are untested and unsupported.
 
-See [ADR 222](./architecture%20docs/adrs/ADR%20222%20-%20Version%20support%20policy.md) for the rationale and the policy that governs how these floors change over time. The PostgreSQL floor was lowered from 17 to 15 by [ADR 244](./architecture%20docs/adrs/ADR%20244%20-%20PostgreSQL%20floor%20lowered%20to%2015.md), which also records what PostgreSQL 16 and 17 would offer and the market data behind the choice.
+See [ADR 222](./architecture%20docs/adrs/ADR%20222%20-%20Version%20support%20policy.md) for the rationale and the policy that governs how these floors change over time. The PostgreSQL floor was lowered from 17 to 15 by [ADR 248](./architecture%20docs/adrs/ADR%20248%20-%20PostgreSQL%20floor%20lowered%20to%2015.md), which also records what PostgreSQL 16 and 17 would offer and the market data behind the choice.
 
 ## Runtime
 

@@ -250,6 +250,12 @@ jobs:
   test-integration:
     name: Integration Tests
     needs: [build, changes]
+    # Launch window (until ~2026-08-21): not run in merge-queue groups, so
+    # queue throughput is not spent on a check that no longer blocks the
+    # merge. Still runs on every PR, and nightly on main
+    # (integration-nightly.yml). Remove this condition after launch, when
+    # the check becomes required again.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     env:
       TEST_TIMEOUT_MULTIPLIER: 2

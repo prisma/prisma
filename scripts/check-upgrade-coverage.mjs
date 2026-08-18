@@ -54,6 +54,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { basename } from 'node:path';
 import { argv, cwd, exit, stderr, stdout } from 'node:process';
 import { fileURLToPath } from 'node:url';
 
@@ -318,6 +319,68 @@ function diffAllChangedPaths(repoRoot, prev, head) {
   return new Set(out.split('\n').filter(Boolean));
 }
 
+const DEPENDENCY_MAPS = [
+  'dependencies',
+  'devDependencies',
+  'peerDependencies',
+  'optionalDependencies',
+];
+
+const BIOME_CONFIG_NAMES = new Set(['biome.json', 'biome.jsonc']);
+
+/** Key-sorted JSON, so a reordered manifest compares equal to itself. */
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value !== null && typeof value === 'object') {
+    const entries = Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`);
+    return `{${entries.join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+/** The manifest with every dependency *version* blanked; names are kept. */
+function manifestShapeIgnoringVersions(text) {
+  const parsed = JSON.parse(text);
+  for (const map of DEPENDENCY_MAPS) {
+    const deps = parsed[map];
+    if (deps !== null && typeof deps === 'object' && !Array.isArray(deps)) {
+      parsed[map] = Object.fromEntries(Object.keys(deps).map((name) => [name, '']));
+    }
+  }
+  return canonicalJson(parsed);
+}
+
+/**
+ * Whether a changed file can carry no downstream translation.
+ *
+ * Two shapes qualify, both of which a dependency bot produces by the dozen: a
+ * manifest where only dependency versions moved, and a lint config where only
+ * the `$schema` URL moved. Adding or removing a dependency does not qualify —
+ * a name appearing or disappearing can signal an API change, so it still wants
+ * a human to say so.
+ */
+function isTranslationIrrelevant(repoRoot, prev, head, path) {
+  const before = tryReadFileAtRef(repoRoot, prev, path);
+  const after = tryReadFileAtRef(repoRoot, head, path);
+  // An added or deleted file is a structural change, not a version move.
+  if (before === null || after === null) return false;
+
+  if (basename(path) === 'package.json') {
+    try {
+      return manifestShapeIgnoringVersions(before) === manifestShapeIgnoringVersions(after);
+    } catch {
+      return false;
+    }
+  }
+  if (BIOME_CONFIG_NAMES.has(basename(path))) {
+    const blankSchema = (text) => text.replace(/"\$schema"\s*:\s*"[^"]*"/g, '"$schema":""');
+    return blankSchema(before) === blankSchema(after);
+  }
+  return false;
+}
+
 function diffPaths(repoRoot, prev, head, pathspecs) {
   const args = ['diff', '--name-only', `${prev}..${head}`, '--'];
   args.push(...pathspecs);
@@ -462,7 +525,12 @@ export function runCheck({ repoRoot, head, prev }) {
   // line-oriented and tells the author exactly which directories the
   // gate wants.
   for (const { substrate, pathspec, skillPkg } of COVERAGE_SUBSTRATES) {
-    const substrateDiff = diffPaths(repoRoot, prev, head, [pathspec]);
+    // A diff that only moves dependency versions or a `$schema` URL has
+    // nothing for a consumer to translate, so it does not put the substrate
+    // in scope at all.
+    const substrateDiff = diffPaths(repoRoot, prev, head, [pathspec]).filter(
+      (path) => !isTranslationIrrelevant(repoRoot, prev, head, path),
+    );
     if (substrateDiff.length === 0) continue;
     for (const transition of coverageChain) {
       const requiredDir = `${skillPkg}/upgrades/${transition}`;

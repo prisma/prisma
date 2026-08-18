@@ -182,9 +182,12 @@ describe('contract emit', () => {
   });
 
   it('writes the emitted paths to stdout and the prose to stderr', async () => {
+    // Only stdout is a terminal. Marking stderr one too makes the engine read
+    // the pair as a single screen and drop the stdout mirror to avoid drawing
+    // it twice; leaving stdout off a terminal switches it to the JSON stream.
     const run = await harness().run(['contract', 'emit'], {
       cwd: PROJECT_DIR,
-      isTty: { stdout: true, stderr: true },
+      isTty: { stdout: true },
     });
 
     expect(run.presented?.presentation.stdout).toEqual([

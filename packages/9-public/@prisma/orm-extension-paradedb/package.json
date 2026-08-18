@@ -1,6 +1,6 @@
 {
   "name": "@prisma/orm-extension-paradedb",
-  "version": "8.0.0-rc.1",
+  "version": "8.0.0-rc.3",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -14,20 +14,20 @@
     "clean": "rm -rf dist src-gen"
   },
   "dependencies": {
-    "@prisma/orm-family-sql": "workspace:8.0.0-rc.1",
-    "@prisma/orm-framework": "workspace:8.0.0-rc.1",
-    "@prisma/orm-toolchain": "workspace:8.0.0-rc.1",
+    "@prisma/orm-family-sql": "workspace:8.0.0-rc.3",
+    "@prisma/orm-framework": "workspace:8.0.0-rc.3",
+    "@prisma/orm-toolchain": "workspace:8.0.0-rc.3",
     "arktype": "^2.2.2"
   },
   "devDependencies": {
-    "@internal/extension-paradedb": "workspace:8.0.0-rc.1",
-    "@repo/tsconfig": "workspace:8.0.0-rc.1",
-    "@repo/tsdown": "workspace:8.0.0-rc.1",
+    "@internal/extension-paradedb": "workspace:8.0.0-rc.3",
+    "@repo/tsconfig": "workspace:8.0.0-rc.3",
+    "@repo/tsdown": "workspace:8.0.0-rc.3",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   },
   "peerDependencies": {
-    "@prisma/orm-target-postgres": "workspace:8.0.0-rc.1",
+    "@prisma/orm-target-postgres": "workspace:8.0.0-rc.3",
     "typescript": ">=5.9"
   },
   "peerDependenciesMeta": {

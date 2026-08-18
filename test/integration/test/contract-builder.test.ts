@@ -488,8 +488,5 @@ describe('builder integration', () => {
         },
       });
     });
-
-    // TODO: The following 4 validation tests tested legacy chain builder validation logic (parentTable/childTable/through matching). In the new DSL, these constraints are enforced structurally by rel.belongsTo/hasMany/manyToMany and cannot be violated. Equivalent DSL validation tests exist in contract-builder.dsl.test.ts (e.g., "rejects belongsTo relations whose field arity does not match the target", "rejects hasMany
-    // relations whose child fields do not match the parent identity arity", "rejects many-to-many relations whose through mappings do not match anchor arity").
   });
 });
