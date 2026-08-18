@@ -181,7 +181,7 @@ export function buildDefaultSpec(input: {
   );
   const valueArms: readonly [ArgType<DefaultArgValue>, ...ArgType<DefaultArgValue>[]] = input.isList
     ? [list(literal()), ...funcArms]
-    : [str(), num(), bool(), ...funcArms];
+    : [str(), num(), bool(), nullLiteral(), ...funcArms];
   return fieldAttribute('default', { positional: [{ key: 'value', type: oneOf(...valueArms) }] });
 }
 

@@ -766,6 +766,15 @@ export function lowerDefaultForField(input: {
   }
 
   if (value === null) {
+    if (!input.field.optional) {
+      input.diagnostics.push({
+        code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
+        message: `Field "${input.modelName}.${input.fieldName}" is non-nullable and cannot use null as its literal default. Make the field nullable or use a non-null default.`,
+        sourceId: input.sourceId,
+        span: nodePslSpan(node.syntax, input.sourceFile),
+      });
+      return {};
+    }
     return { defaultValue: { kind: 'literal', value } };
   }
 
