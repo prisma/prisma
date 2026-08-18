@@ -1,18 +1,19 @@
-# Autoresearch: integration test suite speed
+# Autoresearch: integration test CI speed
 
 ## Objective
-Reduce the wall-clock runtime of Prisma Next's complete integration test suite while preserving its behavior, coverage, reliability, and isolation. Optimize the test harness and fixtures rather than weakening or skipping tests. The measured workload starts from an already-built workspace because integration tests consume package `dist` output and repeated local/CI test runs should isolate suite execution from compilation.
+Reduce the wall-clock runtime of Prisma Next's GitHub Actions `Integration Tests` job while preserving its behavior, coverage, reliability, and isolation. Optimize the CI path, test harness, and fixtures rather than weakening or skipping tests. Use GitHub-hosted runner measurements as the source of truth; local already-built suite measurements remain useful diagnostics.
 
 ## Metrics
-- **Primary**: `integration_seconds` (seconds, lower is better) — wall-clock time for `pnpm --filter integration-tests test`
-- **Secondary**: `test_files`, `tests` — passed Vitest file/test counts, monitored to prevent accidental test exclusion
+- **Primary**: `ci_integration_job_seconds` (seconds, lower is better) — elapsed time from the GitHub Actions `Integration Tests` job's `startedAt` to `completedAt`.
+- **Secondary**: `ci_integration_step_seconds`, `test_files`, `tests` — elapsed `Run Integration tests` step and passed Vitest file/test counts, monitored to prevent accidental test exclusion.
 
 ## How to Run
-`./.auto/measure.sh` — runs the full integration suite with the CI timeout multiplier and outputs `METRIC name=number` lines.
+Push the experiment to its draft PR and measure the resulting `Integration Tests` job with `gh run view <run-id> --json jobs`. Compare multiple successful runs where practical because hosted-runner performance varies. `./.auto/measure.sh` remains the local diagnostic and emits Vitest metrics with the CI timeout multiplier.
 
-Before the first measurement or after changing production package source, run `pnpm build` so integration tests exercise current `dist` artifacts.
+Before a local measurement or after changing production package source, run `pnpm build` so integration tests exercise current `dist` artifacts.
 
 ## Files in Scope
+- `.github/workflows/ci.yml` and `.github/actions/setup/action.yml` — integration job orchestration, setup, cache, and build path.
 - `test/integration/vitest.config.ts` — main integration runner scheduling and worker configuration.
 - `test/integration/vitest.journeys.config.ts` — journey runner scheduling and worker configuration.
 - `test/integration/test/**` — integration fixtures, lifecycle helpers, and tests when setup can be safely shared or reduced without weakening assertions.
@@ -36,6 +37,7 @@ Before the first measurement or after changing production package source, run `p
 - Update this file's “What's Been Tried” section with retained wins, dead ends, and key profiling insights.
 
 ## What's Been Tried
+- Historical successful GitHub Actions runs before this branch put the `Run Integration tests` step at 1,249–1,328 seconds (20:49–22:08); use the draft PR's hosted-runner jobs to measure retained changes.
 - The initial full-suite run took 1,515.29s of Vitest time (379 files, 2,129 tests) but failed 14 tests and one teardown hook because local default timeouts collapsed under load. Measurements now use `TEST_TIMEOUT_MULTIPLIER=2`, matching CI.
 - The ported Postgres harness started a fresh PGlite server for every test: 450 startups across 123 files. Reusing one server per contract within a file, truncating user tables between tests, and replacing the server only when the contract changes cut a representative 28-test file from 44s to 31s before row reuse and then to roughly 12–15s with row reuse.
 - PGlite transaction stress retains per-test server replacement: reused servers consistently broke the high-concurrency transaction case with `Connection terminated unexpectedly` after preceding transaction tests.
