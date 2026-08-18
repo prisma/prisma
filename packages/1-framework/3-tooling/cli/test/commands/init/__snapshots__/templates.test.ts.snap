@@ -79,10 +79,10 @@ Node-based Prisma Next projects expect Node.js 24 LTS or newer.
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + psl > configFile is stable 1`] = `
 "import 'dotenv/config';
-import { defineConfig } from '@prisma/cli-engine';
+import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '@internal/mongo/config';
 
-export default defineConfig({
+export default definePrismaConfig({
   orm: ormConfig({
     contract: "./src/prisma/contract.prisma",
     db: {
@@ -161,10 +161,10 @@ If you use a framework like Next.js or Vite, the Prisma Next plugin will do this
 
 \`\`\`typescript
 import 'dotenv/config';
-import { defineConfig } from '@prisma/cli-engine';
+import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '@internal/mongo/config';
 
-export default defineConfig({
+export default definePrismaConfig({
   orm: ormConfig({
     contract: './src/prisma/contract.prisma',
     db: {
@@ -262,10 +262,10 @@ model Post {
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + typescript > configFile is stable 1`] = `
 "import 'dotenv/config';
-import { defineConfig } from '@prisma/cli-engine';
+import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '@internal/mongo/config';
 
-export default defineConfig({
+export default definePrismaConfig({
   orm: ormConfig({
     contract: "./src/prisma/contract.ts",
     db: {
@@ -355,10 +355,10 @@ If you use a framework like Next.js or Vite, the Prisma Next plugin will do this
 
 \`\`\`typescript
 import 'dotenv/config';
-import { defineConfig } from '@prisma/cli-engine';
+import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '@internal/mongo/config';
 
-export default defineConfig({
+export default definePrismaConfig({
   orm: ormConfig({
     contract: './src/prisma/contract.ts',
     db: {
@@ -471,10 +471,10 @@ export const contract = defineContract(
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + psl > configFile is stable 1`] = `
 "import 'dotenv/config';
-import { defineConfig } from '@prisma/cli-engine';
+import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '@internal/postgres/config';
 
-export default defineConfig({
+export default definePrismaConfig({
   orm: ormConfig({
     contract: "./src/prisma/contract.prisma",
     db: {
@@ -550,10 +550,10 @@ If you use a framework like Next.js or Vite, the Prisma Next plugin will do this
 
 \`\`\`typescript
 import 'dotenv/config';
-import { defineConfig } from '@prisma/cli-engine';
+import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '@internal/postgres/config';
 
-export default defineConfig({
+export default definePrismaConfig({
   orm: ormConfig({
     contract: './src/prisma/contract.prisma',
     db: {
@@ -634,10 +634,10 @@ model Post {
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + typescript > configFile is stable 1`] = `
 "import 'dotenv/config';
-import { defineConfig } from '@prisma/cli-engine';
+import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '@internal/postgres/config';
 
-export default defineConfig({
+export default definePrismaConfig({
   orm: ormConfig({
     contract: "./src/prisma/contract.ts",
     db: {
@@ -724,10 +724,10 @@ If you use a framework like Next.js or Vite, the Prisma Next plugin will do this
 
 \`\`\`typescript
 import 'dotenv/config';
-import { defineConfig } from '@prisma/cli-engine';
+import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '@internal/postgres/config';
 
-export default defineConfig({
+export default definePrismaConfig({
   orm: ormConfig({
     contract: './src/prisma/contract.ts',
     db: {

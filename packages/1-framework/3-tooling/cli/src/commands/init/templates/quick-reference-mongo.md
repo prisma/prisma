@@ -42,10 +42,10 @@ If you use a framework like Next.js or Vite, the Prisma Next plugin will do this
 
 ```typescript
 import 'dotenv/config';
-import { defineConfig } from '@prisma/cli-engine';
+import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '{{configEntrypoint}}';
 
-export default defineConfig({
+export default definePrismaConfig({
   orm: ormConfig({
     contract: './{{schemaPath}}',
     db: {
