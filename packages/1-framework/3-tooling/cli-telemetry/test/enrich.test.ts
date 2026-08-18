@@ -219,7 +219,7 @@ function validConfigSource(
   const descriptor = (kind: string) =>
     `{ kind: '${kind}', id: '${targetId}', familyId: 'sql', targetId: '${targetId}', version: '0.0.1', create: () => ({}) }`;
   const lines = [
-    'export default {',
+    'const orm = {',
     `  family: { kind: 'family', id: 'sql', familyId: 'sql', version: '0.0.1', emission: {}, create: () => ({}) },`,
     `  target: ${descriptor('target')},`,
     `  adapter: ${descriptor('adapter')},`,
@@ -228,7 +228,8 @@ function validConfigSource(
     const extensionsLiteral = options.extensionsLiteral ?? '[]';
     lines.push(`  extensions: ${extensionsLiteral},`);
   }
-  lines.push('};\n');
+  lines.push('};');
+  lines.push('export default { $prismaConfig: 1, orm };\n');
   return lines.join('\n');
 }
 
@@ -261,23 +262,10 @@ describe('loadProjectConfig', () => {
     });
   });
 
-  it('unwraps the orm section of an engine-shaped config', async () => {
-    writeFileSync(
-      join(projectDir, 'prisma.config.mjs'),
-      `const orm = ${validConfigSource().replace('export default ', '').trimEnd().replace(/;$/, '')};\nexport default { $prismaConfig: 1, orm };\n`,
-    );
-    expect(await loadProjectConfig(projectDir)).toEqual({
-      databaseTarget: 'postgres',
-      extensions: [],
-    });
-  });
-
-  it('falls back to the deprecated prisma-next.config.* filename', async () => {
-    writeFileSync(join(projectDir, 'prisma-next.config.mjs'), validConfigSource());
-    expect(await loadProjectConfig(projectDir)).toEqual({
-      databaseTarget: 'postgres',
-      extensions: [],
-    });
+  it('returns empty config for a flat config without the $prismaConfig marker', async () => {
+    const flatSource = `${validConfigSource().replace('export default { $prismaConfig: 1, orm };\n', '')}export default orm;\n`;
+    writeFileSync(join(projectDir, 'prisma.config.mjs'), flatSource);
+    expect(await loadProjectConfig(projectDir)).toEqual(EMPTY_PROJECT_CONFIG);
   });
 
   it('returns empty extensions when extensions is truly omitted from an otherwise valid config', async () => {
@@ -298,7 +286,7 @@ describe('loadProjectConfig', () => {
   it('returns empty config when the canonical validator rejects a missing target descriptor', async () => {
     writeFileSync(
       join(projectDir, 'prisma.config.mjs'),
-      `export default { family: { kind: 'family', id: 'sql', familyId: 'sql', version: '0.0.1', emission: {}, create: () => ({}) } };\n`,
+      `export default { $prismaConfig: 1, orm: { family: { kind: 'family', id: 'sql', familyId: 'sql', version: '0.0.1', emission: {}, create: () => ({}) } } };\n`,
     );
     // Validator throws on missing `target` -> caught -> EMPTY_PROJECT_CONFIG.
     expect(await loadProjectConfig(projectDir)).toEqual(EMPTY_PROJECT_CONFIG);

@@ -8,7 +8,7 @@ Exit codes (CLI): an expected structured failure exits `2`, a user abort exits `
 
 Some codes are not failures to run at all. `db verify`, `db sign` and `migration check` answer a question about the project, and a bad answer is still an answer: they finish, report their findings as diagnostics on a successful envelope, and exit `4`. Exit `2` is reserved for the cases where those commands could not do the job — an unknown `--space`, a migration reference that resolves to nothing, an unreachable database, a contract that has not been emitted. Every entry whose code can arrive on one of those runs says so and names the command. Each of those commands declares the numbers it can exit with, and its `--help` text spells out what each one means.
 
-A command may also **complete with findings**: it ran to its end and has a result to report, and the problems it found ride that result as diagnostics carrying the codes on this page. Those runs exit with a documented per-command code in the `4`–`99` band rather than `2`, and the entry below says so. `prisma-next init` is the case today: its scaffold is on disk whatever happens next, so a failed dependency install, contract emit, or agent-skill install is a finding on a completed run at exit `4`, `5` or `6`.
+A command may also **complete with findings**: it ran to its end and has a result to report, and the problems it found ride that result as diagnostics carrying the codes on this page. Those runs exit with a documented per-command code in the `4`–`99` band rather than `2`, and the entry below says so. `prisma orm init` is the case today: its scaffold is on disk whatever happens next, so a failed dependency install, contract emit, or agent-skill install is a finding on a completed run at exit `4`, `5` or `6`.
 
 Codes that predate the dotted scheme were renamed at 0.16; the full old→new crosswalk (`PN-DOMAIN-NNNN` → `NAMESPACE.SUBCODE`) is in [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md).
 
@@ -35,15 +35,7 @@ Namespaces:
 
 ### CONFIG.CONTRACT_MISSING
 
-The `contract` section is missing (or incomplete) in `prisma.config.ts` when a command needs it — raised by `prisma-next contract emit` when the config has no contract configuration, no schema path, or the referenced authoring entrypoint cannot be resolved. Meta: none.
-
-### CONFIG.DEPRECATED_FILENAME
-
-The config was discovered under the deprecated `prisma-next.config.ts` filename. The load succeeds; the config loader prints a deprecation warning on stderr for every command that reads config. The fix is to rename the file to `prisma.config.ts`. Meta: none.
-
-### CONFIG.DEPRECATED_SHAPE
-
-The config module exports the deprecated flat Prisma Next shape (the target `defineConfig` result at top level). The load succeeds; the config loader prints a deprecation warning on stderr for every command that reads config. The fix is to wrap the config in an `orm` section with `defineConfig` from `@prisma/cli-engine`: `export default defineConfig({ orm: { … } })`. Meta: none.
+The `contract` section is missing (or incomplete) in `prisma.config.ts` when a command needs it — raised by `prisma contract emit` when the config has no contract configuration, no schema path, or the referenced authoring entrypoint cannot be resolved. Meta: none.
 
 ### CONFIG.DB_CONNECTION_REQUIRED
 
@@ -63,7 +55,7 @@ Reserved: `db verify` needs the family package to export `verify.readMarker()` a
 
 ### CONFIG.FILE_NOT_FOUND
 
-No `prisma.config.ts` (or the explicitly passed config path) could be found when loading configuration — raised by the config loader for any command that needs config. The fix is to run `prisma-next init` to create one. The path, when known, is carried in `where.path`. Meta: none.
+No `prisma.config.ts` (or the explicitly passed config path) could be found when loading configuration — raised by the config loader for any command that needs config. The fix is to run `prisma orm init` to create one. The path, when known, is carried in `where.path`. Meta: none.
 
 ### CONFIG.MISSING_EXTENSION_PACKS
 
@@ -85,11 +77,11 @@ The config module evaluated, but its default export was not created by the curre
 
 ### CLI.CONFIG_ARG_MISSING_PATH
 
-The migration-file CLI (`prisma-next migration`) received `--config` without a path argument — either a bare trailing `--config`, or `--config` immediately followed by another flag (e.g. `--config --dry-run`). The CLI fails fast instead of consuming the next flag as the config path or silently falling back to default config discovery. Meta: `nextToken` (present only when another flag followed `--config`).
+The migration-file CLI (`prisma migration`) received `--config` without a path argument — either a bare trailing `--config`, or `--config` immediately followed by another flag (e.g. `--config --dry-run`). The CLI fails fast instead of consuming the next flag as the config path or silently falling back to default config discovery. Meta: `nextToken` (present only when another flag followed `--config`).
 
 ### CLI.CONSENT_OPERATIONS_MISSING
 
-`db update` was told the plan is destructive but was given no operations to name, so the consent prompt would have asked you to authorise a list of nothing. The command refuses instead of prompting. This is an inconsistency between the CLI and the control API rather than something your project can be wrong about; run `prisma-next db update --dry-run` to see the plan, and report the run. Meta: none.
+`db update` was told the plan is destructive but was given no operations to name, so the consent prompt would have asked you to authorise a list of nothing. The command refuses instead of prompting. This is an inconsistency between the CLI and the control API rather than something your project can be wrong about; run `prisma db update --dry-run` to see the plan, and report the run. Meta: none.
 
 ### CLI.CONSENT_TOKEN_UNRESOLVED
 
@@ -97,7 +89,7 @@ The migration-file CLI (`prisma-next migration`) received `--config` without a p
 
 ### CLI.CONTRACT_ARG_CONFLICT
 
-`prisma-next db sign` was given a contract reference twice — once as the positional argument and once as `--contract` — and there is no rule for which one wins. Pass it once. Meta: `positional`, `flag`.
+`prisma db sign` was given a contract reference twice — once as the positional argument and once as `--contract` — and there is no rule for which one wins. Pass it once. Meta: `positional`, `flag`.
 
 ### CLI.FILE_NOT_FOUND
 
@@ -109,63 +101,63 @@ Writing a file failed — currently raised when `format` cannot write the format
 
 ### CLI.INIT_AUTHORING_SCHEMA_PATH_MISMATCH
 
-During `prisma-next init`, `--authoring` and `--schema-path` disagree on file extension — for example `--authoring psl` with a schema path ending in `.ts`. Raised before any scaffold files are written, so the project tree stays untouched. Meta: `authoring`, `schemaPath`, `actualExtension`, `expectedExtension`.
+During `prisma orm init`, `--authoring` and `--schema-path` disagree on file extension — for example `--authoring psl` with a schema path ending in `.ts`. Raised before any scaffold files are written, so the project tree stays untouched. Meta: `authoring`, `schemaPath`, `actualExtension`, `expectedExtension`.
 
 ### CLI.INIT_EMIT_FAILED
 
-During `prisma-next init`, the `prisma-next contract emit` step failed after a successful dependency install. Scaffolded files and installed dependencies remain on disk; the user fixes the contract file and re-runs the emit command. `init` completes with this as a finding and exits 5. Meta: `filesWritten`, `cause`.
+During `prisma orm init`, the `prisma contract emit` step failed after a successful dependency install. Scaffolded files and installed dependencies remain on disk; the user fixes the contract file and re-runs the emit command. `init` completes with this as a finding and exits 5. Meta: `filesWritten`, `cause`.
 
 ### CLI.INIT_INSTALL_FAILED
 
-During `prisma-next init`, dependency installation failed and the pnpm-to-npm fallback either did not apply or also failed. Files scaffolded before the install step are already on disk; the next actions carry the install command that was attempted and the emit that was waiting on it. `init` completes with this as a finding and exits 4. Meta: `filesWritten`, plus `install` (the attempted command, the manager, its exit code and the tail of its stderr).
+During `prisma orm init`, dependency installation failed and the pnpm-to-npm fallback either did not apply or also failed. Files scaffolded before the install step are already on disk; the next actions carry the install command that was attempted and the emit that was waiting on it. `init` completes with this as a finding and exits 4. Meta: `filesWritten`, plus `install` (the attempted command, the manager, its exit code and the tail of its stderr).
 
 ### CLI.INIT_INVALID_FLAG_VALUE
 
-A flag passed to `prisma-next init` has a value outside its allowed set (for example `--target` with something other than `postgres` or `mongodb`). Maps to init exit code 2 (PRECONDITION). Meta: `flag`, `value`, `allowed`.
+A flag passed to `prisma orm init` has a value outside its allowed set (for example `--target` with something other than `postgres` or `mongodb`). Maps to init exit code 2 (PRECONDITION). Meta: `flag`, `value`, `allowed`.
 
 ### CLI.INIT_INVALID_MANIFEST
 
-`prisma-next init` could not parse the project's `package.json` as JSON. Init reads the manifest to merge scripts and to skip `@types/node` when already declared, so a malformed file is a hard precondition failure the user can fix and re-run. Maps to init exit code 2 (PRECONDITION). Meta: `path`, `cause`.
+`prisma orm init` could not parse the project's `package.json` as JSON. Init reads the manifest to merge scripts and to skip `@types/node` when already declared, so a malformed file is a hard precondition failure the user can fix and re-run. Maps to init exit code 2 (PRECONDITION). Meta: `path`, `cause`.
 
 ### CLI.INIT_INVALID_OUTPUT_DOCUMENT
 
-`prisma-next init` completed but its own success output document failed schema validation. This indicates a bug in Prisma Next itself, not user error. The engine-hosted `init` settles it as an errored envelope at exit 2 (the commander `init`, deleted in the S5 cutover, mapped it to exit 1), because the ORM's error boundary converts every failure into a structured settlement and the engine reserves exit 1 for a throw that reaches it uncaught. Meta: none.
+`prisma orm init` completed but its own success output document failed schema validation. This indicates a bug in Prisma Next itself, not user error. The engine-hosted `init` settles it as an errored envelope at exit 2 (the commander `init`, deleted in the S5 cutover, mapped it to exit 1), because the ORM's error boundary converts every failure into a structured settlement and the engine reserves exit 1 for a throw that reaches it uncaught. Meta: none.
 
 ### CLI.INIT_INVALID_TSCONFIG
 
-`prisma-next init` could not parse the project's existing `tsconfig.json`, even with JSONC tolerance (comments and trailing commas). Init merges required compiler options into it, so an unreadable file blocks the run; raised before any scaffold file is written. Maps to init exit code 2 (PRECONDITION). Meta: `path`, `cause`.
+`prisma orm init` could not parse the project's existing `tsconfig.json`, even with JSONC tolerance (comments and trailing commas). Init merges required compiler options into it, so an unreadable file blocks the run; raised before any scaffold file is written. Maps to init exit code 2 (PRECONDITION). Meta: `path`, `cause`.
 
 ### CLI.INIT_MISSING_FLAGS
 
-`prisma-next init` ran non-interactively (e.g. `--yes`, or stdin is not a TTY) but one or more required inputs (`--target`, `--authoring`, `--schema-path`) were not supplied as flags. Every missing flag is listed so scripts and agents can react without parsing English. Maps to init exit code 2 (PRECONDITION). Meta: `missingFlags`.
+`prisma orm init` ran non-interactively (e.g. `--yes`, or stdin is not a TTY) but one or more required inputs (`--target`, `--authoring`, `--schema-path`) were not supplied as flags. Every missing flag is listed so scripts and agents can react without parsing English. Maps to init exit code 2 (PRECONDITION). Meta: `missingFlags`.
 
 ### CLI.INIT_PROBE_FAILED
 
-`prisma-next init --probe-db --strict-probe` was run and the database probe could not complete (no `DATABASE_URL`, network or auth error, driver not installed). Without `--strict-probe` these surface as warnings; strict mode escalates them to fatal. Scaffolded files are already on disk when this fires. Maps to init exit code 2 (PRECONDITION). Meta: `filesWritten`, `cause`.
+`prisma orm init --probe-db --strict-probe` was run and the database probe could not complete (no `DATABASE_URL`, network or auth error, driver not installed). Without `--strict-probe` these surface as warnings; strict mode escalates them to fatal. Scaffolded files are already on disk when this fires. Maps to init exit code 2 (PRECONDITION). Meta: `filesWritten`, `cause`.
 
 ### CLI.INIT_REINIT_NEEDS_FORCE
 
-`prisma-next init` ran non-interactively in a directory that already has a `prisma.config.ts`, and consent to overwrite the existing scaffold was not given. Re-scaffolding is destructive, so it needs explicit consent: interactively, `init` asks the user to type the working directory's name back; non-interactively, the same consent is granted by `--confirm <directory name>`. Neither `--yes` nor any flag skips it. Maps to init exit code 2 (PRECONDITION). Meta: none.
+`prisma orm init` ran non-interactively in a directory that already has a `prisma.config.ts`, and consent to overwrite the existing scaffold was not given. Re-scaffolding is destructive, so it needs explicit consent: interactively, `init` asks the user to type the working directory's name back; non-interactively, the same consent is granted by `--confirm <directory name>`. Neither `--yes` nor any flag skips it. Maps to init exit code 2 (PRECONDITION). Meta: none.
 
 The code was raised by the commander `init` (deleted in the S5 cutover), whose consent flag was `--force`. The engine-hosted `init` reaches the same outcome through the engine's own `CLI.CONSENT_REQUIRED`, which names the exact `--confirm` value to pass.
 
 ### CLI.INIT_SKILL_INSTALL_FAILED
 
-During `prisma-next init`, the project-level skills install failed after a successful dependency install and emit. Init runs one `skills add` per default skill through the project's package manager — e.g. `pnpm dlx skills@latest add prisma/prisma/skills#v<version> --agent cursor claude-code codex windsurf --skill prisma-8 -y` — for the `prisma-8`, `prisma-next-upgrade`, and `prisma-8-extension-upgrade` skills. The project itself is complete without the skills; the user can fix the underlying issue (network, registry, PATH) and install manually, or re-run with `--skip-skills`. `init` completes with this as a finding and exits 6. Meta: `filesWritten`, plus `skillInstall` (the attempted command, the manager, its exit code and the tail of its stderr).
+During `prisma orm init`, the project-level skills install failed after a successful dependency install and emit. Init runs one `skills add` per default skill through the project's package manager — e.g. `pnpm dlx skills@latest add prisma/prisma/skills#v<version> --agent cursor claude-code codex windsurf --skill prisma-8 -y` — for the `prisma-8`, `prisma-next-upgrade`, and `prisma-8-extension-upgrade` skills. The project itself is complete without the skills; the user can fix the underlying issue (network, registry, PATH) and install manually, or re-run with `--skip-skills`. `init` completes with this as a finding and exits 6. Meta: `filesWritten`, plus `skillInstall` (the attempted command, the manager, its exit code and the tail of its stderr).
 
 ### CLI.INIT_STRICT_PROBE_WITHOUT_PROBE
 
-`prisma-next init --strict-probe` was supplied without `--probe-db`. Init is offline-by-default, so no probe runs without `--probe-db`; rather than silently ignoring the strict flag, init errors and tells the user to add `--probe-db` or drop `--strict-probe`. Maps to init exit code 2 (PRECONDITION). Meta: none.
+`prisma orm init --strict-probe` was supplied without `--probe-db`. Init is offline-by-default, so no probe runs without `--probe-db`; rather than silently ignoring the strict flag, init errors and tells the user to add `--probe-db` or drop `--strict-probe`. Maps to init exit code 2 (PRECONDITION). Meta: none.
 
 ### CLI.INIT_USER_ABORTED
 
-The user cancelled an interactive `prisma-next init` prompt (Ctrl-C, escape, or declining a selection) before all required inputs were supplied. No files were modified. Severity is `info`, not `error`; maps to init exit code 3 (USER_ABORTED). Meta: none.
+The user cancelled an interactive `prisma orm init` prompt (Ctrl-C, escape, or declining a selection) before all required inputs were supplied. No files were modified. Severity is `info`, not `error`; maps to init exit code 3 (USER_ABORTED). Meta: none.
 
 Raised by the commander `init` (deleted in the S5 cutover). On the engine-hosted `init` a cancelled prompt is the engine's own `CLI.PROMPT_CANCELLED`, which exits 3 for every command rather than only this one; the engine-hosted `init` keeps this code for a consent the user declines, which settles as an errored envelope at exit 2 like every other structured failure there. Because that command's consent declares a token, the engine answers a wrong or absent answer with `CLI.PROMPT_INVALID` or `CLI.CONSENT_REQUIRED` before a decline can be expressed, so the code is the refusal that runs if a future consent drops its token.
 
 ### CLI.INIT_WRITE_FAILED
 
-`prisma-next init` could not write one of the files it scaffolds — a directory sitting where the file goes, permissions, a full disk. Everything that can be read and parsed is checked before the first write, so this is the failure that survives that check; the files written before it are already on disk and are listed so a follow-up run or agent knows the state it is resuming from. Maps to init exit code 2 (PRECONDITION). Meta: `path`, `cause`, `filesWritten`.
+`prisma orm init` could not write one of the files it scaffolds — a directory sitting where the file goes, permissions, a full disk. Everything that can be read and parsed is checked before the first write, so this is the failure that survives that check; the files written before it are already on disk and are listed so a follow-up run or agent knows the state it is resuming from. Maps to init exit code 2 (PRECONDITION). Meta: `path`, `cause`, `filesWritten`.
 
 ### CLI.INVALID_OUTPUT_FORMAT
 
@@ -173,7 +165,7 @@ The main CLI received a `--format` value other than `pretty` or `json`. Raised d
 
 ### CLI.INVALID_VERIFY_MODE
 
-`prisma-next db verify` was given a contradictory mode combination: `--marker-only` together with `--schema-only`, or `--strict` together with `--marker-only` (strict requires schema verification, which marker-only skips). Meta: none.
+`prisma db verify` was given a contradictory mode combination: `--marker-only` together with `--schema-only`, or `--strict` together with `--marker-only` (strict requires schema verification, which marker-only skips). Meta: none.
 
 ### CLI.JSON_FORMAT_UNSUPPORTED
 
@@ -193,7 +185,7 @@ A `package.json` found while resolving the project import root exists but could 
 
 ### CLI.PROMPT_REQUIRED
 
-Raised by `@prisma/cli-engine`, not by this repository: a command asked a question that has no default, and the session could not show it — stdin is not a terminal, `--no-interactive` was passed, or `--yes` was asked to answer a prompt that declares no default. The `CLI` namespace is shared with the engine (see [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md)); it is listed here because it settles runs of the `prisma-next` binary. `prisma-next init` translates it for the two prompts that stand in for a required flag, so a missing `--target` or `--authoring` still reports `CLI.INIT_MISSING_FLAGS` with the full missing list. Meta: none.
+Raised by `@prisma/cli-engine`, not by this repository: a command asked a question that has no default, and the session could not show it — stdin is not a terminal, `--no-interactive` was passed, or `--yes` was asked to answer a prompt that declares no default. The `CLI` namespace is shared with the engine (see [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md)); it is listed here because it settles runs of the ORM's commands. `prisma orm init` translates it for the two prompts that stand in for a required flag, so a missing `--target` or `--authoring` still reports `CLI.INIT_MISSING_FLAGS` with the full missing list. Meta: none.
 
 ### CLI.UNEXPECTED
 
@@ -201,7 +193,7 @@ Catch-all for an unanticipated failure inside a CLI command — an unclassified 
 
 ### CLI.UNKNOWN_FLAG
 
-The migration-file CLI (`prisma-next migration`) received a flag it does not recognise; wraps clipanion's unknown-syntax error at the parser boundary so consumers can build "did you mean" suggestions from meta instead of parsing the message. Meta: `flag`, `knownFlags`.
+The migration-file CLI (`prisma migration`) received a flag it does not recognise; wraps clipanion's unknown-syntax error at the parser boundary so consumers can build "did you mean" suggestions from meta instead of parsing the message. Meta: `flag`, `knownFlags`.
 
 ## CONTRACT
 
@@ -311,7 +303,7 @@ The contract hash does not match the marker (signature) stored in the database. 
 
 ### CONTRACT.MARKER_MISSING
 
-No contract marker (database signature) is found in the database at all. `db verify` reports it as an `error` diagnostic on a completed run that exits `4`; the runtime reports it as a warning during startup marker verification. Fix path: `prisma-next db sign`. Meta: none notable.
+No contract marker (database signature) is found in the database at all. `db verify` reports it as an `error` diagnostic on a completed run that exits `4`; the runtime reports it as a warning during startup marker verification. Fix path: `prisma db sign`. Meta: none notable.
 
 ### CONTRACT.MARKER_READ_FAILED
 
@@ -319,11 +311,11 @@ A driver-level failure occurred while reading the contract marker table — conn
 
 ### CONTRACT.MARKER_REQUIRED
 
-A command that requires a pre-signed database (marker present) as a precondition found none; also the default failure code stamped onto a non-ok verify result when no more specific code applies, which is how `db verify --strict` reports a database holding elements no contract declares. On `db verify` it is an `error` diagnostic on a completed run that exits `4`; everywhere else it is a precondition failure at exit `2`. Those are two unrelated jobs for one code — "sign the database first" and "strict mode found elements no contract declares" — and splitting them would let the exit code follow from the code alone. Fix path: run `prisma-next db init` first, or declare the extra elements in a contract. Meta: none notable.
+A command that requires a pre-signed database (marker present) as a precondition found none; also the default failure code stamped onto a non-ok verify result when no more specific code applies, which is how `db verify --strict` reports a database holding elements no contract declares. On `db verify` it is an `error` diagnostic on a completed run that exits `4`; everywhere else it is a precondition failure at exit `2`. Those are two unrelated jobs for one code — "sign the database first" and "strict mode found elements no contract declares" — and splitting them would let the exit code follow from the code alone. Fix path: run `prisma db init` first, or declare the extra elements in a contract. Meta: none notable.
 
 ### CONTRACT.MARKER_ROW_CORRUPT
 
-The marker row exists but its column values fail schema validation — the row is corrupt or written by an incompatible version. Fix path: delete the row and re-sign with `prisma-next db sign`. Meta: `space`.
+The marker row exists but its column values fail schema validation — the row is corrupt or written by an incompatible version. Fix path: delete the row and re-sign with `prisma db sign`. Meta: `space`.
 
 ### CONTRACT.MODEL_TOKEN_INVALID
 
@@ -391,7 +383,7 @@ A role entity is declared more than once in the entities list, or a role name is
 
 ### CONTRACT.SCHEMA_VERIFICATION_FAILED
 
-Schema verification found that the live database schema does not satisfy the contract — missing/extra/mismatched tables, columns, or other elements. `db verify` and `db sign` both report it as an `error` diagnostic on a completed run that exits `4`: for `db verify` that is the drift verdict, and for `db sign` it is the reason no signature was written. `db verify` raises one such diagnostic per contract space whose schema failed. Fix path: `prisma-next db update` or adjust the contract. Meta: `space` (the contract space, on `db verify`), `issues` (the drifted element paths); the underlying operation result also carries `verificationResult`.
+Schema verification found that the live database schema does not satisfy the contract — missing/extra/mismatched tables, columns, or other elements. `db verify` and `db sign` both report it as an `error` diagnostic on a completed run that exits `4`: for `db verify` that is the drift verdict, and for `db sign` it is the reason no signature was written. `db verify` raises one such diagnostic per contract space whose schema failed. Fix path: `prisma db update` or adjust the contract. Meta: `space` (the contract space, on `db verify`), `issues` (the drifted element paths); the underlying operation result also carries `verificationResult`.
 
 ### CONTRACT.SOURCE_IMPORT_DISALLOWED
 
@@ -419,7 +411,7 @@ A field references a storage type that cannot be resolved: a storage type instan
 
 ### CONTRACT.UNREADABLE
 
-The emitted contract file could not be read or parsed while computing `migration status`; reported as a warn-severity diagnostic on the status result rather than a thrown error, with the hint to re-run `prisma-next contract emit`. Meta: none (diagnostic carries `message` and `hints`).
+The emitted contract file could not be read or parsed while computing `migration status`; reported as a warn-severity diagnostic on the status result rather than a thrown error, with the hint to re-run `prisma contract emit`. Meta: none (diagnostic carries `message` and `hints`).
 
 ### CONTRACT.VALIDATION_FAILED
 
@@ -803,7 +795,7 @@ A `migration check` finding, carried as an `error` diagnostic on a completed run
 
 ### MIGRATION.CHECK_DANGLING_REF
 
-A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a ref file points at a contract hash that does not exist in the space's migration graph. Update the ref with `prisma-next ref set <name> <valid-hash>` or delete it.
+A `migration check` finding, carried as an `error` diagnostic on a completed run that exits `4`: a ref file points at a contract hash that does not exist in the space's migration graph. Update the ref with `prisma ref set <name> <valid-hash>` or delete it.
 
 ### MIGRATION.CHECK_DECLARED_BUT_UNMIGRATED
 
@@ -875,7 +867,7 @@ An apply carrying consent was refused because the plan recomputed for it is not 
 
 ### MIGRATION.CONTRACT_DESERIALIZATION_FAILED
 
-A contract JSON on disk failed to deserialize into a valid contract: either a snapshot-store entry read while migration tooling resolved a contract at a ref or hash, or the emitted `contract.json` read as the fallback source by `db sign` / `db update --to` (invalid JSON, or a value that is not a JSON object). Re-emit the owning migration package (or re-run `prisma-next contract emit` for the emitted contract), or restore the file from version control. Meta: `filePath`, `message`. Also raised by `migration new` when the emitted `contract.json` fails to deserialize; that site has no meta and attaches the deserialization failure as `cause`.
+A contract JSON on disk failed to deserialize into a valid contract: either a snapshot-store entry read while migration tooling resolved a contract at a ref or hash, or the emitted `contract.json` read as the fallback source by `db sign` / `db update --to` (invalid JSON, or a value that is not a JSON object). Re-emit the owning migration package (or re-run `prisma contract emit` for the emitted contract), or restore the file from version control. Meta: `filePath`, `message`. Also raised by `migration new` when the emitted `contract.json` fails to deserialize; that site has no meta and attaches the deserialization failure as `cause`.
 
 ### MIGRATION.CONTRACT_SNAPSHOT_HASH_MISMATCH
 
@@ -1003,7 +995,7 @@ A contract-space id (e.g. via `--space` or in planner input) does not match the 
 
 ### MIGRATION.LEGACY_MARKER_SHAPE
 
-The database's marker table (`prisma_contract.marker` on Postgres, `_prisma_marker` on SQLite) has the pre-per-space shape (no `space` column). The transitional auto-migration has been removed; drop the marker table and re-run `prisma-next db init` to reinitialise from a clean baseline. Detected during `db init`/`db update`/apply. Meta: `table`, `columns` (runner variant) or `runnerErrorCode` (marker-read variant).
+The database's marker table (`prisma_contract.marker` on Postgres, `_prisma_marker` on SQLite) has the pre-per-space shape (no `space` column). The transitional auto-migration has been removed; drop the marker table and re-run `prisma db init` to reinitialise from a clean baseline. Detected during `db init`/`db update`/apply. Meta: `table`, `columns` (runner variant) or `runnerErrorCode` (marker-read variant).
 
 ### MIGRATION.LEGEND_HUMAN_ONLY
 
@@ -1031,7 +1023,7 @@ A diagnostic in `migration status`: the active ref requires data invariants that
 
 ### MIGRATION.NO_CHANGES
 
-`migration new` found the from and to contract hashes identical — there is nothing to migrate. Change the contract and re-run `prisma-next contract emit` first, or pass `--from <hash>` explicitly to author a data-only migration on the current contract hash. Meta: none.
+`migration new` found the from and to contract hashes identical — there is nothing to migrate. Change the contract and re-run `prisma contract emit` first, or pass `--from <hash>` explicitly to author a data-only migration on the current contract hash. Meta: none.
 
 ### MIGRATION.NO_INITIAL_MIGRATION
 
@@ -1043,7 +1035,7 @@ The target (or named ref) requires data invariants, and no path through the migr
 
 ### MIGRATION.NO_MIGRATIONS
 
-`migration show` was given a non-path reference but the app space has no migration packages at all, so there is nothing to resolve against. Create a migration with `prisma-next migration plan` first. Meta: none.
+`migration show` was given a non-path reference but the app space has no migration packages at all, so there is nothing to resolve against. Create a migration with `prisma migration plan` first. Meta: none.
 
 ### MIGRATION.NO_TARGET
 
@@ -1163,7 +1155,7 @@ A ref declares required invariants that no migration anywhere in the graph provi
 
 ### MIGRATION.UNKNOWN_REF
 
-A ref name was used (read, resolved, or deleted via `ref` commands) but no ref file with that name exists. Create it with `prisma-next ref set <name> <hash>`, or run `ref list` to see what exists. Meta: `refName`, `filePath` or `availableRefs` depending on the site.
+A ref name was used (read, resolved, or deleted via `ref` commands) but no ref file with that name exists. Create it with `prisma ref set <name> <hash>`, or run `ref list` to see what exists. Meta: `refName`, `filePath` or `availableRefs` depending on the site.
 
 ## PLAN
 

@@ -142,7 +142,7 @@ export function errorConfigFileNotFound(
 ): CliStructuredError {
   return new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Config file not found', {
     ...(options?.why ? { why: options.why } : { why: 'Config file not found' }),
-    fix: "Run 'prisma-next init' to create a config file",
+    fix: "Run 'prisma orm init' to create a config file",
     nextActions: [{ kind: 'run-command', label: 'Create a config file', command: '{bin} init' }],
     docsUrl: docsUrlFor('CONFIG.FILE_NOT_FOUND'),
     ...(configPath ? { where: { path: configPath } } : {}),
@@ -211,7 +211,7 @@ export function errorContractValidationFailed(
 ): CliStructuredError {
   return new CliStructuredError('CONTRACT.VALIDATION_FAILED', 'Contract validation failed', {
     why: reason,
-    fix: 'Re-run `prisma-next contract emit`, or fix the contract file and try again',
+    fix: 'Re-run `prisma contract emit`, or fix the contract file and try again',
     nextActions: [
       { kind: 'run-command', label: 'Re-emit the contract', command: '{bin} contract emit' },
       {
@@ -259,7 +259,7 @@ export function errorDatabaseConnectionRequired(options?: {
   const runHint = options?.retryCommand
     ? `Run \`${options.retryCommand}\``
     : options?.commandName
-      ? `Run \`prisma-next ${options.commandName} --db <url>\``
+      ? `Run \`prisma ${options.commandName} --db <url>\``
       : 'Provide `--db <url>`';
   return new CliStructuredError(
     'CONFIG.DB_CONNECTION_REQUIRED',

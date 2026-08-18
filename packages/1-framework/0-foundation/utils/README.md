@@ -1,8 +1,6 @@
 # @internal/utils
 
-> **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next)
-> and is published only to support its runtime. Its API is unstable and may change
-> without notice. Do not depend on this package directly; install `prisma-next` instead.
+> **Internal package.** This package is an implementation detail of Prisma Next and is published only to support its runtime. Its API is unstable and may change without notice. Do not depend on this package directly; install `@prisma/cli` and a database facade (e.g. `@prisma/orm-postgres`) instead.
 
 Shared utility functions for Prisma Next.
 

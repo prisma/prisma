@@ -407,7 +407,9 @@ describe('db sign', () => {
         contractDts: 'export type Contract = unknown;\n',
       });
 
-      const run = await harness(ormConfig()).run(['db', 'sign', dirName, '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['db', 'sign', dirName, '--json'], {
+        cwd: dir,
+      });
 
       expect(run.exitCode).toBe(0);
       expect(mocks.sign).toHaveBeenCalledTimes(1);

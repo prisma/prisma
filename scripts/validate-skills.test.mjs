@@ -138,7 +138,7 @@ description: Wire this skill with adapterPacks: [examplePack] for the example ta
 });
 
 describe('SKILL_ROOTS', () => {
-  it('covers skills-contrib plus the consolidated skills/ root prisma-next init installs from', () => {
+  it('covers skills-contrib plus the consolidated skills/ root prisma orm init installs from', () => {
     deepStrictEqual(SKILL_ROOTS, ['skills-contrib', 'skills']);
   });
 });

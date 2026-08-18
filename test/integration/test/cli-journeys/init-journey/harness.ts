@@ -1,7 +1,7 @@
 /**
- * Harness for the `prisma-next init` user-journey test (TML-2490).
+ * Harness for the `prisma orm init` user-journey test (TML-2490).
  *
- * A "seam verifier" — exercises the full user inner loop from `prisma-next
+ * A "seam verifier" — exercises the full user inner loop from `prisma orm
  * init` through to a working query against a real DB, asserting the contract
  * at each seam between subsystems.
  *
@@ -93,7 +93,7 @@ export interface JourneyProject {
   readonly dir: string;
   /** Which cell this project represents. */
   readonly cell: CellId;
-  /** Result of the `prisma-next init` invocation that materialised the project. */
+  /** Result of the `prisma orm init` invocation that materialised the project. */
   readonly initResult: CommandRun;
   /** Result of the `pnpm install` invocation, or `null` when install was skipped. */
   readonly installResult: CommandRun | null;
@@ -121,7 +121,7 @@ interface CreateJourneyProjectOptions {
 
 /**
  * Materialises a fresh project tmpdir, writes a minimal `package.json` (init
- * requires one to attach to), runs `prisma-next init --target <t> --authoring
+ * requires one to attach to), runs `prisma orm init --target <t> --authoring
  * <a> --yes --skip-install` via the workspace-built CLI binary as a real
  * subprocess, then optionally runs `pnpm install` against the workspace's
  * pre-packed tarballs with `node-linker=isolated`.
@@ -155,6 +155,7 @@ export async function createJourneyProject(
     const initResult = await runNode(
       [
         CLI_BIN,
+        'orm',
         'init',
         '--target',
         target,
@@ -340,9 +341,7 @@ function walkForPackageJsons(dir: string, found: WorkspacePackage[], depth: numb
       // leaves the tarball cache.
       const ours =
         typeof pkg.name === 'string' &&
-        (pkg.name.startsWith('@internal/') ||
-          pkg.name.startsWith('@prisma/orm-') ||
-          pkg.name === 'prisma-next');
+        (pkg.name.startsWith('@internal/') || pkg.name.startsWith('@prisma/orm-'));
       if (ours && typeof pkg.name === 'string') {
         found.push({ name: pkg.name, version: pkg.version ?? '0.0.0', dir });
       }
@@ -489,8 +488,8 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
     ...migrationDepEntries,
     dotenv: '^16.4.5',
   };
-  // No `prisma-next` devDependency: the standalone CLI package stopped
-  // being published; journey steps invoke the workspace-built engine bin.
+  // No standalone-CLI devDependency: journey steps invoke the
+  // workspace-built engine bin.
   // `@prisma/cli-engine` is the scaffolded prisma.config.ts's
   // definePrismaConfig import, installed from the registry exactly as
   // `init`'s own install would. Must be an engine that has that export
@@ -574,10 +573,10 @@ export function attachDatabase(project: JourneyProject, connectionString: string
 }
 
 /**
- * Emits the contract. The standalone `prisma-next` package is no longer
- * published (the user-facing bin is the unified `prisma` CLI, which lives
- * outside this repo), so journey steps invoke the workspace-built engine
- * bin in the project directory instead of `pnpm exec prisma-next`.
+ * Emits the contract. The user-facing bin is the unified `prisma` CLI
+ * (published from the prisma-cli repo), so journey steps invoke the
+ * workspace-built engine bin in the project directory instead of
+ * `pnpm exec prisma`.
  */
 export async function emitContract(project: JourneyProject): Promise<StepResult> {
   return runStep(project, ['node', CLI_BIN, 'contract', 'emit']);
@@ -593,7 +592,7 @@ export async function dbInit(project: JourneyProject): Promise<StepResult> {
 }
 
 /**
- * Runs `prisma-next migration plan --name <name>`. On a fresh scaffold
+ * Runs `prisma migration plan --name <name>`. On a fresh scaffold
  * this materialises `migrations/app/<timestamp>_<name>/` with a draft
  * `migration.ts` describing the create-from-scratch operations. The
  * caller is responsible for self-emitting that draft (via
@@ -638,7 +637,7 @@ export async function selfEmitLatestMigration(project: JourneyProject): Promise<
 }
 
 /**
- * Runs `prisma-next migrate`. Applies every pending migration
+ * Runs `prisma migrate`. Applies every pending migration
  * to the live database — the mongo planner's missing-`createCollection`
  * seam (TML-2486) surfaces here when the bug is present.
  */

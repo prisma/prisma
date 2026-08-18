@@ -33,7 +33,16 @@ import { refListCommand } from './ref/list';
 import { refSetCommand } from './ref/set';
 import { resolveTelemetryHooks } from './telemetry/reporting';
 
-export const BIN_NAME = 'prisma-next';
+/**
+ * This repo's stand-in for the unified Prisma CLI: it mounts the ORM command
+ * family exactly the way the real host does — the commands at the top level
+ * and `init` under `orm` (the host reserves top-level `init` for compute) —
+ * same command paths, same `prisma.config.ts`, so examples and e2e tests
+ * exercise the commands as users run them. The real host lives in the
+ * prisma-cli repo and consumes {@link ormCommandFamily} from this package's
+ * exports.
+ */
+export const BIN_NAME = 'prisma';
 
 export const TELEMETRY_DOCS_URL = 'https://prisma-next.dev/docs/cli/telemetry';
 
@@ -45,6 +54,13 @@ export const TELEMETRY_DOCS_URL = 'https://prisma-next.dev/docs/cli/telemetry';
 const telemetry = telemetryCommandGroup({ docsUrl: TELEMETRY_DOCS_URL });
 
 export const BIN_GROUPS = {
+  orm: {
+    brief: 'Initialize a Prisma ORM project',
+    description:
+      'Project initialization for the ORM. The other ORM commands mount at the\n' +
+      'top level; only init lives here, because the host reserves the top-level\n' +
+      'init for the compute config.',
+  },
   contract: {
     brief: 'Contract management commands',
     description:
@@ -88,7 +104,7 @@ export function createBinCommands(createClient: CreateControlClient): MountedTre
     'db update': createDbUpdateCommand(createClient),
     'db verify': createDbVerifyCommand(createClient),
     format: formatCommand,
-    init: initCommand,
+    'orm init': initCommand,
     lsp: lspCommand,
     migrate: createMigrateCommand(createClient),
     'migration check': migrationCheckCommand,
@@ -180,12 +196,7 @@ export function runtimeFromProcess(proc: HostProcess): Runtime {
       };
     },
     loadConfig: (configPath) =>
-      loadOrmConfig({
-        cwd: proc.cwd(),
-        ...ifDefined('configPath', configPath),
-        // Mirrors the engine's warn-diagnostic line shape on stderr.
-        warn: (message) => void proc.stderr.write(`⚠ ${message}\n`),
-      }),
+      loadOrmConfig({ cwd: proc.cwd(), ...ifDefined('configPath', configPath) }),
     managementApi: { baseUrl: 'https://api.prisma.io' },
     // No `packageManager`: a host's answer overrides the engine's detection
     // outright, and this bin knows nothing the engine's own walk from cwd —

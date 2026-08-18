@@ -37,7 +37,7 @@ examples/prisma-8-cloudflare-worker/
 │   ├── prisma/contract.{json,d.ts}     # Emitted by `pnpm emit`
 │   └── orm-client/                     # ORM extensions (collections + factory)
 ├── scripts/
-│   ├── setup-schema.ts                 # `prisma-next db init`
+│   ├── setup-schema.ts                 # `prisma db init`
 │   └── seed.ts                         # Insert sample users + posts
 ├── test/
 │   ├── global-setup.ts                 # Connects to Docker Postgres, applies schema, seeds
@@ -72,7 +72,7 @@ cp .env.example .env             # gitignored
 
 ```bash
 pnpm db:up                       # docker compose up -d --wait (postgres:16 on :5433)
-pnpm db:init                     # prisma-next db init → CREATE TABLE …
+pnpm db:init                     # prisma db init → CREATE TABLE …
 pnpm seed                        # Insert Alice + Bob + 50 posts
 ```
 
@@ -132,7 +132,7 @@ pnpm db:up                       # ensure container is running
 pnpm test                        # vitest run --config vitest.config.ts
 ```
 
-The test's `globalSetup` (`test/global-setup.ts`) reads `.env`, asserts the container is reachable, applies the schema (idempotent — uses the same `prisma-next db init` as the dev workflow), truncates and reseeds. There is no per-test isolation: the suite is read-mostly, the `/tx/commit` test mutates `Bob`'s display name and the next test's reseed restores it on the next `pnpm test`.
+The test's `globalSetup` (`test/global-setup.ts`) reads `.env`, asserts the container is reachable, applies the schema (idempotent — uses the same `prisma db init` as the dev workflow), truncates and reseeds. There is no per-test isolation: the suite is read-mostly, the `/tx/commit` test mutates `Bob`'s display name and the next test's reseed restores it on the next `pnpm test`.
 
 The canonical workspace invocation is `pnpm test:examples --filter prisma-8-cloudflare-worker` from the repo root (depends on the container being up — that's a local-dev precondition, not a CI one).
 

@@ -44,10 +44,10 @@ You finish with a runnable app, a starter contract, and the agent skills already
 Run this from your repo root:
 
 ```bash
-npx @prisma/cli@next init
+npx @prisma/cli@next orm init
 ```
 
-`init` writes `prisma.config.ts`, scaffolds a starter contract and `db.ts` under `src/prisma/`, installs the runtime, emits the contract, and registers the agent skills. It does not touch your framework or build setup.
+`prisma orm init` writes `prisma.config.ts`, scaffolds a starter contract and `db.ts` under `src/prisma/`, installs the runtime, emits the contract, and registers the agent skills. It does not touch your framework or build setup.
 
 ### 3. Use your AI agent for everything Prisma Next
 

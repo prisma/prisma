@@ -89,6 +89,7 @@ async function runInit(): Promise<InitRun> {
   };
   const argv = [
     CLI_BIN,
+    'orm',
     'init',
     '--target',
     'postgres',

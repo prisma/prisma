@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Validates SKILL.md frontmatter across every skill root the `skills` CLI
- * and `prisma-next init` discover skills from: `skills-contrib` (contributor
+ * and `prisma orm init` discover skills from: `skills-contrib` (contributor
  * skill sources, linted only) and the user-facing tree that `prisma-next
  * init` installs into consumer projects (`skills`). YAML must parse, and
  * `name` + `description`
@@ -9,7 +9,7 @@
  * description limit used by `skills add` registry manifests.
  *
  * A skill whose frontmatter fails to parse is silently omitted from
- * discovery (by `skills add` or by `prisma-next init`) — this lint catches
+ * discovery (by `skills add` or by `prisma orm init`) — this lint catches
  * that before merge.
  */
 
@@ -142,7 +142,7 @@ function main() {
   }
   console.error(
     '\nUnparseable frontmatter is silently skipped by `skills add` during pnpm prepare, ' +
-      'and by `prisma-next init` when it installs the user-facing skills/ tree. ' +
+      'and by `prisma orm init` when it installs the user-facing skills/ tree. ' +
       'Use a folded block scalar (description: >) when the description contains colons.',
   );
   return 1;

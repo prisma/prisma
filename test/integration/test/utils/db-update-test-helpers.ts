@@ -3,7 +3,7 @@ import { ifDefined } from '@internal/utils/defined';
 import type { StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import type { setupTestDirectoryFromFixtures } from './cli-test-helpers';
-import { setupDbTestFixture } from './cli-test-helpers';
+import { ormEngineMount, setupDbTestFixture } from './cli-test-helpers';
 
 export type DbUpdateTestSetup = ReturnType<typeof setupTestDirectoryFromFixtures>;
 
@@ -54,15 +54,11 @@ export async function runDbUpdate(
   testSetup: DbUpdateTestSetup,
   args: readonly string[],
 ): Promise<DbUpdateRun> {
+  const mount = ormEngineMount();
   const cli = createTestCli({
     commandFamilies: [ormCommandFamily],
-    commands: ormCommandFamily.commands,
-    groups: {
-      contract: { brief: 'Contract authoring commands' },
-      db: { brief: 'Live database commands' },
-      ref: { brief: 'Migration reference commands' },
-      migration: { brief: 'On-disk migration management commands' },
-    },
+    commands: mount.commands,
+    groups: mount.groups,
     // The engine parses `--config` itself and hands the path to this loader,
     // exactly as the real runtime does.
     loadConfig: (configPath) =>

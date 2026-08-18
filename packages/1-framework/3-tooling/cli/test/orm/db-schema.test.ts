@@ -263,7 +263,9 @@ describe('db schema', () => {
       mocks.introspect.mockRejectedValue(new Error('ECONNREFUSED 127.0.0.1:5432'));
       mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
 
-      const run = await harness(ormConfig()).run(['db', 'schema', '--json'], { cwd: '/tmp' });
+      const run = await harness(ormConfig()).run(['db', 'schema', '--json'], {
+        cwd: '/tmp',
+      });
       const settled = JSON.stringify(run.json.at(-1));
 
       expect(run.exitCode).toBe(2);
@@ -274,7 +276,9 @@ describe('db schema', () => {
     it('does not turn a successful read into a failure', async () => {
       mocks.close.mockRejectedValue(new Error('close failed'));
 
-      const run = await harness(ormConfig()).run(['db', 'schema', '--json'], { cwd: '/tmp' });
+      const run = await harness(ormConfig()).run(['db', 'schema', '--json'], {
+        cwd: '/tmp',
+      });
 
       expect(run.exitCode).toBe(0);
       expect(envelopeOf(run.json)).toMatchObject({ ok: true });

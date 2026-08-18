@@ -1,6 +1,6 @@
 # ADR 242 — Public npm surface: single `@prisma` scope with consolidated publish packages
 
-> **Partially superseded by the S5 CLI cutover (2026-08).** The `prisma-next` bin distribution described below is retired: the bin-only shim package is deleted, the facades declare no launcher bins, and `@prisma/orm-toolchain` publishes the `orm` command family (`@prisma/orm-toolchain/cli`) with no bin. The user-facing command is the unified `prisma-cli` binary of `@prisma/cli` (the prisma-cli repository), which mounts the family. The package split and facade structure below stand.
+> **Partially superseded by the S5 CLI cutover (2026-08).** The `prisma-next` bin distribution described below is retired: the bin-only shim package is deleted, the facades declare no launcher bins, and `@prisma/orm-toolchain` publishes the `orm` command family (`@prisma/orm-toolchain/cli`) with no bin. The user-facing command is the unified `prisma` binary of `@prisma/cli` (the prisma-cli repository), which mounts the family. The package split and facade structure below stand.
 
 ## Decision
 

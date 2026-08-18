@@ -108,7 +108,9 @@ describe('migration list', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['migration', 'list', '--json'], { cwd: dir });
+    const run = await harness(ormConfig()).run(['migration', 'list', '--json'], {
+      cwd: dir,
+    });
 
     expect(run.exitCode).toBe(0);
     const terminal = run.json.at(-1);
@@ -214,7 +216,9 @@ describe('migration list', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['migration', 'list', '--json'], { cwd: dir });
+    const run = await harness(ormConfig()).run(['migration', 'list', '--json'], {
+      cwd: dir,
+    });
 
     expect(run.presented?.presentation.stdout).toEqual([]);
     for (const line of run.stdout.split('\n').filter((entry) => entry.length > 0)) {
@@ -314,7 +318,10 @@ describe('migration list', () => {
     await seedMigration(join(second, 'db'));
     const cli = harness(ormConfig());
 
-    const runFirst = await cli.run(['migration', 'list'], { cwd: first, isTty: { stdout: true } });
+    const runFirst = await cli.run(['migration', 'list'], {
+      cwd: first,
+      isTty: { stdout: true },
+    });
     const runSecond = await harness({ ...ormConfig(), migrations: { dir: 'db' } }).run(
       ['migration', 'list'],
       { cwd: second, isTty: { stdout: true } },
@@ -393,7 +400,9 @@ describe('migration list', () => {
       const dir = await projectDir();
       await seedWorkedExample(dir);
 
-      const run = await harness(ormConfig()).run(['migration', 'list', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['migration', 'list', '--json'], {
+        cwd: dir,
+      });
       const list = run.presented?.data as {
         summary: string;
         spaces: ReadonlyArray<{
@@ -443,7 +452,9 @@ describe('migration list', () => {
         }),
       );
 
-      const run = await harness(ormConfig()).run(['migration', 'list', '--json'], { cwd: dir });
+      const run = await harness(ormConfig()).run(['migration', 'list', '--json'], {
+        cwd: dir,
+      });
       const list = run.presented?.data as {
         spaces: ReadonlyArray<{
           space: string;

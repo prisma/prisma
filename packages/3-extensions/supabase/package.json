@@ -6,9 +6,9 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "build:contract-space": "prisma-next contract emit",
+    "build:contract-space": "prisma contract emit",
     "contract:generate": "tsx scripts/generate-contract.ts",
-    "emit": "prisma-next contract emit --config test/fixtures/example-app.config.ts && prisma-next contract emit --config test/fixtures/no-policy.config.ts && prisma-next contract emit --config test/fixtures/renamed-policy.config.ts",
+    "emit": "prisma contract emit --config test/fixtures/example-app.config.ts && prisma contract emit --config test/fixtures/no-policy.config.ts && prisma contract emit --config test/fixtures/renamed-policy.config.ts",
     "build": "tsdown",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

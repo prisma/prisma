@@ -102,7 +102,11 @@ const CASES: readonly BoundaryCase[] = [
     argv: ['ref', 'delete', 'staging'],
     operation: operations.executeRefDeleteCommand,
   },
-  { command: 'ref list', argv: ['ref', 'list'], operation: operations.executeRefListCommand },
+  {
+    command: 'ref list',
+    argv: ['ref', 'list'],
+    operation: operations.executeRefListCommand,
+  },
   {
     command: 'ref set',
     argv: ['ref', 'set', 'staging', HASH],

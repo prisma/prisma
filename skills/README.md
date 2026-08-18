@@ -20,11 +20,11 @@ The usage skill's reference files follow a shared shape: preamble + canonical me
 
 ## Install
 
-The skills are normally installed for you by `prisma-next init`, which operates in the current working directory:
+The skills are normally installed for you by `prisma orm init`, which operates in the current working directory:
 
 ```bash
 mkdir my-app && cd my-app
-pnpm dlx prisma-next init
+pnpm dlx @prisma/cli@next orm init
 ```
 
 To install standalone (existing project or a new agent runtime added after `init`):

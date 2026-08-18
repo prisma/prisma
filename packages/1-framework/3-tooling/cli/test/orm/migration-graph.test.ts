@@ -104,7 +104,9 @@ describe('migration graph', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['migration', 'graph', '--json'], { cwd: dir });
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--json'], {
+      cwd: dir,
+    });
 
     expect(run.exitCode).toBe(0);
     expect(run.json.at(-1)).toMatchObject({ kind: 'result', envelope: { ok: true, exitCode: 0 } });
@@ -213,7 +215,9 @@ describe('migration graph', () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));
 
-    const run = await harness(ormConfig()).run(['migration', 'graph', '--json'], { cwd: dir });
+    const run = await harness(ormConfig()).run(['migration', 'graph', '--json'], {
+      cwd: dir,
+    });
 
     expect(run.presented?.data).not.toHaveProperty('dot');
   });

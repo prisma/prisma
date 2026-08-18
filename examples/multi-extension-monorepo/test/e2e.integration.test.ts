@@ -50,7 +50,7 @@
  * package's descriptor `contractSpace` rather than from
  * (now-deleted) per-package `contract.ts` / `migrations.ts` modules —
  * each internal package now authors via the on-disk
- * `prisma-next contract emit` / `prisma-next migration plan` pipeline,
+ * `prisma contract emit` / `prisma migration plan` pipeline,
  * and the descriptor is the canonical reader of those artifacts.
  */
 

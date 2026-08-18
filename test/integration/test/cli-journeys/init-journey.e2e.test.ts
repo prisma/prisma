@@ -1,7 +1,7 @@
 /**
- * `prisma-next init` user-journey test (TML-2490) — seam verifier.
+ * `prisma orm init` user-journey test (TML-2490) — seam verifier.
  *
- * Walks the full user inner loop from `prisma-next init` through to a working
+ * Walks the full user inner loop from `prisma orm init` through to a working
  * query against a real DB, across all four `(target × authoring)` cells.
  * Asserts the contract one subsystem hands to the next at every seam.
  *
@@ -410,7 +410,7 @@ function expectFacadeIsResolvable(project: JourneyProject): void {
 
 function formatInitDiagnostic(project: JourneyProject): string {
   return [
-    `prisma-next init failed for ${cellLabel(project.cell)}`,
+    `prisma orm init failed for ${cellLabel(project.cell)}`,
     `  exit code: ${project.initResult.exitCode}`,
     '  stdout:',
     indent(project.initResult.stdout, '    '),

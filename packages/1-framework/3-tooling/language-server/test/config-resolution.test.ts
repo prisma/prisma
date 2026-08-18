@@ -24,9 +24,7 @@ function mockLoadedConfig(
   config: PrismaNextConfig,
   diagnostics: readonly CliStructuredError[] = [],
 ): void {
-  vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(
-    ok({ config, diagnostics, deprecations: [] }),
-  );
+  vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(ok({ config, diagnostics }));
 }
 
 function mockLoadFailure(failure: CliStructuredError): void {
@@ -104,9 +102,8 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
     const configPath = join(root, 'prisma.config.ts');
     await writeFile(
       configPath,
-      "const config = { contract: { source: { format: 'psl', inputs: ['./schema.psl'] }, output: './contract.json' } };\n" +
-        "Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), { value: 1, enumerable: false });\n" +
-        'export default config;\n',
+      "const orm = { contract: { source: { format: 'psl', inputs: ['./schema.psl'] }, output: './contract.json' } };\n" +
+        'export default { $prismaConfig: 1, orm };\n',
     );
 
     await expect(resolveConfigInputs(configPath)).rejects.toMatchObject({
@@ -120,12 +117,11 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
     const configPath = join(root, 'prisma.config.ts');
     await writeFile(
       configPath,
-      'const config = {\n' +
+      'const orm = {\n' +
         '  family: {},\n' +
         "  contract: { source: { format: 'typescript', inputs: ['./contract.ts'], load: async () => ({}) }, output: './contract.json' },\n" +
         '};\n' +
-        "Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), { value: 1, enumerable: false });\n" +
-        'export default config;\n',
+        'export default { $prismaConfig: 1, orm };\n',
     );
 
     const result = await resolveConfigInputs(configPath);

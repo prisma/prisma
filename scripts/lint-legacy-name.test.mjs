@@ -84,7 +84,7 @@ describe('what the check forbids', () => {
     write('src/db.ts', `import x from '${SCOPE}contract';\n`);
     const result = run();
     assert.match(result.stderr, /dated record of past work/);
-    assert.match(result.stderr, /a name a user types/);
+    assert.match(result.stderr, /a name still written into user projects/);
   });
 });
 
@@ -124,11 +124,15 @@ describe('what the check allows', () => {
     assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
   });
 
-  it('allows the command, the config file, and the files the command writes', () => {
-    write('docs/quickstart.md', `Run \`${LEGACY} init\`, then edit \`${LEGACY}.config.ts\`.\n`);
-    write('app/package.json', `{ "scripts": { "emit": "${LEGACY} contract emit" } }\n`);
-    const result = run();
-    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
+  it('allows the bare name and the files init writes, but never the retired config file', () => {
+    write('docs/quickstart.md', `Open \`${LEGACY}.md\` for the quick reference.\n`);
+    write('src/schema.prisma', `// use ${LEGACY}\n`);
+    const clean = run();
+    assert.equal(clean.status, 0, `expected exit 0; stderr=${clean.stderr}`);
+
+    write('docs/stale.md', `Edit \`${LEGACY}.config.ts\`.\n`);
+    const stale = run();
+    assert.equal(stale.status, 1, 'expected the retired config filename to fail');
   });
 
   it('allows the published skill cluster', () => {

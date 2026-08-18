@@ -9,8 +9,8 @@ import { timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestDir, runOnEngine } from './utils/cli-test-helpers';
 
-// The fixture cannot import @internal/config, so it stamps the
-// config-format marker the same way defineConfig does.
+// The fixture cannot import @prisma/cli-engine, so it stamps the engine
+// envelope marker the same way defineConfig does.
 function markedConfig(brokenSection: string): string {
   return `
 const descriptorBase = { familyId: 'sql', targetId: 'postgres', version: '0.0.1', manifest: {} };
@@ -21,11 +21,7 @@ const config = {
   driver: { ...descriptorBase, kind: 'driver', id: 'postgres', create: () => ({}) },
 ${brokenSection}
 };
-Object.defineProperty(config, Symbol.for('prisma-next.config-format-version'), {
-  value: 1,
-  enumerable: false,
-});
-export default config;
+export default { $prismaConfig: 1, orm: config };
 `;
 }
 

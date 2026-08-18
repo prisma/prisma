@@ -23,7 +23,9 @@ describe('ref set', () => {
   it('settles as a completed envelope and writes only the pointer', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(['ref', 'set', 'staging', HASH_A, '--json'], { cwd: dir });
+    const run = await harness().run(['ref', 'set', 'staging', HASH_A, '--json'], {
+      cwd: dir,
+    });
 
     expect(run.exitCode).toBe(0);
     expect(run.json.at(-1)).toMatchObject({
@@ -130,7 +132,9 @@ describe('ref set', () => {
   it('refuses a hash the migration graph does not carry, writing no pointer', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(['ref', 'set', 'staging', HASH_ABSENT, '--json'], { cwd: dir });
+    const run = await harness().run(['ref', 'set', 'staging', HASH_ABSENT, '--json'], {
+      cwd: dir,
+    });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -143,7 +147,9 @@ describe('ref set', () => {
   it('names the empty graph and offers planning when the project has no migrations', async () => {
     const dir = await emptyProject();
 
-    const run = await harness().run(['ref', 'set', 'staging', HASH_A, '--json'], { cwd: dir });
+    const run = await harness().run(['ref', 'set', 'staging', HASH_A, '--json'], {
+      cwd: dir,
+    });
     const terminal = run.json.at(-1);
     const envelope =
       terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
@@ -173,7 +179,9 @@ describe('ref set', () => {
   it('refuses a contract whose bundle never got its snapshot written', async () => {
     const dir = await seedProjectMissingSnapshot();
 
-    const run = await harness().run(['ref', 'set', 'staging', HASH_A, '--json'], { cwd: dir });
+    const run = await harness().run(['ref', 'set', 'staging', HASH_A, '--json'], {
+      cwd: dir,
+    });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -186,7 +194,9 @@ describe('ref set', () => {
   it('refuses an invalid ref name', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(['ref', 'set', '../evil', HASH_A, '--json'], { cwd: dir });
+    const run = await harness().run(['ref', 'set', '../evil', HASH_A, '--json'], {
+      cwd: dir,
+    });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -198,7 +208,9 @@ describe('ref set', () => {
   it('gives the errored envelope typed next actions and no fix prose', async () => {
     const { dir } = await seedRefProject();
 
-    const run = await harness().run(['ref', 'set', 'staging', HASH_ABSENT, '--json'], { cwd: dir });
+    const run = await harness().run(['ref', 'set', 'staging', HASH_ABSENT, '--json'], {
+      cwd: dir,
+    });
     const terminal = run.json.at(-1);
     const envelope =
       terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;

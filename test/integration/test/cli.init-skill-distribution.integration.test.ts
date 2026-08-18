@@ -21,7 +21,7 @@ function runEngineInit(
 ): { readonly exitCode: number; readonly stderr: string } {
   const result = spawnSync(
     process.execPath,
-    [CLI_BIN, 'init', '--target', 'postgres', '--authoring', 'psl', '--yes'],
+    [CLI_BIN, 'orm', 'init', '--target', 'postgres', '--authoring', 'psl', '--yes'],
     { cwd: testDir, encoding: 'utf8', env: { ...process.env, ...env } },
   );
   return { exitCode: result.status ?? 1, stderr: result.stderr ?? '' };

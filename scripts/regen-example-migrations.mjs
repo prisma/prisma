@@ -8,12 +8,12 @@
  *
  * For each migration directory in chain order the script:
  *
- *   1. Writes a temporary `.prisma-next-regen.config.ts` inside the migration
+ *   1. Writes a temporary `.prisma-regen.config.ts` inside the migration
  *      dir that imports the example's real `prisma.config.ts` and
  *      overrides only the `contract` field to point at the migration's
  *      `contract.prisma`. This keeps `extensions`, `db`, and `family` correct
  *      for every family without any per-family template.
- *   2. Runs `prisma-next contract emit --config <tmp-config> --output-path <tmp-dir>`
+ *   2. Runs `prisma contract emit --config <tmp-config> --output-path <tmp-dir>`
  *      to emit fresh `contract.json` + `contract.d.ts` for that migration's
  *      end state into a scratch directory, then writes them into the
  *      migrations-root-wide content-addressed store
@@ -358,12 +358,12 @@ function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
  * Returns `{ storageHash, contractJson, contractDts }`.
  */
 function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, contractFamily) {
-  // The workspace root carries the local prisma-next bin (examples name no
+  // The workspace root carries the local prisma bin (examples name no
   // @internal/* package, per lint:consumer-internal-imports).
-  const prismaNextBin = join(repoRoot, 'node_modules', '.bin', 'prisma-next');
-  if (!existsSync(prismaNextBin)) {
+  const prismaBin = join(repoRoot, 'node_modules', '.bin', 'prisma');
+  if (!existsSync(prismaBin)) {
     throw new Error(
-      `regen-example-migrations: prisma-next not found at ${prismaNextBin}; run pnpm install`,
+      `regen-example-migrations: prisma bin not found at ${prismaBin}; run pnpm install`,
     );
   }
 
@@ -378,7 +378,7 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
   // The temp config imports the example's real config and overrides only the
   // contract path. Absolute paths for both imports ensure resolution is
   // independent of the temp file's location.
-  const tmpConfigPath = join(migrationDir, '.prisma-next-regen.config.ts');
+  const tmpConfigPath = join(migrationDir, '.prisma-regen.config.ts');
   const tmpConfig = buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily ?? 'mongo');
   writeFileSync(tmpConfigPath, tmpConfig, 'utf8');
 
@@ -387,7 +387,7 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
   let emitOutput;
   try {
     emitOutput = execFileSync(
-      prismaNextBin,
+      prismaBin,
       ['contract', 'emit', '--config', tmpConfigPath, '--output-path', tmpEmitDir, '--quiet'],
       { cwd: exampleDir, encoding: 'utf8', env: childEnv },
     );
@@ -407,7 +407,7 @@ function emitMigrationContract(exampleDir, migrationDir, realConfigAbsPath, cont
   } catch {
     rmSync(tmpEmitDir, { recursive: true, force: true });
     throw new Error(
-      `regen-example-migrations: prisma-next emit produced non-JSON output for ${migrationDir}:\n${emitOutput}`,
+      `regen-example-migrations: prisma contract emit produced non-JSON output for ${migrationDir}:\n${emitOutput}`,
     );
   }
 

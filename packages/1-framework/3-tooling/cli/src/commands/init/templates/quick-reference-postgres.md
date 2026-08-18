@@ -17,7 +17,7 @@ Every model you define in your contract can be queried from your app. Your edito
 ```typescript
 import { db } from '{{dbImportPath}}';
 
-const user = await db.orm.User
+const user = await db.orm.public.User
   .where({ email: 'alice@example.com' })
   .first();
 

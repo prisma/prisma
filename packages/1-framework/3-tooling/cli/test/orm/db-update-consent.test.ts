@@ -470,7 +470,9 @@ describe('db update consent', () => {
     });
 
     it('plans without asking under --dry-run', async () => {
-      const run = await harness().run(['db', 'update', '--dry-run', '--json'], { cwd: projectDir });
+      const run = await harness().run(['db', 'update', '--dry-run', '--json'], {
+        cwd: projectDir,
+      });
 
       expect(run.exitCode).toBe(0);
       expect(mocks.dbUpdate).toHaveBeenCalledWith(expect.objectContaining({ mode: 'plan' }));

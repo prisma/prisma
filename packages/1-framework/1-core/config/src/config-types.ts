@@ -114,45 +114,9 @@ export interface PrismaNextConfig<
 }
 
 /**
- * Version of the config format produced by this `defineConfig`. Bumped when
- * the config shape changes incompatibly.
- */
-export const CONFIG_FORMAT_VERSION = 1;
-
-const CONFIG_FORMAT_VERSION_KEY = Symbol.for('prisma-next.config-format-version');
-
-function stampConfigFormatVersion<T extends object>(config: T): T {
-  Object.defineProperty(config, CONFIG_FORMAT_VERSION_KEY, {
-    value: CONFIG_FORMAT_VERSION,
-    enumerable: false,
-    configurable: false,
-    writable: false,
-  });
-  return config;
-}
-
-/**
- * Reads the config-format version stamped by `defineConfig`, or `undefined`
- * when the value was not produced by `defineConfig`. The marker is
- * non-enumerable and does not survive spreads: configs must export the
- * `defineConfig` result directly.
- */
-export function readConfigFormatVersion(value: unknown): number | undefined {
-  if (typeof value !== 'object' || value === null) {
-    return undefined;
-  }
-  const version: unknown = Reflect.get(value, CONFIG_FORMAT_VERSION_KEY);
-  return typeof version === 'number' ? version : undefined;
-}
-
-export function hasCurrentConfigFormatVersion(value: unknown): boolean {
-  return readConfigFormatVersion(value) === CONFIG_FORMAT_VERSION;
-}
-
-/**
- * Helper function to define a Prisma Next config.
- * Normalizes the config and stamps it with the config-format version marker.
- * Structural validation happens in the config loader, which reports
+ * Builds the ORM section of `prisma.config.ts`. The result nests under the
+ * `orm` key of the engine's `defineConfig` — the marker lives on the envelope,
+ * not here. Structural validation happens in the config loader, which reports
  * per-section diagnostics instead of failing the whole load.
  *
  * Normalization:
@@ -166,12 +130,12 @@ export function defineConfig<TFamilyId extends string = string, TTargetId extend
   config: PrismaNextConfig<TFamilyId, TTargetId>,
 ): PrismaNextConfig<TFamilyId, TTargetId> {
   if (config.contract) {
-    return stampConfigFormatVersion({
+    return {
       ...config,
       contract: normalizeContractConfig(config.contract),
-    });
+    };
   }
 
   // Return config as-is if no contract (preserve literal types)
-  return stampConfigFormatVersion(config);
+  return config;
 }

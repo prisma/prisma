@@ -100,7 +100,9 @@ describe('migration check across spaces', () => {
     const project = await twoSpaceProject({});
     await seedDanglingRef(project.extMigrationsDir);
 
-    const run = await harness(project).run(['migration', 'check', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['migration', 'check', '--json'], {
+      cwd: project.dir,
+    });
 
     expect(run.exitCode).toBe(4);
     const failures = documentOf(run).failures.filter(
@@ -119,7 +121,9 @@ describe('migration check across spaces', () => {
       invariants: [],
     });
 
-    const run = await harness(project).run(['migration', 'check', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['migration', 'check', '--json'], {
+      cwd: project.dir,
+    });
 
     expect(run.exitCode).toBe(0);
     expect(documentOf(run)).toEqual({ ok: true, failures: [], summary: 'All checks passed' });
@@ -143,7 +147,9 @@ describe('migration check across spaces', () => {
     await seedHeadRef(extMigrationsDir, HASH_EXT);
     await seedContractSnapshot({ migrationsDir: project.migrationsDir, storageHash: HASH_EXT });
 
-    const run = await harness(project).run(['migration', 'check', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['migration', 'check', '--json'], {
+      cwd: project.dir,
+    });
 
     expect(run.exitCode).toBe(4);
     const unreachable = documentOf(run).failures.filter(

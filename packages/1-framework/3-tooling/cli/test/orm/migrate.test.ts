@@ -226,7 +226,10 @@ describe('migrate', () => {
   it('lays the applied spaces out as a tree the engine draws', async () => {
     const cwd = await buildProject();
 
-    const run = await harness(ormConfig(cwd)).run(['migrate'], { cwd, isTty: { stdout: true } });
+    const run = await harness(ormConfig(cwd)).run(['migrate'], {
+      cwd,
+      isTty: { stdout: true },
+    });
     const blocks = run.presented?.presentation.human ?? [];
 
     expect(blocks[0]).toEqual({
@@ -368,7 +371,9 @@ describe('migrate', () => {
     it('previews the route without applying anything', async () => {
       const cwd = await buildProject();
 
-      const run = await harness(ormConfig(cwd)).run(['migrate', '--show', '--json'], { cwd });
+      const run = await harness(ormConfig(cwd)).run(['migrate', '--show', '--json'], {
+        cwd,
+      });
 
       expect(run.exitCode).toBe(0);
       expect(mocks.migrate).not.toHaveBeenCalled();
@@ -384,7 +389,9 @@ describe('migrate', () => {
     it('keeps the human-only rendering out of the result document', async () => {
       const cwd = await buildProject();
 
-      const run = await harness(ormConfig(cwd)).run(['migrate', '--show', '--json'], { cwd });
+      const run = await harness(ormConfig(cwd)).run(['migrate', '--show', '--json'], {
+        cwd,
+      });
 
       expect(Object.keys(run.presented?.data ?? {}).sort()).toEqual([
         'migrations',

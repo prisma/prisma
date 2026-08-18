@@ -117,7 +117,7 @@ Quick links to detailed subsystem specifications:
 - [CI Integration](architecture%20docs/subsystems/8.%20CI%20Integration.md) — Offline artifact verification, deploy preview, and CI flows
 - [No-Emit Workflow](architecture%20docs/subsystems/9.%20No-Emit%20Workflow.md) — TS-first authoring, watch plugins, and CI trust model
 - [MongoDB Family](architecture%20docs/subsystems/10.%20MongoDB%20Family.md) — Mongo-specific contract, query, and runtime path
-- [CLI](architecture%20docs/subsystems/11.%20CLI.md) — `prisma-next` distribution, command surface, init flow, and programmatic API
+- [CLI](architecture%20docs/subsystems/11.%20CLI.md) — the `orm` command family's distribution, command surface, init flow, and programmatic API
 - [Error Handling](Error%20Handling.md) — Shared taxonomy (failures vs operational errors vs bugs) and boundary conversion patterns
 
 ## Control Plane — Self-Verifying Change

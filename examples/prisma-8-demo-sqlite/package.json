@@ -6,9 +6,9 @@
     "node": ">=24"
   },
   "scripts": {
-    "emit": "prisma-next contract emit",
+    "emit": "prisma contract emit",
     "emit:check": "pnpm emit && git diff --exit-code src/prisma/contract.json src/prisma/contract.d.ts",
-    "db:init": "prisma-next db init",
+    "db:init": "prisma db init",
     "seed": "tsx scripts/seed.ts",
     "start": "tsx src/main.ts",
     "typecheck": "tsc --project tsconfig.json --noEmit",

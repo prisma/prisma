@@ -1,9 +1,9 @@
 # @internal/cli
 
 > **For the CLI command, install [`@prisma/cli`](https://www.npmjs.com/package/@prisma/cli) (`@next` dist-tag).**
-> The unified `prisma-cli` binary mounts this package's `orm` command family;
+> The unified `prisma` binary mounts this package's `orm` command family;
 > the standalone `prisma-next` npm package is no longer published. Inside this
-> workspace a `prisma-next` bin still exists for examples and development — it
+> workspace a local `prisma` bin still exists for examples and development — it
 > is the same engine entry (`dist/bin.mjs`), just workspace-local.
 >
 > This package (`@internal/cli`) is both the CLI's implementation and the
@@ -16,8 +16,8 @@
 > for application-level config.
 >
 > This README is architecture and internal documentation for contributors.
-> Command examples below use the workspace-local `prisma-next` bin; end users
-> run the same commands through `prisma-cli`.
+> Command examples below use the workspace-local `prisma` bin; end users
+> run the same commands through the published `@prisma/cli` binary.
 
 Command-line interface for Prisma Next contract emission and management.
 
@@ -40,7 +40,7 @@ Provide a command-line interface that:
 - **File I/O**: Read TS contracts, write emitted artifacts (`contract.json`, `contract.d.ts`)
 - **Extension Pack Descriptor Assembly**: Collect adapter and extension descriptors for emission
 - **Config Management**: Load and validate `prisma.config.ts` files using Arktype validation
-- **Workspace-local bin**: Build emits `dist/bin.mjs`, the engine entry the workspace's `prisma-next` bin points at (the published toolchain ships no bin; the unified `prisma` CLI mounts the family instead)
+- **Workspace-local bin**: Build emits `dist/bin.mjs`, the engine entry the workspace's local `prisma` bin points at (the published toolchain ships no bin; the unified `prisma` CLI mounts the family instead)
 
 ### Wiring validation
 
@@ -64,13 +64,13 @@ Each engine command declares a `brief` (one-liner used in command trees and head
 
 ## Commands
 
-### `prisma-next contract emit` (canonical)
+### `prisma contract emit` (canonical)
 
 Emit `contract.json` and `contract.d.ts` from `config.contract`.
 
 **Canonical command:**
 ```bash
-prisma-next contract emit [--config <path>] [--json] [-v] [-q] [--color/--no-color]
+prisma contract emit [--config <path>] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 **Config File Requirements:**
@@ -105,22 +105,22 @@ Options:
 Examples:
 ```bash
 # Use config defaults
-prisma-next contract emit
+prisma contract emit
 
 # JSON output
-prisma-next contract emit --json
+prisma contract emit --json
 
 # Verbose output
-prisma-next contract emit -v
+prisma contract emit -v
 ```
 
-### `prisma-next db verify`
+### `prisma db verify`
 
 Verify that a database instance matches the emitted contract by checking the marker first and, by default, the live schema second.
 
 **Command:**
 ```bash
-prisma-next db verify [--db <url>] [--config <path>] [--marker-only | --schema-only] [--strict] [--json] [-v] [-q] [--color/--no-color]
+prisma db verify [--db <url>] [--config <path>] [--marker-only | --schema-only] [--strict] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 Options:
@@ -139,25 +139,25 @@ Options:
 Examples:
 ```bash
 # Use config defaults
-prisma-next db verify
+prisma db verify
 
 # Specify database URL
-prisma-next db verify --db postgresql://user:pass@localhost/db
+prisma db verify --db postgresql://user:pass@localhost/db
 
 # Marker-only verification when callers accept the trade-off
-prisma-next db verify --db postgresql://user:pass@localhost/db --marker-only
+prisma db verify --db postgresql://user:pass@localhost/db --marker-only
 
 # Schema-only verification without relying on marker state
-prisma-next db verify --db postgresql://user:pass@localhost/db --schema-only
+prisma db verify --db postgresql://user:pass@localhost/db --schema-only
 
 # Strict schema verification (extras fail)
-prisma-next db verify --db postgresql://user:pass@localhost/db --strict
+prisma db verify --db postgresql://user:pass@localhost/db --strict
 
 # JSON output
-prisma-next db verify --json
+prisma db verify --json
 
 # Verbose output
-prisma-next db verify -v
+prisma db verify -v
 ```
 
 **Config File Requirements:**
@@ -225,7 +225,7 @@ Marker failure:
 ```text
 ✖ Marker missing (PN-RUN-3001)
   Why: Contract marker not found in database
-  Fix: Run `prisma-next db sign --db <url>` to create marker
+  Fix: Run `prisma db sign --db <url>` to create marker
 ```
 
 Schema drift failure:
@@ -312,13 +312,13 @@ Use `createControlStack()` from `@internal/framework-components/control` to crea
 
 The SQL family provides this via `@internal/family-sql/control`. The `verify()` method handles marker checks, full `db verify` follows it with `schemaVerify()`, `--marker-only` skips that schema step, and `--schema-only` runs `schemaVerify()` without marker checks.
 
-### `prisma-next db schema`
+### `prisma db schema`
 
 Inspect the live database schema and display it as a human-readable tree or machine-consumable JSON. This command is read-only and never writes files.
 
 **Command:**
 ```bash
-prisma-next db schema [--db <url>] [--config <path>] [--json] [-v] [-q] [--color/--no-color]
+prisma db schema [--db <url>] [--config <path>] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 Options:
@@ -333,25 +333,25 @@ Options:
 Examples:
 ```bash
 # Use config defaults
-prisma-next db schema
+prisma db schema
 
 # Specify database URL
-prisma-next db schema --db postgresql://user:pass@localhost/db
+prisma db schema --db postgresql://user:pass@localhost/db
 
 # JSON output
-prisma-next db schema --json
+prisma db schema --json
 
 # Verbose output
-prisma-next db schema -v
+prisma db schema -v
 ```
 
-### `prisma-next contract infer`
+### `prisma contract infer`
 
 Inspect the live database schema and write an inferred PSL contract to disk. Use this for brownfield adoption when you want a starting `contract.prisma` before running `contract emit` and `db sign`.
 
 **Command:**
 ```bash
-prisma-next contract infer [--db <url>] [--config <path>] [--output <path>] [--json] [-v] [-q] [--color/--no-color]
+prisma contract infer [--db <url>] [--config <path>] [--output <path>] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 Options:
@@ -367,16 +367,16 @@ Options:
 Examples:
 ```bash
 # Infer contract.prisma next to the configured contract.json output
-prisma-next contract infer
+prisma contract infer
 
 # Specify database URL
-prisma-next contract infer --db postgresql://user:pass@localhost/db
+prisma contract infer --db postgresql://user:pass@localhost/db
 
 # Override the output path
-prisma-next contract infer --output ./prisma/contract.prisma
+prisma contract infer --output ./prisma/contract.prisma
 
 # JSON output
-prisma-next contract infer --json
+prisma contract infer --json
 ```
 
 By default, `contract infer` writes to:
@@ -502,13 +502,13 @@ The SQL family provides this via `@internal/family-sql/control`. The `introspect
 
 **Note:** The introspection output displays native database types (e.g., `int4`, `text`, `timestamptz`) rather than mapped codec IDs (e.g., `pg/int4@1`). This reflects the actual database state, which may be enriched with type mappings later.
 
-### `prisma-next db sign`
+### `prisma db sign`
 
 Mark the database as matching the emitted contract by writing or updating the contract marker. This command verifies that the database schema satisfies the contract before signing, ensuring the marker is only written when the database is fully aligned.
 
 **Command:**
 ```bash
-prisma-next db sign [--db <url>] [--config <path>] [--json] [-v] [-q] [--color/--no-color]
+prisma db sign [--db <url>] [--config <path>] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 Options:
@@ -523,16 +523,16 @@ Options:
 Examples:
 ```bash
 # Use config defaults
-prisma-next db sign
+prisma db sign
 
 # Specify database URL
-prisma-next db sign --db postgresql://user:pass@localhost/db
+prisma db sign --db postgresql://user:pass@localhost/db
 
 # JSON output
-prisma-next db sign --json
+prisma db sign --json
 
 # Verbose output
-prisma-next db sign -v
+prisma db sign -v
 ```
 
 **Config File Requirements:**
@@ -706,13 +706,13 @@ interface ControlFamilyInstance {
 
 The SQL family provides this via `@internal/family-sql/control`. The `sign()` method handles ensuring the marker schema/table exist, reading existing markers, comparing hashes, and writing/updating markers internally.
 
-### `prisma-next db init`
+### `prisma db init`
 
 Initialize a database schema from the contract. This command plans and applies **additive-only** operations (create missing tables/columns/constraints/indexes) until the database satisfies the contract, then writes the contract marker.
 
 **Command:**
 ```bash
-prisma-next db init [--db <url>] [--config <path>] [--dry-run] [--json] [-v] [-q] [--color/--no-color]
+prisma db init [--db <url>] [--config <path>] [--dry-run] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 Options:
@@ -728,16 +728,16 @@ Options:
 Examples:
 ```bash
 # Initialize database with config defaults
-prisma-next db init
+prisma db init
 
 # Preview migration plan without applying
-prisma-next db init --dry-run
+prisma db init --dry-run
 
 # Specify database URL
-prisma-next db init --db postgresql://user:pass@localhost/db
+prisma db init --db postgresql://user:pass@localhost/db
 
 # JSON output
-prisma-next db init --json
+prisma db init --json
 ```
 
 **Config File Requirements:**
@@ -788,7 +788,7 @@ export default defineConfig({
 **Output Format (TTY - Plan Mode):**
 
 ```
-prisma-next db init ➜ Bootstrap a database to match the current contract
+prisma db init ➜ Bootstrap a database to match the current contract
   config:          prisma.config.ts
   contract:        src/prisma/contract.json
   mode:            plan (dry run)
@@ -809,7 +809,7 @@ Run without --dry-run to apply changes.
 **Output Format (TTY - Apply Mode):**
 
 ```
-prisma-next db init ➜ Bootstrap a database to match the current contract
+prisma db init ➜ Bootstrap a database to match the current contract
   config:          prisma.config.ts
   contract:        src/prisma/contract.json
 
@@ -865,7 +865,7 @@ Applying migration plan and verifying schema...
 - If the database already has a marker that matches the destination contract, `db init` succeeds as a noop (0 operations planned/executed).
 - If the database has a marker that does **not** match the destination contract, `db init` fails (including in `--dry-run` mode). Use `db init` for bootstrapping; use your migration workflow to reconcile existing databases.
 
-### `prisma-next db update`
+### `prisma db update`
 
 Update your database schema to match the currently emitted contract.
 
@@ -880,7 +880,7 @@ Update your database schema to match the currently emitted contract.
 
 **Command:**
 ```bash
-prisma-next db update [--db <url>] [--config <path>] [--dry-run] [-y|--yes] [--interactive|--no-interactive] [--json] [-v] [-q] [--color/--no-color]
+prisma db update [--db <url>] [--config <path>] [--dry-run] [-y|--yes] [--interactive|--no-interactive] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 **Error codes (additional to shared CLI/runtime codes):**
@@ -927,12 +927,12 @@ The `contract.output` field specifies the path to `contract.json`. This is the c
 - `contract.json`: Includes `_generated` metadata field indicating it's a generated artifact (excluded from canonicalization/hashing)
 - `contract.d.ts`: Includes warning header comments indicating it's a generated file
 
-### `prisma-next migration plan`
+### `prisma migration plan`
 
 Plan a migration from contract changes. Compares a starting contract against a destination contract and produces a new migration package with the required operations. No database connection is needed — fully offline.
 
 ```bash
-prisma-next migration plan [--config <path>] [--name <slug>] [--from <contract>] [--to <contract>] [--json] [-v] [-q] [--color/--no-color]
+prisma migration plan [--config <path>] [--name <slug>] [--from <contract>] [--to <contract>] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 **Options:**
@@ -960,12 +960,12 @@ prisma-next migration plan [--config <path>] [--name <slug>] [--from <contract>]
 
 **Branching with `--from` and `--to`:** Use `--from` to create a migration edge from a specific contract hash instead of the default starting point. Use `--to` to plan toward any resolved contract — including a rollback via `<migration-dir>^` — instead of the emitted contract. This enables branched migration graphs and arbitrary-target (including reverse) edges without editing contract source.
 
-### `prisma-next migration show`
+### `prisma migration show`
 
 Display a migration package's operations, DDL preview, and metadata. Accepts a directory path, a hash prefix (git-style matching against `migrationHash`), or defaults to the latest migration.
 
 ```bash
-prisma-next migration show [target] [--config <path>] [--json] [-v] [-q] [--color/--no-color]
+prisma migration show [target] [--config <path>] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 **Options:**
@@ -983,7 +983,7 @@ prisma-next migration show [target] [--config <path>] [--json] [-v] [-q] [--colo
 
 **Destructive warnings:** When a migration contains destructive operations (e.g., `DROP TABLE`, `ALTER COLUMN TYPE`), the output includes a prominent `⚠` warning about potential data loss.
 
-### `prisma-next migration status`
+### `prisma migration status`
 
 Show the migration graph and applied status. Adapts based on context:
 
@@ -992,7 +992,7 @@ Show the migration graph and applied status. Adapts based on context:
 - **With `--ref`**: Targets a specific ref instead of the contract hash; all refs from `refs.json` are rendered on the graph
 
 ```bash
-prisma-next migration status [--db <url>] [--ref <name>] [--config <path>] [--json] [-v] [-q] [--color/--no-color]
+prisma migration status [--db <url>] [--ref <name>] [--config <path>] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 **Options:**
@@ -1014,12 +1014,12 @@ prisma-next migration status [--db <url>] [--ref <name>] [--config <path>] [--js
 
 **Branched graphs:** When the migration graph has multiple branches (divergence), status reports an `AMBIGUOUS_TARGET` error with the divergence point and branch details. Use `--ref` to target a specific branch.
 
-### `prisma-next migrate`
+### `prisma migrate`
 
 Apply planned migrations to the database. Executes previously planned migrations (created by `migration plan`). Compares the database marker against the migration graph to determine which migrations are pending, then executes them sequentially. Each migration runs in its own transaction. Does not plan new migrations — run `migration plan` first.
 
 ```bash
-prisma-next migrate [--db <url>] [--to <contract>] [--config <path>] [--json] [-v] [-q] [--color/--no-color]
+prisma migrate [--db <url>] [--to <contract>] [--config <path>] [--json] [-v] [-q] [--color/--no-color]
 ```
 
 **Options:**
@@ -1064,14 +1064,14 @@ The scaffolded `migration.ts` calls `MigrationCLI.run(import.meta.url, ...)` fro
 
 `MigrationCLI.run` accepts an optional third argument `{ argv?, stdout?, stderr? }` for in-process testability (default: `process.argv` / `process.stdout` / `process.stderr`) and returns the exit code as a `Promise<number>`. The flag surface is `--help` / `--dry-run` / `--config <path>`, parsed by [`clipanion`](https://github.com/arcanis/clipanion). The main multi-command surface (`contract emit`, `db verify`, etc.) runs on `@prisma/cli-engine`; the per-migration `MigrationCLI.run` entrypoint uses clipanion to keep authored migration files lightweight and in-process testable.
 
-### `prisma-next migration ref`
+### `prisma migration ref`
 
 Manage named refs in `migrations/refs.json`. Refs map logical environment names (e.g., `staging`, `production`) to contract hashes, enabling multi-environment migration workflows where different environments track different points in the migration graph.
 
 ```bash
-prisma-next ref set <name> <contract>          # Set a ref to a contract (hash, ref, dir, ...)
-prisma-next ref list                           # List all refs (use `ref list` and filter for one ref)
-prisma-next ref delete <name>                  # Delete a ref
+prisma ref set <name> <contract>          # Set a ref to a contract (hash, ref, dir, ...)
+prisma ref list                           # List all refs (use `ref list` and filter for one ref)
+prisma ref delete <name>                  # Delete a ref
 ```
 
 **Options (all subcommands):**
@@ -1119,7 +1119,7 @@ flowchart TD
 ## Canonical Contract Emit Path
 
 > **For agents/contributors**: `executeContractEmit` is the SINGLE publication path
-> for `contract.json` + `contract.d.ts`. The CLI command (`prisma-next contract
+> for `contract.json` + `contract.d.ts`. The CLI command (`prisma contract
 > emit`) and the Vite plugin (`@internal/vite-plugin-contract-emit`) both
 > call into it. Do NOT re-implement the load → emit → publish dance in a new
 > caller; if you need additional behavior, extend `ContractEmitOptions` /
@@ -1259,7 +1259,7 @@ export default exampleExtension;
 ```
 
 **How CLI consumers import/use it:**
-- Config imports descriptors directly and passes them to `defineConfig()` (see “Config File Requirements” under `prisma-next contract emit` above; also see “Entrypoints” below for the `@internal/*/control` subpaths):
+- Config imports descriptors directly and passes them to `defineConfig()` (see “Config File Requirements” under `prisma contract emit` above; also see “Entrypoints” below for the `@internal/*/control` subpaths):
 
 ```typescript
 import { defineConfig } from '@internal/cli/config-types';

@@ -20,13 +20,14 @@ ADMIN
 
 function pslConfig(): string {
   return `import postgresAdapter from '@prisma/orm-postgres/adapter/control';
-import { defineConfig } from '@prisma/orm-toolchain/cli/config-types';
+import { defineConfig } from '@prisma/cli-engine';
 import sql from '@prisma/orm-postgres/family/control';
 import { prismaContract } from '@prisma/orm-family-sql/contract-psl/provider';
 import postgres from '@prisma/orm-postgres/target/control';
 import { postgresCreateNamespace } from '@prisma/orm-postgres/target/types';
 
 export default defineConfig({
+  orm: {
   family: sql,
   target: postgres,
   adapter: postgresAdapter,
@@ -37,6 +38,7 @@ export default defineConfig({
     target: postgres,
     createNamespace: postgresCreateNamespace,
   }),
+},
 });
 `;
 }
@@ -76,11 +78,12 @@ withTempDir(({ createTempDir }) => {
         writeFileSync(
           ctx.configPath,
           `import postgresAdapter from '@prisma/orm-postgres/adapter/control';
-import { defineConfig } from '@prisma/orm-toolchain/cli/config-types';
+import { defineConfig } from '@prisma/cli-engine';
 import sql from '@prisma/orm-postgres/family/control';
 import postgres from '@prisma/orm-postgres/target/control';
 
 export default defineConfig({
+  orm: {
   family: sql,
   target: postgres,
   adapter: postgresAdapter,
@@ -94,6 +97,7 @@ export default defineConfig({
     output: 'output/contract.json',
     types: 'output/contract.d.ts',
   },
+},
 });
 `,
           'utf-8',

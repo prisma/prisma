@@ -80,7 +80,7 @@ const PROJECT_ROOT = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 /**
  * The demo's on-disk `migrations/` directory. Contains both the user-owned
  * `app/` space and the planned `postgis/` extension space (materialised
- * by `pnpm exec prisma-next migration plan`).
+ * by `pnpm exec prisma migration plan`).
  *
  * `db init` requires this directory to exist with the extension space
  * already planned in; see Linear TML-2495 for the gotcha. Tests fail
@@ -116,7 +116,7 @@ export async function resetTestDatabase(contract: unknown): Promise<void> {
     });
     if (!result.ok) {
       throw new Error(
-        `dbInit failed: ${result.failure.summary}\n\nDid you run \`pnpm exec prisma-next migration plan\` before \`pnpm test\`? (See Linear TML-2495.)\n\n${JSON.stringify(result.failure, null, 2)}`,
+        `dbInit failed: ${result.failure.summary}\n\nDid you run \`pnpm exec prisma migration plan\` before \`pnpm test\`? (See Linear TML-2495.)\n\n${JSON.stringify(result.failure, null, 2)}`,
       );
     }
   } finally {

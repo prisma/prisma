@@ -57,18 +57,18 @@ const ALLOWED = [
       /linear\.app\/[^\s)]*$/.test(before),
   },
   {
-    why: `a name a user types or a path in their project — the published bin \`prisma-next\`, the \`prisma.config.ts\` it reads, the \`prisma-next.md\` and \`.prisma-next/\` it writes, the per-user \`config/prisma-next/\` directory, and the shim package carrying the bin. Renaming any of these is a breaking change needing an upgrade path, tracked in ${ROADMAP_TASK}`,
+    why: `a name still written into user projects — the \`prisma-next.md\` quick reference and \`.prisma-next/\` directories, the per-user \`config/prisma-next/\` directory, and the \`// use prisma-next\` schema header. The bin and the retired config filename are gone (the unified \`prisma\` CLI reads \`prisma.config.ts\`); these residuals move with the remaining sweep in ${ROADMAP_TASK}`,
     matches: (relPath, line, before, after) => {
       // Never the package scope, and never a path inside the old repository —
       // those are what this check exists to catch.
       if (/@$/.test(before)) return false;
       if (/(?:github\.com\/)?prisma\/$/.test(before)) return false;
-      // The shim package that carries the bin.
-      if (/^packages\/9-public\/prisma-next\//.test(relPath)) return true;
-      // The files and directories the command reads and writes.
-      if (/^\.(?:config|md|png)\b/.test(after)) return true;
-      if (/\.$/.test(before) && /^-regen\.config/.test(after)) return true;
-      // The bare command, and the directories named after it.
+      // The config file the retired bin read must not come back.
+      if (/^\.config\b/.test(after)) return false;
+      // The files and directories init still writes.
+      if (/^\.(?:md|png)\b/.test(after)) return true;
+      // The bare name — the schema header comment, prose, and the
+      // directories named after the product.
       return !/^[-\w]/.test(after);
     },
   },

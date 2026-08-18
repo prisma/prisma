@@ -94,7 +94,8 @@ export default definePrismaConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + psl > dbFile is stable 1`] = `
-"import mongo from '@internal/mongo/runtime';
+"import 'dotenv/config';
+import mongo from '@internal/mongo/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -277,7 +278,8 @@ export default definePrismaConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + typescript > dbFile is stable 1`] = `
-"import mongo from '@internal/mongo/runtime';
+"import 'dotenv/config';
+import mongo from '@internal/mongo/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -486,7 +488,8 @@ export default definePrismaConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + psl > dbFile is stable 1`] = `
-"import postgres from '@internal/postgres/runtime';
+"import 'dotenv/config';
+import postgres from '@internal/postgres/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -527,7 +530,7 @@ Every model you define in your contract can be queried from your app. Your edito
 \`\`\`typescript
 import { db } from './src/prisma/db';
 
-const user = await db.orm.User
+const user = await db.orm.public.User
   .where({ email: 'alice@example.com' })
   .first();
 
@@ -649,7 +652,8 @@ export default definePrismaConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + typescript > dbFile is stable 1`] = `
-"import postgres from '@internal/postgres/runtime';
+"import 'dotenv/config';
+import postgres from '@internal/postgres/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -701,7 +705,7 @@ Every model you define in your contract can be queried from your app. Your edito
 \`\`\`typescript
 import { db } from './src/prisma/db';
 
-const user = await db.orm.User
+const user = await db.orm.public.User
   .where({ email: 'alice@example.com' })
   .first();
 
@@ -784,39 +788,39 @@ If this project lives inside a pnpm workspace, a few things are worth knowing:
 exports[`templates > per-cell snapshots (FR5.4) > postgres + typescript > starterSchema is stable 1`] = `
 "import { defineContract } from '@internal/postgres/contract-builder';
 
-export const contract = defineContract(
-  {},
-  ({ field, model, rel }) => ({
-    models: {
-      User: model('User', {
-        fields: {
-          id: field.id.uuidv7String(),
-          email: field.text().unique(),
-          username: field.text().optional(),
-          name: field.text().optional(),
-          createdAt: field.temporal.createdAt(),
-          updatedAt: field.temporal.updatedAt(),
-        },
-        relations: {
-          posts: rel.hasMany('Post', { by: 'authorId' }),
-        },
-      }),
+export const contract = defineContract({}, ({ field, model, rel }) => {
+  const User = model('User', {
+    fields: {
+      id: field.id.uuidv7String(),
+      email: field.text().unique(),
+      username: field.text().optional(),
+      name: field.text().optional(),
+      createdAt: field.temporal.createdAt(),
+      updatedAt: field.temporal.updatedAt(),
+    },
+  });
 
-      Post: model('Post', {
-        fields: {
-          id: field.id.uuidv7String(),
-          title: field.text(),
-          content: field.text().optional(),
-          authorId: field.uuidString(),
-          createdAt: field.temporal.createdAt(),
-          updatedAt: field.temporal.updatedAt(),
-        },
-        relations: {
-          author: rel.belongsTo('User', { from: 'authorId', to: 'id' }),
-        },
+  const Post = model('Post', {
+    fields: {
+      id: field.id.uuidv7String(),
+      title: field.text(),
+      content: field.text().optional(),
+      authorId: field.uuidString(),
+      createdAt: field.temporal.createdAt(),
+      updatedAt: field.temporal.updatedAt(),
+    },
+  });
+
+  return {
+    models: {
+      User: User.relations({
+        posts: rel.hasMany(Post, { by: 'authorId' }),
+      }),
+      Post: Post.relations({
+        author: rel.belongsTo(User, { from: 'authorId', to: 'id' }),
       }),
     },
-  }),
-);
+  };
+});
 "
 `;

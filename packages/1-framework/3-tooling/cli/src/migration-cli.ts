@@ -3,7 +3,7 @@
  * `node migration.ts` directly.
  *
  * Naming: this is *not* a "migration runner" in the apply-time sense. The
- * apply-time runner is the thing `prisma-next migrate` uses to
+ * apply-time runner is the thing `prisma migrate` uses to
  * execute migration JSON ops against a database. `MigrationCLI` is the
  * tiny CLI surface owned by an authored `migration.ts` file: parse the
  * file's argv, load the project's `prisma.config.ts`, assemble a
@@ -544,11 +544,13 @@ async function runMigration(
   const migrationFile = fileURLToPath(importMetaUrl);
   const migrationDir = dirname(migrationFile);
 
-  const configResult = await loadConfigForSections(
-    parsed.config,
-    ['family', 'target', 'adapter', 'driver', 'extensions'],
-    { onDeprecation: (deprecation) => void ctx.stderr.write(`⚠ ${deprecation.message}\n`) },
-  );
+  const configResult = await loadConfigForSections(parsed.config, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+  ]);
   if (!configResult.ok) {
     throw configResult.failure;
   }

@@ -24,7 +24,7 @@ The CLI verb taxonomy ([namespacing rule](./README.md#namespacing-rule-subject-n
 **Question:** "How do I get from `pnpm init` to a project that can talk to a database?"
 
 ```bash
-prisma-next init        # scaffold project (schema.psl, config, etc.)
+prisma orm init        # scaffold project (schema.psl, config, etc.)
 contract emit           # produce contract.json + contract.d.ts
 db init                 # lay down marker + ledger tables in an empty DB
 ```
@@ -248,7 +248,7 @@ The graph is content-addressed: migration hashes change when ancestry changes, b
 
 ## What this doc deliberately does not cover
 
-- **Mechanics of individual verbs.** Argument grammars, exit codes, output shapes — see the [domain README](./README.md) and `prisma-next <verb> --help`.
+- **Mechanics of individual verbs.** Argument grammars, exit codes, output shapes — see the [domain README](./README.md) and `prisma orm <verb> --help`.
 - **The full e2e test suite.** Drift edge cases, resolver internals, single-verb regression probes, error-envelope golden tests — these live in `test/integration/test/cli-journeys/` but are not load-bearing as user stories.
 - **Extension-author workflows.** Authors of new contract spaces follow a parallel surface (contract-space namespaces, pinned mirrors). That surface is captured separately in `docs/architecture docs/subsystems/7. Migration System.md`.
 - **Disaster recovery and squashing.** Squashing the migration graph, baselining from `∅`, recovering from a corrupted ledger — these are operational topics tracked separately and not part of the day-to-day user surface.

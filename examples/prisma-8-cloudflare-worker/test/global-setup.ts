@@ -62,11 +62,11 @@ async function ensureContainerReady(databaseUrl: string): Promise<void> {
 async function applySchema(databaseUrl: string): Promise<void> {
   const result = spawnSync(
     'pnpm',
-    ['exec', 'prisma-next', 'db', 'init', '--db', databaseUrl, '--yes', '--no-color'],
+    ['exec', 'prisma', 'db', 'init', '--db', databaseUrl, '--yes', '--no-color'],
     { cwd: EXAMPLE_ROOT, stdio: 'inherit' },
   );
   if (result.status !== 0) {
-    throw new Error(`prisma-next db init failed with status ${result.status ?? 'unknown'}`);
+    throw new Error(`prisma db init failed with status ${result.status ?? 'unknown'}`);
   }
 }
 

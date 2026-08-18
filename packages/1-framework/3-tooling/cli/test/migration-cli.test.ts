@@ -331,11 +331,7 @@ describe('MigrationCLI.run', () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(loadConfigMock).toHaveBeenCalledWith(
-      '/explicit/config.ts',
-      expect.any(Array),
-      expect.any(Object),
-    );
+    expect(loadConfigMock).toHaveBeenCalledWith('/explicit/config.ts', expect.any(Array));
   });
 
   it('forwards --config=<path> (equals form) to loadConfig', async () => {
@@ -351,11 +347,7 @@ describe('MigrationCLI.run', () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(loadConfigMock).toHaveBeenCalledWith(
-      '/equals/config.ts',
-      expect.any(Array),
-      expect.any(Object),
-    );
+    expect(loadConfigMock).toHaveBeenCalledWith('/equals/config.ts', expect.any(Array));
   });
 
   it('preserves createdAt from a previously-scaffolded migration.json', async () => {

@@ -90,8 +90,16 @@ describe('the orm command family', () => {
       },
       { from: 'migration ref', flag: undefined, replacement: '{bin} ref set|list|delete' },
       { from: 'migration status', flag: 'graph', replacement: '{bin} migration graph' },
-      { from: 'migration status', flag: 'all', replacement: '{bin} migration log --db <url>' },
-      { from: 'migration status', flag: 'limit', replacement: '{bin} migration log --db <url>' },
+      {
+        from: 'migration status',
+        flag: 'all',
+        replacement: '{bin} migration log --db <url>',
+      },
+      {
+        from: 'migration status',
+        flag: 'limit',
+        replacement: '{bin} migration log --db <url>',
+      },
       {
         from: 'migration status',
         flag: 'ref',

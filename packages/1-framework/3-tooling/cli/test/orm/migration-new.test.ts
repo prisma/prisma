@@ -134,7 +134,9 @@ describe('migration new', () => {
       to: HASH_FROM,
     });
 
-    const run = await harness(project).run(['migration', 'new', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['migration', 'new', '--json'], {
+      cwd: project.dir,
+    });
 
     expect(run.exitCode).toBe(0);
     expect(run.presented?.data).toMatchObject({ from: HASH_FROM, to: HASH_TO });
@@ -186,7 +188,9 @@ describe('migration new', () => {
       to: HASH_TO,
     });
 
-    const run = await harness(project).run(['migration', 'new', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['migration', 'new', '--json'], {
+      cwd: project.dir,
+    });
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -252,7 +256,9 @@ describe('migration new', () => {
       to: HASH_TO,
     });
 
-    const run = await harness(project).run(['migration', 'new', '--json'], { cwd: project.dir });
+    const run = await harness(project).run(['migration', 'new', '--json'], {
+      cwd: project.dir,
+    });
     const terminal = run.json.at(-1);
     const envelope =
       terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;

@@ -191,7 +191,9 @@ describe('migrate --to resolves the apply contract', () => {
   it('applies the target bundle destination contract when --to names an older node', async () => {
     const cwd = await buildAppliedProject();
 
-    const run = await harness(ormConfig(cwd)).run(['migrate', '--to', C1, '--json'], { cwd });
+    const run = await harness(ormConfig(cwd)).run(['migrate', '--to', C1, '--json'], {
+      cwd,
+    });
 
     expect(run.exitCode).toBe(0);
     expect(appliedContractHash()).toBe(C1);
@@ -212,7 +214,9 @@ describe('migrate --to resolves the apply contract', () => {
     await writeFile(snapshotPath, '{ not json');
     const snapshotRelative = relative(cwd, snapshotPath);
 
-    const run = await harness(ormConfig(cwd)).run(['migrate', '--to', C1, '--json'], { cwd });
+    const run = await harness(ormConfig(cwd)).run(['migrate', '--to', C1, '--json'], {
+      cwd,
+    });
     const error = errorOf(run);
 
     expect(run.exitCode).not.toBe(0);

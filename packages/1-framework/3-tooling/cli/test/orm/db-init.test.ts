@@ -135,7 +135,9 @@ function stepEvents(events: readonly EngineEvent[]): readonly EngineEvent[] {
 
 describe('db init', () => {
   it('settles as a completed envelope carrying the migration document', async () => {
-    const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+    const run = await harness(ormConfig()).run(['db', 'init', '--json'], {
+      cwd: projectDir,
+    });
 
     expect(run.exitCode).toBe(0);
     expect(run.presented?.data).toMatchObject({
@@ -169,7 +171,9 @@ describe('db init', () => {
       },
     );
 
-    const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+    const run = await harness(ormConfig()).run(['db', 'init', '--json'], {
+      cwd: projectDir,
+    });
 
     expect(stepEvents(run.events)).toEqual([
       { kind: 'step-started', step: 'Planning operations', id: 'plan' },
@@ -383,7 +387,9 @@ describe('db init', () => {
       }),
     );
 
-    const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+    const run = await harness(ormConfig()).run(['db', 'init', '--json'], {
+      cwd: projectDir,
+    });
 
     expect(run.exitCode).toBe(2);
     expect(envelopeOf(run.json)).toMatchObject({
@@ -405,7 +411,9 @@ describe('db init', () => {
       }),
     );
 
-    const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+    const run = await harness(ormConfig()).run(['db', 'init', '--json'], {
+      cwd: projectDir,
+    });
     const settled = JSON.stringify(run.json.at(-1));
 
     expect(run.exitCode).toBe(2);
@@ -419,7 +427,9 @@ describe('db init', () => {
       mocks.connect.mockRejectedValue(new Error('ECONNREFUSED 127.0.0.1:5432'));
       mocks.close.mockRejectedValue(new Error('close on an unconnected client'));
 
-      const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+      const run = await harness(ormConfig()).run(['db', 'init', '--json'], {
+        cwd: projectDir,
+      });
       const settled = JSON.stringify(run.json.at(-1));
 
       expect(run.exitCode).toBe(2);
@@ -430,7 +440,9 @@ describe('db init', () => {
     it('does not turn a successful apply into a failure', async () => {
       mocks.close.mockRejectedValue(new Error('close failed'));
 
-      const run = await harness(ormConfig()).run(['db', 'init', '--json'], { cwd: projectDir });
+      const run = await harness(ormConfig()).run(['db', 'init', '--json'], {
+        cwd: projectDir,
+      });
 
       expect(run.exitCode).toBe(0);
       expect(envelopeOf(run.json)).toMatchObject({ ok: true });
