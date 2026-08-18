@@ -1,12 +1,11 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
-import { timeouts } from '@repo/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { setupTestDirectoryFromFixtures, withTempDir } from './utils/cli-test-helpers';
 import { runDbInit, runDbInitAllowFailure, setupDbInitFixture } from './utils/db-init-test-helpers';
 import { runDbUpdate, setupDbUpdateFixture } from './utils/db-update-test-helpers';
-import { useResettableDevDatabase } from './utils/journey-test-helpers';
 
 const fixtureSubdir = 'db-init';
 
@@ -48,8 +47,6 @@ function noRefFilesUnder(refsDir: string): boolean {
   const entries = readdirSync(refsDir, { recursive: true });
   return !entries.some((entry) => String(entry).endsWith('.json'));
 }
-
-const withDevDatabase = useResettableDevDatabase();
 
 withTempDir(({ createTempDir }) => {
   describe('db init ref advancement (e2e)', () => {

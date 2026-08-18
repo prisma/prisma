@@ -20,9 +20,9 @@ import { promisify } from 'node:util';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { EngineEvent, PresentedResult, StreamEvent } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
-import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { isAbsolute, join, resolve } from 'pathe';
-import { afterAll, beforeAll, beforeEach } from 'vitest';
+import { afterAll, beforeAll } from 'vitest';
 
 const execFileAsync = promisify(execFile);
 const TSX_BIN = resolve(import.meta.dirname, '../../../../node_modules/.bin/tsx');
@@ -109,67 +109,6 @@ export function useDevDatabase(options?: {
     get connectionString() {
       return connectionString;
     },
-  };
-}
-
-async function resetDevDatabase(connectionString: string): Promise<void> {
-  await withClient(connectionString, async (client) => {
-    const extensions = await client.query<{ extname: string }>(`
-      select extname
-      from pg_extension
-      where extname <> 'plpgsql'
-    `);
-    for (const { extname } of extensions.rows) {
-      await client.query(`drop extension ${client.escapeIdentifier(extname)} cascade`);
-    }
-
-    const schemas = await client.query<{ schemaName: string }>(`
-      select nspname as "schemaName"
-      from pg_namespace
-      where nspname not like 'pg_%'
-        and nspname !~ '^_prisma_dev_'
-        and nspname <> 'information_schema'
-    `);
-    for (const { schemaName } of schemas.rows) {
-      await client.query(`drop schema ${client.escapeIdentifier(schemaName)} cascade`);
-    }
-    await client.query('create schema public');
-  });
-}
-
-export function useResettableDevDatabase(): <T>(
-  fn: (database: DevDatabase) => Promise<T>,
-) => Promise<T> {
-  let database: DevDatabase | undefined;
-
-  const currentDatabase = (): DevDatabase => {
-    if (database === undefined) {
-      throw new Error('Resettable dev database is not ready');
-    }
-    return database;
-  };
-
-  beforeAll(async () => {
-    database = await createDevDatabase({ databaseIdleTimeoutMillis: 30_000 });
-  }, timeouts.spinUpPpgDev);
-
-  beforeEach(async () => {
-    const current = currentDatabase();
-    try {
-      await resetDevDatabase(current.connectionString);
-    } catch {
-      await current.close().catch(() => {});
-      database = await createDevDatabase({ databaseIdleTimeoutMillis: 30_000 });
-    }
-  }, timeouts.spinUpPpgDev);
-
-  afterAll(async () => {
-    await database?.close();
-    database = undefined;
-  }, timeouts.spinUpPpgDev);
-
-  return async <T>(fn: (database: DevDatabase) => Promise<T>): Promise<T> => {
-    return await fn(currentDatabase());
   };
 }
 
