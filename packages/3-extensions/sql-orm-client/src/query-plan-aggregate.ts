@@ -7,11 +7,9 @@ import {
   BinaryExpr,
   type CodecRef,
   ColumnRef,
-  DerivedTableSource,
   LiteralExpr,
   NotExpr,
   NullCheckExpr,
-  OrderByItem,
   OrExpr,
   ProjectionItem,
   SelectAst,
@@ -23,7 +21,7 @@ import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
 import { assertDistinctOnCapability, resolvePolymorphismInfo } from './collection-contract';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
-import { buildMtiJoins, buildStateWhere, wrapWithRowNumberDedup } from './query-plan-scope';
+import { buildMtiJoins, buildScopedSource, buildStateWhere } from './query-plan-scope';
 import { tableSourceForContract } from './storage-resolution';
 import type { AggregateSelector, CollectionState } from './types';
 import { combineWhereExprs } from './where-utils';
@@ -226,14 +224,38 @@ export function compileAggregate(
     assertDistinctOnCapability(contract, 'distinctOn');
   }
 
-  const where = buildStateWhere(contract, tableName, state, { namespaceId });
   const hasPagination = state.limit !== undefined || state.offset !== undefined;
   const hasDistinct =
     (state.distinct !== undefined && state.distinct.length > 0) ||
     (state.distinctOn !== undefined && state.distinctOn.length > 0);
   const needsRowScope = hasPagination || hasDistinct;
 
-  // Unconditional on polymorphism + variant narrowing, not on which clause references it.
+  if (needsRowScope) {
+    const { source, refTableName } = buildScopedSource(
+      contract,
+      namespaceId,
+      tableName,
+      state,
+      modelName,
+      scopedInnerProjection(tableName, entries),
+    );
+    const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
+      const { expr, codec } = toAggregateProjection(
+        contract,
+        aggregates,
+        namespaceId,
+        tableName,
+        refTableName,
+        selector,
+      );
+      return ProjectionItem.of(alias, expr, codec);
+    });
+    const ast = SelectAst.from(source).withProjection(projection);
+
+    const { params } = deriveParamsFromAst(ast);
+    return buildOrmQueryPlan(contract, ast, params);
+  }
+
   const polyInfo = modelName
     ? resolvePolymorphismInfo(contract, namespaceId, modelName)
     : undefined;
@@ -241,88 +263,7 @@ export function compileAggregate(
     polyInfo && polyInfo.mtiVariants.length > 0
       ? buildMtiJoins(contract, namespaceId, polyInfo, state.variantName, undefined).joins
       : [];
-
-  if (!needsRowScope) {
-    const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
-      const { expr, codec } = toAggregateProjection(
-        contract,
-        aggregates,
-        namespaceId,
-        tableName,
-        tableName,
-        selector,
-      );
-      return ProjectionItem.of(alias, expr, codec);
-    });
-    let ast = SelectAst.from(
-      tableSourceForContract(contract, namespaceId, tableName),
-    ).withProjection(projection);
-    if (variantJoins.length > 0) {
-      ast = ast.withJoins(variantJoins);
-    }
-    if (where) {
-      ast = ast.withWhere(where);
-    }
-
-    const { params } = deriveParamsFromAst(ast);
-    return buildOrmQueryPlan(contract, ast, params);
-  }
-
-  const innerAlias = `${tableName}__scoped`;
-  // Needed only for `distinct` + `orderBy`, to survive the ROW_NUMBER wrap.
-  const needsHiddenOrderProjection =
-    state.distinct !== undefined &&
-    state.distinct.length > 0 &&
-    state.orderBy !== undefined &&
-    state.orderBy.length > 0;
-  const hiddenOrderProjection: ReadonlyArray<ProjectionItem> = needsHiddenOrderProjection
-    ? state.orderBy.map((item, index) =>
-        ProjectionItem.of(`${tableName}__order_${index}`, item.expr),
-      )
-    : [];
-
-  let inner = SelectAst.from(
-    tableSourceForContract(contract, namespaceId, tableName),
-  ).withProjection([...scopedInnerProjection(tableName, entries), ...hiddenOrderProjection]);
-  // Must land before the distinct branch to reach `wrapWithRowNumberDedup`'s `base`.
-  if (variantJoins.length > 0) {
-    inner = inner.withJoins(variantJoins);
-  }
-  if (where) {
-    inner = inner.withWhere(where);
-  }
-
-  if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
-    inner = inner.withDistinctOn(state.distinctOn.map((column) => ColumnRef.of(tableName, column)));
-    if (state.orderBy !== undefined && state.orderBy.length > 0) {
-      inner = inner.withOrderBy(state.orderBy);
-    }
-  } else if (state.distinct !== undefined && state.distinct.length > 0) {
-    const rankedAlias = `${tableName}__scoped_distinct`;
-    inner = wrapWithRowNumberDedup({
-      base: inner,
-      distinctColumnRefs: state.distinct.map((column) => ColumnRef.of(tableName, column)),
-      rankingOrderBy: state.orderBy ?? [],
-      rankedAlias,
-    });
-    if (state.orderBy !== undefined && state.orderBy.length > 0) {
-      inner = inner.withOrderBy(
-        state.orderBy.map(
-          (item, index) =>
-            new OrderByItem(ColumnRef.of(rankedAlias, `${tableName}__order_${index}`), item.dir),
-        ),
-      );
-    }
-  } else if (state.orderBy !== undefined && state.orderBy.length > 0) {
-    inner = inner.withOrderBy(state.orderBy);
-  }
-
-  if (state.limit !== undefined) {
-    inner = inner.withLimit(state.limit);
-  }
-  if (state.offset !== undefined) {
-    inner = inner.withOffset(state.offset);
-  }
+  const where = buildStateWhere(contract, tableName, state, { namespaceId });
 
   const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
     const { expr, codec } = toAggregateProjection(
@@ -330,12 +271,20 @@ export function compileAggregate(
       aggregates,
       namespaceId,
       tableName,
-      innerAlias,
+      tableName,
       selector,
     );
     return ProjectionItem.of(alias, expr, codec);
   });
-  const ast = SelectAst.from(DerivedTableSource.as(innerAlias, inner)).withProjection(projection);
+  let ast = SelectAst.from(tableSourceForContract(contract, namespaceId, tableName)).withProjection(
+    projection,
+  );
+  if (variantJoins.length > 0) {
+    ast = ast.withJoins(variantJoins);
+  }
+  if (where) {
+    ast = ast.withWhere(where);
+  }
 
   const { params } = deriveParamsFromAst(ast);
   return buildOrmQueryPlan(contract, ast, params);

@@ -20,7 +20,11 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import { assertDefined } from '@internal/utils/assertions';
-import { type PolymorphismInfo, resolvePrimaryKeyColumn } from './collection-contract';
+import {
+  type PolymorphismInfo,
+  resolvePolymorphismInfo,
+  resolvePrimaryKeyColumn,
+} from './collection-contract';
 import { ormError } from './orm-errors';
 import { resolveTableColumns } from './query-plan-meta';
 import { tableSourceForContract } from './storage-resolution';
@@ -273,4 +277,85 @@ function buildMtiJoins(
   return { joins, projection };
 }
 
-export { buildMtiJoins, buildStateWhere, createTableRefRemapper, wrapWithRowNumberDedup };
+function hasEntries<T>(value: ReadonlyArray<T> | undefined): value is ReadonlyArray<T> {
+  return value !== undefined && value.length > 0;
+}
+
+function buildScopedSource(
+  contract: Contract<SqlStorage>,
+  namespaceId: string,
+  tableName: string,
+  state: CollectionState,
+  modelName: string | undefined,
+  projection: ReadonlyArray<ProjectionItem>,
+): { readonly source: DerivedTableSource; readonly refTableName: string } {
+  const innerAlias = `${tableName}__scoped`;
+
+  const polyInfo = modelName
+    ? resolvePolymorphismInfo(contract, namespaceId, modelName)
+    : undefined;
+  const variantJoins =
+    polyInfo && polyInfo.mtiVariants.length > 0
+      ? buildMtiJoins(contract, namespaceId, polyInfo, state.variantName, undefined).joins
+      : [];
+
+  const needsHiddenOrderProjection = hasEntries(state.distinct) && hasEntries(state.orderBy);
+  const hiddenOrderProjection: ReadonlyArray<ProjectionItem> = needsHiddenOrderProjection
+    ? state.orderBy.map((item, index) =>
+        ProjectionItem.of(`${tableName}__order_${index}`, item.expr),
+      )
+    : [];
+
+  let inner = SelectAst.from(
+    tableSourceForContract(contract, namespaceId, tableName),
+  ).withProjection([...projection, ...hiddenOrderProjection]);
+  if (variantJoins.length > 0) {
+    inner = inner.withJoins(variantJoins);
+  }
+  const where = buildStateWhere(contract, tableName, state, { namespaceId });
+  if (where) {
+    inner = inner.withWhere(where);
+  }
+
+  let rankedAlias: string | undefined;
+  if (hasEntries(state.distinctOn)) {
+    inner = inner.withDistinctOn(state.distinctOn.map((column) => ColumnRef.of(tableName, column)));
+  } else if (hasEntries(state.distinct)) {
+    rankedAlias = `${tableName}__scoped_distinct`;
+    inner = wrapWithRowNumberDedup({
+      base: inner,
+      distinctColumnRefs: state.distinct.map((column) => ColumnRef.of(tableName, column)),
+      rankingOrderBy: state.orderBy ?? [],
+      rankedAlias,
+    });
+  }
+
+  if (hasEntries(state.orderBy)) {
+    const alias = rankedAlias;
+    const orderBy =
+      alias !== undefined
+        ? state.orderBy.map(
+            (item, index) =>
+              new OrderByItem(ColumnRef.of(alias, `${tableName}__order_${index}`), item.dir),
+          )
+        : state.orderBy;
+    inner = inner.withOrderBy(orderBy);
+  }
+
+  if (state.limit !== undefined) {
+    inner = inner.withLimit(state.limit);
+  }
+  if (state.offset !== undefined) {
+    inner = inner.withOffset(state.offset);
+  }
+
+  return { source: DerivedTableSource.as(innerAlias, inner), refTableName: innerAlias };
+}
+
+export {
+  buildMtiJoins,
+  buildScopedSource,
+  buildStateWhere,
+  createTableRefRemapper,
+  wrapWithRowNumberDedup,
+};
