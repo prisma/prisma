@@ -50,7 +50,8 @@ describe('ports/engines/queries/distinct', () => {
       withDistinct(async ({ db }) => {
         expect(
           await db.public.User.select('id', 'first_name', 'last_name')
-            .distinct('first_name', 'last_name')
+            .orderBy([(u) => u.first_name.asc(), (u) => u.last_name.asc()])
+            .distinctOn('first_name', 'last_name')
             .all(),
         ).toEqual([]);
       }),
@@ -65,9 +66,12 @@ describe('ports/engines/queries/distinct', () => {
           { id: 1, first_name: 'Joe', last_name: 'Doe', email: '1' },
           { id: 2, first_name: 'Doe', last_name: 'Joe', email: '2' },
         ]);
-        expect(await db.public.User.select('id').distinct('first_name', 'last_name').all()).toEqual(
-          [{ id: 2 }, { id: 1 }],
-        );
+        expect(
+          await db.public.User.select('id')
+            .orderBy([(u) => u.first_name.asc(), (u) => u.last_name.asc()])
+            .distinctOn('first_name', 'last_name')
+            .all(),
+        ).toEqual([{ id: 2 }, { id: 1 }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -80,7 +84,12 @@ describe('ports/engines/queries/distinct', () => {
           { id: 1, first_name: 'Joe', last_name: 'Doe', email: '1' },
           { id: 2, first_name: 'Joe', last_name: 'Doe', email: '2' },
         ]);
-        expect(await db.public.User.select('id').distinct('first_name').all()).toEqual([{ id: 1 }]);
+        expect(
+          await db.public.User.select('id')
+            .orderBy([(u) => u.first_name.asc(), (u) => u.id.asc()])
+            .distinctOn('first_name')
+            .all(),
+        ).toEqual([{ id: 1 }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -92,7 +101,8 @@ describe('ports/engines/queries/distinct', () => {
         await seedBasic(db);
         expect(
           await db.public.User.select('id', 'first_name', 'last_name')
-            .distinct('first_name', 'last_name')
+            .orderBy([(u) => u.first_name.asc(), (u) => u.last_name.asc(), (u) => u.id.asc()])
+            .distinctOn('first_name', 'last_name')
             .all(),
         ).toEqual([
           { id: 2, first_name: 'Hans', last_name: 'Wurst' },
@@ -102,17 +112,18 @@ describe('ports/engines/queries/distinct', () => {
     timeouts.spinUpPpgDev,
   );
 
-  it.fails(
+  it(
     'with_skip_basic',
     () =>
       withDistinct(async ({ db }) => {
         await seedBasic(db);
         expect(
           await db.public.User.select('id', 'first_name', 'last_name')
-            .distinct('first_name', 'last_name')
+            .orderBy([(u) => u.first_name.asc(), (u) => u.last_name.asc(), (u) => u.id.asc()])
+            .distinctOn('first_name', 'last_name')
             .skip(1)
             .all(),
-        ).toEqual([{ id: 2, first_name: 'Hans', last_name: 'Wurst' }]);
+        ).toEqual([{ id: 1, first_name: 'Joe', last_name: 'Doe' }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -124,8 +135,8 @@ describe('ports/engines/queries/distinct', () => {
         await seedBasic(db);
         expect(
           await db.public.User.select('first_name', 'last_name')
-            .orderBy((u) => u.first_name.asc())
-            .distinct('first_name', 'last_name')
+            .orderBy([(u) => u.first_name.asc(), (u) => u.last_name.asc()])
+            .distinctOn('first_name', 'last_name')
             .skip(1)
             .all(),
         ).toEqual([{ first_name: 'Joe', last_name: 'Doe' }]);
@@ -140,12 +151,12 @@ describe('ports/engines/queries/distinct', () => {
         await seedBasic(db);
         expect(
           await db.public.User.select('id', 'first_name', 'last_name')
-            .orderBy((u) => u.id.desc())
-            .distinct('first_name', 'last_name')
+            .orderBy([(u) => u.first_name.asc(), (u) => u.last_name.asc(), (u) => u.id.desc()])
+            .distinctOn('first_name', 'last_name')
             .all(),
         ).toEqual([
-          { id: 3, first_name: 'Joe', last_name: 'Doe' },
           { id: 2, first_name: 'Hans', last_name: 'Wurst' },
+          { id: 3, first_name: 'Joe', last_name: 'Doe' },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -158,19 +169,19 @@ describe('ports/engines/queries/distinct', () => {
         await seedNested(db);
         expect(
           await db.public.User.select('id')
-            .distinct('first_name', 'last_name')
-            .orderBy((u) => u.id.asc())
+            .orderBy([(u) => u.first_name.asc(), (u) => u.last_name.asc(), (u) => u.id.asc()])
+            .distinctOn('first_name', 'last_name')
             .include('posts', (posts) =>
               posts
                 .select('title')
-                .distinct('title')
-                .orderBy((p) => p.id.asc()),
+                .orderBy([(p) => p.title.asc(), (p) => p.id.asc()])
+                .distinctOn('title'),
             )
             .all(),
         ).toEqual([
-          { id: 1, posts: [{ title: '3' }, { title: '1' }, { title: '2' }] },
-          { id: 3, posts: [] },
+          { id: 1, posts: [{ title: '1' }, { title: '2' }, { title: '3' }] },
           { id: 4, posts: [{ title: '1' }] },
+          { id: 3, posts: [] },
           { id: 5, posts: [{ title: '2' }, { title: '3' }] },
         ]);
       }),
@@ -184,13 +195,13 @@ describe('ports/engines/queries/distinct', () => {
         await seedNested(db);
         expect(
           await db.public.User.select('id')
-            .distinct('first_name', 'last_name')
             .orderBy([(u) => u.first_name.asc(), (u) => u.last_name.asc()])
+            .distinctOn('first_name', 'last_name')
             .include('posts', (posts) =>
               posts
                 .select('title')
-                .distinct('title')
-                .orderBy((p) => p.title.asc()),
+                .orderBy((p) => p.title.asc())
+                .distinctOn('title'),
             )
             .all(),
         ).toEqual([
@@ -210,20 +221,20 @@ describe('ports/engines/queries/distinct', () => {
         await seedNested(db);
         expect(
           await db.public.User.select('id')
-            .distinct('first_name', 'last_name')
-            .orderBy((u) => u.id.desc())
+            .orderBy([(u) => u.first_name.asc(), (u) => u.last_name.asc(), (u) => u.id.desc()])
+            .distinctOn('first_name', 'last_name')
             .include('posts', (posts) =>
               posts
                 .select('title')
-                .distinct('title')
-                .orderBy((p) => p.id.desc()),
+                .orderBy([(p) => p.title.asc(), (p) => p.id.desc()])
+                .distinctOn('title'),
             )
             .all(),
         ).toEqual([
-          { id: 5, posts: [{ title: '2' }, { title: '3' }] },
+          { id: 2, posts: [{ title: '1' }, { title: '2' }] },
           { id: 4, posts: [{ title: '1' }] },
           { id: 3, posts: [] },
-          { id: 2, posts: [{ title: '2' }, { title: '1' }] },
+          { id: 5, posts: [{ title: '2' }, { title: '3' }] },
         ]);
       }),
     timeouts.spinUpPpgDev,
@@ -240,13 +251,13 @@ describe('ports/engines/queries/distinct', () => {
             .include('posts', (posts) =>
               posts
                 .select('id')
-                .distinct('title')
-                .orderBy((p) => p.id.desc()),
+                .orderBy([(p) => p.title.asc(), (p) => p.id.desc()])
+                .distinctOn('title'),
             )
             .all(),
         ).toEqual([
           { id: 1, posts: [{ id: 5 }, { id: 4 }, { id: 1 }] },
-          { id: 2, posts: [{ id: 7 }, { id: 6 }] },
+          { id: 2, posts: [{ id: 6 }, { id: 7 }] },
           { id: 3, posts: [] },
           { id: 4, posts: [{ id: 9 }] },
           { id: 5, posts: [{ id: 12 }, { id: 11 }] },
