@@ -23,14 +23,19 @@ changes:
         — there is no portable equivalent; the query needs redesigning (e.g. aggregate first, or
         move the dedup into application code).
 
-      One combination has no replacement at all: `.distinct(cols)` used to work on a non-leaf
-      include (one that itself has a nested `.include(...)`) by pre-deduping in a wrapped
-      subquery before attaching grandchildren. Plain `.distinct()` cannot do this — a non-leaf
-      include's own projection always carries a `json_agg` column for its nested include, and
-      Postgres has no equality operator for `json`, so `DISTINCT` over that row set is a SQL
-      error. If your code combines `distinct()` with a nested `include()` at the same level,
-      restructure the query — dedupe at a leaf level, or drop the nested include from under the
-      distinct-affected level.
+      One combination has no replacement at all: `.distinct(cols)` used to work alongside an
+      `.include(...)` at the same level by pre-deduping scalar columns in a wrapped subquery
+      before attaching the included relation's rows. Plain `.distinct()` cannot do this — every
+      include, leaf or not, adds a `json_agg` (or equivalent) column to the row it dedupes over,
+      and which children ride along with a collapsed row is undefined once `distinct()` has no
+      key. `Collection#distinct()` combined with `Collection#include(...)` at the same level is
+      now a compile-reachable, uniform ORM error (`ORM.INCLUDE_UNSUPPORTED`) on every target — not
+      a Postgres-only SQL failure. If your code combines `distinct()` with an `include()` at the
+      same level (including inside a refinement callback), restructure the query: drop the
+      `include()` from under the distinct-affected level, or replace `distinct()` with
+      `distinctOn(...)` where the capability and an `orderBy(...)` are available — `distinctOn`
+      composes with `include()` because it only requires equality on the columns it lists, not
+      the whole row.
     detection:
       glob: "**/*.{ts,mts,cts}"
       regex:
@@ -69,12 +74,30 @@ const latestPerCountry = await db.orm.User
 either is missing, there is no portable substitute; the query needs redesigning rather than a
 mechanical rename.
 
-A combination with no replacement at all: `distinct(cols)` used to work on a non-leaf include (one
-carrying its own nested `include(...)`) by pre-deduping scalar columns in a wrapped subquery
-before attaching grandchildren. Plain `distinct()` cannot reproduce this — a non-leaf include's
-own row projection always carries a `json_agg` column for its nested include, and Postgres has no
-equality operator for `json`, so `DISTINCT` over that row set fails with a genuine SQL error
-(`could not identify an equality operator for type json`) rather than a wrong answer. If your code
-combines `.distinct()` with a nested `.include(...)` at the same level, restructure the query:
-dedupe at a leaf level instead, or move the nested include out from under the distinct-affected
-level.
+A combination with no replacement at all: `distinct(cols)` used to work alongside an `include(...)`
+at the same level by pre-deduping scalar columns in a wrapped subquery before attaching the
+included relation's rows. Plain `distinct()` cannot reproduce this — every include, leaf or not,
+adds a `json_agg` (or equivalent) column to the row it dedupes over, and which children ride along
+with a collapsed row is undefined once `distinct()` has no key.
+
+`Collection#distinct()` combined with `Collection#include(...)` at the same level — at the root or
+inside a refinement callback — is rejected by the ORM itself with a named error
+(`ORM.INCLUDE_UNSUPPORTED`), on every target:
+
+```ts
+// Rejected: distinct() cannot dedupe a row carrying posts' included data.
+await db.orm.User.include('posts').distinct().all();
+// ORM.INCLUDE_UNSUPPORTED: distinct() cannot combine with include('posts') at the same level — …
+```
+
+This used to be a Postgres-only failure (`could not identify an equality operator for type json`,
+thrown by the database once the query reached it) and, on SQLite, a silent wrong answer —
+`DISTINCT` deduped on the serialized child array's text identity instead of the scalar columns the
+caller meant, since SQLite has no native JSON type. Both are now the same named ORM error before
+either target sees the query. If your code combines `.distinct()` with an `.include(...)` at the
+same level, restructure the query:
+
+- Drop the `.include(...)` from under the distinct-affected level, or
+- Replace `.distinct()` with `.distinctOn(...)` where the contract declares the `postgres.distinctOn`
+  capability and you can supply an `orderBy(...)` — `distinctOn` composes with `include()` because
+  it only requires equality on the columns it lists, not the whole row.

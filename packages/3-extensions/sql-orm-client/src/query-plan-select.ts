@@ -598,6 +598,27 @@ function buildManyToManyJunctionArtifacts(
   return { whereExpr, junctionJoin };
 }
 
+// Plain DISTINCT dedupes the whole projected row, and an include's json_agg /
+// json_build_object column is part of that row. Postgres has no equality
+// operator for json, so this errors there; SQLite's json is TEXT, so it
+// "succeeds" by deduping on serialized-child-array identity instead of the
+// scalar columns the caller meant — silently wrong. Neither target can
+// express what the caller is actually asking for (which children ride along
+// with a collapsed row is undefined once distinct() has no key), so this is
+// rejected before either happens.
+function assertDistinctHasNoIncludes(includes: ReadonlyArray<IncludeExpr>): void {
+  if (includes.length === 0) return;
+  const relations = includes.map((include) => include.relationName).join(', ');
+  throw ormError(
+    'ORM.INCLUDE_UNSUPPORTED',
+    `distinct() cannot combine with include('${relations}') at the same level — ` +
+      "distinct() dedupes the whole projected row, including each included relation's " +
+      'data, so which children a collapsed row keeps is undefined. Use distinctOn(...) ' +
+      'instead: it selects one representative row per key and composes with include().',
+    { meta: { relations: includes.map((include) => include.relationName) } },
+  );
+}
+
 function buildIncludeChildRowsSelect(
   contract: Contract<SqlStorage>,
   aggregates: SqlAggregateDescriptorRegistry,
@@ -730,6 +751,7 @@ function buildIncludeChildRowsSelect(
       childState.distinctOn.map((column) => ColumnRef.of(childTableRef, column)),
     );
   } else if (childState.distinct) {
+    assertDistinctHasNoIncludes(childState.includes);
     childRows = childRows.withDistinct();
   }
   if (childOrderBy) {
@@ -1303,6 +1325,10 @@ export function compileSelectWithIncludes(
   state: CollectionState,
   modelName?: string,
 ): SqlQueryPlan<Record<string, unknown>> {
+  if (state.distinct) {
+    assertDistinctHasNoIncludes(state.includes);
+  }
+
   const includeJoins: JoinAst[] = [];
   const includeProjection: ProjectionItem[] = [];
   const topLevelWhere = buildStateWhere(contract, tableName, state, { namespaceId });
