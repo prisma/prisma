@@ -3,7 +3,7 @@
  *
  * After building a migration chain (initial → add-name → add-posts), the
  * add-posts directory is deleted from disk. migration status reports the
- * broken chain, migration apply fails (no path to destination), and recovery
+ * broken chain, migrate fails (no path to destination), and recovery
  * is achieved by re-planning the missing edge and applying it.
  */
 
@@ -82,13 +82,20 @@ withTempDir(({ createTempDir }) => {
         expect(addPostsDir, 'P3.pre: add-posts dir exists').toBeDefined();
         rmSync(join(migrationsDir, addPostsDir!), { recursive: true, force: true });
 
-        // P3.01: migration status (reports broken chain — contract has no matching leaf)
+        // P3.01: migration status (reports broken chain — contract has no
+        // matching leaf) and still lists the surviving on-disk migrations
+        // rather than treating the space as empty (folded in from the
+        // deleted drift-deleted-root journey, P4.01).
         const statusBroken = await runMigrationStatus(ctx);
         expect([0, 1], 'P3.01: status exits 0 or 1').toContain(statusBroken.exitCode);
+        expect(statusBroken.stderr, 'P3.01: surviving migrations visible').toMatch(/add_name/);
+        expect(statusBroken.stderr, 'P3.01: not treated as empty').not.toContain(
+          'No migrations found',
+        );
 
-        // P3.02: migration apply (fails — no path from marker to destination contract)
+        // P3.02: migrate (fails — no path from marker to destination contract)
         const applyFail = await runMigrate(ctx);
-        expect(applyFail.exitCode, 'P3.02: migration apply fails').not.toBe(0);
+        expect(applyFail.exitCode, 'P3.02: migrate fails').not.toBe(0);
 
         // P3.03: re-plan the missing edge (chain leaf is additive, contract is v3)
         const rePlan = await planThenSelfEmit(ctx, [
@@ -99,9 +106,20 @@ withTempDir(({ createTempDir }) => {
         ]);
         expect(rePlan.exitCode, 'P3.03: migration plan recovery').toBe(0);
 
-        // P3.04: migration apply (applies the re-planned additive→v3 migration)
+        // The recovery plan adds exactly the missing edge — it must not
+        // greenfield-plan a duplicate init (folded in from the deleted
+        // drift-deleted-root journey, P4.02).
+        const dirsAfterRePlan = readdirSync(migrationsDir).filter(
+          (d) => !d.startsWith('.') && d !== 'refs',
+        );
+        expect(
+          dirsAfterRePlan.filter((d) => d.endsWith('_initial')),
+          'P3.03: exactly one init migration',
+        ).toHaveLength(1);
+
+        // P3.04: migrate (applies the re-planned additive→v3 migration)
         const applyRecovery = await runMigrate(ctx);
-        expect(applyRecovery.exitCode, 'P3.04: migration apply recovery').toBe(0);
+        expect(applyRecovery.exitCode, 'P3.04: migrate recovery').toBe(0);
       },
       timeouts.spinUpPpgDev,
     );

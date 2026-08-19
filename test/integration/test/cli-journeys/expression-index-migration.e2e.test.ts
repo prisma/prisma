@@ -77,7 +77,7 @@ async function runInitialFlow(ctx: JourneyContext, connectionString: string): Pr
   );
 
   const apply = await runMigrate(ctx);
-  expect(apply.exitCode, `migration apply\n${stripAnsi(apply.stderr)}`).toBe(0);
+  expect(apply.exitCode, `migrate\n${stripAnsi(apply.stderr)}`).toBe(0);
 
   const verify = await runDbVerify(ctx);
   expect(verify.exitCode, `db verify clean\n${stripAnsi(verify.stderr)}`).toBe(0);

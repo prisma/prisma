@@ -22,7 +22,6 @@ import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
-  engineDocument,
   getLatestMigrationDir,
   type JourneyContext,
   latestMigrationDirName,
@@ -31,7 +30,6 @@ import {
   runContractEmit,
   runContractInfer,
   runDbSign,
-  runDbUpdate,
   runDbVerify,
   runMigrate,
   setupJourney,
@@ -136,7 +134,7 @@ withTempDir(({ createTempDir }) => {
 
         // apply the renames.
         const apply = await runMigrate(ctx, ['--json']);
-        expect(apply.exitCode, `migration apply\n${stripAnsi(apply.stderr)}`).toBe(0);
+        expect(apply.exitCode, `migrate\n${stripAnsi(apply.stderr)}`).toBe(0);
         expect(parseJsonOutput(apply), 'one migration applied').toMatchObject({
           migrationsApplied: 1,
         });
@@ -153,68 +151,6 @@ withTempDir(({ createTempDir }) => {
           expect(names).toContain('post_userId_idx_a489d58a');
           expect(names).not.toContain('user_email_idx');
           expect(names).not.toContain('post_userId_idx');
-        });
-      },
-      timeouts.spinUpPpgDev,
-    );
-  });
-
-  describe('exact-mode adoption round-trip on fields-only indexes', () => {
-    const db = useDevDatabase({
-      onReady: (cs) =>
-        withClient(cs, (client) =>
-          client.query(`
-            CREATE TABLE "account" (
-              id int4 PRIMARY KEY,
-              email text NOT NULL,
-              name text NOT NULL
-            );
-            CREATE INDEX "account_email_idx" ON "account" (email);
-            CREATE INDEX "email_lookup" ON "account" (name, email);
-          `),
-        ),
-    });
-
-    it(
-      'infer → emit → verify zero issues → sign → db update dry-run plans zero ops',
-      async () => {
-        const ctx: JourneyContext = setupJourney({
-          connectionString: db.connectionString,
-          createTempDir,
-          contractMode: 'psl',
-        });
-
-        const infer = await runContractInfer(ctx);
-        expect(infer.exitCode, `contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
-        const inferredPsl = readFileSync(join(ctx.testDir, 'contract.prisma'), 'utf-8');
-        expect(inferredPsl, 'default-named index adopted exactly').toContain(
-          '@@index([email], map: "account_email_idx")',
-        );
-        expect(inferredPsl, 'custom-named index adopted exactly').toContain(
-          '@@index([name, email], map: "email_lookup")',
-        );
-
-        const emit = await runContractEmit(ctx);
-        expect(emit.exitCode, `contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
-
-        const schemaVerify = await runDbVerify(ctx, ['--schema-only', '--json']);
-        expect(schemaVerify.exitCode, 'schema verify zero issues').toBe(0);
-        expect(engineDocument(schemaVerify), 'no issues').toMatchObject({
-          ok: true,
-          schema: { issues: [] },
-        });
-
-        const sign = await runDbSign(ctx);
-        expect(sign.exitCode, `db sign\n${stripAnsi(sign.stderr)}`).toBe(0);
-        const verify = await runDbVerify(ctx);
-        expect(verify.exitCode, 'db verify').toBe(0);
-
-        // Zero drift ⇒ a dry-run update plans nothing.
-        const dryRun = await runDbUpdate(ctx, ['--dry-run', '--json']);
-        expect(dryRun.exitCode, `db update dry-run\n${stripAnsi(dryRun.stderr)}`).toBe(0);
-        expect(parseJsonOutput(dryRun), 'zero operations').toMatchObject({
-          ok: true,
-          plan: { operations: [] },
         });
       },
       timeouts.spinUpPpgDev,

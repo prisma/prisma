@@ -2,11 +2,13 @@
  * Rollback Cycle (Journey J — spec scenario P-2/S-2)
  *
  * Tests cycle-safe shortest-path resolution after a rollback migration
- * creates a cycle in the migration graph (C1 → C2 → C1). The default db
- * ref supplies --from implicitly; an explicit --from can still target an
- * older graph node when the implicit path is not desired.
+ * creates a cycle in the migration graph (C1 → C2 → C1). The rollback is
+ * the one-command flow (TML-2690): `--to <dir>^` with no contract-source
+ * edit. Every plan names its base explicitly (`--from <dir|hash>`).
  */
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
@@ -64,20 +66,42 @@ withTempDir(({ createTempDir }) => {
         const apply1 = await runMigrate(ctx);
         expect(apply1.exitCode, 'J.02: apply add-phone').toBe(0);
 
-        // J.03: swap back to base contract (C1) → emit → plan rollback (C2→C1 cycle edge)
-        swapContract(ctx, 'contract-base');
-        const emit2 = await runContractEmit(ctx);
-        expect(emit2.exitCode, 'J.03: emit C1 again').toBe(0);
+        // J.03: one-command rollback (TML-2690, folded in from the deleted
+        // plan-to-rollback journey): plan toward the add-phone migration's
+        // predecessor via `--to <dir>^` — no contract-source edit. The
+        // reverse delta drops the added column, so applying needs `-y`.
+        const addPhoneDir = latestMigrationDirName(ctx);
+        const rollbackTarget = `${addPhoneDir}^`;
         const planRollback = await planThenSelfEmit(ctx, [
           '--name',
           'rollback-phone',
           '--from',
-          latestMigrationDirName(ctx),
+          addPhoneDir,
+          '--to',
+          rollbackTarget,
           '--json',
         ]);
-        expect(planRollback.exitCode, 'J.03: plan rollback').toBe(0);
-        const apply2 = await runMigrate(ctx);
+        expect(planRollback.exitCode, 'J.03: plan rollback --to <dir>^').toBe(0);
+        const rollback = parseJsonOutput<{
+          from: string;
+          to: string;
+          operations: readonly { operationClass: string }[];
+        }>(planRollback);
+        expect(rollback.from, 'J.03: rollback from C2').toBe(c2Hash);
+        expect(rollback.to, 'J.03: rollback to predecessor C1').toBe(c1Hash);
+        expect(
+          rollback.operations.some((op) => op.operationClass === 'destructive'),
+          'J.03: reverse delta drops the added column (destructive), no refusal',
+        ).toBe(true);
+        const contractSource = readFileSync(join(ctx.testDir, 'contract.ts'), 'utf-8');
+        expect(contractSource, 'J.03: contract source untouched (still phone variant)').toContain(
+          'phone',
+        );
+        const apply2 = await runMigrate(ctx, ['--to', rollbackTarget, '-y', '--json']);
         expect(apply2.exitCode, 'J.03: apply rollback').toBe(0);
+        const applied2 = parseJsonOutput<{ ok: boolean; markerHash: string }>(apply2);
+        expect(applied2.ok, 'J.03: rollback applied ok').toBe(true);
+        expect(applied2.markerHash, 'J.03: marker moved back to C1').toBe(c1Hash);
 
         // J.04: graph has cycle (C1→C2→C1); planning from the rollback tip
         // (named explicitly — with no db ref, an unflagged plan would be

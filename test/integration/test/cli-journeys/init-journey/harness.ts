@@ -695,28 +695,3 @@ async function runStep(project: JourneyProject, args: readonly string[]): Promis
   const result = await runExec(bin, rest, project.dir);
   return { ...result, command: args.join(' ') };
 }
-
-/**
- * Helper that flips one assertion based on whether a bug is currently
- * `'broken'` or `'fixed'`. The journey test encodes one of these per known
- * seam bug (TML-2486, TML-2487, TML-2314, TML-2461); flipping the status
- * is how individual bug-fix commits land in the same PR without rewriting
- * the journey test itself.
- */
-export interface SeamExpectation<T> {
-  readonly ticket: string;
-  readonly description: string;
-  readonly status: 'broken' | 'fixed';
-  readonly whenBroken: (result: T) => void;
-  readonly whenFixed: (result: T) => void;
-}
-
-export function seamExpectation<T>(spec: SeamExpectation<T>): (result: T) => void {
-  return (result) => {
-    if (spec.status === 'broken') {
-      spec.whenBroken(result);
-    } else {
-      spec.whenFixed(result);
-    }
-  };
-}

@@ -33,10 +33,9 @@ pnpm test:journeys
 | File | What it covers |
 |---|---|
 | `rollback-cycle.e2e.test.ts` | **Rollback cycle (P-2)**: C1→C2→C1 creates a cycle. `findLeaf` fails with `NO_TARGET`. Plan with `--from` bypasses cycle, apply recovers |
-| `converging-paths.e2e.test.ts` | **Converging paths (P-3)**: two paths to the same target (C1→C2→C3 and C1→C3 direct). Pathfinder selects shortest path (2 steps not 3) |
 | `divergence-and-refs.e2e.test.ts` | **Same-base divergence (P-4)**: two edges from C1 (C1→C2, C1→C3). Status without `--ref` fails with `AMBIGUOUS_TARGET`. Ref-based resolution routes apply to the correct branch |
-| `ref-routing.e2e.test.ts` | **Staging ahead via refs (P-5)**: production=C1, staging=C2 on same DB. Apply `--ref staging` advances staging; production unaffected. **Marker ahead of ref (P-6)**: after staging apply, DB at C2 but production ref at C1 — apply fails, status reports ahead-of-ref |
 | `adopt-migrations.e2e.test.ts` | **Adopting migrations (P-9)**: DB managed via `db update` (at C2). Baseline migration EMPTY→C2 is no-op. Incremental C2→C3 applies normally. Status shows both migrations applied |
+| `data-transform-strategies.e2e.test.ts` | **Planner-assisted dataTransform strategies**: one scenario per Postgres call strategy (NOT NULL backfill, nullable tightening, text→int4 type change). Planner emits placeholder stubs, the test fills them in, re-emits in-process, applies, and asserts data + column shape |
 | `diamond-convergence.e2e.test.ts` | **Diamond convergence**: Two environments (staging, production) diverge from C1 via independent branches (C1→C2→C3 and C1→C4), then converge to C5. Uses two PGlite instances with separate configs sharing the same migration graph on disk. Verifies both DBs reach C5 via their respective merge migrations and status shows 0 pending for both refs |
 | `interleaved-db-update.e2e.test.ts` | **Interleaved db update + migrations**: User on migrations (∅→C1→C2) runs `db update` to C3 instead of `migration plan`. Retroactive `migration plan` creates the C2→C3 edge, `migration apply` is a noop (DB already at C3). Future migrations (C3→C4) resume normally. Documents that `migration plan` is offline (uses latest migration target, not DB marker) |
 

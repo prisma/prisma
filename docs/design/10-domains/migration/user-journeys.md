@@ -242,7 +242,7 @@ Three shapes the merge can take, all valid:
 
 The graph is content-addressed: migration hashes change when ancestry changes, but the rules for "does this migration make sense from this contract?" are encoded in the verb taxonomy (`migration check`'s PN codes), not in branch ordering.
 
-**Exercised by:** `converging-paths.e2e.test.ts`, `diamond-convergence.e2e.test.ts`, `divergence-and-refs.e2e.test.ts`.
+**Exercised by:** `diamond-convergence.e2e.test.ts`, `divergence-and-refs.e2e.test.ts`.
 
 ---
 

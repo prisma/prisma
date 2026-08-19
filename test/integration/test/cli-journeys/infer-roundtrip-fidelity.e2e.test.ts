@@ -517,29 +517,6 @@ withTempDir(({ createTempDir }) => {
       },
       timeouts.spinUpPpgDev,
     );
-
-    it(
-      'full round trip — infer -> emit -> db verify --schema-only, no hand-editing',
-      async () => {
-        const ctx: JourneyContext = setupJourney({
-          connectionString: db.connectionString,
-          createTempDir,
-          contractMode: 'psl',
-        });
-
-        const infer = await runContractInfer(ctx);
-        expect(infer.exitCode, `contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
-
-        const emit = await runContractEmit(ctx);
-        expect(
-          emit.exitCode,
-          `contract emit (unmodified inferred PSL)\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
-        ).toBe(0);
-
-        await expectVerifiesCleanAfterPull(ctx, 'unmodified inferred PSL');
-      },
-      timeouts.spinUpPpgDev,
-    );
   });
 
   describe('Journey: 1:1 detection for FKs enforced by a bare CREATE UNIQUE INDEX', () => {

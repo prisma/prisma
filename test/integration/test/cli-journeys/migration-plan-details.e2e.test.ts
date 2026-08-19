@@ -51,10 +51,6 @@ withTempDir(({ createTempDir }) => {
 
         // H.02: migration plan --json (plan+self-emit so the migration is
         // attested on disk for H.03's verifyMigration check).
-        //
-        // `migrationHash` was removed from `MigrationPlanResult` in PR 3 — it
-        // was tied to the old `migration emit` path — so we no longer assert
-        // on it here.
         const plan = await planThenSelfEmit(ctx, ['--name', 'initial', '--json']);
         expect(plan.exitCode, 'H.02: migration plan --json').toBe(0);
 
@@ -72,9 +68,6 @@ withTempDir(({ createTempDir }) => {
 
         expect(result.ok, 'H.02: ok flag').toBe(true);
         expect(result.noOp, 'H.02: not a noop').toBe(false);
-        // Baseline migrations are encoded as `from: null` end-to-end; the live-
-        // marker layer still uses `EMPTY_CONTRACT_HASH` for "no marker present"
-        // but the manifest / plan-result surface no longer carries the sentinel.
         expect(result.from, 'H.02: from is null (baseline)').toBeNull();
         expect(result.to, 'H.02: to is defined').toBeDefined();
         expect(result.dir, 'H.02: dir is defined').toBeDefined();

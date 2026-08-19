@@ -4,18 +4,18 @@
  * Drives the full migration lifecycle end-to-end against a live
  * Postgres:
  *
- *   1. `migration plan` → `migration apply` against an empty
+ *   1. `migration plan` → `migrate` against an empty
  *      database creates the initial table (`createTable` only — no
  *      placeholders, no data ops).
- *   2. Re-run `migration apply` is a no-op — `migrationsApplied: 0`
+ *   2. Re-run `migrate` is a no-op — `migrationsApplied: 0`
  *      and the formatted output reports "Already up to date" (per
  *      `plan.md` lines 318-323).
  *   3. Swap to a contract that both adds a nullable column and
  *      requires a data backfill, hand-author a `migration.ts` that
  *      combines `addColumn` + `dataTransform` + `setNotNull`, run
- *      it to emit `ops.json`, then `migration apply` succeeds and
+ *      it to emit `ops.json`, then `migrate` succeeds and
  *      the data is correct.
- *   4. Re-running `migration apply` after the second migration is
+ *   4. Re-running `migrate` after the second migration is
  *      again a no-op.
  *
  * This is the broader companion to the per-strategy planner-assisted
@@ -62,7 +62,7 @@ withTempDir(({ createTempDir }) => {
         // Step 1: emit base contract → plan → apply (createTable
         // only). The base contract is `id + email`; nothing data-
         // safety touches it, so the planner emits a pure
-        // `createTable` and `migration apply` runs all of it without
+        // `createTable` and `migrate` runs all of it without
         // any user intervention.
         // -----------------------------------------------------------
         const emit0 = await runContractEmit(ctx);
@@ -81,7 +81,7 @@ withTempDir(({ createTempDir }) => {
         );
 
         // -----------------------------------------------------------
-        // Step 2: re-running `migration apply` against an
+        // Step 2: re-running `migrate` against an
         // already-up-to-date database must be a no-op (Phase 3 AC,
         // plan.md lines 318-323).
         // -----------------------------------------------------------

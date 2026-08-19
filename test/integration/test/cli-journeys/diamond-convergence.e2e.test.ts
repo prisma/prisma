@@ -49,6 +49,7 @@ withTempDir(({ createTempDir }) => {
   describe('Journey D: Diamond Convergence', () => {
     const stagingDb = useDevDatabase();
     const prodDb = useDevDatabase();
+    const freshDb = useDevDatabase();
 
     it(
       'two environments diverge from C1, converge to C5 via distinct paths',
@@ -225,6 +226,22 @@ withTempDir(({ createTempDir }) => {
           prodStatusData.migrations.length,
           'D.10: production lists migrations',
         ).toBeGreaterThan(3);
+
+        // D.11: apply the whole graph to an empty database — the pathfinder
+        // picks the shortest route to C5 (∅→C1→C4→C5, 3 steps) over the
+        // longer staging branch (∅→C1→C2→C3→C5, 4 steps). Folded in from the
+        // deleted converging-paths journey (P-3/S-3).
+        const fresh = createSecondDbContext(staging, freshDb.connectionString);
+        const applyFresh = await runMigrate(fresh, ['--json']);
+        expect(applyFresh.exitCode, 'D.11: apply to empty database').toBe(0);
+        const freshResult = parseJsonOutput<{
+          ok: boolean;
+          migrationsApplied: number;
+          markerHash: string;
+        }>(applyFresh);
+        expect(freshResult.ok, 'D.11: ok').toBe(true);
+        expect(freshResult.markerHash, 'D.11: marker at C5').toBe(c5Hash);
+        expect(freshResult.migrationsApplied, 'D.11: shortest path = 3 steps').toBe(3);
       },
       timeouts.spinUpPpgDev,
     );

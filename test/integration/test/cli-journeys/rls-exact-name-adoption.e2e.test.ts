@@ -132,7 +132,7 @@ withTempDir(({ createTempDir }) => {
 
         // apply: run the rename and verify clean under the wire name.
         const apply = await runMigrate(ctx);
-        expect(apply.exitCode, `apply: migration apply\n${stripAnsi(apply.stderr)}`).toBe(0);
+        expect(apply.exitCode, `apply: migrate\n${stripAnsi(apply.stderr)}`).toBe(0);
         const verifyWire = await runDbVerify(ctx);
         expect(verifyWire.exitCode, `apply: verify clean\n${stripAnsi(verifyWire.stderr)}`).toBe(0);
       },

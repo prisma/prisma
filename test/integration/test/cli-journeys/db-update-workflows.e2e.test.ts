@@ -8,14 +8,9 @@
  *     column, test that --no-interactive blocks destructive changes, --json
  *     returns an error envelope, and --json -y auto-accepts and succeeds.
  *
- * Note: Journey O ("re-init conflict") was removed when the dual `db init`
- * path was collapsed onto the per-space flow. The `MARKER_ORIGIN_MISMATCH`
- * gate that previously failed `db init` whenever the marker did not match the
- * destination contract no longer exists; the per-space planner reconciles
- * schema drift and the marker is treated as bookkeeping rather than an
- * authoritative source. Marker-aware violations (orphan markers,
- * declared-but-unmigrated extension spaces) are caught by the contract-space
- * verifier instead — see `cli.db-init.contract-space-verifier.test.ts` and
+ * Marker-aware violations (orphan markers, declared-but-unmigrated
+ * extension spaces) are caught by the contract-space verifier — see
+ * `cli.db-init.contract-space-verifier.test.ts` and
  * `cli.db-update.contract-space-verifier.test.ts`.
  */
 

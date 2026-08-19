@@ -43,12 +43,31 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { fixtureAppDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  parseJsonOutput,
   runContractEmit,
   runMigrate,
   runMigrationNew,
   runMigrationPlan,
   selfEmitMigration,
 } from '../utils/journey-test-helpers';
+
+const INVARIANT_ID = 'lowercase-user-name';
+
+/** Writes a ref pointing at `hash` and requiring `invariants` (moved from the deleted invariant-routing.mongo mirror). */
+function writeRefFile(
+  ctx: JourneyContext,
+  name: string,
+  hash: string,
+  invariants: readonly string[],
+): void {
+  const refsDir = join(ctx.testDir, 'migrations', 'app', 'refs');
+  mkdirSync(refsDir, { recursive: true });
+  writeFileSync(
+    join(refsDir, `${name}.json`),
+    `${JSON.stringify({ hash, invariants }, null, 2)}\n`,
+    'utf-8',
+  );
+}
 
 const FIXTURES_DIR = join(fixtureAppDir, 'fixtures/mongo-cli-journeys');
 
@@ -201,7 +220,7 @@ describe('Journey: Mongo migration authoring (offline)', { timeout: timeouts.spi
       '--dir',
       `migrations/app/${basename(migrationDir)}`,
     ]);
-    expect(emit.exitCode, `migration emit: ${emit.stdout}\n${emit.stderr}`).toBe(0);
+    expect(emit.exitCode, `migration.ts self-emit: ${emit.stdout}\n${emit.stderr}`).toBe(0);
 
     const ops = JSON.parse(readFileSync(join(migrationDir, 'ops.json'), 'utf-8')) as ReadonlyArray<{
       id: string;
@@ -332,11 +351,11 @@ describe('Journey: Mongo migration authoring (live database)', {
     ]);
     expect(
       emitInit.exitCode,
-      `migration emit initial: ${emitInit.stdout}\n${emitInit.stderr}`,
+      `migration.ts self-emit initial: ${emitInit.stdout}\n${emitInit.stderr}`,
     ).toBe(0);
 
     const apply0 = await runMigrate(ctx);
-    expect(apply0.exitCode, `migration apply initial: ${apply0.stdout}\n${apply0.stderr}`).toBe(0);
+    expect(apply0.exitCode, `migrate initial: ${apply0.stdout}\n${apply0.stderr}`).toBe(0);
 
     const collections = await client.db(dbName).listCollections({ name: 'users' }).toArray();
     expect(collections.map((c) => c.name)).toContain('users');
@@ -390,6 +409,7 @@ class M extends Migration {
     return [
       createIndex('users', [{ field: 'name', direction: 1 }]),
       dataTransform('lowercase-user-name', {
+        invariantId: ${JSON.stringify(INVARIANT_ID)},
         check: {
           source: () => ({
             collection: 'users',
@@ -420,9 +440,10 @@ MigrationCLI.run(import.meta.url, M);
     writeFileSync(migrationTsPath, handAuthored);
 
     const emitResult = await selfEmitMigration(ctx, ['--dir', migrationDir]);
-    expect(emitResult.exitCode, `migration emit: ${emitResult.stdout}\n${emitResult.stderr}`).toBe(
-      0,
-    );
+    expect(
+      emitResult.exitCode,
+      `migration.ts self-emit: ${emitResult.stdout}\n${emitResult.stderr}`,
+    ).toBe(0);
 
     const ops = JSON.parse(readFileSync(join(migrationDir, 'ops.json'), 'utf-8')) as ReadonlyArray<{
       id: string;
@@ -438,8 +459,28 @@ MigrationCLI.run(import.meta.url, M);
     };
     expect(manifest.migrationHash).toMatch(/^[a-f0-9]{64}$/);
 
-    const apply1 = await runMigrate(ctx);
-    expect(apply1.exitCode, `migration apply additive: ${apply1.stdout}\n${apply1.stderr}`).toBe(0);
+    // The transform declares an invariantId and the ref requires it — apply
+    // routes on the invariant and the Mongo runner accumulates it onto the
+    // marker doc via its aggregation-pipeline $setUnion merge (moved from
+    // the deleted invariant-routing.mongo mirror).
+    writeRefFile(ctx, 'prod', draftManifest.to, [INVARIANT_ID]);
+    const apply1 = await runMigrate(ctx, ['--to', 'prod', '--json']);
+    expect(apply1.exitCode, `migrate additive: ${apply1.stdout}\n${apply1.stderr}`).toBe(0);
+    const apply1Result = parseJsonOutput<{
+      ok: boolean;
+      pathDecision?: {
+        requiredInvariants: readonly string[];
+        satisfiedInvariants: readonly string[];
+      };
+    }>(apply1);
+    expect(apply1Result.ok, 'apply ok').toBe(true);
+    expect(apply1Result.pathDecision?.requiredInvariants, 'required reflects the ref').toEqual([
+      INVARIANT_ID,
+    ]);
+    expect(
+      apply1Result.pathDecision?.satisfiedInvariants,
+      'the selected path satisfies the invariant',
+    ).toEqual([INVARIANT_ID]);
 
     const users = await client
       .db(dbName)
@@ -460,7 +501,7 @@ MigrationCLI.run(import.meta.url, M);
 
     // Re-apply: the runner postcheck sees all names are already lower-case,
     // so the data transform is skipped. Data must be byte-identical.
-    const apply2 = await runMigrate(ctx);
+    const apply2 = await runMigrate(ctx, ['--to', 'prod', '--json']);
     expect(apply2.exitCode, `re-apply: ${apply2.stdout}\n${apply2.stderr}`).toBe(0);
 
     const usersAfterReApply = await client

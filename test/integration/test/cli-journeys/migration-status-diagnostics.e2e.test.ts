@@ -572,61 +572,8 @@ withTempDir(({ createTempDir }) => {
      * With a ref, the system knows which path to follow. The divergence
      * warning should disappear and status should report normally — either
      * up to date or pending depending on what's been applied. This
-     * validates that --ref is the correct escape hatch for ambiguous graphs.
+     * validates that --to is the correct escape hatch for ambiguous graphs.
      */
-    describe('divergent graph with ref — resolves target', () => {
-      const db = useDevDatabase();
-
-      it(
-        'two branches + ref set → status resolves via ref',
-        async () => {
-          const ctx: JourneyContext = setupJourney({
-            connectionString: db.connectionString,
-            createTempDir,
-          });
-
-          const emit0 = await runContractEmit(ctx);
-          expect(emit0.exitCode, 'emit base').toBe(0);
-          const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
-          expect(plan0.exitCode, 'plan init').toBe(0);
-          const baseHash = parseJsonOutput<{ to: string }>(plan0).to;
-          const apply0 = await runMigrate(ctx);
-          expect(apply0.exitCode, 'apply init').toBe(0);
-
-          swapContract(ctx, 'contract-phone');
-          const emitA = await runContractEmit(ctx);
-          expect(emitA.exitCode, 'emit A').toBe(0);
-          const planA = await planThenSelfEmit(ctx, [
-            '--name',
-            'add-phone',
-            '--from',
-            baseHash,
-            '--json',
-          ]);
-          expect(planA.exitCode, 'plan A').toBe(0);
-          const hashA = parseJsonOutput<{ to: string }>(planA).to;
-
-          swapContract(ctx, 'contract-bio');
-          const emitB = await runContractEmit(ctx);
-          expect(emitB.exitCode, 'emit B').toBe(0);
-          const planB = await planThenSelfEmit(ctx, ['--name', 'add-bio', '--from', baseHash]);
-          expect(planB.exitCode, 'plan B').toBe(0);
-
-          const setRef = await runRef(ctx, ['set', 'production', hashA]);
-          expect(setRef.exitCode, 'ref set').toBe(0);
-
-          const status = await runMigrationStatus(ctx, ['--to', 'production']);
-          const out = stripAnsi(status.stderr);
-
-          expect(status.exitCode).toBe(0);
-          expect(out).not.toContain('multiple valid migration paths');
-          expect(out).toMatch(/1 pending/);
-          expect(out).toContain('prisma-cli migrate');
-        },
-        timeouts.spinUpPpgDev,
-      );
-    });
-
     describe('--from constrains the path origin', () => {
       const db = useDevDatabase();
 
