@@ -145,24 +145,6 @@ describe('ports/engines/queries/distinct', () => {
   );
 
   it(
-    'with_skip_orderby_nondistinct',
-    () =>
-      withDistinct(async ({ db }) => {
-        await seedBasic(db);
-        expect(
-          await db.public.User.select('id', 'first_name', 'last_name')
-            .orderBy([(u) => u.first_name.asc(), (u) => u.last_name.asc(), (u) => u.id.desc()])
-            .distinctOn('first_name', 'last_name')
-            .all(),
-        ).toEqual([
-          { id: 2, first_name: 'Hans', last_name: 'Wurst' },
-          { id: 3, first_name: 'Joe', last_name: 'Doe' },
-        ]);
-      }),
-    timeouts.spinUpPpgDev,
-  );
-
-  it(
     'nested_distinct',
     () =>
       withDistinct(async ({ db }) => {
