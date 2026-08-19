@@ -19,8 +19,8 @@ This skill fires on PRs **inside this repo** that make a breaking change to Pris
 
 The published skills you will be authoring entries into:
 
-- `skills/upgrade/prisma-next-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma/skills/upgrade --all`. **Audience: users of Prisma Next** (consumers of the public package API: `@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, on-disk migration shape).
-- `skills/extension-author/prisma-8-extension-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma/skills/extension-author --all`. **Audience: authors of Prisma Next extensions** (consumers of the framework SPI: `@internal/contract`, `@internal/framework-components`, `@internal/migration-tools`, etc.).
+- `skills/prisma-next-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma/skills --skill prisma-next-upgrade -y`. **Audience: users of Prisma Next** (consumers of the public package API: `@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, on-disk migration shape).
+- `skills/prisma-8-extension-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma/skills --skill prisma-8-extension-upgrade -y`. **Audience: authors of Prisma Next extensions** (consumers of the framework SPI: `@internal/contract`, `@internal/framework-components`, `@internal/migration-tools`, etc.).
 
 The two skill clusters are independent (no shared content). Cross-audience breaking changes — where the same on-disk transformation applies to both substrates — are recorded *separately* in each cluster, including duplicated colocated scripts.
 
@@ -44,8 +44,8 @@ Two mechanical signals, each tied to one destination package:
 
 | Substrate touched by the PR    | Destination skill                                              |
 | ------------------------------ | -------------------------------------------------------------- |
-| `examples/`                    | `skills/upgrade/prisma-next-upgrade/`                          |
-| `packages/3-extensions/`       | `skills/extension-author/prisma-8-extension-upgrade/`       |
+| `examples/`                    | `skills/prisma-next-upgrade/`                          |
+| `packages/3-extensions/`       | `skills/prisma-8-extension-upgrade/`       |
 | Both                           | Both — duplicated entries (see below)                          |
 
 The substrate diff is the signal that an entry is required. The agent fixing the red tests in those substrates sees the signal directly; the reviewer sees the same diff. The release-pipeline check (`pnpm check:upgrade-coverage`) enforces the outcome — a substrate diff without the matching directory fails the PR.
@@ -101,7 +101,7 @@ Workflow per entry (one of the two flows; both apply for cross-audience entries)
 1. Check out the PR branch with the framework change applied.
 2. Revert `examples/` to its pre-PR state (`git restore --source=origin/<target> -- examples/`).
 3. Run the entry against the reverted substrate — invoke any colocated script(s) per the entry's `script:` reference, then walk the prose body of `instructions.md` if the entry has additional instructions.
-4. Verify the resulting `examples/` directory matches the PR-branch state (`git diff origin/<target>..HEAD -- examples/` ≡ `git diff -- examples/` after step 3).
+4. Verify the resulting `examples/` directory matches the PR-branch state: `git diff --exit-code HEAD -- examples/` succeeds. The entry has reproduced the patch `git diff origin/<target>..HEAD -- examples/` describes, so the working tree is back at HEAD and the check is that nothing is left over.
 5. Verify the matching test suite is green: `pnpm test:examples`.
 
 If any of those checks fail, iterate on the entry. Do not merge.
@@ -111,7 +111,7 @@ If any of those checks fail, iterate on the entry. Do not merge.
 1. Check out the PR branch with the framework change applied.
 2. Revert `packages/3-extensions/` to its pre-PR state (`git restore --source=origin/<target> -- packages/3-extensions/`).
 3. Run the entry against the reverted substrate.
-4. Verify the resulting `packages/3-extensions/` directory matches the PR-branch state.
+4. Verify the resulting `packages/3-extensions/` directory matches the PR-branch state: `git diff --exit-code HEAD -- packages/3-extensions/` succeeds, the same check the user-skill flow makes against `examples/`.
 5. Verify the matching test suite is green: `pnpm test --filter='./packages/3-extensions/*'`.
 
 If any of those checks fail, iterate on the entry. Do not merge.
@@ -122,7 +122,7 @@ The PR that introduces the breaking change must contain, in addition to the fram
 
 - **The new entry directory in each affected skill** — `<destination>/upgrades/<in-flight transition>/instructions.md` plus any colocated scripts (the in-flight transition being the one determined in step 1 of the authoring workflow).
 - **The post-instructions state of every affected substrate** — these substrates would have been left broken without the entry; the entry's effect on the substrate *is* the diff that brings them back to green. The PR-branch substrate state and the validation-by-execution output state must be identical.
-- **A reference in the PR description naming each entry directory** (e.g. *"Adds entries to `skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/` and `skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/`."*).
+- **A reference in the PR description naming each entry directory** (e.g. *"Adds entries to `skills/prisma-next-upgrade/upgrades/0.7-to-0.8/` and `skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/`."*).
 
 The human reviewer + the CI gate (`pnpm check:upgrade-coverage`) both check this shape, but the gate is **necessary-but-not-sufficient** — it only asserts that the in-flight transition *directory* exists, not that *this PR's* substrate diff has a matching `changes[]` entry. So a PR can have a real substrate diff, contribute no entry, and still pass the gate green whenever an earlier PR already created the transition directory. (This is exactly how a breaking change can ship undocumented: the directory was already there, so the gate stayed green.) The gap is load-bearing for the reviewer: **the human reviewer must verify that every substrate diff in the PR has a corresponding entry** — the gate will not catch a missing entry once the directory exists. The reviewer also catches the semantic case (entry exists but its prose / scripts don't match the framework change).
 
@@ -158,7 +158,7 @@ Two corollaries of a release cut:
 
 ## Out of scope
 
-This skill records **upgrade instructions** — code-translation entries the published skills will replay against consumer projects. It does **not** add the per-step bump-install-instructions-validate-commit loop to entry bodies. That flow is general content carried in the published `SKILL.md` files (`skills/upgrade/prisma-next-upgrade/SKILL.md` and the matching extension-author file) and runs around your entry. Your entry only contains the code-translation work specific to the transition.
+This skill records **upgrade instructions** — code-translation entries the published skills will replay against consumer projects. It does **not** add the per-step bump-install-instructions-validate-commit loop to entry bodies. That flow is general content carried in the published `SKILL.md` files (`skills/prisma-next-upgrade/SKILL.md` and the matching extension-author file) and runs around your entry. Your entry only contains the code-translation work specific to the transition.
 
 This skill also does not enforce the exact-pin rule for extensions — that is `prisma-8-check-pins` (a `bin` of `@internal/extension-author-tools`), and it runs in extension authors' own CI plus in the extension-upgrade skill's per-step flow.
 
@@ -173,9 +173,9 @@ Both substrates are touched → both skill packages need entries.
 
 1. Read root `package.json` on the PR branch → `version: "0.7.0"`. Currently-published minor is `0.7`, so the in-flight transition is `0.7 → 0.8`. Directory is `upgrades/0.7-to-0.8/` in each skill package.
 2. Both substrates touched.
-3. `skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md` already exists (placeholder shipped with the initial mechanism PR). Append a `changes[]` entry — call it `migration-metadata-shape-update`. Same for `skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md`.
+3. `skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md` already exists (placeholder shipped with the initial mechanism PR). Append a `changes[]` entry — call it `migration-metadata-shape-update`. Same for `skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md`.
 4. The user-skill entry may be prose-only (e.g. "rename the imported type from `MigrationMetadata` to `MigrationManifest` in any consumer code"), since the user-facing fix is a simple rename.
-5. The extension-skill entry needs more work — the SPI changed shape, not just name. Author `skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/update-migration-tools-imports.ts` and reference it from the entry's `script:` field. If the same transformation also applies to the example, copy the script into the user-skill cluster's directory too.
+5. The extension-skill entry needs more work — the SPI changed shape, not just name. Author `skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/update-migration-tools-imports.ts` and reference it from the entry's `script:` field. If the same transformation also applies to the example, copy the script into the user-skill cluster's directory too.
 6. Validate by execution: revert `packages/3-extensions/` to pre-PR → run the extension-skill entry → verify `pnpm test --filter='./packages/3-extensions/*'` green and diff matches PR-branch state. Then revert `examples/` to pre-PR → run the user-skill entry → verify `pnpm test:examples` green and diff matches.
 7. Commit on the PR branch with both entry directories, the colocated script(s), and the matching substrate post-state.
 
@@ -183,4 +183,4 @@ Both substrates are touched → both skill packages need entries.
 
 - Mechanism Linear ticket: [TML-2519](https://linear.app/prisma-company/issue/TML-2519).
 - Coverage gate script: `scripts/check-upgrade-coverage.mjs` (invoked as `pnpm check:upgrade-coverage`).
-- Published skills whose entries you are authoring: `skills/upgrade/prisma-next-upgrade/`, `skills/extension-author/prisma-8-extension-upgrade/`.
+- Published skills whose entries you are authoring: `skills/prisma-next-upgrade/`, `skills/prisma-8-extension-upgrade/`.
