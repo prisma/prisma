@@ -1,5 +1,11 @@
 import { timeouts } from '@repo/test-utils';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
+
+// init-journey's 4-cell pack+install matrix runs nightly only
+// (.github/workflows/integration-nightly.yml); RUN_INIT_JOURNEY=1 opts it in.
+export const initJourneyExclude = process.env['RUN_INIT_JOURNEY']
+  ? []
+  : ['test/cli-journeys/init-journey.e2e.test.ts'];
 
 export default defineConfig({
   test: {
@@ -45,6 +51,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['test/**/*.test.ts'],
+    exclude: [...configDefaults.exclude, ...initJourneyExclude],
     typecheck: {
       enabled: true,
       include: ['test/**/*.test-d.ts'],

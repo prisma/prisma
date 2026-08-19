@@ -45,5 +45,7 @@ jobs:
         run: pnpm build
       - name: Run Integration tests
         run: pnpm test:integration
+      - name: Run init-journey matrix (nightly-only; excluded from PR runs)
+        run: pnpm --filter integration-tests test:init-journey
       - name: Check working tree is clean
         run: pnpm check:clean-tree

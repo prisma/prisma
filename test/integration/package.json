@@ -11,6 +11,7 @@
     "pretest:vite-plugin": "pnpm -C ../.. --filter @repo/test-utils --filter @internal/vite-plugin-contract-emit... build",
     "test": "vitest run",
     "test:journeys": "vitest run --config vitest.journeys.config.ts",
+    "test:init-journey": "RUN_INIT_JOURNEY=1 vitest run --config vitest.journeys.config.ts test/cli-journeys/init-journey.e2e.test.ts",
     "test:vite-plugin": "vitest run test/vite-plugin.hmr.e2e.test.ts",
     "test:watch": "vitest",
     "typecheck": "tsc --project tsconfig.json --noEmit",
