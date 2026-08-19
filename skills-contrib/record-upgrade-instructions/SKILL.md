@@ -101,7 +101,7 @@ Workflow per entry (one of the two flows; both apply for cross-audience entries)
 1. Check out the PR branch with the framework change applied.
 2. Revert `examples/` to its pre-PR state (`git restore --source=origin/<target> -- examples/`).
 3. Run the entry against the reverted substrate — invoke any colocated script(s) per the entry's `script:` reference, then walk the prose body of `instructions.md` if the entry has additional instructions.
-4. Verify the resulting `examples/` directory matches the PR-branch state: `git diff --exit-code HEAD -- examples/` succeeds. The entry has reproduced the patch `git diff origin/<target>..HEAD -- examples/` describes, so the working tree is back at HEAD and the check is that nothing is left over.
+4. Verify the resulting `examples/` directory matches the PR-branch state: `git status --porcelain -- examples/` prints nothing. The entry has reproduced the patch `git diff origin/<target>..HEAD -- examples/` describes, so the working tree is back at HEAD and the check is that nothing is left over — no modification, and no file the entry created along the way.
 5. Verify the matching test suite is green: `pnpm test:examples`.
 
 If any of those checks fail, iterate on the entry. Do not merge.
@@ -111,7 +111,7 @@ If any of those checks fail, iterate on the entry. Do not merge.
 1. Check out the PR branch with the framework change applied.
 2. Revert `packages/3-extensions/` to its pre-PR state (`git restore --source=origin/<target> -- packages/3-extensions/`).
 3. Run the entry against the reverted substrate.
-4. Verify the resulting `packages/3-extensions/` directory matches the PR-branch state: `git diff --exit-code HEAD -- packages/3-extensions/` succeeds, the same check the user-skill flow makes against `examples/`.
+4. Verify the resulting `packages/3-extensions/` directory matches the PR-branch state: `git status --porcelain -- packages/3-extensions/` prints nothing, the same check the user-skill flow makes against `examples/`.
 5. Verify the matching test suite is green: `pnpm test --filter='./packages/3-extensions/*'`.
 
 If any of those checks fail, iterate on the entry. Do not merge.
@@ -158,7 +158,7 @@ Two corollaries of a release cut:
 
 ## Out of scope
 
-This skill records **upgrade instructions** — code-translation entries the published skills will replay against consumer projects. It does **not** add the per-step bump-install-instructions-validate-commit loop to entry bodies. That flow is general content carried in the published `SKILL.md` files (`skills/prisma-next-upgrade/SKILL.md` and the matching extension-author file) and runs around your entry. Your entry only contains the code-translation work specific to the transition.
+This skill records **upgrade instructions** — code-translation entries the published skills will replay against consumer projects. It does **not** add the per-step bump-install-instructions-validate-commit loop to entry bodies. That flow is general content carried in the published `SKILL.md` files (`skills/prisma-next-upgrade/SKILL.md` and `skills/prisma-8-extension-upgrade/SKILL.md`) and runs around your entry. Your entry only contains the code-translation work specific to the transition.
 
 This skill also does not enforce the exact-pin rule for extensions — that is `prisma-8-check-pins` (a `bin` of `@internal/extension-author-tools`), and it runs in extension authors' own CI plus in the extension-upgrade skill's per-step flow.
 
