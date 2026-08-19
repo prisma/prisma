@@ -26,9 +26,8 @@ export const planContract = baseContract;
 
 /**
  * Representative plans, one per shape that emits JSON entries: a plain
- * include, a nested include, an aggregate include, a combine, an include
- * carrying `distinct` (the ROW_NUMBER-ranked path), and a distinct non-leaf
- * include (the ranked path with grandchildren attached).
+ * include, a nested include, an aggregate include, a combine, and an
+ * include carrying `distinct`.
  */
 export function representativePlans(): ReadonlyArray<readonly [string, SelectAst]> {
   const { collection: users } = createCollection();
@@ -52,16 +51,7 @@ export function representativePlans(): ReadonlyArray<readonly [string, SelectAst
         }),
       ).state,
     ],
-    [
-      'include with distinct',
-      'users',
-      users.include('posts', (posts) => posts.distinct('title')).state,
-    ],
-    [
-      'distinct non-leaf include',
-      'users',
-      users.include('posts', (posts) => posts.distinct('title').include('comments')).state,
-    ],
+    ['include with distinct', 'users', users.include('posts', (posts) => posts.distinct()).state],
     ['many-to-many include', 'users', users.include('tags').state],
     ['self-relation many-to-many include', 'projects', projects.include('related').state],
   ] as const;

@@ -237,7 +237,7 @@ const usersWithPostSummary = userCollection.include('posts', (posts) =>
 const filteredUsers = userCollection.where({ email: 'alice@example.com' });
 const orderedUsers = userCollection.orderBy((user) => user.id.asc());
 const cursorPagedUsers = orderedUsers.cursor({ id: 'user_001' });
-const distinctUsers = userCollection.distinct('email');
+const distinctUsers = userCollection.distinct();
 const distinctOnUsers = orderedUsers.distinctOn('email');
 const groupedUsers = userCollection.groupBy('email');
 const groupedUserStats = groupedUsers.aggregate((aggregate) => ({

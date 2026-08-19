@@ -25,7 +25,6 @@ import {
   SelectAst,
   SubqueryExpr,
   TableSource,
-  WindowFuncExpr,
 } from '@internal/sql-relational-core/ast';
 import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import { InternalError } from '@internal/utils/internal-error';
@@ -363,7 +362,7 @@ describe('compileSelectWithIncludes', () => {
     expect(childRows.limit).toBe(2);
   });
 
-  it('preserves complete codec metadata through row-number dedup', () => {
+  it('preserves complete codec metadata on a distinct child row select', () => {
     const codec: CodecRef = {
       codecId: 'pg/vector@1',
       typeParams: { length: 3 },
@@ -373,7 +372,7 @@ describe('compileSelectWithIncludes', () => {
     Object.assign(contract.storage.namespaces.public.entries.table.posts.columns.embedding, codec);
     const { collection } = createCollection();
     const state = collection.include('posts', (posts) =>
-      posts.select('embedding').distinct('embedding'),
+      posts.select('embedding').distinct(),
     ).state;
 
     const plan = compileSelectWithIncludes(contract, getTestAggregates(), 'public', 'users', state);
@@ -383,8 +382,9 @@ describe('compileSelectWithIncludes', () => {
     expectSubqueryExpr(postsProjection?.expr);
     expectDerivedTableSource(postsProjection.expr.query.from);
 
-    const dedupedRows = postsProjection.expr.query.from.query;
-    const embeddingProjection = dedupedRows.projection.find((item) => item.alias === 'embedding');
+    const childRows = postsProjection.expr.query.from.query;
+    expect(childRows.distinct).toBe(true);
+    const embeddingProjection = childRows.projection.find((item) => item.alias === 'embedding');
     expect(embeddingProjection?.codec).toEqual(codec);
   });
 
@@ -542,15 +542,11 @@ describe('compileSelectWithIncludes', () => {
       );
     });
 
-    // `distinct(cols).orderBy(c).take(N).sum(...)` must aggregate the
-    // ordered top-N deduped rows. The ROW_NUMBER dedup wrap strips
-    // ordering from its output, so the orderBy is reapplied on the
-    // wrapped alias before LIMIT slices the deduped rows.
-    it('reapplies orderBy after the ROW_NUMBER dedup wrap', () => {
+    it('combines distinct with orderBy and take on the same inner select', () => {
       const { collection } = createCollection();
       const state = collection.include('posts', (posts) =>
         posts
-          .distinct('title')
+          .distinct()
           .orderBy((post) => post.views.desc())
           .take(2)
           .sum('views'),
@@ -575,12 +571,9 @@ describe('compileSelectWithIncludes', () => {
       expect(subquery.from.alias).toBe('posts__scalar');
 
       const innerSelect = subquery.from.query;
+      expect(innerSelect.distinct).toBe(true);
       expect(innerSelect.limit).toBe(2);
-      expectDerivedTableSource(innerSelect.from);
-      expect(innerSelect.from.alias).toBe('posts__scalar_distinct');
-      expect(innerSelect.orderBy).toEqual([
-        new OrderByItem(ColumnRef.of('posts__scalar_distinct', 'posts__order_0'), 'desc'),
-      ]);
+      expect(innerSelect.orderBy).toEqual([OrderByItem.desc(ColumnRef.of('posts', 'views'))]);
     });
 
     it('emits correlated SUM / AVG / MIN / MAX over the column reference', () => {
@@ -1019,189 +1012,6 @@ describe('M:N include correlated subquery', () => {
     expect(childSelect.joins ?? []).toHaveLength(0);
     expect(childSelect.where).toEqual(
       BinaryExpr.eq(ColumnRef.of('posts', 'user_id'), ColumnRef.of('users', 'id')),
-    );
-  });
-
-  // M:N + distinct(cols) + a nested non-leaf include exercises
-  // `buildDistinctNonLeafChildRowsSelect`, which applies the junction join to
-  // the innermost scalar SELECT inside the ROW_NUMBER dedup wrap (the
-  // `*__ranked` layer) — never the dedup wrapper or the outer distinct SELECT.
-  // Driven off the real fixture's self-referential Project.related M:N: the
-  // outer include distinct('name') with a nested .include('related') reaches
-  // the distinct-non-leaf lowering. The whole-AST `toEqual` pins the layering:
-  // `related__rows` (json_agg) → `related__distinct` (rn = 1 filter) →
-  // `related__ranked` (junction join + ROW_NUMBER) → `projects AS related__child`.
-  it('lowers M:N + distinct + nested non-leaf to a ranked dedup with the junction join on the ranked layer', () => {
-    const { collection } = createCollectionFor('Project');
-    const state = collection.include('related', (related) =>
-      related.distinct('name').include('related'),
-    ).state;
-    const plan = compileSelectWithIncludes(
-      baseContract,
-      getTestAggregates(),
-      'public',
-      'projects',
-      state,
-    );
-
-    const junctionJoinOnto = (childRef: string): JoinAst =>
-      JoinAst.inner(
-        TableSource.named('project_links', undefined, 'public'),
-        AndExpr.of([
-          BinaryExpr.eq(
-            ColumnRef.of('project_links', 'dst_tenant_id'),
-            ColumnRef.of(childRef, 'tenant_id'),
-          ),
-          BinaryExpr.eq(ColumnRef.of('project_links', 'dst_id'), ColumnRef.of(childRef, 'id')),
-        ]),
-      );
-
-    const correlateOnto = (parentRef: string): AndExpr =>
-      AndExpr.of([
-        BinaryExpr.eq(
-          ColumnRef.of('project_links', 'src_tenant_id'),
-          ColumnRef.of(parentRef, 'tenant_id'),
-        ),
-        BinaryExpr.eq(ColumnRef.of('project_links', 'src_id'), ColumnRef.of(parentRef, 'id')),
-      ]);
-
-    // Innermost scalar SELECT (FROM projects AS related__child) carrying the
-    // junction join, correlated WHERE, and the ROW_NUMBER ranking column.
-    const ranked = SelectAst.from(TableSource.named('projects', 'related__child', 'public'))
-      .withJoins([junctionJoinOnto('related__child')])
-      .withProjection([
-        proj('id', 'related__child', 'id', 'projects'),
-        proj('name', 'related__child', 'name', 'projects'),
-        proj('tenant_id', 'related__child', 'tenant_id', 'projects'),
-        ProjectionItem.of(
-          '__prisma_distinct_rn',
-          WindowFuncExpr.rowNumber({
-            partitionBy: [ColumnRef.of('related__child', 'name')],
-            orderBy: [OrderByItem.asc(ColumnRef.of('related__child', 'name'))],
-          }),
-        ),
-      ])
-      .withWhere(correlateOnto('projects'));
-
-    // Nested related aggregate, correlated to the deduped distinct row.
-    const nestedRelatedRows = SelectAst.from(TableSource.named('projects', undefined, 'public'))
-      .withJoins([junctionJoinOnto('projects')])
-      .withProjection([
-        proj('id', 'projects', 'id'),
-        proj('name', 'projects', 'name'),
-        proj('tenant_id', 'projects', 'tenant_id'),
-      ])
-      .withWhere(correlateOnto('related__distinct'));
-
-    const nestedRelatedAggregate = SelectAst.from(
-      DerivedTableSource.as('related__rows', nestedRelatedRows),
-    ).withProjection([
-      ProjectionItem.of(
-        'related',
-        JsonArrayAggExpr.of(
-          new JsonDocumentProjection(
-            JsonObjectExpr.fromEntries([
-              JsonObjectExpr.entry(
-                'id',
-                new CodecJsonValueProjection(
-                  ColumnRef.of('related__rows', 'id'),
-                  codecRefFor('projects', 'id'),
-                ),
-              ),
-              JsonObjectExpr.entry(
-                'name',
-                new CodecJsonValueProjection(
-                  ColumnRef.of('related__rows', 'name'),
-                  codecRefFor('projects', 'name'),
-                ),
-              ),
-              JsonObjectExpr.entry(
-                'tenant_id',
-                new CodecJsonValueProjection(
-                  ColumnRef.of('related__rows', 'tenant_id'),
-                  codecRefFor('projects', 'tenant_id'),
-                ),
-              ),
-            ]),
-          ),
-          'emptyArray',
-        ),
-      ),
-    ]);
-
-    // Dedup filter SELECT: keep rn = 1, forwarding scalar columns and their
-    // codecs from the ranked layer.
-    const dedupFilter = SelectAst.from(DerivedTableSource.as('related__ranked', ranked))
-      .withProjection([
-        proj('id', 'related__ranked', 'id', 'projects'),
-        proj('name', 'related__ranked', 'name', 'projects'),
-        proj('tenant_id', 'related__ranked', 'tenant_id', 'projects'),
-      ])
-      .withWhere(
-        BinaryExpr.eq(ColumnRef.of('related__ranked', '__prisma_distinct_rn'), LiteralExpr.of(1)),
-      );
-
-    // Distinct SELECT over the deduped rows: re-attach codecs and the nested
-    // related aggregate, correlating it back to these rows.
-    const distinct = SelectAst.from(
-      DerivedTableSource.as('related__distinct', dedupFilter),
-    ).withProjection([
-      proj('id', 'related__distinct', 'id', 'projects'),
-      proj('name', 'related__distinct', 'name', 'projects'),
-      proj('tenant_id', 'related__distinct', 'tenant_id', 'projects'),
-      ProjectionItem.of('related', SubqueryExpr.of(nestedRelatedAggregate)),
-    ]);
-
-    // Outer aggregate over the deduped rows.
-    const aggregate = SelectAst.from(
-      DerivedTableSource.as('related__rows', distinct),
-    ).withProjection([
-      ProjectionItem.of(
-        'related',
-        JsonArrayAggExpr.of(
-          new JsonDocumentProjection(
-            JsonObjectExpr.fromEntries([
-              JsonObjectExpr.entry(
-                'id',
-                new CodecJsonValueProjection(
-                  ColumnRef.of('related__rows', 'id'),
-                  codecRefFor('projects', 'id'),
-                ),
-              ),
-              JsonObjectExpr.entry(
-                'name',
-                new CodecJsonValueProjection(
-                  ColumnRef.of('related__rows', 'name'),
-                  codecRefFor('projects', 'name'),
-                ),
-              ),
-              JsonObjectExpr.entry(
-                'tenant_id',
-                new CodecJsonValueProjection(
-                  ColumnRef.of('related__rows', 'tenant_id'),
-                  codecRefFor('projects', 'tenant_id'),
-                ),
-              ),
-              JsonObjectExpr.entry(
-                'related',
-                new JsonDocumentProjection(ColumnRef.of('related__rows', 'related')),
-              ),
-            ]),
-          ),
-          'emptyArray',
-        ),
-      ),
-    ]);
-
-    expect(plan.ast).toEqual(
-      SelectAst.from(TableSource.named('projects', undefined, 'public'))
-        .withProjection([
-          proj('id', 'projects', 'id'),
-          proj('name', 'projects', 'name'),
-          proj('tenant_id', 'projects', 'tenant_id'),
-          ProjectionItem.of('related', SubqueryExpr.of(aggregate)),
-        ])
-        .withSelectAllIntent({ table: 'projects' }),
     );
   });
 });

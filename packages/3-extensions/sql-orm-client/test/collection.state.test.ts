@@ -173,7 +173,7 @@ describe('Collection', () => {
       expect(paged.state.limit).toBe(10);
       expect(paged.state.offset).toBe(5);
 
-      expect(postCollection.distinct('userId').state.distinct).toEqual(['user_id']);
+      expect(postCollection.distinct().state.distinct).toBe(true);
       expect(ordered.distinctOn('userId').state.distinctOn).toEqual(['user_id']);
       expect(postCollection.select('userId').state.selectedFields).toEqual(['user_id']);
     });

@@ -86,7 +86,7 @@ export interface CollectionState {
   readonly includes: readonly IncludeExpr[];
   readonly orderBy: readonly OrderByItem[] | undefined;
   readonly cursor: Readonly<Record<string, unknown>> | undefined;
-  readonly distinct: readonly string[] | undefined;
+  readonly distinct: true | undefined;
   readonly distinctOn: readonly string[] | undefined;
   readonly selectedFields: readonly string[] | undefined;
   readonly limit: number | undefined;

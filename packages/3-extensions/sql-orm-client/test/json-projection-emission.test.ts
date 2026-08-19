@@ -65,22 +65,6 @@ describe('JSON projection emission', () => {
       ]);
     });
 
-    it('keeps the identities through the ranked distinct path', () => {
-      expect(entriesFor('distinct non-leaf include')).toEqual([
-        '[]:document',
-        'embedding:codec(pg/vector@1)',
-        'id:codec(pg/int4@1)',
-        'title:codec(pg/text@1)',
-        'user_id:codec(pg/int4@1)',
-        'views:codec(pg/int4@1)',
-        'comments:document',
-        '[]:document',
-        'body:codec(pg/text@1)',
-        'id:codec(pg/int4@1)',
-        'post_id:codec(pg/int4@1)',
-      ]);
-    });
-
     it('reaches the child columns of a many-to-many include across the junction', () => {
       expect(entriesFor('many-to-many include')).toEqual([
         '[]:document',

@@ -884,28 +884,16 @@ class CollectionImpl<
   }
 
   /**
-   * Emit `SELECT DISTINCT` keyed on the given fields. Replaces any
-   * previous `distinct(...)` / `distinctOn(...)` selection.
+   * Emit `SELECT DISTINCT` over the projected columns. Replaces any
+   * previous `distinct()` / `distinctOn(...)` selection.
    *
    * ```typescript
-   * const groups = await db.orm.User.distinct('country', 'role').all();
+   * const countries = await db.orm.User.select('country').distinct().all();
    * ```
    */
-  distinct<
-    Fields extends readonly [
-      keyof DefaultModelRow<TContract, ModelName> & string,
-      ...(keyof DefaultModelRow<TContract, ModelName> & string)[],
-    ],
-  >(...fields: Fields): Collection<TContract, ModelName, Row, State> {
-    const distinctFields = mapFieldsToColumns(
-      this.contract,
-      this.namespaceId,
-      this.modelName,
-      fields,
-    );
-
+  distinct(): Collection<TContract, ModelName, Row, State> {
     return this.#clone({
-      distinct: distinctFields,
+      distinct: true,
       distinctOn: undefined,
     });
   }
