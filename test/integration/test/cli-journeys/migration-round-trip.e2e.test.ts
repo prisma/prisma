@@ -19,10 +19,10 @@
  *      again a no-op.
  *
  * This is the broader companion to the per-strategy planner-assisted
- * e2es (`data-transform-not-null-backfill.e2e.test.ts` and
- * friends): those isolate one strategy each, this one proves the
- * whole pipeline (createTable → addColumn → dataTransform →
- * setNotNull) round-trips and is idempotent.
+ * e2es (`data-transform-strategies.e2e.test.ts`): those isolate one
+ * strategy each, this one proves the whole pipeline (createTable →
+ * addColumn → dataTransform → setNotNull) round-trips and is
+ * idempotent.
  */
 
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';

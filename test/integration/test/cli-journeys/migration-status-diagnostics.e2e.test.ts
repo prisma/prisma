@@ -565,15 +565,6 @@ withTempDir(({ createTempDir }) => {
       );
     });
 
-    /**
-     * Scenario: same divergent graph as above, but the user has set a ref
-     * pointing at one of the branches.
-     *
-     * With a ref, the system knows which path to follow. The divergence
-     * warning should disappear and status should report normally — either
-     * up to date or pending depending on what's been applied. This
-     * validates that --to is the correct escape hatch for ambiguous graphs.
-     */
     describe('--from constrains the path origin', () => {
       const db = useDevDatabase();
 

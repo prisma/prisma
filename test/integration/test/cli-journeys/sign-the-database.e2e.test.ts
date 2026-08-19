@@ -169,7 +169,7 @@ describe('sign a database this toolchain has never seen, then transition to wire
   );
 
   it(
-    'map:-to-wire transition plans exactly two renames, applies, verifies clean',
+    'map:-to-wire index transition plans exactly one rename, applies, verifies clean',
     async () => {
       expect(ctx, 'the signing step must have completed').toBeDefined();
 

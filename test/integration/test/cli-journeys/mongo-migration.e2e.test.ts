@@ -43,11 +43,14 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { fixtureAppDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  migrationStatusAppSpace,
   parseJsonOutput,
+  parseMigrationStatusJson,
   runContractEmit,
   runMigrate,
   runMigrationNew,
   runMigrationPlan,
+  runMigrationStatus,
   selfEmitMigration,
 } from '../utils/journey-test-helpers';
 
@@ -468,6 +471,7 @@ MigrationCLI.run(import.meta.url, M);
     expect(apply1.exitCode, `migrate additive: ${apply1.stdout}\n${apply1.stderr}`).toBe(0);
     const apply1Result = parseJsonOutput<{
       ok: boolean;
+      markerHash: string;
       pathDecision?: {
         requiredInvariants: readonly string[];
         satisfiedInvariants: readonly string[];
@@ -499,10 +503,36 @@ MigrationCLI.run(import.meta.url, M);
       true,
     );
 
-    // Re-apply: the runner postcheck sees all names are already lower-case,
-    // so the data transform is skipped. Data must be byte-identical.
+    // Status reads the marker document back and proves the invariant
+    // accumulated onto it via the Mongo runner's server-side $setUnion
+    // merge: nothing missing, path applied, up to date.
+    const statusRef = await runMigrationStatus(ctx, ['--to', 'prod', '--json']);
+    expect(statusRef.exitCode, `status --to prod: ${statusRef.stdout}\n${statusRef.stderr}`).toBe(
+      0,
+    );
+    const statusResult = parseMigrationStatusJson(statusRef);
+    expect(
+      statusResult.diagnostics?.some((d) => d.code === 'MIGRATION.MISSING_INVARIANTS'),
+      'no missing-invariants diagnostic',
+    ).toBeFalsy();
+    expect(statusResult.summary, 'status up to date').toMatch(/up to date/i);
+    expect(
+      migrationStatusAppSpace(statusResult).migrations.every((m) => m.status === 'applied'),
+      'path migrations applied',
+    ).toBe(true);
+
+    // Re-apply is a true no-op: the CLI's marker subtraction empties the
+    // required set and the runner short-circuits via its
+    // incomingIsSubsetOfExisting guard — marker unchanged, and the
+    // postcheck sees all names already lower-case so data is byte-identical.
     const apply2 = await runMigrate(ctx, ['--to', 'prod', '--json']);
     expect(apply2.exitCode, `re-apply: ${apply2.stdout}\n${apply2.stderr}`).toBe(0);
+    const apply2Result = parseJsonOutput<{ ok: boolean; markerHash: string; summary: string }>(
+      apply2,
+    );
+    expect(apply2Result.ok, 're-apply ok').toBe(true);
+    expect(apply2Result.markerHash, 'marker unchanged').toBe(apply1Result.markerHash);
+    expect(apply2Result.summary, 'noop summary').toMatch(/up to date/i);
 
     const usersAfterReApply = await client
       .db(dbName)
