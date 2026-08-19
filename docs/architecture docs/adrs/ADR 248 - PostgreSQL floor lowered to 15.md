@@ -42,7 +42,7 @@ Features we could only use by raising the floor again:
 
 - `ANY_VALUE()` — cleaner emission for grouped queries that carry functionally dependent columns; today we can add the column to `GROUP BY` or wrap it in `min()`.
 - Standard SQL/JSON constructors (`JSON_OBJECT`, `JSON_ARRAY`, `JSON_ARRAYAGG`, `IS JSON`) — equivalent in power to the `json_build_object`/`json_agg` calls the renderer already emits; conformance, not capability.
-- Planner improvements (parallel FULL/right outer hash joins, incremental sort for DISTINCT, faster window functions). These speed up our `ROW_NUMBER() OVER (...)`-based `.distinct()` — but they benefit any user running 16+ automatically and need no floor change.
+- Planner improvements (parallel FULL/right outer hash joins, incremental sort for DISTINCT, faster window functions) — these benefit any user running 16+ automatically and need no floor change.
 - `pg_stat_io` — relevant only to a future observability extension.
 
 **PostgreSQL 17:**
