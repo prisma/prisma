@@ -1,0 +1,33 @@
+// Real emitted fixture exercising a 3-level hasMany chain (Author -> Book ->
+// Review) on SQLite, so the distinct()+include() guard's nested-refinement
+// case runs against the same CLI-emitted contract shape the Postgres guard
+// test uses, rather than an in-source `defineContract` build.
+
+model Author {
+  id    Int    @id
+  name  String
+  books Book[]
+
+  @@map("guard_authors")
+}
+
+model Book {
+  id       Int    @id
+  authorId Int    @map("author_id")
+  title    String
+
+  author  Author   @relation(fields: [authorId], references: [id])
+  reviews Review[]
+
+  @@map("guard_books")
+}
+
+model Review {
+  id     Int    @id
+  bookId Int    @map("book_id")
+  body   String
+
+  book Book @relation(fields: [bookId], references: [id])
+
+  @@map("guard_reviews")
+}

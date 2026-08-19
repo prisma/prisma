@@ -1,20 +1,16 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { DatabaseSync } from 'node:sqlite';
-import { integerColumn, textColumn } from '@internal/adapter-sqlite/column-types';
-import sqliteAdapter from '@internal/adapter-sqlite/runtime';
-import { soleDomainNamespaceId } from '@internal/contract/types';
-import sqliteDriver from '@internal/driver-sqlite/runtime';
-import { instantiateExecutionStack } from '@internal/framework-components/execution';
-import { Collection } from '@internal/sql-orm-client';
-import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
-import { defineContract, field, model, rel } from '@internal/sqlite/contract-builder';
-import { SqliteRuntimeImpl } from '@internal/sqlite/runtime';
-import sqliteTarget from '@internal/target-sqlite/runtime';
-import { blindCast } from '@internal/utils/casts';
-import { InternalError } from '@internal/utils/internal-error';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { orm } from '@internal/sql-orm-client';
+import type { SqliteClient } from '@internal/sqlite/runtime';
+import sqlite from '@internal/sqlite/runtime';
 import { join } from 'pathe';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { Contract } from './fixtures/nested-includes-sqlite/generated/contract';
+import contractJson from './fixtures/nested-includes-sqlite/generated/contract.json' with {
+  type: 'json',
+};
 
 // SQLite has no json equality problem the way Postgres does — its json_agg
 // equivalent renders to TEXT, which compares fine. Without this guard,
@@ -22,48 +18,23 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 // deduping on the serialized child array instead of the scalar columns the
 // caller meant. The guard has to fire on both targets for the same reason:
 // this is not a database-specific limitation to route around per adapter.
-
-const Author = model('Author', {
-  fields: {
-    id: field.column(integerColumn).id(),
-    name: field.column(textColumn),
-  },
-}).sql({ table: 'guard_authors' });
-
-const Book = model('Book', {
-  fields: {
-    id: field.column(integerColumn).id(),
-    authorId: field.column(integerColumn).column('author_id'),
-    title: field.column(textColumn),
-  },
-}).sql({ table: 'guard_books' });
-
-const Review = model('Review', {
-  fields: {
-    id: field.column(integerColumn).id(),
-    bookId: field.column(integerColumn).column('book_id'),
-    body: field.column(textColumn),
-  },
-}).sql({ table: 'guard_reviews' });
-
-const contract = defineContract({
-  models: {
-    Author: Author.relations({
-      books: rel.hasMany(() => Book, { by: 'authorId' }),
-    }),
-    Book: Book.relations({
-      reviews: rel.hasMany(() => Review, { by: 'bookId' }),
-    }),
-    Review,
-  },
-});
-const namespaceId = soleDomainNamespaceId(contract.domain);
-
+//
+// Driven through the real emitted fixture
+// (`fixtures/nested-includes-sqlite/generated/`), not an in-source
+// `defineContract` build — an in-source 3-level hasMany chain (Author ->
+// Book -> Review) reached through an `.include()` refinement callback hits a
+// pre-existing `.include()` relation-name inference gap that collapses to
+// `never`, regardless of target (confirmed: the identical in-source shape
+// also fails to typecheck against a Postgres contract, and fails the same
+// way whether the collection is constructed directly or reached through the
+// `orm()` namespace facet). The emitted contract does not hit that gap, so
+// this fixture is the faithful way to prove the guard's nested-refinement
+// case on SQLite.
 describe('integration/distinct + include guard (sqlite)', () => {
   let directory: string | undefined;
   let database: DatabaseSync | undefined;
-  let runtime: SqliteRuntimeImpl | undefined;
-  let authors: Collection<typeof contract, 'Author'> | undefined;
+  let client: SqliteClient<Contract> | undefined;
+  let db: ReturnType<typeof orm<Contract>> | undefined;
 
   beforeAll(async () => {
     directory = mkdtempSync(join(tmpdir(), 'pn-distinct-guard-'));
@@ -88,64 +59,47 @@ describe('integration/distinct + include guard (sqlite)', () => {
     );
     database.exec(`insert into guard_reviews (id, book_id, body) values (100, 10, 'great')`);
 
-    const stack = createSqlExecutionStack({
-      target: sqliteTarget,
-      adapter: sqliteAdapter,
-      driver: sqliteDriver,
+    client = sqlite<Contract>({ contractJson, path, verifyMarker: false });
+    const runtime = await client.connect();
+    db = orm({
+      context: client.context,
+      runtime: {
+        query(plan) {
+          return runtime.query(plan);
+        },
+        execute(plan) {
+          return runtime.execute(plan);
+        },
+        connection() {
+          return runtime.connection();
+        },
+      },
     });
-    const context = createExecutionContext({ contract, stack });
-    const instance = instantiateExecutionStack(stack);
-    const adapter = instance.adapter;
-    const driver = instance.driver;
-    if (adapter === undefined || driver === undefined) {
-      throw new InternalError('SQLite execution stack is missing its adapter or driver');
-    }
-    await driver.connect({ kind: 'path', path });
-    runtime = new SqliteRuntimeImpl({ context, adapter, driver });
-    authors = new Collection({ runtime, context }, 'Author', { namespaceId });
   });
 
   afterAll(async () => {
-    await runtime?.close();
+    await client?.close();
     database?.close();
     if (directory !== undefined) rmSync(directory, { recursive: true, force: true });
   });
 
   it('rejects distinct() combined with a root-level include', async () => {
-    await expect(authors!.include('books').distinct().all()).rejects.toThrow(
+    const authors = db![UNBOUND_NAMESPACE_ID].Author;
+    await expect(authors.include('books').distinct().all()).rejects.toThrow(
       "distinct() cannot combine with include('books')",
     );
   });
 
   it('rejects distinct() combined with a nested include inside a refinement', async () => {
-    // The relation name below is cast through `blindCast` because of a
-    // pre-existing gap in `.include()`'s type-level relation-name resolution
-    // for a 3-level hasMany chain (Author -> Book -> Review) reached through
-    // a refinement callback on a SQLite contract: `books`'s inferred type
-    // resolves `Book`'s own relations to `never`, even though the identical
-    // contract shape typechecks fine on Postgres and the runtime call is
-    // correct (confirmed by dropping `.distinct()` from this call, which
-    // reproduces the same compile error with no relation to this guard).
-    // Fixing that gap is outside the scope of the distinct()+include() guard
-    // this test exercises; the runtime behavior below is what is under test.
+    const authors = db![UNBOUND_NAMESPACE_ID].Author;
     await expect(
-      authors!
-        .include('books', (books) =>
-          books
-            .include(
-              blindCast<
-                never,
-                'pre-existing include() relation-name inference gap for 3-level SQLite hasMany chains through a refinement callback'
-              >('reviews'),
-            )
-            .distinct(),
-        )
-        .all(),
+      authors.include('books', (books) => books.include('reviews').distinct()).all(),
     ).rejects.toThrow("distinct() cannot combine with include('reviews')");
   });
 
   it('distinct() without any include still works', async () => {
-    const rows = await authors!.select('name').distinct().all();
+    const authors = db![UNBOUND_NAMESPACE_ID].Author;
+    const rows = await authors.select('name').distinct().all();
     expect(rows).toEqual([{ name: 'Ada' }]);
   });
 });
