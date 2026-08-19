@@ -1,5 +1,10 @@
 ---
 description: A green check that would also pass with the defect present proves nothing — make every verification able to fail
+globs:
+  - "**/*.test.ts"
+  - "**/*.test-d.ts"
+  - "**/*.integration.test.ts"
+  - "test/**"
 alwaysApply: false
 ---
 

@@ -1,5 +1,8 @@
 ---
 description: Classify CI failures from evidence before acting — install state first, controls that can fail, known flake fingerprints
+globs:
+  - ".github/**"
+  - "scripts/**"
 alwaysApply: false
 ---
 

@@ -52,6 +52,8 @@ The substrate diff is the signal that an entry is required. The agent fixing the
 
 **Stacked PRs.** The coverage gate diffs each PR against the branch it targets, not against `main`. Each PR in a stack therefore declares the entries for its own substrate diff, in its own commits. Do not pool a stack's entries in the bottom PR: pooled entries break self-containment (a partial merge ships instructions for changes that did not land), and under per-base diffing the upper PRs fail the gate anyway. Sequential commits appending entries to the same `instructions.md` are the normal shape.
 
+Throughout the steps below, **`<target>`** is the branch the PR targets: `main`, unless the PR is stacked, in which case it is the PR below it in the stack.
+
 ## Authoring workflow
 
 For each PR that hits one or both signals, walk these steps in order.
@@ -63,13 +65,22 @@ For each PR that hits one or both signals, walk these steps in order.
 
    The branch's `package.json` is the source-of-truth — do **not** consult `npm view`. If there is no substrate diff at all, no entry is needed — skip to step 7.
 
-2. **Identify the touched substrate(s).** Compute `git diff origin/main..HEAD` restricted to `examples/` and to `packages/3-extensions/`. Each non-empty substrate corresponds to one destination package per the routing table above. The "both" case is normal — the rare PR (e.g. a structural on-disk migration shape change) touches both.
+2. **Identify the touched substrate(s).** Compute `git diff origin/<target>..HEAD` restricted to `examples/` and to `packages/3-extensions/`. Each non-empty substrate corresponds to one destination package per the routing table above. The "both" case is normal — the rare PR (e.g. a structural on-disk migration shape change) touches both.
 
 3. **Find or create the directory in each destination.** For each destination, the directory is `<destination>/upgrades/<in-flight transition>/` from step 1 (so e.g. `skills/prisma-next-upgrade/upgrades/0.7-to-0.8/` for the user-skill). If the directory already exists (an earlier PR on the same transition created it, or the placeholder shipped with the initial mechanism PR is still there), **do not create a duplicate** — append a new entry to the existing `instructions.md`'s `changes[]` array.
 
 4. **Write the entry into `instructions.md`.** Each `changes[]` entry carries an `id` (kebab-case, unique within the transition), a one-line `summary`, an optional `detection` block (glob + content predicate the consumer's agent runs to know whether the change applies to that consumer's project), and an optional `script:` reference (relative path to a colocated script next to `instructions.md`). For changes that need agent reasoning across the codebase rather than a deterministic script, the entry omits `script:` and the agent follows the prose body of `instructions.md` instead.
 
-   **Make detection predicates token-precise.** A broad substring regex fires on call sites the change does not touch and sends consumers hunting for migrations they do not need. Test the predicate against both a true positive and the nearest false positive before shipping it. Example: matching the moved tag `` .raw` `` must not fire on the unchanged fragment tag `` fns.raw` `` — and excluding it needs a token boundary, since `(?<!fns)` would also suppress an unrelated `` myfns.raw` ``. The shipped predicate is `(?<!(?<![\w$])fns)\.raw`` — the inner lookbehind makes the exclusion apply only to the exact `fns` token.
+   **Make detection predicates token-precise.** A broad substring regex fires on call sites the change does not touch and sends consumers hunting for migrations they do not need. Test the predicate against both a true positive and the nearest false positive before shipping it. Matching a moved tag must not fire on an unchanged one, and excluding the unchanged spelling needs a token boundary — a bare lookbehind also suppresses an unrelated receiver that merely ends in those letters:
+
+   ```text
+   matches:      .raw`
+   must not fire on: fns.raw`
+   too broad:    (?<!fns)\.raw`        also suppresses myfns.raw`
+   shipped:      (?<!(?<![\w$])fns)\.raw`
+   ```
+
+   The inner lookbehind makes the exclusion apply only to the exact `fns` token.
 
    **Only record changes that require consumer action.** Every `changes[]` entry — and every paragraph in the prose body — must describe something the consumer has to *do*. Do not include narrative about substrate diffs that need no consumer response (e.g. dev-only dep bumps inside `examples/`, internal-only renames, generated-artefact churn that round-trips on re-emit). The absence of an entry already communicates "do nothing" — saying it explicitly is noise, and it dilutes the signal of the entries that *do* require action. If the entire in-flight transition is genuinely no-op for consumers, ship `changes: []` with no body prose; the `changes: []` array is the record. The reviewer treats any "consumers do not need to take any action" sentence in the body as a defect.
 
@@ -88,9 +99,9 @@ Workflow per entry (one of the two flows; both apply for cross-audience entries)
 ### User-skill entry (against `examples/`)
 
 1. Check out the PR branch with the framework change applied.
-2. Revert `examples/` to its pre-PR state (`git restore --source=origin/main -- examples/`).
+2. Revert `examples/` to its pre-PR state (`git restore --source=origin/<target> -- examples/`).
 3. Run the entry against the reverted substrate — invoke any colocated script(s) per the entry's `script:` reference, then walk the prose body of `instructions.md` if the entry has additional instructions.
-4. Verify the resulting `examples/` directory matches the PR-branch state (`git diff origin/main..HEAD -- examples/` ≡ `git diff -- examples/` after step 3).
+4. Verify the resulting `examples/` directory matches the PR-branch state (`git diff origin/<target>..HEAD -- examples/` ≡ `git diff -- examples/` after step 3).
 5. Verify the matching test suite is green: `pnpm test:examples`.
 
 If any of those checks fail, iterate on the entry. Do not merge.
@@ -98,7 +109,7 @@ If any of those checks fail, iterate on the entry. Do not merge.
 ### Extension-skill entry (against `packages/3-extensions/`)
 
 1. Check out the PR branch with the framework change applied.
-2. Revert `packages/3-extensions/` to its pre-PR state (`git restore --source=origin/main -- packages/3-extensions/`).
+2. Revert `packages/3-extensions/` to its pre-PR state (`git restore --source=origin/<target> -- packages/3-extensions/`).
 3. Run the entry against the reverted substrate.
 4. Verify the resulting `packages/3-extensions/` directory matches the PR-branch state.
 5. Verify the matching test suite is green: `pnpm test --filter='./packages/3-extensions/*'`.
