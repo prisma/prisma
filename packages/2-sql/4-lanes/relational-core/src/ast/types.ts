@@ -32,9 +32,7 @@ export function isAggregateFn(name: string): name is AggregateFn {
 }
 
 /**
- * Window function names. Currently only `row_number` is wired up — added
- * to support `ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...) = 1`
- * lowering for `.distinct(cols)` semantics in the SQL ORM client. `rank`
+ * Window function names. Currently only `row_number` is wired up. `rank`
  * and `dense_rank` are reserved here so future additions don't churn the
  * type; renderers only need to dispatch on the function name string.
  */
