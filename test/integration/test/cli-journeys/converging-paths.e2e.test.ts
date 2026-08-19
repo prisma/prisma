@@ -14,9 +14,9 @@ import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
   parseJsonOutput,
+  planThenSelfEmit,
   runContractEmit,
   runMigrate,
-  runMigrationPlanAndEmit,
   setupJourney,
   swapContract,
   timeouts,
@@ -38,7 +38,7 @@ withTempDir(({ createTempDir }) => {
         // K.01: emit base contract (C1) → plan init
         const emit0 = await runContractEmit(ctx);
         expect(emit0.exitCode, 'K.01: emit C1').toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'K.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
 
@@ -46,7 +46,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-phone');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, 'K.02: emit C2').toBe(0);
-        const plan1 = await runMigrationPlanAndEmit(ctx, ['--name', 'add-phone', '--json']);
+        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-phone', '--json']);
         expect(plan1.exitCode, 'K.02: plan C1→C2').toBe(0);
         parseJsonOutput<{ to: string }>(plan1);
 
@@ -54,12 +54,12 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-phone-bio');
         const emit2 = await runContractEmit(ctx);
         expect(emit2.exitCode, 'K.03: emit C3').toBe(0);
-        const plan2 = await runMigrationPlanAndEmit(ctx, ['--name', 'add-bio-via-c2', '--json']);
+        const plan2 = await planThenSelfEmit(ctx, ['--name', 'add-bio-via-c2', '--json']);
         expect(plan2.exitCode, 'K.03: plan C2→C3').toBe(0);
         const c3Hash = parseJsonOutput<{ to: string }>(plan2).to;
 
         // K.04: plan direct shortcut from C1→C3 (creates a shorter alternative)
-        const planDirect = await runMigrationPlanAndEmit(ctx, [
+        const planDirect = await planThenSelfEmit(ctx, [
           '--name',
           'direct-to-c3',
           '--from',

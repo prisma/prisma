@@ -21,9 +21,9 @@ import {
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
+  planThenSelfEmit,
   runContractEmit,
   runMigrate,
-  runMigrationPlanAndEmit,
   runMigrationStatus,
   setupJourney,
   swapContract,
@@ -51,7 +51,7 @@ withTempDir(({ createTempDir }) => {
 
         // Base (C1): emit → plan + apply init. Marker lands at C1.
         expect((await runContractEmit(ctx)).exitCode, 'emit C1').toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'plan init').toBe(0);
         const c1Hash = parseJsonOutput<PlanJson>(plan0).to;
         expect((await runMigrate(ctx)).exitCode, 'apply init').toBe(0);
@@ -59,7 +59,7 @@ withTempDir(({ createTempDir }) => {
         // Add phone (C2): swap source → emit → plan + apply add-phone. Marker at C2.
         swapContract(ctx, 'contract-phone');
         expect((await runContractEmit(ctx)).exitCode, 'emit C2').toBe(0);
-        const plan1 = await runMigrationPlanAndEmit(ctx, ['--name', 'add-phone', '--json']);
+        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-phone', '--json']);
         expect(plan1.exitCode, 'plan add-phone').toBe(0);
         const c2Hash = parseJsonOutput<PlanJson>(plan1).to;
         expect(c2Hash, 'C2 differs from C1').not.toBe(c1Hash);
@@ -71,7 +71,7 @@ withTempDir(({ createTempDir }) => {
         // add-phone migration's predecessor (`<dir>^` == C1). The emitted
         // contract.ts still holds the phone variant throughout.
         const rollbackTarget = `${addPhoneDir}^`;
-        const planRollback = await runMigrationPlanAndEmit(ctx, [
+        const planRollback = await planThenSelfEmit(ctx, [
           '--to',
           rollbackTarget,
           '--name',

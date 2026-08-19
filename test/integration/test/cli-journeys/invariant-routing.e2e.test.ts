@@ -28,13 +28,13 @@ import {
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
+  planThenSelfEmit,
   runContractEmit,
   runMigrate,
-  runMigrationEmit,
   runMigrationNew,
   runMigrationPlan,
-  runMigrationPlanAndEmit,
   runMigrationStatus,
+  selfEmitMigration,
   setupJourney,
   sql,
   swapContract,
@@ -116,7 +116,7 @@ withTempDir(({ createTempDir }) => {
 
         // O.01: emit base contract (C1) → plan + apply init (creates user table)
         expect((await runContractEmit(ctx)).exitCode, 'O.01: emit C1').toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'O.01: plan init').toBe(0);
         expect((await runMigrate(ctx)).exitCode, 'O.01: apply init').toBe(0);
 
@@ -146,7 +146,7 @@ withTempDir(({ createTempDir }) => {
 
         // O.05: re-emit and confirm the manifest carries `providedInvariants`.
         expect(
-          (await runMigrationEmit(ctx, ['--dir', migrationDir])).exitCode,
+          (await selfEmitMigration(ctx, ['--dir', migrationDir])).exitCode,
           'O.05: re-emit',
         ).toBe(0);
         const manifestAfter = JSON.parse(
@@ -245,7 +245,7 @@ withTempDir(({ createTempDir }) => {
 
         // P.01: emit base + plan + apply a single migration that declares a real invariant.
         expect((await runContractEmit(ctx)).exitCode, 'P.01: emit C1').toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'P.01: plan init').toBe(0);
         expect((await runMigrate(ctx)).exitCode, 'P.01: apply init').toBe(0);
 
@@ -271,7 +271,7 @@ withTempDir(({ createTempDir }) => {
         );
         patchBackfillMigrationTs(migrationDir, { addInvariantId: true });
         expect(
-          (await runMigrationEmit(ctx, ['--dir', migrationDir])).exitCode,
+          (await selfEmitMigration(ctx, ['--dir', migrationDir])).exitCode,
           'P.02: re-emit',
         ).toBe(0);
 
@@ -328,7 +328,7 @@ withTempDir(({ createTempDir }) => {
 
         // Q.01: emit base (C1), plan + apply init (no invariants on this edge).
         expect((await runContractEmit(ctx)).exitCode, 'Q.01: emit C1').toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'Q.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
         expect((await runMigrate(ctx)).exitCode, 'Q.01: apply init').toBe(0);
@@ -354,7 +354,7 @@ withTempDir(({ createTempDir }) => {
         );
         patchBackfillMigrationTs(branchADir, { addInvariantId: true });
         expect(
-          (await runMigrationEmit(ctx, ['--dir', branchADir])).exitCode,
+          (await selfEmitMigration(ctx, ['--dir', branchADir])).exitCode,
           'Q.02: re-emit branch A',
         ).toBe(0);
 
@@ -362,7 +362,7 @@ withTempDir(({ createTempDir }) => {
         // plan with --from C1 to create a divergent edge C1 → CB. No invariants.
         swapContract(ctx, 'contract-phone');
         expect((await runContractEmit(ctx)).exitCode, 'Q.03: emit CB').toBe(0);
-        const planB = await runMigrationPlanAndEmit(ctx, [
+        const planB = await planThenSelfEmit(ctx, [
           '--name',
           'branch-b-no-invariant',
           '--from',
@@ -432,7 +432,7 @@ withTempDir(({ createTempDir }) => {
         });
 
         expect((await runContractEmit(ctx)).exitCode, 'R.01: emit C1').toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'R.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
         expect((await runMigrate(ctx)).exitCode, 'R.01: apply init').toBe(0);
@@ -458,7 +458,7 @@ withTempDir(({ createTempDir }) => {
             .at(-1)!,
         );
         patchBackfillMigrationTs(migrationDir, { addInvariantId: true });
-        expect((await runMigrationEmit(ctx, ['--dir', migrationDir])).exitCode, 'R.02: emit').toBe(
+        expect((await selfEmitMigration(ctx, ['--dir', migrationDir])).exitCode, 'R.02: emit').toBe(
           0,
         );
 
@@ -546,7 +546,7 @@ withTempDir(({ createTempDir }) => {
         });
 
         expect((await runContractEmit(ctx)).exitCode, 'S.01: emit C1').toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'S.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
         expect((await runMigrate(ctx)).exitCode, 'S.01: apply init').toBe(0);
@@ -616,7 +616,7 @@ export default class M extends Migration {
 MigrationCLI.run(import.meta.url, M);
 `;
         writeFileSync(join(migrationDir, 'migration.ts'), handAuthored);
-        const emitResult = await runMigrationEmit(ctx, ['--dir', migrationDir]);
+        const emitResult = await selfEmitMigration(ctx, ['--dir', migrationDir]);
         expect(emitResult.exitCode, `S.04: emit: ${emitResult.stdout}\n${emitResult.stderr}`).toBe(
           0,
         );
@@ -705,7 +705,7 @@ MigrationCLI.run(import.meta.url, M);
         });
 
         expect((await runContractEmit(ctx)).exitCode, 'T.01: emit C1').toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'T.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
         expect((await runMigrate(ctx)).exitCode, 'T.01: apply init').toBe(0);
@@ -770,7 +770,7 @@ MigrationCLI.run(import.meta.url, M);
 `;
         writeFileSync(join(migrationDir, 'migration.ts'), handAuthored);
         expect(
-          (await runMigrationEmit(ctx, ['--dir', migrationDir])).exitCode,
+          (await selfEmitMigration(ctx, ['--dir', migrationDir])).exitCode,
           'T.02: emit self-edge',
         ).toBe(0);
 

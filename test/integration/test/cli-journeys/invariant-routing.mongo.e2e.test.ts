@@ -35,10 +35,10 @@ import {
   parseMigrationStatusJson,
   runContractEmit,
   runMigrate,
-  runMigrationEmit,
   runMigrationNew,
   runMigrationPlan,
   runMigrationStatus,
+  selfEmitMigration,
 } from '../utils/journey-test-helpers';
 
 const FIXTURES_DIR = join(fixtureAppDir, 'fixtures/mongo-cli-journeys');
@@ -283,7 +283,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     );
     expect(
       (
-        await runMigrationEmit(ctx, [
+        await selfEmitMigration(ctx, [
           '--dir',
           `migrations/app/${basename(getLatestMigrationDir(ctx))}`,
         ])
@@ -323,7 +323,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
       }),
     );
     expect(
-      (await runMigrationEmit(ctx, ['--dir', migrationDir])).exitCode,
+      (await selfEmitMigration(ctx, ['--dir', migrationDir])).exitCode,
       'Mongo-O.04: emit',
     ).toBe(0);
 
@@ -420,7 +420,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     );
     const initDir = getLatestMigrationDir(ctx);
     expect(
-      (await runMigrationEmit(ctx, ['--dir', `migrations/app/${basename(initDir)}`])).exitCode,
+      (await selfEmitMigration(ctx, ['--dir', `migrations/app/${basename(initDir)}`])).exitCode,
       'Mongo-P.01: emit init',
     ).toBe(0);
     expect((await runMigrate(ctx)).exitCode, 'Mongo-P.01: apply init').toBe(0);
@@ -441,7 +441,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
       join(dir2, 'migration.ts'),
       renderInvariantMigrationTs(draft.from, draft.to, { invariantId: INVARIANT_ID }),
     );
-    expect((await runMigrationEmit(ctx, ['--dir', dir2])).exitCode, 'Mongo-P.02: emit').toBe(0);
+    expect((await selfEmitMigration(ctx, ['--dir', dir2])).exitCode, 'Mongo-P.02: emit').toBe(0);
 
     const manifest = JSON.parse(readFileSync(join(dir2, 'migration.json'), 'utf-8'));
     const c2Hash = manifest.to as string;
@@ -490,7 +490,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     );
     const initDir = getLatestMigrationDir(ctx);
     expect(
-      (await runMigrationEmit(ctx, ['--dir', `migrations/app/${basename(initDir)}`])).exitCode,
+      (await selfEmitMigration(ctx, ['--dir', `migrations/app/${basename(initDir)}`])).exitCode,
       'Mongo-Q.01: emit init',
     ).toBe(0);
     expect((await runMigrate(ctx)).exitCode, 'Mongo-Q.01: apply init').toBe(0);
@@ -516,7 +516,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
       renderInvariantMigrationTs(draftA.from, draftA.to, { invariantId: INVARIANT_ID }),
     );
     expect(
-      (await runMigrationEmit(ctx, ['--dir', branchADir])).exitCode,
+      (await selfEmitMigration(ctx, ['--dir', branchADir])).exitCode,
       'Mongo-Q.02: emit branch A',
     ).toBe(0);
 
@@ -542,7 +542,7 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
       renderIndexOnlyMigrationTs(branchBManifest.from, cbHash),
     );
     expect(
-      (await runMigrationEmit(ctx, ['--dir', branchBDir])).exitCode,
+      (await selfEmitMigration(ctx, ['--dir', branchBDir])).exitCode,
       'Mongo-Q.03: emit branch B',
     ).toBe(0);
 

@@ -13,10 +13,10 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  planThenSelfEmit,
   runContractEmit,
   runMigrate,
   runMigrationPlan,
-  runMigrationPlanAndEmit,
   runMigrationStatus,
   setupJourney,
   swapContract,
@@ -42,7 +42,7 @@ withTempDir(({ createTempDir }) => {
         // Precondition: emit base, plan+apply initial, then plan and apply first migration
         const emit0 = await runContractEmit(ctx);
         expect(emit0.exitCode, 'P3.pre: emit base').toBe(0);
-        const planInit = await runMigrationPlanAndEmit(ctx, ['--name', 'initial']);
+        const planInit = await planThenSelfEmit(ctx, ['--name', 'initial']);
         expect(planInit.exitCode, 'P3.pre: plan initial').toBe(0);
         const applyInit = await runMigrate(ctx);
         expect(applyInit.exitCode, 'P3.pre: apply initial').toBe(0);
@@ -50,7 +50,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-additive');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, 'P3.pre: emit v2').toBe(0);
-        const plan1 = await runMigrationPlanAndEmit(ctx, ['--name', 'add-name']);
+        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-name']);
         expect(plan1.exitCode, 'P3.pre: plan v2').toBe(0);
         const apply1 = await runMigrate(ctx);
         expect(apply1.exitCode, 'P3.pre: apply v2').toBe(0);
@@ -80,7 +80,7 @@ withTempDir(({ createTempDir }) => {
         expect(applyFail.exitCode, 'P3.02: migration apply fails').not.toBe(0);
 
         // P3.03: re-plan the missing edge (chain leaf is additive, contract is v3)
-        const rePlan = await runMigrationPlanAndEmit(ctx, ['--name', 're-add-posts']);
+        const rePlan = await planThenSelfEmit(ctx, ['--name', 're-add-posts']);
         expect(rePlan.exitCode, 'P3.03: migration plan recovery').toBe(0);
 
         // P3.04: migration apply (applies the re-planned additive→v3 migration)

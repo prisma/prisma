@@ -26,13 +26,13 @@ import {
   getLatestMigrationDir,
   type JourneyContext,
   parseJsonOutput,
+  planThenSelfEmit,
   runContractEmit,
   runContractInfer,
   runDbSign,
   runDbUpdate,
   runDbVerify,
   runMigrate,
-  runMigrationPlanAndEmit,
   setupJourney,
   swapPslContract,
   timeouts,
@@ -90,7 +90,7 @@ withTempDir(({ createTempDir }) => {
         expect(sign.exitCode, `db sign\n${stripAnsi(sign.stderr)}`).toBe(0);
 
         // baseline migration (EMPTY → adopted contract); no-op on apply.
-        const planBaseline = await runMigrationPlanAndEmit(ctx, ['--name', 'baseline']);
+        const planBaseline = await planThenSelfEmit(ctx, ['--name', 'baseline']);
         expect(planBaseline.exitCode, 'plan baseline').toBe(0);
         const applyBaseline = await runMigrate(ctx, ['--json']);
         expect(applyBaseline.exitCode, 'apply baseline').toBe(0);
@@ -105,7 +105,7 @@ withTempDir(({ createTempDir }) => {
         expect(emit2.exitCode, `contract emit wire\n${stripAnsi(emit2.stderr)}`).toBe(0);
 
         // the first widening plan is renames only, byte-asserted.
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'converge-index-names']);
+        const plan = await planThenSelfEmit(ctx, ['--name', 'converge-index-names']);
         expect(plan.exitCode, `migration plan\n${stripAnsi(plan.stderr)}`).toBe(0);
         const ops = readPlannedOps(ctx);
         expect(

@@ -21,16 +21,16 @@ import {
   getLatestMigrationDir,
   type JourneyContext,
   parseJsonOutput,
+  planThenSelfEmit,
   runContractEmit,
   runDbInit,
   runDbUpdate,
   runDbVerify,
   runMigrate,
-  runMigrationEmit,
   runMigrationPlan,
-  runMigrationPlanAndEmit,
   runMigrationShow,
   runMigrationStatus,
+  selfEmitMigration,
   setupJourney,
   swapContract,
   timeouts,
@@ -55,7 +55,7 @@ withTempDir(({ createTempDir }) => {
         // Precondition: emit base contract and plan initial migration (∅ → base)
         const emit0 = await runContractEmit(ctx);
         expect(emit0.exitCode, 'B.pre: emit base').toBe(0);
-        const planInit = await runMigrationPlanAndEmit(ctx, ['--name', 'initial']);
+        const planInit = await planThenSelfEmit(ctx, ['--name', 'initial']);
         expect(planInit.exitCode, 'B.pre: plan initial').toBe(0);
         const applyInit = await runMigrate(ctx);
         expect(applyInit.exitCode, 'B.pre: apply initial').toBe(0);
@@ -79,7 +79,7 @@ withTempDir(({ createTempDir }) => {
         // B.04: migration emit --dir <planned-dir>
         const migDir = getLatestMigrationDir(ctx);
         expect(migDir, 'B.04: migration dir exists').toBeDefined();
-        const emitMig = await runMigrationEmit(ctx, ['--dir', `migrations/app/${migDir}`]);
+        const emitMig = await selfEmitMigration(ctx, ['--dir', `migrations/app/${migDir}`]);
         expect(emitMig.exitCode, 'B.04: migration emit').toBe(0);
 
         // B.05: migration status (pre-apply — shows pending migration)

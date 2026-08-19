@@ -8,7 +8,7 @@
  *     content-addressed `migrations/snapshots/<hex>/contract.{json,d.ts}`
  *     store entry for the destination contract, and emits attested
  *     `ops.json` with the expected `createIndex` operation(s). Asserts the
- *     rendered `migration.ts` is round-trip executable: running it via `tsx`
+ *     rendered `migration.ts` is round-trip executable: running its class-flow
  *     instantiates the migration class, reads its `operations` getter, and
  *     self-emits `ops.json` + attested `migration.json`.
  *
@@ -45,9 +45,9 @@ import {
   type JourneyContext,
   runContractEmit,
   runMigrate,
-  runMigrationEmit,
   runMigrationNew,
   runMigrationPlan,
+  selfEmitMigration,
 } from '../utils/journey-test-helpers';
 
 const FIXTURES_DIR = join(fixtureAppDir, 'fixtures/mongo-cli-journeys');
@@ -195,9 +195,12 @@ describe('Journey: Mongo migration authoring (offline)', { timeout: timeouts.spi
       readFileSync(contractSnapshotPath(ctx, draftManifest.to, 'contract.d.ts'), 'utf-8'),
     ).toBe(readFileSync(join(ctx.outputDir, 'contract.d.ts'), 'utf-8'));
 
-    // Plan leaves a draft migration; self-emit via `tsx migration.ts` to
+    // Plan leaves a draft migration; self-emit by running migration.ts in-process to
     // produce `ops.json` and the attested `migration.json`.
-    const emit = await runMigrationEmit(ctx, ['--dir', `migrations/app/${basename(migrationDir)}`]);
+    const emit = await selfEmitMigration(ctx, [
+      '--dir',
+      `migrations/app/${basename(migrationDir)}`,
+    ]);
     expect(emit.exitCode, `migration emit: ${emit.stdout}\n${emit.stderr}`).toBe(0);
 
     const ops = JSON.parse(readFileSync(join(migrationDir, 'ops.json'), 'utf-8')) as ReadonlyArray<{
@@ -323,7 +326,7 @@ describe('Journey: Mongo migration authoring (live database)', {
     const plan0 = await runMigrationPlan(ctx, ['--name', 'initial']);
     expect(plan0.exitCode, `migration plan initial: ${plan0.stdout}\n${plan0.stderr}`).toBe(0);
 
-    const emitInit = await runMigrationEmit(ctx, [
+    const emitInit = await selfEmitMigration(ctx, [
       '--dir',
       `migrations/app/${basename(getLatestMigrationDir(ctx))}`,
     ]);
@@ -416,7 +419,7 @@ MigrationCLI.run(import.meta.url, M);
 `;
     writeFileSync(migrationTsPath, handAuthored);
 
-    const emitResult = await runMigrationEmit(ctx, ['--dir', migrationDir]);
+    const emitResult = await selfEmitMigration(ctx, ['--dir', migrationDir]);
     expect(emitResult.exitCode, `migration emit: ${emitResult.stdout}\n${emitResult.stderr}`).toBe(
       0,
     );

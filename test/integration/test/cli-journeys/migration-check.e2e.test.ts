@@ -17,9 +17,9 @@ import {
   engineDiagnosticCodes,
   engineDocument,
   type JourneyContext,
+  planThenSelfEmit,
   runContractEmit,
   runMigrationCheck,
-  runMigrationPlanAndEmit,
   setupJourney,
   timeouts,
 } from '../utils/journey-test-helpers';
@@ -53,7 +53,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const check = await runMigrationCheck(ctx, ['--json']);
@@ -71,7 +71,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const migDir = findLatestMigrationDir(ctx);
@@ -99,7 +99,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const appDir = join(ctx.testDir, 'migrations', 'app');
@@ -121,7 +121,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const migDir = findLatestMigrationDir(ctx);
@@ -160,7 +160,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const danglingHash = `${'f'.repeat(64)}`;
@@ -186,7 +186,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const migDir = findLatestMigrationDir(ctx);
@@ -217,7 +217,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const migDir = findLatestMigrationDir(ctx);
@@ -246,7 +246,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const check = await runMigrationCheck(ctx, ['nonexistent-migration', '--json']);

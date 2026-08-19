@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import {
   copyFileSync,
   existsSync,
@@ -9,8 +10,10 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { Writable } from 'node:stream';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadOrmConfig, ormCommandFamily } from '@internal/cli';
+import { MigrationCLI } from '@internal/cli/migration-cli';
 import type { Contract } from '@internal/contract/types';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import type { SqlStorage } from '@internal/sql-contract/types';
@@ -505,6 +508,83 @@ export function clearDbRefForGreenfieldPlan(testDir: string): void {
     if (name === 'db.json' || name.startsWith('db.contract.')) {
       rmSync(join(refsDir, name), { force: true });
     }
+  }
+}
+
+/** What running a `migration.ts` file reports back. */
+export interface MigrationFileRunResult {
+  readonly exitCode: number;
+  readonly stdout: string;
+  readonly stderr: string;
+}
+
+class CapturingWritable extends Writable {
+  private readonly chunks: Buffer[] = [];
+
+  override _write(
+    chunk: Buffer | string,
+    _encoding: BufferEncoding,
+    callback: (error?: Error | null) => void,
+  ): void {
+    this.chunks.push(Buffer.from(chunk));
+    callback();
+  }
+
+  get text(): string {
+    return Buffer.concat(this.chunks).toString('utf-8');
+  }
+}
+
+/**
+ * Runs a scaffolded `migration.ts` in-process, replacing the old
+ * `execFile(tsx, [migration.ts])` pattern. Each spawn paid a node boot, an
+ * esbuild transform, and a cold import of the workspace packages — one to
+ * three seconds per migration step on CI, multiplied across every journey.
+ *
+ * Vitest's own transformer imports the file (the `?v=<content-hash>` query
+ * defeats the ESM module cache when a test rewrites the same migration.ts),
+ * and the module-scope `MigrationCLI.run(import.meta.url, M)` call inside the
+ * file no-ops because the file is not the process entrypoint. The helper then
+ * invokes `MigrationCLI.run` itself with an argv whose second element is the
+ * migration path, which satisfies the entrypoint guard, and with injected
+ * capture streams — the same in-process testability surface the CLI package's
+ * own tests use.
+ *
+ * Two process globals are saved and restored around the run, because the
+ * migration-file CLI is written for a process it owns: config discovery walks
+ * up from `process.cwd()` (so the helper chdirs to `cwd`, exactly where the
+ * old spawn pointed the child), and a failing run sets `process.exitCode`
+ * (which must not leak into the vitest worker's exit status when a test
+ * asserts on a migration failure). Tests within a worker run sequentially
+ * under the forks pool, so the temporary chdir cannot interleave with another
+ * test.
+ */
+export async function runMigrationFile(
+  migrationTs: string,
+  args: readonly string[] = [],
+  cwd?: string,
+): Promise<MigrationFileRunResult> {
+  const content = readFileSync(migrationTs, 'utf-8');
+  const version = createHash('sha1').update(content).digest('hex').slice(0, 12);
+  const migrationUrl = pathToFileURL(migrationTs).href;
+  const module = (await import(`${migrationUrl}?v=${version}`)) as {
+    default: Parameters<typeof MigrationCLI.run>[1];
+  };
+  const stdout = new CapturingWritable();
+  const stderr = new CapturingWritable();
+  const previousExitCode = process.exitCode;
+  const previousCwd = process.cwd();
+  try {
+    process.chdir(cwd ?? dirname(migrationTs));
+    const exitCode = await MigrationCLI.run(migrationUrl, module.default, {
+      argv: [process.execPath, migrationTs, ...args],
+      stdout,
+      stderr,
+    });
+    return { exitCode, stdout: stdout.text, stderr: stderr.text };
+  } finally {
+    process.chdir(previousCwd);
+    process.exitCode = previousExitCode;
   }
 }
 

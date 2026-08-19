@@ -23,10 +23,10 @@ import { withTempDir } from '../utils/cli-test-helpers';
 import {
   getLatestMigrationDir,
   type JourneyContext,
+  planThenSelfEmit,
   runContractEmit,
   runDbVerify,
   runMigrate,
-  runMigrationPlanAndEmit,
   setupJourney,
   swapContract,
   swapPslContract,
@@ -69,7 +69,7 @@ async function runInitialFlow(ctx: JourneyContext, connectionString: string): Pr
   const emit = await runContractEmit(ctx);
   expect(emit.exitCode, `contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
 
-  const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'initial']);
+  const plan = await planThenSelfEmit(ctx, ['--name', 'initial']);
   expect(plan.exitCode, `migration plan\n${stripAnsi(plan.stderr)}`).toBe(0);
   expect(indexSqlOf(readPlannedOps(ctx)).sort(), 'byte-exact index DDL').toEqual(
     EXPECTED_INDEX_DDL,
@@ -122,7 +122,7 @@ withTempDir(({ createTempDir }) => {
         swapPslContract(ctx, 'contract-expression-authored-renamed');
         const emitRenamed = await runContractEmit(ctx);
         expect(emitRenamed.exitCode, `rename: emit\n${stripAnsi(emitRenamed.stderr)}`).toBe(0);
-        const planRename = await runMigrationPlanAndEmit(ctx, ['--name', 'rename-search-index']);
+        const planRename = await planThenSelfEmit(ctx, ['--name', 'rename-search-index']);
         expect(planRename.exitCode, `rename: plan\n${stripAnsi(planRename.stderr)}`).toBe(0);
         const renameOps = readPlannedOps(ctx);
         expect(
@@ -147,7 +147,7 @@ withTempDir(({ createTempDir }) => {
         swapPslContract(ctx, 'contract-expression-authored-editedbody');
         const emitEdited = await runContractEmit(ctx);
         expect(emitEdited.exitCode, `body-edit: emit\n${stripAnsi(emitEdited.stderr)}`).toBe(0);
-        const planEdit = await runMigrationPlanAndEmit(ctx, ['--name', 'edit-search-index-body']);
+        const planEdit = await planThenSelfEmit(ctx, ['--name', 'edit-search-index-body']);
         expect(planEdit.exitCode, `body-edit: plan\n${stripAnsi(planEdit.stderr)}`).toBe(0);
         expect(
           indexSqlOf(readPlannedOps(ctx)).sort(),

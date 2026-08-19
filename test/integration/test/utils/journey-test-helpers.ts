@@ -6,7 +6,6 @@
  * so journey tests stay concise and readable.
  */
 
-import { execFile } from 'node:child_process';
 import {
   copyFileSync,
   existsSync,
@@ -16,20 +15,17 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { promisify } from 'node:util';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { EngineEvent, PresentedResult, StreamEvent } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
-import { isAbsolute, join, resolve } from 'pathe';
+import { isAbsolute, join } from 'pathe';
 import { afterAll, beforeAll } from 'vitest';
-
-const execFileAsync = promisify(execFile);
-const TSX_BIN = resolve(import.meta.dirname, '../../../../node_modules/.bin/tsx');
 
 import {
   appendImplicitMigrationPlanFrom,
   runOnEngine as runCommandOnEngine,
+  runMigrationFile,
   writeProjectManifest,
 } from './cli-test-helpers';
 
@@ -486,17 +482,16 @@ export function injectMigrationSqlDbSetup(scaffold: string): string {
 }
 
 /**
- * Self-emits a migration package by running its `migration.ts` directly with
- * `tsx`. The migration.ts invokes `MigrationCLI.run(import.meta.url, …)`,
- * which serializes the class's `operations` to `ops.json` and attests
- * `migration.json` in the package directory.
+ * Self-emits a migration package by running its `migration.ts` in-process (see
+ * {@link runMigrationFile}), which serializes the class's `operations` to
+ * `ops.json` and attests `migration.json` in the package directory.
  *
- * Accepts a trailing `--dir <path>` pair (relative to `ctx.testDir`) to stay
- * source-compatible with the old `migration emit --dir` callsites. Any other
- * arguments are forwarded to the spawned process so tests can pass flags like
+ * Accepts a trailing `--dir <path>` pair (relative to `ctx.testDir`) naming
+ * the migration package whose `migration.ts` to run. Any other arguments are
+ * forwarded to the migration-file CLI so tests can pass flags like
  * `--dry-run`.
  */
-export async function runMigrationEmit(
+export async function selfEmitMigration(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
 ): Promise<CommandResult> {
@@ -504,7 +499,7 @@ export async function runMigrationEmit(
   const dirIdx = args.indexOf('--dir');
   if (dirIdx < 0 || dirIdx === args.length - 1) {
     throw new Error(
-      'runMigrationEmit requires `--dir <migration-dir>` so we know which migration.ts to execute',
+      'selfEmitMigration requires `--dir <migration-dir>` so we know which migration.ts to execute',
     );
   }
   const dirArg = args[dirIdx + 1]!;
@@ -513,27 +508,19 @@ export async function runMigrationEmit(
   const migrationTs = isAbsolute(dirArg)
     ? join(dirArg, 'migration.ts')
     : join(ctx.testDir, dirArg, 'migration.ts');
-  try {
-    const { stdout, stderr } = await execFileAsync(TSX_BIN, [migrationTs, ...args], {
-      cwd: ctx.testDir,
-    });
-    return { exitCode: 0, stdout, stderr };
-  } catch (error) {
-    const e = error as { stdout?: string; stderr?: string; code?: number };
-    return { exitCode: e.code ?? 1, stdout: e.stdout ?? '', stderr: e.stderr ?? '' };
-  }
+  return runMigrationFile(migrationTs, args, ctx.testDir);
 }
 
 /**
  * Runs `migration plan` and then self-emits the resulting draft `migration.ts`
- * via `tsx`. Mirrors the old `migration plan`-auto-emits behaviour that journey
- * tests relied on before the `migration emit` command was removed.
+ * in-process (see {@link runMigrationFile}). Journey steps that just need "a
+ * planned and emitted migration" use this instead of spelling both steps out.
  *
  * Returns the original plan result (so JSON callers still see the plan's
- * stdout). If plan fails, emit is skipped. If emit fails, the returned result
- * carries the emit failure via `exitCode`/`stderr`.
+ * stdout). If plan fails, the self-emit is skipped. If the self-emit fails,
+ * the returned result carries that failure via `exitCode`/`stderr`.
  */
-export async function runMigrationPlanAndEmit(
+export async function planThenSelfEmit(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
 ): Promise<CommandResult> {
@@ -541,12 +528,12 @@ export async function runMigrationPlanAndEmit(
   if (planResult.exitCode !== 0) return planResult;
   const latest = getLatestMigrationDir(ctx);
   if (!latest) return planResult;
-  const emitResult = await runMigrationEmit(ctx, ['--dir', `migrations/app/${latest}`]);
+  const emitResult = await selfEmitMigration(ctx, ['--dir', `migrations/app/${latest}`]);
   if (emitResult.exitCode !== 0) {
     return {
       ...planResult,
       exitCode: emitResult.exitCode,
-      stderr: `${planResult.stderr}\n[runMigrationPlanAndEmit] migration emit failed (exit ${emitResult.exitCode}):\n${emitResult.stderr}`,
+      stderr: `${planResult.stderr}\n[planThenSelfEmit] migration.ts self-emit failed (exit ${emitResult.exitCode}):\n${emitResult.stderr}`,
     };
   }
   return planResult;

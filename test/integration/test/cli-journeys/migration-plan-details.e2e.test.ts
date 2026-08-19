@@ -20,10 +20,10 @@ import {
   getLatestMigrationDir,
   type JourneyContext,
   parseJsonOutput,
+  planThenSelfEmit,
   runContractEmit,
-  runMigrationEmit,
   runMigrationPlan,
-  runMigrationPlanAndEmit,
+  selfEmitMigration,
   setupJourney,
   swapContract,
   useDevDatabase,
@@ -54,7 +54,7 @@ withTempDir(({ createTempDir }) => {
         // `migrationHash` was removed from `MigrationPlanResult` in PR 3 — it
         // was tied to the old `migration emit` path — so we no longer assert
         // on it here.
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'initial', '--json']);
+        const plan = await planThenSelfEmit(ctx, ['--name', 'initial', '--json']);
         expect(plan.exitCode, 'H.02: migration plan --json').toBe(0);
 
         const result = parseJsonOutput<{
@@ -127,7 +127,7 @@ withTempDir(({ createTempDir }) => {
         // Self-emit the initial migration so it's attested and becomes a
         // leaf in the migration graph — otherwise I.03's planner computes
         // from the empty contract and mis-classifies the change.
-        const planInit = await runMigrationPlanAndEmit(ctx, ['--name', 'initial']);
+        const planInit = await planThenSelfEmit(ctx, ['--name', 'initial']);
         expect(planInit.exitCode, 'I.01: plan initial').toBe(0);
 
         // I.02: swap to destructive contract (removes email column)
@@ -160,7 +160,7 @@ withTempDir(({ createTempDir }) => {
         // run the scaffolded `migration.ts` explicitly to produce ops.json.
         const dropDir = getLatestMigrationDir(ctx);
         expect(dropDir, 'I.03: drop-email migration dir').toBeTruthy();
-        const dropEmitResult = await runMigrationEmit(ctx, ['--dir', `migrations/app/${dropDir}`]);
+        const dropEmitResult = await selfEmitMigration(ctx, ['--dir', `migrations/app/${dropDir}`]);
         expect(dropEmitResult.exitCode, `I.03: emit drop-email: ${dropEmitResult.stderr}`).toBe(0);
 
         // I.04: verify destructive operation class on disk

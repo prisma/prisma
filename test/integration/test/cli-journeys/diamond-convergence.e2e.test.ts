@@ -25,9 +25,9 @@ import {
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
+  planThenSelfEmit,
   runContractEmit,
   runMigrate,
-  runMigrationPlanAndEmit,
   runMigrationStatus,
   runRef,
   setupJourney,
@@ -61,7 +61,7 @@ withTempDir(({ createTempDir }) => {
         // D.01: emit base (C1) → plan init (∅→C1)
         const emit0 = await runContractEmit(staging);
         expect(emit0.exitCode, 'D.01: emit C1').toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(staging, ['--name', 'init', '--json']);
+        const plan0 = await planThenSelfEmit(staging, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'D.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
 
@@ -83,7 +83,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(staging, 'contract-phone');
         const emit1 = await runContractEmit(staging);
         expect(emit1.exitCode, 'D.04: emit C2').toBe(0);
-        const plan1 = await runMigrationPlanAndEmit(staging, ['--name', 'add-phone', '--json']);
+        const plan1 = await planThenSelfEmit(staging, ['--name', 'add-phone', '--json']);
         expect(plan1.exitCode, 'D.04: plan C1→C2').toBe(0);
         const applyStaging1 = await runMigrate(staging);
         expect(applyStaging1.exitCode, 'D.04: apply C2 to staging').toBe(0);
@@ -92,7 +92,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(staging, 'contract-phone-bio');
         const emit2 = await runContractEmit(staging);
         expect(emit2.exitCode, 'D.05: emit C3').toBe(0);
-        const plan2 = await runMigrationPlanAndEmit(staging, ['--name', 'add-bio', '--json']);
+        const plan2 = await planThenSelfEmit(staging, ['--name', 'add-bio', '--json']);
         expect(plan2.exitCode, 'D.05: plan C2→C3').toBe(0);
         const c3Hash = parseJsonOutput<{ to: string }>(plan2).to;
         const applyStaging2 = await runMigrate(staging);
@@ -108,7 +108,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(staging, 'contract-avatar');
         const emit3 = await runContractEmit(staging);
         expect(emit3.exitCode, 'D.06: emit C4').toBe(0);
-        const plan3 = await runMigrationPlanAndEmit(staging, [
+        const plan3 = await planThenSelfEmit(staging, [
           '--name',
           'add-avatar',
           '--from',
@@ -136,7 +136,7 @@ withTempDir(({ createTempDir }) => {
         expect(emit4.exitCode, 'D.07: emit C5').toBe(0);
 
         // Plan merge from staging branch: C3→C5
-        const planMergeStaging = await runMigrationPlanAndEmit(staging, [
+        const planMergeStaging = await planThenSelfEmit(staging, [
           '--name',
           'merge-staging',
           '--from',
@@ -147,7 +147,7 @@ withTempDir(({ createTempDir }) => {
         const c5Hash = parseJsonOutput<{ to: string }>(planMergeStaging).to;
 
         // Plan merge from production branch: C4→C5
-        const planMergeProd = await runMigrationPlanAndEmit(staging, [
+        const planMergeProd = await planThenSelfEmit(staging, [
           '--name',
           'merge-prod',
           '--from',

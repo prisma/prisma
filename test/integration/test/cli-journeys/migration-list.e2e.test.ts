@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  planThenSelfEmit,
   runContractEmit,
   runMigrationList,
-  runMigrationPlanAndEmit,
   setupJourney,
   swapContract,
 } from '../utils/journey-test-helpers';
@@ -21,10 +21,10 @@ withTempDir(({ createTempDir }) => {
     async function projectWithTwoMigrations(): Promise<JourneyContext> {
       const ctx = setupJourney({ createTempDir });
       await runContractEmit(ctx);
-      await runMigrationPlanAndEmit(ctx, ['--name', 'initial']);
+      await planThenSelfEmit(ctx, ['--name', 'initial']);
       swapContract(ctx, 'contract-additive');
       await runContractEmit(ctx);
-      await runMigrationPlanAndEmit(ctx, ['--name', 'add-name']);
+      await planThenSelfEmit(ctx, ['--name', 'add-name']);
       return ctx;
     }
 

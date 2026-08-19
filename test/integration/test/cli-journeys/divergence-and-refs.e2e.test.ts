@@ -16,9 +16,9 @@ import {
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
+  planThenSelfEmit,
   runContractEmit,
   runMigrate,
-  runMigrationPlanAndEmit,
   runMigrationStatus,
   runRef,
   setupJourney,
@@ -42,7 +42,7 @@ withTempDir(({ createTempDir }) => {
         // L.01: emit base (C1) → plan + apply init
         const emit0 = await runContractEmit(ctx);
         expect(emit0.exitCode, 'L.01: emit C1').toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'L.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
         const apply0 = await runMigrate(ctx);
@@ -52,7 +52,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-phone');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, 'L.02: emit C2').toBe(0);
-        const plan1 = await runMigrationPlanAndEmit(ctx, ['--name', 'add-phone', '--json']);
+        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-phone', '--json']);
         expect(plan1.exitCode, 'L.02: plan C1→C2').toBe(0);
         const c2Hash = parseJsonOutput<{ to: string }>(plan1).to;
 
@@ -60,7 +60,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-bio');
         const emit2 = await runContractEmit(ctx);
         expect(emit2.exitCode, 'L.03: emit C3').toBe(0);
-        const plan2 = await runMigrationPlanAndEmit(ctx, [
+        const plan2 = await planThenSelfEmit(ctx, [
           '--name',
           'add-bio',
           '--from',

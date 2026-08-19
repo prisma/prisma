@@ -24,11 +24,11 @@ import { withTempDir } from '../utils/cli-test-helpers';
 import {
   injectMigrationSqlDbSetup,
   type JourneyContext,
+  planThenSelfEmit,
   runContractEmit,
   runMigrate,
-  runMigrationEmit,
   runMigrationPlan,
-  runMigrationPlanAndEmit,
+  selfEmitMigration,
   setupJourney,
   sql,
   swapContract,
@@ -60,7 +60,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-typechange-text');
         const emit0 = await runContractEmit(ctx);
         expect(emit0.exitCode, `emit base: ${emit0.stderr}`).toBe(0);
-        const plan0 = await runMigrationPlanAndEmit(ctx, ['--name', 'initial']);
+        const plan0 = await planThenSelfEmit(ctx, ['--name', 'initial']);
         expect(plan0.exitCode, `plan initial: ${plan0.stderr}`).toBe(0);
         const apply0 = await runMigrate(ctx);
         expect(apply0.exitCode, `apply initial: ${apply0.stderr}`).toBe(0);
@@ -122,7 +122,7 @@ withTempDir(({ createTempDir }) => {
         expect(filled).toContain('const db = sql(');
         writeFileSync(migrationTsPath, filled);
 
-        const emitResult = await runMigrationEmit(ctx, [
+        const emitResult = await selfEmitMigration(ctx, [
           '--dir',
           migrationDir,
           '--config',
