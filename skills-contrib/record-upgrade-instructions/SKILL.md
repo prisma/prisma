@@ -50,6 +50,8 @@ Two mechanical signals, each tied to one destination package:
 
 The substrate diff is the signal that an entry is required. The agent fixing the red tests in those substrates sees the signal directly; the reviewer sees the same diff. The release-pipeline check (`pnpm check:upgrade-coverage`) enforces the outcome — a substrate diff without the matching directory fails the PR.
 
+**Stacked PRs.** The coverage gate diffs each PR against the branch it targets, not against `main`. Each PR in a stack therefore declares the entries for its own substrate diff, in its own commits. Do not pool a stack's entries in the bottom PR: pooled entries break self-containment (a partial merge ships instructions for changes that did not land), and under per-base diffing the upper PRs fail the gate anyway. Sequential commits appending entries to the same `instructions.md` are the normal shape.
+
 ## Authoring workflow
 
 For each PR that hits one or both signals, walk these steps in order.
@@ -66,6 +68,8 @@ For each PR that hits one or both signals, walk these steps in order.
 3. **Find or create the directory in each destination.** For each destination, the directory is `<destination>/upgrades/<in-flight transition>/` from step 1 (so e.g. `skills/prisma-next-upgrade/upgrades/0.7-to-0.8/` for the user-skill). If the directory already exists (an earlier PR on the same transition created it, or the placeholder shipped with the initial mechanism PR is still there), **do not create a duplicate** — append a new entry to the existing `instructions.md`'s `changes[]` array.
 
 4. **Write the entry into `instructions.md`.** Each `changes[]` entry carries an `id` (kebab-case, unique within the transition), a one-line `summary`, an optional `detection` block (glob + content predicate the consumer's agent runs to know whether the change applies to that consumer's project), and an optional `script:` reference (relative path to a colocated script next to `instructions.md`). For changes that need agent reasoning across the codebase rather than a deterministic script, the entry omits `script:` and the agent follows the prose body of `instructions.md` instead.
+
+   **Make detection predicates token-precise.** A broad substring regex fires on call sites the change does not touch and sends consumers hunting for migrations they do not need. Test the predicate against both a true positive and the nearest false positive before shipping it. Example: matching the moved tag `` .raw` `` must not fire on the unchanged fragment tag `` fns.raw` `` — and excluding it needs a token boundary, since `(?<!fns)` would also suppress an unrelated `` myfns.raw` ``. The shipped predicate is `(?<!(?<![\w$])fns)\.raw`` — the inner lookbehind makes the exclusion apply only to the exact `fns` token.
 
    **Only record changes that require consumer action.** Every `changes[]` entry — and every paragraph in the prose body — must describe something the consumer has to *do*. Do not include narrative about substrate diffs that need no consumer response (e.g. dev-only dep bumps inside `examples/`, internal-only renames, generated-artefact churn that round-trips on re-emit). The absence of an entry already communicates "do nothing" — saying it explicitly is noise, and it dilutes the signal of the entries that *do* require action. If the entire in-flight transition is genuinely no-op for consumers, ship `changes: []` with no body prose; the `changes: []` array is the record. The reviewer treats any "consumers do not need to take any action" sentence in the body as a defect.
 
@@ -135,6 +139,11 @@ If a release PR lands on `main` mid-flight (advancing the currently-published ve
 3. **Existing entries** your branch added before the rebase to the previous in-flight directory may be left in place — they describe the transition that just shipped, and modifications / removals of any transition directory are allowed (the new-entries check only enforces *added* paths).
 
 Decide per-entry whether each prior add belongs in the just-shipped transition directory or should be relocated. The rule of thumb: if the entry fixes a substrate diff that already shipped in the release that just landed, leave it in the previous directory; if the entry fixes a substrate diff introduced by the further refactoring you did after the rebase, move it to the new in-flight directory.
+
+Two corollaries of a release cut:
+
+- **A just-shipped transition directory is history.** Restore it to the released content byte-for-byte if your branch had modified it; only entries describing changes that actually shipped in that release may remain there. An entry left in a shipped directory for a change that missed the release is a false instruction.
+- **The new in-flight directory may not exist yet.** If your PR touches a substrate and the directory for the new transition is missing, create it. When the PR's substrate diff needs no consumer action (purely additive features included), ship it with `changes: []` and no body prose — that satisfies the gate and records the no-op explicitly.
 
 ## Out of scope
 

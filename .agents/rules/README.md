@@ -52,6 +52,7 @@ Rules below are listed by bare filename; the canonical file is `.agents/rules/<n
 - `fix-the-class-not-the-instance.mdc` — A review comment names a class of defect; sweep the whole diff for the class, fix every instance in one round
 
 ## Testing
+- `non-vacuous-verification.mdc` — Make every verification able to fail: regression tests red pre-fix, verifiers fail on empty input, `not.toBeAny()` sentinels
 - `test-import-patterns.mdc` — Test import patterns (source files, relative paths, don't export for tests)
 - `test-file-organization.mdc` — Test file organization (max 500 lines, split by functionality)
 - `test-intent-readability.mdc` — Tests must be readable by context (BDD-style grouping)
@@ -132,6 +133,7 @@ Rules below are listed by bare filename; the canonical file is `.agents/rules/<n
 - `tsdown-config-package-source-only.mdc` — Keep `@repo/tsdown` exports source-only (no `.js` workaround files)
 
 ## Git, CI & workflow
+- `ci-failure-classification.mdc` — Classify CI failures from evidence: frozen install first, non-inert controls, known flake fingerprints
 - `running-tests.mdc` — How to run tests (and other slow verification commands): save output to a file once, read the file; don't re-run to grep different lines
 - `no-target-branches.mdc` — Don't branch on target; use adapters
 - `no-pull-request-target.mdc` — Never add `pull_request_target` to GitHub Actions workflows
