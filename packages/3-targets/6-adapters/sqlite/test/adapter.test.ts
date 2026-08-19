@@ -152,16 +152,7 @@ describe('SQLite adapter', () => {
       );
     });
 
-    // Mirrors the ROW_NUMBER-wrapped AST that the SQL ORM client planner
-    // produces for `include('rel', r => r.distinct(cols).include('grandchild'))`:
-    // an inner SELECT augments the projection with a
-    // `ROW_NUMBER() OVER (PARTITION BY <distinct cols> ORDER BY <ranking cols>)`
-    // column, wrapped in a derived table whose outer WHERE keeps only
-    // `__prisma_distinct_rn = 1` — one representative row per partition.
-    // The Postgres integration suite covers execution; this test pins the
-    // SQLite renderer side: the same AST must lower to valid SQLite SQL
-    // with no Postgres-only constructs.
-    it('renders ROW_NUMBER dedup subquery for non-leaf distinct includes', () => {
+    it('renders a ROW_NUMBER dedup subquery wrapped in a derived table', () => {
       const innerRanked = SelectAst.from(TableSource.named('post'))
         .withProjection([
           ProjectionItem.of('title', ColumnRef.of('post', 'title')),
