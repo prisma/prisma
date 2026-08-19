@@ -260,11 +260,17 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
           { postId: 2, categoryId: 1 },
         ]);
 
-        // The pinned upstream count_with_distinct row subquery is unordered; preserve that query.
+        // distinctOn requires an orderBy leading with the distinct columns; the upstream
+        // pinned query had none (distinct(cols)'s representative choice was arbitrary),
+        // so the trailing id.asc() only pins the same representative the old lowering
+        // already produced in practice.
         const result = await db.public.Category.select('id')
           .include('posts', (posts) =>
             posts.combine({
-              rows: posts.select('id').distinct('title'),
+              rows: posts
+                .select('id')
+                .orderBy([(p) => p.title.asc(), (p) => p.id.asc()])
+                .distinctOn('title'),
               count: posts.count(),
             }),
           )
