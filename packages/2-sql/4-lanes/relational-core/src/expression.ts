@@ -3,6 +3,7 @@ import { runtimeError } from '@internal/framework-components/runtime';
 import type { ParamSpec } from '@internal/operations';
 import type { QueryOperationReturn, SqlStorage } from '@internal/sql-contract/types';
 import type { SqlLoweringSpec } from '@internal/sql-operations';
+import { invariant } from '@internal/utils/assertions';
 import type { CodecRef } from './ast/codec-types';
 import type { SqlStatementStats } from './ast/driver-types';
 import type { AnyExpression as AstExpression, RawQueryColumn, RawSqlLiteral } from './ast/types';
@@ -262,7 +263,19 @@ export interface RawPlanContext {
  * (including data-modifying CTEs, whose `RETURNING` is what earns them a row
  * spec) expressible.
  */
-export interface RawRowQuery<Row = unknown> {
+export interface RawRowQuery<
+  Row = unknown,
+  Refs extends Readonly<Record<string, RawQueryColumn>> = Readonly<Record<string, RawQueryColumn>>,
+> {
+  /**
+   * What this statement declared. Each spec key gets one entry naming the
+   * codec that decodes the column and whether it may be null.
+   *
+   * Those entries are row-spec entries themselves. An outer statement that
+   * embeds this one can inherit a declaration instead of restating its codec
+   * id.
+   */
+  readonly returns: Refs;
   buildAst(): RawQueryAst;
   build(): SqlQueryPlan<Row>;
 }
@@ -446,7 +459,15 @@ class RawSqlStatementBuilderImpl extends RawSqlBuilderImpl implements RawSqlStat
 
   returnsRow<Spec extends RawRowSpec>(spec: Spec): RawRowQuery<RawRow<Spec>> {
     const node = RawQueryAst.rows(this.parts, resolveRowSpec(spec));
+    // Publish the node's own result rather than a second copy. It is the
+    // normalized spec, already frozen per column and built under the
+    // reserved-name refusal. One record means what we publish cannot drift
+    // from what the statement declared.
+    const result = node.result;
+    invariant(result.kind === 'rows', 'RawQueryAst.rows built a non-rows result');
+
     return {
+      returns: result.columns,
       buildAst: () => node,
       build: () => this.planFor<RawRow<Spec>>(node),
     };
