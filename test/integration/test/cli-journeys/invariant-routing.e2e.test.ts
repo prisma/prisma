@@ -25,6 +25,7 @@ import {
   engineError,
   injectMigrationSqlDbSetup,
   type JourneyContext,
+  latestMigrationDirName,
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
@@ -130,7 +131,12 @@ withTempDir(({ createTempDir }) => {
         // the planner emits a placeholder dataTransform.
         swapContract(ctx, 'contract-additive-required-name');
         expect((await runContractEmit(ctx)).exitCode, 'O.03: emit C2').toBe(0);
-        const planResult = await runMigrationPlan(ctx, ['--name', 'add-required-name']);
+        const planResult = await runMigrationPlan(ctx, [
+          '--name',
+          'add-required-name',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(planResult.exitCode, 'O.03: plan add-required-name').toBe(0);
 
         const migrationsDir = join(ctx.testDir, 'migrations', 'app');
@@ -257,7 +263,14 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-additive-required-name');
         expect((await runContractEmit(ctx)).exitCode, 'P.02: emit C2').toBe(0);
         expect(
-          (await runMigrationPlan(ctx, ['--name', 'add-required-name'])).exitCode,
+          (
+            await runMigrationPlan(ctx, [
+              '--name',
+              'add-required-name',
+              '--from',
+              latestMigrationDirName(ctx),
+            ])
+          ).exitCode,
           'P.02: plan',
         ).toBe(0);
 
@@ -342,7 +355,12 @@ withTempDir(({ createTempDir }) => {
         // This edge declares invariantId=INVARIANT_ID and goes C1 → CA.
         swapContract(ctx, 'contract-additive-required-name');
         expect((await runContractEmit(ctx)).exitCode, 'Q.02: emit CA').toBe(0);
-        const planA = await runMigrationPlan(ctx, ['--name', 'branch-a-with-invariant']);
+        const planA = await runMigrationPlan(ctx, [
+          '--name',
+          'branch-a-with-invariant',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(planA.exitCode, 'Q.02: plan branch A').toBe(0);
         const migrationsDir = join(ctx.testDir, 'migrations', 'app');
         const branchADir = join(
@@ -445,7 +463,14 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-additive-required-name');
         expect((await runContractEmit(ctx)).exitCode, 'R.02: emit C2').toBe(0);
         expect(
-          (await runMigrationPlan(ctx, ['--name', 'add-required-name'])).exitCode,
+          (
+            await runMigrationPlan(ctx, [
+              '--name',
+              'add-required-name',
+              '--from',
+              latestMigrationDirName(ctx),
+            ])
+          ).exitCode,
           'R.02: plan',
         ).toBe(0);
 

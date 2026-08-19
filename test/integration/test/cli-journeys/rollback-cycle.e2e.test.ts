@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  latestMigrationDirName,
   parseJsonOutput,
   planThenSelfEmit,
   runContractEmit,
@@ -49,7 +50,13 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-phone');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, 'J.02: emit C2').toBe(0);
-        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-phone', '--json']);
+        const plan1 = await planThenSelfEmit(ctx, [
+          '--name',
+          'add-phone',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--json',
+        ]);
         expect(plan1.exitCode, 'J.02: plan add-phone').toBe(0);
         const planResult1 = parseJsonOutput<{ to: string }>(plan1);
         const c2Hash = planResult1.to;
@@ -61,19 +68,33 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-base');
         const emit2 = await runContractEmit(ctx);
         expect(emit2.exitCode, 'J.03: emit C1 again').toBe(0);
-        const planRollback = await planThenSelfEmit(ctx, ['--name', 'rollback-phone', '--json']);
+        const planRollback = await planThenSelfEmit(ctx, [
+          '--name',
+          'rollback-phone',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--json',
+        ]);
         expect(planRollback.exitCode, 'J.03: plan rollback').toBe(0);
         const apply2 = await runMigrate(ctx);
         expect(apply2.exitCode, 'J.03: apply rollback').toBe(0);
 
-        // J.04: graph has cycle (C1→C2→C1); implicit db ref still plans forward
+        // J.04: graph has cycle (C1→C2→C1); planning from the rollback tip
+        // (named explicitly — with no db ref, an unflagged plan would be
+        // greenfield) still plans forward out of the cycle.
         swapContract(ctx, 'contract-bio');
         const emit3 = await runContractEmit(ctx);
         expect(emit3.exitCode, 'J.04: emit C3 (bio)').toBe(0);
-        const planImplicit = await runMigrationPlan(ctx, ['--name', 'add-bio-implicit', '--json']);
-        expect(planImplicit.exitCode, 'J.04: plan without explicit --from').toBe(0);
+        const planImplicit = await runMigrationPlan(ctx, [
+          '--name',
+          'add-bio-implicit',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--json',
+        ]);
+        expect(planImplicit.exitCode, 'J.04: plan from the rollback tip').toBe(0);
         const implicitResult = parseJsonOutput<{ from: string; to: string }>(planImplicit);
-        expect(implicitResult.from, 'J.04: from resolved via db ref').toBeTruthy();
+        expect(implicitResult.from, 'J.04: from resolved').toBeTruthy();
 
         // J.05: plan with --from C1 recovers
         const planFrom = await planThenSelfEmit(ctx, [

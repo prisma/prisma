@@ -6,7 +6,6 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
-  statSync,
   writeFileSync,
 } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -15,11 +14,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadOrmConfig, ormCommandFamily } from '@internal/cli';
 import { MigrationCLI } from '@internal/cli/migration-cli';
 import type { Contract } from '@internal/contract/types';
-import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import type { EngineEvent, MountedTree, PresentedResult, StreamEvent } from '@prisma/cli-engine';
-import { createTestCli } from '@prisma/cli-engine/testing';
+import { createTestCli, type TestCli } from '@prisma/cli-engine/testing';
 import { afterEach, beforeEach } from 'vitest';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -42,12 +40,6 @@ export interface EngineRunResult {
 export interface RunOnEngineOptions {
   /** Simulate piped stdout (isTTY=false) to exercise the engine's json auto-selection. */
   readonly isTTY?: boolean;
-  /**
-   * Run the config file through the engine's loader rather than pre-evaluating
-   * it, so a file that does not evaluate settles as the run's error instead of
-   * throwing here.
-   */
-  readonly settleConfigFailures?: boolean;
 }
 
 /**
@@ -75,47 +67,62 @@ export function ormEngineMount(): {
   readonly commands: MountedTree;
   readonly groups: Record<string, { readonly brief: string }>;
 } {
-  const commands = Object.fromEntries(
-    Object.entries(ormCommandFamily.commands).map(([path, command]) => [
-      path === 'init' ? 'orm init' : path,
-      command,
-    ]),
-  );
-  return { commands, groups: groupsFor(commands) };
+  if (cachedMount === undefined) {
+    const commands = Object.fromEntries(
+      Object.entries(ormCommandFamily.commands).map(([path, command]) => [
+        path === 'init' ? 'orm init' : path,
+        command,
+      ]),
+    );
+    cachedMount = { commands, groups: groupsFor(commands) };
+  }
+  return cachedMount;
 }
 
+let cachedMount:
+  | {
+      readonly commands: MountedTree;
+      readonly groups: Record<string, { readonly brief: string }>;
+    }
+  | undefined;
+
 /**
- * Runs one CLI invocation through the engine's own harness.
- *
- * The harness takes config as an already-evaluated record and has no config
- * option on `run()`, so the project's `prisma.config.ts` is evaluated here
- * — through the same adapter the binary uses — and a fresh `TestCli` is built
- * per run. That is what lets a step which writes or rewrites the config be
- * picked up by the next one. The project directory is passed as `cwd` rather
- * than chdir'ed into, so nothing about the run is process-global.
+ * One `TestCli` per project, keyed by `testDir` + `configPath`. The engine's
+ * `loadConfig` hook runs on every invocation that needs config (the same
+ * adapter the binary uses), so a step that writes or rewrites the config file
+ * is picked up by the next command without rebuilding the harness — and a
+ * config that does not evaluate settles as the run's error, exactly as it
+ * would for a user. A test that swaps to a whole new project directory gets a
+ * fresh harness through the key.
+ */
+const engineCliCache = new Map<string, TestCli>();
+
+/**
+ * Runs one CLI invocation through the engine's own harness. The project
+ * directory is passed as `cwd` rather than chdir'ed into, so nothing about
+ * the run is process-global.
  */
 export async function runOnEngine(
   project: { readonly testDir: string; readonly configPath: string },
   argv: readonly string[],
   options?: RunOnEngineOptions,
 ): Promise<EngineRunResult> {
-  const { commands, groups } = ormEngineMount();
-  const spec = {
-    commandFamilies: [ormCommandFamily],
-    commands,
-    groups,
-  };
-
-  const cli = options?.settleConfigFailures
-    ? createTestCli({
-        ...spec,
-        loadConfig: (configPath) =>
-          loadOrmConfig({
-            cwd: project.testDir,
-            configPath: configPath ?? project.configPath,
-          }),
-      })
-    : createTestCli({ ...spec, config: await evaluatedSections(project) });
+  const key = `${project.testDir}\u0000${project.configPath}`;
+  let cli = engineCliCache.get(key);
+  if (cli === undefined) {
+    const { commands, groups } = ormEngineMount();
+    cli = createTestCli({
+      commandFamilies: [ormCommandFamily],
+      commands,
+      groups,
+      loadConfig: (configPath) =>
+        loadOrmConfig({
+          cwd: project.testDir,
+          configPath: configPath ?? project.configPath,
+        }),
+    });
+    engineCliCache.set(key, cli);
+  }
 
   const run = await cli.run([...argv], {
     cwd: project.testDir,
@@ -130,20 +137,6 @@ export async function runOnEngine(
     json: run.json,
     presented: run.presented,
   };
-}
-
-async function evaluatedSections(project: {
-  readonly testDir: string;
-  readonly configPath: string;
-}): Promise<Readonly<Record<string, unknown>>> {
-  const loaded = await loadOrmConfig({ cwd: project.testDir, configPath: project.configPath });
-  const fileLevel = loaded.diagnostics.find((entry) => entry.section === null);
-  if (fileLevel !== undefined) {
-    throw new Error(
-      `runOnEngine: ${project.configPath} did not evaluate: ${fileLevel.diagnostic.code} — ${fileLevel.diagnostic.summary}`,
-    );
-  }
-  return loaded.sections;
 }
 
 /**
@@ -438,65 +431,6 @@ export async function setupDbTestFixture(
   }
 
   return { testSetup, configPath };
-}
-
-function readMigrationGraphTipHash(testDir: string): string | null {
-  const appDir = join(testDir, 'migrations', 'app');
-  if (!existsSync(appDir)) {
-    return null;
-  }
-  let newestDir: string | null = null;
-  let newestMtime = 0;
-  for (const dir of readdirSync(appDir)) {
-    if (dir.startsWith('.') || dir === 'refs') {
-      continue;
-    }
-    const dirPath = join(appDir, dir);
-    if (!statSync(dirPath).isDirectory()) {
-      continue;
-    }
-    const manifestPath = join(dirPath, 'migration.json');
-    if (!existsSync(manifestPath)) {
-      continue;
-    }
-    const mtime = statSync(dirPath).mtimeMs;
-    if (mtime > newestMtime) {
-      newestMtime = mtime;
-      newestDir = dir;
-    }
-  }
-  if (newestDir === null) {
-    return null;
-  }
-  const manifest = JSON.parse(
-    readFileSync(join(appDir, newestDir, 'migration.json'), 'utf-8'),
-  ) as MigrationMetadata;
-  return manifest.to;
-}
-
-/**
- * Supplies an implicit `--from` for integration tests that predate the db-ref
- * default: when the db ref is absent but the on-disk graph is not, plan from
- * the graph tip (matching pre-change CLI behaviour). Callers that exercise the
- * implicit db default leave the db ref in place; greenfield scenarios clear it
- * with {@link clearDbRefForGreenfieldPlan}.
- */
-export function appendImplicitMigrationPlanFrom(
-  testDir: string,
-  extraArgs: readonly string[],
-): readonly string[] {
-  if (extraArgs.some((arg) => arg === '--from' || arg.startsWith('--from='))) {
-    return extraArgs;
-  }
-  const dbRefPath = join(testDir, 'migrations', 'app', 'refs', 'db.json');
-  if (existsSync(dbRefPath)) {
-    return extraArgs;
-  }
-  const tipHash = readMigrationGraphTipHash(testDir);
-  if (tipHash !== null) {
-    return [...extraArgs, '--from', tipHash];
-  }
-  return extraArgs;
 }
 
 export function clearDbRefForGreenfieldPlan(testDir: string): void {

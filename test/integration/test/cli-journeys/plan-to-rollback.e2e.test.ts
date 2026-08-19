@@ -18,6 +18,7 @@ import { withTempDir } from '../utils/cli-test-helpers';
 import {
   getLatestMigrationDir,
   type JourneyContext,
+  latestMigrationDirName,
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
@@ -59,7 +60,13 @@ withTempDir(({ createTempDir }) => {
         // Add phone (C2): swap source → emit → plan + apply add-phone. Marker at C2.
         swapContract(ctx, 'contract-phone');
         expect((await runContractEmit(ctx)).exitCode, 'emit C2').toBe(0);
-        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-phone', '--json']);
+        const plan1 = await planThenSelfEmit(ctx, [
+          '--name',
+          'add-phone',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--json',
+        ]);
         expect(plan1.exitCode, 'plan add-phone').toBe(0);
         const c2Hash = parseJsonOutput<PlanJson>(plan1).to;
         expect(c2Hash, 'C2 differs from C1').not.toBe(c1Hash);
@@ -72,6 +79,8 @@ withTempDir(({ createTempDir }) => {
         // contract.ts still holds the phone variant throughout.
         const rollbackTarget = `${addPhoneDir}^`;
         const planRollback = await planThenSelfEmit(ctx, [
+          '--from',
+          latestMigrationDirName(ctx),
           '--to',
           rollbackTarget,
           '--name',

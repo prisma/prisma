@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  latestMigrationDirName,
   planThenSelfEmit,
   runContractEmit,
   runMigrate,
@@ -50,7 +51,12 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-additive');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, 'P3.pre: emit v2').toBe(0);
-        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-name']);
+        const plan1 = await planThenSelfEmit(ctx, [
+          '--name',
+          'add-name',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(plan1.exitCode, 'P3.pre: plan v2').toBe(0);
         const apply1 = await runMigrate(ctx);
         expect(apply1.exitCode, 'P3.pre: apply v2').toBe(0);
@@ -59,7 +65,12 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-v3');
         const emit2 = await runContractEmit(ctx);
         expect(emit2.exitCode, 'P3.pre: emit v3').toBe(0);
-        const plan2 = await runMigrationPlan(ctx, ['--name', 'add-posts']);
+        const plan2 = await runMigrationPlan(ctx, [
+          '--name',
+          'add-posts',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(plan2.exitCode, 'P3.pre: plan v3').toBe(0);
 
         // Delete the add-posts migration directory (additive→v3 edge)
@@ -80,7 +91,12 @@ withTempDir(({ createTempDir }) => {
         expect(applyFail.exitCode, 'P3.02: migration apply fails').not.toBe(0);
 
         // P3.03: re-plan the missing edge (chain leaf is additive, contract is v3)
-        const rePlan = await planThenSelfEmit(ctx, ['--name', 're-add-posts']);
+        const rePlan = await planThenSelfEmit(ctx, [
+          '--name',
+          're-add-posts',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(rePlan.exitCode, 'P3.03: migration plan recovery').toBe(0);
 
         // P3.04: migration apply (applies the re-planned additive→v3 migration)

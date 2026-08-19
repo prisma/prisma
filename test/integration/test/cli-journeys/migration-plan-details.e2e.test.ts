@@ -19,6 +19,7 @@ import { withTempDir } from '../utils/cli-test-helpers';
 import {
   getLatestMigrationDir,
   type JourneyContext,
+  latestMigrationDirName,
   parseJsonOutput,
   planThenSelfEmit,
   runContractEmit,
@@ -136,7 +137,13 @@ withTempDir(({ createTempDir }) => {
         expect(emit1.exitCode, 'I.02: contract emit destructive').toBe(0);
 
         // I.03: plan drop-column migration
-        const planDrop = await runMigrationPlan(ctx, ['--name', 'drop-email', '--json']);
+        const planDrop = await runMigrationPlan(ctx, [
+          '--name',
+          'drop-email',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--json',
+        ]);
         expect(planDrop.exitCode, 'I.03: plan drop-email').toBe(0);
 
         const result = parseJsonOutput<{

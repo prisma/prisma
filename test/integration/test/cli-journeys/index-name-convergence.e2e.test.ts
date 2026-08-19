@@ -25,6 +25,7 @@ import {
   engineDocument,
   getLatestMigrationDir,
   type JourneyContext,
+  latestMigrationDirName,
   parseJsonOutput,
   planThenSelfEmit,
   runContractEmit,
@@ -105,7 +106,12 @@ withTempDir(({ createTempDir }) => {
         expect(emit2.exitCode, `contract emit wire\n${stripAnsi(emit2.stderr)}`).toBe(0);
 
         // the first widening plan is renames only, byte-asserted.
-        const plan = await planThenSelfEmit(ctx, ['--name', 'converge-index-names']);
+        const plan = await planThenSelfEmit(ctx, [
+          '--name',
+          'converge-index-names',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(plan.exitCode, `migration plan\n${stripAnsi(plan.stderr)}`).toBe(0);
         const ops = readPlannedOps(ctx);
         expect(

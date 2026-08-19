@@ -15,6 +15,7 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  latestMigrationDirName,
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
@@ -54,7 +55,13 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-phone');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, 'M.02: emit C2').toBe(0);
-        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-phone', '--json']);
+        const plan1 = await planThenSelfEmit(ctx, [
+          '--name',
+          'add-phone',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--json',
+        ]);
         expect(plan1.exitCode, 'M.02: plan C1→C2').toBe(0);
         const c2Hash = parseJsonOutput<{ to: string }>(plan1).to;
 

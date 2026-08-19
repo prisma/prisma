@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  latestMigrationDirName,
   parseJsonOutput,
   planThenSelfEmit,
   runContractEmit,
@@ -102,7 +103,12 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-unique-email');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, 'emit unique-email').toBe(0);
-        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-unique-email']);
+        const plan1 = await planThenSelfEmit(ctx, [
+          '--name',
+          'add-unique-email',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(plan1.exitCode, 'plan add-unique-email').toBe(0);
 
         // Apply fails because duplicate emails violate the unique constraint
@@ -173,7 +179,12 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-destructive');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, 'emit destructive').toBe(0);
-        const plan1 = await planThenSelfEmit(ctx, ['--name', 'drop-email']);
+        const plan1 = await planThenSelfEmit(ctx, [
+          '--name',
+          'drop-email',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(plan1.exitCode, 'plan drop-email').toBe(0);
 
         // Apply destructive migration
@@ -236,14 +247,24 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-additive');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, 'emit additive').toBe(0);
-        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-name']);
+        const plan1 = await planThenSelfEmit(ctx, [
+          '--name',
+          'add-name',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(plan1.exitCode, 'plan add-name').toBe(0);
 
         // Migration 3: drop email column (destructive)
         swapContract(ctx, 'contract-destructive');
         const emit2 = await runContractEmit(ctx);
         expect(emit2.exitCode, 'emit destructive').toBe(0);
-        const plan2 = await planThenSelfEmit(ctx, ['--name', 'drop-email']);
+        const plan2 = await planThenSelfEmit(ctx, [
+          '--name',
+          'drop-email',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(plan2.exitCode, 'plan drop-email').toBe(0);
 
         // Batch apply all three from empty DB

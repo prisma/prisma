@@ -15,6 +15,7 @@ import { withTempDir } from '../utils/cli-test-helpers';
 import {
   getLatestMigrationDir,
   type JourneyContext,
+  latestMigrationDirName,
   parseJsonOutput,
   planThenSelfEmit,
   runContractEmit,
@@ -106,7 +107,12 @@ withTempDir(({ createTempDir }) => {
         );
 
         // plan rename: the widening plan is exactly one ALTER POLICY … RENAME.
-        const plan = await planThenSelfEmit(ctx, ['--name', 'adopt-wire-name']);
+        const plan = await planThenSelfEmit(ctx, [
+          '--name',
+          'adopt-wire-name',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(plan.exitCode, `plan rename: migration plan\n${stripAnsi(plan.stderr)}`).toBe(0);
         const ops = readPlannedOps(ctx);
         expect(

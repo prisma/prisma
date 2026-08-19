@@ -28,6 +28,7 @@ import {
   engineDocument,
   getLatestMigrationDir,
   type JourneyContext,
+  latestMigrationDirName,
   parseJsonOutput,
   planThenSelfEmit,
   runContractEmit,
@@ -203,7 +204,12 @@ describe('sign a database this toolchain has never seen, then transition to wire
       expect(emitWire.exitCode, `3.2: emit wire\n${stripAnsi(emitWire.stderr)}`).toBe(0);
 
       // The widening plan is EXACTLY the two renames.
-      const plan = await planThenSelfEmit(ctx, ['--name', 'adopt-wire-names']);
+      const plan = await planThenSelfEmit(ctx, [
+        '--name',
+        'adopt-wire-names',
+        '--from',
+        latestMigrationDirName(ctx),
+      ]);
       expect(plan.exitCode, `3.3: migration plan\n${stripAnsi(plan.stderr)}`).toBe(0);
       const ops = readPlannedOps(ctx);
       expect(

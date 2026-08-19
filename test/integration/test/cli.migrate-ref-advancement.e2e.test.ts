@@ -4,7 +4,6 @@ import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import {
-  appendImplicitMigrationPlanFrom,
   type EngineRunResult,
   runMigrationFile,
   runOnEngine,
@@ -57,8 +56,7 @@ async function selfEmitLatestMigration(testDir: string): Promise<void> {
 }
 
 async function runMigrationPlan(project: Project, args: readonly string[]): Promise<void> {
-  const planArgs = appendImplicitMigrationPlanFrom(project.testDir, args);
-  const run = await runOnEngine(project, ['migration', 'plan', ...planArgs]);
+  const run = await runOnEngine(project, ['migration', 'plan', ...args]);
   expect(run.exitCode, `migration plan failed:\n${run.stderr}`).toBe(0);
   await selfEmitLatestMigration(project.testDir);
 }

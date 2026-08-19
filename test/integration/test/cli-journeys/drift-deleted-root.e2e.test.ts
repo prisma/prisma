@@ -16,6 +16,7 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  latestMigrationDirName,
   parseJsonOutput,
   planThenSelfEmit,
   runContractEmit,
@@ -50,7 +51,12 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-additive');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, 'P4.pre: emit v2').toBe(0);
-        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-name']);
+        const plan1 = await planThenSelfEmit(ctx, [
+          '--name',
+          'add-name',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(plan1.exitCode, 'P4.pre: plan add-name').toBe(0);
         const apply1 = await runMigrate(ctx);
         expect(apply1.exitCode, 'P4.pre: apply add-name').toBe(0);
@@ -74,9 +80,17 @@ withTempDir(({ createTempDir }) => {
         expect(statusOutput, 'P4.01: surviving migration visible').toMatch(/add_name/);
         expect(statusOutput, 'P4.01: not treated as empty').not.toContain('No migrations found');
 
-        // P4.02: migration plan uses the db ref even when the graph chain is
-        // broken — it must not silently greenfield-plan a duplicate init
-        const planAgain = await runMigrationPlan(ctx, ['--name', 'catch-up', '--json']);
+        // P4.02: planning from the surviving migration works even when the
+        // graph chain is broken — it must not silently greenfield-plan a
+        // duplicate init. The user names the surviving directory explicitly;
+        // without --from (and with no db ref) the CLI would plan greenfield.
+        const planAgain = await runMigrationPlan(ctx, [
+          '--name',
+          'catch-up',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--json',
+        ]);
         expect(planAgain.exitCode, 'P4.02: plan from db ref').toBe(0);
         const planResult = parseJsonOutput<{ from: string }>(planAgain);
         expect(planResult.from, 'P4.02: from is db ref not empty sentinel').not.toBe('empty');

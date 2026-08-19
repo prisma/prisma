@@ -119,11 +119,13 @@ withTempDir(({ createTempDir }) => {
           'prisma.config.emit.ts',
         );
 
-        const run = await runOnEngine(
-          testSetup,
-          ['contract', 'emit', '--config', 'nonexistent.config.ts', '--json'],
-          { settleConfigFailures: true },
-        );
+        const run = await runOnEngine(testSetup, [
+          'contract',
+          'emit',
+          '--config',
+          'nonexistent.config.ts',
+          '--json',
+        ]);
 
         // Config errors should have exit code 2
         expect(run.exitCode).toBe(2);

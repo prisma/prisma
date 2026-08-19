@@ -20,6 +20,7 @@ import { clearDbRefForGreenfieldPlan, withTempDir } from '../utils/cli-test-help
 import {
   getLatestMigrationDir,
   type JourneyContext,
+  latestMigrationDirName,
   parseJsonOutput,
   planThenSelfEmit,
   runContractEmit,
@@ -66,7 +67,12 @@ withTempDir(({ createTempDir }) => {
         expect(emit.exitCode, 'B.01: contract emit v2').toBe(0);
 
         // B.02: migration plan --name add-name-column
-        const plan = await runMigrationPlan(ctx, ['--name', 'add-name-column']);
+        const plan = await runMigrationPlan(ctx, [
+          '--name',
+          'add-name-column',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(plan.exitCode, 'B.02: migration plan').toBe(0);
         expect(stripAnsi(plan.stderr), 'B.02: shows migration').toContain('add-name-column');
 
@@ -131,8 +137,12 @@ withTempDir(({ createTempDir }) => {
 
         // --- Merged from Journey R: migration plan noop (contract unchanged) ---
 
-        // R.01: migration plan --json (no changes — contract matches leaf)
-        const planNoop = await runMigrationPlan(ctx, ['--json']);
+        // R.01: migration plan from the leaf (no changes — contract matches it)
+        const planNoop = await runMigrationPlan(ctx, [
+          '--from',
+          latestMigrationDirName(ctx),
+          '--json',
+        ]);
         expect(planNoop.exitCode, 'R.01: migration plan noop').toBe(0);
         const noopPlanData = parseJsonOutput(planNoop);
         expect(noopPlanData, 'R.01: noop flag').toMatchObject({ noOp: true });

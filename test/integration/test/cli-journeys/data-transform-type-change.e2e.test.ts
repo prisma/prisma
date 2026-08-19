@@ -24,6 +24,7 @@ import { withTempDir } from '../utils/cli-test-helpers';
 import {
   injectMigrationSqlDbSetup,
   type JourneyContext,
+  latestMigrationDirName,
   planThenSelfEmit,
   runContractEmit,
   runMigrate,
@@ -76,7 +77,12 @@ withTempDir(({ createTempDir }) => {
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, `emit int: ${emit1.stderr}`).toBe(0);
 
-        const planResult = await runMigrationPlan(ctx, ['--name', 'retype-score-to-int']);
+        const planResult = await runMigrationPlan(ctx, [
+          '--name',
+          'retype-score-to-int',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
         expect(planResult.exitCode, `plan: ${planResult.stderr}\n${planResult.stderr}`).toBe(0);
 
         const migrationsDir = join(ctx.testDir, 'migrations', 'app');

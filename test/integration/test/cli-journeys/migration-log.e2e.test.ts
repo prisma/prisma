@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  latestMigrationDirName,
   planThenSelfEmit,
   runContractEmit,
   runMigrate,
@@ -46,7 +47,14 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-additive');
         expect((await runContractEmit(ctx)).exitCode, 'emit v2').toBe(0);
         expect(
-          (await planThenSelfEmit(ctx, ['--name', 'add-name-column'])).exitCode,
+          (
+            await planThenSelfEmit(ctx, [
+              '--name',
+              'add-name-column',
+              '--from',
+              latestMigrationDirName(ctx),
+            ])
+          ).exitCode,
           'plan v2',
         ).toBe(0);
         expect((await runMigrate(ctx)).exitCode, 'apply v2').toBe(0);

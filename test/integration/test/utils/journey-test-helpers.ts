@@ -23,7 +23,6 @@ import { isAbsolute, join } from 'pathe';
 import { afterAll, beforeAll } from 'vitest';
 
 import {
-  appendImplicitMigrationPlanFrom,
   runOnEngine as runCommandOnEngine,
   runMigrationFile,
   writeProjectManifest,
@@ -353,11 +352,7 @@ export async function runMigrationPlan(
   extraArgs: readonly string[] = [],
   options?: RunCommandOptions,
 ): Promise<EngineCommandResult> {
-  return runOnEngine(
-    ctx,
-    ['migration', 'plan', ...appendImplicitMigrationPlanFrom(ctx.testDir, extraArgs)],
-    options,
-  );
+  return runOnEngine(ctx, ['migration', 'plan', ...extraArgs], options);
 }
 
 export async function runMigrationNew(
@@ -523,7 +518,7 @@ export async function selfEmitMigration(
 export async function planThenSelfEmit(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
-): Promise<CommandResult> {
+): Promise<EngineCommandResult> {
   const planResult = await runMigrationPlan(ctx, extraArgs);
   if (planResult.exitCode !== 0) return planResult;
   const latest = getLatestMigrationDir(ctx);
@@ -557,9 +552,7 @@ export async function runContractEmitWithConfig(
   configPath: string,
   extraArgs: readonly string[] = [],
 ): Promise<EngineCommandResult> {
-  return runCommandOnEngine({ testDir, configPath }, ['contract', 'emit', ...extraArgs], {
-    settleConfigFailures: true,
-  });
+  return runCommandOnEngine({ testDir, configPath }, ['contract', 'emit', ...extraArgs]);
 }
 
 export async function runFormat(
@@ -586,49 +579,23 @@ export async function runDbVerifyWithDb(
 // ---------------------------------------------------------------------------
 
 /**
- * The document a step's `--json` run produced.
- *
- * The two shells frame it differently and this unwraps both. The commander
- * writes the document itself; the engine writes one `StreamEvent` per line and
- * carries the document inside the terminal `result` frame's envelope — under
- * `result` when the command completed and under `error` when it did not, which
- * is where the commander put its error envelope too.
+ * The `--json` document a step produced. A step run through the engine
+ * carries it as the presented result when the handler presented; a step that
+ * settled without presenting (a config or orchestration error) carries the
+ * document in the terminal `result` frame's envelope — under `result` when
+ * the command completed and under `error` when it did not.
  */
-/**
- * The `--json` document a step produced. A step run through the engine already
- * carries it as the presented result — the engine's json mode writes NDJSON
- * frames rather than the bare document, so the document is read from the run
- * rather than parsed back out of stdout.
- */
-export function parseJsonOutput<T = Record<string, unknown>>(
-  result: CommandResult | EngineCommandResult,
-): T {
-  const presented = 'presented' in result ? result.presented : undefined;
-  if (presented !== undefined) {
-    return (presented.presentation.json ?? presented.data) as T;
+export function parseJsonOutput<T = Record<string, unknown>>(result: EngineCommandResult): T {
+  if (result.presented !== undefined) {
+    return (result.presented.presentation.json ?? result.presented.data) as T;
   }
-  const output = result.stdout.trim();
-  const parsed = lastJsonValue(output);
-  if (parsed === undefined) {
-    throw new Error(`Failed to parse JSON from command output:\n${output}`);
+  const terminal = result.json.at(-1);
+  if (terminal === undefined || terminal.kind !== 'result') {
+    throw new Error(
+      `Step produced no terminal result frame (exit ${result.exitCode}):\n${result.stderr}`,
+    );
   }
-  const document = frameDocument(parsed);
-  return (document === undefined ? parsed : document) as T;
-}
-
-function lastJsonValue(output: string): unknown {
-  try {
-    return JSON.parse(output);
-  } catch {
-    const lines = output.split('\n');
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const candidate = lines.slice(i).join('\n').trim();
-      try {
-        return JSON.parse(candidate);
-      } catch {}
-    }
-    return undefined;
-  }
+  return (terminal.envelope.ok ? terminal.envelope.result : terminal.envelope.error) as T;
 }
 
 /**
@@ -655,18 +622,6 @@ export function engineDiagnosticCodes(run: EngineCommandResult): readonly string
     throw new Error(`Step never presented a result (exit ${run.exitCode}):\n${run.stderr}`);
   }
   return presented.diagnostics.map((diagnostic) => diagnostic.code);
-}
-
-function frameDocument(parsed: unknown): unknown {
-  if (typeof parsed !== 'object' || parsed === null) {
-    return undefined;
-  }
-  const frame = parsed as { kind?: unknown; envelope?: unknown };
-  if (frame.kind !== 'result' || typeof frame.envelope !== 'object' || frame.envelope === null) {
-    return undefined;
-  }
-  const envelope = frame.envelope as { ok?: unknown; result?: unknown; error?: unknown };
-  return envelope.ok === true ? envelope.result : envelope.error;
 }
 
 export { EMPTY_CONTRACT_HASH };
@@ -722,7 +677,7 @@ export function engineError(result: EngineCommandResult): Diagnostic | undefined
   return terminal.envelope.error;
 }
 
-export function parseMigrationStatusJson(result: CommandResult): MigrationStatusJson {
+export function parseMigrationStatusJson(result: EngineCommandResult): MigrationStatusJson {
   return parseJsonOutput<MigrationStatusJson>(result);
 }
 
@@ -757,7 +712,8 @@ export function getMigrationDirs(ctx: JourneyContext): string[] {
   const migrationsDir = appMigrationsDir(ctx);
   if (!existsSync(migrationsDir)) return [];
   return readdirSync(migrationsDir)
-    .filter((d) => !d.startsWith('.'))
+    .filter((d) => !d.startsWith('.') && d !== 'refs')
+    .filter((d) => statSync(join(migrationsDir, d)).isDirectory())
     .sort();
 }
 
@@ -771,6 +727,21 @@ export function getMigrationDirs(ctx: JourneyContext): string[] {
  * mis-identified as "not the latest" if we just used `sort().at(-1)`. The
  * on-disk mtime always reflects the actual creation order.
  */
+/**
+ * The newest migration directory's name — what a user reads out of
+ * `migrations/app/` to continue planning from the tip (`--from <dir>`
+ * resolves to that migration's destination contract). Throws when the
+ * journey has no migrations yet, so call sites can pass it straight into
+ * argv.
+ */
+export function latestMigrationDirName(ctx: JourneyContext): string {
+  const latest = getLatestMigrationDir(ctx);
+  if (latest === undefined) {
+    throw new Error('latestMigrationDirName: the journey has no migration directories yet');
+  }
+  return latest;
+}
+
 export function getLatestMigrationDir(ctx: JourneyContext): string | undefined {
   const dirs = getMigrationDirs(ctx);
   if (dirs.length === 0) return undefined;

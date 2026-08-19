@@ -171,9 +171,7 @@ describe('emit command: additional fixtures', () => {
     );
 
     try {
-      const run = await runOnEngine(testSetup, ['contract', 'emit', '--json'], {
-        settleConfigFailures: true,
-      });
+      const run = await runOnEngine(testSetup, ['contract', 'emit', '--json']);
       expect(run.exitCode).toBe(2);
 
       const terminal = run.json.at(-1);

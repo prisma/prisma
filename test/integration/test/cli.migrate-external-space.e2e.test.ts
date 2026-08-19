@@ -30,7 +30,6 @@ import {
   TEST_EXTERNAL_SPACE_ID,
 } from './contract-space-fixture/external-space';
 import {
-  appendImplicitMigrationPlanFrom,
   type EngineRunResult,
   runMigrationFile,
   runOnEngine,
@@ -83,8 +82,7 @@ async function runMigrationPlan(
   project: Project,
   args: readonly string[],
 ): Promise<EngineRunResult> {
-  const planArgs = appendImplicitMigrationPlanFrom(project.testDir, args);
-  const run = await runOnEngine(project, ['migration', 'plan', ...planArgs]);
+  const run = await runOnEngine(project, ['migration', 'plan', ...args]);
   if (run.exitCode === 0) {
     await selfEmitLatestMigration(project.testDir);
   }

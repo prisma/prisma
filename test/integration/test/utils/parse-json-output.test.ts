@@ -1,28 +1,76 @@
 import { describe, expect, it } from 'vitest';
+import type { EngineCommandResult } from './journey-test-helpers';
 import { parseJsonOutput } from './journey-test-helpers';
 
-function result(stdout: string) {
-  return { exitCode: 0, stdout, stderr: '' };
+function engineResult(overrides: Partial<EngineCommandResult>): EngineCommandResult {
+  return {
+    exitCode: 0,
+    stdout: '',
+    stderr: '',
+    events: [],
+    json: [],
+    presented: undefined,
+    ...overrides,
+  };
 }
 
+const meta = { commandId: 'test', timestamp: '2026-01-01T00:00:00.000Z' };
+
 describe('parseJsonOutput', () => {
-  it('unwraps the document from an engine result frame', () => {
-    const frame = { kind: 'result', envelope: { ok: true, result: { ok: true, summary: 'done' } } };
-    expect(parseJsonOutput(result(JSON.stringify(frame)))).toEqual({ ok: true, summary: 'done' });
+  it('reads the presented document when the handler presented', () => {
+    const run = engineResult({
+      presented: {
+        data: { ok: true, summary: 'done' },
+        diagnostics: [],
+        presentation: {},
+      } as unknown as EngineCommandResult['presented'],
+    });
+    expect(parseJsonOutput(run)).toEqual({ ok: true, summary: 'done' });
   });
 
-  it('unwraps the error from a failed engine result frame', () => {
-    const frame = { kind: 'result', envelope: { ok: false, error: { code: 'CLI.UNEXPECTED' } } };
-    expect(parseJsonOutput(result(JSON.stringify(frame)))).toEqual({ code: 'CLI.UNEXPECTED' });
+  it('unwraps the document from the terminal result frame when nothing was presented', () => {
+    const run = engineResult({
+      json: [
+        {
+          kind: 'result',
+          envelope: {
+            ok: true,
+            commandId: 'test',
+            exitCode: 0,
+            result: { summary: 'done' },
+            diagnostics: [],
+            nextActions: [],
+          },
+          ...meta,
+        },
+      ],
+    });
+    expect(parseJsonOutput(run)).toEqual({ summary: 'done' });
   });
 
-  it('preserves a null terminal document instead of returning the frame', () => {
-    const frame = { kind: 'result', envelope: { ok: true, result: null } };
-    expect(parseJsonOutput<null>(result(JSON.stringify(frame)))).toBeNull();
+  it('unwraps the error from a failed terminal result frame', () => {
+    const error = {
+      code: 'CLI.UNEXPECTED' as const,
+      severity: 'error' as const,
+      summary: 'boom',
+      nextActions: [],
+    };
+    const run = engineResult({
+      exitCode: 2,
+      json: [
+        {
+          kind: 'result',
+          envelope: { ok: false, commandId: 'test', error, diagnostics: [], nextActions: [] },
+          ...meta,
+        },
+      ],
+    });
+    expect(parseJsonOutput(run)).toEqual(error);
   });
 
-  it('returns a commander-written document as-is', () => {
-    const document = { ok: true, migrations: [] };
-    expect(parseJsonOutput(result(JSON.stringify(document)))).toEqual(document);
+  it('throws when the run produced neither a presented result nor a terminal frame', () => {
+    expect(() => parseJsonOutput(engineResult({ exitCode: 1, stderr: 'boom' }))).toThrow(
+      /no terminal result frame/,
+    );
   });
 });

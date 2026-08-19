@@ -19,6 +19,7 @@ import { withTempDir } from '../utils/cli-test-helpers';
 import {
   EMPTY_CONTRACT_HASH,
   type JourneyContext,
+  latestMigrationDirName,
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
@@ -193,7 +194,12 @@ withTempDir(({ createTempDir }) => {
           swapContract(ctx, 'contract-additive');
           const emit1 = await runContractEmit(ctx);
           expect(emit1.exitCode, 'emit v2').toBe(0);
-          const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-field']);
+          const plan1 = await planThenSelfEmit(ctx, [
+            '--name',
+            'add-field',
+            '--from',
+            latestMigrationDirName(ctx),
+          ]);
           expect(plan1.exitCode, 'plan v2').toBe(0);
 
           const status = await runMigrationStatus(ctx);
