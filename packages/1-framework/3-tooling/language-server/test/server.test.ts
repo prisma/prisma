@@ -419,12 +419,11 @@ function startHarness(
     getDocumentAst: (uri) => server.getDocumentAst(uri),
     getProjectSymbolTable: (uri) => server.getProjectSymbolTable(uri),
     dispose: () => {
-      // Dispose the server first: this sets its `disposed` flag before the
-      // transport dies, so an in-flight `publish` rejection is swallowed by
-      // the guard in `publishSafely` instead of being logged through a
-      // connection that the client has already torn down (which would throw
-      // "Connection is disposed" inside a fire-and-forget notification and
-      // surface as an unhandled rejection).
+      // Dispose the server first, so its connection is gone before the
+      // transport dies. Sends made after that point — an in-flight `publish`
+      // reporting diagnostics, or `publishSafely` logging a failure — go
+      // through the guarded connection, which drops a send the connection
+      // refuses rather than letting it throw inside a fire-and-forget call.
       server.dispose();
       client.dispose();
       clientToServer.end();
