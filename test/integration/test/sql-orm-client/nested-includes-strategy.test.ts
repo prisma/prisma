@@ -410,48 +410,6 @@ describe('integration/nested-includes/strategy', () => {
     );
 
     it(
-      'distinct(cols).orderBy().take().sum() aggregates the ordered top-N deduped rows',
-      async () => {
-        await withCollectionRuntime(async (runtime) => {
-          await seedUsers(runtime, [{ id: 1, name: 'Alice', email: 'alice@example.com' }]);
-          await seedPosts(runtime, [
-            { id: 10, title: 'A', userId: 1, views: 100 },
-            { id: 11, title: 'A', userId: 1, views: 200 },
-            { id: 12, title: 'B', userId: 1, views: 50 },
-            { id: 13, title: 'B', userId: 1, views: 300 },
-            { id: 14, title: 'C', userId: 1, views: 400 },
-          ]);
-
-          const users = collectionWithCapabilities(runtime, 'User', CORRELATED_CAPABILITIES);
-          runtime.resetExecutions();
-          const rows = await users
-            .include('posts', (posts) =>
-              posts
-                .distinct('title')
-                .orderBy((post) => post.views.desc())
-                .take(2)
-                .sum('views'),
-            )
-            .all();
-
-          // Deduped reps: views = [200, 300, 400]; ordered top 2 = [400, 300]; sum = 700.
-          expect(rows).toEqual([
-            {
-              id: 1,
-              name: 'Alice',
-              email: 'alice@example.com',
-              invitedById: null,
-              address: null,
-              posts: 700,
-            },
-          ]);
-          expect(runtime.executions).toHaveLength(1);
-        });
-      },
-      timeouts.spinUpPpgDev,
-    );
-
-    it(
       'combine({ rows, count }) resolves in a single execution',
       async () => {
         await withCollectionRuntime(async (runtime) => {
@@ -490,51 +448,6 @@ describe('integration/nested-includes/strategy', () => {
               },
             },
           ]);
-          expect(runtime.executions).toHaveLength(1);
-        });
-      },
-      timeouts.spinUpPpgDev,
-    );
-  });
-
-  // ===========================================================================
-  // Sentinel coverage for the dispatch boundary: include trees with
-  // `distinct()` on a non-leaf level must resolve via the single
-  // correlated query. A regression that flips dispatch back to
-  // multi-query is caught here at the dispatch boundary, not only
-  // downstream in the dedicated distinct suites.
-  //
-  // Result-shape coverage — hasMany/belongsTo grandchild variants, force-
-  // included join keys, depth-3 trees, self-relations, refinements,
-  // empty grandchildren — lives in:
-  //   - test/integration/nested-includes-distinct.test.ts
-  //   - test/integration/nested-includes-distinct-refinements.test.ts
-  // ===========================================================================
-
-  describe('non-leaf includes with distinct() resolve in a single SQL execution', () => {
-    it(
-      'distinct() on a non-leaf include resolves in 1 execution',
-      async () => {
-        await withCollectionRuntime(async (runtime) => {
-          await seedUsers(runtime, [{ id: 1, name: 'Alice', email: 'alice@example.com' }]);
-          await seedPosts(runtime, [
-            { id: 10, title: 'A', userId: 1, views: 1 },
-            { id: 11, title: 'B', userId: 1, views: 2 },
-          ]);
-          await seedComments(runtime, [{ id: 100, body: 'c', postId: 10 }]);
-
-          const users = collectionWithCapabilities(runtime, 'User', CORRELATED_CAPABILITIES);
-          runtime.resetExecutions();
-          await users
-            .include('posts', (posts) =>
-              posts
-                .select('title')
-                .distinct('title')
-                .orderBy((p) => p.title.asc())
-                .include('comments'),
-            )
-            .orderBy((u) => u.id.asc())
-            .all();
           expect(runtime.executions).toHaveLength(1);
         });
       },

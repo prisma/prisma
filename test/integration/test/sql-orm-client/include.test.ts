@@ -239,64 +239,6 @@ describe('integration/include', () => {
     timeouts.spinUpPpgDev,
   );
 
-  // `distinct(cols).orderBy(c).take(N).sum(...)` must aggregate the
-  // ordered top-N deduped rows. The ROW_NUMBER dedup wrap strips
-  // ordering from its output; without reapplying orderBy on the wrap
-  // result, LIMIT slices an implementation-defined subset and SUM /
-  // AVG / MIN / MAX over that subset gives an arbitrary value. The
-  // seed below is designed so the ordered-top-N sum (700) is distinct
-  // from any plausible default-order slice.
-  it(
-    'distinct(cols).orderBy().take().sum() aggregates the ordered top-N deduped rows',
-    async () => {
-      await withCollectionRuntime(async (runtime) => {
-        const users = createUsersCollection(runtime);
-
-        await seedUsers(runtime, [{ id: 1, name: 'Alice', email: 'alice@example.com' }]);
-        // Two pairs of posts share a title; dedup by title picks the
-        // higher-views representative from each pair. The post with
-        // unique title C contributes itself.
-        //   - title A: max-views representative = (id 11, views 200)
-        //   - title B: max-views representative = (id 13, views 300)
-        //   - title C: (id 14, views 400)
-        // Deduped set (3 rows): views = [200, 300, 400]
-        // orderBy(views.desc()).take(2)         => [400, 300]
-        // sum('views')                          => 700
-        await seedPosts(runtime, [
-          { id: 10, title: 'A', userId: 1, views: 100 },
-          { id: 11, title: 'A', userId: 1, views: 200 },
-          { id: 12, title: 'B', userId: 1, views: 50 },
-          { id: 13, title: 'B', userId: 1, views: 300 },
-          { id: 14, title: 'C', userId: 1, views: 400 },
-        ]);
-
-        runtime.resetExecutions();
-        const rows = await users
-          .include('posts', (posts) =>
-            posts
-              .distinct('title')
-              .orderBy((post) => post.views.desc())
-              .take(2)
-              .sum('views'),
-          )
-          .all();
-
-        expect(rows).toEqual([
-          {
-            id: 1,
-            name: 'Alice',
-            email: 'alice@example.com',
-            invitedById: null,
-            address: null,
-            posts: 700,
-          },
-        ]);
-        expect(runtime.executions).toHaveLength(1);
-      });
-    },
-    timeouts.spinUpPpgDev,
-  );
-
   it(
     'include() supports scalar sum() on to-many relations',
     async () => {

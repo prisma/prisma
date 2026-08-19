@@ -71,7 +71,7 @@ describe('integration/pagination', () => {
 
         const rows = await users
           .select('email')
-          .distinct('email')
+          .distinct()
           .orderBy((user) => user.email.asc())
           .all();
 
