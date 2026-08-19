@@ -133,10 +133,11 @@ describe('errorPathUnreachable', () => {
   });
 
   it('composes buildNeverPlannedFailure why with the fix into one plan-then-apply sequence', () => {
-    const failure = buildNeverPlannedFailure('app', targetHash);
+    const failure = buildNeverPlannedFailure('app', targetHash, 'migrations-postgres');
     const envelope = errorPathUnreachable(failure).toEnvelope();
 
     expect(envelope.why).toContain(targetHash);
+    expect(envelope.why).toContain('migrations-postgres/app/');
     expect(envelope.why?.toLowerCase()).toContain('no migrations');
     expect(envelope.why).not.toContain('migration plan');
 

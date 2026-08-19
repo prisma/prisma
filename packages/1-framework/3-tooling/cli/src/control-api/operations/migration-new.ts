@@ -117,7 +117,7 @@ export async function executeMigrationNewCommand(
     deserializeContract: (json) => familyInstance.deserializeContract(json),
     appContract: toContract,
   });
-  const packageCorruptionFailure = refusePackageCorruptionOnAggregate(aggregate);
+  const packageCorruptionFailure = refusePackageCorruptionOnAggregate(aggregate, migrationsDir);
   if (packageCorruptionFailure) {
     return notOk(packageCorruptionFailure);
   }

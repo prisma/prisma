@@ -287,7 +287,7 @@ export const migrationStatusCommand = defineOrmCommand({
     }
 
     if ((await loadContractRawSafely(contractConfig)) !== null) {
-      const corruption = refusePackageCorruptionOnAggregate(aggregate);
+      const corruption = refusePackageCorruptionOnAggregate(aggregate, migrationsDir);
       if (corruption) {
         return notOk(normalizeError(corruption));
       }

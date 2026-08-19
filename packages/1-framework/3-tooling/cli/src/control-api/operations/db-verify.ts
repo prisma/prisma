@@ -147,7 +147,13 @@ export async function executeDbVerify<TFamilyId extends string, TTargetId extend
     ...ifDefined('classifySubjectGranularity', classifySubjectGranularity),
     ...ifDefined('classifyEntityKind', classifyEntityKind),
   });
-  return finaliseVerifyResult({ verifyResult, aggregate, skipMarker, onProgress });
+  return finaliseVerifyResult({
+    verifyResult,
+    aggregate,
+    skipMarker,
+    onProgress,
+    migrationsDir: options.migrationsDir,
+  });
 }
 
 function buildLoadInputs<TFamilyId extends string, TTargetId extends string>(
@@ -257,8 +263,9 @@ function finaliseVerifyResult(args: {
   };
   skipMarker: boolean;
   onProgress: OnControlProgress | undefined;
+  migrationsDir: string;
 }): ExecuteDbVerifyResult {
-  const { verifyResult, aggregate, skipMarker, onProgress } = args;
+  const { verifyResult, aggregate, skipMarker, onProgress, migrationsDir } = args;
   if (!verifyResult.ok) {
     emitVerifySpan(onProgress, 'spanEndError');
     return notOk(
@@ -275,7 +282,7 @@ function finaliseVerifyResult(args: {
   }
   const markerDrift = skipMarker
     ? null
-    : mapMarkerCheckFailures(aggregate.app.spaceId, verifyResult.value.markerCheck);
+    : mapMarkerCheckFailures(aggregate.app.spaceId, verifyResult.value.markerCheck, migrationsDir);
   emitVerifySpan(onProgress, markerDrift === null ? 'spanEndOk' : 'spanEndError');
   return ok({
     schemaResults: verifyResult.value.schemaCheck.perSpace,
@@ -323,6 +330,7 @@ function mapMarkerCheckFailures(
     >;
     readonly orphanMarkers: readonly { readonly spaceId: string; readonly row: unknown }[];
   },
+  migrationsDir: string,
 ): CliStructuredError | null {
   const violations: Array<{
     kind: string;
@@ -338,7 +346,7 @@ function mapMarkerCheckFailures(
         remediation:
           spaceId === appSpaceId
             ? 'Run `prisma-cli db update` to advance the marker, or roll the database back to the recorded hash.'
-            : `Apply on-disk migrations under \`migrations/${spaceId}/\` to advance the marker, or remove the conflicting marker row.`,
+            : `Apply on-disk migrations under \`${migrationsDir}/${spaceId}/\` to advance the marker, or remove the conflicting marker row.`,
       });
       continue;
     }
@@ -346,7 +354,7 @@ function mapMarkerCheckFailures(
       violations.push({
         kind: 'invariantsMismatch',
         spaceId,
-        remediation: `Re-apply the migrations under \`migrations/${spaceId}/\` so the marker carries invariants: ${result.missing.join(', ')}.`,
+        remediation: `Re-apply the migrations under \`${migrationsDir}/${spaceId}/\` so the marker carries invariants: ${result.missing.join(', ')}.`,
       });
     }
   }
@@ -364,7 +372,7 @@ function mapMarkerCheckFailures(
       ? 'Contract-space verifier found a violation'
       : `Contract-space verifier found violations (${violations.length})`;
   return new CliStructuredError('MIGRATION.CONTRACT_SPACE_VIOLATION', summary, {
-    why: `The on-disk \`migrations/\` directory, the \`extensions\` declaration, and the live database marker rows are not in agreement.\n${lines.join('\n')}`,
+    why: `The on-disk \`${migrationsDir}/\` directory, the \`extensions\` declaration, and the live database marker rows are not in agreement.\n${lines.join('\n')}`,
     fix: violations[0]?.remediation ?? 'Review and reconcile the violations listed above.',
     docsUrl: 'https://pris.ly/contract-spaces',
     meta: { violations },
