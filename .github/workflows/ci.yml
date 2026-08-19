@@ -79,11 +79,18 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          # `check:upgrade-coverage` diffs HEAD against `origin/main`; needs
-          # enough history for `git diff origin/main..HEAD` to resolve.
+          # The per-PR gates diff HEAD against the branch this PR targets;
+          # needs enough history for `git diff origin/<base>..HEAD` to resolve.
           fetch-depth: 0
-      - name: Fetch base branch (origin/main)
-        run: git fetch --no-tags origin main:refs/remotes/origin/main
+      # A stacked PR targets the branch below it, not main, so the gates have
+      # to diff against that branch: judged against main, every PR in a stack
+      # carries the whole stack's diff and must repeat work its parent already
+      # declared. `github.base_ref` is empty outside pull_request events
+      # (merge_group, push), where main is the right comparison.
+      - name: Fetch the base branch this PR targets
+        env:
+          BASE: ${{ github.base_ref || 'main' }}
+        run: git fetch --no-tags origin "$BASE:refs/remotes/origin/$BASE"
       - uses: ./.github/actions/setup
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -127,11 +134,15 @@ jobs:
       - name: Lint publishability matches the directory layout
         run: pnpm lint:publishability
       - name: Check upgrade-instruction coverage
-        run: pnpm check:upgrade-coverage --mode pr
+        env:
+          BASE: ${{ github.base_ref || 'main' }}
+        run: pnpm check:upgrade-coverage --mode pr --prev "origin/$BASE"
       - name: Check error-reference completeness
         run: pnpm check:error-reference
       - name: Check release notes
-        run: pnpm check:release-notes --mode pr
+        env:
+          BASE: ${{ github.base_ref || 'main' }}
+        run: pnpm check:release-notes --mode pr --prev "origin/$BASE"
 
   fixtures:
     name: Fixtures
