@@ -223,6 +223,25 @@ describe('integration/aggregate (sqlite)', { timeout: timeouts.databaseOperation
       });
     });
 
+    it('post-group skip() without take() emits OFFSET with no LIMIT', async () => {
+      await withPostsRuntime(async (_runtime, posts) => {
+        const grouped = await posts
+          .groupBy('userId')
+          .orderBy((group) => group.userId.asc())
+          .skip(1)
+          .aggregate((aggregate) => ({ count: dynamicAggregate(aggregate)['count']!() }));
+
+        // Three distinct groups exist (userId 1, 2, 3); skip(1) with no take()
+        // drops the first group by userId and returns all-but-the-first —
+        // the same "SQLite has no standalone OFFSET" renderer path root-level
+        // skip() already exercises above, now pinned for the grouped select.
+        expect(grouped).toEqual([
+          { userId: 2, count: 2 },
+          { userId: 3, count: 1 },
+        ]);
+      });
+    });
+
     it('pre-group and post-group pagination both apply, in the same chain', async () => {
       await withPostsRuntime(async (_runtime, posts) => {
         const grouped = await posts
