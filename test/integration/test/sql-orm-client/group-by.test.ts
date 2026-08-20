@@ -37,6 +37,36 @@ describe('integration/groupBy', () => {
   );
 
   it(
+    'take() before groupBy() scopes the rows that get grouped',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        const posts = createPostsCollection(runtime);
+
+        await seedPosts(runtime, [
+          { id: 10, title: 'A', userId: 1, views: 10 },
+          { id: 11, title: 'B', userId: 1, views: 20 },
+          { id: 12, title: 'C', userId: 1, views: 30 },
+        ]);
+
+        // If the derived table the row-scope wrap builds didn't project
+        // `user_id` (the group key), GROUP BY would resolve against a column
+        // absent from its own FROM and the query would error outright,
+        // failing this test loudly rather than passing on the wrong count.
+        const grouped = await posts
+          .orderBy((post) => post.views.desc())
+          .take(2)
+          .groupBy('userId')
+          .aggregate((aggregate) => ({ count: aggregate.count() }));
+
+        // Only the top 2 by views (30, 20) are grouped; the count would be 3
+        // if take() were silently dropped instead of scoping the input rows.
+        expect(grouped).toEqual([{ userId: 1, count: 2 }]);
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
     'having() filters grouped rows by aggregate predicates',
     async () => {
       await withCollectionRuntime(async (runtime) => {

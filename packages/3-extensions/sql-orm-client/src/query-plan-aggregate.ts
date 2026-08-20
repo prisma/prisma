@@ -25,7 +25,6 @@ import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
 import { buildAggregateInput, buildMtiJoins, buildStateWhere } from './query-plan-source';
 import { tableSourceForContract } from './storage-resolution';
 import type { AggregateSelector, CollectionState } from './types';
-import { combineWhereExprs } from './where-utils';
 
 function toAggregateProjection(
   contract: Contract<SqlStorage>,
@@ -186,8 +185,9 @@ function aggregateInputColumns(
   tableName: string,
   entries: ReadonlyArray<[string, AggregateSelector<unknown>]>,
   orderBy: ReadonlyArray<OrderByItem> | undefined,
+  groupByColumns: ReadonlyArray<string> = [],
 ): ProjectionItem[] {
-  const columns = new Set<string>();
+  const columns = new Set<string>(groupByColumns);
   for (const [, selector] of entries) {
     if (selector.column !== undefined) {
       columns.add(selector.column);
@@ -320,6 +320,10 @@ export function compileGroupedAggregate(
     );
   }
 
+  if (preGroupState.distinctOn !== undefined && preGroupState.distinctOn.length > 0) {
+    assertDistinctOnCapability(contract, 'distinctOn');
+  }
+
   const projection: ProjectionItem[] = [
     ...groupByColumns.map((column) =>
       ProjectionItem.of(
@@ -340,12 +344,33 @@ export function compileGroupedAggregate(
     }),
   ];
 
-  let ast = SelectAst.from(tableSourceForContract(contract, namespaceId, tableName))
-    .withProjection(projection)
-    .withGroupBy(groupByColumns.map((column) => ColumnRef.of(tableName, column)));
-  const where = combineWhereExprs(preGroupState.filters);
-  if (where) {
-    ast = ast.withWhere(where);
+  const hasPagination = preGroupState.limit !== undefined || preGroupState.offset !== undefined;
+  const hasDistinct =
+    (preGroupState.distinct !== undefined && preGroupState.distinct.length > 0) ||
+    (preGroupState.distinctOn !== undefined && preGroupState.distinctOn.length > 0);
+  const needsInputSelect = hasPagination || hasDistinct;
+
+  let ast: SelectAst;
+  if (needsInputSelect) {
+    const { source } = buildAggregateInput(
+      contract,
+      namespaceId,
+      tableName,
+      preGroupState,
+      undefined,
+      aggregateInputColumns(tableName, entries, preGroupState.orderBy, groupByColumns),
+    );
+    ast = SelectAst.from(source)
+      .withProjection(projection)
+      .withGroupBy(groupByColumns.map((column) => ColumnRef.of(tableName, column)));
+  } else {
+    ast = SelectAst.from(tableSourceForContract(contract, namespaceId, tableName))
+      .withProjection(projection)
+      .withGroupBy(groupByColumns.map((column) => ColumnRef.of(tableName, column)));
+    const where = buildStateWhere(contract, tableName, preGroupState, { namespaceId });
+    if (where) {
+      ast = ast.withWhere(where);
+    }
   }
 
   if (havingExpr) {
