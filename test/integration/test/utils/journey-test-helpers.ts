@@ -477,9 +477,9 @@ export function injectMigrationSqlDbSetup(scaffold: string): string {
 }
 
 /**
- * Self-emits a migration package by running its `migration.ts` in-process (see
- * {@link runMigrationFile}), which serializes the class's `operations` to
- * `ops.json` and attests `migration.json` in the package directory.
+ * Runs a migration package's `migration.ts` in-process so it writes its own
+ * `ops.json` and attested `migration.json` into the package directory
+ * (self-emission; see {@link runMigrationFile}).
  *
  * Accepts a trailing `--dir <path>` pair (relative to `ctx.testDir`) naming
  * the migration package whose `migration.ts` to run. Any other arguments are
@@ -507,15 +507,15 @@ export async function selfEmitMigration(
 }
 
 /**
- * Runs `migration plan` and then self-emits the resulting draft `migration.ts`
- * in-process (see {@link runMigrationFile}). Journey steps that just need "a
- * planned and emitted migration" use this instead of spelling both steps out.
+ * Runs `migration plan` (which scaffolds a draft migration.ts), then runs
+ * that migration.ts in-process so it writes its own ops.json and
+ * migration.json (self-emission; see {@link runMigrationFile}).
  *
- * Returns the original plan result (so JSON callers still see the plan's
- * stdout). If plan fails, the self-emit is skipped. If the self-emit fails,
- * the returned result carries that failure via `exitCode`/`stderr`.
+ * Returns the plan result (so JSON callers still see the plan's stdout). If
+ * plan fails, the self-emit is skipped. If the self-emit fails, the returned
+ * result carries that failure via `exitCode`/`stderr`.
  */
-export async function planThenSelfEmit(
+export async function planMigrationAndSelfEmit(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
 ): Promise<EngineCommandResult> {
@@ -528,7 +528,7 @@ export async function planThenSelfEmit(
     return {
       ...planResult,
       exitCode: emitResult.exitCode,
-      stderr: `${planResult.stderr}\n[planThenSelfEmit] migration.ts self-emit failed (exit ${emitResult.exitCode}):\n${emitResult.stderr}`,
+      stderr: `${planResult.stderr}\n[planMigrationAndSelfEmit] migration.ts self-emit failed (exit ${emitResult.exitCode}):\n${emitResult.stderr}`,
     };
   }
   return planResult;
@@ -746,13 +746,23 @@ export function getLatestMigrationDir(ctx: JourneyContext): string | undefined {
   const dirs = getMigrationDirs(ctx);
   if (dirs.length === 0) return undefined;
   const migrationsDir = appMigrationsDir(ctx);
+  const createdAtOf = (dir: string): string => {
+    const manifestPath = join(migrationsDir, dir, 'migration.json');
+    if (!existsSync(manifestPath)) return '';
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as { createdAt?: string };
+    return manifest.createdAt ?? '';
+  };
+  // Newest by the manifest's own createdAt (directory mtime ties on coarse
+  // filesystems, and the minute-precision dir-name prefix cannot break a
+  // same-minute tie); equal timestamps fall back to the lexicographically
+  // last dir name so the choice is deterministic either way.
   let newest = dirs[0]!;
-  let newestMtime = statSync(join(migrationsDir, newest)).mtimeMs;
+  let newestCreatedAt = createdAtOf(newest);
   for (let i = 1; i < dirs.length; i++) {
     const dir = dirs[i]!;
-    const mtime = statSync(join(migrationsDir, dir)).mtimeMs;
-    if (mtime > newestMtime) {
-      newestMtime = mtime;
+    const createdAt = createdAtOf(dir);
+    if (createdAt > newestCreatedAt || (createdAt === newestCreatedAt && dir > newest)) {
+      newestCreatedAt = createdAt;
       newest = dir;
     }
   }

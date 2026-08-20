@@ -18,7 +18,7 @@ import {
   declarePgvectorExtension,
   type EngineCommandResult,
   type JourneyContext,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runMigrationShow,
   setupJourney,
@@ -57,7 +57,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
+        const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         setupUnmigratedExtensionsState(ctx);
@@ -75,7 +75,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
+        const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         setupUnmigratedExtensionsState(ctx);
@@ -106,7 +106,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
+        const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         setupUnmigratedExtensionsState(ctx);

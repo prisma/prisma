@@ -9,7 +9,7 @@ import {
   getMigrationDirs,
   type JourneyContext,
   parseJsonOutput,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runDbInit,
   runDbUpdate,
@@ -325,7 +325,7 @@ withTempDir(({ createTempDir }) => {
         await withDevDatabase(async ({ connectionString }) => {
           await withJourney(createTempDir, connectionString, async (ctx) => {
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+            const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
             expect(plan0.exitCode).toBe(0);
             const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
             expect((await runMigrate(ctx)).exitCode).toBe(0);
@@ -355,7 +355,9 @@ withTempDir(({ createTempDir }) => {
         await withDevDatabase(async ({ connectionString }) => {
           await withJourney(createTempDir, connectionString, async (ctx) => {
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planThenSelfEmit(ctx, ['--name', 'init', '--json'])).exitCode).toBe(0);
+            expect(
+              (await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json'])).exitCode,
+            ).toBe(0);
             expect((await runMigrate(ctx)).exitCode).toBe(0);
 
             swapContract(ctx, 'contract-additive');

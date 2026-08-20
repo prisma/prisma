@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runDbVerify,
   runMigrate,
@@ -38,7 +38,7 @@ withTempDir(({ createTempDir }) => {
         // Precondition: plan initial migration (∅ → base)
         const emit0 = await runContractEmit(ctx);
         expect(emit0.exitCode, 'C.pre: emit base').toBe(0);
-        const planInit = await planThenSelfEmit(ctx, ['--name', 'initial']);
+        const planInit = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
         expect(planInit.exitCode, 'C.pre: plan initial').toBe(0);
 
         // C.01: Swap to contract-additive, contract emit
@@ -47,7 +47,7 @@ withTempDir(({ createTempDir }) => {
         expect(emit1.exitCode, 'C.01: contract emit v2').toBe(0);
 
         // C.02: migration plan --name add-name
-        const plan1 = await planThenSelfEmit(ctx, ['--name', 'add-name']);
+        const plan1 = await planMigrationAndSelfEmit(ctx, ['--name', 'add-name']);
         expect(plan1.exitCode, 'C.02: migration plan v2').toBe(0);
 
         // C.03: Swap to contract-v3, contract emit
@@ -56,7 +56,7 @@ withTempDir(({ createTempDir }) => {
         expect(emit2.exitCode, 'C.03: contract emit v3').toBe(0);
 
         // C.04: migration plan --name add-posts
-        const plan2 = await planThenSelfEmit(ctx, ['--name', 'add-posts']);
+        const plan2 = await planMigrationAndSelfEmit(ctx, ['--name', 'add-posts']);
         expect(plan2.exitCode, 'C.04: migration plan v3').toBe(0);
 
         // C.05: migration status --db (2 pending)
@@ -66,9 +66,9 @@ withTempDir(({ createTempDir }) => {
         // Should show at least 2 pending
         expect(pendingOutput, 'C.05: shows pending migrations').toContain('pending');
 
-        // C.06: migrate --db (applies both)
+        // migrate --db (applies both)
         const apply = await runMigrate(ctx);
-        expect(apply.exitCode, 'C.06: migrate all').toBe(0);
+        expect(apply.exitCode, 'migrate applies both steps').toBe(0);
 
         // C.07: migration status --db (all applied)
         const statusApplied = await runMigrationStatus(ctx);

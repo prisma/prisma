@@ -17,7 +17,7 @@ import {
   type JourneyContext,
   latestMigrationDirName,
   parseJsonOutput,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runDbSign,
   runDbVerify,
@@ -89,7 +89,7 @@ withTempDir(({ createTempDir }) => {
         ).toBe(0);
 
         // baseline: EMPTY → adopted contract; no-op on apply.
-        const planBaseline = await planThenSelfEmit(ctx, ['--name', 'baseline']);
+        const planBaseline = await planMigrationAndSelfEmit(ctx, ['--name', 'baseline']);
         expect(planBaseline.exitCode, `baseline: plan\n${stripAnsi(planBaseline.stderr)}`).toBe(0);
         const applyBaseline = await runMigrate(ctx, ['--json']);
         expect(applyBaseline.exitCode, `baseline: apply\n${stripAnsi(applyBaseline.stderr)}`).toBe(
@@ -107,7 +107,7 @@ withTempDir(({ createTempDir }) => {
         );
 
         // plan rename: the widening plan is exactly one ALTER POLICY … RENAME.
-        const plan = await planThenSelfEmit(ctx, [
+        const plan = await planMigrationAndSelfEmit(ctx, [
           '--name',
           'adopt-wire-name',
           '--from',

@@ -23,7 +23,7 @@ import {
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runDbUpdate,
   runMigrate,
@@ -73,7 +73,7 @@ withTempDir(({ createTempDir }) => {
         const statusContractOnly = await runMigrationStatus(ctx);
         expect(statusContractOnly.exitCode, 'still requires --db or --from after emit').not.toBe(0);
 
-        const plan = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+        const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan.exitCode, 'plan').toBe(0);
         const planFrom = parseJsonOutput<{ from: string | null }>(plan).from;
 
@@ -116,7 +116,7 @@ withTempDir(({ createTempDir }) => {
 
           const emit = await runContractEmit(ctx);
           expect(emit.exitCode, 'emit').toBe(0);
-          const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
+          const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
           expect(plan.exitCode, 'plan').toBe(0);
 
           const status = await runMigrationStatus(ctx);
@@ -149,7 +149,7 @@ withTempDir(({ createTempDir }) => {
 
           const emit = await runContractEmit(ctx);
           expect(emit.exitCode, 'emit').toBe(0);
-          const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
+          const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
           expect(plan.exitCode, 'plan').toBe(0);
           const apply = await runMigrate(ctx);
           expect(apply.exitCode, 'apply').toBe(0);
@@ -186,7 +186,7 @@ withTempDir(({ createTempDir }) => {
 
           const emit0 = await runContractEmit(ctx);
           expect(emit0.exitCode, 'emit base').toBe(0);
-          const plan0 = await planThenSelfEmit(ctx, ['--name', 'init']);
+          const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
           expect(plan0.exitCode, 'plan init').toBe(0);
           const apply0 = await runMigrate(ctx);
           expect(apply0.exitCode, 'apply init').toBe(0);
@@ -194,7 +194,7 @@ withTempDir(({ createTempDir }) => {
           swapContract(ctx, 'contract-additive');
           const emit1 = await runContractEmit(ctx);
           expect(emit1.exitCode, 'emit v2').toBe(0);
-          const plan1 = await planThenSelfEmit(ctx, [
+          const plan1 = await planMigrationAndSelfEmit(ctx, [
             '--name',
             'add-field',
             '--from',
@@ -234,7 +234,7 @@ withTempDir(({ createTempDir }) => {
 
           const emit0 = await runContractEmit(ctx);
           expect(emit0.exitCode, 'emit').toBe(0);
-          const plan0 = await planThenSelfEmit(ctx, ['--name', 'init']);
+          const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
           expect(plan0.exitCode, 'plan').toBe(0);
 
           swapContract(ctx, 'contract-additive');
@@ -266,7 +266,7 @@ withTempDir(({ createTempDir }) => {
 
           const emit0 = await runContractEmit(ctx);
           expect(emit0.exitCode, 'emit').toBe(0);
-          const plan0 = await planThenSelfEmit(ctx, ['--name', 'init']);
+          const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
           expect(plan0.exitCode, 'plan').toBe(0);
           const apply0 = await runMigrate(ctx);
           expect(apply0.exitCode, 'apply').toBe(0);
@@ -309,7 +309,7 @@ withTempDir(({ createTempDir }) => {
 
           const emit0 = await runContractEmit(ctx);
           expect(emit0.exitCode, 'emit').toBe(0);
-          const plan0 = await planThenSelfEmit(ctx, ['--name', 'init']);
+          const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
           expect(plan0.exitCode, 'plan').toBe(0);
           const apply0 = await runMigrate(ctx);
           expect(apply0.exitCode, 'apply').toBe(0);
@@ -357,7 +357,7 @@ withTempDir(({ createTempDir }) => {
           // Base: emit → plan → apply
           const emit0 = await runContractEmit(ctx);
           expect(emit0.exitCode, 'emit').toBe(0);
-          const plan0 = await planThenSelfEmit(ctx, ['--name', 'init']);
+          const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
           expect(plan0.exitCode, 'plan').toBe(0);
           const apply0 = await runMigrate(ctx);
           expect(apply0.exitCode, 'apply').toBe(0);
@@ -414,7 +414,7 @@ withTempDir(({ createTempDir }) => {
 
           const emit = await runContractEmit(ctx);
           expect(emit.exitCode, 'emit').toBe(0);
-          const plan = await planThenSelfEmit(ctx, ['--name', 'init']);
+          const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
           expect(plan.exitCode, 'plan').toBe(0);
           const apply = await runMigrate(ctx);
           expect(apply.exitCode, 'apply').toBe(0);
@@ -463,7 +463,7 @@ withTempDir(({ createTempDir }) => {
 
           const emit0 = await runContractEmit(ctx);
           expect(emit0.exitCode, 'emit base').toBe(0);
-          const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+          const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
           expect(plan0.exitCode, 'plan init').toBe(0);
           const baseHash = parseJsonOutput<{ to: string }>(plan0).to;
           const apply0 = await runMigrate(ctx);
@@ -472,13 +472,23 @@ withTempDir(({ createTempDir }) => {
           swapContract(ctx, 'contract-phone');
           const emitA = await runContractEmit(ctx);
           expect(emitA.exitCode, 'emit branch A').toBe(0);
-          const planA = await planThenSelfEmit(ctx, ['--name', 'add-phone', '--from', baseHash]);
+          const planA = await planMigrationAndSelfEmit(ctx, [
+            '--name',
+            'add-phone',
+            '--from',
+            baseHash,
+          ]);
           expect(planA.exitCode, 'plan branch A').toBe(0);
 
           swapContract(ctx, 'contract-bio');
           const emitB = await runContractEmit(ctx);
           expect(emitB.exitCode, 'emit branch B').toBe(0);
-          const planB = await planThenSelfEmit(ctx, ['--name', 'add-bio', '--from', baseHash]);
+          const planB = await planMigrationAndSelfEmit(ctx, [
+            '--name',
+            'add-bio',
+            '--from',
+            baseHash,
+          ]);
           expect(planB.exitCode, 'plan branch B').toBe(0);
 
           // Swap to a contract that doesn't match either leaf so the
@@ -521,7 +531,7 @@ withTempDir(({ createTempDir }) => {
 
           const emit0 = await runContractEmit(ctx);
           expect(emit0.exitCode, 'emit base').toBe(0);
-          const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+          const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
           expect(plan0.exitCode, 'plan init').toBe(0);
           const baseHash = parseJsonOutput<{ to: string }>(plan0).to;
           const apply0 = await runMigrate(ctx);
@@ -531,7 +541,12 @@ withTempDir(({ createTempDir }) => {
           swapContract(ctx, 'contract-phone');
           const emitA = await runContractEmit(ctx);
           expect(emitA.exitCode, 'emit A').toBe(0);
-          const planA = await planThenSelfEmit(ctx, ['--name', 'add-phone', '--from', baseHash]);
+          const planA = await planMigrationAndSelfEmit(ctx, [
+            '--name',
+            'add-phone',
+            '--from',
+            baseHash,
+          ]);
           expect(planA.exitCode, 'plan A').toBe(0);
           const applyA = await runMigrate(ctx);
           expect(applyA.exitCode, 'apply A').toBe(0);
@@ -540,7 +555,7 @@ withTempDir(({ createTempDir }) => {
           swapContract(ctx, 'contract-bio');
           const emitB = await runContractEmit(ctx);
           expect(emitB.exitCode, 'emit B').toBe(0);
-          const planB = await planThenSelfEmit(ctx, [
+          const planB = await planMigrationAndSelfEmit(ctx, [
             '--name',
             'add-bio',
             '--from',
@@ -578,13 +593,13 @@ withTempDir(({ createTempDir }) => {
 
           const emit0 = await runContractEmit(ctx);
           expect(emit0.exitCode, 'emit0').toBe(0);
-          const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+          const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
           expect(plan0.exitCode, 'plan0').toBe(0);
 
           await swapContract(ctx, 'contract-additive');
           const emit1 = await runContractEmit(ctx);
           expect(emit1.exitCode, 'emit1').toBe(0);
-          const plan1 = await planThenSelfEmit(ctx, ['--name', 'additive']);
+          const plan1 = await planMigrationAndSelfEmit(ctx, ['--name', 'additive']);
           expect(plan1.exitCode, 'plan1').toBe(0);
 
           const hashA = parseJsonOutput(plan0)?.['to'] as string;

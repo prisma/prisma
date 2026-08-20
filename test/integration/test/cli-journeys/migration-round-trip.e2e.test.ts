@@ -32,7 +32,7 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runMigrate,
   runMigrationNew,
@@ -68,7 +68,7 @@ withTempDir(({ createTempDir }) => {
         const emit0 = await runContractEmit(ctx);
         expect(emit0.exitCode, `emit base: ${emit0.stderr}`).toBe(0);
 
-        const plan0 = await planThenSelfEmit(ctx, ['--name', 'initial']);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
         expect(plan0.exitCode, `plan initial: ${plan0.stderr}`).toBe(0);
 
         const apply0 = await runMigrate(ctx);

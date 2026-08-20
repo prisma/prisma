@@ -6,7 +6,7 @@ import { withTempDir } from './utils/cli-test-helpers';
 import {
   type JourneyContext,
   parseJsonOutput,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runDbInit,
   runMigrate,
@@ -65,7 +65,7 @@ withTempDir(({ createTempDir }) => {
         await withDevDatabase(async ({ connectionString }) => {
           await withJourney(createTempDir, connectionString, async (ctx) => {
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planThenSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
+            expect((await planMigrationAndSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
             const firstApply = await runMigrate(ctx, ['--json']);
             expect(firstApply.exitCode).toBe(0);
             const firstJson = parseJsonOutput<{ markerHash: string }>(firstApply);
@@ -74,7 +74,9 @@ withTempDir(({ createTempDir }) => {
             removeAppMigrationBundles(ctx);
             swapContract(ctx, 'contract-additive');
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planThenSelfEmit(ctx, ['--name', 'replacement'])).exitCode).toBe(0);
+            expect((await planMigrationAndSelfEmit(ctx, ['--name', 'replacement'])).exitCode).toBe(
+              0,
+            );
 
             const drift = await runMigrate(ctx, ['--json']);
             expect(drift.exitCode).not.toBe(0);
@@ -97,7 +99,7 @@ withTempDir(({ createTempDir }) => {
         await withDevDatabase(async ({ connectionString }) => {
           await withJourney(createTempDir, connectionString, async (ctx) => {
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planThenSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
+            expect((await planMigrationAndSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
             expect((await runMigrate(ctx, ['--json'])).exitCode).toBe(0);
             const second = await runMigrate(ctx, ['--json']);
             expect(second.exitCode).toBe(0);
@@ -115,7 +117,7 @@ withTempDir(({ createTempDir }) => {
         await withDevDatabase(async ({ connectionString }) => {
           await withJourney(createTempDir, connectionString, async (ctx) => {
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planThenSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
+            expect((await planMigrationAndSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
             const apply = await runMigrate(ctx, ['--json']);
             expect(apply.exitCode).toBe(0);
           });
@@ -150,13 +152,13 @@ withTempDir(({ createTempDir }) => {
         await withDevDatabase(async ({ connectionString }) => {
           await withJourney(createTempDir, connectionString, async (ctx) => {
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planThenSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
+            expect((await planMigrationAndSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
             expect((await runMigrate(ctx)).exitCode).toBe(0);
 
             removeAppMigrationBundles(ctx);
             swapContract(ctx, 'contract-additive');
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            const replacementPlan = await planThenSelfEmit(ctx, ['--name', 'replacement']);
+            const replacementPlan = await planMigrationAndSelfEmit(ctx, ['--name', 'replacement']);
             expect(replacementPlan.exitCode).toBe(0);
             const bundleDir = readdirSync(appMigrationsDir(ctx))
               .filter((d) => d !== 'refs' && !d.startsWith('.'))
@@ -179,12 +181,12 @@ withTempDir(({ createTempDir }) => {
         await withDevDatabase(async ({ connectionString }) => {
           await withJourney(createTempDir, connectionString, async (ctx) => {
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planThenSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
+            expect((await planMigrationAndSelfEmit(ctx, ['--name', 'initial'])).exitCode).toBe(0);
             expect((await runMigrate(ctx)).exitCode).toBe(0);
 
             swapContract(ctx, 'contract-additive');
             expect((await runContractEmit(ctx)).exitCode).toBe(0);
-            expect((await planThenSelfEmit(ctx, ['--name', 'add-name'])).exitCode).toBe(0);
+            expect((await planMigrationAndSelfEmit(ctx, ['--name', 'add-name'])).exitCode).toBe(0);
 
             swapContract(ctx, 'contract-phone');
             expect((await runContractEmit(ctx)).exitCode).toBe(0);

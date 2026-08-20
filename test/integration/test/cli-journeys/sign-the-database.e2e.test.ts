@@ -26,7 +26,7 @@ import {
   type JourneyContext,
   latestMigrationDirName,
   parseJsonOutput,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runContractInfer,
   runDbSign,
@@ -175,7 +175,7 @@ describe('sign a database this toolchain has never seen, then transition to wire
 
       // Baseline migration so migration plan diffs from the
       // adopted contract; a fresh migrate is a no-op against the live DB.
-      const planBaseline = await planThenSelfEmit(ctx, ['--name', 'baseline']);
+      const planBaseline = await planMigrationAndSelfEmit(ctx, ['--name', 'baseline']);
       expect(planBaseline.exitCode, `3.1: plan baseline\n${stripAnsi(planBaseline.stderr)}`).toBe(
         0,
       );
@@ -203,7 +203,7 @@ describe('sign a database this toolchain has never seen, then transition to wire
       expect(emitWire.exitCode, `3.2: emit wire\n${stripAnsi(emitWire.stderr)}`).toBe(0);
 
       // The widening plan is EXACTLY the one rename.
-      const plan = await planThenSelfEmit(ctx, [
+      const plan = await planMigrationAndSelfEmit(ctx, [
         '--name',
         'adopt-wire-names',
         '--from',

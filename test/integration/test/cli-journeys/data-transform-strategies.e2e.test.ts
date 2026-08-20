@@ -26,7 +26,7 @@ import {
   injectMigrationSqlDbSetup,
   type JourneyContext,
   latestMigrationDirName,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runMigrate,
   runMigrationPlan,
@@ -177,7 +177,7 @@ withTempDir(({ createTempDir }) => {
         }
         const emit0 = await runContractEmit(ctx);
         expect(emit0.exitCode, `emit base: ${emit0.stderr}`).toBe(0);
-        const plan0 = await planThenSelfEmit(ctx, ['--name', 'initial']);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
         expect(plan0.exitCode, `plan initial: ${plan0.stderr}`).toBe(0);
         const apply0 = await runMigrate(ctx);
         expect(apply0.exitCode, `apply initial: ${apply0.stderr}`).toBe(0);

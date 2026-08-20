@@ -29,7 +29,7 @@ import {
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runMigrate,
   runMigrationNew,
@@ -117,7 +117,7 @@ withTempDir(({ createTempDir }) => {
 
         // O.01: emit base contract (C1) → plan + apply init (creates user table)
         expect((await runContractEmit(ctx)).exitCode, 'O.01: emit C1').toBe(0);
-        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'O.01: plan init').toBe(0);
         expect((await runMigrate(ctx)).exitCode, 'O.01: apply init').toBe(0);
 
@@ -167,10 +167,10 @@ withTempDir(({ createTempDir }) => {
         // O.06: declare a ref `prod` that points at C2 and requires the invariant.
         writeRefFile(ctx, 'prod', c2Hash, [INVARIANT_ID]);
 
-        // O.07: apply --to prod — routes through the invariant-bearing path,
+        // apply --to prod — routes through the invariant-bearing path,
         // backfills the data, advances the marker.
         const applyRef = await runMigrate(ctx, ['--to', 'prod', '--json']);
-        expect(applyRef.exitCode, 'O.07: apply --to prod').toBe(0);
+        expect(applyRef.exitCode, 'apply --to prod').toBe(0);
         const applyResult = parseJsonOutput<{
           ok: boolean;
           markerHash: string;
@@ -204,10 +204,10 @@ withTempDir(({ createTempDir }) => {
           { id: 2, email: 'bob@test.org', name: BACKFILLED_NAME },
         ]);
 
-        // O.09: status --to prod surfaces the three invariant sets and the per-edge
+        // status --to prod surfaces the three invariant sets and the per-edge
         // invariants on the selected path.
         const statusRef = await runMigrationStatus(ctx, ['--to', 'prod', '--json']);
-        expect(statusRef.exitCode, 'O.09: status --to prod').toBe(0);
+        expect(statusRef.exitCode, 'status --to prod').toBe(0);
         const statusResult = parseMigrationStatusJson(statusRef);
         expect(
           statusResult.diagnostics?.some((d) => d.code === 'MIGRATION.MISSING_INVARIANTS'),
@@ -219,12 +219,12 @@ withTempDir(({ createTempDir }) => {
           'O.09: path migrations applied',
         ).toBe(true);
 
-        // O.10: re-apply --to prod is a no-op. The marker subtraction in
+        // re-apply --to prod is a no-op. The marker subtraction in
         // the apply command (`effectiveRequired = ref.invariants − marker.invariants`)
         // empties the required set, so routing falls through to the trivial
         // marker===target case (no path selected).
         const reapply = await runMigrate(ctx, ['--to', 'prod', '--json']);
-        expect(reapply.exitCode, 'O.10: re-apply --to prod').toBe(0);
+        expect(reapply.exitCode, 're-apply --to prod').toBe(0);
         const reapplyResult = parseJsonOutput<{
           ok: boolean;
           markerHash: string;
@@ -251,7 +251,7 @@ withTempDir(({ createTempDir }) => {
 
         // P.01: emit base + plan + apply a single migration that declares a real invariant.
         expect((await runContractEmit(ctx)).exitCode, 'P.01: emit C1').toBe(0);
-        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'P.01: plan init').toBe(0);
         expect((await runMigrate(ctx)).exitCode, 'P.01: apply init').toBe(0);
 
@@ -294,7 +294,7 @@ withTempDir(({ createTempDir }) => {
         // P.03: declare a ref requiring an id no migration provides.
         writeRefFile(ctx, 'prod', c2Hash, ['typo-no-migration-declares-this']);
 
-        // P.04: apply --to prod fails fast with UNKNOWN_INVARIANT, marker untouched.
+        // apply --to prod fails fast with UNKNOWN_INVARIANT, marker untouched.
         const applyFail = await runMigrate(ctx, ['--to', 'prod', '--json']);
         expect(applyFail.exitCode, 'P.04: apply exits 2').toBe(2);
         const applyEnvelope = parseJsonOutput<{
@@ -317,7 +317,7 @@ withTempDir(({ createTempDir }) => {
         const offlineState = migrationStatusAppSpace(parseMigrationStatusJson(statusOffline));
         expect(offlineState.currentContract, 'P.05: marker did not advance to C2').not.toBe(c2Hash);
 
-        // P.06: status --to prod is fatal too (parity with apply).
+        // status --to prod is fatal too (parity with apply).
         const statusFail = await runMigrationStatus(ctx, ['--to', 'prod', '--json']);
         expect(statusFail.exitCode, 'P.06: status exits 2').toBe(2);
         expect(engineError(statusFail)?.code, 'P.06: status error code').toBe(
@@ -341,7 +341,7 @@ withTempDir(({ createTempDir }) => {
 
         // Q.01: emit base (C1), plan + apply init (no invariants on this edge).
         expect((await runContractEmit(ctx)).exitCode, 'Q.01: emit C1').toBe(0);
-        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'Q.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
         expect((await runMigrate(ctx)).exitCode, 'Q.01: apply init').toBe(0);
@@ -380,7 +380,7 @@ withTempDir(({ createTempDir }) => {
         // plan with --from C1 to create a divergent edge C1 → CB. No invariants.
         swapContract(ctx, 'contract-phone');
         expect((await runContractEmit(ctx)).exitCode, 'Q.03: emit CB').toBe(0);
-        const planB = await planThenSelfEmit(ctx, [
+        const planB = await planMigrationAndSelfEmit(ctx, [
           '--name',
           'branch-b-no-invariant',
           '--from',
@@ -395,7 +395,7 @@ withTempDir(({ createTempDir }) => {
         // The structural path C1 → CB exists; it just doesn't cover the required id.
         writeRefFile(ctx, 'prod', cbHash, [INVARIANT_ID]);
 
-        // Q.05: apply --to prod fails with NO_INVARIANT_PATH (not UNKNOWN_INVARIANT,
+        // apply --to prod fails with NO_INVARIANT_PATH (not UNKNOWN_INVARIANT,
         // because the id IS declared somewhere in the graph). The structural path
         // points at the CB-branch edge that doesn't cover it.
         const applyFail = await runMigrate(ctx, ['--to', 'prod', '--json']);
@@ -450,7 +450,7 @@ withTempDir(({ createTempDir }) => {
         });
 
         expect((await runContractEmit(ctx)).exitCode, 'R.01: emit C1').toBe(0);
-        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'R.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
         expect((await runMigrate(ctx)).exitCode, 'R.01: apply init').toBe(0);
@@ -483,9 +483,10 @@ withTempDir(({ createTempDir }) => {
             .at(-1)!,
         );
         patchBackfillMigrationTs(migrationDir, { addInvariantId: true });
-        expect((await selfEmitMigration(ctx, ['--dir', migrationDir])).exitCode, 'R.02: emit').toBe(
-          0,
-        );
+        expect(
+          (await selfEmitMigration(ctx, ['--dir', migrationDir])).exitCode,
+          're-emit with invariant',
+        ).toBe(0);
 
         const manifest = JSON.parse(readFileSync(join(migrationDir, 'migration.json'), 'utf-8'));
         const c2Hash = manifest.to as string;
@@ -493,7 +494,7 @@ withTempDir(({ createTempDir }) => {
         writeRefFile(ctx, 'prod', c2Hash, [INVARIANT_ID]);
 
         const apply1 = await runMigrate(ctx, ['--to', 'prod', '--json']);
-        expect(apply1.exitCode, 'R.02: apply --to prod').toBe(0);
+        expect(apply1.exitCode, 'apply --to prod after rollback').toBe(0);
         expect(
           parseJsonOutput<{ markerHash: string }>(apply1).markerHash,
           'R.02: marker at C2',
@@ -521,7 +522,7 @@ withTempDir(({ createTempDir }) => {
         ).toEqual([INVARIANT_ID]);
 
         const apply2 = await runMigrate(ctx, ['--to', 'prod', '--json']);
-        expect(apply2.exitCode, 'R.04: re-apply --to prod').toBe(0);
+        expect(apply2.exitCode, 're-apply --to prod after rollback').toBe(0);
         const apply2Result = parseJsonOutput<{
           markerHash: string;
           pathDecision?: {
@@ -571,7 +572,7 @@ withTempDir(({ createTempDir }) => {
         });
 
         expect((await runContractEmit(ctx)).exitCode, 'S.01: emit C1').toBe(0);
-        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'S.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
         expect((await runMigrate(ctx)).exitCode, 'S.01: apply init').toBe(0);
@@ -659,7 +660,7 @@ MigrationCLI.run(import.meta.url, M);
         const applyRef = await runMigrate(ctx, ['--to', 'prod', '--json']);
         expect(
           applyRef.exitCode,
-          `S.05: apply --to prod: ${applyRef.stdout}\n${applyRef.stderr}`,
+          `apply --to prod (subset ref): ${applyRef.stdout}\n${applyRef.stderr}`,
         ).toBe(0);
         const applyResult = parseJsonOutput<{
           markerHash: string;
@@ -730,7 +731,7 @@ MigrationCLI.run(import.meta.url, M);
         });
 
         expect((await runContractEmit(ctx)).exitCode, 'T.01: emit C1').toBe(0);
-        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'T.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
         expect((await runMigrate(ctx)).exitCode, 'T.01: apply init').toBe(0);
@@ -830,7 +831,7 @@ MigrationCLI.run(import.meta.url, M);
           [],
         );
 
-        // T.05: status --to must report INVARIANTS_PENDING, NOT UP_TO_DATE.
+        // status --to must report INVARIANTS_PENDING, NOT UP_TO_DATE.
         const statusResult = await runMigrationStatus(ctx, ['--to', 'prod', '--json']);
         expect(statusResult.exitCode, 'T.05: status exits 0').toBe(0);
         const envelope = parseMigrationStatusJson(statusResult);

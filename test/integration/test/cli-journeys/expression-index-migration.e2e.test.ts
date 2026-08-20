@@ -24,7 +24,7 @@ import {
   getLatestMigrationDir,
   type JourneyContext,
   latestMigrationDirName,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runDbVerify,
   runMigrate,
@@ -70,7 +70,7 @@ async function runInitialFlow(ctx: JourneyContext, connectionString: string): Pr
   const emit = await runContractEmit(ctx);
   expect(emit.exitCode, `contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
 
-  const plan = await planThenSelfEmit(ctx, ['--name', 'initial']);
+  const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
   expect(plan.exitCode, `migration plan\n${stripAnsi(plan.stderr)}`).toBe(0);
   expect(indexSqlOf(readPlannedOps(ctx)).sort(), 'byte-exact index DDL').toEqual(
     EXPECTED_INDEX_DDL,
@@ -123,7 +123,7 @@ withTempDir(({ createTempDir }) => {
         swapPslContract(ctx, 'contract-expression-authored-renamed');
         const emitRenamed = await runContractEmit(ctx);
         expect(emitRenamed.exitCode, `rename: emit\n${stripAnsi(emitRenamed.stderr)}`).toBe(0);
-        const planRename = await planThenSelfEmit(ctx, [
+        const planRename = await planMigrationAndSelfEmit(ctx, [
           '--name',
           'rename-search-index',
           '--from',
@@ -153,7 +153,7 @@ withTempDir(({ createTempDir }) => {
         swapPslContract(ctx, 'contract-expression-authored-editedbody');
         const emitEdited = await runContractEmit(ctx);
         expect(emitEdited.exitCode, `body-edit: emit\n${stripAnsi(emitEdited.stderr)}`).toBe(0);
-        const planEdit = await planThenSelfEmit(ctx, [
+        const planEdit = await planMigrationAndSelfEmit(ctx, [
           '--name',
           'edit-search-index-body',
           '--from',

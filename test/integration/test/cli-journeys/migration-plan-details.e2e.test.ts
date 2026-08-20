@@ -21,7 +21,7 @@ import {
   type JourneyContext,
   latestMigrationDirName,
   parseJsonOutput,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runMigrationPlan,
   selfEmitMigration,
@@ -51,7 +51,7 @@ withTempDir(({ createTempDir }) => {
 
         // H.02: migration plan --json (plan+self-emit so the migration is
         // attested on disk for H.03's verifyMigration check).
-        const plan = await planThenSelfEmit(ctx, ['--name', 'initial', '--json']);
+        const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'initial', '--json']);
         expect(plan.exitCode, 'H.02: migration plan --json').toBe(0);
 
         const result = parseJsonOutput<{
@@ -121,7 +121,7 @@ withTempDir(({ createTempDir }) => {
         // Self-emit the initial migration so it's attested and becomes a
         // leaf in the migration graph — otherwise I.03's planner computes
         // from the empty contract and mis-classifies the change.
-        const planInit = await planThenSelfEmit(ctx, ['--name', 'initial']);
+        const planInit = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
         expect(planInit.exitCode, 'I.01: plan initial').toBe(0);
 
         // I.02: swap to destructive contract (removes email column)

@@ -10,7 +10,7 @@ import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
   latestMigrationDirName,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runMigrate,
   runMigrationLog,
@@ -41,14 +41,16 @@ withTempDir(({ createTempDir }) => {
         });
 
         expect((await runContractEmit(ctx)).exitCode, 'emit base').toBe(0);
-        expect((await planThenSelfEmit(ctx, ['--name', 'initial'])).exitCode, 'plan').toBe(0);
+        expect((await planMigrationAndSelfEmit(ctx, ['--name', 'initial'])).exitCode, 'plan').toBe(
+          0,
+        );
         expect((await runMigrate(ctx)).exitCode, 'apply initial').toBe(0);
 
         swapContract(ctx, 'contract-additive');
         expect((await runContractEmit(ctx)).exitCode, 'emit v2').toBe(0);
         expect(
           (
-            await planThenSelfEmit(ctx, [
+            await planMigrationAndSelfEmit(ctx, [
               '--name',
               'add-name-column',
               '--from',

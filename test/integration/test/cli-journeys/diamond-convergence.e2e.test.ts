@@ -26,7 +26,7 @@ import {
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runMigrate,
   runMigrationStatus,
@@ -63,7 +63,7 @@ withTempDir(({ createTempDir }) => {
         // D.01: emit base (C1) → plan init (∅→C1)
         const emit0 = await runContractEmit(staging);
         expect(emit0.exitCode, 'D.01: emit C1').toBe(0);
-        const plan0 = await planThenSelfEmit(staging, ['--name', 'init', '--json']);
+        const plan0 = await planMigrationAndSelfEmit(staging, ['--name', 'init', '--json']);
         expect(plan0.exitCode, 'D.01: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
 
@@ -85,7 +85,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(staging, 'contract-phone');
         const emit1 = await runContractEmit(staging);
         expect(emit1.exitCode, 'D.04: emit C2').toBe(0);
-        const plan1 = await planThenSelfEmit(staging, [
+        const plan1 = await planMigrationAndSelfEmit(staging, [
           '--name',
           'add-phone',
           '--from',
@@ -100,7 +100,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(staging, 'contract-phone-bio');
         const emit2 = await runContractEmit(staging);
         expect(emit2.exitCode, 'D.05: emit C3').toBe(0);
-        const plan2 = await planThenSelfEmit(staging, [
+        const plan2 = await planMigrationAndSelfEmit(staging, [
           '--name',
           'add-bio',
           '--from',
@@ -122,7 +122,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(staging, 'contract-avatar');
         const emit3 = await runContractEmit(staging);
         expect(emit3.exitCode, 'D.06: emit C4').toBe(0);
-        const plan3 = await planThenSelfEmit(staging, [
+        const plan3 = await planMigrationAndSelfEmit(staging, [
           '--name',
           'add-avatar',
           '--from',
@@ -150,7 +150,7 @@ withTempDir(({ createTempDir }) => {
         expect(emit4.exitCode, 'D.07: emit C5').toBe(0);
 
         // Plan merge from staging branch: C3→C5
-        const planMergeStaging = await planThenSelfEmit(staging, [
+        const planMergeStaging = await planMigrationAndSelfEmit(staging, [
           '--name',
           'merge-staging',
           '--from',
@@ -161,7 +161,7 @@ withTempDir(({ createTempDir }) => {
         const c5Hash = parseJsonOutput<{ to: string }>(planMergeStaging).to;
 
         // Plan merge from production branch: C4→C5
-        const planMergeProd = await planThenSelfEmit(staging, [
+        const planMergeProd = await planMigrationAndSelfEmit(staging, [
           '--name',
           'merge-prod',
           '--from',
@@ -227,21 +227,22 @@ withTempDir(({ createTempDir }) => {
           'D.10: production lists migrations',
         ).toBeGreaterThan(3);
 
-        // D.11: apply the whole graph to an empty database — the pathfinder
+        // Shortest-path selection: apply the whole graph to an empty database —
+        // the pathfinder
         // picks the shortest route to C5 (∅→C1→C4→C5, 3 steps) over the
         // longer staging branch (∅→C1→C2→C3→C5, 4 steps). Folded in from the
         // deleted converging-paths journey (P-3/S-3).
         const fresh = createSecondDbContext(staging, freshDb.connectionString);
         const applyFresh = await runMigrate(fresh, ['--json']);
-        expect(applyFresh.exitCode, 'D.11: apply to empty database').toBe(0);
+        expect(applyFresh.exitCode, 'apply to empty database').toBe(0);
         const freshResult = parseJsonOutput<{
           ok: boolean;
           migrationsApplied: number;
           markerHash: string;
         }>(applyFresh);
-        expect(freshResult.ok, 'D.11: ok').toBe(true);
-        expect(freshResult.markerHash, 'D.11: marker at C5').toBe(c5Hash);
-        expect(freshResult.migrationsApplied, 'D.11: shortest path = 3 steps').toBe(3);
+        expect(freshResult.ok, 'apply to empty database ok').toBe(true);
+        expect(freshResult.markerHash, 'empty-database marker at C5').toBe(c5Hash);
+        expect(freshResult.migrationsApplied, 'shortest path = 3 steps').toBe(3);
       },
       timeouts.spinUpPpgDev,
     );

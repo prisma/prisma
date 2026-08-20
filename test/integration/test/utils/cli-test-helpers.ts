@@ -98,6 +98,19 @@ let cachedMount:
 const engineCliCache = new Map<string, TestCli>();
 
 /**
+ * Drops every cached harness for a project directory. Called from the
+ * temp-dir cleanup paths so a worker does not retain a `TestCli` (and its
+ * `loadConfig` closure) for every deleted directory it ever ran against.
+ */
+export function evictEngineCli(testDir: string): void {
+  for (const key of engineCliCache.keys()) {
+    if (key.startsWith(`${testDir}\u0000`)) {
+      engineCliCache.delete(key);
+    }
+  }
+}
+
+/**
  * Runs one CLI invocation through the engine's own harness. The project
  * directory is passed as `cwd` rather than chdir'ed into, so nothing about
  * the run is process-global.
@@ -328,6 +341,7 @@ export function setupIntegrationTestDirectoryFromFixtures(
   }
 
   const cleanup = () => {
+    evictEngineCli(testDir);
     if (existsSync(testDir)) {
       rmSync(testDir, { recursive: true, force: true });
     }
@@ -384,6 +398,7 @@ export function setupTestDirectory(): {
   const configPath = join(testDir, 'prisma.config.ts');
 
   const cleanup = () => {
+    evictEngineCli(testDir);
     if (existsSync(testDir)) {
       rmSync(testDir, { recursive: true, force: true });
     }
@@ -552,6 +567,7 @@ export function withTempDir(callback: (context: { createTempDir: () => string })
     // Clean up all directories created during this test
     for (const dir of tempDirs) {
       try {
+        evictEngineCli(dir);
         if (existsSync(dir)) {
           rmSync(dir, { recursive: true, force: true });
         }

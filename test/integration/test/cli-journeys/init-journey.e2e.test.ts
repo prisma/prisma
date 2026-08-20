@@ -5,9 +5,8 @@
  * query against a real DB, across all four `(target × authoring)` cells.
  * Asserts the contract one subsystem hands to the next at every seam.
  *
- * The seams that were once tracked as known bugs (TML-2461, TML-2486,
- * TML-2487, TML-2314) are all fixed; each step now asserts the working
- * behavior directly.
+ * The seams that were once tracked as known bugs are all fixed; each step
+ * now asserts the working behavior directly.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -116,7 +115,7 @@ describe.each(ALL_CELLS.map((cell) => ({ cell, label: cellLabel(cell) })))(
       ).toBe(0);
     });
 
-    it('step 4c (migrate): applies the planned migration (TML-2486 seam)', () => {
+    it('step 4c (migrate): applies the planned migration', () => {
       const result = ctx.migrationApply;
       expect(result, 'migrate was not run (precondition failure)').not.toBeNull();
       if (result === null) return;

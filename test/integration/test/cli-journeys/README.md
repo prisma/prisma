@@ -11,12 +11,15 @@ These tests are the primary regression suite for the Prisma Next CLI's database 
 pnpm test:journeys
 ```
 
+`init-journey.e2e.test.ts` (the 4-cell target × authoring pack+install matrix) is excluded from `pnpm test:journeys` and `pnpm test` unless `RUN_INIT_JOURNEY=1` is set; it runs nightly via `pnpm test:init-journey` (see `.github/workflows/integration-nightly.yml`).
+
 ## Test files
 
 ### Happy paths
 
 | File | What it covers |
 |---|---|
+| `init-journey.e2e.test.ts` | **`prisma orm init` inner loop** across all four (target × authoring) cells: scaffold, pack + real install against workspace tarballs, emit, plan, self-emit, apply, run user code. Nightly-only — excluded from PR runs unless `RUN_INIT_JOURNEY=1` |
 | `greenfield-setup.e2e.test.ts` | New project with empty database: emit a contract, dry-run init to preview operations, apply init, confirm idempotency on re-run, verify marker and schema (`db verify`, `db verify --schema-only`, `db verify --strict`), inspect the live schema with `db schema`, and check JSON output variants of full and schema-only verify |
 | `composite-pk-greenfield.e2e.test.ts` | **Composite primary key greenfield**: emit a PSL contract for a junction table, dry-run and apply `db init`, inspect the live Postgres primary-key constraint order, verify duplicate inserts fail on that constraint, then round-trip through `contract infer` and schema verification |
 | `db-schema-discovery.e2e.test.ts` | **Live schema discovery**: inspect an unmanaged database with `db schema`, apply manual DDL, inspect again with `db schema --json`, and confirm the command stays read-only throughout |

@@ -20,7 +20,7 @@ import {
   migrationStatusAppSpace,
   parseJsonOutput,
   parseMigrationStatusJson,
-  planThenSelfEmit,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runDbUpdate,
   runDbVerify,
@@ -46,7 +46,7 @@ withTempDir(({ createTempDir }) => {
         // 1. Establish migration workflow: emit C1 → plan init → apply
         const emit0 = await runContractEmit(ctx);
         expect(emit0.exitCode, '1: emit C1').toBe(0);
-        const plan0 = await planThenSelfEmit(ctx, ['--name', 'init', '--json']);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan0.exitCode, '1: plan init').toBe(0);
         const c1Hash = parseJsonOutput<{ to: string }>(plan0).to;
         const apply0 = await runMigrate(ctx, ['--json']);
@@ -59,7 +59,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-phone');
         const emit1 = await runContractEmit(ctx);
         expect(emit1.exitCode, '2: emit C2').toBe(0);
-        const plan1 = await planThenSelfEmit(ctx, [
+        const plan1 = await planMigrationAndSelfEmit(ctx, [
           '--name',
           'add-phone',
           '--from',
@@ -91,7 +91,7 @@ withTempDir(({ createTempDir }) => {
         // 4. Retroactive migration plan: user realizes they should have used migrations.
         //    `migration plan` plans from graph leaf (C2) to current contract (C3).
         //    This is the same edge that db update already applied to the DB.
-        const plan2 = await planThenSelfEmit(ctx, [
+        const plan2 = await planMigrationAndSelfEmit(ctx, [
           '--from',
           c2Hash,
           '--name',
@@ -118,7 +118,7 @@ withTempDir(({ createTempDir }) => {
         swapContract(ctx, 'contract-all');
         const emit3 = await runContractEmit(ctx);
         expect(emit3.exitCode, '6: emit C4').toBe(0);
-        const plan3 = await planThenSelfEmit(ctx, [
+        const plan3 = await planMigrationAndSelfEmit(ctx, [
           '--name',
           'add-avatar',
           '--from',
