@@ -72,7 +72,13 @@ function assertSafeGlob(glob, path) {
 
 function assertPackageName(packageName, path) {
   assertSafeRelativePath(packageName, `package path in ${path}`);
-  if (packageName.startsWith('packages/') || /[*?{}[\]]/.test(packageName)) {
+  const segments = packageName.split('/');
+  if (
+    packageName.startsWith('packages/') ||
+    /^[A-Za-z]:/.test(packageName) ||
+    segments.some((segment) => segment.length === 0 || segment === '.') ||
+    /[*?{}[\]]/.test(packageName)
+  ) {
     throw new CoverageConfigError(
       `Invalid package path in ${path}: ${JSON.stringify(packageName)}`,
     );

@@ -23,7 +23,7 @@
             "type": "string",
             "description": "Package path relative to packages/ directory",
             "minLength": 1,
-            "pattern": "^(?!packages/)(?!/)(?![A-Za-z]:/)(?!.*\\.\\.)(?!.*[*?{}\\[\\]])[^\\\\]+$"
+            "pattern": "^(?!packages/)(?!/)(?!\\.?/)(?![A-Za-z]:)(?!.*(?://|/\\.(?:/|$)))(?!.*\\.\\.)(?!.*[*?{}\\[\\]])[^\\\\]+$"
           },
           "reason": {
             "type": "string",
@@ -64,7 +64,7 @@
       "items": {
         "type": "string",
         "minLength": 1,
-        "pattern": "^(?!packages/)(?!/)(?![A-Za-z]:/)(?!.*\\.\\.)(?!.*[*?{}\\[\\]])[^\\\\]+$"
+        "pattern": "^(?!packages/)(?!/)(?!\\.?/)(?![A-Za-z]:)(?!.*(?://|/\\.(?:/|$)))(?!.*\\.\\.)(?!.*[*?{}\\[\\]])[^\\\\]+$"
       },
       "uniqueItems": true
     }

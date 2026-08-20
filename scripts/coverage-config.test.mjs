@@ -189,8 +189,13 @@ describe('coverage config', () => {
       const invalid = [
         { warningOnly: [{ ...warning(), unknown: true }], excludedPackages: [] },
         { warningOnly: [warning({ addedDate: '2026-02-30' })], excludedPackages: [] },
+        { warningOnly: [warning({ package: './group/a' })], excludedPackages: [] },
+        { warningOnly: [warning({ package: 'group/./a' })], excludedPackages: [] },
         { warningOnly: [], excludedPackages: ['../group/a'] },
         { warningOnly: [], excludedPackages: ['packages/group/a'] },
+        { warningOnly: [], excludedPackages: ['./group/a'] },
+        { warningOnly: [], excludedPackages: ['group//a'] },
+        { warningOnly: [], excludedPackages: ['C:group/a'] },
       ];
       for (const policy of invalid) {
         await writeRootPolicy(fixture, policy);
