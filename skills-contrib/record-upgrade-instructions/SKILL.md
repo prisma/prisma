@@ -96,26 +96,29 @@ Before merging, every new entry runs against the corresponding in-repo substrate
 
 Workflow per entry (one of the two flows; both apply for cross-audience entries):
 
-`<target>` is the branch the PR targets. Validating an entry after its PR merged? Use the merge commit as the head and its mainline parent as the base: `git log --first-parent` names both.
+Two placeholders name the revisions the flow compares:
+
+- **Open PR** — `<head>` is the PR branch head, `<base>` is `origin/<target>`, where `<target>` is the branch the PR targets.
+- **Merged PR** — `<head>` is the merge commit, `<base>` is its mainline parent. `git log --first-parent` names both.
 
 The substrate's own tests are the PR author's work, not the entry's. An entry translates consumer code; it neither writes nor updates the tests this repo keeps beside that code. The checks below therefore exclude the substrate's `test/` directories — what they measure is whether the entry reproduces every source change.
 
 ### User-skill entry (against `examples/`)
 
-1. Check out the PR branch with the framework change applied.
-2. Revert `examples/` to its pre-PR state (`git restore --source=origin/<target> -- examples/`).
+1. Check out `<head>`, which has the framework change applied.
+2. Revert `examples/` to its pre-PR state (`git restore --source=<base> -- examples/`).
 3. Run the entry against the reverted substrate — invoke any colocated script(s) per the entry's `script:` reference, then walk the prose body of `instructions.md` if the entry has additional instructions.
-4. Verify the resulting `examples/` directory matches the PR-branch state: `git status --porcelain -- examples/ ':(exclude)examples/*/test/**'` prints nothing. The entry has reproduced the patch `git diff origin/<target>..HEAD -- examples/` describes, so the working tree is back at HEAD and the check is that nothing is left over — no modification, and no file the entry created along the way.
+4. Verify the resulting `examples/` directory matches the `<head>` state: `git status --porcelain -- examples/ ':(exclude)examples/*/test/**'` prints nothing. The entry has reproduced the patch `git diff <base>..<head> -- examples/` describes, so the working tree is back at `<head>` and the check is that nothing is left over — no modification, and no file the entry created along the way.
 5. Verify the touched example's test suite is green — `pnpm --filter <example-package> test` for each example the entry changed. The repo-wide `pnpm test:examples` also runs examples that need a database and a `.env` (`pnpm db:up`, then copy `.env.example`); run it only with those in place.
 
-If any of those checks fail, iterate on the entry. Do not merge. Classify a failure before you change anything: a timeout or a connection error is the environment, not the entry (`.agents/rules/ci-failure-classification.mdc`).
+If any of those checks fail, iterate on the entry. Do not merge. Classify a failure before you change anything, per `.agents/rules/ci-failure-classification.mdc`. A timeout or a connection error makes the environment a *candidate*, not a verdict — confirm that classification against the rule before you leave the entry alone.
 
 ### Extension-skill entry (against `packages/3-extensions/`)
 
-1. Check out the PR branch with the framework change applied.
-2. Revert `packages/3-extensions/` to its pre-PR state (`git restore --source=origin/<target> -- packages/3-extensions/`).
+1. Check out `<head>`, which has the framework change applied.
+2. Revert `packages/3-extensions/` to its pre-PR state (`git restore --source=<base> -- packages/3-extensions/`).
 3. Run the entry against the reverted substrate.
-4. Verify the resulting `packages/3-extensions/` directory matches the PR-branch state: `git status --porcelain -- packages/3-extensions/ ':(exclude)packages/3-extensions/*/test/**'` prints nothing, the same check the user-skill flow makes against `examples/`.
+4. Verify the resulting `packages/3-extensions/` directory matches the `<head>` state: `git status --porcelain -- packages/3-extensions/ ':(exclude)packages/3-extensions/*/test/**'` prints nothing, the same check the user-skill flow makes against `examples/`.
 5. Verify the matching test suite is green: `pnpm test --filter='./packages/3-extensions/*'`.
 
 If any of those checks fail, iterate on the entry. Do not merge. Classify a failure before you change anything, as above.
@@ -127,7 +130,7 @@ This flow was last executed end to end on 2026-08-20, against the `8.0.0-rc.3-to
 The PR that introduces the breaking change must contain, in addition to the framework change itself:
 
 - **The new entry directory in each affected skill** — `<destination>/upgrades/<in-flight transition>/instructions.md` plus any colocated scripts (the in-flight transition being the one determined in step 1 of the authoring workflow).
-- **The post-instructions state of every affected substrate** — these substrates would have been left broken without the entry; the entry's effect on the substrate *is* the diff that brings them back to green. The PR-branch substrate state and the validation-by-execution output state must be identical.
+- **The post-instructions state of every affected substrate** — these substrates would have been left broken without the entry; the entry's effect on the substrate *is* the diff that brings them back to green. The `<head>` substrate state and the validation-by-execution output state must be identical.
 - **A reference in the PR description naming each entry directory** (e.g. *"Adds entries to `skills/prisma-next-upgrade/upgrades/0.7-to-0.8/` and `skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/`."*).
 
 The human reviewer + the CI gate (`pnpm check:upgrade-coverage`) both check this shape, but the gate is **necessary-but-not-sufficient** — it only asserts that the in-flight transition *directory* exists, not that *this PR's* substrate diff has a matching `changes[]` entry. So a PR can have a real substrate diff, contribute no entry, and still pass the gate green whenever an earlier PR already created the transition directory. (This is exactly how a breaking change can ship undocumented: the directory was already there, so the gate stayed green.) The gap is load-bearing for the reviewer: **the human reviewer must verify that every substrate diff in the PR has a corresponding entry** — the gate will not catch a missing entry once the directory exists. The reviewer also catches the semantic case (entry exists but its prose / scripts don't match the framework change).
