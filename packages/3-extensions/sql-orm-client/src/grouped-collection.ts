@@ -237,6 +237,7 @@ export class GroupedCollection<
         this.groupByColumns,
         aggregateSpec,
         combineWhereExprs(this.havingFilters),
+        this.modelName,
         this.postGroup,
       ),
       annotationsMap,

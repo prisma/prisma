@@ -181,9 +181,6 @@ describe('integration/aggregate (sqlite)', { timeout: timeouts.databaseOperation
     });
   });
 
-  // `distinctOn` is gated to postgres.distinctOn, which this contract does
-  // not declare — it plays no part below for the same reason it's out of
-  // scope above.
   describe('groupBy', () => {
     it('take() before groupBy() scopes which rows get grouped', async () => {
       await withPostsRuntime(async (_runtime, posts) => {

@@ -309,6 +309,7 @@ export function compileGroupedAggregate(
   groupByColumns: readonly string[],
   aggregateSpec: Record<string, AggregateSelector<unknown>>,
   havingExpr: AnyExpression | undefined,
+  modelName?: string,
   postGroup: GroupPagingState = emptyGroupPagingState(),
 ): SqlQueryPlan<Record<string, unknown>> {
   if (groupByColumns.length === 0) {
@@ -363,16 +364,27 @@ export function compileGroupedAggregate(
       namespaceId,
       tableName,
       preGroupState,
-      undefined,
+      modelName,
       aggregateInputColumns(tableName, entries, preGroupState.orderBy, groupByColumns),
     );
     ast = SelectAst.from(source)
       .withProjection(projection)
       .withGroupBy(groupByColumns.map((column) => ColumnRef.of(tableName, column)));
   } else {
+    const polyInfo = modelName
+      ? resolvePolymorphismInfo(contract, namespaceId, modelName)
+      : undefined;
+    const variantJoins =
+      polyInfo && polyInfo.mtiVariants.length > 0
+        ? buildMtiJoins(contract, namespaceId, polyInfo, preGroupState.variantName, undefined).joins
+        : [];
+
     ast = SelectAst.from(tableSourceForContract(contract, namespaceId, tableName))
       .withProjection(projection)
       .withGroupBy(groupByColumns.map((column) => ColumnRef.of(tableName, column)));
+    if (variantJoins.length > 0) {
+      ast = ast.withJoins(variantJoins);
+    }
     const where = buildStateWhere(contract, tableName, preGroupState, { namespaceId });
     if (where) {
       ast = ast.withWhere(where);
