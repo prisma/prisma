@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import type { PackageManagerRunner } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
+import { expectDefined } from '@repo/test-utils/typed-expectations';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_SKILL_SOURCES } from '../../src/commands/init/skill-sources';
@@ -155,11 +156,16 @@ describe('init scaffold', () => {
 
   describe('the files it removes', () => {
     it(
-      'deletes a retired agent-skill directory even on a first run',
+      'deletes a retired agent-skill directory even on a first run, leaving installed skills alone under --skip-skills',
       async () => {
         const retired = join(projectDir, '.claude/skills/prisma-next-queries');
         mkdirSync(retired, { recursive: true });
         writeFileSync(join(retired, 'SKILL.md'), '# stale\n', 'utf-8');
+        const [firstSource] = DEFAULT_SKILL_SOURCES;
+        expectDefined(firstSource);
+        const installed = join(projectDir, `.agents/skills/${firstSource.skill}`);
+        mkdirSync(installed, { recursive: true });
+        writeFileSync(join(installed, 'SKILL.md'), '# installed\n', 'utf-8');
 
         const run = await harness().run(scaffoldArgv(...SKIP_ALL), { cwd: projectDir });
 
@@ -168,24 +174,7 @@ describe('init scaffold', () => {
           filesDeleted: ['.claude/skills/prisma-next-queries'],
         });
         expect(existsSync(retired)).toBe(false);
-      },
-      timeouts.coldTransformImport,
-    );
-
-    it(
-      'leaves a currently-installed skill directory in place under --skip-skills',
-      async () => {
-        const [firstSource] = DEFAULT_SKILL_SOURCES;
-        if (firstSource === undefined) throw new Error('DEFAULT_SKILL_SOURCES is empty');
-        const installed = join(projectDir, `.agents/skills/${firstSource.skill}`);
-        mkdirSync(installed, { recursive: true });
-        writeFileSync(join(installed, 'SKILL.md'), '# installed\n', 'utf-8');
-
-        const run = await harness().run(scaffoldArgv(...SKIP_ALL), { cwd: projectDir });
-
-        expect(run.exitCode).toBe(0);
         expect(existsSync(join(installed, 'SKILL.md'))).toBe(true);
-        expect(run.presented?.data).toMatchObject({ filesDeleted: [] });
       },
       timeouts.coldTransformImport,
     );
