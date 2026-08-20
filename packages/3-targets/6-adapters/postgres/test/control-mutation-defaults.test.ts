@@ -291,8 +291,6 @@ describe('postgresScalarAuthoringTypes', () => {
       expect(namespace[name]).toEqual({
         kind: 'typeConstructor',
         output: { codecId, nativeType: codecLookup.targetTypesFor(codecId)?.[0] },
-        // Json is the one scalar whose binding diverges from Prisma ORM
-        // (json here, jsonb there) — it alone carries the porting advisory.
         ...(name === 'Json'
           ? { bareSpellingWarning: expect.objectContaining({ code: 'PN_PSL_JSON_NATIVE_JSON' }) }
           : {}),

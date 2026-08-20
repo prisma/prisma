@@ -660,6 +660,12 @@ interface BuildModelNodeInput {
   readonly defaultNamespaceId: string;
   /** Per-build sink for non-fatal authoring warnings minted during field resolution. */
   readonly warnings: AuthoringWarningSink;
+  /**
+   * The model's resolved namespace id from its own `ModelNamespaceEntry` — unlike the bare-name
+   * keyed `modelNamespaceIds` map, this stays correct when two namespaces declare same-named
+   * models.
+   */
+  readonly namespaceId: string | undefined;
 }
 
 interface BuildModelNodeResult {
@@ -691,7 +697,7 @@ function relationAttributeDeclaresOwningSide(relationAttribute: ResolvedAttribut
 function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult {
   const { model, mapping, sourceId, diagnostics } = input;
   const tableName = mapping.tableName;
-  const modelNamespaceId = input.modelNamespaceIds.get(model.name);
+  const modelNamespaceId = input.namespaceId;
   const namespaceExtensionEntitiesForModel =
     modelNamespaceId !== undefined
       ? input.namespaceExtensionEntities?.get(modelNamespaceId)
@@ -720,6 +726,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     ...ifDefined('namespaceExtensionEntities', namespaceExtensionEntitiesForModel),
     ...ifDefined('codecLookup', input.codecLookup),
     warnings: input.warnings,
+    defaultNamespaceId: input.defaultNamespaceId,
   });
 
   const inlineIdFields = resolvedFields.filter((field) => field.isId);
@@ -2427,6 +2434,7 @@ export function interpretPslDocumentToSqlContract(
       modelAttributesByName,
       defaultNamespaceId,
       warnings: authoringWarnings,
+      namespaceId,
     });
     modelNodes.push(
       namespaceId !== undefined ? { ...result.modelNode, namespaceId } : result.modelNode,

@@ -1,6 +1,9 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
 import { timestampNowControlDescriptor } from '@internal/family-sql/control';
-import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
+import type {
+  AuthoringBareSpellingWarning,
+  AuthoringTypeNamespace,
+} from '@internal/framework-components/authoring';
 import type {
   ControlMutationDefaultEntry,
   DefaultFunctionLoweringContext,
@@ -151,6 +154,15 @@ const postgresDefaultFunctionRegistryEntries = [
   ],
 ] satisfies ReadonlyArray<readonly [string, ControlMutationDefaultEntry]>;
 
+const JSON_SPELLING_CAUSE =
+  'typed "Json", which binds to the Postgres native "json" column type. Prisma ORM\'s "Json" meant "jsonb" — write "Jsonb" to get';
+
+const jsonBareSpellingWarning: AuthoringBareSpellingWarning = {
+  code: 'PN_PSL_JSON_NATIVE_JSON',
+  message: `is ${JSON_SPELLING_CAUSE} a "jsonb" column.`,
+  summary: `fields are ${JSON_SPELLING_CAUSE} "jsonb" columns.`,
+};
+
 /**
  * The base PSL scalars as zero-arg type constructors in the unified authoring
  * channel, with explicit `nativeType` values pinned to the codec manifests
@@ -191,15 +203,7 @@ export const postgresScalarAuthoringTypes = {
   Json: {
     kind: 'typeConstructor',
     output: { codecId: 'pg/json@1', nativeType: 'json' },
-    // Prisma ORM's `Json` meant jsonb; here bare `Json` binds native json,
-    // so a ported schema silently changes the physical column type.
-    bareSpellingWarning: {
-      code: 'PN_PSL_JSON_NATIVE_JSON',
-      message:
-        'is typed "Json", which binds to the Postgres native "json" column type. Prisma ORM\'s "Json" meant "jsonb" — write "Jsonb" to get a "jsonb" column.',
-      summary:
-        'fields are typed "Json", which binds to the Postgres native "json" column type. Prisma ORM\'s "Json" meant "jsonb" — write "Jsonb" to get "jsonb" columns.',
-    },
+    bareSpellingWarning: jsonBareSpellingWarning,
   },
   Jsonb: {
     kind: 'typeConstructor',

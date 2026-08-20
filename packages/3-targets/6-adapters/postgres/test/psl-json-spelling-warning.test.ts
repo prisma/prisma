@@ -11,16 +11,8 @@ import { buildSymbolTable } from '@internal/psl-parser';
 import { parse } from '@internal/psl-parser/syntax';
 import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  type MockInstance,
-  vi,
-} from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { useEmitWarningSpy } from '../../../../2-sql/1-core/contract/test/emit-warning-spy';
 import { postgresAuthoringTypes } from '../src/core/control-mutation-defaults';
 
 const JSON_WARNING_CODE = 'PN_PSL_JSON_NATIVE_JSON';
@@ -61,20 +53,6 @@ function interpret(schema: string) {
     createNamespace: postgresCreateNamespace,
     capabilities: { sql: { scalarList: true } },
   });
-}
-
-function useEmitWarningSpy(): () => MockInstance<typeof process.emitWarning> {
-  let spy: MockInstance<typeof process.emitWarning>;
-  beforeAll(() => {
-    spy = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
-  });
-  afterEach(() => {
-    spy.mockClear();
-  });
-  afterAll(() => {
-    spy.mockRestore();
-  });
-  return () => spy;
 }
 
 describe('bare Json spelling advisory on the postgres target', () => {

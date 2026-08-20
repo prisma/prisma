@@ -126,12 +126,10 @@ export interface AuthoringTypeConstructorDescriptor {
 }
 
 /**
- * Declarative bare-spelling advisory a type constructor carries so the
- * target can flag a spelling whose storage binding diverges from what its
- * users historically meant. Field resolution mints an
- * {@link AuthoringWarning} from it: `message` completes
- * `field "<Model>.<field>" <message>`; `summary` follows the
- * AuthoringWarning group-summary contract (plural noun phrase first, e.g.
+ * Declarative bare-spelling advisory a type constructor carries so the target can flag a spelling
+ * whose storage binding diverges from what its users historically meant. Field resolution mints an
+ * {@link AuthoringWarning} from it: `message` completes `field "<Model>.<field>" <message>`;
+ * `summary` follows the AuthoringWarning group-summary contract (plural noun phrase first, e.g.
  * `fields are typed <spelling>. <remediation>`).
  */
 export interface AuthoringBareSpellingWarning {
@@ -919,13 +917,10 @@ export function collectScalarTypeConstructors(
     if (!isAuthoringTypeConstructorDescriptor(value)) continue;
     if (value.entityRefArg !== undefined) continue;
     if (value.args?.some((arg) => arg.optional !== true)) continue;
-    const output = instantiateAuthoringTypeConstructor(value, []);
-    result.set(
-      name,
-      value.bareSpellingWarning === undefined
-        ? output
-        : { ...output, bareSpellingWarning: value.bareSpellingWarning },
-    );
+    result.set(name, {
+      ...instantiateAuthoringTypeConstructor(value, []),
+      ...ifDefined('bareSpellingWarning', value.bareSpellingWarning),
+    });
   }
   return result;
 }

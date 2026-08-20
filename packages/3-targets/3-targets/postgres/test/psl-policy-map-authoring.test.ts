@@ -12,16 +12,8 @@ import { assembleAuthoringContributions } from '@internal/framework-components/c
 import { buildSymbolTable } from '@internal/psl-parser';
 import { parse } from '@internal/psl-parser/syntax';
 import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  type MockInstance,
-  vi,
-} from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { useEmitWarningSpy } from '../../../../2-sql/1-core/contract/test/emit-warning-spy';
 import {
   postgresAuthoringEntityTypes,
   postgresAuthoringModelAttributes,
@@ -98,26 +90,6 @@ function publicNamespace(result: ReturnType<typeof interpret>): PostgresSchema {
   expect(result.ok).toBe(true);
   if (!result.ok) throw new Error('interpretation failed');
   return result.value.storage.namespaces['public'] as PostgresSchema;
-}
-
-/**
- * Spies `process.emitWarning` for one suite. The spy is installed in
- * `beforeAll` rather than at collection time because the suites in this file
- * share the global: stacked collection-time spies let one suite's restore
- * discard the next suite's instrumentation.
- */
-function useEmitWarningSpy(): () => MockInstance<typeof process.emitWarning> {
-  let spy: MockInstance<typeof process.emitWarning>;
-  beforeAll(() => {
-    spy = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
-  });
-  afterEach(() => {
-    spy.mockClear();
-  });
-  afterAll(() => {
-    spy.mockRestore();
-  });
-  return () => spy;
 }
 
 describe('@@map lowers an exact-named policy', () => {

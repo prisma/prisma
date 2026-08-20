@@ -7,16 +7,9 @@
  */
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  type MockInstance,
-  vi,
-} from 'vitest';
+import { ifDefined } from '@internal/utils/defined';
+import { describe, expect, it } from 'vitest';
+import { useEmitWarningSpy } from '../../../1-core/contract/test/emit-warning-spy';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { interpretPslDocumentToSqlContract } from '../src/interpreter';
 import {
@@ -43,20 +36,6 @@ const authoringTypes = {
 
 const scalarColumnDescriptors = collectScalarTypeConstructors(authoringTypes);
 
-function useEmitWarningSpy(): () => MockInstance<typeof process.emitWarning> {
-  let spy: MockInstance<typeof process.emitWarning>;
-  beforeAll(() => {
-    spy = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
-  });
-  afterEach(() => {
-    spy.mockClear();
-  });
-  afterAll(() => {
-    spy.mockRestore();
-  });
-  return () => spy;
-}
-
 describe('bare-spelling advisory at PSL lowering', () => {
   const builtinControlMutationDefaults = createBuiltinLikeControlMutationDefaults();
   const emitWarning = useEmitWarningSpy();
@@ -71,7 +50,7 @@ describe('bare-spelling advisory at PSL lowering', () => {
         entityTypes: {},
         type: authoringTypes,
         field: {},
-        ...(valueObjectStorageType !== undefined ? { valueObjectStorageType } : {}),
+        ...ifDefined('valueObjectStorageType', valueObjectStorageType),
       },
       composedExtensionContracts: new Map(),
       controlMutationDefaults: builtinControlMutationDefaults,
@@ -137,6 +116,41 @@ model User {
 
     expect(result.ok).toBe(true);
     expect(legacyWarningCalls()).toEqual([]);
+  });
+
+  it('a named-type alias over an advisory type does not warn — the alias declaration is a deliberate single-site choice', () => {
+    const result = interpret(`types {
+  Meta = Legacy
+}
+
+model Doc {
+  id Int @id
+  meta Meta
+}`);
+
+    expect(result.ok).toBe(true);
+    expect(legacyWarningCalls()).toEqual([]);
+  });
+
+  it('models outside the default namespace qualify the warning item with their namespace', () => {
+    const result = interpret(`namespace audit {
+  model Doc {
+    id Int @id
+    meta Legacy
+  }
+}
+
+model Doc {
+  id Int @id
+  meta Legacy
+}`);
+
+    expect(result.ok).toBe(true);
+    const messages = legacyWarningCalls().map((c) => String(c[0]));
+    expect(messages.sort()).toEqual([
+      'field "Doc.meta" is typed "Legacy". Write "Modern" instead.',
+      'field "audit.Doc.meta" is typed "Legacy". Write "Modern" instead.',
+    ]);
   });
 
   it('a type without the advisory never warns', () => {

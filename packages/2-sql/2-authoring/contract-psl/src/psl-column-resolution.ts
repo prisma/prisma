@@ -62,9 +62,8 @@ export type ColumnDescriptor = {
    */
   readonly valueSet?: ValueSetRef;
   /**
-   * Advisory the contributing type constructor declares for its bare
-   * type-name spelling (carried through the scalar view by
-   * `collectScalarTypeConstructors`). Field resolution mints one
+   * Advisory the contributing type constructor declares for its bare type-name spelling (carried
+   * through the scalar view by `collectScalarTypeConstructors`). Field resolution mints one
    * AuthoringWarning per model field resolved via that bare spelling.
    */
   readonly bareSpellingWarning?: AuthoringBareSpellingWarning;

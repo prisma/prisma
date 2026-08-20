@@ -165,7 +165,9 @@ export interface CollectResolvedFieldsInput {
   /** Codec-id-keyed descriptor lookup — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
   readonly codecLookup?: CodecLookup;
   /** Sink for non-fatal advisories minted here (e.g. a bare type spelling whose descriptor declares `bareSpellingWarning`). */
-  readonly warnings?: AuthoringWarningSink;
+  readonly warnings: AuthoringWarningSink;
+  /** The target's default namespace id — warning labels qualify the model name only outside it. */
+  readonly defaultNamespaceId: string | undefined;
 }
 
 const BUILTIN_FIELD_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([
@@ -415,6 +417,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     namespaceExtensionEntities,
     codecLookup,
     warnings,
+    defaultNamespaceId,
   } = input;
   const resolvedFields: ResolvedField[] = [];
   const valueObjectStorageTypeName = authoringContributions?.valueObjectStorageType;
@@ -566,8 +569,12 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       !isValueObjectField
     ) {
       const advisory = descriptor.bareSpellingWarning;
-      const item = `field "${model.name}.${field.name}"`;
-      warnings?.push({
+      const modelLabel =
+        namespaceId === undefined || namespaceId === defaultNamespaceId
+          ? model.name
+          : `${namespaceId}.${model.name}`;
+      const item = `field "${modelLabel}.${field.name}"`;
+      warnings.push({
         code: advisory.code,
         message: `${item} ${advisory.message}`,
         item,
