@@ -10,6 +10,7 @@ import type {
   SqlTransaction,
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
+import { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
 import type {
   Client,
   ClientBase,
@@ -656,7 +657,11 @@ class PostgresPoolDriverImpl
   }
 
   async acquireClient(): Promise<PoolClient> {
-    return this.pool.connect();
+    // pg-pool detaches its own 'error' forwarding while a client is checked
+    // out, so a connection error during a held connection, transaction, or
+    // cursor emits on the client itself; without a listener that kills the
+    // process.
+    return suppressIdleConnectionErrors(await this.pool.connect());
   }
 
   async releaseClient(client: PoolClient): Promise<void> {
@@ -681,6 +686,13 @@ class PostgresDirectDriverImpl
   constructor(options: PostgresDriverOptions & { connect: { client: Client } }) {
     super(buildConnectionOptions(options));
     this.directClient = options.connect.client;
+    // A pg.Client cannot be reused after its connection dies, so mark the
+    // driver closed and let acquireClient reject with a clear error instead
+    // of handing out the dead client.
+    this.directClient.on('error', () => {
+      this.#closed = true;
+      this.#connected = false;
+    });
   }
 
   protected override inExplicitTransaction(): boolean {
@@ -745,6 +757,12 @@ class PostgresDirectDriverImpl
   }
 
   async acquireClient(): Promise<Client> {
+    if (this.#closed) {
+      throw driverError(
+        'DRIVER.NOT_CONNECTED',
+        'Postgres connection lost or closed. Create a new client to reconnect.',
+      );
+    }
     if (this.#connected) {
       return this.directClient;
     }
@@ -781,11 +799,13 @@ export function createBoundDriverFromBinding(
   const preparedStatements = extraOpts?.preparedStatements;
   switch (binding.kind) {
     case 'url': {
-      const pool = new Pool({
-        connectionString: binding.url,
-        connectionTimeoutMillis: 20_000,
-        idleTimeoutMillis: 30_000,
-      });
+      const pool = suppressIdleConnectionErrors(
+        new Pool({
+          connectionString: binding.url,
+          connectionTimeoutMillis: 20_000,
+          idleTimeoutMillis: 30_000,
+        }),
+      );
       return new PostgresPoolDriverImpl({
         connect: { pool },
         cursor: cursorOpts,
@@ -794,13 +814,13 @@ export function createBoundDriverFromBinding(
     }
     case 'pgPool':
       return new PostgresPoolDriverImpl({
-        connect: { pool: binding.pool },
+        connect: { pool: suppressIdleConnectionErrors(binding.pool) },
         cursor: cursorOpts,
         preparedStatements,
       });
     case 'pgClient':
       return new PostgresDirectDriverImpl({
-        connect: { client: binding.client },
+        connect: { client: suppressIdleConnectionErrors(binding.client) },
         cursor: cursorOpts,
         preparedStatements,
       });

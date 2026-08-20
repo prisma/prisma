@@ -29,6 +29,7 @@ function textOf(arg: unknown): string {
 function makeTrackedClient(state: ConcurrencyState) {
   return {
     connect: async () => undefined,
+    on: () => undefined,
     end: async () => undefined,
     query: async (arg: unknown, _values?: unknown[]) => {
       const text = textOf(arg);
@@ -223,6 +224,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
         release: () => undefined,
       }),
       end: async () => undefined,
+      on: () => undefined,
     };
     const driver = createBoundDriverFromBinding(
       { kind: 'pgPool', pool: pool as unknown as Pool },

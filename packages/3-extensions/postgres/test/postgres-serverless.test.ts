@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // run over this fake client.
 vi.mock('pg', () => {
   class Pool {
+    on = vi.fn().mockReturnThis();
     constructor(_options?: unknown) {}
     connect = vi.fn().mockResolvedValue({
       query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
@@ -16,6 +17,7 @@ vi.mock('pg', () => {
   }
 
   class Client {
+    on = vi.fn().mockReturnThis();
     connect = vi.fn().mockResolvedValue(undefined);
     query = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
     end = vi.fn().mockResolvedValue(undefined);

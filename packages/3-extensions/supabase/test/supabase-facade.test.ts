@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // over these fake pool clients so we can assert on the actual queries issued.
 vi.mock('pg', () => {
   class Pool {
+    on = vi.fn().mockReturnThis();
     static _connectSpy = vi.fn();
 
     connect = Pool._connectSpy;
@@ -16,6 +17,7 @@ vi.mock('pg', () => {
   }
 
   class Client {
+    on = vi.fn().mockReturnThis();
     connect = vi.fn().mockResolvedValue(undefined);
     query = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
     end = vi.fn().mockResolvedValue(undefined);
@@ -82,6 +84,7 @@ function makeFakeClient(affectedRows = 0) {
         },
       ),
     release: vi.fn(),
+    on: vi.fn(),
   };
 }
 

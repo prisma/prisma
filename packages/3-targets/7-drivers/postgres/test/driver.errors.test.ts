@@ -36,6 +36,7 @@ describe('@internal/driver-postgres', () => {
     const mockClient = {
       _connection: {},
       _ending: false,
+      on: () => undefined,
       connect: vi.fn(async () => {}),
       end: vi.fn(async () => {}),
       // The non-Error cursor failure is rethrown without falling through
@@ -67,6 +68,7 @@ describe('@internal/driver-postgres', () => {
     const mockClient = {
       _connection: {},
       _ending: false,
+      on: () => undefined,
       connect: vi.fn(async () => {}),
       end: vi.fn(async () => {}),
       query: vi.fn((statement: unknown) => {
@@ -109,6 +111,7 @@ describe('@internal/driver-postgres', () => {
     const mockClient = {
       _connection: {},
       _ending: false,
+      on: () => undefined,
       connect: vi.fn(async () => {}),
       end: vi.fn(async () => {}),
       // pg cursor errors are rethrown without falling through to buffered.
@@ -138,6 +141,7 @@ describe('@internal/driver-postgres', () => {
     const mockClient = {
       _connection: undefined,
       _ending: false,
+      on: () => undefined,
       connect: vi.fn(async () => {
         throw new Error('Connection failed: network error');
       }),
@@ -158,7 +162,8 @@ describe('@internal/driver-postgres', () => {
   it('closes pool driver once when close called multiple times', async () => {
     const pool = {
       end: vi.fn(async () => {}),
-      connect: vi.fn(async () => ({ release: vi.fn() })),
+      connect: vi.fn(async () => ({ release: vi.fn(), on: () => undefined })),
+      on: () => undefined,
     } as unknown as Pool;
     const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
 
@@ -171,7 +176,8 @@ describe('@internal/driver-postgres', () => {
   it('reports connected state for bound pool driver', async () => {
     const pool = {
       end: vi.fn(async () => {}),
-      connect: vi.fn(async () => ({ release: vi.fn() })),
+      connect: vi.fn(async () => ({ release: vi.fn(), on: () => undefined })),
+      on: () => undefined,
     } as unknown as Pool;
     const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
     cleanups.push(async () => {
@@ -184,7 +190,8 @@ describe('@internal/driver-postgres', () => {
   it('reports closed state for pool driver after close', async () => {
     const pool = {
       end: vi.fn(async () => {}),
-      connect: vi.fn(async () => ({ release: vi.fn() })),
+      connect: vi.fn(async () => ({ release: vi.fn(), on: () => undefined })),
+      on: () => undefined,
     } as unknown as Pool;
     const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
 
@@ -198,6 +205,7 @@ describe('@internal/driver-postgres', () => {
     const mockClient = {
       _connection: undefined,
       _ending: false,
+      on: () => undefined,
       connect: vi.fn(async () => {
         throw alreadyConnectedError;
       }),
@@ -226,6 +234,7 @@ describe('@internal/driver-postgres', () => {
     const mockClient = {
       _connection: undefined,
       _ending: false,
+      on: () => undefined,
       connect: vi.fn(async () => {
         await connectPromise;
       }),
@@ -253,6 +262,7 @@ describe('@internal/driver-postgres', () => {
     const mockClient = {
       _connection: {},
       _ending: false,
+      on: () => undefined,
       connect: vi.fn(async () => {}),
       query: vi.fn(async () => ({ rows: [] })),
       end: vi.fn(async () => {}),
@@ -272,6 +282,7 @@ describe('@internal/driver-postgres', () => {
     const mockClient = {
       _connection: {},
       _ending: false,
+      on: () => undefined,
       connect: vi.fn(async () => {}),
       query: vi.fn(async () => ({ rows: [] })),
       end: vi.fn(async () => {}),
@@ -303,6 +314,7 @@ describe('@internal/driver-postgres', () => {
     const mockClient = {
       _connection: {},
       _ending: false,
+      on: () => undefined,
       connect: vi.fn(async () => {}),
       query: vi.fn(async () => ({ rows: [] })),
       end: vi.fn(async () => {}),
@@ -322,6 +334,7 @@ describe('@internal/driver-postgres', () => {
     const mockClient = {
       _connection: {},
       _ending: false,
+      on: () => undefined,
       connect: vi.fn(async () => {}),
       query: vi.fn(async () => ({ rows: [] })),
       end: vi.fn(async () => {}),
@@ -344,6 +357,7 @@ describe('@internal/driver-postgres', () => {
       const mockClient = {
         _connection: undefined,
         _ending: false,
+        on: () => undefined,
         connect: vi.fn(async () => {
           throw new Error('connect failed');
         }),
@@ -368,12 +382,14 @@ describe('@internal/driver-postgres', () => {
   it('destroy() evicts pool client by passing truthy error to PoolClient.release', async () => {
     const clientRelease = vi.fn();
     const poolClient = {
+      on: () => undefined,
       query: vi.fn(async () => ({ rows: [] })),
       release: clientRelease,
     };
     const pool = {
       end: vi.fn(async () => {}),
       connect: vi.fn(async () => poolClient),
+      on: () => undefined,
     } as unknown as Pool;
     const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
     cleanups.push(async () => {
@@ -392,12 +408,14 @@ describe('@internal/driver-postgres', () => {
   it('destroy() without an Error reason still evicts pool client with a truthy arg', async () => {
     const clientRelease = vi.fn();
     const poolClient = {
+      on: () => undefined,
       query: vi.fn(async () => ({ rows: [] })),
       release: clientRelease,
     };
     const pool = {
       end: vi.fn(async () => {}),
       connect: vi.fn(async () => poolClient),
+      on: () => undefined,
     } as unknown as Pool;
     const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
     cleanups.push(async () => {
@@ -418,6 +436,7 @@ describe('@internal/driver-postgres', () => {
       const mockClient = {
         _connection: {},
         _ending: false,
+        on: () => undefined,
         connect: vi.fn(async () => {}),
         query: vi.fn(async () => ({ rows: [] })),
         end: vi.fn(async () => {}),
@@ -445,12 +464,14 @@ describe('@internal/driver-postgres', () => {
       throw releaseError;
     });
     const poolClient = {
+      on: () => undefined,
       query: vi.fn(async () => ({ rows: [] })),
       release: clientRelease,
     };
     const pool = {
       end: vi.fn(async () => {}),
       connect: vi.fn(async () => poolClient),
+      on: () => undefined,
     } as unknown as Pool;
     const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined);
     cleanups.push(async () => {
@@ -471,6 +492,7 @@ describe('@internal/driver-postgres', () => {
       const mockClient = {
         _connection: {},
         _ending: false,
+        on: () => undefined,
         connect: vi.fn(async () => {}),
         query: vi.fn(async () => ({ rows: [] })),
         end: vi.fn(async () => {
@@ -500,6 +522,7 @@ describe('@internal/driver-postgres', () => {
       const mockClient = {
         _connection: {},
         _ending: false,
+        on: () => undefined,
         connect: vi.fn(async () => {
           events.push('connect');
         }),

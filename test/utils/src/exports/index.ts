@@ -1,3 +1,4 @@
+import { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
 import { type ServerOptions, startPrismaDevServer } from '@prisma/dev';
 import { Client } from 'pg';
 
@@ -64,15 +65,11 @@ export async function withClient<T>(
   connectionString: string,
   fn: (client: Client) => Promise<T>,
 ): Promise<T> {
-  const client = new Client({ connectionString });
-  // A PGlite (WASM) dev server can abort mid-operation on the slower CI runners
-  // (the same crash the suites' `retry` config re-runs). When it does, this
-  // client's connection drops and `pg` emits an asynchronous 'error' event.
-  // With no listener that becomes an *unhandled* error, which fails the whole
-  // run even though the awaited query already rejected and the test is retried
-  // on a fresh database. Absorb the connection-level event — query/connect
-  // failures still reject their own promises, so nothing real is masked.
-  client.on('error', () => {});
+  // A PGlite (WASM) dev server can abort mid-operation on the slower CI
+  // runners; the suppressed connection-level 'error' event would otherwise
+  // fail the whole run even though the awaited query already rejected and the
+  // test is retried on a fresh database.
+  const client = suppressIdleConnectionErrors(new Client({ connectionString }));
   await client.connect();
   try {
     return await fn(client);

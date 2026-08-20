@@ -4,6 +4,7 @@ import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
 import { ifDefined } from '@internal/utils/defined';
 import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
+import { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
 import { Client } from 'pg';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
 import { normalizePgError } from '../normalize-error';
@@ -46,11 +47,7 @@ const postgresDriverDescriptor: ControlDriverDescriptor<'sql', 'postgres', Postg
   {
     ...postgresDriverDescriptorMeta,
     async create(url: string): Promise<PostgresControlDriver> {
-      const client = new Client({ connectionString: url });
-      // Connection-level events become unhandled errors with no listener;
-      // query/connect failures still reject their own promises, so nothing
-      // real is masked.
-      client.on('error', () => {});
+      const client = suppressIdleConnectionErrors(new Client({ connectionString: url }));
       try {
         await client.connect();
         return new PostgresControlDriver(client);

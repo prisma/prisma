@@ -21,6 +21,7 @@ vi.mock('pg', () => {
   const connectSpy = vi.fn().mockResolvedValue(new FakePoolClient());
 
   class Pool {
+    on = vi.fn().mockReturnThis();
     static readonly _endSpy = poolEndSpy;
     static readonly _connectSpy = connectSpy;
     static readonly _querySpy = querySpy;
@@ -39,6 +40,7 @@ vi.mock('pg', () => {
   }
 
   class Client {
+    on = vi.fn().mockReturnThis();
     connect = vi.fn().mockResolvedValue(undefined);
     query = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
     end = vi.fn().mockResolvedValue(undefined);
@@ -69,6 +71,7 @@ beforeEach(() => {
     Object.assign(new (Pool as unknown as new () => object)(), {
       query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
       release: vi.fn(),
+      on: vi.fn(),
     }),
   );
 });
@@ -352,6 +355,7 @@ describe('postgres', () => {
     const fakeClient = {
       query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
       release: vi.fn(),
+      on: vi.fn(),
     };
     (pool as unknown as { connect: typeof vi.fn }).connect = vi.fn().mockResolvedValue(fakeClient);
 
@@ -370,6 +374,7 @@ describe('postgres', () => {
     const fakeClient = {
       query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
       release: vi.fn(),
+      on: vi.fn(),
     };
     (pool as unknown as { connect: typeof vi.fn }).connect = vi.fn().mockResolvedValue(fakeClient);
 
@@ -390,6 +395,7 @@ describe('postgres', () => {
     const fakeClient = {
       query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
       release: vi.fn(),
+      on: vi.fn(),
     };
     (pool as unknown as { connect: typeof vi.fn }).connect = vi.fn().mockResolvedValue(fakeClient);
 
@@ -410,6 +416,7 @@ describe('postgres', () => {
     const fakeClient = {
       query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
       release: vi.fn(),
+      on: vi.fn(),
     };
     (pool as unknown as { connect: typeof vi.fn }).connect = vi.fn().mockResolvedValue(fakeClient);
 

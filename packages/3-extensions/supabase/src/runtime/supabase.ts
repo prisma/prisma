@@ -1,6 +1,6 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { Contract } from '@internal/contract/types';
-import postgresDriver from '@internal/driver-postgres/runtime';
+import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type {
   AsyncIterableResult,
@@ -250,11 +250,13 @@ function toPool<TContract extends Contract<SqlStorage>>(
   }
   if (typeof options.url === 'string') {
     return {
-      pool: new Pool({
-        connectionString: options.url,
-        connectionTimeoutMillis: options.poolOptions?.connectionTimeoutMillis ?? 20_000,
-        idleTimeoutMillis: options.poolOptions?.idleTimeoutMillis ?? 30_000,
-      }),
+      pool: suppressIdleConnectionErrors(
+        new Pool({
+          connectionString: options.url,
+          connectionTimeoutMillis: options.poolOptions?.connectionTimeoutMillis ?? 20_000,
+          idleTimeoutMillis: options.poolOptions?.idleTimeoutMillis ?? 30_000,
+        }),
+      ),
       owned: true,
     };
   }
