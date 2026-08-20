@@ -96,25 +96,31 @@ Before merging, every new entry runs against the corresponding in-repo substrate
 
 Workflow per entry (one of the two flows; both apply for cross-audience entries):
 
+`<target>` is the branch the PR targets. Validating an entry after its PR merged? Use the merge commit as the head and its mainline parent as the base: `git log --first-parent` names both.
+
+The substrate's own tests are the PR author's work, not the entry's. An entry translates consumer code; it neither writes nor updates the tests this repo keeps beside that code. The checks below therefore exclude the substrate's `test/` directories — what they measure is whether the entry reproduces every source change.
+
 ### User-skill entry (against `examples/`)
 
 1. Check out the PR branch with the framework change applied.
 2. Revert `examples/` to its pre-PR state (`git restore --source=origin/<target> -- examples/`).
 3. Run the entry against the reverted substrate — invoke any colocated script(s) per the entry's `script:` reference, then walk the prose body of `instructions.md` if the entry has additional instructions.
-4. Verify the resulting `examples/` directory matches the PR-branch state: `git status --porcelain -- examples/` prints nothing. The entry has reproduced the patch `git diff origin/<target>..HEAD -- examples/` describes, so the working tree is back at HEAD and the check is that nothing is left over — no modification, and no file the entry created along the way.
-5. Verify the matching test suite is green: `pnpm test:examples`.
+4. Verify the resulting `examples/` directory matches the PR-branch state: `git status --porcelain -- examples/ ':(exclude)examples/*/test/**'` prints nothing. The entry has reproduced the patch `git diff origin/<target>..HEAD -- examples/` describes, so the working tree is back at HEAD and the check is that nothing is left over — no modification, and no file the entry created along the way.
+5. Verify the touched example's test suite is green — `pnpm --filter <example-package> test` for each example the entry changed. The repo-wide `pnpm test:examples` also runs examples that need a database and a `.env` (`pnpm db:up`, then copy `.env.example`); run it only with those in place.
 
-If any of those checks fail, iterate on the entry. Do not merge.
+If any of those checks fail, iterate on the entry. Do not merge. Classify a failure before you change anything: a timeout or a connection error is the environment, not the entry (`.agents/rules/ci-failure-classification.mdc`).
 
 ### Extension-skill entry (against `packages/3-extensions/`)
 
 1. Check out the PR branch with the framework change applied.
 2. Revert `packages/3-extensions/` to its pre-PR state (`git restore --source=origin/<target> -- packages/3-extensions/`).
 3. Run the entry against the reverted substrate.
-4. Verify the resulting `packages/3-extensions/` directory matches the PR-branch state: `git status --porcelain -- packages/3-extensions/` prints nothing, the same check the user-skill flow makes against `examples/`.
+4. Verify the resulting `packages/3-extensions/` directory matches the PR-branch state: `git status --porcelain -- packages/3-extensions/ ':(exclude)packages/3-extensions/*/test/**'` prints nothing, the same check the user-skill flow makes against `examples/`.
 5. Verify the matching test suite is green: `pnpm test --filter='./packages/3-extensions/*'`.
 
-If any of those checks fail, iterate on the entry. Do not merge.
+If any of those checks fail, iterate on the entry. Do not merge. Classify a failure before you change anything, as above.
+
+This flow was last executed end to end on 2026-08-20, against the `8.0.0-rc.3-to-8.0.0-rc.4` raw-lane entries in both skills.
 
 ## PR commit shape
 
