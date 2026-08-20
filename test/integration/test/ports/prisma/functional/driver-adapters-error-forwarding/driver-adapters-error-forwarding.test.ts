@@ -19,6 +19,7 @@ function clientRejectingTransactionStart(error: Error) {
     idleCount: 0,
     waitingCount: 0,
     connect: vi.fn().mockResolvedValue(transactionClient as unknown as PoolClient),
+    on: vi.fn(),
   } as unknown as Pool;
   return postgres<Contract>({ contractJson, pg: pool, verifyMarker: false });
 }
