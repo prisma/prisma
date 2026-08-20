@@ -233,7 +233,7 @@ function wrapWithRowNumberDedup(options: {
  * FROM source + WHERE for `state.distinct`: wraps in a `ROW_NUMBER`-ranked
  * derived table aliased back to `tableName`, so callers need no rewriting.
  */
-function buildDistinctScopedSource(
+function buildDedupedTableSource(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   tableName: string,
@@ -329,11 +329,11 @@ function hasEntries<T>(value: ReadonlyArray<T> | undefined): value is ReadonlyAr
 }
 
 /**
- * The row-scope select an aggregate reduces over, one SELECT aliased to
- * `tableName` — an aggregate has no outer level of its own, so where/joins/
- * distinct/orderBy/limit/offset all have to live in this one wrap.
+ * The rows an aggregate reduces over, one SELECT aliased to `tableName` — an
+ * aggregate has no outer level of its own, so where/joins/distinct/orderBy/
+ * limit/offset all have to live in this one wrap.
  */
-function buildScopedSource(
+function buildAggregateInput(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   tableName: string,
@@ -350,7 +350,7 @@ function buildScopedSource(
       : [];
 
   const where = buildStateWhere(contract, tableName, state, { namespaceId });
-  const { source, where: effectiveWhere } = buildDistinctScopedSource(
+  const { source, where: effectiveWhere } = buildDedupedTableSource(
     contract,
     namespaceId,
     tableName,
@@ -386,9 +386,9 @@ function buildScopedSource(
 }
 
 export {
-  buildDistinctScopedSource,
+  buildAggregateInput,
+  buildDedupedTableSource,
   buildMtiJoins,
-  buildScopedSource,
   buildStateWhere,
   createTableRefRemapper,
   wrapWithRowNumberDedup,

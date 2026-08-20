@@ -22,7 +22,7 @@ import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
 import { assertDistinctOnCapability, resolvePolymorphismInfo } from './collection-contract';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
-import { buildMtiJoins, buildScopedSource, buildStateWhere } from './query-plan-scope';
+import { buildAggregateInput, buildMtiJoins, buildStateWhere } from './query-plan-scope';
 import { tableSourceForContract } from './storage-resolution';
 import type { AggregateSelector, CollectionState } from './types';
 import { combineWhereExprs } from './where-utils';
@@ -182,7 +182,7 @@ function validateGroupedHavingExpr(expr: AnyExpression): AnyExpression {
 }
 
 // `__row` is exclusive, not additive: only used when no selector names a column.
-function scopedInnerProjection(
+function aggregateInputColumns(
   tableName: string,
   entries: ReadonlyArray<[string, AggregateSelector<unknown>]>,
   orderBy: ReadonlyArray<OrderByItem> | undefined,
@@ -193,7 +193,7 @@ function scopedInnerProjection(
       columns.add(selector.column);
     }
   }
-  // orderBy columns must be visible through the scope wrap even if no selector aggregates them.
+  // orderBy columns must be visible through the input wrap even if no selector aggregates them.
   for (const item of orderBy ?? []) {
     if (item.expr.kind === 'column-ref') {
       columns.add(item.expr.column);
@@ -235,16 +235,16 @@ export function compileAggregate(
   const hasDistinct =
     (state.distinct !== undefined && state.distinct.length > 0) ||
     (state.distinctOn !== undefined && state.distinctOn.length > 0);
-  const needsRowScope = hasPagination || hasDistinct;
+  const needsInputSelect = hasPagination || hasDistinct;
 
-  if (needsRowScope) {
-    const { source } = buildScopedSource(
+  if (needsInputSelect) {
+    const { source } = buildAggregateInput(
       contract,
       namespaceId,
       tableName,
       state,
       modelName,
-      scopedInnerProjection(tableName, entries, state.orderBy),
+      aggregateInputColumns(tableName, entries, state.orderBy),
     );
     const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
       const { expr, codec } = toAggregateProjection(

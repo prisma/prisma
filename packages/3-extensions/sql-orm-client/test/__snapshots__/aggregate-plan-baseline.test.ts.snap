@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`aggregate plan baseline for chains naming no row scope > groupBy().aggregate() with no other clause 1`] = `
+exports[`aggregate plan baseline for chains naming no aggregate input > groupBy().aggregate() with no other clause 1`] = `
 {
   "ast": SelectAst {
     "distinct": undefined,
@@ -61,7 +61,7 @@ exports[`aggregate plan baseline for chains naming no row scope > groupBy().aggr
 }
 `;
 
-exports[`aggregate plan baseline for chains naming no row scope > groupBy().aggregate() with where() 1`] = `
+exports[`aggregate plan baseline for chains naming no aggregate input > groupBy().aggregate() with where() 1`] = `
 {
   "ast": SelectAst {
     "distinct": undefined,
@@ -140,7 +140,7 @@ exports[`aggregate plan baseline for chains naming no row scope > groupBy().aggr
 }
 `;
 
-exports[`aggregate plan baseline for chains naming no row scope > groupBy().having().aggregate() 1`] = `
+exports[`aggregate plan baseline for chains naming no aggregate input > groupBy().having().aggregate() 1`] = `
 {
   "ast": SelectAst {
     "distinct": undefined,
@@ -213,7 +213,7 @@ exports[`aggregate plan baseline for chains naming no row scope > groupBy().havi
 }
 `;
 
-exports[`aggregate plan baseline for chains naming no row scope > root aggregate() with multiple selectors including a no-column count() 1`] = `
+exports[`aggregate plan baseline for chains naming no aggregate input > root aggregate() with multiple selectors including a no-column count() 1`] = `
 {
   "ast": SelectAst {
     "distinct": undefined,
@@ -288,7 +288,7 @@ exports[`aggregate plan baseline for chains naming no row scope > root aggregate
 }
 `;
 
-exports[`aggregate plan baseline for chains naming no row scope > root aggregate() with no other clause 1`] = `
+exports[`aggregate plan baseline for chains naming no aggregate input > root aggregate() with no other clause 1`] = `
 {
   "ast": SelectAst {
     "distinct": undefined,
@@ -331,7 +331,7 @@ exports[`aggregate plan baseline for chains naming no row scope > root aggregate
 }
 `;
 
-exports[`aggregate plan baseline for chains naming no row scope > root aggregate() with orderBy() stays inert 1`] = `
+exports[`aggregate plan baseline for chains naming no aggregate input > root aggregate() with orderBy() stays inert 1`] = `
 {
   "ast": SelectAst {
     "distinct": undefined,
@@ -374,7 +374,7 @@ exports[`aggregate plan baseline for chains naming no row scope > root aggregate
 }
 `;
 
-exports[`aggregate plan baseline for chains naming no row scope > root aggregate() with where() 1`] = `
+exports[`aggregate plan baseline for chains naming no aggregate input > root aggregate() with where() 1`] = `
 {
   "ast": SelectAst {
     "distinct": undefined,

@@ -127,9 +127,9 @@ describe('MTI variant join in compileAggregate', () => {
 
     expectSelectAst(plan.ast);
     expectDerivedTableSource(plan.ast.from);
-    const scopedSelect = plan.ast.from.query;
-    expectDerivedTableSource(scopedSelect.from);
-    const rankedBase = scopedSelect.from.query;
+    const aggregateInput = plan.ast.from.query;
+    expectDerivedTableSource(aggregateInput.from);
+    const rankedBase = aggregateInput.from.query;
     expect(rankedBase.joins).toEqual([featureJoin]);
   });
 

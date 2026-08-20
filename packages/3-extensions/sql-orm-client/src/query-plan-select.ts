@@ -41,7 +41,7 @@ import {
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst, resolveTableColumns } from './query-plan-meta';
 import {
-  buildDistinctScopedSource,
+  buildDedupedTableSource,
   buildMtiJoins,
   buildStateWhere,
   createTableRefRemapper,
@@ -1407,11 +1407,11 @@ function buildSelectAst(
   const projection = [...scalarProjection, ...(options.includeProjection ?? [])];
   const where = options.where ?? buildStateWhere(contract, tableName, state, { namespaceId });
 
-  // `buildDistinctScopedSource` wraps for `.distinct(cols)`, aliased back to `tableName`.
+  // `buildDedupedTableSource` wraps for `.distinct(cols)`, aliased back to `tableName`.
   const allColsProjection = resolveTableColumns(contract, namespaceId, tableName).map((column) =>
     ProjectionItem.of(column, ColumnRef.of(tableName, column)),
   );
-  const { source: fromSource, where: effectiveWhere } = buildDistinctScopedSource(
+  const { source: fromSource, where: effectiveWhere } = buildDedupedTableSource(
     contract,
     namespaceId,
     tableName,

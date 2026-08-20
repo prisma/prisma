@@ -16,12 +16,12 @@ function planOf(runtime: MockRuntime) {
 
 const numericField = 'views' as never;
 
-// Aggregate chains that name no row scope (no take/skip/cursor/distinct)
+// Aggregate chains that name no aggregate input (no take/skip/cursor/distinct)
 // compile through the unchanged plain-filters path today. These snapshots
-// pin that output before any row-scoping machinery lands, so a later change
-// that widens the scoped-wrap condition too far shows up as a diff here
+// pin that output before any input-select machinery lands, so a later change
+// that widens the input-wrap condition too far shows up as a diff here
 // instead of silently changing what an unpaginated aggregate compiles to.
-describe('aggregate plan baseline for chains naming no row scope', () => {
+describe('aggregate plan baseline for chains naming no aggregate input', () => {
   it('root aggregate() with no other clause', async () => {
     const { collection, runtime } = createCollectionFor('Post');
     runtime.setNextResults([[{ totalViews: 500 }]]);
