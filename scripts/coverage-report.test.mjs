@@ -59,8 +59,8 @@ function packageConfig(packageDir, thresholds = fullThresholds) {
   return { packageDir, config: { include: [], exclude: [], thresholds } };
 }
 
-function rootConfig(warningOnly = []) {
-  return { warningOnly, excludedPackages: [] };
+function rootConfig(warningOnly = [], excludedPackages = []) {
+  return { warningOnly, excludedPackages };
 }
 
 function warning(overrides = {}) {
@@ -81,13 +81,14 @@ function process({
   report,
   packageConfigs = [packageConfig('packages/group/a')],
   warnings = [],
+  excludedPackages = [],
   now = new Date('2026-01-05T12:00:00Z'),
 }) {
   return processCoverageReport({
     root,
     report,
     packageConfigs,
-    rootConfig: rootConfig(warnings),
+    rootConfig: rootConfig(warnings, excludedPackages),
     now,
   });
 }
@@ -282,6 +283,25 @@ describe('coverage report', () => {
     assert.match(formatCoverageReport(result), /lines: 0\.00% < 50%/);
   });
 
+  it('ignores excluded packages before owner resolution', () => {
+    const result = process({
+      root,
+      report: {
+        'packages/group/a/src/a.ts': record({ statements: [{ line: 1, hits: 1 }] }),
+        'packages/group/skip/src/skip.ts': record({ statements: [{ line: 1, hits: 0 }] }),
+      },
+      packageConfigs: [packageConfig('packages/group/a'), packageConfig('packages/group/skip')],
+      excludedPackages: ['group/skip'],
+    });
+
+    assert.equal(result.ok, true);
+    assert.deepEqual(
+      result.packages.map(({ packageDir }) => packageDir),
+      ['packages/group/a'],
+    );
+    assert.deepEqual(result.skipped, ['packages/group/skip']);
+  });
+
   it('rejects malformed records', () => {
     const malformed = [
       null,
@@ -403,6 +423,7 @@ describe('coverage report', () => {
     assert.equal(result.packages[0].metrics.lines.pct, 100);
     assert.match(output, /ABSENT FROM REPORT/);
     assert.match(output, /No source entries; no thresholds configured/);
+    assert.doesNotMatch(output, /NO THRESHOLDS/);
   });
 
   it('identifies empty thresholds without failing', () => {
@@ -463,6 +484,24 @@ describe('coverage report', () => {
     assert.match(output, /PASSING/);
     assert.match(output, /THRESHOLD INCREASE SUGGESTIONS/);
     assert.match(output, /lines: 80 -> 95/);
+  });
+
+  it('counts expired-warning deficits in the summary failure total', () => {
+    const result = process({
+      root,
+      report: {
+        'packages/group/a/src/a.ts': record({
+          statements: [{ line: 1, hits: 0 }],
+          branches: [[0]],
+          functions: [0],
+        }),
+      },
+      warnings: [warning()],
+      now: new Date('2026-01-12T00:00:00Z'),
+    });
+
+    assert.equal(result.failures.length, 1);
+    assert.match(formatCoverageReport(result), /Failures: 1/);
   });
 
   it('fails for missing and malformed root reports', async () => {

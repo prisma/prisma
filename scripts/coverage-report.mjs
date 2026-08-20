@@ -141,7 +141,11 @@ function packagePathSort(left, right) {
   return left.packageDir.localeCompare(right.packageDir);
 }
 
-export function aggregateCoverage({ root, report, packageConfigs }) {
+function isWithinPackage(sourcePath, packageDir) {
+  return sourcePath === packageDir || sourcePath.startsWith(`${packageDir}/`);
+}
+
+export function aggregateCoverage({ root, report, packageConfigs, skippedPackageDirs = [] }) {
   if (report === null || typeof report !== 'object' || Array.isArray(report)) {
     throw new CoverageReportError('Coverage report must be an object keyed by source path');
   }
@@ -164,9 +168,10 @@ export function aggregateCoverage({ root, report, packageConfigs }) {
 
   for (const [reportPath, value] of Object.entries(report)) {
     const sourcePath = normalizeReportPath(root, reportPath);
-    const owner = owners.find(
-      ({ packageDir }) => sourcePath === packageDir || sourcePath.startsWith(`${packageDir}/`),
-    );
+    if (skippedPackageDirs.some((packageDir) => isWithinPackage(sourcePath, packageDir))) {
+      continue;
+    }
+    const owner = owners.find(({ packageDir }) => isWithinPackage(sourcePath, packageDir));
     if (!owner) {
       throw new CoverageReportError(
         `Covered path has no configured package owner: ${sourcePath || reportPath}`,
@@ -227,53 +232,56 @@ export function processCoverageReport({ root, report, packageConfigs, rootConfig
   const warnings = [];
   const failures = [];
 
-  const packages = aggregateCoverage({ root, report, packageConfigs: configuredPackages }).map(
-    (packageResult) => {
-      const deficits = checkThresholds(packageResult.metrics, packageResult.thresholds);
-      const warningEntry = warningByPackage.get(packageResult.packageDir);
-      const warningState = warningEntry ? classifyWarning(warningEntry, now) : null;
-      const hasThresholds = Object.keys(packageResult.thresholds).length > 0;
-      let status = hasThresholds ? 'passed' : 'no-threshold';
+  const packages = aggregateCoverage({
+    root,
+    report,
+    packageConfigs: configuredPackages,
+    skippedPackageDirs: [...excluded],
+  }).map((packageResult) => {
+    const deficits = checkThresholds(packageResult.metrics, packageResult.thresholds);
+    const warningEntry = warningByPackage.get(packageResult.packageDir);
+    const warningState = warningEntry ? classifyWarning(warningEntry, now) : null;
+    const hasThresholds = Object.keys(packageResult.thresholds).length > 0;
+    let status = hasThresholds ? 'passed' : 'no-threshold';
 
-      if (!packageResult.present && warningState?.active) {
-        status = 'missing-warning';
-        warnings.push({
-          packageDir: packageResult.packageDir,
-          reason: 'absent-from-report',
-          entry: warningEntry,
-          expiryDate: warningState.expiryDate,
-        });
-      } else if (!packageResult.present && hasThresholds) {
-        status = expiredPackages.has(packageResult.packageDir) ? 'expired-warning' : 'missing';
-        failures.push({
-          packageDir: packageResult.packageDir,
-          reason: 'absent-from-report',
-        });
-      } else if (expiredPackages.has(packageResult.packageDir)) {
-        status = 'expired-warning';
-        if (deficits.length > 0) {
-          failures.push({ packageDir: packageResult.packageDir, deficits });
-        }
-      } else if (deficits.length > 0 && warningState?.active) {
-        status = 'warning';
-        warnings.push({
-          packageDir: packageResult.packageDir,
-          deficits,
-          entry: warningEntry,
-          expiryDate: warningState.expiryDate,
-        });
-      } else if (deficits.length > 0) {
-        status = 'failed';
+    if (!packageResult.present && warningState?.active) {
+      status = 'missing-warning';
+      warnings.push({
+        packageDir: packageResult.packageDir,
+        reason: 'absent-from-report',
+        entry: warningEntry,
+        expiryDate: warningState.expiryDate,
+      });
+    } else if (!packageResult.present && hasThresholds) {
+      status = expiredPackages.has(packageResult.packageDir) ? 'expired-warning' : 'missing';
+      failures.push({
+        packageDir: packageResult.packageDir,
+        reason: 'absent-from-report',
+      });
+    } else if (expiredPackages.has(packageResult.packageDir)) {
+      status = 'expired-warning';
+      if (deficits.length > 0) {
         failures.push({ packageDir: packageResult.packageDir, deficits });
       }
+    } else if (deficits.length > 0 && warningState?.active) {
+      status = 'warning';
+      warnings.push({
+        packageDir: packageResult.packageDir,
+        deficits,
+        entry: warningEntry,
+        expiryDate: warningState.expiryDate,
+      });
+    } else if (deficits.length > 0) {
+      status = 'failed';
+      failures.push({ packageDir: packageResult.packageDir, deficits });
+    }
 
-      const suggestions =
-        status === 'passed' && packageResult.present
-          ? suggestThresholdIncreases(packageResult.metrics, packageResult.thresholds)
-          : {};
-      return { ...packageResult, deficits, status, suggestions };
-    },
-  );
+    const suggestions =
+      status === 'passed' && packageResult.present
+        ? suggestThresholdIncreases(packageResult.metrics, packageResult.thresholds)
+        : {};
+    return { ...packageResult, deficits, status, suggestions };
+  });
 
   return {
     ok: failures.length === 0 && expiredWarnings.length === 0,
@@ -352,7 +360,9 @@ export function formatCoverageReport(result) {
     );
   }
 
-  const noThreshold = result.packages.filter(({ status }) => status === 'no-threshold');
+  const noThreshold = result.packages.filter(
+    ({ present, status }) => present && status === 'no-threshold',
+  );
   if (noThreshold.length > 0) {
     lines.push(
       'NO THRESHOLDS',
@@ -419,7 +429,7 @@ export function formatCoverageReport(result) {
   );
   lines.push('='.repeat(80));
   lines.push(
-    `Total: ${result.packages.length} | Passed: ${statusCounts.passed} | Failures: ${statusCounts.failed + statusCounts.missing} | Warnings: ${statusCounts.warning + statusCounts['missing-warning']} | Expired: ${result.expiredWarnings.length} | No thresholds: ${statusCounts['no-threshold']} | Skipped: ${result.skipped.length}`,
+    `Total: ${result.packages.length} | Passed: ${statusCounts.passed} | Failures: ${result.failures.length} | Warnings: ${statusCounts.warning + statusCounts['missing-warning']} | Expired: ${result.expiredWarnings.length} | No thresholds: ${statusCounts['no-threshold']} | Skipped: ${result.skipped.length}`,
   );
   lines.push('='.repeat(80));
   return `${lines.join('\n')}\n`;
