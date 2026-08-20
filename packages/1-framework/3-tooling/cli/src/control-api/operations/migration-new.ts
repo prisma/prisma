@@ -18,6 +18,7 @@ import { formatMigrationDirName, writeMigrationPackage } from '@internal/migrati
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { findLatestMigration } from '@internal/migration-tools/migration-graph';
 import { writeMigrationTs } from '@internal/migration-tools/migration-ts';
+import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { join, relative } from 'pathe';
 import {
@@ -118,7 +119,7 @@ export async function executeMigrationNewCommand(
     migrationsDir,
     deserializeContract: (json) => familyInstance.deserializeContract(json),
     appContract: toContract,
-    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+    ...ifDefined('verifySnapshotContent', verifySnapshotContent),
   });
   const packageCorruptionFailure = refusePackageCorruptionOnAggregate(aggregate, migrationsDir);
   if (packageCorruptionFailure) {

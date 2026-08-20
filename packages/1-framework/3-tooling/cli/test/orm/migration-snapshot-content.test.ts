@@ -35,7 +35,12 @@ function harness(project: OfflineProject) {
   return createTestCli({
     commands: BIN_COMMANDS,
     groups: BIN_GROUPS,
-    config: { orm: { ...config, target: { ...target, contractSerializer: {} } } },
+    config: {
+      orm: {
+        ...config,
+        target: { ...target, contractSerializer: { hashCanonicalizationHooks: {} } },
+      },
+    },
   });
 }
 

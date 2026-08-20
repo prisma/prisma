@@ -53,7 +53,6 @@ import {
   resolveTargetPathAcrossSpaces,
 } from '../../utils/migration-path-target';
 import { chooseAction, runCommandAction } from '../../utils/next-actions';
-import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
 
 function migrationPathRelative(cwd: string, dirPath: string): string {
   return relative(cwd, dirPath);
@@ -153,14 +152,21 @@ async function checkSnapshotConsistency(
     };
   }
   if (space.verifySnapshotContent !== undefined) {
-    const computedHash = space.verifySnapshotContent.recomputeStorageHash(raw);
-    if (computedHash !== pkg.metadata.to) {
-      const jsonPath = join(snapshotDir, 'contract.json');
+    const jsonPath = join(snapshotDir, 'contract.json');
+    try {
+      space.verifySnapshotContent.assertSnapshotContentMatches(raw, pkg.metadata.to, jsonPath);
+    } catch (error) {
+      if (
+        !MigrationToolsError.is(error) ||
+        error.code !== 'MIGRATION.CONTRACT_SNAPSHOT_CONTENT_MISMATCH'
+      ) {
+        throw error;
+      }
       return {
         space: spaceId,
         code: 'MIGRATION.CHECK_SNAPSHOT_CONTENT_MISMATCH',
         where: migrationPathRelative(space.cwd, jsonPath),
-        why: `Migration "${pkg.dirName}" is addressed by contract snapshot ${pkg.metadata.to}, but the content of ${jsonPath} recomputes to storage hash ${computedHash} — the snapshot has been edited since it was written.`,
+        why: `Migration "${pkg.dirName}": ${error.why}`,
         nextActions: [
           chooseAction('Restore migrations/snapshots/ from version control'),
           chooseAction(
@@ -230,7 +236,7 @@ export async function enumerateCheckSpaces(
       refsDir: spaceRefsDirectory(migrationsDir),
       projectMigrationsDir,
       cwd,
-      ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+      ...ifDefined('verifySnapshotContent', verifySnapshotContent),
     });
   }
   return spaces;
@@ -370,6 +376,7 @@ export async function runMigrationCheck(
 export async function loadAggregateIntegrityViolations(
   config: PrismaNextConfig,
   migrationsDir: string,
+  verifySnapshotContent?: SnapshotContentVerifier,
 ): Promise<readonly IntegrityViolation[]> {
   try {
     const contractJsonContent = await readFile(resolveContractPath(config), 'utf-8');
@@ -377,12 +384,11 @@ export async function loadAggregateIntegrityViolations(
     const declaredExtensions = toDeclaredExtensionsFromRaw(config.extensions ?? []);
 
     const parsedAppContract: unknown = JSON.parse(contractJsonContent);
-    const verifySnapshotContent = snapshotVerifierFor(config);
     const aggregate = await loadContractSpaceAggregate({
       migrationsDir,
       deserializeContract: (json: unknown) => familyInstance.deserializeContract(json),
       appContract: familyInstance.deserializeContract(parsedAppContract),
-      ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+      ...ifDefined('verifySnapshotContent', verifySnapshotContent),
     });
     return aggregate.checkIntegrity({ declaredExtensions, checkContracts: true });
   } catch {

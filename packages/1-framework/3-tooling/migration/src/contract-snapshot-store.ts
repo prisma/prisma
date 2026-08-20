@@ -1,18 +1,20 @@
 import { randomBytes } from 'node:crypto';
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import type { PreserveEmptyPredicate, StorageSort } from '@internal/contract/hashing';
-import { computeStorageHash } from '@internal/contract/hashing';
 import { CONTRACT_SNAPSHOTS_DIRNAME, storageHashHex } from '@internal/framework-components/control';
 import { canonicalizeJson } from '@internal/framework-components/utils';
 import { blindCast } from '@internal/utils/casts';
-import { ifDefined } from '@internal/utils/defined';
 import { join, relative } from 'pathe';
 import {
   errorContractSnapshotContentMismatch,
   errorContractSnapshotHashMismatch,
   errorContractSnapshotMissing,
   errorInvalidJson,
+  MigrationToolsError,
 } from './errors';
+import type { SnapshotCanonicalizationHooks } from './hash';
+import { recomputePublishedStorageHash } from './hash';
+
+export type { SnapshotCanonicalizationHooks } from './hash';
 
 const CONTRACT_JSON_FILE = 'contract.json';
 const CONTRACT_DTS_FILE = 'contract.d.ts';
@@ -41,23 +43,15 @@ export function contractSnapshotDir(migrationsDir: string, storageHash: string):
 }
 
 /**
- * Family-contributed canonicalization hooks needed to reproduce the storage
- * hash the emit pipeline computed. Sourced from the target's
- * `ContractSerializer` (`shouldPreserveEmpty` / `sortStorage`); families
- * without special-case storage paths supply neither.
- */
-export interface SnapshotCanonicalizationHooks {
-  readonly shouldPreserveEmpty?: PreserveEmptyPredicate;
-  readonly sortStorage?: StorageSort;
-}
-
-/**
  * Recompute-and-compare integrity check for loaded contract snapshots,
  * mirroring `verifyMigrationHash` for migration packages and
  * `assertDescriptorSelfConsistency` for extension descriptors: the store is
  * content-addressed, so the JSON read back for a hash must reproduce that
  * hash. Verified hashes are memoised per instance, so a snapshot resolved
- * repeatedly in one command run is hashed once.
+ * repeatedly in one command run is hashed once. The recompute is coupled to
+ * the emit-time canonicalization: a release that changes the family hooks
+ * or hash canonicalization rules must regenerate (or migrate) existing
+ * snapshot stores, or every pre-existing snapshot reads as tampered.
  */
 export interface SnapshotContentVerifier {
   /**
@@ -66,8 +60,6 @@ export interface SnapshotContentVerifier {
    * the snapshot at `jsonPath` was addressed by.
    */
   assertSnapshotContentMatches(contractJson: unknown, storageHash: string, jsonPath: string): void;
-  /** The storage hash `contractJson`'s content canonicalizes to. */
-  recomputeStorageHash(contractJson: unknown): string;
 }
 
 export function createSnapshotContentVerifier(
@@ -75,34 +67,21 @@ export function createSnapshotContentVerifier(
 ): SnapshotContentVerifier {
   const verified = new Set<string>();
 
-  function recomputeStorageHash(contractJson: unknown): string {
-    const record = blindCast<
-      { target?: unknown; targetFamily?: unknown; storage?: unknown },
-      'contractJson is unknown JSON; only the identity fields the hash covers are read here'
-    >(contractJson ?? {});
-    const storageRecord = blindCast<
-      Record<string, unknown>,
-      'the storage subtree is hashed as an opaque record; a non-record value simply fails the comparison'
-    >(record.storage ?? {});
-    // The published hash was computed over a storage object that did not yet
-    // carry `storageHash`; strip it so the recompute sees the same shape.
-    const { storageHash: _addressed, ...storageWithoutHash } = storageRecord;
-    return computeStorageHash({
-      target: typeof record.target === 'string' ? record.target : '',
-      targetFamily: typeof record.targetFamily === 'string' ? record.targetFamily : '',
-      storage: storageWithoutHash,
-      ...ifDefined('shouldPreserveEmpty', hooks?.shouldPreserveEmpty),
-      ...ifDefined('sortStorage', hooks?.sortStorage),
-    });
-  }
-
   return {
-    recomputeStorageHash,
     assertSnapshotContentMatches(contractJson, storageHash, jsonPath) {
       if (verified.has(storageHash)) {
         return;
       }
-      const computedHash = recomputeStorageHash(contractJson);
+      const record = blindCast<
+        { target?: unknown; targetFamily?: unknown; storage?: unknown },
+        'contractJson is unknown JSON; only the identity fields the hash covers are read here'
+      >(contractJson ?? {});
+      const computedHash = recomputePublishedStorageHash({
+        target: record.target,
+        targetFamily: record.targetFamily,
+        storage: record.storage,
+        hooks,
+      });
       if (computedHash !== storageHash) {
         throw errorContractSnapshotContentMismatch({ storageHash, computedHash, jsonPath });
       }
@@ -248,8 +227,14 @@ export async function readContractSnapshotJsonTolerant(
   }
   try {
     verifyContent?.assertSnapshotContentMatches(parsed, storageHash, jsonPath);
-  } catch {
-    return undefined;
+  } catch (error) {
+    if (
+      MigrationToolsError.is(error) &&
+      error.code === 'MIGRATION.CONTRACT_SNAPSHOT_CONTENT_MISMATCH'
+    ) {
+      return undefined;
+    }
+    throw error;
   }
   return parsed;
 }

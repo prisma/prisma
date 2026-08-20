@@ -130,7 +130,11 @@ export const migrationCheckCommand = defineOrmCommand({
     const appMigrationsDir = appMigrationsDirFor(ctx.config, ctx.cwd);
     const appMigrationsRelative = displayPath(appMigrationsDir, ctx.cwd);
 
-    const loaded = await buildReadAggregate(ctx.config, { migrationsDir });
+    const verifySnapshotContent = snapshotVerifierFor(ctx.config);
+    const loaded = await buildReadAggregate(ctx.config, {
+      migrationsDir,
+      ...ifDefined('verifySnapshotContent', verifySnapshotContent),
+    });
     if (!loaded.ok) {
       return notOk(normalizeError(loaded.failure));
     }
@@ -138,7 +142,7 @@ export const migrationCheckCommand = defineOrmCommand({
       loaded.value.aggregate,
       migrationsDir,
       ctx.cwd,
-      snapshotVerifierFor(ctx.config),
+      verifySnapshotContent,
     );
 
     let document: MigrationCheckResult;
@@ -175,7 +179,11 @@ export const migrationCheckCommand = defineOrmCommand({
       if (!checked.ok) {
         return notOk(normalizeError(checked.failure));
       }
-      const violations = await loadAggregateIntegrityViolations(ctx.config, migrationsDir);
+      const violations = await loadAggregateIntegrityViolations(
+        ctx.config,
+        migrationsDir,
+        verifySnapshotContent,
+      );
       const scoped =
         spaceFilter === undefined
           ? violations

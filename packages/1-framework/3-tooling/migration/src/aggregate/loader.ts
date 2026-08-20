@@ -1,4 +1,5 @@
 import type { Contract } from '@internal/contract/types';
+import { ifDefined } from '@internal/utils/defined';
 import type { SnapshotContentVerifier } from '../contract-snapshot-store';
 import { readContractSnapshotJson } from '../contract-snapshot-store';
 import { errorSpaceHeadRefMissing, MigrationToolsError } from '../errors';
@@ -101,7 +102,7 @@ async function loadAppSpace(
   const spaceDir = spaceMigrationDirectory(migrationsDir, APP_SPACE_ID);
   const { packages, problems } = await readMigrationsDir(spaceDir, {
     migrationsDir,
-    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+    ...ifDefined('verifySnapshotContent', verifySnapshotContent),
   });
   const { refs, problems: refProblems } = await readRefsTolerant(spaceRefsDirectory(spaceDir));
 
@@ -114,7 +115,7 @@ async function loadAppSpace(
     migrationsDir,
     resolveContract: () => appContract,
     deserializeContract,
-    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+    ...ifDefined('verifySnapshotContent', verifySnapshotContent),
   });
 
   // The app head ref is synthesised from the live contract, so there is
@@ -157,7 +158,7 @@ async function loadExtensionSpace(
   const spaceDir = spaceMigrationDirectory(migrationsDir, spaceId);
   const { packages, problems } = await readMigrationsDir(spaceDir, {
     migrationsDir,
-    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+    ...ifDefined('verifySnapshotContent', verifySnapshotContent),
   });
   const { refs, problems: refProblems } = await readRefsTolerant(spaceRefsDirectory(spaceDir));
   const { headRef, problem: headRefProblem } = await readHeadRefTolerant(migrationsDir, spaceId);
@@ -178,7 +179,7 @@ async function loadExtensionSpace(
     migrationsDir,
     resolveContract: () => deserializeContract(rawContract()),
     deserializeContract,
-    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+    ...ifDefined('verifySnapshotContent', verifySnapshotContent),
   });
 
   return { space, problems, refProblems, headRefProblem, isApp: false };

@@ -354,7 +354,11 @@ export async function loadContractRawSafely(config: {
  */
 export async function buildReadAggregate(
   config: PrismaNextConfig,
-  options: { readonly migrationsDir: string },
+  options: {
+    readonly migrationsDir: string;
+    /** Command-scoped verifier to share the verified-hash memo; defaults to one built from `config`. */
+    readonly verifySnapshotContent?: SnapshotContentVerifier;
+  },
 ): Promise<
   Result<
     { readonly aggregate: ContractSpaceAggregate; readonly contractHash: string },
@@ -394,7 +398,10 @@ export async function buildReadAggregate(
       appContract: appContractForLoad,
       extensions: config.extensions ?? [],
       deserializeContract,
-      ...ifDefined('verifySnapshotContent', snapshotVerifierFor(config)),
+      ...ifDefined(
+        'verifySnapshotContent',
+        options.verifySnapshotContent ?? snapshotVerifierFor(config),
+      ),
     });
     if (!loaded.ok) {
       return loaded;

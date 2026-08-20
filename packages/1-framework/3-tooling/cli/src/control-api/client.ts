@@ -24,11 +24,11 @@ import {
   hasSchemaView,
 } from '@internal/framework-components/control';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
+import type { SnapshotContentVerifier } from '@internal/migration-tools/contract-snapshot-store';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
 import { structuredError } from '@internal/utils/structured-error';
-
 import { assertFrameworkComponentsCompatible } from '../utils/framework-components';
 import { snapshotVerifierFor } from '../utils/snapshot-content-verification';
 import { enrichContract } from './contract-enrichment';
@@ -85,10 +85,13 @@ class ControlClientImpl implements ControlClient {
   > | null = null;
   private initialized = false;
   private readonly defaultConnection: unknown;
+  /** One per client so the verified-hash memo spans operations (e.g. db update's pre-plan + consented apply). */
+  private readonly snapshotVerifier: SnapshotContentVerifier | undefined;
 
   constructor(options: ControlClientOptions) {
     this.options = options;
     this.defaultConnection = options.connection;
+    this.snapshotVerifier = snapshotVerifierFor(options);
   }
 
   init(): void {
@@ -415,7 +418,7 @@ class ControlClientImpl implements ControlClient {
       migrationsDir: options.migrationsDir,
       targetId: this.options.target.targetId,
       extensions: this.options.extensions ?? [],
-      ...ifDefined('verifySnapshotContent', snapshotVerifierFor(this.options)),
+      ...ifDefined('verifySnapshotContent', this.snapshotVerifier),
       ...ifDefined('onProgress', onProgress),
     });
   }
@@ -455,7 +458,7 @@ class ControlClientImpl implements ControlClient {
       extensions: this.options.extensions ?? [],
       ...ifDefined('acceptDataLoss', options.acceptDataLoss),
       ...ifDefined('consent', options.consent),
-      ...ifDefined('verifySnapshotContent', snapshotVerifierFor(this.options)),
+      ...ifDefined('verifySnapshotContent', this.snapshotVerifier),
       ...ifDefined('onProgress', onProgress),
     });
   }
@@ -476,7 +479,7 @@ class ControlClientImpl implements ControlClient {
       mode: options.strict ? 'strict' : 'lenient',
       skipSchema: options.skipSchema,
       skipMarker: options.skipMarker,
-      ...ifDefined('verifySnapshotContent', snapshotVerifierFor(this.options)),
+      ...ifDefined('verifySnapshotContent', this.snapshotVerifier),
       ...ifDefined('onProgress', onProgress),
     });
   }
@@ -533,7 +536,7 @@ class ControlClientImpl implements ControlClient {
       ...ifDefined('refHash', options.refHash),
       ...ifDefined('refInvariants', options.refInvariants),
       ...ifDefined('refName', options.refName),
-      ...ifDefined('verifySnapshotContent', snapshotVerifierFor(this.options)),
+      ...ifDefined('verifySnapshotContent', this.snapshotVerifier),
       ...ifDefined('onProgress', onProgress),
     });
   }

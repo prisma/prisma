@@ -25,6 +25,7 @@ import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeMigrationTs } from '@internal/migration-tools/migration-ts';
 import type { ImportSpecifierResolver } from '@internal/publish-surface/import-roots';
 import { castAs } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { join, relative } from 'pathe';
 import {
@@ -337,7 +338,7 @@ async function executeMigrationPlanCommandInner(
     appContract: toContract,
     extensions: config.extensions ?? [],
     deserializeContract: (json: unknown) => familyInstance.deserializeContract(json),
-    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+    ...ifDefined('verifySnapshotContent', verifySnapshotContent),
   });
   if (!tolerantAggregateResult.ok) {
     return notOk(tolerantAggregateResult.failure);
@@ -462,7 +463,7 @@ async function executeMigrationPlanCommandInner(
     appContract: toContract,
     extensions: config.extensions ?? [],
     deserializeContract: (json: unknown) => familyInstance.deserializeContract(json),
-    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+    ...ifDefined('verifySnapshotContent', verifySnapshotContent),
   });
   if (!aggregateResult.ok) {
     return notOk(aggregateResult.failure);
