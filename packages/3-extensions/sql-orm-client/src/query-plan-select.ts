@@ -1407,15 +1407,7 @@ function buildSelectAst(
   const projection = [...scalarProjection, ...(options.includeProjection ?? [])];
   const where = options.where ?? buildStateWhere(contract, tableName, state, { namespaceId });
 
-  // When `.distinct(cols)` is set, `buildDistinctScopedSource` wraps the
-  // table source in a ROW_NUMBER-based dedup subquery aliased back to the
-  // original `tableName`. That aliasing keeps every outer reference — the
-  // projection's scalar columns, the MTI variant joins, the include
-  // subqueries' parent correlations, the orderBy — resolving
-  // transparently, without needing to rewrite column refs across the
-  // AST. Its wrap projection is every column of the underlying table, so
-  // anything the outer query may reference is in scope; the database can
-  // prune unused columns.
+  // `buildDistinctScopedSource` wraps for `.distinct(cols)`, aliased back to `tableName`.
   const allColsProjection = resolveTableColumns(contract, namespaceId, tableName).map((column) =>
     ProjectionItem.of(column, ColumnRef.of(tableName, column)),
   );

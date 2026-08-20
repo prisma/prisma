@@ -242,13 +242,7 @@ describe('aggregate pagination', () => {
     });
 
     // Discriminating case: `take(2)` must slice the ordered, deduped rows
-    // — the top 2 by views — not an arbitrarily-ordered set. The ROW_NUMBER
-    // wrap is aliased back to `posts`, so `orderBy` needs no rewriting to
-    // resolve through it: an implementation that dropped `orderBy` here
-    // (rather than reapplying it through a hidden column, which the old
-    // `__scoped`/`__scoped_distinct` two-alias scheme needed and this one
-    // doesn't) would leave `scopedSelect.orderBy` undefined, failing the
-    // assertion below.
+    // — the top 2 by views — not an arbitrarily-ordered set.
     it('orderBy resolves directly through the ranked-and-scoped alias, no reapplication needed', async () => {
       const { collection, runtime } = createCollectionFor('Post');
       runtime.setNextResults([[{ totalViews: 500 }]]);

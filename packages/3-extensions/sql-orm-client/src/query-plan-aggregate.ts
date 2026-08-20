@@ -193,10 +193,7 @@ function scopedInnerProjection(
       columns.add(selector.column);
     }
   }
-  // A column `orderBy` names has to be visible through the scope wrap
-  // too, even when no selector aggregates it — the wrap is the only
-  // place the (possibly ranked/deduped) row set exists, so an unrooted
-  // reference to it downstream would resolve against nothing.
+  // orderBy columns must be visible through the scope wrap even if no selector aggregates them.
   for (const item of orderBy ?? []) {
     if (item.expr.kind === 'column-ref') {
       columns.add(item.expr.column);

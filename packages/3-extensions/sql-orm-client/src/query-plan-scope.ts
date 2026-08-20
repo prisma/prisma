@@ -230,16 +230,8 @@ function wrapWithRowNumberDedup(options: {
 }
 
 /**
- * The FROM source (and its accompanying WHERE) for a table scoped by
- * `state.distinct`: when set, wraps the table in a `ROW_NUMBER`-ranked
- * derived table aliased back to `tableName` — so every reference the
- * caller already writes against `tableName` (projection, joins, orderBy,
- * outer WHERE) keeps resolving with no rewriting — and replaces `where`
- * with the `rn = 1` filter that belongs outside the wrap. When
- * `state.distinct` is unset, this is a pass-through: the real table and
- * the original `where`, untouched. Shared by the plain-select and
- * aggregate row-scoping paths, which differ only in what they build atop
- * this source, not in how they get it.
+ * FROM source + WHERE for `state.distinct`: wraps in a `ROW_NUMBER`-ranked
+ * derived table aliased back to `tableName`, so callers need no rewriting.
  */
 function buildDistinctScopedSource(
   contract: Contract<SqlStorage>,
@@ -337,14 +329,9 @@ function hasEntries<T>(value: ReadonlyArray<T> | undefined): value is ReadonlyAr
 }
 
 /**
- * The row-scope select an aggregate reduces over: `where`, MTI joins,
- * `distinct`/`distinctOn`, `orderBy`, and `limit`/`offset`, all on one
- * SELECT aliased to `tableName` — the same alias-back-to-`tableName` trick
- * `buildDistinctScopedSource` uses, extended to the whole clause set
- * because an aggregate has no second, outer level of its own to apply
- * joins/ordering/pagination at the way a plain select does: collapsing
- * rows into one is the aggregate's *only* outer level, so everything that
- * shapes which rows it collapses has to live in this one wrap.
+ * The row-scope select an aggregate reduces over, one SELECT aliased to
+ * `tableName` — an aggregate has no outer level of its own, so where/joins/
+ * distinct/orderBy/limit/offset all have to live in this one wrap.
  */
 function buildScopedSource(
   contract: Contract<SqlStorage>,
@@ -374,9 +361,7 @@ function buildScopedSource(
   );
 
   let inner = SelectAst.from(source).withProjection(projection);
-  // `buildDistinctScopedSource` already folds `variantJoins` into the
-  // ranked wrap when it builds one; only apply them again here for the
-  // pass-through (no distinct(cols)) case, where no wrap exists yet.
+  // Only the pass-through case needs joins applied here; the wrap already folded them in.
   if (!hasEntries(state.distinct) && variantJoins.length > 0) {
     inner = inner.withJoins(variantJoins);
   }
