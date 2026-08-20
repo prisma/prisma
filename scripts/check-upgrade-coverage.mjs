@@ -354,7 +354,7 @@ function canonicalJson(value) {
 /** The manifest with every dependency *version* blanked; names are kept.
  *  With `ignoreOwnVersion`, the package's own `version` field is blanked
  *  too — the shape a release sweep produces. */
-function normalizeManifest(text, ignoreOwnVersion, ignoreCoverageScripts) {
+function normalizeManifest(text, ignoreOwnVersion, ignoreScripts) {
   const parsed = JSON.parse(text);
   if (ignoreOwnVersion && typeof parsed.version === 'string') parsed.version = '';
   for (const map of DEPENDENCY_MAPS) {
@@ -363,9 +363,8 @@ function normalizeManifest(text, ignoreOwnVersion, ignoreCoverageScripts) {
       parsed[map] = Object.fromEntries(Object.keys(deps).map((name) => [name, '']));
     }
   }
-  if (ignoreCoverageScripts && parsed.scripts !== null && typeof parsed.scripts === 'object') {
-    delete parsed.scripts['test:coverage'];
-    delete parsed.scripts['~test:coverage'];
+  if (ignoreScripts) {
+    delete parsed.scripts;
   }
   return canonicalJson(parsed);
 }
@@ -378,9 +377,9 @@ export function manifestShapeIgnoringVersions(text, ignoreOwnVersion = false) {
  * Whether a changed file can carry no downstream translation.
  *
  * Test files and test-runner configuration are not consumer inputs. Dependency
- * version moves, package-local coverage script changes, and lint schema URL
- * updates likewise require no downstream code translation. Adding or removing
- * a dependency still qualifies because a package name can signal an API change.
+ * version moves, package-local script changes, and lint schema URL updates
+ * likewise require no downstream code translation. Adding or removing a
+ * dependency still qualifies because a package name can signal an API change.
  */
 function isTranslationIrrelevant(repoRoot, prev, head, path, ignoreOwnVersion = false) {
   if (isTestInfrastructurePath(path)) return true;

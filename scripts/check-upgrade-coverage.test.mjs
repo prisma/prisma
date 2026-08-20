@@ -984,6 +984,61 @@ describe('check-upgrade-coverage — translation-irrelevant substrate diffs need
     assert.equal(result.status, 0, result.stderr);
   });
 
+  it('arbitrary scripts-only manifest changes pass without touching instructions.md', () => {
+    seedTransitionDir();
+    writeRepoFile(
+      'examples/demo/package.json',
+      `${JSON.stringify(
+        {
+          name: 'demo',
+          scripts: { build: 'vite build', lint: 'biome check .' },
+          devDependencies: { vite: '^8.1.4' },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile(
+      'examples/demo/package.json',
+      `${JSON.stringify(
+        {
+          name: 'demo',
+          scripts: { build: 'vite build --watch', dev: 'vite dev' },
+          devDependencies: { vite: '^8.1.4' },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    commitAll('head — arbitrary scripts only');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, result.stderr);
+  });
+
+  it('removing the final manifest script passes without touching instructions.md', () => {
+    seedTransitionDir();
+    writeRepoFile(
+      'examples/demo/package.json',
+      `${JSON.stringify(
+        {
+          name: 'demo',
+          scripts: { build: 'vite build' },
+          devDependencies: { vite: '^8.1.4' },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^8.1.4' }));
+    commitAll('head — final script removed');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, result.stderr);
+  });
+
   it('a $schema realignment in an extension biome config passes without touching instructions.md', () => {
     seedTransitionDir();
     const config = (v) =>
@@ -1114,16 +1169,20 @@ describe('check-upgrade-coverage — translation-irrelevant substrate diffs need
     assert.match(result.stderr, /per-pr-declaration/);
   });
 
-  it('a non-dependency manifest field still requires a declaration', () => {
+  it('a non-script manifest field still requires a declaration', () => {
     seedTransitionDir();
     writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^8.1.4' }));
     commitAll('prev');
     const prev = git('rev-parse', 'HEAD');
     writeRepoFile(
       'examples/demo/package.json',
-      `${JSON.stringify({ name: 'demo', scripts: { build: 'vite build' }, devDependencies: { vite: '^8.1.4' } }, null, 2)}\n`,
+      `${JSON.stringify(
+        { name: 'demo', type: 'module', devDependencies: { vite: '^8.1.4' } },
+        null,
+        2,
+      )}\n`,
     );
-    commitAll('head — scripts added');
+    commitAll('head — non-script manifest field added');
     const result = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /per-pr-declaration/);
