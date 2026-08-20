@@ -150,6 +150,39 @@ describe('integration/groupBy', () => {
   );
 
   it(
+    'orderBy()/take() after groupBy() pages the groups themselves',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        const posts = createPostsCollection(runtime);
+
+        await seedPosts(runtime, [
+          { id: 10, title: 'A', userId: 1, views: 10 },
+          { id: 11, title: 'B', userId: 2, views: 10 },
+          { id: 12, title: 'C', userId: 3, views: 10 },
+          { id: 13, title: 'D', userId: 4, views: 10 },
+        ]);
+
+        runtime.resetExecutions();
+        // Four distinct groups exist (no having() to shrink that set first);
+        // post-group orderBy(desc).take(2) must return only the top 2 by
+        // userId — proving take() pages the grouped rows themselves rather
+        // than being silently dropped, which would return all 4.
+        const grouped = await posts
+          .groupBy('userId')
+          .orderBy((group) => group.userId.desc())
+          .take(2)
+          .aggregate((aggregate) => ({ count: aggregate.count() }));
+
+        expect(grouped).toEqual([
+          { userId: 4, count: 1 },
+          { userId: 3, count: 1 },
+        ]);
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
     'having() filters grouped rows by aggregate predicates',
     async () => {
       await withCollectionRuntime(async (runtime) => {
