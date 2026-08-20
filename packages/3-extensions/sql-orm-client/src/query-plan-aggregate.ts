@@ -22,7 +22,7 @@ import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
 import { assertDistinctOnCapability, resolvePolymorphismInfo } from './collection-contract';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
-import { buildAggregateInput, buildMtiJoins, buildStateWhere } from './query-plan-scope';
+import { buildAggregateInput, buildMtiJoins, buildStateWhere } from './query-plan-source';
 import { tableSourceForContract } from './storage-resolution';
 import type { AggregateSelector, CollectionState } from './types';
 import { combineWhereExprs } from './where-utils';

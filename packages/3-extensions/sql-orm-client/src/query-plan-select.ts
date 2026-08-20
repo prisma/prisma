@@ -46,7 +46,7 @@ import {
   buildStateWhere,
   createTableRefRemapper,
   wrapWithRowNumberDedup,
-} from './query-plan-scope';
+} from './query-plan-source';
 import { augmentSelectionForJoinColumns } from './selection-shaping';
 import { tableSourceForContract } from './storage-resolution';
 import type { CollectionState, IncludeCombineBranch, IncludeExpr, IncludeScalar } from './types';
