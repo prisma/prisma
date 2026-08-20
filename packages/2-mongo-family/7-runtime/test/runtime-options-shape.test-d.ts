@@ -11,6 +11,21 @@ test('runtime options accept only context, driver, middleware, and mode', () => 
     driver: {} as never,
   });
 
+  const validOptions = {
+    context: ctx,
+    driver: {} as never,
+    middleware: [
+      {
+        name: 'middleware',
+        familyId: 'mongo',
+        async beforeQuery() {},
+      },
+    ],
+    mode: 'permissive',
+  } satisfies MongoRuntimeOptions;
+
+  createMongoRuntime(validOptions);
+
   createMongoRuntime({
     context: ctx,
     driver: {} as never,
