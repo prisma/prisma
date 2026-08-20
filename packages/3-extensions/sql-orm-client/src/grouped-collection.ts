@@ -62,6 +62,7 @@ export class GroupedCollection<
   ModelName extends string,
   GroupFields extends readonly GroupByFieldName<TContract, ModelName, NsId>[],
   NsId extends string = never,
+  HasOrderBy extends boolean = false,
 > {
   readonly ctx: CollectionContext<TContract>;
   private readonly contract: TContract;
@@ -91,9 +92,9 @@ export class GroupedCollection<
     this.postGroup = options.postGroup;
   }
 
-  #clone(
+  #clone<NextHasOrderBy extends boolean = HasOrderBy>(
     overrides: Partial<GroupedCollectionInit>,
-  ): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
+  ): GroupedCollection<TContract, ModelName, GroupFields, NsId, NextHasOrderBy> {
     return new GroupedCollection(this.ctx, this.modelName, {
       tableName: this.tableName,
       namespaceId: this.namespaceId,
@@ -103,12 +104,12 @@ export class GroupedCollection<
       havingFilters: this.havingFilters,
       postGroup: this.postGroup,
       ...overrides,
-    }) as GroupedCollection<TContract, ModelName, GroupFields, NsId>;
+    }) as GroupedCollection<TContract, ModelName, GroupFields, NsId, NextHasOrderBy>;
   }
 
   having(
     predicate: (having: HavingBuilder<TContract, ModelName, NsId>) => AnyExpression,
-  ): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
+  ): GroupedCollection<TContract, ModelName, GroupFields, NsId, HasOrderBy> {
     const havingExpr = predicate(
       createHavingBuilder<TContract, ModelName, NsId>(
         this.contract,
@@ -124,7 +125,8 @@ export class GroupedCollection<
   /**
    * Append an `ORDER BY` clause on the grouped rows themselves — orders by
    * group key. Ordering by an aggregate alias needs a builder surface over
-   * the aliases and isn't supported here.
+   * the aliases and isn't supported here. Unlocks post-group `take(...)` /
+   * `skip(...)`, which page a group order that would otherwise be undefined.
    */
   orderBy(
     selection:
@@ -136,7 +138,7 @@ export class GroupedCollection<
             model: Pick<ModelAccessor<TContract, ModelName, NsId>, GroupFields[number]>,
           ) => OrderByItem
         >,
-  ): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
+  ): GroupedCollection<TContract, ModelName, GroupFields, NsId, true> {
     const accessor = createModelAccessor<TContract, ModelName>(
       this.ctx.context,
       this.namespaceId,
@@ -144,18 +146,30 @@ export class GroupedCollection<
     );
     const selectors = Array.isArray(selection) ? selection : [selection];
     const nextOrders = selectors.map((selector) => selector(accessor));
-    return this.#clone({
+    return this.#clone<true>({
       postGroup: { ...this.postGroup, orderBy: [...this.postGroup.orderBy, ...nextOrders] },
     });
   }
 
-  /** Apply `LIMIT n` to the grouped rows. Replaces any previous post-group limit. */
-  take(n: number): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
+  /**
+   * Apply `LIMIT n` to the grouped rows. Replaces any previous post-group
+   * limit. Requires a prior `orderBy(...)` — a database may return groups in
+   * any order, so "the first n groups" is undefined without one.
+   */
+  take(
+    n: HasOrderBy extends true ? number : never,
+  ): GroupedCollection<TContract, ModelName, GroupFields, NsId, HasOrderBy> {
     return this.#clone({ postGroup: { ...this.postGroup, limit: n } });
   }
 
-  /** Apply `OFFSET n` to the grouped rows. Replaces any previous post-group offset. */
-  skip(n: number): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
+  /**
+   * Apply `OFFSET n` to the grouped rows. Replaces any previous post-group
+   * offset. Requires a prior `orderBy(...)`, same as `take(...)` — Prisma
+   * pairs `skip`/`take` with `orderBy` on `groupBy` for the same reason.
+   */
+  skip(
+    n: HasOrderBy extends true ? number : never,
+  ): GroupedCollection<TContract, ModelName, GroupFields, NsId, HasOrderBy> {
     return this.#clone({ postGroup: { ...this.postGroup, offset: n } });
   }
 

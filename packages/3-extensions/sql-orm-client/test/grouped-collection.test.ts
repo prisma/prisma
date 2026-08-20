@@ -215,6 +215,7 @@ describe('GroupedCollection', () => {
 
       await collection
         .groupBy('userId')
+        .orderBy((group) => group.userId.asc())
         .take(5)
         .aggregate((aggregate) => ({ count: aggregate.count() }));
 
@@ -231,6 +232,7 @@ describe('GroupedCollection', () => {
 
       await collection
         .groupBy('userId')
+        .orderBy((group) => group.userId.asc())
         .skip(3)
         .aggregate((aggregate) => ({ count: aggregate.count() }));
 
