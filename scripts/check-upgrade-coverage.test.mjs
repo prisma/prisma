@@ -956,7 +956,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
   });
 });
 
-describe('check-upgrade-coverage — dependency-only substrate diffs need no declaration', () => {
+describe('check-upgrade-coverage — translation-irrelevant substrate diffs need no declaration', () => {
   function seedTransitionDir() {
     writePackageJson('0.7.0');
     writeRepoFile(
@@ -995,6 +995,72 @@ describe('check-upgrade-coverage — dependency-only substrate diffs need no dec
     commitAll('head — schema URL realignment only');
     const result = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.equal(result.status, 0, result.stderr);
+  });
+
+  it('test infrastructure changes pass without touching instructions.md', () => {
+    seedTransitionDir();
+    writeRepoFile(
+      'examples/demo/test/e2e.integration.test.ts',
+      "describe.sequential('demo', () => {});\n",
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/package.json',
+      `${JSON.stringify(
+        {
+          name: 'pgvector',
+          scripts: { test: 'vitest run', 'test:coverage': 'vitest run --coverage' },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/vitest.config.ts',
+      "export default { test: { coverage: { provider: 'v8' } } };\n",
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/test/codec.integration.test.ts',
+      "describe.sequential('codec', () => {});\n",
+    );
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+
+    writeRepoFile(
+      'examples/demo/test/e2e.integration.test.ts',
+      "describe('demo', { concurrent: false }, () => {});\n",
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/package.json',
+      `${JSON.stringify({ name: 'pgvector', scripts: { test: 'vitest run' } }, null, 2)}\n`,
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/vitest.config.ts',
+      'export default { test: {} };\n',
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/coverage.config.json',
+      '{"include":["src/**/*.ts"],"exclude":[],"thresholds":{}}\n',
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/test/codec.integration.test.ts',
+      "describe('codec', { concurrent: false }, () => {});\n",
+    );
+    commitAll('head — test infrastructure migration');
+
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, result.stderr);
+  });
+
+  it('a Prisma config change remains translation-relevant', () => {
+    seedTransitionDir();
+    writeRepoFile('examples/demo/prisma.config.ts', 'export default { migrations: "a" };\n');
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/prisma.config.ts', 'export default { migrations: "b" };\n');
+    commitAll('head — user-facing config changed');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /per-pr-declaration/);
   });
 
   it('a filename merely ending in biome.json is not a biome config', () => {
