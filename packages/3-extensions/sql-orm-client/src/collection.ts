@@ -108,6 +108,7 @@ import {
   type CollectionTypeState,
   type DefaultCollectionTypeState,
   type DefaultModelRow,
+  emptyGroupPagingState,
   emptyState,
   type IncludeCombine,
   type IncludeCombineBranch,
@@ -768,6 +769,7 @@ class CollectionImpl<
       groupByFields: [...fields],
       groupByColumns,
       havingFilters: [],
+      postGroup: emptyGroupPagingState(),
     });
   }
 

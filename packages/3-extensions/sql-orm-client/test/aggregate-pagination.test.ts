@@ -142,6 +142,29 @@ describe('aggregate pagination', () => {
     ]);
   });
 
+  // Discriminating case: pre-group and post-group pagination are separate
+  // clauses at separate levels. If they merged, one of these two `take()`
+  // values would win and the other would vanish.
+  it('pre-group and post-group pagination land in separate places, not merged', async () => {
+    const { collection, runtime } = createCollectionFor('Post');
+    runtime.setNextResults([[{ userId: 1, totalViews: 500 }]]);
+
+    await collection
+      .orderBy((post) => post.views.desc())
+      .take(10)
+      .groupBy('userId')
+      .orderBy((group) => group.userId.asc())
+      .take(2)
+      .aggregate((aggregate) => ({ totalViews: aggregate.sum(numericField) }));
+
+    const ast = selectAstOf(runtime);
+    expect(ast.limit).toBe(2);
+    expect(ast.orderBy).toEqual([OrderByItem.asc(ColumnRef.of('posts', 'user_id'))]);
+    expectDerivedTableSource(ast.from);
+    expect(ast.from.query.limit).toBe(10);
+    expect(ast.from.query.orderBy).toEqual([OrderByItem.desc(ColumnRef.of('posts', 'views'))]);
+  });
+
   it('skip() without take() emits OFFSET with no LIMIT', async () => {
     const { collection, runtime } = createCollectionFor('Post');
     runtime.setNextResults([[{ totalViews: 500 }]]);

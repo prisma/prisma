@@ -14,6 +14,7 @@ import {
   ColumnRef,
   isAggregateFn,
   LiteralExpr,
+  type OrderByItem,
 } from '@internal/sql-relational-core/ast';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { blindCast } from '@internal/utils/casts';
@@ -22,6 +23,7 @@ import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder
 import { aggregateOperationNames } from './aggregate-operations';
 import { getFieldToColumnMap } from './collection-contract';
 import { mapStorageRowToModelFields } from './collection-runtime';
+import { createModelAccessor } from './model-accessor';
 import { ormError } from './orm-errors';
 import { compileGroupedAggregate, mergeAnnotations } from './query-plan';
 import { queryPlanRows } from './query-plan-rows';
@@ -32,8 +34,10 @@ import type {
   CollectionContext,
   CollectionState,
   DefaultModelRow,
+  GroupPagingState,
   HavingBuilder,
   HavingComparisonMethods,
+  ModelAccessor,
 } from './types';
 import { combineWhereExprs } from './where-utils';
 
@@ -44,6 +48,7 @@ interface GroupedCollectionInit {
   readonly groupByFields: readonly string[];
   readonly groupByColumns: readonly string[];
   readonly havingFilters: readonly AnyExpression[];
+  readonly postGroup: GroupPagingState;
 }
 
 type GroupByFieldName<
@@ -67,6 +72,7 @@ export class GroupedCollection<
   readonly groupByFields: readonly string[];
   readonly groupByColumns: readonly string[];
   readonly havingFilters: readonly AnyExpression[];
+  readonly postGroup: GroupPagingState;
 
   constructor(
     ctx: CollectionContext<TContract>,
@@ -82,6 +88,22 @@ export class GroupedCollection<
     this.groupByFields = options.groupByFields;
     this.groupByColumns = options.groupByColumns;
     this.havingFilters = options.havingFilters;
+    this.postGroup = options.postGroup;
+  }
+
+  #clone(
+    overrides: Partial<GroupedCollectionInit>,
+  ): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
+    return new GroupedCollection(this.ctx, this.modelName, {
+      tableName: this.tableName,
+      namespaceId: this.namespaceId,
+      preGroupState: this.preGroupState,
+      groupByFields: this.groupByFields,
+      groupByColumns: this.groupByColumns,
+      havingFilters: this.havingFilters,
+      postGroup: this.postGroup,
+      ...overrides,
+    }) as GroupedCollection<TContract, ModelName, GroupFields, NsId>;
   }
 
   having(
@@ -96,14 +118,45 @@ export class GroupedCollection<
         this.tableName,
       ),
     );
-    return new GroupedCollection(this.ctx, this.modelName, {
-      tableName: this.tableName,
-      namespaceId: this.namespaceId,
-      preGroupState: this.preGroupState,
-      groupByFields: this.groupByFields,
-      groupByColumns: this.groupByColumns,
-      havingFilters: [...this.havingFilters, havingExpr],
-    }) as GroupedCollection<TContract, ModelName, GroupFields, NsId>;
+    return this.#clone({ havingFilters: [...this.havingFilters, havingExpr] });
+  }
+
+  /**
+   * Append an `ORDER BY` clause on the grouped rows themselves — orders by
+   * group key. Ordering by an aggregate alias needs a builder surface over
+   * the aliases and isn't supported here.
+   */
+  orderBy(
+    selection:
+      | ((
+          model: Pick<ModelAccessor<TContract, ModelName, NsId>, GroupFields[number]>,
+        ) => OrderByItem)
+      | ReadonlyArray<
+          (
+            model: Pick<ModelAccessor<TContract, ModelName, NsId>, GroupFields[number]>,
+          ) => OrderByItem
+        >,
+  ): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
+    const accessor = createModelAccessor<TContract, ModelName>(
+      this.ctx.context,
+      this.namespaceId,
+      this.modelName,
+    );
+    const selectors = Array.isArray(selection) ? selection : [selection];
+    const nextOrders = selectors.map((selector) => selector(accessor));
+    return this.#clone({
+      postGroup: { ...this.postGroup, orderBy: [...this.postGroup.orderBy, ...nextOrders] },
+    });
+  }
+
+  /** Apply `LIMIT n` to the grouped rows. Replaces any previous post-group limit. */
+  take(n: number): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
+    return this.#clone({ postGroup: { ...this.postGroup, limit: n } });
+  }
+
+  /** Apply `OFFSET n` to the grouped rows. Replaces any previous post-group offset. */
+  skip(n: number): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
+    return this.#clone({ postGroup: { ...this.postGroup, offset: n } });
   }
 
   /**
@@ -170,6 +223,7 @@ export class GroupedCollection<
         this.groupByColumns,
         aggregateSpec,
         combineWhereExprs(this.havingFilters),
+        this.postGroup,
       ),
       annotationsMap,
     );

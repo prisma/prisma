@@ -24,7 +24,12 @@ import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
 import { buildAggregateInput, buildMtiJoins, buildStateWhere } from './query-plan-source';
 import { tableSourceForContract } from './storage-resolution';
-import type { AggregateSelector, CollectionState } from './types';
+import {
+  type AggregateSelector,
+  type CollectionState,
+  emptyGroupPagingState,
+  type GroupPagingState,
+} from './types';
 
 function toAggregateProjection(
   contract: Contract<SqlStorage>,
@@ -304,6 +309,7 @@ export function compileGroupedAggregate(
   groupByColumns: readonly string[],
   aggregateSpec: Record<string, AggregateSelector<unknown>>,
   havingExpr: AnyExpression | undefined,
+  postGroup: GroupPagingState = emptyGroupPagingState(),
 ): SqlQueryPlan<Record<string, unknown>> {
   if (groupByColumns.length === 0) {
     throw ormError('ORM.GROUP_BY_FIELD_MISSING', 'groupBy() requires at least one field', {
@@ -375,6 +381,16 @@ export function compileGroupedAggregate(
 
   if (havingExpr) {
     ast = ast.withHaving(validateGroupedHavingExpr(havingExpr));
+  }
+
+  if (postGroup.orderBy.length > 0) {
+    ast = ast.withOrderBy(postGroup.orderBy);
+  }
+  if (postGroup.limit !== undefined) {
+    ast = ast.withLimit(postGroup.limit);
+  }
+  if (postGroup.offset !== undefined) {
+    ast = ast.withOffset(postGroup.offset);
   }
 
   const { params } = deriveParamsFromAst(ast);

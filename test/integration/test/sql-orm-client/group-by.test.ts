@@ -67,6 +67,89 @@ describe('integration/groupBy', () => {
   );
 
   it(
+    'take() before groupBy() scopes the rows a having() predicate then evaluates',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        const posts = createPostsCollection(runtime);
+
+        await seedPosts(runtime, [
+          { id: 10, title: 'A', userId: 1, views: 10 },
+          { id: 11, title: 'B', userId: 1, views: 20 },
+          { id: 12, title: 'C', userId: 1, views: 30 },
+          { id: 13, title: 'D', userId: 2, views: 100 },
+        ]);
+
+        // orderBy/take before groupBy keep only the top 2 rows by views
+        // (100 from user 2, 30 from user 1) before grouping — having() then
+        // evaluates aggregates over that scoped set, not every row.
+        const grouped = await posts
+          .orderBy((post) => post.views.desc())
+          .take(2)
+          .groupBy('userId')
+          .having((having) => having.sum('views' as never).gt(15))
+          .aggregate((aggregate) => ({
+            count: aggregate.count(),
+            total: aggregate.sum('views' as never),
+          }));
+
+        const sorted = [...grouped].sort(
+          (left, right) => Number(left.userId) - Number(right.userId),
+        );
+        expect(sorted).toEqual([
+          { userId: 1, count: 1, total: 30 },
+          { userId: 2, count: 1, total: 100 },
+        ]);
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'having() filters groups before post-group orderBy()/take() pages the survivors',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        const posts = createPostsCollection(runtime);
+
+        await seedPosts(runtime, [
+          { id: 10, title: 'A', userId: 1, views: 10 },
+          { id: 11, title: 'B', userId: 1, views: 20 },
+          { id: 12, title: 'C', userId: 2, views: 5 },
+          { id: 13, title: 'D', userId: 3, views: 5 },
+          { id: 14, title: 'E', userId: 3, views: 5 },
+          { id: 15, title: 'F', userId: 3, views: 5 },
+          { id: 16, title: 'G', userId: 4, views: 5 },
+        ]);
+
+        runtime.resetExecutions();
+        // having(count >= 2) drops users 2 and 4 (one post each), leaving
+        // users 1 and 3. Post-group orderBy(desc).take(1) then picks the
+        // higher userId among the *survivors* — proving having() ran
+        // before the post-group page, not after.
+        const grouped = await posts
+          .groupBy('userId')
+          .having((having) => having.count().gte(2))
+          .orderBy((group) => group.userId.desc())
+          .take(1)
+          .aggregate((aggregate) => ({ count: aggregate.count() }));
+
+        expect(grouped).toEqual([{ userId: 3, count: 3 }]);
+        expect(runtime.executions).toHaveLength(1);
+
+        const sql = runtime.executions[0]?.sql.toLowerCase() ?? '';
+        const groupByIdx = sql.indexOf('group by');
+        const havingIdx = sql.indexOf('having');
+        const orderByIdx = sql.indexOf('order by');
+        const limitIdx = sql.indexOf('limit');
+        expect(groupByIdx).toBeGreaterThan(-1);
+        expect(havingIdx).toBeGreaterThan(groupByIdx);
+        expect(orderByIdx).toBeGreaterThan(havingIdx);
+        expect(limitIdx).toBeGreaterThan(orderByIdx);
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
     'having() filters grouped rows by aggregate predicates',
     async () => {
       await withCollectionRuntime(async (runtime) => {
