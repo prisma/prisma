@@ -84,6 +84,7 @@ function makeFakeClient(affectedRows = 0) {
         },
       ),
     release: vi.fn(),
+    on: vi.fn(),
   };
 }
 

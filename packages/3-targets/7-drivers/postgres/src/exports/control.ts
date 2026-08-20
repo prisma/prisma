@@ -4,9 +4,9 @@ import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
 import { ifDefined } from '@internal/utils/defined';
 import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
+import { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
 import { Client } from 'pg';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
-import { suppressIdleConnectionErrors } from '../idle-connection-errors';
 import { normalizePgError } from '../normalize-error';
 
 export class PostgresControlDriver implements SqlControlDriverInstance<'postgres'> {

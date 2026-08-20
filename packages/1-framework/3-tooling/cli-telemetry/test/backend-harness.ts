@@ -236,13 +236,11 @@ async function stopBackend(backend: BackendProcess): Promise<void> {
 }
 
 // The dev Postgres' default `databaseIdleTimeoutMillis` (1000ms in
-// `@repo/test-utils`) is too aggressive for this suite: any
-// backend pg-pool connection that idles past one second between test
-// cases gets killed server-side, which the production driver's pool
-// surfaces as an unhandled `'error'` event and crashes the backend
-// process (Node's default behaviour for emitter `'error'` events with
-// no listener). Cases whose parent CLI runs longer than a second
-// between rows reliably trip this.
+// `@repo/test-utils`) is too aggressive for this suite: any backend
+// pg-pool connection that idles past one second between test cases
+// gets killed server-side. The driver's pool suppresses the resulting
+// 'error' event (no crash), but a statement in flight on a reaped
+// connection still rejects and fails the case.
 //
 // 60_000ms comfortably exceeds any single test file's wall-clock so
 // no idle connection gets reaped during a run. Teardown is fast

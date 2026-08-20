@@ -256,4 +256,34 @@ describe('defaultProbePostgres idle connection errors', () => {
     expect(errorListener).toBeDefined();
     expect(() => errorListener?.(new Error('connection terminated unexpectedly'))).not.toThrow();
   });
+
+  it('ends the client when connect() rejects', async () => {
+    const endSpy = vi.fn(async () => {});
+    class FailingConnectClient {
+      constructor(_cfg: { connectionString: string }) {}
+      on(): this {
+        return this;
+      }
+      async connect(): Promise<void> {
+        throw new Error('password authentication failed');
+      }
+      async query(): Promise<never> {
+        throw new Error('query must not be reached');
+      }
+      end = endSpy;
+    }
+
+    const outcome = await probeServerVersion(
+      {
+        baseDir: '/tmp',
+        target: 'postgres',
+        databaseUrl: 'postgres://localhost:5432/db',
+        minVersion: '14',
+      },
+      { requireFromBaseDir: () => ({ Client: FailingConnectClient }) },
+    );
+
+    expect(outcome.kind).toBe('connection-failed');
+    expect(endSpy).toHaveBeenCalledTimes(1);
+  });
 });

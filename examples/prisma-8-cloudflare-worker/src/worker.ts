@@ -113,6 +113,9 @@ export default {
       // worth of rows (not the full LIMIT). With cursor disabled the
       // observer would see the full ~10_000 rows row count.
       const observer = new Client({ connectionString: env.HYPERDRIVE.connectionString });
+      // A dropped connection emits 'error' on the client; without a listener
+      // that is an uncaught exception and kills the isolate mid-response.
+      observer.on('error', () => {});
       await observer.connect();
       try {
         await observer.query('SELECT pg_stat_statements_reset()');

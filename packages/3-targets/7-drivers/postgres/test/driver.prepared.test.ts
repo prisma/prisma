@@ -20,6 +20,7 @@ function makeMockClient(config: MockConfig = {}) {
   const client = {
     _connection: {},
     _ending: false,
+    on: () => undefined,
     connect: vi.fn(async () => undefined),
     end: vi.fn(async () => undefined),
     query: vi.fn((arg: unknown, values?: unknown[]) => {
@@ -237,6 +238,7 @@ describe('postgres prepared statements', () => {
 
     const pool = {
       connect: vi.fn(),
+      on: () => undefined,
       end: vi.fn(async () => undefined),
     };
     const poolBinding: PostgresBinding = {

@@ -1,5 +1,6 @@
 import { createRequire } from 'node:module';
 import { CliStructuredError } from '@internal/errors/control';
+import { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
 import { join } from 'pathe';
 import type { TargetId } from './templates/code-templates';
 
@@ -217,13 +218,9 @@ async function defaultProbePostgres(
     baseDir,
     overrides,
   );
-  const client = new pg.Client({ connectionString: databaseUrl });
-  // With no listener, a connection dropped between statements becomes an
-  // uncaught exception and kills the process; connect/query failures still
-  // reject their own promises.
-  client.on('error', () => {});
-  await client.connect();
+  const client = suppressIdleConnectionErrors(new pg.Client({ connectionString: databaseUrl }));
   try {
+    await client.connect();
     const result = await client.query('SELECT version() as version');
     const versionString = String(result?.rows?.[0]?.version ?? '');
     const parsed = parsePostgresVersion(versionString);
