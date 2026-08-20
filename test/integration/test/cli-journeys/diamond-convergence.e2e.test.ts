@@ -231,7 +231,7 @@ withTempDir(({ createTempDir }) => {
         // the pathfinder
         // picks the shortest route to C5 (∅→C1→C4→C5, 3 steps) over the
         // longer staging branch (∅→C1→C2→C3→C5, 4 steps). Folded in from the
-        // deleted converging-paths journey (P-3/S-3).
+        // deleted converging-paths journey.
         const fresh = createSecondDbContext(staging, freshDb.connectionString);
         const applyFresh = await runMigrate(fresh, ['--json']);
         expect(applyFresh.exitCode, 'apply to empty database').toBe(0);
