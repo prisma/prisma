@@ -17,7 +17,9 @@ import {
   testTimeout,
 } from './fixtures/runner-fixtures';
 
-describe.sequential('Postgres native-enum introspection — ordered member values', () => {
+describe('Postgres native-enum introspection — ordered member values', {
+  concurrent: false,
+}, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

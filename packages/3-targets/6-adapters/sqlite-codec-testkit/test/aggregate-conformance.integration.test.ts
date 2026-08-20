@@ -179,7 +179,7 @@ function integerInputs(): readonly string[] {
   });
 }
 
-describe.sequential('SQLite aggregate conformance', () => {
+describe('SQLite aggregate conformance', { concurrent: false }, () => {
   let database: DatabaseSync | undefined;
 
   beforeAll(() => {

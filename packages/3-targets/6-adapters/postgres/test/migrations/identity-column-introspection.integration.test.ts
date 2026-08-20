@@ -21,7 +21,7 @@ import {
   testTimeout,
 } from './fixtures/runner-fixtures';
 
-describe.sequential('identity column introspection', () => {
+describe('identity column introspection', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

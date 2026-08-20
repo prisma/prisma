@@ -170,7 +170,8 @@ function bareMongoContract(storageHash: string): MongoContract {
   } as unknown as MongoContract;
 }
 
-describe.sequential('LedgerEntryRecord.operationCount parity across targets', {
+describe('LedgerEntryRecord.operationCount parity across targets', {
+  concurrent: false,
   timeout: timeouts.spinUpMongoMemoryServer,
 }, () => {
   let pgDatabase: Awaited<ReturnType<typeof createPgTestDatabase>>;

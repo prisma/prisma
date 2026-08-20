@@ -1,6 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import { expectTypeOf, test } from 'vitest';
 import { Collection } from '../src/collection';
 import { createMockRuntime, type TestContract } from './helpers';
 
@@ -115,3 +116,7 @@ export type IncludeCardinalityTypeAssertions = [
     >
   >,
 ];
+
+test('include cardinality type assertions compile', () => {
+  expectTypeOf<IncludeCardinalityTypeAssertions>().toMatchTypeOf<readonly true[]>();
+});

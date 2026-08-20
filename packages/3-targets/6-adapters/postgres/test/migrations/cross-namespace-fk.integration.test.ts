@@ -91,7 +91,7 @@ function buildCrossNamespaceFkContract(): Contract<SqlStorage> {
   };
 }
 
-describe.sequential('AC1 — cross-namespace FK end-to-end (PGlite)', () => {
+describe('AC1 — cross-namespace FK end-to-end (PGlite)', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver;
 

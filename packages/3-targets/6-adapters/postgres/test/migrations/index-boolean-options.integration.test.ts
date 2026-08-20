@@ -79,7 +79,7 @@ function buildContract(): Contract<SqlStorage> {
   };
 }
 
-describe.sequential('boolean reloption round trip', () => {
+describe('boolean reloption round trip', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

@@ -16,7 +16,7 @@ import {
  * re-parenthesizing — which is exactly why introspection stores the body
  * verbatim and never parses it.
  */
-describe.sequential('check-constraint introspection', () => {
+describe('check-constraint introspection', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

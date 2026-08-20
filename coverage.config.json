@@ -1,6 +1,6 @@
 {
   "$schema": "./coverage.config.schema.json",
-  "description": "WARNING-ONLY PACKAGES: Time-limited exceptions for packages with coverage/test failures. Each entry MUST have an expiry date. When expired, CI will fail until issues are resolved or config is updated with justification.",
+  "description": "WARNING-ONLY PACKAGES: Time-limited exceptions for package coverage failures. Each entry MUST have an expiry date. When expired, CI coverage will fail until issues are resolved or config is updated with justification.",
   "warningOnly": [
     {
       "package": "1-framework/0-foundation/contract",

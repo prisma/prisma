@@ -1,6 +1,7 @@
 import type { Contract, NamespaceId, StorageHashBase } from '@internal/contract/types';
 import type { ContractWithTypeMaps, SqlStorage, TypeMaps } from '@internal/sql-contract/types';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import { expectTypeOf, test } from 'vitest';
 import { Collection } from '../src/collection';
 
 import { createMockRuntime } from './helpers';
@@ -554,3 +555,14 @@ export type ValueObjectUpdateInputAssertions = [
   Assert<Equal<VOUpdateInput['homeAddress'], ExpectedAddressShape | null | undefined>>,
   Assert<Equal<VOUpdateInput['workAddress'], ExpectedAddressShape | undefined>>,
 ];
+
+type GeneratedTypeAssertions = [
+  ...GeneratedContractTypeAssertions,
+  ...ValueObjectTypeAssertions,
+  ...ValueObjectCreateInputAssertions,
+  ...ValueObjectUpdateInputAssertions,
+];
+
+test('generated contract type assertions compile', () => {
+  expectTypeOf<GeneratedTypeAssertions>().toMatchTypeOf<readonly true[]>();
+});

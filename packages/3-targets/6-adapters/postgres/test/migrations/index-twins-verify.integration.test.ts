@@ -57,7 +57,7 @@ function buildPairContract(): Contract<SqlStorage> {
   };
 }
 
-describe.sequential('same-tuple twin indexes coexist and verify', () => {
+describe('same-tuple twin indexes coexist and verify', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

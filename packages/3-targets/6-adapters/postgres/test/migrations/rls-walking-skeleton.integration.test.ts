@@ -97,7 +97,9 @@ function buildRlsWalkingSkeletonContract(): Contract<SqlStorage> {
 // Walking-skeleton test
 // ============================================================================
 
-describe.sequential('RLS walking skeleton — author → plan → apply → filter → verify', () => {
+describe('RLS walking skeleton — author → plan → apply → filter → verify', {
+  concurrent: false,
+}, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver;
 

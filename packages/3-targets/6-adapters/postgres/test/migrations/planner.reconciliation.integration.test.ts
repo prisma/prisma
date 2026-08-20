@@ -143,7 +143,7 @@ async function planAndExecute(
   }
 }
 
-describe.sequential('PostgresMigrationPlanner - reconciliation integration', () => {
+describe('PostgresMigrationPlanner - reconciliation integration', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

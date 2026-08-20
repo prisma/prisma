@@ -275,7 +275,8 @@ async function setupTestProject(args: {
   };
 }
 
-describe.sequential('pgvector Scenario A end-to-end (PGlite, T4.3)', {
+describe('pgvector Scenario A end-to-end (PGlite, T4.3)', {
+  concurrent: false,
   timeout: timeouts.spinUpPpgDev,
 }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>>;

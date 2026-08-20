@@ -90,7 +90,7 @@ function buildContractWithPolicy(): Contract<SqlStorage> {
   };
 }
 
-describe.sequential('RLS verify extension issues', () => {
+describe('RLS verify extension issues', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

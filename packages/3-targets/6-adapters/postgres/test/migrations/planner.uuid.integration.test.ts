@@ -62,7 +62,7 @@ const contractWithUuid: Contract<SqlStorage> = {
   meta: {},
 };
 
-describe.sequential('pg/uuid@1 — end-to-end PGlite coverage', () => {
+describe('pg/uuid@1 — end-to-end PGlite coverage', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

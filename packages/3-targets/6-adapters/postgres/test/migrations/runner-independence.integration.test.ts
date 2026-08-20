@@ -128,7 +128,9 @@ function buildAddColumnOps(): readonly MigrationPlanOperation[] {
   ];
 }
 
-describe.sequential('migration apply runner independence from the contract snapshot store - postgres', () => {
+describe('migration apply runner independence from the contract snapshot store - postgres', {
+  concurrent: false,
+}, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver;
   let tmpRoot: string;

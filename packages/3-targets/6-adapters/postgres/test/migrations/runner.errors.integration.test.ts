@@ -21,7 +21,7 @@ import {
   toPlanContractInfo,
 } from './fixtures/runner-fixtures';
 
-describe.sequential('PostgresMigrationRunner - Error Scenarios', () => {
+describe('PostgresMigrationRunner - Error Scenarios', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

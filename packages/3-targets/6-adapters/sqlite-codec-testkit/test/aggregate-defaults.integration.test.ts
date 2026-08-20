@@ -48,7 +48,7 @@ function codecFor(codecId: string): Codec {
   });
 }
 
-describe.sequential('SQLite aggregate defaults', () => {
+describe('SQLite aggregate defaults', { concurrent: false }, () => {
   let database: DatabaseSync | undefined;
 
   beforeAll(() => {

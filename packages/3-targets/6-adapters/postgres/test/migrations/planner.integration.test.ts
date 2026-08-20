@@ -18,7 +18,7 @@ import {
   testTimeout,
 } from './fixtures/runner-fixtures';
 
-describe.sequential('PostgresMigrationPlanner - integration (existing schemas)', () => {
+describe('PostgresMigrationPlanner - integration (existing schemas)', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

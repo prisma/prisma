@@ -88,7 +88,7 @@ async function executeStepsAgainst(
   }
 }
 
-describe.sequential('`namespace unbound` multi-tenancy via search_path', () => {
+describe('`namespace unbound` multi-tenancy via search_path', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver;
 

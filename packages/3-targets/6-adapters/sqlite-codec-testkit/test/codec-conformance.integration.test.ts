@@ -28,7 +28,7 @@ function toSqliteParam(wire: unknown): SQLInputValue {
   throw new Error(`No SQLite parameter binding for a wire value of type ${typeof wire}.`);
 }
 
-describe.sequential('SQLite codec JSON-projection conformance', () => {
+describe('SQLite codec JSON-projection conformance', { concurrent: false }, () => {
   let database: DatabaseSync | undefined;
   let connection: ConformanceConnection | undefined;
 

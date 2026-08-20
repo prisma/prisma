@@ -154,7 +154,8 @@ async function setupTestProject(): Promise<TestProject> {
   return { projectRoot, migrationsDir };
 }
 
-describe.sequential('multi-extension-monorepo end-to-end (PGlite)', {
+describe('multi-extension-monorepo end-to-end (PGlite)', {
+  concurrent: false,
   timeout: timeouts.spinUpPpgDev,
 }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>>;
