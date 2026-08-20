@@ -4,6 +4,7 @@ import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { DEFAULT_SKILL_SOURCES } from '../../src/commands/init/skill-sources';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
@@ -167,6 +168,24 @@ describe('init scaffold', () => {
           filesDeleted: ['.claude/skills/prisma-next-queries'],
         });
         expect(existsSync(retired)).toBe(false);
+      },
+      timeouts.coldTransformImport,
+    );
+
+    it(
+      'leaves a currently-installed skill directory in place under --skip-skills',
+      async () => {
+        const [firstSource] = DEFAULT_SKILL_SOURCES;
+        if (firstSource === undefined) throw new Error('DEFAULT_SKILL_SOURCES is empty');
+        const installed = join(projectDir, `.agents/skills/${firstSource.skill}`);
+        mkdirSync(installed, { recursive: true });
+        writeFileSync(join(installed, 'SKILL.md'), '# installed\n', 'utf-8');
+
+        const run = await harness().run(scaffoldArgv(...SKIP_ALL), { cwd: projectDir });
+
+        expect(run.exitCode).toBe(0);
+        expect(existsSync(join(installed, 'SKILL.md'))).toBe(true);
+        expect(run.presented?.data).toMatchObject({ filesDeleted: [] });
       },
       timeouts.coldTransformImport,
     );

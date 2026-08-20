@@ -65,7 +65,7 @@ export const DEFAULT_SKILL_SOURCES: readonly SkillSource[] = [
  * `#ref` fragment is dropped — local-path mode in upstream's CLI does
  * not accept refs, and the local clone has whatever content the test
  * checked into it anyway. When set to anything else (e.g. a fork name
- * `myuser/prisma-next`), the ref policy is preserved.
+ * `myuser/prisma`), the ref policy is preserved.
  */
 function resolveAgentSkillBase(env: SkillInstallEnv): string {
   const override = env['PRISMA_NEXT_SKILLS_BASE']?.trim();
