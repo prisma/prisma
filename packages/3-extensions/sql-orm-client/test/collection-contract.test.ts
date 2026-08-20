@@ -1,6 +1,7 @@
 import type { ContractRelationThrough } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import {
+  assertDistinctOnCapability,
   assertReturningCapability,
   hasContractCapability,
   isToOneCardinality,
@@ -66,6 +67,30 @@ describe('collection-contract capability detection', () => {
     const contract = { ...getTestContract(), capabilities: {} };
     expect(() => assertReturningCapability(contract, 'create()')).toThrow(
       /requires contract capability "returning"/,
+    );
+  });
+
+  it('assertDistinctOnCapability accepts postgres.distinctOn', () => {
+    const contract = getTestContract();
+    const withDistinctOn = {
+      ...contract,
+      capabilities: {
+        postgres: {
+          distinctOn: true,
+        },
+      },
+    } as typeof contract;
+
+    expect(() => assertDistinctOnCapability(withDistinctOn, 'distinctOn')).not.toThrow();
+  });
+
+  it('assertDistinctOnCapability throws ORM.CAPABILITY_MISSING when distinctOn is unavailable', () => {
+    const contract = { ...getTestContract(), capabilities: {} };
+    expect(() => assertDistinctOnCapability(contract, 'distinctOn')).toThrow(
+      'distinctOn() requires capability postgres.distinctOn',
+    );
+    expect(() => assertDistinctOnCapability(contract, 'distinctOn')).toThrow(
+      expect.objectContaining({ code: 'ORM.CAPABILITY_MISSING' }),
     );
   });
 

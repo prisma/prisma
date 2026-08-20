@@ -589,6 +589,23 @@ export function assertReturningCapability(contract: Contract<SqlStorage>, action
   });
 }
 
+export function assertDistinctOnCapability(
+  contract: Contract<SqlStorage>,
+  methodName: string,
+): void {
+  // Checked against `postgres` specifically, not the generic hasContractCapability
+  // scan: a contract declaring distinctOn under any other group can't render it.
+  if (contract.capabilities['postgres']?.['distinctOn'] === true) {
+    return;
+  }
+
+  throw ormError(
+    'ORM.CAPABILITY_MISSING',
+    `${methodName}() requires capability postgres.distinctOn`,
+    { meta: { capability: 'postgres.distinctOn', method: methodName } },
+  );
+}
+
 export function hasContractCapability(contract: Contract<SqlStorage>, capability: string): boolean {
   const capabilities = contract.capabilities;
   const value = capabilities[capability];

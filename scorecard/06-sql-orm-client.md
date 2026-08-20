@@ -18,7 +18,8 @@ Legend:
 | `take` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/pagination.test.ts` (`take() and skip() apply limit and offset`); `test/e2e/framework/test/sqlite/orm.test.ts` (`with take and skip`) |
 | `skip` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/pagination.test.ts` (`take() and skip() apply limit and offset`); `test/e2e/framework/test/sqlite/orm.test.ts` (`with take and skip`) |
 | `cursor(...)` keyset pagination | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/pagination.test.ts` (`cursor() applies forward and backward boundaries`) |
-| `distinct` / `distinctOn` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/pagination.test.ts` (`distinct()`, `distinctOn()`) |
+| `distinct(...)` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/pagination.test.ts` (`distinct() returns unique values for selected fields`) |
+| `distinctOn(...)` | ✅ | — | — | `test/integration/test/sql-orm-client/pagination.test.ts` (`distinctOn() keeps one row per key using orderBy precedence`) |
 | `first()` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/first.test.ts`; `test/e2e/framework/test/sqlite/orm.test.ts` (`findFirst`) |
 | `all()` result retrieval | ✅ | ✅ | — | `test/integration/test/sql-orm-client/include.test.ts`; `test/integration/test/sql-orm-client/codec-async.test.ts` (`for await` iteration over `all()`); `test/e2e/framework/test/sqlite/orm.test.ts` (`findMany › returns all rows`) |
 | `create` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/create.test.ts`; `test/e2e/framework/test/sqlite/orm.test.ts` (`create`) |

@@ -27,6 +27,7 @@ import { emptyAggregateResult } from './aggregate-empty-result';
 import { aggregateOperationNames } from './aggregate-operations';
 import { mapCursorValuesToColumns, mapFieldsToColumns } from './collection-column-mapping';
 import {
+  assertDistinctOnCapability,
   assertReturningCapability,
   getColumnToFieldMap,
   getFieldToColumnMap,
@@ -916,6 +917,8 @@ class CollectionImpl<
    * prior `orderBy(...)`; replaces any previous `distinct(...)` /
    * `distinctOn(...)` selection.
    *
+   * Requires the `postgres.distinctOn` capability.
+   *
    * ```typescript
    * // Latest post per user:
    * const latestPerUser = await db.orm.Post
@@ -930,8 +933,13 @@ class CollectionImpl<
       ...(keyof DefaultModelRow<TContract, ModelName> & string)[],
     ],
   >(
-    ...fields: State['hasOrderBy'] extends true ? Fields : never
+    ...fields: TContract['capabilities'] extends { postgres: { distinctOn: true } }
+      ? State['hasOrderBy'] extends true
+        ? Fields
+        : never
+      : never
   ): Collection<TContract, ModelName, Row, State> {
+    assertDistinctOnCapability(this.contract, 'distinctOn');
     const distinctOnFields = mapFieldsToColumns(
       this.contract,
       this.namespaceId,
@@ -1141,8 +1149,9 @@ class CollectionImpl<
         this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.tableName,
-        this.state.filters,
+        this.state,
         aggregateSpec,
+        this.modelName,
       ),
       annotationsMap,
     );

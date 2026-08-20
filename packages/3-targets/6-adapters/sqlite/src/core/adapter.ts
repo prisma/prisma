@@ -251,7 +251,11 @@ function renderSelect(ast: SelectAst, ctx: SqliteRenderContext): string {
         .map((order) => `${renderExpr(order.expr, ctx)} ${order.dir.toUpperCase()}`)
         .join(', ')}`
     : '';
-  const limitClause = renderLimitOffset('LIMIT', ast.limit, ctx);
+  // SQLite has no standalone OFFSET clause, so an offset with no limit needs an explicit LIMIT -1.
+  const limitClause =
+    ast.limit === undefined && ast.offset !== undefined
+      ? 'LIMIT -1'
+      : renderLimitOffset('LIMIT', ast.limit, ctx);
   const offsetClause = renderLimitOffset('OFFSET', ast.offset, ctx);
 
   return [

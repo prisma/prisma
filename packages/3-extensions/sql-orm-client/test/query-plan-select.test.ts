@@ -447,7 +447,7 @@ describe('compileSelectWithIncludes', () => {
       expect(subquery.where).toEqual(
         BinaryExpr.eq(ColumnRef.of('posts', 'user_id'), ColumnRef.of('users', 'id')),
       );
-      // Aggregate scope omits pagination / orderBy.
+      // This aggregate has no pagination / orderBy to carry.
       expect(subquery.limit).toBeUndefined();
       expect(subquery.offset).toBeUndefined();
       expect(subquery.orderBy).toBeUndefined();

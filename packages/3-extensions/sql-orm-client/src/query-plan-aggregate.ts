@@ -7,8 +7,10 @@ import {
   BinaryExpr,
   type CodecRef,
   ColumnRef,
+  LiteralExpr,
   NotExpr,
   NullCheckExpr,
+  type OrderByItem,
   OrExpr,
   ProjectionItem,
   SelectAst,
@@ -17,10 +19,12 @@ import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-de
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
+import { assertDistinctOnCapability, resolvePolymorphismInfo } from './collection-contract';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
+import { buildAggregateInput, buildMtiJoins, buildStateWhere } from './query-plan-source';
 import { tableSourceForContract } from './storage-resolution';
-import type { AggregateSelector } from './types';
+import type { AggregateSelector, CollectionState } from './types';
 import { combineWhereExprs } from './where-utils';
 
 function toAggregateProjection(
@@ -177,13 +181,42 @@ function validateGroupedHavingExpr(expr: AnyExpression): AnyExpression {
   });
 }
 
+// `__row` covers a bare `count()` with no orderBy column — SQL needs an output column.
+function aggregateInputColumns(
+  tableName: string,
+  entries: ReadonlyArray<[string, AggregateSelector<unknown>]>,
+  orderBy: ReadonlyArray<OrderByItem> | undefined,
+): ProjectionItem[] {
+  const columns = new Set<string>();
+  for (const [, selector] of entries) {
+    if (selector.column !== undefined) {
+      columns.add(selector.column);
+    }
+  }
+  // orderBy columns must be visible through the input wrap even if no selector aggregates them.
+  for (const item of orderBy ?? []) {
+    if (item.expr.kind === 'column-ref') {
+      columns.add(item.expr.column);
+    }
+  }
+
+  if (columns.size === 0) {
+    return [ProjectionItem.of('__row', LiteralExpr.of(1))];
+  }
+
+  return Array.from(columns, (column) =>
+    ProjectionItem.of(column, ColumnRef.of(tableName, column)),
+  );
+}
+
 export function compileAggregate(
   contract: Contract<SqlStorage>,
   aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   tableName: string,
-  filters: readonly AnyExpression[],
+  state: CollectionState,
   aggregateSpec: Record<string, AggregateSelector<unknown>>,
+  modelName?: string,
 ): SqlQueryPlan<Record<string, unknown>> {
   const entries = Object.entries(aggregateSpec);
   if (entries.length === 0) {
@@ -193,6 +226,50 @@ export function compileAggregate(
       { meta: { method: 'aggregate', namespaceId, tableName } },
     );
   }
+
+  if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
+    assertDistinctOnCapability(contract, 'distinctOn');
+  }
+
+  const hasPagination = state.limit !== undefined || state.offset !== undefined;
+  const hasDistinct =
+    (state.distinct !== undefined && state.distinct.length > 0) ||
+    (state.distinctOn !== undefined && state.distinctOn.length > 0);
+  const needsInputSelect = hasPagination || hasDistinct;
+
+  if (needsInputSelect) {
+    const { source } = buildAggregateInput(
+      contract,
+      namespaceId,
+      tableName,
+      state,
+      modelName,
+      aggregateInputColumns(tableName, entries, state.orderBy),
+    );
+    const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
+      const { expr, codec } = toAggregateProjection(
+        contract,
+        aggregates,
+        namespaceId,
+        tableName,
+        selector,
+      );
+      return ProjectionItem.of(alias, expr, codec);
+    });
+    const ast = SelectAst.from(source).withProjection(projection);
+
+    const { params } = deriveParamsFromAst(ast);
+    return buildOrmQueryPlan(contract, ast, params);
+  }
+
+  const polyInfo = modelName
+    ? resolvePolymorphismInfo(contract, namespaceId, modelName)
+    : undefined;
+  const variantJoins =
+    polyInfo && polyInfo.mtiVariants.length > 0
+      ? buildMtiJoins(contract, namespaceId, polyInfo, state.variantName, undefined).joins
+      : [];
+  const where = buildStateWhere(contract, tableName, state, { namespaceId });
 
   const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
     const { expr, codec } = toAggregateProjection(
@@ -207,7 +284,9 @@ export function compileAggregate(
   let ast = SelectAst.from(tableSourceForContract(contract, namespaceId, tableName)).withProjection(
     projection,
   );
-  const where = combineWhereExprs(filters);
+  if (variantJoins.length > 0) {
+    ast = ast.withJoins(variantJoins);
+  }
   if (where) {
     ast = ast.withWhere(where);
   }
