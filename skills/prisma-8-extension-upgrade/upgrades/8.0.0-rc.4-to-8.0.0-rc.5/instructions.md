@@ -10,6 +10,8 @@ changes:
       contains:
         - "new Pool("
         - "new Client("
+        - "new pg.Pool("
+        - "new pg.Client("
       anyMatch: true
 ---
 
