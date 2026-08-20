@@ -17,10 +17,10 @@ import {
   engineDocument,
   type JourneyContext,
   parseJsonOutput,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runDbInit,
   runDbSign,
-  runMigrationPlanAndEmit,
   runRef,
   setupJourney,
   timeouts,
@@ -42,7 +42,7 @@ withTempDir(({ createTempDir }) => {
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
 
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init', '--json']);
+        const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'init', '--json']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const planJson = parseJsonOutput(plan);

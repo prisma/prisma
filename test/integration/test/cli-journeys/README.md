@@ -11,12 +11,15 @@ These tests are the primary regression suite for the Prisma Next CLI's database 
 pnpm test:journeys
 ```
 
+`init-journey.e2e.test.ts` (the 4-cell target × authoring pack+install matrix) is excluded from `pnpm test:journeys` and `pnpm test` unless `RUN_INIT_JOURNEY=1` is set; it runs nightly via `pnpm test:init-journey` (see `.github/workflows/integration-nightly.yml`).
+
 ## Test files
 
 ### Happy paths
 
 | File | What it covers |
 |---|---|
+| `init-journey.e2e.test.ts` | **`prisma orm init` inner loop** across all four (target × authoring) cells: scaffold, pack + real install against workspace tarballs, emit, plan, self-emit, apply, run user code. Nightly-only — excluded from PR runs unless `RUN_INIT_JOURNEY=1` |
 | `greenfield-setup.e2e.test.ts` | New project with empty database: emit a contract, dry-run init to preview operations, apply init, confirm idempotency on re-run, verify marker and schema (`db verify`, `db verify --schema-only`, `db verify --strict`), inspect the live schema with `db schema`, and check JSON output variants of full and schema-only verify |
 | `composite-pk-greenfield.e2e.test.ts` | **Composite primary key greenfield**: emit a PSL contract for a junction table, dry-run and apply `db init`, inspect the live Postgres primary-key constraint order, verify duplicate inserts fail on that constraint, then round-trip through `contract infer` and schema verification |
 | `db-schema-discovery.e2e.test.ts` | **Live schema discovery**: inspect an unmanaged database with `db schema`, apply manual DDL, inspect again with `db schema --json`, and confirm the command stays read-only throughout |
@@ -33,10 +36,9 @@ pnpm test:journeys
 | File | What it covers |
 |---|---|
 | `rollback-cycle.e2e.test.ts` | **Rollback cycle (P-2)**: C1→C2→C1 creates a cycle. `findLeaf` fails with `NO_TARGET`. Plan with `--from` bypasses cycle, apply recovers |
-| `converging-paths.e2e.test.ts` | **Converging paths (P-3)**: two paths to the same target (C1→C2→C3 and C1→C3 direct). Pathfinder selects shortest path (2 steps not 3) |
 | `divergence-and-refs.e2e.test.ts` | **Same-base divergence (P-4)**: two edges from C1 (C1→C2, C1→C3). Status without `--ref` fails with `AMBIGUOUS_TARGET`. Ref-based resolution routes apply to the correct branch |
-| `ref-routing.e2e.test.ts` | **Staging ahead via refs (P-5)**: production=C1, staging=C2 on same DB. Apply `--ref staging` advances staging; production unaffected. **Marker ahead of ref (P-6)**: after staging apply, DB at C2 but production ref at C1 — apply fails, status reports ahead-of-ref |
 | `adopt-migrations.e2e.test.ts` | **Adopting migrations (P-9)**: DB managed via `db update` (at C2). Baseline migration EMPTY→C2 is no-op. Incremental C2→C3 applies normally. Status shows both migrations applied |
+| `data-transform-strategies.e2e.test.ts` | **Planner-assisted dataTransform strategies**: one scenario per Postgres call strategy (NOT NULL backfill, nullable tightening, text→int4 type change). Planner emits placeholder stubs, the test fills them in, re-emits in-process, applies, and asserts data + column shape |
 | `diamond-convergence.e2e.test.ts` | **Diamond convergence**: Two environments (staging, production) diverge from C1 via independent branches (C1→C2→C3 and C1→C4), then converge to C5. Uses two PGlite instances with separate configs sharing the same migration graph on disk. Verifies both DBs reach C5 via their respective merge migrations and status shows 0 pending for both refs |
 | `interleaved-db-update.e2e.test.ts` | **Interleaved db update + migrations**: User on migrations (∅→C1→C2) runs `db update` to C3 instead of `migration plan`. Retroactive `migration plan` creates the C2→C3 edge, `migration apply` is a noop (DB already at C3). Future migrations (C3→C4) resume normally. Documents that `migration plan` is offline (uses latest migration target, not DB marker) |
 

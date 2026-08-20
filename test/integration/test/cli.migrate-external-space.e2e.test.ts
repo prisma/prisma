@@ -20,27 +20,22 @@
  * them and expects migrate to succeed afterwards.
  */
 
-import { execFile } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { promisify } from 'node:util';
 import { storageHashHex } from '@internal/framework-components/control';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
-import { join, resolve } from 'pathe';
+import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import {
   TEST_EXTERNAL_HEAD_HASH,
   TEST_EXTERNAL_SPACE_ID,
 } from './contract-space-fixture/external-space';
 import {
-  appendImplicitMigrationPlanFrom,
   type EngineRunResult,
+  runMigrationFile,
   runOnEngine,
   setupTestDirectoryFromFixtures,
   withTempDir,
 } from './utils/cli-test-helpers';
-
-const execFileAsync = promisify(execFile);
-const TSX_BIN = resolve(__dirname, '../../../node_modules/.bin/tsx');
 
 interface Project {
   readonly testDir: string;
@@ -77,15 +72,17 @@ async function selfEmitLatestMigration(testDir: string): Promise<void> {
   const latest = getLatestMigrationDir(testDir);
   if (!latest) return;
   const migrationTs = join(testDir, 'migrations', 'app', latest, 'migration.ts');
-  await execFileAsync(TSX_BIN, [migrationTs], { cwd: testDir });
+  const emitted = await runMigrationFile(migrationTs, [], testDir);
+  if (emitted.exitCode !== 0) {
+    throw new Error(`migration.ts self-emit failed (exit ${emitted.exitCode}): ${emitted.stderr}`);
+  }
 }
 
 async function runMigrationPlan(
   project: Project,
   args: readonly string[],
 ): Promise<EngineRunResult> {
-  const planArgs = appendImplicitMigrationPlanFrom(project.testDir, args);
-  const run = await runOnEngine(project, ['migration', 'plan', ...planArgs]);
+  const run = await runOnEngine(project, ['migration', 'plan', ...args]);
   if (run.exitCode === 0) {
     await selfEmitLatestMigration(project.testDir);
   }

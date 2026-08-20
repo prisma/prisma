@@ -14,9 +14,9 @@ import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
+  planMigrationAndSelfEmit,
   runContractEmit,
   runMigrationGraph,
-  runMigrationPlanAndEmit,
   setupJourney,
   timeouts,
 } from '../utils/journey-test-helpers';
@@ -30,7 +30,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const human = await runMigrationGraph(ctx, ['--dot']);
@@ -64,7 +64,7 @@ withTempDir(({ createTempDir }) => {
 
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, 'emit').toBe(0);
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'init']);
+        const plan = await planMigrationAndSelfEmit(ctx, ['--name', 'init']);
         expect(plan.exitCode, 'plan').toBe(0);
 
         const graph = await runMigrationGraph(ctx, [], { isTTY: false });

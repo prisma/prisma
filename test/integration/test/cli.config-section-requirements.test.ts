@@ -65,11 +65,10 @@ describe('commands declare the config sections they read', () => {
   it.each(readsContract)(
     '%s reports a malformed contract section as a config error',
     async (_name, argv) => {
-      const run = await runOnEngine(
-        { testDir, configPath: brokenContractConfig },
-        [...argv, '--json'],
-        { settleConfigFailures: true },
-      );
+      const run = await runOnEngine({ testDir, configPath: brokenContractConfig }, [
+        ...argv,
+        '--json',
+      ]);
 
       expect(run.exitCode).toBe(2);
       expect(run.json.at(-1)).toMatchObject({
@@ -91,11 +90,10 @@ describe('commands declare the config sections they read', () => {
   it.each(readsMigrations)(
     '%s reports a malformed migrations section as a config error',
     async (_name, argv) => {
-      const run = await runOnEngine(
-        { testDir, configPath: brokenMigrationsConfig },
-        [...argv, '--json'],
-        { settleConfigFailures: true },
-      );
+      const run = await runOnEngine({ testDir, configPath: brokenMigrationsConfig }, [
+        ...argv,
+        '--json',
+      ]);
 
       expect(run.exitCode).toBe(2);
       expect(run.json.at(-1)).toMatchObject({
