@@ -30,7 +30,9 @@ import { join, relative } from 'pathe';
 import {
   type CliErrorConflict,
   CliStructuredError,
+  errorConsentPlanMismatch,
   errorContractValidationFailed,
+  errorDestructiveChanges,
   errorFileNotFound,
   errorMigrationPlanningFailed,
   errorTargetMigrationNotSupported,
@@ -52,6 +54,7 @@ import {
   type ContractSpaceSeedPhaseRecord,
   runContractSpaceSeedPhase,
 } from './contract-space-seed-phase';
+import { computePlanHash } from './plan-identity';
 import { resolveFromForPlan, resolveToForPlan } from './plan-resolution';
 
 function isEnoent(error: unknown): boolean {
@@ -67,6 +70,12 @@ export interface MigrationPlanOptions {
   readonly name?: string;
   readonly from?: string;
   readonly to?: string;
+  /**
+   * Consent to the auto-baseline plan a prior `MIGRATION.DESTRUCTIVE_CHANGES`
+   * refusal named by its `planHash`. The consented run recomputes the baseline
+   * plan and refuses with `MIGRATION.CONSENT_PLAN_MISMATCH` when it differs.
+   */
+  readonly consent?: { readonly planHash: string };
 }
 
 type PlannerSuccess = {
@@ -167,6 +176,50 @@ async function writePlannedMigrationPackage(
   await writeMigrationTs(packageDir, leg.migrationTsContent);
 }
 
+/**
+ * The consent check for an auto-baseline write, mirroring `db update`'s
+ * destructive-changes refusal: a baseline leg carrying destructive operations
+ * is only written when the caller consents to that exact plan by its hash.
+ * Runs before anything is written, so a refusal leaves the migrations
+ * directory untouched. Returns `null` when the write may proceed.
+ */
+function refuseUnconsentedDestructiveBaseline(
+  leg: PlannerSuccess,
+  baselineToHash: string,
+  consent: { readonly planHash: string } | undefined,
+): CliStructuredError | null {
+  const ops = leg.hasPlaceholders ? [] : leg.plannedOps;
+  const destructiveOps = ops.filter((op) => op.operationClass === 'destructive');
+  if (destructiveOps.length === 0) {
+    return null;
+  }
+  const planHash = computePlanHash({
+    operations: ops.map((op) => ({
+      id: op.id,
+      label: op.label,
+      operationClass: op.operationClass,
+    })),
+    destination: { storageHash: baselineToHash },
+  });
+  if (consent === undefined) {
+    return errorDestructiveChanges(
+      `The baseline migration contains ${destructiveOps.length} destructive operation(s) that require confirmation`,
+      {
+        why: 'The migrations directory is empty, so planning writes a baseline derived from the `db` ref — and that baseline contains operations that would remove data when the migration is applied.',
+        fix: 'Re-run `prisma migration plan` and type the project directory name when asked, or pass `--no-interactive --confirm <directory>` where there is nobody to ask.',
+        meta: {
+          destructiveOperations: destructiveOps.map((op) => ({ id: op.id, label: op.label })),
+          planHash,
+        },
+      },
+    );
+  }
+  if (consent.planHash !== planHash) {
+    return errorConsentPlanMismatch({ consentedPlanHash: consent.planHash, planHash });
+  }
+  return null;
+}
+
 export interface MigrationPlanResult {
   readonly ok: boolean;
   readonly noOp: boolean;
@@ -199,6 +252,12 @@ export interface MigrationPlanResult {
    */
   readonly preview?: OperationPreview;
   readonly summary: string;
+  /**
+   * Origin-resolution caveats the user must see, e.g. the default `db` ref
+   * sitting behind the graph tip. Rendered as warn summaries by the human
+   * presentation and carried verbatim for JSON consumers.
+   */
+  readonly warnings?: readonly string[];
   /**
    * When true, `migration.ts` was written but contains unfilled
    * `placeholder(...)` calls. The user must edit the file and then run
@@ -350,12 +409,26 @@ async function executeMigrationPlanCommandInner(
     return notOk(resolutionResult.failure);
   }
 
+  const warnings: string[] = [];
+  const warnBehindTip = (behind: {
+    readonly refName: string;
+    readonly refHash: string;
+    readonly tipHash: string;
+  }): void => {
+    warnings.push(
+      `The default origin ref '${behind.refName}' points at ${behind.refHash}, which is not the latest migration (${behind.tipHash}). Planning from it forks the migration graph; pass --from to choose the origin explicitly.`,
+    );
+  };
+
   switch (resolutionResult.value.kind) {
     case 'greenfield':
       break;
     case 'graph-node':
       fromHash = resolutionResult.value.fromHash;
       fromContract = resolutionResult.value.fromContract;
+      if (resolutionResult.value.defaultOriginBehindTip !== undefined) {
+        warnBehindTip(resolutionResult.value.defaultOriginBehindTip);
+      }
       break;
     case 'ref':
       fromHash = resolutionResult.value.fromHash;
@@ -365,6 +438,9 @@ async function executeMigrationPlanCommandInner(
         contractJson: resolutionResult.value.contractJson,
         contractDts: resolutionResult.value.contractDts,
       };
+      if (resolutionResult.value.defaultOriginBehindTip !== undefined) {
+        warnBehindTip(resolutionResult.value.defaultOriginBehindTip);
+      }
       break;
     case 'auto-baseline':
       fromHash = resolutionResult.value.fromHash;
@@ -430,6 +506,7 @@ async function executeMigrationPlanCommandInner(
       to: toStorageHash,
       operations: [],
       emittedExtensionDirs,
+      ...(warnings.length > 0 ? { warnings } : {}),
       summary: 'No changes detected between contracts',
       timings: { total: Date.now() - startTime },
     };
@@ -524,6 +601,15 @@ async function executeMigrationPlanCommandInner(
         return notOk(baselineLeg.failure);
       }
 
+      const consentFailure = refuseUnconsentedDestructiveBaseline(
+        baselineLeg.value,
+        fromHash,
+        options.consent,
+      );
+      if (consentFailure !== null) {
+        return notOk(consentFailure);
+      }
+
       await writePlannedMigrationPackage(
         baselinePackageDir,
         null,
@@ -549,6 +635,7 @@ async function executeMigrationPlanCommandInner(
             baselineDir,
             operations: [],
             emittedExtensionDirs,
+            ...(warnings.length > 0 ? { warnings } : {}),
             pendingPlaceholders: true,
             summary:
               'Planned baseline with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
@@ -573,6 +660,7 @@ async function executeMigrationPlanCommandInner(
           })),
           emittedExtensionDirs,
           ...(preview !== undefined ? { preview } : {}),
+          ...(warnings.length > 0 ? { warnings } : {}),
           summary: buildAutoBaselinePlanSummary(0, emittedExtensionDirs.length),
           timings: { total: Date.now() - startTime },
         };
@@ -607,6 +695,7 @@ async function executeMigrationPlanCommandInner(
         contractDts: snapshotStartContract.contractDts,
       });
 
+      const baselineOps = baselineLeg.value.hasPlaceholders ? [] : baselineLeg.value.plannedOps;
       const deltaOps = deltaLeg.value.hasPlaceholders ? [] : deltaLeg.value.plannedOps;
       if (deltaLeg.value.hasPlaceholders) {
         const result: MigrationPlanResult = {
@@ -618,6 +707,7 @@ async function executeMigrationPlanCommandInner(
           baselineDir: relative(cwd, baselinePackageDir),
           operations: [],
           emittedExtensionDirs,
+          ...(warnings.length > 0 ? { warnings } : {}),
           pendingPlaceholders: true,
           summary:
             'Planned baseline + migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
@@ -636,13 +726,16 @@ async function executeMigrationPlanCommandInner(
         to: toStorageHash,
         dir: relative(cwd, deltaPackageDir),
         baselineDir: relative(cwd, baselinePackageDir),
-        operations: deltaOps.map((op) => ({
+        // Baseline ops travel with the delta ops so consumers (including the
+        // destructive warn-summary) see everything this run wrote.
+        operations: [...baselineOps, ...deltaOps].map((op) => ({
           id: op.id,
           label: op.label,
           operationClass: op.operationClass,
         })),
         emittedExtensionDirs,
         ...(preview !== undefined ? { preview } : {}),
+        ...(warnings.length > 0 ? { warnings } : {}),
         summary: buildAutoBaselinePlanSummary(deltaOps.length, emittedExtensionDirs.length),
         timings: { total: Date.now() - startTime },
       };
@@ -693,6 +786,7 @@ async function executeMigrationPlanCommandInner(
         dir: relative(cwd, packageDir),
         operations: [],
         emittedExtensionDirs,
+        ...(warnings.length > 0 ? { warnings } : {}),
         pendingPlaceholders: true,
         summary:
           'Planned migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
@@ -718,6 +812,7 @@ async function executeMigrationPlanCommandInner(
       })),
       emittedExtensionDirs,
       ...(preview !== undefined ? { preview } : {}),
+      ...(warnings.length > 0 ? { warnings } : {}),
       summary: buildPlanSummary(plannedOps.length, emittedExtensionDirs.length),
       timings: { total: Date.now() - startTime },
     };

@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { join } from 'pathe';
@@ -152,6 +153,84 @@ describe('migration new', () => {
     });
 
     const run = await harness(project).run(['migration', 'new', '--from', 'beef1', '--json'], {
+      cwd: project.dir,
+    });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.data).toMatchObject({ from: HASH_FROM });
+  });
+
+  it('errors when --from is passed on an empty migrations directory', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    const run = await harness(project).run(['migration', 'new', '--from', 'beef1', '--json'], {
+      cwd: project.dir,
+    });
+
+    expect(run.exitCode).toBe(2);
+    const terminal = run.json.at(-1);
+    const envelope =
+      terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+    expect(envelope).toMatchObject({
+      ok: false,
+      error: { code: 'MIGRATION.HASH_NOT_IN_GRAPH' },
+    });
+    expect(existsSync(project.appMigrationsDir)).toBe(false);
+  });
+
+  it('errors when --from is a prefix of several migration targets', async () => {
+    const otherHash = `beef${'2'.repeat(60)}`;
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260101T0000_initial',
+      from: null,
+      to: HASH_FROM,
+    });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260102T0000_second',
+      from: HASH_FROM,
+      to: otherHash,
+    });
+
+    const run = await harness(project).run(['migration', 'new', '--from', 'beef', '--json'], {
+      cwd: project.dir,
+    });
+
+    expect(run.exitCode).toBe(2);
+    const terminal = run.json.at(-1);
+    const envelope =
+      terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+    expect(envelope).toMatchObject({
+      ok: false,
+      error: {
+        code: 'MIGRATION.REF_AMBIGUOUS',
+        meta: { input: 'beef', candidates: [HASH_FROM, otherHash] },
+      },
+    });
+    expect(await scaffoldedDirs(project)).toEqual([
+      '20260101T0000_initial',
+      '20260102T0000_second',
+    ]);
+  });
+
+  it('accepts a prefix shared only by packages with the same target hash', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260101T0000_left',
+      from: null,
+      to: HASH_FROM,
+    });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260102T0000_right',
+      from: HASH_TO,
+      to: HASH_FROM,
+    });
+
+    const run = await harness(project).run(['migration', 'new', '--from', 'beef', '--json'], {
       cwd: project.dir,
     });
 
