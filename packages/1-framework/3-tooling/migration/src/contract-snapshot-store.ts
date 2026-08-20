@@ -1,10 +1,14 @@
 import { randomBytes } from 'node:crypto';
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import type { PreserveEmptyPredicate, StorageSort } from '@internal/contract/hashing';
+import { computeStorageHash } from '@internal/contract/hashing';
 import { CONTRACT_SNAPSHOTS_DIRNAME, storageHashHex } from '@internal/framework-components/control';
 import { canonicalizeJson } from '@internal/framework-components/utils';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { join, relative } from 'pathe';
 import {
+  errorContractSnapshotContentMismatch,
   errorContractSnapshotHashMismatch,
   errorContractSnapshotMissing,
   errorInvalidJson,
@@ -34,6 +38,77 @@ async function directoryExists(p: string): Promise<boolean> {
 
 export function contractSnapshotDir(migrationsDir: string, storageHash: string): string {
   return join(migrationsDir, CONTRACT_SNAPSHOTS_DIRNAME, storageHashHex(storageHash));
+}
+
+/**
+ * Family-contributed canonicalization hooks needed to reproduce the storage
+ * hash the emit pipeline computed. Sourced from the target's
+ * `ContractSerializer` (`shouldPreserveEmpty` / `sortStorage`); families
+ * without special-case storage paths supply neither.
+ */
+export interface SnapshotCanonicalizationHooks {
+  readonly shouldPreserveEmpty?: PreserveEmptyPredicate;
+  readonly sortStorage?: StorageSort;
+}
+
+/**
+ * Recompute-and-compare integrity check for loaded contract snapshots,
+ * mirroring `verifyMigrationHash` for migration packages and
+ * `assertDescriptorSelfConsistency` for extension descriptors: the store is
+ * content-addressed, so the JSON read back for a hash must reproduce that
+ * hash. Verified hashes are memoised per instance, so a snapshot resolved
+ * repeatedly in one command run is hashed once.
+ */
+export interface SnapshotContentVerifier {
+  /**
+   * Throws `MIGRATION.CONTRACT_SNAPSHOT_CONTENT_MISMATCH` when
+   * `contractJson`'s content does not recompute to `storageHash` — the hash
+   * the snapshot at `jsonPath` was addressed by.
+   */
+  assertSnapshotContentMatches(contractJson: unknown, storageHash: string, jsonPath: string): void;
+  /** The storage hash `contractJson`'s content canonicalizes to. */
+  recomputeStorageHash(contractJson: unknown): string;
+}
+
+export function createSnapshotContentVerifier(
+  hooks?: SnapshotCanonicalizationHooks,
+): SnapshotContentVerifier {
+  const verified = new Set<string>();
+
+  function recomputeStorageHash(contractJson: unknown): string {
+    const record = blindCast<
+      { target?: unknown; targetFamily?: unknown; storage?: unknown },
+      'contractJson is unknown JSON; only the identity fields the hash covers are read here'
+    >(contractJson ?? {});
+    const storageRecord = blindCast<
+      Record<string, unknown>,
+      'the storage subtree is hashed as an opaque record; a non-record value simply fails the comparison'
+    >(record.storage ?? {});
+    // The published hash was computed over a storage object that did not yet
+    // carry `storageHash`; strip it so the recompute sees the same shape.
+    const { storageHash: _addressed, ...storageWithoutHash } = storageRecord;
+    return computeStorageHash({
+      target: typeof record.target === 'string' ? record.target : '',
+      targetFamily: typeof record.targetFamily === 'string' ? record.targetFamily : '',
+      storage: storageWithoutHash,
+      ...ifDefined('shouldPreserveEmpty', hooks?.shouldPreserveEmpty),
+      ...ifDefined('sortStorage', hooks?.sortStorage),
+    });
+  }
+
+  return {
+    recomputeStorageHash,
+    assertSnapshotContentMatches(contractJson, storageHash, jsonPath) {
+      if (verified.has(storageHash)) {
+        return;
+      }
+      const computedHash = recomputeStorageHash(contractJson);
+      if (computedHash !== storageHash) {
+        throw errorContractSnapshotContentMismatch({ storageHash, computedHash, jsonPath });
+      }
+      verified.add(storageHash);
+    },
+  };
 }
 
 export interface ContractSnapshotInput {
@@ -94,9 +169,16 @@ export async function writeContractSnapshot(
   return { written: true, dir };
 }
 
+/**
+ * When `verifyContent` is supplied, the parsed snapshot's content is checked
+ * against the hash it was addressed by before being returned — the store is
+ * content-addressed, and a snapshot edited in place under an unchanged hash
+ * would otherwise flow into planning as if it were the recorded contract.
+ */
 export async function readContractSnapshotJson(
   migrationsDir: string,
   storageHash: string,
+  verifyContent?: SnapshotContentVerifier,
 ): Promise<unknown> {
   const jsonPath = join(contractSnapshotDir(migrationsDir, storageHash), CONTRACT_JSON_FILE);
 
@@ -110,11 +192,14 @@ export async function readContractSnapshotJson(
     throw error;
   }
 
+  let parsed: unknown;
   try {
-    return JSON.parse(raw);
+    parsed = JSON.parse(raw);
   } catch (e) {
     throw errorInvalidJson(jsonPath, e instanceof Error ? e.message : String(e));
   }
+  verifyContent?.assertSnapshotContentMatches(parsed, storageHash, jsonPath);
+  return parsed;
 }
 
 /**
@@ -125,11 +210,15 @@ export async function readContractSnapshotJson(
  * `readEndContractJson` (`io.ts`), which never validated the hash it was
  * keyed by either. Any other fs error (e.g. `EACCES` on a present-but-
  * unreadable file) propagates rather than silently loading a contract-less
- * package.
+ * package. When `verifyContent` is supplied, an entry whose content does not
+ * recompute to its address also resolves to `undefined` — tampered content
+ * must not flow onward, and the strict store reads report the same file
+ * loudly as `MIGRATION.CONTRACT_SNAPSHOT_CONTENT_MISMATCH`.
  */
 export async function readContractSnapshotJsonTolerant(
   migrationsDir: string,
   storageHash: string,
+  verifyContent?: SnapshotContentVerifier,
 ): Promise<unknown | undefined> {
   let jsonPath: string;
   try {
@@ -148,12 +237,21 @@ export async function readContractSnapshotJsonTolerant(
     throw error;
   }
 
+  let parsed: unknown;
   try {
-    const parsed: unknown = JSON.parse(raw);
-    return parsed === null ? undefined : parsed;
+    parsed = JSON.parse(raw);
   } catch {
     return undefined;
   }
+  if (parsed === null) {
+    return undefined;
+  }
+  try {
+    verifyContent?.assertSnapshotContentMatches(parsed, storageHash, jsonPath);
+  } catch {
+    return undefined;
+  }
+  return parsed;
 }
 
 export async function readContractSnapshotDts(

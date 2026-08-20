@@ -30,6 +30,7 @@ import { notOk, ok } from '@internal/utils/result';
 import { structuredError } from '@internal/utils/structured-error';
 
 import { assertFrameworkComponentsCompatible } from '../utils/framework-components';
+import { snapshotVerifierFor } from '../utils/snapshot-content-verification';
 import { enrichContract } from './contract-enrichment';
 import { executeDbInit } from './operations/db-init';
 import { executeDbUpdate } from './operations/db-update';
@@ -414,6 +415,7 @@ class ControlClientImpl implements ControlClient {
       migrationsDir: options.migrationsDir,
       targetId: this.options.target.targetId,
       extensions: this.options.extensions ?? [],
+      ...ifDefined('verifySnapshotContent', snapshotVerifierFor(this.options)),
       ...ifDefined('onProgress', onProgress),
     });
   }
@@ -453,6 +455,7 @@ class ControlClientImpl implements ControlClient {
       extensions: this.options.extensions ?? [],
       ...ifDefined('acceptDataLoss', options.acceptDataLoss),
       ...ifDefined('consent', options.consent),
+      ...ifDefined('verifySnapshotContent', snapshotVerifierFor(this.options)),
       ...ifDefined('onProgress', onProgress),
     });
   }
@@ -473,6 +476,7 @@ class ControlClientImpl implements ControlClient {
       mode: options.strict ? 'strict' : 'lenient',
       skipSchema: options.skipSchema,
       skipMarker: options.skipMarker,
+      ...ifDefined('verifySnapshotContent', snapshotVerifierFor(this.options)),
       ...ifDefined('onProgress', onProgress),
     });
   }
@@ -529,6 +533,7 @@ class ControlClientImpl implements ControlClient {
       ...ifDefined('refHash', options.refHash),
       ...ifDefined('refInvariants', options.refInvariants),
       ...ifDefined('refName', options.refName),
+      ...ifDefined('verifySnapshotContent', snapshotVerifierFor(this.options)),
       ...ifDefined('onProgress', onProgress),
     });
   }

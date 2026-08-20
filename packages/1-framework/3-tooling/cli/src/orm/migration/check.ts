@@ -16,6 +16,7 @@ import {
 } from '../../control-api/operations/migration-check';
 import { errorMigrationPackageNotFound } from '../../utils/cli-errors';
 import { integrityViolationToCheckFailure } from '../../utils/integrity-violation-to-check-failure';
+import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
 import { ormConfigSection } from '../config-section';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
@@ -133,7 +134,12 @@ export const migrationCheckCommand = defineOrmCommand({
     if (!loaded.ok) {
       return notOk(normalizeError(loaded.failure));
     }
-    const spaces = await enumerateCheckSpaces(loaded.value.aggregate, migrationsDir, ctx.cwd);
+    const spaces = await enumerateCheckSpaces(
+      loaded.value.aggregate,
+      migrationsDir,
+      ctx.cwd,
+      snapshotVerifierFor(ctx.config),
+    );
 
     let document: MigrationCheckResult;
     let resolvedSpaceId: string | undefined;

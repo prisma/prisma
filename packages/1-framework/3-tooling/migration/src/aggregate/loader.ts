@@ -1,4 +1,5 @@
 import type { Contract } from '@internal/contract/types';
+import type { SnapshotContentVerifier } from '../contract-snapshot-store';
 import { readContractSnapshotJson } from '../contract-snapshot-store';
 import { errorSpaceHeadRefMissing, MigrationToolsError } from '../errors';
 import { readMigrationsDir } from '../io';
@@ -35,6 +36,14 @@ export interface LoadAggregateInput {
   readonly migrationsDir: string;
   readonly deserializeContract: (raw: unknown) => Contract;
   readonly appContract: Contract;
+  /**
+   * Content check for contract snapshots resolved from the store: every
+   * snapshot read through this aggregate is recomputed against the hash it
+   * was addressed by. Construction stays tolerant — a mismatched extension
+   * head snapshot surfaces at `contract()` time as `contractUnreadable`,
+   * and `contractAt()` throws `MIGRATION.CONTRACT_SNAPSHOT_CONTENT_MISMATCH`.
+   */
+  readonly verifySnapshotContent?: SnapshotContentVerifier;
 }
 
 /**
@@ -58,11 +67,20 @@ export interface LoadAggregateInput {
 export async function loadContractSpaceAggregate(
   input: LoadAggregateInput,
 ): Promise<ContractSpaceAggregate> {
-  const { migrationsDir, deserializeContract, appContract } = input;
+  const { migrationsDir, deserializeContract, appContract, verifySnapshotContent } = input;
   const targetId = appContract.target;
 
-  const appState = await loadAppSpace(migrationsDir, appContract, deserializeContract);
-  const extensionStates = await loadExtensionSpaces(migrationsDir, deserializeContract);
+  const appState = await loadAppSpace(
+    migrationsDir,
+    appContract,
+    deserializeContract,
+    verifySnapshotContent,
+  );
+  const extensionStates = await loadExtensionSpaces(
+    migrationsDir,
+    deserializeContract,
+    verifySnapshotContent,
+  );
 
   const spaces: readonly IntegritySpaceState[] = [appState, ...extensionStates];
 
@@ -78,9 +96,13 @@ async function loadAppSpace(
   migrationsDir: string,
   appContract: Contract,
   deserializeContract: (raw: unknown) => Contract,
+  verifySnapshotContent: SnapshotContentVerifier | undefined,
 ): Promise<IntegritySpaceState> {
   const spaceDir = spaceMigrationDirectory(migrationsDir, APP_SPACE_ID);
-  const { packages, problems } = await readMigrationsDir(spaceDir, { migrationsDir });
+  const { packages, problems } = await readMigrationsDir(spaceDir, {
+    migrationsDir,
+    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+  });
   const { refs, problems: refProblems } = await readRefsTolerant(spaceRefsDirectory(spaceDir));
 
   const space = createAggregateContractSpace({
@@ -92,6 +114,7 @@ async function loadAppSpace(
     migrationsDir,
     resolveContract: () => appContract,
     deserializeContract,
+    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
   });
 
   // The app head ref is synthesised from the live contract, so there is
@@ -108,6 +131,7 @@ async function loadAppSpace(
 async function loadExtensionSpaces(
   migrationsDir: string,
   deserializeContract: (raw: unknown) => Contract,
+  verifySnapshotContent: SnapshotContentVerifier | undefined,
 ): Promise<readonly IntegritySpaceState[]> {
   const candidateDirs = await listContractSpaceDirectories(migrationsDir);
   const extensionIds = candidateDirs
@@ -117,7 +141,9 @@ async function loadExtensionSpaces(
 
   const states: IntegritySpaceState[] = [];
   for (const spaceId of extensionIds) {
-    states.push(await loadExtensionSpace(migrationsDir, spaceId, deserializeContract));
+    states.push(
+      await loadExtensionSpace(migrationsDir, spaceId, deserializeContract, verifySnapshotContent),
+    );
   }
   return states;
 }
@@ -126,13 +152,22 @@ async function loadExtensionSpace(
   migrationsDir: string,
   spaceId: string,
   deserializeContract: (raw: unknown) => Contract,
+  verifySnapshotContent: SnapshotContentVerifier | undefined,
 ): Promise<IntegritySpaceState> {
   const spaceDir = spaceMigrationDirectory(migrationsDir, spaceId);
-  const { packages, problems } = await readMigrationsDir(spaceDir, { migrationsDir });
+  const { packages, problems } = await readMigrationsDir(spaceDir, {
+    migrationsDir,
+    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
+  });
   const { refs, problems: refProblems } = await readRefsTolerant(spaceRefsDirectory(spaceDir));
   const { headRef, problem: headRefProblem } = await readHeadRefTolerant(migrationsDir, spaceId);
 
-  const rawContract = await readRawContractDeferred(migrationsDir, spaceId, headRef);
+  const rawContract = await readRawContractDeferred(
+    migrationsDir,
+    spaceId,
+    headRef,
+    verifySnapshotContent,
+  );
 
   const space = createAggregateContractSpace({
     spaceId,
@@ -143,6 +178,7 @@ async function loadExtensionSpace(
     migrationsDir,
     resolveContract: () => deserializeContract(rawContract()),
     deserializeContract,
+    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
   });
 
   return { space, problems, refProblems, headRefProblem, isApp: false };
@@ -206,6 +242,7 @@ async function readRawContractDeferred(
   migrationsDir: string,
   spaceId: string,
   headRef: ContractSpaceHeadRef | null,
+  verifySnapshotContent: SnapshotContentVerifier | undefined,
 ): Promise<() => unknown> {
   if (headRef === null) {
     return () => {
@@ -213,7 +250,7 @@ async function readRawContractDeferred(
     };
   }
   try {
-    const raw = await readContractSnapshotJson(migrationsDir, headRef.hash);
+    const raw = await readContractSnapshotJson(migrationsDir, headRef.hash, verifySnapshotContent);
     return () => raw;
   } catch (error) {
     return () => {

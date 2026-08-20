@@ -44,6 +44,7 @@ import {
 import { toExtensionInputs } from '../../utils/extension-pack-inputs';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
 import { createProjectSpecifierResolver } from '../../utils/project-import-root';
+import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
 import {
   buildContractSpaceAggregate,
   loadContractSpaceAggregateForCli,
@@ -329,12 +330,14 @@ async function executeMigrationPlanCommandInner(
   } | null = null;
   let isAutoBaseline = false;
 
+  const verifySnapshotContent = snapshotVerifierFor(config);
   const tolerantAggregateResult = await loadContractSpaceAggregateForCli({
     targetId: config.target.targetId,
     migrationsDir,
     appContract: toContract,
     extensions: config.extensions ?? [],
     deserializeContract: (json: unknown) => familyInstance.deserializeContract(json),
+    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
   });
   if (!tolerantAggregateResult.ok) {
     return notOk(tolerantAggregateResult.failure);
@@ -459,6 +462,7 @@ async function executeMigrationPlanCommandInner(
     appContract: toContract,
     extensions: config.extensions ?? [],
     deserializeContract: (json: unknown) => familyInstance.deserializeContract(json),
+    ...(verifySnapshotContent !== undefined ? { verifySnapshotContent } : {}),
   });
   if (!aggregateResult.ok) {
     return notOk(aggregateResult.failure);
