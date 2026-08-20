@@ -34,6 +34,27 @@ describe('distinctOn() capability gate', () => {
     );
   });
 
+  // A generic capability scan across every group would pass this: the
+  // contract does declare a truthy `distinctOn`, just under `projection`
+  // instead of `postgres`. The gate has to check the `postgres` group
+  // specifically, matching the type-level narrowing on
+  // `{ postgres: { distinctOn: true } }`.
+  it('rejects a contract that declares distinctOn under a group other than postgres', () => {
+    const contract = withCapabilities(baseContract, { projection: { distinctOn: true } });
+    const context = { ...getTestContext(), contract };
+    const runtime = createMockRuntime();
+    const collection = new Collection({ runtime, context }, 'Post', {
+      namespaceId: soleDomainNamespaceId(contract.domain),
+      state: {
+        ...emptyState(),
+        orderBy: [OrderByItem.asc(ColumnRef.of('posts', 'title'))],
+        distinctOn: ['title'],
+      },
+    });
+
+    expect(() => collection.all()).toThrow('distinctOn() requires capability postgres.distinctOn');
+  });
+
   // The method-level assert is one entry point into `state.distinctOn` — a
   // `Collection` built directly from a hand-constructed `CollectionState`
   // (both exported from `./exports`) never calls `distinctOn()`, so the

@@ -1093,8 +1093,6 @@ class CollectionImpl<
    * with the requested aggregate values keyed by the aliases supplied
    * in the spec.
    *
-   * Reduces over the rows the chain describes, not every matching row.
-   *
    * ```typescript
    * const stats = await db.orm.Post
    *   .where({ published: true })

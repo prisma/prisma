@@ -181,7 +181,7 @@ function validateGroupedHavingExpr(expr: AnyExpression): AnyExpression {
   });
 }
 
-// `__row` is exclusive, not additive: only used when no selector names a column.
+// `__row` covers a bare `count()` with no orderBy column — SQL needs an output column.
 function aggregateInputColumns(
   tableName: string,
   entries: ReadonlyArray<[string, AggregateSelector<unknown>]>,

@@ -593,7 +593,9 @@ export function assertDistinctOnCapability(
   contract: Contract<SqlStorage>,
   methodName: string,
 ): void {
-  if (hasContractCapability(contract, 'distinctOn')) {
+  // Checked against `postgres` specifically, not the generic hasContractCapability
+  // scan: a contract declaring distinctOn under any other group can't render it.
+  if (contract.capabilities['postgres']?.['distinctOn'] === true) {
     return;
   }
 
