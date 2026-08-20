@@ -30,6 +30,7 @@ import type {
   AggregateResult,
   AggregateSpec,
   CollectionContext,
+  CollectionState,
   DefaultModelRow,
   HavingBuilder,
   HavingComparisonMethods,
@@ -39,7 +40,7 @@ import { combineWhereExprs } from './where-utils';
 interface GroupedCollectionInit {
   readonly tableName: string;
   readonly namespaceId: string;
-  readonly baseFilters: readonly AnyExpression[];
+  readonly preGroupState: CollectionState;
   readonly groupByFields: readonly string[];
   readonly groupByColumns: readonly string[];
   readonly havingFilters: readonly AnyExpression[];
@@ -62,7 +63,7 @@ export class GroupedCollection<
   readonly modelName: ModelName;
   readonly tableName: string;
   readonly namespaceId: string;
-  readonly baseFilters: readonly AnyExpression[];
+  readonly preGroupState: CollectionState;
   readonly groupByFields: readonly string[];
   readonly groupByColumns: readonly string[];
   readonly havingFilters: readonly AnyExpression[];
@@ -77,7 +78,7 @@ export class GroupedCollection<
     this.modelName = modelName;
     this.tableName = options.tableName;
     this.namespaceId = options.namespaceId;
-    this.baseFilters = options.baseFilters;
+    this.preGroupState = options.preGroupState;
     this.groupByFields = options.groupByFields;
     this.groupByColumns = options.groupByColumns;
     this.havingFilters = options.havingFilters;
@@ -98,7 +99,7 @@ export class GroupedCollection<
     return new GroupedCollection(this.ctx, this.modelName, {
       tableName: this.tableName,
       namespaceId: this.namespaceId,
-      baseFilters: this.baseFilters,
+      preGroupState: this.preGroupState,
       groupByFields: this.groupByFields,
       groupByColumns: this.groupByColumns,
       havingFilters: [...this.havingFilters, havingExpr],
@@ -165,7 +166,7 @@ export class GroupedCollection<
         this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.tableName,
-        this.baseFilters,
+        this.preGroupState,
         this.groupByColumns,
         aggregateSpec,
         combineWhereExprs(this.havingFilters),

@@ -300,7 +300,7 @@ export function compileGroupedAggregate(
   aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   tableName: string,
-  filters: readonly AnyExpression[],
+  preGroupState: CollectionState,
   groupByColumns: readonly string[],
   aggregateSpec: Record<string, AggregateSelector<unknown>>,
   havingExpr: AnyExpression | undefined,
@@ -343,7 +343,7 @@ export function compileGroupedAggregate(
   let ast = SelectAst.from(tableSourceForContract(contract, namespaceId, tableName))
     .withProjection(projection)
     .withGroupBy(groupByColumns.map((column) => ColumnRef.of(tableName, column)));
-  const where = combineWhereExprs(filters);
+  const where = combineWhereExprs(preGroupState.filters);
   if (where) {
     ast = ast.withWhere(where);
   }

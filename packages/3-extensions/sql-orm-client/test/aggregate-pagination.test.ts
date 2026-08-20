@@ -32,9 +32,9 @@ const numericField = 'views' as never;
 // terminal now does the same: `take`/`skip` wrap the source in a derived
 // table aliased back to `tableName` (the same trick the plain-select path
 // uses for `distinct(cols)`) so the outer aggregate reduces over exactly
-// the rows the chain describes. `groupBy()` still forwards only
-// `baseFilters`, silently dropping pagination — that terminal is the next
-// slice's, so its case below is still `it.fails`.
+// the rows the chain describes. `groupBy()` still only acts on filters,
+// silently dropping pagination — that terminal is the next slice's, so
+// its case below is still `it.fails`.
 describe('aggregate pagination', () => {
   it('aggregate() wraps take()/skip() in an input derived table', async () => {
     const { collection, runtime } = createCollectionFor('Post');
