@@ -27,6 +27,7 @@ This directory contains the primary documentation for the repository.
 - [Codec authoring guide](./reference/codec-authoring-guide.md) — class-based codecs (`CodecImpl`, `CodecDescriptorImpl`) and column helpers
 - [Integer representation types](./reference/integer-representation-types.md) — choosing `BigInt`, `BigIntNumber`, or `UnboundedInt` by target, storage, application value, and aggregate behavior
 - [Aggregate descriptor guide](./reference/aggregate-descriptor-guide.md) — how a target or extension declares aggregate operations and their result codecs (`SqlAggregateDescriptor` on `types.aggregateDescriptors`)
+- [ORM Collection Chaining](./reference/ORM%20Collection%20Chaining.md) — how clause position around `aggregate()` / `groupBy()` decides whether pagination scopes rows or pages groups
 - [Mongo Pipeline Builder](./reference/Mongo%20Pipeline%20Builder.md) — typed builder for MongoDB aggregation pipelines, reads, writes, and find-and-modify
 - [`migration graph --tree` rendering](./reference/migration-graph-rendering.md) — condensed annotated-tree rendering for offline migration topology
 - [Why Prisma Next only supports externally-managed native Postgres enums](./reference/postgres-native-enums.md) — the rewrite/atomicity costs behind managed native enums being create/add-value-only
