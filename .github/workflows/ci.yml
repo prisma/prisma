@@ -162,7 +162,7 @@ jobs:
         run: pnpm fixtures:check
 
   test:
-    name: Test & Coverage
+    name: Test
     needs: [build, changes]
     runs-on: ubuntu-latest
     env:

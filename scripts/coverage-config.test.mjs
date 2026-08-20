@@ -274,7 +274,7 @@ describe('coverage config', () => {
       ?.body;
 
     assert.ok(testJob);
-    assert.match(testJob, /^ {4}name: Test & Coverage$/m);
+    assert.match(testJob, /^ {4}name: Test$/m);
     assert.match(
       testJob,
       /run: pnpm coverage:packages\n {6}- name: Report package coverage\n {8}if: \$\{\{ !cancelled\(\) && needs\.changes\.outputs\.inert != 'true' \}\}\n {8}run: pnpm coverage:report/,
