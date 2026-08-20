@@ -10,6 +10,7 @@ import {
   LiteralExpr,
   NotExpr,
   NullCheckExpr,
+  type OrderByItem,
   OrExpr,
   ProjectionItem,
   SelectAst,
@@ -31,7 +32,6 @@ function toAggregateProjection(
   aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   tableName: string,
-  refTableName: string,
   selector: AggregateSelector<unknown>,
 ): { expr: AnyExpression; codec: CodecRef | undefined } {
   // The result's codec is the target's to declare: `count` is a wide integer,
@@ -56,7 +56,7 @@ function toAggregateProjection(
   });
 
   const inputExpr =
-    selector.column === undefined ? undefined : ColumnRef.of(refTableName, selector.column);
+    selector.column === undefined ? undefined : ColumnRef.of(tableName, selector.column);
   const expr =
     lower !== undefined
       ? lower({ expr: inputExpr, inputCodec })
@@ -185,11 +185,21 @@ function validateGroupedHavingExpr(expr: AnyExpression): AnyExpression {
 function scopedInnerProjection(
   tableName: string,
   entries: ReadonlyArray<[string, AggregateSelector<unknown>]>,
+  orderBy: ReadonlyArray<OrderByItem> | undefined,
 ): ProjectionItem[] {
   const columns = new Set<string>();
   for (const [, selector] of entries) {
     if (selector.column !== undefined) {
       columns.add(selector.column);
+    }
+  }
+  // A column `orderBy` names has to be visible through the scope wrap
+  // too, even when no selector aggregates it — the wrap is the only
+  // place the (possibly ranked/deduped) row set exists, so an unrooted
+  // reference to it downstream would resolve against nothing.
+  for (const item of orderBy ?? []) {
+    if (item.expr.kind === 'column-ref') {
+      columns.add(item.expr.column);
     }
   }
 
@@ -231,13 +241,13 @@ export function compileAggregate(
   const needsRowScope = hasPagination || hasDistinct;
 
   if (needsRowScope) {
-    const { source, refTableName } = buildScopedSource(
+    const { source } = buildScopedSource(
       contract,
       namespaceId,
       tableName,
       state,
       modelName,
-      scopedInnerProjection(tableName, entries),
+      scopedInnerProjection(tableName, entries, state.orderBy),
     );
     const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
       const { expr, codec } = toAggregateProjection(
@@ -245,7 +255,6 @@ export function compileAggregate(
         aggregates,
         namespaceId,
         tableName,
-        refTableName,
         selector,
       );
       return ProjectionItem.of(alias, expr, codec);
@@ -270,7 +279,6 @@ export function compileAggregate(
       contract,
       aggregates,
       namespaceId,
-      tableName,
       tableName,
       selector,
     );
@@ -328,7 +336,6 @@ export function compileGroupedAggregate(
         contract,
         aggregates,
         namespaceId,
-        tableName,
         tableName,
         selector,
       );

@@ -229,6 +229,61 @@ function wrapWithRowNumberDedup(options: {
     .withWhere(BinaryExpr.eq(ColumnRef.of(rankedAlias, rnAlias), LiteralExpr.of(1)));
 }
 
+/**
+ * The FROM source (and its accompanying WHERE) for a table scoped by
+ * `state.distinct`: when set, wraps the table in a `ROW_NUMBER`-ranked
+ * derived table aliased back to `tableName` — so every reference the
+ * caller already writes against `tableName` (projection, joins, orderBy,
+ * outer WHERE) keeps resolving with no rewriting — and replaces `where`
+ * with the `rn = 1` filter that belongs outside the wrap. When
+ * `state.distinct` is unset, this is a pass-through: the real table and
+ * the original `where`, untouched. Shared by the plain-select and
+ * aggregate row-scoping paths, which differ only in what they build atop
+ * this source, not in how they get it.
+ */
+function buildDistinctScopedSource(
+  contract: Contract<SqlStorage>,
+  namespaceId: string,
+  tableName: string,
+  state: CollectionState,
+  where: AnyExpression | undefined,
+  wrapProjection: ReadonlyArray<ProjectionItem>,
+  joins?: ReadonlyArray<JoinAst>,
+): {
+  readonly source: TableSource | DerivedTableSource;
+  readonly where: AnyExpression | undefined;
+} {
+  if (!hasEntries(state.distinct)) {
+    return { source: tableSourceForContract(contract, namespaceId, tableName), where };
+  }
+
+  const distinctColumnRefs = state.distinct.map((column) => ColumnRef.of(tableName, column));
+  const rankingOrderBy = hasEntries(state.orderBy)
+    ? state.orderBy
+    : distinctColumnRefs.map((expr) => OrderByItem.asc(expr));
+
+  let inner = SelectAst.from(
+    tableSourceForContract(contract, namespaceId, tableName),
+  ).withProjection([
+    ...wrapProjection,
+    ProjectionItem.of(
+      '__prisma_distinct_rn',
+      WindowFuncExpr.rowNumber({ partitionBy: distinctColumnRefs, orderBy: rankingOrderBy }),
+    ),
+  ]);
+  if (joins && joins.length > 0) {
+    inner = inner.withJoins(joins);
+  }
+  if (where) {
+    inner = inner.withWhere(where);
+  }
+
+  return {
+    source: DerivedTableSource.as(tableName, inner),
+    where: BinaryExpr.eq(ColumnRef.of(tableName, '__prisma_distinct_rn'), LiteralExpr.of(1)),
+  };
+}
+
 function buildMtiJoins(
   contract: Contract<SqlStorage>,
   namespaceId: string,
@@ -281,6 +336,16 @@ function hasEntries<T>(value: ReadonlyArray<T> | undefined): value is ReadonlyAr
   return value !== undefined && value.length > 0;
 }
 
+/**
+ * The row-scope select an aggregate reduces over: `where`, MTI joins,
+ * `distinct`/`distinctOn`, `orderBy`, and `limit`/`offset`, all on one
+ * SELECT aliased to `tableName` — the same alias-back-to-`tableName` trick
+ * `buildDistinctScopedSource` uses, extended to the whole clause set
+ * because an aggregate has no second, outer level of its own to apply
+ * joins/ordering/pagination at the way a plain select does: collapsing
+ * rows into one is the aggregate's *only* outer level, so everything that
+ * shapes which rows it collapses has to live in this one wrap.
+ */
 function buildScopedSource(
   contract: Contract<SqlStorage>,
   namespaceId: string,
@@ -288,9 +353,7 @@ function buildScopedSource(
   state: CollectionState,
   modelName: string | undefined,
   projection: ReadonlyArray<ProjectionItem>,
-): { readonly source: DerivedTableSource; readonly refTableName: string } {
-  const innerAlias = `${tableName}__scoped`;
-
+): { readonly source: DerivedTableSource } {
   const polyInfo = modelName
     ? resolvePolymorphismInfo(contract, namespaceId, modelName)
     : undefined;
@@ -299,49 +362,34 @@ function buildScopedSource(
       ? buildMtiJoins(contract, namespaceId, polyInfo, state.variantName, undefined).joins
       : [];
 
-  const needsHiddenOrderProjection = hasEntries(state.distinct) && hasEntries(state.orderBy);
-  const hiddenOrderProjection: ReadonlyArray<ProjectionItem> = needsHiddenOrderProjection
-    ? state.orderBy.map((item, index) =>
-        ProjectionItem.of(`${tableName}__order_${index}`, item.expr),
-      )
-    : [];
+  const where = buildStateWhere(contract, tableName, state, { namespaceId });
+  const { source, where: effectiveWhere } = buildDistinctScopedSource(
+    contract,
+    namespaceId,
+    tableName,
+    state,
+    where,
+    projection,
+    variantJoins,
+  );
 
-  let inner = SelectAst.from(
-    tableSourceForContract(contract, namespaceId, tableName),
-  ).withProjection([...projection, ...hiddenOrderProjection]);
-  if (variantJoins.length > 0) {
+  let inner = SelectAst.from(source).withProjection(projection);
+  // `buildDistinctScopedSource` already folds `variantJoins` into the
+  // ranked wrap when it builds one; only apply them again here for the
+  // pass-through (no distinct(cols)) case, where no wrap exists yet.
+  if (!hasEntries(state.distinct) && variantJoins.length > 0) {
     inner = inner.withJoins(variantJoins);
   }
-  const where = buildStateWhere(contract, tableName, state, { namespaceId });
-  if (where) {
-    inner = inner.withWhere(where);
+  if (effectiveWhere) {
+    inner = inner.withWhere(effectiveWhere);
   }
 
-  let rankedAlias: string | undefined;
   if (hasEntries(state.distinctOn)) {
     inner = inner.withDistinctOn(state.distinctOn.map((column) => ColumnRef.of(tableName, column)));
-  } else if (hasEntries(state.distinct)) {
-    rankedAlias = `${tableName}__scoped_distinct`;
-    inner = wrapWithRowNumberDedup({
-      base: inner,
-      distinctColumnRefs: state.distinct.map((column) => ColumnRef.of(tableName, column)),
-      rankingOrderBy: state.orderBy ?? [],
-      rankedAlias,
-    });
   }
-
   if (hasEntries(state.orderBy)) {
-    const alias = rankedAlias;
-    const orderBy =
-      alias !== undefined
-        ? state.orderBy.map(
-            (item, index) =>
-              new OrderByItem(ColumnRef.of(alias, `${tableName}__order_${index}`), item.dir),
-          )
-        : state.orderBy;
-    inner = inner.withOrderBy(orderBy);
+    inner = inner.withOrderBy(state.orderBy);
   }
-
   if (state.limit !== undefined) {
     inner = inner.withLimit(state.limit);
   }
@@ -349,10 +397,11 @@ function buildScopedSource(
     inner = inner.withOffset(state.offset);
   }
 
-  return { source: DerivedTableSource.as(innerAlias, inner), refTableName: innerAlias };
+  return { source: DerivedTableSource.as(tableName, inner) };
 }
 
 export {
+  buildDistinctScopedSource,
   buildMtiJoins,
   buildScopedSource,
   buildStateWhere,

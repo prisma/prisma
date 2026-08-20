@@ -4,7 +4,6 @@ import type { SqlAggregateLowering } from '@internal/sql-relational-core/aggrega
 import {
   AndExpr,
   type AnyExpression,
-  type AnyFromSource,
   type AnyJsonValueProjection,
   BinaryExpr,
   CodecJsonValueProjection,
@@ -23,7 +22,6 @@ import {
   SelectAst,
   SubqueryExpr,
   TableSource,
-  WindowFuncExpr,
 } from '@internal/sql-relational-core/ast';
 import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
@@ -43,6 +41,7 @@ import {
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst, resolveTableColumns } from './query-plan-meta';
 import {
+  buildDistinctScopedSource,
   buildMtiJoins,
   buildStateWhere,
   createTableRefRemapper,
@@ -1408,33 +1407,30 @@ function buildSelectAst(
   const projection = [...scalarProjection, ...(options.includeProjection ?? [])];
   const where = options.where ?? buildStateWhere(contract, tableName, state, { namespaceId });
 
-  // When `.distinct(cols)` is set, wrap the table source in a
-  // ROW_NUMBER-based dedup subquery aliased to the original `tableName`.
-  // That aliasing keeps every outer reference — the projection's
-  // scalar columns, the MTI variant joins, the include subqueries'
-  // parent correlations, the orderBy — resolving transparently,
-  // without needing to rewrite column refs across the AST.
-  //
-  // We project every column of the underlying table so anything the
-  // outer query may reference is in scope; the database can prune
-  // unused columns. The original WHERE moves INTO the wrap (so
-  // ROW_NUMBER computes over filtered rows), and the outer's WHERE
-  // becomes just `__prisma_distinct_rn = 1`.
-  const usesRowNumberDistinct = state.distinct !== undefined && state.distinct.length > 0;
-  const fromSource: AnyFromSource = usesRowNumberDistinct
-    ? DerivedTableSource.as(
-        tableName,
-        buildTopLevelDistinctRankedInner(contract, namespaceId, tableName, state, where),
-      )
-    : tableSourceForContract(contract, namespaceId, tableName);
+  // When `.distinct(cols)` is set, `buildDistinctScopedSource` wraps the
+  // table source in a ROW_NUMBER-based dedup subquery aliased back to the
+  // original `tableName`. That aliasing keeps every outer reference — the
+  // projection's scalar columns, the MTI variant joins, the include
+  // subqueries' parent correlations, the orderBy — resolving
+  // transparently, without needing to rewrite column refs across the
+  // AST. Its wrap projection is every column of the underlying table, so
+  // anything the outer query may reference is in scope; the database can
+  // prune unused columns.
+  const allColsProjection = resolveTableColumns(contract, namespaceId, tableName).map((column) =>
+    ProjectionItem.of(column, ColumnRef.of(tableName, column)),
+  );
+  const { source: fromSource, where: effectiveWhere } = buildDistinctScopedSource(
+    contract,
+    namespaceId,
+    tableName,
+    state,
+    where,
+    allColsProjection,
+  );
 
   let ast = SelectAst.from(fromSource).withProjection(projection);
-  if (usesRowNumberDistinct) {
-    ast = ast.withWhere(
-      BinaryExpr.eq(ColumnRef.of(tableName, '__prisma_distinct_rn'), LiteralExpr.of(1)),
-    );
-  } else if (where) {
-    ast = ast.withWhere(where);
+  if (effectiveWhere) {
+    ast = ast.withWhere(effectiveWhere);
   }
   if (state.orderBy) {
     ast = ast.withOrderBy(state.orderBy);
@@ -1458,48 +1454,6 @@ function buildSelectAst(
   }
 
   return ast;
-}
-
-function buildTopLevelDistinctRankedInner(
-  contract: Contract<SqlStorage>,
-  namespaceId: string,
-  tableName: string,
-  state: CollectionState,
-  where: AnyExpression | undefined,
-): SelectAst {
-  const distinctColumns = state.distinct;
-  if (distinctColumns === undefined || distinctColumns.length === 0) {
-    throw new InternalError('buildTopLevelDistinctRankedInner called without `state.distinct`');
-  }
-  // Project every column of the underlying table so outer references
-  // (projection, joins, includes' correlations, orderBy) resolve
-  // through the derived-subquery alias.
-  const allCols = resolveTableColumns(contract, namespaceId, tableName);
-  const allColsProjection = allCols.map((column) =>
-    ProjectionItem.of(column, ColumnRef.of(tableName, column)),
-  );
-  const distinctColumnRefs = distinctColumns.map((column) => ColumnRef.of(tableName, column));
-  const rankingOrderBy =
-    state.orderBy && state.orderBy.length > 0
-      ? state.orderBy
-      : distinctColumnRefs.map((expr) => OrderByItem.asc(expr));
-
-  let inner = SelectAst.from(
-    tableSourceForContract(contract, namespaceId, tableName),
-  ).withProjection([
-    ...allColsProjection,
-    ProjectionItem.of(
-      '__prisma_distinct_rn',
-      WindowFuncExpr.rowNumber({
-        partitionBy: distinctColumnRefs,
-        orderBy: rankingOrderBy,
-      }),
-    ),
-  ]);
-  if (where) {
-    inner = inner.withWhere(where);
-  }
-  return inner;
 }
 
 export function compileSelect(

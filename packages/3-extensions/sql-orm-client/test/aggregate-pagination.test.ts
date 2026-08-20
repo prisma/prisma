@@ -29,9 +29,10 @@ const numericField = 'views' as never;
 // Pagination composes through to the aggregate scope on a nested scalar
 // refine — `include('posts', (p) => p.skip(5).take(10).count())` aggregates
 // over a derived table carrying the LIMIT/OFFSET. The root-level `aggregate()`
-// terminal now does the same: `take`/`skip` wrap the source in a
-// `${tableName}__scoped` derived table so the outer aggregate reduces over
-// exactly the rows the chain describes. `groupBy()` still forwards only
+// terminal now does the same: `take`/`skip` wrap the source in a derived
+// table aliased back to `tableName` (the same trick the plain-select path
+// uses for `distinct(cols)`) so the outer aggregate reduces over exactly
+// the rows the chain describes. `groupBy()` still forwards only
 // `baseFilters`, silently dropping pagination — that terminal is the next
 // slice's, so its case below is still `it.fails`.
 describe('aggregate pagination', () => {
@@ -48,9 +49,9 @@ describe('aggregate pagination', () => {
     expect(ast.limit).toBeUndefined();
     expect(ast.offset).toBeUndefined();
     expectDerivedTableSource(ast.from);
-    expect(ast.from.alias).toBe('posts__scoped');
+    expect(ast.from.alias).toBe('posts');
     expect(ast.projection).toEqual([
-      ProjectionItem.of('totalViews', AggregateExpr.sum(ColumnRef.of('posts__scoped', 'views')), {
+      ProjectionItem.of('totalViews', AggregateExpr.sum(ColumnRef.of('posts', 'views')), {
         codecId: 'pg/int8number@1',
       }),
     ]);
@@ -205,12 +206,12 @@ describe('aggregate pagination', () => {
 
       const ast = selectAstOf(runtime);
       expectDerivedTableSource(ast.from);
-      expect(ast.from.alias).toBe('posts__scoped');
+      expect(ast.from.alias).toBe('posts');
 
       const scopedSelect = ast.from.query;
       expect(scopedSelect.orderBy).toBeUndefined();
       expectDerivedTableSource(scopedSelect.from);
-      expect(scopedSelect.from.alias).toBe('posts__scoped_distinct');
+      expect(scopedSelect.from.alias).toBe('posts');
     });
 
     // Postgres requires DISTINCT ON expressions to match the leading ORDER BY
@@ -240,14 +241,15 @@ describe('aggregate pagination', () => {
       ]);
     });
 
-    // Discriminating case: the ROW_NUMBER dedup wrap strips ordering from
-    // its own output, so orderBy must be reapplied on the ranked alias
-    // *after* the wrap — otherwise the take(2) below slices an
-    // arbitrarily-ordered set of deduped rows instead of the top 2 by
-    // views. An implementation that dropped the reapplication would still
-    // wrap with ROW_NUMBER but leave `scopedSelect.orderBy` undefined (or
-    // pointing at the pre-dedup table), failing the assertion below.
-    it('reapplies orderBy on the ranked alias after the ROW_NUMBER dedup wrap', async () => {
+    // Discriminating case: `take(2)` must slice the ordered, deduped rows
+    // — the top 2 by views — not an arbitrarily-ordered set. The ROW_NUMBER
+    // wrap is aliased back to `posts`, so `orderBy` needs no rewriting to
+    // resolve through it: an implementation that dropped `orderBy` here
+    // (rather than reapplying it through a hidden column, which the old
+    // `__scoped`/`__scoped_distinct` two-alias scheme needed and this one
+    // doesn't) would leave `scopedSelect.orderBy` undefined, failing the
+    // assertion below.
+    it('orderBy resolves directly through the ranked-and-scoped alias, no reapplication needed', async () => {
       const { collection, runtime } = createCollectionFor('Post');
       runtime.setNextResults([[{ totalViews: 500 }]]);
 
@@ -259,15 +261,13 @@ describe('aggregate pagination', () => {
 
       const ast = selectAstOf(runtime);
       expectDerivedTableSource(ast.from);
-      expect(ast.from.alias).toBe('posts__scoped');
+      expect(ast.from.alias).toBe('posts');
 
       const scopedSelect = ast.from.query;
       expect(scopedSelect.limit).toBe(2);
       expectDerivedTableSource(scopedSelect.from);
-      expect(scopedSelect.from.alias).toBe('posts__scoped_distinct');
-      expect(scopedSelect.orderBy).toEqual([
-        new OrderByItem(ColumnRef.of('posts__scoped_distinct', 'posts__order_0'), 'desc'),
-      ]);
+      expect(scopedSelect.from.alias).toBe('posts');
+      expect(scopedSelect.orderBy).toEqual([OrderByItem.desc(ColumnRef.of('posts', 'views'))]);
     });
 
     it('distinct() combined with skip() (no take()) emits OFFSET with no LIMIT on the deduped select', async () => {
@@ -285,7 +285,7 @@ describe('aggregate pagination', () => {
       expect(scopedSelect.limit).toBeUndefined();
       expect(scopedSelect.offset).toBe(3);
       expectDerivedTableSource(scopedSelect.from);
-      expect(scopedSelect.from.alias).toBe('posts__scoped_distinct');
+      expect(scopedSelect.from.alias).toBe('posts');
     });
 
     it('distinct() combined with cursor() carries the cursor boundary onto the pre-dedup select', async () => {
@@ -302,7 +302,7 @@ describe('aggregate pagination', () => {
       expectDerivedTableSource(ast.from);
       const scopedSelect = ast.from.query;
       expectDerivedTableSource(scopedSelect.from);
-      expect(scopedSelect.from.alias).toBe('posts__scoped_distinct');
+      expect(scopedSelect.from.alias).toBe('posts');
 
       const dedupBase = scopedSelect.from.query;
       expect(dedupBase.where).toEqual(
