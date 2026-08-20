@@ -77,7 +77,11 @@ function findUnambiguousTip(graph: MigrationGraph): string | null {
   try {
     return findLatestMigration(graph)?.to ?? null;
   } catch (error) {
-    if (MigrationToolsError.is(error) && error.code === 'MIGRATION.AMBIGUOUS_TARGET') {
+    // Any graph-shape error (AMBIGUOUS_TARGET, NO_INITIAL_MIGRATION,
+    // NO_TARGET) means there is no single tip to compare the default ref
+    // against; the warning is skipped rather than failing a plan that never
+    // consulted the tip before.
+    if (MigrationToolsError.is(error)) {
       return null;
     }
     throw error;

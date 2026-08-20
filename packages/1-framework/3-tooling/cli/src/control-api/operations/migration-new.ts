@@ -127,7 +127,7 @@ export async function executeMigrationNewCommand(
 
   let fromHash: string | null = null;
 
-  if (options.from !== undefined && options.from !== '') {
+  if (options.from !== undefined) {
     if (packages.length === 0) {
       return notOk(
         errorRuntime('MIGRATION.HASH_NOT_IN_GRAPH', '--from has no meaning on an empty graph', {

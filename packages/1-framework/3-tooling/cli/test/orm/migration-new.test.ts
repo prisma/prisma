@@ -215,6 +215,33 @@ describe('migration new', () => {
     ]);
   });
 
+  it('treats --from "" as a prefix, not as an absent flag', async () => {
+    const otherHash = `f00d${'4'.repeat(60)}`;
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260101T0000_initial',
+      from: null,
+      to: HASH_FROM,
+    });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260102T0000_second',
+      from: HASH_FROM,
+      to: otherHash,
+    });
+
+    const run = await harness(project).run(['migration', 'new', '--from', '', '--json'], {
+      cwd: project.dir,
+    });
+
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: { ok: false, error: { code: 'MIGRATION.REF_AMBIGUOUS' } },
+    });
+  });
+
   it('accepts a prefix shared only by packages with the same target hash', async () => {
     const project = await createOfflineProject({ storageHash: HASH_TO });
     await seedMigrationPackage({

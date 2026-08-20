@@ -4,6 +4,7 @@ import { createTestCli } from '@prisma/cli-engine/testing';
 import { basename, join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import { BIN_COMMANDS, BIN_GROUPS } from '../../src/orm/cli';
+import { errorUnfilledPlaceholder } from '../../src/utils/cli-errors';
 import {
   ADDITIVE_OP,
   contractJson,
@@ -318,6 +319,89 @@ describe('migration plan', () => {
       expect((await plannedDirs(project)).length).toBe(2);
     });
 
+    it('still asks when the destructive baseline also carries a placeholder', async () => {
+      const project = await destructiveBaselineProject();
+
+      const run = await harness(project, {
+        script: {
+          operations: [ADDITIVE_OP, DESTRUCTIVE_OP],
+          throwOnOperations: errorUnfilledPlaceholder('backfill'),
+        },
+      }).run(['migration', 'plan', '--json'], { cwd: project.dir });
+
+      expect(run.exitCode).toBe(2);
+      const terminal = run.json.at(-1);
+      const envelope =
+        terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
+      expect(envelope).toMatchObject({ ok: false, error: { code: 'CLI.CONSENT_REQUIRED' } });
+      expect(await plannedDirs(project)).toEqual([]);
+    });
+
+    it('writes the placeholder baseline once --confirm grants consent', async () => {
+      const project = await destructiveBaselineProject();
+
+      const run = await harness(project, {
+        script: {
+          operations: [ADDITIVE_OP, DESTRUCTIVE_OP],
+          throwOnOperations: errorUnfilledPlaceholder('backfill'),
+        },
+      }).run(['migration', 'plan', '--confirm', basename(project.dir), '--json'], {
+        cwd: project.dir,
+      });
+
+      expect(run.exitCode).toBe(0);
+      expect(run.presented?.data).toMatchObject({ pendingPlaceholders: true });
+      expect((await plannedDirs(project)).length).toBe(2);
+    });
+
+    it('reports extension dirs the refused first run seeded once consent is granted', async () => {
+      const EXT_HASH = `f00d${'5'.repeat(60)}`;
+      const extMetadataBase = {
+        from: null,
+        to: EXT_HASH,
+        providedInvariants: [],
+        createdAt: '2026-01-01T00:00:00.000Z',
+      };
+      const project = await destructiveBaselineProject();
+
+      const run = await harness(project, {
+        script: destructiveScript,
+        overrides: {
+          extensions: [
+            {
+              kind: 'extension',
+              id: 'cipherstash',
+              familyId: 'sql',
+              targetId: 'postgres',
+              version: '1.0.0',
+              create: () => ({}),
+              contractSpace: {
+                contractJson: contractJson(EXT_HASH),
+                headRef: { hash: EXT_HASH, invariants: [] },
+                migrations: [
+                  {
+                    dirName: '0001_seed',
+                    metadata: {
+                      ...extMetadataBase,
+                      migrationHash: computeMigrationHash(extMetadataBase, []),
+                    },
+                    ops: [],
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      }).run(['migration', 'plan', '--confirm', basename(project.dir), '--json'], {
+        cwd: project.dir,
+      });
+
+      expect(run.exitCode).toBe(0);
+      expect(run.presented?.data).toMatchObject({
+        emittedExtensionDirs: [{ spaceId: 'cipherstash', dirName: '0001_seed' }],
+      });
+    });
+
     it('never asks when the baseline is purely additive', async () => {
       const project = await destructiveBaselineProject();
 
@@ -344,10 +428,23 @@ describe('migration plan', () => {
 
     expect(run.exitCode).toBe(0);
     const data = run.presented?.data as {
-      operations: readonly { id: string; operationClass: string }[];
+      baselineDir: string;
+      dir: string;
+      operations: readonly { id: string; operationClass: string; packageDir?: string }[];
     };
     expect(data.operations).toHaveLength(4);
     expect(data.operations.filter((op) => op.operationClass === 'destructive')).toHaveLength(2);
+    expect(data.operations.map((op) => op.packageDir)).toEqual([
+      data.baselineDir,
+      data.baselineDir,
+      data.dir,
+      data.dir,
+    ]);
+    const tree = (run.presented?.presentation.human ?? []).find(
+      (block) => block.kind === 'tree',
+    ) as { roots: readonly { label: string; children: readonly unknown[] }[] };
+    expect(tree.roots.map((root) => root.label)).toEqual([data.baselineDir, data.dir]);
+    expect(tree.roots.map((root) => root.children.length)).toEqual([2, 2]);
     expect(run.presented?.presentation.human).toContainEqual({
       kind: 'summary',
       status: 'warn',
