@@ -1,6 +1,7 @@
 export type {
   AuthoringArgRef,
   AuthoringArgumentDescriptor,
+  AuthoringBareSpellingWarning,
   AuthoringColumnDefaultTemplate,
   AuthoringContributions,
   AuthoringDiagnosticSink,

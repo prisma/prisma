@@ -22,6 +22,7 @@ import type {
   AuthoringModelAttributeLoweringOutput,
   AuthoringPslBlockDescriptorNamespace,
   AuthoringWarning,
+  AuthoringWarningSink,
   PslExtensionBlock,
 } from '@internal/framework-components/authoring';
 import {
@@ -657,6 +658,8 @@ interface BuildModelNodeInput {
   readonly modelAttributesByName: ReadonlyMap<string, AuthoringModelAttributeDescriptor>;
   /** The target's default namespace id — the lowering context's `namespaceId` fallback for a model with no explicit PSL namespace. */
   readonly defaultNamespaceId: string;
+  /** Per-build sink for non-fatal authoring warnings minted during field resolution. */
+  readonly warnings: AuthoringWarningSink;
 }
 
 interface BuildModelNodeResult {
@@ -716,6 +719,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     ...ifDefined('namespaceId', modelNamespaceId),
     ...ifDefined('namespaceExtensionEntities', namespaceExtensionEntitiesForModel),
     ...ifDefined('codecLookup', input.codecLookup),
+    warnings: input.warnings,
   });
 
   const inlineIdFields = resolvedFields.filter((field) => field.isId);
@@ -2422,6 +2426,7 @@ export function interpretPslDocumentToSqlContract(
       ...ifDefined('codecLookup', input.codecLookup),
       modelAttributesByName,
       defaultNamespaceId,
+      warnings: authoringWarnings,
     });
     modelNodes.push(
       namespaceId !== undefined ? { ...result.modelNode, namespaceId } : result.modelNode,

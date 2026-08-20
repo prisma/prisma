@@ -121,6 +121,23 @@ export interface AuthoringTypeConstructorDescriptor {
   readonly output: AuthoringStorageTypeTemplate;
   /** Present when one of this constructor's positional arguments names another document-local entity instead of carrying a literal value. Absent for ordinary literal-argument constructors. */
   readonly entityRefArg?: AuthoringTypeConstructorEntityRef;
+  /** Advisory minted once per schema field that resolves this constructor via its bare type-name spelling; explicit constructor calls stay silent. */
+  readonly bareSpellingWarning?: AuthoringBareSpellingWarning;
+}
+
+/**
+ * Declarative bare-spelling advisory a type constructor carries so the
+ * target can flag a spelling whose storage binding diverges from what its
+ * users historically meant. Field resolution mints an
+ * {@link AuthoringWarning} from it: `message` completes
+ * `field "<Model>.<field>" <message>`; `summary` follows the
+ * AuthoringWarning group-summary contract (plural noun phrase first, e.g.
+ * `fields are typed <spelling>. <remediation>`).
+ */
+export interface AuthoringBareSpellingWarning {
+  readonly code: string;
+  readonly message: string;
+  readonly summary: string;
 }
 
 export interface AuthoringColumnDefaultTemplateLiteral {
@@ -876,6 +893,7 @@ export interface ScalarTypeConstructorOutput {
   readonly codecId: string;
   readonly nativeType: string;
   readonly typeParams?: Record<string, unknown>;
+  readonly bareSpellingWarning?: AuthoringBareSpellingWarning;
 }
 
 /**
@@ -901,7 +919,13 @@ export function collectScalarTypeConstructors(
     if (!isAuthoringTypeConstructorDescriptor(value)) continue;
     if (value.entityRefArg !== undefined) continue;
     if (value.args?.some((arg) => arg.optional !== true)) continue;
-    result.set(name, instantiateAuthoringTypeConstructor(value, []));
+    const output = instantiateAuthoringTypeConstructor(value, []);
+    result.set(
+      name,
+      value.bareSpellingWarning === undefined
+        ? output
+        : { ...output, bareSpellingWarning: value.bareSpellingWarning },
+    );
   }
   return result;
 }

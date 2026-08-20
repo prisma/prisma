@@ -74,7 +74,11 @@ describe('postgres scalar types derived from the unified namespace', () => {
       Inet: { codecId: 'pg/inet@1', nativeType: 'inet' },
       Decimal: { codecId: 'pg/numeric@1', nativeType: 'numeric' },
       DateTime: { codecId: 'pg/timestamptz@1', nativeType: 'timestamptz' },
-      Json: { codecId: 'pg/json@1', nativeType: 'json' },
+      Json: {
+        codecId: 'pg/json@1',
+        nativeType: 'json',
+        bareSpellingWarning: expect.objectContaining({ code: 'PN_PSL_JSON_NATIVE_JSON' }),
+      },
       Jsonb: { codecId: 'pg/jsonb@1', nativeType: 'jsonb' },
       Bytes: { codecId: 'pg/bytea@1', nativeType: 'bytea' },
       VarChar: { codecId: 'sql/varchar@1', nativeType: 'character varying' },

@@ -191,6 +191,15 @@ export const postgresScalarAuthoringTypes = {
   Json: {
     kind: 'typeConstructor',
     output: { codecId: 'pg/json@1', nativeType: 'json' },
+    // Prisma ORM's `Json` meant jsonb; here bare `Json` binds native json,
+    // so a ported schema silently changes the physical column type.
+    bareSpellingWarning: {
+      code: 'PN_PSL_JSON_NATIVE_JSON',
+      message:
+        'is typed "Json", which binds to the Postgres native "json" column type. Prisma ORM\'s "Json" meant "jsonb" — write "Jsonb" to get a "jsonb" column.',
+      summary:
+        'fields are typed "Json", which binds to the Postgres native "json" column type. Prisma ORM\'s "Json" meant "jsonb" — write "Jsonb" to get "jsonb" columns.',
+    },
   },
   Jsonb: {
     kind: 'typeConstructor',

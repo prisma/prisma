@@ -120,6 +120,8 @@ model User {
 }
 ```
 
+**Porting from Prisma 7 (Postgres): `Json` now means native `json`, not `jsonb`.** Prisma ORM's `Json` mapped to `jsonb`; in Prisma 8 PSL write `Jsonb` for a `jsonb` column. A ported schema that keeps `Json` emits the wrong column type — `contract emit` warns (`PN_PSL_JSON_NATIVE_JSON`), and `db verify` catches it against a live database.
+
 Note: scalar lists (e.g. `String[]`) and implicit Prisma-ORM many-to-many (list nav on both sides without a join model) are rejected by the SQL interpreter — use a join model. Composite/embeddable types (`type Address { ... }` with `address Address` on a model) are supported: the interpreter lowers them to `valueObjects` in the domain and stores them as `jsonb` columns. See *Workflow — Value objects* below.
 
 ## Workflow — Edit a model / field / relation (TS builder)

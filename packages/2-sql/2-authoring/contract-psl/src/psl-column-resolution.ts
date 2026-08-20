@@ -5,6 +5,7 @@ import type {
   ValueSetRef,
 } from '@internal/contract/types';
 import type {
+  AuthoringBareSpellingWarning,
   AuthoringContributions,
   AuthoringEntityTypeDescriptor,
   AuthoringEntityTypeNamespace,
@@ -60,6 +61,13 @@ export type ColumnDescriptor = {
    * unset.
    */
   readonly valueSet?: ValueSetRef;
+  /**
+   * Advisory the contributing type constructor declares for its bare
+   * type-name spelling (carried through the scalar view by
+   * `collectScalarTypeConstructors`). Field resolution mints one
+   * AuthoringWarning per model field resolved via that bare spelling.
+   */
+  readonly bareSpellingWarning?: AuthoringBareSpellingWarning;
 };
 
 export function toNamedTypeFieldDescriptor(

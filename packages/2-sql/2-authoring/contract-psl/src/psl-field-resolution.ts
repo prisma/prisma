@@ -4,7 +4,10 @@ import type {
   ColumnDefaultLiteralInputValue,
   ExecutionMutationDefaultPhases,
 } from '@internal/contract/types';
-import type { AuthoringContributions } from '@internal/framework-components/authoring';
+import type {
+  AuthoringContributions,
+  AuthoringWarningSink,
+} from '@internal/framework-components/authoring';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import type { CapabilityMatrix } from '@internal/framework-components/components';
 import type {
@@ -161,6 +164,8 @@ export interface CollectResolvedFieldsInput {
   readonly namespaceExtensionEntities?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
   /** Codec-id-keyed descriptor lookup — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
   readonly codecLookup?: CodecLookup;
+  /** Sink for non-fatal advisories minted here (e.g. a bare type spelling whose descriptor declares `bareSpellingWarning`). */
+  readonly warnings?: AuthoringWarningSink;
 }
 
 const BUILTIN_FIELD_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([
@@ -409,6 +414,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     namespaceId,
     namespaceExtensionEntities,
     codecLookup,
+    warnings,
   } = input;
   const resolvedFields: ResolvedField[] = [];
   const valueObjectStorageTypeName = authoringContributions?.valueObjectStorageType;
@@ -549,6 +555,24 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
 
     if (!descriptor) {
       continue;
+    }
+
+    // Only a bare type-name spelling triggers the descriptor's advisory: an
+    // explicit constructor call is a deliberate choice, and value-object
+    // storage resolution never came from the user's spelling.
+    if (
+      descriptor.bareSpellingWarning !== undefined &&
+      field.typeConstructor === undefined &&
+      !isValueObjectField
+    ) {
+      const advisory = descriptor.bareSpellingWarning;
+      const item = `field "${model.name}.${field.name}"`;
+      warnings?.push({
+        code: advisory.code,
+        message: `${item} ${advisory.message}`,
+        item,
+        summary: advisory.summary,
+      });
     }
 
     // Field presets are complete declarations: the preset names its own codec

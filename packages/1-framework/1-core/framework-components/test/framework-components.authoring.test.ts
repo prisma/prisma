@@ -898,6 +898,30 @@ describe('collectScalarTypeConstructors', () => {
     });
   });
 
+  it('carries a declared bareSpellingWarning into the scalar view; entries without one stay bare', () => {
+    const warning = {
+      code: 'PN_TEST_LEGACY_SPELLING',
+      message: 'is typed "Legacy". Write "Modern" instead.',
+      summary: 'fields are typed "Legacy". Write "Modern" instead.',
+    };
+    const namespace = {
+      Legacy: {
+        kind: 'typeConstructor',
+        output: { codecId: 'test/text@1', nativeType: 'text' },
+        bareSpellingWarning: warning,
+      },
+      Modern: { kind: 'typeConstructor', output: { codecId: 'test/text@1', nativeType: 'text' } },
+    } satisfies AuthoringTypeNamespace;
+
+    const scalars = collectScalarTypeConstructors(namespace);
+    expect(scalars.get('Legacy')).toEqual({
+      codecId: 'test/text@1',
+      nativeType: 'text',
+      bareSpellingWarning: warning,
+    });
+    expect(scalars.get('Modern')).toEqual({ codecId: 'test/text@1', nativeType: 'text' });
+  });
+
   it('applies a template default in bare form, same as the zero-arg call', () => {
     const Defaulted = {
       kind: 'typeConstructor',
