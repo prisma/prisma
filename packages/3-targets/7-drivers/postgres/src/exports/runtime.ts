@@ -172,6 +172,7 @@ const postgresRuntimeDriverDescriptor: RuntimeDriverDescriptor<
 };
 
 export default postgresRuntimeDriverDescriptor;
+export { suppressIdleConnectionErrors } from '../idle-connection-errors';
 export type {
   PostgresBinding,
   PostgresDriverCreateOptions,

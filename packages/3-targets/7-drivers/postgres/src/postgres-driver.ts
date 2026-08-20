@@ -23,6 +23,7 @@ import { Pool } from 'pg';
 import Cursor from 'pg-cursor';
 import { callbackToPromise } from './callback-to-promise';
 import { type DriverRuntimeError, driverError } from './driver-error';
+import { suppressIdleConnectionErrors } from './idle-connection-errors';
 import { NamedCursor } from './named-cursor';
 import { isAlreadyConnectedError, isPostgresError, normalizePgError } from './normalize-error';
 
@@ -781,11 +782,13 @@ export function createBoundDriverFromBinding(
   const preparedStatements = extraOpts?.preparedStatements;
   switch (binding.kind) {
     case 'url': {
-      const pool = new Pool({
-        connectionString: binding.url,
-        connectionTimeoutMillis: 20_000,
-        idleTimeoutMillis: 30_000,
-      });
+      const pool = suppressIdleConnectionErrors(
+        new Pool({
+          connectionString: binding.url,
+          connectionTimeoutMillis: 20_000,
+          idleTimeoutMillis: 30_000,
+        }),
+      );
       return new PostgresPoolDriverImpl({
         connect: { pool },
         cursor: cursorOpts,

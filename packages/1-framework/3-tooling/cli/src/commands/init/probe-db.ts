@@ -218,6 +218,10 @@ async function defaultProbePostgres(
     overrides,
   );
   const client = new pg.Client({ connectionString: databaseUrl });
+  // With no listener, a connection dropped between statements becomes an
+  // uncaught exception and kills the process; connect/query failures still
+  // reject their own promises.
+  client.on('error', () => {});
   await client.connect();
   try {
     const result = await client.query('SELECT version() as version');
@@ -230,6 +234,7 @@ async function defaultProbePostgres(
 }
 
 interface PgClient {
+  on(event: 'error', listener: (err: Error) => void): unknown;
   connect(): Promise<void>;
   query(sql: string): Promise<{ rows: ReadonlyArray<{ version: string }> }>;
   end(): Promise<void>;

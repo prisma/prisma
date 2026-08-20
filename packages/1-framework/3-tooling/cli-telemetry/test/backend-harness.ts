@@ -248,12 +248,6 @@ async function stopBackend(backend: BackendProcess): Promise<void> {
 // no idle connection gets reaped during a run. Teardown is fast
 // regardless — `harness.stop()` and `database.close()` don't wait on
 // idle reapers.
-//
-// Production-side follow-up: `packages/3-targets/7-drivers/postgres/
-// src/postgres-driver.ts`'s `createBoundDriverFromBinding` constructs
-// `new Pool(...)` without attaching an `'error'` listener, so real
-// users whose database ends an idle connection (RDS proxy timeout,
-// network blip, etc.) would also crash. Worth its own ticket.
 const DEV_DB_IDLE_TIMEOUT_MS = 60_000;
 
 /**

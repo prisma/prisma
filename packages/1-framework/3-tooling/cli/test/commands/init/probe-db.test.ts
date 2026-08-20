@@ -220,3 +220,40 @@ describe('probeServerVersion (FR8.3)', () => {
     expect(outcome.kind).toBe('ok');
   });
 });
+
+describe('defaultProbePostgres idle connection errors', () => {
+  it('attaches an error listener so a dropped connection cannot crash the process', async () => {
+    const clients: FakeProbeClient[] = [];
+    class FakeProbeClient {
+      readonly listeners = new Map<string, (err: Error) => void>();
+      constructor(_cfg: { connectionString: string }) {
+        clients.push(this);
+      }
+      on(event: string, listener: (err: Error) => void): this {
+        this.listeners.set(event, listener);
+        return this;
+      }
+      async connect(): Promise<void> {}
+      async query(): Promise<{ rows: Array<{ version: string }> }> {
+        return { rows: [{ version: 'PostgreSQL 16.1 on x86_64-pc-linux-gnu' }] };
+      }
+      async end(): Promise<void> {}
+    }
+
+    const outcome = await probeServerVersion(
+      {
+        baseDir: '/tmp',
+        target: 'postgres',
+        databaseUrl: 'postgres://localhost:5432/db',
+        minVersion: '14',
+      },
+      { requireFromBaseDir: () => ({ Client: FakeProbeClient }) },
+    );
+
+    expect(outcome.kind).toBe('ok');
+    expect(clients).toHaveLength(1);
+    const errorListener = clients[0]?.listeners.get('error');
+    expect(errorListener).toBeDefined();
+    expect(() => errorListener?.(new Error('connection terminated unexpectedly'))).not.toThrow();
+  });
+});

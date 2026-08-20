@@ -1,7 +1,7 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { NamespacedEnums } from '@internal/contract/enum-accessor';
 import type { Contract } from '@internal/contract/types';
-import postgresDriver from '@internal/driver-postgres/runtime';
+import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import { sql as sqlBuilder } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
@@ -135,11 +135,13 @@ function toRuntimeBinding<TContract extends Contract<SqlStorage>>(
 
   return {
     kind: 'pgPool',
-    pool: new Pool({
-      connectionString: binding.url,
-      connectionTimeoutMillis: options.poolOptions?.connectionTimeoutMillis ?? 20_000,
-      idleTimeoutMillis: options.poolOptions?.idleTimeoutMillis ?? 30_000,
-    }),
+    pool: suppressIdleConnectionErrors(
+      new Pool({
+        connectionString: binding.url,
+        connectionTimeoutMillis: options.poolOptions?.connectionTimeoutMillis ?? 20_000,
+        idleTimeoutMillis: options.poolOptions?.idleTimeoutMillis ?? 30_000,
+      }),
+    ),
   } as const;
 }
 

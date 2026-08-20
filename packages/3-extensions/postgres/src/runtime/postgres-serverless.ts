@@ -2,6 +2,7 @@ import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { Contract } from '@internal/contract/types';
 import postgresDriver, {
   type PostgresDriverCreateOptions,
+  suppressIdleConnectionErrors,
 } from '@internal/driver-postgres/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import { sql as sqlBuilder } from '@internal/sql-builder/runtime';
@@ -154,7 +155,7 @@ export default function postgresServerless<TContract extends Contract<SqlStorage
         ...ifDefined('cursor', options.cursor),
       });
 
-      const client = new Client({ connectionString: url });
+      const client = suppressIdleConnectionErrors(new Client({ connectionString: url }));
       await driver.connect({ kind: 'pgClient', client });
 
       let runtime: Runtime;

@@ -12,6 +12,7 @@ vi.mock('pg', () => {
   }
 
   class Pool {
+    on = vi.fn().mockReturnThis();
     connect = vi.fn().mockResolvedValue(new FakePoolClient());
     end = vi.fn().mockResolvedValue(undefined);
     totalCount = 0;
@@ -20,6 +21,7 @@ vi.mock('pg', () => {
   }
 
   class Client {
+    on = vi.fn().mockReturnThis();
     connect = vi.fn().mockResolvedValue(undefined);
     query = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
     end = vi.fn().mockResolvedValue(undefined);

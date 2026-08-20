@@ -15,6 +15,7 @@ vi.mock('pg', () => {
   });
 
   class Pool {
+    on = vi.fn().mockReturnThis();
     static readonly _endSpy = poolEndSpy;
     static readonly _connectSpy = connectSpy;
     readonly _options: unknown;
@@ -31,6 +32,7 @@ vi.mock('pg', () => {
   }
 
   class Client {
+    on = vi.fn().mockReturnThis();
     connect = vi.fn().mockResolvedValue(undefined);
     query = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
     end = vi.fn().mockResolvedValue(undefined);
