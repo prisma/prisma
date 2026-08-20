@@ -101,7 +101,7 @@ Two placeholders name the revisions the flow compares:
 - **Open PR** — `<head>` is the PR branch head, `<base>` is `origin/<target>`, where `<target>` is the branch the PR targets.
 - **Merged PR** — `<head>` is the merge commit, `<base>` is its mainline parent. `git log --first-parent` names both.
 
-The substrate's own tests are the PR author's work, not the entry's. An entry translates consumer code; it neither writes nor updates the tests this repo keeps beside that code. The checks below therefore exclude the substrate's `test/` directories — what they measure is whether the entry reproduces every source change.
+The substrate's own tests are the PR author's work, not the entry's. An entry translates consumer code; it neither writes nor updates the tests this repo keeps beside that code. So the equality check below excludes the substrate's `test/` directories — what it measures is whether the entry reproduces every source change — and a companion check confirms the entry left those directories exactly as it found them.
 
 ### User-skill entry (against `examples/`)
 
@@ -109,7 +109,16 @@ The substrate's own tests are the PR author's work, not the entry's. An entry tr
 2. Revert `examples/` to its pre-PR state (`git restore --source=<base> -- examples/`).
 3. Run the entry against the reverted substrate — invoke any colocated script(s) per the entry's `script:` reference, then walk the prose body of `instructions.md` if the entry has additional instructions.
 4. Verify the resulting `examples/` directory matches the `<head>` state outside the substrate's test directories: `git status --porcelain -- examples/ ':(exclude)examples/*/test/**'` prints nothing. The entry has reproduced the patch `git diff <base>..<head> -- examples/ ':(exclude)examples/*/test/**'` describes, so those paths are back at `<head>` and the check is that nothing is left over — no modification, and no file the entry created along the way.
-5. Verify the touched example's test suite is green — `pnpm --filter <example-package> test` for each example the entry changed. The repo-wide `pnpm test:examples` also runs examples that need a database and a `.env` (`pnpm db:up`, then copy `.env.example`); run it only with those in place.
+5. Verify the entry left the test paths alone. Step 2 put them at `<base>` and a correct entry never touches them, so they must still be at `<base>`. Step 4 excludes those paths and cannot see a change there, so without this check an entry could mutate the tests to make step 6 pass:
+
+   ```bash
+   git diff --exit-code <base> -- 'examples/*/test/**'
+   git ls-files --others --exclude-standard -- 'examples/*/test/**'
+   ```
+
+   The first command must exit 0 (no tracked test file changed), the second must print nothing (the entry created no new test file).
+
+6. Verify the touched example's test suite is green — `pnpm --filter <example-package> test` for each example the entry changed. The repo-wide `pnpm test:examples` also runs examples that need a database and a `.env` (`pnpm db:up`, then copy `.env.example`); run it only with those in place.
 
 If any of those checks fail, iterate on the entry. Do not merge. Classify a failure before you change anything, per `.agents/rules/ci-failure-classification.mdc`. A timeout or a connection error makes the environment a *candidate*, not a verdict — confirm that classification against the rule before you leave the entry alone.
 
@@ -119,7 +128,14 @@ If any of those checks fail, iterate on the entry. Do not merge. Classify a fail
 2. Revert `packages/3-extensions/` to its pre-PR state (`git restore --source=<base> -- packages/3-extensions/`).
 3. Run the entry against the reverted substrate.
 4. Verify the resulting `packages/3-extensions/` directory matches the `<head>` state outside the substrate's test directories: `git status --porcelain -- packages/3-extensions/ ':(exclude)packages/3-extensions/*/test/**'` prints nothing, the same check the user-skill flow makes against `examples/`. The patch the entry reproduces is `git diff <base>..<head> -- packages/3-extensions/ ':(exclude)packages/3-extensions/*/test/**'`.
-5. Verify the matching test suite is green: `pnpm test --filter='./packages/3-extensions/*'`.
+5. Verify the entry left the test paths alone, the same companion check the user-skill flow makes, for the same reason:
+
+   ```bash
+   git diff --exit-code <base> -- 'packages/3-extensions/*/test/**'
+   git ls-files --others --exclude-standard -- 'packages/3-extensions/*/test/**'
+   ```
+
+6. Verify the matching test suite is green: `pnpm test --filter='./packages/3-extensions/*'`.
 
 If any of those checks fail, iterate on the entry. Do not merge. Classify a failure before you change anything, as above.
 
@@ -185,7 +201,7 @@ Both substrates are touched → both skill packages need entries.
 3. `skills/prisma-next-upgrade/upgrades/0.7-to-0.8/instructions.md` already exists (placeholder shipped with the initial mechanism PR). Append a `changes[]` entry — call it `migration-metadata-shape-update`. Same for `skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md`.
 4. The user-skill entry may be prose-only (e.g. "rename the imported type from `MigrationMetadata` to `MigrationManifest` in any consumer code"), since the user-facing fix is a simple rename.
 5. The extension-skill entry needs more work — the SPI changed shape, not just name. Author `skills/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/update-migration-tools-imports.ts` and reference it from the entry's `script:` field. If the same transformation also applies to the example, copy the script into the user-skill cluster's directory too.
-6. Validate by execution: revert `packages/3-extensions/` to pre-PR → run the extension-skill entry → verify `pnpm test --filter='./packages/3-extensions/*'` green and the non-test paths match `<head>`. Then revert `examples/` to pre-PR → run the user-skill entry → verify `pnpm test:examples` green and the non-test paths match.
+6. Validate by execution: revert `packages/3-extensions/` to pre-PR → run the extension-skill entry → verify `pnpm test --filter='./packages/3-extensions/*'` green, the non-test paths matching `<head>`, and the test paths still at `<base>`. Then revert `examples/` to pre-PR → run the user-skill entry → verify `pnpm --filter <example-package> test` green for the touched example, with the same two path checks.
 7. Commit on the PR branch with both entry directories, the colocated script(s), and the matching substrate post-state.
 
 ## Reference
