@@ -18,6 +18,8 @@ pnpm --filter <pkg> lint        # biome check --error-on-warnings, per touched p
 > **`lint` is a separate CI job, not a side-effect of typecheck.** `pnpm typecheck` + `vitest` will pass with an unused import or a formatter diff still on disk; biome's `noUnusedImports` + formatter only fire under `pnpm lint`. Skipping it is how a dispatch reports green and CI comes back red — see [`failure-modes.md § F14`](./failure-modes.md#f14-dispatch-reports-validation-green-but-ci-is-red-dispatch-gates-didnt-mirror-ci).
 >
 > **Typecheck must cover the package's `test` project too.** CI compiles tests; a package whose `typecheck` script is `src`-only will miss a `TS6133`-class error in `test/**`. For such packages also run `tsc -p tsconfig.test.json --noEmit`.
+>
+> **Build before typechecking after a base change.** A rebase or merge of `origin/main` can leave a producing package's `dist/` stale or missing, and the typecheck then fails with a `TS2307` naming a workspace subpath — which reads like a broken import but is build state. Run `pnpm build` first; `pnpm install` does not populate `dist/`. Per [`workspace-package-not-found-run-pnpm-install.mdc`](../../.agents/rules/workspace-package-not-found-run-pnpm-install.mdc), the distinguishing test is whether the producing package's `dist/` exists.
 
 ### Conditional
 
@@ -30,6 +32,8 @@ pnpm fixtures:check         # when IR / emitter / serialiser changes
 ```
 
 > **Per-package test invocation.** To gate a single package, use `pnpm --filter <pkg> test` (e.g. `pnpm --filter @internal/migration-tools test`). `pnpm test:packages -- <name>` is **not** a package filter — the `-- <arg>` is a workspace-wide vitest *path* filter, so it matches every path containing `<name>` (adapters, CLI, …) and red-fails on unrelated infra (e.g. a postgres `ECONNRESET`, a missing `prisma-next` bin). Use the `--filter` form for a per-package gate; pair it with `cd <pkg> && pnpm typecheck` for a package-scoped typecheck.
+>
+> **Don't narrow that gate by path either.** `pnpm --filter <pkg> test <path>` selects only matching files, so a defect in a file the path misses stays invisible for as long as every run is narrowed. A newly added `.test-d.ts` whose assertions sit at module scope with no `it()`/`test()` wrapper is the case to watch: vitest collects the file, finds no tests, and red-fails it with `No test suite found in file …` even though every assertion in it passes. The unnarrowed `pnpm --filter <pkg> test` catches this; a narrowed run does not. Gate a dispatch that adds a test file on the unnarrowed package run.
 
 ### Brief-specified
 
