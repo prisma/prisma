@@ -81,6 +81,12 @@ Each shape already exists somewhere in the tree. The row-scoping wrap is what `i
 - [ ] Integration tests assert values (not just SQL shape) on both PGlite and SQLite for each chain position.
 - [ ] `test/aggregate-pagination.test.ts` no longer contains `it.fails`, and its assertions target the derived-table shape.
 - [ ] The position-semantics rule is documented where a user meets it — TSDoc on `aggregate` / `groupBy` / `take` / `skip`, plus a release note flagging the behaviour change for anyone who wrote the previously-ignored form. It lands in user-facing ORM docs, **not** an ADR: position-determines-scope is an application of ADR 201, not a new decision.
+
+  **Split 2026-08-20, on operator direction.** This item bundles two deliverables in different states, and closing it as one box would misreport both.
+
+  The **TSDoc half is refused, deliberately.** The operator reviewed the comments this project added and had them deleted as stating what the signatures already say, with a standing instruction to trim aggressively. That instruction outranks this DoD item, which was drafted before the comments existed to be judged. The item is unsatisfied **by choice**, not by oversight, and should not be reopened by a later reader who reads an unchecked box as an omission. If position semantics need prose, the place is the ORM docs below — where a user reads before writing the chain — not a hover tooltip they see only after.
+
+  The **docs + release-note half remains genuinely outstanding.** No slice delivered it; both slices were behaviour. It is the last un-owned work in the project and needs either a closing dispatch or an explicit operator deferral before `drive-close-project` can run.
 - [ ] No new ORM error subcode was added (the no-ban decision held).
 
 ## Open Questions
