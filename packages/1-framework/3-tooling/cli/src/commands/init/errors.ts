@@ -290,38 +290,3 @@ export function errorInitWriteFailed(options: {
     meta: { path: options.path, cause: options.cause, filesWritten: options.filesWritten },
   });
 }
-
-/**
- * The project-level skills install (`npx skills add
- * prisma/prisma#v<version>`) failed after a successful dependency
- * install + emit. The project's scaffold remains on disk; the user
- * can either fix the underlying issue (network, registry, PATH) and
- * run the install command manually, or re-run `init --no-skill` to
- * proceed without the skill.
- *
- * Non-rolling-back, matching the existing install/emit failure
- * semantics. Maps to exit code `6 = SKILL_INSTALL_FAILED`.
- */
-export function errorInitSkillInstallFailed(options: {
-  readonly skillInstallCommand: string;
-  readonly filesWritten: readonly string[];
-  readonly cause: string;
-}): CliStructuredError {
-  return new CliStructuredError(
-    'CLI.INIT_SKILL_INSTALL_FAILED',
-    'Failed to install Prisma Next skills',
-    {
-      why: `\`${options.skillInstallCommand}\` exited with an error: ${options.cause}`,
-      fix:
-        'Either:\n' +
-        `  - Re-run \`prisma-cli init --no-skill${options.filesWritten.length > 0 ? ' --force' : ''}\` to skip the skill install for this run, or\n` +
-        `  - Fix the underlying issue (network, npm registry, \`npx skills\` on PATH) and install manually:\n      ${options.skillInstallCommand}`,
-      docsUrl: docsUrlFor('CLI.INIT_SKILL_INSTALL_FAILED'),
-      meta: {
-        filesWritten: options.filesWritten,
-        skillInstallCommand: options.skillInstallCommand,
-        cause: options.cause,
-      },
-    },
-  );
-}
