@@ -22,7 +22,7 @@ Canonical channels:
 ## When Not to Use
 
 - User wants to fix the bug themselves in the user's own code. The fix lives in another workflow reference (debug / contract / migrations / queries / runtime / build). Open the right reference first; only fall back to feedback if the user explicitly wants the framework to do something differently.
-- User wants to upgrade Prisma Next (the bug may already be fixed) → the `prisma-next-upgrade` skill (separately installed); this skill mentions it as a pre-flight check.
+- User wants to upgrade Prisma Next (the bug may already be fixed) → [`upgrade-app.md`](upgrade-app.md); this reference mentions it as a pre-flight check.
 - The user's question is already covered by a workflow reference in this skill (*"how do I add a column?"* → `references/contract.md`; *"what's the right query interface?"* → `references/queries.md`). Route to the workflow reference, not to the team — open the reference, answer the question, and only escalate to Discord if the agent can't.
 
 ## Key Concepts
@@ -217,7 +217,7 @@ When step 1 picked the Discord channel (steps 2–7 do not apply):
 
 ### 9. Follow up
 
-- **Issue path**: record the issue URL in the user's project notes (or in the project's `wip/` if there is one) so a later upgrade or related work can reference it. If the bug is the symptom of an old version of Prisma Next, suggest the user run `prisma-next-upgrade` (the separately-installed upgrade skill) — many bugs are fixed in newer releases.
+- **Issue path**: record the issue URL in the user's project notes (or in the project's `wip/` if there is one) so a later upgrade or related work can reference it. If the bug is the symptom of an old version of Prisma Next, suggest an upgrade following [`upgrade-app.md`](upgrade-app.md) — many bugs are fixed in newer releases.
 - **Discord path**: once the conversation on Discord settles into a concrete bug or a concrete feature request, return to step 1 of this skill and file the issue (the Discord thread becomes the *Notes* / *Where the gap surfaces* reference in the issue body).
 
 ## Common Pitfalls
@@ -248,4 +248,4 @@ When step 1 picked the Discord channel (steps 2–7 do not apply):
 - [ ] Body shown to the user for confirmation before submission.
 - [ ] Submitted via `gh issue create` (preferred) or via the prefilled new-issue URL.
 - [ ] Issue URL captured for future reference.
-- [ ] Suggested `prisma-next-upgrade` if the bug may already be fixed in a newer release.
+- [ ] Suggested an upgrade ([`upgrade-app.md`](upgrade-app.md)) if the bug may already be fixed in a newer release.

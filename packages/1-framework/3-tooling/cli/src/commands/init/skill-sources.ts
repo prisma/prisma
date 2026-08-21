@@ -23,10 +23,9 @@ export const DEFAULT_SKILL_BASE = 'prisma/prisma';
  *   (`skills/prisma-8`), which describes the public package API
  *   and is pinned to the version of `@internal/*` currently
  *   installed in the consumer's project.
- * - `null`: no ref. The skill is "always-latest" — the cumulative
- *   instruction set is the source of truth, and the latest revision
- *   on `main` includes bug fixes for every prior transition. Used
- *   for the upgrade and extension-author-upgrade skills.
+ * - `null`: no ref. The skill is installed from whatever `main` holds.
+ *   No source uses this today: upgrading is a branch of the `prisma-8`
+ *   skill, which is version-pinned like the rest of it.
  */
 export interface SkillSource {
   readonly subpath: string;
@@ -41,18 +40,6 @@ export const DEFAULT_SKILL_SOURCES: readonly SkillSource[] = [
     skill: 'prisma-8',
     ref: 'cli',
     description: 'usage skill (version-locked to installed Prisma Next)',
-  },
-  {
-    subpath: 'skills',
-    skill: 'prisma-next-upgrade',
-    ref: null,
-    description: 'upgrade skill (always tracks `main`)',
-  },
-  {
-    subpath: 'skills',
-    skill: 'prisma-8-extension-upgrade',
-    ref: null,
-    description: 'extension-author upgrade skill (always tracks `main`)',
   },
 ];
 
@@ -188,8 +175,9 @@ function formatPackageManagerCommand(pm: PackageManager, args: readonly string[]
  * the per-workflow usage cluster (including the renamed
  * `prisma-8-migration-review` spelling it briefly shipped under), the
  * pre-rename spellings of the consolidated skill and the
- * extension-author upgrade skill, and any hand-rolled `prisma-next`
- * stub. Projects initialised before the consolidation carry these as
+ * extension-author upgrade skill, any hand-rolled `prisma-next` stub,
+ * and the two standalone upgrade skills that folded into the
+ * `prisma-8` router. Projects initialised before the consolidation carry these as
  * sibling directories in each agent's install root; left in place
  * they compete with the current skills for activation, so init
  * removes them on every run.
@@ -208,6 +196,8 @@ export const RETIRED_SKILL_NAMES = [
   'prisma-next-debug',
   'prisma-next-feedback',
   'prisma-next-extension-upgrade',
+  'prisma-next-upgrade',
+  'prisma-8-extension-upgrade',
 ] as const;
 
 /**

@@ -1,46 +1,26 @@
----
-name: prisma-8-extension-upgrade
-description: >-
-  Upgrade Prisma Next in your extension. Bumps every `@internal/*`
-  dependency to the requested target (or npm `latest`), runs the
-  per-transition upgrade instructions for the extension SPI (middleware
-  lifecycle, codec / migration-tools / framework-components churn,
-  seed-migration on-disk shape), verifies the pins are correctly exact
-  via `prisma-8-check-pins`, runs the extension's own typecheck and
-  tests, and commits each minor step on its own. Use when the user asks
-  to "upgrade Prisma Next" in an extension package, or to update an
-  extension's `@internal/*` deps to a new minor.
----
+# Upgrade Prisma 8 (extension)
 
-# Upgrade Prisma Next (extension)
+This reference upgrades a project that **is** a Prisma 8 extension — a package that consumes the framework SPI (`@internal/contract`, `@internal/framework-components`, `@internal/migration-tools`, etc.) and exposes contract / middleware / codec / migration surfaces that downstream apps install via `prisma.config.ts`.
 
-This skill upgrades a project that **is** a Prisma Next extension — a package that consumes the framework SPI (`@internal/contract`, `@internal/framework-components`, `@internal/migration-tools`, etc.) and exposes contract / middleware / codec / migration surfaces that downstream apps install via `prisma.config.ts`.
+If the project you are upgrading is a consumer **app** (it imports `@internal/postgres` or `@internal/mongo` from its application code), use [`upgrade-app.md`](upgrade-app.md) instead — or both, if the repo contains both a consumer app and an extension package, in which case run the app flow first then this one in the same session.
 
-If the project you are upgrading is a consumer **app** (it imports `@internal/postgres` or `@internal/mongo` from its application code), use the `prisma-next-upgrade` skill instead — or both, if the repo contains both a consumer app and an extension package, in which case run the user flow first then the extension flow in the same session.
+The per-transition instructions this reference reads live under [`../upgrading/extension/upgrades/`](../upgrading/extension/upgrades/).
 
-## Step 0 — Ensure the skill is up to date
+## Step 0 — Upgrade to the newest instructions, then re-read
 
-Before doing anything else, ensure this skill is installed at `@latest` and reload it. Bug fixes to *old* per-transition upgrade instructions ship in the latest skill release as part of its cumulative set; running against a stale skill can apply a known-broken translation.
+The upgrade instructions ship inside the installed Prisma packages, so the copy on disk describes the version currently installed — not the version being upgraded *to*. Bug fixes to *old* per-transition instructions ship with each release as part of the cumulative set, so the newest copy is the one to run.
 
-Concretely: if the agent runtime supports an in-session refresh, perform it now. Otherwise, exit and ask the user to re-install:
-
-```bash
-pnpm dlx skills add prisma/prisma/skills --skill prisma-8-extension-upgrade -y
-```
-
-The extension-author skill install is intentionally unpinned (always `main`) — the cumulative instruction set is the source of truth and the latest release fixes apply to every prior transition.
-
-Then re-invoke this skill before proceeding.
+Do the version bump first (step 1 of the per-step flow below), re-sync the skills from the newly installed packages (`prisma skills sync`), and re-read this reference and the per-transition instructions before applying any code translation.
 
 ## Role detection
 
-This skill applies when the project **is** a Prisma Next extension. Heuristics:
+This flow applies when the project **is** a Prisma Next extension. Heuristics:
 
 - `package.json` declares `@internal/contract` (or another SPI package) under `dependencies` or `peerDependencies`, and
 - the package's `name` matches `^@.*/extension-` (the in-tree convention used by `@internal/extension-pgvector`, etc.), or
 - the package is referenced as an `extensions` entry from a sibling app's `prisma.config.ts` in the same monorepo.
 
-If the project additionally consumes Prisma Next from its own app code, install the `prisma-next-upgrade` skill (`pnpm dlx skills add prisma/prisma/skills --skill prisma-next-upgrade -y`) and run the user flow first, then this flow in the same session.
+If the project additionally consumes Prisma Next from its own app code, run [`upgrade-app.md`](upgrade-app.md) first, then this flow in the same session.
 
 If detection is ambiguous, ask the user which role to operate under.
 
@@ -59,7 +39,7 @@ If the from-to delta spans more than one release (e.g. `0.6 → 0.8`), build the
 0.6 → 0.7 → 0.8
 ```
 
-The `upgrades/` directories in this package name the steps — read the chain off the directory names rather than deriving it arithmetically. Each directory is `<from>-to-<to>`. A step is one minor while the version line is stable (`0.7-to-0.8`); on the v8 release-candidate line a step is one release candidate (`8.0.0-rc.1-to-8.0.0-rc.2`), because an RC may carry breaking changes and each one needs its own translation. Moving onto the RC line from the last stable minor is a single step of its own (`0.17-to-8.0.0-rc.1`).
+The [`../upgrading/extension/upgrades/`](../upgrading/extension/upgrades/) directories name the steps — read the chain off the directory names rather than deriving it arithmetically. Each directory is `<from>-to-<to>`. A step is one minor while the version line is stable (`0.7-to-0.8`); on the v8 release-candidate line a step is one release candidate (`8.0.0-rc.1-to-8.0.0-rc.2`), because an RC may carry breaking changes and each one needs its own translation. Moving onto the RC line from the last stable minor is a single step of its own (`0.17-to-8.0.0-rc.1`).
 
 Apply each step in order, fully: bump, install, run instructions, check pins, validate, commit — before moving to the next. Halt the chain on the first failed step.
 
@@ -69,20 +49,20 @@ This flow assumes you are an **external extension author** — your extension li
 
 For each `(from, to)` step in the chain:
 
-1. **Bump `@internal/*` deps.** Rewrite every `@internal/*` entry in the extension's `package.json` to the exact `<to>` version (e.g. `"0.8.0"` — no caret, no tilde, no range, no `workspace:` specifier; the exact-pin rule below details why). All entries advance to the same version. Cover whichever dep field(s) the extension uses today — `dependencies` and/or `peerDependencies` — and any `optionalDependencies`. The extension-upgrade skill itself ships via `pnpm dlx skills add` (see Step 0); there is no `@internal/extension-upgrade-skill` npm entry to bump. The companion CLI tool is `@internal/extension-author-tools` — leave its pin at the version the extension's CI is currently using; bumping it is independent of the framework upgrade and is normally a no-op.
+1. **Bump `@internal/*` deps.** Rewrite every `@internal/*` entry in the extension's `package.json` to the exact `<to>` version (e.g. `"0.8.0"` — no caret, no tilde, no range, no `workspace:` specifier; the exact-pin rule below details why). All entries advance to the same version. Cover whichever dep field(s) the extension uses today — `dependencies` and/or `peerDependencies` — and any `optionalDependencies`. The skill itself ships inside the Prisma packages, so bumping them is what updates it; there is no separate skill package to bump. The companion CLI tool is `@internal/extension-author-tools` — leave its pin at the version the extension's CI is currently using; bumping it is independent of the framework upgrade and is normally a no-op.
 
 2. **Install.** Run `pnpm install` (or the project's lockfile-managing command). The extension's source is now broken against the new SPI — the upgrade instructions for `<from> → <to>` exist to fix it.
 
 3. **Check pins.** Run `pnpm exec prisma-8-check-pins` (shipped by `@internal/extension-author-tools`). This sanity check asserts that every `@internal/*` entry across `dependencies`, `peerDependencies`, and `optionalDependencies` is a single exact-version string and that all entries share the same version. If the check fails, the bump step did not rewrite every spec — fix the offending entries and re-run before proceeding.
 
-4. **Read the upgrade instructions.** Load `upgrades/<from>-to-<to>/instructions.md` from this skill package. Parse the YAML frontmatter and pay particular attention to its `changes[]` array.
+4. **Read the upgrade instructions.** Re-sync the skills (`prisma skills sync`) so the tree matches the version just installed, then load `../upgrading/extension/upgrades/<from>-to-<to>/instructions.md`. Parse the YAML frontmatter and pay particular attention to its `changes[]` array.
 
 5. **Apply each change.** For each entry in `changes[]`:
    - If the entry has a `detection` block (a glob + content predicate), run it. If no files match, skip this change.
    - If the entry has no `detection`, apply unconditionally.
    - If the entry names a `script:` (a relative path next to `instructions.md`), invoke it from the project root:
-     - `*.ts` → `pnpm exec tsx <skill>/upgrades/<from>-to-<to>/<script>`
-     - `*.sh` → `bash <skill>/upgrades/<from>-to-<to>/<script>`
+     - `*.ts` → `pnpm exec tsx <skill>/upgrading/extension/upgrades/<from>-to-<to>/<script>`
+     - `*.sh` → `bash <skill>/upgrading/extension/upgrades/<from>-to-<to>/<script>`
      - codemods → invoke per the script's own `instructions.md` prose.
    - If the entry has no `script`, follow the prose body in `instructions.md` directly.
 

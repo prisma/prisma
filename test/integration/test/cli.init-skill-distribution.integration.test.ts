@@ -86,12 +86,6 @@ describe('init skill distribution (offline integration, real CLI)', () => {
     expect(loggedCommands).toContain(
       `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-8')}`,
     );
-    expect(loggedCommands).toContain(
-      `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-next-upgrade')}`,
-    );
-    expect(loggedCommands).toContain(
-      `dlx skills@latest add ${workspaceClone}/skills ${agentFlags('prisma-8-extension-upgrade')}`,
-    );
 
     const installed = readInstalledSkillDirs(testDir);
     const expected = readSkillNamesFrom(join(workspaceClone, 'skills'));
@@ -123,16 +117,14 @@ describe('init skill distribution (offline integration, real CLI)', () => {
     const loggedCommands = readLoggedCommands(logPath);
     const skillsAddCommands = loggedCommands.filter((c) => c.startsWith('dlx skills@latest add'));
     // One shared source, one consolidated multi-agent install per named skill.
-    expect(skillsAddCommands).toHaveLength(3);
+    expect(skillsAddCommands).toHaveLength(1);
     for (const command of skillsAddCommands) {
       // Each call's source ends at the `skills` subpath before any
       // flags. A bare repo URL (no `/skills`) would leak contributor
       // skills via priority discovery of `.agents/skills/`; assert
       // the subpath form here.
       expect(command).toMatch(/\/skills(?:\s|$)/);
-      expect(command).toMatch(
-        /--skill (?:prisma-8|prisma-next-upgrade|prisma-8-extension-upgrade) /,
-      );
+      expect(command).toMatch(/--skill prisma-8 /);
     }
   });
 });

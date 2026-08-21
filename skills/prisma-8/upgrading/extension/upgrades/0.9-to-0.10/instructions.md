@@ -61,7 +61,7 @@ Starting at 0.10 the same entries must look like this:
 }
 ```
 
-Postgres-enum entries undergo a structural change (the `name` is lifted from the entry's map key, `values` is hoisted out of `typeParams`, `typeParams` is dropped). See the user-facing entry (`prisma-next-upgrade/upgrades/0.9-to-0.10/instructions.md`) for the before/after on the enum shape — the on-disk transformation is identical for both audiences.
+Postgres-enum entries undergo a structural change (the `name` is lifted from the entry's map key, `values` is hoisted out of `typeParams`, `typeParams` is dropped). See the user-facing entry (`../../../app/upgrades/0.9-to-0.10/instructions.md`) for the before/after on the enum shape — the on-disk transformation is identical for both audiences.
 
 ### What `stamp-storage-types-kind.ts` does
 
@@ -147,4 +147,4 @@ There is no codemod for this — extensions construct `SqlStorage` via too many 
 
 After running the JSON codemod and applying the source-level rules above, run `pnpm typecheck && pnpm test` (or your extension's equivalent). `prisma-8-check-pins` should also pass — the pin set is unchanged for this transition; the breaking change is in runtime construction behaviour, not the dependency contract.
 
-If your extension ships seed migrations under `packages/<extension>/migrations/`, also run the codemod with `--check` against the project root to confirm the seed snapshots all stamp correctly. The user-facing skill's same codemod (under `prisma-next-upgrade/upgrades/0.9-to-0.10/`) operates on the user's app-space migrations; this skill's copy of the same script operates on your extension's seed migrations.
+If your extension ships seed migrations under `packages/<extension>/migrations/`, also run the codemod with `--check` against the project root to confirm the seed snapshots all stamp correctly. The user-facing copy of the same codemod (under `../../../app/upgrades/0.9-to-0.10/`) operates on the user's app-space migrations; this copy operates on your extension's seed migrations.
