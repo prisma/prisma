@@ -14,7 +14,7 @@ One installable skill:
 |---|---|
 | [`prisma-8`](./prisma-8/) | `SKILL.md` is a router: a description trigger that fires on any Prisma Next work, a routing table, and progressive disclosure into [`prisma-8/references/`](./prisma-8/references/) — adoption/quickstart, contract authoring, migration authoring, migration review on deploy, queries (with Postgres/SQLite and Mongo companions), runtime wiring, build integration, Supabase/RLS, structured-error debugging, feedback routing, and upgrading (both an application and an extension package). |
 
-The reference files follow a shared shape: preamble + canonical mental-model headline, *When to Use* / *When Not to Use*, *Key Concepts*, *Workflow*, *Common Pitfalls*, **What Prisma Next doesn't do yet**, and *Checklist*.
+The task-oriented reference files follow a shared shape: preamble + canonical mental-model headline, *When to Use* / *When Not to Use*, *Key Concepts*, *Workflow*, *Common Pitfalls*, **What Prisma Next doesn't do yet**, and *Checklist*. The two upgrade references are procedures rather than reference material, so they carry their own step-by-step shape instead.
 
 Upgrading is a branch of the same skill rather than a separate one. [`references/upgrade-app.md`](./prisma-8/references/upgrade-app.md) and [`references/upgrade-extension.md`](./prisma-8/references/upgrade-extension.md) carry the two flows; the per-transition instructions and codemods they replay live under [`prisma-8/upgrading/app/upgrades/<from>-to-<to>/`](./prisma-8/upgrading/app/upgrades/) and [`prisma-8/upgrading/extension/upgrades/<from>-to-<to>/`](./prisma-8/upgrading/extension/upgrades/). The version you upgrade *to* carries the instructions for the transitions leading to it.
 
