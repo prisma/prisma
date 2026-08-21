@@ -278,5 +278,17 @@ describe('GroupedCollection', () => {
         OrderByItem.desc(ColumnRef.of('posts', 'user_id')),
       ]);
     });
+
+    // The type gate refuses an empty selector list at compile time
+    // (grouped-pagination-gate.test-d.ts); this covers a plain-JS caller
+    // with no types to catch it. An empty orderBy() must not silently
+    // satisfy the "has an order" gate — it orders by nothing.
+    it('rejects an empty selector list at runtime', () => {
+      const { collection } = createCollectionFor('Post');
+
+      expect(() => collection.groupBy('userId').orderBy([] as never)).toThrow(
+        'orderBy() for model "Post" requires at least one selector',
+      );
+    });
   });
 });

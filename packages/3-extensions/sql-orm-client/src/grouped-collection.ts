@@ -95,16 +95,21 @@ export class GroupedCollection<
   #clone<NextHasOrderBy extends boolean = HasOrderBy>(
     overrides: Partial<GroupedCollectionInit>,
   ): GroupedCollection<TContract, ModelName, GroupFields, NsId, NextHasOrderBy> {
-    return new GroupedCollection(this.ctx, this.modelName, {
-      tableName: this.tableName,
-      namespaceId: this.namespaceId,
-      preGroupState: this.preGroupState,
-      groupByFields: this.groupByFields,
-      groupByColumns: this.groupByColumns,
-      havingFilters: this.havingFilters,
-      postGroup: this.postGroup,
-      ...overrides,
-    }) as GroupedCollection<TContract, ModelName, GroupFields, NsId, NextHasOrderBy>;
+    return blindCast<
+      GroupedCollection<TContract, ModelName, GroupFields, NsId, NextHasOrderBy>,
+      'the constructor installed the reducer members the surface type declares; NextHasOrderBy is a phantom type param the constructor cannot infer'
+    >(
+      new GroupedCollection(this.ctx, this.modelName, {
+        tableName: this.tableName,
+        namespaceId: this.namespaceId,
+        preGroupState: this.preGroupState,
+        groupByFields: this.groupByFields,
+        groupByColumns: this.groupByColumns,
+        havingFilters: this.havingFilters,
+        postGroup: this.postGroup,
+        ...overrides,
+      }),
+    );
   }
 
   having(
@@ -133,18 +138,30 @@ export class GroupedCollection<
       | ((
           model: Pick<ModelAccessor<TContract, ModelName, NsId>, GroupFields[number]>,
         ) => OrderByItem)
-      | ReadonlyArray<
+      | readonly [
           (
             model: Pick<ModelAccessor<TContract, ModelName, NsId>, GroupFields[number]>,
-          ) => OrderByItem
-        >,
+          ) => OrderByItem,
+          ...ReadonlyArray<
+            (
+              model: Pick<ModelAccessor<TContract, ModelName, NsId>, GroupFields[number]>,
+            ) => OrderByItem
+          >,
+        ],
   ): GroupedCollection<TContract, ModelName, GroupFields, NsId, true> {
+    const selectors = Array.isArray(selection) ? selection : [selection];
+    if (selectors.length === 0) {
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
+        `orderBy() for model "${this.modelName}" requires at least one selector`,
+        { meta: { method: 'orderBy', model: this.modelName } },
+      );
+    }
     const accessor = createModelAccessor<TContract, ModelName>(
       this.ctx.context,
       this.namespaceId,
       this.modelName,
     );
-    const selectors = Array.isArray(selection) ? selection : [selection];
     const nextOrders = selectors.map((selector) => selector(accessor));
     return this.#clone<true>({
       postGroup: { ...this.postGroup, orderBy: [...this.postGroup.orderBy, ...nextOrders] },

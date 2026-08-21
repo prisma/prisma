@@ -16,3 +16,9 @@ const unordered = collection.groupBy('userId');
 unordered.take(2);
 // @ts-expect-error skip() requires a prior orderBy() on the grouped collection
 unordered.skip(2);
+
+// An empty orderBy() selector list orders by nothing — it must not satisfy
+// the gate above, or `.groupBy('x').orderBy([]).take(1)` would compile and
+// page groups with no defined order.
+// @ts-expect-error orderBy() requires a non-empty selector list
+collection.groupBy('userId').orderBy([]);
