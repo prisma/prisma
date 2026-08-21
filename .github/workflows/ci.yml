@@ -220,7 +220,7 @@ jobs:
 
           run_timed packages_coverage_seconds pnpm coverage:packages &
           coverage_pid="$!"
-          run_timed examples_seconds pnpm test:examples --concurrency=2 &
+          run_timed examples_seconds pnpm test:examples --concurrency=1 &
           examples_pid="$!"
 
           wait "$coverage_pid"
