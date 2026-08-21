@@ -5,6 +5,7 @@ import {
   type MutablePackageJson,
   participatesInLockstep,
   rewriteWorkspaceDeps,
+  stampSkillLibraryVersion,
 } from './set-version-utils.ts';
 
 describe('participatesInLockstep', () => {
@@ -157,5 +158,48 @@ describe('rewriteWorkspaceDeps', () => {
     rewriteWorkspaceDeps(pkg, '0.8.0');
     assert.equal(pkg.version, '0.7.0'); // version is the caller's job, not the helper's
     assert.equal(pkg.dependencies, undefined);
+  });
+});
+
+describe('stampSkillLibraryVersion', () => {
+  const skillMd = [
+    '---',
+    'name: prisma-8',
+    'description: >-',
+    '  Something about library_version that must not be rewritten.',
+    "library: '@prisma/orm-postgres'",
+    'library_version: 0.16.0',
+    '---',
+    '',
+    '# Prisma Next (Prisma 8)',
+    '',
+    'library_version: 0.16.0 in the body is prose, not the stamp.',
+    '',
+  ].join('\n');
+
+  it('rewrites the frontmatter stamp', () => {
+    assert.match(stampSkillLibraryVersion(skillMd, '8.1.0'), /^library_version: 8\.1\.0$/m);
+  });
+
+  it('leaves everything but the stamp alone', () => {
+    const stamped = stampSkillLibraryVersion(skillMd, '8.1.0');
+    assert.equal(
+      stamped,
+      skillMd.replace('library_version: 0.16.0\n---', 'library_version: 8.1.0\n---'),
+    );
+  });
+
+  it('is idempotent', () => {
+    const once = stampSkillLibraryVersion(skillMd, '8.1.0');
+    assert.equal(stampSkillLibraryVersion(once, '8.1.0'), once);
+  });
+
+  it('rejects a skill whose frontmatter carries no stamp', () => {
+    const unstamped = ['---', 'name: prisma-8', 'description: x', '---', ''].join('\n');
+    assert.throws(() => stampSkillLibraryVersion(unstamped, '8.1.0'), /library_version/);
+  });
+
+  it('rejects a file with no frontmatter', () => {
+    assert.throws(() => stampSkillLibraryVersion('# no frontmatter\n', '8.1.0'), /frontmatter/);
   });
 });
