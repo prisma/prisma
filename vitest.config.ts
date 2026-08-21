@@ -9,9 +9,9 @@ export default defineConfig({
     projects: ['packages/**/vitest.config.ts'],
     // Cap fork concurrency on CI so the PGlite-WASM-heavy package suites
     // (cli, sql runtime, postgres/supabase extensions, postgres adapter +
-    // driver) don't all peak at once. Leave half of the hosted-runner cores
-    // for the concurrently running example tests and Postgres container.
-    maxWorkers: process.env['CI'] ? '50%' : undefined,
+    // driver) don't all peak at once. Keep concurrency explicit so results
+    // remain comparable if Vitest changes its default worker policy.
+    maxWorkers: process.env['CI'] ? '100%' : undefined,
     // Hard-suppress telemetry across every package test suite. The CLI's
     // `program.hook('preAction', …)` would otherwise fork the sender
     // child every time a test invokes the CLI in-process.
