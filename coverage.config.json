@@ -23,11 +23,11 @@
     {
       "package": "3-extensions/sql-orm-client",
       "reason": "Several test files were moved from packages/3-extensions/sql-orm-client/test/ into test/integration/test/sql-orm-client/ to break a workspace build cycle (the package depended on pgvector / postgres test fixtures through its devDependencies). The covered behaviour is still exercised end-to-end in test/integration; only the per-package coverage report regressed because those tests no longer run under the package's vitest config.",
-      "addedDate": "2026-05-22",
+      "addedDate": "2026-08-21",
       "expiryDays": 90,
       "assignee": null,
       "linear": "TML-2526",
-      "notes": "Recovery requires either reorganising coverage scopes (so integration tests count toward this package's report) or adding equivalent unit-level tests inside the package that don't need pgvector fixtures."
+      "notes": "Recovery requires either reorganising coverage scopes (so integration tests count toward this package's report) or adding equivalent unit-level tests inside the package that don't need pgvector fixtures. Renewed 2026-08-21: expired 2026-08-20 before the cross-config coverage recovery was completed; the underlying coverage situation is unchanged and recovery remains tracked in TML-2526."
     },
     {
       "package": "2-sql/1-core/contract",
