@@ -1,0 +1,46 @@
+# Autoresearch: speed up the Test CI job
+
+## Objective
+
+Reduce the wall-clock duration of the `Test` job in `.github/workflows/ci.yml` on GitHub-hosted CI. The job must continue to execute all existing package tests with coverage and enforce per-package coverage, execute all example tests, use the required Postgres services, and check that the working tree stays clean. Optimize real CI behavior rather than local timings.
+
+## Metrics
+
+- **Primary**: `ci_test_seconds` (seconds, lower is better) — GitHub's elapsed time from the `Test` job's `startedAt` through `completedAt`.
+- **Secondary**: `packages_coverage_seconds`, `examples_seconds`, `startup_seconds`, and `ci_run_id` — phase timing and traceability. The package-coverage phase is the dominant cost, but the primary metric remains the complete job.
+
+## How to Run
+
+`./.auto/measure.sh` commits and pushes the current experiment to the temporary draft PR, waits for that exact SHA's `CI (PR)` run and `Test` job, and emits `METRIC name=value` lines from GitHub timestamps. This intentionally measures hosted CI, not the local machine.
+
+## Files in Scope
+
+- `vitest.config.ts` — root Vitest project orchestration, worker count, pool behavior, and coverage settings.
+- `.github/workflows/ci.yml` — `Test` job structure and safe parallelization of independent phases.
+- `package.json` — package test/coverage commands.
+- `scripts/coverage-config.ts`, `scripts/coverage-report.mjs`, and their tests — coverage collection/reporting if profiling proves they matter.
+- Package Vitest configs and test-support code only when a general, behavior-preserving infrastructure optimization requires them.
+- `.auto/*` — temporary experiment harness and findings; never part of the final product change.
+
+## Off Limits
+
+- Do not remove, skip, narrow, or weaken tests, source coverage collection, coverage thresholds, coverage reporting, database-backed behavior, or clean-tree verification.
+- Do not classify executable/test-affecting changes as inert.
+- Do not optimize only for the temporary PR or GitHub cache state.
+- Do not modify production behavior merely to make tests faster.
+- Do not use local elapsed time as the primary metric.
+
+## Constraints
+
+- Preserve the semantics and pass/fail guarantees of the current `Test` job.
+- Every experiment runs on a real GitHub-hosted runner through a temporary draft PR.
+- Treat CI timing as noisy. Historical successful runs on the predecessor PR ranged from 723 to 854 seconds, with package coverage taking 549 to 650 seconds. Prefer substantial, repeatable improvements and confirm promising results.
+- The runner must remain stable: no dropped Postgres sockets, PGlite timeouts, flaky tests, or resource exhaustion.
+- Follow repository rules: use pnpm, do not weaken lint/type safety, and keep tests current when changing behavior.
+- Do not overfit or cheat the benchmark.
+
+## What's Been Tried
+
+- Before this session, package unit tests and package coverage were combined into one coverage-enabled Vitest pass, eliminating duplicate execution. That landed in PR #30082 and is the current baseline.
+- The root config currently caps CI workers at 50% to avoid oversubscribing PGlite-heavy suites and the Postgres service. Worker-count experiments are promising but must prove stability.
+- Historical predecessor-PR `Test` job durations were 723s, 799s, 828s, and 854s. Package coverage dominated at 549s, 608s, 612s, and 650s; example tests took 110–143s.
