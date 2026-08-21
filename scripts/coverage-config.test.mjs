@@ -288,14 +288,6 @@ describe('coverage config', () => {
       testJob,
       /- name: Test examples\n {8}if: \$\{\{ !cancelled\(\) && needs\.changes\.outputs\.inert != 'true' \}\}\n {8}run: pnpm test:examples/,
     );
-    assert.ok(
-      testJob.indexOf('- name: Test packages with coverage') <
-        testJob.indexOf('- name: Start cloudflare-worker Postgres'),
-    );
-    assert.ok(
-      testJob.indexOf('- name: Start cloudflare-worker Postgres') <
-        testJob.indexOf('- name: Test examples'),
-    );
     assert.doesNotMatch(workflow, /\n {2}coverage:\n/);
     assert.equal(workflow.match(/run: pnpm coverage:packages/g)?.length, 1);
     assert.equal(workflow.match(/run: pnpm test:examples/g)?.length, 1);

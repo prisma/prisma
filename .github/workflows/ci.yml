@@ -201,15 +201,15 @@ jobs:
       - name: Link bins
         if: needs.changes.outputs.inert != 'true'
         run: pnpm install --frozen-lockfile
+      - name: Start cloudflare-worker Postgres (5433, pg_stat_statements)
+        if: needs.changes.outputs.inert != 'true'
+        run: pnpm --filter prisma-8-cloudflare-worker db:up
       - name: Test packages with coverage
         if: needs.changes.outputs.inert != 'true'
         run: pnpm coverage:packages
       - name: Report package coverage
         if: ${{ !cancelled() && needs.changes.outputs.inert != 'true' }}
         run: pnpm coverage:report
-      - name: Start cloudflare-worker Postgres (5433, pg_stat_statements)
-        if: ${{ !cancelled() && needs.changes.outputs.inert != 'true' }}
-        run: pnpm --filter prisma-8-cloudflare-worker db:up
       - name: Test examples
         if: ${{ !cancelled() && needs.changes.outputs.inert != 'true' }}
         run: pnpm test:examples
