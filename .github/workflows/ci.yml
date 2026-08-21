@@ -204,15 +204,33 @@ jobs:
       - name: Start cloudflare-worker Postgres (5433, pg_stat_statements)
         if: needs.changes.outputs.inert != 'true'
         run: pnpm --filter prisma-8-cloudflare-worker db:up
-      - name: Test packages with coverage
+      - name: Test packages with coverage and examples
         if: needs.changes.outputs.inert != 'true'
-        run: pnpm coverage:packages
+        run: |
+          set +e
+          run_timed() {
+            local metric="$1"
+            shift
+            local started_at="$SECONDS"
+            "$@"
+            local status="$?"
+            echo "CI_PHASE $metric=$((SECONDS - started_at))"
+            return "$status"
+          }
+
+          run_timed packages_coverage_seconds pnpm coverage:packages &
+          coverage_pid="$!"
+          run_timed examples_seconds pnpm test:examples &
+          examples_pid="$!"
+
+          wait "$coverage_pid"
+          coverage_status="$?"
+          wait "$examples_pid"
+          examples_status="$?"
+          ((coverage_status == 0 && examples_status == 0))
       - name: Report package coverage
         if: ${{ !cancelled() && needs.changes.outputs.inert != 'true' }}
         run: pnpm coverage:report
-      - name: Test examples
-        if: ${{ !cancelled() && needs.changes.outputs.inert != 'true' }}
-        run: pnpm test:examples
       - name: Check working tree is clean
         if: needs.changes.outputs.inert != 'true'
         run: pnpm check:clean-tree

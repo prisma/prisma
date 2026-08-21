@@ -12,7 +12,6 @@ export default defineConfig({
     // driver) don't all peak at once. Leave one of the four hosted-runner
     // cores for the Postgres container and Vitest orchestrator.
     maxWorkers: process.env['CI'] ? '75%' : undefined,
-    pool: process.env['CI'] ? 'threads' : undefined,
     // Hard-suppress telemetry across every package test suite. The CLI's
     // `program.hook('preAction', …)` would otherwise fork the sender
     // child every time a test invokes the CLI in-process.

@@ -38,7 +38,8 @@ fi
 echo "CI run: https://github.com/$repo/actions/runs/$run_id" >&2
 
 jobs_file="$(mktemp)"
-trap 'rm -f "$jobs_file"' EXIT
+job_log="$(mktemp)"
+trap 'rm -f "$jobs_file" "$job_log"' EXIT
 for _ in $(seq 1 180); do
   gh run view "$run_id" --repo "$repo" --json jobs > "$jobs_file"
   status="$(node -e '
@@ -50,6 +51,18 @@ for _ in $(seq 1 180); do
   [[ "$status" == "completed" ]] && break
   sleep 10
 done
+
+job_id="$(node -e '
+  const fs = require("node:fs");
+  const jobs = JSON.parse(fs.readFileSync(process.argv[1], "utf8")).jobs;
+  process.stdout.write(String(jobs.find(({ name }) => name === "Test")?.databaseId ?? ""));
+' "$jobs_file")"
+gh run view "$run_id" --repo "$repo" --job "$job_id" --log > "$job_log"
+phase_metric() {
+  grep -o "CI_PHASE $1=[0-9]*" "$job_log" | tail -1 | cut -d= -f2 || true
+}
+export PACKAGES_COVERAGE_SECONDS="$(phase_metric packages_coverage_seconds)"
+export EXAMPLES_SECONDS="$(phase_metric examples_seconds)"
 
 node - "$jobs_file" "$run_id" <<'NODE'
 const fs = require('node:fs');
@@ -74,12 +87,20 @@ if (job.conclusion !== 'success') {
   process.exit(1);
 }
 
-const coverageStart = job.steps.find(({ name }) => name === 'Test packages with coverage')?.startedAt;
-if (!coverageStart) throw new Error('Missing package coverage start time');
+const coverageStep = job.steps.find(({ name }) =>
+  ['Test packages with coverage', 'Test packages with coverage and examples'].includes(name),
+);
+if (!coverageStep?.startedAt) throw new Error('Missing package coverage start time');
+const packagesCoverageSeconds = process.env.PACKAGES_COVERAGE_SECONDS
+  ? Number(process.env.PACKAGES_COVERAGE_SECONDS)
+  : step('Test packages with coverage');
+const examplesSeconds = process.env.EXAMPLES_SECONDS
+  ? Number(process.env.EXAMPLES_SECONDS)
+  : step('Test examples');
 
 console.log(`METRIC ci_test_seconds=${seconds(job.startedAt, job.completedAt)}`);
-console.log(`METRIC packages_coverage_seconds=${step('Test packages with coverage')}`);
-console.log(`METRIC examples_seconds=${step('Test examples')}`);
-console.log(`METRIC startup_seconds=${seconds(job.startedAt, coverageStart)}`);
+console.log(`METRIC packages_coverage_seconds=${packagesCoverageSeconds}`);
+console.log(`METRIC examples_seconds=${examplesSeconds}`);
+console.log(`METRIC startup_seconds=${seconds(job.startedAt, coverageStep.startedAt)}`);
 console.log(`METRIC ci_run_id=${runId}`);
 NODE

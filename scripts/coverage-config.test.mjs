@@ -272,7 +272,7 @@ describe('coverage config', () => {
     assert.match(rootVitestConfig, /reportOnFailure:\s*true/);
   });
 
-  it('combines package tests and coverage in one CI job', async () => {
+  it('runs package coverage and example tests concurrently in one CI job', async () => {
     const repositoryRoot = join(import.meta.dirname, '..');
     const workflow = await readFile(join(repositoryRoot, '.github/workflows/ci.yml'), 'utf8');
     const testJob = workflow.match(/\n {2}test:\n(?<body>[\s\S]*?)(?=\n {2}test-e2e:\n)/)?.groups
@@ -280,16 +280,15 @@ describe('coverage config', () => {
 
     assert.ok(testJob);
     assert.match(testJob, /^ {4}name: Test$/m);
+    assert.match(testJob, /- name: Test packages with coverage and examples/);
+    assert.match(testJob, /run_timed packages_coverage_seconds pnpm coverage:packages &/);
+    assert.match(testJob, /run_timed examples_seconds pnpm test:examples &/);
     assert.match(
       testJob,
-      /run: pnpm coverage:packages\n {6}- name: Report package coverage\n {8}if: \$\{\{ !cancelled\(\) && needs\.changes\.outputs\.inert != 'true' \}\}\n {8}run: pnpm coverage:report/,
-    );
-    assert.match(
-      testJob,
-      /- name: Test examples\n {8}if: \$\{\{ !cancelled\(\) && needs\.changes\.outputs\.inert != 'true' \}\}\n {8}run: pnpm test:examples/,
+      /- name: Report package coverage\n {8}if: \$\{\{ !cancelled\(\) && needs\.changes\.outputs\.inert != 'true' \}\}\n {8}run: pnpm coverage:report/,
     );
     assert.doesNotMatch(workflow, /\n {2}coverage:\n/);
-    assert.equal(workflow.match(/run: pnpm coverage:packages/g)?.length, 1);
-    assert.equal(workflow.match(/run: pnpm test:examples/g)?.length, 1);
+    assert.equal(workflow.match(/pnpm coverage:packages/g)?.length, 1);
+    assert.equal(workflow.match(/pnpm test:examples/g)?.length, 1);
   });
 });
