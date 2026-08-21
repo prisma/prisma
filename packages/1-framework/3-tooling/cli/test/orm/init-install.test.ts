@@ -264,13 +264,13 @@ describe('init installs', () => {
   );
 
   it(
-    'runs one skill install per source, naming the skill and the agents',
+    'runs one skill install, naming the skill and the agents',
     async () => {
       await harness().run(scaffoldArgv(), { cwd: projectDir });
 
       const first = skillCalls()[0];
 
-      expect(skillCalls()).toHaveLength(3);
+      expect(skillCalls()).toHaveLength(1);
       expect(first).toMatchObject({ cwd: projectDir });
       expect(first?.args).toEqual(
         expect.arrayContaining(['skills@latest', 'add', '--skill', 'prisma-8']),
@@ -418,7 +418,7 @@ describe('init installs', () => {
         const run = await harness().run(scaffoldArgv('--skip-install'), { cwd: projectDir });
 
         expect(run.exitCode).toBe(0);
-        expect(skillCalls()).toHaveLength(3);
+        expect(skillCalls()).toHaveLength(1);
       },
       timeouts.coldTransformImport,
     );
