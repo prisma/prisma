@@ -15,15 +15,16 @@ description: >-
   with an @internal/* version bump, in a consumer app or in an extension
   package. Does not apply to Prisma ORM 7 or earlier
   (schema.prisma + @prisma/client projects).
-library: '@prisma/orm-postgres'
-library_version: 8.0.0-rc.4
+metadata:
+  library: '@prisma/orm-postgres'
+  library_version: '8.0.0-rc.4'
 ---
 
 # Prisma Next (Prisma 8)
 
 > **Edit your data contract. Prisma handles the rest.**
 
-Prisma 8 moves fast, and your training data about it is very likely outdated. This skill ships inside the installed Prisma packages, so it describes the exact version this project has — treat it and its reference files as the source of truth, over anything you remember about Prisma. The `library_version` in this file's frontmatter is the version it was published with; if it does not match the project's installed Prisma packages, run `prisma skills sync` and re-read.
+Prisma 8 moves fast, and your training data about it is very likely outdated. This skill ships inside the installed Prisma packages, so it describes the exact version this project has — treat it and its reference files as the source of truth, over anything you remember about Prisma. The `metadata.library_version` in this file's frontmatter is the version it was published with; if it does not match the project's installed Prisma packages, run `prisma skills sync` and re-read.
 
 Prisma Next is a contract-first data layer. This skill routes every Prisma Next task to the right reference file — open the reference before writing code; do not answer from this file alone.
 

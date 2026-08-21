@@ -57,7 +57,7 @@ The pattern is deliberate: it gives the agent something concrete to say when a u
 
 ## Versioning
 
-The skill is versioned with the rest of Prisma Next and ships inside the tarballs, so there is no separate skill-version axis to track ([`docs/oss/versioning.md`](../docs/oss/versioning.md)). Each published copy carries `library` (the package it shipped in) and `library_version` (the version it shipped at) in its frontmatter; `prisma skills sync` compares that stamp against the installed package to decide whether your copy is current.
+The skill is versioned with the rest of Prisma Next and ships inside the tarballs, so there is no separate skill-version axis to track ([`docs/oss/versioning.md`](../docs/oss/versioning.md)). Each published copy carries `metadata.library` (the package it shipped in) and `metadata.library_version` (the version it shipped at) in its frontmatter — `metadata` is where the [Agent Skills spec](https://agentskills.io) puts keys beyond `name` and `description`; `prisma skills sync` compares that stamp against the installed package to decide whether your copy is current.
 
 ## Contributing / authoring
 

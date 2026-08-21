@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import {
   participatesInLockstep,
   rewriteWorkspaceDeps,
-  stampSkillLibraryVersion,
+  stampSkillMetadata,
 } from './set-version-utils.ts';
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -96,7 +96,7 @@ for (const manifestPath of trackedManifests) {
 const skillPath = path.join(rootDir, 'skills', 'prisma-8', 'SKILL.md');
 await fs.writeFile(
   skillPath,
-  stampSkillLibraryVersion(await fs.readFile(skillPath, 'utf-8'), version),
+  stampSkillMetadata(await fs.readFile(skillPath, 'utf-8'), 'library_version', version),
 );
 console.log(`Stamped ${path.relative(rootDir, skillPath)} with library_version ${version}`);
 

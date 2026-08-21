@@ -39,10 +39,16 @@ function manifestOf(facade: ShellName): Manifest {
   return manifest;
 }
 
-function frontmatterValue(skillMd: string, key: string): string | undefined {
+/**
+ * One entry of the frontmatter `metadata` map, where the Agent Skills spec
+ * puts extensions like our version stamp.
+ */
+function metadataValue(skillMd: string, key: string): string | undefined {
   const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(skillMd)?.[1];
   if (frontmatter === undefined) return undefined;
-  const value = new RegExp(`^${key}: *(.+)$`, 'm').exec(frontmatter)?.[1];
+  const metadata = /^metadata:\s*\n((?:[ \t]+.*\n?)+)/m.exec(frontmatter)?.[1];
+  if (metadata === undefined) return undefined;
+  const value = new RegExp(`^\\s+${key}: *(.+)$`, 'm').exec(metadata)?.[1];
   return value?.trim().replace(/^['"]|['"]$/g, '');
 }
 
@@ -52,7 +58,7 @@ describe('the skill source in the repository', () => {
       readFileSync(join(repoRoot, 'package.json'), 'utf8'),
     ).version;
     const source = readFileSync(join(repoRoot, 'skills', 'prisma-8', 'SKILL.md'), 'utf8');
-    expect(frontmatterValue(source, 'library_version')).toBe(rootVersion);
+    expect(metadataValue(source, 'library_version')).toBe(rootVersion);
   });
 });
 
@@ -70,8 +76,8 @@ describe.each(facades)('%s', (facade) => {
 
     const skillDir = join(packageDir(facade), 'skills', 'prisma-8');
     const skillMd = readFileSync(join(skillDir, 'SKILL.md'), 'utf8');
-    expect(frontmatterValue(skillMd, 'library')).toBe(facade);
-    expect(frontmatterValue(skillMd, 'library_version')).toBe(manifestOf(facade).version);
+    expect(metadataValue(skillMd, 'library')).toBe(facade);
+    expect(metadataValue(skillMd, 'library_version')).toBe(manifestOf(facade).version);
     expect(existsSync(join(skillDir, 'references', 'queries.md'))).toBe(true);
     expect(existsSync(join(skillDir, 'references', 'upgrade-app.md'))).toBe(true);
     expect(

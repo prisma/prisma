@@ -15,6 +15,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { stampSkillMetadata } from './set-version-utils.ts';
+
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 /**
@@ -31,21 +33,6 @@ export const SKILL_ANCHOR_PACKAGES: ReadonlyMap<string, string> = new Map([
 
 export const SKILL_NAME = 'prisma-8';
 
-/**
- * Rewrite the `library` frontmatter stamp to the package the copy ships in.
- * The source tree names one canonical package; each copy names its own, so a
- * consumer reading the copy sees the package it resolved it from.
- */
-function stampSkillLibrary(skillMd: string, packageName: string): string {
-  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(skillMd);
-  if (frontmatter === null) throw new Error('SKILL.md has no frontmatter block');
-  if (!/^library:/m.test(frontmatter[1])) {
-    throw new Error('SKILL.md frontmatter has no library key to stamp');
-  }
-  const stamped = frontmatter[1].replace(/^library:.*$/m, `library: '${packageName}'`);
-  return skillMd.replace(frontmatter[1], stamped);
-}
-
 export async function syncPackageSkills(packageName: string): Promise<string> {
   const packageDir = SKILL_ANCHOR_PACKAGES.get(packageName);
   if (packageDir === undefined) {
@@ -58,8 +45,13 @@ export async function syncPackageSkills(packageName: string): Promise<string> {
   await fs.rm(destination, { recursive: true, force: true });
   await fs.cp(source, destination, { recursive: true });
 
+  // The source tree names one canonical package; each copy names its own, so
+  // a consumer reading the copy sees the package it resolved it from.
   const skillMd = path.join(destination, 'SKILL.md');
-  await fs.writeFile(skillMd, stampSkillLibrary(await fs.readFile(skillMd, 'utf-8'), packageName));
+  await fs.writeFile(
+    skillMd,
+    stampSkillMetadata(await fs.readFile(skillMd, 'utf-8'), 'library', packageName),
+  );
 
   return destination;
 }

@@ -25,6 +25,47 @@ describe('validateSkillMd', () => {
     deepStrictEqual(validateSkillMd(validSkill), []);
   });
 
+  it('passes a metadata map of strings', () => {
+    const stamped = `---
+name: prisma-8
+description: A skill.
+metadata:
+  library: '@prisma/orm-postgres'
+  library_version: '8.0.0-rc.4'
+---
+
+# Prisma 8
+`;
+    deepStrictEqual(validateSkillMd(stamped), []);
+  });
+
+  it('fails when a metadata value is not a string', () => {
+    const numeric = `---
+name: prisma-8
+description: A skill.
+metadata:
+  library_version: 8.1
+---
+
+# Prisma 8
+`;
+    const errors = validateSkillMd(numeric);
+    strictEqual(errors.length, 1);
+    strictEqual(errors[0].includes('library_version'), true);
+  });
+
+  it('fails when metadata is not a map', () => {
+    const scalar = `---
+name: prisma-8
+description: A skill.
+metadata: nope
+---
+
+# Prisma 8
+`;
+    strictEqual(validateSkillMd(scalar).length, 1);
+  });
+
   it('fails when bare colons break YAML parsing', () => {
     const broken = `---
 name: drive-discussion
