@@ -420,11 +420,6 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           entry: 'contract-emitter',
         },
         {
-          dir: 'packages/2-sql/4-lanes/query-builder',
-          name: '@internal/sql-lane-query-builder',
-          entry: 'lane-query-builder',
-        },
-        {
           dir: 'packages/2-sql/4-lanes/relational-core',
           name: '@internal/sql-relational-core',
           entry: 'relational-core',

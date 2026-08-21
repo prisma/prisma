@@ -80,7 +80,7 @@ function buildContract(input: {
   };
 }
 
-describe.sequential('roles enter verify — existence-only, asymmetric', () => {
+describe('roles enter verify — existence-only, asymmetric', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

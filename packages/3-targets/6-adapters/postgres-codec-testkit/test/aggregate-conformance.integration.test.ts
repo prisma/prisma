@@ -91,7 +91,7 @@ async function producesExpectedType(
   return rows[0]?.['agrees'] === true;
 }
 
-describe.sequential('PostgreSQL aggregate conformance', () => {
+describe('PostgreSQL aggregate conformance', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;
   let driver: Awaited<ReturnType<typeof postgresControlDriverDescriptor.create>> | undefined;
   let query: Query;

@@ -100,7 +100,6 @@ See [`architecture.config.json`](./architecture.config.json) for the complete do
 - **`@internal/sql-contract-emitter`** — SQL emitter hook implementation
 - **`@internal/sql-relational-core`** — Schema and column builders, operation attachment, and AST types
 - **`@internal/sql-lane`** — Relational DSL and raw SQL helpers
-- **`@internal/sql-lane-query-builder`** — Query builder lane
 - **`@internal/sql-runtime`** — SQL family runtime that composes runtime-executor with SQL adapters
 - **`@internal/adapter-postgres`** — Postgres adapter implementation
 - **`@internal/driver-postgres`** — Postgres driver (low-level connection)

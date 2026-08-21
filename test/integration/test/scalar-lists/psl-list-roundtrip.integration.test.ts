@@ -92,7 +92,7 @@ async function migrateContract(
   }
 }
 
-describe.sequential('PSL scalar-list end-to-end', () => {
+describe('PSL scalar-list end-to-end', { concurrent: false }, () => {
   let database: DevDatabase | undefined;
 
   beforeAll(async () => {

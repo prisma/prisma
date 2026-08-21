@@ -220,7 +220,7 @@ async function applyContract(
 // Test
 // ============================================================================
 
-describe.sequential('RLS lifecycle e2e — edit replaces, removal fails verify', () => {
+describe('RLS lifecycle e2e — edit replaces, removal fails verify', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver;
 
@@ -399,7 +399,9 @@ describe.sequential('RLS lifecycle e2e — edit replaces, removal fails verify',
 // policy_insert WITH CHECK — DB-level enforcement + edit lifecycle
 // ============================================================================
 
-describe.sequential('RLS policy_insert WITH CHECK — enforcement + edit replaces', () => {
+describe('RLS policy_insert WITH CHECK — enforcement + edit replaces', {
+  concurrent: false,
+}, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver;
 

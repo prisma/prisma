@@ -956,7 +956,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
   });
 });
 
-describe('check-upgrade-coverage — dependency-only substrate diffs need no declaration', () => {
+describe('check-upgrade-coverage — translation-irrelevant substrate diffs need no declaration', () => {
   function seedTransitionDir() {
     writePackageJson('0.7.0');
     writeRepoFile(
@@ -984,6 +984,61 @@ describe('check-upgrade-coverage — dependency-only substrate diffs need no dec
     assert.equal(result.status, 0, result.stderr);
   });
 
+  it('arbitrary scripts-only manifest changes pass without touching instructions.md', () => {
+    seedTransitionDir();
+    writeRepoFile(
+      'examples/demo/package.json',
+      `${JSON.stringify(
+        {
+          name: 'demo',
+          scripts: { build: 'vite build', lint: 'biome check .' },
+          devDependencies: { vite: '^8.1.4' },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile(
+      'examples/demo/package.json',
+      `${JSON.stringify(
+        {
+          name: 'demo',
+          scripts: { build: 'vite build --watch', dev: 'vite dev' },
+          devDependencies: { vite: '^8.1.4' },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    commitAll('head — arbitrary scripts only');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, result.stderr);
+  });
+
+  it('removing the final manifest script passes without touching instructions.md', () => {
+    seedTransitionDir();
+    writeRepoFile(
+      'examples/demo/package.json',
+      `${JSON.stringify(
+        {
+          name: 'demo',
+          scripts: { build: 'vite build' },
+          devDependencies: { vite: '^8.1.4' },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^8.1.4' }));
+    commitAll('head — final script removed');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, result.stderr);
+  });
+
   it('a $schema realignment in an extension biome config passes without touching instructions.md', () => {
     seedTransitionDir();
     const config = (v) =>
@@ -995,6 +1050,72 @@ describe('check-upgrade-coverage — dependency-only substrate diffs need no dec
     commitAll('head — schema URL realignment only');
     const result = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.equal(result.status, 0, result.stderr);
+  });
+
+  it('test infrastructure changes pass without touching instructions.md', () => {
+    seedTransitionDir();
+    writeRepoFile(
+      'examples/demo/test/e2e.integration.test.ts',
+      "describe.sequential('demo', () => {});\n",
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/package.json',
+      `${JSON.stringify(
+        {
+          name: 'pgvector',
+          scripts: { test: 'vitest run', 'test:coverage': 'vitest run --coverage' },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/vitest.config.ts',
+      "export default { test: { coverage: { provider: 'v8' } } };\n",
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/test/codec.integration.test.ts',
+      "describe.sequential('codec', () => {});\n",
+    );
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+
+    writeRepoFile(
+      'examples/demo/test/e2e.integration.test.ts',
+      "describe('demo', { concurrent: false }, () => {});\n",
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/package.json',
+      `${JSON.stringify({ name: 'pgvector', scripts: { test: 'vitest run' } }, null, 2)}\n`,
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/vitest.config.ts',
+      'export default { test: {} };\n',
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/coverage.config.json',
+      '{"include":["src/**/*.ts"],"exclude":[],"thresholds":{}}\n',
+    );
+    writeRepoFile(
+      'packages/3-extensions/pgvector/test/codec.integration.test.ts',
+      "describe('codec', { concurrent: false }, () => {});\n",
+    );
+    commitAll('head — test infrastructure migration');
+
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, result.stderr);
+  });
+
+  it('a Prisma config change remains translation-relevant', () => {
+    seedTransitionDir();
+    writeRepoFile('examples/demo/prisma.config.ts', 'export default { migrations: "a" };\n');
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/prisma.config.ts', 'export default { migrations: "b" };\n');
+    commitAll('head — user-facing config changed');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /per-pr-declaration/);
   });
 
   it('a filename merely ending in biome.json is not a biome config', () => {
@@ -1048,16 +1169,20 @@ describe('check-upgrade-coverage — dependency-only substrate diffs need no dec
     assert.match(result.stderr, /per-pr-declaration/);
   });
 
-  it('a non-dependency manifest field still requires a declaration', () => {
+  it('a non-script manifest field still requires a declaration', () => {
     seedTransitionDir();
     writeRepoFile('examples/demo/package.json', exampleManifest({ vite: '^8.1.4' }));
     commitAll('prev');
     const prev = git('rev-parse', 'HEAD');
     writeRepoFile(
       'examples/demo/package.json',
-      `${JSON.stringify({ name: 'demo', scripts: { build: 'vite build' }, devDependencies: { vite: '^8.1.4' } }, null, 2)}\n`,
+      `${JSON.stringify(
+        { name: 'demo', type: 'module', devDependencies: { vite: '^8.1.4' } },
+        null,
+        2,
+      )}\n`,
     );
-    commitAll('head — scripts added');
+    commitAll('head — non-script manifest field added');
     const result = runScript(['--prev', prev, '--head', 'HEAD']);
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /per-pr-declaration/);

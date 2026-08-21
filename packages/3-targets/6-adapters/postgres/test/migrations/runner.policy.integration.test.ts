@@ -18,7 +18,7 @@ import {
   toPlanContractInfo,
 } from './fixtures/runner-fixtures';
 
-describe.sequential('PostgresMigrationRunner - Policy Violations', () => {
+describe('PostgresMigrationRunner - Policy Violations', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

@@ -87,7 +87,7 @@ async function migrateContract(connectionString: string): Promise<void> {
   }
 }
 
-describe.sequential('ORM scalar-list round-trip', () => {
+describe('ORM scalar-list round-trip', { concurrent: false }, () => {
   let database: DevDatabase | undefined;
 
   beforeAll(async () => {

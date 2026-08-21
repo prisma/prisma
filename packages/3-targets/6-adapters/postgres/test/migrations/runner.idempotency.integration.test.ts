@@ -19,7 +19,7 @@ import {
   toPlanContractInfo,
 } from './fixtures/runner-fixtures';
 
-describe.sequential('PostgresMigrationRunner - Idempotency', () => {
+describe('PostgresMigrationRunner - Idempotency', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

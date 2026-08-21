@@ -113,7 +113,7 @@ function buildSelectByHoldAst(hold: string): SelectAst {
     );
 }
 
-describe.sequential('mixed-case native-enum cast against a live database', () => {
+describe('mixed-case native-enum cast against a live database', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;
   let runtime: Runtime | undefined;
 

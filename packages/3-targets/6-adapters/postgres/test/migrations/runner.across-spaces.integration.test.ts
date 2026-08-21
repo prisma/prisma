@@ -98,7 +98,7 @@ function buildFailingAppPlan() {
   });
 }
 
-describe.sequential('PostgresMigrationRunner.execute', () => {
+describe('PostgresMigrationRunner.execute', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

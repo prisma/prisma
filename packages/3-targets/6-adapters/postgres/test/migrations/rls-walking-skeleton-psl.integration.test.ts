@@ -96,7 +96,9 @@ function buildPslContract() {
 // PSL walking-skeleton test
 // ============================================================================
 
-describe.sequential('RLS walking skeleton — PSL author → plan → apply → filter → verify', () => {
+describe('RLS walking skeleton — PSL author → plan → apply → filter → verify', {
+  concurrent: false,
+}, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver;
 

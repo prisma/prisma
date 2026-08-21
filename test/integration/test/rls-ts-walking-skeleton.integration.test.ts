@@ -201,7 +201,9 @@ async function selectVisibleIds(driver: PostgresControlDriver, uid: string): Pro
   return rows.rows.map((row) => row.id);
 }
 
-describe.sequential('RLS walking skeleton — TS author → plan → apply → filter → verify', () => {
+describe('RLS walking skeleton — TS author → plan → apply → filter → verify', {
+  concurrent: false,
+}, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>>;
   let driver: PostgresControlDriver;
 

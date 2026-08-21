@@ -123,7 +123,7 @@ async function migrate(driver: PostgresControlDriver, contract: PostgresContract
   }
 }
 
-describe.sequential('ORDER BY on an enum column — declaration order, PGlite', () => {
+describe('ORDER BY on an enum column — declaration order, PGlite', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

@@ -143,9 +143,13 @@ it('emits contract and verifies it matches on-disk artifacts', async () => {
 
 ---
 
-## Coverage thresholds (local vs CI)
+## Package coverage
 
-`pnpm test` does **not** enforce per-package coverage thresholds — only CI's **Coverage** job (`scripts/coverage-report.mjs`) does. So a package can pass `pnpm test` locally and still fail CI on Coverage. When you add or remove code in a package that has coverage thresholds (most do; see its `vitest.config.ts`), run `pnpm --filter <pkg> test:coverage` (or `pnpm coverage:packages`) locally before pushing, so a threshold miss surfaces at your desk rather than after a CI round-trip. Fix a miss by covering the genuinely-untested branches — never by lowering the threshold.
+Package coverage policy lives in each Vitest project's adjacent `coverage.config.json`; `vitest.config.ts` contains only test-project configuration. `pnpm coverage:packages` first builds the same package-only prerequisites as `pnpm test:packages`, then runs all 70 package Vitest projects with coverage in exactly one root `vitest run --coverage` process. Ordinary `pnpm test` and `pnpm test:packages` remain the faster noncoverage paths.
+
+Each entry in `coverage/coverage-final.json` is attributed to the package that owns the entry's source path, not to a test project. Examples are not coverage projects and remain separately exercised by `pnpm test:examples`.
+
+`pnpm coverage:report` reads the root run's `coverage/coverage-final.json`, prints package-level threshold diagnostics, and exits nonzero when the policy fails. CI runs this report immediately after `pnpm coverage:packages`, even when the coverage run failed, so available diagnostics are still shown. Root `coverage.config.json` warning-only entries temporarily relax coverage thresholds only; they never suppress Vitest assertion failures, whose root process exit always blocks CI. Fix a threshold miss by covering genuinely untested branches, never by lowering the threshold.
 
 ---
 
@@ -1002,15 +1006,17 @@ pnpm --filter @internal/sql-runtime test --watch
 ### Coverage Commands
 
 ```bash
-# Run tests with coverage for all packages (excluding examples)
+# Build package prerequisites and run one root package-coverage process
 pnpm coverage:packages
 
-# Run tests with coverage for a specific package
-pnpm --filter @internal/sql-runtime test:coverage
-
-# Run tests with coverage for all packages (including examples)
+# Alias for the same package-only coverage path
 pnpm test:coverage
+
+# Report policy results from coverage/coverage-final.json
+pnpm coverage:report
 ```
+
+Examples do not contribute to package coverage and continue to run separately with `pnpm test:examples`.
 
 ### Type Checking Tests
 

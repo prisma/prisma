@@ -101,7 +101,7 @@ function buildArrayContract(): Contract<SqlStorage> {
   };
 }
 
-describe.sequential('native array columns DDL', () => {
+describe('native array columns DDL', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

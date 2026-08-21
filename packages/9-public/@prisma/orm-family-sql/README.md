@@ -12,7 +12,7 @@ Applications receive it as an exact-pinned dependency of a SQL facade (`@prisma/
 | `/schema-ir` | SQL schema intermediate representation |
 | `/contract-psl`, `/contract-ts` | PSL and TypeScript contract authoring for SQL |
 | `/contract-emitter` | SQL contract emission |
-| `/relational-core`, `/lane-query-builder`, `/builder` | query lanes, relational AST, SQL builder |
+| `/relational-core`, `/builder` | query lanes, relational AST, SQL builder |
 | `/runtime` | SQL runtime |
 | `/orm-client` | the fluent, type-safe ORM client over SQL model collections |
 | `/family` | the family pack: control, migration, diff, IR, verification |

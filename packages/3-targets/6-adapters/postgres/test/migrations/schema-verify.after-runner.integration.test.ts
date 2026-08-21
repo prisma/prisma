@@ -32,7 +32,7 @@ import {
  * fails when a plan is invalid. These tests simulate production scenarios where
  * someone manually alters the database after a migration.
  */
-describe.sequential('Schema verification after runner - integration', () => {
+describe('Schema verification after runner - integration', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

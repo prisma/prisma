@@ -21,7 +21,7 @@ async function bootstrap(driver: PostgresControlDriver): Promise<void> {
   }
 }
 
-describe.sequential('PostgresControlAdapter marker/ledger writes (end-to-end)', () => {
+describe('PostgresControlAdapter marker/ledger writes (end-to-end)', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

@@ -118,7 +118,7 @@ async function queryPgConstraint(
 // Tests
 // ---------------------------------------------------------------------------
 
-describe.sequential('enum check-constraint — end-to-end PGlite', () => {
+describe('enum check-constraint — end-to-end PGlite', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

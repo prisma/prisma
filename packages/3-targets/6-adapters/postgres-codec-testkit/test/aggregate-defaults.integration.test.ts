@@ -48,7 +48,7 @@ function nativeTypeOf(codecId: string): string {
   return postgresCodecDescriptorRegistry.descriptorFor(codecId)!.nativeTypeFor({ codecId });
 }
 
-describe.sequential('PostgreSQL aggregate defaults', () => {
+describe('PostgreSQL aggregate defaults', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;
   let driver: Awaited<ReturnType<typeof postgresControlDriverDescriptor.create>> | undefined;
   let query: (sql: string) => Promise<ReadonlyArray<Record<string, unknown>>>;

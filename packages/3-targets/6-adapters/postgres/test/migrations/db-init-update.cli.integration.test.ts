@@ -220,7 +220,7 @@ function buildExtensionPack(args: {
   } as unknown as SqlControlExtensionDescriptor<'postgres'>;
 }
 
-describe.sequential('db init / db update aggregate pipeline (CLI) - postgres', () => {
+describe('db init / db update aggregate pipeline (CLI) - postgres', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
   let tmpRoot: string;

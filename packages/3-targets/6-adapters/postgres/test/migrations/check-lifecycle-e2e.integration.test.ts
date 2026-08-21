@@ -263,7 +263,7 @@ function itemCheckName(contract: Contract<SqlStorage>): string | undefined {
   return table?.checks?.[0]?.name;
 }
 
-describe.sequential('check-constraint lifecycle', () => {
+describe('check-constraint lifecycle', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

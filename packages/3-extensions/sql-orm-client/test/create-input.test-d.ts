@@ -1,4 +1,5 @@
 import type { Contract, StorageHashBase } from '@internal/contract/types';
+import { expectTypeOf, test } from 'vitest';
 import type { CreateInput } from '../src/types';
 
 type CreateInputStorage = {
@@ -106,3 +107,7 @@ export type CreateInputTypeAssertions = [
   Assert<Equal<RequiredKeys<Input>, 'email'>>,
   Assert<Equal<OptionalKeys<Input>, 'id' | 'name' | 'slug' | 'createdAt'>>,
 ];
+
+test('create input type assertions compile', () => {
+  expectTypeOf<CreateInputTypeAssertions>().toMatchTypeOf<readonly true[]>();
+});

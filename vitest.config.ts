@@ -1,4 +1,8 @@
+import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
+import { composeCoverageConfig } from './scripts/coverage-config';
+
+const coveragePolicy = composeCoverageConfig(import.meta.dirname);
 
 export default defineConfig({
   test: {
@@ -19,6 +23,13 @@ export default defineConfig({
     // of truth instead of adding a test-only env var.
     env: {
       PRISMA_NEXT_DISABLE_TELEMETRY: '1',
+    },
+    coverage: {
+      provider: 'v8',
+      reportsDirectory: resolve(import.meta.dirname, 'coverage'),
+      reporter: ['text', 'json'],
+      reportOnFailure: true,
+      ...coveragePolicy,
     },
   },
 });

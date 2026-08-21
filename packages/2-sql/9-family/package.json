@@ -9,7 +9,6 @@
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "lint": "biome check . --error-on-warnings",
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"

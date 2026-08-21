@@ -175,7 +175,7 @@ function buildSelectByIdAst(id: number): SelectAst {
 // Integration tests — shared runtime to avoid dev-database connection limits
 // ---------------------------------------------------------------------------
 
-describe.sequential('scalar-list codec round-trip (element-wise encode/decode)', () => {
+describe('scalar-list codec round-trip (element-wise encode/decode)', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;
   let runtime: Runtime | undefined;
 

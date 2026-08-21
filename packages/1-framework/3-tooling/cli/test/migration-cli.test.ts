@@ -32,6 +32,7 @@ vi.mock('@internal/framework-components/control', async () => {
   return { ...actual, createControlStack: createControlStackMock };
 });
 
+vi.resetModules();
 const { MigrationCLI } = await import('../src/migration-cli');
 
 /**

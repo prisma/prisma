@@ -61,7 +61,7 @@ const cases: readonly PostgresCodecConformanceCase[] = [
   schemaCase('string that is itself JSON text', type('string'), '{"not":"a document"}'),
 ];
 
-describe.sequential('arktype-json codec JSON-projection conformance', () => {
+describe('arktype-json codec JSON-projection conformance', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;
   let driver: Awaited<ReturnType<typeof postgresControlDriverDescriptor.create>> | undefined;
   let connection: ConformanceConnection | undefined;

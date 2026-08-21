@@ -372,7 +372,7 @@ interface LifecycleConfig {
 }
 
 function lifecycleSuite(cfg: LifecycleConfig): void {
-  describe.sequential(`managed native-enum lifecycle e2e — ${cfg.label}`, () => {
+  describe(`managed native-enum lifecycle e2e — ${cfg.label}`, { concurrent: false }, () => {
     let database: Awaited<ReturnType<typeof createTestDatabase>>;
     let driver: PostgresControlDriver;
 
@@ -500,7 +500,7 @@ lifecycleSuite({
   expectedColumnTypeSql: '"auth"."aal_level"',
 });
 
-describe.sequential('managed native-enum verify drift (R10)', () => {
+describe('managed native-enum verify drift (R10)', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 
@@ -591,7 +591,7 @@ describe.sequential('managed native-enum verify drift (R10)', () => {
   );
 });
 
-describe.sequential('external native enum stays untouched (R5)', () => {
+describe('external native enum stays untouched (R5)', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 
@@ -657,7 +657,7 @@ describe.sequential('external native enum stays untouched (R5)', () => {
   );
 });
 
-describe.sequential('managed native-enum suffix-append (R8)', () => {
+describe('managed native-enum suffix-append (R8)', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver;
 
@@ -765,7 +765,7 @@ describe.sequential('managed native-enum suffix-append (R8)', () => {
   );
 });
 
-describe.sequential('managed native-enum member-change refusal end-to-end (R9)', () => {
+describe('managed native-enum member-change refusal end-to-end (R9)', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 
@@ -834,7 +834,9 @@ describe.sequential('managed native-enum member-change refusal end-to-end (R9)',
   }
 });
 
-describe.sequential('external native enum: live-appended value produces ZERO ops (R5)', () => {
+describe('external native enum: live-appended value produces ZERO ops (R5)', {
+  concurrent: false,
+}, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

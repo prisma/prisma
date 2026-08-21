@@ -122,7 +122,7 @@ const manyVectorCases: readonly PostgresCodecConformanceCase[] = [
   },
 ];
 
-describe.sequential('pgvector codec JSON-projection conformance', () => {
+describe('pgvector codec JSON-projection conformance', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;
   let driver: Awaited<ReturnType<typeof postgresControlDriverDescriptor.create>> | undefined;
   let connection: ConformanceConnection | undefined;

@@ -87,7 +87,6 @@ The SQL domain (`packages/2-sql/`) contains SQL-specific packages organized by l
 |   |-- relational-core/ → @internal/sql-relational-core
 |   |-- sql-lane/      → @internal/sql-lane
 |   |-- orm-lane/      → @internal/sql-orm-lane
-|   |-- query-builder/ → @internal/sql-lane-query-builder
 |-- 5-runtime (runtime plane)
     |-- → @internal/sql-runtime
 |-- 9-family (migration plane)
@@ -275,7 +274,6 @@ Lanes consume targets and relational-core helpers to produce AST plans. Packages
 - `packages/2-sql/4-lanes/relational-core/` → `@internal/sql-relational-core` – shared schema/column builders, operation attachment, AST factories
 - `packages/2-sql/4-lanes/sql-lane/` → `@internal/sql-lane` – SQL DSL + raw lane (Phase 1 refactor keeps API stable while using shared factories)
 - `packages/2-sql/4-lanes/orm-lane/` → `@internal/sql-orm-lane` – ORM builder (Phase 1 removes dependency on `sql-lane`)
-- `packages/2-sql/4-lanes/query-builder/` → `@internal/sql-lane-query-builder` – Query builder lane
 
 ### Runtime Layer
 
@@ -350,7 +348,6 @@ Database adapters, drivers, and targets (dialects) live in the Targets domain as
 | `packages/2-sql/4-lanes/relational-core/` | `@internal/sql-relational-core` |
 | `packages/2-sql/4-lanes/sql-lane/` | `@internal/sql-lane` |
 | `packages/2-sql/4-lanes/orm-lane/` | `@internal/sql-orm-lane` |
-| `packages/2-sql/4-lanes/query-builder/` | `@internal/sql-lane-query-builder` |
 | `packages/2-sql/5-runtime/` | `@internal/sql-runtime` |
 | `packages/3-mongo-target/1-mongo-target/` | `@internal/target-mongo` |
 | `packages/3-mongo-target/2-mongo-adapter/` | `@internal/adapter-mongo` |

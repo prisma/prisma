@@ -78,7 +78,7 @@ const cases: readonly PostgresCodecConformanceCase[] = [
   ]),
 ];
 
-describe.sequential('PostgreSQL array lift conformance', () => {
+describe('PostgreSQL array lift conformance', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;
   let driver: Awaited<ReturnType<typeof postgresControlDriverDescriptor.create>> | undefined;
   let connection: ConformanceConnection | undefined;

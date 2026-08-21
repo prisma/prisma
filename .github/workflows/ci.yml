@@ -204,11 +204,14 @@ jobs:
       - name: Start cloudflare-worker Postgres (5433, pg_stat_statements)
         if: needs.changes.outputs.inert != 'true'
         run: pnpm --filter prisma-8-cloudflare-worker db:up
-      - name: Test packages
+      - name: Test packages with coverage
         if: needs.changes.outputs.inert != 'true'
-        run: pnpm test:packages
+        run: pnpm coverage:packages
+      - name: Report package coverage
+        if: ${{ !cancelled() && needs.changes.outputs.inert != 'true' }}
+        run: pnpm coverage:report
       - name: Test examples
-        if: needs.changes.outputs.inert != 'true'
+        if: ${{ !cancelled() && needs.changes.outputs.inert != 'true' }}
         run: pnpm test:examples
       - name: Check working tree is clean
         if: needs.changes.outputs.inert != 'true'
@@ -352,41 +355,3 @@ jobs:
       - name: Run the real-Supabase acceptance harness
         if: needs.changes.outputs.inert != 'true'
         run: pnpm --filter supabase-example test test/real-supabase.acceptance.test.ts
-
-  coverage:
-    name: Coverage
-    needs: [build, changes]
-    runs-on: ubuntu-latest
-    env:
-      TEST_TIMEOUT_MULTIPLIER: 2
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/setup
-      - name: Install dependencies
-        if: needs.changes.outputs.inert != 'true'
-        run: pnpm install --frozen-lockfile
-      - name: Build (restored from Turbo cache)
-        if: needs.changes.outputs.inert != 'true'
-        run: pnpm build
-      - name: Generate coverage and report
-        if: needs.changes.outputs.inert != 'true'
-        run: node scripts/coverage-report.mjs
-      - name: Check working tree is clean
-        if: needs.changes.outputs.inert != 'true'
-        run: pnpm check:clean-tree

@@ -327,6 +327,17 @@ const DEPENDENCY_MAPS = [
 ];
 
 const BIOME_CONFIG_NAMES = new Set(['biome.json', 'biome.jsonc']);
+const TEST_INFRASTRUCTURE_CONFIG_NAMES = new Set(['coverage.config.json']);
+
+function isTestInfrastructurePath(path) {
+  const name = basename(path);
+  return (
+    TEST_INFRASTRUCTURE_CONFIG_NAMES.has(name) ||
+    /^vitest\.config\.[cm]?[jt]s$/.test(name) ||
+    /(^|\/)tests?(\/|$)/.test(path) ||
+    /\.(test|spec)(-d)?\.[cm]?[jt]sx?$/.test(name)
+  );
+}
 
 /** Key-sorted JSON, so a reordered manifest compares equal to itself. */
 function canonicalJson(value) {
@@ -343,7 +354,7 @@ function canonicalJson(value) {
 /** The manifest with every dependency *version* blanked; names are kept.
  *  With `ignoreOwnVersion`, the package's own `version` field is blanked
  *  too — the shape a release sweep produces. */
-export function manifestShapeIgnoringVersions(text, ignoreOwnVersion = false) {
+function normalizeManifest(text, ignoreOwnVersion, ignoreScripts) {
   const parsed = JSON.parse(text);
   if (ignoreOwnVersion && typeof parsed.version === 'string') parsed.version = '';
   for (const map of DEPENDENCY_MAPS) {
@@ -352,19 +363,27 @@ export function manifestShapeIgnoringVersions(text, ignoreOwnVersion = false) {
       parsed[map] = Object.fromEntries(Object.keys(deps).map((name) => [name, '']));
     }
   }
+  if (ignoreScripts) {
+    delete parsed.scripts;
+  }
   return canonicalJson(parsed);
+}
+
+export function manifestShapeIgnoringVersions(text, ignoreOwnVersion = false) {
+  return normalizeManifest(text, ignoreOwnVersion, false);
 }
 
 /**
  * Whether a changed file can carry no downstream translation.
  *
- * Two shapes qualify, both of which a dependency bot produces by the dozen: a
- * manifest where only dependency versions moved, and a lint config where only
- * the `$schema` URL moved. Adding or removing a dependency does not qualify —
- * a name appearing or disappearing can signal an API change, so it still wants
- * a human to say so.
+ * Test files and test-runner configuration are not consumer inputs. Dependency
+ * version moves, package-local script changes, and lint schema URL updates
+ * likewise require no downstream code translation. Adding or removing a
+ * dependency still qualifies because a package name can signal an API change.
  */
 function isTranslationIrrelevant(repoRoot, prev, head, path, ignoreOwnVersion = false) {
+  if (isTestInfrastructurePath(path)) return true;
+
   const before = tryReadFileAtRef(repoRoot, prev, path);
   const after = tryReadFileAtRef(repoRoot, head, path);
   // An added or deleted file is a structural change, not a version move.
@@ -373,8 +392,8 @@ function isTranslationIrrelevant(repoRoot, prev, head, path, ignoreOwnVersion = 
   if (basename(path) === 'package.json') {
     try {
       return (
-        manifestShapeIgnoringVersions(before, ignoreOwnVersion) ===
-        manifestShapeIgnoringVersions(after, ignoreOwnVersion)
+        normalizeManifest(before, ignoreOwnVersion, true) ===
+        normalizeManifest(after, ignoreOwnVersion, true)
       );
     } catch {
       return false;

@@ -104,7 +104,7 @@ async function createLivePolicy(driver: PostgresControlDriver, name: string): Pr
   );
 }
 
-describe.sequential('out-of-band body drift on an exact-named policy', () => {
+describe('out-of-band body drift on an exact-named policy', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

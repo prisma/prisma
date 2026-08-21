@@ -32,12 +32,6 @@
       "inputs": ["src/**", "test/**", "dist/**"],
       "env": ["TEST_TIMEOUT_MULTIPLIER"]
     },
-    "test:coverage": {
-      "dependsOn": ["^build"],
-      "inputs": ["src/**", "test/**", "dist/**"],
-      "outputs": ["coverage/**"],
-      "env": ["TEST_TIMEOUT_MULTIPLIER"]
-    },
     // `build` as well as `^build`: several packages import their own published
     // subpaths (e.g. `@internal/extension-pgvector/pack`), which resolve into
     // their own dist. Without the self-edge those typechecks read whatever dist

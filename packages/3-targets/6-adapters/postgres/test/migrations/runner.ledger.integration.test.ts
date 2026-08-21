@@ -73,7 +73,7 @@ async function countContractRows(driver: PostgresControlDriver): Promise<number>
   return Number(result.rows[0]?.n ?? 0);
 }
 
-describe.sequential('PostgresMigrationRunner - per-edge ledger', () => {
+describe('PostgresMigrationRunner - per-edge ledger', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

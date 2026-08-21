@@ -21,7 +21,7 @@ import type { ConformanceConnection } from '../src/index';
 import { runPostgresCodecProjection } from '../src/index';
 import { postgresConformanceCases } from './codec-conformance/cases';
 
-describe.sequential('PostgreSQL codec JSON-projection conformance', () => {
+describe('PostgreSQL codec JSON-projection conformance', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;
   let driver: Awaited<ReturnType<typeof postgresControlDriverDescriptor.create>> | undefined;
   let connection: ConformanceConnection | undefined;

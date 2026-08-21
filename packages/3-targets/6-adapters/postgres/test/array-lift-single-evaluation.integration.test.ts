@@ -44,7 +44,7 @@ function volatileSource() {
   ]);
 }
 
-describe.sequential('array lift evaluates its source once', () => {
+describe('array lift evaluates its source once', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;
   let driver: Awaited<ReturnType<typeof postgresControlDriverDescriptor.create>> | undefined;
 
