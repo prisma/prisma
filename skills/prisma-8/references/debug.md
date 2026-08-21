@@ -24,7 +24,7 @@ When a Prisma Next call fails, the framework returns a **structured envelope**. 
 
 Prisma Next emits **two distinct envelopes** depending on which seam threw. Read which one you have *before* routing.
 
-**1. CLI envelope** — produced by `prisma-next ...` commands (emit, db init/update/verify/sign/schema, migration plan/apply/show/status, init). Shape (see `CliErrorEnvelope` in `packages/1-framework/1-core/errors/src/control.ts`):
+**1. CLI envelope** — produced by `prisma ...` commands (emit, db init/update/verify/sign/schema, migration plan/apply/show/status, init). Shape (see `CliErrorEnvelope` in `packages/1-framework/1-core/errors/src/control.ts`):
 
 ```json
 {
@@ -77,18 +77,18 @@ The single source of truth: read the envelope, find the row by `code` (or `meta.
 
 | Code | Where it surfaces | Next move |
 |---|---|---|
-| `PN-CLI-4001` *Config file not found* | Most `prisma-next` commands | Run `prisma-next init`, or pass `--config <path>`. |
+| `PN-CLI-4001` *Config file not found* | Most `prisma` commands | Run `prisma orm init`, or pass `--config <path>`. |
 | `PN-CLI-4002` *Contract configuration missing* | `contract emit`, `db *` | Add `contract: { ... }` to `prisma.config.ts`. See `references/contract.md`. |
-| `PN-CLI-4003` *Contract validation failed* | `contract emit`, `db *` | Re-run `pnpm prisma-next contract emit` after fixing the contract source named in `where.path`. See `references/contract.md`. |
+| `PN-CLI-4003` *Contract validation failed* | `contract emit`, `db *` | Re-run `pnpm prisma-cli contract emit` after fixing the contract source named in `where.path`. See `references/contract.md`. |
 | `PN-CLI-4005` *Database connection is required* | `db *`, `migrate`, `migration status` | Pass `--db <url>` or set `db.connection` in `prisma.config.ts`. |
 | `PN-CLI-4011` *Missing extension packs in config* | `contract emit` (e.g. contract uses `pgvector.Vector(...)` but config does not list the pgvector pack) | Add the descriptors named in `meta.missingExtensions` to `extensions` in `prisma.config.ts`. See `references/contract.md`. |
 | `PN-CLI-4020` *Migration planning failed* | `db init`, `db update` | Inspect `meta.conflicts`. Recovery is per-conflict — chain to `references/migrations.md`. |
-| `PN-CLI-5002/5003/5004/…` *Init errors* | `prisma-next init` | Re-run with the missing/invalid flags listed in `meta.missingFlags` or `meta.allowed`. |
+| `PN-CLI-5002/5003/5004/…` *Init errors* | `prisma orm init` | Re-run with the missing/invalid flags listed in `meta.missingFlags` or `meta.allowed`. |
 | `PN-MIG-2001` *Unfilled migration placeholder* | `node migrations/app/<dir>/migration.ts` (self-emit) or `migrate` | Edit `migration.ts`, replace the named `placeholder("<slot>")` with a real query closure, self-emit. See `references/migrations.md`. |
 | `PN-MIG-2002` *migration.ts not found* | Reading a migration package | Restore from version control or scaffold a fresh package with `migration plan`. |
 | `PN-MIG-2003` *Invalid default export* | Loading `migration.ts` | Use `export default class extends Migration { ... }` (or factory `() => ({ ... })`). See `references/migrations.md`. |
 | `PN-MIG-2005` *dataTransform contract mismatch* | Building a data-transform query plan | Pass the same `endContract` reference to both `dataTransform(endContract, …)` and the query-builder context. |
-| `PN-RUN-3001` *Database not signed* | `db verify`, runtime startup | DB has no marker yet. Run `prisma-next db init --db <url>` (baseline empty DB) or `db update --db <url>` (apply contract directly). |
+| `PN-RUN-3001` *Database not signed* | `db verify`, runtime startup | DB has no marker yet. Run `prisma db init --db <url>` (baseline empty DB) or `db update --db <url>` (apply contract directly). |
 | `PN-RUN-3002` *Hash mismatch* | `db verify`, runtime startup | Marker disagrees with contract hash. Either migrate forward (`migrate` / `db update`), or — if the DB is correct after a manual fix-up — `db sign`. See `references/migrations.md`. |
 | `PN-RUN-3003` *Target mismatch* | Runtime startup | Contract target ≠ config target; align them (see `meta.expected` / `meta.actual`). |
 | `PN-RUN-3004` *Schema verification failed* | `db verify` (full mode) | Inspect `meta.verificationResult`. Run `db update` to reconcile, or adjust contract. |
@@ -106,8 +106,8 @@ The single source of truth: read the envelope, find the row by `code` (or `meta.
 | `CONTRACT.MARKER_MISSING` / `CONTRACT.MARKER_MISMATCH` | Runtime, marker check before executing | Same family as `PN-RUN-3001` / `PN-RUN-3002` but raised in-process by the runtime rather than a CLI. Recovery is the same. |
 | `RUNTIME.ABORTED` (`details.phase` = `encode\|decode\|stream\|beforeExecute\|afterExecute\|onRow`) | Runtime, when an `AbortSignal` fires mid-execute | Cancellation, not a bug; surface to the caller. |
 | `SqlQueryError` (no `PN-` code) | Raw-SQL paths surfacing a driver error | Inspect `sqlState` + `constraint` + `table` + `column`. Postgres `23505` = unique violation, `23503` = foreign-key violation, etc. Fix the data or the schema. |
-| TypeScript error mentioning a capability (e.g. `returning()` not on the type, `include` of a many-relation off a many-load) | Authoring-time, before any envelope fires | Capability gates are declared in the **contract** (`capabilities` block, namespaced by target/family), not in `prisma.config.ts`. Route to `references/contract.md` for capability declaration and to `references/queries.md` for which method gates on which capability. Re-emit (`pnpm prisma-next contract emit`) after enabling. |
-| TypeScript error mentioning a missing field/method on `db.orm.<Model>` or a stale `Contract` shape | Authoring-time | Re-emit (`pnpm prisma-next contract emit`); confirm `db.ts` instantiates with `postgres<Contract, TypeMaps>(...)` (the type parameters propagate the contract types). See `references/runtime.md` and `references/contract.md`. |
+| TypeScript error mentioning a capability (e.g. `returning()` not on the type, `include` of a many-relation off a many-load) | Authoring-time, before any envelope fires | Capability gates are declared in the **contract** (`capabilities` block, namespaced by target/family), not in `prisma.config.ts`. Route to `references/contract.md` for capability declaration and to `references/queries.md` for which method gates on which capability. Re-emit (`pnpm prisma-cli contract emit`) after enabling. |
+| TypeScript error mentioning a missing field/method on `db.orm.<Model>` or a stale `Contract` shape | Authoring-time | Re-emit (`pnpm prisma-cli contract emit`); confirm `db.ts` instantiates with `postgres<Contract, TypeMaps>(...)` (the type parameters propagate the contract types). See `references/runtime.md` and `references/contract.md`. |
 
 If the envelope's `code` is not in this table, follow the envelope's `fix` field literally — it's the framework's first-party next move. If `fix` is empty or unhelpful, escalate via `references/feedback.md`.
 
@@ -121,7 +121,7 @@ If the envelope's `code` is not in this table, follow the envelope's `fix` field
 
 ## What Prisma Next doesn't do yet
 
-- **Studio / GUI database browser.** No first-party Studio. Workaround: `prisma-next db schema` for a CLI tree of the live schema, or use a third-party tool (TablePlus, DataGrip, `psql`) against your `DATABASE_URL`. If you need a built-in GUI, file a feature request via `references/feedback.md`.
+- **Studio / GUI database browser.** No first-party Studio. Workaround: `prisma db schema` for a CLI tree of the live schema, or use a third-party tool (TablePlus, DataGrip, `psql`) against your `DATABASE_URL`. If you need a built-in GUI, file a feature request via `references/feedback.md`.
 - **First-class query logger middleware.** No built-in "log every query" middleware ships with the framework. Workaround: write a small custom middleware that wraps each operation (see `references/runtime.md` for middleware composition). If you need a built-in query log, file a feature request via `references/feedback.md`.
 - **`EXPLAIN` integration.** No first-class `.explain()` on plans. Workaround: write the EXPLAIN as a raw query (``db.raw.sql`EXPLAIN ANALYZE ...` ``; see `references/queries.md`). If you need first-class EXPLAIN, file a feature request via `references/feedback.md`.
 - **Prepared-statement caching as a user-facing surface.** Adapters prepare under the hood for parameterized queries, but you cannot pre-prepare and re-execute a statement by name. Workaround: use TypedSQL (see `references/queries.md`). If you need prepared statements as a first-class API, file a feature request via `references/feedback.md`.
