@@ -1,0 +1,1 @@
+{"type":"config","name":"Speed up Test CI job on GitHub-hosted runners","metricName":"ci_test_seconds","metricUnit":"s","bestDirection":"lower"}
