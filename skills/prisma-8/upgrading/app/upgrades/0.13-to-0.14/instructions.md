@@ -332,7 +332,7 @@ override get operations() {
 The colocated script applies this transformation automatically. Run it from your project root:
 
 ```bash
-pnpm exec tsx node_modules/.skills/prisma-next-upgrade/upgrades/0.13-to-0.14/migration-op-factories-to-methods.ts
+pnpm exec tsx .claude/skills/prisma-8/upgrading/app/upgrades/0.13-to-0.14/migration-op-factories-to-methods.ts
 ```
 
 ## `postgres-contract-serializer`

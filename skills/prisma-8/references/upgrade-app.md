@@ -1,25 +1,14 @@
----
-name: prisma-next-upgrade
-description: >-
-  Upgrade Prisma Next in your app. Bumps every `@internal/*` dependency
-  from the version pinned in the lockfile to the requested target (or npm
-  `latest`), applies any required code-translation steps from the
-  per-transition upgrade instructions, validates with the project's own
-  typecheck + tests, and commits each minor step on its own. Use when the
-  user asks to "upgrade Prisma Next", "bump Prisma Next", "move to Prisma
-  Next X.Y", or asks an agent to deal with an `@internal/*` minor bump
-  in their app.
----
+# Upgrade Prisma 8 (user app)
 
-# Upgrade Prisma Next (user app)
+This reference upgrades a project that **consumes** Prisma 8 via the public package API (`@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, etc.). If the project is itself a Prisma 8 *extension*, use [`upgrade-extension.md`](upgrade-extension.md) instead — or both, if the repo contains both an app and an extension package.
 
-This skill upgrades a project that **consumes** Prisma Next via the public package API (`@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, etc.). If the project is itself a Prisma Next *extension*, use the `prisma-8-extension-upgrade` skill instead — or both, if the repo contains both an app and an extension package.
+The per-transition instructions this reference reads live under [`../upgrading/app/upgrades/`](../upgrading/app/upgrades/).
 
-## Step 0 — Ensure the skill is up to date
+## Step 0 — Upgrade to the newest instructions, then re-read
 
-Before anything else, ensure this skill is installed at `@latest` and reload it. Bug fixes to *old* per-transition upgrade instructions ship in the latest skill release as part of its cumulative set; running against a stale skill can apply a known-broken translation.
+The upgrade instructions ship inside the installed Prisma packages, so the copy on disk describes the version currently installed — not the version being upgraded *to*. Bug fixes to *old* per-transition instructions ship with each release as part of the cumulative set, so the newest copy is the one to run.
 
-If the agent runtime supports an in-session refresh, perform it now. Otherwise, exit and ask the user to re-install (`pnpm dlx skills add prisma/prisma/skills --skill prisma-next-upgrade -y`), then re-invoke. The upgrade-skill install is intentionally unpinned (always `main`) — the cumulative instruction set is the source of truth, and the latest release fixes apply to every prior transition.
+Do the version bump first (step 1 of the per-step flow below), re-sync the skills from the newly installed packages (`prisma skills sync`), and re-read this reference and the per-transition instructions before applying any code translation. If the agent runtime supports an in-session refresh, perform it after the sync; otherwise finish the session's reasoning against the re-read files.
 
 ## Pre-flight — extension compatibility
 
@@ -40,12 +29,12 @@ If `prisma.config.ts` is absent or names no extensions, skip the pre-flight.
 
 ## Role detection
 
-This skill applies when the project **consumes** Prisma Next:
+This flow applies when the project **consumes** Prisma Next:
 
 - `package.json` declares one or more `@internal/*` packages under `dependencies` / `devDependencies`, and
 - the package is *not* itself an extension (no `@internal/contract` (or other SPI) under `dependencies`/`peerDependencies`; name does not match `^@.*/extension-`; not referenced from a sibling app's `prisma.config.ts`).
 
-If the project also matches the extension-author role, install the `prisma-8-extension-upgrade` skill (`pnpm dlx skills add prisma/prisma/skills --skill prisma-8-extension-upgrade -y`) and run **this** flow first, then that one in the same session. If detection is ambiguous, ask the user.
+If the project also matches the extension-author role, run **this** flow first and then [`upgrade-extension.md`](upgrade-extension.md) in the same session. If detection is ambiguous, ask the user.
 
 ## Version detection
 
@@ -62,7 +51,7 @@ If the from-to delta spans more than one release (e.g. `0.6 → 0.8`), build the
 0.6 → 0.7 → 0.8
 ```
 
-The `upgrades/` directories in this package name the steps — read the chain off the directory names rather than deriving it arithmetically. Each directory is `<from>-to-<to>`. A step is one minor while the version line is stable (`0.7-to-0.8`); on the v8 release-candidate line a step is one release candidate (`8.0.0-rc.1-to-8.0.0-rc.2`), because an RC may carry breaking changes and each one needs its own translation. Moving onto the RC line from the last stable minor is a single step of its own (`0.17-to-8.0.0-rc.1`).
+The [`../upgrading/app/upgrades/`](../upgrading/app/upgrades/) directories name the steps — read the chain off the directory names rather than deriving it arithmetically. Each directory is `<from>-to-<to>`. A step is one minor while the version line is stable (`0.7-to-0.8`); on the v8 release-candidate line a step is one release candidate (`8.0.0-rc.1-to-8.0.0-rc.2`), because an RC may carry breaking changes and each one needs its own translation. Moving onto the RC line from the last stable minor is a single step of its own (`0.17-to-8.0.0-rc.1`).
 
 Apply each step in order, fully: bump, install, run instructions, validate, commit — before moving to the next. Halt the chain on the first failed step; do not skip ahead.
 
@@ -72,11 +61,11 @@ The chain order does not depend on which extensions are installed; the pre-fligh
 
 For each `(from, to)` step in the chain:
 
-1. **Bump `@internal/*` deps.** Rewrite every `@internal/*` entry in the project's `package.json` to the exact `<to>` version (no caret, no tilde). All entries advance to the same version. Cover `dependencies` and `devDependencies`. The upgrade skill itself is delivered through `pnpm dlx skills add` and lives under `.agents/skills/prisma-next-upgrade/` (or the equivalent CLI-managed directory) — there is no `@internal/upgrade-skill` npm entry to bump.
+1. **Bump `@internal/*` deps.** Rewrite every `@internal/*` entry in the project's `package.json` to the exact `<to>` version (no caret, no tilde). All entries advance to the same version. Cover `dependencies` and `devDependencies`. The skill itself ships inside the Prisma packages, so bumping them is what updates it; there is no separate skill package to bump.
 
 2. **Install.** Run `pnpm install` (or the project's lockfile-managing command). The project's code is now broken against the new types — the upgrade instructions for `<from> → <to>` exist to fix it.
 
-3. **Read the upgrade instructions.** Load `upgrades/<from>-to-<to>/instructions.md` from this skill package. Parse the YAML frontmatter and pay particular attention to its `changes[]` array.
+3. **Read the upgrade instructions.** Re-sync the skills (`prisma skills sync`) so the tree matches the version just installed, then load `../upgrading/app/upgrades/<from>-to-<to>/instructions.md`. Parse the YAML frontmatter and pay particular attention to its `changes[]` array.
 
 4. **Apply each change.** For each entry in `changes[]`:
    - If the entry has a `detection` block (glob + content predicate), run it; skip the change if no files match. No `detection` → apply unconditionally.

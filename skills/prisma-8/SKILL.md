@@ -10,13 +10,20 @@ description: >-
   questions like "what is Prisma Next" or comparisons to other ORMs. Signals
   that this skill applies: @internal/* imports, prisma.config.ts,
   contract.prisma / contract.json / contract.d.ts, the prisma-next CLI,
-  PN-* error codes. Does not apply to Prisma ORM 7 or earlier
+  PN-* error codes. Also covers upgrading Prisma in a project — "upgrade
+  Prisma 8", "bump Prisma Next", "move to Prisma Next X.Y", or dealing
+  with an @internal/* version bump, in a consumer app or in an extension
+  package. Does not apply to Prisma ORM 7 or earlier
   (schema.prisma + @prisma/client projects).
+library: '@prisma/orm-postgres'
+library_version: 8.0.0-rc.4
 ---
 
 # Prisma Next (Prisma 8)
 
 > **Edit your data contract. Prisma handles the rest.**
+
+Prisma 8 moves fast, and your training data about it is very likely outdated. This skill ships inside the installed Prisma packages, so it describes the exact version this project has — treat it and its reference files as the source of truth, over anything you remember about Prisma. The `library_version` in this file's frontmatter is the version it was published with; if it does not match the project's installed Prisma packages, run `prisma skills sync` and re-read.
 
 Prisma Next is a contract-first data layer. This skill routes every Prisma Next task to the right reference file — open the reference before writing code; do not answer from this file alone.
 
@@ -47,6 +54,8 @@ Open the reference whose triggers match the task. If more than one matches, open
 | Build-tool integration | [`references/build.md`](references/build.md) | Vite plugin (`@internal/vite-plugin-contract-emit`, Vite 7/8), `vite.config.ts`, contract emit on save, HMR / dev server, Next.js / Webpack / esbuild / Rollup / Turbopack (named gaps, not fabricated) |
 | Supabase | [`references/supabase.md`](references/supabase.md) | `@internal/extension-supabase`, RLS, row level security, policies (`policy_select` / `policy_update` / `@@rls`, `auth.uid()`), role binding (`asUser(jwt)` / `asAnon()` / `asServiceRole()`), `auth.users`, cross-space FKs to `supabase:auth.AuthUser`, JWT / JWKS (`SUPABASE_JWKS_URL`, `SUPABASE_JWT_SECRET`), `SUPABASE.JWT_INVALID`, `SUPABASE.CONFIG_INVALID`, `RoleBoundDb`, session pooler |
 | Debug an error | [`references/debug.md`](references/debug.md) | any structured error envelope (code, domain, severity, why, fix, meta), emit failed, query won't typecheck, query crashed, migration won't apply, `MIGRATION.HASH_MISMATCH`, `BUDGET.ROWS_EXCEEDED`, `BUDGET.TIME_EXCEEDED`, `RUNTIME.ABORTED`, `PLAN.HASH_MISMATCH`, `CONTRACT.MARKER_MISSING`, PN-RUN-* / PN-MIG-* / PN-CLI-* / PN-SCHEMA-* codes, drift, capability missing, planner conflict, EXPLAIN, query log, script won't exit / close connection |
+| Upgrade Prisma in an app | [`references/upgrade-app.md`](references/upgrade-app.md) | "upgrade Prisma", "upgrade Prisma Next", "bump Prisma Next", "move to Prisma Next X.Y", `@internal/*` version bump in an application, per-transition upgrade instructions in [`upgrading/app/upgrades/`](upgrading/app/upgrades/), extension-pin pre-flight, `PN-UPGRADE-*` |
+| Upgrade Prisma in an extension | [`references/upgrade-extension.md`](references/upgrade-extension.md) | the same request in a package that *is* a Prisma extension (`@internal/contract` / SPI dependency, `^@.*/extension-` name), `prisma-8-check-pins`, exact-pin rule, per-transition instructions in [`upgrading/extension/upgrades/`](upgrading/extension/upgrades/) |
 | File feedback / ask the team | [`references/feedback.md`](references/feedback.md) | bug report, file an issue, feature request, missing feature, capability gap, "this is broken", surprising behaviour, Q&A / design discussion, ask the Prisma team, Prisma Discord (pris.ly/discord), extension-author questions |
 
 ## Routing rules
@@ -62,6 +71,7 @@ For a vague prompt, ask **one** disambiguating question. Pick from:
 - *"Is this about wiring Prisma Next into your build tool (Vite / Next.js / …), or about wiring `db.ts` and middleware at runtime?"* → [`references/build.md`](references/build.md) vs [`references/runtime.md`](references/runtime.md).
 - *"What error or symptom are you seeing?"* → [`references/debug.md`](references/debug.md).
 - *"Do you want to report this as a bug to the Prisma Next team, or is this a feature request?"* → [`references/feedback.md`](references/feedback.md).
+- *"Is the project you want to upgrade an application, or a Prisma extension package?"* → [`references/upgrade-app.md`](references/upgrade-app.md) vs [`references/upgrade-extension.md`](references/upgrade-extension.md).
 
 If you still can't tell which reference applies, ask the user what they want to do. Do not guess.
 
