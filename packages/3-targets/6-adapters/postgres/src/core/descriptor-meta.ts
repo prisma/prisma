@@ -12,6 +12,8 @@ import {
   PG_BOOL_CODEC_ID,
   PG_BYTEA_CODEC_ID,
   PG_CHAR_CODEC_ID,
+  PG_DATE_STRING_CODEC_ID,
+  PG_DATE_TEMPORAL_CODEC_ID,
   PG_FLOAT_CODEC_ID,
   PG_FLOAT4_CODEC_ID,
   PG_FLOAT8_CODEC_ID,
@@ -25,9 +27,12 @@ import {
   PG_JSONB_CODEC_ID,
   PG_NUMERIC_CODEC_ID,
   PG_TEXT_CODEC_ID,
-  PG_TIME_CODEC_ID,
-  PG_TIMESTAMP_CODEC_ID,
-  PG_TIMESTAMPTZ_CODEC_ID,
+  PG_TIME_STRING_CODEC_ID,
+  PG_TIME_TEMPORAL_CODEC_ID,
+  PG_TIMESTAMP_STRING_CODEC_ID,
+  PG_TIMESTAMP_TEMPORAL_CODEC_ID,
+  PG_TIMESTAMPTZ_STRING_CODEC_ID,
+  PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
   PG_TIMETZ_CODEC_ID,
   PG_UUID_CODEC_ID,
   PG_VARBIT_CODEC_ID,
@@ -36,7 +41,6 @@ import {
   SQL_FLOAT_CODEC_ID,
   SQL_INT_CODEC_ID,
   SQL_TEXT_CODEC_ID,
-  SQL_TIMESTAMP_CODEC_ID,
   SQL_VARCHAR_CODEC_ID,
 } from '@internal/target-postgres/codec-ids';
 import { postgresCodecRegistry } from '@internal/target-postgres/codecs';
@@ -80,15 +84,24 @@ function expandLength({ nativeType, typeParams }: ExpandNativeTypeInput): string
   return `${nativeType}(${length})`;
 }
 
+/**
+ * Zero is a precision, not a missing one: `timestamp(0)`, `timestamptz(0)`, `time(0)`, `timetz(0)`
+ * and `interval(0)` all name whole-second columns in PostgreSQL. The authoring surface says so too
+ * — every precision-bearing type constructor declares `minimum: 0` — so rejecting it here made a
+ * schema the emitter accepts fail later, during native-type expansion, with a planning error.
+ *
+ * Length is the opposite case and keeps {@link isPositiveInteger}: `character(0)` and `bit(0)` are
+ * not types PostgreSQL has. So is `numeric`, whose precision must be at least 1.
+ */
 function expandPrecision({ nativeType, typeParams }: ExpandNativeTypeInput): string {
   if (!typeParams || !('precision' in typeParams)) {
     return nativeType;
   }
   const precision = typeParams['precision'];
-  if (!isPositiveInteger(precision)) {
+  if (!isNonNegativeInteger(precision)) {
     throw adapterError(
       'RUNTIME.TYPE_PARAMS_INVALID',
-      `Invalid "precision" type parameter for "${nativeType}": expected a positive integer, got ${JSON.stringify(precision)}`,
+      `Invalid "precision" type parameter for "${nativeType}": expected a non-negative integer, got ${JSON.stringify(precision)}`,
       { meta: { nativeType, param: 'precision', received: precision } },
     );
   }
@@ -214,19 +227,24 @@ export const postgresAdapterDescriptorMeta = {
         codecTypeImport('Time'),
         codecTypeImport('Timetz'),
         codecTypeImport('Interval'),
+        codecTypeImport('TimestampString'),
+        codecTypeImport('TimestamptzString'),
+        codecTypeImport('TimeString'),
       ],
       controlPlaneHooks: {
         [SQL_CHAR_CODEC_ID]: lengthHooks,
         [SQL_VARCHAR_CODEC_ID]: lengthHooks,
-        [SQL_TIMESTAMP_CODEC_ID]: precisionHooks,
         [PG_CHAR_CODEC_ID]: lengthHooks,
         [PG_VARCHAR_CODEC_ID]: lengthHooks,
         [PG_NUMERIC_CODEC_ID]: numericHooks,
         [PG_BIT_CODEC_ID]: lengthHooks,
         [PG_VARBIT_CODEC_ID]: lengthHooks,
-        [PG_TIMESTAMP_CODEC_ID]: precisionHooks,
-        [PG_TIMESTAMPTZ_CODEC_ID]: precisionHooks,
-        [PG_TIME_CODEC_ID]: precisionHooks,
+        [PG_TIMESTAMP_TEMPORAL_CODEC_ID]: precisionHooks,
+        [PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID]: precisionHooks,
+        [PG_TIME_TEMPORAL_CODEC_ID]: precisionHooks,
+        [PG_TIMESTAMP_STRING_CODEC_ID]: precisionHooks,
+        [PG_TIMESTAMPTZ_STRING_CODEC_ID]: precisionHooks,
+        [PG_TIME_STRING_CODEC_ID]: precisionHooks,
         [PG_TIMETZ_CODEC_ID]: precisionHooks,
         [PG_INTERVAL_CODEC_ID]: precisionHooks,
         [PG_JSON_CODEC_ID]: identityHooks,
@@ -248,12 +266,6 @@ export const postgresAdapterDescriptorMeta = {
       },
       { typeId: SQL_INT_CODEC_ID, familyId: 'sql', targetId: 'postgres', nativeType: 'int4' },
       { typeId: SQL_FLOAT_CODEC_ID, familyId: 'sql', targetId: 'postgres', nativeType: 'float8' },
-      {
-        typeId: SQL_TIMESTAMP_CODEC_ID,
-        familyId: 'sql',
-        targetId: 'postgres',
-        nativeType: 'timestamp',
-      },
       { typeId: PG_CHAR_CODEC_ID, familyId: 'sql', targetId: 'postgres', nativeType: 'character' },
       {
         typeId: PG_VARCHAR_CODEC_ID,
@@ -270,18 +282,53 @@ export const postgresAdapterDescriptorMeta = {
       { typeId: PG_FLOAT8_CODEC_ID, familyId: 'sql', targetId: 'postgres', nativeType: 'float8' },
       { typeId: PG_NUMERIC_CODEC_ID, familyId: 'sql', targetId: 'postgres', nativeType: 'numeric' },
       {
-        typeId: PG_TIMESTAMP_CODEC_ID,
+        typeId: PG_DATE_TEMPORAL_CODEC_ID,
+        familyId: 'sql',
+        targetId: 'postgres',
+        nativeType: 'date',
+      },
+      {
+        typeId: PG_TIMESTAMP_TEMPORAL_CODEC_ID,
         familyId: 'sql',
         targetId: 'postgres',
         nativeType: 'timestamp',
       },
       {
-        typeId: PG_TIMESTAMPTZ_CODEC_ID,
+        typeId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
         familyId: 'sql',
         targetId: 'postgres',
         nativeType: 'timestamptz',
       },
-      { typeId: PG_TIME_CODEC_ID, familyId: 'sql', targetId: 'postgres', nativeType: 'time' },
+      {
+        typeId: PG_TIME_TEMPORAL_CODEC_ID,
+        familyId: 'sql',
+        targetId: 'postgres',
+        nativeType: 'time',
+      },
+      {
+        typeId: PG_DATE_STRING_CODEC_ID,
+        familyId: 'sql',
+        targetId: 'postgres',
+        nativeType: 'date',
+      },
+      {
+        typeId: PG_TIMESTAMP_STRING_CODEC_ID,
+        familyId: 'sql',
+        targetId: 'postgres',
+        nativeType: 'timestamp',
+      },
+      {
+        typeId: PG_TIMESTAMPTZ_STRING_CODEC_ID,
+        familyId: 'sql',
+        targetId: 'postgres',
+        nativeType: 'timestamptz',
+      },
+      {
+        typeId: PG_TIME_STRING_CODEC_ID,
+        familyId: 'sql',
+        targetId: 'postgres',
+        nativeType: 'time',
+      },
       { typeId: PG_TIMETZ_CODEC_ID, familyId: 'sql', targetId: 'postgres', nativeType: 'timetz' },
       { typeId: PG_BOOL_CODEC_ID, familyId: 'sql', targetId: 'postgres', nativeType: 'bool' },
       { typeId: PG_BIT_CODEC_ID, familyId: 'sql', targetId: 'postgres', nativeType: 'bit' },

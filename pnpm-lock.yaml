@@ -494,6 +494,9 @@ importers:
       pg:
         specifier: 'catalog:'
         version: 8.22.0
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
     devDependencies:
       '@cloudflare/vitest-pool-workers':
         specifier: 0.20.3
@@ -589,6 +592,9 @@ importers:
       jsdom:
         specifier: ^29.0.2
         version: 29.1.1(@noble/hashes@2.2.0)
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
       tsx:
         specifier: 'catalog:'
         version: 4.23.12
@@ -757,6 +763,9 @@ importers:
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -3855,6 +3864,9 @@ importers:
       '@repo/tsdown':
         specifier: workspace:8.0.0-rc.4
         version: link:../../../0-config/tsdown
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
@@ -4007,9 +4019,18 @@ importers:
       '@repo/tsdown':
         specifier: workspace:8.0.0-rc.4
         version: link:../../../0-config/tsdown
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.4
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
+      pg:
+        specifier: 'catalog:'
+        version: 8.22.0
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
@@ -4059,6 +4080,9 @@ importers:
       '@repo/tsdown':
         specifier: workspace:8.0.0-rc.4
         version: link:../../../0-config/tsdown
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
@@ -5136,6 +5160,9 @@ importers:
       pg:
         specifier: 'catalog:'
         version: 8.22.0
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -5359,6 +5386,9 @@ importers:
       strip-ansi:
         specifier: ^7.2.0
         version: 7.2.0
+      temporal-polyfill:
+        specifier: ^1.0.4
+        version: 1.0.4
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -10753,6 +10783,15 @@ packages:
   teex@1.0.1:
     resolution: {integrity: sha512-eYE6iEI62Ni1H8oIa7KlDU6uQBtqr4Eajni3wX7rpfXD8ysFx8z0+dri+KWEPWpBsxXfxu58x/0jvTVT1ekOSg==}
 
+  temporal-polyfill@1.0.4:
+    resolution: {integrity: sha512-MLEU0qOD2uXlz24oINNtdLZQl8RgmMxSnRtKEGZGGetTJjlRwQJjk+VsJ4EREaUoiaTb8NJOcUiKtoAiWn9EBg==}
+
+  temporal-spec@1.0.1:
+    resolution: {integrity: sha512-wxVoanmDeavXie1vu2JaQ3WIc3JZnWAOYFBsJyATaVsXsycKYUflGsyBmrRSnoCpZJpwPyr38VpgSUlQ8CbFxg==}
+
+  temporal-utils@1.0.2:
+    resolution: {integrity: sha512-1B8Dl4KzrOvsNUlpoWGno2VLQlxroLjDgc5NBjVC9ax9ymdo+ezfyvhyjEMx+IVfhINr6CIG2gcnlP95iRrybQ==}
+
   text-decoder@1.2.7:
     resolution: {integrity: sha512-vlLytXkeP4xvEq2otHeJfSQIRyWxo/oZGEbXrtEEF9Hnmrdly59sUbzZ/QgyWuLYHctCHxFF4tRQZNQ9k60ExQ==}
 
@@ -16112,6 +16151,15 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - react-native-b4a
+
+  temporal-polyfill@1.0.4:
+    dependencies:
+      temporal-spec: 1.0.1
+      temporal-utils: 1.0.2
+
+  temporal-spec@1.0.1: {}
+
+  temporal-utils@1.0.2: {}
 
   text-decoder@1.2.7:
     dependencies:
