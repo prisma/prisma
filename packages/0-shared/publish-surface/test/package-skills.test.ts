@@ -40,10 +40,10 @@ function manifestOf(facade: ShellName): Manifest {
 }
 
 function frontmatterValue(skillMd: string, key: string): string | undefined {
-  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(skillMd);
-  if (frontmatter === null) return undefined;
-  const match = new RegExp(`^${key}: *(.+)$`, 'm').exec(frontmatter[1]);
-  return match?.[1].trim().replace(/^['"]|['"]$/g, '');
+  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(skillMd)?.[1];
+  if (frontmatter === undefined) return undefined;
+  const value = new RegExp(`^${key}: *(.+)$`, 'm').exec(frontmatter)?.[1];
+  return value?.trim().replace(/^['"]|['"]$/g, '');
 }
 
 describe('the skill source in the repository', () => {
