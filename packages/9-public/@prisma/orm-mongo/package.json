@@ -6,12 +6,14 @@
   "sideEffects": false,
   "description": "Prisma Next for MongoDB: the one package a MongoDB application installs",
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "scripts": {
     "build": "tsdown",
+    "prepack": "node ../../../../scripts/sync-package-skills.ts @prisma/orm-mongo",
     "lint": "biome check . --error-on-warnings",
-    "clean": "rm -rf dist src-gen"
+    "clean": "rm -rf dist src-gen skills"
   },
   "dependencies": {
     "@prisma/orm-family-mongo": "workspace:8.0.0-rc.4",
