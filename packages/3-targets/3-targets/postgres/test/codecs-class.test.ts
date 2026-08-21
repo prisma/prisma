@@ -283,9 +283,9 @@ describe('codecs-class', () => {
       expect(codec.id).toBe(PG_TIMESTAMPTZ_CODEC_ID);
     });
 
-    it('round-trips Date values', async () => {
+    it('encodes the instant as a UTC ISO string and passes the parsed Date through on decode', async () => {
       const instant = new Date('2024-01-15T10:30:00Z');
-      expect(await codec.encode(instant, callCtx)).toBe(instant);
+      expect(await codec.encode(instant, callCtx)).toBe('2024-01-15T10:30:00.000Z');
       expect(await codec.decode(instant, callCtx)).toBe(instant);
     });
 

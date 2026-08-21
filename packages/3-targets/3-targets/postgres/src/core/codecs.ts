@@ -76,6 +76,7 @@ import {
   pgTimestampDecodeJson,
   pgTimestampEncodeJson,
   pgTimestamptzDecodeJson,
+  pgTimestamptzEncode,
   pgTimestamptzEncodeJson,
   pgUnboundedIntDecode,
   renderLength,
@@ -1149,11 +1150,11 @@ pgTimestampColumn satisfies ColumnHelperForStrict<PgTimestampDescriptor>;
 export class PgTimestamptzCodec extends CodecImpl<
   typeof PG_TIMESTAMPTZ_CODEC_ID,
   readonly ['equality', 'order'],
-  Date,
+  Date | string,
   Date
 > {
-  async encode(value: Date, _ctx: CodecCallContext): Promise<Date> {
-    return value;
+  async encode(value: Date, _ctx: CodecCallContext): Promise<string> {
+    return pgTimestamptzEncode(value);
   }
   async decode(wire: Date, _ctx: CodecCallContext): Promise<Date> {
     return wire;
