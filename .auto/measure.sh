@@ -27,7 +27,7 @@ echo "Benchmarking PR #$pr_number at $sha" >&2
 
 run_id=""
 for _ in $(seq 1 60); do
-  run_id="$(gh run list --repo "$repo" --workflow "$workflow" --event pull_request --commit "$sha" --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+  run_id="$(gh run list --repo "$repo" --workflow "$workflow" --event pull_request --commit "$sha" --limit 1 --json databaseId --jq '.[0].databaseId // empty' 2>/dev/null || true)"
   [[ -n "$run_id" ]] && break
   sleep 5
 done
