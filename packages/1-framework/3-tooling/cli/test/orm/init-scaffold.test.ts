@@ -36,7 +36,7 @@ function scaffoldArgv(...extra: string[]): string[] {
   return ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...extra];
 }
 
-const SKIP_ALL = ['--skip-install', '--skip-skills'] as const;
+const SKIP_ALL = ['--skip-install'] as const;
 
 /**
  * The emit step spawns the project-local `@prisma/cli` bin, which the mocked
@@ -249,7 +249,7 @@ describe('init scaffold', () => {
         );
         installFakeProjectLocalCli(projectDir);
 
-        const run = await harness().run(scaffoldArgv('--skip-skills'), { cwd: projectDir });
+        const run = await harness().run(scaffoldArgv(), { cwd: projectDir });
 
         expect(envelopeOf(run)).toMatchObject({ ok: true });
         expect(run.exitCode).toBe(0);
@@ -269,7 +269,7 @@ describe('init scaffold', () => {
           'utf-8',
         );
 
-        const run = await harness().run(scaffoldArgv('--skip-skills'), { cwd: projectDir });
+        const run = await harness().run(scaffoldArgv(), { cwd: projectDir });
 
         expect(run.presented?.data).toMatchObject({
           warnings: expect.arrayContaining([expect.stringContaining('catalog overrides detected')]),
