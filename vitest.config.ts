@@ -12,6 +12,7 @@ export default defineConfig({
     // driver) don't all peak at once. Uncapped, several CPU-hungry PGlite
     // forks plus the Postgres service can oversubscribe the runner.
     maxWorkers: process.env['CI'] ? '50%' : undefined,
+    pool: process.env['CI'] ? 'vmForks' : undefined,
     // Hard-suppress telemetry across every package test suite. The CLI's
     // `program.hook('preAction', …)` would otherwise fork the sender
     // child every time a test invokes the CLI in-process.
