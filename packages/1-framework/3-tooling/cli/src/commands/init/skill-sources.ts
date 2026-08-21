@@ -225,9 +225,12 @@ export const AGENT_SKILL_ROOTS = ['.agents/skills', '.claude/skills', '.windsurf
  * excluded so a list mistake can never delete a skill init installs
  * (or one `--skip-skills` preserves) — see TML-2637.
  */
-export function legacySkillDirs(): readonly string[] {
-  const installed = new Set<string>(DEFAULT_SKILL_SOURCES.map((source) => source.skill));
+export function legacySkillDirs(
+  retired: readonly string[] = RETIRED_SKILL_NAMES,
+  sources: readonly SkillSource[] = DEFAULT_SKILL_SOURCES,
+): readonly string[] {
+  const installed = new Set<string>(sources.map((source) => source.skill));
   return AGENT_SKILL_ROOTS.flatMap((root) =>
-    RETIRED_SKILL_NAMES.filter((name) => !installed.has(name)).map((name) => `${root}/${name}`),
+    retired.filter((name) => !installed.has(name)).map((name) => `${root}/${name}`),
   );
 }

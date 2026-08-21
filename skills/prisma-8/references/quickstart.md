@@ -202,7 +202,7 @@ The flags `init` accepts (run `prisma orm init --help` for the source of truth):
 - `prisma-next.md` — a human quick-reference.
 - `.env.example` (and `.env` if `--write-env`).
 - Updates `package.json` (deps + scripts) and `tsconfig.json` (required compiler options).
-- Installs deps and runs `prisma contract emit` once.
+- Installs deps and runs `prisma-cli contract emit` once (the project-local bin `@prisma/cli` installs).
 - Registers Prisma Next skills with the local agent runtime.
 
 **If you took `init`'s default and ended up with a top-level `prisma/` directory** (TML-2532), the cleanup is one move + one config edit:
@@ -232,7 +232,8 @@ The concept: against an existing database with no PN contract, `contract infer` 
 ```bash
 mkdir my-app && cd my-app
 pnpm init
-pnpm dlx @prisma/cli@next orm init --yes --target postgres --authoring psl
+pnpm dlx @prisma/cli@next orm init --yes --target postgres --authoring psl \
+  --schema-path src/prisma/contract.prisma
 # scaffold lands; you'll overwrite the starter schema below
 ```
 
