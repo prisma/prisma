@@ -111,8 +111,7 @@ this scoping in mind, versus one that assumed the pagination clause was a no-op)
 `.groupBy(` and read every match with a pre-group pagination clause; if the test asserting its
 result seeds fewer distinct groups than pagination scope allows, or asserts totals computed over
 every row rather than the paginated window, the expected values need updating to match the now-
-correct behavior. See the [`ORM Collection Chaining`](https://github.com/prisma/prisma/blob/v8.0.0-rc.5/docs/reference/ORM%20Collection%20Chaining.md)
-guide for the position-semantics rule in full.
+correct behavior.
 
 ## `groupby-post-group-pagination-requires-order-by`
 
