@@ -24,6 +24,7 @@
           "Cafe": {
             "fields": {
               "id": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "sql/char@1",
@@ -34,6 +35,7 @@
                 }
               },
               "location": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "pg/geometry@1",
@@ -41,6 +43,7 @@
                 }
               },
               "name": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
@@ -68,6 +71,7 @@
           "Neighborhood": {
             "fields": {
               "boundary": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "pg/geometry@1",
@@ -75,6 +79,7 @@
                 }
               },
               "id": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "sql/char@1",
@@ -85,6 +90,7 @@
                 }
               },
               "name": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
@@ -112,6 +118,7 @@
           "Route": {
             "fields": {
               "id": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "sql/char@1",
@@ -122,6 +129,7 @@
                 }
               },
               "name": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
@@ -129,6 +137,7 @@
                 }
               },
               "path": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "pg/geometry@1",

@@ -732,10 +732,12 @@ type ContractBase = Omit<
             readonly fields: {
               readonly productId: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly brand: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
             };
@@ -750,16 +752,18 @@ type ContractBase = Omit<
             readonly fields: {
               readonly _id: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly userId: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly items: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'CartItem' };
-                readonly many: true;
+                readonly many: { readonly elementNullable: false };
               };
             };
             readonly relations: {
@@ -781,22 +785,27 @@ type ContractBase = Omit<
             readonly fields: {
               readonly _id: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly userId: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly sessionId: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly type: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly timestamp: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/date@1' };
               };
             };
@@ -813,31 +822,37 @@ type ContractBase = Omit<
             readonly fields: {
               readonly _id: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly orderId: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly items: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'InvoiceLineItem' };
-                readonly many: true;
+                readonly many: { readonly elementNullable: false };
               };
               readonly subtotal: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
               };
               readonly tax: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
               };
               readonly total: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
               };
               readonly issuedAt: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/date@1' };
               };
             };
@@ -860,26 +875,32 @@ type ContractBase = Omit<
             readonly fields: {
               readonly _id: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly name: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly streetAndNumber: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly city: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly postalCode: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly country: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
             };
@@ -890,29 +911,33 @@ type ContractBase = Omit<
             readonly fields: {
               readonly _id: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly userId: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly items: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'OrderLineItem' };
-                readonly many: true;
+                readonly many: { readonly elementNullable: false };
               };
               readonly shippingAddress: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly type: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly statusHistory: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'StatusEntry' };
-                readonly many: true;
+                readonly many: { readonly elementNullable: false };
               };
             };
             readonly relations: {
@@ -945,51 +970,62 @@ type ContractBase = Omit<
             readonly fields: {
               readonly _id: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly name: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly brand: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly code: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly description: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly primaryCategory: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly subCategory: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly articleType: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly price: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Price' };
               };
               readonly image: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Image' };
               };
               readonly embedding: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
-                readonly many: true;
+                readonly many: { readonly elementNullable: false };
               };
               readonly status: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
             };
@@ -1000,6 +1036,7 @@ type ContractBase = Omit<
             readonly fields: {
               readonly query: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
             };
@@ -1014,18 +1051,22 @@ type ContractBase = Omit<
             readonly fields: {
               readonly _id: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly name: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly email: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly address: {
                 readonly nullable: true;
+                readonly many: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' };
               };
             };
@@ -1059,18 +1100,22 @@ type ContractBase = Omit<
             readonly fields: {
               readonly productId: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly subCategory: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly brand: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly exitMethod: {
                 readonly nullable: true;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
             };
@@ -1087,10 +1132,12 @@ type ContractBase = Omit<
             readonly fields: {
               readonly amount: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
               };
               readonly currency: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
             };
@@ -1099,6 +1146,7 @@ type ContractBase = Omit<
             readonly fields: {
               readonly url: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
             };
@@ -1107,18 +1155,22 @@ type ContractBase = Omit<
             readonly fields: {
               readonly streetAndNumber: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly city: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly postalCode: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly country: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
             };
@@ -1127,26 +1179,32 @@ type ContractBase = Omit<
             readonly fields: {
               readonly productId: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly name: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly brand: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly amount: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/int32@1' };
               };
               readonly price: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Price' };
               };
               readonly image: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Image' };
               };
             };
@@ -1155,26 +1213,32 @@ type ContractBase = Omit<
             readonly fields: {
               readonly productId: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly name: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly brand: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly amount: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/int32@1' };
               };
               readonly price: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Price' };
               };
               readonly image: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Image' };
               };
             };
@@ -1183,10 +1247,12 @@ type ContractBase = Omit<
             readonly fields: {
               readonly status: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly timestamp: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/date@1' };
               };
             };
@@ -1195,18 +1261,22 @@ type ContractBase = Omit<
             readonly fields: {
               readonly name: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
               readonly amount: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/int32@1' };
               };
               readonly unitPrice: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
               };
               readonly lineTotal: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
               };
             };
@@ -1240,10 +1310,12 @@ type ContractBase = Omit<
       readonly fields: {
         readonly amount: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
         };
         readonly currency: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
       };
@@ -1252,6 +1324,7 @@ type ContractBase = Omit<
       readonly fields: {
         readonly url: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
       };
@@ -1260,18 +1333,22 @@ type ContractBase = Omit<
       readonly fields: {
         readonly streetAndNumber: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly city: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly postalCode: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly country: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
       };
@@ -1280,26 +1357,32 @@ type ContractBase = Omit<
       readonly fields: {
         readonly productId: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly name: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly brand: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly amount: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/int32@1' };
         };
         readonly price: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'valueObject'; readonly name: 'Price' };
         };
         readonly image: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'valueObject'; readonly name: 'Image' };
         };
       };
@@ -1308,26 +1391,32 @@ type ContractBase = Omit<
       readonly fields: {
         readonly productId: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly name: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly brand: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly amount: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/int32@1' };
         };
         readonly price: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'valueObject'; readonly name: 'Price' };
         };
         readonly image: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'valueObject'; readonly name: 'Image' };
         };
       };
@@ -1336,10 +1425,12 @@ type ContractBase = Omit<
       readonly fields: {
         readonly status: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly timestamp: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/date@1' };
         };
       };
@@ -1348,18 +1439,22 @@ type ContractBase = Omit<
       readonly fields: {
         readonly name: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
         };
         readonly amount: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/int32@1' };
         };
         readonly unitPrice: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
         };
         readonly lineTotal: {
           readonly nullable: false;
+          readonly many: false;
           readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
         };
       };

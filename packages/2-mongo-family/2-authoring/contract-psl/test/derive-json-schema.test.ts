@@ -33,13 +33,14 @@ const mongoCodecLookup: CodecLookup = {
 };
 
 function scalarField(codecId: string, nullable = false): ContractField {
-  return { type: { kind: 'scalar', codecId }, nullable };
+  return { type: { kind: 'scalar', codecId }, nullable, many: false };
 }
 
 function enumField(codecId: string, enumName: string, nullable = false): ContractField {
   return {
     type: { kind: 'scalar', codecId },
     nullable,
+    many: false,
     valueSet: {
       plane: 'domain',
       entityKind: 'enum',
@@ -49,15 +50,24 @@ function enumField(codecId: string, enumName: string, nullable = false): Contrac
   };
 }
 
-function arrayField(codecId: string, nullable = false): ContractField {
-  return { type: { kind: 'scalar', codecId }, nullable, many: true };
-}
-
-function arrayEnumField(codecId: string, enumName: string, nullable = false): ContractField {
+function arrayField(codecId: string, nullable = false, elementNullable = false): ContractField {
   return {
     type: { kind: 'scalar', codecId },
     nullable,
-    many: true,
+    many: { elementNullable },
+  };
+}
+
+function arrayEnumField(
+  codecId: string,
+  enumName: string,
+  nullable = false,
+  elementNullable = false,
+): ContractField {
+  return {
+    type: { kind: 'scalar', codecId },
+    nullable,
+    many: { elementNullable },
     valueSet: {
       plane: 'domain',
       entityKind: 'enum',
@@ -68,11 +78,15 @@ function arrayEnumField(codecId: string, enumName: string, nullable = false): Co
 }
 
 function voField(name: string, nullable = false): ContractField {
-  return { type: { kind: 'valueObject', name }, nullable };
+  return { type: { kind: 'valueObject', name }, nullable, many: false };
 }
 
-function voArrayField(name: string, nullable = false): ContractField {
-  return { type: { kind: 'valueObject', name }, nullable, many: true };
+function voArrayField(name: string, nullable = false, elementNullable = false): ContractField {
+  return {
+    type: { kind: 'valueObject', name },
+    nullable,
+    many: { elementNullable },
+  };
 }
 
 describe('deriveJsonSchema', () => {
@@ -123,7 +137,7 @@ describe('deriveJsonSchema', () => {
     });
   });
 
-  it('handles array field (many: true)', () => {
+  it('handles array field (list)', () => {
     const result = deriveJsonSchema(
       { _id: scalarField('mongo/objectId@1'), tags: arrayField('mongo/string@1') },
       undefined,
@@ -141,19 +155,50 @@ describe('deriveJsonSchema', () => {
     });
   });
 
-  it('handles nullable array field', () => {
-    const result = deriveJsonSchema(
-      { _id: scalarField('mongo/objectId@1'), tags: arrayField('mongo/string@1', true) },
+  it.each([
+    ['strict required', arrayField('mongo/string@1'), ['tags'], { bsonType: 'string' }],
+    [
+      'nullable elements',
+      arrayField('mongo/string@1', false, true),
+      ['tags'],
+      { bsonType: ['null', 'string'] },
+    ],
+    ['nullable list', arrayField('mongo/string@1', true), undefined, { bsonType: 'string' }],
+    [
+      'nullable list and elements',
+      arrayField('mongo/string@1', true, true),
       undefined,
-      mongoCodecLookup,
-    );
-
+      { bsonType: ['null', 'string'] },
+    ],
+  ])('derives %s independently', (_name, field, required, items) => {
+    const result = deriveJsonSchema({ tags: field }, undefined, mongoCodecLookup);
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
-      required: ['_id'],
+      ...(required ? { required } : {}),
+      properties: { tags: { bsonType: 'array', items } },
+      additionalProperties: false,
+    });
+  });
+
+  it.each([
+    ['nullable enum elements', arrayEnumField('mongo/string@1', 'Role', false, true), ['roles']],
+    [
+      'nullable enum list and elements',
+      arrayEnumField('mongo/string@1', 'Role', true, true),
+      undefined,
+    ],
+  ])('derives exact %s BSON shape', (_name, field, required) => {
+    const result = deriveJsonSchema({ roles: field }, undefined, mongoCodecLookup, {
+      Role: { values: ['user', 'admin'] },
+    });
+    expect(result.jsonSchema).toEqual({
+      bsonType: 'object',
+      ...(required ? { required } : {}),
       properties: {
-        _id: { bsonType: 'objectId' },
-        tags: { bsonType: 'array', items: { bsonType: 'string' } },
+        roles: {
+          bsonType: 'array',
+          items: { bsonType: ['null', 'string'], enum: ['user', 'admin', null] },
+        },
       },
       additionalProperties: false,
     });
@@ -225,6 +270,37 @@ describe('deriveJsonSchema', () => {
               label: { bsonType: 'string' },
             },
             additionalProperties: false,
+          },
+        },
+      },
+      additionalProperties: false,
+    });
+  });
+
+  it.each([
+    ['nullable value-object elements', voArrayField('Tag', false, true), ['tags']],
+    ['nullable value-object list and elements', voArrayField('Tag', true, true), undefined],
+  ])('derives exact %s BSON shape', (_name, field, required) => {
+    const valueObjects: Record<string, ContractValueObject> = {
+      Tag: { fields: { label: scalarField('mongo/string@1') } },
+    };
+    const result = deriveJsonSchema({ tags: field }, valueObjects, mongoCodecLookup);
+    expect(result.jsonSchema).toEqual({
+      bsonType: 'object',
+      ...(required ? { required } : {}),
+      properties: {
+        tags: {
+          bsonType: 'array',
+          items: {
+            oneOf: [
+              { bsonType: 'null' },
+              {
+                bsonType: 'object',
+                required: ['label'],
+                properties: { label: { bsonType: 'string' } },
+                additionalProperties: false,
+              },
+            ],
           },
         },
       },

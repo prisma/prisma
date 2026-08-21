@@ -6,6 +6,10 @@ import {
   crossRef,
   type StorageHashBase,
 } from '@internal/contract/types';
+import {
+  mongoFamilyEntityTypes,
+  mongoFamilyPslBlockDescriptors,
+} from '@internal/family-mongo/pack';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
@@ -32,7 +36,16 @@ function buildSymbolTableInput(
   const { table } = buildSymbolTable({
     document,
     sourceFile,
-    pslBlockDescriptors: {},
+    pslBlockDescriptors: {
+      enum: {
+        kind: 'pslBlock',
+        keyword: 'enum',
+        discriminator: 'enum',
+        name: { required: true },
+        parameters: {},
+        variadicParameters: true,
+      },
+    },
   });
   return { symbolTable: table, sourceFile, sourceId };
 }
@@ -151,11 +164,27 @@ describe('interpretPslDocumentToMongoContract', () => {
 
       expect(modelsOf(ir)['Item']).toMatchObject({
         fields: {
-          _id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false },
-          name: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-          count: { type: { kind: 'scalar', codecId: 'mongo/int32@1' }, nullable: false },
-          active: { type: { kind: 'scalar', codecId: 'mongo/bool@1' }, nullable: false },
-          at: { type: { kind: 'scalar', codecId: 'mongo/date@1' }, nullable: false },
+          _id: {
+            type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+            nullable: false,
+            many: false,
+          },
+          name: {
+            type: { kind: 'scalar', codecId: 'mongo/string@1' },
+            nullable: false,
+            many: false,
+          },
+          count: {
+            type: { kind: 'scalar', codecId: 'mongo/int32@1' },
+            nullable: false,
+            many: false,
+          },
+          active: {
+            type: { kind: 'scalar', codecId: 'mongo/bool@1' },
+            nullable: false,
+            many: false,
+          },
+          at: { type: { kind: 'scalar', codecId: 'mongo/date@1' }, nullable: false, many: false },
         },
       });
     });
@@ -204,13 +233,17 @@ describe('interpretPslDocumentToMongoContract', () => {
 
       expect(modelsOf(ir)['Item']).toMatchObject({
         fields: {
-          _id: { type: { kind: 'scalar', codecId: 'custom/oid@2' }, nullable: false },
-          name: { type: { kind: 'scalar', codecId: 'custom/text@2' }, nullable: false },
+          _id: { type: { kind: 'scalar', codecId: 'custom/oid@2' }, nullable: false, many: false },
+          name: {
+            type: { kind: 'scalar', codecId: 'custom/text@2' },
+            nullable: false,
+            many: false,
+          },
         },
       });
     });
 
-    it('emits many: true for scalar list fields', () => {
+    it('emits many: { elementNullable: false } for scalar list fields', () => {
       const ir = interpretOk(`
         model Item {
           id   ObjectId @id @map("_id")
@@ -223,7 +256,7 @@ describe('interpretPslDocumentToMongoContract', () => {
           tags: {
             type: { kind: 'scalar', codecId: 'mongo/string@1' },
             nullable: false,
-            many: true,
+            many: { elementNullable: false },
           },
         },
       });
@@ -778,9 +811,21 @@ describe('interpretPslDocumentToMongoContract', () => {
       expect(valueObjectsOf(ir)).toEqual({
         Address: {
           fields: {
-            street: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-            city: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-            zip: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
+            street: {
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              nullable: false,
+              many: false,
+            },
+            city: {
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              nullable: false,
+              many: false,
+            },
+            zip: {
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              nullable: false,
+              many: false,
+            },
           },
         },
       });
@@ -801,12 +846,16 @@ describe('interpretPslDocumentToMongoContract', () => {
 
       expect(modelsOf(ir)['User']).toMatchObject({
         fields: {
-          homeAddress: { type: { kind: 'valueObject', name: 'Address' }, nullable: true },
+          homeAddress: {
+            type: { kind: 'valueObject', name: 'Address' },
+            nullable: true,
+            many: false,
+          },
         },
       });
     });
 
-    it('emits many: true for value object array fields', () => {
+    it('emits many: { elementNullable: false } for value object array fields', () => {
       const ir = interpretOk(`
         type Address {
           street String
@@ -824,7 +873,7 @@ describe('interpretPslDocumentToMongoContract', () => {
           addresses: {
             type: { kind: 'valueObject', name: 'Address' },
             nullable: false,
-            many: true,
+            many: { elementNullable: false },
           },
         },
       });
@@ -857,15 +906,35 @@ describe('interpretPslDocumentToMongoContract', () => {
       expect(valueObjectsOf(ir)).toEqual({
         GeoPoint: {
           fields: {
-            lat: { type: { kind: 'scalar', codecId: 'mongo/double@1' }, nullable: false },
-            lng: { type: { kind: 'scalar', codecId: 'mongo/double@1' }, nullable: false },
+            lat: {
+              type: { kind: 'scalar', codecId: 'mongo/double@1' },
+              nullable: false,
+              many: false,
+            },
+            lng: {
+              type: { kind: 'scalar', codecId: 'mongo/double@1' },
+              nullable: false,
+              many: false,
+            },
           },
         },
         Address: {
           fields: {
-            street: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-            city: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-            location: { type: { kind: 'valueObject', name: 'GeoPoint' }, nullable: false },
+            street: {
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              nullable: false,
+              many: false,
+            },
+            city: {
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              nullable: false,
+              many: false,
+            },
+            location: {
+              type: { kind: 'valueObject', name: 'GeoPoint' },
+              nullable: false,
+              many: false,
+            },
           },
         },
       });
@@ -919,10 +988,26 @@ describe('interpretPslDocumentToMongoContract', () => {
               models: {
                 User: {
                   fields: {
-                    _id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false },
-                    name: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-                    email: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
-                    bio: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: true },
+                    _id: {
+                      type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+                      nullable: false,
+                      many: false,
+                    },
+                    name: {
+                      type: { kind: 'scalar', codecId: 'mongo/string@1' },
+                      nullable: false,
+                      many: false,
+                    },
+                    email: {
+                      type: { kind: 'scalar', codecId: 'mongo/string@1' },
+                      nullable: false,
+                      many: false,
+                    },
+                    bio: {
+                      type: { kind: 'scalar', codecId: 'mongo/string@1' },
+                      nullable: true,
+                      many: false,
+                    },
                   },
                   relations: {
                     posts: {
@@ -935,19 +1020,30 @@ describe('interpretPslDocumentToMongoContract', () => {
                 },
                 Post: {
                   fields: {
-                    _id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false },
-                    title: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
+                    _id: {
+                      type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+                      nullable: false,
+                      many: false,
+                    },
+                    title: {
+                      type: { kind: 'scalar', codecId: 'mongo/string@1' },
+                      nullable: false,
+                      many: false,
+                    },
                     content: {
                       type: { kind: 'scalar', codecId: 'mongo/string@1' },
                       nullable: false,
+                      many: false,
                     },
                     authorId: {
                       type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
                       nullable: false,
+                      many: false,
                     },
                     createdAt: {
                       type: { kind: 'scalar', codecId: 'mongo/date@1' },
                       nullable: false,
+                      many: false,
                     },
                   },
                   relations: {
@@ -1724,17 +1820,129 @@ describe('interpretPslDocumentToMongoContract', () => {
       expect(props['bio']).toEqual({ bsonType: ['null', 'string'] });
     });
 
-    it('handles array fields', () => {
+    it('lowers and validates the scalar-list nullability matrix', () => {
       const ir = interpretOk(`
         model User {
-          id   ObjectId @id @map("_id")
-          tags String[]
+          id ObjectId @id @map("_id")
+          strict String[]
+          nullableElements String?[]
+          nullableList String[]?
+          fullyNullable String?[]?
         }
       `);
+      expect(model(ir, 'User').fields).toMatchObject({
+        strict: { nullable: false, many: { elementNullable: false } },
+        nullableElements: { nullable: false, many: { elementNullable: true } },
+        nullableList: { nullable: true, many: { elementNullable: false } },
+        fullyNullable: { nullable: true, many: { elementNullable: true } },
+      });
       const validator = getValidator(ir, 'user');
       const schema = validator!['jsonSchema'] as Record<string, unknown>;
       const props = schema['properties'] as Record<string, Record<string, unknown>>;
-      expect(props['tags']).toEqual({ bsonType: 'array', items: { bsonType: 'string' } });
+      expect(props['strict']).toEqual({ bsonType: 'array', items: { bsonType: 'string' } });
+      expect(props['nullableElements']).toEqual({
+        bsonType: 'array',
+        items: { bsonType: ['null', 'string'] },
+      });
+      expect(props['nullableList']).toEqual({ bsonType: 'array', items: { bsonType: 'string' } });
+      expect(props['fullyNullable']).toEqual({
+        bsonType: 'array',
+        items: { bsonType: ['null', 'string'] },
+      });
+    });
+
+    it('lowers nullable enum list elements into exact contract and BSON validator shapes', () => {
+      const ir = interpretOk(
+        `
+          enum Role {
+            @@type("mongo/string@1")
+            User = "user"
+            Admin = "admin"
+          }
+
+          model User {
+            id ObjectId @id @map("_id")
+            roles Role?[]
+            optionalRoles Role?[]?
+          }
+        `,
+        {
+          authoringContributions: {
+            field: {},
+            type: {},
+            entityTypes: mongoFamilyEntityTypes,
+            pslBlockDescriptors: mongoFamilyPslBlockDescriptors,
+            modelAttributes: {},
+          },
+        },
+      );
+      expect(model(ir, 'User').fields).toMatchObject({
+        roles: {
+          type: { kind: 'scalar', codecId: 'mongo/string@1' },
+          nullable: false,
+          many: { elementNullable: true },
+          valueSet: {
+            plane: 'domain',
+            entityKind: 'enum',
+            namespaceId: UNBOUND_NAMESPACE_ID,
+            entityName: 'Role',
+          },
+        },
+        optionalRoles: {
+          type: { kind: 'scalar', codecId: 'mongo/string@1' },
+          nullable: true,
+          many: { elementNullable: true },
+          valueSet: {
+            plane: 'domain',
+            entityKind: 'enum',
+            namespaceId: UNBOUND_NAMESPACE_ID,
+            entityName: 'Role',
+          },
+        },
+      });
+      const validator = getValidator(ir, 'user');
+      expect(validator!['jsonSchema']).toEqual({
+        bsonType: 'object',
+        required: ['_id', 'roles'],
+        properties: {
+          _id: { bsonType: 'objectId' },
+          roles: {
+            bsonType: 'array',
+            items: { bsonType: ['null', 'string'], enum: ['user', 'admin', null] },
+          },
+          optionalRoles: {
+            bsonType: 'array',
+            items: { bsonType: ['null', 'string'], enum: ['user', 'admin', null] },
+          },
+        },
+        additionalProperties: false,
+      });
+    });
+
+    it('lowers nullable value-object list elements and both-null lists', () => {
+      const ir = interpretOk(`
+        type Address {
+          city String
+        }
+
+        model User {
+          id ObjectId @id @map("_id")
+          nullableElements Address?[]
+          fullyNullable Address?[]?
+        }
+      `);
+      expect(model(ir, 'User').fields).toMatchObject({
+        nullableElements: {
+          type: { kind: 'valueObject', name: 'Address' },
+          nullable: false,
+          many: { elementNullable: true },
+        },
+        fullyNullable: {
+          type: { kind: 'valueObject', name: 'Address' },
+          nullable: true,
+          many: { elementNullable: true },
+        },
+      });
     });
 
     it('uses @map names in jsonSchema properties', () => {

@@ -44,28 +44,32 @@
                   "kind": "scalar",
                   "codecId": "mongo/objectId@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "title": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "type": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "assigneeId": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/objectId@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               }
             },
             "relations": {
@@ -110,7 +114,8 @@
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               }
             },
             "relations": {},
@@ -129,14 +134,16 @@
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "targetRelease": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               }
             },
             "relations": {},
@@ -160,28 +167,32 @@
                   "kind": "scalar",
                   "codecId": "mongo/objectId@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "name": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "email": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "loginCount": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/int32@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "tags": {
                 "type": {
@@ -189,14 +200,17 @@
                   "codecId": "mongo/string@1"
                 },
                 "nullable": false,
-                "many": true
+                "many": {
+                  "elementNullable": false
+                }
               },
               "homeAddress": {
                 "type": {
                   "kind": "valueObject",
                   "name": "HomeAddress"
                 },
-                "nullable": true
+                "nullable": true,
+                "many": false
               }
             },
             "relations": {
@@ -228,21 +242,24 @@
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "city": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "zip": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               }
             },
             "relations": {},
@@ -256,21 +273,24 @@
                   "kind": "scalar",
                   "codecId": "mongo/objectId@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "text": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "createdAt": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/date@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               }
             },
             "relations": {},
@@ -285,14 +305,16 @@
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               },
               "country": {
                 "type": {
                   "kind": "scalar",
                   "codecId": "mongo/string@1"
                 },
-                "nullable": false
+                "nullable": false,
+                "many": false
               }
             }
           }

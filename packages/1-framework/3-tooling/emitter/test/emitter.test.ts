@@ -80,8 +80,12 @@ describe('emitter', () => {
               },
             },
             fields: {
-              id: { type: { kind: 'scalar', codecId: 'pg/int4@1' }, nullable: false },
-              email: { type: { kind: 'scalar', codecId: 'pg/text@1' }, nullable: false },
+              id: { type: { kind: 'scalar', codecId: 'pg/int4@1' }, nullable: false, many: false },
+              email: {
+                type: { kind: 'scalar', codecId: 'pg/text@1' },
+                nullable: false,
+                many: false,
+              },
             },
             relations: {},
           },
@@ -357,10 +361,11 @@ describe('emitter', () => {
         User: {
           storage: { namespaceId: '__unbound__', table: 'user' },
           fields: {
-            id: { type: { kind: 'scalar', codecId: 'pg/text@1' }, nullable: false },
+            id: { type: { kind: 'scalar', codecId: 'pg/text@1' }, nullable: false, many: false },
             embedding: {
               type: { kind: 'scalar', codecId: 'pg/vector@1' },
               nullable: false,
+              many: false,
             },
           },
           relations: {},
@@ -444,7 +449,7 @@ describe('emitter', () => {
         User: {
           storage: { namespaceId: '__unbound__', table: 'user' },
           fields: {
-            id: { type: { kind: 'scalar', codecId: 'pg/text@1' }, nullable: false },
+            id: { type: { kind: 'scalar', codecId: 'pg/text@1' }, nullable: false, many: false },
           },
           relations: {},
         },
@@ -471,6 +476,7 @@ describe('emitter', () => {
             street: {
               nullable: false,
               type: { kind: 'scalar', codecId: 'pg/text@1' },
+              many: false,
             },
           },
         },
@@ -490,7 +496,11 @@ describe('emitter', () => {
   it('emits per-namespace valueObjects block when a single namespace declares value objects', () => {
     const addressModel = {
       fields: {
-        street: { type: { kind: 'scalar' as const, codecId: 'pg/text@1' }, nullable: false },
+        street: {
+          type: { kind: 'scalar' as const, codecId: 'pg/text@1' },
+          nullable: false,
+          many: false as const,
+        },
       },
     };
     const contract = {

@@ -76,6 +76,7 @@
             },
             "fields": {
               "brand": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -83,6 +84,7 @@
                 }
               },
               "productId": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -98,6 +100,7 @@
           "Cart": {
             "fields": {
               "_id": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -105,7 +108,9 @@
                 }
               },
               "items": {
-                "many": true,
+                "many": {
+                  "elementNullable": false
+                },
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -113,6 +118,7 @@
                 }
               },
               "userId": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -147,6 +153,7 @@
             },
             "fields": {
               "_id": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -154,6 +161,7 @@
                 }
               },
               "sessionId": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -161,6 +169,7 @@
                 }
               },
               "timestamp": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/date@1",
@@ -168,6 +177,7 @@
                 }
               },
               "type": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -175,6 +185,7 @@
                 }
               },
               "userId": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -201,6 +212,7 @@
           "Invoice": {
             "fields": {
               "_id": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -208,6 +220,7 @@
                 }
               },
               "issuedAt": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/date@1",
@@ -215,7 +228,9 @@
                 }
               },
               "items": {
-                "many": true,
+                "many": {
+                  "elementNullable": false
+                },
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -223,6 +238,7 @@
                 }
               },
               "orderId": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -230,6 +246,7 @@
                 }
               },
               "subtotal": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/double@1",
@@ -237,6 +254,7 @@
                 }
               },
               "tax": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/double@1",
@@ -244,6 +262,7 @@
                 }
               },
               "total": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/double@1",
@@ -275,6 +294,7 @@
           "Location": {
             "fields": {
               "_id": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -282,6 +302,7 @@
                 }
               },
               "city": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -289,6 +310,7 @@
                 }
               },
               "country": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -296,6 +318,7 @@
                 }
               },
               "name": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -303,6 +326,7 @@
                 }
               },
               "postalCode": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -310,6 +334,7 @@
                 }
               },
               "streetAndNumber": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -325,6 +350,7 @@
           "Order": {
             "fields": {
               "_id": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -332,7 +358,9 @@
                 }
               },
               "items": {
-                "many": true,
+                "many": {
+                  "elementNullable": false
+                },
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -340,6 +368,7 @@
                 }
               },
               "shippingAddress": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -347,7 +376,9 @@
                 }
               },
               "statusHistory": {
-                "many": true,
+                "many": {
+                  "elementNullable": false
+                },
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -355,6 +386,7 @@
                 }
               },
               "type": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -368,6 +400,7 @@
                 }
               },
               "userId": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -414,6 +447,7 @@
           "Product": {
             "fields": {
               "_id": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -421,6 +455,7 @@
                 }
               },
               "articleType": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -428,6 +463,7 @@
                 }
               },
               "brand": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -435,6 +471,7 @@
                 }
               },
               "code": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -442,6 +479,7 @@
                 }
               },
               "description": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -449,7 +487,9 @@
                 }
               },
               "embedding": {
-                "many": true,
+                "many": {
+                  "elementNullable": false
+                },
                 "nullable": true,
                 "type": {
                   "codecId": "mongo/double@1",
@@ -457,6 +497,7 @@
                 }
               },
               "image": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -464,6 +505,7 @@
                 }
               },
               "name": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -471,6 +513,7 @@
                 }
               },
               "price": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -478,6 +521,7 @@
                 }
               },
               "primaryCategory": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -485,6 +529,7 @@
                 }
               },
               "status": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -498,6 +543,7 @@
                 }
               },
               "subCategory": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -517,6 +563,7 @@
             },
             "fields": {
               "query": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -532,6 +579,7 @@
           "User": {
             "fields": {
               "_id": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -539,6 +587,7 @@
                 }
               },
               "address": {
+                "many": false,
                 "nullable": true,
                 "type": {
                   "kind": "valueObject",
@@ -546,6 +595,7 @@
                 }
               },
               "email": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -553,6 +603,7 @@
                 }
               },
               "name": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -603,6 +654,7 @@
             },
             "fields": {
               "brand": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -610,6 +662,7 @@
                 }
               },
               "exitMethod": {
+                "many": false,
                 "nullable": true,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -617,6 +670,7 @@
                 }
               },
               "productId": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -624,6 +678,7 @@
                 }
               },
               "subCategory": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -641,6 +696,7 @@
           "Address": {
             "fields": {
               "city": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -648,6 +704,7 @@
                 }
               },
               "country": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -655,6 +712,7 @@
                 }
               },
               "postalCode": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -662,6 +720,7 @@
                 }
               },
               "streetAndNumber": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -673,6 +732,7 @@
           "CartItem": {
             "fields": {
               "amount": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/int32@1",
@@ -680,6 +740,7 @@
                 }
               },
               "brand": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -687,6 +748,7 @@
                 }
               },
               "image": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -694,6 +756,7 @@
                 }
               },
               "name": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -701,6 +764,7 @@
                 }
               },
               "price": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -708,6 +772,7 @@
                 }
               },
               "productId": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -719,6 +784,7 @@
           "Image": {
             "fields": {
               "url": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -730,6 +796,7 @@
           "InvoiceLineItem": {
             "fields": {
               "amount": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/int32@1",
@@ -737,6 +804,7 @@
                 }
               },
               "lineTotal": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/double@1",
@@ -744,6 +812,7 @@
                 }
               },
               "name": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -751,6 +820,7 @@
                 }
               },
               "unitPrice": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/double@1",
@@ -762,6 +832,7 @@
           "OrderLineItem": {
             "fields": {
               "amount": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/int32@1",
@@ -769,6 +840,7 @@
                 }
               },
               "brand": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -776,6 +848,7 @@
                 }
               },
               "image": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -783,6 +856,7 @@
                 }
               },
               "name": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -790,6 +864,7 @@
                 }
               },
               "price": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -797,6 +872,7 @@
                 }
               },
               "productId": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -808,6 +884,7 @@
           "Price": {
             "fields": {
               "amount": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/double@1",
@@ -815,6 +892,7 @@
                 }
               },
               "currency": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -826,6 +904,7 @@
           "StatusEntry": {
             "fields": {
               "status": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
@@ -833,6 +912,7 @@
                 }
               },
               "timestamp": {
+                "many": false,
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/date@1",

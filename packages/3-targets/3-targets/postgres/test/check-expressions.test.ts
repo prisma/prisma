@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { postgresRenderCheckExpressions } from '../src/core/check-expressions';
 
-const base = { tableName: 'User', columnName: 'role', many: false, memberValues: undefined };
+const base = {
+  tableName: 'User',
+  columnName: 'role',
+  many: false,
+  memberValues: undefined,
+};
 
 describe('postgresRenderCheckExpressions', () => {
   it('renders a scalar domain enum as an IN membership predicate', () => {
@@ -10,19 +15,19 @@ describe('postgresRenderCheckExpressions', () => {
     ]);
   });
 
-  it('renders an array domain enum as an <@ containment predicate', () => {
+  it('renders array membership over null-stripped elements', () => {
     expect(
       postgresRenderCheckExpressions({
         ...base,
         columnName: 'roles',
-        many: true,
+        many: { elementNullable: false },
         memberValues: ['user', 'admin'],
       }),
     ).toEqual([
       {
         kind: 'membership',
         columnName: 'roles',
-        expression: `"roles"::text[] <@ ARRAY['user', 'admin']::text[]`,
+        expression: `array_remove("roles"::text[], NULL) <@ ARRAY['user', 'admin']::text[]`,
       },
       {
         kind: 'elementNotNull',
@@ -33,11 +38,34 @@ describe('postgresRenderCheckExpressions', () => {
   });
 
   it('renders element-non-null only for a list column with no member set', () => {
-    expect(postgresRenderCheckExpressions({ ...base, columnName: 'tags', many: true })).toEqual([
+    expect(
+      postgresRenderCheckExpressions({
+        ...base,
+        columnName: 'tags',
+        many: { elementNullable: false },
+      }),
+    ).toEqual([
       {
         kind: 'elementNotNull',
         columnName: 'tags',
         expression: `array_position("tags", NULL) IS NULL`,
+      },
+    ]);
+  });
+
+  it('omits element-non-null for a nullable-element list while preserving membership', () => {
+    expect(
+      postgresRenderCheckExpressions({
+        ...base,
+        columnName: 'roles',
+        many: { elementNullable: true },
+        memberValues: ['user', 'admin'],
+      }),
+    ).toEqual([
+      {
+        kind: 'membership',
+        columnName: 'roles',
+        expression: `array_remove("roles"::text[], NULL) <@ ARRAY['user', 'admin']::text[]`,
       },
     ]);
   });
@@ -57,7 +85,7 @@ describe('postgresRenderCheckExpressions', () => {
       postgresRenderCheckExpressions({
         ...base,
         columnName: 'roles',
-        many: true,
+        many: { elementNullable: false },
         memberValues: [],
       }),
     ).toThrow(/empty member set/);

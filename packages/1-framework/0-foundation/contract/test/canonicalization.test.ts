@@ -337,6 +337,50 @@ describe('default omission', () => {
     expect(idField).not.toHaveProperty('generated');
   });
 
+  it('preserves a strict nested list descriptor', () => {
+    const result = canonicalizeContractToObject(
+      minimal({
+        models: {
+          User: {
+            fields: {
+              tags: {
+                type: { kind: 'scalar', codecId: 'text' },
+                nullable: false,
+                many: { elementNullable: false },
+              },
+            },
+            storage: { namespaceId: '__unbound__', table: 'users', fields: {} },
+            relations: {},
+          },
+        },
+      }),
+    );
+    const tagsField = drillDomainModel(result, 'User', 'fields', 'tags');
+    expect(tagsField).toEqual({
+      type: { kind: 'scalar', codecId: 'text' },
+      nullable: false,
+      many: { elementNullable: false },
+    });
+  });
+
+  it('preserves many: false on non-list fields', () => {
+    const result = canonicalizeContractToObject(
+      minimal({
+        models: {
+          User: {
+            fields: {
+              name: { type: { kind: 'scalar', codecId: 'text' }, nullable: false, many: false },
+            },
+            storage: { namespaceId: '__unbound__', table: 'users', fields: {} },
+            relations: {},
+          },
+        },
+      }),
+    );
+    const nameField = drillDomainModel(result, 'User', 'fields', 'name');
+    expect(nameField['many']).toBe(false);
+  });
+
   it('preserves a literal false column default value via the family hook', () => {
     const result = canonicalizeContractToObject(
       minimal({

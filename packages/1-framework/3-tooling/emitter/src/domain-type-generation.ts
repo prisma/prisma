@@ -76,7 +76,10 @@ export function generateRootsType(roots: Record<string, CrossReference> | undefi
 }
 
 function contractFieldModifierSuffix(field: ContractField): string {
-  const many = field.many === true ? '; readonly many: true' : '';
+  const many =
+    field.many === false
+      ? '; readonly many: false'
+      : `; readonly many: { readonly elementNullable: ${field.many.elementNullable} }`;
   const dict = field.dict === true ? '; readonly dict: true' : '';
   return many + dict;
 }
@@ -110,7 +113,10 @@ export function generateModelRelationsType(relations: Record<string, unknown>): 
 
   for (const [relName, rel] of Object.entries(relations)) {
     if (typeof rel !== 'object' || rel === null) continue;
-    const relObj = rel as Record<string, unknown>;
+    const relObj = blindCast<
+      Record<string, unknown>,
+      'relation narrowed to a non-null object above'
+    >(rel);
 
     // Option B: cross-space relations are declared but non-navigable.
     // A relation whose `to.space` is set lives in a foreign contract space;
@@ -140,7 +146,10 @@ export function generateModelRelationsType(relations: Record<string, unknown>): 
     if (relObj['cardinality'])
       parts.push(`readonly cardinality: ${serializeValue(relObj['cardinality'])}`);
 
-    const on = relObj['on'] as { localFields?: string[]; targetFields?: string[] } | undefined;
+    const on = blindCast<
+      { localFields?: string[]; targetFields?: string[] } | undefined,
+      'contract relation on block is validated before type generation'
+    >(relObj['on']);
     if (on && (!on.localFields || !on.targetFields)) {
       throw emitterError(
         'CONTRACT.RELATION_INVALID',
@@ -286,7 +295,10 @@ export type ResolvedFieldType = { readonly input: string; readonly output: strin
 
 function applyModifiers(base: string, field: ContractField): string {
   let result = base;
-  if (field.many === true) result = `ReadonlyArray<${result}>`;
+  if (field.many !== false) {
+    if (field.many.elementNullable) result = `${result} | null`;
+    result = `ReadonlyArray<${result}>`;
+  }
   if (field.dict === true) result = `Readonly<Record<string, ${result}>>`;
   if (field.nullable) result = `${result} | null`;
   return result;
@@ -556,11 +568,7 @@ export function resolveValueObjectType(
 }
 
 export function generateContractFieldDescriptor(fieldName: string, field: ContractField): string {
-  const mods: string[] = [];
-  if (field.many === true) mods.push('; readonly many: true');
-  if (field.dict === true) mods.push('; readonly dict: true');
-  const modStr = mods.join('');
-
+  const modStr = contractFieldModifierSuffix(field);
   const { type } = field;
   if (type.kind === 'scalar') {
     const typeParamsSpec =

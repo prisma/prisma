@@ -27,13 +27,19 @@ import type {
   ControlMutationDefaultRegistry,
   MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
-import type {
-  FieldSymbol,
-  ModelSymbol,
-  PslSpan,
-  ResolvedTypeConstructorCall,
+import {
+  type FieldSymbol,
+  type ModelSymbol,
+  nodePslSpan,
+  type PslSpan,
+  type ResolvedTypeConstructorCall,
 } from '@internal/psl-parser';
-import type { SourceFile } from '@internal/psl-parser/syntax';
+import {
+  ArrayLiteralAst,
+  type ExpressionAst,
+  IdentifierAst,
+  type SourceFile,
+} from '@internal/psl-parser/syntax';
 
 import { InternalError } from '@internal/utils/internal-error';
 import { contractError } from './contract-errors';
@@ -703,6 +709,7 @@ export function lowerDefaultForField(input: {
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
   readonly diagnostics: ContractSourceDiagnostic[];
   readonly isList?: boolean;
+  readonly elementNullable?: boolean;
 }): {
   readonly defaultValue?: ColumnDefault;
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
@@ -726,7 +733,49 @@ export function lowerDefaultForField(input: {
   const value = interpreted.value;
 
   if (Array.isArray(value)) {
+    if (!input.elementNullable && value.includes(null)) {
+      let positionalValue: ExpressionAst | undefined;
+      for (const arg of node.argList()?.args() ?? []) {
+        positionalValue = arg.value();
+        break;
+      }
+      const listExpression = positionalValue
+        ? ArrayLiteralAst.cast(positionalValue.syntax)
+        : undefined;
+      let nullExpression: IdentifierAst | undefined;
+      for (const element of listExpression?.elements() ?? []) {
+        const identifier = IdentifierAst.cast(element.syntax);
+        if (identifier?.token()?.text === 'null') {
+          nullExpression = identifier;
+          break;
+        }
+      }
+      input.diagnostics.push({
+        code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
+        message: `Field "${input.modelName}.${input.fieldName}" has strict list elements and cannot use null in a literal list default. Make the element type nullable or remove null from the default.`,
+        sourceId: input.sourceId,
+        span: nullExpression
+          ? nodePslSpan(nullExpression.syntax, input.sourceFile)
+          : positionalValue
+            ? nodePslSpan(positionalValue.syntax, input.sourceFile)
+            : nodePslSpan(node.syntax, input.sourceFile),
+      });
+      return {};
+    }
     return { defaultValue: { kind: 'literal', value: [...value] } };
+  }
+
+  if (value === null) {
+    if (!input.field.optional) {
+      input.diagnostics.push({
+        code: 'PSL_INVALID_DEFAULT_APPLICABILITY',
+        message: `Field "${input.modelName}.${input.fieldName}" is non-nullable and cannot use null as its literal default. Make the field nullable or use a non-null default.`,
+        sourceId: input.sourceId,
+        span: nodePslSpan(node.syntax, input.sourceFile),
+      });
+      return {};
+    }
+    return { defaultValue: { kind: 'literal', value } };
   }
 
   if (typeof value === 'object') {

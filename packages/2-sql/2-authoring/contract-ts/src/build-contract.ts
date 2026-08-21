@@ -106,6 +106,7 @@ function encodeColumnDefault(
   codecId: string,
   codecLookup?: CodecLookup,
   many = false,
+  elementNullable = false,
 ): ColumnDefault {
   if (defaultInput.kind === 'function') {
     return { kind: 'function', expression: defaultInput.expression };
@@ -119,7 +120,17 @@ function encodeColumnDefault(
     }
     return {
       kind: 'literal',
-      value: defaultInput.value.map((element) => encodeViaCodec(element, codecId, codecLookup)),
+      value: defaultInput.value.map((element) => {
+        if (element !== null) {
+          return encodeViaCodec(element, codecId, codecLookup);
+        }
+        if (elementNullable) {
+          return null;
+        }
+        throw new InternalError(
+          'Literal default on a strict list column cannot contain null elements.',
+        );
+      }),
     };
   }
   return {
@@ -297,6 +308,7 @@ type CheckExpressionRenderer = (input: {
   readonly tableName: string;
   readonly columnName: string;
   readonly many: boolean;
+  readonly elementNullable: boolean;
   readonly memberValues: readonly string[] | undefined;
 }) => ReadonlyArray<{
   readonly kind: 'membership' | 'elementNotNull';
@@ -363,10 +375,11 @@ function resolveNoCheckKinds(input: {
   readonly fieldName: string;
   readonly kinds: readonly CheckKind[];
   readonly many: boolean;
+  readonly elementNullable: boolean;
   readonly isDomainEnum: boolean;
 }): readonly CheckKind[] {
   const derivable: CheckKind[] = [];
-  if (input.many) derivable.push('elementNotNull');
+  if (input.many && !input.elementNullable) derivable.push('elementNotNull');
   if (input.isDomainEnum) derivable.push('membership');
   const subject = `Field "${input.modelName}.${input.fieldName}"`;
   const meta = { modelName: input.modelName, fieldName: input.fieldName };
@@ -396,7 +409,7 @@ function resolveNoCheckKinds(input: {
       const explanation =
         kind === 'membership'
           ? 'membership checks are derived only from enumType() value sets'
-          : 'element-non-null checks are derived only for list columns';
+          : 'element-non-null checks are derived only for lists whose elements are semantically non-null';
       throw contractError(
         'CONTRACT.CHECK_OPTOUT_INVALID',
         `${subject}: noCheck("${kind}") does not apply — ${explanation}.`,
@@ -629,14 +642,22 @@ function buildStorageColumn(
       nativeType: JSONB_NATIVE_TYPE,
       codecId: JSONB_CODEC_ID,
       nullable: field.nullable,
+      many: false,
       ...ifDefined('default', encodedDefault),
     };
   }
 
   const codecId = field.descriptor.codecId;
+  const many = field.many ?? false;
   const encodedDefault =
     field.default !== undefined
-      ? encodeColumnDefault(field.default, codecId, codecLookup, field.many === true)
+      ? encodeColumnDefault(
+          field.default,
+          codecId,
+          codecLookup,
+          many !== false,
+          many !== false && many.elementNullable,
+        )
       : undefined;
 
   // `storageValueSetRef` (derived from an `enumTypeHandle`) takes precedence
@@ -650,7 +671,7 @@ function buildStorageColumn(
     nativeType: field.descriptor.nativeType,
     codecId,
     nullable: field.nullable,
-    ...(field.many ? { many: true as const } : {}),
+    many,
     ...(field.noCheck !== undefined ? { noCheck: [...field.noCheck].sort() } : {}),
     ...ifDefined('typeParams', field.descriptor.typeParams),
     ...ifDefined('default', encodedDefault),
@@ -668,7 +689,7 @@ function buildDomainField(
     return {
       type: { kind: 'valueObject', name: field.valueObjectName },
       nullable: field.nullable,
-      ...(field.many ? { many: true } : {}),
+      many: field.many ? { elementNullable: false } : false,
     };
   }
 
@@ -679,7 +700,7 @@ function buildDomainField(
       ...ifDefined('typeParams', column.typeParams),
     },
     nullable: column.nullable,
-    ...(field.many ? { many: true } : {}),
+    many: field.many ?? false,
     ...ifDefined('valueSet', domainValueSetRef),
   };
 }
@@ -1023,7 +1044,8 @@ export function buildSqlContractFromDefinition(
                 modelName: semanticModel.modelName,
                 fieldName: field.fieldName,
                 kinds: authoredNoCheck,
-                many: resolvedField.many === true,
+                many: resolvedField.many !== false,
+                elementNullable: resolvedField.many !== false && resolvedField.many.elementNullable,
                 isDomainEnum: enumHandle !== undefined,
               }),
             }
@@ -1031,6 +1053,7 @@ export function buildSqlContractFromDefinition(
       }
 
       const column = buildStorageColumn(resolvedField, storageValueSetRef, codecLookup);
+      const columnMany = column.many ?? false;
       columns[field.columnName] = column;
       fieldToColumn[field.fieldName] = field.columnName;
 
@@ -1049,7 +1072,8 @@ export function buildSqlContractFromDefinition(
             renderCheckExpressions({
               tableName,
               columnName: field.columnName,
-              many: column.many === true,
+              many: columnMany !== false,
+              elementNullable: columnMany !== false && columnMany.elementNullable,
               memberValues:
                 enumHandle !== undefined ? checkMemberValues(enumHandle, codecLookup) : undefined,
             }).filter((candidate) => !(waivedKinds?.includes(candidate.kind) ?? false)),
@@ -1557,7 +1581,7 @@ export function buildSqlContractFromDefinition(
                     ? {
                         type: { kind: 'valueObject' as const, name: f.valueObjectName },
                         nullable: f.nullable,
-                        ...(f.many ? { many: true } : {}),
+                        many: f.many ? { elementNullable: false } : false,
                       }
                     : {
                         type: {
@@ -1566,6 +1590,7 @@ export function buildSqlContractFromDefinition(
                           ...ifDefined('typeParams', f.descriptor.typeParams),
                         },
                         nullable: f.nullable,
+                        many: f.many,
                       },
                 ]),
               ),

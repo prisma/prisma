@@ -43,7 +43,7 @@ export interface FieldNode {
   readonly nullable: boolean;
   readonly default?: ColumnDefault;
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
-  readonly many?: boolean;
+  readonly many: false | { readonly elementNullable: boolean };
   /**
    * Generated-check kinds the author declined for this column. The PSL
    * interpreter always writes concrete kinds; the TS builder's bare

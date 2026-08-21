@@ -1,7 +1,7 @@
 import { mongoCodec, newMongoCodecRegistry } from '@internal/mongo-codec';
 import { MongoParamRef } from '@internal/mongo-value';
 import { isStructuredError, structuredError } from '@internal/utils/structured-error';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { resolveValue } from '../src/resolve-value';
 
 interface RuntimeErrorShape extends Error {
@@ -80,6 +80,34 @@ describe('resolveValue', () => {
     const result = (await resolveValue(arr, testRegistry(), noCtx)) as unknown[];
     expect(result[0]).toBe('A');
     expect(result[1]).toBe('b');
+  });
+
+  it('preserves $in array shape and encodes each operator-owned ref exactly once', async () => {
+    const encode = vi.fn((value: string) => `wire:${value}`);
+    const registry = newMongoCodecRegistry();
+    registry.register(
+      mongoCodec({
+        typeId: 'test/in-operand@1',
+        decode: (wire: string) => wire,
+        encode,
+      }),
+    );
+    const input = {
+      tags: {
+        $in: [
+          new MongoParamRef('admin', { codecId: 'test/in-operand@1' }),
+          null,
+          new MongoParamRef('editor', { codecId: 'test/in-operand@1' }),
+        ],
+      },
+    };
+
+    expect(await resolveValue(input, registry, noCtx)).toEqual({
+      tags: { $in: ['wire:admin', null, 'wire:editor'] },
+    });
+    expect(encode).toHaveBeenCalledTimes(2);
+    expect(encode).toHaveBeenNthCalledWith(1, 'admin', noCtx);
+    expect(encode).toHaveBeenNthCalledWith(2, 'editor', noCtx);
   });
 
   it('preserves null, primitive, and Date values', async () => {

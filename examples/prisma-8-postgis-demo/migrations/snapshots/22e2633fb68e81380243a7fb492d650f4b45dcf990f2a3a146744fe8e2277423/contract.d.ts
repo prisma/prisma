@@ -251,6 +251,7 @@ type ContractBase = Omit<
             readonly fields: {
               readonly id: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: {
                   readonly kind: 'scalar';
                   readonly codecId: 'sql/char@1';
@@ -259,10 +260,12 @@ type ContractBase = Omit<
               };
               readonly name: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly location: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/geometry@1' };
               };
             };
@@ -281,6 +284,7 @@ type ContractBase = Omit<
             readonly fields: {
               readonly id: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: {
                   readonly kind: 'scalar';
                   readonly codecId: 'sql/char@1';
@@ -289,10 +293,12 @@ type ContractBase = Omit<
               };
               readonly name: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly boundary: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/geometry@1' };
               };
             };
@@ -311,6 +317,7 @@ type ContractBase = Omit<
             readonly fields: {
               readonly id: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: {
                   readonly kind: 'scalar';
                   readonly codecId: 'sql/char@1';
@@ -319,10 +326,12 @@ type ContractBase = Omit<
               };
               readonly name: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly path: {
                 readonly nullable: false;
+                readonly many: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/geometry@1' };
               };
             };

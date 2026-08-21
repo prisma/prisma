@@ -23,7 +23,7 @@ describe('sql-target-family-hook', () => {
             },
           },
           fields: {
-            id: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
           },
           relations: {
             posts: {
@@ -45,8 +45,12 @@ describe('sql-target-family-hook', () => {
             },
           },
           fields: {
-            id: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
-            userId: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            userId: {
+              nullable: false,
+              many: false,
+              type: { kind: 'scalar', codecId: 'pg/int4@1' },
+            },
           },
           relations: {},
         },
@@ -206,7 +210,7 @@ describe('sql-target-family-hook', () => {
             },
           },
           fields: {
-            id: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
           },
           relations: {
             posts: {
@@ -236,8 +240,12 @@ describe('sql-target-family-hook', () => {
             },
           },
           fields: {
-            id: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
-            userId: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            userId: {
+              nullable: false,
+              many: false,
+              type: { kind: 'scalar', codecId: 'pg/int4@1' },
+            },
           },
           relations: {},
         },
@@ -288,7 +296,7 @@ describe('sql-target-family-hook', () => {
             },
           },
           fields: {
-            id: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
           },
           relations: {},
         },
@@ -325,9 +333,9 @@ describe('sql-target-family-hook', () => {
             },
           },
           fields: {
-            id: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
-            email: { nullable: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
-            name: { nullable: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
+            id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            email: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
+            name: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
           },
           relations: {},
         },
@@ -354,13 +362,13 @@ describe('sql-target-family-hook', () => {
     expect(types).toContain('readonly User: {');
     expect(types).toContain('storage: { readonly table: "user"');
     expect(types).toContain(
-      'readonly id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/int4@1" } }',
+      'readonly id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/int4@1" }; readonly many: false }',
     );
     expect(types).toContain(
-      'readonly email: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" } }',
+      'readonly email: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" }; readonly many: false }',
     );
     expect(types).toContain(
-      'readonly name: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" } }',
+      'readonly name: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" }; readonly many: false }',
     );
     expect(types).not.toContain('modelToTable');
     expect(types).not.toContain('fieldToColumn');
@@ -377,7 +385,7 @@ describe('sql-target-family-hook', () => {
             },
           },
           fields: {
-            id: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
           },
           relations: {},
         },
@@ -390,8 +398,12 @@ describe('sql-target-family-hook', () => {
             },
           },
           fields: {
-            id: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
-            userId: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            userId: {
+              nullable: false,
+              many: false,
+              type: { kind: 'scalar', codecId: 'pg/int4@1' },
+            },
           },
           relations: {},
         },
@@ -632,7 +644,7 @@ describe('sql-target-family-hook', () => {
             fields: { id: { column: 'id' } },
           },
           fields: {
-            id: { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
+            id: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/int4@1' } },
           },
           relations: {},
           owner: 'system',

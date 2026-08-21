@@ -1472,9 +1472,10 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
           columnName: resolvedField.columnName,
           descriptor: resolvedField.descriptor,
           nullable: resolvedField.nullable,
-          ...(resolvedField.many && resolvedField.valueObjectTypeName === undefined
-            ? { many: true as const }
-            : {}),
+          many:
+            resolvedField.many && resolvedField.valueObjectTypeName === undefined
+              ? { elementNullable: resolvedField.elementNullable === true }
+              : false,
           ...ifDefined('default', resolvedField.defaultValue),
           ...ifDefined('executionDefaults', resolvedField.executionDefaults),
           ...ifDefined('noCheck', resolvedField.noCheck),
@@ -1532,8 +1533,12 @@ function buildValueObjects(input: BuildValueObjectsInput): Record<string, Contra
         const result: ContractField = {
           type: { kind: 'valueObject', name: field.typeName },
           nullable: field.optional,
+          many: false,
         };
-        fields[field.name] = field.list ? { ...result, many: true } : result;
+        fields[field.name] = {
+          ...result,
+          many: field.list ? { elementNullable: field.elementOptional } : false,
+        };
         continue;
       }
       const resolved = resolveFieldTypeDescriptor({
@@ -1563,8 +1568,12 @@ function buildValueObjects(input: BuildValueObjectsInput): Record<string, Contra
       const scalarField: ContractField = {
         nullable: field.optional,
         type: { kind: 'scalar', codecId: resolved.descriptor.codecId },
+        many: false,
       };
-      fields[field.name] = field.list ? { ...scalarField, many: true } : scalarField;
+      fields[field.name] = {
+        ...scalarField,
+        many: field.list ? { elementNullable: field.elementOptional } : false,
+      };
     }
     valueObjects[compositeType.name] = { fields };
   }
@@ -1591,14 +1600,14 @@ function patchModelDomainFields(
         patchedFields[rf.field.name] = {
           nullable: rf.field.optional,
           type: { kind: 'valueObject', name: rf.valueObjectTypeName },
-          ...(rf.many ? { many: true as const } : {}),
+          many: rf.many ? { elementNullable: rf.elementNullable === true } : false,
         };
       } else if (rf.many && rf.scalarCodecId) {
         needsPatch = true;
         patchedFields[rf.field.name] = {
           nullable: rf.field.optional,
           type: { kind: 'scalar', codecId: rf.scalarCodecId },
-          many: true as const,
+          many: { elementNullable: rf.elementNullable === true },
         };
       }
     }
@@ -1868,6 +1877,7 @@ function materializeMtiVariantStorageLinks(
         columnName: pkColumn,
         descriptor: baseField.descriptor,
         nullable: false,
+        many: false,
       });
     }
     if (linkFields.length === 0) return node;

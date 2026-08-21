@@ -50,20 +50,23 @@ type VOContract = MongoContractWithTypeMaps<
               readonly fields: {
                 readonly _id: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
                 };
                 readonly name: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
                 readonly contactInfo: {
                   readonly nullable: true;
+                  readonly many: false;
                   readonly type: { readonly kind: 'valueObject'; readonly name: 'ContactInfo' };
                 };
                 readonly tags: {
                   readonly nullable: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
-                  readonly many: true;
+                  readonly many: { readonly elementNullable: false };
                 };
               };
               readonly relations: Record<string, never>;
@@ -75,10 +78,12 @@ type VOContract = MongoContractWithTypeMaps<
               readonly fields: {
                 readonly phone: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
                 readonly website: {
                   readonly nullable: true;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
               };
@@ -199,20 +204,23 @@ type VOContractWithFieldTypes = MongoContractWithTypeMaps<
               readonly fields: {
                 readonly _id: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
                 };
                 readonly name: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
                 readonly contactInfo: {
                   readonly nullable: true;
+                  readonly many: false;
                   readonly type: { readonly kind: 'valueObject'; readonly name: 'ContactInfo' };
                 };
                 readonly tags: {
                   readonly nullable: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
-                  readonly many: true;
+                  readonly many: { readonly elementNullable: false };
                 };
               };
               readonly relations: Record<string, never>;
@@ -224,10 +232,12 @@ type VOContractWithFieldTypes = MongoContractWithTypeMaps<
               readonly fields: {
                 readonly phone: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
                 readonly website: {
                   readonly nullable: true;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
               };
@@ -329,18 +339,22 @@ type ExtContract = MongoContractWithTypeMaps<
               readonly fields: {
                 readonly _id: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
                 };
                 readonly title: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
                 readonly type: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
                 readonly assigneeId: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
                 };
               };
@@ -372,6 +386,7 @@ type ExtContract = MongoContractWithTypeMaps<
               readonly fields: {
                 readonly severity: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
               };
@@ -383,6 +398,7 @@ type ExtContract = MongoContractWithTypeMaps<
               readonly fields: {
                 readonly priority: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
               };
@@ -394,10 +410,12 @@ type ExtContract = MongoContractWithTypeMaps<
               readonly fields: {
                 readonly _id: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
                 };
                 readonly name: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
               };
@@ -408,10 +426,12 @@ type ExtContract = MongoContractWithTypeMaps<
               readonly fields: {
                 readonly _id: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
                 };
                 readonly text: {
                   readonly nullable: false;
+                  readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 };
               };

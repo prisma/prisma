@@ -729,33 +729,48 @@ class MongoCollectionImpl<
     const filters: MongoFilterExpr[] = [];
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
-      const wrapped = this.#wrapFieldValue(value, fields[key]);
+      const wrapped = this.#wrapFilterEqualityValue(value, fields[key]);
       filters.push(MongoFieldFilter.eq(key, wrapped));
     }
     return filters;
   }
 
-  #wrapFieldValue(value: unknown, field: ContractField | undefined): MongoValue {
+  #wrapFilterEqualityValue(value: unknown, field: ContractField | undefined): MongoValue {
+    if (field?.type.kind === 'scalar' && field.many && Array.isArray(value)) {
+      const codecId = field.type.codecId;
+      return value.map((item) => (item === null ? null : new MongoParamRef(item, { codecId })));
+    }
+    return this.#wrapMutationFieldValue(value, field);
+  }
+
+  #wrapMutationFieldValue(value: unknown, field: ContractField | undefined): MongoValue {
     if (field === undefined) return new MongoParamRef(value);
 
     if (field.type.kind === 'scalar') {
-      return new MongoParamRef(value, { codecId: field.type.codecId });
+      const codecId = field.type.codecId;
+      if (field.many && Array.isArray(value)) {
+        return value.map((item) => (item === null ? null : new MongoParamRef(item, { codecId })));
+      }
+      return value === null ? null : new MongoParamRef(value, { codecId });
     }
 
     if (field.type.kind === 'valueObject') {
       const voName = field.type.name;
       const voDef = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[voName];
-      if (!voDef || value === null) return new MongoParamRef(value);
+      if (value === null) return null;
+      if (!voDef) return new MongoParamRef(value);
 
       if (field.many && Array.isArray(value)) {
         return value.map((item) =>
-          this.#wrapValueObject(
-            blindCast<
-              Record<string, unknown>,
-              'contract-typed value-object array elements are field-value records'
-            >(item),
-            voDef,
-          ),
+          item === null
+            ? null
+            : this.#wrapValueObject(
+                blindCast<
+                  Record<string, unknown>,
+                  'non-null contract-typed value-object array elements are field-value records'
+                >(item),
+                voDef,
+              ),
         );
       }
       return this.#wrapValueObject(
@@ -778,7 +793,7 @@ class MongoCollectionImpl<
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
       const fieldDef = voDef.fields[key];
-      doc[key] = this.#wrapFieldValue(value, fieldDef);
+      doc[key] = this.#wrapMutationFieldValue(value, fieldDef);
     }
     return doc;
   }
@@ -788,7 +803,7 @@ class MongoCollectionImpl<
     const doc: Record<string, MongoValue> = {};
     for (const [key, value] of Object.entries(data)) {
       if (value !== undefined) {
-        doc[key] = this.#wrapFieldValue(value, fields[key]);
+        doc[key] = this.#wrapMutationFieldValue(value, fields[key]);
       }
     }
     return doc;
@@ -804,7 +819,7 @@ class MongoCollectionImpl<
         });
       }
       if (value !== undefined) {
-        result[key] = this.#wrapFieldValue(value, fields[key]);
+        result[key] = this.#wrapMutationFieldValue(value, fields[key]);
       }
     }
     return result;
@@ -865,19 +880,18 @@ class MongoCollectionImpl<
       return this.#wrapDotPathValue(field, value);
     }
 
+    if (value instanceof MongoParamRef && operator === '$set') {
+      return this.#wrapMutationFieldValue(value.value, contractField);
+    }
+
     if (value instanceof MongoParamRef && contractField.type.kind === 'scalar') {
-      return new MongoParamRef(value.value, { codecId: contractField.type.codecId });
+      return value.value === null
+        ? null
+        : new MongoParamRef(value.value, { codecId: contractField.type.codecId });
     }
 
     if (contractField.type.kind === 'valueObject' && value instanceof MongoParamRef) {
-      const raw = value.value;
-      if (isUnknownRecord(raw)) {
-        const voName = contractField.type.name;
-        const voDef = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[voName];
-        if (voDef) {
-          return this.#wrapValueObject(raw, voDef);
-        }
-      }
+      return this.#wrapMutationFieldValue(value.value, contractField);
     }
 
     return value;
