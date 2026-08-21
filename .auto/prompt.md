@@ -44,3 +44,7 @@ Reduce the wall-clock duration of the `Test` job in `.github/workflows/ci.yml` o
 - Before this session, package unit tests and package coverage were combined into one coverage-enabled Vitest pass, eliminating duplicate execution. That landed in PR #30082 and is the current baseline.
 - The root config currently caps CI workers at 50% to avoid oversubscribing PGlite-heavy suites and the Postgres service. Worker-count experiments are promising but must prove stability.
 - Historical predecessor-PR `Test` job durations were 723s, 799s, 828s, and 854s. Package coverage dominated at 549s, 608s, 612s, and 650s; example tests took 110–143s.
+- Increasing serial package coverage from 50% to 75% workers produced successful 773s and 787s jobs, but a repeat ended with a language-server teardown rejection after every test passed. This was not a database failure, but the configuration needs caution.
+- Running package coverage and examples concurrently looked fast but was rejected after a real `ECONNRESET`/non-queryable Postgres failure. Do not retry workload overlap.
+- Full worker reuse (`isolate: false`) passed at 50% and 75%, but it is too broad: Supabase's config explicitly requires per-file isolation to prevent pg mocks leaking into integration files. Consider only targeted reuse in proven stateless projects.
+- Hosted-runner timing has large outliers. Compare repeated medians and stability rather than trusting minima; a 548s overlap run was followed by 739s and 735s unchanged runs.

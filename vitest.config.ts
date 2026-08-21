@@ -11,8 +11,7 @@ export default defineConfig({
     // (cli, sql runtime, postgres/supabase extensions, postgres adapter +
     // driver) don't all peak at once. Uncapped, several CPU-hungry PGlite
     // forks plus the Postgres service can oversubscribe the runner.
-    maxWorkers: process.env['CI'] ? '75%' : undefined,
-    isolate: process.env['CI'] ? false : undefined,
+    maxWorkers: process.env['CI'] ? '50%' : undefined,
     // Hard-suppress telemetry across every package test suite. The CLI's
     // `program.hook('preAction', …)` would otherwise fork the sender
     // child every time a test invokes the CLI in-process.
@@ -25,7 +24,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reportsDirectory: resolve(import.meta.dirname, 'coverage'),
-      reporter: ['text', 'json'],
+      reporter: ['json'],
       reportOnFailure: true,
       ...coveragePolicy,
     },
