@@ -125,9 +125,9 @@ description: Wire this skill with adapterPacks: [examplePack] for the example ta
     strictEqual(offences[0].errors[0].startsWith('frontmatter parse error:'), true);
   });
 
-  it('scans the hoisted upgrade skills under the skills/ root', () => {
+  it('scans every skill directory under the skills/ root', () => {
     const root = mkdtempSync(join(tmpdir(), 'validate-skills-nested-'));
-    for (const name of ['prisma-next-upgrade', 'prisma-8-extension-upgrade']) {
+    for (const name of ['prisma-8', 'prisma-8-example']) {
       const skillDir = join(root, 'skills', name);
       mkdirSync(skillDir, { recursive: true });
       writeFileSync(join(skillDir, 'SKILL.md'), validSkill.replace('example-skill', name));
