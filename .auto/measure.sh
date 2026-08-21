@@ -41,7 +41,10 @@ jobs_file="$(mktemp)"
 job_log="$(mktemp)"
 trap 'rm -f "$jobs_file" "$job_log"' EXIT
 for _ in $(seq 1 180); do
-  gh run view "$run_id" --repo "$repo" --json jobs > "$jobs_file"
+  if ! gh run view "$run_id" --repo "$repo" --json jobs > "$jobs_file"; then
+    sleep 10
+    continue
+  fi
   status="$(node -e '
     const fs = require("node:fs");
     const jobs = JSON.parse(fs.readFileSync(process.argv[1], "utf8")).jobs;
@@ -57,7 +60,11 @@ job_id="$(node -e '
   const jobs = JSON.parse(fs.readFileSync(process.argv[1], "utf8")).jobs;
   process.stdout.write(String(jobs.find(({ name }) => name === "Test")?.databaseId ?? ""));
 ' "$jobs_file")"
-gh run view "$run_id" --repo "$repo" --job "$job_id" --log > "$job_log"
+for _ in $(seq 1 6); do
+  gh run view "$run_id" --repo "$repo" --job "$job_id" --log > "$job_log" && break
+  sleep 10
+done
+[[ -s "$job_log" ]] || { echo "Could not download Test job log" >&2; exit 1; }
 phase_metric() {
   grep -o "CI_PHASE $1=[0-9]*" "$job_log" | tail -1 | cut -d= -f2 || true
 }
