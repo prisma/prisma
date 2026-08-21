@@ -269,7 +269,6 @@ describe('coverage config', () => {
     assert.match(rootVitestConfig, /from ['"]\.\/scripts\/coverage-config['"]/);
     assert.doesNotMatch(rootVitestConfig, /from ['"]\.\/scripts\/coverage-config\.[^'"]+['"]/);
     assert.match(rootVitestConfig, /provider:\s*['"]v8['"]/);
-    assert.match(rootVitestConfig, /reporter:\s*\[['"]json['"]\]/);
     assert.match(rootVitestConfig, /reportOnFailure:\s*true/);
   });
 

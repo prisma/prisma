@@ -25,7 +25,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reportsDirectory: resolve(import.meta.dirname, 'coverage'),
-      reporter: ['json'],
+      reporter: ['text', 'json'],
       reportOnFailure: true,
       ...coveragePolicy,
     },
