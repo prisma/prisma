@@ -282,7 +282,7 @@ describe('coverage config', () => {
     assert.match(testJob, /^ {4}name: Test$/m);
     assert.match(testJob, /- name: Test packages with coverage and examples/);
     assert.match(testJob, /run_timed packages_coverage_seconds pnpm coverage:packages &/);
-    assert.match(testJob, /run_timed examples_seconds pnpm test:examples --concurrency=1 &/);
+    assert.match(testJob, /run_timed examples_seconds pnpm test:examples --concurrency=2 &/);
     assert.match(
       testJob,
       /- name: Report package coverage\n {8}if: \$\{\{ !cancelled\(\) && needs\.changes\.outputs\.inert != 'true' \}\}\n {8}run: pnpm coverage:report/,
