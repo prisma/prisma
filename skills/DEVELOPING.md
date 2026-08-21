@@ -4,7 +4,7 @@ Contributor guide for the Prisma Next skills cluster. If you are *using* the ski
 
 ## What this tree is
 
-Skills that teach an LLM agent how to operate Prisma Next end-to-end. The usage surface is one consolidated skill: [`skills/prisma-8/SKILL.md`](./prisma-8/SKILL.md) is the runtime-matched entry point (its `description:` frontmatter fires on any Prisma Next work) and routes via its routing table into workflow-scoped reference files under [`skills/prisma-8/references/`](./prisma-8/references/) — one user goal per reference file. The two upgrade skills ([`prisma-next-upgrade`](./prisma-next-upgrade/), [`prisma-8-extension-upgrade`](./prisma-8-extension-upgrade/)) stay separate because their install ref policy differs (always `main`, never version-pinned).
+Skills that teach an LLM agent how to operate Prisma Next end-to-end. The usage surface is one consolidated skill: [`skills/prisma-8/SKILL.md`](./prisma-8/SKILL.md) is the runtime-matched entry point (its `description:` frontmatter fires on any Prisma Next work) and routes via its routing table into workflow-scoped reference files under [`skills/prisma-8/references/`](./prisma-8/references/) — one user goal per reference file. Upgrading is part of the same skill: [`references/upgrade-app.md`](./prisma-8/references/upgrade-app.md) and [`references/upgrade-extension.md`](./prisma-8/references/upgrade-extension.md) carry the two flows, and the per-transition instructions they replay live under [`prisma-8/upgrading/app/upgrades/`](./prisma-8/upgrading/app/upgrades/) and [`prisma-8/upgrading/extension/upgrades/`](./prisma-8/upgrading/extension/upgrades/).
 
 ## Design principles
 
@@ -14,7 +14,7 @@ The consolidated shape is deliberate. These principles govern every change to th
 
 The usage surface is exactly one installable skill. Agent runtimes match skills against the user's prompt by `description:` — a cluster of sibling skills forces each description to carve out its own trigger territory, and the boundaries drift, overlap, and misfire as the cluster grows. One skill means one activation decision ("is this Prisma Next work?") followed by an explicit routing step the skill itself controls.
 
-**A new top-level skill needs a structural reason, not a topical one.** The upgrade skills exist because their install ref policy differs from the usage skill (always-`main` vs version-pinned) — that is a structural reason. A new workflow, feature area, or extension is a new reference file plus a routing-table row, never a new sibling skill.
+**A new top-level skill needs a structural reason, not a topical one.** The upgrade flows used to be two sibling skills because their install ref policy differed (always-`main` vs version-pinned); now that the skill ships inside the packages, every copy is version-matched by construction and that reason is gone. A new workflow, feature area, or extension is a new reference file plus a routing-table row, never a new sibling skill.
 
 ### Progressive disclosure
 
