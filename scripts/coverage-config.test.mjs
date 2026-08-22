@@ -282,6 +282,10 @@ describe('coverage config', () => {
     assert.match(testJob, /^ {4}name: Test$/m);
     assert.match(
       testJob,
+      /^ {6}NODE_COMPILE_CACHE: \$\{\{ runner\.temp \}\}\/node-compile-cache$/m,
+    );
+    assert.match(
+      testJob,
       /run: pnpm coverage:packages\n {6}- name: Report package coverage\n {8}if: \$\{\{ !cancelled\(\) && needs\.changes\.outputs\.inert != 'true' \}\}\n {8}run: pnpm coverage:report/,
     );
     assert.match(
