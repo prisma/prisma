@@ -110,7 +110,7 @@ describe('CliStructuredError', () => {
 
   describe('nextActions', () => {
     const nextActions: readonly NextAction[] = [
-      { kind: 'run-command', label: 'Create the config', command: '{bin} init' },
+      { kind: 'run-command', label: 'Create the config', command: '{bin} orm init' },
     ];
 
     it('carries nextActions onto the error and the envelope, {bin} left unsubstituted', () => {

@@ -246,7 +246,7 @@ export function errorAmbiguousTarget(
     : '';
   return new MigrationToolsError('MIGRATION.AMBIGUOUS_TARGET', 'Ambiguous migration target', {
     why: `The migration history has diverged into multiple branches: ${branchTips.join(', ')}. This typically happens when two developers plan migrations from the same starting point.${divergenceInfo}`,
-    fix: 'Use `ref set <name> <hash>` to target a specific branch, delete one of the conflicting migration directories and re-run `migration plan`, or use --from <hash> to explicitly select a starting point.',
+    fix: 'Use `migration ref set <name> <hash>` to target a specific branch, delete one of the conflicting migration directories and re-run `migration plan`, or use --from <hash> to explicitly select a starting point.',
     meta: {
       branchTips,
       ...(context ? { divergencePoint: context.divergencePoint, branches: context.branches } : {}),
@@ -471,12 +471,12 @@ export function errorRefNotResolvable(refName: string): MigrationToolsError {
     `Ref "${refName}" is not resolvable`,
     {
       why: `Ref "${refName}" has no pointer file, and the hash being resolved is not a node in the migration graph either — there is nothing to materialize a contract from.`,
-      fix: `Create the ref with "prisma ref set ${refName} <hash>" (or advance it via "prisma db update --advance-ref ${refName}"), or pass a hash that is a node in the migration graph.`,
+      fix: `Create the ref with "{bin} migration ref set ${refName} <hash>" (or advance it via "{bin} db update --advance-ref ${refName}"), or pass a hash that is a node in the migration graph.`,
       nextActions: [
         {
           kind: 'run-command',
           label: `Create the ref "${refName}"`,
-          command: `{bin} ref set ${refName} <hash>`,
+          command: `{bin} migration ref set ${refName} <hash>`,
         },
         {
           kind: 'run-command',

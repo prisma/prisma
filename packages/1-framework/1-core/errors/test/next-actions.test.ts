@@ -31,7 +31,7 @@ describe('converted factories carry typed nextActions', () => {
 
     expect(error.fix).toBe("Run 'prisma orm init' to create a config file");
     expect(error.nextActions).toEqual([
-      { kind: 'run-command', label: 'Create a config file', command: '{bin} init' },
+      { kind: 'run-command', label: 'Create a config file', command: '{bin} orm init' },
     ]);
   });
 

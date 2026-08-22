@@ -8,7 +8,7 @@
   "scripts": {
     "emit": "prisma contract emit",
     "migration:plan": "prisma migration plan",
-    "migration:apply": "prisma migrate",
+    "migration:apply": "prisma db migrate",
     "db:seed": "tsx scripts/seed.ts",
     "db:reset": "tsx scripts/reset-db.ts",
     "dev": "next dev",

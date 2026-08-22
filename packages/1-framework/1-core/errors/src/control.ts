@@ -143,7 +143,9 @@ export function errorConfigFileNotFound(
   return new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Config file not found', {
     ...(options?.why ? { why: options.why } : { why: 'Config file not found' }),
     fix: "Run 'prisma orm init' to create a config file",
-    nextActions: [{ kind: 'run-command', label: 'Create a config file', command: '{bin} init' }],
+    nextActions: [
+      { kind: 'run-command', label: 'Create a config file', command: '{bin} orm init' },
+    ],
     docsUrl: docsUrlFor('CONFIG.FILE_NOT_FOUND'),
     ...(configPath ? { where: { path: configPath } } : {}),
   });
