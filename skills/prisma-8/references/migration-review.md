@@ -207,7 +207,7 @@ For a human-readable ordered preview of the migration path before applying, use 
 
 ## Reference Files
 
-This skill is intentionally body-only; the underlying CLI reference (`prisma migration status --help`, `db migrate --help`, `ref --help`) is the authoritative surface for flag-level detail. When in doubt, run `--help` and read the actual command's description rather than guessing from this skill.
+This skill is intentionally body-only; the underlying CLI reference (`prisma migration status --help`, `prisma db migrate --help`, `prisma migration ref --help`) is the authoritative surface for flag-level detail. When in doubt, run `--help` and read the actual command's description rather than guessing from this skill.
 
 ## Checklist
 

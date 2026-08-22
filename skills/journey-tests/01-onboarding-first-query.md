@@ -2,7 +2,7 @@
 
 **Skills under test:** `prisma-next-quickstart`, `prisma-next-contract`, `prisma-next-migrations`, `prisma-next-queries`.
 
-**Example app:** A fresh directory scaffolded with `pnpm dlx prisma orm init` (run inside the new directory — `init` operates in `cwd` and does not take a project-name argument), or `examples/prisma-8-demo` with the User model deleted.
+**Example app:** A fresh directory scaffolded with `pnpm dlx @prisma/cli orm init` (run inside the new directory — `init` operates in `cwd` and does not take a project-name argument), or `examples/prisma-8-demo` with the User model deleted.
 
 **Acceptance criterion:** AC4 from `specs/usage-skill.spec.md`.
 

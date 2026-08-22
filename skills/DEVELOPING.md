@@ -115,7 +115,7 @@ Anything that prints is a likely defect: a user-authored example is importing fr
 
 The exclusion list covers the three sanctioned sources of user-authored `@internal/*` imports: target façades (`postgres`, `mongo`, `sqlite`), extension façades (`extension-<name>`), and build-tool plugin packages (`<bundler>-plugin-<purpose>`, e.g. `@internal/vite-plugin-contract-emit`). Build-tool plugins are themselves one-package-per-integration façades — they ship their own public surface and are not internal to a target package.
 
-**The framework-rendered exception.** Some files in a user's project are written *by* the framework, not by the user — chiefly `migrations/<scope>/<timestamp>/migration.ts`, which `prisma migration create` renders. Those files import from `@internal/postgres/migration` (or `@internal/sqlite/migration` for SQLite). A skill describing those files should:
+**The framework-rendered exception.** Some files in a user's project are written *by* the framework, not by the user — chiefly `migrations/<scope>/<timestamp>/migration.ts`, which `prisma migration plan` renders. Those files import from `@internal/postgres/migration` (or `@internal/sqlite/migration` for SQLite). A skill describing those files should:
 
 1. Make explicit that the imports are framework-managed.
 2. Not show those imports as if the user typed them.

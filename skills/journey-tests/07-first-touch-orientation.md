@@ -5,7 +5,7 @@
 **Example app:** A Prisma Next project the user is encountering for the first time. Three flavours of this initial state should all pass:
 
 - Freshly scaffolded by `npx createprisma`.
-- Freshly scaffolded by `pnpm dlx prisma orm init` (run by the user themselves, but not yet connected to a DB).
+- Freshly scaffolded by `pnpm dlx @prisma/cli orm init` (run by the user themselves, but not yet connected to a DB).
 - An existing project (e.g. `examples/prisma-8-demo`) with no migration applied yet — simulate "just got handed a teammate's repo, haven't run anything against the DB yet".
 
 **Acceptance criterion:** This journey complements AC4 from `specs/usage-skill.spec.md` by covering the first-touch orientation entry point — the moment a user arrives at a PN project and asks what they can do with it. The `createprisma` tool produces one specific phrasing of this prompt; the journey tests the broader "first-time user, any arrival path" surface.

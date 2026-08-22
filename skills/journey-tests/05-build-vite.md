@@ -10,7 +10,7 @@ A fresh Vite + React project that has run `prisma orm init`:
 
 ```bash
 mkdir my-vite-app && cd my-vite-app
-pnpm dlx prisma orm init
+pnpm dlx @prisma/cli orm init
 pnpm add vite @vitejs/plugin-react react react-dom
 ```
 

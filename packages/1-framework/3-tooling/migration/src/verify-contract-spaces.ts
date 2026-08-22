@@ -227,7 +227,7 @@ export function verifyContractSpaces(
         spaceId,
         onDiskInvariants,
         markerInvariants: [...marker.invariants].sort(),
-        remediation: `Marker row for space '${spaceId}' is missing invariants [${missing.map((s) => JSON.stringify(s)).join(', ')}]. Run \`prisma db update\` to apply the corresponding data-transform migrations.`,
+        remediation: `Marker row for space '${spaceId}' is missing invariants [${missing.map((s) => JSON.stringify(s)).join(', ')}]. Run \`{bin} db update\` to apply the corresponding data-transform migrations.`,
       });
     }
   }
