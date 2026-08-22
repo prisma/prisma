@@ -222,7 +222,7 @@ function renderSelect(ast: SelectAst, contract: PostgresContract, pim: ParamInde
     ? `ORDER BY ${ast.orderBy
         .map((order) => {
           const expr = renderOrderByExpr(order.expr, sourcesByRef, contract, pim);
-          return `${expr} ${order.dir.toUpperCase()}`;
+          return renderOrderByItem(order, expr);
         })
         .join(', ')}`
     : '';
@@ -750,13 +750,18 @@ function renderJsonObjectExpr(
   return `json_build_object(${args})`;
 }
 
+function renderOrderByItem(item: OrderByItem, expr: string): string {
+  const nulls = item.nulls ? ` NULLS ${item.nulls.toUpperCase()}` : '';
+  return `${expr} ${item.dir.toUpperCase()}${nulls}`;
+}
+
 function renderOrderByItems(
   items: ReadonlyArray<OrderByItem>,
   contract: PostgresContract,
   pim: ParamIndexMap,
 ): string {
   return items
-    .map((item) => `${renderExpr(item.expr, contract, pim)} ${item.dir.toUpperCase()}`)
+    .map((item) => renderOrderByItem(item, renderExpr(item.expr, contract, pim)))
     .join(', ');
 }
 
