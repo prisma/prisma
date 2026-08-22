@@ -6,10 +6,10 @@ const coveragePolicy = composeCoverageConfig(import.meta.dirname);
 
 export default defineConfig({
   test: {
-    projects: ['packages/**/vitest.config.ts'],
-    // Reuse CI worker threads while keeping a fresh VM context per test file.
+    projects: ['packages/3-extensions/supabase/vitest.config.ts', 'packages/**/vitest.config.ts'],
+    // Reuse all CI runner cores while keeping a fresh VM context per test file.
     // Stateful projects can override this default, as the Supabase suite does.
-    maxWorkers: process.env['CI'] ? 5 : undefined,
+    maxWorkers: process.env['CI'] ? '100%' : undefined,
     pool: process.env['CI'] ? 'vmThreads' : undefined,
     // Hard-suppress telemetry across every package test suite. The CLI's
     // `program.hook('preAction', …)` would otherwise fork the sender
