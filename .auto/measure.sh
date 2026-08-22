@@ -16,7 +16,15 @@ fi
 git add -A
 git commit --signoff --allow-empty -m "autoresearch: measure Test CI $(date -u +%Y%m%dT%H%M%SZ)" >/dev/null
 sha="$(git rev-parse HEAD)"
-git push --set-upstream origin "$branch" >/dev/null
+pushed=false
+for _ in $(seq 1 3); do
+  if timeout 120 git push --set-upstream origin "$branch" >/dev/null; then
+    pushed=true
+    break
+  fi
+  sleep 10
+done
+[[ "$pushed" == true ]] || { echo "Could not push experiment after three attempts" >&2; exit 1; }
 
 pr_number="$(gh pr list --repo "$repo" --state open --head "$branch" --json number --jq '.[0].number // empty')"
 if [[ -z "$pr_number" ]]; then
