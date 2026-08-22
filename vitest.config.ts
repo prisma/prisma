@@ -11,9 +11,10 @@ export default defineConfig({
     // Stateful projects can override this default, as the Supabase suite does.
     maxWorkers: process.env['CI'] ? '100%' : undefined,
     pool: process.env['CI'] ? 'vmThreads' : undefined,
-    deps: {
-      optimizer: {
-        ssr: { enabled: process.env['CI'] === 'true' },
+    experimental: {
+      importDurations: {
+        print: process.env['CI'] ? true : false,
+        limit: 20,
       },
     },
     // Hard-suppress telemetry across every package test suite. The CLI's
