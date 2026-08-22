@@ -7,11 +7,8 @@ const coveragePolicy = composeCoverageConfig(import.meta.dirname);
 export default defineConfig({
   test: {
     projects: ['packages/**/vitest.config.ts'],
-    // Cap fork concurrency on CI so the PGlite-WASM-heavy package suites
-    // (cli, sql runtime, postgres/supabase extensions, postgres adapter +
-    // driver) don't all peak at once. Uncapped, several CPU-hungry PGlite
-    // forks plus the Postgres service can oversubscribe the runner.
-    maxWorkers: process.env['CI'] ? '100%' : undefined,
+    // Reuse CI worker threads while keeping a fresh VM context per test file.
+    // Stateful projects can override this default, as the Supabase suite does.
     pool: process.env['CI'] ? 'vmThreads' : undefined,
     // Hard-suppress telemetry across every package test suite. The CLI's
     // `program.hook('preAction', …)` would otherwise fork the sender
