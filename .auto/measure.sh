@@ -26,7 +26,12 @@ for _ in $(seq 1 3); do
 done
 [[ "$pushed" == true ]] || { echo "Could not push experiment after three attempts" >&2; exit 1; }
 
-pr_number="$(gh pr list --repo "$repo" --state open --head "$branch" --json number --jq '.[0].number // empty')"
+pr_number=""
+for _ in $(seq 1 6); do
+  pr_number="$(gh pr list --repo "$repo" --state open --head "$branch" --json number --jq '.[0].number // empty' 2>/dev/null || true)"
+  [[ -n "$pr_number" ]] && break
+  sleep 10
+done
 if [[ -z "$pr_number" ]]; then
   pr_url="$(gh pr create --repo "$repo" --base main --head "$branch" --draft --title "autoresearch: speed up Test CI job" --body $'Temporary draft PR for hosted-CI performance experiments.\n\nDo not review or merge. The final result will be prepared separately.')"
   pr_number="${pr_url##*/}"
