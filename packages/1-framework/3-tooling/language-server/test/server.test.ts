@@ -44,6 +44,7 @@ import {
   type RegistrationParams,
   RegistrationRequest,
   type SemanticTokens,
+  ShutdownRequest,
   StreamMessageReader,
   StreamMessageWriter,
   type TextEdit,
@@ -207,6 +208,7 @@ interface Harness {
   readonly notifyConfigChanged: (uri?: string) => void;
   readonly getDocumentAst: (uri: string) => DocumentArtifacts | undefined;
   readonly getProjectSymbolTable: (uri: string) => SymbolTable | undefined;
+  readonly shutdown: () => Promise<void>;
   dispose: () => void;
 }
 
@@ -418,6 +420,13 @@ function startHarness(
     },
     getDocumentAst: (uri) => server.getDocumentAst(uri),
     getProjectSymbolTable: (uri) => server.getProjectSymbolTable(uri),
+    shutdown: async () => {
+      await client.sendRequest(ShutdownRequest.type);
+      server.dispose();
+      client.dispose();
+      clientToServer.end();
+      serverToClient.end();
+    },
     dispose: () => {
       // Dispose the server first, so its connection is gone before the
       // transport dies. Sends made after that point — an in-flight `publish`
@@ -560,14 +569,7 @@ function deferredSettleable<T>(): {
 let harness: Harness | undefined;
 
 afterEach(async () => {
-  // The harness disposes the server before the client (see `dispose` above),
-  // so the server's `disposed` guard is raised before the transport dies and
-  // an in-flight `publish` can never log through a dead connection. This tick
-  // is a separate concern: it lets any in-flight JSON-RPC request/response
-  // write flush before the streams are torn down, so vscode-jsonrpc's own
-  // internal error logging doesn't reject a notification mid-transmission.
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  harness?.dispose();
+  await harness?.shutdown();
   harness = undefined;
   configResolutionMock.resolveConfigInputs.mockReset();
   configLoaderMock.findNearestConfigPathForFile.mockReset();
@@ -2046,6 +2048,28 @@ describe('language server preserved artifacts', { timeout: timeouts.databaseOper
 });
 
 describe('language server disposal', { timeout: timeouts.databaseOperation }, () => {
+  it('gracefully shuts down after a pull-diagnostics request', async () => {
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => {
+      unhandled.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      harness = startHarness(resolveToSchema, pullDiagnosticsCapabilities);
+      await harness.initialize();
+      openDocument(harness, schemaUri, duplicateModelSource);
+      await requestPullDiagnostics(harness, schemaUri);
+
+      await harness.shutdown();
+      harness = undefined;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+    }
+  });
+
   async function assertNoUnhandledRejection(
     settle: (load: {
       readonly resolve: (value: ConfigResolution) => void;

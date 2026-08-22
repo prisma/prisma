@@ -167,6 +167,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TEST_TIMEOUT_MULTIPLIER: 2
+      NODE_COMPILE_CACHE: /tmp/prisma-next-node-compile-cache
       # Used by examples/prisma-8-cloudflare-worker's vitest-pool-workers
       # integration test. Mirrors the .env.example pattern; the container is
       # brought up by `pnpm db:up` below (docker-compose, not a service
