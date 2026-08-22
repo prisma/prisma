@@ -161,13 +161,22 @@ describe('adapter-postgres codecs', () => {
 
   describe('timestamptz codec', () => {
     const timestamptzCodec = codecForScalar('timestamptz') as {
-      encode: (value: Date, ctx: SqlCodecCallContext) => Promise<Date>;
+      encode: (value: Date, ctx: SqlCodecCallContext) => Promise<string>;
       decode: (wire: Date, ctx: SqlCodecCallContext) => Promise<Date>;
     };
 
-    it('round-trips Date values', async () => {
+    it('encodes the instant as a UTC ISO string, independent of process timezone', async () => {
       const date = new Date('2024-01-15T10:30:00Z');
-      expect(await timestamptzCodec.encode(date, {})).toBe(date);
+      expect(await timestamptzCodec.encode(date, {})).toBe('2024-01-15T10:30:00.000Z');
+    });
+
+    it('encodes historical instants exactly (no local-mean-time offset rounding)', async () => {
+      const date = new Date('0120-01-01T00:00:00Z');
+      expect(await timestamptzCodec.encode(date, {})).toBe('0120-01-01T00:00:00.000Z');
+    });
+
+    it('passes the driver-parsed Date through on decode', async () => {
+      const date = new Date('2024-01-15T10:30:00Z');
       expect(await timestamptzCodec.decode(date, {})).toBe(date);
     });
   });

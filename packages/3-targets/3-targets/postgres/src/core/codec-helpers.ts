@@ -262,8 +262,20 @@ export const pgTimestampDecodeJson = (json: JsonValue): Date => {
   return date;
 };
 
+/**
+ * Serializes a `timestamptz` parameter as the instant's UTC ISO-8601 string,
+ * bypassing the pg driver's own `Date` serialization (`dateToString`). That
+ * serializer writes the *local* wall clock (`getHours`..`getSeconds`) next to an
+ * offset suffix derived from `getTimezoneOffset()`, which is whole minutes.
+ * Zones whose historical rule is local mean time carry a seconds component
+ * (Europe/Berlin before 1893 is +00:53:28), so the wall clock includes seconds
+ * the suffix cannot express and the stored instant drifts by that remainder.
+ * A `Z`-suffixed UTC string has no such offset to lose.
+ */
+export const pgTimestamptzEncode = (value: Date): string => value.toISOString();
+
 export const pgTimestamptzEncodeJson = (value: Date): JsonValue =>
-  value.toISOString().replace(/Z$/, '+00:00');
+  pgTimestamptzEncode(value).replace(/Z$/, '+00:00');
 export const pgTimestamptzDecodeJson = (json: JsonValue): Date => {
   if (typeof json !== 'string') {
     throw postgresError(
