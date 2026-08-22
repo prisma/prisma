@@ -6,7 +6,7 @@ const coveragePolicy = composeCoverageConfig(import.meta.dirname);
 
 export default defineConfig({
   test: {
-    projects: ['packages/3-extensions/supabase/vitest.config.ts', 'packages/**/vitest.config.ts'],
+    projects: ['packages/**/vitest.config.ts'],
     // Reuse all CI runner cores while keeping a fresh VM context per test file.
     // Stateful projects can override this default, as the Supabase suite does.
     maxWorkers: process.env['CI'] ? '100%' : undefined,
