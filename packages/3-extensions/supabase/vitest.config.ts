@@ -17,7 +17,6 @@ export default defineConfig({
     // hosted these tests. Per-file isolation stays on: supabase-facade
     // mocks the pg module, and a shared module registry would leak the
     // real pg into it (or the mock into the integration files).
-    pool: 'forks',
     maxWorkers: 1,
     testTimeout: timeouts.default,
     hookTimeout: timeouts.default,
