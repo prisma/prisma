@@ -150,23 +150,10 @@ export function interpretFieldAttribute<Out>(input: {
   return result.value;
 }
 
-export const mapModelSpec = modelAttribute('map', { positional: [{ key: 'name', type: str() }] });
-export const mapFieldSpec = fieldAttribute('map', { positional: [{ key: 'name', type: str() }] });
+const mapModelSpec = modelAttribute('map', { positional: [{ key: 'name', type: str() }] });
+const mapFieldSpec = fieldAttribute('map', { positional: [{ key: 'name', type: str() }] });
 
 type DefaultArgValue = string | number | boolean | (string | number | boolean)[] | TypedFuncCall;
-
-// Compose the non-enum `@default` value grammar for a single field: flexible literal arms
-// (string/number/boolean), a list arm only for list fields, and one typed `funcCall(name, signature)`
-// arm per registered default function. Field kind maps to shape, so an array on a scalar field
-// (or a scalar on a list field) is invalid syntax.
-export function buildDefaultSpec(input: {
-  readonly isList: boolean;
-  readonly registry: ControlMutationDefaultRegistry;
-}) {
-  return fieldAttribute('default', {
-    positional: [{ key: 'value', type: oneOf(...scalarDefaultArms(input.isList, input.registry)) }],
-  });
-}
 
 function scalarDefaultArms(
   isList: boolean,
@@ -183,18 +170,6 @@ function scalarDefaultArms(
     ),
   );
   return isList ? [list(literal()), ...funcArms] : [str(), num(), bool(), ...funcArms];
-}
-
-// Compose the enum `@default` value grammar from the enum's own member names: one
-// `identifier(member)` arm per member, so member-validity is a grammar concern — a non-member
-// identifier fails `oneOf` as invalid attribute syntax.
-export function buildEnumDefaultSpec(memberNames: readonly [string, ...string[]]) {
-  const [first, ...rest] = memberNames;
-  const arms: readonly [ArgType<string>, ...ArgType<string>[]] = [
-    identifier(first),
-    ...rest.map((name) => identifier(name)),
-  ];
-  return fieldAttribute('default', { positional: [{ key: 'member', type: oneOf(...arms) }] });
 }
 
 function noEnumMember(): ArgType<string> {
@@ -223,7 +198,7 @@ function enumDefaultArms(
   return [identifier(first), ...rest.map((name) => identifier(name))];
 }
 
-export function defaultFieldSpec(ctx: FieldAttributeSpecContext) {
+function defaultFieldSpec(ctx: FieldAttributeSpecContext) {
   const members = enumMemberNames(ctx);
   const valueArms =
     members === undefined
@@ -232,8 +207,8 @@ export function defaultFieldSpec(ctx: FieldAttributeSpecContext) {
   return fieldAttribute('default', { positional: [{ key: 'value', type: oneOf(...valueArms) }] });
 }
 
-export const idFieldSpec = fieldAttribute('id', { named: { map: optional(str()) } });
-export const uniqueFieldSpec = fieldAttribute('unique', { named: { map: optional(str()) } });
+const idFieldSpec = fieldAttribute('id', { named: { map: optional(str()) } });
+const uniqueFieldSpec = fieldAttribute('unique', { named: { map: optional(str()) } });
 
 const noCheckKindArgument = () => oneOf(identifier('membership'), identifier('elementNotNull'));
 
@@ -243,7 +218,7 @@ const noCheckKindArgument = () => oneOf(identifier('membership'), identifier('el
  * positional slots cover the whole kind vocabulary; a third argument is
  * necessarily a duplicate and fails as excess arity.
  */
-export const noCheckFieldSpec = fieldAttribute('noCheck', {
+const noCheckFieldSpec = fieldAttribute('noCheck', {
   positional: [
     { key: 'first', type: optional(noCheckKindArgument()) },
     { key: 'second', type: optional(noCheckKindArgument()) },
@@ -256,11 +231,11 @@ export const noCheckFieldSpec = fieldAttribute('noCheck', {
   },
 });
 
-export const idModelSpec = modelAttribute('id', {
+const idModelSpec = modelAttribute('id', {
   positional: [{ key: 'fields', type: list(fieldRef('self'), { nonEmpty: true, unique: true }) }],
   named: { map: optional(str()) },
 });
-export const uniqueModelSpec = modelAttribute('unique', {
+const uniqueModelSpec = modelAttribute('unique', {
   positional: [{ key: 'fields', type: list(fieldRef('self'), { nonEmpty: true, unique: true }) }],
   named: { map: optional(str()) },
 });
@@ -274,7 +249,7 @@ export const PSL_INDEX_EXPRESSION_REQUIRES_NAME: ContributedPslDiagnosticCode =
   'PSL_INDEX_EXPRESSION_REQUIRES_NAME';
 export const PSL_INDEX_NAME_XOR_MAP: ContributedPslDiagnosticCode = 'PSL_INDEX_NAME_XOR_MAP';
 
-export const indexModelSpec = modelAttribute('index', {
+const indexModelSpec = modelAttribute('index', {
   positional: [
     { key: 'fields', type: optional(list(fieldRef('self'), { nonEmpty: true, unique: true })) },
   ],
@@ -345,7 +320,7 @@ export const PSL_CHECK_EXPRESSION_EMPTY: ContributedPslDiagnosticCode =
  */
 export const PSL_CHECK_ON_STI_VARIANT: ContributedPslDiagnosticCode = 'PSL_CHECK_ON_STI_VARIANT';
 
-export const checkModelSpec = modelAttribute('check', {
+const checkModelSpec = modelAttribute('check', {
   named: {
     expression: str(),
     name: optional(str()),
@@ -387,7 +362,7 @@ export const checkModelSpec = modelAttribute('check', {
   },
 });
 
-export const controlModelSpec = modelAttribute('control', {
+const controlModelSpec = modelAttribute('control', {
   positional: [
     {
       key: 'policy',
@@ -401,10 +376,10 @@ export const controlModelSpec = modelAttribute('control', {
   ],
 });
 
-export const discriminatorModelSpec = modelAttribute('discriminator', {
+const discriminatorModelSpec = modelAttribute('discriminator', {
   positional: [{ key: 'field', type: fieldRef('self') }],
 });
-export const baseModelSpec = modelAttribute('base', {
+const baseModelSpec = modelAttribute('base', {
   positional: [
     { key: 'base', type: entityRef() },
     { key: 'value', type: str() },
@@ -451,7 +426,7 @@ const referentialActionArgument = () =>
     identifier('SetDefault'),
   );
 
-export const relationFieldSpec = fieldAttribute('relation', {
+const relationFieldSpec = fieldAttribute('relation', {
   positional: [{ key: 'name', type: optional(str()) }],
   named: {
     name: optional(str()),

@@ -11,8 +11,8 @@ import { checkUncomposedNamespace, reportUncomposedNamespace } from './psl-colum
 import {
   findFieldAttributeNode,
   interpretFieldAttribute,
-  relationFieldSpec,
   type SqlRelationOutput,
+  sqlAttributeSpecs,
 } from './sql-attribute-specs';
 
 export const REFERENTIAL_ACTION_MAP: Record<string, ReferentialAction | undefined> = {
@@ -91,7 +91,7 @@ export function interpretRelationAttribute(input: {
   if (node === undefined) return undefined;
   return interpretFieldAttribute({
     node,
-    spec: relationFieldSpec,
+    spec: sqlAttributeSpecs.field.relation(),
     model: input.selfModel,
     field: input.field,
     sourceFile: input.sourceFile,

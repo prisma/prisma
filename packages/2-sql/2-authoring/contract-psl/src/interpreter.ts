@@ -108,16 +108,10 @@ import {
   validateBackrelationFieldAttributes,
 } from './psl-relation-resolution';
 import {
-  baseModelSpec,
-  checkModelSpec,
-  controlModelSpec,
-  discriminatorModelSpec,
   findModelAttributeNode,
-  idModelSpec,
-  indexModelSpec,
   interpretModelAttribute,
   PSL_CHECK_ON_STI_VARIANT,
-  uniqueModelSpec,
+  sqlAttributeSpecs,
 } from './sql-attribute-specs';
 
 export interface InterpretPslDocumentToSqlContractInput {
@@ -696,6 +690,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
 
   const resolvedFields = collectResolvedFields({
     model,
+    symbolTable: input.symbolTable,
     mapping,
     enumTypeDescriptors: input.enumTypeDescriptors,
     namedTypeDescriptors: input.namedTypeDescriptors,
@@ -862,7 +857,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: controlModelSpec,
+        spec: sqlAttributeSpecs.model.control(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -900,7 +895,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: idModelSpec,
+        spec: sqlAttributeSpecs.model.id(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -946,7 +941,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: uniqueModelSpec,
+        spec: sqlAttributeSpecs.model.unique(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -980,7 +975,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: indexModelSpec,
+        spec: sqlAttributeSpecs.model.index(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -1041,7 +1036,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: checkModelSpec,
+        spec: sqlAttributeSpecs.model.check(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -1643,7 +1638,7 @@ function collectPolymorphismDeclarations(
     if (discriminatorNode !== undefined) {
       const parsed = interpretModelAttribute({
         node: discriminatorNode,
-        spec: discriminatorModelSpec,
+        spec: sqlAttributeSpecs.model.discriminator(),
         model,
         sourceFile,
         sourceId,
@@ -1669,7 +1664,7 @@ function collectPolymorphismDeclarations(
     if (baseNode !== undefined) {
       const parsed = interpretModelAttribute({
         node: baseNode,
-        spec: baseModelSpec,
+        spec: sqlAttributeSpecs.model.base(),
         model,
         sourceFile,
         sourceId,
