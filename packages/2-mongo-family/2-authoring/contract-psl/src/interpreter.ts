@@ -114,6 +114,32 @@ function validateNamespaceBlocksForMongoTarget(input: {
   }
 }
 
+const UNLOWERED_FIELD_ATTRIBUTE_HINTS: ReadonlyMap<string, string> = new Map([
+  [
+    'default',
+    'Mongo has no default-value lowering; delete the attribute and apply the default in application code.',
+  ],
+  [
+    'updatedAt',
+    'Mongo has no default-value lowering; delete the attribute and set the timestamp in application code.',
+  ],
+]);
+
+const NATIVE_TYPE_ATTRIBUTE_HINT =
+  "Mongo has no native-type attributes; delete the attribute, the field's PSL type already selects its BSON codec.";
+
+function unsupportedFieldAttributeMessage(
+  ownerName: string,
+  fieldName: string,
+  attributeName: string,
+): string {
+  const base = `Field "${ownerName}.${fieldName}" uses unsupported attribute "@${attributeName}"`;
+  const hint = attributeName.startsWith('db.')
+    ? NATIVE_TYPE_ATTRIBUTE_HINT
+    : UNLOWERED_FIELD_ATTRIBUTE_HINTS.get(attributeName);
+  return hint === undefined ? base : `${base}. ${hint}`;
+}
+
 function reportUnknownAttributes(input: {
   readonly models: readonly ModelSymbol[];
   readonly compositeTypes: readonly CompositeTypeSymbol[];
@@ -138,7 +164,7 @@ function reportUnknownAttributes(input: {
         if (Object.hasOwn(mongoAttributeSpecs.field, attribute.name)) continue;
         diagnostics.push({
           code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
-          message: `Field "${owner.name}.${field.name}" uses unsupported attribute "@${attribute.name}"`,
+          message: unsupportedFieldAttributeMessage(owner.name, field.name, attribute.name),
           sourceId,
           span: attribute.span,
         });
@@ -1240,22 +1266,22 @@ export function interpretPslDocumentToMongoContract(
     }
 
     const isVariantModel = pslModel.attributes.some((attr) => attr.name === 'base');
-    const idFields = Object.values(pslModel.fields).filter((field) => {
-      const idNode = findFieldAttributeNode(field, 'id');
-      if (!idNode) return false;
-      return (
-        interpretFieldAttribute({
-          node: idNode,
-          spec: mongoAttributeSpecs.field.id({ ...specContext, field }),
-          model: pslModel,
-          field,
-          sourceFile,
-          sourceId,
-          diagnostics,
-        }) !== undefined
-      );
-    });
-    const hasIdField = idFields.length > 0;
+    const hasIdField =
+      Object.values(pslModel.fields).filter((field) => {
+        const idNode = findFieldAttributeNode(field, 'id');
+        if (!idNode) return false;
+        return (
+          interpretFieldAttribute({
+            node: idNode,
+            spec: mongoAttributeSpecs.field.id({ ...specContext, field }),
+            model: pslModel,
+            field,
+            sourceFile,
+            sourceId,
+            diagnostics,
+          }) !== undefined
+        );
+      }).length > 0;
     // Variant models inherit the base's identity and are validated through their base.
     if (!isVariantModel) {
       if (!hasIdField) {

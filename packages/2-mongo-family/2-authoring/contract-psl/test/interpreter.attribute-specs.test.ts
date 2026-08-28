@@ -95,7 +95,8 @@ describe('unknown attribute names diagnose against the registered namespace', ()
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
-        message: 'Field "Item.createdAt" uses unsupported attribute "@default"',
+        message:
+          'Field "Item.createdAt" uses unsupported attribute "@default". Mongo has no default-value lowering; delete the attribute and apply the default in application code.',
         sourceId: 'schema.prisma',
         span: expect.objectContaining({ start: expect.objectContaining({ line: 4 }) }),
       },
@@ -112,7 +113,25 @@ describe('unknown attribute names diagnose against the registered namespace', ()
     ).toEqual([
       expect.objectContaining({
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
-        message: 'Field "Item.id" uses unsupported attribute "@db.ObjectId"',
+        message:
+          'Field "Item.id" uses unsupported attribute "@db.ObjectId". Mongo has no native-type attributes; delete the attribute, the field\'s PSL type already selects its BSON codec.',
+      }),
+    ]);
+  });
+
+  it('tells the user to delete @updatedAt because Mongo never lowers it', () => {
+    expect(
+      diagnosticsOf(`
+        model Item {
+          id        ObjectId @id @map("_id")
+          updatedAt Int      @updatedAt
+        }
+      `),
+    ).toEqual([
+      expect.objectContaining({
+        code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
+        message:
+          'Field "Item.updatedAt" uses unsupported attribute "@updatedAt". Mongo has no default-value lowering; delete the attribute and set the timestamp in application code.',
       }),
     ]);
   });
