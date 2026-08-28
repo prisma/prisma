@@ -1,4 +1,5 @@
 import type { ControlFamilyDescriptor, ControlStack } from '@internal/framework-components/control';
+import { mongoAttributeSpecs } from '@internal/mongo-contract-psl';
 import { mongoEmission } from '@internal/mongo-emitter';
 import { mongoFamilyEntityTypes, mongoFamilyPslBlockDescriptors } from './authoring-entity-types';
 import { createMongoFamilyInstance, type MongoControlFamilyInstance } from './control-instance';
@@ -14,6 +15,7 @@ class MongoFamilyDescriptor
   readonly authoring = {
     entityTypes: mongoFamilyEntityTypes,
     pslBlockDescriptors: mongoFamilyPslBlockDescriptors,
+    attributeSpecs: mongoAttributeSpecs,
   } as const;
 
   create<TTargetId extends string>(

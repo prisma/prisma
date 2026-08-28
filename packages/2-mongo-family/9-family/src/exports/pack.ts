@@ -1,4 +1,5 @@
 import type { FamilyPackRef } from '@internal/framework-components/components';
+import { mongoAttributeSpecs } from '@internal/mongo-contract-psl';
 import {
   mongoFamilyEntityTypes,
   mongoFamilyPslBlockDescriptors,
@@ -12,6 +13,7 @@ const mongoFamilyPack = {
   authoring: {
     entityTypes: mongoFamilyEntityTypes,
     pslBlockDescriptors: mongoFamilyPslBlockDescriptors,
+    attributeSpecs: mongoAttributeSpecs,
   },
 } as const satisfies FamilyPackRef<'mongo'>;
 
