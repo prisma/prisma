@@ -170,15 +170,6 @@ export interface CollectResolvedFieldsInput {
   readonly codecLookup?: CodecLookup;
 }
 
-const BUILTIN_FIELD_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([
-  'id',
-  'unique',
-  'default',
-  'relation',
-  'map',
-  'noCheck',
-]);
-
 /**
  * Per-attribute migration rule for attributes that have been removed
  * from PSL in favor of the field-preset surface. The `hint` text is
@@ -206,18 +197,13 @@ const REMOVED_ATTRIBUTE_RULES: ReadonlyMap<string, RemovedAttributeRule> = new M
   ],
 ]);
 
-// `validateFieldAttributes` short-circuits on `BUILTIN_FIELD_ATTRIBUTE_NAMES`
-// before consulting `REMOVED_ATTRIBUTE_RULES`. A name appearing in both sets
-// would silently suppress its migration hint, defeating the purpose of the
-// hint table. Fail at module load with a clear message — the table is
-// designed to grow and this is the cheap insurance against future drift.
 {
   const overlap = [...REMOVED_ATTRIBUTE_RULES.keys()].filter((name) =>
-    BUILTIN_FIELD_ATTRIBUTE_NAMES.has(name),
+    Object.hasOwn(sqlAttributeSpecs.field, name),
   );
   if (overlap.length > 0) {
     throw new InternalError(
-      `BUILTIN_FIELD_ATTRIBUTE_NAMES and REMOVED_ATTRIBUTE_RULES must not overlap. Names in both: ${overlap.join(', ')}`,
+      `Registered SQL field attributes and REMOVED_ATTRIBUTE_RULES must not overlap. Names in both: ${overlap.join(', ')}`,
     );
   }
 }
@@ -233,7 +219,7 @@ function validateFieldAttributes(input: {
   readonly targetId: string;
 }): void {
   for (const attribute of input.field.attributes) {
-    if (BUILTIN_FIELD_ATTRIBUTE_NAMES.has(attribute.name)) {
+    if (Object.hasOwn(sqlAttributeSpecs.field, attribute.name)) {
       continue;
     }
 

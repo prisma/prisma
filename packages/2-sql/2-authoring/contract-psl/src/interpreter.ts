@@ -78,6 +78,7 @@ import {
 import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { contractError } from './contract-errors';
 
@@ -832,6 +833,37 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
 
   const modelAttributeNodes = Array.from(model.node.attributes());
   for (const [attributeIndex, modelAttribute] of model.attributes.entries()) {
+    if (
+      !Object.hasOwn(sqlAttributeSpecs.model, modelAttribute.name) &&
+      !input.modelAttributesByName.has(modelAttribute.name)
+    ) {
+      const uncomposedNamespace = checkUncomposedNamespace(
+        modelAttribute.name,
+        input.composedExtensions,
+        {
+          familyId: input.familyId,
+          targetId: input.targetId,
+          authoringContributions: input.authoringContributions,
+        },
+      );
+      if (uncomposedNamespace) {
+        reportUncomposedNamespace({
+          subjectLabel: `Attribute "@@${modelAttribute.name}"`,
+          namespace: uncomposedNamespace,
+          sourceId,
+          span: modelAttribute.span,
+          diagnostics,
+        });
+        continue;
+      }
+      diagnostics.push({
+        code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
+        message: `Model "${model.name}" uses unsupported attribute "@@${modelAttribute.name}"`,
+        sourceId,
+        span: modelAttribute.span,
+      });
+      continue;
+    }
     if (modelAttribute.name === 'map') {
       continue;
     }
@@ -1119,31 +1151,9 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       slot[lowered.key] = lowered.entity;
       continue;
     }
-    const uncomposedNamespace = checkUncomposedNamespace(
-      modelAttribute.name,
-      input.composedExtensions,
-      {
-        familyId: input.familyId,
-        targetId: input.targetId,
-        authoringContributions: input.authoringContributions,
-      },
+    throw new InternalError(
+      `Model attribute "@@${modelAttribute.name}" is registered but has no interpreter branch`,
     );
-    if (uncomposedNamespace) {
-      reportUncomposedNamespace({
-        subjectLabel: `Attribute "@@${modelAttribute.name}"`,
-        namespace: uncomposedNamespace,
-        sourceId,
-        span: modelAttribute.span,
-        diagnostics,
-      });
-      continue;
-    }
-    diagnostics.push({
-      code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
-      message: `Model "${model.name}" uses unsupported attribute "@@${modelAttribute.name}"`,
-      sourceId,
-      span: modelAttribute.span,
-    });
   }
 
   const resultFkRelationMetadata: FkRelationMetadata[] = [];
