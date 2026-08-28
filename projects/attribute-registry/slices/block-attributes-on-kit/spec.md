@@ -40,6 +40,7 @@ export interface AttributeSpec<Out, Ctx extends BlockInterpretCtx = InterpretCtx
 - New `src/attribute-spec/block-attribute.ts`: `blockAttribute(name, { positional?, named?, refine? })` mirrors `modelAttribute` (`model-attribute.ts`) with `level: 'block'` and `Ctx = BlockInterpretCtx`.
 - `src/attribute-spec/spec-context.ts` gains the erased block factory contract, the block-level sibling of `ModelAttributeSpecFactory` (registry-core § Chosen design 1): `export type BlockAttributeSpecFactory = () => AttributeSpec<never, BlockInterpretCtx>`. Nullary: the descriptor a block factory hangs on is already the scoping fact (design-decisions § 8), and no shipped block attribute reads anything else. A parameter is added additively when a factory needs one; `() => X` stays assignable to `(ctx) => X`.
 - Barrel `src/exports/index.ts` exports `blockAttribute`, `BlockInterpretCtx`, `BlockAttributeSpecFactory`.
+- Combinators dispatch on syntax kind (`XAst.cast(arg.syntax)`), never on AST class identity (`arg instanceof XAst`). Amended at D4 (falsified assumption, I12): a family pack's spec and the parser can come from two module copies of `psl-parser` — `@internal/family-sql` had the package as a devDependency, so tsdown inlined a second copy into its dist, and `scripts/regen-example-migrations.mjs` deliberately pairs `src/` providers with the published `@prisma/orm-*` bundles (which carry `@prisma/orm-framework`'s copy). Under either, `instanceof` rejects every argument. Kind dispatch is copy-independent; `@internal/family-sql` moves `psl-parser` to `dependencies` so its dist externalises the package. Pinned by `test/attribute-spec-combinators.foreign-copy.test.ts`.
 
 ### 2. Descriptor + node substrate — `@internal/framework-components`
 
@@ -93,6 +94,7 @@ One reviewable unit because the descriptor key, the node field, the reconstructi
 | `@@map` on a family `enum` block | Diagnoses as unknown | Grep of every `*.psl`/`*.prisma` under `packages`, `test`, `examples`: extension-ish blocks carry only `@@type` (32) and `@@map` (14, all on `native_enum`/`policy_*`); the one `enum … @@map` hit is a comment in `issues-28591-mapped-enums/_fixture/contract.prisma`. No fixture regresses. |
 | `@@type` diagnostics move from interpretation to symbol-table stage | Accepted | Contract emission fails on either stage; the LSP shows both. Tests asserting the old stage move with it. |
 | `codecSpan` anchor widens from the argument to the attribute | Accepted | The parsed record carries one span. Family enum tests use a zero span throughout. |
+| Spec and parser from different `psl-parser` module copies | Fixed in-slice (D4) | Found by `pnpm fixtures:check`: three example migration regens emit `PSL_INVALID_ATTRIBUTE_SYNTAX` on every `@@type`. See § Chosen design 1, last bullet. |
 
 ## Slice-specific done conditions
 
