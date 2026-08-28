@@ -744,6 +744,29 @@ describe('assembleAuthoringContributions', () => {
     });
   });
 
+  it.each([
+    ['an undefined factory', { map: undefined }],
+    ['a non-function factory', { map: 'map' }],
+  ])('rejects a pslBlockDescriptors entry whose attributes carries %s', (_label, attributes) => {
+    expect(() =>
+      assembleAuthoringContributions([
+        createDescriptor({
+          authoring: {
+            entityTypes: {
+              foo: { kind: 'entity', discriminator: 'fake-foo', output: { factory: () => ({}) } },
+            },
+            pslBlockDescriptors: {
+              fooBlock: {
+                ...makeDeclarativePslBlockDescriptor('fake-foo'),
+                attributes,
+              } as unknown as never,
+            },
+          },
+        }),
+      ]),
+    ).toThrow(/Malformed authoring pslBlock contribution at "fooBlock"/);
+  });
+
   it('rejects a pslBlockDescriptors entry whose attributes is not a record', () => {
     expect(() =>
       assembleAuthoringContributions([

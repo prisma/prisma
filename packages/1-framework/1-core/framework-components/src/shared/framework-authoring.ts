@@ -7,6 +7,7 @@ import {
   isColumnDefaultLiteralInputValue,
   isExecutionMutationDefaultValue,
 } from '@internal/contract/types';
+import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -347,15 +348,7 @@ export function resolveEnumCodecId(
   }
 
   const codecId = typeAttr.args['codecId'];
-  if (typeof codecId !== 'string') {
-    ctx.diagnostics?.push({
-      code: 'PSL_ENUM_MISSING_TYPE',
-      message: `enum "${block.name}" @@type attribute must have a quoted codec id argument`,
-      sourceId,
-      span: typeAttr.span,
-    });
-    return undefined;
-  }
+  invariant(typeof codecId === 'string', '@@type on an enum block parses one string argument');
   return { codecId, codecSpan: typeAttr.span };
 }
 
@@ -737,7 +730,10 @@ function isWellFormedDescriptor(value: unknown, descriptorKind: string): boolean
       }
       if (!('attributes' in value) || value.attributes === undefined) return true;
       const attributes = value.attributes;
-      return typeof attributes === 'object' && attributes !== null && !Array.isArray(attributes);
+      if (typeof attributes !== 'object' || attributes === null || Array.isArray(attributes)) {
+        return false;
+      }
+      return Object.values(attributes).every((factory) => typeof factory === 'function');
     }
     case 'modelAttribute': {
       if (

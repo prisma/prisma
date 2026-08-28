@@ -46,7 +46,7 @@ The SQL and Mongo family interpreters are the first consumers. They define their
 
 The kit consumes `ExpressionAst` directly. No intermediate argument representation is introduced, and no combinator reparses flattened source text except `json()`, the deliberate quoted-JSON-object exception.
 
-Attributes are a PSL authoring concern, so the kit lives in `psl-parser` rather than framework core. The current constructors cover field and model attributes. `AttributeLevel` reserves a block level, but generic-block attribute construction and interpretation remain future work.
+Attributes are a PSL authoring concern, so the kit is in `psl-parser` rather than framework core. The constructors cover field, model, and block attributes: `blockAttribute()` builds a spec over `BlockInterpretCtx` (no `selfModel`), a block descriptor declares its attributes on `AuthoringPslBlockDescriptor.attributes` as nullary factories, and the generic block reconstruction interprets them into `PslExtensionBlock.attributes`.
 
 ---
 
@@ -298,7 +298,6 @@ The current implementation is sufficient for interpreter consumption but not yet
 
 - Add central spec discovery and traversable combinator metadata for language-tooling consumers.
 - Decide whether reference combinators should expose declaration-bearing results while preserving the interpreter's string-oriented lowering needs.
-- Add block-level construction and interpretation if generic-block attributes adopt this mechanism.
 - Revisit signature-derived `TypedFuncCall` output types if downstream code needs statically discriminated call unions.
 - Decide whether literal-to-field-type compatibility should remain in lowering or gain a dedicated field-context combinator.
 

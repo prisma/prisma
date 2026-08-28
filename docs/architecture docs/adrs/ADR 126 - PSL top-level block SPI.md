@@ -66,7 +66,7 @@ A parameter is one of four kinds. The split is principled, not incidental:
 
 ## How the framework interprets a block
 
-**Parse.** On an unknown top-level keyword, the framework looks it up in the `pslBlockDescriptors` registry. If a descriptor claims it, the generic parser reads the block into a `PslExtensionBlock` node — a name plus a `parameters` map keyed by parameter name. No extension code runs.
+**Parse.** On an unknown top-level keyword, the framework looks it up in the `pslBlockDescriptors` registry. If a descriptor claims it, the generic parser reads the block into a `PslExtensionBlock` node — a name, a `parameters` map keyed by parameter name, and an `attributes` map holding the `@@` attributes interpreted through the specs the descriptor declares in `attributes`. No extension code runs.
 
 **Validate.** The validator checks, at parse time and with source spans: unknown parameters; missing required parameters; an `option` value outside the declared set; a `value` the codec's `decodeJson` rejects; and a `ref` that doesn't resolve within its declared scope.
 
