@@ -464,6 +464,7 @@ export interface AuthoringPslBlockDescriptor {
     readonly parameter: string;
     readonly attribute: string;
   };
+  readonly attributes?: Readonly<Record<string, unknown>>;
 }
 
 export type AuthoringPslBlockDescriptorNamespace = {
@@ -735,7 +736,12 @@ function isWellFormedDescriptor(value: unknown, descriptorKind: string): boolean
       if (!('required' in name) || typeof name.required !== 'boolean') return false;
       if (!('parameters' in value)) return false;
       const parameters = value.parameters;
-      return typeof parameters === 'object' && parameters !== null && !Array.isArray(parameters);
+      if (typeof parameters !== 'object' || parameters === null || Array.isArray(parameters)) {
+        return false;
+      }
+      if (!('attributes' in value) || value.attributes === undefined) return true;
+      const attributes = value.attributes;
+      return typeof attributes === 'object' && attributes !== null && !Array.isArray(attributes);
     }
     case 'modelAttribute': {
       if (

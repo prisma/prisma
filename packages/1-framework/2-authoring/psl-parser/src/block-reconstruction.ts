@@ -75,6 +75,7 @@ export function reconstructExtensionBlock(
     name: blockName,
     parameters,
     blockAttributes,
+    attributes: {},
     span: nodePslSpan(node.syntax, sourceFile),
   };
 }

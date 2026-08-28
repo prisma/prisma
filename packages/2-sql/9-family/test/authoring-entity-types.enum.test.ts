@@ -40,6 +40,7 @@ function enumBlock(input: {
     name: input.name,
     parameters: input.parameters,
     blockAttributes: input.typeCodecId !== undefined ? [typeAttr(input.typeCodecId)] : [],
+    attributes: {},
     span: SPAN,
   };
 }
