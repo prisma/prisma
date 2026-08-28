@@ -7,10 +7,16 @@ import type {
 import type {
   ArgType,
   AttributeSpec,
+  AttributeSpecContext,
+  AttributeSpecNamespace,
+  FieldAttributeSpecContext,
   FieldSymbol,
   FuncCallSig,
+  InferAttr,
   InterpretCtx,
   ModelSymbol,
+  PslSpan,
+  SymbolTable,
   TypedFuncCall,
 } from '@internal/psl-parser';
 import {
@@ -24,6 +30,7 @@ import {
   leafDiagnostic,
   list,
   modelAttribute,
+  nodePslSpan,
   num,
   oneOf,
   optional,
@@ -32,6 +39,7 @@ import {
 } from '@internal/psl-parser';
 import type { FieldAttributeAst, ModelAttributeAst, SourceFile } from '@internal/psl-parser/syntax';
 import { blindCast } from '@internal/utils/casts';
+import { notOk } from '@internal/utils/result';
 
 export function findModelAttributeNode(
   model: ModelSymbol,
@@ -155,8 +163,17 @@ export function buildDefaultSpec(input: {
   readonly isList: boolean;
   readonly registry: ControlMutationDefaultRegistry;
 }) {
+  return fieldAttribute('default', {
+    positional: [{ key: 'value', type: oneOf(...scalarDefaultArms(input.isList, input.registry)) }],
+  });
+}
+
+function scalarDefaultArms(
+  isList: boolean,
+  registry: ControlMutationDefaultRegistry,
+): readonly [ArgType<DefaultArgValue>, ...ArgType<DefaultArgValue>[]] {
   const literal = () => oneOf(str(), num(), bool());
-  const funcArms = [...input.registry.entries()].map(([name, entry]) =>
+  const funcArms = [...registry.entries()].map(([name, entry]) =>
     funcCall(
       name,
       blindCast<
@@ -165,10 +182,7 @@ export function buildDefaultSpec(input: {
       >(entry.signature),
     ),
   );
-  const valueArms: readonly [ArgType<DefaultArgValue>, ...ArgType<DefaultArgValue>[]] = input.isList
-    ? [list(literal()), ...funcArms]
-    : [str(), num(), bool(), ...funcArms];
-  return fieldAttribute('default', { positional: [{ key: 'value', type: oneOf(...valueArms) }] });
+  return isList ? [list(literal()), ...funcArms] : [str(), num(), bool(), ...funcArms];
 }
 
 // Compose the enum `@default` value grammar from the enum's own member names: one
@@ -181,6 +195,41 @@ export function buildEnumDefaultSpec(memberNames: readonly [string, ...string[]]
     ...rest.map((name) => identifier(name)),
   ];
   return fieldAttribute('default', { positional: [{ key: 'member', type: oneOf(...arms) }] });
+}
+
+function noEnumMember(): ArgType<string> {
+  return {
+    kind: 'identifier',
+    label: 'enum member',
+    parse: (arg, ctx) => notOk([leafDiagnostic(ctx, arg, 'Enum declares no members')]),
+  };
+}
+
+function enumMemberNames(ctx: FieldAttributeSpecContext): readonly string[] | undefined {
+  const scope =
+    ctx.field.typeNamespaceId === undefined
+      ? ctx.symbols.topLevel
+      : ctx.symbols.topLevel.namespaces[ctx.field.typeNamespaceId];
+  const block = scope?.blocks[ctx.field.typeName];
+  if (block === undefined || block.keyword !== 'enum') return undefined;
+  return Object.keys(block.block.parameters);
+}
+
+function enumDefaultArms(
+  members: readonly string[],
+): readonly [ArgType<DefaultArgValue>, ...ArgType<DefaultArgValue>[]] {
+  const [first, ...rest] = members;
+  if (first === undefined) return [noEnumMember()];
+  return [identifier(first), ...rest.map((name) => identifier(name))];
+}
+
+export function defaultFieldSpec(ctx: FieldAttributeSpecContext) {
+  const members = enumMemberNames(ctx);
+  const valueArms =
+    members === undefined
+      ? scalarDefaultArms(ctx.field.list, ctx.controlMutationDefaults)
+      : enumDefaultArms(members);
+  return fieldAttribute('default', { positional: [{ key: 'value', type: oneOf(...valueArms) }] });
 }
 
 export const idFieldSpec = fieldAttribute('id', { named: { map: optional(str()) } });
@@ -361,3 +410,106 @@ export const baseModelSpec = modelAttribute('base', {
     { key: 'value', type: str() },
   ],
 });
+
+function relationAttributeSpan(ctx: InterpretCtx): PslSpan {
+  const field = ctx.field;
+  if (field !== undefined) {
+    const node = findFieldAttributeNode(field, 'relation');
+    if (node !== undefined) {
+      return nodePslSpan(node.syntax, ctx.sourceFile);
+    }
+    return field.span;
+  }
+  return ctx.selfModel.span;
+}
+
+function relationInvariants(
+  parsed: { readonly fields?: readonly string[]; readonly references?: readonly string[] },
+  ctx: InterpretCtx,
+): readonly PslDiagnostic[] {
+  const hasFields = parsed.fields !== undefined;
+  const hasReferences = parsed.references !== undefined;
+  if (hasFields !== hasReferences) {
+    return [
+      {
+        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
+        message: `Relation field "${ctx.selfModel.name}.${ctx.field?.name ?? ''}" requires fields and references arguments`,
+        sourceId: ctx.sourceId,
+        span: relationAttributeSpan(ctx),
+      },
+    ];
+  }
+  return [];
+}
+
+const referentialActionArgument = () =>
+  oneOf(
+    identifier('NoAction'),
+    identifier('Restrict'),
+    identifier('Cascade'),
+    identifier('SetNull'),
+    identifier('SetDefault'),
+  );
+
+export const relationFieldSpec = fieldAttribute('relation', {
+  positional: [{ key: 'name', type: optional(str()) }],
+  named: {
+    name: optional(str()),
+    fields: optional(list(fieldRef('self'), { nonEmpty: true, unique: true })),
+    references: optional(list(fieldRef('referenced'), { nonEmpty: true, unique: true })),
+    map: optional(str()),
+    onDelete: optional(referentialActionArgument()),
+    onUpdate: optional(referentialActionArgument()),
+    index: optional(bool()),
+  },
+  refine: relationInvariants,
+});
+
+export type SqlRelationOutput = InferAttr<typeof relationFieldSpec>;
+
+export function modelSpecContext(input: {
+  readonly symbols: SymbolTable;
+  readonly model: ModelSymbol;
+  readonly controlMutationDefaults: ControlMutationDefaultRegistry;
+}): AttributeSpecContext {
+  return {
+    symbols: input.symbols,
+    model: input.model,
+    controlMutationDefaults: input.controlMutationDefaults,
+  };
+}
+
+export function fieldSpecContext(input: {
+  readonly symbols: SymbolTable;
+  readonly model: ModelSymbol;
+  readonly field: FieldSymbol;
+  readonly controlMutationDefaults: ControlMutationDefaultRegistry;
+}): FieldAttributeSpecContext {
+  return {
+    symbols: input.symbols,
+    model: input.model,
+    field: input.field,
+    controlMutationDefaults: input.controlMutationDefaults,
+  };
+}
+
+export const sqlAttributeSpecs = {
+  model: {
+    map: () => mapModelSpec,
+    id: () => idModelSpec,
+    unique: () => uniqueModelSpec,
+    index: () => indexModelSpec,
+    check: () => checkModelSpec,
+    control: () => controlModelSpec,
+    discriminator: () => discriminatorModelSpec,
+    base: () => baseModelSpec,
+  },
+  field: {
+    map: () => mapFieldSpec,
+    id: () => idFieldSpec,
+    unique: () => uniqueFieldSpec,
+    noCheck: () => noCheckFieldSpec,
+    relation: () => relationFieldSpec,
+    default: defaultFieldSpec,
+  },
+} as const satisfies AttributeSpecNamespace;
