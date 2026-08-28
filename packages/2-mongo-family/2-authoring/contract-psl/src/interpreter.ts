@@ -114,6 +114,39 @@ function validateNamespaceBlocksForMongoTarget(input: {
   }
 }
 
+function reportUnknownAttributes(input: {
+  readonly models: readonly ModelSymbol[];
+  readonly compositeTypes: readonly CompositeTypeSymbol[];
+  readonly sourceId: string;
+  readonly diagnostics: ContractSourceDiagnostic[];
+}): void {
+  const { sourceId, diagnostics } = input;
+  for (const model of input.models) {
+    for (const attribute of model.attributes) {
+      if (Object.hasOwn(mongoAttributeSpecs.model, attribute.name)) continue;
+      diagnostics.push({
+        code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
+        message: `Model "${model.name}" uses unsupported attribute "@@${attribute.name}"`,
+        sourceId,
+        span: attribute.span,
+      });
+    }
+  }
+  for (const owner of [...input.models, ...input.compositeTypes]) {
+    for (const field of Object.values(owner.fields)) {
+      for (const attribute of field.attributes) {
+        if (Object.hasOwn(mongoAttributeSpecs.field, attribute.name)) continue;
+        diagnostics.push({
+          code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
+          message: `Field "${owner.name}.${field.name}" uses unsupported attribute "@${attribute.name}"`,
+          sourceId,
+          span: attribute.span,
+        });
+      }
+    }
+  }
+}
+
 interface FieldMappings {
   readonly pslNameToMapped: Map<string, string>;
 }
@@ -1047,6 +1080,12 @@ export function interpretPslDocumentToMongoContract(
   const allCompositeTypes: CompositeTypeSymbol[] = Object.values(topLevel.compositeTypes);
   const modelNames = new Set(allModels.map((m) => m.name));
   const compositeTypeNames = new Set(allCompositeTypes.map((ct) => ct.name));
+  reportUnknownAttributes({
+    models: allModels,
+    compositeTypes: allCompositeTypes,
+    sourceId,
+    diagnostics,
+  });
   const specContextFor = (model: ModelSymbol): AttributeSpecContext => ({
     symbols: symbolTable,
     model,

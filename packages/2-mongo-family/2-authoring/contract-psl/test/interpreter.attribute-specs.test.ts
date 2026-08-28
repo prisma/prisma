@@ -64,3 +64,100 @@ describe('field-level @id and @unique are interpreted against their specs', () =
     ).toEqual([]);
   });
 });
+
+describe('unknown attribute names diagnose against the registered namespace', () => {
+  it('reports an unregistered model attribute with its span', () => {
+    expect(
+      diagnosticsOf(`
+        model Item {
+          id ObjectId @id @map("_id")
+          @@shardKey([id])
+        }
+      `),
+    ).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
+        message: 'Model "Item" uses unsupported attribute "@@shardKey"',
+        sourceId: 'schema.prisma',
+        span: expect.objectContaining({ start: expect.objectContaining({ line: 4 }) }),
+      },
+    ]);
+  });
+
+  it('reports an unregistered field attribute with its span', () => {
+    expect(
+      diagnosticsOf(`
+        model Item {
+          id        ObjectId @id @map("_id")
+          createdAt Int      @default(1)
+        }
+      `),
+    ).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
+        message: 'Field "Item.createdAt" uses unsupported attribute "@default"',
+        sourceId: 'schema.prisma',
+        span: expect.objectContaining({ start: expect.objectContaining({ line: 4 }) }),
+      },
+    ]);
+  });
+
+  it('reports a namespaced field attribute by its full dotted name', () => {
+    expect(
+      diagnosticsOf(`
+      model Item {
+        id ObjectId @id @map("_id") @db.ObjectId
+      }
+    `),
+    ).toEqual([
+      expect.objectContaining({
+        code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
+        message: 'Field "Item.id" uses unsupported attribute "@db.ObjectId"',
+      }),
+    ]);
+  });
+
+  it('reports an unregistered attribute on a composite-type field', () => {
+    expect(
+      diagnosticsOf(`
+        type Address {
+          street String @sensitivity("high")
+        }
+        model Item {
+          id      ObjectId @id @map("_id")
+          address Address
+        }
+      `),
+    ).toEqual([
+      expect.objectContaining({
+        code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
+        message: 'Field "Address.street" uses unsupported attribute "@sensitivity"',
+      }),
+    ]);
+  });
+
+  it('accepts a schema that uses only registered attributes', () => {
+    expect(
+      diagnosticsOf(`
+        type Address {
+          street String @map("s")
+        }
+        model Item {
+          id      ObjectId @id @map("_id")
+          email   String   @unique
+          owner   Owner    @relation(fields: [ownerId], references: [id])
+          ownerId ObjectId
+          address Address
+          @@map("items")
+          @@index([email(sort: Desc)])
+          @@unique([ownerId, email])
+          @@textIndex([email])
+        }
+        model Owner {
+          id    ObjectId @id @map("_id")
+          items Item[]
+        }
+      `),
+    ).toEqual([]);
+  });
+});
