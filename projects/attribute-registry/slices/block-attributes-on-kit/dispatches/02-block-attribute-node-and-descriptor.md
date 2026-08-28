@@ -1,4 +1,4 @@
-# Dispatch 2 — block-attribute-substrate
+# Dispatch 2 — block-attribute-node-and-descriptor
 
 Slice plan: `../plan.md` § Dispatch 2. Spec: `../spec.md` § Chosen design 2.
 

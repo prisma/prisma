@@ -2,7 +2,7 @@
 
 **Spec:** [`./spec.md`](./spec.md) · **Linear:** [TML-3230](https://linear.app/prisma-company/issue/TML-3230)
 
-Sequence: kit (psl-parser) → node/descriptor substrate with every constructor adapted (core + fan-out) → reconstruction fills the substrate (psl-parser) → declarations + readers switch (families + postgres). Sandwich-shaped; each hand-off is a state the workspace typechecks and tests green in.
+Sequence: kit (psl-parser) → node and descriptor fields with every constructor adapted (core + fan-out) → reconstruction fills the node field (psl-parser) → declarations + readers switch (families + postgres). Sandwich-shaped; each hand-off is a state the workspace typechecks and tests green in.
 
 ## Dispatch plan
 
@@ -14,10 +14,10 @@ Sequence: kit (psl-parser) → node/descriptor substrate with every constructor 
 - **Focus:** `packages/1-framework/2-authoring/psl-parser` only (`src/attribute-spec/**`, `src/exports/index.ts`, `test/`). No descriptor, node, or consumer changes.
 - **Gates:** `cd packages/1-framework/2-authoring/psl-parser && pnpm typecheck` (incl. test project) · `pnpm --filter @internal/psl-parser lint` · `pnpm --filter @internal/psl-parser test` · workspace `pnpm typecheck` (kit consumers) · grep: `rg 'selfModel' packages/1-framework/2-authoring/psl-parser/src/attribute-spec/combinators` still names only `field-ref.ts`.
 
-### Dispatch 2: block-attribute-substrate
+### Dispatch 2: block-attribute-node-and-descriptor
 
 - **Outcome:** `AuthoringPslBlockDescriptor.attributes?` (erased), `PslExtensionBlock.attributes` (required) + `PslExtensionBlockParsedAttribute`, and `PSL_EXTENSION_UNKNOWN_BLOCK_ATTRIBUTE` exist in `@internal/framework-components` and are exported; the descriptor walker accepts the key; `reconstructExtensionBlock` sets `attributes: {}`; every in-repo `PslExtensionBlock` literal (psl-infer builders, supabase script, printer/framework/family/validator tests) carries `attributes` — such that *the node is total: a consumer reads `block.attributes` without an existence check, and nothing but the generic machinery can produce a block node lacking it*. `resolveEnumCodecId` is untouched here.
-- **Builds on:** none in-slice (core substrate); D1 only for the vocabulary the doc contract names.
+- **Builds on:** none in-slice (core-only change); D1 only for the vocabulary the doc contract names.
 - **Hands to:** a workspace where `attributes` is present (empty) on every block node — the surface D3 fills and D4 reads.
 - **Focus:** `@internal/framework-components` (`src/shared/psl-extension-block.ts`, `src/shared/framework-authoring.ts`, exports, tests) + the mechanical fan-out to node constructors across packages. Mechanical-fan-out shape: one transformation (`attributes: {}` or the synthesised `map` entry beside the existing `blockAttributes` entry), no judgment.
 - **Gates:** `pnpm build` of `framework-components` then workspace `pnpm typecheck` · `pnpm --filter @internal/framework-components lint && test` · `pnpm --filter @internal/target-postgres test` (psl-infer print tests) · `pnpm lint:deps` · grep: `rg -n 'blockAttributes:' packages --type ts` count equals `rg -n 'attributes:' … ` count at the same sites (every constructor adapted).
@@ -25,7 +25,7 @@ Sequence: kit (psl-parser) → node/descriptor substrate with every constructor 
 ### Dispatch 3: reconstruct-parses-block-attributes
 
 - **Outcome:** `reconstructExtensionBlock` runs the descriptor's block-attribute factories through `interpretAttribute` with a `BlockInterpretCtx`, fills `attributes`, converts kit diagnostics to `ParseDiagnostic`s (code widened to `PslDiagnostic['code']`), diagnoses unknown names with `PSL_EXTENSION_UNKNOWN_BLOCK_ATTRIBUTE` and duplicates first-wins with `PSL_INVALID_EXTENSION_BLOCK_ATTRIBUTE`; the one new `blindCast` narrows the erased factory. Tests (`symbol-table.test.ts` or a sibling file) cover: parsed value + span, unknown name, duplicate, arity/type failure surfacing as a symbol-table diagnostic, descriptor without `attributes`, descriptor `undefined` — such that *the LSP pipeline and the build see identical block-attribute diagnostics because both run `buildSymbolTable`*.
-- **Builds on:** D1's kit + D2's substrate.
+- **Builds on:** D1's kit + D2's node and descriptor fields.
 - **Hands to:** symbol tables whose block nodes carry parsed attributes for every declared attribute; nothing declares any yet, so every `@@` line diagnoses as unknown until D4 lands (D3 and D4 must merge together — D3 is not a shippable stop; the slice PR is the unit).
 - **Focus:** `@internal/psl-parser` (`src/block-reconstruction.ts`, `src/parse.ts` code type, `src/symbol-table.ts` if `sourceId` must thread, tests). No consumer changes.
 - **Gates:** psl-parser typecheck/lint/test · workspace `pnpm typecheck` (`ParseDiagnostic.code` widening) · `pnpm --filter @internal/language-server test` · grep: `rg 'blindCast' packages/1-framework/2-authoring/psl-parser/src` count = base + 1.
@@ -41,8 +41,8 @@ Sequence: kit (psl-parser) → node/descriptor substrate with every constructor 
 
 ## Handoff-contract checks
 
-- **Linearity:** D1 → D3 (kit), D2 → D3 (substrate), D3 → D4. D2 does not build on D1 (independent core change) — the two could land in either order; D4 reads both.
-- **Completeness:** slice-DoD ← D4 (grep gate, fixtures, diagnostics through `buildSymbolTable`), D3 (the single narrow), D2/D1 (substrate + kit). Cast budget verified slice-wide at close.
+- **Linearity:** D1 → D3 (kit), D2 → D3 (node and descriptor fields), D3 → D4. D2 does not build on D1 (independent core change) — the two could land in either order; D4 reads both.
+- **Completeness:** slice-DoD ← D4 (grep gate, fixtures, diagnostics through `buildSymbolTable`), D3 (the single narrow), D2/D1 (node/descriptor fields + kit). Cast budget verified slice-wide at close.
 
 ## Calibration references (thread into briefs)
 
@@ -50,7 +50,7 @@ Failure modes ([`drive/calibration/failure-modes.md`](../../../../drive/calibrat
 
 - **F5** — destructive git operations forbidden.
 - **F3** — broken consumers of the required `attributes` field and of `ArgType.parse` discovered by `rg`, not by repeated test runs.
-- **F11** — placement pinned: kit + reconstruction in `psl-parser`; descriptor/node/diagnostic-code in `framework-components`; specs declared where the descriptors live.
+- **F11** — placement pinned: kit + reconstruction in `psl-parser`; descriptor/node/diagnostic-code in `framework-components`; specs declared in the files that define the descriptors.
 - **F16/F17** — property statements in every outcome above; a self-acknowledged layering comment is a HALT. Core never imports `psl-parser`; the block factory is erased in core and narrowed once.
 - **F13/F15** — D3's tests must go red if reconstruction stops running the factories or stops diagnosing unknown names; D4's migrated tests must fail if the kit-parsed value is bypassed.
 - **F14** — gates mirror CI (lint per package; typecheck covers `test/`); sync `origin/main` before slice-close validation and push.
