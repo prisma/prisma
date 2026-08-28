@@ -81,7 +81,7 @@ describe('unknown attribute diagnostics derive from the registered SQL namespace
   });
 
   it('accepts every registered attribute at both levels', () => {
-    expect(unsupportedAttributeDiagnostics(everyRegisteredAttribute)).toEqual([]);
+    expect(interpret(everyRegisteredAttribute).ok).toBe(true);
   });
 
   it('exercises every registered name in the acceptance schema', () => {

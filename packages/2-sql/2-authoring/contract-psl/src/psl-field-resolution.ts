@@ -19,6 +19,7 @@ import type {
 } from '@internal/psl-parser';
 import type { SourceFile } from '@internal/psl-parser/syntax';
 import type { EnumTypeHandle } from '@internal/sql-contract-ts/contract-builder';
+import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -83,7 +84,10 @@ function lowerEnumDefaultForField(input: {
   });
   if (interpreted === undefined) return {};
   const member = interpreted.value;
-  if (typeof member !== 'string') return {};
+  invariant(
+    typeof member === 'string',
+    'the enum @default grammar admits only member identifiers, so the parsed value is a string',
+  );
   const match = enumHandle.enumMembers.find((m) => m.name === member);
   if (!match) return {};
 
