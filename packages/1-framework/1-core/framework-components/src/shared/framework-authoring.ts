@@ -330,7 +330,7 @@ export function resolveEnumCodecId(
   ctx: AuthoringEntityContext,
 ): { readonly codecId: string; readonly codecSpan: PslSpan } | undefined {
   const sourceId = ctx.sourceId ?? 'unknown';
-  const typeAttr = block.blockAttributes.find((a) => a.name === 'type');
+  const typeAttr = block.attributes['type'];
 
   if (typeAttr === undefined) {
     const inferredKind = classifyEnumMemberType(block);
@@ -346,12 +346,8 @@ export function resolveEnumCodecId(
     return { codecId: ctx.enumInferenceCodecs[inferredKind], codecSpan: block.span };
   }
 
-  const rawCodecArg = typeAttr.args[0]?.value;
-  const codecId =
-    rawCodecArg?.startsWith('"') && rawCodecArg.endsWith('"') && rawCodecArg.length >= 2
-      ? rawCodecArg.slice(1, -1)
-      : undefined;
-  if (codecId === undefined) {
+  const codecId = typeAttr.args['codecId'];
+  if (typeof codecId !== 'string') {
     ctx.diagnostics?.push({
       code: 'PSL_ENUM_MISSING_TYPE',
       message: `enum "${block.name}" @@type attribute must have a quoted codec id argument`,
@@ -360,7 +356,7 @@ export function resolveEnumCodecId(
     });
     return undefined;
   }
-  return { codecId, codecSpan: typeAttr.args[0]?.span ?? typeAttr.span };
+  return { codecId, codecSpan: typeAttr.span };
 }
 
 export interface AuthoringEntityTypeTemplateOutput {
