@@ -92,12 +92,12 @@ One reviewable unit: the spec gaps, the namespace, the call-site rewiring, the r
 
 ## Slice-specific done conditions
 
-- [ ] `@id` and `@unique` have declarative specs; `mongoAttributeSpecs` registers every attribute the Mongo interpreter accepts; a test pins the exact key sets at both levels through `assembleAttributeSpecs`.
-- [ ] No Mongo spec constant is imported at an interpreter call site without also being registered (grep gate: every `*Spec` identifier imported in `interpreter.ts` from `mongo-attribute-specs` is reachable through `mongoAttributeSpecs`; `buildIndexModelSpecs` no longer exists).
-- [ ] Unknown attribute names diagnose at model and field level with the codes above; tests cover an unknown model attribute, an unknown field attribute, a dotted field attribute, and an unknown attribute on a composite-type field.
-- [ ] Every factory's spec level matches its subkey (behavioural wrong-level guard).
-- [ ] `pnpm fixtures:check` clean; `pnpm lint:deps` clean with the new `family-mongo → mongo-contract-psl` edge.
-- [ ] Net-new `blindCast` count: 0.
+- [x] `@id` and `@unique` have declarative specs; `mongoAttributeSpecs` registers every attribute the Mongo interpreter accepts; a test pins the exact key sets at both levels through `assembleAttributeSpecs`.
+- [x] No Mongo spec constant is imported at an interpreter call site without also being registered (grep gate: every `*Spec` identifier imported in `interpreter.ts` from `mongo-attribute-specs` is reachable through `mongoAttributeSpecs`; `buildIndexModelSpecs` no longer exists).
+- [x] Unknown attribute names diagnose at model and field level with the codes above; tests cover an unknown model attribute, an unknown field attribute, a dotted field attribute, and an unknown attribute on a composite-type field.
+- [x] Every factory's spec level matches its subkey (behavioural wrong-level guard).
+- [x] `pnpm fixtures:check` clean; `pnpm lint:deps` clean with the new `family-mongo → mongo-contract-psl` edge.
+- [x] Net-new `blindCast` count: 0.
 
 ## Contract impact
 

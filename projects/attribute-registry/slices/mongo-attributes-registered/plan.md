@@ -57,3 +57,15 @@ Grep-library ([`drive/calibration/grep-library.md`](../../../../drive/calibratio
 ## Open items
 
 None at plan time.
+
+## Slice-close walk (2026-08-28)
+
+- ✓ Specs + namespace + exact key sets pinned (`mongo-attribute-specs.test.ts`, `family-mongo/test/attribute-specs.test.ts`, integration `attribute-specs.lsp-consumability.test.ts` Mongo block).
+- ✓ Grep gate: `buildIndexModelSpecs` absent; every spec constant reachable through `mongoAttributeSpecs`.
+- ✓ Diagnostics at model, model-field, and composite-type-field level with span; dotted names reported whole (`interpreter.attribute-specs.test.ts`).
+- ✓ Level guard: every factory's `spec.level` matches its subkey.
+- ✓ `pnpm fixtures:check`: emitted `contract.json` / `contract.d.ts` byte-identical (the only diffs it reported were this slice's four `contract.prisma` source edits, now committed); `pnpm lint:deps` clean with `family-mongo → mongo-contract-psl`.
+- ✓ Net-new `blindCast`: 0 (+0/−0 under `packages/**/src`).
+- ✓ Comment grep over added `.ts` lines: 0. `projects/` refs in long-lived files: 0.
+- ✓ QA: `projects/attribute-registry/manual-qa.md` + `manual-qa-reports/2026-08-28-mongo-attributes-registered.md` (4/4 pass).
+- ✓ `origin/main` unmoved at close (0 behind).
