@@ -2,7 +2,7 @@ import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { blindCast } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { StringLiteralExprAst } from '../../syntax/ast/expressions';
-import type { ArgType } from '../types';
+import type { ArgType, BlockInterpretCtx } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 /**
@@ -10,7 +10,7 @@ import { leafDiagnostic } from './diagnostic';
  * exception (e.g. an index `filter` / `weights` argument). The string is decoded by the parser,
  * then JSON-parsed; a non-object (array/scalar) or invalid JSON is a diagnostic.
  */
-export function json(): ArgType<Record<string, unknown>> {
+export function json(): ArgType<Record<string, unknown>, BlockInterpretCtx> {
   return {
     kind: 'json',
     label: 'JSON object',

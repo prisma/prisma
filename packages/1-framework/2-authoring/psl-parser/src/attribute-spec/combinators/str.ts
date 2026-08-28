@@ -1,13 +1,13 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { StringLiteralExprAst } from '../../syntax/ast/expressions';
-import type { ArgType } from '../types';
+import type { ArgType, BlockInterpretCtx } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 /** The pinned form retains its value as the output literal type. */
-export function str(): ArgType<string>;
-export function str<const T extends string>(value: T): ArgType<T>;
-export function str<const T extends string>(value?: T): ArgType<string | T> {
+export function str(): ArgType<string, BlockInterpretCtx>;
+export function str<const T extends string>(value: T): ArgType<T, BlockInterpretCtx>;
+export function str<const T extends string>(value?: T): ArgType<string | T, BlockInterpretCtx> {
   return {
     kind: 'str',
     label: value === undefined ? 'string' : JSON.stringify(value),

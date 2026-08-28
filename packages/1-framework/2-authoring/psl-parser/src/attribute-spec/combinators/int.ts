@@ -1,12 +1,12 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { NumberLiteralExprAst } from '../../syntax/ast/expressions';
-import type { ArgType } from '../types';
+import type { ArgType, BlockInterpretCtx } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 // An integer literal reduced to its numeric value. Passing `min`/`max` additionally rejects
 // out-of-range integers with a distinct range message, leaving the integer-only check intact.
-export function int(opts?: { min?: number; max?: number }): ArgType<number> {
+export function int(opts?: { min?: number; max?: number }): ArgType<number, BlockInterpretCtx> {
   const min = opts?.min;
   const max = opts?.max;
   return {

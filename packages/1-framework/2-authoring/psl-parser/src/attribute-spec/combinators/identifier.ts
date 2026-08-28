@@ -1,10 +1,10 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { IdentifierAst } from '../../syntax/ast/identifier';
-import type { ArgType } from '../types';
+import type { ArgType, BlockInterpretCtx } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
-export function identifier<const N extends string>(name: N): ArgType<N> {
+export function identifier<const N extends string>(name: N): ArgType<N, BlockInterpretCtx> {
   return {
     kind: 'identifier',
     label: name,

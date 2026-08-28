@@ -1,7 +1,7 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { ArrayLiteralAst, type ExpressionAst } from '../../syntax/ast/expressions';
-import type { ArgType } from '../types';
+import type { ArgType, BlockInterpretCtx } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 export interface ListOptions {
@@ -9,7 +9,10 @@ export interface ListOptions {
   readonly unique?: boolean;
 }
 
-export function list<T>(of: ArgType<T>, opts?: ListOptions): ArgType<T[]> {
+export function list<T, Ctx extends BlockInterpretCtx>(
+  of: ArgType<T, Ctx>,
+  opts?: ListOptions,
+): ArgType<T[], Ctx> {
   return {
     kind: 'list',
     label: `${of.label}[]`,
