@@ -297,6 +297,38 @@ describe('contract definition lowering runtime checks', () => {
     ]);
   });
 
+  it('throws CONTRACT.RELATION_INVALID when multiple owning belongsTo relations with the same from-fields disagree on their target fields', () => {
+    const Child = model('Child', {
+      fields: {
+        id: field.column(int4Column).id(),
+        ownerKey: field.column(int4Column),
+      },
+      relations: {
+        ownerByExternalKey: rel.belongsTo('Parent', { from: 'ownerKey', to: 'externalKey' }),
+        ownerById: rel.belongsTo('Parent', { from: 'ownerKey', to: 'id' }),
+      },
+    });
+
+    const Parent = model('Parent', {
+      fields: {
+        id: field.column(int4Column).id(),
+        externalKey: field.column(int4Column).unique(),
+      },
+      relations: {
+        child: rel.hasOne(Child, { by: 'ownerKey' }),
+      },
+    });
+
+    expect(() =>
+      buildDefinition({
+        models: {
+          Parent,
+          Child,
+        },
+      }),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.RELATION_INVALID' }));
+  });
+
   it('rejects non-owning relations when no anchor identity is available', () => {
     const Post = model('Post', {
       fields: {

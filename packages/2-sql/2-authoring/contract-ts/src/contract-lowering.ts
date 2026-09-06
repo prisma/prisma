@@ -481,6 +481,8 @@ function resolveOwningRelationAnchorFields(
   currentModelName: string,
   childFields: readonly string[],
 ): readonly string[] | undefined {
+  const matchedAnchorFields: (readonly string[])[] = [];
+
   for (const relationBuilder of Object.values(targetSpec.relations)) {
     const owningRelation = relationBuilder.build();
     if (owningRelation.kind !== 'belongsTo') {
@@ -495,11 +497,41 @@ function resolveOwningRelationAnchorFields(
       owningFromFields.length === childFields.length &&
       owningFromFields.every((fieldName, index) => fieldName === childFields[index])
     ) {
-      return normalizeRelationFieldNames(owningRelation.to);
+      matchedAnchorFields.push(normalizeRelationFieldNames(owningRelation.to));
     }
   }
 
-  return undefined;
+  if (matchedAnchorFields.length === 0) {
+    return undefined;
+  }
+
+  const firstAnchorFields = matchedAnchorFields[0];
+  if (!firstAnchorFields) {
+    throw new InternalError('resolveOwningRelationAnchorFields: unreachable empty match array');
+  }
+  const restAnchorFields = matchedAnchorFields.slice(1);
+  const anchorFieldsAgree = restAnchorFields.every(
+    (anchorFields) =>
+      anchorFields.length === firstAnchorFields.length &&
+      anchorFields.every((fieldName, index) => fieldName === firstAnchorFields[index]),
+  );
+
+  if (!anchorFieldsAgree) {
+    throw contractError(
+      'CONTRACT.RELATION_INVALID',
+      `Model "${targetSpec.modelName}" has multiple belongsTo relations to "${currentModelName}" with matching from-fields [${childFields.join(', ')}] that disagree on their target fields.`,
+      {
+        meta: {
+          modelName: targetSpec.modelName,
+          targetModel: currentModelName,
+          childFields,
+          reason: 'ambiguous-owning-relation-anchor',
+        },
+      },
+    );
+  }
+
+  return firstAnchorFields;
 }
 
 function lowerHasOwnershipRelation(
