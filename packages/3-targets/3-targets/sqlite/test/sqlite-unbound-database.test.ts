@@ -35,6 +35,10 @@ describe('SqliteUnboundDatabase', () => {
   it('is a stable singleton — repeated access returns the same instance', () => {
     expect(SqliteUnboundDatabase.instance).toBe(SqliteUnboundDatabase.instance);
   });
+
+  it('doubles an embedded double quote instead of breaking out of the identifier', () => {
+    expect(SqliteUnboundDatabase.instance.qualifyTable('quoted"post')).toBe('"quoted""post"');
+  });
 });
 
 describe('SqliteDatabase', () => {
