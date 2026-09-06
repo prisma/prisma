@@ -287,6 +287,10 @@ export class InsertQueryImpl<
   }
 }
 
+function returningTableRef(tableSource: TableSource, tableName: string): string {
+  return tableSource.alias ?? tableName;
+}
+
 export class UpdateQueryImpl<
     QC extends QueryContext = QueryContext,
     AvailableScope extends Scope = Scope,
@@ -397,7 +401,11 @@ export class UpdateQueryImpl<
 
     if (this.#returningColumns.length > 0) {
       ast = ast.withReturning(
-        buildReturningProjections(this.#tableName, this.#returningColumns, this.#rowFields),
+        buildReturningProjections(
+          returningTableRef(this.#tableSource, this.#tableName),
+          this.#returningColumns,
+          this.#rowFields,
+        ),
       );
     }
 
@@ -513,7 +521,11 @@ export class DeleteQueryImpl<
 
     if (this.#returningColumns.length > 0) {
       ast = ast.withReturning(
-        buildReturningProjections(this.#tableName, this.#returningColumns, this.#rowFields),
+        buildReturningProjections(
+          returningTableRef(this.#tableSource, this.#tableName),
+          this.#returningColumns,
+          this.#rowFields,
+        ),
       );
     }
 

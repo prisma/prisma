@@ -671,3 +671,28 @@ describe('UPDATE callback overload', () => {
     expect(callbackAst.returning).toEqual(objectAst.returning);
   });
 });
+
+describe('aliased UPDATE and DELETE returning', () => {
+  it('update returning references the alias, not the table name', () => {
+    const plan = db()
+      .public.users.as('u')
+      .update({ name: 'x' })
+      .where((f, fns) => fns.eq(f.id, 42))
+      .returning('id')
+      .build();
+    const ast = plan.ast;
+    if (ast.kind !== 'update') throw new Error('expected update');
+    const projection = ast.returning?.[0];
+    if (!projection) throw new Error('expected returning projection');
+    expect((projection.expr as ColumnRef).table).toBe('u');
+  });
+
+  it('delete returning references the alias, not the table name', () => {
+    const plan = db().public.users.as('u').delete().returning('id').build();
+    const ast = plan.ast;
+    if (ast.kind !== 'delete') throw new Error('expected delete');
+    const projection = ast.returning?.[0];
+    if (!projection) throw new Error('expected returning projection');
+    expect((projection.expr as ColumnRef).table).toBe('u');
+  });
+});

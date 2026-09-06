@@ -425,27 +425,29 @@ describe('Postgres adapter', () => {
   it('renders UPDATE and DELETE table aliases', () => {
     const updateAst = UpdateAst.table(TableSource.named('post', 'p'))
       .withSet({
-        title: ParamRef.of('alias', { name: 'title', codec: { codecId: 'pg/text@1' } }),
+        title: ParamRef.of('hello', { name: 'title', codec: { codecId: 'pg/text@1' } }),
       })
       .withWhere(
         BinaryExpr.eq(
           ColumnRef.of('p', 'id'),
-          ParamRef.of('base', { name: 'id', codec: { codecId: 'pg/int4@1' } }),
+          ParamRef.of(1, { name: 'id', codec: { codecId: 'pg/int4@1' } }),
         ),
       )
       .withReturning([ProjectionItem.of('id', ColumnRef.of('p', 'id'))]);
-    const deleteAst = DeleteAst.from(TableSource.named('post', 'p')).withWhere(
-      BinaryExpr.eq(
-        ColumnRef.of('p', 'id'),
-        ParamRef.of('base', { name: 'id', codec: { codecId: 'pg/int4@1' } }),
-      ),
-    );
+    const deleteAst = DeleteAst.from(TableSource.named('post', 'p'))
+      .withWhere(
+        BinaryExpr.eq(
+          ColumnRef.of('p', 'id'),
+          ParamRef.of(1, { name: 'id', codec: { codecId: 'pg/int4@1' } }),
+        ),
+      )
+      .withReturning([ProjectionItem.of('id', ColumnRef.of('p', 'id'))]);
 
     expect(adapter.lower(updateAst, { contract }).sql).toBe(
       'UPDATE "post" AS "p" SET "title" = $1 WHERE "p"."id" = $2 RETURNING "p"."id"',
     );
     expect(adapter.lower(deleteAst, { contract }).sql).toBe(
-      'DELETE FROM "post" AS "p" WHERE "p"."id" = $1',
+      'DELETE FROM "post" AS "p" WHERE "p"."id" = $1 RETURNING "p"."id"',
     );
   });
 
