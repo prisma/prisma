@@ -35,6 +35,12 @@ describe('PostgresSchema', () => {
     expect(schema.qualifyTable('users')).toBe('"public"."users"');
   });
 
+  it('escapes an embedded double quote in the schema id and the table name', () => {
+    const schema = new PostgresSchema({ id: 'a"b', entries: { table: {} } });
+    expect(schema.qualifier()).toBe('"a""b"');
+    expect(schema.qualifyTable('quoted"post')).toBe('"a""b"."quoted""post"');
+  });
+
   it('normalises plain table inputs into StorageTable instances', () => {
     const schema = new PostgresSchema({
       id: 'app',
@@ -58,6 +64,10 @@ describe('PostgresUnboundSchema', () => {
   it('elides the schema qualifier so emission paths render unqualified output', () => {
     expect(PostgresSchema.unbound.qualifier()).toBe('');
     expect(PostgresSchema.unbound.qualifyTable('users')).toBe('"users"');
+  });
+
+  it('escapes an embedded double quote in the table name', () => {
+    expect(PostgresSchema.unbound.qualifyTable('quoted"post')).toBe('"quoted""post"');
   });
 
   it('is a stable singleton — repeated access returns the same instance', () => {
