@@ -253,6 +253,50 @@ describe('contract definition lowering runtime checks', () => {
     ]);
   });
 
+  it('anchors the inverse relation on the referenced field of the owning belongsTo', () => {
+    const Child = model('Child', {
+      fields: {
+        id: field.column(int4Column).id(),
+        ownerKey: field.column(int4Column),
+      },
+      relations: {
+        owner: rel.belongsTo('Parent', { from: 'ownerKey', to: 'externalKey' }),
+      },
+    });
+
+    const Parent = model('Parent', {
+      fields: {
+        id: field.column(int4Column).id(),
+        externalKey: field.column(int4Column).unique(),
+      },
+      relations: {
+        child: rel.hasOne(Child, { by: 'ownerKey' }),
+      },
+    });
+
+    const definition = buildDefinition({
+      models: {
+        Parent,
+        Child,
+      },
+    });
+
+    expect(definition.models[0]?.relations).toEqual([
+      {
+        fieldName: 'child',
+        toModel: 'Child',
+        toTable: 'Child',
+        cardinality: '1:1',
+        on: {
+          parentTable: 'Parent',
+          parentColumns: ['externalKey'],
+          childTable: 'Child',
+          childColumns: ['ownerKey'],
+        },
+      },
+    ]);
+  });
+
   it('rejects non-owning relations when no anchor identity is available', () => {
     const Post = model('Post', {
       fields: {

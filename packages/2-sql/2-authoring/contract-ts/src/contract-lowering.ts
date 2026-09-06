@@ -476,6 +476,32 @@ function lowerBelongsToRelation(
   };
 }
 
+function resolveOwningRelationAnchorFields(
+  targetSpec: RuntimeModelSpec,
+  currentModelName: string,
+  childFields: readonly string[],
+): readonly string[] | undefined {
+  for (const relationBuilder of Object.values(targetSpec.relations)) {
+    const owningRelation = relationBuilder.build();
+    if (owningRelation.kind !== 'belongsTo') {
+      continue;
+    }
+    if (resolveRelationModelName(owningRelation.toModel) !== currentModelName) {
+      continue;
+    }
+
+    const owningFromFields = normalizeRelationFieldNames(owningRelation.from);
+    if (
+      owningFromFields.length === childFields.length &&
+      owningFromFields.every((fieldName, index) => fieldName === childFields[index])
+    ) {
+      return normalizeRelationFieldNames(owningRelation.to);
+    }
+  }
+
+  return undefined;
+}
+
 function lowerHasOwnershipRelation(
   relationName: string,
   relation: Extract<RelationState, { kind: 'hasMany' | 'hasOne' }>,
@@ -492,8 +518,10 @@ function lowerHasOwnershipRelation(
     );
   }
 
-  const parentFields = resolveRelationAnchorFields(currentSpec);
   const childFields = normalizeRelationFieldNames(relation.by);
+  const parentFields =
+    resolveOwningRelationAnchorFields(targetSpec, currentSpec.modelName, childFields) ??
+    resolveRelationAnchorFields(currentSpec);
   assertRelationFieldArity({
     modelName: currentSpec.modelName,
     relationName,
