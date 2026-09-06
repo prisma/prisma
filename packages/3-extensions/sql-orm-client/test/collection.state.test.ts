@@ -323,6 +323,15 @@ describe('Collection', () => {
       await expect(collection.createAndCount([])).resolves.toBe(0);
     });
 
+    it('createAndCount() returns the executor affected-row count, not the input length', async () => {
+      const { collection, runtime } = createCollection();
+      runtime.setNextStats([{ affectedRows: 0 }]);
+
+      await expect(
+        collection.createAndCount([{ id: 1, name: 'Alice', email: 'alice@example.com' }]),
+      ).resolves.toBe(0);
+    });
+
     it('create() nested mutation throws when reload by primary key returns no row', async () => {
       const { collection, runtime } = createReturningCollectionFor('User');
       runtime.setNextResults([
@@ -368,7 +377,7 @@ describe('Collection', () => {
 
     it('createAndCount() uses split insert when defaultInInsert is absent', async () => {
       const { collection, runtime } = createReturningCollectionWithoutDefaultInInsert('User');
-      runtime.setNextResults([[], []]);
+      runtime.setNextStats([{ affectedRows: 1 }, { affectedRows: 1 }]);
 
       const count = await collection.createAndCount([
         { id: 1, name: 'Alice', email: 'alice@example.com' },

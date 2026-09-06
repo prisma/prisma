@@ -116,10 +116,12 @@ describe('namespaced orm CRUD execution', () => {
 
   it('inserts within the namespace target table', async () => {
     const { db, runtime } = setup();
+    runtime.setNextStats([{ affectedRows: 1 }]);
     expect(await db.public.User.createAndCount([{ email: 'a@example.com' }])).toBe(1);
     expect(lastPlanTable(runtime).namespaceId).toBe('public');
     expect(lastPlanTable(runtime).name).toBe('users');
 
+    runtime.setNextStats([{ affectedRows: 1 }]);
     expect(await db.auth.User.createAndCount([{ token: 'tok' }])).toBe(1);
     expect(lastPlanTable(runtime).name).toBe('auth_users');
   });
