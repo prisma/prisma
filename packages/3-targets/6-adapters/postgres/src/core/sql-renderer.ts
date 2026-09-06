@@ -1109,7 +1109,7 @@ function renderInsert(ast: InsertAst, contract: PostgresContract, pim: ParamInde
 }
 
 function renderUpdate(ast: UpdateAst, contract: PostgresContract, pim: ParamIndexMap): string {
-  const table = qualifyTableFromNamespaceCoordinate(ast.table, contract);
+  const table = renderTableSource(ast.table, contract);
   const setEntries = Object.entries(ast.set);
   if (setEntries.length === 0) {
     throw adapterError('RUNTIME.AST_INVALID', 'UPDATE requires at least one SET assignment', {
@@ -1130,7 +1130,7 @@ function renderUpdate(ast: UpdateAst, contract: PostgresContract, pim: ParamInde
 }
 
 function renderDelete(ast: DeleteAst, contract: PostgresContract, pim: ParamIndexMap): string {
-  const table = qualifyTableFromNamespaceCoordinate(ast.table, contract);
+  const table = renderTableSource(ast.table, contract);
   const whereClause = ast.where ? ` WHERE ${renderWhere(ast.where, contract, pim)}` : '';
   const returningClause = ast.returning?.length
     ? ` RETURNING ${renderReturning(ast.returning, contract, pim)}`
