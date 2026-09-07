@@ -134,7 +134,9 @@ describe('ORM round-trip over a quote-containing table name', { concurrent: fals
         await db.public.QuotedRow.create({ id: 1, value: 'written through the ORM' });
         await db.public.QuotedRow.create({ id: 2, value: null });
 
-        const rows = await db.public.QuotedRow.select('id', 'value').all();
+        const rows = await db.public.QuotedRow.select('id', 'value')
+          .orderBy((row) => row.id.asc())
+          .all();
 
         expect(rows).toEqual([
           { id: 1, value: 'written through the ORM' },
