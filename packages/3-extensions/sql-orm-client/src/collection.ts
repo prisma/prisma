@@ -1297,12 +1297,13 @@ class CollectionImpl<
    * `select(...)` / `include(...)` projections applied to the returned
    * shape).
    *
-   * Related rows can be created or linked through relation callbacks
-   * on parent/child-owned relations (one-to-one or one-to-many).
-   * The callback receives a mutator exposing `create(...)` and
-   * `connect(...)`; `disconnect(...)` is only supported in nested
-   * `update(...)` mutations. Many-to-many relations are not yet
-   * supported as nested-mutation targets.
+   * Related rows can be created or linked through relation callbacks on any relation: to-one
+   * (1:1, N:1), to-many (1:N), and many-to-many (N:M, written through the junction table). The
+   * callback receives a mutator exposing `create(...)` and `connect(...)`; `disconnect(...)` is
+   * only supported in nested `update(...)` mutations. To-one relations take a single row or
+   * criterion.
+   * N:M `create`/`connect` are unavailable when the junction has required columns the relation API
+   * cannot populate.
    *
    * ```typescript
    * // Simple insert:
@@ -1939,12 +1940,13 @@ class CollectionImpl<
    * Requires a prior `.where(...)` — calling `update(...)` on an
    * unfiltered collection is a type error.
    *
-   * Related rows can be created or relinked through relation
-   * callbacks on parent/child-owned relations (one-to-one or
-   * one-to-many). The callback receives a mutator exposing
-   * `create(...)`, `connect(...)`, and `disconnect(...)`. Nested
-   * updates against existing related rows, and many-to-many relations
-   * as nested-mutation targets, are not supported through this API.
+   * Related rows can be created, linked, or unlinked through relation callbacks on any relation:
+   * to-one (1:1, N:1), to-many (1:N), and many-to-many (N:M, written through the junction table).
+   * The callback receives a mutator exposing `create(...)`, `connect(...)`, and `disconnect(...)`.
+   * A to-one `disconnect()` clears the foreign key; a to-many `disconnect()` with no criteria
+   * unlinks every related row; an N:M `disconnect()` requires criteria. N:M `create`/`connect` are
+   * unavailable when the junction has required columns the relation API cannot populate. Nested
+   * updates against existing related rows are not supported through this API.
    *
    * ```typescript
    * // Update one row by id:
