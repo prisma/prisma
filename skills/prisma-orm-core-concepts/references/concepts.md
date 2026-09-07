@@ -41,7 +41,7 @@ Every other part of the toolchain reads these artifacts, not your source file. E
 
 Every emitted contract has a content **hash** — a fingerprint that names that exact contract state. The database carries the complementary half: a **marker** (the docs also call it the database signature) — a small record stored in the database itself naming the contract hash the database currently satisfies. On Postgres it is a row in `prisma_contract.marker`; on Mongo, a document in `_prisma_migrations`. Signing writes the marker (after a schema verification passes); applying migrations or updates advances it.
 
-The two sides verify each other: the runtime compares the contract hash against the marker before executing queries, and the migration runner checks the marker matches a migration's `from` hash before applying it. When contract and marker disagree, that state is **drift**, and verification is the diagnostic that reveals it.
+The two sides verify each other: on first use the runtime reads the marker and logs `CONTRACT.MARKER_MISMATCH` / `CONTRACT.MARKER_MISSING` as a *warning* when it disagrees (never a refusal, and silent unless `db.ts` passes a `log`), and the migration runner checks the marker matches a migration's `from` hash before applying it. When contract and marker disagree, that state is **drift**, and verification is the diagnostic that reveals it.
 
 ## Queries compile to plans
 
@@ -53,7 +53,7 @@ const plan = db.sql.public.user
   .where((f, fns) => fns.eq(f.active, true))
   .limit(10)
   .build();
-const rows = await db.runtime().execute(plan);
+const rows = await db.runtime().query(plan);
 ```
 
 Plans matter for two reasons: every query goes through the same execution pipeline, and a plan is *data* — it exists as an object before anything reaches the database, which is what lets middleware inspect, veto, or record it. Raw queries are still plans, so middleware and telemetry see them like any other query.
@@ -78,7 +78,7 @@ A **capability** is a specific feature a database may or may not support — `RE
 
 ## Codecs
 
-A **codec** converts values between JavaScript and the database's wire format, in both directions. Every column type in the contract has one — a Postgres `timestamptz` column produces a JavaScript `Date` on read and encodes it back on write. Picking a column type in PSL is also picking the codec that handles every value the column carries. Extensions introduce codecs for new types; raw query results bypass codecs entirely.
+A **codec** converts values between JavaScript and the database's wire format, in both directions. Every column type in the contract has one — a Postgres `timestamptz` column produces a `Temporal` instant on read and encodes one back on write (the `*String` column types keep Postgres's own text instead). Picking a column type in PSL is also picking the codec that handles every value the column carries. Extensions introduce codecs for new types; raw query results bypass codecs entirely.
 
 ## Extensions
 
@@ -122,7 +122,7 @@ The full model — plan origins, refs, deploy review — is the `prisma-orm-migr
 
 ## How CLI commands combine
 
-One division governs the CLI: **`db ...` commands connect to a live database and can change it; `contract ...` and `migration ...` commands work on the files in your repository.** The one exception is `contract infer`, which reads a live database without modifying it.
+One division governs the CLI: **`db ...` commands connect to a live database and can change it; `contract ...` and `migration ...` commands work on the files in your repository.** The exceptions read a live database without modifying it: `contract infer`, `migration status` (unless given `--from`), and `migration log`.
 
 The workflows compose from that division:
 

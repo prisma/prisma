@@ -70,13 +70,11 @@ Three things to internalise:
 
 **Contributors building extension packages or aggregate-root monorepo packages use a different layout** — `src/contract.{prisma,ts}` (no `prisma/` subdir) + `migrations/<timestamp>_<slug>/` (no `app/` segment). That distinction is intentional; see `references/contract.md` for which path applies to you.
 
-> **Heads up — `prisma orm init` currently scaffolds the wrong layout.** It writes `prisma/contract.{prisma,ts}` and `prisma/db.ts` at the repo root instead of under `src/prisma/`. Tracked as [TML-2532](https://linear.app/prisma-company/issue/TML-2532). Until the fix lands, either pass `--schema-path src/prisma/contract.prisma` to `init`, or move the scaffolded `prisma/` directory into `src/prisma/` after `init` and update the `contract` path in `prisma.config.ts` to match. The canonical layout above is what the demo example uses and what the rest of the framework expects.
-
 ## Your first arc — connect, write, read
 
 All three paths in this skill converge here. Once the project is scaffolded and the database is reachable, the first move is **always** the same: connect, write a row, read it back, against whatever model the contract already declares. Don't touch the contract source on this first move — extend it later, after the round-trip works.
 
-Write the snippet in a fresh file directly under `src/` (e.g. `src/first-arc.ts`) so the relative import resolves to one level deep:
+Write the snippet in a fresh file directly under `src/` (e.g. `src/first-arc.ts`) so the relative import resolves to one level deep, and run it with `pnpm dlx tsx src/first-arc.ts` — `init` installs no TypeScript runner, and plain `node` rejects the extensionless `./prisma/db` import:
 
 ```typescript
 // src/first-arc.ts
@@ -92,6 +90,10 @@ await db.orm.public.User.create({ email: 'alice@example.com' });
 // Read it back.
 const users = await db.orm.public.User.select('id', 'email').all();
 console.log(users);
+
+// Release the pool so the process exits — without this the script hangs
+// after printing (`references/runtime.md` § Running as a script).
+await db.close();
 ```
 
 If that prints `[{ id: 1, email: 'alice@example.com' }]`, the project is wired end-to-end and the user has crossed from *"I have a project"* to *"I'm building."*
@@ -129,7 +131,7 @@ The first **arc** — once oriented — is **connect → write → read**. Not e
 Before saying anything specific to the user, read:
 
 - `prisma.config.ts` at the repo root — what target (`postgres` / `mongodb`) is wired, what `contract:` path it declares, what extensions are installed.
-- The contract source the config declares (canonically `src/prisma/contract.prisma` or `src/prisma/contract.ts`; a project that pre-dates [TML-2532](https://linear.app/prisma-company/issue/TML-2532) may have it at `prisma/contract.{prisma,ts}` instead — check the `contract` field of the config) — what starter models, if any, exist.
+- The contract source the config declares (canonically `src/prisma/contract.prisma` or `src/prisma/contract.ts`; read the `contract` field of the config rather than assuming) — what starter models, if any, exist.
 - `src/prisma/db.ts` (next to the contract) — the runtime entry point.
 - `.env` / `.env.example` — is `DATABASE_URL` set, or only the example?
 - Optionally `pnpm prisma db verify` — does the live DB match the contract?
@@ -188,7 +190,7 @@ The flags `init` accepts (run `prisma orm init --help` for the source of truth):
 
 - `--target <db>` — `postgres` or `mongodb`.
 - `--authoring <style>` — `psl` or `typescript`.
-- `--schema-path <path>` — defaults to `prisma/contract.prisma` (or `prisma/contract.ts`). **Pass `--schema-path src/prisma/contract.prisma` (or `.../contract.ts`)** to scaffold into the canonical `src/prisma/` location directly — `init`'s default is wrong today, see [TML-2532](https://linear.app/prisma-company/issue/TML-2532).
+- `--schema-path <path>` — defaults to `src/prisma/contract.prisma` (or `src/prisma/contract.ts`), the canonical location.
 - `--confirm <directory name>` — grant the reinit consent non-interactively. Re-running init in a scaffolded directory asks you to type the directory name back before it overwrites; non-interactive runs pass the name with this flag instead.
 - `--write-env` — also write `.env` (default writes only `.env.example`; `.env` stays under your control).
 - `--probe-db` — connect to `DATABASE_URL` once and check the server version against the target's minimum.
@@ -198,24 +200,13 @@ The flags `init` accepts (run `prisma orm init --help` for the source of truth):
 `init` writes (when it runs cleanly):
 
 - `prisma.config.ts` at the project root.
-- The contract source at `--schema-path` — `src/prisma/contract.prisma` if you passed the canonical override, `prisma/contract.prisma` if you accepted the (currently-wrong) default.
+- The contract source at `--schema-path` (default `src/prisma/contract.prisma`).
 - `db.ts` in the same directory as the contract source.
 - `prisma-next.md` — a human quick-reference.
 - `.env.example` (and `.env` if `--write-env`).
 - Updates `package.json` (deps + scripts) and `tsconfig.json` (required compiler options).
 - Installs deps and runs `prisma contract emit` once (via the project-local `prisma` bin that `@prisma/cli` installs).
 - Cleans up retired Prisma skill directories under the agent skill roots (`.claude/skills`, `.cursor/skills`, `.agents/skills`, `.windsurf/skills`); the current skills ship inside the installed `@prisma/orm-*` packages.
-
-**If you took `init`'s default and ended up with a top-level `prisma/` directory** (TML-2532), the cleanup is one move + one config edit:
-
-```bash
-mkdir -p src && mv prisma src/prisma
-# Then update prisma.config.ts so `contract` reads
-# 'src/prisma/contract.prisma' (or .ts) instead of 'prisma/contract.prisma'.
-pnpm prisma contract emit   # re-emits contract.json + contract.d.ts under src/prisma/
-```
-
-Do this before running `db init` — once the marker row is written, restructuring is harder.
 
 After init succeeds, the path converges on *Your first arc — connect, write, read* above. `init` has already seeded a starter contract with `User` and `Post` models (with a relation between them) and run `contract emit` once; the only remaining prerequisites are setting `DATABASE_URL` and initialising the database. Two commands:
 
@@ -233,8 +224,7 @@ The concept: against an existing database with no PN contract, `contract infer` 
 ```bash
 mkdir my-app && cd my-app
 pnpm init
-pnpm dlx @prisma/cli@next orm init --yes --target postgres --authoring psl \
-  --schema-path src/prisma/contract.prisma
+pnpm dlx @prisma/cli@next orm init --yes --target postgres --authoring psl
 # scaffold lands; you'll overwrite the starter schema below
 ```
 
@@ -252,6 +242,7 @@ The agent should pause here and read the inferred PSL. Symptoms a re-author pass
 - Columns where PN's type guess is wrong (e.g. `String` where you want an extension type like `pgvector.Vector(length: 1536)`).
 - Missing `@unique` / `@index` hints PN couldn't see.
 - Field names you'd prefer to alias.
+- `Timestamptz` / `Timestamp` columns. Infer emits the Temporal-typed constructors, which decode through a global `Temporal`; on stock Node 24 the first read throws `RUNTIME.TEMPORAL_UNAVAILABLE`. Either add `import 'temporal-polyfill/global'` (from the `temporal-polyfill` package) at the script entry before any query, or change the field to `TimestamptzString` before emitting.
 
 Then re-emit and sign:
 
@@ -312,13 +303,13 @@ This skill is intentionally body-only; `prisma orm init --help`, `contract infer
 - [ ] Confirmed which path applies (first-touch orientation / greenfield / brownfield) before proposing commands.
 - [ ] **First-touch orientation:** named the contract path back to the user and framed its role (*source of truth from which query types, migrations, and runtime types flow*) before proposing any commands.
 - [ ] **All paths:** brought the project to the *Your first arc* prerequisites (config, contract source, `db.ts`, `DATABASE_URL`, marker row) *before* writing application code.
-- [ ] **All paths:** ran the first arc — one `create` + one `select` against the starter (or inferred) model — and got the round-trip working green.
+- [ ] **All paths:** ran the first arc — one `create` + one `select` against the starter (or inferred) model, then `db.close()` — and got the round-trip working green with the process exiting.
 - [ ] **All paths:** did *not* edit the contract source as part of the first arc. Schema extension is the *next* move, not the first.
 - [ ] **All paths:** did *not* lead with a feature tour, capability inventory, or recital of CLI commands. Commands surfaced as the user's current move required them.
 - [ ] Confirmed the user's target (`postgres` / `mongodb`) and authoring mode (`psl` / `typescript`).
 - [ ] **First-touch orientation:** read `prisma.config.ts`, the contract source, `db.ts`, and `.env` before proposing anything — didn't assume what the scaffold tool / teammate left in place.
 - [ ] **Greenfield path:** ran `prisma orm init` from the project directory — no positional project-name argument.
-- [ ] **All paths:** the project ended up in the canonical `src/prisma/contract.{prisma,ts}` + `src/prisma/db.ts` + `migrations/app/` layout — including moving the scaffolded directory out of a top-level `prisma/` if `init` produced one (TML-2532).
+- [ ] **All paths:** the project ended up in the canonical `src/prisma/contract.{prisma,ts}` + `src/prisma/db.ts` + `migrations/app/` layout.
 - [ ] **Brownfield path:** ran `contract infer --db "$DATABASE_URL" --output src/prisma/contract.prisma`, reviewed the result, then `contract emit` + `db sign`.
 - [ ] Set `DATABASE_URL` in `.env` and confirmed the value is reachable.
 - [ ] Initialised the DB (`db init` greenfield / first-touch orientation) or signed the marker (`db sign` brownfield).

@@ -9,7 +9,7 @@ The skill's job is to pick the *right channel* — GitHub issue or Discord — a
 
 Canonical channels:
 
-- **GitHub Issues** (bugs + concrete feature requests): <https://github.com/prisma/prisma-next/issues/new/choose>
+- **GitHub Issues** (bugs + concrete feature requests): <https://github.com/prisma/orm/issues/new/choose>
 - **Prisma Discord** (Q&A, design feedback, direct team contact — including extension authors): <https://pris.ly/discord>
 
 ## When to Use
@@ -30,7 +30,7 @@ Canonical channels:
 - **Three channels, one decision.** GitHub Issues (bugs + concrete feature requests), Prisma Discord (Q&A, design feedback, direct team contact), or another workflow reference in this skill (when the question turns out to be a workflow question, not a hand-off-to-team question). The first move is the channel decision; everything else follows.
 - **Public artifact.** GitHub issues *and* Discord messages are world-readable and archived. The body / message must not contain `DATABASE_URL` strings, internal company schema fragments, customer data in sample rows, or any other content the user wouldn't share publicly. The agent redacts before either kind of submission.
 - **Bug vs feature vs question.** A *bug* is "documented surface behaved unexpectedly". A *feature request* is "I want a capability that doesn't exist". A *question* is "I want to discuss X with someone, or I'm not sure this is a bug at all". Many capability-gap routes are feature requests; many extension-author prompts are questions.
-- **The framework team needs to reproduce (issues only).** A bug report without a reproduction is much harder to act on. Where possible, the agent produces a minimal repro the team can re-run locally — ideally a small change against [`examples/prisma-8-demo`](https://github.com/prisma/prisma/tree/main/examples/prisma-8-demo), which the team already has checked out. Discord Q&A doesn't require a full repro — a short code snippet plus the question is usually enough.
+- **The framework team needs to reproduce (issues only).** A bug report without a reproduction is much harder to act on. Where possible, the agent produces a minimal repro the team can re-run locally — ideally a small change against [`examples/prisma-8-demo`](https://github.com/prisma/orm/tree/main/examples/prisma-8-demo), which the team already has checked out. Discord Q&A doesn't require a full repro — a short code snippet plus the question is usually enough.
 
 ## Workflow
 
@@ -103,7 +103,7 @@ For **feature requests**, additionally:
 
 ### 4. Render the body
 
-The repository ships GitHub Issue Forms (`.github/ISSUE_TEMPLATE/bug_report.yml` and `feature_request.yml`). When the user lands on <https://github.com/prisma/prisma-next/issues/new/choose> they pick the matching template and fill in the form fields; the skill produces the body in the same structured shape so it maps onto the form one-to-one (and so `gh issue create --body-file` produces a parseable artifact even when the form isn't in play).
+The repository ships GitHub Issue Forms (`.github/ISSUE_TEMPLATE/bug_report.yml` and `feature_request.yml`). When the user lands on <https://github.com/prisma/orm/issues/new/choose> they pick the matching template and fill in the form fields; the skill produces the body in the same structured shape so it maps onto the form one-to-one (and so `gh issue create --body-file` produces a parseable artifact even when the form isn't in play).
 
 Bug-report body shape (fields named to match `.github/ISSUE_TEMPLATE/bug_report.yml`):
 
@@ -185,7 +185,7 @@ Preferred. Two steps:
 
    ~~~bash
    gh issue create \
-     --repo prisma/prisma \
+     --repo prisma/orm \
      --title "<title>" \
      --body-file <path-from-step-1>
    ~~~
@@ -195,7 +195,7 @@ Preferred. Two steps:
 If `gh` is not installed: open the prefilled new-issue URL in the browser:
 
 ~~~text
-https://github.com/prisma/prisma-next/issues/new/choose
+https://github.com/prisma/orm/issues/new/choose
 ~~~
 
 …and instruct the user to paste the rendered body. The agent can copy the body to the clipboard via `pbcopy` (macOS), `xclip` (Linux), or by simply printing it in the chat for the user to copy.
@@ -231,11 +231,11 @@ When step 1 picked the Discord channel (steps 2–7 do not apply):
 
 ## What Prisma Next doesn't do yet
 
-- **In-product feedback channel.** No `prisma-next feedback` CLI command. The GitHub Issues page is the canonical surface. If you want a CLI-side feedback command, file a feature request via this skill.
+- **In-product issue filing.** `prisma feedback <message>` exists, but it sends a free-text note to the CLI team and opens no tracked issue. The GitHub Issues page is the canonical surface for bugs and feature requests.
 
 ## Reference Files
 
-- <https://github.com/prisma/prisma-next/issues/new/choose> — the canonical submission surface.
+- <https://github.com/prisma/orm/issues/new/choose> — the canonical submission surface.
 - <https://cli.github.com/manual/gh_issue_create> — the `gh` command reference.
 
 ## Checklist

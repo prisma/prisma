@@ -9,7 +9,7 @@ Shared concepts (result consumption, script teardown, cross-target pitfalls, cap
 **Postgres** (`postgres<Contract>(...)` from `@prisma/orm-postgres/runtime`):
 
 - **`db.orm.<ns>.<Model>`** — ORM, namespace then PascalCase model name (`db.orm.public.User`). Fluent `.where(...).select(...).orderBy(...).all()`, fully typed against `Contract`. Default lane for CRUD with relations.
-- **`db.sql.<ns>.<table>`** — SQL builder, namespace then lowercase storage name (`db.sql.public.user`). Produces a *plan* executed via `db.runtime().execute(plan)`. Use when the ORM is too high-level — explicit `JOIN`, computed projections, set operations, window functions.
+- **`db.sql.<ns>.<table>`** — SQL builder, namespace then lowercase storage name (`db.sql.public.user`). Produces a *plan*; run it with `db.runtime().query(plan)` for rows or `db.runtime().execute(plan)` for an affected-row count. Use when the ORM is too high-level — explicit `JOIN`, computed projections, set operations, window functions.
 
 Reach for the ORM first; drop to `db.sql` when the ORM can't express the shape. Lane choice is local — one query function picks one lane, not the whole app.
 
@@ -296,7 +296,7 @@ If `?? 0` is showing up on every aggregate, that's a signal you're calling `sum`
 
 ## Workflow — SQL builder (`db.sql.<ns>.<table>`)
 
-The concept: `db.sql.<ns>.<table>` is a table-shaped builder that produces a *plan*. The plan is a serialisable description of the query (AST + parameters); you execute it through the runtime with `db.runtime().execute(plan)`. The builder gives you the lanes the ORM doesn't express — explicit `JOIN`, arbitrary expression projection, target-specific operations through extension helpers — without dropping to raw SQL.
+The concept: `db.sql.<ns>.<table>` is a table-shaped builder that produces a *plan*. The plan is a serialisable description of the query (AST + parameters); you run it through the runtime — `db.runtime().query(plan)` returns the rows, `db.runtime().execute(plan)` runs a statement and returns `{ affectedRows }`. The builder gives you the lanes the ORM doesn't express — explicit `JOIN`, arbitrary expression projection, target-specific operations through extension helpers — without dropping to raw SQL.
 
 ```typescript
 // src/queries/posts.ts — adjust the relative import to match file depth.
@@ -309,7 +309,7 @@ const plan = db.sql.public.post
   .limit(limit)
   .build();
 
-const rows = await db.runtime().execute(plan);
+const rows = await db.runtime().query(plan);
 ```
 
 The `.where(...)` callback receives `(fields, fns)` — `fields` is the field proxy (column references), `fns` is the operator namespace (`fns.eq`, `fns.ne`, `fns.gt`, …). Extensions inject extension-shaped helpers into the same `fns` namespace (`fns.distanceSphere`, `fns.cosineDistance`, etc.).
@@ -319,10 +319,10 @@ The `.where(...)` callback receives `(fields, fns)` — `fields` is the field pr
 ```typescript
 // Insert and return selected columns.
 const plan = db.sql.public.user
-  .insert({ email })
+  .insert([{ email }])           // insert takes an array of rows
   .returning('id', 'email')
   .build();
-const [row] = await db.runtime().execute(plan);
+const [row] = await db.runtime().query(plan);
 
 // Update with predicate and returning.
 const updatePlan = db.sql.public.user
@@ -330,14 +330,14 @@ const updatePlan = db.sql.public.user
   .where((f, fns) => fns.eq(f.id, userId))
   .returning('id', 'email')
   .build();
-const rows = await db.runtime().execute(updatePlan);
+const rows = await db.runtime().query(updatePlan);
 
 // Delete with predicate.
 const deletePlan = db.sql.public.user
   .delete()
   .where((f, fns) => fns.eq(f.id, userId))
   .build();
-await db.runtime().execute(deletePlan);
+await db.runtime().execute(deletePlan);   // → { affectedRows }
 ```
 
 `.returning(...)` requires the target adapter to advertise the `returning` capability. The Postgres adapter advertises it by default.
@@ -353,7 +353,7 @@ const plan = db.sql.public.cafe
   .orderBy((f) => f.id, { direction: 'asc' })
   .limit(limit)
   .build();
-const rows = await db.runtime().execute(plan);
+const rows = await db.runtime().query(plan);
 
 // Self-join with an alias.
 db.sql.public.post
@@ -391,7 +391,7 @@ Models and tables are always addressed by namespace coordinate — the first key
 // db.sql.<namespace>.<table>
 const plan = db.sql.public.users.select('id', 'email').build();
 const authPlan = db.sql.auth.users.select('id', 'token').build();
-await db.runtime().execute(plan);
+await db.runtime().query(plan);
 
 // db.orm.<namespace>.<Model>
 const user = await db.orm.public.User.create({ id: 1, email: 'a@x.io' });
@@ -410,13 +410,14 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 4. **Reaching for `.between(a, b)` on a field proxy.** It doesn't exist. Either chain `.where((m) => m.field.gte(a)).where((m) => m.field.lte(b))` or use `and(m.field.gte(a), m.field.lte(b))` inside one `.where()` clause.
 5. **Importing `and` / `or` / `not` from `@prisma/orm-postgres/runtime`.** The combinators live on the `/orm-client` subpath: `import { and, or, not } from '@prisma/orm-postgres/orm-client'`. See *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md).
 6. **Trying to `db.sql.from(tables.user)`.** That surface does not exist. The builder is table-shaped: `db.sql.<ns>.<table>.select(...)`. There is no `db.schema.tables` either.
-7. **Trying to `db.execute(plan)` directly.** Plans execute through the runtime: `db.runtime().execute(plan)`. Inside a transaction, use `tx.execute(plan)`.
+7. **Trying to `db.execute(plan)` directly.** Plans run through the runtime: `db.runtime().query(plan)` for rows, `db.runtime().execute(plan)` for a statement's affected-row count. Inside a transaction, `tx.query(plan)` / `tx.execute(plan)`.
 8. **Setting `capabilities: { lateral: true }` in `prisma.config.ts`.** `defineConfig` does not take `capabilities`. Capabilities are declared by the active adapter and become part of the emitted contract; the Postgres adapter advertises `lateral`, `jsonAgg`, and `returning` out of the box. Enable extension capabilities through `extensions: [...]` in the config (see `references/contract.md`).
 9. **Confabulating a TypedSQL or `.stream()` surface.** Neither exists today. Raw SQL does: the client's raw lane, ``db.raw.sql`…` ``. See *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md) for all three.
-10. **Mixing the ORM mutation return with `runtime.execute(plan)`.** ORM terminals issue the query themselves and return rows. `runtime.execute` is for SQL-builder plans.
+10. **Mixing the ORM mutation return with `runtime.query(plan)`.** ORM terminals issue the query themselves and return rows. `runtime.query` / `runtime.execute` are for SQL-builder plans.
 11. **Ordering grouped rows by an aggregate metric.** The grouped collection supports `.orderBy(...)` on group keys plus `.limit(...)` / `.offset(...)`, but it cannot order by an aggregate alias such as `SUM(amount)`. Sorting the materialized aggregate result in JS is fine at small cardinalities; for large grouped result sets, drop to `db.sql.<ns>.<table>`.
 12. **Expecting `.delete()` / `.update(...)` to affect every matching row.** They affect the **first** match only and return it (`Row | null`). Use `.deleteAll()` / `.updateAll(...)` for the rows, or `.deleteAndCount()` / `.updateAndCount(...)` for the count.
-13. **Writing a JS `Date` into a `DateTime` column, or reading one without a `Temporal` global.** The timestamptz codec is Temporal-based: writes need Temporal instants, and decode throws `RUNTIME.TEMPORAL_UNAVAILABLE` without a global `Temporal`. Load `temporal-polyfill/global` at the entry point or use a string-typed column (e.g. `TimestamptzString`).
+13. **Awaiting `db.runtime().execute(plan)` for a SELECT.** `execute` resolves to `{ affectedRows }` for any plan; a read that seems to return no rows is almost always this. Use `db.runtime().query(plan)` for rows.
+14. **Writing a JS `Date` into a `DateTime` column, or reading one without a `Temporal` global.** The timestamptz codec is Temporal-based: writes need Temporal instants, and decode throws `RUNTIME.TEMPORAL_UNAVAILABLE` without a global `Temporal`. Load `temporal-polyfill/global` at the entry point or use a string-typed column (e.g. `TimestamptzString`).
 
 ## Reference Files
 
@@ -435,7 +436,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 - [ ] For cursor pagination, used `.orderBy(...).cursor({ field: lastValue }).limit(n).all()` — did NOT hand-write a `.where(p => p.field.lt(cursor))` workaround when the `.cursor()` API serves the same purpose.
 - [ ] For ORM combinators, imported `and` / `or` / `not` from `@prisma/orm-postgres/orm-client` (not `/runtime`).
 - [ ] Used single-row `.update(...)` / `.delete()` only where one row is meant; used `.updateAll(...)` / `.deleteAll()` / the `*AndCount()` forms for many-row writes.
-- [ ] Executed SQL-builder plans via `db.runtime().execute(plan)` (or `tx.execute(plan)` inside a transaction).
+- [ ] Ran SQL-builder plans via `db.runtime().query(plan)` for rows / `.execute(plan)` for affected-row counts (or `tx.query` / `tx.execute` inside a transaction); passed `.insert([...])` an array.
 - [ ] Wrapped multi-statement work in `db.transaction(async (tx) => { ... })` where atomicity matters.
 - [ ] For top-N grouped aggregates at meaningful scale, dropped to `db.sql.<ns>.<table>` rather than JS-side sort + slice over `groupBy(...).aggregate(...)`.
 - [ ] Did NOT confabulate TypedSQL, `.stream()`, `db.batch`, `.between(...)`, a `capabilities` field on `defineConfig`, or a `db.sql.from(tables.user)` API — routed to *What Prisma Next doesn't do yet* / `references/feedback.md` instead. Raw SQL is spelled `db.raw.sql`, not `db.sql.raw`.

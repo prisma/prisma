@@ -7,8 +7,8 @@ description: >-
   migration refs, drift recovery — or when the user mentions db update,
   migration plan, db migrate, migration ref, dataTransform, placeholder,
   migration graph, baseline, `from: (baseline)`, diamond convergence /
-  concurrent migrations, migration status, or a MIGRATION.* / PN-MIG-* /
-  PN-RUN-300x code. Does not apply to Prisma ORM 7 or earlier
+  concurrent migrations, migration status, or a MIGRATION.* /
+  CONTRACT.MARKER_* code. Does not apply to Prisma ORM 7 or earlier
   (schema.prisma + @prisma/client projects).
 metadata:
   library: '@prisma/orm-postgres'
@@ -37,7 +37,7 @@ Open the reference whose triggers match the task. If more than one matches, open
 
 | Task | Reference | Triggers |
 | --- | --- | --- |
-| Author migrations | [`references/migrations.md`](references/migrations.md) | `db update` vs `migration plan`, `db migrate`, `migration new`, `migration show`, `db update --dry-run`, `db verify`, `db sign`, data migration, `dataTransform`, placeholder sentinels in framework-rendered `migration.ts`, `MIGRATION.HASH_MISMATCH`, PN-MIG-2001 unfilled placeholder, schema drift |
+| Author migrations | [`references/migrations.md`](references/migrations.md) | `db update` vs `migration plan`, `db migrate`, `migration new`, `migration show`, `db update --dry-run`, `db verify`, `db sign`, data migration, `dataTransform`, placeholder sentinels in framework-rendered `migration.ts`, `MIGRATION.HASH_MISMATCH`, `MIGRATION.UNFILLED_PLACEHOLDER`, schema drift |
 | Migration graph, refs, plan origin | [`references/migration-model.md`](references/migration-model.md) | migration graph, refs, `migration ref set` / `list` / `delete`, the `db` ref, `--advance-ref`, `migration plan --from`, `from: (baseline)` in plan output, greenfield / from-scratch plan, baseline, first migration before deploy (Composer / CD-managed databases), chaining migrations, retrofitting migrations onto an existing database, `MIGRATION.HASH_NOT_IN_GRAPH`, `MIGRATION.PATH_UNREACHABLE` at plan/chain time |
 | Review migrations on deploy | [`references/migration-review.md`](references/migration-review.md) | "what migrations are going to run", "what runs on deploy / merge", merge conflict, diamond convergence, concurrent migrations, migration status, ref management for CI, staging / production environment refs, `MIGRATION.DIVERGED`, `MIGRATION.NO_MARKER`, `MIGRATION.MARKER_NOT_IN_HISTORY`, `db migrate status`, `db migrate diff`, `db migrate resolve` |
 

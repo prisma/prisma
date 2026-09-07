@@ -1,6 +1,6 @@
 # Prisma Next skills
 
-Agent skills for [Prisma Next](https://github.com/prisma/prisma) (Prisma 8) — `SKILL.md` files that teach an LLM agent how to operate Prisma Next end-to-end without re-deriving the API from documentation each time.
+Agent skills for [Prisma Next](https://github.com/prisma/orm) (Prisma 8) — `SKILL.md` files that teach an LLM agent how to operate Prisma Next end-to-end without re-deriving the API from documentation each time.
 
 > **Edit your data contract. Prisma handles the rest.**
 >
@@ -36,12 +36,12 @@ Every `prisma` command also checks the synced copies against the installed packa
 If you want the skills without installing the packages, the `skills` CLI can still read this directory. Pin the ref to your Prisma Next version so the skill surface matches your runtime surface. Install both — they route to each other and are meant to travel together:
 
 ```bash
-pnpm dlx skills add prisma/prisma/skills#v<your-prisma-8-version> --all
+pnpm dlx skills add prisma/orm/skills#v<your-prisma-8-version> --all
 ```
 
 This is interoperability, not the recommended path: nothing keeps a copy installed this way up to date.
 
-The skills are always installed at the **project level** — there is no host-wide / global install path. Each skill's surface (commands it references, exit codes it expects, capability claims it makes) tracks the project's `@internal/*` version, and a global install would have to pick a single version for every project on the host. Per-project keeps the skills, CLI, runtime, and extension packs coherent on every project the user works in.
+The skills are always installed at the **project level** — there is no host-wide / global install path. Each skill's surface (commands it references, exit codes it expects, capability claims it makes) tracks the project's `@prisma/orm-*` version, and a global install would have to pick a single version for every project on the host. Per-project keeps the skills, CLI, runtime, and extension packs coherent on every project the user works in.
 
 To limit a `skills add` install to one agent runtime, add `-a <agent>` (e.g. `-a claude-code`, `-a cursor`, `-a codex`). The `skills` CLI's `--help` lists the supported agent ids.
 
@@ -57,7 +57,7 @@ The skills are versioned with the rest of Prisma Next and ship inside the tarbal
 
 ## Contributing / authoring
 
-Authoring rules, reference-file conventions, and the worked example for *concepts-over-procedures* live in [`DEVELOPING.md`](./DEVELOPING.md). Read that before adding or rewriting a reference file. Skill sources live in this `skills/` directory in the `prisma/prisma` monorepo.
+Authoring rules, reference-file conventions, and the worked example for *concepts-over-procedures* live in [`DEVELOPING.md`](./DEVELOPING.md). Read that before adding or rewriting a reference file. Skill sources live in this `skills/` directory in the `prisma/orm` monorepo.
 
 ## License
 

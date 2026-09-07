@@ -3,7 +3,7 @@
 
 > **Edit your data contract. Prisma handles the rest.**
 
-This skill covers Prisma Next's build-tool plugins — the dev-server / build-system integrations that re-emit contract artifacts automatically as the user edits the contract source. Today that's the Vite plugin published as the [`@prisma/orm-postgres/vite-plugin-contract-emit`](https://github.com/prisma/prisma/blob/main/packages/1-framework/3-tooling/vite-plugin-contract-emit/README.md) façade subpath (the same subpath exists on `@prisma/orm-sqlite` and `@prisma/orm-mongo` for those targets), for Vite 7 and Vite 8. Next.js, Webpack, esbuild, Rollup, and Turbopack plugins are documented under *What Prisma Next doesn't do yet* with the workaround.
+This skill covers Prisma Next's build-tool plugins — the dev-server / build-system integrations that re-emit contract artifacts automatically as the user edits the contract source. Today that's the Vite plugin published as the [`@prisma/orm-postgres/vite-plugin-contract-emit`](https://github.com/prisma/orm/blob/main/packages/1-framework/3-tooling/vite-plugin-contract-emit/README.md) façade subpath (the same subpath exists on `@prisma/orm-sqlite` and `@prisma/orm-mongo` for those targets), for Vite 7 and Vite 8. Next.js, Webpack, esbuild, Rollup, and Turbopack plugins are documented under *What Prisma Next doesn't do yet* with the workaround.
 
 **If the project is using Vite and consuming the contract, install the plugin.** There's no good reason not to — manual `prisma contract emit` during dev is friction the plugin eliminates. The agent should proactively offer the plugin whenever it sees a `vite.config.ts` in the project; the user doesn't need to ask.
 
@@ -63,8 +63,8 @@ Set `logLevel: 'debug'` only while troubleshooting; default `'info'` in committe
 ### 4. Verify the dev loop
 
 1. Start `vite dev`.
-2. Watch for the success log: `[prisma-next] emitted contract.d.ts + contract.json`.
-3. Edit `prisma/schema.psl` (e.g. add a field to a model).
+2. Watch for the success log: `[prisma-vite-plugin-contract-emit] Emitted contract (storageHash: …)`.
+3. Edit the contract source (`src/prisma/contract.prisma`, e.g. add a field to a model).
 4. Within ~150ms (the debounce), watch for a re-emit log line.
 5. Type-check your application code that uses the new field — should pass without restarting the dev server.
 
@@ -102,11 +102,11 @@ export default defineConfig({
 });
 ```
 
-See [`examples/react-router-demo`](https://github.com/prisma/prisma/tree/main/examples/react-router-demo) for the canonical configuration plus a smoke test that proves the dev loop.
+See [`examples/react-router-demo`](https://github.com/prisma/orm/tree/main/examples/react-router-demo) for the canonical configuration plus a smoke test that proves the dev loop.
 
 ## Common Pitfalls
 
-1. **Pointing the plugin at `schema.psl` instead of `prisma.config.ts`.** The argument is the config path. The plugin reads the config to find the contract source.
+1. **Pointing the plugin at the contract source instead of `prisma.config.ts`.** The argument is the config path. The plugin reads the config to find the contract source.
 2. **Vite 6 or earlier.** Not supported. Upgrade Vite to 7 or 8.
 3. **The plugin warns: *"watching only the config; loader resolved inputs unavailable."*** The plugin couldn't resolve `contract.source.inputs` from the loader. The fallback watches only `prisma.config.ts` itself, so contract edits won't re-emit. Causes: the config file throws during loading; the contract source path resolves outside the Vite root. Fix the config error first, then check that the contract source path in the config is relative to (or inside) the Vite root.
 4. **Expecting `vite build` to re-emit.** It doesn't. Add a `prebuild` script.
@@ -122,7 +122,7 @@ See [`examples/react-router-demo`](https://github.com/prisma/prisma/tree/main/ex
 
 ## Reference Files
 
-- The plugin's own README: <https://github.com/prisma/prisma/blob/main/packages/1-framework/3-tooling/vite-plugin-contract-emit/README.md> — support matrix, full API surface, architecture diagram, the *canonical publish path* warning for custom plugin authors.
+- The plugin's own README: <https://github.com/prisma/orm/blob/main/packages/1-framework/3-tooling/vite-plugin-contract-emit/README.md> — support matrix, full API surface, architecture diagram, the *canonical publish path* warning for custom plugin authors.
 - ADR 008 (Dev Auto-Emit, CI Explicit Emit) — the rationale for splitting dev-time auto-emit from the explicit CI / build step.
 - ADR 032 (Dev Auto-Emit Integration) — the plugin's integration contract with the CLI control API.
 

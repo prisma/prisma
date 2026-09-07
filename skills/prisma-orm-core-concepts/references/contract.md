@@ -25,7 +25,7 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 - User wants to use a custom type from an extension (`pgvector.Vector(length: 1536)`, `cipherstash.EncryptedString({...})`).
 - User wants to install or configure an extension via `extensions: [...]` in `prisma.config.ts`, including `@prisma/orm-extension-supabase`.
 - User is migrating between authoring sources (PSL ↔ TypeScript builder).
-- User received `PN-CLI-4002`, `PN-CLI-4003`, or `PN-CLI-4011` from `contract emit`.
+- User received `CONFIG.CONTRACT_MISSING`, `CONTRACT.SOURCE_LOAD_FAILED`, `CONTRACT.VALIDATION_FAILED`, or `CONFIG.MISSING_EXTENSION_PACKS` from `contract emit`.
 - User mentions: *schema, fields, models, attributes, prisma schema, PSL, contract.prisma, contract.ts, contract.json, contract.d.ts, contract emit, façade imports, `@prisma/orm-postgres/config`, `@prisma/orm-postgres/contract-builder`, extensions, pgvector, cipherstash, postgis, paradedb, supabase, namespaces, cross-space FK, `@@control`, enums, check constraints, `@@check`, value objects, validations, callbacks, soft delete, paranoid, scopes*. (The last cluster routes to *What Prisma Next doesn't do yet* below.)
 
 ## When Not to Use
@@ -65,7 +65,7 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
   - **In the config (façade and core):** `extensions: [pgvector]` — array of *control* descriptors imported from `@prisma/orm-extension-<name>/control`.
   - **In the TS builder's `defineContract` (only when authoring `contract.ts`):** `extensions: { pgvector }` — record of *pack* descriptors imported from `@prisma/orm-extension-<name>/pack`.
 - **Contract space.** Every package that emits a contract owns its own *contract space* — a `prisma.config.ts` at package root, a contract source, the colocated emitted artefacts, and a `migrations/` directory. **There are two intentional on-disk layouts**, picked by whether the contract space is the consuming application or a contract-space package (an extension, an internal aggregate-root package, etc.):
-  - **Application layout** (what you use when building an *app*). `prisma.config.ts` at repo root; `src/prisma/contract.{prisma,ts}`; `src/prisma/contract.{json,d.ts}` colocated; `src/prisma/db.ts` colocated; migrations under `migrations/app/<timestamp>_<slug>/`. The `app/` segment is the consuming application's space-id; extension space-ids land in sibling `migrations/<extension-space-id>/` directories that the extension packages manage. This is what `examples/prisma-8-demo` uses. `prisma orm init` currently scaffolds something different (`prisma/...` at repo root) — that's a defect (TML-2532); the canonical layout is what every command actually expects to see.
+  - **Application layout** (what you use when building an *app*). `prisma.config.ts` at repo root; `src/prisma/contract.{prisma,ts}`; `src/prisma/contract.{json,d.ts}` colocated; `src/prisma/db.ts` colocated; migrations under `migrations/app/<timestamp>_<slug>/`. The `app/` segment is the consuming application's space-id; extension space-ids land in sibling `migrations/<extension-space-id>/` directories that the extension packages manage. This is what `examples/prisma-8-demo` uses. `prisma orm init` scaffolds this layout by default.
   - **Contract-space-package layout** (what you use when *publishing* a contract-space package — extensions, internal monorepo packages). `prisma.config.ts` at package root; `src/contract.{prisma,ts}` directly (no `prisma/` subdir); `src/contract.{json,d.ts}` colocated; `migrations/<timestamp>_<slug>/` directly under `migrations/` (no `<space-id>` segment — the package *is* a single space). Documented in `.cursor/rules/contract-space-package-layout.mdc` and ADR 212.
 
   Both layouts let `defineConfig`'s `contract:` path point at the source; the framework derives everything else (emit output, migration root) from there. Pick the layout that matches what you're building and stick with it — don't mix.
@@ -76,9 +76,9 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 
 | Code | Meaning | Next move |
 |---|---|---|
-| `PN-CLI-4002` *Contract configuration missing* | `contract` not set in `prisma.config.ts`. | Add `contract: './src/prisma/contract.prisma'` (app layout) or `'./src/contract.prisma'` (contract-space-package layout) — likewise for `.ts` sources — to `defineConfig({...})` from `@prisma/orm-postgres/config`. |
-| `PN-CLI-4003` *Contract validation failed* | Source loaded but the Contract IR failed structural validation. | Read `meta.diagnostics` / `meta.issues` for the offending model/field, fix the source, re-emit. |
-| `PN-CLI-4011` *Missing extension packs in config* | The contract uses a namespaced constructor (e.g. `pgvector.Vector(...)`) but `extensions` in the config does not list a matching descriptor. `meta.missingExtensions` names them. | Install the package, import its control descriptor (`import pgvector from '@prisma/orm-extension-pgvector/control'`), add it to `extensions: [...]` in `prisma.config.ts`. |
+| `CONFIG.CONTRACT_MISSING` *Contract configuration missing* | `contract` not set in `prisma.config.ts`. | Add `contract: './src/prisma/contract.prisma'` (app layout) or `'./src/contract.prisma'` (contract-space-package layout) — likewise for `.ts` sources — to `defineConfig({...})` from `@prisma/orm-postgres/config`. |
+| `CONTRACT.SOURCE_LOAD_FAILED` / `CONTRACT.VALIDATION_FAILED` | The source did not parse (`SOURCE_LOAD_FAILED` carries the PSL diagnostic, e.g. `PSL_UNSUPPORTED_FIELD_TYPE`, in `meta`) or the Contract IR failed structural validation. | Read `meta` for the offending model/field, fix the source, re-emit. |
+| `CONFIG.MISSING_EXTENSION_PACKS` *Missing extension packs in config* | The contract uses a namespaced constructor (e.g. `pgvector.Vector(...)`) but `extensions` in the config does not list a matching descriptor. `meta.missingExtensions` names them. | Install the package, import its control descriptor (`import pgvector from '@prisma/orm-extension-pgvector/control'`), add it to `extensions: [...]` in `prisma.config.ts`. |
 
 ## Workflow — Read the contract source of truth
 
@@ -202,7 +202,7 @@ model Document {
 
 Emit. The named-type lowering puts `vector(1536)` on the column and the type map in `contract.d.ts` carries the right TS type.
 
-If you reference `pgvector.*` without registering the pack in the config, emit fails with `PN-CLI-4011` and `meta.missingExtensions: ['pgvector']`. The envelope's `fix` text says *"Add the missing extension descriptors to `extensions` in prisma.config.ts"* — that field name matches the façade.
+If you reference `pgvector.*` without registering the pack in the config, emit fails with `CONFIG.MISSING_EXTENSION_PACKS` and `meta.missingExtensions: ['pgvector']`. The envelope's `fix` text says *"Add the missing extension descriptors to `extensions` in prisma.config.ts"* — that field name matches the façade.
 
 For canonical worked examples covering single and multi-extension setups, read `examples/multi-extension-monorepo/app/prisma.config.ts` and `examples/prisma-8-postgis-demo/prisma.config.ts`.
 

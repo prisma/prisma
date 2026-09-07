@@ -51,7 +51,7 @@ export const db = postgres<Contract>({
 });
 ```
 
-(`init` currently scaffolds at `prisma/db.ts` instead — see TML-2532 in `references/quickstart.md`. The canonical path is `src/prisma/db.ts`; the rest of `src/` imports from `./prisma/db` or `../prisma/db` depending on depth.)
+(The rest of `src/` imports from `./prisma/db` or `../prisma/db` depending on depth.)
 
 Three things to know:
 

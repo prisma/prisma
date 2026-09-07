@@ -88,13 +88,13 @@ const required = await db.orm.public.User.where({ id }).all().firstOrThrow();
 
 For genuine single-row reads, prefer the *collection*-level `.first()` (which adds `LIMIT 1` to the SQL on Postgres) over `.all().first()` (which fetches all rows and discards the rest). The result-level helpers are for cases where you already need the full result and want the first row without an extra round-trip.
 
-**The result is single-consumption.** Each `AsyncIterableResult` instance can be consumed once — by `await`, by `.toArray()`, or by `for await`. Trying to consume it a second time throws **`RUNTIME.ITERATOR_CONSUMED`**. The fix is almost always to store the array in a variable on first consumption and reuse the variable:
+**The result is single-iteration.** Each `AsyncIterableResult` instance buffers once: after any consumption, a `for await` over it throws **`RUNTIME.ITERATOR_CONSUMED`** (a second `await` or `.toArray()` hands back the same buffered array without throwing, so the failure only appears when a loop is involved). The fix is almost always to store the array in a variable on first consumption and reuse the variable:
 
 ```typescript
-// Bad — second await throws RUNTIME.ITERATOR_CONSUMED.
+// Bad — iterating after an earlier consumption throws RUNTIME.ITERATOR_CONSUMED.
 const result = db.orm.public.User.select('id', 'email').all();
 const a = await result;
-const b = await result;
+for await (const row of result) { /* throws */ }
 
 // Good — buffer once, reuse the array.
 const users = await db.orm.public.User.select('id', 'email').all();
@@ -130,7 +130,7 @@ await db.close();
 
 1. **Using Postgres examples on a Mongo project (or vice versa).** Check `db.ts` and load the correct target guide ([`queries-postgres.md`](./queries-postgres.md) or [`queries-mongo.md`](./queries-mongo.md)).
 2. **Writing a `collect()` / `toArray()` helper to convert `.all()` to an array.** `.all()` returns an `AsyncIterableResult<Row>` which *is* a `PromiseLike<Row[]>` — `await collection.all()` directly yields `Row[]`. See *Consuming the result* above.
-3. **Consuming an `AsyncIterableResult` twice.** Each result is single-use. The second consumer throws `RUNTIME.ITERATOR_CONSUMED`. Buffer once into a variable and reuse the variable.
+3. **Iterating an `AsyncIterableResult` after it was already consumed.** A `for await` over a result that was awaited, `.toArray()`-ed, or iterated before throws `RUNTIME.ITERATOR_CONSUMED`. Buffer once into a variable and reuse the variable.
 4. **Expecting `.delete()` / `.update(data)` to affect every matching row.** They affect the **first** match only (and require a prior `.where(...)`), returning `Row | null`. For every-matching-row semantics use `.deleteAll()` / `.updateAll(data)` (return the affected rows) or `.deleteAndCount()` / `.updateAndCount(data)` (return the count). See the writes section of the target guide.
 
 Target-specific pitfalls live in the per-target guides.
@@ -142,7 +142,7 @@ Target-specific pitfalls live in the per-target guides.
 - **`and` / `or` / `not` combinators on the `/runtime` subpath.** The combinators are not exported from `@prisma/orm-postgres/runtime`; they live on the façade's `/orm-client` subpath — import them from `@prisma/orm-postgres/orm-client` (same subpath on `@prisma/orm-sqlite`). If you want them surfaced on `/runtime` alongside the factory, file a feature request via `references/feedback.md`.
 - **Ordering grouped aggregates by an aggregate alias (Postgres).** `db.orm.<ns>.<Model>.groupBy(...)` supports `.orderBy(...)` on group keys plus `.limit(...)` / `.offset(...)`, but the grouped collection cannot order by an aggregate alias such as `SUM(amount)`. A "top-N groups by SUM" query therefore falls back to JS-side sort + slice over the full grouped result, which is fine at small cardinalities and bad at scale. Workarounds: (a) drop to `db.sql.<table>` and write the `GROUP BY` + `ORDER BY` + `LIMIT` against the aggregated table directly; (b) live with the JS-side sort/slice if the grouped cardinality is bounded. File a feature request via `references/feedback.md` if this is hitting you in production.
 - **A raw-SQL lane.** This one exists. Write whole-query raw SQL through the client's raw lane: ``db.raw.sql`SELECT ...`.returnsRow({ ... }).build()`` for rows, or `.affectedCount()` for a mutation's row count. Each declared column names the codec that decodes it, so the row stays typed. For an expression fragment inside a builder query, use `fns.raw` in a `.select(...)` callback instead.
-- **TypedSQL (`.sql` files compiled into typed callables).** Not implemented. Workaround: stick to the SQL builder; for repeated queries, extract a function that returns the built plan and call `db.runtime().execute(plan)` at the call site. If you want a `.sql`-file compile path, file a feature request via `references/feedback.md`.
+- **TypedSQL (`.sql` files compiled into typed callables).** Not implemented. Workaround: stick to the SQL builder; for repeated queries, extract a function that returns the built plan and call `db.runtime().query(plan)` at the call site. If you want a `.sql`-file compile path, file a feature request via `references/feedback.md`.
 - **`EXPLAIN` / query-plan inspection.** Prisma Next does not expose an `.explain()` method. Workaround: connect a `pg.Pool` you control via the runtime's `pg:` binding (see `references/runtime.md`) and issue `EXPLAIN ANALYZE` through it. If you want a first-class plan-inspection surface, file a feature request via `references/feedback.md`.
 - **Streaming large result sets.** No `.stream()` cursor today. Workaround: paginate via `.offset(n).limit(m)` for moderate sizes; for very large sets, hold a `pg.Client` from the runtime's `pg:` binding and stream through it directly. If you want a built-in streaming surface, file a feature request via `references/feedback.md`.
 - **Multi-statement batching (Prisma-7-style `db.$transaction([call1, call2])`).** Prisma Next runs each call sequentially. Workaround: wrap atomically-related work in `db.transaction(async (tx) => { ... })` on Postgres. If you want batch-as-array semantics, file a feature request via `references/feedback.md`.

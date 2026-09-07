@@ -18,7 +18,7 @@ Once the contract changes, you choose how the change reaches the database. This 
 - User edited the contract and wants to apply the change to the DB.
 - User wants to author a migration with a data transform.
 - User wants to run pending migrations against a local DB.
-- User hit `MIGRATION.HASH_MISMATCH`, `PN-MIG-2001` (unfilled placeholder), or a partially-applied migration.
+- User hit `MIGRATION.HASH_MISMATCH`, `MIGRATION.UNFILLED_PLACEHOLDER`, or a partially-applied migration.
 - User mentions: *migrate, migration, db push, db update, `prisma migrate dev`, `prisma migrate deploy`, drift, hash mismatch, data backfill*.
 
 ## When Not to Use
@@ -30,7 +30,7 @@ Once the contract changes, you choose how the change reaches the database. This 
 
 ## Key Concepts
 
-- **`db update` (quick path).** Reads the emitted contract, diffs against the live DB, applies the change. Optional `--dry-run` prints the plan without executing. Interactive destructive-op confirmation (or `-y` to auto-accept). **Writes no migration directory.** Operations needing data transforms are not handled by this path — `db update` excludes the `data` operation class entirely and short-circuits where a data transform would be required. Use only against a database that has no shared history with anyone else (your local dev DB).
+- **`db update` (quick path).** Reads the emitted contract, diffs against the live DB, applies the change. Optional `--dry-run` prints the plan without executing. A destructive operation needs consent: interactively you type the database name; non-interactive runs pass `--no-interactive --confirm <database>` (`--yes` cannot grant it — the run stops with `CLI.CONSENT_REQUIRED`). **Writes no migration directory.** Operations needing data transforms are not handled by this path — `db update` excludes the `data` operation class entirely and short-circuits where a data transform would be required. Use only against a database that has no shared history with anyone else (your local dev DB).
 - **`migration plan` (formal path).** Reads the emitted contract, diffs it against a resolved origin — explicit `--from`, else the `db` ref, else the empty database; there is no "head of the graph" to chain from (see `references/migration-model.md`) — and writes a new migration package under `migrations/app/<YYYYMMDDTHHMM>_<snake_slug>/`. If any operation needs a data transform, the package's `migration.ts` contains `placeholder(...)` calls you fill in.
 - **The `app/` segment in migration paths is the consuming application's contract-space id.** Every migration *you* author lives under `migrations/app/`. Extensions your contract depends on get their own sibling directories (`migrations/<extension-space-id>/`) — those are managed by the extension package and you don't write into them. The `app/` segment lands automatically the first time you run `migration plan` / `db init` against an app-level config.
 - **Migration package files** (inside each `migrations/app/<dir>/`):
@@ -40,9 +40,9 @@ Once the contract changes, you choose how the change reaches the database. This 
 - **Contract snapshots.** `migration.ts` imports its bookend contracts from the shared, content-addressed store at `migrations/snapshots/<hex>/contract.json` + `contract.d.ts` (`<hex>` is the contract's 64-hex storage hash) — not from files inside the migration package. Each bookend is imported twice — the JSON value plus its `Contract` type (`import type { Contract as Start } from '../../snapshots/<hex>/contract'`) — and bound on the class via the `startContractJson` / `endContractJson` overrides.
 - **Self-emit.** Running `node migrations/app/<dir>/migration.ts` regenerates `ops.json` and `migration.json` from the (possibly edited) TS source. This is the only supported way to update an existing migration package after edits.
 - **`migration.ts` shape.** Framework-rendered. A class extending `Migration<Start, End>` (imported from `@prisma/orm-postgres/migration` on Postgres, `@prisma/orm-mongo/target/migration` on Mongo — see the framing block below) that overrides `startContractJson` / `endContractJson` with the bookend snapshots and declares an `operations` getter. On Postgres each operation is a protected **method call on `this`** taking one options object (`this.addColumn({ schema, table, column: col('name', 'text') })`); on Mongo operations are free-factory calls. The file ends with `MigrationCLI.run(import.meta.url, M)` so executing it self-emits.
-- **`placeholder(slot)`.** A sentinel the planner emits into the rendered `migration.ts` (imported from the rendered file's own migration import line — `@prisma/orm-postgres/migration` on Postgres, `@prisma/orm-mongo/target/migration` on Mongo) wherever a data transform is needed. Calling `placeholder(...)` at emit time throws `PN-MIG-2001` *Unfilled migration placeholder*. The user replaces the `() => placeholder(...)` arrow with a real query-plan closure (Postgres) or fills `dataTransform({ check, run })` sources (Mongo — see *Fill a placeholder*), then self-emits.
+- **`placeholder(slot)`.** A sentinel the planner emits into the rendered `migration.ts` (imported from the rendered file's own migration import line — `@prisma/orm-postgres/migration` on Postgres, `@prisma/orm-mongo/target/migration` on Mongo) wherever a data transform is needed. Calling `placeholder(...)` at emit time throws `MIGRATION.UNFILLED_PLACEHOLDER`. The user replaces the `() => placeholder(...)` arrow with a real query-plan closure (Postgres) or fills `dataTransform({ check, run })` sources (Mongo — see *Fill a placeholder*), then self-emits.
 - **`this.dataTransform(endContract, name, { check, run })`.** The Postgres data-transform operation (an instance method, like the DDL ops). `check` is a rowset query whose presence-of-any-row signals "work remains"; `run` is one or more mutation queries that perform the backfill. Both are lazy closures returning query-plans built against `endContract`. The runner wraps `check` as `EXISTS(...)` for precheck and `NOT EXISTS(...)` for postcheck, so the same closure asserts both "there is work" and "the work is done".
-- **`pendingPlaceholders`.** A boolean field on the JSON result of `migration plan`. `true` means the package was written but contains unfilled placeholders — `db migrate` will throw `PN-MIG-2001` until you edit `migration.ts` and self-emit.
+- **`pendingPlaceholders`.** A boolean field on the JSON result of `migration plan`. `true` means the package was written with an **empty `ops.json`**. `db migrate` does not detect this: it applies nothing and fails with `MIGRATION.RUNNER_FAILED` (schema does not satisfy the destination contract). Fill the placeholders in `migration.ts` and self-emit before applying.
 - **`migrationHash`.** Content-addressed identity of a migration package. `MIGRATION.HASH_MISMATCH` fires when the stored hash in `migration.json` disagrees with the hash recomputed from the on-disk files (almost always: someone edited `migration.ts` without self-emitting).
 - **Marker.** Records "this database is at contract hash X for space Y". **Postgres:** a row in `prisma_contract.marker`. **Mongo:** a document in the `_prisma_migrations` collection (keyed by space). Each successful migration advances the marker once schema verification passes for that space. `db sign` writes the marker from the current contract hash, but only after a schema-verification pass succeeds (it will not sign a database whose live schema disagrees with the contract).
 - **Apply atomicity.** **Postgres:** each migration runs inside `BEGIN ... COMMIT`; on failure, Postgres rolls back and the marker stays at the previous migration's `to` hash. **Mongo:** DDL ops (`createCollection`, `createIndex`, `collMod`, `setValidation`, …) are not wrapped in a multi-document transaction; the runner applies ops, verifies the live schema against the destination contract, and advances the marker only on verify-pass (resumable across spaces — see the MongoDB family doc). Ordinary DDL + `dataTransform` flows stay consistent; partial state from failed mid-migration runs is diagnosed with `db verify` / `db schema`, not assumed away.
@@ -66,13 +66,13 @@ Treat the rendered import lines as framework-managed on both targets:
 
 | Code | Source | Move |
 |---|---|---|
-| `PN-MIG-2001` *Unfilled migration placeholder* | Throwing `placeholder(...)` at emit time | Open `migration.ts`, replace the named `placeholder("<slot>")` call with the real query closure, self-emit. |
-| `PN-MIG-2002` *migration.ts not found* | Reading a migration package | The package is malformed. Recover from version control, or run `prisma migration new` for a fresh one. |
-| `PN-MIG-2003` *invalid default export* | Loading `migration.ts` | The file's default export is not a `Migration` subclass or factory function. Restore the planner-emitted scaffold from version control or re-run `migration plan` for a clean package. |
-| `PN-MIG-2005` *dataTransform contract mismatch* | Building a data-transform query plan | The query builder was instantiated with a contract reference different from the `endContract` passed to `this.dataTransform(...)`. Use the `endContract` imported at module scope for both. |
-| `MIGRATION.HASH_MISMATCH` *Migration package is corrupt* | `db migrate` (or any read of the package) | `ops.json` / `migration.json` were edited without self-emitting. Run `node migrations/app/<dir>/migration.ts` to re-emit, then re-run `db migrate`. |
-| `PN-RUN-3002` *Hash mismatch* | `db verify` | The marker disagrees with the contract hash (**Postgres:** `prisma_contract.marker`; **Mongo:** `_prisma_migrations`). The DB is at a different contract version than the code thinks. Either run a migration forward, or — if the DB is correct and the marker is stale after a manual fix-up — run `db sign`. |
-| `PN-RUN-3001` *Database not signed* | Any command needing a marker | The DB has no marker yet. Run `prisma db init --db <url>` to baseline an empty database, or `db update --db <url>` to apply the current contract directly. |
+| `MIGRATION.UNFILLED_PLACEHOLDER` | Throwing `placeholder(...)` at emit time | Open `migration.ts`, replace the named `placeholder("<slot>")` call with the real query closure, self-emit. |
+| `MIGRATION.FILE_MISSING` *migration.ts not found* | Reading a migration package | The package is malformed. Recover from version control, or run `prisma migration new` for a fresh one. |
+| `MIGRATION.INVALID_DEFAULT_EXPORT` | Loading `migration.ts` | The file's default export is not a `Migration` subclass or factory function. Restore the planner-emitted scaffold from version control or re-run `migration plan` for a clean package. |
+| `MIGRATION.DATA_TRANSFORM_CONTRACT_MISMATCH` | Building a data-transform query plan | The query builder was instantiated with a contract reference different from the `endContract` passed to `this.dataTransform(...)`. Use the `endContract` imported at module scope for both. |
+| `MIGRATION.HASH_MISMATCH` / `MIGRATION.CONTRACT_SPACE_VIOLATION` / `MIGRATION.CHECK_HASH_MISMATCH` *stored hash does not match recomputed* | `db migrate` / `migration status` / `migration check` | `ops.json` / `migration.json` disagree with the package contents. Run `node migrations/app/<dir>/migration.ts` to re-emit, then re-run `db migrate`. |
+| `CONTRACT.MARKER_MISMATCH` *Hash mismatch* | `db verify` (exit 4) | The marker disagrees with the contract hash (**Postgres:** `prisma_contract.marker`; **Mongo:** `_prisma_migrations`). The DB is at a different contract version than the code thinks. Either run a migration forward, or — if the DB is correct and the marker is stale after a manual fix-up — run `db sign`. |
+| `CONTRACT.MARKER_MISSING` *Database not signed* | `db verify` (exit 4), any command needing a marker | The DB has no marker yet. Run `prisma db init --db <url>` to baseline an empty database, or `db update --db <url>` to apply the current contract directly. |
 
 ## Decision — which path do you take?
 
@@ -143,7 +143,7 @@ Canonical detail: [Migration System § Contract resolution through the snapshot 
 
 ## Workflow — `db update` (quick path)
 
-The concept: `db update` resolves the destination (`emitted contract`) against the live DB and applies the difference. Preview with `--dry-run`. Destructive ops prompt interactively unless you pass `-y` or `--no-interactive`. The path excludes operations of the `data` class entirely — if the diff requires a data transform, `db update` fails with a planning error and you switch to `migration plan` to author the transform.
+The concept: `db update` resolves the destination (`emitted contract`) against the live DB and applies the difference. Preview with `--dry-run`. Destructive ops ask you to type the database name; outside a terminal pass `--no-interactive --confirm <database>` (`--yes` does not grant consent). The path excludes operations of the `data` class entirely — if the diff requires a data transform, `db update` fails with a planning error and you switch to `migration plan` to author the transform.
 
 Run after a contract edit:
 
@@ -163,7 +163,7 @@ Inspect the JSON output to drive the next move:
 pnpm prisma db update --db $DATABASE_URL --json
 ```
 
-The JSON contains `plan.operations[]` with each `operationClass`, plus (in apply mode) `execution.operationsExecuted` and the post-apply `marker.storageHash`. If the command failed because of destructive operations, the error envelope's `meta.destructiveOperations[]` lists exactly what would have been dropped.
+The JSON contains `plan.operations[]` with each `operationClass`, plus (in apply mode) `execution.operationsExecuted` and the post-apply `marker.storageHash`. If the command stopped for consent (`CLI.CONSENT_REQUIRED`), the envelope's `summary` lists the destructive operations and `meta.consentToken` is the database name to pass to `--confirm`.
 
 ## Workflow — `migration plan` + `db migrate` (formal path)
 
@@ -186,8 +186,7 @@ Read the result. The JSON shape exposes the queryable signals:
 Inspect the package:
 
 ```bash
-pnpm prisma migration show
-pnpm prisma migration show <dirName-or-migrationHash-prefix>
+pnpm prisma migration show <dirName-or-migrationHash-prefix>   # the target is required
 ```
 
 `migration show` displays a single migration package. To see the ordered list of migrations that would run — across all contract spaces — use `db migrate --show`:
@@ -248,7 +247,7 @@ MigrationCLI.run(import.meta.url, M);
 
 Replace both `placeholder(...)` calls with query-plan closures built from `endContract`. The `check` closure must return a **rowset query whose presence of any row signals "work remains"** — conventionally `<table>.select('id').where(<violation predicate>).limit(1)`. Scalar/aggregate shapes (`count(*)`, `bool_and(...)`) silently break the contract: the runner wraps `check` twice (`EXISTS(...)` for precheck, `NOT EXISTS(...)` for postcheck), and a query that always returns one row makes `EXISTS` always true and `NOT EXISTS` always false.
 
-Build the query builder against `endContract` so the storage hashes line up — using a different contract reference raises `PN-MIG-2005`. The filled-in shape is the rendered scaffold above with the `placeholder(...)` calls replaced; extra operations like `setNotNull` are further `this.<op>(...)` method calls, needing no import change. See `prisma-orm-core-concepts/references/queries.md` for the surrounding `db` setup:
+Build the query builder against `endContract` so the storage hashes line up — using a different contract reference raises `MIGRATION.DATA_TRANSFORM_CONTRACT_MISMATCH`. The filled-in shape is the rendered scaffold above with the `placeholder(...)` calls replaced; extra operations like `setNotNull` are further `this.<op>(...)` method calls, needing no import change. See `prisma-orm-core-concepts/references/queries.md` for the surrounding `db` setup:
 
 ```typescript
 import { col, Migration, MigrationCLI } from '@prisma/orm-postgres/migration';
@@ -395,7 +394,7 @@ The concept: `db verify` is a **standalone diagnostic** — not a routine step a
 - Following manual SQL or ad-hoc edits outside Prisma Next.
 - When restoring a database from backup.
 - If a `db migrate` fails or partially applies (especially on Mongo, where DDL is resumable rather than transaction-wrapped).
-- When `PN-RUN-3002` / `PN-RUN-3001` surfaces at runtime or from another command.
+- When `CONTRACT.MARKER_MISMATCH` / `CONTRACT.MARKER_MISSING` surfaces from another command (or as a runtime warning).
 
 Modes:
 
@@ -408,7 +407,7 @@ Modes:
 pnpm prisma db verify --db $DATABASE_URL
 ```
 
-On mismatch, the error envelope names the failure mode (`PN-RUN-3002` hash mismatch, `PN-RUN-3001` marker missing, target mismatch, schema issues with structured paths).
+On mismatch the command exits 4 and the envelope names the failure mode (`CONTRACT.MARKER_MISMATCH`, `CONTRACT.MARKER_MISSING`, `CONTRACT.TARGET_MISMATCH`, `CONTRACT.SCHEMA_VERIFICATION_FAILED` with structured paths).
 
 ## Workflow — Re-sign the marker
 
@@ -473,26 +472,27 @@ The concept: when `db update` would drop columns or tables, it stops and asks be
 
 When `db update` reports destructive operations interactively, the warning lists them. The prompt is:
 
-> Apply destructive changes? This cannot be undone.
+> Apply N destructive operation(s) to <database>? Data they remove cannot be recovered:
+>   - Drop column "…" from "…" (type <database> to confirm)
 
 Routing:
 
-- Answer yes if the data is no longer needed.
-- Answer no, then either:
+- Type the database name if the data is no longer needed.
+- Answer anything else (the prompt fails with `CLI.PROMPT_INVALID`), then either:
   - Re-shape the migration via `migration plan` and hand-edit `migration.ts` to preserve the data (e.g. copy-to-new-column, then drop), or
   - Skip the destructive operation by reverting the contract change.
 
-In non-interactive contexts (CI, `--no-interactive`, `--json`), the destructive-op response is returned as a structured error — `meta.destructiveOperations[]` lists what would have been dropped. Re-run with `-y` to auto-accept, or address each operation individually.
+In non-interactive contexts (CI, `--no-interactive`) the run stops with `CLI.CONSENT_REQUIRED`: the `summary` lists what would be dropped and `meta.consentToken` names the database. Re-run with `--no-interactive --confirm <database>` to apply, or address each operation individually. `--yes` / `-y` accepts prompt defaults only and never grants destructive consent.
 
 ## Common Pitfalls
 
 1. **Using `db update` against shared or production databases.** Never. The change leaves no migration history. Use `migration plan` + `db migrate`.
-2. **Skipping a data transform.** Leaving `placeholder(...)` in `migration.ts` makes the next `db migrate` throw `PN-MIG-2001`. Fill every placeholder slot and self-emit.
+2. **Skipping a data transform.** Leaving `placeholder(...)` in `migration.ts` leaves `ops.json` empty: self-emit throws `MIGRATION.UNFILLED_PLACEHOLDER`, and `db migrate` applies nothing and fails with `MIGRATION.RUNNER_FAILED`. Fill every placeholder slot and self-emit.
 3. **Editing `ops.json` directly.** It's the canonical artifact, not the authoring source. Edit `migration.ts`, then self-emit.
 4. **Forgetting to self-emit after editing `migration.ts`.** The next `db migrate` either uses the stale `ops.json` (if you only added comments) or fails with `MIGRATION.HASH_MISMATCH` (if you changed operations). Always self-emit.
 5. **Routine `db verify` after a successful `db update` or `db migrate`.** Redundant on the happy path — reserve `db verify` for drift diagnosis (manual edits, restore, failed `db migrate`).
 6. **Aggregate `check` closure in Postgres `this.dataTransform`.** Returning `count(*)` or `bool_and(...)` breaks the precheck/postcheck contract — both sides resolve to constants. Use a rowset shape: `select('id').where(<violation>).limit(1)`.
-7. **Two contract references in one migration.** Building a query plan against a different contract than the one passed to `this.dataTransform(endContract, ...)` raises `PN-MIG-2005`. Always import `endContract` once at module scope and use the same reference.
+7. **Two contract references in one migration.** Building a query plan against a different contract than the one passed to `this.dataTransform(endContract, ...)` raises `MIGRATION.DATA_TRANSFORM_CONTRACT_MISMATCH`. Always import `endContract` once at module scope and use the same reference.
 8. **Renaming and expecting the planner to detect it (Postgres).** Prisma Next has no in-contract rename hint today; the planner emits a destructive drop+add. Hand-edit `migration.ts` to rewrite the destructive op as a raw op — `rawSql(...)` over a full op object whose `execute` steps issue `ALTER TABLE ... RENAME COLUMN ...` (or use the two-migration keep / backfill / drop pattern) — then self-emit. See `prisma-orm-core-concepts/references/contract.md` § *Edit a field — rename*.
 9. **Planning with no `db` ref and no `--from` in a project that already has migrations.** The origin falls through to the empty database, which would make the plan a full-create migration; `migration plan` refuses with `MIGRATION.PLAN_ORIGIN_UNKNOWN` rather than writing it. Pick the exit that matches your intent — the error lists them, and `references/migration-model.md` § *The trap* explains which to choose.
 10. **Hand-authoring `migration.ts` from a blank file, or rewriting the rendered import line.** Migration files are framework-rendered — let `prisma migration plan` (or `migration new`) render the package, then edit only the holes the framework leaves for you. On Postgres leave the rendered `@prisma/orm-postgres/migration` (or `@prisma/orm-sqlite/migration`) import path alone — ops are `this.<op>(...)` methods and need no import; on Mongo keep the rendered `@prisma/orm-mongo/target/migration` line and add factory names to it rather than introducing new import paths.
@@ -534,4 +534,4 @@ The CLI collects anonymous usage data by default. To opt out, set `PRISMA_NEXT_D
 - [ ] Used `db verify` only when diagnosing drift — not as a routine post-apply step.
 - [ ] Did NOT use `db update` against a shared or production database.
 - [ ] Did NOT edit `ops.json` directly.
-- [ ] Did NOT skip a destructive-op prompt without inspecting `meta.destructiveOperations[]`.
+- [ ] Did NOT grant a destructive-op consent (`--confirm <database>`) without reading the operations the prompt or `summary` lists.
