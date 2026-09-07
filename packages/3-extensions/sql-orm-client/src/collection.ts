@@ -1110,15 +1110,9 @@ class CollectionImpl<
    * whichever fits the caller. A single result can only be consumed
    * once.
    *
-   * Streaming is the default and the expected execution model. The
-   * only scenarios that fall back to buffering internally before
-   * yielding are drivers that cannot expose a cursor to the
-   * underlying database, and — for queries with `include(...)` —
-   * targets whose SQL dialect supports neither lateral joins nor
-   * correlated subqueries (so child rows cannot be stitched in a
-   * single streaming query). These are implementation details below
-   * the public API; the iteration shape itself is genuinely
-   * streaming whenever the driver and plan allow it.
+   * Queries without `include(...)` stream rows as the driver yields them (drivers that cannot
+   * expose a cursor buffer internally first). Queries with `include(...)` read the whole parent
+   * result set into memory before yielding the first row.
    *
    * ```typescript
    * // Thenable — collect to an array:
@@ -1335,9 +1329,9 @@ class CollectionImpl<
    *
    * Note: when the input contains nested-mutation callbacks, the
    * operation is executed as a graph of internal queries via
-   * `withMutationScope`. In that path, annotations apply to the
-   * logical `create()` call but do not currently flow into each
-   * constituent SQL statement issued for the related rows.
+   * `withMutationScope`. In that path the `configure` callback still runs, so `meta.annotate`
+   * validation applies, but the recorded annotations are discarded: neither the nested
+   * statements nor the read-back query carry them.
    */
   async create(
     data: ResolvedCreateInput<TContract, ModelName, State['variantName'], State['nsId']>,
@@ -1968,9 +1962,9 @@ class CollectionImpl<
    *
    * Note: when the input contains nested-mutation callbacks, the
    * operation is executed as a graph of internal queries via
-   * `withMutationScope`. In that path, annotations apply to the logical
-   * `update()` call but do not currently flow into each constituent SQL
-   * statement issued for the related rows.
+   * `withMutationScope`. In that path the `configure` callback still runs, so `meta.annotate`
+   * validation applies, but the recorded annotations are discarded: neither the nested
+   * statements nor the read-back query carry them.
    */
   async update(
     data: State['hasWhere'] extends true
@@ -2678,7 +2672,7 @@ class CollectionImpl<
    * compiled plan is post-wrapped via `mergeAnnotations` instead.
    * Read terminals `all` and `first` populate `state.annotations`
    * via `#withAnnotationsFromMeta` instead; `aggregate` uses this
-   * post-wrap path because its compile function doesn't take `state`.
+   * post-wrap path because `compileAggregate` does not forward `state.annotations` into the plan.
    * The meta builder's `annotate` method enforces applicability at the
    * type level and at runtime.
    */

@@ -77,8 +77,8 @@ export function buildOrmQueryPlan<Row>(
  * terminals where annotations arrive at the call site, not via state.
  *
  * Returns the input plan unchanged when `annotations` is undefined
- * or empty. Reserved framework namespaces (`codecs`, `limit`) on the
- * input plan win over caller-supplied entries under the same key —
+ * or empty. Reserved namespaces already on the input plan (`codecs`, target keys such as `pg`)
+ * win over caller-supplied entries under the same key —
  * see the reserved-namespace policy on `defineAnnotation`.
  */
 export function mergeAnnotations<Row>(
