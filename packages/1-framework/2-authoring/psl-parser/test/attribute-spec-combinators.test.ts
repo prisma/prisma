@@ -485,6 +485,18 @@ describe('oneOf', () => {
     if (result.ok) expect(result.value).toBe('SetNull');
   });
 
+  it('names each function when every function-call alternative fails', () => {
+    const { expr, ctx } = argOf('unknown()');
+
+    const result = oneOf(funcCall('now', {}), funcCall('uuid', {})).parse(expr, ctx);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.failure).toHaveLength(1);
+      expect(result.failure[0]?.message).toContain('Expected one of: now() | uuid()');
+    }
+  });
+
   it('emits a single aggregate diagnostic anchored to the arg node when every alternative fails', () => {
     const { expr, ctx } = argOf('WeirdAction');
 

@@ -25,7 +25,7 @@ export interface TypedFuncCall {
 export function funcCall(name: string, sig: FuncCallSig): ArgType<TypedFuncCall> {
   return {
     kind: 'funcCall',
-    label: 'function call',
+    label: `${name}()`,
     parse: (arg, ctx): Result<TypedFuncCall, readonly PslDiagnostic[]> => {
       const guard = matchCallee(arg, name, ctx);
       if (!guard.ok) return guard;
