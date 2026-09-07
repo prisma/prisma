@@ -1,0 +1,15 @@
+// Real emitted fixture for the embedded-double-quote ORM round-trip
+// integration test.
+//
+// A double quote is a legal character inside a quoted SQL identifier as long as
+// it is doubled (`"` -> `""`). Table qualification used to interpolate the name
+// between quotes verbatim, so this `@@map` produced `"quoted"table"` and every
+// statement touching the model was a syntax error —
+// https://github.com/prisma/orm/issues/30213.
+
+model QuotedRow {
+  id    Int     @id
+  value String?
+
+  @@map("quoted\"table")
+}

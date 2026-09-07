@@ -1,0 +1,14 @@
+// Real emitted fixture for the SQLite embedded-double-quote ORM round-trip.
+//
+// SQLite quotes identifiers the same way Postgres does, so `quoted"table` has
+// to render as `"quoted""table"`. `SqliteDatabase.qualifyTable()` interpolated
+// the name verbatim, producing `"quoted"table"` — a syntax error in every
+// statement the name reaches. Same bug class as
+// https://github.com/prisma/orm/issues/30213 on the Postgres side.
+
+model QuotedRow {
+  id    Int @id
+  value String?
+
+  @@map("quoted\"table")
+}
