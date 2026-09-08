@@ -116,10 +116,6 @@ function validateNamespaceBlocksForMongoTarget(input: {
 
 const UNLOWERED_FIELD_ATTRIBUTE_HINTS: ReadonlyMap<string, string> = new Map([
   [
-    'default',
-    'Mongo has no default-value lowering; delete the attribute and apply the default in application code.',
-  ],
-  [
     'updatedAt',
     'Mongo lowers no automatic timestamp updates; delete the attribute and set the timestamp in application code.',
   ],

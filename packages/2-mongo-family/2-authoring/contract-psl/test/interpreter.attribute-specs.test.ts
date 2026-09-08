@@ -95,8 +95,7 @@ describe('unknown attribute names diagnose against the registered namespace', ()
     ).toEqual([
       {
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
-        message:
-          'Field "Item.createdAt" uses unsupported attribute "@default". Mongo has no default-value lowering; delete the attribute and apply the default in application code.',
+        message: 'Field "Item.createdAt" uses unsupported attribute "@default"',
         sourceId: 'schema.prisma',
         span: expect.objectContaining({ start: expect.objectContaining({ line: 4 }) }),
       },
