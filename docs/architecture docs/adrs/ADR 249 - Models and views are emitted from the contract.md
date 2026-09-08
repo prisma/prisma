@@ -1,0 +1,153 @@
+# ADR 249 — Models and views are emitted from the contract
+
+Status: **Accepted**
+
+Related: [ADR 223 — Target-owned default namespace](ADR%20223%20-%20Target-owned%20default%20namespace.md) establishes the `__unbound__` namespace id that this ADR keeps explicit in emitted type names. [ADR 242 — Public npm surface](ADR%20242%20-%20Public%20npm%20surface%20-%20single%20@prisma%20scope%20with%20consolidated%20publish%20packages.md) names the facade entrypoints the examples import from.
+
+## At a glance
+
+A user names a model, the row a default fetch returns, a view with relations, and the result of any ORM query with types the contract emits or the family exports. None of them needs a query or a client in scope except `ResultType`, which needs only the query.
+
+```ts
+import type { models, Models } from './prisma/contract';
+import type { Scalars, With } from '@prisma/orm-postgres/family-contract/types';
+import type { ResultType } from '@prisma/orm-postgres/components/runtime';
+
+type User = typeof models.public.User;          // the model: every field and relation
+type AlsoUser = Models.public_User;             // same type, importable name
+type UserRow = Scalars<User>;                   // what db.User.first() returns
+type UserWithPosts = With<User, 'posts'>;       // Scalars<User> & { posts: Scalars<Post>[] }
+
+export const usersWithPosts = db.User.include('posts');
+export type SameThing = ResultType<typeof usersWithPosts>;   // equals UserWithPosts
+```
+
+## Context
+
+Two Prisma 7 users raised the same gap. One wrote that Prisma 7 let them get "a lot of types of the available APIs from the Prisma namespace", that a single line like `export type Book = Prisma.BookGetPayload<{ include: { author: true } }>` told everyone consuming `Book` that the author is always there, and that "you can of course manually write the types yourself, but Prisma 7 made it so easy it's now confusing why the type safety feature is no longer there." The other asked: "is it normal that the models are only exposed through the `FieldOutputTypes` type in `contract.d.ts`? Can't we have a simple `export type MyModel`?"
+
+Both are right about the facts. `contract.d.ts` exports hashes, codec maps, `FieldOutputTypes`, `FieldInputTypes`, `TypeMaps`, and `Contract`, and none of those is a model type. Naming a query result without one means writing `NonNullable<Awaited<ReturnType<typeof query.first>>>` by hand, and `ResultType`, which the SQL and Mongo query lanes support, returns `never` on an ORM collection that does not carry the marker it reads.
+
+## Decision
+
+**1. A model is the whole row plus its relations. A query result is a view on it.** The model is what the author wrote in PSL: every field and every relation. Selection belongs to the query, not to the model. The contract defines models; the client defines views. Two consequences follow, and both are deliberate:
+
+- The model type carries every relation, always. `User.posts` is `Post[]`, `Post.author` is `User`, and so on around the cycle.
+- A query result is therefore not a model. The default fetch returns the model's scalar fields, because returning the model would mean loading the whole reachable graph. Partial fetches return whatever was selected.
+
+**2. The contract emits a `Models` namespace and a `models` declared constant.** After the contract wrapper and the `Namespaces` line, `contract.d.ts` gains one block, rendered by the framework emitter for both families:
+
+```ts
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    posts: public_Post[];
+    profile: public_Profile | null;
+    readonly [RelationKeys]?: 'posts' | 'profile';
+  };
+  // one member per model, then per polymorphic base one union member
+  export type public_AnyTask = public_Bug | public_Feature | public_Epic;
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Task: Models.public_Task;
+    Bug: Models.public_Bug;
+    AnyTask: Models.public_AnyTask;
+  };
+  __unbound__: {
+    Audit: Models.unbound_Audit;
+  };
+};
+```
+
+Every model has two spellings of one type: `Models.public_User`, an importable name, and `typeof models.public.User`, dotted access with the schema as a property. The recursion between models goes through the namespace members, which is why they are named. `models` is a declared constant with no runtime; users import it with `import type`, so nothing is looked up at runtime. A TypeScript namespace cannot carry the schema as a nested namespace because `public` is a reserved word in strict mode, so the schema is folded into the member name instead.
+
+Field lines use the same resolver as `FieldOutputTypes` (`resolveFieldType` with the same codec lookup, type-parameter resolver, and value-set resolver), without `readonly`, in declaration order. Relation lines follow the fields, in declaration order, typed as the related model's member. `'1:N'` and `'N:M'` give `X[]`; `'1:1'` and `'N:1'` give `X` or `X | null` by the nullability rule below. A relation whose target model is not in this contract is omitted from the member and from the phantom.
+
+**3. The namespace is always present in the name.** The member name is `<nsSegment>_<ModelName>`, where `nsSegment` is the namespace id verbatim except that `__unbound__` becomes `unbound`. Models in the default namespace are `Models.unbound_Audit` and `typeof models.__unbound__.Audit`, never a bare `Audit`, on every target including SQLite where `__unbound__` is the only namespace. This is the existing convention: `db.enums.__unbound__.X` and the contract views keep the namespace explicit and never promote one to the root, because a Postgres contract can hold `__unbound__` and `public` models side by side and a bare name would collide with a prefixed one. It also gives the emitter one code path for every target. Every emitted name is a pure function of namespace and model, so nothing a user adds later renames or removes an existing type. If two emitted member names are equal (a separator collision such as schema `public_User` with model `X` against schema `public` with model `User_X`, or a model literally named `AnyTask` beside a base `Task`), the emitter throws its existing structured validation error naming both sources and emits nothing.
+
+**4. `FieldOutputTypes`, `FieldInputTypes`, and `TypeMaps` are untouched.** They serve `TypeMaps` and the lanes, and the lanes' row derivations are built on them. `Models` and `models` are new exports beside them. The ORM's row derivations are also unchanged; equality between the emitted model types and the ORM's rows is enforced by type tests, not by redefinition, because threading the emitted map through `TypeMaps` would change `TypeMaps`.
+
+**5. Polymorphic models emit three shapes.** The base member has the base's own fields and relations, with the discriminator field typed as the union of the variants' literal values. Each variant member has base fields, then variant fields, then base relations, then variant relations, with the discriminator narrowed to its literal. One extra member `<ns>_Any<Base>` is the union of the variant members. `models.<ns>` carries `Base`, each variant, and `Any<Base>` as keys.
+
+**6. `RelationKeys` is a phantom that lets utilities tell relations from scalars.** It is a `unique symbol` declared once in `framework-components` and re-exported from each family's contract types entrypoint; each family's `getFamilyImports` adds it to its existing import. The last line of every member is `readonly [RelationKeys]?: 'a' | 'b'`, or `readonly [RelationKeys]?: never` when the model has no relations. An optional, symbol-keyed property never affects assignability and does not appear when a value is spread or iterated.
+
+`Scalars<M>` is the model without its relations:
+
+```ts
+export declare const RelationKeys: unique symbol;
+
+export type Scalars<M> = M extends { readonly [RelationKeys]?: infer R extends string }
+  ? Omit<M, R | typeof RelationKeys>
+  : M;
+```
+
+`Scalars` is distributive, so `Scalars<Models.public_AnyTask>` is the union of the variants' scalar rows. The name follows PSL, where a field is either scalar or relation.
+
+**7. `With<M, R>` names a view with relations and is not a selection language.** It takes the model and a union of its relation names, reads the wrapper from the model's own field type, and produces the `Scalars` intersection:
+
+```ts
+// packages/1-framework/1-core/framework-components/src/execution/model-types.ts
+export type RelationNamesOf<M> = M extends { readonly [RelationKeys]?: infer R extends string }
+  ? R
+  : never;
+
+export type With<M, R extends RelationNamesOf<M>> = Flatten<
+  Scalars<M> & {
+    [K in R]: M[K & keyof M] extends (infer Item)[]
+      ? Scalars<Item>[]
+      : null extends M[K & keyof M]
+        ? Scalars<NonNullable<M[K & keyof M]>> | null
+        : Scalars<M[K & keyof M]>;
+  }
+>;
+
+type Flatten<T> = { [K in keyof T]: T[K] };
+```
+
+`RelationNamesOf<M>` reads the phantom's value type with a distributive conditional, so a key outside the model's relations is a compile error, and `Flatten` turns the intersection into one object type so hover text shows a single shape. `With` is a pure utility over `Models.public_User`, like `Scalars`: no contract parameter, no object of booleans, no nesting, no relation paths, and nothing that could be mirrored at runtime. That is what separates it from a selection parameter. `With<User, 'posts'>` and `ResultType<typeof db.User.include('posts')>` are the same type, and the type tests check that for every fixture model.
+
+**8. `ResultType` reads ORM collections through `_row`.** A collection value has exactly one row type. `db.User` reads `Scalars<Models.public_User>`; `db.User.include('posts')` is a new value whose terminals all return `Scalars<Models.public_User> & { posts: Scalars<Models.public_Post>[] }`; `db.User.select('id')` is a third. `ResultType<P>` in `framework-components` already reads an optional `_row` property from the SQL and Mongo query lanes. Both ORM collections gain that one phantom (`declare readonly _row?: Row` on the SQL `CollectionImpl`; `readonly _row?: IncludedRow<...>` on the Mongo `MongoCollection` interface), so `ResultType<typeof query>` names the result of any ORM query, including projections, refined includes, and `.variant()` narrowing.
+
+**9. To-one nullability is a family decision.** Whether a `'1:1'` or `'N:1'` relation is `X` or `X | null` is computed at emit time from the contract JSON by a family hook, `EmissionSpi.isToOneRelationNullable(model, relation, contract)`. The default when a family omits the hook is nullable; only the SQL emitter implements it.
+
+- SQL: `| null` when this model owns the foreign key and any of its local foreign-key columns is nullable, or when the table has no foreign key for the local columns. This is the same rule the SQL ORM's `IsToOneRelationNullable` applies from the storage plane, so the emitted model and the ORM's include agree.
+- Mongo: every to-one reference relation is `| null`, which is the framework default, so the Mongo emitter declares no hook. There are no foreign keys, a referenced document can be missing, and the Mongo ORM already types every to-one include that way. Embed relations are not relations for this purpose: they are emitted as fields typed as the embedded model's member (array or single by cardinality), placed after scalar fields and before reference relations, and are not in `RelationKeys`.
+
+## Responsibilities
+
+- **Framework emitter** renders the `Models` block and `models` constant for both families, resolves field types with the `FieldOutputTypes` resolver, applies the naming and collision rules, and asks the family hook for to-one nullability.
+- **Family emitter** (`EmissionSpi`) adds `RelationKeys` to its family import; the SQL emitter also supplies `isToOneRelationNullable`.
+- **`framework-components`** declares `RelationKeys`, `Scalars`, and `With`, exported beside `ResultType`; each family contract types entrypoint re-exports them.
+- **ORM clients** carry the `_row` phantom and nothing else changes. Their row derivations stay their own; type tests hold them equal to the emitted types.
+
+## Consequences
+
+- A default fetch returns `Scalars<Model>`, not the model. This is the opposite of Prisma 7, where the generated `User` is scalars-only, and it is the first thing a Prisma 7 user notices. The reference docs say it in their first paragraph.
+- A view with relations is written by hand as `Scalars<A> & { rel: Scalars<B>[] }` or as `With<A, 'rel'>`, never as `Pick` on the model. `Pick<User, 'id' | 'name' | 'posts'>` demands `posts: Post[]` with every post carrying its own `author` and `comments`, and no query returns that.
+- `contract.json` is unchanged; `contract.d.ts` grows by one block per contract, and every emitted fixture is regenerated.
+- The Prisma 7 questions have direct answers: `Prisma.User` is `Models.public_User`; `Prisma.UserGetPayload<{ include: { posts: true } }>` is `With<Models.public_User, 'posts'>`; `Awaited<ReturnType<typeof fn>>` is `ResultType<typeof query>`. Input types (`CreateInput`, `MutationUpdateInput`, `ShorthandWhereFilter`, `UniqueConstraintCriterion`) were already exported by the ORM client and only needed documenting beside these.
+- No runtime behaviour changes anywhere. This is emitter output, phantom properties, two utility types, and docs.
+
+## Alternatives considered
+
+**`db.models`, a runtime accessor for model types.** Rejected: dotted access already exists through `typeof models.public.User` with no runtime. A runtime value would be either an object pretending to be a row or a definition object whose `typeof` is not the model.
+
+**Bare `export type User` at the top level.** Rejected: adding a second `User` in another schema would silently remove the alias and break every import of it, a breaking change caused by an unrelated schema edit. `Models.public_User` is the importable name instead, and it cannot disappear.
+
+**Emit `GetPayload`-style types per query.** Rejected: it ties the contract to one lane's vocabulary and grows `contract.d.ts` without bound.
+
+**A relation-selection parameter, `Model<Contract, 'User', { posts: { comments: true } }>`.** Rejected: a second, type-only vocabulary for what `.include()` already says, and once it exists the same bag will be asked for at runtime. `With<User, 'posts'>` differs in kind: it names relations on a model type, with no nesting object and nothing to mirror at runtime.
+
+**A parameter mapping relation name to the model type that sits there.** Rejected: it makes the user import and restate what the contract already knows.
+
+**`Models.public.User` as nested TypeScript namespaces.** Rejected: `namespace public` does not compile. Folding the schema into the member name gives the importable form; the declared constant gives the dotted form.
+
+**A separate `RowOf` helper for ORM queries.** Rejected: `ResultType` exists and is documented. Give the collections the marker it reads.
+
+## References
+
+- [Naming model and result types](../../reference/model-and-result-types.md) — the user-facing reference for `Models`, `models`, `Scalars`, `With`, and `ResultType`

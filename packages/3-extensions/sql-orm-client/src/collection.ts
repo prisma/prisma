@@ -221,6 +221,7 @@ class CollectionImpl<
 > implements RowSelection<Row>
 {
   declare readonly [RowType]: Row;
+  declare readonly _row?: Row;
   /** @internal */
   readonly ctx: CollectionContext<TContract>;
   /** @internal */

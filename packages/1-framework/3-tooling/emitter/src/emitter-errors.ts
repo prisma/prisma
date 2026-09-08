@@ -3,6 +3,9 @@ import { structuredError } from '@internal/utils/structured-error';
 
 export type EmitterErrorCode =
   | 'CONFIG.VALIDATION_FAILED'
+  | 'CONTRACT.MODEL_RELATION_TARGET_MISSING'
+  | 'CONTRACT.MODEL_TYPE_NAME_COLLISION'
+  | 'CONTRACT.MODEL_TYPE_NAME_INVALID'
   | 'CONTRACT.NAMESPACE_INVALID'
   | 'CONTRACT.RELATION_INVALID';
 

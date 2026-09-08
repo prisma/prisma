@@ -71,6 +71,8 @@ const plan = db.sql
 
 **Pattern**: Use `ResultType<typeof plan>` to extract row types from plans.
 
+`ResultType` also names the row of any ORM query (`db.orm.public.User.include('posts')`), and the emitted `Models` namespace with `Scalars` and `With` names the same rows without a query in scope; see [Naming model and result types](./model-and-result-types.md).
+
 **✅ CORRECT: Extract row type from plan**
 
 ```typescript

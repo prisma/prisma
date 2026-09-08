@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -1321,3 +1325,139 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
+
+export namespace Models {
+  export type public_Task = {
+    id: CodecTypes['pg/int4@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    type: 'bug' | 'feature' | 'epic';
+    projectId: CodecTypes['pg/int4@1']['output'] | null;
+    reporterId: CodecTypes['pg/int4@1']['output'] | null;
+    comments: public_TaskComment[];
+    project: public_Project | null;
+    reporter: public_Person | null;
+    readonly [RelationKeys]?: 'comments' | 'project' | 'reporter';
+  };
+  export type public_Bug = {
+    id: CodecTypes['pg/int4@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    type: 'bug';
+    projectId: CodecTypes['pg/int4@1']['output'] | null;
+    reporterId: CodecTypes['pg/int4@1']['output'] | null;
+    severity: CodecTypes['pg/text@1']['output'];
+    assigneeId: CodecTypes['pg/int4@1']['output'] | null;
+    comments: public_TaskComment[];
+    project: public_Project | null;
+    reporter: public_Person | null;
+    assignee: public_Person | null;
+    readonly [RelationKeys]?: 'comments' | 'project' | 'reporter' | 'assignee';
+  };
+  export type public_Feature = {
+    id: CodecTypes['pg/int4@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    type: 'feature';
+    projectId: CodecTypes['pg/int4@1']['output'] | null;
+    reporterId: CodecTypes['pg/int4@1']['output'] | null;
+    priority: CodecTypes['pg/int4@1']['output'];
+    assigneeId: CodecTypes['pg/int4@1']['output'] | null;
+    comments: public_TaskComment[];
+    project: public_Project | null;
+    reporter: public_Person | null;
+    assignee: public_Person | null;
+    readonly [RelationKeys]?: 'comments' | 'project' | 'reporter' | 'assignee';
+  };
+  export type public_Epic = {
+    id: CodecTypes['pg/int4@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    type: 'epic';
+    projectId: CodecTypes['pg/int4@1']['output'] | null;
+    reporterId: CodecTypes['pg/int4@1']['output'] | null;
+    scope: CodecTypes['pg/text@1']['output'];
+    comments: public_TaskComment[];
+    project: public_Project | null;
+    reporter: public_Person | null;
+    readonly [RelationKeys]?: 'comments' | 'project' | 'reporter';
+  };
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    kind: 'admin' | 'regular';
+    accountId: CodecTypes['pg/int4@1']['output'] | null;
+    account: public_Account | null;
+    readonly [RelationKeys]?: 'account';
+  };
+  export type public_Admin = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    kind: 'admin';
+    accountId: CodecTypes['pg/int4@1']['output'] | null;
+    role: CodecTypes['pg/text@1']['output'];
+    account: public_Account | null;
+    readonly [RelationKeys]?: 'account';
+  };
+  export type public_Regular = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    kind: 'regular';
+    accountId: CodecTypes['pg/int4@1']['output'] | null;
+    plan: CodecTypes['pg/text@1']['output'] | null;
+    account: public_Account | null;
+    readonly [RelationKeys]?: 'account';
+  };
+  export type public_Account = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    members: public_AnyUser[];
+    readonly [RelationKeys]?: 'members';
+  };
+  export type public_Project = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    tasks: public_AnyTask[];
+    readonly [RelationKeys]?: 'tasks';
+  };
+  export type public_Ticket = {
+    id: CodecTypes['pg/int4@1']['output'];
+    subject: CodecTypes['pg/text@1']['output'];
+    ownerId: CodecTypes['pg/int4@1']['output'] | null;
+    owner: public_AnyUser | null;
+    readonly [RelationKeys]?: 'owner';
+  };
+  export type public_Person = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    tasks: public_AnyTask[];
+    readonly [RelationKeys]?: 'tasks';
+  };
+  export type public_TaskComment = {
+    id: CodecTypes['pg/int4@1']['output'];
+    body: CodecTypes['pg/text@1']['output'];
+    taskId: CodecTypes['pg/int4@1']['output'] | null;
+    task: public_AnyTask | null;
+    readonly [RelationKeys]?: 'task';
+  };
+  export type public_AnyTask = public_Bug | public_Feature | public_Epic;
+  export type public_AnyUser = public_Admin | public_Regular;
+}
+
+export declare const models: {
+  public: {
+    Task: Models.public_Task;
+    Bug: Models.public_Bug;
+    Feature: Models.public_Feature;
+    Epic: Models.public_Epic;
+    User: Models.public_User;
+    Admin: Models.public_Admin;
+    Regular: Models.public_Regular;
+    Account: Models.public_Account;
+    Project: Models.public_Project;
+    Ticket: Models.public_Ticket;
+    Person: Models.public_Person;
+    TaskComment: Models.public_TaskComment;
+    AnyTask: Models.public_AnyTask;
+    AnyUser: Models.public_AnyUser;
+  };
+};

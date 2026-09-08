@@ -22,6 +22,7 @@ import type {
 
 import type {
   ContractWithTypeMaps,
+  RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-postgres/family-contract/types';
 import type {
@@ -589,3 +590,31 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
+
+export namespace Models {
+  export type public_TelemetryEvent = {
+    id: CodecTypes['pg/int8@1']['output'];
+    ingestedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    installationId: CodecTypes['pg/text@1']['output'];
+    version: CodecTypes['pg/text@1']['output'];
+    command: CodecTypes['pg/text@1']['output'];
+    flags: CodecTypes['pg/jsonb@1']['output'];
+    runtimeName: CodecTypes['pg/text@1']['output'];
+    runtimeVersion: CodecTypes['pg/text@1']['output'];
+    os: CodecTypes['pg/text@1']['output'];
+    arch: CodecTypes['pg/text@1']['output'];
+    packageManager: CodecTypes['pg/text@1']['output'] | null;
+    databaseTarget: CodecTypes['pg/text@1']['output'] | null;
+    tsVersion: CodecTypes['pg/text@1']['output'] | null;
+    agent: CodecTypes['pg/text@1']['output'] | null;
+    extensions: CodecTypes['pg/jsonb@1']['output'];
+    exitCode: CodecTypes['pg/int4@1']['output'] | null;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    TelemetryEvent: Models.public_TelemetryEvent;
+  };
+};

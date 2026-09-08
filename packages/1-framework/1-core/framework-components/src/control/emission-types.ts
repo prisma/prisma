@@ -1,4 +1,9 @@
-import type { Contract, ContractModelBase, JsonValue } from '@internal/contract/types';
+import type {
+  Contract,
+  ContractModelBase,
+  ContractRelation,
+  JsonValue,
+} from '@internal/contract/types';
 import type { AggregateDescriptor } from '../shared/aggregate-descriptor';
 import type { AnyCodecDescriptor } from '../shared/codec-descriptor';
 import type { CodecLookup } from '../shared/codec-types';
@@ -60,4 +65,15 @@ export interface EmissionSpi {
   ): { readonly encodedValues: readonly JsonValue[]; readonly codecId: string } | undefined;
 
   getStorageTypeExports?(contract: Contract, codecLookup?: CodecLookup): string | undefined;
+
+  /**
+   * Whether a to-one (`1:1` / `N:1`) relation on `model` may be absent, so its emitted
+   * `Models` member types it as `Related | null`. Each family reads its own storage plane to
+   * answer; when absent the framework treats every to-one relation as nullable.
+   */
+  isToOneRelationNullable?(
+    model: ContractModelBase,
+    relation: ContractRelation,
+    contract: Contract,
+  ): boolean;
 }

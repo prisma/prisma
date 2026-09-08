@@ -11,6 +11,8 @@ export {
   runBeforeExecuteChain,
   runBeforeQueryChain,
 } from '../execution/before-execute-chain';
+export type { RelationNamesOf, Scalars, With } from '../execution/model-types';
+export { RelationKeys } from '../execution/model-types';
 export type { ExecutionPlan, QueryPlan, ResultType } from '../execution/query-plan';
 export { checkAborted, raceAgainstAbort } from '../execution/race-against-abort';
 export {

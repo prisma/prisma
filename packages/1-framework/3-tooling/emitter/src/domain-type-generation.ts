@@ -428,6 +428,36 @@ export function generateFieldResolvedType(
   return resolveFieldType(field, codecLookup)[side];
 }
 
+export type ModelFieldTypeResolvers = {
+  readonly codecLookup: CodecLookup | undefined;
+  readonly resolveFieldTypeParams: FieldTypeParamsResolver | undefined;
+  readonly resolveFieldValueSet: FieldValueSetResolver | undefined;
+};
+
+/**
+ * Resolves one model field's input and output types the way `FieldOutputTypes` /
+ * `FieldInputTypes` do: inline type params win over the family resolver, and a family-resolved
+ * value set renders as a literal union.
+ */
+export function resolveModelFieldType(
+  modelName: string,
+  fieldName: string,
+  field: ContractField,
+  model: ContractModelBase,
+  resolvers: ModelFieldTypeResolvers,
+): ResolvedFieldType {
+  const inlineTypeParams =
+    field.type.kind === 'scalar' &&
+    field.type.typeParams &&
+    Object.keys(field.type.typeParams).length > 0
+      ? field.type.typeParams
+      : undefined;
+  const resolvedTypeParams =
+    inlineTypeParams ?? resolvers.resolveFieldTypeParams?.(modelName, fieldName, model);
+  const resolvedValueSet = resolvers.resolveFieldValueSet?.(modelName, fieldName, model);
+  return resolveFieldType(field, resolvers.codecLookup, resolvedTypeParams, resolvedValueSet);
+}
+
 export function generateBothFieldTypesMaps(
   models: Record<string, ContractModelBase> | undefined,
   codecLookup?: CodecLookup,
@@ -438,6 +468,11 @@ export function generateBothFieldTypesMaps(
     return { output: 'Record<string, never>', input: 'Record<string, never>' };
   }
 
+  const resolvers: ModelFieldTypeResolvers = {
+    codecLookup,
+    resolveFieldTypeParams,
+    resolveFieldValueSet,
+  };
   const outputModelEntries: string[] = [];
   const inputModelEntries: string[] = [];
   for (const [modelName, model] of Object.entries(models).sort(([a], [b]) => a.localeCompare(b))) {
@@ -445,16 +480,7 @@ export function generateBothFieldTypesMaps(
     const outputFieldEntries: string[] = [];
     const inputFieldEntries: string[] = [];
     for (const [fieldName, field] of Object.entries(model.fields)) {
-      const inlineTypeParams =
-        field.type.kind === 'scalar' &&
-        field.type.typeParams &&
-        Object.keys(field.type.typeParams).length > 0
-          ? field.type.typeParams
-          : undefined;
-      const resolvedTypeParams =
-        inlineTypeParams ?? resolveFieldTypeParams?.(modelName, fieldName, model);
-      const resolvedValueSet = resolveFieldValueSet?.(modelName, fieldName, model);
-      const resolved = resolveFieldType(field, codecLookup, resolvedTypeParams, resolvedValueSet);
+      const resolved = resolveModelFieldType(modelName, fieldName, field, model, resolvers);
       const key = `readonly ${serializeObjectKey(fieldName)}`;
       outputFieldEntries.push(`${key}: ${resolved.output}`);
       inputFieldEntries.push(`${key}: ${resolved.input}`);

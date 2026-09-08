@@ -9,9 +9,16 @@
 
 import type { ResultType } from '@prisma/orm-postgres/components/runtime';
 import type { EnumMemberNames, EnumValues } from '@prisma/orm-postgres/contract/enum-accessor';
+import type { Scalars, With } from '@prisma/orm-postgres/family-contract/types';
 import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
 import { expectTypeOf, test } from 'vitest';
-import type { Contract, FieldOutputTypes, TypeMaps } from '../src/prisma/contract.d';
+import type {
+  Contract,
+  Models as EmittedModels,
+  FieldOutputTypes,
+  models,
+  TypeMaps,
+} from '../src/prisma/contract.d';
 import contractJson from '../src/prisma/contract.json' with { type: 'json' };
 import { db } from '../src/prisma/db';
 import type { getPostsByPriority } from '../src/queries/get-posts-by-priority';
@@ -102,4 +109,21 @@ test('emitted contract: EnumMemberNames<Priority> resolves to the literal name u
   type Priority = typeof db.enums.public.Priority;
   expectTypeOf<EnumMemberNames<Priority>>().toEqualTypeOf<'Low' | 'High' | 'Urgent'>();
   expectTypeOf<EnumMemberNames<Priority>>().not.toEqualTypeOf<string>();
+});
+
+test('emitted models constant and Models namespace name the same type, and an ORM include equals With', () => {
+  type User = typeof models.public.User;
+  expectTypeOf<User>().toEqualTypeOf<EmittedModels.public_User>();
+  expectTypeOf<Scalars<User>>().toEqualTypeOf<ResultType<typeof db.orm.public.User>>();
+
+  type PostTag = typeof models.public.PostTag;
+  const postTagsWithTag = () => db.orm.public.PostTag.include('tag');
+  expectTypeOf<ResultType<ReturnType<typeof postTagsWithTag>>>().toEqualTypeOf<
+    With<PostTag, 'tag'>
+  >();
+
+  const usersWithTasks = () => db.orm.public.User.include('tasks');
+  expectTypeOf<ResultType<ReturnType<typeof usersWithTasks>>>().toEqualTypeOf<
+    With<EmittedModels.public_User, 'tasks'>
+  >();
 });

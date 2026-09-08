@@ -5,6 +5,7 @@ import type { CodecTypes as SqliteTypes } from '@prisma/orm-sqlite/adapter/codec
 
 import type {
   ContractWithTypeMaps,
+  RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-sqlite/family-contract/types';
 import type {
@@ -734,3 +735,61 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
+
+export namespace Models {
+  export type unbound_User = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    name: CodecTypes['sqlite/text@1']['output'];
+    email: CodecTypes['sqlite/text@1']['output'];
+    invitedById: CodecTypes['sqlite/integer@1']['output'] | null;
+    posts: unbound_Post[];
+    profile: unbound_Profile | null;
+    readonly [RelationKeys]?: 'posts' | 'profile';
+  };
+  export type unbound_Post = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    title: CodecTypes['sqlite/text@1']['output'];
+    userId: CodecTypes['sqlite/integer@1']['output'];
+    views: CodecTypes['sqlite/integer@1']['output'];
+    comments: unbound_Comment[];
+    author: unbound_User | null;
+    readonly [RelationKeys]?: 'comments' | 'author';
+  };
+  export type unbound_Comment = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    body: CodecTypes['sqlite/text@1']['output'];
+    postId: CodecTypes['sqlite/integer@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_Profile = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    userId: CodecTypes['sqlite/integer@1']['output'];
+    bio: CodecTypes['sqlite/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_TypedRow = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    active: CodecTypes['sqlite/integer@1']['output'];
+    createdAt: CodecTypes['sqlite/datetime@1']['output'];
+    metadata: CodecTypes['sqlite/json@1']['output'] | null;
+    label: CodecTypes['sqlite/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_Item = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    name: CodecTypes['sqlite/text@1']['output'];
+    label: CodecTypes['sqlite/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  __unbound__: {
+    User: Models.unbound_User;
+    Post: Models.unbound_Post;
+    Comment: Models.unbound_Comment;
+    Profile: Models.unbound_Profile;
+    TypedRow: Models.unbound_TypedRow;
+    Item: Models.unbound_Item;
+  };
+};

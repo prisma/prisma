@@ -3,7 +3,11 @@
 // To regenerate, run: prisma contract emit
 import type { CodecTypes as SqliteTypes } from '@internal/adapter-sqlite/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -378,3 +382,26 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
+
+export namespace Models {
+  export type unbound_Meter = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    peak: CodecTypes['sqlite/bigintnumber@1']['output'];
+    samples: unbound_Sample[];
+    readonly [RelationKeys]?: 'samples';
+  };
+  export type unbound_Sample = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    meterId: CodecTypes['sqlite/integer@1']['output'];
+    reading: CodecTypes['sqlite/bigintnumber@1']['output'];
+    meter: unbound_Meter;
+    readonly [RelationKeys]?: 'meter';
+  };
+}
+
+export declare const models: {
+  __unbound__: {
+    Meter: Models.unbound_Meter;
+    Sample: Models.unbound_Sample;
+  };
+};

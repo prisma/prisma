@@ -22,6 +22,7 @@ import type {
 
 import type {
   ContractWithTypeMaps,
+  RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-postgres/family-contract/types';
 import type {
@@ -392,3 +393,18 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
+
+export namespace Models {
+  export type public_AuditEvent = {
+    id: CodecTypes['pg/text@1']['output'];
+    actor: CodecTypes['pg/text@1']['output'];
+    action: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    AuditEvent: Models.public_AuditEvent;
+  };
+};
