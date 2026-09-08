@@ -79,7 +79,7 @@ One reviewable unit: the spec gaps, the namespace, the call-site rewiring, the r
 - Schema fixtures that today rely on silently-ignored attributes (see edge cases): `examples/retail-store/src/contract.prisma` and its two migration snapshots (`@default(Active)`), `test/integration/test/ports/prisma/functional/legacy-aggregate-raw/_fixture/contract.prisma` (`@default(now())`, `@updatedAt`).
 
 **Out:**
-- Any Mongo support for `@default` / `@updatedAt` — Mongo has no default-value lowering; the correct behaviour for this slice is to say so instead of ignoring the attribute.
+- Any Mongo support for `@default` / `@updatedAt` — Mongo lowers neither default values nor automatic timestamp updates; the correct behaviour for this slice is to say so instead of ignoring the attribute.
 - Target-contributed model attributes for Mongo (no ADR-236 loop exists in the Mongo interpreter; project non-goal territory).
 - SQL family (slice `sql-attributes-registered`), block-level attributes (slice `block-attributes-on-kit`), LSP production changes, the registry ADR.
 
