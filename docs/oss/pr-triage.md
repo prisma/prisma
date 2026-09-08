@@ -81,7 +81,7 @@ Note that CodeRabbit does not review PRs whose base is not the default branch. O
 
 This applies to features and refactors on `main`. Fixes rarely need it.
 
-Our plans are documented in the repository — [`ROADMAP.md`](../../ROADMAP.md), [`docs/architecture docs/adrs/`](../architecture%20docs/adrs/), and the specs and plans under [`projects/`](../../projects/). Check them before answering, and cite what you found. "Not on the roadmap" is not by itself a reason to decline; the roadmap records what we committed to, not the full set of things we would accept.
+Our plans are documented in the repository — [`docs/architecture docs/adrs/`](../architecture%20docs/adrs/), the [feature scoreboard](../../scorecard.md), and the specs and plans under [`projects/`](../../projects/). Check them before answering, and cite what you found. "Not planned" is not by itself a reason to decline; the plans record what we committed to, not the full set of things we would accept.
 
 Questions that resolve most cases:
 

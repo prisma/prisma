@@ -23,4 +23,4 @@ These pages are written for maintainers and curious contributors who want to und
 - [`supply-chain.md`](./supply-chain.md) — License declarations, NOTICE audit, npm provenance, Dependabot soak window.
 - [`ci-pipeline.md`](./ci-pipeline.md) — How PR CI builds once, caches deterministic tasks, and skips heavy work on inert diffs.
 - [`pr-triage.md`](./pr-triage.md) — Criteria for triaging external contributor PRs: fork-CI safety, version-line scope, direction fit, staleness, and the verdict vocabulary.
-- [`versioning.md`](./versioning.md) — Pre-1.0 cadence and breaking-change policy, lockstep contract (and what it means for skill/extension authors), dist-tag convention, release procedure.
+- [`versioning.md`](./versioning.md) — Release-candidate cadence and breaking-change policy, lockstep contract (and what it means for skill/extension authors), dist-tag convention, release procedure.

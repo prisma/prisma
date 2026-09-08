@@ -24,9 +24,9 @@ DCO was chosen over CLA because it is the lightweight standard used by Linux, Ku
 
 Prisma Next is licensed under [Apache-2.0](../../LICENSE). All publishable workspace packages declare `"license": "Apache-2.0"` in their `package.json`; this is enforced in CI. See [`supply-chain.md`](./supply-chain.md) for the validation details and the Apache-2.0 §4(d) NOTICE-propagation audit.
 
-## Pre-1.0 status
+## Release-candidate status
 
-Prisma Next is pre-1.0. The practical implications for contributors and consumers are described in [`CONTRIBUTING.md`](../../CONTRIBUTING.md#status--please-read-first) and [`SECURITY.md`](../../SECURITY.md).
+Prisma 8 ships as a release candidate ahead of `8.0.0` final. The practical implications for contributors and consumers are described in [`CONTRIBUTING.md`](../../CONTRIBUTING.md#status--please-read-first) and [`SECURITY.md`](../../SECURITY.md).
 
 ## Code of Conduct
 

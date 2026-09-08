@@ -171,7 +171,7 @@ gh api repos/prisma/prisma/collaborators/<login>/permission --jq '.permission'
 Only for features and refactors on `main`. Search the repository's own plans before answering, and cite what you find:
 
 ```bash
-grep -rn -i "<feature>" ROADMAP.md "docs/architecture docs/adrs/" projects/
+grep -rn -i "<feature>" scorecard/ "docs/architecture docs/adrs/" projects/
 ```
 
 Check whether the addition completes a symmetry we already ship — look for the sibling operations in the same surface — before treating it as a new concept.
