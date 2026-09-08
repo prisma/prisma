@@ -9,8 +9,9 @@ export function bool(): ArgType<boolean> {
     kind: 'bool',
     label: 'boolean',
     parse: (arg, ctx): Result<boolean, readonly PslDiagnostic[]> => {
-      if (arg instanceof BooleanLiteralExprAst) {
-        const value = arg.value();
+      const literal = BooleanLiteralExprAst.cast(arg.syntax);
+      if (literal !== undefined) {
+        const value = literal.value();
         if (value !== undefined) return ok(value);
       }
       return notOk([leafDiagnostic(ctx, arg, 'Expected a boolean literal')]);

@@ -12,8 +12,9 @@ export function str<const T extends string>(value?: T): ArgType<string | T> {
     kind: 'str',
     label: value === undefined ? 'string' : JSON.stringify(value),
     parse: (arg, ctx): Result<string | T, readonly PslDiagnostic[]> => {
-      if (arg instanceof StringLiteralExprAst) {
-        const parsed = arg.value();
+      const literal = StringLiteralExprAst.cast(arg.syntax);
+      if (literal !== undefined) {
+        const parsed = literal.value();
         if (parsed !== undefined) {
           if (value === undefined) return ok(parsed);
           if (parsed === value) return ok(value);

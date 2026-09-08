@@ -12,8 +12,9 @@ export function num<const T extends number>(value?: T): ArgType<number | T> {
     kind: 'num',
     label: value === undefined ? 'number' : String(value),
     parse: (arg, ctx): Result<number | T, readonly PslDiagnostic[]> => {
-      if (arg instanceof NumberLiteralExprAst) {
-        const parsed = arg.value();
+      const literal = NumberLiteralExprAst.cast(arg.syntax);
+      if (literal !== undefined) {
+        const parsed = literal.value();
         if (parsed !== undefined) {
           if (value === undefined) return ok(parsed);
           if (parsed === value) return ok(value);

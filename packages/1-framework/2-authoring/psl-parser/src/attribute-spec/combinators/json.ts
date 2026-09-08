@@ -15,10 +15,11 @@ export function json(): ArgType<Record<string, unknown>> {
     kind: 'json',
     label: 'JSON object',
     parse: (arg, ctx): Result<Record<string, unknown>, readonly PslDiagnostic[]> => {
-      if (!(arg instanceof StringLiteralExprAst)) {
+      const literal = StringLiteralExprAst.cast(arg.syntax);
+      if (literal === undefined) {
         return notOk([leafDiagnostic(ctx, arg, 'Expected a JSON object string')]);
       }
-      const raw = arg.value();
+      const raw = literal.value();
       if (raw !== undefined) {
         try {
           const parsed: unknown = JSON.parse(raw);

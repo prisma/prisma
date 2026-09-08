@@ -9,13 +9,14 @@ export function record<T>(of: ArgType<T>): ArgType<Record<string, T>> {
     kind: 'record',
     label: `{ [key]: ${of.label} }`,
     parse: (arg, ctx): Result<Record<string, T>, readonly PslDiagnostic[]> => {
-      if (!(arg instanceof ObjectLiteralExprAst)) {
+      const literal = ObjectLiteralExprAst.cast(arg.syntax);
+      if (literal === undefined) {
         return notOk([leafDiagnostic(ctx, arg, 'Expected an object literal')]);
       }
       const diagnostics: PslDiagnostic[] = [];
       const entries: [string, T][] = [];
       const keys = new Set<string>();
-      for (const field of arg.fields()) {
+      for (const field of literal.fields()) {
         const key = field.keyName();
         if (key === undefined) {
           diagnostics.push(leafDiagnostic(ctx, field, 'Expected a key'));
