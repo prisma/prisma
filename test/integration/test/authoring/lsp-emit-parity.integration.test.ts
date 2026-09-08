@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { copyFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
@@ -31,13 +31,10 @@ model Post {
 }
 `;
 
-const config = `import { defineConfig } from '@prisma/cli-engine';
-import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
-
-export default defineConfig({
-  orm: ormConfig({ contract: './contract.prisma' }),
-});
-`;
+const configPath = join(
+  import.meta.dirname,
+  '../fixtures/cli/cli-test-app/fixtures/lsp-emit-parity/prisma.config.ts',
+);
 
 withTempDir(({ createTempDir }) => {
   describe('language-server diagnostics with a project-installed interpreter', () => {
@@ -74,7 +71,7 @@ model Widget {
         const schemaPath = join(ctx.testDir, 'contract.prisma');
         const uri = pathToFileURL(schemaPath).href;
         writeFileSync(schemaPath, text);
-        writeFileSync(ctx.configPath, config);
+        copyFileSync(configPath, ctx.configPath);
 
         const emitted = await runContractEmit(ctx);
         expect(emitted.exitCode, emitted.stderr).toBe(exitCode);
