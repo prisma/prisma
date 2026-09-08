@@ -6,7 +6,7 @@ const demoUserId = '00000000-feed-0000-0000-000000000002';
 /**
  * Demonstrates that `Post.priority` is typed-optional in an insert when the
  * field carries `@default(Low)` in the emitted contract — omitting it lets the
- * database supply 'low', which we verify by reading the row back.
+ * database supply 0, which we verify by reading the row back.
  */
 export async function enumDefaultDemo(): Promise<void> {
   await db
@@ -37,7 +37,7 @@ export async function enumDefaultDemo(): Promise<void> {
   if (!row) throw new Error('Demo post not found after insert');
 
   console.log(`priority read back from DB: ${row.priority}`);
-  console.log(`Expected 'low' (the @default(Low) member value): ${row.priority === 'low'}`);
+  console.log(`Expected 0 (the @default(Low) member value): ${row.priority === 0}`);
 
   await db.runtime().execute(
     db.sql.public.post

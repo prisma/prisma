@@ -5,10 +5,10 @@ const pgText = { codecId: 'pg/text@1', nativeType: 'text' } as const;
 
 const Priority = enumType(
   'Priority',
-  pgText,
-  member('Low', 'low'),
-  member('High', 'high'),
-  member('Urgent', 'urgent'),
+  { codecId: 'pg/int4@1', nativeType: 'int4' },
+  member('Low', 0),
+  member('High', 1),
+  member('Urgent', 2),
 );
 
 const UserEnum = enumType('user_type', pgText, member('admin', 'admin'), member('user', 'user'));

@@ -7,7 +7,7 @@ const demoUserId = '00000000-feed-0000-0000-000000000002';
 /**
  * Demonstrates that `Post.priority` is typed-optional in an insert when the
  * field carries `.default(Priority.members.Low)` in the inline TS contract —
- * omitting it lets the database supply 'low', which we verify by reading back.
+ * omitting it lets the database supply 0, which we verify by reading back.
  */
 export async function enumDefaultDemoNoEmit(runtime: Runtime): Promise<void> {
   await runtime.execute(
@@ -30,9 +30,7 @@ export async function enumDefaultDemoNoEmit(runtime: Runtime): Promise<void> {
   if (!row) throw new Error('Demo post not found after insert');
 
   console.log(`priority read back from DB: ${row.priority}`);
-  console.log(
-    `Expected 'low' (the .default(Priority.members.Low) value): ${row.priority === 'low'}`,
-  );
+  console.log(`Expected 0 (the .default(Priority.members.Low) value): ${row.priority === 0}`);
 
   await runtime.execute(
     sql.post
