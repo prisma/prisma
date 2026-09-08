@@ -121,18 +121,13 @@ const UNLOWERED_FIELD_ATTRIBUTE_HINTS: ReadonlyMap<string, string> = new Map([
   ],
 ]);
 
-const NATIVE_TYPE_ATTRIBUTE_HINT =
-  "Mongo has no native-type attributes; delete the attribute, the field's PSL type already selects its BSON codec.";
-
 function unsupportedFieldAttributeMessage(
   ownerName: string,
   fieldName: string,
   attributeName: string,
 ): string {
   const base = `Field "${ownerName}.${fieldName}" uses unsupported attribute "@${attributeName}"`;
-  const hint = attributeName.startsWith('db.')
-    ? NATIVE_TYPE_ATTRIBUTE_HINT
-    : UNLOWERED_FIELD_ATTRIBUTE_HINTS.get(attributeName);
+  const hint = UNLOWERED_FIELD_ATTRIBUTE_HINTS.get(attributeName);
   return hint === undefined ? base : `${base}. ${hint}`;
 }
 

@@ -112,8 +112,7 @@ describe('unknown attribute names diagnose against the registered namespace', ()
     ).toEqual([
       expect.objectContaining({
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
-        message:
-          'Field "Item.id" uses unsupported attribute "@db.ObjectId". Mongo has no native-type attributes; delete the attribute, the field\'s PSL type already selects its BSON codec.',
+        message: 'Field "Item.id" uses unsupported attribute "@db.ObjectId"',
       }),
     ]);
   });
