@@ -11,10 +11,11 @@ export function entityRef(): ArgType<string> {
     kind: 'entityRef',
     label: 'model name',
     parse: (arg, ctx): Result<string, readonly PslDiagnostic[]> => {
-      if (!(arg instanceof IdentifierAst)) {
+      const identifier = IdentifierAst.cast(arg.syntax);
+      if (identifier === undefined) {
         return notOk([leafDiagnostic(ctx, arg, 'Expected a model name')]);
       }
-      const name = arg.name();
+      const name = identifier.name();
       if (name === undefined) {
         return notOk([leafDiagnostic(ctx, arg, 'Expected a model name')]);
       }

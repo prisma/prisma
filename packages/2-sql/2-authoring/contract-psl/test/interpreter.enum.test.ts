@@ -808,18 +808,9 @@ model Post {
 // ---------------------------------------------------------------------------
 
 describe('enum non-string codec', () => {
-  // The lowering tests below run against the hook-less target fixture, which
-  // renders no checks: they pin that int member values survive lowering into
-  // the value set, the domain enum, and column defaults. A target that DOES
-  // render checks cannot express a numeric membership predicate, so it rejects
-  // the same schema outright — pinned first so the two are read together.
-  // The guard surfaces as a thrown structured error rather than a
-  // span-anchored diagnostic: it fires inside contract building, downstream of
-  // interpretation.
-  it('an int-backed enum is rejected by a target that renders check predicates', () => {
-    expect(() =>
-      interpret(
-        `
+  it('an int-backed enum emits a numeric membership check', () => {
+    const result = interpret(
+      `
 enum Priority {
   @@type("pg/int4@1")
   Low  = 1
@@ -831,14 +822,14 @@ model Post {
   priority Priority
 }
 `,
-        { target: postgresTargetRenderingChecks },
-      ),
-    ).toThrow(
-      expect.objectContaining({
-        code: 'CONTRACT.ENUM_INVALID',
-        message: expect.stringContaining('numeric-enum CHECK constraints are not yet supported'),
-      }),
+      { target: postgresTargetRenderingChecks },
     );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ns = (result.value.storage as unknown as SqlStorage).namespaces['public'];
+    expect(ns?.entries.table?.['post']?.checks).toEqual([
+      expect.objectContaining({ expression: '"priority" IN (1, 10)' }),
+    ]);
   });
 
   it('integer-backed enum lowers correctly', () => {

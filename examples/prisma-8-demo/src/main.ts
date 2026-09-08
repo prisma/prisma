@@ -93,12 +93,12 @@
  *                              twice and observes the cache short-circuit.
  * - enum-priority [limit]       Prove PSL-authored Priority enum through the emitted contract:
  *                              db.enums.public.Priority.values (declaration order), typed
- *                              Post.priority read, and ORDER BY returning low→high→urgent
+ *                              Post.priority read, and ORDER BY returning Low (0)→High (1)→Urgent (2)
  * - enum-priority-filter [member] [limit]
  *                              Filter posts by a named Priority member using enum member accessor
  * - enum-default-demo          Insert a Post without `priority` (typed-optional thanks to
  *                              `@default(Low)` in the emitted contract), read it back, and
- *                              confirm the database supplied 'low'
+ *                              confirm the database supplied 0 (Low)
  * - integer-representations [limit]
  *                              The three Post engagement counters side by side: `BigIntNumber`
  *                              reads as a JS number, `BigInt` as a bigint, and `UnboundedInt`
