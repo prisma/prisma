@@ -25,8 +25,6 @@ For each parity case it asserts:
 
 It also includes diagnostics coverage from invalid PSL fixture inputs.
 
-`lsp-emit-parity.integration.test.ts` compares CLI emission with the language server's diagnostic pipeline using an internal parser and a public-package interpreter. It covers the init schema, literal defaults, and invalid function calls, guarding against AST constructor-identity checks across package copies.
-
 ## Directory layout
 
 `parity/<case>/` contains one parity case:
