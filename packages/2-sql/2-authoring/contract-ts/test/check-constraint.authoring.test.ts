@@ -42,7 +42,7 @@ interface RenderInput {
   readonly tableName: string;
   readonly columnName: string;
   readonly many: boolean;
-  readonly memberValues: readonly string[] | undefined;
+  readonly memberValues: readonly (string | number)[] | undefined;
 }
 
 /**
@@ -66,12 +66,15 @@ function renderCheckExpressions(input: RenderInput): ReadonlyArray<{
   }> = [];
   const column = `"${input.columnName}"`;
   if (input.memberValues !== undefined) {
-    const members = input.memberValues.map((v) => `'${v}'`).join(', ');
+    const members = input.memberValues
+      .map((v) => (typeof v === 'number' ? String(v) : `'${v}'`))
+      .join(', ');
+    const arrayType = input.memberValues.every((v) => typeof v === 'number') ? 'numeric' : 'text';
     candidates.push({
       kind: 'membership',
       columnName: input.columnName,
       expression: input.many
-        ? `${column}::text[] <@ ARRAY[${members}]::text[]`
+        ? `${column}::${arrayType}[] <@ ARRAY[${members}]::${arrayType}[]`
         : `${column} IN (${members})`,
     });
   }
@@ -434,24 +437,40 @@ describe('check emission — guards', () => {
     expect(checks[0]?.name).not.toBe(checks[1]?.name);
   });
 
-  it('rejects a value set with a non-string member', () => {
-    const Level = enumType('Level', { codecId: 'pg/int4@1', nativeType: 'int4' }, member('One', 1));
+  it('rejects unsupported membership values', () => {
+    const Flag = enumType('Flag', { codecId: 'pg/bool@1', nativeType: 'bool' }, member('On', true));
     expect(() =>
       defineContract(
         {
           family: sqlFamilyPack,
           target: postgresTargetPack,
           createNamespace: createTestSqlNamespace,
-          enums: { Level },
+          enums: { Flag },
         },
-        ({ field: f, model: m }) =>
-          ({
-            models: {
-              User: m('User', { fields: { id: f.text().id(), level: f.namedType(Level) } }),
-            },
-          }) as const,
+        ({ field: f, model: m }) => ({
+          models: { User: m('User', { fields: { id: f.text().id(), flag: f.namedType(Flag) } }) },
+        }),
       ),
-    ).toThrow(/numeric-enum CHECK constraints are not yet supported/);
+    ).toThrow(/CHECK constraint members must encode to strings or finite numbers/);
+  });
+
+  it('passes numeric member values to the check renderer', () => {
+    const Level = enumType('Level', { codecId: 'pg/int4@1', nativeType: 'int4' }, member('One', 1));
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Level },
+      },
+      ({ field: f, model: m }) => ({
+        models: {
+          User: m('User', { fields: { id: f.text().id(), level: f.namedType(Level) } }),
+        },
+      }),
+    ) as Contract<SqlStorage>;
+    expect(checksOf(contract)).toEqual([expect.objectContaining({ expression: '"level" IN (1)' })]);
+    expect(hookCalls.at(-1)?.memberValues).toEqual([1]);
   });
 });
 

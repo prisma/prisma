@@ -220,7 +220,7 @@ export function testRenderCheckExpressions(input: {
   readonly tableName: string;
   readonly columnName: string;
   readonly many: boolean;
-  readonly memberValues: readonly string[] | undefined;
+  readonly memberValues: readonly (string | number)[] | undefined;
 }): ReadonlyArray<{
   readonly kind: 'membership' | 'elementNotNull';
   readonly columnName: string;
@@ -233,12 +233,15 @@ export function testRenderCheckExpressions(input: {
   }> = [];
   const column = `"${input.columnName}"`;
   if (input.memberValues !== undefined) {
-    const members = input.memberValues.map((v) => `'${v}'`).join(', ');
+    const members = input.memberValues
+      .map((v) => (typeof v === 'number' ? String(v) : `'${v}'`))
+      .join(', ');
+    const arrayType = input.memberValues.every((v) => typeof v === 'number') ? 'numeric' : 'text';
     candidates.push({
       kind: 'membership',
       columnName: input.columnName,
       expression: input.many
-        ? `${column}::text[] <@ ARRAY[${members}]::text[]`
+        ? `${column}::${arrayType}[] <@ ARRAY[${members}]::${arrayType}[]`
         : `${column} IN (${members})`,
     });
   }
@@ -263,10 +266,7 @@ export const postgresTarget: TargetPackRef<'sql', 'postgres'> = {
 };
 
 /**
- * `postgresTarget` plus the check-rendering hook. Kept separate because
- * rendering a membership check for an int-backed enum throws
- * `CONTRACT.ENUM_INVALID` (numeric enums are not supported), and several tests
- * here author int-backed enums deliberately.
+ * `postgresTarget` plus the check-rendering hook for check emission tests.
  *
  * Not annotated `TargetPackRef`: `AuthoringContributions` deliberately does not
  * name the duck-typed hooks, so an annotated literal would reject the extra

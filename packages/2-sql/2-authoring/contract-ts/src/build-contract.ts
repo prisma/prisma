@@ -297,7 +297,7 @@ type CheckExpressionRenderer = (input: {
   readonly tableName: string;
   readonly columnName: string;
   readonly many: boolean;
-  readonly memberValues: readonly string[] | undefined;
+  readonly memberValues: readonly (string | number)[] | undefined;
 }) => ReadonlyArray<{
   readonly kind: 'membership' | 'elementNotNull';
   readonly columnName: string;
@@ -329,21 +329,20 @@ function resolveCheckExpressionRenderer(
 
 /**
  * The member values a membership check must enforce, encoded exactly as the
- * column stores them. Only string members can be written as a predicate, so a
- * numeric enum fails here rather than emitting a wrong text-shaped check.
+ * column stores them. Membership predicates support strings and finite numbers.
  */
 function checkMemberValues(
   handle: EnumTypeHandle,
   codecLookup: CodecLookup | undefined,
-): readonly string[] {
+): readonly (string | number)[] {
   const encoded = handle.values.map((value) => encodeViaCodec(value, handle.codecId, codecLookup));
-  const values: string[] = [];
+  const values: (string | number)[] = [];
   for (const value of encoded) {
-    if (typeof value !== 'string') {
+    if (typeof value !== 'string' && !(typeof value === 'number' && Number.isFinite(value))) {
       throw contractError(
         'CONTRACT.ENUM_INVALID',
-        `enumType("${handle.enumName}"): has a non-string value; numeric-enum CHECK constraints are not yet supported.`,
-        { meta: { enumName: handle.enumName, reason: 'non-string-member-value' } },
+        `enumType("${handle.enumName}"): CHECK constraint members must encode to strings or finite numbers.`,
+        { meta: { enumName: handle.enumName, reason: 'unsupported-member-value' } },
       );
     }
     values.push(value);

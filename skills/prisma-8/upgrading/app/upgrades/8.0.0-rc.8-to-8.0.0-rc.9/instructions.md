@@ -16,6 +16,9 @@ changes:
       glob: "**/*.prisma"
       matches:
         - '\bweights\s*:\s*"\{\s*(?:\\.|[^"\\])*\}"'
+  - id: explicit-enum-sort-values
+    summary: |
+      PostgreSQL text-backed enums now sort by stored value rather than declaration order; encode semantic ranks explicitly when ordering matters.
   - id: namespace-qualify-sql-orm-filter-types
     summary: |
       SQL ORM reusable filter types now require the domain namespace before the model name: `<Contract, Namespace, Model>`.
@@ -30,6 +33,10 @@ For every Prisma schema matched by `detection`, replace encoded projection strin
 ## `mongo-text-index-weights-use-native-records`
 
 For every Prisma schema matched by `detection`, replace the encoded JSON string passed to `weights` with a native PSL record. For example, change `weights: "{\"title\": 10}"` to `weights: { title: 10 }`, preserving every field name and numeric weight.
+
+## `explicit-enum-sort-values`
+
+Review queries that order text-backed enum columns and rely on declaration order. To retain semantic ranking, use an explicit ranking expression or numeric enum values. For example, a priority enum can use `{ codecId: 'pg/int4@1', nativeType: 'int4' }` with `member('Low', 0)`, `member('High', 1)`, and `member('Urgent', 2)`. In PSL, use `@@type("pg/int4@1")` with `Low = 0`, `High = 1`, and `Urgent = 2`. Update literal writes and type annotations to the numeric values, then re-emit the contract. For an existing database, create a data-preserving migration mapping the old strings to their numeric ranks and update defaults and constraints; do not rewrite applied migration history. PostgreSQL native enum columns retain the database's native ordering.
 
 ## `namespace-qualify-sql-orm-filter-types`
 

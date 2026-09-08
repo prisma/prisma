@@ -38,7 +38,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'8abaa3b97115767c5fee67bcd90de0cec3ac1f14a59875c2f5d22887ba435f89'>;
+  StorageHashBase<'f62a4154d0b48cb144ca4f74667fc6922e770f81edd5517393285fb92d07dddc'>;
 export type ExecutionHash =
   ExecutionHashBase<'e592be8e097b3e2b4958da0b3ed54265d1bfa0523295fa03e03af2364cccbd08'>;
 export type ProfileHash =
@@ -289,9 +289,6 @@ export type FieldOutputTypes = {
       readonly priority: 0 | 1 | 2;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly embedding: Vector<1536> | null;
-      readonly viewCount: CodecTypes['pg/int8number@1']['output'] | null;
-      readonly impressionCount: CodecTypes['pg/int8@1']['output'] | null;
-      readonly reachScore: CodecTypes['pg/unboundedint@1']['output'] | null;
     };
     readonly PostTag: {
       readonly postId: CodecTypes['pg/uuid@1']['output'];
@@ -337,9 +334,6 @@ export type FieldInputTypes = {
       readonly priority: 0 | 1 | 2;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly embedding: CodecTypes['pg/vector@1']['input'] | null;
-      readonly viewCount: CodecTypes['pg/int8number@1']['input'] | null;
-      readonly impressionCount: CodecTypes['pg/int8@1']['input'] | null;
-      readonly reachScore: CodecTypes['pg/unboundedint@1']['input'] | null;
     };
     readonly PostTag: {
       readonly postId: CodecTypes['pg/uuid@1']['input'];
@@ -384,12 +378,9 @@ export type StorageColumnTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly embedding: Vector<1536> | null;
       readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly impressionCount: CodecTypes['pg/int8@1']['output'] | null;
       readonly priority: 0 | 1 | 2;
-      readonly reachScore: CodecTypes['pg/unboundedint@1']['output'] | null;
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly userId: CodecTypes['pg/uuid@1']['output'];
-      readonly viewCount: CodecTypes['pg/int8number@1']['output'] | null;
     };
     readonly post_tag: {
       readonly postId: CodecTypes['pg/uuid@1']['output'];
@@ -434,12 +425,9 @@ export type StorageColumnInputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly embedding: CodecTypes['pg/vector@1']['input'] | null;
       readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly impressionCount: CodecTypes['pg/int8@1']['input'] | null;
       readonly priority: 0 | 1 | 2;
-      readonly reachScore: CodecTypes['pg/unboundedint@1']['input'] | null;
       readonly title: CodecTypes['pg/text@1']['input'];
       readonly userId: CodecTypes['pg/uuid@1']['input'];
-      readonly viewCount: CodecTypes['pg/int8number@1']['input'] | null;
     };
     readonly post_tag: {
       readonly postId: CodecTypes['pg/uuid@1']['input'];
@@ -595,21 +583,6 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/vector@1';
                   readonly nullable: true;
                   readonly typeRef: 'Embedding1536';
-                };
-                readonly viewCount: {
-                  readonly nativeType: 'int8';
-                  readonly codecId: 'pg/int8number@1';
-                  readonly nullable: true;
-                };
-                readonly impressionCount: {
-                  readonly nativeType: 'int8';
-                  readonly codecId: 'pg/int8@1';
-                  readonly nullable: true;
-                };
-                readonly reachScore: {
-                  readonly nativeType: 'numeric';
-                  readonly codecId: 'pg/unboundedint@1';
-                  readonly nullable: true;
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
@@ -927,18 +900,6 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/vector@1' };
               };
-              readonly viewCount: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int8number@1' };
-              };
-              readonly impressionCount: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int8@1' };
-              };
-              readonly reachScore: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/unboundedint@1' };
-              };
             };
             readonly relations: {
               readonly tags: {
@@ -975,9 +936,6 @@ type ContractBase = Omit<
                 readonly priority: { readonly column: 'priority' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly embedding: { readonly column: 'embedding' };
-                readonly viewCount: { readonly column: 'viewCount' };
-                readonly impressionCount: { readonly column: 'impressionCount' };
-                readonly reachScore: { readonly column: 'reachScore' };
               };
             };
           };
