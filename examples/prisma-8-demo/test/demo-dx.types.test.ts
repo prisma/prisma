@@ -40,10 +40,10 @@ test('SPI deserializeContract output is assignable to visualization shape', () =
   );
 });
 
-test('emitted contract.d.ts types Post.priority as the value union, not string', () => {
+test('emitted contract.d.ts types Post.priority as the value union, not number', () => {
   type PriorityOutput = FieldOutputTypes['public']['Post']['priority'];
-  expectTypeOf<PriorityOutput>().toEqualTypeOf<'low' | 'high' | 'urgent'>();
-  expectTypeOf<PriorityOutput>().not.toEqualTypeOf<string>();
+  expectTypeOf<PriorityOutput>().toEqualTypeOf<0 | 1 | 2>();
+  expectTypeOf<PriorityOutput>().not.toEqualTypeOf<number>();
 });
 
 // Emit vs no-emit agreement. The emitted `FieldOutputTypes` enum field type
@@ -59,23 +59,23 @@ test('emitted Post.priority field type equals the no-emit db.enums value union',
 test('emitted contract: db.sql.public.post SELECT priority yields the value union', () => {
   const plan = db.sql.public.post.select('id', 'priority').build();
   type Row = ResultType<typeof plan>;
-  expectTypeOf<Row['priority']>().toEqualTypeOf<'low' | 'high' | 'urgent'>();
-  expectTypeOf<Row['priority']>().not.toEqualTypeOf<string>();
+  expectTypeOf<Row['priority']>().toEqualTypeOf<0 | 1 | 2>();
+  expectTypeOf<Row['priority']>().not.toEqualTypeOf<number>();
 });
 
 test('emitted contract: getPostsByPriority rows have priority typed as the value union', async () => {
   type Rows = Awaited<ReturnType<typeof getPostsByPriority>>;
   type RowPriority = Rows[number]['priority'];
-  expectTypeOf<RowPriority>().toEqualTypeOf<'low' | 'high' | 'urgent'>();
-  expectTypeOf<RowPriority>().not.toEqualTypeOf<string>();
+  expectTypeOf<RowPriority>().toEqualTypeOf<0 | 1 | 2>();
+  expectTypeOf<RowPriority>().not.toEqualTypeOf<number>();
 });
 
 test('emitted contract: db.sql.public.post INSERT rejects values outside the union', () => {
-  db.sql.public.post.insert([{ id: 'a', title: 'ok', userId: 'u', priority: 'high' }]).build();
+  db.sql.public.post.insert([{ id: 'a', title: 'ok', userId: 'u', priority: 1 }]).build();
 
   db.sql.public.post.insert([
-    // @ts-expect-error 'nope' is not a Priority member value
-    { id: 'b', title: 'bad', userId: 'u', priority: 'nope' },
+    // @ts-expect-error 3 is not a Priority member value
+    { id: 'b', title: 'bad', userId: 'u', priority: 3 },
   ]);
 });
 
@@ -83,19 +83,19 @@ test('emitted contract: db.enums.public.Priority yields literal types through th
   type MemberHigh = (typeof db.enums.public.Priority)['members']['High'];
   type Values = (typeof db.enums.public.Priority)['values'];
 
-  expectTypeOf<MemberHigh>().toEqualTypeOf<'high'>();
-  expectTypeOf<MemberHigh>().not.toEqualTypeOf<string>();
+  expectTypeOf<MemberHigh>().toEqualTypeOf<1>();
+  expectTypeOf<MemberHigh>().not.toEqualTypeOf<number>();
 
-  expectTypeOf<Values[0]>().toEqualTypeOf<'low'>();
-  expectTypeOf<Values[1]>().toEqualTypeOf<'high'>();
-  expectTypeOf<Values[2]>().toEqualTypeOf<'urgent'>();
-  expectTypeOf<Values[0]>().not.toEqualTypeOf<string>();
+  expectTypeOf<Values[0]>().toEqualTypeOf<0>();
+  expectTypeOf<Values[1]>().toEqualTypeOf<1>();
+  expectTypeOf<Values[2]>().toEqualTypeOf<2>();
+  expectTypeOf<Values[0]>().not.toEqualTypeOf<number>();
 });
 
 test('emitted contract: EnumValues<Priority> resolves to the literal value union via emitted contract', () => {
   type Priority = typeof db.enums.public.Priority;
-  expectTypeOf<EnumValues<Priority>>().toEqualTypeOf<'low' | 'high' | 'urgent'>();
-  expectTypeOf<EnumValues<Priority>>().not.toEqualTypeOf<string>();
+  expectTypeOf<EnumValues<Priority>>().toEqualTypeOf<0 | 1 | 2>();
+  expectTypeOf<EnumValues<Priority>>().not.toEqualTypeOf<number>();
 });
 
 test('emitted contract: EnumMemberNames<Priority> resolves to the literal name union via emitted contract', () => {

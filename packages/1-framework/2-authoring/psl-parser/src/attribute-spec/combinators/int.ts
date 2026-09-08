@@ -13,8 +13,9 @@ export function int(opts?: { min?: number; max?: number }): ArgType<number> {
     kind: 'int',
     label: 'integer',
     parse: (arg, ctx): Result<number, readonly PslDiagnostic[]> => {
-      if (arg instanceof NumberLiteralExprAst) {
-        const value = arg.value();
+      const literal = NumberLiteralExprAst.cast(arg.syntax);
+      if (literal !== undefined) {
+        const value = literal.value();
         if (value !== undefined && Number.isInteger(value)) {
           if ((min === undefined || value >= min) && (max === undefined || value <= max)) {
             return ok(value);
