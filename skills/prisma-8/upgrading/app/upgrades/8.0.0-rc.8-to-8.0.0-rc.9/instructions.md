@@ -51,6 +51,6 @@ Find TypeScript references to `ShorthandWhereFilter`, `RelationPredicate`, `Rela
 
 ## `mongo-unlowered-attributes-are-rejected`
 
-This change applies only to schemas whose contract is produced by `@prisma/orm-mongo` (MongoDB projects; their models declare an `ObjectId` id field). Schemas for SQL targets keep these attributes.
+First, before editing any schema, determine whether the project targets MongoDB: its `prisma.config.ts` imports `@prisma/orm-mongo`, or its `package.json` depends on that package. If neither holds, skip this change entirely and leave every schema untouched. The `detection` pattern also matches SQL schemas, where `@default(...)` and `@db.<Type>` are supported and deleting them breaks the contract.
 
 For every matched MongoDB schema, delete each `@default(...)`, `@updatedAt`, and `@db.<Type>` attribute from the field that carries it, leaving the field's type and its other attributes in place. For example, change `status ProductStatus @default(Active)` to `status ProductStatus` and `updatedAt DateTime @updatedAt` to `updatedAt DateTime`. The Mongo interpreter never lowered these attributes into the contract, so the emitted `contract.json` does not change; defaults and timestamps stay the responsibility of application code, as they already were. `prisma contract emit` now fails with `PSL_UNSUPPORTED_FIELD_ATTRIBUTE` while any of them remain.

@@ -131,7 +131,7 @@ describe('unknown attribute names diagnose against the registered namespace', ()
       expect.objectContaining({
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
         message:
-          'Field "Item.updatedAt" uses unsupported attribute "@updatedAt". Mongo has no default-value lowering; delete the attribute and set the timestamp in application code.',
+          'Field "Item.updatedAt" uses unsupported attribute "@updatedAt". Mongo lowers no automatic timestamp updates; delete the attribute and set the timestamp in application code.',
       }),
     ]);
   });

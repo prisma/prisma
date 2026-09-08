@@ -121,7 +121,7 @@ const UNLOWERED_FIELD_ATTRIBUTE_HINTS: ReadonlyMap<string, string> = new Map([
   ],
   [
     'updatedAt',
-    'Mongo has no default-value lowering; delete the attribute and set the timestamp in application code.',
+    'Mongo lowers no automatic timestamp updates; delete the attribute and set the timestamp in application code.',
   ],
 ]);
 
