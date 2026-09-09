@@ -39,7 +39,12 @@ import type { CodecDescriptorRegistry } from '@internal/sql-relational-core/quer
 import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { buildDecodeContext, type DecodeContext, decodeRow } from './codecs/decoding';
+import {
+  buildDecodeContext,
+  type DecodeContext,
+  decodeRow,
+  type ListDecoder,
+} from './codecs/decoding';
 import { deriveParamMetadata, encodeParams, encodeParamsWithMetadata } from './codecs/encoding';
 import { validateCodecRegistryCompleteness } from './codecs/validation';
 import { computeSqlContentHash } from './content-hash';
@@ -371,6 +376,10 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     await this.verifyMarkerPromise;
   }
 
+  protected getListDecoder(): ListDecoder | undefined {
+    return undefined;
+  }
+
   private async *streamRows<Row>(
     exec: SqlExecutionPlan,
     decodeContext: DecodeContext,
@@ -404,8 +413,15 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
           if (next.done) {
             break;
           }
-          const decodedRow = await decodeRow(next.value, decodeContext, codecCtx);
-          yield decodedRow as Row;
+          const decodedRow = await decodeRow(
+            next.value,
+            decodeContext,
+            codecCtx,
+            this.getListDecoder(),
+          );
+          yield blindCast<Row, 'decoded rows are shaped by the caller-selected row type'>(
+            decodedRow,
+          );
         }
       } finally {
         // Best-effort iterator cleanup so the driver can release its
@@ -934,7 +950,9 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     outcome: TelemetryOutcome,
     durationMs?: number,
   ): void {
-    const contract = this.contract as { target: string };
+    const contract = blindCast<{ target: string }, 'SQL contracts always carry a target string'>(
+      this.contract,
+    );
     this._telemetry = Object.freeze({
       lane: plan.meta.lane,
       target: contract.target,

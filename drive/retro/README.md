@@ -19,7 +19,11 @@ When a retro lesson could land in multiple surfaces, the team's preference:
 
 Patterns the team has seen multiple times. Each entry: pattern → severity → mitigation surface (where it landed).
 
-_(Empty at seeding; populated by retros over time.)_
+### 2026-09-08 — Postgres list-framing delivery
+
+- Treat pnpm/Biome failures as incomplete until the run log records both exit code and complete diagnostics; expand `--max-diagnostics=none` before classifying failure.
+- For target list framing, the coverage matrix must enumerate primitive native-scalar-wire codecs, builtin special types/enums, and control-plane, direct-driver, and public-shell consumers.
+- Manifest/lockfile updates are not validated by file edits alone: relink dependencies through supported `pnpm install` before public-shell runtime validation.
 
 ## Mandatory-final-retro template
 
