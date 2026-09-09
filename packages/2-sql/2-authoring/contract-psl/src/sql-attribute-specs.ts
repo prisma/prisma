@@ -6,14 +6,16 @@ import type {
 } from '@internal/framework-components/psl-ast';
 import type {
   ArgType,
+  AttributeCtx,
   AttributeSpec,
   AttributeSpecContext,
   AttributeSpecNamespace,
+  FieldAttributeCtx,
   FieldAttributeSpecContext,
   FieldSymbol,
   FuncCallSig,
   InferAttr,
-  InterpretCtx,
+  ModelAttributeCtx,
   ModelSymbol,
   PslSpan,
   SymbolTable,
@@ -35,6 +37,7 @@ import {
   oneOf,
   optional,
   record,
+  referencedFieldRef,
   str,
 } from '@internal/psl-parser';
 import type { FieldAttributeAst, ModelAttributeAst, SourceFile } from '@internal/psl-parser/syntax';
@@ -61,29 +64,26 @@ export function findFieldAttributeNode(
   return undefined;
 }
 
-function buildModelInterpretCtx(input: {
+function buildModelAttributeCtx(input: {
   readonly selfModel: ModelSymbol;
   readonly sourceFile: SourceFile;
   readonly sourceId: string;
-}): InterpretCtx {
+}): ModelAttributeCtx {
   return {
-    level: 'model',
     sourceId: input.sourceId,
     sourceFile: input.sourceFile,
     selfModel: input.selfModel,
-    resolveReferencedModel: () => undefined,
   };
 }
 
-function buildFieldInterpretCtx(input: {
+function buildFieldAttributeCtx(input: {
   readonly selfModel: ModelSymbol;
   readonly field: FieldSymbol;
   readonly sourceFile: SourceFile;
   readonly sourceId: string;
   readonly resolveReferencedModel?: (() => ModelSymbol | undefined) | undefined;
-}): InterpretCtx {
+}): FieldAttributeCtx {
   return {
-    level: 'field',
     sourceId: input.sourceId,
     sourceFile: input.sourceFile,
     selfModel: input.selfModel,
@@ -97,7 +97,7 @@ function buildFieldInterpretCtx(input: {
 // failure so the caller can apply its own default/absence handling.
 export function interpretModelAttribute<Out>(input: {
   readonly node: ModelAttributeAst;
-  readonly spec: AttributeSpec<Out>;
+  readonly spec: AttributeSpec<Out, ModelAttributeCtx>;
   readonly model: ModelSymbol;
   readonly sourceFile: SourceFile;
   readonly sourceId: string;
@@ -106,7 +106,7 @@ export function interpretModelAttribute<Out>(input: {
   const result = interpretAttribute(
     input.node,
     input.spec,
-    buildModelInterpretCtx({
+    buildModelAttributeCtx({
       selfModel: input.model,
       sourceFile: input.sourceFile,
       sourceId: input.sourceId,
@@ -124,7 +124,7 @@ export function interpretModelAttribute<Out>(input: {
 // failure so the caller can apply its own default/absence handling.
 export function interpretFieldAttribute<Out>(input: {
   readonly node: FieldAttributeAst;
-  readonly spec: AttributeSpec<Out>;
+  readonly spec: AttributeSpec<Out, FieldAttributeCtx>;
   readonly model: ModelSymbol;
   readonly field: FieldSymbol;
   readonly sourceFile: SourceFile;
@@ -135,7 +135,7 @@ export function interpretFieldAttribute<Out>(input: {
   const result = interpretAttribute(
     input.node,
     input.spec,
-    buildFieldInterpretCtx({
+    buildFieldAttributeCtx({
       selfModel: input.model,
       field: input.field,
       sourceFile: input.sourceFile,
@@ -158,7 +158,7 @@ type DefaultArgValue = string | number | boolean | (string | number | boolean)[]
 function scalarDefaultArms(
   isList: boolean,
   registry: ControlMutationDefaultRegistry,
-): readonly [ArgType<DefaultArgValue>, ...ArgType<DefaultArgValue>[]] {
+): readonly [ArgType<DefaultArgValue, AttributeCtx>, ...ArgType<DefaultArgValue, AttributeCtx>[]] {
   const literal = () => oneOf(str(), num(), bool());
   const funcArms = [...registry.entries()].map(([name, entry]) =>
     funcCall(
@@ -172,7 +172,7 @@ function scalarDefaultArms(
   return isList ? [list(literal()), ...funcArms] : [str(), num(), bool(), ...funcArms];
 }
 
-function noEnumMember(): ArgType<string> {
+function noEnumMember(): ArgType<string, AttributeCtx> {
   return {
     kind: 'identifier',
     label: 'enum member',
@@ -192,7 +192,7 @@ function enumMemberNames(ctx: FieldAttributeSpecContext): readonly string[] | un
 
 function enumDefaultArms(
   members: readonly string[],
-): readonly [ArgType<DefaultArgValue>, ...ArgType<DefaultArgValue>[]] {
+): readonly [ArgType<DefaultArgValue, AttributeCtx>, ...ArgType<DefaultArgValue, AttributeCtx>[]] {
   const [first, ...rest] = members;
   if (first === undefined) return [noEnumMember()];
   return [identifier(first), ...rest.map((name) => identifier(name))];
@@ -232,11 +232,11 @@ const noCheckFieldSpec = fieldAttribute('noCheck', {
 });
 
 const idModelSpec = modelAttribute('id', {
-  positional: [{ key: 'fields', type: list(fieldRef('self'), { nonEmpty: true, unique: true }) }],
+  positional: [{ key: 'fields', type: list(fieldRef(), { nonEmpty: true, unique: true }) }],
   named: { map: optional(str()) },
 });
 const uniqueModelSpec = modelAttribute('unique', {
-  positional: [{ key: 'fields', type: list(fieldRef('self'), { nonEmpty: true, unique: true }) }],
+  positional: [{ key: 'fields', type: list(fieldRef(), { nonEmpty: true, unique: true }) }],
   named: { map: optional(str()) },
 });
 
@@ -251,7 +251,7 @@ export const PSL_INDEX_NAME_XOR_MAP: ContributedPslDiagnosticCode = 'PSL_INDEX_N
 
 const indexModelSpec = modelAttribute('index', {
   positional: [
-    { key: 'fields', type: optional(list(fieldRef('self'), { nonEmpty: true, unique: true })) },
+    { key: 'fields', type: optional(list(fieldRef(), { nonEmpty: true, unique: true })) },
   ],
   named: {
     expression: optional(str()),
@@ -377,7 +377,7 @@ const controlModelSpec = modelAttribute('control', {
 });
 
 const discriminatorModelSpec = modelAttribute('discriminator', {
-  positional: [{ key: 'field', type: fieldRef('self') }],
+  positional: [{ key: 'field', type: fieldRef() }],
 });
 const baseModelSpec = modelAttribute('base', {
   positional: [
@@ -386,21 +386,17 @@ const baseModelSpec = modelAttribute('base', {
   ],
 });
 
-function relationAttributeSpan(ctx: InterpretCtx): PslSpan {
-  const field = ctx.field;
-  if (field !== undefined) {
-    const node = findFieldAttributeNode(field, 'relation');
-    if (node !== undefined) {
-      return nodePslSpan(node.syntax, ctx.sourceFile);
-    }
-    return field.span;
+function relationAttributeSpan(ctx: FieldAttributeCtx): PslSpan {
+  const node = findFieldAttributeNode(ctx.field, 'relation');
+  if (node !== undefined) {
+    return nodePslSpan(node.syntax, ctx.sourceFile);
   }
-  return ctx.selfModel.span;
+  return ctx.field.span;
 }
 
 function relationInvariants(
   parsed: { readonly fields?: readonly string[]; readonly references?: readonly string[] },
-  ctx: InterpretCtx,
+  ctx: FieldAttributeCtx,
 ): readonly PslDiagnostic[] {
   const hasFields = parsed.fields !== undefined;
   const hasReferences = parsed.references !== undefined;
@@ -408,7 +404,7 @@ function relationInvariants(
     return [
       {
         code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: `Relation field "${ctx.selfModel.name}.${ctx.field?.name ?? ''}" requires fields and references arguments`,
+        message: `Relation field "${ctx.selfModel.name}.${ctx.field.name}" requires fields and references arguments`,
         sourceId: ctx.sourceId,
         span: relationAttributeSpan(ctx),
       },
@@ -430,8 +426,8 @@ const relationFieldSpec = fieldAttribute('relation', {
   positional: [{ key: 'name', type: optional(str()) }],
   named: {
     name: optional(str()),
-    fields: optional(list(fieldRef('self'), { nonEmpty: true, unique: true })),
-    references: optional(list(fieldRef('referenced'), { nonEmpty: true, unique: true })),
+    fields: optional(list(fieldRef(), { nonEmpty: true, unique: true })),
+    references: optional(list(referencedFieldRef(), { nonEmpty: true, unique: true })),
     map: optional(str()),
     onDelete: optional(referentialActionArgument()),
     onUpdate: optional(referentialActionArgument()),

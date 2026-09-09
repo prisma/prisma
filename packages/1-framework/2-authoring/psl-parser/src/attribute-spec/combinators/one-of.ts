@@ -1,12 +1,13 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { blindCast } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import type { ArgType, OutOf } from '../types';
+import type { ArgType, AttributeCtx, OutOf } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
-export function oneOf<Alts extends readonly [ArgType<unknown>, ...ArgType<unknown>[]]>(
-  ...alts: Alts
-): ArgType<OutOf<Alts[number]>> {
+export function oneOf<
+  Ctx extends AttributeCtx,
+  Alts extends readonly [ArgType<unknown, Ctx>, ...ArgType<unknown, Ctx>[]],
+>(...alts: Alts): ArgType<OutOf<Alts[number]>, Ctx> {
   const label = alts.map((alt) => alt.label).join(' | ');
   return {
     kind: 'oneOf',

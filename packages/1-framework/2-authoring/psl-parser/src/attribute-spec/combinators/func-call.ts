@@ -4,14 +4,14 @@ import { nodePslSpan } from '../../resolve';
 import type { ExpressionAst } from '../../syntax/ast/expressions';
 import { FunctionCallAst } from '../../syntax/ast/expressions';
 import { interpretArgs } from '../interpret';
-import type { ArgType, InterpretCtx, Param, PositionalParam } from '../types';
+import type { ArgType, AttributeCtx, Param, PositionalParam } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 // The argument signature of a pinned function call — the same positional/named shape an attribute
 // spec uses. Omitted groups default to empty, so a nullary call needs neither key.
 export interface FuncCallSig {
-  readonly positional?: readonly PositionalParam<unknown>[];
-  readonly named?: Readonly<Record<string, Param<unknown>>>;
+  readonly positional?: readonly PositionalParam<unknown, AttributeCtx>[];
+  readonly named?: Readonly<Record<string, Param<unknown, AttributeCtx>>>;
 }
 
 export interface TypedFuncCall {
@@ -22,7 +22,7 @@ export interface TypedFuncCall {
 
 // A name-pinned function-call argument — `funcCall('now', {})` matches `now()`, parsing the call's
 // arguments through `sig`.
-export function funcCall(name: string, sig: FuncCallSig): ArgType<TypedFuncCall> {
+export function funcCall(name: string, sig: FuncCallSig): ArgType<TypedFuncCall, AttributeCtx> {
   return {
     kind: 'funcCall',
     label: `${name}()`,
@@ -45,7 +45,7 @@ export function funcCall(name: string, sig: FuncCallSig): ArgType<TypedFuncCall>
 function matchCallee(
   arg: ExpressionAst,
   name: string,
-  ctx: InterpretCtx,
+  ctx: AttributeCtx,
 ): Result<FunctionCallAst, readonly PslDiagnostic[]> {
   const call = FunctionCallAst.cast(arg.syntax);
   if (call === undefined) {
