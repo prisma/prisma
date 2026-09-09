@@ -2237,6 +2237,9 @@ importers:
       '@internal/mongo-value':
         specifier: workspace:8.0.0-rc.8
         version: link:../1-foundation/mongo-value
+      '@internal/psl-parser':
+        specifier: workspace:8.0.0-rc.8
+        version: link:../../1-framework/2-authoring/psl-parser
       '@internal/utils':
         specifier: workspace:8.0.0-rc.8
         version: link:../../1-framework/0-foundation/utils
@@ -2253,9 +2256,6 @@ importers:
       '@internal/mongo-contract-ts':
         specifier: workspace:8.0.0-rc.8
         version: link:../2-authoring/contract-ts
-      '@internal/psl-parser':
-        specifier: workspace:8.0.0-rc.8
-        version: link:../../1-framework/2-authoring/psl-parser
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.8
         version: link:../../../test/utils
@@ -2730,6 +2730,9 @@ importers:
       '@internal/operations':
         specifier: workspace:8.0.0-rc.8
         version: link:../../1-framework/1-core/operations
+      '@internal/psl-parser':
+        specifier: workspace:8.0.0-rc.8
+        version: link:../../1-framework/2-authoring/psl-parser
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.8
         version: link:../1-core/contract
@@ -2767,9 +2770,6 @@ importers:
       '@internal/driver-postgres':
         specifier: workspace:8.0.0-rc.8
         version: link:../../3-targets/7-drivers/postgres
-      '@internal/psl-parser':
-        specifier: workspace:8.0.0-rc.8
-        version: link:../../1-framework/2-authoring/psl-parser
       '@internal/psl-printer':
         specifier: workspace:8.0.0-rc.8
         version: link:../../1-framework/2-authoring/psl-printer
