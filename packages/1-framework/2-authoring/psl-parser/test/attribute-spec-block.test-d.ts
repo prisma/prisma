@@ -97,8 +97,9 @@ test('oneOf over bare-ctx alternatives stays usable in a block spec', () => {
   expectTypeOf<InferAttr<typeof spec>>().toEqualTypeOf<{ kind: 'a' | 'b' }>();
 });
 
-test('oneOf carrying a model-scoped alternative is rejected in a block spec', () => {
-  const arm = oneOf(str(), fieldRef());
+test('oneOf takes its ctx from the annotation a mixed alternation is assigned to', () => {
+  const arm: ArgType<string, ModelAttributeCtx> = oneOf(str(), fieldRef());
+  expectTypeOf(arm).toEqualTypeOf<ArgType<string, ModelAttributeCtx>>();
   blockAttribute('bad', {
     // @ts-expect-error one alternative reads selfModel, so the alternation demands a model ctx
     positional: [{ key: 'value', type: arm }],

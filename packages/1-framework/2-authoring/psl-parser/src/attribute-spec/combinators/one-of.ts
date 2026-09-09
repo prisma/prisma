@@ -1,31 +1,20 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { blindCast } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import type { UnionToIntersection } from '@internal/utils/types';
-import type { ArgType, AttributeCtx, CtxOf, OutOf } from '../types';
+import type { ArgType, AttributeCtx, OutOf } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
-export type OneOfCtx<Alts extends readonly ArgType<unknown, never>[]> = UnionToIntersection<
-  CtxOf<Alts[number]>
-> &
-  AttributeCtx;
-
 export function oneOf<
-  const Alts extends readonly [ArgType<unknown, never>, ...ArgType<unknown, never>[]],
->(...alts: [...Alts]): ArgType<OutOf<Alts[number]>, OneOfCtx<Alts>> {
+  Ctx extends AttributeCtx,
+  Alts extends readonly [ArgType<unknown, Ctx>, ...ArgType<unknown, Ctx>[]],
+>(...alts: Alts): ArgType<OutOf<Alts[number]>, Ctx> {
   const label = alts.map((alt) => alt.label).join(' | ');
   return {
     kind: 'oneOf',
     label,
     parse: (arg, ctx): Result<OutOf<Alts[number]>, readonly PslDiagnostic[]> => {
       for (const alt of alts) {
-        const result = alt.parse(
-          arg,
-          blindCast<
-            never,
-            'Each alternative declares the ctx it reads and oneOf demands their intersection, so the received ctx satisfies every alternative; iterating the tuple widens each element to its `never`-ctx bound and erases that.'
-          >(ctx),
-        );
+        const result = alt.parse(arg, ctx);
         if (result.ok) {
           return ok(
             blindCast<

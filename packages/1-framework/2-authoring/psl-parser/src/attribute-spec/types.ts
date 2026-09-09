@@ -59,8 +59,6 @@ export interface AttributeSpec<Out, Ctx extends AttributeCtx> {
 
 export type OutOf<P> = P extends ArgType<infer T, never> ? T : never;
 
-export type CtxOf<P> = P extends ArgType<unknown, infer Ctx> ? Ctx : never;
-
 export type NamedOut<N extends Record<string, Param<unknown, never>>> = Simplify<
   { [K in keyof N as N[K] extends OptionalArgType<unknown, never> ? never : K]: OutOf<N[K]> } & {
     [K in keyof N as N[K] extends OptionalArgType<unknown, never> ? K : never]?: OutOf<N[K]>;

@@ -51,7 +51,6 @@ export { json } from '../attribute-spec/combinators/json';
 export type { ListOptions } from '../attribute-spec/combinators/list';
 export { list } from '../attribute-spec/combinators/list';
 export { num } from '../attribute-spec/combinators/num';
-export type { OneOfCtx } from '../attribute-spec/combinators/one-of';
 export { oneOf } from '../attribute-spec/combinators/one-of';
 export { record } from '../attribute-spec/combinators/record';
 export { str } from '../attribute-spec/combinators/str';
@@ -74,7 +73,6 @@ export type {
   AttributeLevel,
   AttributeOut,
   AttributeSpec,
-  CtxOf,
   FieldAttributeCtx,
   InferAttr,
   ModelAttributeCtx,
