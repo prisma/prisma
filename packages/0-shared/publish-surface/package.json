@@ -36,6 +36,7 @@
   "exports": {
     "./import-roots": "./dist/import-roots.mjs",
     "./shells": "./dist/shells.mjs",
+    "./test/pack-lock": "./dist/test/pack-lock.mjs",
     "./package.json": "./package.json"
   },
   "engines": {

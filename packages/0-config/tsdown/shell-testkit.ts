@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { publicShells } from '@internal/publish-surface/shells';
+import { withPackLock } from '@internal/publish-surface/test/pack-lock';
 import { init as initLexer, parse as parseModule } from 'es-module-lexer';
 
 /** A tarball-install smoke-test failure with the offending command output attached. */
@@ -47,7 +48,9 @@ function manifestName(packageDir: string, manifest: Record<string, unknown>): st
 export function packShell(shellDir: string, outDir: string): PackedShell {
   const name = manifestName(shellDir, readManifest(shellDir));
   const tarball = join(outDir, `${name.replaceAll(/[@/]/g, '-').replace(/^-/, '')}.tgz`);
-  execFileSync('pnpm', ['pack', '--out', tarball], { cwd: shellDir, stdio: 'pipe' });
+  withPackLock(name, () =>
+    execFileSync('pnpm', ['pack', '--out', tarball], { cwd: shellDir, stdio: 'pipe' }),
+  );
   return { name, tarball };
 }
 

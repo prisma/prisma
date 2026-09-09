@@ -24,6 +24,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
 import { publicShells, type ShellName } from '../src/shells';
+import { withPackLock } from '../src/test/pack-lock';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const facades: ShellName[] = ['@prisma/orm-postgres', '@prisma/orm-sqlite', '@prisma/orm-mongo'];
@@ -82,13 +83,18 @@ afterAll(() => {
 function packAndUnpack(facade: ShellName): string {
   const work = mkdtempSync(join(tmpdir(), 'skill-packaging-'));
   workspaces.push(work);
-  // Only `prepack` may supply what the tarball carries.
-  rmSync(join(packageDir(facade), 'skills'), { recursive: true, force: true });
-  execFileSync('pnpm', ['pack', '--pack-destination', work], {
-    cwd: packageDir(facade),
-    stdio: ['ignore', 'ignore', 'pipe'],
+  // Deleting `skills/` then packing mutates a directory shared with the other
+  // tarball suites, so take the same per-package lock `packShell` uses to keep
+  // one pack's tar phase from reading the tree mid-rewrite.
+  const tarball = withPackLock(facade, () => {
+    // Only `prepack` may supply what the tarball carries.
+    rmSync(join(packageDir(facade), 'skills'), { recursive: true, force: true });
+    execFileSync('pnpm', ['pack', '--pack-destination', work], {
+      cwd: packageDir(facade),
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
+    return readdirSync(work).find((file) => file.endsWith('.tgz'));
   });
-  const tarball = readdirSync(work).find((file) => file.endsWith('.tgz'));
   if (tarball === undefined) throw new Error(`pnpm pack produced no tarball for ${facade}`);
   execFileSync('tar', ['xzf', tarball], { cwd: work });
   return join(work, 'package');
