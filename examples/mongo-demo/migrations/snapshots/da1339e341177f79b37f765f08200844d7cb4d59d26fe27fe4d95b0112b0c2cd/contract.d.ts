@@ -103,7 +103,7 @@ export namespace Models {
     kind: 'article' | 'tutorial';
     authorId: CodecTypes['mongo/objectId@1']['output'];
     createdAt: CodecTypes['mongo/date@1']['output'];
-    author: unbound_User | null;
+    author: unbound_User;
     readonly [RelationKeys]?: 'author';
   };
   export type unbound_Article = {
@@ -114,7 +114,7 @@ export namespace Models {
     authorId: CodecTypes['mongo/objectId@1']['output'];
     createdAt: CodecTypes['mongo/date@1']['output'];
     summary: CodecTypes['mongo/string@1']['output'];
-    author: unbound_User | null;
+    author: unbound_User;
     readonly [RelationKeys]?: 'author';
   };
   export type unbound_Tutorial = {
@@ -126,7 +126,7 @@ export namespace Models {
     createdAt: CodecTypes['mongo/date@1']['output'];
     difficulty: CodecTypes['mongo/string@1']['output'];
     duration: CodecTypes['mongo/int32@1']['output'];
-    author: unbound_User | null;
+    author: unbound_User;
     readonly [RelationKeys]?: 'author';
   };
   export type unbound_AnyPost = unbound_Article | unbound_Tutorial;
@@ -317,6 +317,7 @@ type ContractBase = Omit<
                   readonly model: 'User';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['authorId'];
                   readonly targetFields: readonly ['_id'];

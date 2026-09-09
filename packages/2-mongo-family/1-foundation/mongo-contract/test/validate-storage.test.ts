@@ -207,6 +207,7 @@ describe('validateMongoStorage()', () => {
               owner: {
                 to: crossRef('User'),
                 cardinality: 'N:1' as const,
+                nullable: false,
                 on: { localFields: ['ownerId'], targetFields: ['_id'] },
               },
             },
@@ -238,6 +239,7 @@ describe('validateMongoStorage()', () => {
               owner: {
                 to: crossRef('User'),
                 cardinality: 'N:1' as const,
+                nullable: false,
                 on: { localFields: ['ownerId'], targetFields: ['userId'] },
               },
             },
@@ -273,6 +275,7 @@ describe('validateMongoStorage()', () => {
               owner: {
                 to: crossRef('User'),
                 cardinality: 'N:1' as const,
+                nullable: false,
                 on: { localFields: ['ownerId'], targetFields: ['_id'] },
               },
             },

@@ -568,6 +568,46 @@ function resolveModelNamespaceId(
   return modelNameToNamespaceId.get(model.modelName) ?? defaultNamespaceId;
 }
 
+function toOneRelationNullable(semanticModel: ModelNode, relation: RelationNode): boolean {
+  const location = `Relation "${semanticModel.modelName}.${relation.fieldName}"`;
+  if (relation.nullable === undefined) {
+    throw contractError(
+      'CONTRACT.RELATION_INVALID',
+      `${location} with cardinality "${relation.cardinality}" must state whether it is nullable`,
+      {
+        meta: {
+          modelName: semanticModel.modelName,
+          relationName: relation.fieldName,
+          reason: 'to-one-nullability-missing',
+        },
+      },
+    );
+  }
+  if (relation.cardinality !== 'N:1') {
+    return relation.nullable;
+  }
+  const localColumns = relation.on.parentColumns;
+  const anyLocalColumnNullable = semanticModel.fields.some(
+    (field) => localColumns.includes(field.columnName) && field.nullable,
+  );
+  if (relation.nullable !== anyLocalColumnNullable) {
+    throw contractError(
+      'CONTRACT.RELATION_INVALID',
+      relation.nullable
+        ? `${location} is optional but every local field it joins on is required`
+        : `${location} is required but a local field it joins on is nullable`,
+      {
+        meta: {
+          modelName: semanticModel.modelName,
+          relationName: relation.fieldName,
+          reason: 'to-one-nullability-mismatch',
+        },
+      },
+    );
+  }
+  return relation.nullable;
+}
+
 function buildThroughDescriptor(
   through: NonNullable<RelationNode['through']>,
   tableNamespaceByName: ReadonlyMap<string, string>,
@@ -1276,6 +1316,7 @@ export function buildSqlContractFromDefinition(
           to: crossRef(relation.toModel, targetNamespaceId, relation.spaceId),
           // Cross-space belongsTo relations are always N:1 (the FK-owning side).
           cardinality: 'N:1',
+          nullable: toOneRelationNullable(semanticModel, relation),
           on: {
             localFields: relation.on.parentColumns.map((col) => columnToField.get(col) ?? col),
             // For cross-space targets the lowering carries field names directly
@@ -1338,8 +1379,15 @@ export function buildSqlContractFromDefinition(
             defaultNamespaceId,
           ),
         };
+      } else if (relation.cardinality === '1:N') {
+        modelRelations[relation.fieldName] = { to, cardinality: '1:N', on };
       } else {
-        modelRelations[relation.fieldName] = { to, cardinality: relation.cardinality, on };
+        modelRelations[relation.fieldName] = {
+          to,
+          cardinality: relation.cardinality,
+          nullable: toOneRelationNullable(semanticModel, relation),
+          on,
+        };
       }
     }
 

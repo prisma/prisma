@@ -1,4 +1,4 @@
-import type { Contract, ContractModelBase, ContractRelation } from '@internal/contract/types';
+import type { Contract } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { generateContractDts } from '../src/generate-contract-dts';
 import { createMockSpi } from './mock-spi';
@@ -11,15 +11,6 @@ const HASHES = {
 
 type TestTable = {
   readonly columns: Record<string, { readonly nullable: boolean }>;
-  readonly foreignKeys?: ReadonlyArray<{
-    readonly source: { readonly columns: readonly string[] };
-  }>;
-};
-
-type TestModelStorage = {
-  readonly table: string;
-  readonly namespaceId: string;
-  readonly fields?: Record<string, { readonly column: string }>;
 };
 
 function scalar(codecId: string, nullable = false) {
@@ -54,34 +45,7 @@ function sqlContract(
   } as unknown as Contract;
 }
 
-function sqlToOneRelationNullable(
-  contract: Contract,
-  model: ContractModelBase,
-  relation: ContractRelation,
-): boolean {
-  if (!('on' in relation) || relation.on === undefined) return true;
-  const storage = model.storage as TestModelStorage;
-  const namespaces = (
-    contract.storage as unknown as {
-      namespaces: Record<string, { entries: { table: Record<string, TestTable> } }>;
-    }
-  ).namespaces;
-  const table = namespaces[storage.namespaceId]?.entries.table[storage.table];
-  if (table === undefined) return true;
-  const columns = relation.on.localFields.map((f) => storage.fields?.[f]?.column ?? f);
-  const ownsForeignKey = (table.foreignKeys ?? []).some(
-    (fk) =>
-      fk.source.columns.length === columns.length &&
-      fk.source.columns.every((c, i) => c === columns[i]),
-  );
-  if (!ownsForeignKey) return true;
-  return columns.some((c) => table.columns[c]?.nullable !== false);
-}
-
-const sqlSpi = createMockSpi({
-  isToOneRelationNullable: (model, relation, contract) =>
-    sqlToOneRelationNullable(contract, model, relation),
-});
+const sqlSpi = createMockSpi();
 
 const mongoSpi = createMockSpi({
   id: 'mongo',
@@ -138,7 +102,7 @@ describe('Models namespace and models constant emission', () => {
     `);
   });
 
-  it('emits every SQL cardinality with to-one nullability from foreign keys and column nullability', () => {
+  it('emits every SQL cardinality with to-one nullability from the relation flag', () => {
     const contract = sqlContract(
       {
         public: {
@@ -165,16 +129,19 @@ describe('Models namespace and models constant emission', () => {
               manager: {
                 to: ref('User'),
                 cardinality: 'N:1',
+                nullable: false,
                 on: { localFields: ['managerId'], targetFields: ['id'] },
               },
               mentor: {
                 to: ref('User'),
                 cardinality: 'N:1',
+                nullable: true,
                 on: { localFields: ['mentorId'], targetFields: ['id'] },
               },
               profile: {
                 to: ref('Profile'),
                 cardinality: '1:1',
+                nullable: true,
                 on: { localFields: ['id'], targetFields: ['userId'] },
               },
             },
@@ -194,6 +161,7 @@ describe('Models namespace and models constant emission', () => {
               author: {
                 to: ref('User'),
                 cardinality: 'N:1',
+                nullable: false,
                 on: { localFields: ['authorId'], targetFields: ['id'] },
               },
             },
@@ -227,6 +195,7 @@ describe('Models namespace and models constant emission', () => {
               user: {
                 to: ref('User'),
                 cardinality: '1:1',
+                nullable: false,
                 on: { localFields: ['userId'], targetFields: ['id'] },
               },
             },
@@ -246,19 +215,13 @@ describe('Models namespace and models constant emission', () => {
               manager_id: { nullable: false },
               mentor_id: { nullable: true },
             },
-            foreignKeys: [
-              { source: { columns: ['manager_id'] } },
-              { source: { columns: ['mentor_id'] } },
-            ],
           },
           posts: {
             columns: { id: { nullable: false }, author_id: { nullable: false } },
-            foreignKeys: [{ source: { columns: ['author_id'] } }],
           },
           tags: { columns: { id: { nullable: false } } },
           profiles: {
             columns: { id: { nullable: false }, user_id: { nullable: false } },
-            foreignKeys: [{ source: { columns: ['user_id'] } }],
           },
         },
       },
@@ -322,6 +285,7 @@ describe('Models namespace and models constant emission', () => {
             actor: {
               to: ref('User'),
               cardinality: 'N:1',
+              nullable: true,
               on: { localFields: ['actorId'], targetFields: ['id'] },
             },
           },
@@ -364,6 +328,7 @@ describe('Models namespace and models constant emission', () => {
               project: {
                 to: ref('Project'),
                 cardinality: 'N:1',
+                nullable: true,
                 on: { localFields: ['projectId'], targetFields: ['id'] },
               },
             },
@@ -395,6 +360,7 @@ describe('Models namespace and models constant emission', () => {
               owner: {
                 to: ref('Project'),
                 cardinality: 'N:1',
+                nullable: true,
                 on: { localFields: ['ownerId'], targetFields: ['id'] },
               },
             },
@@ -421,7 +387,6 @@ describe('Models namespace and models constant emission', () => {
               project_id: { nullable: true },
               severity: { nullable: true },
             },
-            foreignKeys: [{ source: { columns: ['project_id'] } }],
           },
           features: {
             columns: {
@@ -429,7 +394,6 @@ describe('Models namespace and models constant emission', () => {
               priority: { nullable: false },
               owner_id: { nullable: true },
             },
-            foreignKeys: [{ source: { columns: ['owner_id'] } }],
           },
           projects: { columns: { id: { nullable: false } } },
         },
@@ -491,6 +455,7 @@ describe('Models namespace and models constant emission', () => {
               project: {
                 to: ref('Project'),
                 cardinality: 'N:1',
+                nullable: false,
                 on: { localFields: ['projectId'], targetFields: ['id'] },
               },
             },
@@ -512,6 +477,7 @@ describe('Models namespace and models constant emission', () => {
               project: {
                 to: ref('Project'),
                 cardinality: 'N:1',
+                nullable: true,
                 on: { localFields: ['bugProjectId'], targetFields: ['id'] },
               },
             },
@@ -537,11 +503,9 @@ describe('Models namespace and models constant emission', () => {
               type: { nullable: false },
               project_id: { nullable: false },
             },
-            foreignKeys: [{ source: { columns: ['project_id'] } }],
           },
           bugs: {
             columns: { bug_project_id: { nullable: true } },
-            foreignKeys: [{ source: { columns: ['bug_project_id'] } }],
           },
           projects: { columns: { id: { nullable: false } } },
         },
@@ -592,6 +556,7 @@ describe('Models namespace and models constant emission', () => {
               project: {
                 to: ref('Project'),
                 cardinality: 'N:1',
+                nullable: false,
                 on: { localFields: ['projectId'], targetFields: ['id'] },
               },
             },
@@ -630,6 +595,7 @@ describe('Models namespace and models constant emission', () => {
               task: {
                 to: ref('Task'),
                 cardinality: 'N:1',
+                nullable: false,
                 on: { localFields: ['taskId'], targetFields: ['id'] },
               },
             },
@@ -649,12 +615,10 @@ describe('Models namespace and models constant emission', () => {
               type: { nullable: false },
               project_id: { nullable: false },
             },
-            foreignKeys: [{ source: { columns: ['project_id'] } }],
           },
           projects: { columns: { id: { nullable: false } } },
           comments: {
             columns: { id: { nullable: false }, task_id: { nullable: false } },
-            foreignKeys: [{ source: { columns: ['task_id'] } }],
           },
         },
       },
@@ -710,6 +674,7 @@ describe('Models namespace and models constant emission', () => {
             customer: {
               to: ref('Customer', 'public', 'crm'),
               cardinality: 'N:1',
+              nullable: false,
               on: { localFields: ['customerId'], targetFields: ['id'] },
             },
             lines: {
@@ -779,11 +744,13 @@ describe('Models namespace and models constant emission', () => {
             assignee: {
               to: ref('User', '__unbound__'),
               cardinality: 'N:1',
+              nullable: true,
               on: { localFields: ['assigneeId'], targetFields: ['_id'] },
             },
             author: {
               to: ref('User', '__unbound__'),
               cardinality: 'N:1',
+              nullable: true,
               on: { localFields: ['authorId'], targetFields: ['_id'] },
             },
             home: { to: ref('Address', '__unbound__'), cardinality: '1:1' },
@@ -889,6 +856,7 @@ describe('Models namespace and models constant emission', () => {
             ghost: {
               to: ref('Ghost'),
               cardinality: 'N:1',
+              nullable: false,
               on: { localFields: ['id'], targetFields: ['id'] },
             },
           },
@@ -917,6 +885,7 @@ describe('Models namespace and models constant emission', () => {
             customer: {
               to: ref('Customer', 'crm'),
               cardinality: 'N:1',
+              nullable: false,
               on: { localFields: ['id'], targetFields: ['id'] },
             },
           },

@@ -685,6 +685,34 @@ function relationAttributeDeclaresOwningSide(relationAttribute: ResolvedAttribut
   );
 }
 
+function relationNullabilityMismatch(
+  relationField: FieldSymbol,
+  localColumns: readonly string[],
+  resolvedFields: readonly ResolvedField[],
+): boolean {
+  const anyLocalColumnNullable = resolvedFields.some(
+    (resolvedField) => localColumns.includes(resolvedField.columnName) && resolvedField.nullable,
+  );
+  return relationField.optional !== anyLocalColumnNullable;
+}
+
+function relationNullabilityMismatchDiagnostic(
+  modelName: string,
+  relationAttribute: { readonly field: FieldSymbol; readonly relation: ResolvedAttribute },
+  sourceId: string,
+): ContractSourceDiagnostic {
+  const fieldLabel = `Relation field "${modelName}.${relationAttribute.field.name}"`;
+  const message = relationAttribute.field.optional
+    ? `${fieldLabel} is optional but every field in @relation(fields: [...]) is required. Make one of those fields optional with "?" or remove "?" from "${relationAttribute.field.name}".`
+    : `${fieldLabel} is required but a field in @relation(fields: [...]) is optional. Add "?" to "${relationAttribute.field.name}" or make those fields required.`;
+  return {
+    code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+    message,
+    sourceId,
+    span: relationAttribute.field.span,
+  };
+}
+
 function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult {
   const { model, mapping, sourceId, diagnostics } = input;
   const tableName = mapping.tableName;
@@ -1232,6 +1260,13 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         continue;
       }
 
+      if (relationNullabilityMismatch(relationAttribute.field, localColumns, resolvedFields)) {
+        diagnostics.push(
+          relationNullabilityMismatchDiagnostic(model.name, relationAttribute, sourceId),
+        );
+        continue;
+      }
+
       // For cross-space references the `references` list provides field names from the remote
       // model. Since the interpreter has no access to the extension contract, these field names
       // are treated as column names directly (matching the TS builder's cross-space path).
@@ -1309,6 +1344,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         toModel: fieldTypeName,
         toTable: crossTargetTableName,
         cardinality: 'N:1',
+        nullable: relationAttribute.field.optional,
         spaceId: fieldTypeContractSpaceId,
         namespaceId: crossTargetNamespaceId,
         on: {
@@ -1404,6 +1440,12 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     if (!localColumns) {
       continue;
     }
+    if (relationNullabilityMismatch(relationAttribute.field, localColumns, resolvedFields)) {
+      diagnostics.push(
+        relationNullabilityMismatchDiagnostic(model.name, relationAttribute, sourceId),
+      );
+      continue;
+    }
     const referencedColumns = mapFieldNamesToColumns({
       modelName: targetMapping.model.name,
       fieldNames: parsedRelation.references,
@@ -1460,6 +1502,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       targetTableName: targetMapping.tableName,
       ...ifDefined('targetNamespaceId', targetNamespaceId),
       ...ifDefined('relationName', parsedRelation.name),
+      nullable: relationAttribute.field.optional,
       localColumns,
       referencedColumns,
     });

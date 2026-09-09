@@ -273,7 +273,7 @@ export namespace Models {
     _id: CodecTypes['mongo/objectId@1']['output'];
     userId: CodecTypes['mongo/objectId@1']['output'];
     items: ReadonlyArray<CartItemOutput>;
-    user: unbound_User | null;
+    user: unbound_User;
     readonly [RelationKeys]?: 'user';
   };
   export type unbound_Order = {
@@ -283,7 +283,7 @@ export namespace Models {
     shippingAddress: CodecTypes['mongo/string@1']['output'];
     type: CodecTypes['mongo/string@1']['output'];
     statusHistory: ReadonlyArray<StatusEntryOutput>;
-    user: unbound_User | null;
+    user: unbound_User;
     invoices: unbound_Invoice[];
     readonly [RelationKeys]?: 'user' | 'invoices';
   };
@@ -304,7 +304,7 @@ export namespace Models {
     tax: CodecTypes['mongo/double@1']['output'];
     total: CodecTypes['mongo/double@1']['output'];
     issuedAt: CodecTypes['mongo/date@1']['output'];
-    order: unbound_Order | null;
+    order: unbound_Order;
     readonly [RelationKeys]?: 'order';
   };
   export type unbound_Event = {
@@ -887,6 +887,7 @@ type ContractBase = Omit<
                   readonly model: 'User';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['_id'];
@@ -966,6 +967,7 @@ type ContractBase = Omit<
                   readonly model: 'Order';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['orderId'];
                   readonly targetFields: readonly ['_id'];
@@ -1040,6 +1042,7 @@ type ContractBase = Omit<
                   readonly model: 'User';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['_id'];

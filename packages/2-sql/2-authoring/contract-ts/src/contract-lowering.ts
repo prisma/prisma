@@ -390,6 +390,10 @@ function resolveRelationAnchorFields(spec: RuntimeModelSpec): readonly string[] 
   );
 }
 
+function anyFieldNullable(spec: RuntimeModelSpec, fieldNames: readonly string[]): boolean {
+  return fieldNames.some((fieldName) => spec.fieldBuilders[fieldName]?.build().nullable === true);
+}
+
 function lowerBelongsToRelation(
   relationName: string,
   relation: Extract<RelationState, { kind: 'belongsTo' }>,
@@ -434,6 +438,7 @@ function lowerBelongsToRelation(
       toModel: targetModelName,
       toTable: targetTable,
       cardinality: 'N:1',
+      nullable: relation.optional ?? anyFieldNullable(currentSpec, fromFields),
       spaceId: relation.spaceId,
       ...(relation.namespaceId !== undefined ? { namespaceId: relation.namespaceId } : {}),
       on: {
@@ -459,6 +464,7 @@ function lowerBelongsToRelation(
     toModel: targetModelName,
     toTable: targetSpec.tableName,
     cardinality: 'N:1',
+    nullable: relation.optional ?? anyFieldNullable(currentSpec, fromFields),
     on: {
       parentTable: currentSpec.tableName,
       parentColumns: mapFieldNamesToColumnNames(
@@ -507,7 +513,9 @@ function lowerHasOwnershipRelation(
     fieldName: relationName,
     toModel: targetModelName,
     toTable: targetSpec.tableName,
-    cardinality: relation.kind === 'hasMany' ? '1:N' : '1:1',
+    ...(relation.kind === 'hasMany'
+      ? { cardinality: '1:N' as const }
+      : { cardinality: '1:1' as const, nullable: true }),
     on: {
       parentTable: currentSpec.tableName,
       parentColumns: mapFieldNamesToColumnNames(

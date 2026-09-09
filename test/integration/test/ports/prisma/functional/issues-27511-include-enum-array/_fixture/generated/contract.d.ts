@@ -520,6 +520,7 @@ type ContractBase = Omit<
                   readonly model: 'workspace_member';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['memberId'];
                   readonly targetFields: readonly ['id'];
@@ -531,6 +532,7 @@ type ContractBase = Omit<
                   readonly model: 'workspace_role';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['roleId'];
                   readonly targetFields: readonly ['id'];

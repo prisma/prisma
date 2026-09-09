@@ -154,17 +154,24 @@ test('ResultType of a nullable to-one include equals With', () => {
   >();
 });
 
-test('ResultType of a to-one include without a foreign key equals With and is nullable', () => {
+test('ResultType of a to-one include on a required field equals With and is not nullable', () => {
   const withReviewer = db.Article.include('reviewer');
   expectTypeOf<ResultType<typeof withReviewer>>().toEqualTypeOf<
     With<Models.public_Article, 'reviewer'>
   >();
-  expectTypeOf<Models.public_Article['reviewer']>().toEqualTypeOf<Models.public_User | null>();
+  expectTypeOf<Models.public_Article['reviewer']>().toEqualTypeOf<Models.public_User>();
 });
 
 test('ResultType of a select projection is the projected shape', () => {
   const projected = db.User.select('id');
   expectTypeOf<ResultType<typeof projected>>().toEqualTypeOf<{ id: number }>();
+});
+
+test('a refined to-one include is nullable even when the relation is not', () => {
+  const refined = db.Article.include('reviewer', (reviewer) => reviewer.where({ id: 1 }));
+  expectTypeOf<
+    ResultType<typeof refined>['reviewer']
+  >().toEqualTypeOf<Scalars<Models.public_User> | null>();
 });
 
 test('ResultType of a refined include is not never', () => {

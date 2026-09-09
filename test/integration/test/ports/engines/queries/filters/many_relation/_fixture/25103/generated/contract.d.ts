@@ -611,6 +611,7 @@ type ContractBase = Omit<
                   readonly model: 'Contact';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['contactId'];
                   readonly targetFields: readonly ['id'];
@@ -666,6 +667,7 @@ type ContractBase = Omit<
                   readonly model: 'Audience';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['audienceId'];
                   readonly targetFields: readonly ['id'];
@@ -677,6 +679,7 @@ type ContractBase = Omit<
                   readonly model: 'Identity';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['identityId'];
                   readonly targetFields: readonly ['id'];

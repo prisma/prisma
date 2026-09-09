@@ -481,6 +481,7 @@ type ContractBase = Omit<
                   readonly model: 'TestModel';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['testId'];
                   readonly targetFields: readonly ['id'];
@@ -492,6 +493,7 @@ type ContractBase = Omit<
                   readonly model: 'ToOne';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['toOneId'];
                   readonly targetFields: readonly ['id'];
@@ -556,6 +558,7 @@ type ContractBase = Omit<
                   readonly model: 'OneToMany';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['toOneId'];

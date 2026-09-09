@@ -5765,6 +5765,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -5884,6 +5885,7 @@ type ContractBase = Omit<
                   readonly model: 'OauthClients';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['oauthClientId'];
                   readonly targetFields: readonly ['id'];
@@ -5906,6 +5908,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -6594,6 +6597,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthSession';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['sessionId'];
                   readonly targetFields: readonly ['id'];
@@ -6656,6 +6660,7 @@ type ContractBase = Omit<
                   readonly model: 'MfaFactors';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['factorId'];
                   readonly targetFields: readonly ['id'];
@@ -6766,6 +6771,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -6893,6 +6899,7 @@ type ContractBase = Omit<
                   readonly model: 'OauthClients';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['clientId'];
                   readonly targetFields: readonly ['id'];
@@ -6904,6 +6911,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -7135,6 +7143,7 @@ type ContractBase = Omit<
                   readonly model: 'OauthClients';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['clientId'];
                   readonly targetFields: readonly ['id'];
@@ -7146,6 +7155,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -7213,6 +7223,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -7285,6 +7296,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthSession';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['sessionId'];
                   readonly targetFields: readonly ['id'];
@@ -7359,6 +7371,7 @@ type ContractBase = Omit<
                   readonly model: 'SsoProviders';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['ssoProviderId'];
                   readonly targetFields: readonly ['id'];
@@ -7429,6 +7442,7 @@ type ContractBase = Omit<
                   readonly model: 'FlowState';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['flowStateId'];
                   readonly targetFields: readonly ['id'];
@@ -7440,6 +7454,7 @@ type ContractBase = Omit<
                   readonly model: 'SsoProviders';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['ssoProviderId'];
                   readonly targetFields: readonly ['id'];
@@ -7511,6 +7526,7 @@ type ContractBase = Omit<
                   readonly model: 'SsoProviders';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['ssoProviderId'];
                   readonly targetFields: readonly ['id'];
@@ -7645,6 +7661,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -7739,6 +7756,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -7949,6 +7967,7 @@ type ContractBase = Omit<
                   readonly model: 'BucketsAnalytics';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['catalogId'];
                   readonly targetFields: readonly ['id'];
@@ -8040,6 +8059,7 @@ type ContractBase = Omit<
                   readonly model: 'BucketsAnalytics';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['catalogId'];
                   readonly targetFields: readonly ['id'];
@@ -8051,6 +8071,7 @@ type ContractBase = Omit<
                   readonly model: 'IcebergNamespaces';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['namespaceId'];
                   readonly targetFields: readonly ['id'];
@@ -8162,6 +8183,7 @@ type ContractBase = Omit<
                   readonly model: 'StorageBucket';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['bucketId'];
                   readonly targetFields: readonly ['id'];
@@ -8249,6 +8271,7 @@ type ContractBase = Omit<
                   readonly model: 'StorageBucket';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['bucketId'];
                   readonly targetFields: readonly ['id'];
@@ -8260,6 +8283,7 @@ type ContractBase = Omit<
                   readonly model: 'S3MultipartUploads';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['uploadId'];
                   readonly targetFields: readonly ['id'];
@@ -8451,6 +8475,7 @@ type ContractBase = Omit<
                   readonly model: 'StorageBucket';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['bucketId'];
                   readonly targetFields: readonly ['id'];
@@ -8527,6 +8552,7 @@ type ContractBase = Omit<
                   readonly model: 'BucketsVectors';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['bucketId'];
                   readonly targetFields: readonly ['id'];

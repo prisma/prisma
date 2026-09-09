@@ -374,12 +374,64 @@ describe('interpretPslDocumentToMongoContract', () => {
         author: {
           to: crossRef('User'),
           cardinality: 'N:1',
+          nullable: false,
           on: {
             localFields: ['authorId'],
             targetFields: ['_id'],
           },
         },
       });
+    });
+
+    it('records nullable: true on an optional relation field backed by an optional FK field', () => {
+      const ir = interpretOk(`
+        model User {
+          id    ObjectId @id @map("_id")
+          posts Post[]
+        }
+
+        model Post {
+          id       ObjectId @id @map("_id")
+          authorId ObjectId?
+          author   User? @relation(fields: [authorId], references: [id])
+        }
+      `);
+
+      expect(model(ir, 'Post').relations).toMatchObject({
+        author: { cardinality: 'N:1', nullable: true },
+      });
+      expect(model(ir, 'User').relations).toMatchObject({
+        posts: expect.not.objectContaining({ nullable: expect.anything() }),
+      });
+    });
+
+    it.each([
+      ['required relation field on an optional FK field', 'ObjectId?', 'User', 'is required'],
+      ['optional relation field on a required FK field', 'ObjectId', 'User?', 'is optional'],
+    ])('rejects a %s', (_label, fkType, relationType, expectedMessage) => {
+      const result = interpret(`
+        model User {
+          id    ObjectId @id @map("_id")
+          posts Post[]
+        }
+
+        model Post {
+          id       ObjectId @id @map("_id")
+          authorId ${fkType}
+          author   ${relationType} @relation(fields: [authorId], references: [id])
+        }
+      `);
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+            message: expect.stringContaining(`Relation field "Post.author" ${expectedMessage}`),
+          }),
+        ]),
+      );
     });
 
     it('creates 1:N backrelation for list fields referencing other models', () => {
@@ -510,6 +562,32 @@ describe('interpretPslDocumentToMongoContract', () => {
       );
     });
 
+    it('rejects a required 1:1 inverse relation field and tells the user to make it optional', () => {
+      const result = interpret(`
+        model User {
+          id      ObjectId @id @map("_id")
+          profile Profile
+        }
+
+        model Profile {
+          id     ObjectId @id @map("_id")
+          userId ObjectId @unique
+          user   User @relation(fields: [userId], references: [id])
+        }
+      `);
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_REQUIRED_ONE_TO_ONE_BACKRELATION',
+          message: expect.stringContaining(
+            'Backrelation field "User.profile" is required, but it does not own the foreign key',
+          ),
+        }),
+      ]);
+    });
+
     it('creates 1:1 inverse relation for singular non-FK relation field', () => {
       const ir = interpretOk(`
         model User {
@@ -528,6 +606,7 @@ describe('interpretPslDocumentToMongoContract', () => {
         profile: {
           to: crossRef('Profile'),
           cardinality: '1:1',
+          nullable: true,
           on: {
             localFields: ['_id'],
             targetFields: ['userId'],
@@ -538,6 +617,7 @@ describe('interpretPslDocumentToMongoContract', () => {
         user: {
           to: crossRef('User'),
           cardinality: 'N:1',
+          nullable: false,
           on: {
             localFields: ['userId'],
             targetFields: ['_id'],
@@ -987,6 +1067,7 @@ describe('interpretPslDocumentToMongoContract', () => {
                     author: {
                       to: crossRef('User'),
                       cardinality: 'N:1',
+                      nullable: false,
                       on: { localFields: ['authorId'], targetFields: ['_id'] },
                     },
                   },

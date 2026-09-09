@@ -502,6 +502,7 @@ type ContractBase = Omit<
                   readonly model: 'UserOneToOne';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -540,6 +541,7 @@ type ContractBase = Omit<
                   readonly model: 'UserOneToOne';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -574,6 +576,7 @@ type ContractBase = Omit<
                   readonly model: 'ProfileOneToOne';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['userId'];
@@ -585,6 +588,7 @@ type ContractBase = Omit<
                   readonly model: 'ProfileOptionalOneToOne';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['userId'];

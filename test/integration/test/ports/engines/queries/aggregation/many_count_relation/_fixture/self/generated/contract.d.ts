@@ -492,6 +492,7 @@ type ContractBase = Omit<
               readonly followee: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['followeeId'];
                   readonly targetFields: readonly ['id'];
@@ -500,6 +501,7 @@ type ContractBase = Omit<
               readonly follower: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['followerId'];
                   readonly targetFields: readonly ['id'];

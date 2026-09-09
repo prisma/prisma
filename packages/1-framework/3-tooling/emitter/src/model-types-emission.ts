@@ -1,6 +1,7 @@
 import type {
   Contract,
   ContractModelBase,
+  ContractReferenceRelation,
   ContractRelation,
   CrossReference,
 } from '@internal/contract/types';
@@ -12,11 +13,6 @@ import {
   serializeValue,
 } from './domain-type-generation';
 import { emitterError } from './emitter-errors';
-
-export type ToOneRelationNullability = (
-  model: ContractModelBase,
-  relation: ContractRelation,
-) => boolean;
 
 type ModelRef = {
   readonly namespaceId: string;
@@ -124,12 +120,15 @@ function fieldLines(
   });
 }
 
+function hasJoin(relation: ContractRelation): relation is ContractReferenceRelation {
+  return 'on' in relation && relation.on !== undefined;
+}
+
 function relationLine(
   owner: ModelRef,
   relationName: string,
   relation: ContractRelation,
   namespaces: readonly NamespaceModels[],
-  isToOneNullable: ToOneRelationNullability,
 ): RelationLine | undefined {
   if (relation.to.space !== undefined) return undefined;
   const target = requireRelationTarget(namespaces, owner, relationName, relation.to);
@@ -137,27 +136,27 @@ function relationLine(
     target.namespaceId,
     isPolymorphicBase(target.model) ? `Any${target.modelName}` : target.modelName,
   );
-  const toMany = relation.cardinality === '1:N' || relation.cardinality === 'N:M';
-  const hasJoin = 'on' in relation && relation.on !== undefined;
   const key = serializeObjectKey(relationName);
-  if (toMany) {
-    return { line: `${key}: ${targetMember}[];`, hasJoin };
+  if (!hasJoin(relation)) {
+    const embedded = relation.cardinality === '1:N' ? `${targetMember}[]` : targetMember;
+    return { line: `${key}: ${embedded};`, hasJoin: false };
   }
-  if (!hasJoin) {
-    return { line: `${key}: ${targetMember};`, hasJoin };
+  if (relation.cardinality === '1:N' || relation.cardinality === 'N:M') {
+    return { line: `${key}: ${targetMember}[];`, hasJoin: true };
   }
-  const nullable = isToOneNullable(owner.model, relation);
-  return { line: `${key}: ${nullable ? `${targetMember} | null` : targetMember};`, hasJoin };
+  return {
+    line: `${key}: ${relation.nullable ? `${targetMember} | null` : targetMember};`,
+    hasJoin: true,
+  };
 }
 
 function collectRelationLines(
   ref: ModelRef,
   namespaces: readonly NamespaceModels[],
-  isToOneNullable: ToOneRelationNullability,
 ): Map<string, RelationLine> {
   const lines = new Map<string, RelationLine>();
   for (const [relationName, relation] of Object.entries(ref.model.relations)) {
-    const rendered = relationLine(ref, relationName, relation, namespaces, isToOneNullable);
+    const rendered = relationLine(ref, relationName, relation, namespaces);
     if (rendered !== undefined) lines.set(relationName, rendered);
   }
   return lines;
@@ -172,7 +171,6 @@ function memberLines(
   ref: ModelRef,
   namespaces: readonly NamespaceModels[],
   resolvers: ModelFieldTypeResolvers,
-  isToOneNullable: ToOneRelationNullability,
 ): MemberLines {
   const base = ref.model.base !== undefined ? findModel(namespaces, ref.model.base) : undefined;
   if (base !== undefined && isPolymorphicBase(base.model)) {
@@ -184,8 +182,8 @@ function memberLines(
         variantValue !== undefined ? serializeValue(variantValue) : discriminatorUnion(base.model),
     };
     const relationsByName = new Map([
-      ...collectRelationLines(base, namespaces, isToOneNullable),
-      ...collectRelationLines(ref, namespaces, isToOneNullable),
+      ...collectRelationLines(base, namespaces),
+      ...collectRelationLines(ref, namespaces),
     ]);
     return {
       fields: [
@@ -200,7 +198,7 @@ function memberLines(
     : undefined;
   return {
     fields: fieldLines(ref, resolvers, discriminatorType),
-    relationsByName: collectRelationLines(ref, namespaces, isToOneNullable),
+    relationsByName: collectRelationLines(ref, namespaces),
   };
 }
 
@@ -238,7 +236,6 @@ function namespaceModelsOf(contract: Contract): NamespaceModels[] {
 export function generateModelTypesBlock(
   contract: Contract,
   resolvers: ModelFieldTypeResolvers,
-  isToOneNullable: ToOneRelationNullability,
 ): string {
   const namespaces = namespaceModelsOf(contract);
   const claims = new Map<string, string>();
@@ -271,7 +268,7 @@ export function generateModelTypesBlock(
       members.push(
         renderMember(
           memberName,
-          memberLines(ref, namespaces, resolvers, isToOneNullable),
+          memberLines(ref, namespaces, resolvers),
           ref.model.owner !== undefined,
         ),
       );

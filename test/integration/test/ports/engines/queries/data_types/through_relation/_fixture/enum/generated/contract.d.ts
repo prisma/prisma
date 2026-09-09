@@ -422,6 +422,7 @@ type ContractBase = Omit<
                   readonly model: 'Parent';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['parentId'];
                   readonly targetFields: readonly ['id'];

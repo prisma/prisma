@@ -478,6 +478,7 @@ type ContractBase = Omit<
               readonly main: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Main' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['mainId'];
                   readonly targetFields: readonly ['id'];
@@ -511,6 +512,7 @@ type ContractBase = Omit<
                   readonly model: 'Alice';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['aliceId'];
                   readonly targetFields: readonly ['id'];
@@ -519,6 +521,7 @@ type ContractBase = Omit<
               readonly bob: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Bob' };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['mainId'];

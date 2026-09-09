@@ -164,7 +164,9 @@ type IncludeRelationRowType<
       ? RelationTargetModel<TContract, R> extends infer To extends string &
           keyof MongoModelsMap<TContract>
         ? C extends 'N:1' | '1:1'
-          ? InferFullRow<TContract, To> | null
+          ? R extends { readonly nullable: true }
+            ? InferFullRow<TContract, To> | null
+            : InferFullRow<TContract, To>
           : InferFullRow<TContract, To>[]
         : never
       : never

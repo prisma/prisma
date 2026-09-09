@@ -383,6 +383,7 @@ type ContractBase = Omit<
               readonly friend: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['friendId'];
                   readonly targetFields: readonly ['id'];
@@ -391,6 +392,7 @@ type ContractBase = Omit<
               readonly friendOf: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['friendId'];

@@ -117,7 +117,81 @@
                             "type": "object",
                             "properties": {
                               "cardinality": {
-                                "enum": ["1:1", "1:N", "N:1"]
+                                "enum": ["1:1", "1:N"]
+                              },
+                              "to": {
+                                "type": "object",
+                                "properties": {
+                                  "model": {
+                                    "type": "string"
+                                  },
+                                  "namespace": {
+                                    "type": "string"
+                                  },
+                                  "space": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["model", "namespace"],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": ["cardinality", "to"],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "cardinality": {
+                                "enum": ["1:1", "N:1"]
+                              },
+                              "nullable": {
+                                "type": "boolean"
+                              },
+                              "on": {
+                                "type": "object",
+                                "properties": {
+                                  "localFields": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "targetFields": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": ["localFields", "targetFields"],
+                                "additionalProperties": false
+                              },
+                              "to": {
+                                "type": "object",
+                                "properties": {
+                                  "model": {
+                                    "type": "string"
+                                  },
+                                  "namespace": {
+                                    "type": "string"
+                                  },
+                                  "space": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["model", "namespace"],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": ["cardinality", "nullable", "on", "to"],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "cardinality": {
+                                "const": "1:N"
                               },
                               "on": {
                                 "type": "object",
@@ -156,32 +230,6 @@
                               }
                             },
                             "required": ["cardinality", "on", "to"],
-                            "additionalProperties": false
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "cardinality": {
-                                "enum": ["1:1", "1:N"]
-                              },
-                              "to": {
-                                "type": "object",
-                                "properties": {
-                                  "model": {
-                                    "type": "string"
-                                  },
-                                  "namespace": {
-                                    "type": "string"
-                                  },
-                                  "space": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": ["model", "namespace"],
-                                "additionalProperties": false
-                              }
-                            },
-                            "required": ["cardinality", "to"],
                             "additionalProperties": false
                           },
                           {

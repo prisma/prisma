@@ -459,6 +459,7 @@ type ContractBase = Omit<
               readonly b: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'B' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['b_id'];
                   readonly targetFields: readonly ['id'];

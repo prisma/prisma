@@ -490,6 +490,7 @@ type ContractBase = Omit<
                   readonly model: 'CategoryManyToMany';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['categoryId'];
                   readonly targetFields: readonly ['id'];
@@ -501,6 +502,7 @@ type ContractBase = Omit<
                   readonly model: 'PostManyToMany';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['postId'];
                   readonly targetFields: readonly ['id'];

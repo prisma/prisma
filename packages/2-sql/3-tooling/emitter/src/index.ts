@@ -2,7 +2,6 @@ import type {
   Contract,
   ContractModel,
   ContractModelBase,
-  ContractRelation,
   JsonValue,
 } from '@internal/contract/types';
 import {
@@ -31,7 +30,6 @@ import type {
 } from '@internal/sql-contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { sqlEmitterError, sqlEmitterValidationError } from './errors';
-import { isSqlToOneRelationNullable } from './relation-nullability';
 
 /**
  * Render the aggregate result map from the overloads the stack contributes, settled against the codecs it contributes.
@@ -451,22 +449,6 @@ export const sqlEmission = {
       return codecShape.typeParams;
     }
     return column.typeParams;
-  },
-
-  isToOneRelationNullable(
-    model: ContractModelBase,
-    relation: ContractRelation,
-    contract: Contract,
-  ): boolean {
-    const storage = blindCast<
-      SqlStorage | undefined,
-      'contract.storage is SqlStorage for sql family'
-    >(contract.storage);
-    const sqlModel = blindCast<
-      ContractModel<SqlModelStorage>,
-      'sql family models carry SqlModelStorage'
-    >(model);
-    return isSqlToOneRelationNullable(sqlModel, relation, storage);
   },
 
   resolveFieldValueSet(

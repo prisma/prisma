@@ -161,6 +161,7 @@
             "relations": {
               "brand": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "brandId"
@@ -176,6 +177,7 @@
               },
               "category": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "categoryId"

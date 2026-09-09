@@ -65,7 +65,7 @@ export namespace Models {
     enum: 'A' | 'B';
     enumList: ReadonlyArray<'A' | 'B'>;
     composite: CompositeOutput;
-    relation: unbound_Other | null;
+    relation: unbound_Other;
     readonly [RelationKeys]?: 'relation';
   };
   export type unbound_Other = {
@@ -218,6 +218,7 @@ type ContractBase = Omit<
                   readonly model: 'Other';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['otherId'];
                   readonly targetFields: readonly ['_id'];
@@ -240,6 +241,7 @@ type ContractBase = Omit<
                   readonly model: 'Model';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['_id'];
                   readonly targetFields: readonly ['otherId'];

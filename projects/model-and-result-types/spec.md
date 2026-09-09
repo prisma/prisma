@@ -76,12 +76,25 @@ export declare const models: {
 - **Member name** is `<nsSegment>_<ModelName>`. `nsSegment` is the namespace id verbatim, except `__unbound__` becomes `unbound`. Separator is `_`.
 - **Namespace is always present.** No flattening for any target.
 - **Field lines** use the same resolver as `FieldOutputTypes` (`resolveFieldType` with the same codec lookup, type-param resolver, and value-set resolver), without `readonly`, in declaration order.
-- **Relation lines** follow the fields, in declaration order. Type is the related model's member; when the related model is a polymorphic base, the type is its `Any<Base>` member, because the ORM returns the variant union for such includes (settled after dispatch 2). Wrapper by cardinality: `'1:N'` and `'N:M'` give `X[]`; `'1:1'` and `'N:1'` give `X` or `X | null`. `| null` applies when this model owns the foreign key and any of its local FK columns is nullable, computed the same way the SQL ORM's `IsToOneRelationNullable` does it, but at emit time from the contract JSON. On SQL, a to-one relation whose table has no foreign key for the local columns is also `| null`, mirroring the ORM. On Mongo, every to-one reference relation is `| null`: there are no foreign keys, a referenced document can be missing, and the Mongo ORM already types every to-one include that way (settled after dispatch 1, 2026-09-08). A relation whose target model is not in this contract (cross-space, emitted as `never` today in the ORM) is omitted from the member and from `RelationKeys`.
+- **Relation lines** follow the fields, in declaration order. Type is the related model's member; when the related model is a polymorphic base, the type is its `Any<Base>` member, because the ORM returns the variant union for such includes (settled after dispatch 2). Wrapper by cardinality: `'1:N'` and `'N:M'` give `X[]`; `'1:1'` and `'N:1'` give `X` or `X | null`. `| null` applies exactly when the relation's `nullable` flag in the contract is true (settled 2026-09-09; see § "Relation nullability is a contract fact"). A relation whose target model is not in this contract (cross-space, emitted as `never` today in the ORM) is omitted from the member and from `RelationKeys`.
 - **Phantom** is the last line: `readonly [RelationKeys]?: 'a' | 'b'`, or `readonly [RelationKeys]?: never` when the model has no relations. Mongo embedded models (those with an `owner`) carry no phantom line, so that `Scalars` of the owner's embed field equals the ORM's embed row.
 - **Polymorphism.** The base member has the base's own fields and relations, with the discriminator field typed as the union of the variants' literal values. Each variant member has base fields, then variant fields, then base relations, then variant relations, with the discriminator narrowed to its literal. One extra member `<ns>_Any<Base>` is the union of the variant members. `models.<ns>` carries `Base`, each variant, and `Any<Base>` as keys.
 - **Mongo.** Reference relations are relations. Embed relations are emitted as fields typed as the embedded model's member (array or single per cardinality), placed after scalar fields and before reference relations, and are not in `RelationKeys`.
 - **Name collisions.** If two emitted member names are equal (separator collision, or a model literally named `AnyTask` beside a base `Task`), the emitter throws the emitter's existing structured validation error naming both sources. Nothing is emitted.
 - **Import.** Each family's `getFamilyImports` adds `RelationKeys` to its existing import from the family types entrypoint.
+
+### Relation nullability is a contract fact
+
+Whether a to-one relation can be missing is stated by the schema (`author User?` versus `author User`) and is recorded on the relation, not reconstructed from storage.
+
+- `ContractNonJunctionRelation` in `packages/1-framework/0-foundation/contract/src/domain-types.ts` gains `nullable: boolean` on the `'1:1'` and `'N:1'` members. `'1:N'`, `'N:M'`, and embed relations do not carry it.
+- Authoring sets it from what the user wrote: the SQL and Mongo PSL interpreters from the `?` on the relation field at every site that assigns a `'1:1'` or `'N:1'` cardinality; the SQL and Mongo TypeScript builders through a flag on the relation builder.
+- Authoring rejects a required relation field whose foreign-key columns are nullable, and the reverse, with a structured contract error naming the field.
+- `validate-domain.ts` requires the flag on every `'1:1'` and `'N:1'` relation. A `contract.json` without it fails validation with a message to re-run `prisma contract emit`.
+- The emitter reads `relation.nullable`. `EmissionSpi.isToOneRelationNullable`, `packages/2-sql/3-tooling/emitter/src/relation-nullability.ts`, and their tests are deleted.
+- The side of a one-to-one relation that does not own the foreign key is always nullable, because nothing in the database guarantees the related row exists: a `'1:1'` back-relation field written without `?` is a `PSL_REQUIRED_ONE_TO_ONE_BACKRELATION` diagnostic in both PSL interpreters, and `hasOne` in both TypeScript builders has no `optional` option and always records `nullable: true`.
+- The SQL ORM's `IsToOneRelationNullable` reads the flag; `RelationLocalFieldColumns`, `MapFieldsToColumns`, `AnyColumnNullable`, `HasForeignKeyForCols`, and `IsFkSideOfRelation` are deleted. The Mongo ORM's `IncludeRelationRowType` reads the flag instead of always adding `| null`. Refined to-one includes (`include('payment', p => p.where(...))`) are `| null` independently of the flag, because the refinement can exclude the row.
+- The storage hash canonicalizes the domain section as empty, so no contract hash changes.
 
 ### Framework types
 
@@ -112,7 +125,6 @@ export type With<M, R extends RelationNamesOf<M>> = Scalars<M> & {
 
 - SQL: `CollectionImpl` in `packages/3-extensions/sql-orm-client/src/collection.ts` gains `declare readonly _row?: Row;` directly below `declare readonly [RowType]: Row;`.
 - Mongo: the `MongoCollection` interface in `packages/2-mongo-family/5-query-builders/orm/src/collection.ts` gains `readonly _row?: SimplifyDeep<IncludedRow<TContract, ModelName, TIncludes>>;` as its first member. `SimplifyDeep` is needed because Mongo rows are intersections; the ORM derivations themselves are unchanged.
-- Nullability of a to-one relation is computed by a family hook, `EmissionSpi.isToOneRelationNullable`, because the SQL rule reads the storage plane. Default when a family omits the hook: nullable.
 - The ORM row derivations are unchanged. Equality with the emitted types is enforced by tests, not by redefinition. (The brief asked for "defined as"; threading the emitted map through `TypeMaps` would change `TypeMaps`, which is a non-goal. Hover text shows the expanded object either way.)
 
 ### Tests

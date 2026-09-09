@@ -289,10 +289,37 @@ describe('SQL contract validators', () => {
       const invalid = modelWithRelation({
         to: { model: 'Child', namespace: UNBOUND_NAMESPACE_ID },
         cardinality: 'N:1',
+        nullable: false,
         on: { localFields: ['parentId'], targetFields: ['id'] },
         through,
       });
       expect(() => validateModel(invalid)).toThrow();
+    });
+
+    it.each(['N:1', '1:1'])('requires nullable on a %s relation', (cardinality) => {
+      const withFlag = modelWithRelation({
+        to: { model: 'Child', namespace: UNBOUND_NAMESPACE_ID },
+        cardinality,
+        nullable: true,
+        on: { localFields: ['parentId'], targetFields: ['id'] },
+      });
+      expect(() => validateModel(withFlag)).not.toThrow();
+      const withoutFlag = modelWithRelation({
+        to: { model: 'Child', namespace: UNBOUND_NAMESPACE_ID },
+        cardinality,
+        on: { localFields: ['parentId'], targetFields: ['id'] },
+      });
+      expect(() => validateModel(withoutFlag)).toThrow(/nullable/);
+    });
+
+    it('rejects nullable on a 1:N relation', () => {
+      const invalid = modelWithRelation({
+        to: { model: 'Child', namespace: UNBOUND_NAMESPACE_ID },
+        cardinality: '1:N',
+        nullable: true,
+        on: { localFields: ['id'], targetFields: ['parentId'] },
+      });
+      expect(() => validateModel(invalid)).toThrow(/nullable/);
     });
   });
 

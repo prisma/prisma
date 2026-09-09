@@ -445,6 +445,7 @@ type ContractBase = Omit<
                   readonly model: 'Character';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['characterId'];
                   readonly targetFields: readonly ['id'];

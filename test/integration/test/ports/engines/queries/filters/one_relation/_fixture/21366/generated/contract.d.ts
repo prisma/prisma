@@ -416,6 +416,7 @@ type ContractBase = Omit<
                   readonly model: 'device_state';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['device_id'];
                   readonly targetFields: readonly ['device_id'];

@@ -41,6 +41,7 @@
             "relations": {
               "author": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "authorId"
@@ -88,6 +89,7 @@
             "relations": {
               "author": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "authorId"

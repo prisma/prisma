@@ -564,6 +564,7 @@ type ContractBase = Omit<
                   readonly model: 'Brand';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['brandId'];
                   readonly targetFields: readonly ['id'];
@@ -575,6 +576,7 @@ type ContractBase = Omit<
                   readonly model: 'Category';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['categoryId'];
                   readonly targetFields: readonly ['id'];

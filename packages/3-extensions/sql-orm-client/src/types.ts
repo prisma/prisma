@@ -7,7 +7,6 @@ import type {
   ExtractQueryOperationTypes,
   SqlStorage,
   StorageColumn,
-  StorageTable,
 } from '@internal/sql-contract/types';
 import {
   type AnyExpression,
@@ -1966,78 +1965,16 @@ export type RelationCardinality<
       : '1:N'
     : '1:N';
 
-type RelationLocalFieldColumns<
-  TContract extends Contract<SqlStorage>,
-  ModelName extends string,
-  Relation,
-> = Relation extends {
-  readonly on: { readonly localFields: infer Fields extends readonly string[] };
-}
-  ? MapFieldsToColumns<TContract, ModelName, Fields>
-  : readonly [];
-
-type MapFieldsToColumns<
-  TContract extends Contract<SqlStorage>,
-  ModelName extends string,
-  Fields extends readonly string[],
-> = Fields extends readonly [infer Head extends string, ...infer Tail extends string[]]
-  ? readonly [
-      FieldColumnName<TContract, ModelName, Head>,
-      ...MapFieldsToColumns<TContract, ModelName, Tail>,
-    ]
-  : readonly [];
-
-type AnyColumnNullable<
-  Columns extends Record<string, StorageColumn>,
-  ColNames extends readonly string[],
-> = ColNames extends readonly [infer Head extends string, ...infer Tail extends string[]]
-  ? Head extends keyof Columns
-    ? Columns[Head]['nullable'] extends true
-      ? true
-      : AnyColumnNullable<Columns, Tail>
-    : true
-  : false;
-
-type HasForeignKeyForCols<
-  FKs extends readonly unknown[],
-  Cols extends readonly string[],
-> = FKs extends readonly [infer Head, ...infer Tail extends unknown[]]
-  ? Head extends { readonly source: { readonly columns: Cols } }
-    ? true
-    : HasForeignKeyForCols<Tail, Cols>
-  : false;
-
-type IsFkSideOfRelation<
-  Table extends StorageTable,
-  ParentCols extends readonly string[],
-> = Table extends { readonly foreignKeys: infer FKs extends readonly unknown[] }
-  ? HasForeignKeyForCols<FKs, ParentCols>
-  : false;
-
 type IsToOneRelationNullable<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   RelName extends string,
   NsId extends string = never,
 > =
-  ModelTableName<TContract, ModelName, NsId> extends infer TableName extends string
-    ? NamespaceTableDef<
-        TContract,
-        TableName,
-        ResolvedNsId<TContract, ModelName, NsId>
-      > extends infer Table extends StorageTable
-      ? RelationsOf<TContract, ModelName, NsId> extends infer Rels extends Record<string, unknown>
-        ? RelName extends keyof Rels
-          ? RelationLocalFieldColumns<
-              TContract,
-              ModelName,
-              Rels[RelName]
-            > extends infer Cols extends readonly string[]
-            ? IsFkSideOfRelation<Table, Cols> extends true
-              ? AnyColumnNullable<Table['columns'], Cols>
-              : true
-            : true
-          : true
+  RelationsOf<TContract, ModelName, NsId> extends infer Rels extends Record<string, unknown>
+    ? RelName extends keyof Rels
+      ? Rels[RelName] extends { readonly nullable: infer Nullable extends boolean }
+        ? Nullable
         : true
       : true
     : true;

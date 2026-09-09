@@ -985,6 +985,99 @@ describe('contract DSL authoring surface', () => {
   });
 });
 
+describe('to-one relation nullability', () => {
+  function userAndPost(postFields: Record<string, unknown>, relationOptions: object) {
+    const User = model('User', {
+      fields: { id: field.column(int4Column).id() },
+    });
+    const Post = model('Post', {
+      fields: {
+        id: field.column(int4Column).id(),
+        ...postFields,
+      },
+      relations: {
+        author: rel.belongsTo(User, { from: 'authorId', to: 'id', ...relationOptions }),
+      },
+    });
+    return defineTestContract({ models: { User, Post } });
+  }
+
+  function relationsOf(contract: Contract, modelName: string) {
+    return (modelsOf(contract) as Record<string, { relations: Record<string, unknown> }>)[modelName]
+      ?.relations;
+  }
+
+  it('belongsTo derives nullable from the local fields when no flag is given', () => {
+    expect(
+      relationsOf(userAndPost({ authorId: field.column(int4Column) }, {}), 'Post'),
+    ).toMatchObject({ author: { cardinality: 'N:1', nullable: false } });
+    expect(
+      relationsOf(userAndPost({ authorId: field.column(int4Column).optional() }, {}), 'Post'),
+    ).toMatchObject({ author: { cardinality: 'N:1', nullable: true } });
+  });
+
+  it('belongsTo records an explicit optional flag that agrees with the local fields', () => {
+    expect(
+      relationsOf(
+        userAndPost({ authorId: field.column(int4Column).optional() }, { optional: true }),
+        'Post',
+      ),
+    ).toMatchObject({ author: { nullable: true } });
+    expect(
+      relationsOf(userAndPost({ authorId: field.column(int4Column) }, { optional: false }), 'Post'),
+    ).toMatchObject({ author: { nullable: false } });
+  });
+
+  it('rejects an optional flag that contradicts the local fields', () => {
+    expect(() => userAndPost({ authorId: field.column(int4Column) }, { optional: true })).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.RELATION_INVALID',
+        message: expect.stringContaining('Relation "Post.author" is optional'),
+      }),
+    );
+    expect(() =>
+      userAndPost({ authorId: field.column(int4Column).optional() }, { optional: false }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.RELATION_INVALID',
+        message: expect.stringContaining('Relation "Post.author" is required'),
+      }),
+    );
+  });
+
+  it('hasOne is always nullable, and hasMany carries no flag', () => {
+    const UserBase = model('User', { fields: { id: field.column(int4Column).id() } });
+    const Profile = model('Profile', {
+      fields: {
+        id: field.column(int4Column).id(),
+        userId: field.column(int4Column).unique(),
+      },
+      relations: { user: rel.belongsTo(UserBase, { from: 'userId', to: 'id' }) },
+    });
+    const Post = model('Post', {
+      fields: { id: field.column(int4Column).id(), userId: field.column(int4Column) },
+      relations: { user: rel.belongsTo(UserBase, { from: 'userId', to: 'id' }) },
+    });
+    const User = UserBase.relations({
+      profile: rel.hasOne(() => Profile, { by: 'userId' }),
+      posts: rel.hasMany(() => Post, { by: 'userId' }),
+    });
+    const contract = defineTestContract({ models: { User, Profile, Post } });
+    expect(relationsOf(contract, 'User')).toMatchObject({
+      profile: { cardinality: '1:1', nullable: true },
+      posts: expect.not.objectContaining({ nullable: expect.anything() }),
+    });
+  });
+
+  it('hasOne does not accept an optional flag', () => {
+    const Profile = model('Profile', {
+      fields: { id: field.column(int4Column).id(), userId: field.column(int4Column).unique() },
+    });
+    // @ts-expect-error the side of a one-to-one relation without the foreign key is always nullable
+    rel.hasOne(() => Profile, { by: 'userId', optional: false });
+  });
+});
+
 describe('self-referential and circular relations', () => {
   it('lowers a self-referential tree relation (parent/children on the same model)', () => {
     const CategoryBase = model('Category', {

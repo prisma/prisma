@@ -81,6 +81,7 @@
             "relations": {
               "details": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "characterId"

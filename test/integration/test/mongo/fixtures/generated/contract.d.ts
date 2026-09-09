@@ -93,7 +93,7 @@ export namespace Models {
     type: 'bug' | 'feature';
     assigneeId: CodecTypes['mongo/objectId@1']['output'];
     comments: unbound_Comment[];
-    assignee: unbound_User | null;
+    assignee: unbound_User;
     readonly [RelationKeys]?: 'assignee';
   };
   export type unbound_Bug = {
@@ -103,7 +103,7 @@ export namespace Models {
     assigneeId: CodecTypes['mongo/objectId@1']['output'];
     severity: CodecTypes['mongo/string@1']['output'];
     comments: unbound_Comment[];
-    assignee: unbound_User | null;
+    assignee: unbound_User;
     readonly [RelationKeys]?: 'assignee';
   };
   export type unbound_Feature = {
@@ -114,7 +114,7 @@ export namespace Models {
     priority: CodecTypes['mongo/string@1']['output'];
     targetRelease: CodecTypes['mongo/string@1']['output'];
     comments: unbound_Comment[];
-    assignee: unbound_User | null;
+    assignee: unbound_User;
     readonly [RelationKeys]?: 'assignee';
   };
   export type unbound_User = {
@@ -292,6 +292,7 @@ type ContractBase = Omit<
                   readonly model: 'User';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['assigneeId'];
                   readonly targetFields: readonly ['_id'];

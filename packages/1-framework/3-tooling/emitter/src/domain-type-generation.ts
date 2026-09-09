@@ -139,6 +139,8 @@ export function generateModelRelationsType(relations: Record<string, unknown>): 
       );
     if (relObj['cardinality'])
       parts.push(`readonly cardinality: ${serializeValue(relObj['cardinality'])}`);
+    if (typeof relObj['nullable'] === 'boolean')
+      parts.push(`readonly nullable: ${relObj['nullable']}`);
 
     const on = relObj['on'] as { localFields?: string[]; targetFields?: string[] } | undefined;
     if (on && (!on.localFields || !on.targetFields)) {

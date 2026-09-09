@@ -459,6 +459,7 @@ type ContractBase = Omit<
                   readonly model: 'Accommodation';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['accommodationId'];
                   readonly targetFields: readonly ['id'];

@@ -88,6 +88,7 @@
             "relations": {
               "relation": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "otherId"
@@ -140,6 +141,7 @@
             "relations": {
               "model": {
                 "cardinality": "1:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "id"

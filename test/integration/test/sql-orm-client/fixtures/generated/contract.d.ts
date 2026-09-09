@@ -535,7 +535,7 @@ export namespace Models {
     id: CodecTypes['pg/int4@1']['output'];
     title: CodecTypes['pg/text@1']['output'];
     reviewerId: CodecTypes['pg/int4@1']['output'];
-    reviewer: public_User | null;
+    reviewer: public_User;
     readonly [RelationKeys]?: 'reviewer';
   };
   export type public_Tag = {
@@ -1014,6 +1014,7 @@ type ContractBase = Omit<
               readonly reviewer: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['reviewerId'];
                   readonly targetFields: readonly ['id'];
@@ -1098,6 +1099,7 @@ type ContractBase = Omit<
               readonly author: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -1135,6 +1137,7 @@ type ContractBase = Omit<
               readonly user: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -1312,6 +1315,7 @@ type ContractBase = Omit<
               readonly invitedBy: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['invitedById'];
                   readonly targetFields: readonly ['id'];
@@ -1331,6 +1335,7 @@ type ContractBase = Omit<
                   readonly model: 'Profile';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['userId'];

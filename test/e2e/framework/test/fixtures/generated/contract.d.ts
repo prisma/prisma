@@ -506,7 +506,7 @@ export namespace Models {
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
     published: CodecTypes['pg/bool@1']['output'];
     meta: CodecTypes['pg/json@1']['output'] | null;
-    author: public_User | null;
+    author: public_User;
     comments: public_Comment[];
     readonly [RelationKeys]?: 'author' | 'comments';
   };
@@ -516,7 +516,7 @@ export namespace Models {
     content: CodecTypes['pg/text@1']['output'];
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-    post: public_Post | null;
+    post: public_Post;
     readonly [RelationKeys]?: 'post';
   };
   export type public_ParamTypes = {
@@ -1003,6 +1003,7 @@ type ContractBase = Omit<
               readonly post: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Post' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['postId'];
                   readonly targetFields: readonly ['id'];
@@ -1294,6 +1295,7 @@ type ContractBase = Omit<
               readonly author: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];

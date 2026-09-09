@@ -658,6 +658,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['managerId'];
                   readonly targetFields: readonly ['id'];
@@ -680,6 +681,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['partnerId'];
                   readonly targetFields: readonly ['id'];
@@ -691,6 +693,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['partnerId'];
@@ -741,6 +744,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['sourceId'];
                   readonly targetFields: readonly ['id'];
@@ -752,6 +756,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['targetId'];
                   readonly targetFields: readonly ['id'];
@@ -786,6 +791,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['followeeId'];
                   readonly targetFields: readonly ['id'];
@@ -797,6 +803,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['followerId'];
                   readonly targetFields: readonly ['id'];

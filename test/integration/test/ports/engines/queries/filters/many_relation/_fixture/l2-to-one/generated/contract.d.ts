@@ -517,6 +517,7 @@ type ContractBase = Omit<
               readonly post: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Post' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['postId'];
                   readonly targetFields: readonly ['id'];
@@ -548,6 +549,7 @@ type ContractBase = Omit<
               readonly blog: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Blog' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['blog_id'];
                   readonly targetFields: readonly ['id'];
@@ -559,6 +561,7 @@ type ContractBase = Omit<
                   readonly model: 'Comment';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['postId'];

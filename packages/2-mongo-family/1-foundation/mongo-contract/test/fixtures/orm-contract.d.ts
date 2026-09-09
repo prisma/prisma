@@ -27,31 +27,6 @@ export type HomeAddressOutput = { readonly city: CodecTypes["mongo/string@1"]["o
 export type HomeAddressInput = { readonly city: CodecTypes["mongo/string@1"]["input"]; readonly country: CodecTypes["mongo/string@1"]["input"] };
 export type FieldOutputTypes = { readonly __unbound__: { readonly Address: { readonly street: CodecTypes["mongo/string@1"]["output"]; readonly city: CodecTypes["mongo/string@1"]["output"]; readonly zip: CodecTypes["mongo/string@1"]["output"] }; readonly Bug: { readonly severity: CodecTypes["mongo/string@1"]["output"] }; readonly Comment: { readonly _id: CodecTypes["mongo/objectId@1"]["output"]; readonly text: CodecTypes["mongo/string@1"]["output"]; readonly createdAt: CodecTypes["mongo/date@1"]["output"] }; readonly Feature: { readonly priority: CodecTypes["mongo/string@1"]["output"]; readonly targetRelease: CodecTypes["mongo/string@1"]["output"] }; readonly Task: { readonly _id: CodecTypes["mongo/objectId@1"]["output"]; readonly title: CodecTypes["mongo/string@1"]["output"]; readonly type: CodecTypes["mongo/string@1"]["output"]; readonly assigneeId: CodecTypes["mongo/objectId@1"]["output"] }; readonly User: { readonly _id: CodecTypes["mongo/objectId@1"]["output"]; readonly name: CodecTypes["mongo/string@1"]["output"]; readonly email: CodecTypes["mongo/string@1"]["output"]; readonly loginCount: CodecTypes["mongo/int32@1"]["output"]; readonly tags: ReadonlyArray<CodecTypes["mongo/string@1"]["output"]>; readonly homeAddress: HomeAddressOutput | null } } };
 export type FieldInputTypes = { readonly __unbound__: { readonly Address: { readonly street: CodecTypes["mongo/string@1"]["input"]; readonly city: CodecTypes["mongo/string@1"]["input"]; readonly zip: CodecTypes["mongo/string@1"]["input"] }; readonly Bug: { readonly severity: CodecTypes["mongo/string@1"]["input"] }; readonly Comment: { readonly _id: CodecTypes["mongo/objectId@1"]["input"]; readonly text: CodecTypes["mongo/string@1"]["input"]; readonly createdAt: CodecTypes["mongo/date@1"]["input"] }; readonly Feature: { readonly priority: CodecTypes["mongo/string@1"]["input"]; readonly targetRelease: CodecTypes["mongo/string@1"]["input"] }; readonly Task: { readonly _id: CodecTypes["mongo/objectId@1"]["input"]; readonly title: CodecTypes["mongo/string@1"]["input"]; readonly type: CodecTypes["mongo/string@1"]["input"]; readonly assigneeId: CodecTypes["mongo/objectId@1"]["input"] }; readonly User: { readonly _id: CodecTypes["mongo/objectId@1"]["input"]; readonly name: CodecTypes["mongo/string@1"]["input"]; readonly email: CodecTypes["mongo/string@1"]["input"]; readonly loginCount: CodecTypes["mongo/int32@1"]["input"]; readonly tags: ReadonlyArray<CodecTypes["mongo/string@1"]["input"]>; readonly homeAddress: HomeAddressInput | null } } };
-export type TypeMaps = MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>;
-
-type ContractBase = Omit<
-  ContractType<{ readonly namespaces: { readonly __unbound__: { readonly id: "__unbound__"; readonly kind: "mongo-namespace"; readonly entries: { readonly collection: { readonly tasks: MongoCollection; readonly users: MongoCollection } } } }; readonly storageHash: StorageHash }>,
-  'roots' | 'domain'
-> & {
-  readonly target: "mongo";
-  readonly targetFamily: "mongo";
-  readonly roots: { readonly tasks: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Task" }; readonly users: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "User" } };
-  readonly domain: {
-    readonly namespaces: {
-      readonly __unbound__: {
-        readonly models: { readonly Address: { readonly fields: { readonly street: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly city: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly zip: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } } }; readonly relations: Record<string, never>; readonly storage: Record<string, never>; readonly owner: "User" }; readonly Bug: { readonly fields: { readonly severity: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } } }; readonly relations: Record<string, never>; readonly storage: { readonly collection: "tasks" }; readonly base: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Task" } }; readonly Comment: { readonly fields: { readonly _id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/objectId@1" } }; readonly text: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly createdAt: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/date@1" } } }; readonly relations: Record<string, never>; readonly storage: Record<string, never>; readonly owner: "Task" }; readonly Feature: { readonly fields: { readonly priority: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly targetRelease: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } } }; readonly relations: Record<string, never>; readonly storage: { readonly collection: "tasks" }; readonly base: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Task" } }; readonly Task: { readonly fields: { readonly _id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/objectId@1" } }; readonly title: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly type: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly assigneeId: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/objectId@1" } } }; readonly relations: { readonly assignee: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "User" }; readonly cardinality: "N:1"; readonly on: { readonly localFields: readonly ["assigneeId"]; readonly targetFields: readonly ["_id"] } }; readonly comments: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Comment" }; readonly cardinality: "1:N" } }; readonly storage: { readonly collection: "tasks"; readonly relations: { readonly comments: { readonly field: "comments" } } }; readonly discriminator: { readonly field: "type" }; readonly variants: { readonly Bug: { readonly value: "bug" }; readonly Feature: { readonly value: "feature" } } }; readonly User: { readonly fields: { readonly _id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/objectId@1" } }; readonly name: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly email: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly loginCount: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/int32@1" } }; readonly tags: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" }; readonly many: true }; readonly homeAddress: { readonly nullable: true; readonly type: { readonly kind: "valueObject"; readonly name: "HomeAddress" } } }; readonly relations: { readonly addresses: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Address" }; readonly cardinality: "1:N" }; readonly tasks: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Task" }; readonly cardinality: "1:N"; readonly on: { readonly localFields: readonly ["_id"]; readonly targetFields: readonly ["assigneeId"] } } }; readonly storage: { readonly collection: "users"; readonly relations: { readonly addresses: { readonly field: "addresses" } } } } };
-        readonly valueObjects: { readonly HomeAddress: { readonly fields: { readonly city: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly country: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } } } } };
-      };
-    };
-  };
-  readonly capabilities: {  };
-  readonly extensions: {  };
-  readonly meta: {  };
-  readonly valueObjects: { readonly HomeAddress: { readonly fields: { readonly city: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly country: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } } } } };
-  readonly profileHash: ProfileHash;
-};
-
-export type Contract = MongoContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export namespace Models {
   export type unbound_Task = {
@@ -60,7 +35,7 @@ export namespace Models {
     type: "bug" | "feature";
     assigneeId: CodecTypes["mongo/objectId@1"]["output"];
     comments: unbound_Comment[];
-    assignee: unbound_User | null;
+    assignee: unbound_User;
     readonly [RelationKeys]?: "assignee";
   };
   export type unbound_Bug = {
@@ -70,7 +45,7 @@ export namespace Models {
     assigneeId: CodecTypes["mongo/objectId@1"]["output"];
     severity: CodecTypes["mongo/string@1"]["output"];
     comments: unbound_Comment[];
-    assignee: unbound_User | null;
+    assignee: unbound_User;
     readonly [RelationKeys]?: "assignee";
   };
   export type unbound_Feature = {
@@ -81,7 +56,7 @@ export namespace Models {
     priority: CodecTypes["mongo/string@1"]["output"];
     targetRelease: CodecTypes["mongo/string@1"]["output"];
     comments: unbound_Comment[];
-    assignee: unbound_User | null;
+    assignee: unbound_User;
     readonly [RelationKeys]?: "assignee";
   };
   export type unbound_User = {
@@ -119,3 +94,29 @@ export declare const models: {
     AnyTask: Models.unbound_AnyTask;
   };
 };
+
+export type TypeMaps = MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>;
+
+type ContractBase = Omit<
+  ContractType<{ readonly namespaces: { readonly __unbound__: { readonly id: "__unbound__"; readonly kind: "mongo-namespace"; readonly entries: { readonly collection: { readonly tasks: MongoCollection; readonly users: MongoCollection } } } }; readonly storageHash: StorageHash }>,
+  'roots' | 'domain'
+> & {
+  readonly target: "mongo";
+  readonly targetFamily: "mongo";
+  readonly roots: { readonly tasks: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Task" }; readonly users: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "User" } };
+  readonly domain: {
+    readonly namespaces: {
+      readonly __unbound__: {
+        readonly models: { readonly Address: { readonly fields: { readonly street: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly city: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly zip: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } } }; readonly relations: Record<string, never>; readonly storage: Record<string, never>; readonly owner: "User" }; readonly Bug: { readonly fields: { readonly severity: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } } }; readonly relations: Record<string, never>; readonly storage: { readonly collection: "tasks" }; readonly base: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Task" } }; readonly Comment: { readonly fields: { readonly _id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/objectId@1" } }; readonly text: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly createdAt: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/date@1" } } }; readonly relations: Record<string, never>; readonly storage: Record<string, never>; readonly owner: "Task" }; readonly Feature: { readonly fields: { readonly priority: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly targetRelease: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } } }; readonly relations: Record<string, never>; readonly storage: { readonly collection: "tasks" }; readonly base: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Task" } }; readonly Task: { readonly fields: { readonly _id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/objectId@1" } }; readonly title: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly type: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly assigneeId: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/objectId@1" } } }; readonly relations: { readonly assignee: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "User" }; readonly cardinality: "N:1"; readonly nullable: false; readonly on: { readonly localFields: readonly ["assigneeId"]; readonly targetFields: readonly ["_id"] } }; readonly comments: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Comment" }; readonly cardinality: "1:N" } }; readonly storage: { readonly collection: "tasks"; readonly relations: { readonly comments: { readonly field: "comments" } } }; readonly discriminator: { readonly field: "type" }; readonly variants: { readonly Bug: { readonly value: "bug" }; readonly Feature: { readonly value: "feature" } } }; readonly User: { readonly fields: { readonly _id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/objectId@1" } }; readonly name: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly email: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly loginCount: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/int32@1" } }; readonly tags: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" }; readonly many: true }; readonly homeAddress: { readonly nullable: true; readonly type: { readonly kind: "valueObject"; readonly name: "HomeAddress" } } }; readonly relations: { readonly addresses: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Address" }; readonly cardinality: "1:N" }; readonly tasks: { readonly to: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Task" }; readonly cardinality: "1:N"; readonly on: { readonly localFields: readonly ["_id"]; readonly targetFields: readonly ["assigneeId"] } } }; readonly storage: { readonly collection: "users"; readonly relations: { readonly addresses: { readonly field: "addresses" } } } } };
+        readonly valueObjects: { readonly HomeAddress: { readonly fields: { readonly city: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly country: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } } } } };
+      };
+    };
+  };
+  readonly capabilities: {  };
+  readonly extensions: {  };
+  readonly meta: {  };
+  readonly valueObjects: { readonly HomeAddress: { readonly fields: { readonly city: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } }; readonly country: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "mongo/string@1" } } } } };
+  readonly profileHash: ProfileHash;
+};
+
+export type Contract = MongoContractWithTypeMaps<ContractBase, TypeMaps>;

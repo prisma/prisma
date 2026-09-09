@@ -134,6 +134,36 @@ interface FkRelation {
   readonly targetFields: readonly string[];
 }
 
+function relationNullabilityMismatchDiagnostic(
+  modelName: string,
+  field: FieldSymbol,
+  sourceId: string,
+): ContractSourceDiagnostic {
+  const fieldLabel = `Relation field "${modelName}.${field.name}"`;
+  return {
+    code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+    message: field.optional
+      ? `${fieldLabel} is optional but every field in @relation(fields: [...]) is required. Make one of those fields optional with "?" or remove "?" from "${field.name}".`
+      : `${fieldLabel} is required but a field in @relation(fields: [...]) is optional. Add "?" to "${field.name}" or make those fields required.`,
+    sourceId,
+    span: field.span,
+  };
+}
+
+function requiredOneToOneBackrelationDiagnostic(
+  modelName: string,
+  field: FieldSymbol,
+  targetModelName: string,
+  sourceId: string,
+): ContractSourceDiagnostic {
+  return {
+    code: 'PSL_REQUIRED_ONE_TO_ONE_BACKRELATION',
+    message: `Backrelation field "${modelName}.${field.name}" is required, but it does not own the foreign key, so nothing in the database guarantees a "${targetModelName}" document exists. Make it optional: "${field.name} ${targetModelName}?".`,
+    sourceId,
+    span: field.span,
+  };
+}
+
 function fkRelationPairKey(declaringModel: string, targetModel: string): string {
   return `${declaringModel}::${targetModel}`;
 }
@@ -1125,6 +1155,13 @@ export function interpretPslDocumentToMongoContract(
         }
 
         if (relation?.fields && relation?.references) {
+          const anyLocalFieldOptional = relation.fields.some(
+            (localFieldName) => pslModel.fields[localFieldName]?.optional === true,
+          );
+          if (field.optional !== anyLocalFieldOptional) {
+            diagnostics.push(relationNullabilityMismatchDiagnostic(pslModel.name, field, sourceId));
+            continue;
+          }
           const localMapped = relation.fields.map((f) => fieldMappings.pslNameToMapped.get(f) ?? f);
 
           const targetFieldMappings = modelMetadataByName.get(field.typeName)?.fieldMappings;
@@ -1135,6 +1172,7 @@ export function interpretPslDocumentToMongoContract(
           relations[field.name] = {
             to: mongoCrossRef(field.typeName),
             cardinality: 'N:1' as const,
+            nullable: field.optional,
             on: {
               localFields: localMapped,
               targetFields: targetMapped,
@@ -1284,9 +1322,21 @@ export function interpretPslDocumentToMongoContract(
     if (!fk) continue;
     const modelEntry = models[candidate.modelName];
     if (!modelEntry) continue;
+    if (candidate.cardinality === '1:1' && !candidate.field.optional) {
+      diagnostics.push(
+        requiredOneToOneBackrelationDiagnostic(
+          candidate.modelName,
+          candidate.field,
+          candidate.targetModelName,
+          sourceId,
+        ),
+      );
+    }
     modelEntry.relations[candidate.fieldName] = {
       to: mongoCrossRef(candidate.targetModelName),
-      cardinality: candidate.cardinality,
+      ...(candidate.cardinality === '1:N'
+        ? { cardinality: '1:N' as const }
+        : { cardinality: '1:1' as const, nullable: true }),
       on: {
         localFields: fk.targetFields,
         targetFields: fk.localFields,

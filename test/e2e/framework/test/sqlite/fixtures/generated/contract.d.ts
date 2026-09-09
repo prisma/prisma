@@ -295,7 +295,7 @@ export namespace Models {
     userId: CodecTypes['sqlite/integer@1']['output'];
     views: CodecTypes['sqlite/integer@1']['output'];
     comments: unbound_Comment[];
-    author: unbound_User | null;
+    author: unbound_User;
     readonly [RelationKeys]?: 'comments' | 'author';
   };
   export type unbound_Comment = {
@@ -637,6 +637,7 @@ type ContractBase = Omit<
                   readonly model: 'User';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -753,6 +754,7 @@ type ContractBase = Omit<
                   readonly model: 'Profile';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['userId'];

@@ -456,6 +456,7 @@ type ContractBase = Omit<
                   readonly model: 'Other';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['otherId'];
                   readonly targetFields: readonly ['id'];
@@ -489,6 +490,7 @@ type ContractBase = Omit<
                   readonly model: 'Model';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['otherId'];

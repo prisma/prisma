@@ -96,6 +96,7 @@
             "relations": {
               "member": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "memberId"
@@ -111,6 +112,7 @@
               },
               "role": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "roleId"

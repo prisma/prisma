@@ -373,7 +373,7 @@ export namespace Models {
     userId: CodecTypes['pg/int4@1']['output'];
     views: CodecTypes['pg/int4@1']['output'];
     comments: public_Comment[];
-    author: public_User | null;
+    author: public_User;
     readonly [RelationKeys]?: 'comments' | 'author';
   };
   export type public_Comment = {
@@ -650,6 +650,7 @@ type ContractBase = Omit<
               readonly author: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -724,6 +725,7 @@ type ContractBase = Omit<
               readonly invitedBy: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['invitedById'];
                   readonly targetFields: readonly ['id'];
@@ -743,6 +745,7 @@ type ContractBase = Omit<
                   readonly model: 'Profile';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['userId'];

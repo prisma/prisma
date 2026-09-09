@@ -53,6 +53,8 @@ export type FkRelationMetadata = {
   /** Resolved namespace coordinate of the related model, when known. */
   readonly targetNamespaceId?: string;
   readonly relationName?: string;
+  /** Optionality (`?`) of the declaring relation field. */
+  readonly nullable: boolean;
   readonly localColumns: readonly string[];
   readonly referencedColumns: readonly string[];
 };
@@ -215,6 +217,7 @@ export function indexFkRelations(input: {
       toTable: relation.targetTableName,
       ...ifDefined('toNamespaceId', relation.targetNamespaceId),
       cardinality: 'N:1',
+      nullable: relation.nullable,
       on: {
         parentTable: relation.declaringTableName,
         parentColumns: relation.localColumns,
@@ -538,12 +541,25 @@ export function applyBackrelationCandidates(input: {
       }
     }
 
+    if (!candidate.isList && !candidate.field.optional) {
+      input.diagnostics.push(
+        requiredOneToOneBackrelationDiagnostic(
+          candidate.modelName,
+          candidate.field,
+          candidate.targetModelName,
+          input.sourceId,
+        ),
+      );
+    }
+
     relationsForModel(input.modelRelations, candidate.modelName).push({
       fieldName: candidate.field.name,
       toModel: matched.declaringModelName,
       toTable: matched.declaringTableName,
       ...ifDefined('toNamespaceId', matched.declaringNamespaceId),
-      cardinality: candidate.isList ? '1:N' : '1:1',
+      ...(candidate.isList
+        ? { cardinality: '1:N' as const }
+        : { cardinality: '1:1' as const, nullable: true }),
       on: {
         parentTable: candidate.tableName,
         parentColumns: matched.referencedColumns,
@@ -552,6 +568,20 @@ export function applyBackrelationCandidates(input: {
       },
     });
   }
+}
+
+export function requiredOneToOneBackrelationDiagnostic(
+  modelName: string,
+  field: FieldSymbol,
+  targetModelName: string,
+  sourceId: string,
+): ContractSourceDiagnostic {
+  return {
+    code: 'PSL_REQUIRED_ONE_TO_ONE_BACKRELATION',
+    message: `Backrelation field "${modelName}.${field.name}" is required, but it does not own the foreign key, so nothing in the database guarantees a "${targetModelName}" row exists. Make it optional: "${field.name} ${targetModelName}?".`,
+    sourceId,
+    span: field.span,
+  };
 }
 
 export function validateBackrelationFieldAttributes(input: {

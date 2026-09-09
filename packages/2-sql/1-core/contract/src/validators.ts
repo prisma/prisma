@@ -403,16 +403,24 @@ const ContractManyToManyRelationSchema = type({
   through: ContractRelationThroughSchema,
 });
 
-const ContractNonJunctionRelationSchema = type({
+const ContractToOneRelationSchema = type({
   '+': 'reject',
   to: CrossReferenceSchema,
-  cardinality: "'1:1' | '1:N' | 'N:1'",
+  cardinality: "'1:1' | 'N:1'",
+  nullable: 'boolean',
+  on: ContractRelationOnSchema,
+});
+
+const ContractToManyRelationSchema = type({
+  '+': 'reject',
+  to: CrossReferenceSchema,
+  cardinality: "'1:N'",
   on: ContractRelationOnSchema,
 });
 
 const ContractReferenceRelationSchema = ContractManyToManyRelationSchema.or(
-  ContractNonJunctionRelationSchema,
-);
+  ContractToOneRelationSchema,
+).or(ContractToManyRelationSchema);
 
 const ContractEmbedRelationSchema = type({
   '+': 'reject',

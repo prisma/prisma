@@ -153,6 +153,7 @@ describe('mongoEmission.generateContractTypes', () => {
               author: {
                 to: crossRef('User'),
                 cardinality: 'N:1',
+                nullable: false,
                 on: { localFields: ['authorId'], targetFields: ['_id'] },
               },
             },

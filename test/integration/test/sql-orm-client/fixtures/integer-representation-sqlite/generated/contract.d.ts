@@ -366,6 +366,7 @@ type ContractBase = Omit<
                   readonly model: 'Meter';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['meterId'];
                   readonly targetFields: readonly ['id'];

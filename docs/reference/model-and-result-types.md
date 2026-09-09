@@ -12,7 +12,7 @@ import type { ResultType } from '@prisma/orm-postgres/components/runtime';
 
 ## The model
 
-`contract.d.ts` exports a `Models` namespace with one member per model, named `<namespace>_<Model>`, and a `models` declared constant that reaches the same types by dotted access. Each member carries every scalar field and every relation. Relation lines are typed as the related model's member: `X[]` for to-many, `X` or `X | null` for to-one.
+`contract.d.ts` exports a `Models` namespace with one member per model, named `<namespace>_<Model>`, and a `models` declared constant that reaches the same types by dotted access. Each member carries every scalar field and every relation. Relation lines are typed as the related model's member: `X[]` for to-many, `X | null` for a to-one relation whose field is optional in the schema (`author User?`, or `belongsTo(User, { ..., optional: true })`), and `X` for a required one. The contract records this as `nullable` on the relation; the emitter and both ORMs read that flag rather than working it out from foreign keys.
 
 ```ts
 // packages/3-extensions/sql-orm-client/test/fixtures/generated/contract.d.ts

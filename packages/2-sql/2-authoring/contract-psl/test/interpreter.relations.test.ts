@@ -67,12 +67,139 @@ model Post {
       user: {
         to: crossRef('User', 'public'),
         cardinality: 'N:1',
+        nullable: false,
         on: {
           localFields: ['userId'],
           targetFields: ['id'],
         },
       },
     });
+  });
+
+  it('records nullable: true on an optional relation field backed by an optional FK field', () => {
+    const document = symbolTableInputFromParseArgs({
+      schema: `model User {
+  id Int @id
+  posts Post[]
+}
+
+model Post {
+  id Int @id
+  userId Int?
+  user User? @relation(fields: [userId], references: [id])
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+
+    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const models = modelsOf(result.value) as Record<
+      string,
+      { relations?: Record<string, unknown> }
+    >;
+    expect(models['Post']?.relations).toMatchObject({
+      user: { cardinality: 'N:1', nullable: true },
+    });
+    expect(models['User']?.relations).toMatchObject({
+      posts: expect.not.objectContaining({ nullable: expect.anything() }),
+    });
+  });
+
+  it('records the 1:1 back side as nullable from its own optionality', () => {
+    const document = symbolTableInputFromParseArgs({
+      schema: `model User {
+  id Int @id
+  profile Profile?
+}
+
+model Profile {
+  id Int @id
+  userId Int @unique
+  user User @relation(fields: [userId], references: [id])
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+
+    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const models = modelsOf(result.value) as Record<
+      string,
+      { relations?: Record<string, unknown> }
+    >;
+    expect(models['User']?.relations).toMatchObject({
+      profile: { cardinality: '1:1', nullable: true },
+    });
+    expect(models['Profile']?.relations).toMatchObject({
+      user: { cardinality: 'N:1', nullable: false },
+    });
+  });
+
+  it('rejects a required relation field whose FK fields include an optional field', () => {
+    const document = symbolTableInputFromParseArgs({
+      schema: `model User {
+  id Int @id
+  posts Post[]
+}
+
+model Post {
+  id Int @id
+  userId Int?
+  user User @relation(fields: [userId], references: [id])
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+
+    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+          message: expect.stringContaining('Relation field "Post.user" is required'),
+        }),
+      ]),
+    );
+  });
+
+  it('rejects an optional relation field whose FK fields are all required', () => {
+    const document = symbolTableInputFromParseArgs({
+      schema: `model User {
+  id Int @id
+  posts Post[]
+}
+
+model Post {
+  id Int @id
+  userId Int
+  user User? @relation(fields: [userId], references: [id])
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+
+    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+          message: expect.stringContaining('Relation field "Post.user" is optional'),
+        }),
+      ]),
+    );
   });
 
   it('accepts a bare model-typed optional field with no @relation as the 1:1 back side', () => {
@@ -104,6 +231,7 @@ model Profile {
       profile: {
         to: crossRef('Profile', 'public'),
         cardinality: '1:1',
+        nullable: true,
         on: {
           localFields: ['id'],
           targetFields: ['userId'],
