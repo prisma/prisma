@@ -9,7 +9,8 @@ export function identifier<const N extends string>(name: N): ArgType<N> {
     kind: 'identifier',
     label: name,
     parse: (arg, ctx): Result<N, readonly PslDiagnostic[]> => {
-      if (arg instanceof IdentifierAst && arg.name() === name) return ok(name);
+      const identifier = IdentifierAst.cast(arg.syntax);
+      if (identifier !== undefined && identifier.name() === name) return ok(name);
       return notOk([leafDiagnostic(ctx, arg, `Expected ${name}`)]);
     },
   };

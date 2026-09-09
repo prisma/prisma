@@ -78,6 +78,7 @@ import {
 import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { contractError } from './contract-errors';
 
@@ -108,16 +109,10 @@ import {
   validateBackrelationFieldAttributes,
 } from './psl-relation-resolution';
 import {
-  baseModelSpec,
-  checkModelSpec,
-  controlModelSpec,
-  discriminatorModelSpec,
   findModelAttributeNode,
-  idModelSpec,
-  indexModelSpec,
   interpretModelAttribute,
   PSL_CHECK_ON_STI_VARIANT,
-  uniqueModelSpec,
+  sqlAttributeSpecs,
 } from './sql-attribute-specs';
 
 export interface InterpretPslDocumentToSqlContractInput {
@@ -724,6 +719,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
 
   const resolvedFields = collectResolvedFields({
     model,
+    symbolTable: input.symbolTable,
     mapping,
     enumTypeDescriptors: input.enumTypeDescriptors,
     namedTypeDescriptors: input.namedTypeDescriptors,
@@ -865,6 +861,37 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
 
   const modelAttributeNodes = Array.from(model.node.attributes());
   for (const [attributeIndex, modelAttribute] of model.attributes.entries()) {
+    if (
+      !Object.hasOwn(sqlAttributeSpecs.model, modelAttribute.name) &&
+      !input.modelAttributesByName.has(modelAttribute.name)
+    ) {
+      const uncomposedNamespace = checkUncomposedNamespace(
+        modelAttribute.name,
+        input.composedExtensions,
+        {
+          familyId: input.familyId,
+          targetId: input.targetId,
+          authoringContributions: input.authoringContributions,
+        },
+      );
+      if (uncomposedNamespace) {
+        reportUncomposedNamespace({
+          subjectLabel: `Attribute "@@${modelAttribute.name}"`,
+          namespace: uncomposedNamespace,
+          sourceId,
+          span: modelAttribute.span,
+          diagnostics,
+        });
+        continue;
+      }
+      diagnostics.push({
+        code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
+        message: `Model "${model.name}" uses unsupported attribute "@@${modelAttribute.name}"`,
+        sourceId,
+        span: modelAttribute.span,
+      });
+      continue;
+    }
     if (modelAttribute.name === 'map') {
       continue;
     }
@@ -890,7 +917,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: controlModelSpec,
+        spec: sqlAttributeSpecs.model.control(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -928,7 +955,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: idModelSpec,
+        spec: sqlAttributeSpecs.model.id(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -974,7 +1001,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: uniqueModelSpec,
+        spec: sqlAttributeSpecs.model.unique(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -1008,7 +1035,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: indexModelSpec,
+        spec: sqlAttributeSpecs.model.index(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -1069,7 +1096,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: checkModelSpec,
+        spec: sqlAttributeSpecs.model.check(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -1152,31 +1179,9 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       slot[lowered.key] = lowered.entity;
       continue;
     }
-    const uncomposedNamespace = checkUncomposedNamespace(
-      modelAttribute.name,
-      input.composedExtensions,
-      {
-        familyId: input.familyId,
-        targetId: input.targetId,
-        authoringContributions: input.authoringContributions,
-      },
+    throw new InternalError(
+      `Model attribute "@@${modelAttribute.name}" is registered but has no interpreter branch`,
     );
-    if (uncomposedNamespace) {
-      reportUncomposedNamespace({
-        subjectLabel: `Attribute "@@${modelAttribute.name}"`,
-        namespace: uncomposedNamespace,
-        sourceId,
-        span: modelAttribute.span,
-        diagnostics,
-      });
-      continue;
-    }
-    diagnostics.push({
-      code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
-      message: `Model "${model.name}" uses unsupported attribute "@@${modelAttribute.name}"`,
-      sourceId,
-      span: modelAttribute.span,
-    });
   }
 
   const resultFkRelationMetadata: FkRelationMetadata[] = [];
@@ -1686,7 +1691,7 @@ function collectPolymorphismDeclarations(
     if (discriminatorNode !== undefined) {
       const parsed = interpretModelAttribute({
         node: discriminatorNode,
-        spec: discriminatorModelSpec,
+        spec: sqlAttributeSpecs.model.discriminator(),
         model,
         sourceFile,
         sourceId,
@@ -1712,7 +1717,7 @@ function collectPolymorphismDeclarations(
     if (baseNode !== undefined) {
       const parsed = interpretModelAttribute({
         node: baseNode,
-        spec: baseModelSpec,
+        spec: sqlAttributeSpecs.model.base(),
         model,
         sourceFile,
         sourceId,

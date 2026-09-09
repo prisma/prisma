@@ -3,9 +3,7 @@ import { MissingNamespaceError } from '../errors';
 import { enums, sql } from './context';
 
 /**
- * Reads posts ordered by their `Priority` enum column. The enum's declaration
- * order (low -> high -> urgent) drives the sort, not lexical order, so the feed
- * surfaces the lowest-priority posts first.
+ * Reads posts by numeric priority (Low = 0, High = 1, Urgent = 2), lowest first.
  */
 export async function getPostsByPriority(runtime: Runtime) {
   const rows = await runtime.query(

@@ -111,6 +111,7 @@ function interpret(
   return interpretPslDocumentToMongoContract({
     ...buildSymbolTableInput(schema),
     scalarTypeCodecIds: mongoScalarTypeDescriptors,
+    controlMutationDefaults: new Map(),
     codecLookup: mongoCodecLookup,
     ...overrides,
   });
@@ -1841,20 +1842,24 @@ describe('interpretPslDocumentToMongoContract', () => {
     });
 
     it('emits one diagnostic when one of multiple keys is undeclared', () => {
-      const result = interpret(`
+      const source = `
         model User {
           id    ObjectId @id @map("_id")
           email String
           @@index([email, nonexistent])
         }
-      `);
+      `;
+      const result = interpret(source);
       expect(result.ok).toBe(false);
       if (result.ok) return;
       const diags = result.failure.diagnostics.filter(
         (d) => d.code === 'PSL_INVALID_ATTRIBUTE_SYNTAX',
       );
       expect(diags).toHaveLength(1);
-      expect(diags[0]?.message).not.toMatch(/email/);
+      expect(diags[0]?.span).toMatchObject({
+        start: { offset: source.indexOf('nonexistent') },
+        end: { offset: source.indexOf('nonexistent') + 'nonexistent'.length },
+      });
     });
 
     it('accepts @@index([wildcard()]) (unscoped wildcard) without a field-existence diagnostic', () => {
@@ -2161,6 +2166,7 @@ describe('interpretPslDocumentToMongoContract', () => {
           'schema.prisma',
         ),
         scalarTypeCodecIds: mongoScalarTypeDescriptors,
+        controlMutationDefaults: new Map(),
       });
 
       expect(result.ok).toBe(false);
@@ -2191,6 +2197,7 @@ describe('interpretPslDocumentToMongoContract', () => {
           'schema.prisma',
         ),
         scalarTypeCodecIds: mongoScalarTypeDescriptors,
+        controlMutationDefaults: new Map(),
       });
 
       expect(result.ok).toBe(false);
@@ -2213,6 +2220,7 @@ describe('interpretPslDocumentToMongoContract', () => {
           'schema.prisma',
         ),
         scalarTypeCodecIds: mongoScalarTypeDescriptors,
+        controlMutationDefaults: new Map(),
       });
 
       expect(result.ok).toBe(true);

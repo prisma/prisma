@@ -39,7 +39,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'2268a4dd377c4a238d1c8d5fada0056356d753619b26472c10cb1d258d7cea77'>;
+  StorageHashBase<'8abaa3b97115767c5fee67bcd90de0cec3ac1f14a59875c2f5d22887ba435f89'>;
 export type ExecutionHash =
   ExecutionHashBase<'e592be8e097b3e2b4958da0b3ed54265d1bfa0523295fa03e03af2364cccbd08'>;
 export type ProfileHash =
@@ -287,7 +287,7 @@ export type FieldOutputTypes = {
       readonly id: CodecTypes['pg/uuid@1']['output'];
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly userId: CodecTypes['pg/uuid@1']['output'];
-      readonly priority: 'low' | 'high' | 'urgent';
+      readonly priority: 0 | 1 | 2;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly embedding: Vector<1536> | null;
       readonly viewCount: CodecTypes['pg/int8number@1']['output'] | null;
@@ -335,7 +335,7 @@ export type FieldInputTypes = {
       readonly id: CodecTypes['pg/uuid@1']['input'];
       readonly title: CodecTypes['pg/text@1']['input'];
       readonly userId: CodecTypes['pg/uuid@1']['input'];
-      readonly priority: 'low' | 'high' | 'urgent';
+      readonly priority: 0 | 1 | 2;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly embedding: CodecTypes['pg/vector@1']['input'] | null;
       readonly viewCount: CodecTypes['pg/int8number@1']['input'] | null;
@@ -386,7 +386,7 @@ export type StorageColumnTypes = {
       readonly embedding: Vector<1536> | null;
       readonly id: CodecTypes['pg/uuid@1']['output'];
       readonly impressionCount: CodecTypes['pg/int8@1']['output'] | null;
-      readonly priority: 'low' | 'high' | 'urgent';
+      readonly priority: 0 | 1 | 2;
       readonly reachScore: CodecTypes['pg/unboundedint@1']['output'] | null;
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly userId: CodecTypes['pg/uuid@1']['output'];
@@ -436,7 +436,7 @@ export type StorageColumnInputTypes = {
       readonly embedding: CodecTypes['pg/vector@1']['input'] | null;
       readonly id: CodecTypes['pg/uuid@1']['input'];
       readonly impressionCount: CodecTypes['pg/int8@1']['input'] | null;
-      readonly priority: 'low' | 'high' | 'urgent';
+      readonly priority: 0 | 1 | 2;
       readonly reachScore: CodecTypes['pg/unboundedint@1']['input'] | null;
       readonly title: CodecTypes['pg/text@1']['input'];
       readonly userId: CodecTypes['pg/uuid@1']['input'];
@@ -670,12 +670,12 @@ type ContractBase = Omit<
                   readonly nullable: false;
                 };
                 readonly priority: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly default: {
                     readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/text@1', 'low'>;
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
                   };
                 };
                 readonly createdAt: {
@@ -914,10 +914,7 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
-            readonly Priority: {
-              readonly kind: 'valueSet';
-              readonly values: readonly ['low', 'high', 'urgent'];
-            };
+            readonly Priority: { readonly kind: 'valueSet'; readonly values: readonly [0, 1, 2] };
             readonly user_type: {
               readonly kind: 'valueSet';
               readonly values: readonly ['admin', 'user'];
@@ -1011,7 +1008,7 @@ type ContractBase = Omit<
               };
               readonly priority: {
                 readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly createdAt: {
                 readonly nullable: false;
@@ -1313,11 +1310,11 @@ type ContractBase = Omit<
             ];
           };
           readonly Priority: {
-            readonly codecId: 'pg/text@1';
+            readonly codecId: 'pg/int4@1';
             readonly members: readonly [
-              { readonly name: 'Low'; readonly value: 'low' },
-              { readonly name: 'High'; readonly value: 'high' },
-              { readonly name: 'Urgent'; readonly value: 'urgent' },
+              { readonly name: 'Low'; readonly value: 0 },
+              { readonly name: 'High'; readonly value: 1 },
+              { readonly name: 'Urgent'; readonly value: 2 },
             ];
           };
         };

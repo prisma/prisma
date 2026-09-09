@@ -16,10 +16,11 @@ export function fieldRef(scope: FieldRefScope): FieldRefArgType {
     label: 'field name',
     scope,
     parse: (arg, ctx): Result<string, readonly PslDiagnostic[]> => {
-      if (!(arg instanceof IdentifierAst)) {
+      const identifier = IdentifierAst.cast(arg.syntax);
+      if (identifier === undefined) {
         return notOk([leafDiagnostic(ctx, arg, 'Expected a field name')]);
       }
-      const name = arg.name();
+      const name = identifier.name();
       if (name === undefined) {
         return notOk([leafDiagnostic(ctx, arg, 'Expected a field name')]);
       }
