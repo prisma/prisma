@@ -33,7 +33,6 @@
   },
   "devDependencies": {
     "@internal/mongo-contract-ts": "workspace:8.0.0-rc.8",
-    "@internal/psl-parser": "workspace:8.0.0-rc.8",
     "@repo/test-utils": "workspace:8.0.0-rc.8",
     "@repo/tsconfig": "workspace:8.0.0-rc.8",
     "@repo/tsdown": "workspace:8.0.0-rc.8",

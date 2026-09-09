@@ -4,8 +4,8 @@ import type {
   AttributeSpec,
   AttributeSpecContext,
   AttributeSpecNamespace,
-  FieldAttributeSpecContext,
   FieldAttributeCtx,
+  FieldAttributeSpecContext,
   FieldSymbol,
   FuncCallSig,
   InferAttr,
@@ -230,7 +230,9 @@ function buildTextIndexModelSpec(fieldElement: ArgType<string | TypedFuncCall, M
   });
 }
 
-function modelFieldElement(ctx: AttributeSpecContext): ArgType<string | TypedFuncCall> {
+function modelFieldElement(
+  ctx: AttributeSpecContext,
+): ArgType<string | TypedFuncCall, ModelAttributeCtx> {
   return indexFieldElement(Object.keys(ctx.model.fields));
 }
 
