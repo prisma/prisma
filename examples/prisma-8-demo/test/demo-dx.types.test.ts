@@ -9,10 +9,12 @@
 
 import type { ResultType } from '@prisma/orm-postgres/components/runtime';
 import type { EnumMemberNames, EnumValues } from '@prisma/orm-postgres/contract/enum-accessor';
-import type { Scalars, With } from '@prisma/orm-postgres/family-contract/types';
+import type { Scalars, Shape } from '@prisma/orm-postgres/family-contract/types';
 import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
 import { expectTypeOf, test } from 'vitest';
 import type {
+  AddressOutput,
+  CodecTypes,
   Contract,
   Models as EmittedModels,
   FieldOutputTypes,
@@ -111,7 +113,7 @@ test('emitted contract: EnumMemberNames<Priority> resolves to the literal name u
   expectTypeOf<EnumMemberNames<Priority>>().not.toEqualTypeOf<string>();
 });
 
-test('emitted models constant and Models namespace name the same type, and an ORM include equals With', () => {
+test('emitted models constant and Models namespace name the same type, and an ORM include equals Shape', () => {
   type User = typeof models.public.User;
   expectTypeOf<User>().toEqualTypeOf<EmittedModels.public_User>();
   expectTypeOf<Scalars<User>>().toEqualTypeOf<ResultType<typeof db.orm.public.User>>();
@@ -119,11 +121,45 @@ test('emitted models constant and Models namespace name the same type, and an OR
   type PostTag = typeof models.public.PostTag;
   const postTagsWithTag = () => db.orm.public.PostTag.include('tag');
   expectTypeOf<ResultType<ReturnType<typeof postTagsWithTag>>>().toEqualTypeOf<
-    With<PostTag, 'tag'>
+    Shape<PostTag, { tag: Record<never, never> }>
   >();
 
   const usersWithTasks = () => db.orm.public.User.include('tasks');
   expectTypeOf<ResultType<ReturnType<typeof usersWithTasks>>>().toEqualTypeOf<
-    With<EmittedModels.public_User, 'tasks'>
+    Shape<EmittedModels.public_User, { tasks: Record<never, never> }>
   >();
+});
+
+test('an endpoint declares its response with Shape and the compiler checks the body at the return', () => {
+  type UserResponse = Shape<
+    EmittedModels.public_User,
+    { '-': 'email'; posts: { '+': 'id' | 'title'; tags: Record<never, never> } }
+  >;
+
+  async function getUserWithPosts(
+    userId: EmittedModels.public_User['id'],
+  ): Promise<UserResponse | null> {
+    const user = await db.orm.public.User.where({ id: userId })
+      .include('posts', (posts) => posts.include('tags'))
+      .first();
+    if (user === null) return null;
+    const { email: _email, ...rest } = user;
+    return { ...rest, posts: user.posts.map(({ id, title, tags }) => ({ id, title, tags })) };
+  }
+  expectTypeOf(getUserWithPosts).returns.resolves.toEqualTypeOf<{
+    id: CodecTypes['pg/uuid@1']['output'];
+    displayName: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    kind: 'admin' | 'user';
+    address: AddressOutput | null;
+    posts: {
+      id: CodecTypes['pg/uuid@1']['output'];
+      title: CodecTypes['pg/text@1']['output'];
+      tags: { id: CodecTypes['pg/uuid@1']['output']; label: CodecTypes['pg/text@1']['output'] }[];
+    }[];
+  } | null>();
+
+  // @ts-expect-error the body omits posts, which the shape declares
+  const withoutPosts = (row: Scalars<EmittedModels.public_User>): UserResponse => row;
+  expectTypeOf(withoutPosts).returns.toEqualTypeOf<UserResponse>();
 });

@@ -1,5 +1,7 @@
 # Model and result types
 
+_Superseded by `shape-design-brief.md` for the relation helper: `With` is replaced by `Shape`._
+
 **Linear project:** [Model and result types](https://linear.app/prisma-company/project/model-and-result-types-080d7caa544f)
 **Design brief:** `./design-brief.md` (agreed with Serhii 2026-09-08). This spec turns the brief into binding decisions. Where the brief left a name open, this spec picks one so implementation can proceed; the pick is recorded under § Decisions and can be changed in review.
 

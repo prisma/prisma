@@ -6,17 +6,22 @@ Related: [ADR 223 — Target-owned default namespace](ADR%20223%20-%20Target-own
 
 ## At a glance
 
-A user names a model, the row a default fetch returns, a view with relations, and the result of any ORM query with types the contract emits or the family exports. None of them needs a query or a client in scope except `ResultType`, which needs only the query.
+A user names a model, the row a default fetch returns, an application data structure derived from a model, and the result of any ORM query with types the contract emits or the family exports. None of them needs a query or a client in scope except `ResultType`, which needs only the query.
 
 ```ts
 import type { models, Models } from './prisma/contract';
-import type { Scalars, With } from '@prisma/orm-postgres/family-contract/types';
+import type { Scalars, Shape } from '@prisma/orm-postgres/family-contract/types';
 import type { ResultType } from '@prisma/orm-postgres/components/runtime';
 
 type User = typeof models.public.User;          // the model: every field and relation
 type AlsoUser = Models.public_User;             // same type, importable name
 type UserRow = Scalars<User>;                   // what db.orm.public.User.first() returns
-type UserWithPosts = With<User, 'posts'>;       // Scalars<User> & { posts: Scalars<Post>[] }
+type UserWithPosts = Shape<User, { posts: {} }>;   // Scalars<User> & { posts: Scalars<Post>[] }
+
+type UserResponse = Shape<User, {               // an endpoint's response, derived from the model
+  '-': 'passwordHash';
+  posts: { '+': 'id' | 'title'; comments: {} };
+}>;
 
 export const usersWithPosts = db.orm.public.User.include('posts');
 export type SameThing = ResultType<typeof usersWithPosts>;   // equals UserWithPosts
@@ -87,28 +92,47 @@ export type Scalars<M> = M extends { readonly [RelationKeys]?: infer R extends s
 
 `Scalars` is distributive, so `Scalars<Models.public_AnyTask>` is the union of the variants' scalar rows. The name follows PSL, where a field is either scalar or relation.
 
-**7. `With<M, R>` names a view with relations and is not a selection language.** It takes the model and a union of its relation names, reads the wrapper from the model's own field type, and produces the `Scalars` intersection:
+**7. `Shape<M, Spec>` names an application data structure derived from a model, and is not a query language.** An endpoint declares its response type once, derived from the model; the query inside it is an implementation detail, and the compiler checks the body against the declaration at the `return`. `Spec` is an object. At every level: `'+'` is a union of scalar and relation names to keep (a relation named there is included with all of its scalars and none of its relations; when `'+'` is present only the named scalars are kept); `'-'` is a union of scalar names to drop; `'+'` and `'-'` together at one level is a compile error; every other key is a relation of the current model whose value is a nested spec for the related model, `{}` meaning all scalars and no relations; relations are absent unless asked for; cardinality and nullability come from the model's own field type. The sigils were chosen over words such as `pick`/`omit` because words can collide with field names and sigils cannot.
 
 ```ts
 // packages/1-framework/1-core/framework-components/src/execution/model-types.ts
-export type RelationNamesOf<M> = M extends { readonly [RelationKeys]?: infer R extends string }
-  ? R
+export type Shape<M, Spec extends ShapeSpec<M, Spec> = Record<never, never>> = ShapeOf<M, Spec>;
+
+/**
+ * The constraint a `Shape` spec satisfies. A generic that forwards a spec needs it:
+ * `type Response<S extends ShapeSpec<User, S>> = Shape<User, S>`.
+ */
+export type ShapeSpec<M, Spec> = {
+  readonly [K in keyof Spec]: K extends '+'
+    ? '-' extends keyof Spec
+      ? never
+      : Exclude<ScalarNamesOf<M> | RelationNamesOf<M>, keyof Spec>
+    : K extends '-'
+      ? '+' extends keyof Spec
+        ? never
+        : ScalarNamesOf<M>
+      : K extends RelationNamesOf<M>
+        ? ShapeSpec<RelatedModel<M, K>, Spec[K]>
+        : UnknownSpecKey<M, K>;
+};
+
+type UnknownSpecKey<M, K> = [RelationNamesOf<M>] extends [never]
+  ? `'${K & string}' is not a relation of the model, which has none; try '+' or '-'`
+  : `'${K & string}' is not a relation of the model; try '+', '-', or '${RelationNamesOf<M>}'`;
+
+type ShapeOf<M, Spec> = M extends unknown
+  ? Flatten<
+      KeptScalars<M, Spec> & {
+        [K in IncludedRelations<M, Spec>]: WrapLike<
+          M[K],
+          ShapeOf<RelatedModel<M, K>, NestedSpec<Spec, K>>
+        >;
+      }
+    >
   : never;
-
-export type With<M, R extends RelationNamesOf<M>> = Flatten<
-  Scalars<M> & {
-    [K in R]: M[K & keyof M] extends (infer Item)[]
-      ? Scalars<Item>[]
-      : null extends M[K & keyof M]
-        ? Scalars<NonNullable<M[K & keyof M]>> | null
-        : Scalars<M[K & keyof M]>;
-  }
->;
-
-type Flatten<T> = { [K in keyof T]: T[K] };
 ```
 
-`RelationNamesOf<M>` reads the phantom's value type with a distributive conditional, so a key outside the model's relations is a compile error, and `Flatten` turns the intersection into one object type so hover text shows a single shape. `With` is a pure utility over `Models.public_User`, like `Scalars`: no contract parameter, no object of booleans, no nesting, no relation paths, and nothing that could be mirrored at runtime. That is what separates it from a selection parameter. `With<User, 'posts'>` and `ResultType<typeof db.orm.public.User.include('posts')>` are the same type, and the type tests check that for every fixture model.
+The constraint on `Spec` is a mapped type over `Spec`'s own keys, so a wrong name, a relation in `'-'`, a non-object relation value, an unknown key, `'+'` beside `'-'`, or a relation both in `'+'` and as a key is a compile error on the offending key. An unknown key is constrained to a string literal that reads as the error and names the valid keys, for example `'nope' is not a relation of the model; try '+', '-', or 'posts'`. `ShapeOf` distributes over `M`, so over a polymorphic `Any<Base>` union each variant keeps only the relations it declares, and `Flatten` turns each level into one object type so hover text shows a single shape. `Shape<M, {}>` is `Scalars<M>`, `Shape<M, { r: {} }>` is what `.include('r')` returns, `Shape<M, { '+': 'a' | 'b' }>` is what `.select('a', 'b')` returns, and a nested spec is what a nested include returns. The type tests hold the bare-collection equality (`ResultType` of the collection equals `Shape<M>`) for every SQL fixture model, and the include, projection, and nested-include equalities for representative relations of the SQL fixtures. What `Shape` deliberately cannot express (`where`, `orderBy`, `limit`, aggregation, renames, computed fields) is composed with TypeScript: `Shape<User, {}> & { postCount: number }`.
 
 **8. `ResultType` reads ORM collections through `_row`.** A collection value has exactly one row type. `db.orm.public.User` reads `Scalars<Models.public_User>`; `db.orm.public.User.include('posts')` is a new value whose terminals all return `Scalars<Models.public_User> & { posts: Scalars<Models.public_Post>[] }`; `db.orm.public.User.select('id')` is a third. `ResultType<P>` in `framework-components` already reads an optional `_row` property from the SQL and Mongo query lanes. Both ORM collections gain that one phantom (`declare readonly _row?: Row` on the SQL `CollectionImpl`; `readonly _row?: IncludedRow<...>` on the Mongo `MongoCollection` interface), so `ResultType<typeof query>` names the result of any ORM query, including projections, refined includes, and `.variant()` narrowing.
 
@@ -123,15 +147,15 @@ type Flatten<T> = { [K in keyof T]: T[K] };
 
 - **Framework emitter** renders the `Models` block and `models` constant for both families, resolves field types with the `FieldOutputTypes` resolver, applies the naming and collision rules, and reads each to-one relation's `nullable` flag.
 - **Family emitter** (`EmissionSpi`) adds `RelationKeys` to its family import.
-- **`framework-components`** declares `RelationKeys`, `Scalars`, and `With`, exported beside `ResultType`; each family contract types entrypoint re-exports them.
+- **`framework-components`** declares `RelationKeys`, `Scalars`, and `Shape`, exported beside `ResultType`; each family contract types entrypoint re-exports them.
 - **ORM clients** carry the `_row` phantom and nothing else changes. Their row derivations stay their own; type tests hold them equal to the emitted types.
 
 ## Consequences
 
 - A default fetch returns `Scalars<Model>`, not the model. This is the opposite of Prisma 7, where the generated `User` is scalars-only, and it is the first thing a Prisma 7 user notices. The reference docs say it in their first paragraph.
-- A view with relations is written by hand as `Scalars<A> & { rel: Scalars<B>[] }` or as `With<A, 'rel'>`, never as `Pick` on the model. `Pick<User, 'id' | 'name' | 'posts'>` demands `posts: Post[]` with every post carrying its own `author` and `comments`, and no query returns that.
+- A data structure with relations is written as `Shape<A, { rel: {} }>` (or by hand as `Scalars<A> & { rel: Scalars<B>[] }`), never as `Pick` on the model. `Pick<User, 'id' | 'name' | 'posts'>` demands `posts: Post[]` with every post carrying its own `author` and `comments`, and no query returns that.
 - `contract.json` is unchanged; `contract.d.ts` grows by one block per contract, and every emitted fixture is regenerated.
-- The Prisma 7 questions have direct answers: `Prisma.User` is `Models.public_User`; `Prisma.UserGetPayload<{ include: { posts: true } }>` is `With<Models.public_User, 'posts'>`; `Awaited<ReturnType<typeof fn>>` is `ResultType<typeof query>`. Input types (`CreateInput`, `MutationUpdateInput`, `ShorthandWhereFilter`, `UniqueConstraintCriterion`) were already exported by the ORM client and only needed documenting beside these.
+- The Prisma 7 questions have direct answers: `Prisma.User` is `Models.public_User`; `Prisma.UserGetPayload<{ include: { posts: true } }>` is `Shape<Models.public_User, { posts: {} }>`; `Awaited<ReturnType<typeof fn>>` is `ResultType<typeof query>`. Input types (`CreateInput`, `MutationUpdateInput`, `ShorthandWhereFilter`, `UniqueConstraintCriterion`) were already exported by the ORM client and only needed documenting beside these.
 - No runtime behaviour changes anywhere. This is emitter output, phantom properties, two utility types, and docs.
 
 ## Alternatives considered
@@ -142,7 +166,13 @@ type Flatten<T> = { [K in keyof T]: T[K] };
 
 **Emit `GetPayload`-style types per query.** Rejected: it ties the contract to one lane's vocabulary and grows `contract.d.ts` without bound.
 
-**A relation-selection parameter, `Model<Contract, 'User', { posts: { comments: true } }>`.** Rejected: a second, type-only vocabulary for what `.include()` already says, and once it exists the same bag will be asked for at runtime. `With<User, 'posts'>` differs in kind: it names relations on a model type, with no nesting object and nothing to mirror at runtime.
+**`With<M, R>`, a model plus a union of relation names, one level deep.** The first draft of this decision. Replaced by `Shape` before merge: `With<User, 'posts'>` is `Shape<User, { posts: {} }>`, and keeping both would be two overlapping helpers. `With` could not narrow scalars or nest, so an endpoint whose response drops a column or narrows a related row had to fall back to hand-written types, which is exactly the need Prisma 7 users met with `GetPayload<{ select, include }>`.
+
+**Prisma 7's boolean form, `{ id: true; posts: { title: true } }`.** Rejected as verbose: every scalar must be listed for the wide case, or a wildcard sigil added.
+
+**A relation-selection parameter on the contract, `Model<Contract, 'User', { posts: { comments: true } }>`.** Rejected: it takes the contract rather than the model, and it reads as a query. `Shape` is a pure utility over the model type, like `Scalars`, describes end states rather than queries, and has nothing that could be mirrored at runtime.
+
+**Dotted relation paths as a union, `'id' | 'posts.title' | 'posts.comments'`.** One flat grammar that composes as unions, but deep trees repeat prefixes per leaf and exclusion needs a sigil anyway; nested objects read better.
 
 **A parameter mapping relation name to the model type that sits there.** Rejected: it makes the user import and restate what the contract already knows.
 
@@ -152,4 +182,4 @@ type Flatten<T> = { [K in keyof T]: T[K] };
 
 ## References
 
-- [Naming model and result types](../../reference/model-and-result-types.md) — the user-facing reference for `Models`, `models`, `Scalars`, `With`, and `ResultType`
+- [Naming model and result types](../../reference/model-and-result-types.md) — the user-facing reference for `Models`, `models`, `Scalars`, `Shape`, and `ResultType`

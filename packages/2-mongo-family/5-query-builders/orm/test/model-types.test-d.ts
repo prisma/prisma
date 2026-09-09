@@ -1,5 +1,5 @@
 import type { ResultType } from '@internal/framework-components/runtime';
-import type { Scalars, With } from '@internal/mongo-contract';
+import type { Scalars, Shape } from '@internal/mongo-contract';
 import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import { expectTypeOf, test } from 'vitest';
 import type {
@@ -41,9 +41,16 @@ test('ResultType of a root collection equals Scalars of the emitted model and is
   expectTypeOf<ResultType<typeof db.tasks>>().toEqualTypeOf<Scalars<Models.unbound_AnyTask>>();
 });
 
-test('ResultType of a reference include equals With', () => {
+test('ResultType of a reference include equals Shape with the relation key', () => {
   const withAssignee = db.tasks.include('assignee');
   expectTypeOf<ResultType<typeof withAssignee>>().toEqualTypeOf<
-    With<Models.unbound_AnyTask, 'assignee'>
+    Shape<Models.unbound_AnyTask, { assignee: Record<never, never> }>
   >();
+});
+
+test('embeds stay present in a Shape', () => {
+  expectTypeOf<Shape<Models.unbound_User, Record<never, never>>>().toHaveProperty('addresses');
+  expectTypeOf<Shape<Models.unbound_User, { '+': 'addresses' }>>().toEqualTypeOf<{
+    addresses: Models.unbound_User['addresses'];
+  }>();
 });

@@ -1,4 +1,9 @@
-export type { RelationNamesOf, Scalars, With } from '@internal/framework-components/runtime';
+export type {
+  RelationNamesOf,
+  Scalars,
+  Shape,
+  ShapeSpec,
+} from '@internal/framework-components/runtime';
 export { RelationKeys } from '@internal/framework-components/runtime';
 export {
   createMongoContractSchema,

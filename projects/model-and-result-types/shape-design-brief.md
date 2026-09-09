@@ -33,7 +33,7 @@ So `Shape` is a small language for describing application data structures derive
 
 ## The type
 
-`Shape<Model, Spec>`, exported from each family's contract types entrypoint beside `Scalars`, and implemented once in `framework-components` beside them. `Model` is an emitted model type, `Models.<ns>_<Model>`. `Spec` is an object.
+`Shape<Model, Spec = {}>`, exported from each family's contract types entrypoint beside `Scalars`, and implemented once in `framework-components` beside them. `Model` is an emitted model type, `Models.<ns>_<Model>`. `Spec` is an object; omitted, it is the empty spec, so `Shape<User>` equals `Scalars<User>`. The constraint type `ShapeSpec<Model, Spec>` is exported beside it, because a generic over specs (`type Response<S extends ShapeSpec<User, S>> = Shape<User, S>`) has no other constraint that satisfies `Shape`.
 
 ### Spec rules
 
@@ -41,7 +41,7 @@ At every level of the spec:
 
 1. `'+'` is a union of names to keep, scalars and relations alike. A relation named in `'+'` is included with all of its scalars and none of its relations. When `'+'` is present, only the named scalars are kept.
 2. `'-'` is a union of scalar names to drop. Every other scalar is kept. Relations cannot be dropped, since they are absent unless asked for.
-3. `'+'` and `'-'` together at one level is a compile error. "Only these" and "all but these" cannot both be meant.
+3. `'+'` and `'-'` together at one level is a compile error. "Only these" and "all but these" cannot both be meant. A relation named in `'+'` and also present as a key at the same level is a compile error for the same reason: "all its scalars" and "this nested spec" cannot both be meant. Use the key alone to narrow.
 4. Any other key is a relation of the current model, and its value is a nested spec applied to the related model. `{}` is the empty spec: all scalars, no relations.
 5. No `'+'` and no `'-'` means every scalar.
 6. Relations are absent unless they appear in `'+'` or as a key.
@@ -69,7 +69,7 @@ For a spec at a level, the result is the kept scalars intersected with one prope
 - A name in `'+'` or `'-'` that is neither a scalar nor a relation of the model. The error names the bad key.
 - A relation name in `'-'`.
 - A relation key whose value is not an object.
-- `'+'` and `'-'` at the same level.
+- `'+'` and `'-'` at the same level, or a relation both in `'+'` and as a key.
 
 ## What is out of scope, deliberately
 
@@ -96,6 +96,10 @@ For a spec at a level, the result is the kept scalars intersected with one prope
 - **Dotted relation paths as a union**, `'id' | 'posts.title' | 'posts.comments'`. One flat grammar; composes as unions; validates per path. Rejected because deep trees repeat prefixes per leaf and exclusion needs a sigil; nested objects read better.
 - **A relation value being the type that sits there**, `{ author: User }`. Rejected: makes the user import and restate what the contract already knows.
 - **Scalar picking only via `Pick` outside**, with `Shape` handling relations only. Works at the top level, but nested narrowing has nowhere to go. `Pick` and `Omit` still work on a `Shape` result for those who prefer them.
+
+## What building it changed (2026-09-09)
+
+The implementation confirmed every rule and refusal as written, with a six-level nested spec through a model cycle typechecking without depth problems. Two additions came out of it and are folded into the rules above: the spec constraint is public as `ShapeSpec`, since it is F-bounded and nothing else satisfies `Shape`; and a relation appearing in both `'+'` and as a key at one level is refused. Repo tests spell the empty spec `Record<never, never>` because Biome bans `{}` in this repo; user code keeps `{}`.
 
 ## Open questions
 

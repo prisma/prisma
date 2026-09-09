@@ -12,7 +12,7 @@ const user = await db.orm.public.User.first();
 //    ^? Scalars<Models.public_User> | null
 
 const withPosts = await db.orm.public.User.include('posts').first();
-//    ^? With<Models.public_User, 'posts'> | null   (or the equivalent flattened shape)
+//    ^? Shape<Models.public_User, { posts: {} }> | null   (or the equivalent flattened shape)
 ```
 
 The mechanism: the emitted `Models` map travels into the contract type through `TypeMaps`, the same way `FieldOutputTypes` does today, and the ORM's `DefaultModelRow` becomes an indexed access on it wrapped in `Scalars`.
@@ -29,8 +29,8 @@ The mechanism: the emitted `Models` map travels into the contract type through `
 - The Mongo family has the same arrangement with three maps: `MongoTypeMaps<TCodecTypes, TFieldOutputTypes, TFieldInputTypes>` in `packages/2-mongo-family/1-foundation/mongo-contract/src/contract-types.ts`, with `ExtractMongoFieldOutputTypes<T>` and `MongoUnboundFieldOutputTypes<T>`.
 - The emitter writes the `TypeMaps` expression per family: `getTypeMapsExpression()` in `packages/2-sql/3-tooling/emitter/src/index.ts` returns `TypeMapsType<CodecTypes, QueryOperationTypes, FieldOutputTypes, FieldInputTypes, StorageColumnTypes, StorageColumnInputTypes, AggregateTypes>`; the Mongo hook returns `MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>`. The `Models` namespace and `models` constant are emitted after the contract wrapper by `packages/1-framework/3-tooling/emitter/src/model-types-emission.ts`.
 - The ORM already has a "read the emitted map first, derive otherwise" pattern: `FieldJsType` in `packages/3-extensions/sql-orm-client/src/types.ts` reads `NamespaceFieldOutputType` from `TypeMaps` and falls back to `FieldStorageJsType` when that is `never`. The no-emit flow, where there is no `contract.d.ts`, relies on that fallback today.
-- `Scalars`, `With`, and `RelationKeys` live in `packages/1-framework/1-core/framework-components/src/execution/model-types.ts`.
-- Slice 1's type tests in `packages/3-extensions/sql-orm-client/test/model-types.test-d.ts`, `packages/2-mongo-family/5-query-builders/orm/test/model-types.test-d.ts`, and `examples/prisma-8-demo/test/demo-dx.types.test.ts` assert equality between ORM rows and `Scalars`/`With` of the emitted models. They are the acceptance tests for this slice and must keep passing unchanged.
+- `Scalars`, `Shape`, and `RelationKeys` live in `packages/1-framework/1-core/framework-components/src/execution/model-types.ts`.
+- Slice 1's type tests in `packages/3-extensions/sql-orm-client/test/model-types.test-d.ts`, `packages/2-mongo-family/5-query-builders/orm/test/model-types.test-d.ts`, and `examples/prisma-8-demo/test/demo-dx.types.test.ts` assert equality between ORM rows and `Scalars`/`Shape` of the emitted models. They are the acceptance tests for this slice and must keep passing unchanged.
 
 ## The design
 
@@ -64,7 +64,7 @@ Mongo, in `packages/2-mongo-family/5-query-builders/orm/src/types.ts`: the same 
 ### 4. Out of scope
 
 - Deleting the fallback derivation. The no-emit flow needs it.
-- Changing `With`, `Scalars`, or the emitted member naming.
+- Changing `Shape`, `Scalars`, or the emitted member naming.
 - Hover-text assertions. There is no way to test what an editor displays; the brief's hover example is the expected outcome, and the implementer reports what a hover in the demo actually shows.
 
 ## Risks

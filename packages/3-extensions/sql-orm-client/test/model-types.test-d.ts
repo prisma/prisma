@@ -1,5 +1,5 @@
 import type { ResultType } from '@internal/framework-components/runtime';
-import type { Scalars, With } from '@internal/sql-contract/types';
+import type { Scalars, Shape } from '@internal/sql-contract/types';
 import { expectTypeOf, test } from 'vitest';
 import type {
   Contract as PolyContract,
@@ -124,47 +124,113 @@ test('ResultType of a root collection equals Scalars of the emitted model and is
   expectTypeOf<ResultType<typeof poly.Ticket>>().toEqualTypeOf<Scalars<PolyModels.public_Ticket>>();
 });
 
-test('ResultType of a to-one include equals With', () => {
-  const withAuthor = db.Post.include('author');
-  expectTypeOf<ResultType<typeof withAuthor>>().toEqualTypeOf<With<Models.public_Post, 'author'>>();
+test('ResultType of a bare collection equals Shape of the emitted model with the default spec, for every model', () => {
+  expectTypeOf<ResultType<typeof db.Article>>().toEqualTypeOf<Shape<Models.public_Article>>();
+  expectTypeOf<ResultType<typeof db.Comment>>().toEqualTypeOf<Shape<Models.public_Comment>>();
+  expectTypeOf<ResultType<typeof db.Post>>().toEqualTypeOf<Shape<Models.public_Post>>();
+  expectTypeOf<ResultType<typeof db.Profile>>().toEqualTypeOf<Shape<Models.public_Profile>>();
+  expectTypeOf<ResultType<typeof db.Project>>().toEqualTypeOf<Shape<Models.public_Project>>();
+  expectTypeOf<ResultType<typeof db.ProjectLink>>().toEqualTypeOf<
+    Shape<Models.public_ProjectLink>
+  >();
+  expectTypeOf<ResultType<typeof db.Role>>().toEqualTypeOf<Shape<Models.public_Role>>();
+  expectTypeOf<ResultType<typeof db.Tag>>().toEqualTypeOf<Shape<Models.public_Tag>>();
+  expectTypeOf<ResultType<typeof db.User>>().toEqualTypeOf<Shape<Models.public_User>>();
+  expectTypeOf<ResultType<typeof db.UserRole>>().toEqualTypeOf<Shape<Models.public_UserRole>>();
+  expectTypeOf<ResultType<typeof db.UserTag>>().toEqualTypeOf<Shape<Models.public_UserTag>>();
+
+  expectTypeOf<ResultType<typeof poly.Account>>().toEqualTypeOf<Shape<PolyModels.public_Account>>();
+  expectTypeOf<ResultType<typeof poly.Person>>().toEqualTypeOf<Shape<PolyModels.public_Person>>();
+  expectTypeOf<ResultType<typeof poly.Project>>().toEqualTypeOf<Shape<PolyModels.public_Project>>();
+  expectTypeOf<ResultType<typeof poly.Task>>().toEqualTypeOf<Shape<PolyModels.public_AnyTask>>();
+  expectTypeOf<ResultType<typeof poly.TaskComment>>().toEqualTypeOf<
+    Shape<PolyModels.public_TaskComment>
+  >();
+  expectTypeOf<ResultType<typeof poly.Ticket>>().toEqualTypeOf<Shape<PolyModels.public_Ticket>>();
+  expectTypeOf<ResultType<typeof poly.User>>().toEqualTypeOf<Shape<PolyModels.public_AnyUser>>();
 });
 
-test('ResultType of a to-many include equals With', () => {
-  const withComments = db.Post.include('comments');
-  expectTypeOf<ResultType<typeof withComments>>().toEqualTypeOf<
-    With<Models.public_Post, 'comments'>
+test('ResultType of a to-one include equals Shape with the relation key', () => {
+  const withAuthor = db.Post.include('author');
+  expectTypeOf<ResultType<typeof withAuthor>>().toEqualTypeOf<
+    Shape<Models.public_Post, { author: Record<never, never> }>
   >();
 });
 
-test('With is the hand-written Scalars intersection, flattened into one object', () => {
+test('ResultType of a to-many include equals Shape with the relation key', () => {
+  const withComments = db.Post.include('comments');
+  expectTypeOf<ResultType<typeof withComments>>().toEqualTypeOf<
+    Shape<Models.public_Post, { comments: Record<never, never> }>
+  >();
+});
+
+test('Shape is the hand-written Scalars intersection, flattened into one object', () => {
   type PostWithComments = Scalars<Models.public_Post> & {
     comments: Scalars<Models.public_Comment>[];
   };
-  expectTypeOf<With<Models.public_Post, 'comments'>>().toMatchTypeOf<PostWithComments>();
-  expectTypeOf<PostWithComments>().toMatchTypeOf<With<Models.public_Post, 'comments'>>();
-  expectTypeOf<With<Models.public_Post, 'comments'>>().toEqualTypeOf<{
+  expectTypeOf<
+    Shape<Models.public_Post, { comments: Record<never, never> }>
+  >().toExtend<PostWithComments>();
+  expectTypeOf<PostWithComments>().toExtend<
+    Shape<Models.public_Post, { comments: Record<never, never> }>
+  >();
+  expectTypeOf<Shape<Models.public_Post, { comments: Record<never, never> }>>().toEqualTypeOf<{
     [K in keyof PostWithComments]: PostWithComments[K];
   }>();
 });
 
-test('ResultType of a nullable to-one include equals With', () => {
+test('ResultType of a nullable to-one include equals Shape', () => {
   const withInviter = db.User.include('invitedBy');
   expectTypeOf<ResultType<typeof withInviter>>().toEqualTypeOf<
-    With<Models.public_User, 'invitedBy'>
+    Shape<Models.public_User, { invitedBy: Record<never, never> }>
   >();
 });
 
-test('ResultType of a to-one include on a required field equals With and is not nullable', () => {
+test('ResultType of a to-one include on a required field equals Shape and is not nullable', () => {
   const withReviewer = db.Article.include('reviewer');
   expectTypeOf<ResultType<typeof withReviewer>>().toEqualTypeOf<
-    With<Models.public_Article, 'reviewer'>
+    Shape<Models.public_Article, { reviewer: Record<never, never> }>
   >();
   expectTypeOf<Models.public_Article['reviewer']>().toEqualTypeOf<Models.public_User>();
+});
+
+test("ResultType of a select projection equals Shape with '+'", () => {
+  const projected = db.User.select('id', 'name');
+  expectTypeOf<ResultType<typeof projected>>().toEqualTypeOf<
+    Shape<Models.public_User, { '+': 'id' | 'name' }>
+  >();
+});
+
+test("ResultType of a select plus include equals Shape with '+' and the relation key", () => {
+  const projectedWithComments = db.Post.select('id', 'title').include('comments');
+  expectTypeOf<ResultType<typeof projectedWithComments>>().toEqualTypeOf<
+    Shape<Models.public_Post, { '+': 'id' | 'title'; comments: Record<never, never> }>
+  >();
+});
+
+test('ResultType of a nested include equals a nested Shape spec', () => {
+  const usersWithPostComments = db.User.include('posts', (posts) => posts.include('comments'));
+  expectTypeOf<ResultType<typeof usersWithPostComments>>().toEqualTypeOf<
+    Shape<Models.public_User, { posts: { comments: Record<never, never> } }>
+  >();
+  const narrowed = db.User.include('posts', (posts) =>
+    posts.select('id', 'title').include('author'),
+  );
+  expectTypeOf<ResultType<typeof narrowed>>().toEqualTypeOf<
+    Shape<Models.public_User, { posts: { '+': 'id' | 'title'; author: Record<never, never> } }>
+  >();
 });
 
 test('ResultType of a select projection is the projected shape', () => {
   const projected = db.User.select('id');
   expectTypeOf<ResultType<typeof projected>>().toEqualTypeOf<{ id: number }>();
+});
+
+test('a refined nullable to-one include equals a nested Shape spec', () => {
+  const refined = db.User.include('invitedBy', (inviter) => inviter.select('id'));
+  expectTypeOf<ResultType<typeof refined>>().toEqualTypeOf<
+    Shape<Models.public_User, { invitedBy: { '+': 'id' } }>
+  >();
 });
 
 test('a refined to-one include is nullable even when the relation is not', () => {
@@ -193,32 +259,41 @@ test('ResultType of a polymorphic base collection equals Scalars of the Any unio
   expectTypeOf<ResultType<typeof poly.User>>().toEqualTypeOf<Scalars<PolyModels.public_AnyUser>>();
 });
 
-test('ResultType of an include whose target is a polymorphic base equals With over the Any union', () => {
+test('ResultType of an include whose target is a polymorphic base equals Shape over the Any union', () => {
   const projectsWithTasks = poly.Project.include('tasks');
   expectTypeOf<ResultType<typeof projectsWithTasks>>().toEqualTypeOf<
-    With<PolyModels.public_Project, 'tasks'>
+    Shape<PolyModels.public_Project, { tasks: Record<never, never> }>
   >();
   const commentsWithTask = poly.TaskComment.include('task');
   expectTypeOf<ResultType<typeof commentsWithTask>>().toEqualTypeOf<
-    With<PolyModels.public_TaskComment, 'task'>
+    Shape<PolyModels.public_TaskComment, { task: Record<never, never> }>
   >();
 });
 
-test('With over the Any union adds a variant-only relation to the variants that declare it', () => {
+test('ResultType of a variant-only include on a variant collection equals Shape of the variant', () => {
+  const bugsWithAssignee = poly.Task.variant('Bug').include('assignee');
+  expectTypeOf<ResultType<typeof bugsWithAssignee>>().toEqualTypeOf<
+    Shape<PolyModels.public_Bug, { assignee: Record<never, never> }>
+  >();
+});
+
+test('Shape over the Any union adds a variant-only relation to the variants that declare it', () => {
   type Flat<T> = { [K in keyof T]: T[K] };
   type AssigneeRow = Scalars<PolyModels.public_Person> | null;
-  expectTypeOf<With<PolyModels.public_AnyTask, 'assignee'>>().toEqualTypeOf<
+  expectTypeOf<
+    Shape<PolyModels.public_AnyTask, { assignee: Record<never, never> }>
+  >().toEqualTypeOf<
     | Flat<Scalars<PolyModels.public_Bug> & { assignee: AssigneeRow }>
     | Flat<Scalars<PolyModels.public_Feature> & { assignee: AssigneeRow }>
     | Flat<Scalars<PolyModels.public_Epic>>
   >();
   expectTypeOf<
-    Extract<With<PolyModels.public_AnyTask, 'assignee'>, { type: 'epic' }>
+    Extract<Shape<PolyModels.public_AnyTask, { assignee: Record<never, never> }>, { type: 'epic' }>
   >().not.toHaveProperty('assignee');
 });
 
-test('With rejects a name that is not a relation', () => {
+test('Shape rejects a key that is not a relation', () => {
   // @ts-expect-error 'nope' is not a relation of User
-  type Bad = With<Models.public_User, 'nope'>;
+  type Bad = Shape<Models.public_User, { nope: Record<never, never> }>;
   expectTypeOf<Bad>().not.toBeNever();
 });

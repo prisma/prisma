@@ -35,7 +35,7 @@ changes:
     summary: |
       `contract.d.ts` now exports a `Models` namespace and a `models` constant that name every
       model with its fields and relations. The re-emit above produces them; use them with
-      `Scalars` and `With` to name row types without a client in scope.
+      `Scalars` and `Shape` to name row types without a client in scope.
   - id: mongo-unlowered-attributes-are-rejected
     summary: |
       MongoDB Prisma schema files must not carry `@default(...)`, `@updatedAt`, or `@db.*` attributes; the Mongo interpreter never lowered them and now rejects them.
@@ -69,7 +69,7 @@ For every `contract.json` matched by `detection`, run the project's emit command
 
 ## `contract-dts-exports-models`
 
-After the emit, `import type { Models, models } from './prisma/contract'` (the project's contract path) gives `Models.<namespace>_<Model>` for every model, and `Scalars<M>` / `With<M, 'relation'>` from `@prisma/orm-postgres/family-contract/types` (or the Mongo family package) derive the default row and a row with relations from it. Replace hand-written row types that duplicate a model's fields with these when convenient.
+After the emit, `import type { Models, models } from './prisma/contract'` (the project's contract path) gives `Models.<namespace>_<Model>` for every model, and `Scalars<M>` / `Shape<M, { relation: {} }>` from `@prisma/orm-postgres/family-contract/types` (or the Mongo family package) derive the default row and a data structure with relations from it. Replace hand-written row types that duplicate a model's fields with these when convenient.
 ## `mongo-unlowered-attributes-are-rejected`
 
 First, before editing any schema, determine whether the project targets MongoDB: its `prisma.config.ts` imports `@prisma/orm-mongo`, or its `package.json` depends on that package. If neither holds, skip this change entirely and leave every schema untouched. The `detection` pattern also matches SQL schemas, where `@default(...)` and `@db.<Type>` are supported and deleting them breaks the contract.

@@ -1,5 +1,7 @@
 # Design brief: model and result types for Prisma 8
 
+_Superseded by `shape-design-brief.md` for the relation helper: `With` is replaced by `Shape`._
+
 _Status: draft for team review, revised 2026-09-08 after discussion with Serhii. The implementation plan beside this file is out of date and will be rewritten once the brief is agreed._
 
 ## Prisma 8 has no way to name a model or a query result
