@@ -155,7 +155,7 @@ type Book = With<Models.public_Book, 'author'>;
 
 `With` takes the model and a union of its relation names, reads the wrapper from the model's own field type (`Post[]` versus `Profile | null`), and produces the `Scalars` intersection. It is a pure utility over `Models.public_User`, like `Scalars`: no contract parameter, no object of booleans, and nothing that could be mirrored at runtime, which is what separates it from the rejected selection parameter. The second parameter is constrained to the model's relation keys, so a typo is a compile error. One level deep is enough on day one; nesting can come later if asked for.
 
-`With<User, 'posts'>` and `ResultType<typeof db.User.include('posts')>` are the same type, checked by the type tests.
+`With<User, 'posts'>` and `ResultType<typeof usersWithPosts>`, where `usersWithPosts = db.orm.public.User.include('posts')`, are the same type, checked by the type tests.
 
 Input types are already exported by the ORM client (`CreateInput`, `MutationUpdateInput`, `ShorthandWhereFilter`, `UniqueConstraintCriterion`) and only need documenting alongside the above.
 
