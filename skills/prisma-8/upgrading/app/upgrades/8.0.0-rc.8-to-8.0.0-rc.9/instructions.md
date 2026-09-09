@@ -2,6 +2,9 @@
 from: "8.0.0-rc.8"
 to: "8.0.0-rc.9"
 changes:
+  - id: reemit-supabase-extension-version
+    summary: |
+      Re-emit contracts using the Supabase extension so their extension version metadata matches the installed rc.9 package.
   - id: mongo-index-projections-use-native-lists
     summary: |
       MongoDB wildcard index `include` and `exclude` projections in Prisma schema files must use native PSL lists instead of encoded list strings.
@@ -32,6 +35,10 @@ changes:
 ---
 
 # 8.0.0-rc.8 → 8.0.0-rc.9 — User upgrade instructions
+
+## `reemit-supabase-extension-version`
+
+After updating the Supabase extension to rc.9, run `prisma contract emit` for each contract that uses it and commit the regenerated `contract.json` and `contract.d.ts`. Verify that the Supabase extension's version metadata is `8.0.0-rc.9` in both artifacts; do not edit generated contracts by hand.
 
 ## `mongo-index-projections-use-native-lists`
 
