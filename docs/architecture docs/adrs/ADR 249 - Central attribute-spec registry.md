@@ -8,7 +8,7 @@
 
 ## At a glance
 
-Every PSL attribute a family accepts is registered in one namespace, keyed by level and by attribute name. A family declares its built-ins as a single `const` object (abridged here from `packages/2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts`):
+Every model-level and field-level PSL attribute a family accepts is registered in one namespace, keyed by level and by attribute name. Block-level attributes are declared on the block descriptor that owns them, not in this namespace. A family declares its built-ins as a single `const` object (abridged here from `packages/2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts`):
 
 ```ts
 export const sqlAttributeSpecs = {
@@ -55,7 +55,7 @@ One entry shape, one assembly point, two consumers that cannot disagree about wh
 
 ## Decision
 
-Every PSL attribute of every family is registered in one place, keyed by level and name, and enumerable by a consumer that holds the composed control stack.
+Every model-level and field-level PSL attribute of every family is registered in one place, keyed by level and name, and enumerable by a consumer that holds the composed control stack. Block-level attributes are enumerable too, from the block descriptor that declares them.
 
 Four rules make that possible.
 
