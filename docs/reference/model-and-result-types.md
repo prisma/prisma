@@ -1,6 +1,6 @@
 # Naming model and result types
 
-A query result is a view on a model, not the model. The model is what you wrote in PSL: every field and every relation. The default fetch, `db.User.first()` or `db.User.all()`, returns `Scalars<Model>`, the model without its relations, because returning the model would mean loading the whole reachable graph. A fetch with `.include()` returns `Scalars<Model>` plus the relations you asked for, and a fetch with `.select()` returns what you selected. Every type on this page is emitted into `contract.d.ts` or exported by the family package, so you can name a model, a default row, a view with relations, or the result of a query without a client in scope.
+A query result is a view on a model, not the model. The model is what you wrote in PSL: every field and every relation. The default fetch, `db.orm.public.User.first()` or `db.orm.public.User.all()`, returns `Scalars<Model>`, the model without its relations, because returning the model would mean loading the whole reachable graph. A fetch with `.include()` returns `Scalars<Model>` plus the relations you asked for, and a fetch with `.select()` returns what you selected. Every type on this page is emitted into `contract.d.ts` or exported by the family package, so you can name a model, a default row, a view with relations, or the result of a query without a client in scope.
 
 Every snippet below is copied from a passing type test or an emitted fixture. The first line of each snippet names the file it came from. The tests import from `@internal/*` package names; the public spellings are `@prisma/orm-postgres/family-contract/types` for `Scalars` and `With`, `@prisma/orm-postgres/components/runtime` for `ResultType`, and `./prisma/contract` for `models` and `Models` (`@prisma/orm-mongo/contract` and `@prisma/orm-mongo/components/runtime` on Mongo).
 
@@ -93,13 +93,13 @@ expectTypeOf<ResultType<typeof projectsWithTasks>>().toEqualTypeOf<
 
 ## The row a default fetch returns
 
-`Scalars<M>` is the model without its relations. It is what `db.User.first()`, `db.User.all()`, and every other terminal on a plain collection return. `Scalars` distributes over unions, so `Scalars<Models.public_AnyTask>` is the union of the variants' scalar rows.
+`Scalars<M>` is the model without its relations. It is what `db.orm.public.User.first()`, `db.orm.public.User.all()`, and every other terminal on a plain collection return. `Scalars` distributes over unions, so `Scalars<Models.public_AnyTask>` is the union of the variants' scalar rows.
 
 ```ts
 // packages/3-extensions/sql-orm-client/test/model-types.test-d.ts
 expectTypeOf<DefaultModelRow<Contract, 'User'>>().toEqualTypeOf<Scalars<Models.public_User>>();
 
-expectTypeOf<ResultType<typeof db.User>>().toEqualTypeOf<Scalars<Models.public_User>>();
+expectTypeOf<ResultType<typeof db.orm.public.User>>().toEqualTypeOf<Scalars<Models.public_User>>();
 ```
 
 On Mongo, embedded documents are fields, not relations, so they stay present in `Scalars`.
@@ -116,15 +116,15 @@ expectTypeOf<Scalars<Models.unbound_Task>>().toHaveProperty('comments');
 
 ```ts
 // packages/3-extensions/sql-orm-client/test/model-types.test-d.ts
-const withAuthor = db.Post.include('author');
+const withAuthor = db.orm.public.Post.include('author');
 expectTypeOf<ResultType<typeof withAuthor>>().toEqualTypeOf<With<Models.public_Post, 'author'>>();
 
-const withComments = db.Post.include('comments');
+const withComments = db.orm.public.Post.include('comments');
 expectTypeOf<ResultType<typeof withComments>>().toEqualTypeOf<
   With<Models.public_Post, 'comments'>
 >();
 
-const withInviter = db.User.include('invitedBy');
+const withInviter = db.orm.public.User.include('invitedBy');
 expectTypeOf<ResultType<typeof withInviter>>().toEqualTypeOf<
   With<Models.public_User, 'invitedBy'>
 >();
@@ -155,12 +155,12 @@ Do not write `Pick<Models.public_User, 'id' | 'posts'>`. It demands `posts: Mode
 
 ```ts
 // packages/3-extensions/sql-orm-client/test/model-types.test-d.ts
-expectTypeOf<ResultType<typeof db.User>>().toEqualTypeOf<Scalars<Models.public_User>>();
+expectTypeOf<ResultType<typeof db.orm.public.User>>().toEqualTypeOf<Scalars<Models.public_User>>();
 
-const projected = db.User.select('id');
+const projected = db.orm.public.User.select('id');
 expectTypeOf<ResultType<typeof projected>>().toEqualTypeOf<{ id: number }>();
 
-const refined = db.User.include('posts', (posts) => posts.select('id'));
+const refined = db.orm.public.User.include('posts', (posts) => posts.select('id'));
 expectTypeOf<ResultType<typeof refined>>().not.toBeNever();
 ```
 

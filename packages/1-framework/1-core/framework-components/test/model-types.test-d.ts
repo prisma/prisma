@@ -36,10 +36,17 @@ type Feature = {
   id: number;
   type: 'feature';
   priority: number;
+  owner: User;
+  readonly [RelationKeys]?: 'owner';
+};
+
+type Chore = {
+  id: number;
+  type: 'chore';
   readonly [RelationKeys]?: never;
 };
 
-type AnyTask = Bug | Feature;
+type AnyTask = Bug | Feature | Chore;
 
 describe('Scalars', () => {
   test('strips relation keys and the phantom', () => {
@@ -54,6 +61,7 @@ describe('Scalars', () => {
     expectTypeOf<Scalars<AnyTask>>().toEqualTypeOf<
       | { id: number; type: 'bug'; severity: string }
       | { id: number; type: 'feature'; priority: number }
+      | { id: number; type: 'chore' }
     >();
   });
 
@@ -93,6 +101,25 @@ describe('With', () => {
 
   test('does not carry the phantom', () => {
     expectTypeOf<keyof With<User, 'posts'>>().toEqualTypeOf<'id' | 'name' | 'posts'>();
+  });
+
+  test('distributes over a union, adding a relation only to the variants that declare it', () => {
+    expectTypeOf<With<AnyTask, 'reporter'>>().toEqualTypeOf<
+      | { id: number; type: 'bug'; severity: string; reporter: { id: number; name: string } }
+      | { id: number; type: 'feature'; priority: number }
+      | { id: number; type: 'chore' }
+    >();
+    expectTypeOf<With<AnyTask, 'reporter' | 'owner'>>().toEqualTypeOf<
+      | { id: number; type: 'bug'; severity: string; reporter: { id: number; name: string } }
+      | { id: number; type: 'feature'; priority: number; owner: { id: number; name: string } }
+      | { id: number; type: 'chore' }
+    >();
+  });
+
+  test('accepts a relation name declared by any member of the union and rejects one declared by none', () => {
+    expectTypeOf<With<AnyTask, 'owner'>>().not.toBeNever();
+    // @ts-expect-error - 'posts' is not a relation of any AnyTask member
+    type _Bad = With<AnyTask, 'posts'>;
   });
 
   test('rejects a key that is not a relation', () => {

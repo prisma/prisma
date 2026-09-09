@@ -1,4 +1,12 @@
-import { type Connection, ConnectionError, ConnectionErrors } from 'vscode-languageserver';
+import {
+  type Connection,
+  ConnectionError,
+  ConnectionErrors,
+  combineFeatures,
+  type Features,
+  ProposedFeatures,
+  type RemoteConsole,
+} from 'vscode-languageserver';
 
 /**
  * Wraps a connection so that an outbound call the client is no longer there to
@@ -18,6 +26,44 @@ import { type Connection, ConnectionError, ConnectionErrors } from 'vscode-langu
  */
 export function guardedConnection(connection: Connection): Connection {
   return guardCalls(connection);
+}
+
+/**
+ * Connection features whose remote console survives the client's departure.
+ *
+ * `guardedConnection` only covers sends the server body makes. `vscode-jsonrpc`
+ * keeps its own reference to the console it was created with and reports a
+ * handler that failed after the connection was disposed through it — a reply
+ * that could not be written once the client was gone, for one. That console
+ * sends over the same dead connection and throws synchronously, inside the
+ * `.catch()` that was reporting the first failure, so the throw has nowhere to
+ * go but an unhandled rejection. These features swap in a console that drops
+ * the log instead, so the report of the client leaving cannot itself crash the
+ * process. Every connection this package creates uses them.
+ */
+export const guardedFeatures: Features = combineFeatures(ProposedFeatures.all, {
+  __brand: 'features',
+  console: guardedRemoteConsole,
+});
+
+function guardedRemoteConsole(Base: new () => RemoteConsole): new () => RemoteConsole {
+  return class extends Base {
+    override error(message: string): void {
+      whileConnected(() => super.error(message));
+    }
+    override warn(message: string): void {
+      whileConnected(() => super.warn(message));
+    }
+    override info(message: string): void {
+      whileConnected(() => super.info(message));
+    }
+    override log(message: string): void {
+      whileConnected(() => super.log(message));
+    }
+    override debug(message: string): void {
+      whileConnected(() => super.debug(message));
+    }
+  };
 }
 
 function guardCalls<Target extends object>(target: Target): Target {

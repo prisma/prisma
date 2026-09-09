@@ -15,10 +15,10 @@ import type { ResultType } from '@prisma/orm-postgres/components/runtime';
 
 type User = typeof models.public.User;          // the model: every field and relation
 type AlsoUser = Models.public_User;             // same type, importable name
-type UserRow = Scalars<User>;                   // what db.User.first() returns
+type UserRow = Scalars<User>;                   // what db.orm.public.User.first() returns
 type UserWithPosts = With<User, 'posts'>;       // Scalars<User> & { posts: Scalars<Post>[] }
 
-export const usersWithPosts = db.User.include('posts');
+export const usersWithPosts = db.orm.public.User.include('posts');
 export type SameThing = ResultType<typeof usersWithPosts>;   // equals UserWithPosts
 ```
 
@@ -108,9 +108,9 @@ export type With<M, R extends RelationNamesOf<M>> = Flatten<
 type Flatten<T> = { [K in keyof T]: T[K] };
 ```
 
-`RelationNamesOf<M>` reads the phantom's value type with a distributive conditional, so a key outside the model's relations is a compile error, and `Flatten` turns the intersection into one object type so hover text shows a single shape. `With` is a pure utility over `Models.public_User`, like `Scalars`: no contract parameter, no object of booleans, no nesting, no relation paths, and nothing that could be mirrored at runtime. That is what separates it from a selection parameter. `With<User, 'posts'>` and `ResultType<typeof db.User.include('posts')>` are the same type, and the type tests check that for every fixture model.
+`RelationNamesOf<M>` reads the phantom's value type with a distributive conditional, so a key outside the model's relations is a compile error, and `Flatten` turns the intersection into one object type so hover text shows a single shape. `With` is a pure utility over `Models.public_User`, like `Scalars`: no contract parameter, no object of booleans, no nesting, no relation paths, and nothing that could be mirrored at runtime. That is what separates it from a selection parameter. `With<User, 'posts'>` and `ResultType<typeof db.orm.public.User.include('posts')>` are the same type, and the type tests check that for every fixture model.
 
-**8. `ResultType` reads ORM collections through `_row`.** A collection value has exactly one row type. `db.User` reads `Scalars<Models.public_User>`; `db.User.include('posts')` is a new value whose terminals all return `Scalars<Models.public_User> & { posts: Scalars<Models.public_Post>[] }`; `db.User.select('id')` is a third. `ResultType<P>` in `framework-components` already reads an optional `_row` property from the SQL and Mongo query lanes. Both ORM collections gain that one phantom (`declare readonly _row?: Row` on the SQL `CollectionImpl`; `readonly _row?: IncludedRow<...>` on the Mongo `MongoCollection` interface), so `ResultType<typeof query>` names the result of any ORM query, including projections, refined includes, and `.variant()` narrowing.
+**8. `ResultType` reads ORM collections through `_row`.** A collection value has exactly one row type. `db.orm.public.User` reads `Scalars<Models.public_User>`; `db.orm.public.User.include('posts')` is a new value whose terminals all return `Scalars<Models.public_User> & { posts: Scalars<Models.public_Post>[] }`; `db.orm.public.User.select('id')` is a third. `ResultType<P>` in `framework-components` already reads an optional `_row` property from the SQL and Mongo query lanes. Both ORM collections gain that one phantom (`declare readonly _row?: Row` on the SQL `CollectionImpl`; `readonly _row?: IncludedRow<...>` on the Mongo `MongoCollection` interface), so `ResultType<typeof query>` names the result of any ORM query, including projections, refined includes, and `.variant()` narrowing.
 
 **9. To-one nullability is a contract fact.** Whether a `'1:1'` or `'N:1'` relation is `X` or `X | null` is stated by the schema (`author User?` versus `author User`) and recorded on the relation as `nullable: boolean` (`ContractToOneRelation` in `packages/1-framework/0-foundation/contract/src/domain-types.ts`). The emitter reads that flag; nothing is reconstructed from storage at emit time, and there is no family hook for it.
 

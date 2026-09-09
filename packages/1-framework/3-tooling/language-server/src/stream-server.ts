@@ -4,7 +4,6 @@ import {
   type Message,
   type MessageReader,
   type MessageWriter,
-  ProposedFeatures,
   type WatchDog,
 } from 'vscode-languageserver';
 import {
@@ -13,6 +12,7 @@ import {
   StreamMessageWriter,
 } from 'vscode-languageserver/node';
 import { captureConsole } from './console-capture';
+import { guardedFeatures } from './guarded-connection';
 import { createServer } from './server';
 import { byteInputStream, type LanguageServerStreams, textOutputStream } from './stdio-transport';
 
@@ -190,7 +190,7 @@ export function runServerOverStreams(streams: LanguageServerStreams): Promise<nu
             },
           }),
         watchDog,
-        ProposedFeatures.all,
+        guardedFeatures,
       ),
     );
 

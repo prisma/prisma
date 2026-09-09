@@ -128,7 +128,7 @@ await db.close();
 
 ## Naming model and result types
 
-The model is the whole row plus its relations. A query result is a view on the model. The default fetch (`db.orm.User.first()` / `.all()`) returns `Scalars<Model>` — the model without relations — not the model itself. Three types cover every case, and none needs a client in scope:
+The model is the whole row plus its relations. A query result is a view on the model. The default fetch returns `Scalars<Model>` — the model without relations — not the model itself: `db.orm.public.User.first()` returns `Scalars<Model> | null`, and `db.orm.public.User.all()` returns `Scalars<Model>[]` (or its async iterable). Three types cover every case, and none needs a client in scope:
 
 - `Models.<ns>_<Model>` (from `contract.d.ts`) — every scalar field and every relation. The namespace is always folded into the name: `Models.public_User`, and `Models.unbound_User` for the default namespace. `import type { models }` gives the same types by dotted access: `typeof models.public.User`. A polymorphic base also emits one member per variant and an `Any<Base>` union (`Models.public_AnyTask`).
 - `Scalars<M>` — the model without relations; what a default fetch returns. Distributes over unions, so `Scalars<Models.public_AnyTask>` is the union of variant rows.
@@ -147,7 +147,7 @@ expectTypeOf<ResultType<typeof db.orm.public.User>>().toEqualTypeOf<Scalars<Mode
 const usersWithTasks = () => db.orm.public.User.include('tasks');
 expectTypeOf<ResultType<ReturnType<typeof usersWithTasks>>>().toEqualTypeOf<With<Models.public_User, 'tasks'>>();
 
-const projected = db.orm.User.select('id');
+const projected = db.orm.public.User.select('id');
 expectTypeOf<ResultType<typeof projected>>().toEqualTypeOf<{ id: number }>();
 
 // @ts-expect-error 'nope' is not a relation of User

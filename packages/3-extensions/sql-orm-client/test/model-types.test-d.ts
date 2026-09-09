@@ -204,6 +204,19 @@ test('ResultType of an include whose target is a polymorphic base equals With ov
   >();
 });
 
+test('With over the Any union adds a variant-only relation to the variants that declare it', () => {
+  type Flat<T> = { [K in keyof T]: T[K] };
+  type AssigneeRow = Scalars<PolyModels.public_Person> | null;
+  expectTypeOf<With<PolyModels.public_AnyTask, 'assignee'>>().toEqualTypeOf<
+    | Flat<Scalars<PolyModels.public_Bug> & { assignee: AssigneeRow }>
+    | Flat<Scalars<PolyModels.public_Feature> & { assignee: AssigneeRow }>
+    | Flat<Scalars<PolyModels.public_Epic>>
+  >();
+  expectTypeOf<
+    Extract<With<PolyModels.public_AnyTask, 'assignee'>, { type: 'epic' }>
+  >().not.toHaveProperty('assignee');
+});
+
 test('With rejects a name that is not a relation', () => {
   // @ts-expect-error 'nope' is not a relation of User
   type Bad = With<Models.public_User, 'nope'>;

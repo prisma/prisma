@@ -31,7 +31,7 @@ type RelationLine = {
 };
 
 type MemberLines = {
-  readonly fields: string[];
+  readonly fieldsByName: Map<string, string>;
   readonly relationsByName: Map<string, RelationLine>;
 };
 
@@ -73,13 +73,21 @@ function isPolymorphicBase(model: ContractModelBase): boolean {
   return model.discriminator !== undefined && model.variants !== undefined;
 }
 
+function findModelByName(
+  namespaces: readonly NamespaceModels[],
+  namespaceId: string,
+  modelName: string,
+): ModelRef | undefined {
+  return namespaces
+    .find((ns) => ns.namespaceId === namespaceId)
+    ?.models.find((m) => m.modelName === modelName);
+}
+
 function findModel(
   namespaces: readonly NamespaceModels[],
   ref: CrossReference,
 ): ModelRef | undefined {
-  return namespaces
-    .find((ns) => ns.namespaceId === ref.namespace)
-    ?.models.find((m) => m.modelName === ref.model);
+  return findModelByName(namespaces, ref.namespace, ref.model);
 }
 
 function requireRelationTarget(
@@ -106,18 +114,39 @@ function requireRelationTarget(
   );
 }
 
-function fieldLines(
+function requireVariant(
+  namespaces: readonly NamespaceModels[],
+  base: ModelRef,
+  variantName: string,
+): ModelRef {
+  const variant = findModelByName(namespaces, base.namespaceId, variantName);
+  if (variant !== undefined) return variant;
+  const baseSource = `${base.namespaceId}.${base.modelName}`;
+  throw emitterError(
+    'CONTRACT.MODEL_VARIANT_MISSING',
+    `Polymorphic base ${baseSource} names variant "${variantName}", which is not in the contract`,
+    {
+      why: 'The Any<Base> union is the union of the variant model types, so every variant a base declares must be a model in the same namespace.',
+      fix: "Declare the variant model in the same namespace as the base, or remove it from the base's variants.",
+      meta: { base: baseSource, variantName },
+    },
+  );
+}
+
+function collectFieldLines(
   ref: ModelRef,
   resolvers: ModelFieldTypeResolvers,
   discriminatorType: { readonly field: string; readonly type: string } | undefined,
-): string[] {
-  return Object.entries(ref.model.fields).map(([fieldName, field]) => {
+): Map<string, string> {
+  const lines = new Map<string, string>();
+  for (const [fieldName, field] of Object.entries(ref.model.fields)) {
     const type =
       discriminatorType !== undefined && fieldName === discriminatorType.field
         ? discriminatorType.type
         : resolveModelFieldType(ref.modelName, fieldName, field, ref.model, resolvers).output;
-    return `${serializeObjectKey(fieldName)}: ${type};`;
-  });
+    lines.set(fieldName, `${serializeObjectKey(fieldName)}: ${type};`);
+  }
+  return lines;
 }
 
 function hasJoin(relation: ContractRelation): relation is ContractReferenceRelation {
@@ -181,23 +210,22 @@ function memberLines(
       type:
         variantValue !== undefined ? serializeValue(variantValue) : discriminatorUnion(base.model),
     };
-    const relationsByName = new Map([
-      ...collectRelationLines(base, namespaces),
-      ...collectRelationLines(ref, namespaces),
-    ]);
     return {
-      fields: [
-        ...fieldLines(base, resolvers, discriminatorType),
-        ...fieldLines(ref, resolvers, undefined),
-      ],
-      relationsByName,
+      fieldsByName: new Map([
+        ...collectFieldLines(base, resolvers, discriminatorType),
+        ...collectFieldLines(ref, resolvers, undefined),
+      ]),
+      relationsByName: new Map([
+        ...collectRelationLines(base, namespaces),
+        ...collectRelationLines(ref, namespaces),
+      ]),
     };
   }
   const discriminatorType = isPolymorphicBase(ref.model)
     ? { field: ref.model.discriminator?.field ?? '', type: discriminatorUnion(ref.model) }
     : undefined;
   return {
-    fields: fieldLines(ref, resolvers, discriminatorType),
+    fieldsByName: collectFieldLines(ref, resolvers, discriminatorType),
     relationsByName: collectRelationLines(ref, namespaces),
   };
 }
@@ -212,7 +240,7 @@ function renderMember(memberName: string, lines: MemberLines, hasOwner: boolean)
       ? relationNames.map((name) => serializeValue(name)).join(' | ')
       : 'never';
   const body = [
-    ...lines.fields,
+    ...lines.fieldsByName.values(),
     ...joinlessLines,
     ...joinedLines,
     ...(hasOwner ? [] : [`readonly [RelationKeys]?: ${phantom};`]),
@@ -277,9 +305,10 @@ export function generateModelTypesBlock(
     for (const ref of ns.models) {
       if (!isPolymorphicBase(ref.model)) continue;
       const unionName = memberNameOf(ns.namespaceId, `Any${ref.modelName}`);
-      const variantMembers = Object.keys(ref.model.variants ?? {}).map((variantName) =>
-        memberNameOf(ns.namespaceId, variantName),
-      );
+      const variantMembers = Object.keys(ref.model.variants ?? {}).map((variantName) => {
+        const variant = requireVariant(namespaces, ref, variantName);
+        return memberNameOf(variant.namespaceId, variant.modelName);
+      });
       members.push(
         `  export type ${unionName} = ${variantMembers.length > 0 ? variantMembers.join(' | ') : 'never'};`,
       );

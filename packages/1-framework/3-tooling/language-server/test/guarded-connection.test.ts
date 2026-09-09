@@ -10,11 +10,12 @@ import {
   type WatchDog,
 } from 'vscode-languageserver';
 import {
+  createConnection as createNodeConnection,
   createProtocolConnection,
   StreamMessageReader,
   StreamMessageWriter,
 } from 'vscode-languageserver/node';
-import { guardedConnection } from '../src/guarded-connection';
+import { guardedConnection, guardedFeatures } from '../src/guarded-connection';
 
 const watchDog: WatchDog = {
   shutdownReceived: false,
@@ -131,5 +132,57 @@ describe('guardedConnection', () => {
     expect(() =>
       connection.client.register(DidChangeWatchedFilesNotification.type, { watchers: [] }),
     ).toThrow('Call listen() first.');
+  });
+});
+
+describe('guardedFeatures', () => {
+  it('does not reject when jsonrpc reports a reply that failed after dispose', async () => {
+    const clientToServer = new PassThrough();
+    const serverToClient = new PassThrough();
+    const server = createNodeConnection(
+      guardedFeatures,
+      new StreamMessageReader(clientToServer),
+      new StreamMessageWriter(serverToClient),
+    );
+    const client = createNodeConnection(
+      guardedFeatures,
+      new StreamMessageReader(serverToClient),
+      new StreamMessageWriter(clientToServer),
+    );
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let invoked: () => void = () => undefined;
+    const handlerInvoked = new Promise<void>((resolve) => {
+      invoked = resolve;
+    });
+    server.onRequest('ping', () => {
+      invoked();
+      return gate;
+    });
+    server.listen();
+    client.listen();
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => {
+      unhandled.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      void client.sendRequest('ping').catch(() => undefined);
+      await handlerInvoked;
+      // The handler settles only after everything is gone, so jsonrpc's reply
+      // write fails and it reports the failure through the remote console.
+      server.dispose();
+      client.dispose();
+      clientToServer.end();
+      serverToClient.end();
+      release();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+    }
   });
 });

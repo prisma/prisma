@@ -1,4 +1,5 @@
-import { createConnection, ProposedFeatures } from 'vscode-languageserver/node';
+import { createConnection } from 'vscode-languageserver/node';
+import { guardedFeatures } from './guarded-connection';
 import { createServer } from './server';
 import type { LanguageServerStreams } from './stdio-transport';
 import { runServerOverStreams } from './stream-server';
@@ -18,7 +19,7 @@ export function startServer(): void;
 export function startServer(streams: LanguageServerStreams): Promise<number>;
 export function startServer(streams?: LanguageServerStreams): Promise<number> | undefined {
   if (streams === undefined) {
-    createServer(createConnection(ProposedFeatures.all));
+    createServer(createConnection(guardedFeatures));
     return undefined;
   }
   return runServerOverStreams(streams);

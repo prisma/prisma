@@ -546,6 +546,74 @@ describe('Models namespace and models constant emission', () => {
     `);
   });
 
+  it('emits a field a variant re-declares once, in the base position, with the variant type winning', () => {
+    const contract = sqlContract(
+      {
+        public: {
+          Task: {
+            fields: { id: int(), type: text(), note: text() },
+            relations: {},
+            discriminator: { field: 'type' },
+            variants: { Bug: { value: 'bug' } },
+            storage: {
+              table: 'tasks',
+              namespaceId: 'public',
+              fields: { id: { column: 'id' }, type: { column: 'type' }, note: { column: 'note' } },
+            },
+          },
+          Bug: {
+            fields: { note: text(true), severity: text() },
+            relations: {},
+            base: ref('Task'),
+            storage: {
+              table: 'bugs',
+              namespaceId: 'public',
+              fields: { note: { column: 'note' }, severity: { column: 'severity' } },
+            },
+          },
+        },
+      },
+      {
+        public: {
+          tasks: {
+            columns: {
+              id: { nullable: false },
+              type: { nullable: false },
+              note: { nullable: false },
+            },
+          },
+          bugs: { columns: { note: { nullable: true }, severity: { nullable: false } } },
+        },
+      },
+    );
+    expect(modelsBlock(generateContractDts(contract, sqlSpi, [], HASHES))).toMatchInlineSnapshot(`
+      "export namespace Models {
+        export type public_Task = {
+          id: CodecTypes["pg/int4@1"]["output"];
+          type: "bug";
+          note: CodecTypes["pg/text@1"]["output"];
+          readonly [RelationKeys]?: never;
+        };
+        export type public_Bug = {
+          id: CodecTypes["pg/int4@1"]["output"];
+          type: "bug";
+          note: CodecTypes["pg/text@1"]["output"] | null;
+          severity: CodecTypes["pg/text@1"]["output"];
+          readonly [RelationKeys]?: never;
+        };
+        export type public_AnyTask = public_Bug;
+      }
+
+      export declare const models: {
+        public: {
+          Task: Models.public_Task;
+          Bug: Models.public_Bug;
+          AnyTask: Models.public_AnyTask;
+        };
+      };"
+    `);
+  });
+
   it('types a relation whose target is a polymorphic base as the Any union', () => {
     const contract = sqlContract(
       {
@@ -901,6 +969,28 @@ describe('Models namespace and models constant emission', () => {
           relationName: 'customer',
           target: { namespaceId: 'crm', modelName: 'Customer' },
         },
+      }),
+    );
+  });
+
+  it('throws a structured error when a polymorphic base names a variant that is not in the contract', () => {
+    const contract = sqlContract({
+      public: {
+        Task: {
+          fields: { id: int(), type: text() },
+          relations: {},
+          discriminator: { field: 'type' },
+          variants: { Bug: { value: 'bug' }, Ghost: { value: 'ghost' } },
+          storage: {},
+        },
+        Bug: { fields: {}, relations: {}, base: ref('Task'), storage: {} },
+      },
+    });
+    expect(() => generateContractDts(contract, sqlSpi, [], HASHES)).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.MODEL_VARIANT_MISSING',
+        message: expect.stringContaining('public.Task'),
+        meta: { base: 'public.Task', variantName: 'Ghost' },
       }),
     );
   });
