@@ -145,7 +145,6 @@ function parseBlockAttribute(
     'framework core cannot name AttributeSpec, so block-attribute factories transit the descriptor erased as unknown; this is the single point that restores the factory type the descriptor surface documents'
   >(declared[name]);
   const result = interpretAttribute(attribute, factory(), {
-    level: 'block',
     sourceId: BLOCK_ATTRIBUTE_SOURCE_ID,
     sourceFile,
   });

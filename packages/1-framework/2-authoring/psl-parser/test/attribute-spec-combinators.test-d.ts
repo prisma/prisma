@@ -1,14 +1,14 @@
 import { expectTypeOf, test } from 'vitest';
-import type { ArgType, BlockInterpretCtx, OutOf } from '../src/exports';
+import type { ArgType, AttributeCtx, OutOf } from '../src/exports';
 import { identifier, list, num, oneOf, str } from '../src/exports';
 
 test('identifier pins its name as the output literal type', () => {
-  expectTypeOf(identifier('NoAction')).toEqualTypeOf<ArgType<'NoAction', BlockInterpretCtx>>();
+  expectTypeOf(identifier('NoAction')).toEqualTypeOf<ArgType<'NoAction', AttributeCtx>>();
 });
 
 test('oneOf infers the union of its alternatives output types', () => {
   expectTypeOf(oneOf(identifier('NoAction'), identifier('Cascade'))).toEqualTypeOf<
-    ArgType<'NoAction' | 'Cascade', BlockInterpretCtx>
+    ArgType<'NoAction' | 'Cascade', AttributeCtx>
   >();
 });
 
@@ -36,5 +36,5 @@ test('oneOf with no alternatives is a compile error', () => {
 });
 
 test('list infers an array of its element type', () => {
-  expectTypeOf(list(str())).toEqualTypeOf<ArgType<string[], BlockInterpretCtx>>();
+  expectTypeOf(list(str())).toEqualTypeOf<ArgType<string[], AttributeCtx>>();
 });

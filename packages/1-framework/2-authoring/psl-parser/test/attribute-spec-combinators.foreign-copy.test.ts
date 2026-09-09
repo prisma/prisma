@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { InterpretCtx } from '../src/exports';
+import type { ModelAttributeCtx } from '../src/exports';
 import {
   bool,
   entityRef,
@@ -27,7 +27,7 @@ class ForeignCopyOfAnAstNode {
   }
 }
 
-function foreignArg(source: string): { arg: ExpressionAst; ctx: InterpretCtx } {
+function foreignArg(source: string): { arg: ExpressionAst; ctx: ModelAttributeCtx } {
   const cursor = new Cursor(`@demo(${source})`);
   const node = FieldAttributeAst.cast(createSyntaxTree(parseAttribute(cursor)));
   const value = Array.from(node?.argList()?.args() ?? [])[0]?.value();
@@ -39,11 +39,9 @@ function foreignArg(source: string): { arg: ExpressionAst; ctx: InterpretCtx } {
   return {
     arg: new ForeignCopyOfAnAstNode(value.syntax) as unknown as ExpressionAst,
     ctx: {
-      level: 'field',
       sourceId: 'schema.prisma',
       sourceFile: cursor.sourceFile,
       selfModel,
-      resolveReferencedModel: () => undefined,
     },
   };
 }
@@ -56,7 +54,7 @@ describe('combinators dispatch on syntax kind, not on AST class identity', () =>
     ['bool', bool(), 'true', true],
     ['identifier', identifier('Cascade'), 'Cascade', 'Cascade'],
     ['entityRef', entityRef(), 'User', 'User'],
-    ['fieldRef', fieldRef('self'), 'id', 'id'],
+    ['fieldRef', fieldRef(), 'id', 'id'],
     ['json', json(), '"{\\"a\\":1}"', { a: 1 }],
     ['list', list(str()), '["a", "b"]', ['a', 'b']],
     ['record', record(int()), '{ a: 1 }', { a: 1 }],

@@ -8,19 +8,21 @@ import type { AstNode } from '../syntax/ast-helpers';
 
 export type AttributeLevel = 'field' | 'model' | 'block';
 
-export interface BlockInterpretCtx {
-  readonly level: AttributeLevel;
+export interface AttributeCtx {
   readonly sourceId: string;
   readonly sourceFile: SourceFile;
 }
 
-export interface InterpretCtx extends BlockInterpretCtx {
+export interface ModelAttributeCtx extends AttributeCtx {
   readonly selfModel: ModelSymbol;
-  resolveReferencedModel(): ModelSymbol | undefined;
-  readonly field?: FieldSymbol;
 }
 
-export interface ArgType<T, Ctx extends BlockInterpretCtx = InterpretCtx> {
+export interface FieldAttributeCtx extends ModelAttributeCtx {
+  readonly field: FieldSymbol;
+  resolveReferencedModel(): ModelSymbol | undefined;
+}
+
+export interface ArgType<T, Ctx extends AttributeCtx> {
   readonly kind: string;
   readonly label: string;
   // phantom carrier for `T`; never read at runtime.
@@ -28,22 +30,21 @@ export interface ArgType<T, Ctx extends BlockInterpretCtx = InterpretCtx> {
   readonly parse: (arg: ExpressionAst, ctx: Ctx) => Result<T, readonly PslDiagnostic[]>;
 }
 
-export interface OptionalArgType<T, Ctx extends BlockInterpretCtx = InterpretCtx>
-  extends ArgType<T, Ctx> {
+export interface OptionalArgType<T, Ctx extends AttributeCtx> extends ArgType<T, Ctx> {
   // the engine detects optionality by checking for this marker (`'optional' in param`).
   readonly optional: true;
   readonly hasDefault: boolean;
   readonly defaultValue?: T;
 }
 
-export type Param<T, Ctx extends BlockInterpretCtx = InterpretCtx> = ArgType<T, Ctx>;
+export type Param<T, Ctx extends AttributeCtx> = ArgType<T, Ctx>;
 
-export interface PositionalParam<T = unknown, Ctx extends BlockInterpretCtx = InterpretCtx> {
+export interface PositionalParam<T, Ctx extends AttributeCtx> {
   readonly key: string;
   readonly type: Param<T, Ctx>;
 }
 
-export interface AttributeSpec<Out, Ctx extends BlockInterpretCtx = InterpretCtx> {
+export interface AttributeSpec<Out, Ctx extends AttributeCtx> {
   readonly level: AttributeLevel;
   readonly name: string;
   readonly positional: readonly PositionalParam<unknown, Ctx>[];
@@ -57,6 +58,8 @@ export interface AttributeSpec<Out, Ctx extends BlockInterpretCtx = InterpretCtx
 }
 
 export type OutOf<P> = P extends ArgType<infer T, never> ? T : never;
+
+export type CtxOf<P> = P extends ArgType<unknown, infer Ctx> ? Ctx : never;
 
 export type NamedOut<N extends Record<string, Param<unknown, never>>> = Simplify<
   { [K in keyof N as N[K] extends OptionalArgType<unknown, never> ? never : K]: OutOf<N[K]> } & {

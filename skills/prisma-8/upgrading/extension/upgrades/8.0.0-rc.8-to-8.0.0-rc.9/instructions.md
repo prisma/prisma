@@ -26,12 +26,26 @@ changes:
       anyMatch: true
   - id: arg-type-parse-is-a-property
     summary: |
-      `ArgType.parse` is now a property function type carrying a `Ctx` parameter (`ArgType<T, Ctx extends BlockInterpretCtx = InterpretCtx>`), so the ctx an argument type needs is checked contravariantly. A class that implements `ArgType` with a `parse(...)` method, or an object typed against `ArgType<T>` and used inside `blockAttribute()`, must declare `parse` as a function-typed property over the ctx it actually reads (`BlockInterpretCtx` when it never touches `selfModel`).
+      `ArgType.parse` is now a property function type carrying a `Ctx` parameter, so the ctx an argument type needs is checked contravariantly. A class that implements `ArgType` with a `parse(...)` method, or an object typed against `ArgType<T>` and used inside `blockAttribute()`, must declare `parse` as a function-typed property over the ctx it actually reads.
     detection:
       glob: "**/*.{ts,tsx}"
       contains:
         - "implements ArgType"
         - "ArgType<"
+      anyMatch: true
+  - id: state-attribute-spec-contexts-explicitly
+    summary: |
+      The attribute-spec interpret contexts were reshaped. `BlockInterpretCtx` and `InterpretCtx` are gone, replaced by `AttributeCtx` (`sourceId` + `sourceFile`), `ModelAttributeCtx` (adds `selfModel`), and `FieldAttributeCtx` (adds a required `field` and `resolveReferencedModel()`). Contexts no longer carry `level`. `ArgType`, `OptionalArgType`, `Param`, `PositionalParam`, and `AttributeSpec` lost their default type arguments, so every use site must name its context. `fieldRef('self')` / `fieldRef('referenced')` became `fieldRef()` / `referencedFieldRef()`, and `FieldRefScope`, `FieldRefArgType`, and the `scope` property are removed. `oneOf` is one generic signature whose context is the intersection of its alternatives' contexts.
+    detection:
+      glob: "**/*.{ts,tsx}"
+      contains:
+        - "InterpretCtx"
+        - "fieldRef("
+        - "FieldRefScope"
+        - "FieldRefArgType"
+        - "ArgType<"
+        - "AttributeSpec<"
+        - "PositionalParam"
       anyMatch: true
 ---
 
@@ -55,4 +69,18 @@ Delete every reference to `PSL_NATIVE_ENUM_INVALID_MAP`. Where a test asserted t
 
 ## `arg-type-parse-is-a-property`
 
-Find classes declaring `implements ArgType<…>` with a `parse(arg, ctx)` method and object literals typed against `ArgType<T>`. Declare `parse` as a property whose type is `(arg: ExpressionAst, ctx: Ctx) => Result<T, readonly PslDiagnostic[]>`. Pick `Ctx = BlockInterpretCtx` when the implementation reads only `sourceId` / `sourceFile` (this makes the argument type usable inside `blockAttribute()` specs); keep the default `InterpretCtx` when it reads `selfModel` or `resolveReferencedModel()`. Dispatch on the syntax node with `XAst.cast(arg.syntax)` rather than `arg instanceof XAst` so the argument type keeps working when the spec and the parser come from different module copies.
+Find classes declaring `implements ArgType<…>` with a `parse(arg, ctx)` method and object literals typed against `ArgType<T>`. Declare `parse` as a property whose type is `(arg: ExpressionAst, ctx: Ctx) => Result<T, readonly PslDiagnostic[]>`. Pick the narrowest `Ctx` the implementation actually reads, as the next entry describes. Dispatch on the syntax node with `XAst.cast(arg.syntax)` rather than `arg instanceof XAst` so the argument type keeps working when the spec and the parser come from different module copies.
+
+## `state-attribute-spec-contexts-explicitly`
+
+**Rename the context types.** `BlockInterpretCtx` becomes `AttributeCtx`. `InterpretCtx` splits: use `ModelAttributeCtx` where the code reads `selfModel` and nothing else, and `FieldAttributeCtx` where it reads `field` or `resolveReferencedModel()`. Both are exported from `@internal/psl-parser`.
+
+**Drop `level` from every context value.** A hand-built ctx object that set `level: 'field' | 'model' | 'block'` must delete that property; contexts no longer declare it. `AttributeSpec.level` is a different field and is unchanged — keep setting and reading it.
+
+**Move `resolveReferencedModel` down to the field level.** A model-level ctx must no longer supply it. The `resolveReferencedModel: () => undefined` stub that model-level ctx builders carried is now a type error; delete it. A field-level ctx must supply both `field` (previously optional, now required) and `resolveReferencedModel()`.
+
+**Name a context at every use site.** `ArgType<T>`, `OptionalArgType<T>`, `Param<T>`, `PositionalParam<T>`, and `AttributeSpec<Out>` no longer default their second type argument. Rewrite each as `ArgType<T, AttributeCtx>` when the combinator reads only `sourceId` / `sourceFile`, `ArgType<T, ModelAttributeCtx>` when it reads `selfModel`, and `ArgType<T, FieldAttributeCtx>` when it reads `field` or `resolveReferencedModel()`; the same choice applies to the other four. `PositionalParam` also lost its `T = unknown` default, so a bare `PositionalParam` becomes `PositionalParam<unknown, Ctx>`. Prefer the widest context that still typechecks: a spec parameter over `AttributeCtx` is usable inside `blockAttribute()`, `modelAttribute()`, and `fieldAttribute()` alike.
+
+**Split the field reference combinator.** Replace `fieldRef('self')` with `fieldRef()` and `fieldRef('referenced')` with `referencedFieldRef()` (imported from `@internal/psl-parser`). `fieldRef()` is typed over `ModelAttributeCtx` and stays usable in model attributes such as `@@index`; `referencedFieldRef()` is typed over `FieldAttributeCtx` and is accepted only in field attributes. The `FieldRefScope` and `FieldRefArgType` types and the `scope` property on the returned combinator are removed — a test asserting `fieldRef('self').scope` has no replacement; assert on the parse behaviour or on `label` instead.
+
+**Let `oneOf` infer its own context.** `oneOf` is now a single generic signature: the output is the union of the alternatives' outputs and the context is their intersection. Delete any explicit type argument or context annotation forcing a particular alternation context. An alternation containing `fieldRef()` is model-scoped and is rejected inside `blockAttribute()`; one built only from `str()`, `num()`, `bool()`, `identifier()`, `json()`, `entityRef()`, and `funcCall()` is usable at every level.

@@ -7,8 +7,8 @@ import type { AttributeArgAst } from '../syntax/ast/expressions';
 import { ATTRIBUTE_DIAGNOSTIC_CODE } from './combinators/diagnostic';
 import type {
   ArgType,
+  AttributeCtx,
   AttributeSpec,
-  BlockInterpretCtx,
   OptionalArgType,
   Param,
   PositionalParam,
@@ -17,13 +17,13 @@ import type {
 // The positional/named argument-binding for an attribute or a function call. `name` labels the
 // callee in binding diagnostics (`Attribute "<name>" …`); `span` anchors the arity diagnostics
 // (too-many / missing) that have no per-argument node to point at.
-export interface ArgBindingSpec<Ctx extends BlockInterpretCtx = BlockInterpretCtx> {
+export interface ArgBindingSpec<Ctx extends AttributeCtx> {
   readonly name: string;
   readonly positional: readonly PositionalParam<unknown, Ctx>[];
   readonly named: Readonly<Record<string, Param<unknown, Ctx>>>;
 }
 
-export function interpretArgs<Ctx extends BlockInterpretCtx>(
+export function interpretArgs<Ctx extends AttributeCtx>(
   args: Iterable<AttributeArgAst>,
   spec: ArgBindingSpec<Ctx>,
   ctx: Ctx,
@@ -123,7 +123,7 @@ export function interpretArgs<Ctx extends BlockInterpretCtx>(
   return ok(output);
 }
 
-export function interpretAttribute<Out, Ctx extends BlockInterpretCtx>(
+export function interpretAttribute<Out, Ctx extends AttributeCtx>(
   attrNode: FieldAttributeAst | ModelAttributeAst,
   spec: AttributeSpec<Out, Ctx>,
   ctx: Ctx,
@@ -145,7 +145,7 @@ export function interpretAttribute<Out, Ctx extends BlockInterpretCtx>(
   return ok(value);
 }
 
-function parseArgValue<Ctx extends BlockInterpretCtx>(
+function parseArgValue<Ctx extends AttributeCtx>(
   arg: AttributeArgAst,
   argType: ArgType<unknown, Ctx>,
   ctx: Ctx,
@@ -168,12 +168,12 @@ function parseArgValue<Ctx extends BlockInterpretCtx>(
   return result;
 }
 
-function isOptionalArgType<Ctx extends BlockInterpretCtx>(
+function isOptionalArgType<Ctx extends AttributeCtx>(
   param: Param<unknown, Ctx>,
 ): param is OptionalArgType<unknown, Ctx> {
   return 'optional' in param && param.optional === true;
 }
 
-function diagnostic(message: string, ctx: BlockInterpretCtx, span: PslSpan): PslDiagnostic {
+function diagnostic(message: string, ctx: AttributeCtx, span: PslSpan): PslDiagnostic {
   return { code: ATTRIBUTE_DIAGNOSTIC_CODE, message, sourceId: ctx.sourceId, span };
 }

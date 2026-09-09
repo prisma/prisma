@@ -1,33 +1,27 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import type { AstNode } from '../syntax/ast-helpers';
-import type {
-  AttributeOut,
-  AttributeSpec,
-  BlockInterpretCtx,
-  Param,
-  PositionalParam,
-} from './types';
+import type { AttributeCtx, AttributeOut, AttributeSpec, Param, PositionalParam } from './types';
 
 interface BlockAttributeConfig<
-  Pos extends readonly PositionalParam<unknown, BlockInterpretCtx>[],
-  Named extends Record<string, Param<unknown, BlockInterpretCtx>>,
+  Pos extends readonly PositionalParam<unknown, AttributeCtx>[],
+  Named extends Record<string, Param<unknown, AttributeCtx>>,
 > {
   readonly positional?: Pos;
   readonly named?: Named;
   readonly refine?: (
     parsed: AttributeOut<Pos, Named>,
-    ctx: BlockInterpretCtx,
+    ctx: AttributeCtx,
     attributeNode: AstNode,
   ) => readonly PslDiagnostic[];
 }
 
 export function blockAttribute<
-  const Pos extends readonly PositionalParam<unknown, BlockInterpretCtx>[] = readonly [],
-  const Named extends Record<string, Param<unknown, BlockInterpretCtx>> = Record<never, never>,
+  const Pos extends readonly PositionalParam<unknown, AttributeCtx>[] = readonly [],
+  const Named extends Record<string, Param<unknown, AttributeCtx>> = Record<never, never>,
 >(
   name: string,
   config: BlockAttributeConfig<Pos, Named>,
-): AttributeSpec<AttributeOut<Pos, Named>, BlockInterpretCtx> {
+): AttributeSpec<AttributeOut<Pos, Named>, AttributeCtx> {
   return {
     level: 'block',
     name,

@@ -1,7 +1,7 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { describe, expect, it } from 'vitest';
-import type { ArgType, InterpretCtx } from '../src/exports';
+import type { ArgType, AttributeCtx, FieldAttributeCtx } from '../src/exports';
 import {
   fieldAttribute,
   int,
@@ -17,7 +17,7 @@ import { FieldAttributeAst } from '../src/syntax/ast/attributes';
 import { StringLiteralExprAst } from '../src/syntax/ast/expressions';
 import { createSyntaxTree } from '../src/syntax/red';
 
-function makeCtx(sourceFile: SourceFile): InterpretCtx {
+function makeCtx(sourceFile: SourceFile): FieldAttributeCtx {
   const { document, sourceFile: modelSource } = parse('model M {\n  id Int @id\n}\n');
   const { table } = buildSymbolTable({
     document,
@@ -26,23 +26,25 @@ function makeCtx(sourceFile: SourceFile): InterpretCtx {
   });
   const selfModel = table.topLevel.models['M'];
   if (!selfModel) throw new Error('expected model M in the symbol table');
+  const field = selfModel.fields['id'];
+  if (!field) throw new Error('expected field id on model M');
   return {
-    level: 'field',
     sourceId: 'schema.prisma',
     sourceFile,
     selfModel,
+    field,
     resolveReferencedModel: () => undefined,
   };
 }
 
-function fieldAttr(source: string): { node: FieldAttributeAst; ctx: InterpretCtx } {
+function fieldAttr(source: string): { node: FieldAttributeAst; ctx: FieldAttributeCtx } {
   const cursor = new Cursor(source);
   const node = FieldAttributeAst.cast(createSyntaxTree(parseAttribute(cursor)));
   if (!node) throw new Error('expected a field attribute');
   return { node, ctx: makeCtx(cursor.sourceFile) };
 }
 
-function str(): ArgType<string> {
+function str(): ArgType<string, AttributeCtx> {
   return {
     kind: 'str',
     label: 'string',
@@ -70,7 +72,7 @@ const FAILING_DIAGNOSTIC: PslDiagnostic = {
   span: { start: { offset: 0, line: 1, column: 1 }, end: { offset: 0, line: 1, column: 1 } },
 };
 
-function failing(): ArgType<never> {
+function failing(): ArgType<never, AttributeCtx> {
   return {
     kind: 'failing',
     label: 'failing',

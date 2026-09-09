@@ -1,10 +1,10 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { ObjectLiteralExprAst } from '../../syntax/ast/expressions';
-import type { ArgType, BlockInterpretCtx } from '../types';
+import type { ArgType, AttributeCtx } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
-export function record<T, Ctx extends BlockInterpretCtx>(
+export function record<T, Ctx extends AttributeCtx>(
   of: ArgType<T, Ctx>,
 ): ArgType<Record<string, T>, Ctx> {
   return {

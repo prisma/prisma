@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import type { BlockInterpretCtx } from '../src/exports';
+import type { AttributeCtx } from '../src/exports';
 import { blockAttribute, interpretAttribute, leafDiagnostic, str } from '../src/exports';
 import { Cursor, parseAttribute } from '../src/parse';
 import { ModelAttributeAst } from '../src/syntax/ast/attributes';
 import { createSyntaxTree } from '../src/syntax/red';
 
-function blockAttr(source: string): { node: ModelAttributeAst; ctx: BlockInterpretCtx } {
+function blockAttr(source: string): { node: ModelAttributeAst; ctx: AttributeCtx } {
   const cursor = new Cursor(source);
   const node = ModelAttributeAst.cast(createSyntaxTree(parseAttribute(cursor)));
   if (!node) throw new Error('expected a block attribute');
   return {
     node,
-    ctx: { level: 'block', sourceId: 'schema.prisma', sourceFile: cursor.sourceFile },
+    ctx: { sourceId: 'schema.prisma', sourceFile: cursor.sourceFile },
   };
 }
 

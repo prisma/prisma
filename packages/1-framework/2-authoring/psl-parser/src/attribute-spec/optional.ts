@@ -1,6 +1,6 @@
-import type { ArgType, BlockInterpretCtx, OptionalArgType } from './types';
+import type { ArgType, AttributeCtx, OptionalArgType } from './types';
 
-export function optional<T, Ctx extends BlockInterpretCtx>(
+export function optional<T, Ctx extends AttributeCtx>(
   type: ArgType<T, Ctx>,
   ...rest: [defaultValue: T] | []
 ): OptionalArgType<T, Ctx> {
