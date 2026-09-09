@@ -1,14 +1,19 @@
 #!/usr/bin/env node
 
 /**
- * Copies the user-facing `skills/prisma-8/` tree into the packages that ship
- * it, stamping each copy with the package it now belongs to.
+ * Copies the user-facing `skills/prisma-orm-*` trees into the packages that
+ * ship them, stamping each copy with the package it now belongs to.
  *
  * Usage: node scripts/sync-package-skills.ts [<package-name>...]
  *
  * Run from each shipping package's `prepack`, so the tarball always carries
- * the skill tree that matches the code beside it. The copies are build
+ * the skill trees that match the code beside it. The copies are build
  * output: they are gitignored, and `files` carries them into the tarball.
+ *
+ * This assumes a single writer per package, which holds for every real pack:
+ * a publish packs each package once, into its own directory. Only the tarball
+ * test suites pack one package concurrently, and they serialise those packs
+ * themselves (see `packShell` in `packages/0-config/tsdown/shell-testkit.ts`).
  */
 
 import fs from 'node:fs/promises';
@@ -31,36 +36,44 @@ export const SKILL_ANCHOR_PACKAGES: ReadonlyMap<string, string> = new Map([
   ['@prisma/orm-mongo', 'packages/9-public/@prisma/orm-mongo'],
 ]);
 
-export const SKILL_NAME = 'prisma-8';
+export const SKILL_NAMES = ['prisma-orm-core-concepts', 'prisma-orm-migrations'] as const;
 
-export async function syncPackageSkills(packageName: string): Promise<string> {
+export async function syncPackageSkills(packageName: string): Promise<readonly string[]> {
   const packageDir = SKILL_ANCHOR_PACKAGES.get(packageName);
   if (packageDir === undefined) {
     const shipping = [...SKILL_ANCHOR_PACKAGES.keys()].join(', ');
-    throw new Error(`${packageName} does not ship the ${SKILL_NAME} skill; expected ${shipping}`);
+    throw new Error(
+      `Unknown skill-anchor package "${packageName}"; the skills ship only from ${shipping}`,
+    );
   }
 
-  const source = path.join(rootDir, 'skills', SKILL_NAME);
-  const destination = path.join(rootDir, packageDir, 'skills', SKILL_NAME);
-  await fs.rm(destination, { recursive: true, force: true });
-  await fs.cp(source, destination, { recursive: true });
+  const skillsDir = path.join(rootDir, packageDir, 'skills');
+  const destinations: string[] = [];
+  for (const skillName of SKILL_NAMES) {
+    const source = path.join(rootDir, 'skills', skillName);
+    const destination = path.join(skillsDir, skillName);
+    await fs.rm(destination, { recursive: true, force: true });
+    await fs.cp(source, destination, { recursive: true });
 
-  // The source tree names one canonical package; each copy names its own, so
-  // a consumer reading the copy sees the package it resolved it from.
-  const skillMd = path.join(destination, 'SKILL.md');
-  await fs.writeFile(
-    skillMd,
-    stampSkillMetadata(await fs.readFile(skillMd, 'utf-8'), 'library', packageName),
-  );
+    // The source tree names one canonical package; each copy names its own,
+    // so a consumer reading the copy sees the package it resolved it from.
+    const skillMd = path.join(destination, 'SKILL.md');
+    await fs.writeFile(
+      skillMd,
+      stampSkillMetadata(await fs.readFile(skillMd, 'utf-8'), 'library', packageName),
+    );
+    destinations.push(destination);
+  }
 
-  return destination;
+  return destinations;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const requested = process.argv.slice(2);
   const targets = requested.length > 0 ? requested : [...SKILL_ANCHOR_PACKAGES.keys()];
   for (const packageName of targets) {
-    const destination = await syncPackageSkills(packageName);
-    console.log(`Copied skills/${SKILL_NAME} to ${path.relative(rootDir, destination)}`);
+    for (const destination of await syncPackageSkills(packageName)) {
+      console.log(`Copied ${path.relative(rootDir, destination)}`);
+    }
   }
 }
