@@ -92,9 +92,9 @@ export function mergeAnnotations<Row>(
   for (const [namespace, value] of annotations) {
     callerEntries[namespace] = value;
   }
-  // Caller-supplied annotations go first so framework-reserved keys on
-  // the existing plan (codecs, limit) override any collision under the
-  // same namespace.
+  // Caller-supplied annotations go first so reserved keys already on the
+  // existing plan (codecs, target keys such as pg) override any collision
+  // under the same namespace.
   const mergedAnnotations = Object.freeze({
     ...callerEntries,
     ...(plan.meta.annotations ?? {}),

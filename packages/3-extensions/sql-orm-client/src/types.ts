@@ -93,8 +93,9 @@ export interface CollectionState {
   readonly variantName: string | undefined;
   /**
    * Annotations attached to this query at terminal-call time.
-   * Populated transiently by the read terminals `all` and `first` just before dispatch; other
-   * terminals attach annotations to the compiled plan with `mergeAnnotations` instead.
+   * Populated transiently by the read terminals `all` and `first` just before dispatch. Terminals
+   * that compile a plan directly attach annotations to it with `mergeAnnotations` instead; nested
+   * `create()`/`update()` validate annotations and then discard them.
    * `Collection` itself has no chainable `.annotate()`. Stored as a
    * `Map<namespace, AnnotationValue>` so
    * duplicate namespaces last-write-win. Empty on a fresh state.
