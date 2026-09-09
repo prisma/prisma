@@ -131,6 +131,34 @@ describe('emitter', () => {
     timeouts.typeScriptCompilation,
   );
 
+  it('threads namespaceSupport from the emit options into the emitted model names', async () => {
+    const ir = createTestContract({
+      models: {
+        User: {
+          storage: { namespaceId: '__unbound__', table: 'user', fields: { id: { column: 'id' } } },
+          fields: { id: { type: { kind: 'scalar', codecId: 'pg/int4@1' }, nullable: false } },
+          relations: {},
+        },
+      },
+      storage: unboundNamespaceTables({
+        user: {
+          columns: { id: { codecId: 'pg/int4@1', nativeType: 'int4', nullable: false } },
+          primaryKey: { columns: ['id'] },
+          uniques: [],
+          indexes: [],
+          foreignKeys: [],
+        },
+      }),
+    });
+    const kept = await emit(ir, { codecTypeImports: [] }, mockSqlHook);
+    expect(kept.contractDts).toContain('export type unbound_User = {');
+    const dropped = await emit(ir, { codecTypeImports: [] }, mockSqlHook, {
+      namespaceSupport: 'none',
+    });
+    expect(dropped.contractDts).toContain('export type User = {');
+    expect(dropped.contractDts).not.toContain('unbound_User');
+  });
+
   it('emits contract even when extension pack namespace does not match extensionIds', async () => {
     const ir = createTestContract({
       storage: unboundNamespaceTables({

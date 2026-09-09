@@ -140,16 +140,14 @@ export type StorageColumnInputTypes = {
 };
 
 export namespace Models {
-  export type unbound_User = {
+  export type User = {
     id: CodecTypes['sqlite/text@1']['output'];
     readonly [RelationKeys]?: never;
   };
 }
 
 export declare const models: {
-  __unbound__: {
-    User: Models.unbound_User;
-  };
+  User: Models.User;
 };
 
 export type TypeMaps = TypeMapsType<

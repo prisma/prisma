@@ -2,6 +2,7 @@ import type { Contract, ContractModelBase, JsonValue } from '@internal/contract/
 import type { AggregateDescriptor } from '../shared/aggregate-descriptor';
 import type { AnyCodecDescriptor } from '../shared/codec-descriptor';
 import type { CodecLookup } from '../shared/codec-types';
+import type { TargetNamespaceSupport } from '../shared/framework-components';
 import type { ImportSpecifierResolver } from '../shared/import-specifier-resolver';
 import type { TypesImportSpec } from '../shared/types-import-spec';
 
@@ -12,6 +13,10 @@ export interface GenerateContractTypesOptions {
    */
   readonly aggregateDescriptors?: ReadonlyArray<AggregateDescriptor>;
   readonly codecDescriptors?: ReadonlyArray<AnyCodecDescriptor>;
+  /**
+   * The target's namespace declaration. `'none'` drops the namespace segment from emitted `Models` member names and from the `models` constant; absent means `'supported'`.
+   */
+  readonly namespaceSupport?: TargetNamespaceSupport;
 }
 
 export interface ValidationContext {

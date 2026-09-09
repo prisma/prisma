@@ -233,32 +233,32 @@ export type StorageColumnInputTypes = {
 };
 
 export namespace Models {
-  export type unbound_User = {
+  export type User = {
     id: CodecTypes['sql/char@1']['output'];
     email: CodecTypes['sqlite/text@1']['output'];
     displayName: CodecTypes['sqlite/text@1']['output'];
     createdAt: CodecTypes['sqlite/datetime@1']['output'];
-    posts: unbound_Post[];
+    posts: Post[];
     readonly [RelationKeys]?: 'posts';
   };
-  export type unbound_Post = {
+  export type Post = {
     id: CodecTypes['sql/char@1']['output'];
     title: CodecTypes['sqlite/text@1']['output'];
     userId: CodecTypes['sql/char@1']['output'];
     createdAt: CodecTypes['sqlite/datetime@1']['output'];
     viewCount: CodecTypes['sqlite/bigintnumber@1']['output'] | null;
     impressionCount: CodecTypes['sqlite/bigint@1']['output'] | null;
-    user: unbound_User;
-    tags: unbound_Tag[];
+    user: User;
+    tags: Tag[];
     readonly [RelationKeys]?: 'user' | 'tags';
   };
-  export type unbound_Tag = {
+  export type Tag = {
     id: CodecTypes['sql/char@1']['output'];
     label: CodecTypes['sqlite/text@1']['output'];
-    posts: unbound_Post[];
+    posts: Post[];
     readonly [RelationKeys]?: 'posts';
   };
-  export type unbound_PostTag = {
+  export type PostTag = {
     postId: CodecTypes['sql/char@1']['output'];
     tagId: CodecTypes['sql/char@1']['output'];
     readonly [RelationKeys]?: never;
@@ -266,12 +266,10 @@ export namespace Models {
 }
 
 export declare const models: {
-  __unbound__: {
-    User: Models.unbound_User;
-    Post: Models.unbound_Post;
-    Tag: Models.unbound_Tag;
-    PostTag: Models.unbound_PostTag;
-  };
+  User: Models.User;
+  Post: Models.Post;
+  Tag: Models.Tag;
+  PostTag: Models.PostTag;
 };
 
 export type TypeMaps = TypeMapsType<

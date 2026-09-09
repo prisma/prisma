@@ -65,7 +65,17 @@ The `readonly [RelationKeys]?` line is a phantom: a symbol-keyed optional proper
 
 ### Models in the default namespace
 
-The namespace is always part of the name. A model in the default namespace, `__unbound__`, is `Models.unbound_User` and `typeof models.__unbound__.User`, never a bare `User`. This is the same convention as `db.enums.__unbound__.X`.
+On a target with a namespace mechanism, the namespace is always part of the name. A model in the default namespace, `__unbound__`, is `Models.unbound_User` and `typeof models.__unbound__.User`, never a bare `User`. This is the same convention as `db.enums.__unbound__.X`. Postgres and Mongo are such targets.
+
+On a target whose descriptor declares `namespaceSupport: 'none'`, SQLite today, there is only ever one namespace, so the segment is dropped: the same model is `Models.User` and `typeof models.User`. The choice comes from the target declaration, not from how many namespaces a contract has, so adding a schema later never renames a type.
+
+```ts
+// examples/prisma-8-demo-sqlite/src/prisma/contract.d.ts
+export declare const models: {
+  User: Models.User;
+  Post: Models.Post;
+};
+```
 
 ```ts
 // packages/2-mongo-family/5-query-builders/orm/test/model-types.test-d.ts
