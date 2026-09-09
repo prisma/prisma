@@ -291,6 +291,7 @@ export async function executeContractEmit(
           resolveImportSpecifier: createProjectSpecifierResolver(configPath ?? outputJsonPath),
           ...ifDefined('shouldPreserveEmpty', contractSerializer.shouldPreserveEmpty),
           ...ifDefined('sortStorage', contractSerializer.sortStorage),
+          ...ifDefined('namespaceSupport', config.target.namespaceSupport),
         }),
       );
     } catch (error) {

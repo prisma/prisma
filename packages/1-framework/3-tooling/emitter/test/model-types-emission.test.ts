@@ -318,6 +318,91 @@ describe('Models namespace and models constant emission', () => {
     `);
   });
 
+  it('drops the namespace segment when the target declares no namespace support', () => {
+    const contract = sqlContract({
+      __unbound__: {
+        User: {
+          fields: { id: int() },
+          relations: {
+            tasks: {
+              to: ref('Task', '__unbound__'),
+              cardinality: '1:N',
+              on: { localFields: ['id'], targetFields: ['userId'] },
+            },
+          },
+          storage: { table: 'users', namespaceId: '__unbound__' },
+        },
+        Task: {
+          discriminator: { field: 'kind' },
+          variants: { Bug: { value: 'bug' } },
+          fields: { id: int(), kind: text(), userId: int() },
+          relations: {
+            user: {
+              to: ref('User', '__unbound__'),
+              cardinality: 'N:1',
+              nullable: false,
+              on: { localFields: ['userId'], targetFields: ['id'] },
+            },
+          },
+          storage: { table: 'tasks', namespaceId: '__unbound__' },
+        },
+        Bug: {
+          base: ref('Task', '__unbound__'),
+          fields: { severity: int() },
+          relations: {},
+          storage: { table: 'tasks', namespaceId: '__unbound__' },
+        },
+      },
+    });
+    const dts = generateContractDts(contract, sqlSpi, [], HASHES, { namespaceSupport: 'none' });
+    expect(modelsBlock(dts)).toMatchInlineSnapshot(`
+      "export namespace Models {
+        export type User = {
+          id: CodecTypes["pg/int4@1"]["output"];
+          tasks: AnyTask[];
+          readonly [RelationKeys]?: "tasks";
+        };
+        export type Task = {
+          id: CodecTypes["pg/int4@1"]["output"];
+          kind: "bug";
+          userId: CodecTypes["pg/int4@1"]["output"];
+          user: User;
+          readonly [RelationKeys]?: "user";
+        };
+        export type Bug = {
+          id: CodecTypes["pg/int4@1"]["output"];
+          kind: "bug";
+          userId: CodecTypes["pg/int4@1"]["output"];
+          severity: CodecTypes["pg/int4@1"]["output"];
+          user: User;
+          readonly [RelationKeys]?: "user";
+        };
+        export type AnyTask = Bug;
+      }
+
+      export declare const models: {
+        User: Models.User;
+        Task: Models.Task;
+        Bug: Models.Bug;
+        AnyTask: Models.AnyTask;
+      };"
+    `);
+    expect(modelsBlock(dts)).not.toContain('unbound');
+  });
+
+  it('keeps the namespace segment when the target declares nothing about namespaces', () => {
+    const contract = sqlContract({
+      __unbound__: {
+        User: { fields: { id: int() }, relations: {}, storage: { table: 'users' } },
+      },
+    });
+    for (const options of [undefined, {}, { namespaceSupport: 'supported' as const }]) {
+      const dts = generateContractDts(contract, sqlSpi, [], HASHES, options);
+      expect(dts).toContain('export type unbound_User = {');
+      expect(dts).toContain('  __unbound__: {\n    User: Models.unbound_User;\n  };');
+    }
+  });
+
   it('emits a polymorphic base, its variants, and the Any union', () => {
     const contract = sqlContract(
       {

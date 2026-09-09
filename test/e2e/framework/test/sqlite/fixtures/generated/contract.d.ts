@@ -280,37 +280,37 @@ export type StorageColumnInputTypes = {
 };
 
 export namespace Models {
-  export type unbound_User = {
+  export type User = {
     id: CodecTypes['sqlite/integer@1']['output'];
     name: CodecTypes['sqlite/text@1']['output'];
     email: CodecTypes['sqlite/text@1']['output'];
     invitedById: CodecTypes['sqlite/integer@1']['output'] | null;
-    posts: unbound_Post[];
-    profile: unbound_Profile | null;
+    posts: Post[];
+    profile: Profile | null;
     readonly [RelationKeys]?: 'posts' | 'profile';
   };
-  export type unbound_Post = {
+  export type Post = {
     id: CodecTypes['sqlite/integer@1']['output'];
     title: CodecTypes['sqlite/text@1']['output'];
     userId: CodecTypes['sqlite/integer@1']['output'];
     views: CodecTypes['sqlite/integer@1']['output'];
-    comments: unbound_Comment[];
-    author: unbound_User;
+    comments: Comment[];
+    author: User;
     readonly [RelationKeys]?: 'comments' | 'author';
   };
-  export type unbound_Comment = {
+  export type Comment = {
     id: CodecTypes['sqlite/integer@1']['output'];
     body: CodecTypes['sqlite/text@1']['output'];
     postId: CodecTypes['sqlite/integer@1']['output'];
     readonly [RelationKeys]?: never;
   };
-  export type unbound_Profile = {
+  export type Profile = {
     id: CodecTypes['sqlite/integer@1']['output'];
     userId: CodecTypes['sqlite/integer@1']['output'];
     bio: CodecTypes['sqlite/text@1']['output'];
     readonly [RelationKeys]?: never;
   };
-  export type unbound_TypedRow = {
+  export type TypedRow = {
     id: CodecTypes['sqlite/integer@1']['output'];
     active: CodecTypes['sqlite/integer@1']['output'];
     createdAt: CodecTypes['sqlite/datetime@1']['output'];
@@ -318,7 +318,7 @@ export namespace Models {
     label: CodecTypes['sqlite/text@1']['output'];
     readonly [RelationKeys]?: never;
   };
-  export type unbound_Item = {
+  export type Item = {
     id: CodecTypes['sqlite/integer@1']['output'];
     name: CodecTypes['sqlite/text@1']['output'];
     label: CodecTypes['sqlite/text@1']['output'];
@@ -327,14 +327,12 @@ export namespace Models {
 }
 
 export declare const models: {
-  __unbound__: {
-    User: Models.unbound_User;
-    Post: Models.unbound_Post;
-    Comment: Models.unbound_Comment;
-    Profile: Models.unbound_Profile;
-    TypedRow: Models.unbound_TypedRow;
-    Item: Models.unbound_Item;
-  };
+  User: Models.User;
+  Post: Models.Post;
+  Comment: Models.Comment;
+  Profile: Models.Profile;
+  TypedRow: Models.TypedRow;
+  Item: Models.Item;
 };
 
 export type TypeMaps = TypeMapsType<

@@ -180,26 +180,24 @@ export type StorageColumnInputTypes = {
 };
 
 export namespace Models {
-  export type unbound_Meter = {
+  export type Meter = {
     id: CodecTypes['sqlite/integer@1']['output'];
     peak: CodecTypes['sqlite/bigintnumber@1']['output'];
-    samples: unbound_Sample[];
+    samples: Sample[];
     readonly [RelationKeys]?: 'samples';
   };
-  export type unbound_Sample = {
+  export type Sample = {
     id: CodecTypes['sqlite/integer@1']['output'];
     meterId: CodecTypes['sqlite/integer@1']['output'];
     reading: CodecTypes['sqlite/bigintnumber@1']['output'];
-    meter: unbound_Meter;
+    meter: Meter;
     readonly [RelationKeys]?: 'meter';
   };
 }
 
 export declare const models: {
-  __unbound__: {
-    Meter: Models.unbound_Meter;
-    Sample: Models.unbound_Sample;
-  };
+  Meter: Models.Meter;
+  Sample: Models.Sample;
 };
 
 export type TypeMaps = TypeMapsType<
