@@ -46,7 +46,7 @@ The SQL and Mongo family interpreters are the first consumers. They define their
 
 The kit consumes `ExpressionAst` directly. No intermediate argument representation is introduced, and no combinator reparses flattened source text except `json()`, the deliberate quoted-JSON-object exception.
 
-Attributes are a PSL authoring concern, so the kit is in `psl-parser` rather than framework core. The constructors cover field, model, and block attributes: `blockAttribute()` builds a spec over the bare `AttributeCtx` (no model), a block descriptor declares its attributes on `AuthoringPslBlockDescriptor.attributes` as nullary factories, and the generic block reconstruction interprets them into `PslExtensionBlock.attributes`.
+Attributes are a PSL authoring concern, so the kit is in `psl-parser` rather than framework core. Field, model, and block attributes are all constructed through it. A block descriptor declares which attributes its block accepts, and the generic block reconstruction interprets them at parse time.
 
 ---
 
@@ -75,7 +75,7 @@ interface ArgType<T, Ctx extends AttributeCtx> {
 }
 ```
 
-`Ctx` states what a combinator reads. The three contexts nest by what the site being parsed actually has, so a spec cannot demand facts its level never carries. There is no default type argument: every declaration names its context.
+A combinator declares what it reads. The contexts nest by what the site being parsed actually has, so a spec cannot demand facts its level never carries.
 
 ```ts
 interface AttributeCtx {
@@ -93,7 +93,7 @@ interface FieldAttributeCtx extends ModelAttributeCtx {
 }
 ```
 
-A block attribute is parsed with an `AttributeCtx` — a block has no model, so there is no separate block context type. `parse` is a property function type, so `Ctx` is checked contravariantly: a combinator over `AttributeCtx` is usable at every level, and one over `FieldAttributeCtx` is rejected in a model or block spec.
+A block has no model, so a block attribute is parsed with only the source context. A combinator is usable at any level that carries the facts it declares, and rejected where those facts do not exist.
 
 A spec fixes the attribute level and name, declares its arguments, and may refine the parsed result:
 
@@ -107,7 +107,7 @@ interface AttributeSpec<Out, Ctx extends AttributeCtx> {
 }
 ```
 
-`fieldAttribute`, `modelAttribute`, and `blockAttribute` fix `Ctx` to `FieldAttributeCtx`, `ModelAttributeCtx`, and `AttributeCtx` respectively, and infer `AttributeOut<Pos, Named>` when constructing a spec. `InferAttr<S>` extracts that `Out` type. Optional parameters are `ArgType` values decorated by `optional(type)` or `optional(type, defaultValue)`; the engine detects the marker when finalizing absent arguments.
+Each constructor fixes the context its level carries and infers `AttributeOut<Pos, Named>` when constructing a spec. `InferAttr<S>` extracts that `Out` type. Optional parameters are `ArgType` values decorated by `optional(type)` or `optional(type, defaultValue)`; the engine detects the marker when finalizing absent arguments.
 
 Positionals are fixed slots with an output key. Variadic positionals are not supported. Positional and named parameters may intentionally share a key, which supports the relation-name alias while allowing the engine to diagnose conflicting duplicate values.
 
@@ -140,7 +140,7 @@ These leaves perform direct AST checks. They do not wrap arktype schemas.
 
 ### References
 
-`fieldRef()` parses a field-name identifier and validates it against the declaring model, so it needs only a `ModelAttributeCtx` and is available to model and field attributes alike. `referencedFieldRef()` validates against the relation target, which only a field can resolve, so it takes a `FieldAttributeCtx`; cross-space references may defer the existence check when no referenced model is locally available. Both return the authored field name as a string.
+`fieldRef()` parses a field-name identifier and validates it against the declaring model, so it is available to model and field attributes alike. `referencedFieldRef()` validates against the relation target, which only a field can resolve; cross-space references may defer the existence check when no referenced model is locally available. Both return the authored field name as a string.
 
 `entityRef()` parses an unresolved model-name string. Existence and family semantics remain downstream concerns.
 
@@ -166,7 +166,7 @@ This is intentionally narrower than an arbitrary JSON value. Its shipped use is 
 
 ### Alternatives
 
-`oneOf(first, ...rest)` tries its alternatives in order and returns the first success. If every alternative fails, it discards the branch diagnostics and emits one aggregate `Expected one of: …` diagnostic assembled from the alternatives' labels. Its output is the union of the alternatives' outputs and its context is their intersection, so an alternation containing `fieldRef()` is itself model-scoped.
+`oneOf(first, ...rest)` tries its alternatives in order and returns the first success. If every alternative fails, it discards the branch diagnostics and emits one aggregate `Expected one of: …` diagnostic assembled from the alternatives' labels.
 
 This trade-off keeps the leaf contract small and allows backtracking, at the cost of less specific diagnostics for malformed input that resembles one particular branch.
 
