@@ -276,6 +276,28 @@ export type StorageColumnInputTypes = {
     readonly user: { readonly id: CodecTypes['pg/text@1']['input'] };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/text@1']['output'];
+    posts: public_Post[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type public_Post = {
+    id: CodecTypes['pg/text@1']['output'];
+    authorId: CodecTypes['pg/text@1']['output'] | null;
+    author: public_User | null;
+    readonly [RelationKeys]?: 'author';
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Post: Models.public_Post;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -470,24 +492,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_User = {
-    id: CodecTypes['pg/text@1']['output'];
-    posts: public_Post[];
-    readonly [RelationKeys]?: 'posts';
-  };
-  export type public_Post = {
-    id: CodecTypes['pg/text@1']['output'];
-    authorId: CodecTypes['pg/text@1']['output'] | null;
-    author: public_User | null;
-    readonly [RelationKeys]?: 'author';
-  };
-}
-
-export declare const models: {
-  public: {
-    User: Models.public_User;
-    Post: Models.public_Post;
-  };
-};

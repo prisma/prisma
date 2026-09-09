@@ -45,7 +45,7 @@ export type SameThing = ResultType<typeof usersWithPosts>;   // equals UserWithP
 
 ### Emitted output
 
-After the contract wrapper and `Namespaces` line, `contract.d.ts` gains one block, rendered by the framework emitter for both families:
+After `FieldInputTypes` (and any family storage-type exports) and immediately before `TypeMaps`, `contract.d.ts` gains one block, rendered by the framework emitter for both families:
 
 ```ts
 export namespace Models {

@@ -275,6 +275,22 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Resource = {
+    id: CodecTypes['pg/text@1']['output'];
+    requiredJson: CodecTypes['pg/jsonb@1']['output'];
+    optionalJson: CodecTypes['pg/jsonb@1']['output'] | null;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    Resource: Models.public_Resource;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -390,18 +406,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Resource = {
-    id: CodecTypes['pg/text@1']['output'];
-    requiredJson: CodecTypes['pg/jsonb@1']['output'];
-    optionalJson: CodecTypes['pg/jsonb@1']['output'] | null;
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    Resource: Models.public_Resource;
-  };
-};

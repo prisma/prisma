@@ -93,18 +93,22 @@ const mongoSpi = createMockSpi({
 function modelsBlock(dts: string): string {
   const start = dts.indexOf('export namespace Models');
   expect(start).toBeGreaterThan(-1);
-  return dts.slice(start).trimEnd();
+  return dts.slice(start, dts.indexOf('export type TypeMaps')).trimEnd();
 }
 
 describe('Models namespace and models constant emission', () => {
-  it('places the block after the contract wrapper', () => {
+  it('places the block between FieldInputTypes and TypeMaps, separated by blank lines', () => {
     const contract = sqlContract({
       public: { Item: { fields: { id: int() }, relations: {}, storage: {} } },
     });
     const dts = generateContractDts(contract, sqlSpi, [], HASHES);
-    expect(dts.indexOf('export type Contract')).toBeLessThan(
-      dts.indexOf('export namespace Models'),
-    );
+    const modelsStart = dts.indexOf('export namespace Models');
+    const typeMapsStart = dts.indexOf('export type TypeMaps');
+    expect(dts.indexOf('export type FieldInputTypes')).toBeLessThan(modelsStart);
+    expect(modelsStart).toBeLessThan(typeMapsStart);
+    expect(typeMapsStart).toBeLessThan(dts.indexOf('export type Contract'));
+    expect(dts.slice(0, modelsStart)).toMatch(/\n\n$/);
+    expect(dts.slice(0, typeMapsStart)).toMatch(/;\n\n$/);
   });
 
   it('emits a model with no relations with a never phantom', () => {

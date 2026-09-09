@@ -344,6 +344,45 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Contact = {
+    id: CodecTypes['pg/text@1']['output'];
+    analytics: public_ContactAnalytics[];
+    readonly [RelationKeys]?: 'analytics';
+  };
+  export type public_ContactAnalytics = {
+    id: CodecTypes['pg/text@1']['output'];
+    contactId: CodecTypes['pg/text@1']['output'];
+    date1: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    date2: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    date3: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    date4: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    date5: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    date6: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    date7: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    val1: CodecTypes['pg/int4@1']['output'] | null;
+    val2: CodecTypes['pg/int4@1']['output'] | null;
+    val3: CodecTypes['pg/int4@1']['output'] | null;
+    val4: CodecTypes['pg/int4@1']['output'] | null;
+    val5: CodecTypes['pg/int4@1']['output'] | null;
+    float1: CodecTypes['pg/float8@1']['output'] | null;
+    float2: CodecTypes['pg/float8@1']['output'] | null;
+    bool1: CodecTypes['pg/bool@1']['output'] | null;
+    bool2: CodecTypes['pg/bool@1']['output'] | null;
+    bool3: CodecTypes['pg/bool@1']['output'] | null;
+    contact: public_Contact;
+    readonly [RelationKeys]?: 'contact';
+  };
+}
+
+export declare const models: {
+  public: {
+    Contact: Models.public_Contact;
+    ContactAnalytics: Models.public_ContactAnalytics;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -738,41 +777,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Contact = {
-    id: CodecTypes['pg/text@1']['output'];
-    analytics: public_ContactAnalytics[];
-    readonly [RelationKeys]?: 'analytics';
-  };
-  export type public_ContactAnalytics = {
-    id: CodecTypes['pg/text@1']['output'];
-    contactId: CodecTypes['pg/text@1']['output'];
-    date1: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-    date2: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-    date3: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-    date4: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-    date5: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-    date6: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-    date7: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-    val1: CodecTypes['pg/int4@1']['output'] | null;
-    val2: CodecTypes['pg/int4@1']['output'] | null;
-    val3: CodecTypes['pg/int4@1']['output'] | null;
-    val4: CodecTypes['pg/int4@1']['output'] | null;
-    val5: CodecTypes['pg/int4@1']['output'] | null;
-    float1: CodecTypes['pg/float8@1']['output'] | null;
-    float2: CodecTypes['pg/float8@1']['output'] | null;
-    bool1: CodecTypes['pg/bool@1']['output'] | null;
-    bool2: CodecTypes['pg/bool@1']['output'] | null;
-    bool3: CodecTypes['pg/bool@1']['output'] | null;
-    contact: public_Contact;
-    readonly [RelationKeys]?: 'contact';
-  };
-}
-
-export declare const models: {
-  public: {
-    Contact: Models.public_Contact;
-    ContactAnalytics: Models.public_ContactAnalytics;
-  };
-};

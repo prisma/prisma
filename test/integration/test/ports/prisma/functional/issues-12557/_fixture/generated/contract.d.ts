@@ -303,6 +303,37 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Category = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    brands: public_Brand[];
+    readonly [RelationKeys]?: 'brands';
+  };
+  export type public_Brand = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    categories: public_Category[];
+    readonly [RelationKeys]?: 'categories';
+  };
+  export type public_CategoryBrand = {
+    categoryId: CodecTypes['pg/text@1']['output'];
+    brandId: CodecTypes['pg/text@1']['output'];
+    brand: public_Brand;
+    category: public_Category;
+    readonly [RelationKeys]?: 'brand' | 'category';
+  };
+}
+
+export declare const models: {
+  public: {
+    Category: Models.public_Category;
+    Brand: Models.public_Brand;
+    CategoryBrand: Models.public_CategoryBrand;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -590,33 +621,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Category = {
-    id: CodecTypes['pg/text@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    brands: public_Brand[];
-    readonly [RelationKeys]?: 'brands';
-  };
-  export type public_Brand = {
-    id: CodecTypes['pg/text@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    categories: public_Category[];
-    readonly [RelationKeys]?: 'categories';
-  };
-  export type public_CategoryBrand = {
-    categoryId: CodecTypes['pg/text@1']['output'];
-    brandId: CodecTypes['pg/text@1']['output'];
-    brand: public_Brand;
-    category: public_Category;
-    readonly [RelationKeys]?: 'brand' | 'category';
-  };
-}
-
-export declare const models: {
-  public: {
-    Category: Models.public_Category;
-    Brand: Models.public_Brand;
-    CategoryBrand: Models.public_CategoryBrand;
-  };
-};

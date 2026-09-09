@@ -138,6 +138,20 @@ export type StorageColumnTypes = {
 export type StorageColumnInputTypes = {
   readonly __unbound__: { readonly User: { readonly id: CodecTypes['sqlite/text@1']['input'] } };
 };
+
+export namespace Models {
+  export type unbound_User = {
+    id: CodecTypes['sqlite/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  __unbound__: {
+    User: Models.unbound_User;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -224,16 +238,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type unbound_User = {
-    id: CodecTypes['sqlite/text@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  __unbound__: {
-    User: Models.unbound_User;
-  };
-};

@@ -291,6 +291,30 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Hub = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    batteryLevels: public_BatteryLevel[];
+    readonly [RelationKeys]?: 'batteryLevels';
+  };
+  export type public_BatteryLevel = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    hubId: CodecTypes['pg/int4@1']['output'] | null;
+    hub: public_Hub | null;
+    readonly [RelationKeys]?: 'hub';
+  };
+}
+
+export declare const models: {
+  public: {
+    Hub: Models.public_Hub;
+    BatteryLevel: Models.public_BatteryLevel;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -498,26 +522,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Hub = {
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    batteryLevels: public_BatteryLevel[];
-    readonly [RelationKeys]?: 'batteryLevels';
-  };
-  export type public_BatteryLevel = {
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    hubId: CodecTypes['pg/int4@1']['output'] | null;
-    hub: public_Hub | null;
-    readonly [RelationKeys]?: 'hub';
-  };
-}
-
-export declare const models: {
-  public: {
-    Hub: Models.public_Hub;
-    BatteryLevel: Models.public_BatteryLevel;
-  };
-};

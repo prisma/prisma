@@ -280,6 +280,23 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_TestData = {
+    id: CodecTypes['pg/text@1']['output'];
+    date: CodecTypes['pg/date-temporal@1']['output'];
+    timestamp: CodecTypes['pg/timestamp-temporal@1']['output'];
+    timestamptz: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    TestData: Models.public_TestData;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -426,19 +443,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_TestData = {
-    id: CodecTypes['pg/text@1']['output'];
-    date: CodecTypes['pg/date-temporal@1']['output'];
-    timestamp: CodecTypes['pg/timestamp-temporal@1']['output'];
-    timestamptz: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    TestData: Models.public_TestData;
-  };
-};

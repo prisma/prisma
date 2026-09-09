@@ -239,6 +239,127 @@ export type FieldInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type unbound_Product = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    name: CodecTypes['mongo/string@1']['output'];
+    brand: CodecTypes['mongo/string@1']['output'];
+    code: CodecTypes['mongo/string@1']['output'];
+    description: CodecTypes['mongo/string@1']['output'];
+    primaryCategory: CodecTypes['mongo/string@1']['output'];
+    subCategory: CodecTypes['mongo/string@1']['output'];
+    articleType: CodecTypes['mongo/string@1']['output'];
+    price: PriceOutput;
+    image: ImageOutput;
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_User = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    name: CodecTypes['mongo/string@1']['output'];
+    email: CodecTypes['mongo/string@1']['output'];
+    address: AddressOutput | null;
+    carts: unbound_Cart[];
+    orders: unbound_Order[];
+    readonly [RelationKeys]?: 'carts' | 'orders';
+  };
+  export type unbound_Cart = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    userId: CodecTypes['mongo/objectId@1']['output'];
+    items: ReadonlyArray<CartItemOutput>;
+    user: unbound_User | null;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type unbound_Order = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    userId: CodecTypes['mongo/objectId@1']['output'];
+    items: ReadonlyArray<OrderLineItemOutput>;
+    shippingAddress: CodecTypes['mongo/string@1']['output'];
+    type: CodecTypes['mongo/string@1']['output'];
+    statusHistory: ReadonlyArray<StatusEntryOutput>;
+    user: unbound_User | null;
+    invoices: unbound_Invoice[];
+    readonly [RelationKeys]?: 'user' | 'invoices';
+  };
+  export type unbound_Location = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    name: CodecTypes['mongo/string@1']['output'];
+    streetAndNumber: CodecTypes['mongo/string@1']['output'];
+    city: CodecTypes['mongo/string@1']['output'];
+    postalCode: CodecTypes['mongo/string@1']['output'];
+    country: CodecTypes['mongo/string@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_Invoice = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    orderId: CodecTypes['mongo/objectId@1']['output'];
+    items: ReadonlyArray<InvoiceLineItemOutput>;
+    subtotal: CodecTypes['mongo/double@1']['output'];
+    tax: CodecTypes['mongo/double@1']['output'];
+    total: CodecTypes['mongo/double@1']['output'];
+    issuedAt: CodecTypes['mongo/date@1']['output'];
+    order: unbound_Order | null;
+    readonly [RelationKeys]?: 'order';
+  };
+  export type unbound_Event = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    userId: CodecTypes['mongo/string@1']['output'];
+    sessionId: CodecTypes['mongo/string@1']['output'];
+    type: 'view-product' | 'search' | 'add-to-cart';
+    timestamp: CodecTypes['mongo/date@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_ViewProductEvent = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    userId: CodecTypes['mongo/string@1']['output'];
+    sessionId: CodecTypes['mongo/string@1']['output'];
+    type: 'view-product';
+    timestamp: CodecTypes['mongo/date@1']['output'];
+    productId: CodecTypes['mongo/string@1']['output'];
+    subCategory: CodecTypes['mongo/string@1']['output'];
+    brand: CodecTypes['mongo/string@1']['output'];
+    exitMethod: CodecTypes['mongo/string@1']['output'] | null;
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_SearchEvent = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    userId: CodecTypes['mongo/string@1']['output'];
+    sessionId: CodecTypes['mongo/string@1']['output'];
+    type: 'search';
+    timestamp: CodecTypes['mongo/date@1']['output'];
+    query: CodecTypes['mongo/string@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_AddToCartEvent = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    userId: CodecTypes['mongo/string@1']['output'];
+    sessionId: CodecTypes['mongo/string@1']['output'];
+    type: 'add-to-cart';
+    timestamp: CodecTypes['mongo/date@1']['output'];
+    productId: CodecTypes['mongo/string@1']['output'];
+    brand: CodecTypes['mongo/string@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_AnyEvent =
+    unbound_ViewProductEvent | unbound_SearchEvent | unbound_AddToCartEvent;
+}
+
+export declare const models: {
+  __unbound__: {
+    Product: Models.unbound_Product;
+    User: Models.unbound_User;
+    Cart: Models.unbound_Cart;
+    Order: Models.unbound_Order;
+    Location: Models.unbound_Location;
+    Invoice: Models.unbound_Invoice;
+    Event: Models.unbound_Event;
+    ViewProductEvent: Models.unbound_ViewProductEvent;
+    SearchEvent: Models.unbound_SearchEvent;
+    AddToCartEvent: Models.unbound_AddToCartEvent;
+    AnyEvent: Models.unbound_AnyEvent;
+  };
+};
+
 export type TypeMaps = MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>;
 
 type ContractBase = Omit<
@@ -1321,123 +1442,3 @@ type ContractBase = Omit<
 };
 
 export type Contract = MongoContractWithTypeMaps<ContractBase, TypeMaps>;
-
-export namespace Models {
-  export type unbound_Product = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    name: CodecTypes['mongo/string@1']['output'];
-    brand: CodecTypes['mongo/string@1']['output'];
-    code: CodecTypes['mongo/string@1']['output'];
-    description: CodecTypes['mongo/string@1']['output'];
-    primaryCategory: CodecTypes['mongo/string@1']['output'];
-    subCategory: CodecTypes['mongo/string@1']['output'];
-    articleType: CodecTypes['mongo/string@1']['output'];
-    price: PriceOutput;
-    image: ImageOutput;
-    readonly [RelationKeys]?: never;
-  };
-  export type unbound_User = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    name: CodecTypes['mongo/string@1']['output'];
-    email: CodecTypes['mongo/string@1']['output'];
-    address: AddressOutput | null;
-    carts: unbound_Cart[];
-    orders: unbound_Order[];
-    readonly [RelationKeys]?: 'carts' | 'orders';
-  };
-  export type unbound_Cart = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    userId: CodecTypes['mongo/objectId@1']['output'];
-    items: ReadonlyArray<CartItemOutput>;
-    user: unbound_User | null;
-    readonly [RelationKeys]?: 'user';
-  };
-  export type unbound_Order = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    userId: CodecTypes['mongo/objectId@1']['output'];
-    items: ReadonlyArray<OrderLineItemOutput>;
-    shippingAddress: CodecTypes['mongo/string@1']['output'];
-    type: CodecTypes['mongo/string@1']['output'];
-    statusHistory: ReadonlyArray<StatusEntryOutput>;
-    user: unbound_User | null;
-    invoices: unbound_Invoice[];
-    readonly [RelationKeys]?: 'user' | 'invoices';
-  };
-  export type unbound_Location = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    name: CodecTypes['mongo/string@1']['output'];
-    streetAndNumber: CodecTypes['mongo/string@1']['output'];
-    city: CodecTypes['mongo/string@1']['output'];
-    postalCode: CodecTypes['mongo/string@1']['output'];
-    country: CodecTypes['mongo/string@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type unbound_Invoice = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    orderId: CodecTypes['mongo/objectId@1']['output'];
-    items: ReadonlyArray<InvoiceLineItemOutput>;
-    subtotal: CodecTypes['mongo/double@1']['output'];
-    tax: CodecTypes['mongo/double@1']['output'];
-    total: CodecTypes['mongo/double@1']['output'];
-    issuedAt: CodecTypes['mongo/date@1']['output'];
-    order: unbound_Order | null;
-    readonly [RelationKeys]?: 'order';
-  };
-  export type unbound_Event = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    userId: CodecTypes['mongo/string@1']['output'];
-    sessionId: CodecTypes['mongo/string@1']['output'];
-    type: 'view-product' | 'search' | 'add-to-cart';
-    timestamp: CodecTypes['mongo/date@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type unbound_ViewProductEvent = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    userId: CodecTypes['mongo/string@1']['output'];
-    sessionId: CodecTypes['mongo/string@1']['output'];
-    type: 'view-product';
-    timestamp: CodecTypes['mongo/date@1']['output'];
-    productId: CodecTypes['mongo/string@1']['output'];
-    subCategory: CodecTypes['mongo/string@1']['output'];
-    brand: CodecTypes['mongo/string@1']['output'];
-    exitMethod: CodecTypes['mongo/string@1']['output'] | null;
-    readonly [RelationKeys]?: never;
-  };
-  export type unbound_SearchEvent = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    userId: CodecTypes['mongo/string@1']['output'];
-    sessionId: CodecTypes['mongo/string@1']['output'];
-    type: 'search';
-    timestamp: CodecTypes['mongo/date@1']['output'];
-    query: CodecTypes['mongo/string@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type unbound_AddToCartEvent = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    userId: CodecTypes['mongo/string@1']['output'];
-    sessionId: CodecTypes['mongo/string@1']['output'];
-    type: 'add-to-cart';
-    timestamp: CodecTypes['mongo/date@1']['output'];
-    productId: CodecTypes['mongo/string@1']['output'];
-    brand: CodecTypes['mongo/string@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type unbound_AnyEvent =
-    unbound_ViewProductEvent | unbound_SearchEvent | unbound_AddToCartEvent;
-}
-
-export declare const models: {
-  __unbound__: {
-    Product: Models.unbound_Product;
-    User: Models.unbound_User;
-    Cart: Models.unbound_Cart;
-    Order: Models.unbound_Order;
-    Location: Models.unbound_Location;
-    Invoice: Models.unbound_Invoice;
-    Event: Models.unbound_Event;
-    ViewProductEvent: Models.unbound_ViewProductEvent;
-    SearchEvent: Models.unbound_SearchEvent;
-    AddToCartEvent: Models.unbound_AddToCartEvent;
-    AnyEvent: Models.unbound_AnyEvent;
-  };
-};

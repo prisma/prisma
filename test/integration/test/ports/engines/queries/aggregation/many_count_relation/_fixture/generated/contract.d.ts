@@ -307,6 +307,44 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Post = {
+    id: CodecTypes['pg/int4@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    categories: public_Category[];
+    comments: public_Comment[];
+    readonly [RelationKeys]?: 'categories' | 'comments';
+  };
+  export type public_Comment = {
+    id: CodecTypes['pg/int4@1']['output'];
+    postId: CodecTypes['pg/int4@1']['output'];
+    post: public_Post;
+    readonly [RelationKeys]?: 'post';
+  };
+  export type public_Category = {
+    id: CodecTypes['pg/int4@1']['output'];
+    posts: public_Post[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type public_PostCategory = {
+    postId: CodecTypes['pg/int4@1']['output'];
+    categoryId: CodecTypes['pg/int4@1']['output'];
+    category: public_Category;
+    post: public_Post;
+    readonly [RelationKeys]?: 'category' | 'post';
+  };
+}
+
+export declare const models: {
+  public: {
+    Post: Models.public_Post;
+    Comment: Models.public_Comment;
+    Category: Models.public_Category;
+    PostCategory: Models.public_PostCategory;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -656,40 +694,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Post = {
-    id: CodecTypes['pg/int4@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
-    categories: public_Category[];
-    comments: public_Comment[];
-    readonly [RelationKeys]?: 'categories' | 'comments';
-  };
-  export type public_Comment = {
-    id: CodecTypes['pg/int4@1']['output'];
-    postId: CodecTypes['pg/int4@1']['output'];
-    post: public_Post;
-    readonly [RelationKeys]?: 'post';
-  };
-  export type public_Category = {
-    id: CodecTypes['pg/int4@1']['output'];
-    posts: public_Post[];
-    readonly [RelationKeys]?: 'posts';
-  };
-  export type public_PostCategory = {
-    postId: CodecTypes['pg/int4@1']['output'];
-    categoryId: CodecTypes['pg/int4@1']['output'];
-    category: public_Category;
-    post: public_Post;
-    readonly [RelationKeys]?: 'category' | 'post';
-  };
-}
-
-export declare const models: {
-  public: {
-    Post: Models.public_Post;
-    Comment: Models.public_Comment;
-    Category: Models.public_Category;
-    PostCategory: Models.public_PostCategory;
-  };
-};

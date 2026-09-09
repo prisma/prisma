@@ -204,7 +204,10 @@ ${familyTypeAliases}
 ${valueObjectTypeAliases}
 export type FieldOutputTypes = ${fieldTypesMaps.output};
 export type FieldInputTypes = ${fieldTypesMaps.input};
-${extraTypeExports ? `${extraTypeExports}\n` : ''}export type TypeMaps = ${typeMapsExpr};
+${extraTypeExports ? `${extraTypeExports}\n` : ''}
+${modelTypesBlock}
+
+export type TypeMaps = ${typeMapsExpr};
 
 type ContractBase = Omit<
   ContractType<${storageType}>,
@@ -226,7 +229,5 @@ ${domainNamespacesType};
 };
 
 ${contractWrapper}
-
-${modelTypesBlock}
 `;
 }

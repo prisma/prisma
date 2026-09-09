@@ -303,6 +303,37 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_PostManyToMany = {
+    id: CodecTypes['pg/text@1']['output'];
+    published: CodecTypes['pg/bool@1']['output'] | null;
+    categories: public_CategoriesOnPostsManyToMany[];
+    readonly [RelationKeys]?: 'categories';
+  };
+  export type public_CategoryManyToMany = {
+    id: CodecTypes['pg/text@1']['output'];
+    published: CodecTypes['pg/bool@1']['output'] | null;
+    posts: public_CategoriesOnPostsManyToMany[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type public_CategoriesOnPostsManyToMany = {
+    postId: CodecTypes['pg/text@1']['output'];
+    categoryId: CodecTypes['pg/text@1']['output'];
+    category: public_CategoryManyToMany;
+    post: public_PostManyToMany;
+    readonly [RelationKeys]?: 'category' | 'post';
+  };
+}
+
+export declare const models: {
+  public: {
+    PostManyToMany: Models.public_PostManyToMany;
+    CategoryManyToMany: Models.public_CategoryManyToMany;
+    CategoriesOnPostsManyToMany: Models.public_CategoriesOnPostsManyToMany;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -582,33 +613,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_PostManyToMany = {
-    id: CodecTypes['pg/text@1']['output'];
-    published: CodecTypes['pg/bool@1']['output'] | null;
-    categories: public_CategoriesOnPostsManyToMany[];
-    readonly [RelationKeys]?: 'categories';
-  };
-  export type public_CategoryManyToMany = {
-    id: CodecTypes['pg/text@1']['output'];
-    published: CodecTypes['pg/bool@1']['output'] | null;
-    posts: public_CategoriesOnPostsManyToMany[];
-    readonly [RelationKeys]?: 'posts';
-  };
-  export type public_CategoriesOnPostsManyToMany = {
-    postId: CodecTypes['pg/text@1']['output'];
-    categoryId: CodecTypes['pg/text@1']['output'];
-    category: public_CategoryManyToMany;
-    post: public_PostManyToMany;
-    readonly [RelationKeys]?: 'category' | 'post';
-  };
-}
-
-export declare const models: {
-  public: {
-    PostManyToMany: Models.public_PostManyToMany;
-    CategoryManyToMany: Models.public_CategoryManyToMany;
-    CategoriesOnPostsManyToMany: Models.public_CategoriesOnPostsManyToMany;
-  };
-};

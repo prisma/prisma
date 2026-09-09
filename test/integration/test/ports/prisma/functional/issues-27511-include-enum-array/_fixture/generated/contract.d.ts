@@ -295,6 +295,37 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_workspace_member = {
+    id: Varchar<30>;
+    roles: public_workspace_member_role[];
+    readonly [RelationKeys]?: 'roles';
+  };
+  export type public_workspace_role = {
+    id: Varchar<30>;
+    name: CodecTypes['pg/text@1']['output'];
+    permissions: ReadonlyArray<'HELLO' | 'WORLD'>;
+    members: public_workspace_member_role[];
+    readonly [RelationKeys]?: 'members';
+  };
+  export type public_workspace_member_role = {
+    memberId: CodecTypes['pg/text@1']['output'];
+    roleId: CodecTypes['pg/text@1']['output'];
+    member: public_workspace_member;
+    role: public_workspace_role;
+    readonly [RelationKeys]?: 'member' | 'role';
+  };
+}
+
+export declare const models: {
+  public: {
+    workspace_member: Models.public_workspace_member;
+    workspace_role: Models.public_workspace_role;
+    workspace_member_role: Models.public_workspace_member_role;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -598,33 +629,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_workspace_member = {
-    id: Varchar<30>;
-    roles: public_workspace_member_role[];
-    readonly [RelationKeys]?: 'roles';
-  };
-  export type public_workspace_role = {
-    id: Varchar<30>;
-    name: CodecTypes['pg/text@1']['output'];
-    permissions: ReadonlyArray<'HELLO' | 'WORLD'>;
-    members: public_workspace_member_role[];
-    readonly [RelationKeys]?: 'members';
-  };
-  export type public_workspace_member_role = {
-    memberId: CodecTypes['pg/text@1']['output'];
-    roleId: CodecTypes['pg/text@1']['output'];
-    member: public_workspace_member;
-    role: public_workspace_role;
-    readonly [RelationKeys]?: 'member' | 'role';
-  };
-}
-
-export declare const models: {
-  public: {
-    workspace_member: Models.public_workspace_member;
-    workspace_role: Models.public_workspace_role;
-    workspace_member_role: Models.public_workspace_member_role;
-  };
-};

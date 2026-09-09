@@ -300,6 +300,28 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_TestModel = {
+    id: CodecTypes['pg/text@1']['output'];
+    string: CodecTypes['pg/text@1']['output'] | null;
+    int: CodecTypes['pg/int4@1']['output'] | null;
+    bInt: CodecTypes['pg/int8@1']['output'] | null;
+    float: CodecTypes['pg/float8@1']['output'] | null;
+    bytes: CodecTypes['pg/bytea@1']['output'] | null;
+    bool: CodecTypes['pg/bool@1']['output'] | null;
+    dt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    dec: CodecTypes['pg/numeric@1']['output'] | null;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    TestModel: Models.public_TestModel;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -493,24 +515,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_TestModel = {
-    id: CodecTypes['pg/text@1']['output'];
-    string: CodecTypes['pg/text@1']['output'] | null;
-    int: CodecTypes['pg/int4@1']['output'] | null;
-    bInt: CodecTypes['pg/int8@1']['output'] | null;
-    float: CodecTypes['pg/float8@1']['output'] | null;
-    bytes: CodecTypes['pg/bytea@1']['output'] | null;
-    bool: CodecTypes['pg/bool@1']['output'] | null;
-    dt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-    dec: CodecTypes['pg/numeric@1']['output'] | null;
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    TestModel: Models.public_TestModel;
-  };
-};

@@ -311,6 +311,36 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type auth_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    token: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_Profile = {
+    id: CodecTypes['pg/int4@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'];
+    user: auth_User;
+    readonly [RelationKeys]?: 'user';
+  };
+}
+
+export declare const models: {
+  auth: {
+    User: Models.auth_User;
+  };
+  public: {
+    User: Models.public_User;
+    Profile: Models.public_Profile;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -537,32 +567,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type auth_User = {
-    id: CodecTypes['pg/int4@1']['output'];
-    token: CodecTypes['pg/text@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type public_User = {
-    id: CodecTypes['pg/int4@1']['output'];
-    email: CodecTypes['pg/text@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type public_Profile = {
-    id: CodecTypes['pg/int4@1']['output'];
-    userId: CodecTypes['pg/int4@1']['output'];
-    user: auth_User;
-    readonly [RelationKeys]?: 'user';
-  };
-}
-
-export declare const models: {
-  auth: {
-    User: Models.auth_User;
-  };
-  public: {
-    User: Models.public_User;
-    Profile: Models.public_Profile;
-  };
-};

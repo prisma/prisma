@@ -295,6 +295,27 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_TestModel = {
+    id: CodecTypes['pg/int4@1']['output'];
+    string: ReadonlyArray<CodecTypes['pg/text@1']['output']>;
+    int: ReadonlyArray<CodecTypes['pg/int4@1']['output']>;
+    bInt: ReadonlyArray<CodecTypes['pg/int8@1']['output']>;
+    float: ReadonlyArray<CodecTypes['pg/float8@1']['output']>;
+    bytes: ReadonlyArray<CodecTypes['pg/bytea@1']['output']>;
+    bool: ReadonlyArray<CodecTypes['pg/bool@1']['output']>;
+    dt: ReadonlyArray<CodecTypes['pg/timestamptz-temporal@1']['output']>;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    TestModel: Models.public_TestModel;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -470,23 +491,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_TestModel = {
-    id: CodecTypes['pg/int4@1']['output'];
-    string: ReadonlyArray<CodecTypes['pg/text@1']['output']>;
-    int: ReadonlyArray<CodecTypes['pg/int4@1']['output']>;
-    bInt: ReadonlyArray<CodecTypes['pg/int8@1']['output']>;
-    float: ReadonlyArray<CodecTypes['pg/float8@1']['output']>;
-    bytes: ReadonlyArray<CodecTypes['pg/bytea@1']['output']>;
-    bool: ReadonlyArray<CodecTypes['pg/bool@1']['output']>;
-    dt: ReadonlyArray<CodecTypes['pg/timestamptz-temporal@1']['output']>;
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    TestModel: Models.public_TestModel;
-  };
-};

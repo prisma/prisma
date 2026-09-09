@@ -335,6 +335,49 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    blocked: CodecTypes['pg/bool@1']['output'];
+    balance: CodecTypes['pg/int4@1']['output'];
+    groups: public_Group[];
+    posts: public_Post[];
+    readonly [RelationKeys]?: 'groups' | 'posts';
+  };
+  export type public_Group = {
+    id: CodecTypes['pg/text@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    users: public_User[];
+    readonly [RelationKeys]?: 'users';
+  };
+  export type public_UserGroup = {
+    userId: CodecTypes['pg/text@1']['output'];
+    groupId: CodecTypes['pg/text@1']['output'];
+    group: public_Group;
+    user: public_User;
+    readonly [RelationKeys]?: 'group' | 'user';
+  };
+  export type public_Post = {
+    id: CodecTypes['pg/text@1']['output'];
+    published: CodecTypes['pg/bool@1']['output'];
+    upvotes: CodecTypes['pg/int4@1']['output'];
+    authorId: CodecTypes['pg/text@1']['output'];
+    author: public_User;
+    readonly [RelationKeys]?: 'author';
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Group: Models.public_Group;
+    UserGroup: Models.public_UserGroup;
+    Post: Models.public_Post;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -734,45 +777,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_User = {
-    id: CodecTypes['pg/text@1']['output'];
-    email: CodecTypes['pg/text@1']['output'];
-    blocked: CodecTypes['pg/bool@1']['output'];
-    balance: CodecTypes['pg/int4@1']['output'];
-    groups: public_Group[];
-    posts: public_Post[];
-    readonly [RelationKeys]?: 'groups' | 'posts';
-  };
-  export type public_Group = {
-    id: CodecTypes['pg/text@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
-    users: public_User[];
-    readonly [RelationKeys]?: 'users';
-  };
-  export type public_UserGroup = {
-    userId: CodecTypes['pg/text@1']['output'];
-    groupId: CodecTypes['pg/text@1']['output'];
-    group: public_Group;
-    user: public_User;
-    readonly [RelationKeys]?: 'group' | 'user';
-  };
-  export type public_Post = {
-    id: CodecTypes['pg/text@1']['output'];
-    published: CodecTypes['pg/bool@1']['output'];
-    upvotes: CodecTypes['pg/int4@1']['output'];
-    authorId: CodecTypes['pg/text@1']['output'];
-    author: public_User;
-    readonly [RelationKeys]?: 'author';
-  };
-}
-
-export declare const models: {
-  public: {
-    User: Models.public_User;
-    Group: Models.public_Group;
-    UserGroup: Models.public_UserGroup;
-    Post: Models.public_Post;
-  };
-};

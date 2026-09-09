@@ -287,6 +287,29 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Accommodation = {
+    id: CodecTypes['pg/bytea@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    timeTables: public_AccommodationTimeTable[];
+    readonly [RelationKeys]?: 'timeTables';
+  };
+  export type public_AccommodationTimeTable = {
+    id: CodecTypes['pg/bytea@1']['output'];
+    accommodationId: CodecTypes['pg/bytea@1']['output'];
+    accommodation: public_Accommodation;
+    readonly [RelationKeys]?: 'accommodation';
+  };
+}
+
+export declare const models: {
+  public: {
+    Accommodation: Models.public_Accommodation;
+    AccommodationTimeTable: Models.public_AccommodationTimeTable;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -482,25 +505,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Accommodation = {
-    id: CodecTypes['pg/bytea@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    timeTables: public_AccommodationTimeTable[];
-    readonly [RelationKeys]?: 'timeTables';
-  };
-  export type public_AccommodationTimeTable = {
-    id: CodecTypes['pg/bytea@1']['output'];
-    accommodationId: CodecTypes['pg/bytea@1']['output'];
-    accommodation: public_Accommodation;
-    readonly [RelationKeys]?: 'accommodation';
-  };
-}
-
-export declare const models: {
-  public: {
-    Accommodation: Models.public_Accommodation;
-    AccommodationTimeTable: Models.public_AccommodationTimeTable;
-  };
-};

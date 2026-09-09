@@ -35,7 +35,7 @@ Both are right about the facts. `contract.d.ts` exports hashes, codec maps, `Fie
 - The model type carries every relation, always. `User.posts` is `Post[]`, `Post.author` is `User`, and so on around the cycle.
 - A query result is therefore not a model. The default fetch returns the model's scalar fields, because returning the model would mean loading the whole reachable graph. Partial fetches return whatever was selected.
 
-**2. The contract emits a `Models` namespace and a `models` declared constant.** After the contract wrapper and the `Namespaces` line, `contract.d.ts` gains one block, rendered by the framework emitter for both families:
+**2. The contract emits a `Models` namespace and a `models` declared constant.** After `FieldInputTypes` (and any family storage-type exports) and immediately before `TypeMaps`, `contract.d.ts` gains one block, rendered by the framework emitter for both families:
 
 ```ts
 export namespace Models {

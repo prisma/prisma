@@ -295,6 +295,45 @@ export type StorageColumnInputTypes = {
     readonly user: { readonly uid: CodecTypes['pg/text@1']['input'] };
   };
 };
+
+export namespace Models {
+  export type public_Comment = {
+    id: CodecTypes['pg/text@1']['output'];
+    downVotedUsers: public_User[];
+    upVotedUsers: public_User[];
+    readonly [RelationKeys]?: 'downVotedUsers' | 'upVotedUsers';
+  };
+  export type public_User = {
+    uid: CodecTypes['pg/text@1']['output'];
+    downVotedComments: public_Comment[];
+    upVotedComments: public_Comment[];
+    readonly [RelationKeys]?: 'downVotedComments' | 'upVotedComments';
+  };
+  export type public_UpVote = {
+    commentId: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/text@1']['output'];
+    comment: public_Comment;
+    user: public_User;
+    readonly [RelationKeys]?: 'comment' | 'user';
+  };
+  export type public_DownVote = {
+    commentId: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/text@1']['output'];
+    comment: public_Comment;
+    user: public_User;
+    readonly [RelationKeys]?: 'comment' | 'user';
+  };
+}
+
+export declare const models: {
+  public: {
+    Comment: Models.public_Comment;
+    User: Models.public_User;
+    UpVote: Models.public_UpVote;
+    DownVote: Models.public_DownVote;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -680,41 +719,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Comment = {
-    id: CodecTypes['pg/text@1']['output'];
-    downVotedUsers: public_User[];
-    upVotedUsers: public_User[];
-    readonly [RelationKeys]?: 'downVotedUsers' | 'upVotedUsers';
-  };
-  export type public_User = {
-    uid: CodecTypes['pg/text@1']['output'];
-    downVotedComments: public_Comment[];
-    upVotedComments: public_Comment[];
-    readonly [RelationKeys]?: 'downVotedComments' | 'upVotedComments';
-  };
-  export type public_UpVote = {
-    commentId: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/text@1']['output'];
-    comment: public_Comment;
-    user: public_User;
-    readonly [RelationKeys]?: 'comment' | 'user';
-  };
-  export type public_DownVote = {
-    commentId: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/text@1']['output'];
-    comment: public_Comment;
-    user: public_User;
-    readonly [RelationKeys]?: 'comment' | 'user';
-  };
-}
-
-export declare const models: {
-  public: {
-    Comment: Models.public_Comment;
-    User: Models.public_User;
-    UpVote: Models.public_UpVote;
-    DownVote: Models.public_DownVote;
-  };
-};

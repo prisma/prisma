@@ -59,6 +59,22 @@ export type FieldInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type unbound_CommentRequiredList = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    country: CodecTypes['mongo/string@1']['output'] | null;
+    contents: ReadonlyArray<CommentContentOutput>;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  __unbound__: {
+    CommentRequiredList: Models.unbound_CommentRequiredList;
+  };
+};
+
 export type TypeMaps = MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>;
 
 type ContractBase = Omit<
@@ -216,18 +232,3 @@ type ContractBase = Omit<
 };
 
 export type Contract = MongoContractWithTypeMaps<ContractBase, TypeMaps>;
-
-export namespace Models {
-  export type unbound_CommentRequiredList = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    country: CodecTypes['mongo/string@1']['output'] | null;
-    contents: ReadonlyArray<CommentContentOutput>;
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  __unbound__: {
-    CommentRequiredList: Models.unbound_CommentRequiredList;
-  };
-};

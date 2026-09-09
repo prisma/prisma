@@ -63,6 +63,21 @@ export type FieldInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type unbound_User = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    profile: ProfileOutput;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  __unbound__: {
+    User: Models.unbound_User;
+  };
+};
+
 export type TypeMaps = MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>;
 
 type ContractBase = Omit<
@@ -257,17 +272,3 @@ type ContractBase = Omit<
 };
 
 export type Contract = MongoContractWithTypeMaps<ContractBase, TypeMaps>;
-
-export namespace Models {
-  export type unbound_User = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    profile: ProfileOutput;
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  __unbound__: {
-    User: Models.unbound_User;
-  };
-};

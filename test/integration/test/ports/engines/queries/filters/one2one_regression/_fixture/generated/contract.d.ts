@@ -275,6 +275,24 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'] | null;
+    friendId: CodecTypes['pg/int4@1']['output'] | null;
+    friend: public_User | null;
+    friendOf: public_User | null;
+    readonly [RelationKeys]?: 'friend' | 'friendOf';
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -420,20 +438,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_User = {
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'] | null;
-    friendId: CodecTypes['pg/int4@1']['output'] | null;
-    friend: public_User | null;
-    friendOf: public_User | null;
-    readonly [RelationKeys]?: 'friend' | 'friendOf';
-  };
-}
-
-export declare const models: {
-  public: {
-    User: Models.public_User;
-  };
-};

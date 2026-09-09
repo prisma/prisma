@@ -279,6 +279,29 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Character = {
+    id: CodecTypes['pg/text@1']['output'];
+    info: public_CharacterInfo[];
+    readonly [RelationKeys]?: 'info';
+  };
+  export type public_CharacterInfo = {
+    entryId: CodecTypes['pg/text@1']['output'];
+    entryLanguage: CodecTypes['pg/text@1']['output'];
+    characterId: CodecTypes['pg/text@1']['output'];
+    details: public_Character;
+    readonly [RelationKeys]?: 'details';
+  };
+}
+
+export declare const models: {
+  public: {
+    Character: Models.public_Character;
+    CharacterInfo: Models.public_CharacterInfo;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -469,25 +492,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Character = {
-    id: CodecTypes['pg/text@1']['output'];
-    info: public_CharacterInfo[];
-    readonly [RelationKeys]?: 'info';
-  };
-  export type public_CharacterInfo = {
-    entryId: CodecTypes['pg/text@1']['output'];
-    entryLanguage: CodecTypes['pg/text@1']['output'];
-    characterId: CodecTypes['pg/text@1']['output'];
-    details: public_Character;
-    readonly [RelationKeys]?: 'details';
-  };
-}
-
-export declare const models: {
-  public: {
-    Character: Models.public_Character;
-    CharacterInfo: Models.public_CharacterInfo;
-  };
-};

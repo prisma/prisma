@@ -499,6 +499,107 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    invitedById: CodecTypes['pg/int4@1']['output'] | null;
+    address: AddressOutput | null;
+    invitedUsers: public_User[];
+    invitedBy: public_User | null;
+    posts: public_Post[];
+    profile: public_Profile | null;
+    tags: public_Tag[];
+    roles: public_Role[];
+    readonly [RelationKeys]?: 'invitedUsers' | 'invitedBy' | 'posts' | 'profile' | 'tags' | 'roles';
+  };
+  export type public_Post = {
+    id: CodecTypes['pg/int4@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'];
+    views: CodecTypes['pg/int4@1']['output'];
+    embedding: Vector<3> | null;
+    comments: public_Comment[];
+    author: public_User;
+    readonly [RelationKeys]?: 'comments' | 'author';
+  };
+  export type public_Comment = {
+    id: CodecTypes['pg/int4@1']['output'];
+    body: CodecTypes['pg/text@1']['output'];
+    postId: CodecTypes['pg/int4@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_Profile = {
+    id: CodecTypes['pg/int4@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'];
+    bio: CodecTypes['pg/text@1']['output'];
+    user: public_User;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type public_Article = {
+    id: CodecTypes['pg/int4@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    reviewerId: CodecTypes['pg/int4@1']['output'];
+    reviewer: public_User | null;
+    readonly [RelationKeys]?: 'reviewer';
+  };
+  export type public_Tag = {
+    id: Char<36>;
+    name: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_UserTag = {
+    userId: CodecTypes['pg/int4@1']['output'];
+    tagId: Char<36>;
+    note: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_Role = {
+    id: Char<36>;
+    name: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_UserRole = {
+    userId: CodecTypes['pg/int4@1']['output'];
+    roleId: Char<36>;
+    level: CodecTypes['pg/int4@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_Project = {
+    tenantId: CodecTypes['pg/int4@1']['output'];
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    related: public_Project[];
+    readonly [RelationKeys]?: 'related';
+  };
+  export type public_ProjectLink = {
+    srcTenantId: CodecTypes['pg/int4@1']['output'];
+    srcId: CodecTypes['pg/int4@1']['output'];
+    dstTenantId: CodecTypes['pg/int4@1']['output'];
+    dstId: CodecTypes['pg/int4@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Post: Models.public_Post;
+    Comment: Models.public_Comment;
+    Profile: Models.public_Profile;
+    Article: Models.public_Article;
+    Tag: Models.public_Tag;
+    UserTag: Models.public_UserTag;
+    Role: Models.public_Role;
+    UserRole: Models.public_UserRole;
+    Project: Models.public_Project;
+    ProjectLink: Models.public_ProjectLink;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -1487,103 +1588,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_User = {
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    email: CodecTypes['pg/text@1']['output'];
-    invitedById: CodecTypes['pg/int4@1']['output'] | null;
-    address: AddressOutput | null;
-    invitedUsers: public_User[];
-    invitedBy: public_User | null;
-    posts: public_Post[];
-    profile: public_Profile | null;
-    tags: public_Tag[];
-    roles: public_Role[];
-    readonly [RelationKeys]?: 'invitedUsers' | 'invitedBy' | 'posts' | 'profile' | 'tags' | 'roles';
-  };
-  export type public_Post = {
-    id: CodecTypes['pg/int4@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/int4@1']['output'];
-    views: CodecTypes['pg/int4@1']['output'];
-    embedding: Vector<3> | null;
-    comments: public_Comment[];
-    author: public_User;
-    readonly [RelationKeys]?: 'comments' | 'author';
-  };
-  export type public_Comment = {
-    id: CodecTypes['pg/int4@1']['output'];
-    body: CodecTypes['pg/text@1']['output'];
-    postId: CodecTypes['pg/int4@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type public_Profile = {
-    id: CodecTypes['pg/int4@1']['output'];
-    userId: CodecTypes['pg/int4@1']['output'];
-    bio: CodecTypes['pg/text@1']['output'];
-    user: public_User;
-    readonly [RelationKeys]?: 'user';
-  };
-  export type public_Article = {
-    id: CodecTypes['pg/int4@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
-    reviewerId: CodecTypes['pg/int4@1']['output'];
-    reviewer: public_User | null;
-    readonly [RelationKeys]?: 'reviewer';
-  };
-  export type public_Tag = {
-    id: Char<36>;
-    name: CodecTypes['pg/text@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type public_UserTag = {
-    userId: CodecTypes['pg/int4@1']['output'];
-    tagId: Char<36>;
-    note: CodecTypes['pg/text@1']['output'] | null;
-    createdAt: CodecTypes['pg/text@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type public_Role = {
-    id: Char<36>;
-    name: CodecTypes['pg/text@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type public_UserRole = {
-    userId: CodecTypes['pg/int4@1']['output'];
-    roleId: Char<36>;
-    level: CodecTypes['pg/int4@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type public_Project = {
-    tenantId: CodecTypes['pg/int4@1']['output'];
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    related: public_Project[];
-    readonly [RelationKeys]?: 'related';
-  };
-  export type public_ProjectLink = {
-    srcTenantId: CodecTypes['pg/int4@1']['output'];
-    srcId: CodecTypes['pg/int4@1']['output'];
-    dstTenantId: CodecTypes['pg/int4@1']['output'];
-    dstId: CodecTypes['pg/int4@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    User: Models.public_User;
-    Post: Models.public_Post;
-    Comment: Models.public_Comment;
-    Profile: Models.public_Profile;
-    Article: Models.public_Article;
-    Tag: Models.public_Tag;
-    UserTag: Models.public_UserTag;
-    Role: Models.public_Role;
-    UserRole: Models.public_UserRole;
-    Project: Models.public_Project;
-    ProjectLink: Models.public_ProjectLink;
-  };
-};

@@ -271,6 +271,21 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_A = {
+    id: CodecTypes['pg/text@1']['output'];
+    bytes: CodecTypes['pg/bytea@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    A: Models.public_A;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -376,17 +391,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_A = {
-    id: CodecTypes['pg/text@1']['output'];
-    bytes: CodecTypes['pg/bytea@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    A: Models.public_A;
-  };
-};

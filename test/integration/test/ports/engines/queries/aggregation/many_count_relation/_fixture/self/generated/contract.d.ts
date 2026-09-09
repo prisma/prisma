@@ -287,6 +287,31 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    followers: public_User[];
+    following: public_User[];
+    readonly [RelationKeys]?: 'followers' | 'following';
+  };
+  export type public_UserFollow = {
+    followerId: CodecTypes['pg/int4@1']['output'];
+    followeeId: CodecTypes['pg/int4@1']['output'];
+    followee: public_User;
+    follower: public_User;
+    readonly [RelationKeys]?: 'followee' | 'follower';
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    UserFollow: Models.public_UserFollow;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -521,27 +546,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_User = {
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    followers: public_User[];
-    following: public_User[];
-    readonly [RelationKeys]?: 'followers' | 'following';
-  };
-  export type public_UserFollow = {
-    followerId: CodecTypes['pg/int4@1']['output'];
-    followeeId: CodecTypes['pg/int4@1']['output'];
-    followee: public_User;
-    follower: public_User;
-    readonly [RelationKeys]?: 'followee' | 'follower';
-  };
-}
-
-export declare const models: {
-  public: {
-    User: Models.public_User;
-    UserFollow: Models.public_UserFollow;
-  };
-};

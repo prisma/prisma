@@ -178,6 +178,30 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type unbound_Meter = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    peak: CodecTypes['sqlite/bigintnumber@1']['output'];
+    samples: unbound_Sample[];
+    readonly [RelationKeys]?: 'samples';
+  };
+  export type unbound_Sample = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    meterId: CodecTypes['sqlite/integer@1']['output'];
+    reading: CodecTypes['sqlite/bigintnumber@1']['output'];
+    meter: unbound_Meter;
+    readonly [RelationKeys]?: 'meter';
+  };
+}
+
+export declare const models: {
+  __unbound__: {
+    Meter: Models.unbound_Meter;
+    Sample: Models.unbound_Sample;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -382,26 +406,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type unbound_Meter = {
-    id: CodecTypes['sqlite/integer@1']['output'];
-    peak: CodecTypes['sqlite/bigintnumber@1']['output'];
-    samples: unbound_Sample[];
-    readonly [RelationKeys]?: 'samples';
-  };
-  export type unbound_Sample = {
-    id: CodecTypes['sqlite/integer@1']['output'];
-    meterId: CodecTypes['sqlite/integer@1']['output'];
-    reading: CodecTypes['sqlite/bigintnumber@1']['output'];
-    meter: unbound_Meter;
-    readonly [RelationKeys]?: 'meter';
-  };
-}
-
-export declare const models: {
-  __unbound__: {
-    Meter: Models.unbound_Meter;
-    Sample: Models.unbound_Sample;
-  };
-};

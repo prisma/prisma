@@ -35,6 +35,20 @@ export type FieldInputTypes = {
     readonly Note: { readonly _id: CodecTypes['mongo/objectId@1']['input'] };
   };
 };
+
+export namespace Models {
+  export type unbound_Note = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  __unbound__: {
+    Note: Models.unbound_Note;
+  };
+};
+
 export type TypeMaps = MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>;
 
 type ContractBase = Omit<
@@ -81,16 +95,3 @@ type ContractBase = Omit<
 };
 
 export type Contract = MongoContractWithTypeMaps<ContractBase, TypeMaps>;
-
-export namespace Models {
-  export type unbound_Note = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  __unbound__: {
-    Note: Models.unbound_Note;
-  };
-};

@@ -295,6 +295,41 @@ export type StorageColumnInputTypes = {
     readonly userOneToOne: { readonly id: CodecTypes['pg/int4@1']['input'] };
   };
 };
+
+export namespace Models {
+  export type public_UserOneToOne = {
+    id: CodecTypes['pg/int4@1']['output'];
+    profile: public_ProfileOneToOne | null;
+    readonly [RelationKeys]?: 'profile';
+  };
+  export type public_ProfileOneToOne = {
+    id: CodecTypes['pg/int4@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'] | null;
+    user: public_UserOneToOne | null;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type public_UserOneToMany = {
+    id: CodecTypes['pg/int4@1']['output'];
+    posts: public_PostOneToMany[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type public_PostOneToMany = {
+    id: CodecTypes['pg/int4@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'] | null;
+    user: public_UserOneToMany | null;
+    readonly [RelationKeys]?: 'user';
+  };
+}
+
+export declare const models: {
+  public: {
+    UserOneToOne: Models.public_UserOneToOne;
+    ProfileOneToOne: Models.public_ProfileOneToOne;
+    UserOneToMany: Models.public_UserOneToMany;
+    PostOneToMany: Models.public_PostOneToMany;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -597,37 +632,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_UserOneToOne = {
-    id: CodecTypes['pg/int4@1']['output'];
-    profile: public_ProfileOneToOne | null;
-    readonly [RelationKeys]?: 'profile';
-  };
-  export type public_ProfileOneToOne = {
-    id: CodecTypes['pg/int4@1']['output'];
-    userId: CodecTypes['pg/int4@1']['output'] | null;
-    user: public_UserOneToOne | null;
-    readonly [RelationKeys]?: 'user';
-  };
-  export type public_UserOneToMany = {
-    id: CodecTypes['pg/int4@1']['output'];
-    posts: public_PostOneToMany[];
-    readonly [RelationKeys]?: 'posts';
-  };
-  export type public_PostOneToMany = {
-    id: CodecTypes['pg/int4@1']['output'];
-    userId: CodecTypes['pg/int4@1']['output'] | null;
-    user: public_UserOneToMany | null;
-    readonly [RelationKeys]?: 'user';
-  };
-}
-
-export declare const models: {
-  public: {
-    UserOneToOne: Models.public_UserOneToOne;
-    ProfileOneToOne: Models.public_ProfileOneToOne;
-    UserOneToMany: Models.public_UserOneToMany;
-    PostOneToMany: Models.public_PostOneToMany;
-  };
-};

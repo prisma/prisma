@@ -340,6 +340,50 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/text@1']['output'];
+    referralId: CodecTypes['pg/text@1']['output'];
+    paymentId: CodecTypes['pg/text@1']['output'];
+    payment: public_Payment;
+    posts: public_Post[];
+    profile: public_Profile | null;
+    readonly [RelationKeys]?: 'payment' | 'posts' | 'profile';
+  };
+  export type public_Profile = {
+    id: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    alias: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    user: public_User;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type public_Post = {
+    id: CodecTypes['pg/text@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    authorId: CodecTypes['pg/text@1']['output'] | null;
+    author: public_User | null;
+    readonly [RelationKeys]?: 'author';
+  };
+  export type public_Payment = {
+    id: CodecTypes['pg/text@1']['output'];
+    ccn: CodecTypes['pg/text@1']['output'];
+    author: public_User | null;
+    readonly [RelationKeys]?: 'author';
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Profile: Models.public_Profile;
+    Post: Models.public_Post;
+    Payment: Models.public_Payment;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -753,46 +797,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_User = {
-    id: CodecTypes['pg/text@1']['output'];
-    referralId: CodecTypes['pg/text@1']['output'];
-    paymentId: CodecTypes['pg/text@1']['output'];
-    payment: public_Payment;
-    posts: public_Post[];
-    profile: public_Profile | null;
-    readonly [RelationKeys]?: 'payment' | 'posts' | 'profile';
-  };
-  export type public_Profile = {
-    id: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/text@1']['output'];
-    email: CodecTypes['pg/text@1']['output'];
-    alias: CodecTypes['pg/text@1']['output'];
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    user: public_User;
-    readonly [RelationKeys]?: 'user';
-  };
-  export type public_Post = {
-    id: CodecTypes['pg/text@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
-    authorId: CodecTypes['pg/text@1']['output'] | null;
-    author: public_User | null;
-    readonly [RelationKeys]?: 'author';
-  };
-  export type public_Payment = {
-    id: CodecTypes['pg/text@1']['output'];
-    ccn: CodecTypes['pg/text@1']['output'];
-    author: public_User | null;
-    readonly [RelationKeys]?: 'author';
-  };
-}
-
-export declare const models: {
-  public: {
-    User: Models.public_User;
-    Profile: Models.public_Profile;
-    Post: Models.public_Post;
-    Payment: Models.public_Payment;
-  };
-};

@@ -303,6 +303,39 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Location = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'] | null;
+    companies: public_Company[];
+    companyLocations: public_CompanyLocation[];
+    readonly [RelationKeys]?: 'companies' | 'companyLocations';
+  };
+  export type public_Company = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'] | null;
+    companyLocations: public_CompanyLocation[];
+    locations: public_Location[];
+    readonly [RelationKeys]?: 'companyLocations' | 'locations';
+  };
+  export type public_CompanyLocation = {
+    companyId: CodecTypes['pg/int4@1']['output'];
+    locationId: CodecTypes['pg/int4@1']['output'];
+    company: public_Company;
+    location: public_Location;
+    readonly [RelationKeys]?: 'company' | 'location';
+  };
+}
+
+export declare const models: {
+  public: {
+    Location: Models.public_Location;
+    Company: Models.public_Company;
+    CompanyLocation: Models.public_CompanyLocation;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -612,35 +645,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Location = {
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'] | null;
-    companies: public_Company[];
-    companyLocations: public_CompanyLocation[];
-    readonly [RelationKeys]?: 'companies' | 'companyLocations';
-  };
-  export type public_Company = {
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'] | null;
-    companyLocations: public_CompanyLocation[];
-    locations: public_Location[];
-    readonly [RelationKeys]?: 'companyLocations' | 'locations';
-  };
-  export type public_CompanyLocation = {
-    companyId: CodecTypes['pg/int4@1']['output'];
-    locationId: CodecTypes['pg/int4@1']['output'];
-    company: public_Company;
-    location: public_Location;
-    readonly [RelationKeys]?: 'company' | 'location';
-  };
-}
-
-export declare const models: {
-  public: {
-    Location: Models.public_Location;
-    Company: Models.public_Company;
-    CompanyLocation: Models.public_CompanyLocation;
-  };
-};

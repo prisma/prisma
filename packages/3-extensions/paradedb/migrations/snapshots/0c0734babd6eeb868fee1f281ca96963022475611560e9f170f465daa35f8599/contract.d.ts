@@ -243,6 +243,13 @@ export type FieldOutputTypes = { readonly public: Record<string, never> };
 export type FieldInputTypes = { readonly public: Record<string, never> };
 export type StorageColumnTypes = { readonly public: {} };
 export type StorageColumnInputTypes = { readonly public: {} };
+
+export namespace Models {}
+
+export declare const models: {
+  public: {};
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -303,9 +310,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {}
-
-export declare const models: {
-  public: {};
-};

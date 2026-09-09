@@ -69,6 +69,29 @@ export type FieldInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type unbound_CommentRequired = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    country: CodecTypes['mongo/string@1']['output'] | null;
+    content: CommentContentOutput;
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_CommentOptional = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    country: CodecTypes['mongo/string@1']['output'] | null;
+    content: CommentContentOutput | null;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  __unbound__: {
+    CommentRequired: Models.unbound_CommentRequired;
+    CommentOptional: Models.unbound_CommentOptional;
+  };
+};
+
 export type TypeMaps = MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>;
 
 type ContractBase = Omit<
@@ -286,25 +309,3 @@ type ContractBase = Omit<
 };
 
 export type Contract = MongoContractWithTypeMaps<ContractBase, TypeMaps>;
-
-export namespace Models {
-  export type unbound_CommentRequired = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    country: CodecTypes['mongo/string@1']['output'] | null;
-    content: CommentContentOutput;
-    readonly [RelationKeys]?: never;
-  };
-  export type unbound_CommentOptional = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    country: CodecTypes['mongo/string@1']['output'] | null;
-    content: CommentContentOutput | null;
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  __unbound__: {
-    CommentRequired: Models.unbound_CommentRequired;
-    CommentOptional: Models.unbound_CommentOptional;
-  };
-};

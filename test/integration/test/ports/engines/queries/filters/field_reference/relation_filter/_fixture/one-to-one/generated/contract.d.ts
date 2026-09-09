@@ -291,6 +291,30 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_TestModel = {
+    id: CodecTypes['pg/int4@1']['output'];
+    childId: CodecTypes['pg/int4@1']['output'] | null;
+    child: public_Child | null;
+    readonly [RelationKeys]?: 'child';
+  };
+  export type public_Child = {
+    id: CodecTypes['pg/int4@1']['output'];
+    string1: CodecTypes['pg/text@1']['output'];
+    string2: CodecTypes['pg/text@1']['output'];
+    test: public_TestModel | null;
+    readonly [RelationKeys]?: 'test';
+  };
+}
+
+export declare const models: {
+  public: {
+    TestModel: Models.public_TestModel;
+    Child: Models.public_Child;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -483,26 +507,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_TestModel = {
-    id: CodecTypes['pg/int4@1']['output'];
-    childId: CodecTypes['pg/int4@1']['output'] | null;
-    child: public_Child | null;
-    readonly [RelationKeys]?: 'child';
-  };
-  export type public_Child = {
-    id: CodecTypes['pg/int4@1']['output'];
-    string1: CodecTypes['pg/text@1']['output'];
-    string2: CodecTypes['pg/text@1']['output'];
-    test: public_TestModel | null;
-    readonly [RelationKeys]?: 'test';
-  };
-}
-
-export declare const models: {
-  public: {
-    TestModel: Models.public_TestModel;
-    Child: Models.public_Child;
-  };
-};

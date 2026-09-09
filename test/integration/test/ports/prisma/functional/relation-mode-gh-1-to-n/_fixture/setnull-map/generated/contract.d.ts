@@ -303,6 +303,37 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_UserOneToMany = {
+    id: CodecTypes['pg/text@1']['output'];
+    enabled: CodecTypes['pg/bool@1']['output'] | null;
+    postOptionals: public_PostOptionalOneToMany[];
+    posts: public_PostOneToMany[];
+    readonly [RelationKeys]?: 'postOptionals' | 'posts';
+  };
+  export type public_PostOneToMany = {
+    id: CodecTypes['pg/text@1']['output'];
+    authorId: CodecTypes['pg/text@1']['output'];
+    author: public_UserOneToMany;
+    readonly [RelationKeys]?: 'author';
+  };
+  export type public_PostOptionalOneToMany = {
+    id: CodecTypes['pg/text@1']['output'];
+    authorId: CodecTypes['pg/text@1']['output'] | null;
+    author: public_UserOneToMany | null;
+    readonly [RelationKeys]?: 'author';
+  };
+}
+
+export declare const models: {
+  public: {
+    UserOneToMany: Models.public_UserOneToMany;
+    PostOneToMany: Models.public_PostOneToMany;
+    PostOptionalOneToMany: Models.public_PostOptionalOneToMany;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -584,33 +615,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_UserOneToMany = {
-    id: CodecTypes['pg/text@1']['output'];
-    enabled: CodecTypes['pg/bool@1']['output'] | null;
-    postOptionals: public_PostOptionalOneToMany[];
-    posts: public_PostOneToMany[];
-    readonly [RelationKeys]?: 'postOptionals' | 'posts';
-  };
-  export type public_PostOneToMany = {
-    id: CodecTypes['pg/text@1']['output'];
-    authorId: CodecTypes['pg/text@1']['output'];
-    author: public_UserOneToMany;
-    readonly [RelationKeys]?: 'author';
-  };
-  export type public_PostOptionalOneToMany = {
-    id: CodecTypes['pg/text@1']['output'];
-    authorId: CodecTypes['pg/text@1']['output'] | null;
-    author: public_UserOneToMany | null;
-    readonly [RelationKeys]?: 'author';
-  };
-}
-
-export declare const models: {
-  public: {
-    UserOneToMany: Models.public_UserOneToMany;
-    PostOneToMany: Models.public_PostOneToMany;
-    PostOptionalOneToMany: Models.public_PostOptionalOneToMany;
-  };
-};

@@ -308,6 +308,38 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Student = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    StudentClass: public_StudentClass[];
+    readonly [RelationKeys]?: 'StudentClass';
+  };
+  export type public_Class = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    StudentClass: public_StudentClass[];
+    readonly [RelationKeys]?: 'StudentClass';
+  };
+  export type public_StudentClass = {
+    id: CodecTypes['pg/text@1']['output'];
+    studentId: CodecTypes['pg/text@1']['output'];
+    classId: CodecTypes['pg/text@1']['output'];
+    class: public_Class;
+    student: public_Student;
+    readonly [RelationKeys]?: 'class' | 'student';
+  };
+}
+
+export declare const models: {
+  public: {
+    Student: Models.public_Student;
+    Class: Models.public_Class;
+    StudentClass: Models.public_StudentClass;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -606,34 +638,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Student = {
-    id: CodecTypes['pg/text@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    StudentClass: public_StudentClass[];
-    readonly [RelationKeys]?: 'StudentClass';
-  };
-  export type public_Class = {
-    id: CodecTypes['pg/text@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    StudentClass: public_StudentClass[];
-    readonly [RelationKeys]?: 'StudentClass';
-  };
-  export type public_StudentClass = {
-    id: CodecTypes['pg/text@1']['output'];
-    studentId: CodecTypes['pg/text@1']['output'];
-    classId: CodecTypes['pg/text@1']['output'];
-    class: public_Class;
-    student: public_Student;
-    readonly [RelationKeys]?: 'class' | 'student';
-  };
-}
-
-export declare const models: {
-  public: {
-    Student: Models.public_Student;
-    Class: Models.public_Class;
-    StudentClass: Models.public_StudentClass;
-  };
-};

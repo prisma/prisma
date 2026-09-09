@@ -291,6 +291,32 @@ export type StorageColumnInputTypes = {
     readonly other: { readonly id: CodecTypes['pg/text@1']['input'] };
   };
 };
+
+export namespace Models {
+  export type public_Model = {
+    id: CodecTypes['pg/text@1']['output'];
+    value: CodecTypes['pg/text@1']['output'];
+    otherId: CodecTypes['pg/text@1']['output'];
+    list: ReadonlyArray<CodecTypes['pg/text@1']['output']>;
+    enum: 'A' | 'B';
+    enumList: ReadonlyArray<'A' | 'B'>;
+    relation: public_Other;
+    readonly [RelationKeys]?: 'relation';
+  };
+  export type public_Other = {
+    id: CodecTypes['pg/text@1']['output'];
+    model: public_Model | null;
+    readonly [RelationKeys]?: 'model';
+  };
+}
+
+export declare const models: {
+  public: {
+    Model: Models.public_Model;
+    Other: Models.public_Other;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -515,28 +541,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Model = {
-    id: CodecTypes['pg/text@1']['output'];
-    value: CodecTypes['pg/text@1']['output'];
-    otherId: CodecTypes['pg/text@1']['output'];
-    list: ReadonlyArray<CodecTypes['pg/text@1']['output']>;
-    enum: 'A' | 'B';
-    enumList: ReadonlyArray<'A' | 'B'>;
-    relation: public_Other;
-    readonly [RelationKeys]?: 'relation';
-  };
-  export type public_Other = {
-    id: CodecTypes['pg/text@1']['output'];
-    model: public_Model | null;
-    readonly [RelationKeys]?: 'model';
-  };
-}
-
-export declare const models: {
-  public: {
-    Model: Models.public_Model;
-    Other: Models.public_Other;
-  };
-};

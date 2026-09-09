@@ -248,6 +248,20 @@ export type StorageColumnTypes = { readonly public: { readonly Note: { readonly 
 export type StorageColumnInputTypes = {
   readonly public: { readonly Note: { readonly id: CodecTypes['sql/char@1']['input'] } };
 };
+
+export namespace Models {
+  export type public_Note = {
+    id: Char<36>;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    Note: Models.public_Note;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -361,16 +375,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Note = {
-    id: Char<36>;
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    Note: Models.public_Note;
-  };
-};

@@ -275,6 +275,22 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_SuggestionModel = {
+    id: CodecTypes['pg/int4@1']['output'];
+    suggestedContent: CodecTypes['pg/text@1']['output'];
+    status: 'pending' | 'accepted' | 'rejected';
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    SuggestionModel: Models.public_SuggestionModel;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -419,18 +435,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_SuggestionModel = {
-    id: CodecTypes['pg/int4@1']['output'];
-    suggestedContent: CodecTypes['pg/text@1']['output'];
-    status: 'pending' | 'accepted' | 'rejected';
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    SuggestionModel: Models.public_SuggestionModel;
-  };
-};

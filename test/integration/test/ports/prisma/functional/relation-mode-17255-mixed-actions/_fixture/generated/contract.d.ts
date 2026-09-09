@@ -291,6 +291,36 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Main = {
+    id: CodecTypes['pg/text@1']['output'];
+    aliceId: CodecTypes['pg/text@1']['output'] | null;
+    alice: public_Alice | null;
+    bob: public_Bob | null;
+    readonly [RelationKeys]?: 'alice' | 'bob';
+  };
+  export type public_Alice = {
+    id: CodecTypes['pg/text@1']['output'];
+    manyMains: public_Main[];
+    readonly [RelationKeys]?: 'manyMains';
+  };
+  export type public_Bob = {
+    id: CodecTypes['pg/text@1']['output'];
+    mainId: CodecTypes['pg/text@1']['output'];
+    main: public_Main;
+    readonly [RelationKeys]?: 'main';
+  };
+}
+
+export declare const models: {
+  public: {
+    Main: Models.public_Main;
+    Alice: Models.public_Alice;
+    Bob: Models.public_Bob;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -535,32 +565,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Main = {
-    id: CodecTypes['pg/text@1']['output'];
-    aliceId: CodecTypes['pg/text@1']['output'] | null;
-    alice: public_Alice | null;
-    bob: public_Bob | null;
-    readonly [RelationKeys]?: 'alice' | 'bob';
-  };
-  export type public_Alice = {
-    id: CodecTypes['pg/text@1']['output'];
-    manyMains: public_Main[];
-    readonly [RelationKeys]?: 'manyMains';
-  };
-  export type public_Bob = {
-    id: CodecTypes['pg/text@1']['output'];
-    mainId: CodecTypes['pg/text@1']['output'];
-    main: public_Main;
-    readonly [RelationKeys]?: 'main';
-  };
-}
-
-export declare const models: {
-  public: {
-    Main: Models.public_Main;
-    Alice: Models.public_Alice;
-    Bob: Models.public_Bob;
-  };
-};

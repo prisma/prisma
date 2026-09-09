@@ -275,6 +275,22 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Test = {
+    id: CodecTypes['pg/int4@1']['output'];
+    group: CodecTypes['pg/int4@1']['output'];
+    color: 'blue' | 'red' | 'green';
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    Test: Models.public_Test;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -401,18 +417,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Test = {
-    id: CodecTypes['pg/int4@1']['output'];
-    group: CodecTypes['pg/int4@1']['output'];
-    color: 'blue' | 'red' | 'green';
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    Test: Models.public_Test;
-  };
-};

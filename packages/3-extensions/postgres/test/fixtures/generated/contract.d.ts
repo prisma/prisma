@@ -354,6 +354,57 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    invitedById: CodecTypes['pg/int4@1']['output'] | null;
+    invitedUsers: public_User[];
+    invitedBy: public_User | null;
+    posts: public_Post[];
+    profile: public_Profile | null;
+    readonly [RelationKeys]?: 'invitedUsers' | 'invitedBy' | 'posts' | 'profile';
+  };
+  export type public_Post = {
+    id: CodecTypes['pg/int4@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'];
+    views: CodecTypes['pg/int4@1']['output'];
+    comments: public_Comment[];
+    author: public_User | null;
+    readonly [RelationKeys]?: 'comments' | 'author';
+  };
+  export type public_Comment = {
+    id: CodecTypes['pg/int4@1']['output'];
+    body: CodecTypes['pg/text@1']['output'];
+    postId: CodecTypes['pg/int4@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_Profile = {
+    id: CodecTypes['pg/int4@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'];
+    bio: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_Article = {
+    id: Char<36>;
+    title: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Post: Models.public_Post;
+    Comment: Models.public_Comment;
+    Profile: Models.public_Profile;
+    Article: Models.public_Article;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -755,53 +806,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_User = {
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    email: CodecTypes['pg/text@1']['output'];
-    invitedById: CodecTypes['pg/int4@1']['output'] | null;
-    invitedUsers: public_User[];
-    invitedBy: public_User | null;
-    posts: public_Post[];
-    profile: public_Profile | null;
-    readonly [RelationKeys]?: 'invitedUsers' | 'invitedBy' | 'posts' | 'profile';
-  };
-  export type public_Post = {
-    id: CodecTypes['pg/int4@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/int4@1']['output'];
-    views: CodecTypes['pg/int4@1']['output'];
-    comments: public_Comment[];
-    author: public_User | null;
-    readonly [RelationKeys]?: 'comments' | 'author';
-  };
-  export type public_Comment = {
-    id: CodecTypes['pg/int4@1']['output'];
-    body: CodecTypes['pg/text@1']['output'];
-    postId: CodecTypes['pg/int4@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type public_Profile = {
-    id: CodecTypes['pg/int4@1']['output'];
-    userId: CodecTypes['pg/int4@1']['output'];
-    bio: CodecTypes['pg/text@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type public_Article = {
-    id: Char<36>;
-    title: CodecTypes['pg/text@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    User: Models.public_User;
-    Post: Models.public_Post;
-    Comment: Models.public_Comment;
-    Profile: Models.public_Profile;
-    Article: Models.public_Article;
-  };
-};

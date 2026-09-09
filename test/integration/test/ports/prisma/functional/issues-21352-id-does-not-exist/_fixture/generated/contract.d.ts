@@ -295,6 +295,41 @@ export type StorageColumnInputTypes = {
     readonly user2: { readonly id: CodecTypes['pg/text@1']['input'] };
   };
 };
+
+export namespace Models {
+  export type public_User1 = {
+    email: CodecTypes['pg/text@1']['output'];
+    relation1: public_Relation1[];
+    readonly [RelationKeys]?: 'relation1';
+  };
+  export type public_Relation1 = {
+    id: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    user: public_User1;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type public_User2 = {
+    id: CodecTypes['pg/text@1']['output'];
+    relation2: public_Relation2[];
+    readonly [RelationKeys]?: 'relation2';
+  };
+  export type public_Relation2 = {
+    field: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    user: public_User2;
+    readonly [RelationKeys]?: 'user';
+  };
+}
+
+export declare const models: {
+  public: {
+    User1: Models.public_User1;
+    Relation1: Models.public_Relation1;
+    User2: Models.public_User2;
+    Relation2: Models.public_Relation2;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -584,37 +619,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_User1 = {
-    email: CodecTypes['pg/text@1']['output'];
-    relation1: public_Relation1[];
-    readonly [RelationKeys]?: 'relation1';
-  };
-  export type public_Relation1 = {
-    id: CodecTypes['pg/text@1']['output'];
-    email: CodecTypes['pg/text@1']['output'];
-    user: public_User1;
-    readonly [RelationKeys]?: 'user';
-  };
-  export type public_User2 = {
-    id: CodecTypes['pg/text@1']['output'];
-    relation2: public_Relation2[];
-    readonly [RelationKeys]?: 'relation2';
-  };
-  export type public_Relation2 = {
-    field: CodecTypes['pg/text@1']['output'];
-    email: CodecTypes['pg/text@1']['output'];
-    user: public_User2;
-    readonly [RelationKeys]?: 'user';
-  };
-}
-
-export declare const models: {
-  public: {
-    User1: Models.public_User1;
-    Relation1: Models.public_Relation1;
-    User2: Models.public_User2;
-    Relation2: Models.public_Relation2;
-  };
-};

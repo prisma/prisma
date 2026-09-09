@@ -40,7 +40,7 @@ SQL: `TypeMaps` gains an eighth parameter, `TModels extends NamespacedModelMap =
 
 Mongo: `MongoTypeMaps` gains a fourth parameter the same way, with `ExtractMongoModels<T>` and `MongoUnboundModels<T>` beside the field-output equivalents.
 
-The emitter's two `getTypeMapsExpression()` hooks append `Models` as the last argument, where `Models` is a new top-level type alias the emitter writes: `export type ModelsMap = { public: { User: Models.public_User; ... } }`. It has the same entries as the `models` constant; the constant is then declared as `export declare const models: ModelsMap`. The `Models` namespace, `ModelsMap`, and `models` are emitted before the `TypeMaps` line, which means the model-types block moves from after the contract wrapper to before `TypeMaps`. TypeScript hoists type-only declarations, so order is for readers, not the compiler.
+The emitter's two `getTypeMapsExpression()` hooks append `Models` as the last argument, where `Models` is a new top-level type alias the emitter writes: `export type ModelsMap = { public: { User: Models.public_User; ... } }`. It has the same entries as the `models` constant; the constant is then declared as `export declare const models: ModelsMap`. The `Models` namespace already sits before the `TypeMaps` line in the emitted file (slice 1 placed it there), so `ModelsMap` and the `models` constant join it in that block and `TypeMaps` references `ModelsMap` after its declaration.
 
 ### 2. The ORM indexes into it
 
@@ -59,7 +59,7 @@ Mongo, in `packages/2-mongo-family/5-query-builders/orm/src/types.ts`: the same 
 - Every slice 1 type test passes unchanged. They are the acceptance criteria.
 - The no-emit demo paths in `examples/prisma-8-demo/src/prisma-no-emit/` and the no-emit type tests in `demo-dx.types.test.ts` pass unchanged, proving the fallback.
 - A new type test per family proves the emitted path is actually taken: with the fixture contract, `DefaultModelRow<C, 'User'>` is assignable to and from `Scalars<Models.public_User>` (already true) and, with a synthetic contract whose `TypeMaps` has `models` but whose storage IR is deliberately wrong for one field, `DefaultModelRow` follows `models`, not storage. That is the one test that can only pass if the ORM reads the emitted map.
-- `pnpm fixtures:check` regenerates every fixture, since `TypeMaps` and the block order change. `contract.json` does not change.
+- `pnpm fixtures:check` regenerates every fixture, since the `TypeMaps` line and the `models` declaration change. `contract.json` does not change.
 
 ### 4. Out of scope
 

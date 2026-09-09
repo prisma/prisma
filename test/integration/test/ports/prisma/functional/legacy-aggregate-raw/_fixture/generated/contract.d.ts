@@ -63,6 +63,36 @@ export type FieldInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type unbound_User = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    email: CodecTypes['mongo/string@1']['output'];
+    age: CodecTypes['mongo/int32@1']['output'];
+    name: CodecTypes['mongo/string@1']['output'] | null;
+    posts: unbound_Post[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type unbound_Post = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    createdAt: CodecTypes['mongo/date@1']['output'];
+    updatedAt: CodecTypes['mongo/date@1']['output'];
+    published: CodecTypes['mongo/bool@1']['output'];
+    title: CodecTypes['mongo/string@1']['output'];
+    content: CodecTypes['mongo/string@1']['output'] | null;
+    authorId: CodecTypes['mongo/string@1']['output'] | null;
+    author: unbound_User | null;
+    readonly [RelationKeys]?: 'author';
+  };
+}
+
+export declare const models: {
+  __unbound__: {
+    User: Models.unbound_User;
+    Post: Models.unbound_Post;
+  };
+};
+
 export type TypeMaps = MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>;
 
 type ContractBase = Omit<
@@ -237,32 +267,3 @@ type ContractBase = Omit<
 };
 
 export type Contract = MongoContractWithTypeMaps<ContractBase, TypeMaps>;
-
-export namespace Models {
-  export type unbound_User = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    email: CodecTypes['mongo/string@1']['output'];
-    age: CodecTypes['mongo/int32@1']['output'];
-    name: CodecTypes['mongo/string@1']['output'] | null;
-    posts: unbound_Post[];
-    readonly [RelationKeys]?: 'posts';
-  };
-  export type unbound_Post = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    createdAt: CodecTypes['mongo/date@1']['output'];
-    updatedAt: CodecTypes['mongo/date@1']['output'];
-    published: CodecTypes['mongo/bool@1']['output'];
-    title: CodecTypes['mongo/string@1']['output'];
-    content: CodecTypes['mongo/string@1']['output'] | null;
-    authorId: CodecTypes['mongo/string@1']['output'] | null;
-    author: unbound_User | null;
-    readonly [RelationKeys]?: 'author';
-  };
-}
-
-export declare const models: {
-  __unbound__: {
-    User: Models.unbound_User;
-    Post: Models.unbound_Post;
-  };
-};

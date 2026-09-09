@@ -55,6 +55,33 @@ export type FieldInputTypes = {
     readonly Other: { readonly _id: CodecTypes['mongo/objectId@1']['input'] };
   };
 };
+
+export namespace Models {
+  export type unbound_Model = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    value: CodecTypes['mongo/string@1']['output'];
+    otherId: CodecTypes['mongo/objectId@1']['output'];
+    list: ReadonlyArray<CodecTypes['mongo/string@1']['output']>;
+    enum: 'A' | 'B';
+    enumList: ReadonlyArray<'A' | 'B'>;
+    composite: CompositeOutput;
+    relation: unbound_Other | null;
+    readonly [RelationKeys]?: 'relation';
+  };
+  export type unbound_Other = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    model: unbound_Model | null;
+    readonly [RelationKeys]?: 'model';
+  };
+}
+
+export declare const models: {
+  __unbound__: {
+    Model: Models.unbound_Model;
+    Other: Models.unbound_Other;
+  };
+};
+
 export type TypeMaps = MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>;
 
 type ContractBase = Omit<
@@ -261,29 +288,3 @@ type ContractBase = Omit<
 };
 
 export type Contract = MongoContractWithTypeMaps<ContractBase, TypeMaps>;
-
-export namespace Models {
-  export type unbound_Model = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    value: CodecTypes['mongo/string@1']['output'];
-    otherId: CodecTypes['mongo/objectId@1']['output'];
-    list: ReadonlyArray<CodecTypes['mongo/string@1']['output']>;
-    enum: 'A' | 'B';
-    enumList: ReadonlyArray<'A' | 'B'>;
-    composite: CompositeOutput;
-    relation: unbound_Other | null;
-    readonly [RelationKeys]?: 'relation';
-  };
-  export type unbound_Other = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
-    model: unbound_Model | null;
-    readonly [RelationKeys]?: 'model';
-  };
-}
-
-export declare const models: {
-  __unbound__: {
-    Model: Models.unbound_Model;
-    Other: Models.unbound_Other;
-  };
-};

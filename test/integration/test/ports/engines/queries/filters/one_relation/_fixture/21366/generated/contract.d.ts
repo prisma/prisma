@@ -287,6 +287,29 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_device = {
+    id: CodecTypes['pg/int4@1']['output'];
+    device_id: CodecTypes['pg/text@1']['output'];
+    current_state: public_device_state;
+    readonly [RelationKeys]?: 'current_state';
+  };
+  export type public_device_state = {
+    id: CodecTypes['pg/int4@1']['output'];
+    device_id: CodecTypes['pg/text@1']['output'];
+    device: public_device[];
+    readonly [RelationKeys]?: 'device';
+  };
+}
+
+export declare const models: {
+  public: {
+    device: Models.public_device;
+    device_state: Models.public_device_state;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -472,25 +495,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_device = {
-    id: CodecTypes['pg/int4@1']['output'];
-    device_id: CodecTypes['pg/text@1']['output'];
-    current_state: public_device_state;
-    readonly [RelationKeys]?: 'current_state';
-  };
-  export type public_device_state = {
-    id: CodecTypes['pg/int4@1']['output'];
-    device_id: CodecTypes['pg/text@1']['output'];
-    device: public_device[];
-    readonly [RelationKeys]?: 'device';
-  };
-}
-
-export declare const models: {
-  public: {
-    device: Models.public_device;
-    device_state: Models.public_device_state;
-  };
-};

@@ -279,6 +279,29 @@ export type StorageColumnInputTypes = {
     readonly parent: { readonly id: CodecTypes['pg/int4@1']['input'] };
   };
 };
+
+export namespace Models {
+  export type public_Parent = {
+    id: CodecTypes['pg/int4@1']['output'];
+    children: public_Child[];
+    readonly [RelationKeys]?: 'children';
+  };
+  export type public_Child = {
+    childId: CodecTypes['pg/int4@1']['output'];
+    parentId: CodecTypes['pg/int4@1']['output'] | null;
+    json: CodecTypes['pg/jsonb@1']['output'];
+    parent: public_Parent | null;
+    readonly [RelationKeys]?: 'parent';
+  };
+}
+
+export declare const models: {
+  public: {
+    Parent: Models.public_Parent;
+    Child: Models.public_Child;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -466,25 +489,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Parent = {
-    id: CodecTypes['pg/int4@1']['output'];
-    children: public_Child[];
-    readonly [RelationKeys]?: 'children';
-  };
-  export type public_Child = {
-    childId: CodecTypes['pg/int4@1']['output'];
-    parentId: CodecTypes['pg/int4@1']['output'] | null;
-    json: CodecTypes['pg/jsonb@1']['output'];
-    parent: public_Parent | null;
-    readonly [RelationKeys]?: 'parent';
-  };
-}
-
-export declare const models: {
-  public: {
-    Parent: Models.public_Parent;
-    Child: Models.public_Child;
-  };
-};

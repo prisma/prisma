@@ -312,6 +312,39 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    walletLink: public_WalletLink[];
+    readonly [RelationKeys]?: 'walletLink';
+  };
+  export type public_Wallet = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    walletLink: public_WalletLink[];
+    readonly [RelationKeys]?: 'walletLink';
+  };
+  export type public_WalletLink = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    walletId: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/text@1']['output'];
+    user: public_User;
+    wallet: public_Wallet;
+    readonly [RelationKeys]?: 'user' | 'wallet';
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Wallet: Models.public_Wallet;
+    WalletLink: Models.public_WalletLink;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -633,35 +666,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_User = {
-    id: CodecTypes['pg/text@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    walletLink: public_WalletLink[];
-    readonly [RelationKeys]?: 'walletLink';
-  };
-  export type public_Wallet = {
-    id: CodecTypes['pg/text@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    walletLink: public_WalletLink[];
-    readonly [RelationKeys]?: 'walletLink';
-  };
-  export type public_WalletLink = {
-    id: CodecTypes['pg/text@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    walletId: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/text@1']['output'];
-    user: public_User;
-    wallet: public_Wallet;
-    readonly [RelationKeys]?: 'user' | 'wallet';
-  };
-}
-
-export declare const models: {
-  public: {
-    User: Models.public_User;
-    Wallet: Models.public_Wallet;
-    WalletLink: Models.public_WalletLink;
-  };
-};

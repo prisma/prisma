@@ -311,6 +311,39 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_UserOneToOne = {
+    id: CodecTypes['pg/text@1']['output'];
+    enabled: CodecTypes['pg/bool@1']['output'] | null;
+    profile: public_ProfileOneToOne | null;
+    profileOptional: public_ProfileOptionalOneToOne | null;
+    readonly [RelationKeys]?: 'profile' | 'profileOptional';
+  };
+  export type public_ProfileOneToOne = {
+    id: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/text@1']['output'];
+    enabled: CodecTypes['pg/bool@1']['output'] | null;
+    user: public_UserOneToOne;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type public_ProfileOptionalOneToOne = {
+    id: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/text@1']['output'] | null;
+    enabled: CodecTypes['pg/bool@1']['output'] | null;
+    user: public_UserOneToOne | null;
+    readonly [RelationKeys]?: 'user';
+  };
+}
+
+export declare const models: {
+  public: {
+    UserOneToOne: Models.public_UserOneToOne;
+    ProfileOneToOne: Models.public_ProfileOneToOne;
+    ProfileOptionalOneToOne: Models.public_ProfileOptionalOneToOne;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -598,35 +631,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_UserOneToOne = {
-    id: CodecTypes['pg/text@1']['output'];
-    enabled: CodecTypes['pg/bool@1']['output'] | null;
-    profile: public_ProfileOneToOne | null;
-    profileOptional: public_ProfileOptionalOneToOne | null;
-    readonly [RelationKeys]?: 'profile' | 'profileOptional';
-  };
-  export type public_ProfileOneToOne = {
-    id: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/text@1']['output'];
-    enabled: CodecTypes['pg/bool@1']['output'] | null;
-    user: public_UserOneToOne;
-    readonly [RelationKeys]?: 'user';
-  };
-  export type public_ProfileOptionalOneToOne = {
-    id: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/text@1']['output'] | null;
-    enabled: CodecTypes['pg/bool@1']['output'] | null;
-    user: public_UserOneToOne | null;
-    readonly [RelationKeys]?: 'user';
-  };
-}
-
-export declare const models: {
-  public: {
-    UserOneToOne: Models.public_UserOneToOne;
-    ProfileOneToOne: Models.public_ProfileOneToOne;
-    ProfileOptionalOneToOne: Models.public_ProfileOptionalOneToOne;
-  };
-};

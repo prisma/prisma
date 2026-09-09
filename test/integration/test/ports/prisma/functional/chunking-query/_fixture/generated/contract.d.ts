@@ -279,6 +279,35 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Post = {
+    id: CodecTypes['pg/int4@1']['output'];
+    tags: public_TagsOnPosts[];
+    readonly [RelationKeys]?: 'tags';
+  };
+  export type public_Tag = {
+    id: CodecTypes['pg/int4@1']['output'];
+    posts: public_TagsOnPosts[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type public_TagsOnPosts = {
+    postId: CodecTypes['pg/int4@1']['output'];
+    tagId: CodecTypes['pg/int4@1']['output'];
+    post: public_Post;
+    tag: public_Tag;
+    readonly [RelationKeys]?: 'post' | 'tag';
+  };
+}
+
+export declare const models: {
+  public: {
+    Post: Models.public_Post;
+    Tag: Models.public_Tag;
+    TagsOnPosts: Models.public_TagsOnPosts;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -522,31 +551,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Post = {
-    id: CodecTypes['pg/int4@1']['output'];
-    tags: public_TagsOnPosts[];
-    readonly [RelationKeys]?: 'tags';
-  };
-  export type public_Tag = {
-    id: CodecTypes['pg/int4@1']['output'];
-    posts: public_TagsOnPosts[];
-    readonly [RelationKeys]?: 'posts';
-  };
-  export type public_TagsOnPosts = {
-    postId: CodecTypes['pg/int4@1']['output'];
-    tagId: CodecTypes['pg/int4@1']['output'];
-    post: public_Post;
-    tag: public_Tag;
-    readonly [RelationKeys]?: 'post' | 'tag';
-  };
-}
-
-export declare const models: {
-  public: {
-    Post: Models.public_Post;
-    Tag: Models.public_Tag;
-    TagsOnPosts: Models.public_TagsOnPosts;
-  };
-};

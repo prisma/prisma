@@ -275,6 +275,22 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Event = {
+    appId: CodecTypes['pg/int4@1']['output'];
+    createdAt: CodecTypes['pg/date-temporal@1']['output'];
+    value: CodecTypes['pg/int4@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    Event: Models.public_Event;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -390,18 +406,3 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
-
-export namespace Models {
-  export type public_Event = {
-    appId: CodecTypes['pg/int4@1']['output'];
-    createdAt: CodecTypes['pg/date-temporal@1']['output'];
-    value: CodecTypes['pg/int4@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-}
-
-export declare const models: {
-  public: {
-    Event: Models.public_Event;
-  };
-};
