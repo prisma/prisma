@@ -486,7 +486,7 @@ export namespace Models {
     id: CodecTypes['pg/uuid@1']['output'];
     title: CodecTypes['pg/text@1']['output'];
     userId: CodecTypes['pg/uuid@1']['output'];
-    priority: 'low' | 'high' | 'urgent';
+    priority: 0 | 1 | 2;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     embedding: Vector<1536> | null;
     viewCount: CodecTypes['pg/int8number@1']['output'] | null;
