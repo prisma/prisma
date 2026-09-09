@@ -773,6 +773,40 @@ describe('buildSymbolTable() — block attributes parsed through the kit', () =>
     expect(result.table.topLevel.blocks['Gear']?.block.attributes).toEqual({});
   });
 
+  it('diagnoses a duplicate whose first occurrence failed to bind', () => {
+    const result = build(
+      ['widget Gear {', '  @@map()', '  @@map("second")', '}'].join('\n'),
+      WIDGET_DESCRIPTORS,
+    );
+
+    expect(result.diagnostics).toEqual([
+      {
+        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
+        message: 'Attribute "map" is missing required argument "name"',
+        range: { start: { line: 1, character: 2 }, end: { line: 1, character: 9 } },
+      },
+      {
+        code: 'PSL_INVALID_EXTENSION_BLOCK_ATTRIBUTE',
+        message: 'Duplicate attribute "@@map" in "widget" block "Gear"; first occurrence wins',
+        range: { start: { line: 2, character: 2 }, end: { line: 2, character: 17 } },
+      },
+    ]);
+    expect(result.table.topLevel.blocks['Gear']?.block.attributes).toEqual({});
+  });
+
+  it('reports an undeclared attribute on every occurrence', () => {
+    const result = build(
+      ['widget Gear {', '  @@schema("a")', '  @@schema("b")', '}'].join('\n'),
+      WIDGET_DESCRIPTORS,
+    );
+
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      'PSL_EXTENSION_UNKNOWN_BLOCK_ATTRIBUTE',
+      'PSL_EXTENSION_UNKNOWN_BLOCK_ATTRIBUTE',
+    ]);
+    expect(result.table.topLevel.blocks['Gear']?.block.attributes).toEqual({});
+  });
+
   it('carries a refine diagnostic code contributed by the spec', () => {
     const result = build(['widget Gear {', '  @@map("")', '}'].join('\n'), WIDGET_DESCRIPTORS);
 

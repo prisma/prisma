@@ -36,6 +36,7 @@ export function reconstructExtensionBlock(
 
   const blockAttributes: PslExtensionBlockAttribute[] = [];
   const attributes: Record<string, PslExtensionBlockParsedAttribute> = {};
+  const seenAttributeNames = new Set<string>();
   for (const attribute of node.attributes()) {
     const name = attribute.name()?.path().join('.') ?? '';
     const args = Array.from(attribute.argList()?.args() ?? [], (arg) => {
@@ -54,7 +55,7 @@ export function reconstructExtensionBlock(
       name,
       span,
       descriptor,
-      attributes,
+      seenAttributeNames,
       keyword,
       blockName,
       sourceFile,
@@ -107,7 +108,7 @@ function parseBlockAttribute(
   name: string,
   span: PslSpan,
   descriptor: AuthoringPslBlockDescriptor,
-  parsedSoFar: Readonly<Record<string, PslExtensionBlockParsedAttribute>>,
+  seenNames: Set<string>,
   keyword: string,
   blockName: string,
   sourceFile: SourceFile,
@@ -128,7 +129,7 @@ function parseBlockAttribute(
       ],
     };
   }
-  if (Object.hasOwn(parsedSoFar, name)) {
+  if (seenNames.has(name)) {
     return {
       ok: false,
       diagnostics: [
@@ -140,6 +141,7 @@ function parseBlockAttribute(
       ],
     };
   }
+  seenNames.add(name);
   const factory = blindCast<
     BlockAttributeSpecFactory,
     'framework core cannot name AttributeSpec, so block-attribute factories transit the descriptor erased as unknown; this is the single point that restores the factory type the descriptor surface documents'
