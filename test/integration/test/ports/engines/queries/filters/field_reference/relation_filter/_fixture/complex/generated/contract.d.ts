@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -567,3 +571,34 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
+
+export namespace Models {
+  export type public_TestModel = {
+    id: CodecTypes['pg/int4@1']['output'];
+    toMany: public_OneToMany[];
+    readonly [RelationKeys]?: 'toMany';
+  };
+  export type public_OneToMany = {
+    id: CodecTypes['pg/int4@1']['output'];
+    testId: CodecTypes['pg/int4@1']['output'] | null;
+    toOneId: CodecTypes['pg/int4@1']['output'] | null;
+    test: public_TestModel | null;
+    toOne: public_ToOne | null;
+    readonly [RelationKeys]?: 'test' | 'toOne';
+  };
+  export type public_ToOne = {
+    id: CodecTypes['pg/int4@1']['output'];
+    string1: CodecTypes['pg/text@1']['output'];
+    string2: CodecTypes['pg/text@1']['output'];
+    toMany: public_OneToMany | null;
+    readonly [RelationKeys]?: 'toMany';
+  };
+}
+
+export declare const models: {
+  public: {
+    TestModel: Models.public_TestModel;
+    OneToMany: Models.public_OneToMany;
+    ToOne: Models.public_ToOne;
+  };
+};

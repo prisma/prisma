@@ -495,7 +495,7 @@ async function main() {
           !Array.isArray(searchEmbedding) ||
           !searchEmbedding.every((v) => typeof v === 'number')
         ) {
-          throw new Error('embedding must be an array of numbers');
+          throw new TypeError('embedding must be an array of numbers');
         }
       } catch (error) {
         console.error(
@@ -543,7 +543,7 @@ async function main() {
       try {
         queryVector = JSON.parse(queryVectorStr) as number[];
         if (!Array.isArray(queryVector) || !queryVector.every((v) => typeof v === 'number')) {
-          throw new Error('queryVector must be an array of numbers');
+          throw new TypeError('queryVector must be an array of numbers');
         }
       } catch (error) {
         console.error(

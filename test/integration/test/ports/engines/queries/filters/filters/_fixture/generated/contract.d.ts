@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -636,3 +640,39 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/text@1']['output'];
+    unique: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'] | null;
+    optional: CodecTypes['pg/text@1']['output'] | null;
+    vehicle_id: CodecTypes['pg/text@1']['output'] | null;
+    ride: public_Vehicle | null;
+    readonly [RelationKeys]?: 'ride';
+  };
+  export type public_Vehicle = {
+    id: CodecTypes['pg/text@1']['output'];
+    unique: CodecTypes['pg/int4@1']['output'];
+    brand: CodecTypes['pg/text@1']['output'] | null;
+    parked: CodecTypes['pg/bool@1']['output'] | null;
+    owner: public_User | null;
+    readonly [RelationKeys]?: 'owner';
+  };
+  export type public_ParkingLot = {
+    id: CodecTypes['pg/text@1']['output'];
+    unique: CodecTypes['pg/int4@1']['output'];
+    area: CodecTypes['pg/text@1']['output'] | null;
+    size: CodecTypes['pg/float8@1']['output'] | null;
+    capacity: CodecTypes['pg/int4@1']['output'] | null;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Vehicle: Models.public_Vehicle;
+    ParkingLot: Models.public_ParkingLot;
+  };
+};

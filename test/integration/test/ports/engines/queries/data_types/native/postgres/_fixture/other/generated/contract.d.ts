@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -507,3 +511,28 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
+
+export namespace Models {
+  export type public_Parent = {
+    id: CodecTypes['pg/int4@1']['output'];
+    childId: CodecTypes['pg/int4@1']['output'] | null;
+    child: public_Child | null;
+    readonly [RelationKeys]?: 'child';
+  };
+  export type public_Child = {
+    id: CodecTypes['pg/int4@1']['output'];
+    bool: CodecTypes['pg/bool@1']['output'];
+    byteA: CodecTypes['pg/bytea@1']['output'];
+    json: CodecTypes['pg/json@1']['output'];
+    jsonb: CodecTypes['pg/jsonb@1']['output'];
+    parent: public_Parent | null;
+    readonly [RelationKeys]?: 'parent';
+  };
+}
+
+export declare const models: {
+  public: {
+    Parent: Models.public_Parent;
+    Child: Models.public_Child;
+  };
+};

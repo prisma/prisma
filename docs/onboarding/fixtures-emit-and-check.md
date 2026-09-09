@@ -6,10 +6,10 @@
 
 `fixtures:emit` regenerates every committed fixture, in this order:
 
-1. `emit` on the fixture-bearing packages (`examples/*`, `apps/*`, `sql-builder`, `sql-orm-client`, `e2e-tests`, `integration-tests`) — runs the **contract emitter** and rewrites each `contract.json` + `contract.d.ts`.
+1. `emit` on the fixture-bearing packages (`examples/*`, `apps/*`, `sql-builder`, `sql-orm-client`, `e2e-tests`, `integration-tests`) — runs the **contract emitter** and rewrites each `contract.json` + `contract.d.ts`. The `integration-tests` package also runs `test/integration/scripts/emit-fixture-configs.mjs`, which re-emits every `prisma.config.ts` under `test/ports/`, `test/enum-order-by/`, and `test/sql-builder/fixtures/`.
 2. `build:contract-space` on `packages/3-extensions/*` — the extensions' emitted `contract.json`.
 3. `migrations:regen` (`scripts/regen-extension-migrations.mjs`) — extension migration artifacts.
-4. `migrations:regen:examples` (`scripts/regen-example-migrations.mjs`) — for each example migration: re-emits its bookend contracts into the content-addressed store at `migrations/snapshots/<hex>/contract.*`, then re-runs `tsx migration.ts` to rewrite `ops.json` + `migration.json`.
+4. `migrations:regen:examples` (`scripts/regen-example-migrations.mjs`) — for each example migration: re-emits its bookend contracts into the content-addressed store at `migrations/snapshots/<hex>/contract.*` (replacing a store entry whose `contract.d.ts` no longer matches the emit; steps 3 and 4 both do this via `scripts/refresh-contract-snapshot.mjs`), then re-runs `tsx migration.ts` to rewrite `ops.json` + `migration.json`.
 
 `fixtures:check` runs `fixtures:emit` and then:
 

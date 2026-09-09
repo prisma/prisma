@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -938,3 +942,61 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    posts: public_Post[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type public_Post = {
+    id: CodecTypes['pg/int4@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'];
+    comments: public_Comment[];
+    tags: public_Tag[];
+    user: public_User;
+    readonly [RelationKeys]?: 'comments' | 'tags' | 'user';
+  };
+  export type public_Comment = {
+    id: CodecTypes['pg/int4@1']['output'];
+    body: CodecTypes['pg/text@1']['output'];
+    postId: CodecTypes['pg/int4@1']['output'];
+    post: public_Post;
+    tags: public_Tag[];
+    readonly [RelationKeys]?: 'post' | 'tags';
+  };
+  export type public_Tag = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    comments: public_Comment[];
+    posts: public_Post[];
+    readonly [RelationKeys]?: 'comments' | 'posts';
+  };
+  export type public_PostTag = {
+    postId: CodecTypes['pg/int4@1']['output'];
+    tagId: CodecTypes['pg/int4@1']['output'];
+    post: public_Post;
+    tag: public_Tag;
+    readonly [RelationKeys]?: 'post' | 'tag';
+  };
+  export type public_CommentTag = {
+    commentId: CodecTypes['pg/int4@1']['output'];
+    tagId: CodecTypes['pg/int4@1']['output'];
+    comment: public_Comment;
+    tag: public_Tag;
+    readonly [RelationKeys]?: 'comment' | 'tag';
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Post: Models.public_Post;
+    Comment: Models.public_Comment;
+    Tag: Models.public_Tag;
+    PostTag: Models.public_PostTag;
+    CommentTag: Models.public_CommentTag;
+  };
+};

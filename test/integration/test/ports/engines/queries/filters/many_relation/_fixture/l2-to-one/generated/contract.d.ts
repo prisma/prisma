@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -569,3 +573,34 @@ type ContractBase = Omit<
 export type Contract = ContractWithTypeMaps<ContractBase, TypeMaps>;
 
 export type Namespaces = Contract['storage']['namespaces'];
+
+export namespace Models {
+  export type public_Blog = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    posts: public_Post[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type public_Post = {
+    id: CodecTypes['pg/int4@1']['output'];
+    blog_id: CodecTypes['pg/int4@1']['output'];
+    blog: public_Blog;
+    comment: public_Comment | null;
+    readonly [RelationKeys]?: 'blog' | 'comment';
+  };
+  export type public_Comment = {
+    id: CodecTypes['pg/int4@1']['output'];
+    popularity: CodecTypes['pg/int4@1']['output'];
+    postId: CodecTypes['pg/int4@1']['output'];
+    post: public_Post;
+    readonly [RelationKeys]?: 'post';
+  };
+}
+
+export declare const models: {
+  public: {
+    Blog: Models.public_Blog;
+    Post: Models.public_Post;
+    Comment: Models.public_Comment;
+  };
+};
