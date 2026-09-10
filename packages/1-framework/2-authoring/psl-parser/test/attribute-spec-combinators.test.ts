@@ -498,6 +498,21 @@ describe('oneOf', () => {
     if (result.ok) expect(result.value).toBe('SetNull');
   });
 
+  it('reports the strongest context required by any alternative', () => {
+    expect(oneOf(str(), fieldRef()).requiredContext).toBe('model');
+    expect(oneOf(fieldRef(), str()).requiredContext).toBe('model');
+    expect(oneOf(str(), referencedFieldRef()).requiredContext).toBe('field');
+    expect(oneOf(referencedFieldRef(), str()).requiredContext).toBe('field');
+    expect(oneOf(fieldRef(), referencedFieldRef()).requiredContext).toBe('field');
+    expect(oneOf(referencedFieldRef(), fieldRef()).requiredContext).toBe('field');
+  });
+
+  it('preserves strongest context metadata through nested wrappers', () => {
+    expect(optional(oneOf(str(), fieldRef())).requiredContext).toBe('model');
+    expect(list(oneOf(str(), fieldRef())).requiredContext).toBe('model');
+    expect(record(optional(oneOf(fieldRef(), referencedFieldRef()))).requiredContext).toBe('field');
+  });
+
   it('names each function when every function-call alternative fails', () => {
     const { expr, ctx } = argOf('unknown()');
 

@@ -113,8 +113,10 @@ export interface ListArgType<
   Ctx extends AttributeCtx = AttributeCtx,
   NonEmpty extends true | undefined = true | undefined,
   Unique extends true | undefined = true | undefined,
+  Req extends ArgTypeContext = RequiredContextFor<Ctx>,
 > extends ArgTypeOutput<T[], Ctx> {
   readonly kind: 'list';
+  readonly requiredContext: Req;
   readonly of: ArgType<T, Ctx>;
   readonly nonEmpty: NonEmpty;
   readonly unique: Unique;
@@ -139,16 +141,21 @@ export type NumArgType<
 
 export interface OneOfArgType<
   Alts extends readonly [AnyArgType, ...AnyArgType[]],
-  Ctx extends AttributeCtx = CtxOf<Alts[number]>,
+  Ctx extends AttributeCtx = ContextForRequirement<RequiredContextFor<CtxOf<Alts[number]>>>,
+  Req extends ArgTypeContext = RequiredContextFor<CtxOf<Alts[number]>>,
 > extends ArgTypeOutput<OutOf<Alts[number]>, Ctx> {
   readonly kind: 'oneOf';
-  readonly requiredContext: Alts[number]['requiredContext'];
+  readonly requiredContext: Req;
   readonly alternatives: Alts;
 }
 
-export interface RecordArgType<T = unknown, Ctx extends AttributeCtx = AttributeCtx>
-  extends ArgTypeOutput<Record<string, T>, Ctx> {
+export interface RecordArgType<
+  T = unknown,
+  Ctx extends AttributeCtx = AttributeCtx,
+  Req extends ArgTypeContext = RequiredContextFor<Ctx>,
+> extends ArgTypeOutput<Record<string, T>, Ctx> {
   readonly kind: 'record';
+  readonly requiredContext: Req;
   readonly of: ArgType<T, Ctx>;
 }
 
@@ -185,6 +192,20 @@ export type AnyArgType =
   | ArgType<unknown, FieldAttributeCtx>;
 
 export type CtxOf<P> = P extends ArgTypeOutput<unknown, infer Ctx> ? Ctx : never;
+
+export type RequiredContextFor<Ctx extends AttributeCtx> = [
+  Extract<Ctx, FieldAttributeCtx>,
+] extends [never]
+  ? [Extract<Ctx, ModelAttributeCtx>] extends [never]
+    ? 'attribute'
+    : 'model'
+  : 'field';
+
+export type ContextForRequirement<Req extends ArgTypeContext> = Req extends 'field'
+  ? FieldAttributeCtx
+  : Req extends 'model'
+    ? ModelAttributeCtx
+    : AttributeCtx;
 
 export type InspectableArgType<Ctx extends AttributeCtx> =
   | BoolArgType<Ctx>

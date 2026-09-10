@@ -1,7 +1,8 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
+import { blindCast } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { ArrayLiteralAst, type ExpressionAst } from '../../syntax/ast/expressions';
-import type { ArgType, AttributeCtx, ListArgType } from '../types';
+import type { ArgType, AttributeCtx, ListArgType, RequiredContextFor } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 export interface ListOptions {
@@ -33,7 +34,10 @@ export function list<T, Ctx extends AttributeCtx>(
   return {
     kind: 'list',
     label: `${of.label}[]`,
-    requiredContext: of.requiredContext,
+    requiredContext: blindCast<
+      RequiredContextFor<Ctx>,
+      'A list requires exactly the same context as its element parser.'
+    >(of.requiredContext),
     of,
     nonEmpty,
     unique,

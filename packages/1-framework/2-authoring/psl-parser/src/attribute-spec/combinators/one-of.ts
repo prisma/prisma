@@ -1,27 +1,39 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { blindCast } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import type { AnyArgType, CtxOf, OneOfArgType, OutOf } from '../types';
+import type {
+  AnyArgType,
+  ArgTypeContext,
+  ContextForRequirement,
+  CtxOf,
+  OneOfArgType,
+  OutOf,
+  RequiredContextFor,
+} from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 export function oneOf<Alts extends readonly [AnyArgType, ...AnyArgType[]]>(
   ...alts: Alts
-): OneOfArgType<Alts, CtxOf<Alts[number]>> {
+): OneOfArgType<Alts, ContextForRequirement<RequiredContextFor<CtxOf<Alts[number]>>>> {
+  type RequiredContext = RequiredContextFor<CtxOf<Alts[number]>>;
+  type ParseContext = ContextForRequirement<RequiredContext>;
   const label = alts.map((alt) => alt.label).join(' | ');
+  const requiredContext = strongestRequiredContext(alts);
   return {
     kind: 'oneOf',
     label,
-    requiredContext: alts[0].requiredContext,
+    requiredContext: blindCast<
+      RequiredContext,
+      'The runtime requirement reducer mirrors RequiredContextFor: field dominates model, which dominates bare attribute context.'
+    >(requiredContext),
     alternatives: alts,
     parse: (arg, ctx): Result<OutOf<Alts[number]>, readonly PslDiagnostic[]> => {
       for (const alt of alts) {
-        const result = alt.parse(
-          arg,
-          blindCast<
-            never,
-            'Each alternative declares the same runtime context requirement through requiredContext; the parser only invokes oneOf in a context that satisfies the containing attribute level.'
-          >(ctx),
-        );
+        const parse = blindCast<
+          (arg: Parameters<typeof alt.parse>[0], ctx: ParseContext) => ReturnType<typeof alt.parse>,
+          'ParseContext is computed as the strongest context required by all alternatives, so it is assignable to every alternative parse context even though TypeScript cannot express that relationship while iterating the heterogeneous tuple.'
+        >(alt.parse);
+        const result = parse(arg, ctx);
         if (result.ok) {
           return ok(
             blindCast<
@@ -33,5 +45,11 @@ export function oneOf<Alts extends readonly [AnyArgType, ...AnyArgType[]]>(
       }
       return notOk([leafDiagnostic(ctx, arg, `Expected one of: ${label}`)]);
     },
-  };
+  } satisfies OneOfArgType<Alts, ParseContext, RequiredContext>;
+}
+
+function strongestRequiredContext(alts: readonly AnyArgType[]): ArgTypeContext {
+  if (alts.some((alt) => alt.requiredContext === 'field')) return 'field';
+  if (alts.some((alt) => alt.requiredContext === 'model')) return 'model';
+  return 'attribute';
 }

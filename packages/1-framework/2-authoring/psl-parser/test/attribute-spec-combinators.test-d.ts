@@ -3,18 +3,22 @@ import { expectTypeOf, test } from 'vitest';
 import type {
   ArgType,
   AttributeCtx,
+  FieldAttributeCtx,
   ModelAttributeCtx,
   OutOf,
   TypedFuncCall,
 } from '../src/exports';
 import {
+  blockAttribute,
   bool,
   entityRef,
+  fieldAttribute,
   fieldRef,
   funcCall,
   identifier,
   int,
   list,
+  modelAttribute,
   num,
   oneOf,
   optional,
@@ -59,6 +63,60 @@ test('oneOf preserves pinned string and number literal alternatives', () => {
 test('oneOf with no alternatives is a compile error', () => {
   // @ts-expect-error oneOf requires at least one alternative
   oneOf();
+});
+
+test('oneOf preserves every alternative context requirement', () => {
+  const bareThenModel = oneOf(str(), fieldRef());
+  const modelThenBare = oneOf(fieldRef(), str());
+  const bareThenField = oneOf(str(), referencedFieldRef());
+  const fieldThenBare = oneOf(referencedFieldRef(), str());
+  const modelThenField = oneOf(fieldRef(), referencedFieldRef());
+  const fieldThenModel = oneOf(referencedFieldRef(), fieldRef());
+
+  expectTypeOf(bareThenModel.requiredContext).toEqualTypeOf<'model'>();
+  expectTypeOf(modelThenBare.requiredContext).toEqualTypeOf<'model'>();
+  expectTypeOf(bareThenField.requiredContext).toEqualTypeOf<'field'>();
+  expectTypeOf(fieldThenBare.requiredContext).toEqualTypeOf<'field'>();
+  expectTypeOf(modelThenField.requiredContext).toEqualTypeOf<'field'>();
+  expectTypeOf(fieldThenModel.requiredContext).toEqualTypeOf<'field'>();
+
+  expectTypeOf<typeof bareThenModel>().toExtend<ArgType<string, ModelAttributeCtx>>();
+  expectTypeOf<typeof modelThenBare>().toExtend<ArgType<string, ModelAttributeCtx>>();
+  expectTypeOf<typeof bareThenField>().toExtend<ArgType<string, FieldAttributeCtx>>();
+  expectTypeOf<typeof fieldThenBare>().toExtend<ArgType<string, FieldAttributeCtx>>();
+  expectTypeOf<typeof modelThenField>().toExtend<ArgType<string, FieldAttributeCtx>>();
+  expectTypeOf<typeof fieldThenModel>().toExtend<ArgType<string, FieldAttributeCtx>>();
+
+  modelAttribute('modelOnly', { positional: [{ key: 'value', type: bareThenModel }] });
+  fieldAttribute('fieldOnly', { positional: [{ key: 'value', type: bareThenField }] });
+  fieldAttribute('fieldOnly', { positional: [{ key: 'value', type: modelThenField }] });
+
+  // @ts-expect-error model-requiring alternatives cannot enter block attribute specs
+  blockAttribute('invalid', { positional: [{ key: 'value', type: bareThenModel }] });
+  // @ts-expect-error field-requiring alternatives cannot enter block attribute specs
+  blockAttribute('invalid', { positional: [{ key: 'value', type: bareThenField }] });
+  // @ts-expect-error field-requiring alternatives cannot enter model attribute specs
+  modelAttribute('invalid', { positional: [{ key: 'value', type: modelThenField }] });
+});
+
+test('oneOf context requirements survive optional and nested wrappers', () => {
+  const optionalModelAlternative = optional(oneOf(str(), fieldRef()));
+  const modelAlternativeList = list(oneOf(str(), fieldRef()));
+  const fieldAlternativeRecord = record(optional(oneOf(fieldRef(), referencedFieldRef())));
+
+  expectTypeOf(optionalModelAlternative.requiredContext).toEqualTypeOf<'model'>();
+  expectTypeOf(modelAlternativeList.requiredContext).toEqualTypeOf<'model'>();
+  expectTypeOf(fieldAlternativeRecord.requiredContext).toEqualTypeOf<'field'>();
+  expectTypeOf<typeof optionalModelAlternative>().toExtend<ArgType<string, ModelAttributeCtx>>();
+  expectTypeOf<typeof modelAlternativeList>().toExtend<ArgType<string[], ModelAttributeCtx>>();
+  expectTypeOf<typeof fieldAlternativeRecord>().toExtend<
+    ArgType<Record<string, string>, FieldAttributeCtx>
+  >();
+
+  // @ts-expect-error nested model-requiring alternatives cannot enter block attribute specs
+  blockAttribute('invalid', { positional: [{ key: 'value', type: optionalModelAlternative }] });
+  // @ts-expect-error nested field-requiring alternatives cannot enter model attribute specs
+  modelAttribute('invalid', { positional: [{ key: 'value', type: fieldAlternativeRecord }] });
 });
 
 test('list infers an array of its element type', () => {
