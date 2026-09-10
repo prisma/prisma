@@ -3,15 +3,17 @@ import { blindCast } from '@internal/utils/casts';
 import type { SqlModelStorage, SqlStorage, StorageTable } from './types';
 
 export type SqlToOneRelationStorage = {
-  /** False for the back side of a 1:1, whose local columns are the table's primary key. */
+  /**
+   * True for an N:1 relation, and for a 1:1 relation whose table declares a foreign key on
+   * exactly its local columns. False for the back side of a 1:1, which declares no such key.
+   */
   readonly ownsForeignKey: boolean;
   /** One entry per local field; a column that cannot be resolved counts as nullable. */
   readonly columns: readonly { readonly name: string; readonly nullable: boolean }[];
 };
 
-function sameColumnSet(left: readonly string[], right: readonly string[]): boolean {
-  const rightSet = new Set(right);
-  return left.length === rightSet.size && left.every((column) => rightSet.has(column));
+function sameColumns(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((column, index) => column === right[index]);
 }
 
 /**
@@ -32,14 +34,11 @@ export function resolveSqlToOneRelationStorage(
     const column = columnName === undefined ? undefined : table?.columns[columnName];
     return { name: columnName ?? fieldName, nullable: column?.nullable ?? true };
   });
-  const primaryKeyColumns = table?.primaryKey?.columns;
-  const ownsForeignKey = !(
-    relation.cardinality === '1:1' &&
-    primaryKeyColumns !== undefined &&
-    sameColumnSet(
-      columns.map((column) => column.name),
-      primaryKeyColumns,
-    )
-  );
+  const columnNames = columns.map((column) => column.name);
+  const ownsForeignKey =
+    relation.cardinality === 'N:1' ||
+    (table?.foreignKeys ?? []).some((foreignKey) =>
+      sameColumns(foreignKey.source.columns, columnNames),
+    );
   return { ownsForeignKey, columns };
 }

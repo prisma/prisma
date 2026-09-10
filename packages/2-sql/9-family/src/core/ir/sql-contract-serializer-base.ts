@@ -51,7 +51,10 @@ function withSqlToOneRelationNullability(contract: Contract<SqlStorage>): Contra
       'validateSqlContractFully checked every model storage against the SQL model storage schema'
     >(model.storage);
     const { ownsForeignKey, columns } = resolveSqlToOneRelationStorage(contract, storage, relation);
-    return { ownsForeignKey, localFieldNullability: columns.map((column) => column.nullable) };
+    return {
+      ownsReference: ownsForeignKey,
+      localFieldNullability: columns.map((column) => column.nullable),
+    };
   });
   return { ...contract, domain };
 }

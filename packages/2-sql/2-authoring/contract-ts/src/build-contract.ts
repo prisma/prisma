@@ -597,7 +597,7 @@ function toOneRelationNullable(semanticModel: ModelNode, relation: RelationNode)
     localFieldNullability: semanticModel.fields
       .filter((field) => localColumns.includes(field.columnName))
       .map((field) => field.nullable),
-    ownsForeignKey: relation.cardinality === 'N:1',
+    ownsReference: relation.cardinality === 'N:1',
   });
   if (contradiction !== undefined) {
     throw contractError(

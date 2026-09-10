@@ -1237,7 +1237,7 @@ export function interpretPslDocumentToMongoContract(
             localFieldNullability: relation.fields.map(
               (localFieldName) => pslModel.fields[localFieldName]?.optional === true,
             ),
-            ownsForeignKey: true,
+            ownsReference: true,
           });
           if (nullability.contradiction !== undefined) {
             diagnostics.push(relationNullabilityMismatchDiagnostic(pslModel.name, field, sourceId));

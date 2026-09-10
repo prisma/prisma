@@ -35,11 +35,28 @@ const user = crossRef('User', UNBOUND_DOMAIN_NAMESPACE_ID);
 function contractJson(input: {
   readonly relation: ContractRelation;
   readonly authorIdColumn: boolean | 'missing';
+  readonly postConstraints?: 'primary-key' | 'none' | 'foreign-key-on-author-id';
 }) {
   const postColumns =
     input.authorIdColumn === 'missing'
       ? { id: column(false) }
       : { id: column(false), author_id: column(input.authorIdColumn) };
+  const postConstraints = input.postConstraints ?? 'primary-key';
+  const postPrimaryKey =
+    postConstraints === 'primary-key' ? { primaryKey: { columns: ['id'] } } : {};
+  const postForeignKeys =
+    postConstraints === 'foreign-key-on-author-id'
+      ? [
+          {
+            source: {
+              namespaceId: UNBOUND_NAMESPACE_ID,
+              tableName: 'post',
+              columns: ['author_id'],
+            },
+            target: { namespaceId: UNBOUND_NAMESPACE_ID, tableName: 'user', columns: ['id'] },
+          },
+        ]
+      : [];
   const contract = createSqlContract({
     roots: { posts: crossRef('Post', UNBOUND_DOMAIN_NAMESPACE_ID) },
     models: {
@@ -73,10 +90,10 @@ function contractJson(input: {
             table: {
               post: {
                 columns: postColumns,
-                primaryKey: { columns: ['id'] },
+                ...postPrimaryKey,
                 uniques: [],
                 indexes: [],
-                foreignKeys: [],
+                foreignKeys: postForeignKeys,
               },
               user: { columns: { id: column(false) }, uniques: [], indexes: [], foreignKeys: [] },
             },
@@ -136,6 +153,28 @@ describe('to-one relation nullability on deserialization', () => {
       authorIdColumn: false,
     });
     expect(hydratedAuthor(json)).toMatchObject({ cardinality: '1:1', nullable: true });
+  });
+
+  it('derives nullable: true on a 1:1 side with no primary key and no foreign key', () => {
+    const json = contractJson({
+      relation: toOne({
+        to: user,
+        cardinality: '1:1',
+        on: { localFields: ['id'], targetFields: ['postId'] },
+      }),
+      authorIdColumn: false,
+      postConstraints: 'none',
+    });
+    expect(hydratedAuthor(json)).toMatchObject({ cardinality: '1:1', nullable: true });
+  });
+
+  it('derives nullable from the columns on a 1:1 side whose foreign key covers its local columns', () => {
+    const json = contractJson({
+      relation: toOne({ to: user, cardinality: '1:1' }),
+      authorIdColumn: false,
+      postConstraints: 'foreign-key-on-author-id',
+    });
+    expect(hydratedAuthor(json)).toMatchObject({ cardinality: '1:1', nullable: false });
   });
 
   it('keeps a present nullable as written', () => {

@@ -694,7 +694,7 @@ function relationNullabilityMismatch(
       localFieldNullability: resolvedFields
         .filter((resolvedField) => localColumns.includes(resolvedField.columnName))
         .map((resolvedField) => resolvedField.nullable),
-      ownsForeignKey: true,
+      ownsReference: true,
     }).contradiction !== undefined
   );
 }

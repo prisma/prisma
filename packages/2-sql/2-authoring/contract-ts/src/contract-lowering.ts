@@ -403,7 +403,7 @@ function belongsToNullable(
     localFieldNullability: fieldNames.map(
       (fieldName) => spec.fieldBuilders[fieldName]?.build().nullable === true,
     ),
-    ownsForeignKey: true,
+    ownsReference: true,
   });
   if (contradiction !== undefined) {
     throw contractError(

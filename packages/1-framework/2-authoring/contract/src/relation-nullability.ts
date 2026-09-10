@@ -14,17 +14,18 @@ export type ToOneRelationNullability = {
 };
 
 /**
- * The one rule for whether a to-one relation may be absent. The side that owns the foreign key
- * is nullable exactly when one of its local fields is; the other side is always nullable, because
- * nothing in storage guarantees the related row exists. A declaration that disagrees is reported
- * as a contradiction; `nullable` is always the derived value.
+ * The one rule for whether a to-one relation may be absent. The side that holds the reference
+ * (in SQL, the foreign key) is nullable exactly when one of its local fields is; the other side
+ * is always nullable, because nothing in storage guarantees the related record exists. A
+ * declaration that disagrees is reported as a contradiction; `nullable` is always the derived
+ * value.
  */
 export function resolveToOneRelationNullable(input: {
   readonly declaredNullable: boolean | undefined;
   readonly localFieldNullability: readonly boolean[];
-  readonly ownsForeignKey: boolean;
+  readonly ownsReference: boolean;
 }): ToOneRelationNullability {
-  const nullable = input.ownsForeignKey ? input.localFieldNullability.some(Boolean) : true;
+  const nullable = input.ownsReference ? input.localFieldNullability.some(Boolean) : true;
   const declared = input.declaredNullable;
   if (declared === undefined || declared === nullable) {
     return { nullable, contradiction: undefined };
@@ -38,7 +39,7 @@ export type LocalFieldNullabilityLookup = (input: {
   readonly model: ContractModelBase;
   readonly relation: ContractToOneRelation;
 }) => {
-  readonly ownsForeignKey: boolean;
+  readonly ownsReference: boolean;
   readonly localFieldNullability: readonly boolean[];
 };
 

@@ -13,7 +13,7 @@ describe('resolveToOneRelationNullable', () => {
         resolveToOneRelationNullable({
           declaredNullable: undefined,
           localFieldNullability: [false, true],
-          ownsForeignKey: true,
+          ownsReference: true,
         }),
       ).toEqual({ nullable: true, contradiction: undefined });
     });
@@ -23,7 +23,7 @@ describe('resolveToOneRelationNullable', () => {
         resolveToOneRelationNullable({
           declaredNullable: undefined,
           localFieldNullability: [false, false],
-          ownsForeignKey: true,
+          ownsReference: true,
         }),
       ).toEqual({ nullable: false, contradiction: undefined });
     });
@@ -33,14 +33,14 @@ describe('resolveToOneRelationNullable', () => {
         resolveToOneRelationNullable({
           declaredNullable: true,
           localFieldNullability: [true],
-          ownsForeignKey: true,
+          ownsReference: true,
         }),
       ).toEqual({ nullable: true, contradiction: undefined });
       expect(
         resolveToOneRelationNullable({
           declaredNullable: false,
           localFieldNullability: [false],
-          ownsForeignKey: true,
+          ownsReference: true,
         }),
       ).toEqual({ nullable: false, contradiction: undefined });
     });
@@ -50,7 +50,7 @@ describe('resolveToOneRelationNullable', () => {
         resolveToOneRelationNullable({
           declaredNullable: true,
           localFieldNullability: [false],
-          ownsForeignKey: true,
+          ownsReference: true,
         }),
       ).toEqual({ nullable: false, contradiction: 'declared-optional' });
     });
@@ -60,7 +60,7 @@ describe('resolveToOneRelationNullable', () => {
         resolveToOneRelationNullable({
           declaredNullable: false,
           localFieldNullability: [false, true],
-          ownsForeignKey: true,
+          ownsReference: true,
         }),
       ).toEqual({ nullable: true, contradiction: 'declared-required' });
     });
@@ -72,7 +72,7 @@ describe('resolveToOneRelationNullable', () => {
         resolveToOneRelationNullable({
           declaredNullable: undefined,
           localFieldNullability: [false],
-          ownsForeignKey: false,
+          ownsReference: false,
         }),
       ).toEqual({ nullable: true, contradiction: undefined });
     });
@@ -82,7 +82,7 @@ describe('resolveToOneRelationNullable', () => {
         resolveToOneRelationNullable({
           declaredNullable: true,
           localFieldNullability: [],
-          ownsForeignKey: false,
+          ownsReference: false,
         }),
       ).toEqual({ nullable: true, contradiction: undefined });
     });
@@ -92,7 +92,7 @@ describe('resolveToOneRelationNullable', () => {
         resolveToOneRelationNullable({
           declaredNullable: false,
           localFieldNullability: [],
-          ownsForeignKey: false,
+          ownsReference: false,
         }),
       ).toEqual({ nullable: true, contradiction: 'declared-required' });
     });
@@ -130,7 +130,7 @@ describe('withDerivedToOneRelationNullability', () => {
     const seen: string[][] = [];
     const derived = withDerivedToOneRelationNullability(domain, ({ relation }) => {
       seen.push([...relation.on.localFields]);
-      return { ownsForeignKey: true, localFieldNullability: [true] };
+      return { ownsReference: true, localFieldNullability: [true] };
     });
     expect(seen).toEqual([['authorId']]);
     expect(relationsOf(derived)).toEqual({
@@ -152,7 +152,7 @@ describe('withDerivedToOneRelationNullability', () => {
       } as never,
     });
     const derived = withDerivedToOneRelationNullability(domain, () => ({
-      ownsForeignKey: false,
+      ownsReference: false,
       localFieldNullability: [false],
     }));
     expect(relationsOf(derived)?.['profile']).toMatchObject({ nullable: true });
@@ -197,7 +197,7 @@ describe('withDerivedToOneRelationNullability', () => {
       profile: { to: crossRef('User'), cardinality: '1:1' },
     });
     const derived = withDerivedToOneRelationNullability(domain, () => ({
-      ownsForeignKey: true,
+      ownsReference: true,
       localFieldNullability: [true],
     }));
     expect(relationsOf(derived)).toEqual(relationsOf(domain));

@@ -44,7 +44,7 @@ export function requiredOneToOneBackrelationDiagnostic(input: {
   const { modelName, field, targetModelName, sourceId, recordNoun } = input;
   return {
     code: 'PSL_REQUIRED_ONE_TO_ONE_BACKRELATION',
-    message: `Backrelation field "${modelName}.${field.name}" is required, but it does not own the foreign key, so nothing in the database guarantees a "${targetModelName}" ${recordNoun} exists. Make it optional: "${field.name} ${targetModelName}?".`,
+    message: `Backrelation field "${modelName}.${field.name}" is required, but "${targetModelName}" holds the relation fields, so nothing in storage guarantees a "${targetModelName}" ${recordNoun} exists. Make it optional: "${field.name} ${targetModelName}?".`,
     sourceId,
     span: field.span,
   };

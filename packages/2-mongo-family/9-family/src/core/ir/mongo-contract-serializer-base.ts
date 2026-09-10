@@ -49,7 +49,10 @@ import { type as arktypeType, type Type } from 'arktype';
 function withMongoToOneRelationNullability(contract: MongoContract): MongoContract {
   const domain = withDerivedToOneRelationNullability(contract.domain, ({ model, relation }) => {
     const { ownsForeignKey, fields } = resolveMongoToOneRelationFields(model, relation);
-    return { ownsForeignKey, localFieldNullability: fields.map((field) => field.nullable) };
+    return {
+      ownsReference: ownsForeignKey,
+      localFieldNullability: fields.map((field) => field.nullable),
+    };
   });
   return { ...contract, domain };
 }

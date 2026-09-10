@@ -1594,7 +1594,7 @@ function toOneRelationNullable(
   const { nullable, contradiction } = resolveToOneRelationNullable({
     declaredNullable: relationBuilder.__nullable,
     localFieldNullability: localFields.map((localField) => localField.__nullable === true),
-    ownsForeignKey,
+    ownsReference: ownsForeignKey,
   });
   if (contradiction !== undefined) {
     throw contractError(

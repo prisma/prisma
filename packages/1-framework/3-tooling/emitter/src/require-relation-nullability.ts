@@ -20,7 +20,7 @@ export function requireToOneRelationNullability(contract: Contract): void {
           `Relation "${relationName}" on model "${namespaceId}:${modelName}" is a ${relation.cardinality} relation and must carry a boolean "nullable"`,
           {
             why: 'contract.d.ts types a to-one relation as nullable or required from this flag, and the authoring surfaces always set it.',
-            fix: 'Author the contract through PSL or the contract builder, which derive the flag from the foreign-key fields.',
+            fix: 'Author the contract through PSL or the contract builder, which derive the flag from the local fields the relation joins on.',
             meta: { modelName, relationName, reason: 'to-one-nullability-missing' },
           },
         );

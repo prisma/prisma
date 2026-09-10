@@ -603,7 +603,7 @@ describe('interpretPslDocumentToMongoContract', () => {
         expect.objectContaining({
           code: 'PSL_REQUIRED_ONE_TO_ONE_BACKRELATION',
           message: expect.stringContaining(
-            'Backrelation field "User.profile" is required, but it does not own the foreign key',
+            'Backrelation field "User.profile" is required, but "Profile" holds the relation fields',
           ),
         }),
       ]);
