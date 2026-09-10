@@ -11,23 +11,8 @@ export interface ListOptions {
 
 export function list<T, Ctx extends AttributeCtx>(
   of: ArgType<T, Ctx>,
-): ListArgType<T, Ctx, undefined, undefined>;
-export function list<T, Ctx extends AttributeCtx>(
-  of: ArgType<T, Ctx>,
-  opts: { readonly nonEmpty: true; readonly unique: true },
-): ListArgType<T, Ctx, true, true>;
-export function list<T, Ctx extends AttributeCtx>(
-  of: ArgType<T, Ctx>,
-  opts: { readonly nonEmpty: true; readonly unique?: boolean },
-): ListArgType<T, Ctx, true, undefined>;
-export function list<T, Ctx extends AttributeCtx>(
-  of: ArgType<T, Ctx>,
-  opts: { readonly nonEmpty?: boolean; readonly unique: true },
-): ListArgType<T, Ctx, undefined, true>;
-export function list<T, Ctx extends AttributeCtx>(
-  of: ArgType<T, Ctx>,
   opts?: ListOptions,
-): ListArgType<T, Ctx, true | undefined, true | undefined> {
+): ListArgType<T, Ctx> {
   const nonEmpty = opts?.nonEmpty === true ? true : undefined;
   const unique = opts?.unique === true ? true : undefined;
   return {

@@ -107,16 +107,12 @@ export interface JsonArgType<Ctx extends AttributeCtx = AttributeCtx>
   readonly kind: 'json';
 }
 
-export interface ListArgType<
-  T = unknown,
-  Ctx extends AttributeCtx = AttributeCtx,
-  NonEmpty extends true | undefined = true | undefined,
-  Unique extends true | undefined = true | undefined,
-> extends ArgTypeOutput<T[], Ctx> {
+export interface ListArgType<T = unknown, Ctx extends AttributeCtx = AttributeCtx>
+  extends ArgTypeOutput<T[], Ctx> {
   readonly kind: 'list';
   readonly of: ArgType<T, Ctx>;
-  readonly nonEmpty: NonEmpty;
-  readonly unique: Unique;
+  readonly nonEmpty: true | undefined;
+  readonly unique: true | undefined;
 }
 
 export interface UnrestrictedNumArgType<Ctx extends AttributeCtx = AttributeCtx>

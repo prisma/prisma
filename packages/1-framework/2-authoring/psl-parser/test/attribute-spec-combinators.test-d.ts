@@ -190,8 +190,8 @@ test('child and signature metadata preserve output and context types', () => {
   if (fields.kind === 'list') {
     expectTypeOf<OutOf<typeof fields.of>>().toEqualTypeOf<string>();
     expectTypeOf(fields.of).toMatchTypeOf<ArgType<string, ModelAttributeCtx>>();
-    expectTypeOf(fields.nonEmpty).toEqualTypeOf<true>();
-    expectTypeOf(fields.unique).toEqualTypeOf<true>();
+    expectTypeOf(fields.nonEmpty).toEqualTypeOf<true | undefined>();
+    expectTypeOf(fields.unique).toEqualTypeOf<true | undefined>();
   }
   if (namedRecord.kind === 'record') {
     expectTypeOf<OutOf<typeof namedRecord.of>>().toEqualTypeOf<number>();
@@ -217,7 +217,7 @@ test('optional wrappers retain child metadata and optional markers', () => {
     expectTypeOf(optionalList.hasDefault).toEqualTypeOf<true>();
     expectTypeOf(optionalList.defaultValue).toEqualTypeOf<'tag'[] | undefined>();
     expectTypeOf<OutOf<typeof optionalList.of>>().toEqualTypeOf<'tag'>();
-    expectTypeOf(optionalList.nonEmpty).toEqualTypeOf<true>();
+    expectTypeOf(optionalList.nonEmpty).toEqualTypeOf<true | undefined>();
   }
 });
 
