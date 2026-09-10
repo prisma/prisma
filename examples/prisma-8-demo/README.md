@@ -102,6 +102,7 @@ The demo includes ORM client examples under `src/orm-client/`:
 - `ormClientGetAdminUsers(limit, runtime)` — filter through a custom collection scope
 - `ormClientFindUserByEmail(email, runtime)` — `first()` with collection helpers
 - `ormClientGetUserPosts(userId, limit, runtime)` — fetch user posts with collection filters + ordering
+- `ormClientGetUserProfile(userId, runtime)` — **`Shape`-declared response type**: `UserProfile` is `Shape<Models.public_User, { '-': 'email'; posts: { '+': 'id' | 'title' | 'tags' } }>`; the nested include (`User → posts → tags`) is an implementation detail the compiler checks at the `return`
 - `ormClientGetDashboardUsers(emailDomain, postTitleTerm, limit, postsPerUser, runtime)` — compound `and/or/not` filters + relation filters + `select()` and `include()` composition
 - `ormClientGetPostFeed(postTitleTerm, limit, runtime)` — to-one include (`post -> user`) with projected fields
 - `ormClientGetUserTaskBoard(limit, runtime)` — **polymorphic-target include**: `User.include('tasks')` where `Task` is a discriminated base; each included row is decoded into its variant shape (`Bug` → `severity`/`stepsToRepro`, `Feature` → `priority`/`targetRelease`) in a single read
@@ -142,6 +143,8 @@ pnpm start -- repo-latest-per-kind
 pnpm start -- repo-user-insights 5
 pnpm start -- repo-kind-breakdown 1
 pnpm start -- repo-upsert-user 00000000-0000-0000-0000-000000000099 demo@example.com user
+# Shape-declared response type (see src/orm-client/get-user-profile.ts; user ids are printed by the seed)
+pnpm start -- orm-user-profile <userId>
 # Many-to-many (post and tag ids are printed by the seed)
 pnpm start -- repo-post-tags <postId>
 pnpm start -- repo-tag-posts <tagId>

@@ -26,6 +26,7 @@ import {
   type CapabilityMatrix,
   type EnumTypeHandle,
   mergeCapabilityMatrices,
+  resolveToOneRelationNullable,
 } from '@internal/contract-authoring';
 import type {
   AuthoringContributions,
@@ -85,6 +86,7 @@ import type {
   ValueObjectFieldNode,
 } from './contract-definition';
 import { contractError } from './contract-errors';
+import { toOneNullabilityContradictionMessage } from './to-one-nullability-message';
 
 type DomainFieldRef =
   | { readonly kind: 'scalar'; readonly many?: boolean }
@@ -572,6 +574,47 @@ function resolveModelNamespaceId(
     return model.namespaceId;
   }
   return modelNameToNamespaceId.get(model.modelName) ?? defaultNamespaceId;
+}
+
+function toOneRelationNullable(semanticModel: ModelNode, relation: RelationNode): boolean {
+  const location = `Relation "${semanticModel.modelName}.${relation.fieldName}"`;
+  if (relation.nullable === undefined) {
+    throw contractError(
+      'CONTRACT.RELATION_INVALID',
+      `${location} with cardinality "${relation.cardinality}" must state whether it is nullable`,
+      {
+        meta: {
+          modelName: semanticModel.modelName,
+          relationName: relation.fieldName,
+          reason: 'to-one-nullability-missing',
+        },
+      },
+    );
+  }
+  const localColumns = relation.on.parentColumns;
+  const { contradiction } = resolveToOneRelationNullable({
+    declaredNullable: relation.nullable,
+    localFieldNullability: semanticModel.fields
+      .filter((field) => localColumns.includes(field.columnName))
+      .map((field) => field.nullable),
+    ownsReference: relation.cardinality === 'N:1',
+  });
+  if (contradiction !== undefined) {
+    throw contractError(
+      'CONTRACT.RELATION_INVALID',
+      relation.cardinality === 'N:1'
+        ? toOneNullabilityContradictionMessage(location, contradiction)
+        : `${location} is required but does not own the foreign key, so nothing in storage guarantees the related row exists`,
+      {
+        meta: {
+          modelName: semanticModel.modelName,
+          relationName: relation.fieldName,
+          reason: 'to-one-nullability-mismatch',
+        },
+      },
+    );
+  }
+  return relation.nullable;
 }
 
 function buildThroughDescriptor(
@@ -1282,6 +1325,7 @@ export function buildSqlContractFromDefinition(
           to: crossRef(relation.toModel, targetNamespaceId, relation.spaceId),
           // Cross-space belongsTo relations are always N:1 (the FK-owning side).
           cardinality: 'N:1',
+          nullable: toOneRelationNullable(semanticModel, relation),
           on: {
             localFields: relation.on.parentColumns.map((col) => columnToField.get(col) ?? col),
             // For cross-space targets the lowering carries field names directly
@@ -1344,8 +1388,15 @@ export function buildSqlContractFromDefinition(
             defaultNamespaceId,
           ),
         };
+      } else if (relation.cardinality === '1:N') {
+        modelRelations[relation.fieldName] = { to, cardinality: '1:N', on };
       } else {
-        modelRelations[relation.fieldName] = { to, cardinality: relation.cardinality, on };
+        modelRelations[relation.fieldName] = {
+          to,
+          cardinality: relation.cardinality,
+          nullable: toOneRelationNullable(semanticModel, relation),
+          on,
+        };
       }
     }
 

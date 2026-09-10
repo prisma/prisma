@@ -315,6 +315,7 @@ describe('generateModelRelationsType', () => {
       author: {
         to: crossRef('User'),
         cardinality: 'N:1',
+        nullable: false,
         on: { localFields: ['authorId'], targetFields: ['_id'] },
       },
     });
@@ -322,6 +323,18 @@ describe('generateModelRelationsType', () => {
     expect(result).toContain('readonly cardinality: "N:1"');
     expect(result).toContain('readonly localFields: readonly ["authorId"]');
     expect(result).toContain('readonly targetFields: readonly ["_id"]');
+  });
+
+  it.each([true, false])('renders nullable: %s on a to-one relation', (nullable) => {
+    const result = generateModelRelationsType({
+      author: {
+        to: crossRef('User'),
+        cardinality: 'N:1',
+        nullable,
+        on: { localFields: ['authorId'], targetFields: ['_id'] },
+      },
+    });
+    expect(result).toContain(`readonly cardinality: "N:1"; readonly nullable: ${nullable};`);
   });
 
   it('skips non-object relations', () => {
@@ -462,6 +475,7 @@ describe('generateModelRelationsType', () => {
       author: {
         to: crossRef('User'),
         cardinality: 'N:1',
+        nullable: false,
         on: { localFields: ['authorId'], targetFields: ['id'] },
       },
     });

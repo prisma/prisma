@@ -53,6 +53,10 @@ export interface EmitOptions {
    * while its own code still imports workspace names.
    */
   readonly resolveImportSpecifier?: ImportSpecifierResolver;
+  /**
+   * Threaded from `descriptor.supportsNamespaces`. `false` drops the namespace segment from emitted `Models` member names and the `models` constant.
+   */
+  readonly supportsNamespaces?: boolean;
 }
 
 export interface EmitResult {

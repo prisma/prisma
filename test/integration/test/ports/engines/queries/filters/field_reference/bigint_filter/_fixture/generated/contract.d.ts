@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -319,6 +323,34 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_TestModel = {
+    id: CodecTypes['pg/int4@1']['output'];
+    string: CodecTypes['pg/text@1']['output'] | null;
+    string2: CodecTypes['pg/text@1']['output'] | null;
+    int: CodecTypes['pg/int4@1']['output'] | null;
+    int2: CodecTypes['pg/int4@1']['output'] | null;
+    bInt: CodecTypes['pg/int8@1']['output'] | null;
+    bInt2: CodecTypes['pg/int8@1']['output'] | null;
+    float: CodecTypes['pg/float8@1']['output'] | null;
+    float2: CodecTypes['pg/float8@1']['output'] | null;
+    bytes: CodecTypes['pg/bytea@1']['output'] | null;
+    bytes2: CodecTypes['pg/bytea@1']['output'] | null;
+    bool: CodecTypes['pg/bool@1']['output'] | null;
+    bool2: CodecTypes['pg/bool@1']['output'] | null;
+    dt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    dt2: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    TestModel: Models.public_TestModel;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,

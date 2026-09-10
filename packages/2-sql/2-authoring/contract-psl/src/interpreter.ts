@@ -11,6 +11,7 @@ import type {
   ControlPolicy,
 } from '@internal/contract/types';
 import { crossRef } from '@internal/contract/types';
+import { resolveToOneRelationNullable } from '@internal/contract-authoring';
 import type {
   AuthoringContributions,
   AuthoringEntityContext,
@@ -56,6 +57,7 @@ import {
   type ResolvedAttribute,
   type SymbolTable,
 } from '@internal/psl-parser';
+import { fkRelationPairKey, type InvalidFkPairing } from '@internal/psl-parser/interpret';
 import type { SourceFile } from '@internal/psl-parser/syntax';
 import type {
   SqlModelStorage,
@@ -657,6 +659,7 @@ interface BuildModelNodeInput {
 interface BuildModelNodeResult {
   readonly modelNode: ModelNode;
   readonly fkRelationMetadata: FkRelationMetadata[];
+  readonly invalidFkPairings: InvalidFkPairing[];
   readonly backrelationCandidates: ModelBackrelationCandidate[];
   readonly resolvedFields: readonly ResolvedField[];
   /** Cross-contract-space relation nodes that bypass the local back-relation matching. */
@@ -678,6 +681,39 @@ function relationAttributeDeclaresOwningSide(relationAttribute: ResolvedAttribut
     getNamedArgument(relationAttribute, 'fields') !== undefined ||
     getNamedArgument(relationAttribute, 'references') !== undefined
   );
+}
+
+function relationNullabilityMismatch(
+  relationField: FieldSymbol,
+  localColumns: readonly string[],
+  resolvedFields: readonly ResolvedField[],
+): boolean {
+  return (
+    resolveToOneRelationNullable({
+      declaredNullable: relationField.optional,
+      localFieldNullability: resolvedFields
+        .filter((resolvedField) => localColumns.includes(resolvedField.columnName))
+        .map((resolvedField) => resolvedField.nullable),
+      ownsReference: true,
+    }).contradiction !== undefined
+  );
+}
+
+function relationNullabilityMismatchDiagnostic(
+  modelName: string,
+  relationAttribute: { readonly field: FieldSymbol; readonly relation: ResolvedAttribute },
+  sourceId: string,
+): ContractSourceDiagnostic {
+  const fieldLabel = `Relation field "${modelName}.${relationAttribute.field.name}"`;
+  const message = relationAttribute.field.optional
+    ? `${fieldLabel} is optional but every field in @relation(fields: [...]) is required. Make one of those fields optional with "?" or remove "?" from "${relationAttribute.field.name}".`
+    : `${fieldLabel} is required but a field in @relation(fields: [...]) is optional. Add "?" to "${relationAttribute.field.name}" or make those fields required.`;
+  return {
+    code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+    message,
+    sourceId,
+    span: relationAttribute.field.span,
+  };
 }
 
 function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult {
@@ -1157,6 +1193,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
   }
 
   const resultFkRelationMetadata: FkRelationMetadata[] = [];
+  const resultInvalidFkPairings: InvalidFkPairing[] = [];
   const resultCrossSpaceRelations: RelationNode[] = [];
   for (const relationAttribute of relationAttributes) {
     const {
@@ -1237,6 +1274,13 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         continue;
       }
 
+      if (relationNullabilityMismatch(relationAttribute.field, localColumns, resolvedFields)) {
+        diagnostics.push(
+          relationNullabilityMismatchDiagnostic(model.name, relationAttribute, sourceId),
+        );
+        continue;
+      }
+
       // For cross-space references the `references` list provides field names from the remote
       // model. Since the interpreter has no access to the extension contract, these field names
       // are treated as column names directly (matching the TS builder's cross-space path).
@@ -1314,6 +1358,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         toModel: fieldTypeName,
         toTable: crossTargetTableName,
         cardinality: 'N:1',
+        nullable: relationAttribute.field.optional,
         spaceId: fieldTypeContractSpaceId,
         namespaceId: crossTargetNamespaceId,
         on: {
@@ -1409,6 +1454,16 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     if (!localColumns) {
       continue;
     }
+    if (relationNullabilityMismatch(relationAttribute.field, localColumns, resolvedFields)) {
+      diagnostics.push(
+        relationNullabilityMismatchDiagnostic(model.name, relationAttribute, sourceId),
+      );
+      resultInvalidFkPairings.push({
+        pairKey: fkRelationPairKey(model.name, targetMapping.model.name),
+        ...ifDefined('relationName', parsedRelation.name),
+      });
+      continue;
+    }
     const referencedColumns = mapFieldNamesToColumns({
       modelName: targetMapping.model.name,
       fieldNames: parsedRelation.references,
@@ -1465,6 +1520,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       targetTableName: targetMapping.tableName,
       ...ifDefined('targetNamespaceId', targetNamespaceId),
       ...ifDefined('relationName', parsedRelation.name),
+      nullable: relationAttribute.field.optional,
       localColumns,
       referencedColumns,
     });
@@ -1498,6 +1554,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       ...ifDefined('control', controlPolicy),
     },
     fkRelationMetadata: resultFkRelationMetadata,
+    invalidFkPairings: resultInvalidFkPairings,
     crossSpaceRelations: resultCrossSpaceRelations,
     backrelationCandidates: resultBackrelationCandidates,
     resolvedFields,
@@ -2384,6 +2441,7 @@ export function interpretPslDocumentToSqlContract(
   }
   const modelNodes: ModelNode[] = [];
   const fkRelationMetadata: FkRelationMetadata[] = [];
+  const invalidFkPairings: InvalidFkPairing[] = [];
   const backrelationCandidates: ModelBackrelationCandidate[] = [];
   const modelResolvedFields = new Map<string, readonly ResolvedField[]>();
   // Cross-space relation nodes keyed by declaring model name — merged into
@@ -2436,6 +2494,7 @@ export function interpretPslDocumentToSqlContract(
       namespaceId !== undefined ? { ...result.modelNode, namespaceId } : result.modelNode,
     );
     fkRelationMetadata.push(...result.fkRelationMetadata);
+    invalidFkPairings.push(...result.invalidFkPairings);
     backrelationCandidates.push(...result.backrelationCandidates);
     modelResolvedFields.set(coordinate, result.resolvedFields);
     if (result.crossSpaceRelations.length > 0) {
@@ -2473,6 +2532,7 @@ export function interpretPslDocumentToSqlContract(
   applyBackrelationCandidates({
     backrelationCandidates,
     fkRelationsByPair,
+    invalidFkPairings,
     fkRelationsByDeclaringModel,
     modelIdColumns,
     modelUniqueColumnSets,

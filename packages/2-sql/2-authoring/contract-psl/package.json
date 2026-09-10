@@ -18,6 +18,7 @@
   "dependencies": {
     "@internal/config": "workspace:8.0.0-rc.9",
     "@internal/contract": "workspace:8.0.0-rc.9",
+    "@internal/contract-authoring": "workspace:8.0.0-rc.9",
     "@internal/framework-components": "workspace:8.0.0-rc.9",
     "@internal/psl-parser": "workspace:8.0.0-rc.9",
     "@internal/sql-contract": "workspace:8.0.0-rc.9",
@@ -26,7 +27,6 @@
     "pathe": "^2.0.3"
   },
   "devDependencies": {
-    "@internal/contract-authoring": "workspace:8.0.0-rc.9",
     "@repo/test-utils": "workspace:8.0.0-rc.9",
     "@repo/tsconfig": "workspace:8.0.0-rc.9",
     "@repo/tsdown": "workspace:8.0.0-rc.9",

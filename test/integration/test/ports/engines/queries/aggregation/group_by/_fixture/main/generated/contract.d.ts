@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -295,6 +299,32 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_A = {
+    id: CodecTypes['pg/int4@1']['output'];
+    float: CodecTypes['pg/float8@1']['output'];
+    int: CodecTypes['pg/int4@1']['output'];
+    string: CodecTypes['pg/text@1']['output'];
+    b_id: CodecTypes['pg/int4@1']['output'] | null;
+    b: public_B | null;
+    readonly [RelationKeys]?: 'b';
+  };
+  export type public_B = {
+    id: CodecTypes['pg/int4@1']['output'];
+    field: CodecTypes['pg/text@1']['output'];
+    many_a: public_A[];
+    readonly [RelationKeys]?: 'many_a';
+  };
+}
+
+export declare const models: {
+  public: {
+    A: Models.public_A;
+    B: Models.public_B;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -429,6 +459,7 @@ type ContractBase = Omit<
               readonly b: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'B' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['b_id'];
                   readonly targetFields: readonly ['id'];

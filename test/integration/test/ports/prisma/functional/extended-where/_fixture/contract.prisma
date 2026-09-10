@@ -33,7 +33,7 @@ model User {
   posts      Post[]
   profile    Profile?
   referralId String   @unique
-  payment    Payment? @relation(fields: [paymentId], references: [id])
+  payment    Payment  @relation(fields: [paymentId], references: [id])
   paymentId  String   @unique
 }
 

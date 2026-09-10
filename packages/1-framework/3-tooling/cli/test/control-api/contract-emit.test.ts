@@ -223,6 +223,21 @@ describe('executeContractEmit', () => {
     expect(emitContract).not.toBe(plainEnvelope);
   });
 
+  it('threads the target supportsNamespaces declaration into emit', async () => {
+    const outputJsonPath = join(tmpDir, 'generated/contract.json');
+    const config = createSuccessfulConfig(outputJsonPath);
+    mockedEmit.mockResolvedValueOnce(createEmitResult('namespaces'));
+
+    await executeContractEmitWithMock(
+      emitOptions(
+        { ...config, target: { ...config.target, supportsNamespaces: false } },
+        join(tmpDir, 'prisma.config.ts'),
+      ),
+    );
+
+    expect(mockedEmit.mock.calls.at(-1)?.[3]?.supportsNamespaces).toBe(false);
+  });
+
   describe('the import root the emitted files are written against', () => {
     async function emitInto(project: string, options: { readonly namesConfig: boolean }) {
       const outputJsonPath = join(tmpDir, project, 'generated/contract.json');

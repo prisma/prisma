@@ -1,6 +1,12 @@
 import type { ContractSourceDiagnostic } from '@internal/config/config-types';
 import type { AuthoringContributions } from '@internal/framework-components/authoring';
 import type { FieldSymbol, ModelSymbol, SymbolTable } from '@internal/psl-parser';
+import {
+  consumeInvalidFkPairing,
+  fkRelationPairKey,
+  type InvalidFkPairing,
+  requiredOneToOneBackrelationDiagnostic,
+} from '@internal/psl-parser/interpret';
 import type { SourceFile } from '@internal/psl-parser/syntax';
 import type { ReferentialAction } from '@internal/sql-contract/types';
 import type { RelationNode } from '@internal/sql-contract-ts/contract-builder';
@@ -39,6 +45,8 @@ export type FkRelationMetadata = {
   /** Resolved namespace coordinate of the related model, when known. */
   readonly targetNamespaceId?: string;
   readonly relationName?: string;
+  /** Optionality (`?`) of the declaring relation field. */
+  readonly nullable: boolean;
   readonly localColumns: readonly string[];
   readonly referencedColumns: readonly string[];
 };
@@ -54,11 +62,6 @@ export type ModelBackrelationCandidate = {
 };
 
 type ModelRelationMetadata = RelationNode;
-
-export function fkRelationPairKey(declaringModelName: string, targetModelName: string): string {
-  // NOTE: We assume PSL model identifiers do not contain the `::` separator.
-  return `${declaringModelName}::${targetModelName}`;
-}
 
 export function normalizeReferentialAction(actionToken: string): ReferentialAction | undefined {
   // the token is already validated by the `@relation` spec's `oneOf(identifier(...))`, so this is just a lookup — no second validation path here.
@@ -131,6 +134,7 @@ export function indexFkRelations(input: {
       toTable: relation.targetTableName,
       ...ifDefined('toNamespaceId', relation.targetNamespaceId),
       cardinality: 'N:1',
+      nullable: relation.nullable,
       on: {
         parentTable: relation.declaringTableName,
         parentColumns: relation.localColumns,
@@ -374,6 +378,7 @@ function fkColumnsAreUnique(
 export function applyBackrelationCandidates(input: {
   readonly backrelationCandidates: readonly ModelBackrelationCandidate[];
   readonly fkRelationsByPair: Map<string, readonly FkRelationMetadata[]>;
+  readonly invalidFkPairings: InvalidFkPairing[];
   readonly fkRelationsByDeclaringModel: ReadonlyMap<string, readonly FkRelationMetadata[]>;
   readonly modelIdColumns: ReadonlyMap<string, readonly string[]>;
   readonly modelUniqueColumnSets: ReadonlyMap<string, readonly (readonly string[])[]>;
@@ -389,6 +394,9 @@ export function applyBackrelationCandidates(input: {
       : [...pairMatches];
 
     if (matches.length === 0) {
+      if (consumeInvalidFkPairing(candidate, pairKey, input.invalidFkPairings)) {
+        continue;
+      }
       // A singular candidate is the back side of a 1:1 — many-to-many junction
       // matching only makes sense for a list-typed backrelation.
       if (candidate.isList) {
@@ -454,12 +462,26 @@ export function applyBackrelationCandidates(input: {
       }
     }
 
+    if (!candidate.isList && !candidate.field.optional) {
+      input.diagnostics.push(
+        requiredOneToOneBackrelationDiagnostic({
+          modelName: candidate.modelName,
+          field: candidate.field,
+          targetModelName: candidate.targetModelName,
+          sourceId: input.sourceId,
+          recordNoun: 'row',
+        }),
+      );
+    }
+
     relationsForModel(input.modelRelations, candidate.modelName).push({
       fieldName: candidate.field.name,
       toModel: matched.declaringModelName,
       toTable: matched.declaringTableName,
       ...ifDefined('toNamespaceId', matched.declaringNamespaceId),
-      cardinality: candidate.isList ? '1:N' : '1:1',
+      ...(candidate.isList
+        ? { cardinality: '1:N' as const }
+        : { cardinality: '1:1' as const, nullable: true }),
       on: {
         parentTable: candidate.tableName,
         parentColumns: matched.referencedColumns,
