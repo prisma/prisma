@@ -114,6 +114,7 @@ import {
   type IncludeCombineBranch,
   type IncludeExpr,
   type IncludeRelationOwner,
+  type IncludeRelationValue,
   type IncludeScalar,
   type InferRootRow,
   type MutationCreateInput,
@@ -221,6 +222,7 @@ class CollectionImpl<
 > implements RowSelection<Row>
 {
   declare readonly [RowType]: Row;
+  declare readonly _row?: Row;
   /** @internal */
   readonly ctx: CollectionContext<TContract>;
   /** @internal */
@@ -492,6 +494,110 @@ class CollectionImpl<
    * ).all();
    * ```
    */
+  include<
+    RelName extends VariantAwareIncludeRelationNames<
+      TContract,
+      ModelName,
+      State['variantName'],
+      State['nsId']
+    >,
+    RelationOwner extends string = IncludeRelationOwner<
+      TContract,
+      ModelName,
+      State['variantName'],
+      RelName,
+      State['nsId']
+    > &
+      string,
+    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> &
+      string = RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> & string,
+    TargetNs extends string = RelationTargetNamespace<
+      TContract,
+      RelationOwner,
+      RelName,
+      State['nsId']
+    >,
+  >(
+    relationName: RelName,
+  ): Collection<
+    TContract,
+    ModelName,
+    SimplifyDeep<
+      Row & {
+        [K in RelName]: IncludeRelationValue<
+          TContract,
+          RelationOwner,
+          K,
+          SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
+          State['nsId']
+        >;
+      }
+    >,
+    State
+  >;
+  include<
+    RelName extends VariantAwareIncludeRelationNames<
+      TContract,
+      ModelName,
+      State['variantName'],
+      State['nsId']
+    >,
+    RelationOwner extends string = IncludeRelationOwner<
+      TContract,
+      ModelName,
+      State['variantName'],
+      RelName,
+      State['nsId']
+    > &
+      string,
+    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> &
+      string = RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> & string,
+    TargetNs extends string = RelationTargetNamespace<
+      TContract,
+      RelationOwner,
+      RelName,
+      State['nsId']
+    >,
+    IsToMany extends boolean = IsToManyRelation<TContract, RelationOwner, RelName, State['nsId']>,
+    RefinedResult extends IncludeRefinementResult<
+      TContract,
+      RelatedName,
+      IsToMany
+    > = IncludeRefinementCollection<
+      TContract,
+      RelatedName,
+      SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
+      CollectionTypeState,
+      IsToMany
+    >,
+  >(
+    relationName: RelName,
+    refineFn: (
+      collection: IncludeRefinementCollection<
+        TContract,
+        RelatedName,
+        SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
+        DefaultCollectionTypeState,
+        IsToMany
+      >,
+    ) => RefinedResult,
+  ): Collection<
+    TContract,
+    ModelName,
+    SimplifyDeep<
+      Row & {
+        [K in RelName]: IncludeRefinementValue<
+          TContract,
+          RelationOwner,
+          K,
+          SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
+          RefinedResult,
+          State['nsId']
+        >;
+      }
+    >,
+    State
+  >;
   include<
     RelName extends VariantAwareIncludeRelationNames<
       TContract,

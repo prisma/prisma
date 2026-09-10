@@ -28,6 +28,7 @@ import type {
 
 import type {
   ContractWithTypeMaps,
+  RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-postgres/family-contract/types';
 import type {
@@ -486,6 +487,89 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    email: Varchar<255>;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    profile: CodecTypes['pg/jsonb@1']['output'] | null;
+    posts: public_Post[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type public_Post = {
+    id: CodecTypes['pg/int4@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    published: CodecTypes['pg/bool@1']['output'];
+    meta: CodecTypes['pg/json@1']['output'] | null;
+    author: public_User;
+    comments: public_Comment[];
+    readonly [RelationKeys]?: 'author' | 'comments';
+  };
+  export type public_Comment = {
+    id: CodecTypes['pg/int4@1']['output'];
+    postId: CodecTypes['pg/int4@1']['output'];
+    content: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    post: public_Post;
+    readonly [RelationKeys]?: 'post';
+  };
+  export type public_ParamTypes = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: Varchar<255> | null;
+    code: Char<16> | null;
+    price: Numeric<10, 2> | null;
+    flags: Bit<8> | null;
+    bits: VarBit<12> | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    startsAt: CodecTypes['pg/time-temporal@1']['output'] | null;
+    startsAtTz: Timetz<2> | null;
+    duration: Interval<6> | null;
+    readonly [RelationKeys]?: never;
+  };
+  export type public_Event = {
+    id: Char<36>;
+    name: CodecTypes['pg/text@1']['output'];
+    scheduledAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_LiteralDefaults = {
+    id: CodecTypes['pg/int4@1']['output'];
+    label: CodecTypes['pg/text@1']['output'];
+    score: CodecTypes['pg/int4@1']['output'];
+    rating: CodecTypes['pg/float8@1']['output'];
+    active: CodecTypes['pg/bool@1']['output'];
+    bigCount: CodecTypes['pg/int8@1']['output'];
+    metadata: CodecTypes['pg/jsonb@1']['output'];
+    tags: CodecTypes['pg/jsonb@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_Embedding = {
+    id: CodecTypes['pg/int4@1']['output'];
+    embedding: Vector<1536>;
+    profile: { age: number; name: string };
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Post: Models.public_Post;
+    Comment: Models.public_Comment;
+    ParamTypes: Models.public_ParamTypes;
+    Event: Models.public_Event;
+    LiteralDefaults: Models.public_LiteralDefaults;
+    Embedding: Models.public_Embedding;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -919,6 +1003,7 @@ type ContractBase = Omit<
               readonly post: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Post' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['postId'];
                   readonly targetFields: readonly ['id'];
@@ -1210,6 +1295,7 @@ type ContractBase = Omit<
               readonly author: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];

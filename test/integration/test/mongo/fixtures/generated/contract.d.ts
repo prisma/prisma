@@ -7,6 +7,7 @@ import type {
   MongoCollection,
   MongoContractWithTypeMaps,
   MongoTypeMaps,
+  RelationKeys,
 } from '@internal/mongo-contract';
 import type {
   Contract as ContractType,
@@ -84,6 +85,70 @@ export type FieldInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type unbound_Task = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    title: CodecTypes['mongo/string@1']['output'];
+    type: 'bug' | 'feature';
+    assigneeId: CodecTypes['mongo/objectId@1']['output'];
+    comments: unbound_Comment[];
+    assignee: unbound_User;
+    readonly [RelationKeys]?: 'assignee';
+  };
+  export type unbound_Bug = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    title: CodecTypes['mongo/string@1']['output'];
+    type: 'bug';
+    assigneeId: CodecTypes['mongo/objectId@1']['output'];
+    severity: CodecTypes['mongo/string@1']['output'];
+    comments: unbound_Comment[];
+    assignee: unbound_User;
+    readonly [RelationKeys]?: 'assignee';
+  };
+  export type unbound_Feature = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    title: CodecTypes['mongo/string@1']['output'];
+    type: 'feature';
+    assigneeId: CodecTypes['mongo/objectId@1']['output'];
+    priority: CodecTypes['mongo/string@1']['output'];
+    targetRelease: CodecTypes['mongo/string@1']['output'];
+    comments: unbound_Comment[];
+    assignee: unbound_User;
+    readonly [RelationKeys]?: 'assignee';
+  };
+  export type unbound_User = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    name: CodecTypes['mongo/string@1']['output'];
+    email: CodecTypes['mongo/string@1']['output'];
+    addresses: unbound_Address[];
+    readonly [RelationKeys]?: never;
+  };
+  export type unbound_Address = {
+    street: CodecTypes['mongo/string@1']['output'];
+    city: CodecTypes['mongo/string@1']['output'];
+    zip: CodecTypes['mongo/string@1']['output'];
+  };
+  export type unbound_Comment = {
+    _id: CodecTypes['mongo/objectId@1']['output'];
+    text: CodecTypes['mongo/string@1']['output'];
+    createdAt: CodecTypes['mongo/date@1']['output'];
+  };
+  export type unbound_AnyTask = unbound_Bug | unbound_Feature;
+}
+
+export declare const models: {
+  __unbound__: {
+    Task: Models.unbound_Task;
+    Bug: Models.unbound_Bug;
+    Feature: Models.unbound_Feature;
+    User: Models.unbound_User;
+    Address: Models.unbound_Address;
+    Comment: Models.unbound_Comment;
+    AnyTask: Models.unbound_AnyTask;
+  };
+};
+
 export type TypeMaps = MongoTypeMaps<CodecTypes, FieldOutputTypes, FieldInputTypes>;
 
 type ContractBase = Omit<
@@ -227,6 +292,7 @@ type ContractBase = Omit<
                   readonly model: 'User';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['assigneeId'];
                   readonly targetFields: readonly ['_id'];

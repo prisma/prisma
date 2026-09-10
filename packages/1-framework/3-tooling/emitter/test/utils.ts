@@ -59,6 +59,10 @@ type TestContractOverrides = {
   targetFamily?: string;
   roots?: Record<string, CrossReference>;
   models?: Record<string, unknown>;
+  /** Named domain namespaces; replaces the single unbound namespace `models` fills. */
+  namespaces?: Record<string, unknown>;
+  /** SQL storage tables keyed by namespace id, then table name; builds `storage.namespaces`. */
+  tables?: Record<string, Record<string, unknown>>;
   valueObjects?: Record<string, unknown>;
   enum?: Record<string, unknown>;
   storage?: Record<string, unknown>;
@@ -95,13 +99,26 @@ export function modelsFromCanonicalContract(
 }
 
 export function createTestContract(overrides: TestContractOverrides = {}): Contract {
-  const { storageHash: _sh, schemaVersion: _sv, sources: _src, storage, ...rest } = overrides;
+  const {
+    storageHash: _sh,
+    schemaVersion: _sv,
+    sources: _src,
+    storage,
+    tables,
+    ...rest
+  } = overrides;
   const cleanStorage = storage
     ? (() => {
         const { storageHash: _innerSh, ...storageRest } = storage as Record<string, unknown>;
         return storageRest;
       })()
-    : undefined;
+    : tables
+      ? {
+          namespaces: Object.fromEntries(
+            Object.entries(tables).map(([id, table]) => [id, { id, entries: { table } }]),
+          ),
+        }
+      : undefined;
   return createContract({
     ...rest,
     ...(cleanStorage ? { storage: cleanStorage } : {}),

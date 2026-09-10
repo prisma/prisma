@@ -60,9 +60,9 @@ describe('ports/prisma/functional/issues-29010-bigint-precision-relation-joins',
         expect(post).not.toBeNull();
         expect(post!.id).toBe(POST_ID);
         expect(post!.authorId).toBe(USER_ID);
-        expect(post!.author['id']).toBe(USER_ID);
-        expect(post!.author.posts).toHaveLength(1);
-        expect(post!.author.posts[0]!['id']).toBe(POST_ID);
+        expect(post!.author!['id']).toBe(USER_ID);
+        expect(post!.author!.posts).toHaveLength(1);
+        expect(post!.author!.posts[0]!['id']).toBe(POST_ID);
       }),
     timeouts.spinUpPpgDev,
   );

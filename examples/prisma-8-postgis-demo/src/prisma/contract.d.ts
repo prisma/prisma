@@ -27,6 +27,7 @@ import type {
 
 import type {
   ContractWithTypeMaps,
+  RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-postgres/family-contract/types';
 import type {
@@ -321,6 +322,36 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Cafe = {
+    id: Char<36>;
+    name: CodecTypes['pg/text@1']['output'];
+    location: Geometry<4326>;
+    readonly [RelationKeys]?: never;
+  };
+  export type public_Route = {
+    id: Char<36>;
+    name: CodecTypes['pg/text@1']['output'];
+    path: Geometry<4326>;
+    readonly [RelationKeys]?: never;
+  };
+  export type public_Neighborhood = {
+    id: Char<36>;
+    name: CodecTypes['pg/text@1']['output'];
+    boundary: Geometry<4326>;
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    Cafe: Models.public_Cafe;
+    Route: Models.public_Route;
+    Neighborhood: Models.public_Neighborhood;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,

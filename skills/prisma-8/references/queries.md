@@ -126,6 +126,49 @@ console.log('Seeded.');
 await db.close();
 ```
 
+## Naming model and result types
+
+The model is the whole row plus its relations, and each related model carries its own relations in turn, so no query returns a value of the model type. A query returns the fields it fetched. The default fetch returns `Scalars<Model>`, the model without relations: `db.orm.public.User.first()` returns `Scalars<Model> | null`, and `db.orm.public.User.all()` returns `Scalars<Model>[]` (or its async iterable). Four types cover every case, and none needs a client in scope:
+
+- `Models.<ns>_<Model>` (from `contract.d.ts`) — every scalar field and every relation. On SQLite, which has no schemas, the name is bare: `Models.User` and `typeof models.User`. On Postgres the schema is part of the name: `Models.public_User`, or `typeof models.public.User` by dotted access. A model declared without a schema is in the unbound namespace: `Models.unbound_User` and `typeof models.__unbound__.User`. Mongo names its models the same way. A polymorphic base also emits one member per variant and an `Any<Base>` union (`Models.public_AnyTask`).
+- `Scalars<M>` — the model without relations; what a default fetch returns. Distributes over unions, so `Scalars<Models.public_AnyTask>` is the union of variant rows.
+- `Shape<M, Spec>` — a data structure derived from the model, for declaring an endpoint's response type once and having the compiler check the body at the `return`. At every level of `Spec`: `'+'` is a union of scalar and relation names to keep (a relation named there comes with all of its scalars and none of its relations; the scalars are narrowed only when `'+'` names a scalar, so `'+': 'posts'` alone is every scalar plus posts); `'-'` is a union of scalar names to drop; `'+'` naming a scalar beside `'-'` is a compile error, while `{ '-': 'passwordHash'; '+': 'posts' }` is every scalar but the hash plus posts; any other key is a relation whose value is a nested spec that narrows the related model. Relations are absent unless asked for; `X[]`, `X | null`, or `X` comes from the model. Wrong names, a relation in `'-'`, a non-object relation value, and a relation both in `'+'` and as a key are compile errors. No `where`/`orderBy`/`limit`; compose extras with TypeScript (`Shape<M> & { postCount: number }`).
+- `ResultType<typeof query>` — the row of any ORM collection value (plain, `.include()`, `.select()`, `.variant()`), and of SQL lane plans. Bind the query to a name first; `typeof` needs a value.
+
+```ts
+import type { models, Models } from './prisma/contract';
+import type { Scalars, Shape } from '@prisma/orm-postgres/family-contract/types';
+import type { ResultType } from '@prisma/orm-postgres/components/runtime';
+
+type User = typeof models.public.User; // same type as Models.public_User
+type UserRow = ResultType<typeof db.orm.public.User>; // Scalars<Models.public_User>
+
+const usersWithTasks = () => db.orm.public.User.include('tasks');
+type UserWithTasks = ResultType<ReturnType<typeof usersWithTasks>>; // Shape<Models.public_User, { '+': 'tasks' }>
+
+const projected = db.orm.public.User.select('id');
+type UserId = ResultType<typeof projected>; // { id: number }
+
+// An endpoint declares its response from the model; the query behind it is an implementation detail.
+type UserResponse = Shape<Models.public_User, { '-': 'email'; posts: { '+': 'id' | 'title' | 'tags' } }>;
+
+async function getUserWithPosts(userId: Models.public_User['id']): Promise<UserResponse | null> {
+  const user = await db.orm.public.User.where({ id: userId })
+    .include('posts', (posts) => posts.include('tags'))
+    .first();
+  if (user === null) return null;
+  const { email: _email, ...rest } = user;
+  return { ...rest, posts: user.posts.map(({ id, title, tags }) => ({ id, title, tags })) };
+}
+
+// @ts-expect-error 'nope' is not a relation of User
+type Bad = Shape<Models.public_User, { nope: {} }>;
+```
+
+On Mongo the imports are `@prisma/orm-mongo/family-contract/types` and `@prisma/orm-mongo/components/runtime`; embedded documents are fields, so they stay in `Scalars`. To name a model plus some of its relations, write `Shape<Models.public_User, { '+': 'id' | 'posts' }>`, not `Pick<Models.public_User, 'id' | 'posts'>`: `Pick` demands fully loaded nested posts that no query returns. Input types (`CreateInput<Contract, 'User'>`, `MutationUpdateInput<Contract, 'User'>`, `ShorthandWhereFilter<Contract, 'public', 'User'>`) come from `@prisma/orm-postgres/orm-client`.
+
+Coming from Prisma 7: `Prisma.User` → `Models.public_User` (note: now carries relations; the scalars-only row is `Scalars<Models.public_User>`); `Prisma.UserGetPayload<{ include: { posts: true } }>` → `Shape<Models.public_User, { '+': 'posts' }>`; `Prisma.UserGetPayload<{ select: { id: true; posts: { select: { title: true } } } }>` → `Shape<Models.public_User, { '+': 'id'; posts: { '+': 'title' } }>`; `Prisma.UserCreateInput` → `CreateInput<Contract, 'User'>`; `Awaited<ReturnType<typeof fn>>` → `ResultType<typeof query>`.
+
 ## Common Pitfalls (cross-target)
 
 1. **Using Postgres examples on a Mongo project (or vice versa).** Check `db.ts` and load the correct target guide ([`queries-postgres.md`](./queries-postgres.md) or [`queries-mongo.md`](./queries-mongo.md)).

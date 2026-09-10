@@ -96,3 +96,4 @@ See [ADR 204 — Single-Path Async Codec Runtime](../../../docs/architecture%20d
 - [ADR 164 - Repository Layer](../../../docs/architecture%20docs/adrs/ADR%20164%20-%20Repository%20Layer.md)
 - [ADR 204 - Single-Path Async Codec Runtime](../../../docs/architecture%20docs/adrs/ADR%20204%20-%20Single-Path%20Async%20Codec%20Runtime.md)
 - [Query Lanes Subsystem](../../../docs/architecture%20docs/subsystems/3.%20Query%20Lanes.md)
+- [Naming model and result types](../../../docs/reference/model-and-result-types.md)

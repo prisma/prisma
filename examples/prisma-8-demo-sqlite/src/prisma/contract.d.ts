@@ -5,6 +5,7 @@ import type { CodecTypes as SqliteTypes } from '@prisma/orm-sqlite/adapter/codec
 
 import type {
   ContractWithTypeMaps,
+  RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-sqlite/family-contract/types';
 import type {
@@ -230,6 +231,47 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type User = {
+    id: CodecTypes['sql/char@1']['output'];
+    email: CodecTypes['sqlite/text@1']['output'];
+    displayName: CodecTypes['sqlite/text@1']['output'];
+    createdAt: CodecTypes['sqlite/datetime@1']['output'];
+    posts: Post[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type Post = {
+    id: CodecTypes['sql/char@1']['output'];
+    title: CodecTypes['sqlite/text@1']['output'];
+    userId: CodecTypes['sql/char@1']['output'];
+    createdAt: CodecTypes['sqlite/datetime@1']['output'];
+    viewCount: CodecTypes['sqlite/bigintnumber@1']['output'] | null;
+    impressionCount: CodecTypes['sqlite/bigint@1']['output'] | null;
+    user: User;
+    tags: Tag[];
+    readonly [RelationKeys]?: 'user' | 'tags';
+  };
+  export type Tag = {
+    id: CodecTypes['sql/char@1']['output'];
+    label: CodecTypes['sqlite/text@1']['output'];
+    posts: Post[];
+    readonly [RelationKeys]?: 'posts';
+  };
+  export type PostTag = {
+    postId: CodecTypes['sql/char@1']['output'];
+    tagId: CodecTypes['sql/char@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  User: Models.User;
+  Post: Models.Post;
+  Tag: Models.Tag;
+  PostTag: Models.PostTag;
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -499,6 +541,7 @@ type ContractBase = Omit<
                   readonly model: 'User';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];

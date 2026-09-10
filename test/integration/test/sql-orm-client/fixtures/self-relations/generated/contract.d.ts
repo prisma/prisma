@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -311,6 +315,56 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Person = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    managerId: CodecTypes['pg/int4@1']['output'] | null;
+    partnerId: CodecTypes['pg/int4@1']['output'] | null;
+    followers: public_Person[];
+    following: public_Person[];
+    incomingLinks: public_PersonConnection[];
+    manager: public_Person | null;
+    outgoingLinks: public_PersonConnection[];
+    partner: public_Person | null;
+    partneredBy: public_Person | null;
+    reports: public_Person[];
+    readonly [RelationKeys]?:
+      | 'followers'
+      | 'following'
+      | 'incomingLinks'
+      | 'manager'
+      | 'outgoingLinks'
+      | 'partner'
+      | 'partneredBy'
+      | 'reports';
+  };
+  export type public_PersonFollow = {
+    followerId: CodecTypes['pg/int4@1']['output'];
+    followeeId: CodecTypes['pg/int4@1']['output'];
+    followee: public_Person;
+    follower: public_Person;
+    readonly [RelationKeys]?: 'followee' | 'follower';
+  };
+  export type public_PersonConnection = {
+    sourceId: CodecTypes['pg/int4@1']['output'];
+    targetId: CodecTypes['pg/int4@1']['output'];
+    weight: CodecTypes['pg/int4@1']['output'];
+    source: public_Person;
+    target: public_Person;
+    readonly [RelationKeys]?: 'source' | 'target';
+  };
+}
+
+export declare const models: {
+  public: {
+    Person: Models.public_Person;
+    PersonFollow: Models.public_PersonFollow;
+    PersonConnection: Models.public_PersonConnection;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -604,6 +658,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['managerId'];
                   readonly targetFields: readonly ['id'];
@@ -626,6 +681,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['partnerId'];
                   readonly targetFields: readonly ['id'];
@@ -637,6 +693,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['partnerId'];
@@ -687,6 +744,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['sourceId'];
                   readonly targetFields: readonly ['id'];
@@ -698,6 +756,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['targetId'];
                   readonly targetFields: readonly ['id'];
@@ -732,6 +791,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['followeeId'];
                   readonly targetFields: readonly ['id'];
@@ -743,6 +803,7 @@ type ContractBase = Omit<
                   readonly model: 'Person';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['followerId'];
                   readonly targetFields: readonly ['id'];

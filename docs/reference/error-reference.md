@@ -317,13 +317,33 @@ A command that requires a pre-signed database (marker present) as a precondition
 
 The marker row exists but its column values fail schema validation — the row is corrupt or written by an incompatible version. Fix path: delete the row and re-sign with `prisma db sign`. Payload: `space`.
 
+### CONTRACT.MODEL_BASE_MISSING
+
+A variant model names a `base` that is not a model in the contract, so its type in `contract.d.ts` cannot include the base's fields. Raised while emitting `contract.d.ts`. Payload: `variant`, `base`.
+
+### CONTRACT.MODEL_RELATION_TARGET_MISSING
+
+A same-space relation points at a model the contract does not declare. Raised while emitting the `Models` namespace in `contract.d.ts`; only cross-space relations may reference models outside the contract. Payload: `owner`, `relationName`, `target` (`namespaceId`, `modelName`).
+
 ### CONTRACT.MODEL_TOKEN_INVALID
 
 A model token is misused in the TS authoring DSL: an unnamed token is used in `.ref(...)` or as a relation target (tokens need `model("Name", ...)`), or a token is assigned under a `models` key that does not match its name. Payload: `tokenModelName`, `assignedKey`.
 
+### CONTRACT.MODEL_TYPE_NAME_COLLISION
+
+Two models produce the same emitted type name in the `Models` namespace of `contract.d.ts`, formed as `<namespace>_<Model>`, for example a `public_User` model beside a `public` namespace holding `User`, or a model named `AnyTask` beside a polymorphic base `Task`. Raised while emitting `contract.d.ts`. Payload: `memberName`, `sources`.
+
+### CONTRACT.MODEL_TYPE_NAME_INVALID
+
+An emitted model type name, formed as `<namespace>_<Model>`, is not a TypeScript identifier, for example because the namespace contains a hyphen. Raised while emitting `contract.d.ts`. Payload: `memberName`, `source`.
+
 ### CONTRACT.MODEL_UNKNOWN
 
 A relation, foreign key, junction (`through`) reference, or context declaration names a model that is not declared in the contract. Raised while lowering/building a SQL contract. Payload: `sourceModel`, `relationName`, `targetModel`.
+
+### CONTRACT.MODEL_VARIANT_MISSING
+
+A polymorphic base names a variant that is not a model in the same namespace, so the `Any<Base>` union in `contract.d.ts` cannot be formed. Raised while emitting `contract.d.ts`. Payload: `base`, `variantName`.
 
 ### CONTRACT.MODULE_EXPORT_MISSING
 
