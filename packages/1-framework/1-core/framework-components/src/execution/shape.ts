@@ -22,10 +22,11 @@ export type Scalars<M> = M extends { readonly [RelationKeys]?: infer R extends s
 /**
  * An application data structure derived from a model.
  *
- * At every level of `Spec`: `'+'` names the scalars and relations to keep; `'-'` names scalars to drop;
- * any other key is a relation whose value is the spec for the related model (`{}` is all scalars, no
- * relations). Relations are absent unless asked for; cardinality and nullability come from the model.
- * Distributes over a union, so each variant of `Any<Base>` keeps only its own relations.
+ * At every level of `Spec`: `'+'` names scalars and relations to keep, and narrows the scalars only
+ * when it names one; `'-'` names scalars to drop; any other key is a relation whose value is a spec
+ * that narrows the related model. A relation named in `'+'` comes with all of its scalars and none of
+ * its relations. Relations are absent unless asked for; cardinality and nullability come from the
+ * model. Distributes over a union, so each variant of `Any<Base>` keeps only its own relations.
  */
 export type Shape<M, Spec extends ShapeSpec<M, Spec> = Record<never, never>> = ShapeOf<M, Spec>;
 
@@ -35,17 +36,17 @@ export type Shape<M, Spec extends ShapeSpec<M, Spec> = Record<never, never>> = S
  */
 export type ShapeSpec<M, Spec> = {
   readonly [K in keyof Spec]: K extends '+'
-    ? '-' extends keyof Spec
-      ? never
-      : Exclude<ScalarNamesOf<M> | RelationNamesOf<M>, keyof Spec>
+    ? Exclude<PlusNames<M, Spec>, keyof Spec>
     : K extends '-'
-      ? '+' extends keyof Spec
-        ? never
-        : ScalarNamesOf<M>
+      ? ScalarNamesOf<M>
       : K extends RelationNamesOf<M>
         ? ShapeSpec<RelatedModel<M, K>, Spec[K]>
         : UnknownSpecKey<M, K>;
 };
+
+type PlusNames<M, Spec> = '-' extends keyof Spec
+  ? RelationNamesOf<M>
+  : ScalarNamesOf<M> | RelationNamesOf<M>;
 
 type UnknownSpecKey<M, K> = [RelationNamesOf<M>] extends [never]
   ? `'${K & string}' is not a relation of the model, which has none; try '+' or '-'`
@@ -61,9 +62,17 @@ type RelatedModel<M, K> = M extends unknown
 
 type UnwrapRelation<V> = V extends (infer Item)[] ? Item : NonNullable<V>;
 
-type ShapeOf<M, Spec> = M extends unknown
+type ShapeOf<M, Spec> = ShapeOfEach<M, Spec, PlusNamesAScalar<M, Spec>>;
+
+type PlusNamesAScalar<M, Spec> = Spec extends { readonly '+': infer Keep }
+  ? [Extract<Keep, ScalarNamesOf<M>>] extends [never]
+    ? false
+    : true
+  : false;
+
+type ShapeOfEach<M, Spec, Narrow extends boolean> = M extends unknown
   ? Flatten<
-      KeptScalars<M, Spec> & {
+      KeptScalars<M, Spec, Narrow> & {
         [K in IncludedRelations<M, Spec>]: WrapLike<
           M[K],
           ShapeOf<RelatedModel<M, K>, NestedSpec<Spec, K>>
@@ -72,8 +81,10 @@ type ShapeOf<M, Spec> = M extends unknown
     >
   : never;
 
-type KeptScalars<M, Spec> = Spec extends { readonly '+': infer Keep }
-  ? Pick<Scalars<M>, Extract<Keep, keyof Scalars<M>>>
+type KeptScalars<M, Spec, Narrow extends boolean> = Narrow extends true
+  ? Spec extends { readonly '+': infer Keep }
+    ? Pick<Scalars<M>, Extract<Keep, keyof Scalars<M>>>
+    : never
   : Spec extends { readonly '-': infer Drop extends PropertyKey }
     ? Omit<Scalars<M>, Drop>
     : Scalars<M>;

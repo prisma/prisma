@@ -44,7 +44,7 @@ test('ResultType of a root collection equals Scalars of the emitted model and is
 test('ResultType of a reference include equals Shape with the relation key', () => {
   const withAssignee = db.tasks.include('assignee');
   expectTypeOf<ResultType<typeof withAssignee>>().toEqualTypeOf<
-    Shape<Models.unbound_AnyTask, { assignee: Record<never, never> }>
+    Shape<Models.unbound_AnyTask, { '+': 'assignee' }>
   >();
 });
 

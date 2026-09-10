@@ -5,7 +5,7 @@ import postgresTargetPack from '../src/exports/pack';
 
 describe('postgresTargetDescriptorMeta', () => {
   it('declares namespace support, so emitted model names keep their namespace segment', () => {
-    expect(postgresTargetDescriptorMeta.namespaceSupport).toBe('supported');
+    expect(postgresTargetDescriptorMeta.supportsNamespaces).toBe(true);
   });
 
   it('declares the expected defaultNamespaceId', () => {

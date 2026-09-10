@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, test } from 'vitest';
-import type { RelationKeys, Scalars, Shape, ShapeSpec } from '../src/execution/model-types';
+import type { RelationKeys, Scalars, Shape, ShapeSpec } from '../src/execution/shape';
 
 type Post = {
   id: number;
@@ -95,39 +95,43 @@ describe('Shape', () => {
     }>();
   });
 
-  test('a relation key includes the relation with all of its scalars and none of its relations', () => {
-    expectTypeOf<Shape<User, { posts: Record<never, never> }>>().toEqualTypeOf<{
+  test("a relation named in '+' alone is every scalar plus that relation, flattened", () => {
+    expectTypeOf<Shape<User, { '+': 'posts' }>>().toEqualTypeOf<{
       id: number;
       name: string;
       posts: PostRow[];
     }>();
-    expectTypeOf<
-      Shape<User, { posts: Record<never, never> }>['posts'][number]
-    >().not.toHaveProperty('author');
+    type Intersection = Scalars<User> & { posts: Scalars<Post>[] };
+    expectTypeOf<Shape<User, { '+': 'posts' }>>().toEqualTypeOf<{
+      [K in keyof Intersection]: Intersection[K];
+    }>();
+    expectTypeOf<Shape<User, { '+': 'posts' }>['posts'][number]>().not.toHaveProperty('author');
+    expectTypeOf<Shape<User, { '+': 'posts' | 'profile' }>>().toEqualTypeOf<{
+      id: number;
+      name: string;
+      posts: PostRow[];
+      profile: { id: number; bio: string | null } | null;
+    }>();
   });
 
   test('cardinality and nullability come from the model field', () => {
-    expectTypeOf<Shape<User, { posts: Record<never, never> }>['posts']>().toEqualTypeOf<
-      PostRow[]
-    >();
-    expectTypeOf<Shape<User, { profile: Record<never, never> }>['profile']>().toEqualTypeOf<{
+    expectTypeOf<Shape<User, { '+': 'posts' }>['posts']>().toEqualTypeOf<PostRow[]>();
+    expectTypeOf<Shape<User, { '+': 'profile' }>['profile']>().toEqualTypeOf<{
       id: number;
       bio: string | null;
     } | null>();
-    expectTypeOf<
-      Shape<User, { manager: Record<never, never> }>['manager']
-    >().toEqualTypeOf<UserRow>();
+    expectTypeOf<Shape<User, { '+': 'manager' }>['manager']>().toEqualTypeOf<UserRow>();
   });
 
   test('a self relation is one level of the same model', () => {
-    expectTypeOf<Shape<User, { manager: { manager: Record<never, never> } }>>().toEqualTypeOf<{
+    expectTypeOf<Shape<User, { manager: { '+': 'manager' } }>>().toEqualTypeOf<{
       id: number;
       name: string;
       manager: { id: number; name: string; manager: UserRow };
     }>();
   });
 
-  test("'+' keeps only the named scalars", () => {
+  test("'+' naming a scalar keeps only the named scalars", () => {
     expectTypeOf<Shape<User, { '+': 'id' }>>().toEqualTypeOf<{ id: number }>();
     expectTypeOf<Shape<Post, { '+': 'id' | 'title' }>>().toEqualTypeOf<{
       id: number;
@@ -135,17 +139,16 @@ describe('Shape', () => {
     }>();
   });
 
-  test("a relation named in '+' is included with all of its scalars and none of its relations", () => {
+  test("'+' naming a scalar and a relation keeps the named scalars and the relation", () => {
+    expectTypeOf<Shape<User, { '+': 'id' | 'posts' }>>().toEqualTypeOf<{
+      id: number;
+      posts: PostRow[];
+    }>();
     expectTypeOf<Shape<User, { '+': 'id' | 'name' | 'posts' }>>().toEqualTypeOf<{
       id: number;
       name: string;
       posts: PostRow[];
     }>();
-    expectTypeOf<Shape<User, { '+': 'posts' }>>().toEqualTypeOf<{ posts: PostRow[] }>();
-    expectTypeOf<Shape<User, { '+': 'profile' }>['profile']>().toEqualTypeOf<{
-      id: number;
-      bio: string | null;
-    } | null>();
   });
 
   test("'-' drops the named scalars and keeps every other scalar", () => {
@@ -153,24 +156,34 @@ describe('Shape', () => {
     expectTypeOf<Shape<Post, { '-': 'authorId' | 'title' }>>().toEqualTypeOf<{ id: number }>();
   });
 
-  test("'-' with a relation key keeps the relation", () => {
-    expectTypeOf<Shape<User, { '-': 'name'; posts: Record<never, never> }>>().toEqualTypeOf<{
+  test("'-' beside a '+' that names only relations drops the scalars and adds the relations", () => {
+    expectTypeOf<Shape<User, { '-': 'name'; '+': 'posts' }>>().toEqualTypeOf<{
       id: number;
       posts: PostRow[];
     }>();
   });
 
-  test("'+' with a relation key keeps the named scalars and the relation", () => {
-    expectTypeOf<Shape<User, { '+': 'id'; posts: Record<never, never> }>>().toEqualTypeOf<{
+  test("'-' with a relation key drops the scalars and narrows the relation", () => {
+    expectTypeOf<Shape<User, { '-': 'name'; posts: { '+': 'title' } }>>().toEqualTypeOf<{
       id: number;
-      posts: PostRow[];
+      posts: { title: string }[];
     }>();
   });
 
-  test('a nested spec applies to the related model', () => {
-    expectTypeOf<
-      Shape<User, { posts: { '+': 'title'; comments: Record<never, never> } }>
-    >().toEqualTypeOf<{
+  test("'+' with a relation key keeps the named scalars and narrows the relation", () => {
+    expectTypeOf<Shape<User, { '+': 'id'; posts: { '-': 'authorId' } }>>().toEqualTypeOf<{
+      id: number;
+      posts: { id: number; title: string }[];
+    }>();
+  });
+
+  test('a relation key narrows the related model', () => {
+    expectTypeOf<Shape<User, { posts: { '+': 'title' } }>>().toEqualTypeOf<{
+      id: number;
+      name: string;
+      posts: { title: string }[];
+    }>();
+    expectTypeOf<Shape<User, { posts: { '+': 'title' | 'comments' } }>>().toEqualTypeOf<{
       id: number;
       name: string;
       posts: { title: string; comments: { id: number; body: string }[] }[];
@@ -186,7 +199,8 @@ describe('Shape', () => {
 
   test('relations are absent unless asked for', () => {
     expectTypeOf<keyof Shape<User, Record<never, never>>>().toEqualTypeOf<'id' | 'name'>();
-    expectTypeOf<keyof Shape<User, { posts: Record<never, never> }>>().toEqualTypeOf<
+    expectTypeOf<keyof Shape<User, { '+': 'posts' }>>().toEqualTypeOf<'id' | 'name' | 'posts'>();
+    expectTypeOf<keyof Shape<User, { posts: { '+': 'id' } }>>().toEqualTypeOf<
       'id' | 'name' | 'posts'
     >();
     expectTypeOf<keyof Shape<User, { '-': 'name' }>>().toEqualTypeOf<'id'>();
@@ -194,32 +208,35 @@ describe('Shape', () => {
 
   test('hover text is one flat object, not an intersection', () => {
     type Flat = { id: number; name: string; posts: PostRow[] };
-    expectTypeOf<Shape<User, { posts: Record<never, never> }>>().toEqualTypeOf<{
+    expectTypeOf<Shape<User, { '+': 'posts' }>>().toEqualTypeOf<{
       [K in keyof Flat]: Flat[K];
     }>();
   });
 
   test('distributes over a union so each variant keeps only its own relations', () => {
-    expectTypeOf<Shape<AnyTask, { reporter: Record<never, never> }>>().toEqualTypeOf<
+    expectTypeOf<Shape<AnyTask, { '+': 'reporter' }>>().toEqualTypeOf<
       | { id: number; type: 'bug'; severity: string; reporter: UserRow }
       | { id: number; type: 'feature'; priority: number }
       | { id: number; type: 'chore' }
     >();
-    expectTypeOf<
-      Shape<AnyTask, { reporter: Record<never, never>; owner: Record<never, never> }>
-    >().toEqualTypeOf<
+    expectTypeOf<Shape<AnyTask, { '+': 'reporter' | 'owner' }>>().toEqualTypeOf<
       | { id: number; type: 'bug'; severity: string; reporter: UserRow }
       | { id: number; type: 'feature'; priority: number; owner: UserRow }
       | { id: number; type: 'chore' }
     >();
-    expectTypeOf<Shape<AnyTask, { assignee: Record<never, never> }>>().toEqualTypeOf<
+    expectTypeOf<Shape<AnyTask, { '+': 'assignee' }>>().toEqualTypeOf<
       | { id: number; type: 'bug'; severity: string; assignee: UserRow | null }
       | { id: number; type: 'feature'; priority: number }
       | { id: number; type: 'chore' }
     >();
     expectTypeOf<
-      Extract<Shape<AnyTask, { assignee: Record<never, never> }>, { type: 'chore' }>
+      Extract<Shape<AnyTask, { '+': 'assignee' }>, { type: 'chore' }>
     >().not.toHaveProperty('assignee');
+    expectTypeOf<Shape<AnyTask, { reporter: { '+': 'id' } }>>().toEqualTypeOf<
+      | { id: number; type: 'bug'; severity: string; reporter: { id: number } }
+      | { id: number; type: 'feature'; priority: number }
+      | { id: number; type: 'chore' }
+    >();
   });
 
   test("'+' and '-' over a union name scalars of any variant", () => {
@@ -232,10 +249,7 @@ describe('Shape', () => {
   });
 
   test('the Shape of a model is assignable from the rows a query returns', () => {
-    type Response = Shape<
-      User,
-      { '-': 'name'; posts: { '+': 'id' | 'title'; comments: Record<never, never> } }
-    >;
+    type Response = Shape<User, { '-': 'name'; posts: { '+': 'id' | 'title' | 'comments' } }>;
     const fromRow = (
       row: UserRow & { posts: (PostRow & { comments: { id: number; body: string }[] })[] },
     ): Response => {
@@ -256,7 +270,7 @@ describe('Shape', () => {
 
   test('ShapeSpec constrains a generic that forwards its spec to Shape', () => {
     type UserShape<S extends ShapeSpec<User, S>> = Shape<User, S>;
-    expectTypeOf<UserShape<{ posts: Record<never, never> }>>().toEqualTypeOf<{
+    expectTypeOf<UserShape<{ '+': 'posts' }>>().toEqualTypeOf<{
       id: number;
       name: string;
       posts: PostRow[];
@@ -311,14 +325,16 @@ describe('Shape', () => {
     type _Union = Shape<AnyTask, { posts: Record<never, never> }>;
   });
 
-  test("refuses '+' and '-' at the same level", () => {
-    // @ts-expect-error '+' and '-' cannot both be given
+  test("refuses '+' naming a scalar beside '-' at the same level", () => {
+    // @ts-expect-error '+' names a scalar, so it cannot sit beside '-'
     type _Both = Shape<User, { '+': 'id'; '-': 'name' }>;
+    // @ts-expect-error '+' names a scalar beside a relation, so it cannot sit beside '-'
+    type _Mixed = Shape<User, { '-': 'name'; '+': 'id' | 'posts' }>;
   });
 
   test("refuses a relation both in '+' and as a key at the same level", () => {
     // @ts-expect-error 'posts' cannot be both kept whole and narrowed
-    type _Both = Shape<User, { '+': 'posts'; posts: Record<never, never> }>;
+    type _Both = Shape<User, { '+': 'posts'; posts: { '+': 'title' } }>;
     // @ts-expect-error 'posts' cannot be both kept whole and narrowed
     type _WithScalars = Shape<User, { '+': 'id' | 'posts'; posts: { '+': 'title' } }>;
   });
@@ -330,11 +346,11 @@ describe('Shape', () => {
     type _Minus = Shape<User, { posts: { '-': 'author' } }>;
     // @ts-expect-error 'nope' is not a relation of Post
     type _Key = Shape<User, { posts: { nope: Record<never, never> } }>;
-    // @ts-expect-error '+' and '-' cannot both be given
+    // @ts-expect-error '+' names a scalar, so it cannot sit beside '-'
     type _Both = Shape<User, { posts: { '+': 'id'; '-': 'title' } }>;
     // @ts-expect-error a relation value must be a nested spec
     type _Value = Shape<User, { posts: { comments: true } }>;
     // @ts-expect-error 'author' cannot be both kept whole and narrowed
-    type _Twice = Shape<User, { posts: { '+': 'author'; author: Record<never, never> } }>;
+    type _Twice = Shape<User, { posts: { '+': 'author'; author: { '+': 'id' } } }>;
   });
 });

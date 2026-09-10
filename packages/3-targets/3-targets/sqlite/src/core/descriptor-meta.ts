@@ -6,7 +6,7 @@ import { sqliteTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
 const sqliteTargetDescriptorMetaBase = {
   ...sqliteTargetDescriptorMetaRuntime,
   defaultNamespaceId: UNBOUND_NAMESPACE_ID,
-  namespaceSupport: 'none',
+  supportsNamespaces: false,
   authoring: {
     type: sqliteAuthoringTypes,
     field: sqliteAuthoringFieldPresets,

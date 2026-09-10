@@ -24,7 +24,7 @@ describe('mongoTargetDescriptorMeta', () => {
   });
 
   it('declares namespace support, so emitted model names keep their namespace segment', () => {
-    expect(mongoTargetDescriptorMeta.namespaceSupport).toBe('supported');
+    expect(mongoTargetDescriptorMeta.supportsNamespaces).toBe(true);
   });
 
   it('declares defaultNamespaceId as __unbound__', () => {

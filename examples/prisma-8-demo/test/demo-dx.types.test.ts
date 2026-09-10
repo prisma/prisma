@@ -121,19 +121,19 @@ test('emitted models constant and Models namespace name the same type, and an OR
   type PostTag = typeof models.public.PostTag;
   const postTagsWithTag = () => db.orm.public.PostTag.include('tag');
   expectTypeOf<ResultType<ReturnType<typeof postTagsWithTag>>>().toEqualTypeOf<
-    Shape<PostTag, { tag: Record<never, never> }>
+    Shape<PostTag, { '+': 'tag' }>
   >();
 
   const usersWithTasks = () => db.orm.public.User.include('tasks');
   expectTypeOf<ResultType<ReturnType<typeof usersWithTasks>>>().toEqualTypeOf<
-    Shape<EmittedModels.public_User, { tasks: Record<never, never> }>
+    Shape<EmittedModels.public_User, { '+': 'tasks' }>
   >();
 });
 
 test('an endpoint declares its response with Shape and the compiler checks the body at the return', () => {
   type UserResponse = Shape<
     EmittedModels.public_User,
-    { '-': 'email'; posts: { '+': 'id' | 'title'; tags: Record<never, never> } }
+    { '-': 'email'; posts: { '+': 'id' | 'title' | 'tags' } }
   >;
 
   async function getUserWithPosts(

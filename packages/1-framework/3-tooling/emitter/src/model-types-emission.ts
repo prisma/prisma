@@ -5,7 +5,6 @@ import type {
   ContractRelation,
   CrossReference,
 } from '@internal/contract/types';
-import type { TargetNamespaceSupport } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   type ModelFieldTypeResolvers,
@@ -274,10 +273,9 @@ function namespaceModelsOf(contract: Contract): NamespaceModels[] {
 export function generateModelTypesBlock(
   contract: Contract,
   resolvers: ModelFieldTypeResolvers,
-  namespaceSupport: TargetNamespaceSupport,
+  supportsNamespaces: boolean,
 ): string {
-  const memberNameOf: MemberNamer =
-    namespaceSupport === 'none' ? bareMemberName : namespacedMemberName;
+  const memberNameOf: MemberNamer = supportsNamespaces ? namespacedMemberName : bareMemberName;
   const namespaces = namespaceModelsOf(contract);
   const index: ModelIndex = { namespaces, memberNameOf };
   const claims = new Map<string, string>();
@@ -324,7 +322,7 @@ export function generateModelTypesBlock(
       );
       keys.push(`${serializeObjectKey(`Any${ref.modelName}`)}: Models.${unionName};`);
     }
-    if (namespaceSupport === 'none') {
+    if (!supportsNamespaces) {
       constantEntries.push(...keys.map((key) => `  ${key}`));
       continue;
     }

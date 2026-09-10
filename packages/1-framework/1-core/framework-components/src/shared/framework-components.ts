@@ -175,11 +175,6 @@ export interface FamilyDescriptor<TFamilyId extends string> extends ComponentDes
 }
 
 /**
- * Whether the target has a namespace mechanism (Postgres schemas, Mongo namespaces). `'none'` means every entity lives in the single unbound namespace, so emitted `Models` member names and the `models` constant drop the namespace segment. Absent means `'supported'`.
- */
-export type TargetNamespaceSupport = 'supported' | 'none';
-
-/**
  * Descriptor for a target component.
  *
  * A "target" represents a specific database or data store within a family (e.g., Postgres, MySQL, MongoDB). Targets define:
@@ -212,7 +207,8 @@ export interface TargetDescriptor<TFamilyId extends string, TTargetId extends st
   /** The target identifier (e.g., 'postgres', 'mysql', 'mongodb') */
   readonly targetId: TTargetId;
 
-  readonly namespaceSupport?: TargetNamespaceSupport;
+  /** Whether the target has a namespace mechanism (Postgres schemas, Mongo namespaces). Absent means true. When false, emitted `Models` member names and the `models` constant drop the namespace segment. */
+  readonly supportsNamespaces?: boolean;
 }
 
 /**
@@ -236,7 +232,7 @@ export type TargetPackRef<
   readonly targetId: TTargetId;
   /** The namespace a bare (un-namespaced) entity name resolves to for this target (e.g. Postgres `'public'`). */
   readonly defaultNamespaceId: string;
-  readonly namespaceSupport?: TargetNamespaceSupport;
+  readonly supportsNamespaces?: boolean;
 };
 
 export type AdapterPackRef<

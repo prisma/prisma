@@ -14,7 +14,7 @@ const mongoTargetDescriptorMetaBase = {
   version: '0.0.1',
   capabilities: {},
   defaultNamespaceId: UNBOUND_NAMESPACE_ID,
-  namespaceSupport: 'supported',
+  supportsNamespaces: true,
   types: {
     codecTypes: {
       codecDescriptors: mongoCodecDescriptors,

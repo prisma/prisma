@@ -354,7 +354,7 @@ describe('Models namespace and models constant emission', () => {
         },
       },
     });
-    const dts = generateContractDts(contract, sqlSpi, [], HASHES, { namespaceSupport: 'none' });
+    const dts = generateContractDts(contract, sqlSpi, [], HASHES, { supportsNamespaces: false });
     expect(modelsBlock(dts)).toMatchInlineSnapshot(`
       "export namespace Models {
         export type User = {
@@ -396,7 +396,7 @@ describe('Models namespace and models constant emission', () => {
         User: { fields: { id: int() }, relations: {}, storage: { table: 'users' } },
       },
     });
-    for (const options of [undefined, {}, { namespaceSupport: 'supported' as const }]) {
+    for (const options of [undefined, {}, { supportsNamespaces: true }]) {
       const dts = generateContractDts(contract, sqlSpi, [], HASHES, options);
       expect(dts).toContain('export type unbound_User = {');
       expect(dts).toContain('  __unbound__: {\n    User: Models.unbound_User;\n  };');

@@ -150,17 +150,17 @@ test('ResultType of a bare collection equals Shape of the emitted model with the
   expectTypeOf<ResultType<typeof poly.User>>().toEqualTypeOf<Shape<PolyModels.public_AnyUser>>();
 });
 
-test('ResultType of a to-one include equals Shape with the relation key', () => {
+test("ResultType of a to-one include equals Shape with the relation in '+'", () => {
   const withAuthor = db.Post.include('author');
   expectTypeOf<ResultType<typeof withAuthor>>().toEqualTypeOf<
-    Shape<Models.public_Post, { author: Record<never, never> }>
+    Shape<Models.public_Post, { '+': 'author' }>
   >();
 });
 
-test('ResultType of a to-many include equals Shape with the relation key', () => {
+test("ResultType of a to-many include equals Shape with the relation in '+'", () => {
   const withComments = db.Post.include('comments');
   expectTypeOf<ResultType<typeof withComments>>().toEqualTypeOf<
-    Shape<Models.public_Post, { comments: Record<never, never> }>
+    Shape<Models.public_Post, { '+': 'comments' }>
   >();
 });
 
@@ -168,13 +168,9 @@ test('Shape is the hand-written Scalars intersection, flattened into one object'
   type PostWithComments = Scalars<Models.public_Post> & {
     comments: Scalars<Models.public_Comment>[];
   };
-  expectTypeOf<
-    Shape<Models.public_Post, { comments: Record<never, never> }>
-  >().toExtend<PostWithComments>();
-  expectTypeOf<PostWithComments>().toExtend<
-    Shape<Models.public_Post, { comments: Record<never, never> }>
-  >();
-  expectTypeOf<Shape<Models.public_Post, { comments: Record<never, never> }>>().toEqualTypeOf<{
+  expectTypeOf<Shape<Models.public_Post, { '+': 'comments' }>>().toExtend<PostWithComments>();
+  expectTypeOf<PostWithComments>().toExtend<Shape<Models.public_Post, { '+': 'comments' }>>();
+  expectTypeOf<Shape<Models.public_Post, { '+': 'comments' }>>().toEqualTypeOf<{
     [K in keyof PostWithComments]: PostWithComments[K];
   }>();
 });
@@ -182,14 +178,14 @@ test('Shape is the hand-written Scalars intersection, flattened into one object'
 test('ResultType of a nullable to-one include equals Shape', () => {
   const withInviter = db.User.include('invitedBy');
   expectTypeOf<ResultType<typeof withInviter>>().toEqualTypeOf<
-    Shape<Models.public_User, { invitedBy: Record<never, never> }>
+    Shape<Models.public_User, { '+': 'invitedBy' }>
   >();
 });
 
 test('ResultType of a to-one include on a required field equals Shape and is not nullable', () => {
   const withReviewer = db.Article.include('reviewer');
   expectTypeOf<ResultType<typeof withReviewer>>().toEqualTypeOf<
-    Shape<Models.public_Article, { reviewer: Record<never, never> }>
+    Shape<Models.public_Article, { '+': 'reviewer' }>
   >();
   expectTypeOf<Models.public_Article['reviewer']>().toEqualTypeOf<Models.public_User>();
 });
@@ -201,23 +197,23 @@ test("ResultType of a select projection equals Shape with '+'", () => {
   >();
 });
 
-test("ResultType of a select plus include equals Shape with '+' and the relation key", () => {
+test("ResultType of a select plus include equals Shape with both in '+'", () => {
   const projectedWithComments = db.Post.select('id', 'title').include('comments');
   expectTypeOf<ResultType<typeof projectedWithComments>>().toEqualTypeOf<
-    Shape<Models.public_Post, { '+': 'id' | 'title'; comments: Record<never, never> }>
+    Shape<Models.public_Post, { '+': 'id' | 'title' | 'comments' }>
   >();
 });
 
 test('ResultType of a nested include equals a nested Shape spec', () => {
   const usersWithPostComments = db.User.include('posts', (posts) => posts.include('comments'));
   expectTypeOf<ResultType<typeof usersWithPostComments>>().toEqualTypeOf<
-    Shape<Models.public_User, { posts: { comments: Record<never, never> } }>
+    Shape<Models.public_User, { posts: { '+': 'comments' } }>
   >();
   const narrowed = db.User.include('posts', (posts) =>
     posts.select('id', 'title').include('author'),
   );
   expectTypeOf<ResultType<typeof narrowed>>().toEqualTypeOf<
-    Shape<Models.public_User, { posts: { '+': 'id' | 'title'; author: Record<never, never> } }>
+    Shape<Models.public_User, { posts: { '+': 'id' | 'title' | 'author' } }>
   >();
 });
 
@@ -262,33 +258,31 @@ test('ResultType of a polymorphic base collection equals Scalars of the Any unio
 test('ResultType of an include whose target is a polymorphic base equals Shape over the Any union', () => {
   const projectsWithTasks = poly.Project.include('tasks');
   expectTypeOf<ResultType<typeof projectsWithTasks>>().toEqualTypeOf<
-    Shape<PolyModels.public_Project, { tasks: Record<never, never> }>
+    Shape<PolyModels.public_Project, { '+': 'tasks' }>
   >();
   const commentsWithTask = poly.TaskComment.include('task');
   expectTypeOf<ResultType<typeof commentsWithTask>>().toEqualTypeOf<
-    Shape<PolyModels.public_TaskComment, { task: Record<never, never> }>
+    Shape<PolyModels.public_TaskComment, { '+': 'task' }>
   >();
 });
 
 test('ResultType of a variant-only include on a variant collection equals Shape of the variant', () => {
   const bugsWithAssignee = poly.Task.variant('Bug').include('assignee');
   expectTypeOf<ResultType<typeof bugsWithAssignee>>().toEqualTypeOf<
-    Shape<PolyModels.public_Bug, { assignee: Record<never, never> }>
+    Shape<PolyModels.public_Bug, { '+': 'assignee' }>
   >();
 });
 
 test('Shape over the Any union adds a variant-only relation to the variants that declare it', () => {
   type Flat<T> = { [K in keyof T]: T[K] };
   type AssigneeRow = Scalars<PolyModels.public_Person> | null;
-  expectTypeOf<
-    Shape<PolyModels.public_AnyTask, { assignee: Record<never, never> }>
-  >().toEqualTypeOf<
+  expectTypeOf<Shape<PolyModels.public_AnyTask, { '+': 'assignee' }>>().toEqualTypeOf<
     | Flat<Scalars<PolyModels.public_Bug> & { assignee: AssigneeRow }>
     | Flat<Scalars<PolyModels.public_Feature> & { assignee: AssigneeRow }>
     | Flat<Scalars<PolyModels.public_Epic>>
   >();
   expectTypeOf<
-    Extract<Shape<PolyModels.public_AnyTask, { assignee: Record<never, never> }>, { type: 'epic' }>
+    Extract<Shape<PolyModels.public_AnyTask, { '+': 'assignee' }>, { type: 'epic' }>
   >().not.toHaveProperty('assignee');
 });
 

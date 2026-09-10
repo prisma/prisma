@@ -1,8 +1,8 @@
 # Naming model and result types
 
-A query result is a view on a model, not the model. The model is what you wrote in PSL: every field and every relation. The default fetch, `db.orm.public.User.first()` or `db.orm.public.User.all()`, returns `Scalars<Model>`, the model without its relations, because returning the model would mean loading the whole reachable graph. A fetch with `.include()` returns `Scalars<Model>` plus the relations you asked for, and a fetch with `.select()` returns what you selected. Every type on this page is emitted into `contract.d.ts` or exported by the family package, so you can name a model, a default row, an application data structure derived from a model, or the result of a query without a client in scope.
+The model is what you wrote in PSL: every field and every relation. Each related model includes its own relations in turn, so no query returns a value of the model type. A query returns the fields it fetched. The default fetch, `db.orm.public.User.first()` or `db.orm.public.User.all()`, returns `Scalars<Model>`: the model without its relations. A fetch with `.include()` returns `Scalars<Model>` plus the relations you asked for. A fetch with `.select()` returns what you selected.
 
-Every snippet below is copied from a passing type test or an emitted fixture. The first line of each snippet names the file it came from. One spelling differs: the empty spec is `{}` in your code, and the tests spell it `Record<never, never>`, the same type, because the repo's lint bans `{}` in its own files. The tests import from `@internal/*` package names; the public spellings are `@prisma/orm-postgres/family-contract/types` for `Scalars`, `Shape`, and `ShapeSpec`, `@prisma/orm-postgres/components/runtime` for `ResultType`, and `./prisma/contract` for `models` and `Models` (`@prisma/orm-mongo/contract` and `@prisma/orm-mongo/components/runtime` on Mongo).
+Every type on this page is emitted into `contract.d.ts` or exported by the family package. You can name a model, a default row, a data structure derived from a model, or the result of a query without a client in scope.
 
 ```ts
 import type { models, Models } from './prisma/contract';
@@ -10,12 +10,13 @@ import type { Scalars, Shape } from '@prisma/orm-postgres/family-contract/types'
 import type { ResultType } from '@prisma/orm-postgres/components/runtime';
 ```
 
+On Mongo the imports are `./prisma/contract`, `@prisma/orm-mongo/family-contract/types`, and `@prisma/orm-mongo/components/runtime`.
+
 ## The model
 
-`contract.d.ts` exports a `Models` namespace with one member per model, named `<namespace>_<Model>`, and a `models` declared constant that reaches the same types by dotted access. Each member carries every scalar field and every relation. Relation lines are typed as the related model's member: `X[]` for to-many, `X | null` for a to-one relation whose field is optional in the schema (`author User?`, or `belongsTo(User, { ..., optional: true })`), and `X` for a required one. The contract records this as `nullable` on the relation; the emitter and both ORMs read that flag rather than working it out from foreign keys.
+`contract.d.ts` exports a `Models` namespace with one member per model and a `models` declared constant that reaches the same types by dotted access. Each member carries every scalar field and every relation. A relation is typed as the related model: `X[]` for to-many, `X | null` for a to-one relation whose field is optional in the schema (`author User?`, or `belongsTo(User, { ..., optional: true })`), and `X` for a required one.
 
 ```ts
-// packages/3-extensions/sql-orm-client/test/fixtures/generated/contract.d.ts
 export namespace Models {
   export type public_User = {
     id: CodecTypes['pg/int4@1']['output'];
@@ -54,51 +55,43 @@ export declare const models: {
 `typeof models.public.User` and `Models.public_User` are the same type. `models` has no runtime value; import it with `import type`.
 
 ```ts
-// examples/prisma-8-demo/test/demo-dx.types.test.ts
-import type { Models as EmittedModels, models } from '../src/prisma/contract.d';
+import type { Models, models } from './prisma/contract';
 
 type User = typeof models.public.User;
-expectTypeOf<User>().toEqualTypeOf<EmittedModels.public_User>();
+type AlsoUser = Models.public_User;
 ```
 
-The `readonly [RelationKeys]?` line is a phantom: a symbol-keyed optional property that lists the relation names so `Scalars` and `Shape` can tell relations from scalars. It never affects assignability and never appears in a value.
+The `readonly [RelationKeys]?` line lists the relation names. It never affects assignability and never appears in a value.
 
-### Models in the default namespace
+### Namespaces in model names
 
-On a target with a namespace mechanism, the namespace is always part of the name. A model in the default namespace, `__unbound__`, is `Models.unbound_User` and `typeof models.__unbound__.User`, never a bare `User`. This is the same convention as `db.enums.__unbound__.X`. Postgres and Mongo are such targets.
-
-On a target whose descriptor declares `namespaceSupport: 'none'`, SQLite today, there is only ever one namespace, so the segment is dropped: the same model is `Models.User` and `typeof models.User`. The choice comes from the target declaration, not from how many namespaces a contract has, so adding a schema later never renames a type.
+On a database without schemas, such as SQLite, the model name is bare: `Models.User` and `typeof models.User`.
 
 ```ts
-// examples/prisma-8-demo-sqlite/src/prisma/contract.d.ts
 export declare const models: {
   User: Models.User;
   Post: Models.Post;
 };
 ```
 
-```ts
-// packages/2-mongo-family/5-query-builders/orm/test/model-types.test-d.ts
-expectTypeOf<ResultType<typeof db.users>>().toEqualTypeOf<Scalars<Models.unbound_User>>();
-```
+On a database with schemas, such as Postgres, the schema is part of the name: `Models.public_User` and `typeof models.public.User`. A model declared without a schema is in the unbound namespace, written `Models.unbound_User` and `typeof models.__unbound__.User`. This is the same convention as `db.enums.__unbound__.X`. Mongo names its models the same way.
+
+Adding a schema later never renames an existing type.
 
 ### Polymorphic models
 
 A polymorphic base emits three shapes: the base member, one member per variant, and an `Any<Base>` union of the variant members. The base's discriminator field is the union of the variant literals; each variant narrows it to its own literal and adds its own fields. A relation whose target is a polymorphic base is typed as the `Any<Base>` union, because the ORM returns the variant union for such an include.
 
 ```ts
-// packages/3-extensions/sql-orm-client/test/model-types.test-d.ts
-expectTypeOf<PolyModels.public_Task['type']>().toEqualTypeOf<'bug' | 'feature' | 'epic'>();
+type TaskType = Models.public_Task['type']; // 'bug' | 'feature' | 'epic'
 
-const bugs = poly.Task.variant('Bug');
-expectTypeOf<ResultType<typeof bugs>>().toEqualTypeOf<Scalars<PolyModels.public_Bug>>();
+const bugs = db.orm.public.Task.variant('Bug');
+type Bug = ResultType<typeof bugs>; // Scalars<Models.public_Bug>
 
-expectTypeOf<ResultType<typeof poly.Task>>().toEqualTypeOf<Scalars<PolyModels.public_AnyTask>>();
+type AnyTask = ResultType<typeof db.orm.public.Task>; // Scalars<Models.public_AnyTask>
 
-const projectsWithTasks = poly.Project.include('tasks');
-expectTypeOf<ResultType<typeof projectsWithTasks>>().toEqualTypeOf<
-  Shape<PolyModels.public_Project, { tasks: {} }>
->();
+const projectsWithTasks = db.orm.public.Project.include('tasks');
+type ProjectWithTasks = ResultType<typeof projectsWithTasks>; // Shape<Models.public_Project, { '+': 'tasks' }>
 ```
 
 ## The row a default fetch returns
@@ -106,34 +99,23 @@ expectTypeOf<ResultType<typeof projectsWithTasks>>().toEqualTypeOf<
 `Scalars<M>` is the model without its relations. It is what `db.orm.public.User.first()`, `db.orm.public.User.all()`, and every other terminal on a plain collection return. `Scalars` distributes over unions, so `Scalars<Models.public_AnyTask>` is the union of the variants' scalar rows.
 
 ```ts
-// packages/3-extensions/sql-orm-client/test/model-types.test-d.ts
-expectTypeOf<DefaultModelRow<Contract, 'User'>>().toEqualTypeOf<Scalars<Models.public_User>>();
-
-expectTypeOf<ResultType<typeof db.orm.public.User>>().toEqualTypeOf<Scalars<Models.public_User>>();
+type UserRow = Scalars<Models.public_User>;
+const user: UserRow | null = await db.orm.public.User.first();
 ```
 
 On Mongo, embedded documents are fields, not relations, so they stay present in `Scalars`.
 
-```ts
-// packages/2-mongo-family/5-query-builders/orm/test/model-types.test-d.ts
-expectTypeOf<Scalars<Models.unbound_User>>().toHaveProperty('addresses');
-expectTypeOf<Scalars<Models.unbound_Task>>().toHaveProperty('comments');
-```
-
 ## A data structure derived from a model
 
-An API endpoint declares its response type once, derived from the model, and the compiler checks the body against it at the `return`. The query inside is an implementation detail: change the model and the type changes; change the query and the same declaration still has to be satisfied. `Shape<Model, Spec>` is the type for that.
+An API endpoint declares its response type once, derived from the model. The compiler checks the body against it at the `return`. The query inside is an implementation detail: change the model and the type changes; change the query and the same declaration still has to be satisfied. `Shape<Model, Spec>` is the type for that.
 
 ```ts
-// examples/prisma-8-demo/test/demo-dx.types.test.ts
 type UserResponse = Shape<
-  EmittedModels.public_User,
-  { '-': 'email'; posts: { '+': 'id' | 'title'; tags: {} } }
+  Models.public_User,
+  { '-': 'email'; posts: { '+': 'id' | 'title' | 'tags' } }
 >;
 
-async function getUserWithPosts(
-  userId: EmittedModels.public_User['id'],
-): Promise<UserResponse | null> {
+async function getUserWithPosts(userId: Models.public_User['id']): Promise<UserResponse | null> {
   const user = await db.orm.public.User.where({ id: userId })
     .include('posts', (posts) => posts.include('tags'))
     .first();
@@ -141,124 +123,80 @@ async function getUserWithPosts(
   const { email: _email, ...rest } = user;
   return { ...rest, posts: user.posts.map(({ id, title, tags }) => ({ id, title, tags })) };
 }
-expectTypeOf(getUserWithPosts).returns.resolves.toEqualTypeOf<UserResponse | null>();
-
-// @ts-expect-error the body omits posts, which the shape declares
-const withoutPosts = (row: Scalars<EmittedModels.public_User>): UserResponse => row;
 ```
 
 At every level of the spec:
 
-1. `'+'` is a union of names to keep, scalars and relations alike. A relation named in `'+'` is included with all of its scalars and none of its relations. When `'+'` is present, only the named scalars are kept.
+1. `'+'` is a union of names to keep, scalars and relations alike. A relation named in `'+'` is included with all of its scalars and none of its relations. `'+'` narrows the scalars only when it names a scalar: `'+': 'posts'` alone is every scalar plus `posts`.
 2. `'-'` is a union of scalar names to drop. Every other scalar is kept. Relations cannot be dropped, since they are absent unless asked for.
-3. `'+'` and `'-'` together at one level is a compile error.
-4. Any other key is a relation of the current model, and its value is a nested spec applied to the related model. `{}` is the empty spec: all scalars, no relations.
+3. `'+'` may sit beside `'-'` only when `'+'` names relations alone. `{ '-': 'passwordHash'; '+': 'posts' }` is every scalar except the hash, plus posts. `{ '-': 'passwordHash'; '+': 'id' }` is a compile error.
+4. Any other key is a relation of the current model, and its value is a nested spec that narrows the related model. To include a relation whole, name it in `'+'`. Naming a relation in `'+'` and also as a key at the same level is a compile error.
 5. No `'+'` and no `'-'` means every scalar.
 6. Relations are absent unless they appear in `'+'` or as a key.
 7. Cardinality and nullability come from the model at every level: a to-many relation is `T[]`, a nullable to-one is `T | null`, a required to-one is `T`.
 
-`Shape` refuses, at compile time, a name in `'+'` or `'-'` that is neither a scalar nor a relation of the model, a relation name in `'-'`, a relation key whose value is not an object, and `'+'` beside `'-'`. It is not a query language: no `where`, `orderBy`, `limit`, or aggregation. Renames and computed fields are composed with TypeScript, `Shape<User, {}> & { postCount: number }`.
+```ts
+type A = Shape<User>;                                        // Scalars<User>
+type B = Shape<User, { '+': 'posts' }>;                      // every scalar, plus posts
+type C = Shape<User, { '+': 'id' | 'name' | 'posts' }>;      // id, name, and posts
+type D = Shape<User, { '-': 'passwordHash'; '+': 'posts' }>; // every scalar but the hash, plus posts
+type E = Shape<User, { posts: { '+': 'title' | 'comments' } }>; // posts narrowed to title, with their comments
+type F = Shape<User, { '+': 'profile' }>['profile'];         // Scalars<Profile> | null
+```
+
+`Shape` refuses, at compile time: a name in `'+'` or `'-'` that is neither a scalar nor a relation of the model; a relation name in `'-'`; a relation key whose value is not an object; `'+'` naming a scalar beside `'-'`; and a relation both in `'+'` and as a key.
 
 ```ts
-// packages/1-framework/1-core/framework-components/test/model-types.test-d.ts
-expectTypeOf<Shape<User, {}>>().toEqualTypeOf<Scalars<User>>();
-expectTypeOf<Shape<User, { '+': 'id' }>>().toEqualTypeOf<{ id: number }>();
-expectTypeOf<Shape<Post, { '-': 'authorId' }>>().toEqualTypeOf<{ id: number; title: string }>();
-expectTypeOf<Shape<User, { profile: {} }>['profile']>().toEqualTypeOf<{
-  id: number;
-  bio: string | null;
-} | null>();
-expectTypeOf<Shape<User, { posts: { '+': 'title'; comments: {} } }>>().toEqualTypeOf<{
-  id: number;
-  name: string;
-  posts: { title: string; comments: { id: number; body: string }[] }[];
-}>();
-
 // @ts-expect-error 'posts' is a relation and cannot be dropped
-type _Bad = Shape<User, { '-': 'posts' }>;
-// @ts-expect-error '+' and '-' cannot both be given
-type _Both = Shape<User, { '+': 'id'; '-': 'name' }>;
+type Bad1 = Shape<User, { '-': 'posts' }>;
+// @ts-expect-error '+' names a scalar, so it cannot sit beside '-'
+type Bad2 = Shape<User, { '+': 'id'; '-': 'name' }>;
+// @ts-expect-error 'posts' cannot be both kept whole and narrowed
+type Bad3 = Shape<User, { '+': 'posts'; posts: { '+': 'title' } }>;
 ```
 
-Over a polymorphic union, `Shape` distributes, so each variant keeps only the relations it declares.
+`Shape` has no `where`, `orderBy`, `limit`, or aggregation. For renames and computed fields, compose with TypeScript: `Shape<User> & { postCount: number }`.
+
+Over a polymorphic union, each variant keeps only the relations it declares. `Shape<Models.public_AnyTask, { '+': 'assignee' }>` adds `assignee` to `Bug` and `Feature`, which declare it, and leaves `Epic` as its scalars.
+
+The rows the ORM returns are `Shape`s of the model. A plain `.include(r)` returns `Shape<M, { '+': 'r' }>`. A `.select(a, b)` projection returns `Shape<M, { '+': 'a' | 'b' }>`. A nested include returns a nested spec.
 
 ```ts
-// packages/3-extensions/sql-orm-client/test/model-types.test-d.ts
-type Flat<T> = { [K in keyof T]: T[K] };
-type AssigneeRow = Scalars<PolyModels.public_Person> | null;
-expectTypeOf<Shape<PolyModels.public_AnyTask, { assignee: {} }>>().toEqualTypeOf<
-  | Flat<Scalars<PolyModels.public_Bug> & { assignee: AssigneeRow }>
-  | Flat<Scalars<PolyModels.public_Feature> & { assignee: AssigneeRow }>
-  | Flat<Scalars<PolyModels.public_Epic>>
->();
-```
-
-The rows the ORM returns are `Shape`s of the model: a plain `.include(r)` is `Shape<M, { r: {} }>`, a `.select(a, b)` projection is `Shape<M, { '+': 'a' | 'b' }>`, and a nested include is a nested spec. The type tests hold the bare-collection equality (`ResultType` of the collection equals `Shape<M>`) for every SQL fixture model, and the include, projection, and nested-include equalities for representative relations.
-
-```ts
-// packages/3-extensions/sql-orm-client/test/model-types.test-d.ts
 const withAuthor = db.orm.public.Post.include('author');
-expectTypeOf<ResultType<typeof withAuthor>>().toEqualTypeOf<
-  Shape<Models.public_Post, { author: {} }>
->();
-
-const withInviter = db.orm.public.User.include('invitedBy');
-expectTypeOf<ResultType<typeof withInviter>>().toEqualTypeOf<
-  Shape<Models.public_User, { invitedBy: {} }>
->();
+type PostWithAuthor = ResultType<typeof withAuthor>; // Shape<Models.public_Post, { '+': 'author' }>
 
 const projected = db.orm.public.User.select('id', 'name');
-expectTypeOf<ResultType<typeof projected>>().toEqualTypeOf<
-  Shape<Models.public_User, { '+': 'id' | 'name' }>
->();
+type UserIdName = ResultType<typeof projected>; // Shape<Models.public_User, { '+': 'id' | 'name' }>
 
 const narrowed = db.orm.public.User.include('posts', (posts) =>
   posts.select('id', 'title').include('author'),
 );
-expectTypeOf<ResultType<typeof narrowed>>().toEqualTypeOf<
-  Shape<Models.public_User, { posts: { '+': 'id' | 'title'; author: {} } }>
->();
+type UserWithNarrowedPosts = ResultType<typeof narrowed>; // Shape<Models.public_User, { posts: { '+': 'id' | 'title' | 'author' } }>
 ```
 
-`Shape<M, {}>` is `Scalars<M>`, and `Shape<M, { r: {} }>` replaces the hand-written `Scalars<M> & { r: Scalars<R>[] }` intersection: the two are assignable in both directions and identical once flattened, and `Shape` reads the wrapper from the model, so you do not have to remember which relations are lists and which are nullable. One rule of the query builder is not in the type: a refined to-one include (`include('reviewer', (r) => r.where(...))`) is `| null` even on a required relation, because the refinement can exclude the row.
+One rule of the query builder is not in the type: a refined to-one include (`include('reviewer', (r) => r.where(...))`) is `| null` even on a required relation, because the refinement can exclude the row.
 
-Do not write `Pick<Models.public_User, 'id' | 'posts'>`. It demands `posts: Models.public_Post[]` with every post carrying its own `author` and `comments`, and no query returns that.
+To name a model plus some of its relations, use `Shape`, not `Pick`. `Pick<Models.public_User, 'id' | 'posts'>` demands `posts: Models.public_Post[]` with every post carrying its own `author` and `comments`, and no query returns that. Write `Shape<Models.public_User, { '+': 'id' | 'posts' }>` instead.
 
 ## The result of any query
 
-`ResultType<typeof query>` names the row of any ORM query value: a plain collection, an include, a projection, a refined include, or a `.variant()` narrowing. Each collection value has exactly one row type, and every terminal on it returns that row in some wrapper (`Row | null`, `Row[]`, an async iterable of `Row`).
+`ResultType<typeof query>` names the row of any ORM query value: a plain collection, an include, a projection, a refined include, or a `.variant()` narrowing. Each collection value has exactly one row type, and every terminal on it returns that row in some wrapper (`Row | null`, `Row[]`, an async iterable of `Row`). `typeof` needs a value, so bind the query to a name first.
 
 ```ts
-// packages/3-extensions/sql-orm-client/test/model-types.test-d.ts
-expectTypeOf<ResultType<typeof db.orm.public.User>>().toEqualTypeOf<Scalars<Models.public_User>>();
+type UserRow = ResultType<typeof db.orm.public.User>; // Scalars<Models.public_User>
 
 const projected = db.orm.public.User.select('id');
-expectTypeOf<ResultType<typeof projected>>().toEqualTypeOf<{ id: number }>();
-
-const refined = db.orm.public.User.include('posts', (posts) => posts.select('id'));
-expectTypeOf<ResultType<typeof refined>>().not.toBeNever();
-```
-
-Through the public facade the same holds for a query defined beside the client.
-
-```ts
-// examples/prisma-8-demo/test/demo-dx.types.test.ts
-import type { ResultType } from '@prisma/orm-postgres/components/runtime';
-import type { Scalars, Shape } from '@prisma/orm-postgres/family-contract/types';
-
-expectTypeOf<Scalars<User>>().toEqualTypeOf<ResultType<typeof db.orm.public.User>>();
+type UserId = ResultType<typeof projected>; // { id: number }
 
 const usersWithTasks = () => db.orm.public.User.include('tasks');
-expectTypeOf<ResultType<ReturnType<typeof usersWithTasks>>>().toEqualTypeOf<
-  Shape<EmittedModels.public_User, { tasks: {} }>
->();
+type UserWithTasks = ResultType<ReturnType<typeof usersWithTasks>>; // Shape<Models.public_User, { '+': 'tasks' }>
 ```
 
 `ResultType` also works on SQL query lane plans; see [Query Patterns](./query-patterns.md#type-inference-with-resulttype).
 
 ## Input types
 
-The ORM clients already export the types that describe what you pass in. They take the contract type and the model name, so they need the `Contract` from `./prisma/contract` in scope.
+The ORM clients export the types that describe what you pass in. They take the contract type and the model name, so they need the `Contract` from `./prisma/contract` in scope.
 
 - SQL, from `@prisma/orm-postgres/orm-client`: `CreateInput<Contract, 'User'>` for `create`, `MutationUpdateInput<Contract, 'User'>` for `update`, `ShorthandWhereFilter<Contract, 'public', 'User'>` for `where`, and `UniqueConstraintCriterion<Contract, 'User'>` for the unique lookup in `findUnique`-style calls.
 - Mongo, from `@prisma/orm-mongo/orm`: `CreateInput<Contract, 'User'>` and `VariantCreateInput` for `create`, and `MongoWhereFilter<Contract, 'User'>` for `where`.
@@ -268,7 +206,7 @@ The ORM clients already export the types that describe what you pass in. They ta
 | Prisma 7 | Prisma 8 |
 | --- | --- |
 | `Prisma.User` | `Models.public_User` |
-| `Prisma.UserGetPayload<{ include: { posts: true } }>` | `Shape<Models.public_User, { posts: {} }>` |
+| `Prisma.UserGetPayload<{ include: { posts: true } }>` | `Shape<Models.public_User, { '+': 'posts' }>` |
 | `Prisma.UserGetPayload<{ select: { id: true; posts: { select: { title: true } } } }>` | `Shape<Models.public_User, { '+': 'id'; posts: { '+': 'title' } }>` |
 | `Prisma.UserCreateInput` | `CreateInput<Contract, 'User'>` |
 | `Prisma.UserWhereInput` | `ShorthandWhereFilter<Contract, 'public', 'User'>` |

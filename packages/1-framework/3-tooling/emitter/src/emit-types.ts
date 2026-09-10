@@ -4,10 +4,7 @@ import type {
   StorageSort,
 } from '@internal/contract/hashing';
 import type { AnyCodecDescriptor, CodecLookup } from '@internal/framework-components/codec';
-import type {
-  AggregateDescriptor,
-  TargetNamespaceSupport,
-} from '@internal/framework-components/components';
+import type { AggregateDescriptor } from '@internal/framework-components/components';
 import type {
   ImportSpecifierResolver,
   TypesImportSpec,
@@ -57,9 +54,9 @@ export interface EmitOptions {
    */
   readonly resolveImportSpecifier?: ImportSpecifierResolver;
   /**
-   * Threaded from `descriptor.namespaceSupport`. `'none'` drops the namespace segment from emitted `Models` member names and the `models` constant.
+   * Threaded from `descriptor.supportsNamespaces`. `false` drops the namespace segment from emitted `Models` member names and the `models` constant.
    */
-  readonly namespaceSupport?: TargetNamespaceSupport;
+  readonly supportsNamespaces?: boolean;
 }
 
 export interface EmitResult {

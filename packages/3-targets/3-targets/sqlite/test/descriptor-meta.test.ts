@@ -4,7 +4,7 @@ import sqliteTargetPack from '../src/exports/pack';
 
 describe('sqliteTargetDescriptorMeta', () => {
   it('declares no namespace support, so emitted model names carry no namespace segment', () => {
-    expect(sqliteTargetDescriptorMeta.namespaceSupport).toBe('none');
+    expect(sqliteTargetDescriptorMeta.supportsNamespaces).toBe(false);
   });
 
   it('declares the expected defaultNamespaceId', () => {

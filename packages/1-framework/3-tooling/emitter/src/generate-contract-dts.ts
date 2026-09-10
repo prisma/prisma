@@ -180,7 +180,7 @@ export function generateContractDts(
   const modelTypesBlock = generateModelTypesBlock(
     contract,
     { codecLookup, resolveFieldTypeParams, resolveFieldValueSet },
-    options?.namespaceSupport ?? 'supported',
+    options?.supportsNamespaces ?? true,
   );
 
   return `// ⚠️  GENERATED FILE - DO NOT EDIT

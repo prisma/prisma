@@ -50,7 +50,6 @@ import {
   type TextEdit,
 } from 'vscode-languageserver/node';
 import type { ConfigResolution } from '../src/config-resolution';
-import { guardedFeatures } from '../src/guarded-connection';
 import type { DocumentArtifacts } from '../src/project-artifacts';
 import { resolveSchemaInputs } from '../src/schema-inputs';
 import { semanticTokensLegend } from '../src/semantic-tokens';
@@ -223,17 +222,12 @@ function startHarness(
   const serverToClient = new PassThrough();
 
   const serverConnection = createConnection(
-    guardedFeatures,
     new StreamMessageReader(clientToServer),
     new StreamMessageWriter(serverToClient),
   );
   const server = createServer(serverConnection);
 
-  // The client's own reply to a server request can still be in flight when the
-  // harness tears the streams down; the same guarded console keeps jsonrpc's
-  // report of that failed write from becoming an unhandled rejection.
   const client = createConnection(
-    guardedFeatures,
     new StreamMessageReader(serverToClient),
     new StreamMessageWriter(clientToServer),
   );

@@ -49,7 +49,7 @@ export async function emit(
     ...ifDefined('queryOperationTypeImports', queryOperationTypeImports),
     ...ifDefined('aggregateDescriptors', aggregateDescriptors),
     ...ifDefined('codecDescriptors', codecDescriptors),
-    ...ifDefined('namespaceSupport', options.namespaceSupport),
+    ...ifDefined('supportsNamespaces', options.supportsNamespaces),
   };
 
   const contractTypeHashes = {

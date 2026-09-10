@@ -46,7 +46,6 @@ export type {
   TargetBoundComponentDescriptor,
   TargetDescriptor,
   TargetInstance,
-  TargetNamespaceSupport,
   TargetPackRef,
 } from '../shared/framework-components';
 export { checkContractComponentRequirements } from '../shared/framework-components';

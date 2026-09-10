@@ -131,7 +131,7 @@ describe('emitter', () => {
     timeouts.typeScriptCompilation,
   );
 
-  it('threads namespaceSupport from the emit options into the emitted model names', async () => {
+  it('threads supportsNamespaces from the emit options into the emitted model names', async () => {
     const ir = createTestContract({
       models: {
         User: {
@@ -153,7 +153,7 @@ describe('emitter', () => {
     const kept = await emit(ir, { codecTypeImports: [] }, mockSqlHook);
     expect(kept.contractDts).toContain('export type unbound_User = {');
     const dropped = await emit(ir, { codecTypeImports: [] }, mockSqlHook, {
-      namespaceSupport: 'none',
+      supportsNamespaces: false,
     });
     expect(dropped.contractDts).toContain('export type User = {');
     expect(dropped.contractDts).not.toContain('unbound_User');
