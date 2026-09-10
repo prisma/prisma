@@ -471,12 +471,12 @@ describe('oneOf', () => {
   it('returns the first alternative that succeeds', () => {
     const { expr, ctx } = argOf('Cascade');
     const first: ArgType<'first', AttributeCtx> = {
-      kind: 'const',
+      kind: 'str',
       label: 'first',
       parse: () => ok('first'),
     };
     const second: ArgType<'second', AttributeCtx> = {
-      kind: 'const',
+      kind: 'str',
       label: 'second',
       parse: () => ok('second'),
     };
@@ -494,6 +494,21 @@ describe('oneOf', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value).toBe('SetNull');
+  });
+
+  it('preserves grammar metadata through alternatives and wrappers', () => {
+    const alternatives = oneOf(str(), fieldRef());
+    const optionalAlternative = optional(oneOf(str(), fieldRef()));
+    const alternativeList = list(oneOf(str(), fieldRef()), { allowEmpty: false });
+    const alternativeRecord = record(optional(oneOf(fieldRef(), referencedFieldRef())));
+
+    expect(alternatives).toMatchObject({ kind: 'oneOf' });
+    expect(alternatives.alternatives.map((alt) => alt.kind)).toEqual(['str', 'fieldRef']);
+    expect(optionalAlternative).toMatchObject({ kind: 'oneOf', optional: true });
+    expect(alternativeList).toMatchObject({ kind: 'list', allowEmpty: false, unique: false });
+    expect(alternativeList.of).toMatchObject({ kind: 'oneOf' });
+    expect(alternativeRecord).toMatchObject({ kind: 'record' });
+    expect(alternativeRecord.of).toMatchObject({ kind: 'oneOf', optional: true });
   });
 
   it('names each function when every function-call alternative fails', () => {
@@ -634,31 +649,60 @@ describe('list', () => {
     if (result.ok) expect(result.value).toEqual(['a', 'b']);
   });
 
-  it('rejects an empty list when nonEmpty is set', () => {
+  it('defaults to allowing empty lists and non-unique entries in metadata and parsing', () => {
+    const { expr, ctx } = argOf('[]');
+    const type = list(str());
+
+    const result = type.parse(expr, ctx);
+
+    expect(type).toMatchObject({ allowEmpty: true, unique: false });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value).toEqual([]);
+  });
+
+  it('rejects an empty list when allowEmpty is false', () => {
     const { expr, ctx } = argOf('[]');
 
-    const result = list(str(), { nonEmpty: true }).parse(expr, ctx);
+    const result = list(str(), { allowEmpty: false }).parse(expr, ctx);
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.failure).toHaveLength(1);
   });
 
-  it('accepts a populated list when nonEmpty is set', () => {
+  it('accepts a populated list when allowEmpty is false', () => {
     const { expr, ctx } = argOf('["a", "b"]');
 
-    const result = list(str(), { nonEmpty: true }).parse(expr, ctx);
+    const result = list(str(), { allowEmpty: false }).parse(expr, ctx);
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value).toEqual(['a', 'b']);
   });
 
-  it('rejects duplicates when unique is set, anchored per offending element', () => {
+  it('accepts an empty list when allowEmpty is explicitly true', () => {
+    const { expr, ctx } = argOf('[]');
+
+    const result = list(str(), { allowEmpty: true }).parse(expr, ctx);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value).toEqual([]);
+  });
+
+  it('rejects duplicates when unique is true, anchored per offending element', () => {
     const { expr, ctx } = argOf('["a", "a"]');
 
     const result = list(str(), { unique: true }).parse(expr, ctx);
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.failure).toHaveLength(1);
+  });
+
+  it('accepts duplicates when unique is explicitly false', () => {
+    const { expr, ctx } = argOf('["a", "a"]');
+
+    const result = list(str(), { unique: false }).parse(expr, ctx);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value).toEqual(['a', 'a']);
   });
 
   it('propagates an element parse error', () => {
@@ -677,6 +721,29 @@ describe('list', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.failure).toHaveLength(1);
+  });
+});
+
+describe('optional', () => {
+  it('marks default presence only when a default argument is passed', () => {
+    const withoutDefault = optional(str());
+    const withDefault = optional(str(), 'fallback');
+    const withExplicitUndefinedDefault = optional(str(), undefined);
+
+    expect(withoutDefault).toMatchObject({ kind: 'str', optional: true, hasDefault: false });
+    expect(withoutDefault).not.toHaveProperty('defaultValue');
+    expect(withDefault).toMatchObject({
+      kind: 'str',
+      optional: true,
+      hasDefault: true,
+      defaultValue: 'fallback',
+    });
+    expect(withExplicitUndefinedDefault).toMatchObject({
+      kind: 'str',
+      optional: true,
+      hasDefault: true,
+      defaultValue: undefined,
+    });
   });
 });
 
