@@ -20,6 +20,9 @@
  * - repo-admins [limit]        Admin users via custom collection scope
  * - repo-user <email>          Find a user by email via ORM client first()
  * - repo-posts <userId> [limit] Posts for a user via ORM client API
+ * - orm-user-profile <id>      A user's profile as a `Shape`-declared response
+ *                              type: every scalar but email, posts projected to
+ *                              id/title/tags
  * - repo-dashboard <emailDomain> <postTitleTerm> [limit] [postsPerUser]
  *                              Compound filters + select/include via ORM client
  * - repo-post-feed <postTitleTerm> [limit]
@@ -141,6 +144,7 @@ import { ormClientGetUserBugTriage } from './orm-client/get-user-bug-triage';
 import { ormClientGetUserInsights } from './orm-client/get-user-insights';
 import { ormClientGetUserKindBreakdown } from './orm-client/get-user-kind-breakdown';
 import { ormClientGetUserPosts } from './orm-client/get-user-posts';
+import { ormClientGetUserProfile } from './orm-client/get-user-profile';
 import { ormClientGetUserTaskBoard } from './orm-client/get-user-task-board';
 import { ormClientGetUsers } from './orm-client/get-users';
 import { ormClientGetUsersBackwardCursor } from './orm-client/get-users-backward-cursor';
@@ -266,6 +270,15 @@ async function main() {
       const posts = await ormClientGetUserPosts(userIdStr, limit, runtime);
 
       console.log(JSON.stringify(posts, null, 2));
+    } else if (cmd === 'orm-user-profile') {
+      const [userId] = args;
+      if (!userId) {
+        console.error('Usage: pnpm start -- orm-user-profile <id>');
+        process.exit(1);
+      }
+      const profile = await ormClientGetUserProfile(userId, runtime);
+
+      console.log(JSON.stringify(profile, null, 2));
     } else if (cmd === 'repo-dashboard') {
       const [emailDomain, postTitleTerm, limitStr, postsPerUserStr] = args;
       if (!emailDomain || !postTitleTerm) {
@@ -790,7 +803,7 @@ async function main() {
       console.log(
         'Usage: pnpm start -- [users [limit] | user <userId> | posts <userId> | ' +
           'repo-users [limit] | repo-admins [limit] | ' +
-          'repo-user <email> | repo-posts <userId> [limit] | ' +
+          'repo-user <email> | repo-posts <userId> [limit] | orm-user-profile <id> | ' +
           'repo-dashboard <emailDomain> <postTitleTerm> [limit] [postsPerUser] | ' +
           'repo-post-feed <postTitleTerm> [limit] | repo-users-cursor [cursor] [limit] | ' +
           'repo-tasks [limit] | repo-bugs [limit] | repo-features [limit] | ' +

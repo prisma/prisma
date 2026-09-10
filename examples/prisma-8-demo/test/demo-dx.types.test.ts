@@ -10,8 +10,11 @@
 import type { ResultType } from '@prisma/orm-postgres/components/runtime';
 import type { EnumMemberNames, EnumValues } from '@prisma/orm-postgres/contract/enum-accessor';
 import type { Scalars, Shape } from '@prisma/orm-postgres/family-contract/types';
+import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
 import { expectTypeOf, test } from 'vitest';
+import { createOrmClient } from '../src/orm-client/client';
+import { ormClientGetUserProfile, type UserProfile } from '../src/orm-client/get-user-profile';
 import type {
   AddressOutput,
   CodecTypes,
@@ -162,4 +165,35 @@ test('an endpoint declares its response with Shape and the compiler checks the b
   // @ts-expect-error the body omits posts, which the shape declares
   const withoutPosts = (row: Scalars<EmittedModels.public_User>): UserResponse => row;
   expectTypeOf(withoutPosts).returns.toEqualTypeOf<UserResponse>();
+});
+
+test('the demo user-profile endpoint returns the Shape it declares, and a body without the tags include is rejected', () => {
+  type UserProfileResponse = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    displayName: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    kind: 'admin' | 'user';
+    address: AddressOutput | null;
+    posts: {
+      id: CodecTypes['pg/uuid@1']['output'];
+      title: CodecTypes['pg/text@1']['output'];
+      tags: { id: CodecTypes['pg/uuid@1']['output']; label: CodecTypes['pg/text@1']['output'] }[];
+    }[];
+  };
+  expectTypeOf<UserProfile>().toEqualTypeOf<UserProfileResponse>();
+  expectTypeOf(
+    ormClientGetUserProfile,
+  ).returns.resolves.toEqualTypeOf<UserProfileResponse | null>();
+
+  async function withoutTags(
+    userId: EmittedModels.public_User['id'],
+    runtime: Runtime,
+  ): Promise<UserProfile | null> {
+    const user = await createOrmClient(runtime).User.where({ id: userId }).include('posts').first();
+    if (user === null) return null;
+    const { email: _email, ...rest } = user;
+    // @ts-expect-error the body omits the tags include, which the shape declares on posts
+    return { ...rest, posts: user.posts.map(({ id, title }) => ({ id, title })) };
+  }
+  expectTypeOf(withoutTags).returns.resolves.toEqualTypeOf<UserProfile | null>();
 });

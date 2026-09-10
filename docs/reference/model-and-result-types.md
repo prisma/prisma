@@ -107,7 +107,7 @@ On Mongo, embedded documents are fields, not relations, so they stay present in 
 
 ## A data structure derived from a model
 
-An API endpoint declares its response type once, derived from the model. The compiler checks the body against it at the `return`. The query inside is an implementation detail: change the model and the type changes; change the query and the same declaration still has to be satisfied. `Shape<Model, Spec>` is the type for that.
+An API endpoint declares its response type once, derived from the model. The compiler checks the body against it at the `return`. The query inside is an implementation detail: change the model and the type changes; change the query and the same declaration still has to be satisfied. `Shape<Model, Spec>` is the type for that. The demo app runs this example end to end in `examples/prisma-8-demo/src/orm-client/get-user-profile.ts` (`pnpm start -- orm-user-profile <id>`).
 
 ```ts
 type UserResponse = Shape<
