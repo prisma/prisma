@@ -48,6 +48,7 @@ function str(): ArgType<string, AttributeCtx> {
   return {
     kind: 'str',
     label: 'string',
+    requiredContext: 'attribute',
     parse: (arg, ctx): Result<string, readonly PslDiagnostic[]> => {
       if (arg instanceof StringLiteralExprAst) {
         const value = arg.value();
@@ -74,8 +75,9 @@ const FAILING_DIAGNOSTIC: PslDiagnostic = {
 
 function failing(): ArgType<never, AttributeCtx> {
   return {
-    kind: 'failing',
+    kind: 'rejecting',
     label: 'failing',
+    requiredContext: 'attribute',
     parse: (): Result<never, readonly PslDiagnostic[]> => notOk([FAILING_DIAGNOSTIC]),
   };
 }

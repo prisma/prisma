@@ -3,7 +3,13 @@ import { notOk, ok, type Result } from '@internal/utils/result';
 import type { ModelSymbol } from '../../symbol-table';
 import type { ExpressionAst } from '../../syntax/ast/expressions';
 import { IdentifierAst } from '../../syntax/ast/identifier';
-import type { ArgType, AttributeCtx, FieldAttributeCtx, ModelAttributeCtx } from '../types';
+import type {
+  AttributeCtx,
+  FieldAttributeCtx,
+  FieldRefArgType,
+  ModelAttributeCtx,
+  ReferencedFieldRefArgType,
+} from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 function parseFieldName(
@@ -28,18 +34,20 @@ function parseFieldName(
   return ok(name);
 }
 
-export function fieldRef(): ArgType<string, ModelAttributeCtx> {
+export function fieldRef(): FieldRefArgType<ModelAttributeCtx> {
   return {
     kind: 'fieldRef',
     label: 'field name',
+    requiredContext: 'model',
     parse: (arg, ctx) => parseFieldName(arg, ctx, ctx.selfModel),
   };
 }
 
-export function referencedFieldRef(): ArgType<string, FieldAttributeCtx> {
+export function referencedFieldRef(): ReferencedFieldRefArgType<FieldAttributeCtx> {
   return {
-    kind: 'fieldRef',
+    kind: 'referencedFieldRef',
     label: 'field name',
+    requiredContext: 'field',
     parse: (arg, ctx) => parseFieldName(arg, ctx, ctx.resolveReferencedModel()),
   };
 }

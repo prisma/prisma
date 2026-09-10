@@ -261,9 +261,15 @@ The distinction is semantic: projections and weights have a known grammar the sp
 
 ---
 
+## 2026-09 amendment: inspectable combinator values
+
+The combinator kit is now a closed, framework-defined set of directly inspectable argument variants. The same values remain the parser input to `interpretAttribute`; no descriptor tree, compatibility layer, or language-server-specific grammar representation is introduced. Fixed identifiers and pinned string/number literals expose their authored values, unrestricted string/number primitives expose the absence of a fixed value, collections expose their child combinator and options, alternatives expose all arms, function calls expose their pinned name and signature, and local versus referenced field references use distinct kinds. Optional wrapping preserves the wrapped variant's metadata while adding optional/default markers.
+
+This amendment only makes the existing grammar traversable. It does not ship editor completion behavior, does not change accepted PSL syntax or diagnostics, and does not make interpretation dispatch on variant kind. Always-rejecting leaves such as an empty SQL enum default are represented as non-completable rejecting variants rather than counterfeit fixed identifiers.
+
 ## Language-tooling follow-up
 
-The interpreter implementation proves that attribute grammars can be represented as values and consumed without hand-written argument parsing. It does not yet make those values a complete language-server API.
+The interpreter implementation proves that attribute grammars can be represented as values and consumed without hand-written argument parsing. It does not yet provide language-server completions.
 
 A language-tooling consumer will require additional work:
 

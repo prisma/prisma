@@ -1,7 +1,7 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { ArrayLiteralAst, type ExpressionAst } from '../../syntax/ast/expressions';
-import type { ArgType, AttributeCtx } from '../types';
+import type { ArgType, AttributeCtx, ListArgType } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 export interface ListOptions {
@@ -11,11 +11,32 @@ export interface ListOptions {
 
 export function list<T, Ctx extends AttributeCtx>(
   of: ArgType<T, Ctx>,
+): ListArgType<T, Ctx, undefined, undefined>;
+export function list<T, Ctx extends AttributeCtx>(
+  of: ArgType<T, Ctx>,
+  opts: { readonly nonEmpty: true; readonly unique: true },
+): ListArgType<T, Ctx, true, true>;
+export function list<T, Ctx extends AttributeCtx>(
+  of: ArgType<T, Ctx>,
+  opts: { readonly nonEmpty: true; readonly unique?: boolean },
+): ListArgType<T, Ctx, true, undefined>;
+export function list<T, Ctx extends AttributeCtx>(
+  of: ArgType<T, Ctx>,
+  opts: { readonly nonEmpty?: boolean; readonly unique: true },
+): ListArgType<T, Ctx, undefined, true>;
+export function list<T, Ctx extends AttributeCtx>(
+  of: ArgType<T, Ctx>,
   opts?: ListOptions,
-): ArgType<T[], Ctx> {
+): ListArgType<T, Ctx, true | undefined, true | undefined> {
+  const nonEmpty = opts?.nonEmpty === true ? true : undefined;
+  const unique = opts?.unique === true ? true : undefined;
   return {
     kind: 'list',
     label: `${of.label}[]`,
+    requiredContext: of.requiredContext,
+    of,
+    nonEmpty,
+    unique,
     parse: (arg, ctx): Result<T[], readonly PslDiagnostic[]> => {
       const literal = ArrayLiteralAst.cast(arg.syntax);
       if (literal === undefined) {

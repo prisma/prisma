@@ -471,13 +471,15 @@ describe('oneOf', () => {
   it('returns the first alternative that succeeds', () => {
     const { expr, ctx } = argOf('Cascade');
     const first: ArgType<'first', AttributeCtx> = {
-      kind: 'const',
+      kind: 'str',
       label: 'first',
+      requiredContext: 'attribute',
       parse: () => ok('first'),
     };
     const second: ArgType<'second', AttributeCtx> = {
-      kind: 'const',
+      kind: 'str',
       label: 'second',
+      requiredContext: 'attribute',
       parse: () => ok('second'),
     };
 

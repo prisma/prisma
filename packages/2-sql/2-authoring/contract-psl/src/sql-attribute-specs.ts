@@ -18,6 +18,7 @@ import type {
   ModelAttributeCtx,
   ModelSymbol,
   PslSpan,
+  RejectingArgType,
   SymbolTable,
   TypedFuncCall,
 } from '@internal/psl-parser';
@@ -172,10 +173,12 @@ function scalarDefaultArms(
   return isList ? [list(literal()), ...funcArms] : [str(), num(), bool(), ...funcArms];
 }
 
-function noEnumMember(): ArgType<string, AttributeCtx> {
+function noEnumMember(): RejectingArgType<never, AttributeCtx> {
   return {
-    kind: 'identifier',
+    kind: 'rejecting',
     label: 'enum member',
+    requiredContext: 'attribute',
+    message: 'Enum declares no members',
     parse: (arg, ctx) => notOk([leafDiagnostic(ctx, arg, 'Enum declares no members')]),
   };
 }

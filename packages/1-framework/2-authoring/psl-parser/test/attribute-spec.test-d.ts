@@ -1,13 +1,14 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { ok, type Result } from '@internal/utils/result';
 import { expectTypeOf, test } from 'vitest';
-import type { ArgType, AttributeCtx, InferAttr } from '../src/exports';
+import type { ArgType, ArgTypeKind, AttributeCtx, InferAttr } from '../src/exports';
 import { fieldAttribute, modelAttribute, optional } from '../src/exports';
 
-function leaf<T>(kind: string, value: T): ArgType<T, AttributeCtx> {
+function leaf<T>(kind: ArgTypeKind, value: T): ArgType<T, AttributeCtx> {
   return {
     kind,
     label: kind,
+    requiredContext: 'attribute',
     parse: (): Result<T, readonly PslDiagnostic[]> => ok(value),
   };
 }
