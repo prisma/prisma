@@ -1,7 +1,11 @@
 import type { ContractSourceDiagnostic } from '@internal/config/config-types';
 import type {
+  ArgType,
+  AttributeCtx,
+  FieldAttributeCtx,
   FieldAttributeSpecFactory,
   FieldSymbol,
+  ModelAttributeCtx,
   ModelAttributeSpecFactory,
   ModelSymbol,
 } from '@internal/psl-parser';
@@ -28,6 +32,72 @@ function field(model: ModelSymbol, name: string): FieldSymbol {
   const found = model.fields[name];
   if (found === undefined) throw new Error(`field ${name} missing`);
   return found;
+}
+
+interface ListMetadata<T, Ctx extends AttributeCtx> extends ArgType<readonly T[], Ctx> {
+  readonly kind: 'list';
+  readonly of: ArgType<T, Ctx>;
+  readonly nonEmpty: true | undefined;
+  readonly unique: true | undefined;
+}
+
+interface RecordMetadata<T, Ctx extends AttributeCtx> extends ArgType<Record<string, T>, Ctx> {
+  readonly kind: 'record';
+  readonly of: ArgType<T, Ctx>;
+}
+
+interface OneOfMetadata<Ctx extends AttributeCtx> extends ArgType<unknown, Ctx> {
+  readonly kind: 'oneOf';
+  readonly requiredContext: 'attribute' | 'model' | 'field';
+  readonly alternatives: readonly ArgType<unknown, Ctx>[];
+}
+
+interface FuncCallMetadata<Ctx extends AttributeCtx> extends ArgType<unknown, Ctx> {
+  readonly kind: 'funcCall';
+  readonly name: string;
+  readonly signature: {
+    readonly positional?: readonly {
+      readonly key: string;
+      readonly type: ArgType<unknown, AttributeCtx>;
+    }[];
+    readonly named?: Readonly<Record<string, ArgType<unknown, AttributeCtx>>>;
+  };
+}
+
+function positionalType<Ctx extends AttributeCtx>(spec: {
+  readonly positional: readonly { readonly type: ArgType<unknown, Ctx> }[];
+}): ArgType<unknown, Ctx> {
+  const positional = spec.positional[0];
+  if (positional === undefined) throw new Error('spec declares a positional argument');
+  return positional.type;
+}
+
+function namedType<Ctx extends AttributeCtx>(
+  spec: { readonly named: Readonly<Record<string, ArgType<unknown, Ctx>>> },
+  key: string,
+): ArgType<unknown, Ctx> {
+  const type = spec.named[key];
+  if (type === undefined) throw new Error(`spec declares named argument ${key}`);
+  return type;
+}
+
+function listMetadata<T, Ctx extends AttributeCtx>(
+  type: ArgType<unknown, Ctx>,
+): ListMetadata<T, Ctx> {
+  if (type.kind !== 'list') throw new Error('argument is a list');
+  return type as unknown as ListMetadata<T, Ctx>;
+}
+
+function recordMetadata<T, Ctx extends AttributeCtx>(
+  type: ArgType<unknown, Ctx>,
+): RecordMetadata<T, Ctx> {
+  if (type.kind !== 'record') throw new Error('argument is a record');
+  return type as unknown as RecordMetadata<T, Ctx>;
+}
+
+function oneOfMetadata<Ctx extends AttributeCtx>(type: ArgType<unknown, Ctx>): OneOfMetadata<Ctx> {
+  if (type.kind !== 'oneOf') throw new Error('argument is oneOf');
+  return type as unknown as OneOfMetadata<Ctx>;
 }
 
 function interpretDefault(schema: string, fieldName: string) {
@@ -125,9 +195,139 @@ describe('sqlAttributeSpecs', () => {
       'references',
     ]);
   });
+
+  it('exposes SQL relation field-reference metadata from the actual factory', () => {
+    const spec = sqlAttributeSpecs.field.relation();
+    const fields = listMetadata<string, FieldAttributeCtx>(namedType(spec, 'fields'));
+    const references = listMetadata<string, FieldAttributeCtx>(namedType(spec, 'references'));
+
+    expect(fields).toMatchObject({ kind: 'list', optional: true, requiredContext: 'model' });
+    expect(fields.of).toMatchObject({ kind: 'fieldRef', requiredContext: 'model' });
+    expect(fields.nonEmpty).toBe(true);
+    expect(fields.unique).toBe(true);
+
+    expect(references).toMatchObject({ kind: 'list', optional: true, requiredContext: 'field' });
+    expect(references.of).toMatchObject({ kind: 'referencedFieldRef', requiredContext: 'field' });
+    expect(references.nonEmpty).toBe(true);
+    expect(references.unique).toBe(true);
+  });
+
+  it('exposes SQL model container metadata from actual factories', () => {
+    const idFields = listMetadata<string, ModelAttributeCtx>(
+      positionalType(sqlAttributeSpecs.model.id()),
+    );
+    expect(idFields).toMatchObject({ kind: 'list', requiredContext: 'model', nonEmpty: true });
+    expect(idFields.of).toMatchObject({ kind: 'fieldRef', requiredContext: 'model' });
+
+    const options = recordMetadata<string, ModelAttributeCtx>(
+      namedType(sqlAttributeSpecs.model.index(), 'options'),
+    );
+    expect(options).toMatchObject({ kind: 'record', optional: true, requiredContext: 'attribute' });
+    expect(options.of).toMatchObject({ kind: 'str', value: undefined });
+  });
 });
 
 describe('sqlAttributeSpecs.field.default', () => {
+  const { symbolTable, model } = project(
+    'model Post {\n  id Int @id\n  tags String[]\n}\n',
+    'Post',
+  );
+  const fieldCtx = fieldSpecContext({
+    symbols: symbolTable,
+    model,
+    field: field(model, 'id'),
+    controlMutationDefaults,
+  });
+
+  it('exposes scalar default alternatives from the actual registry-backed factory', () => {
+    const spec = sqlAttributeSpecs.field.default(fieldCtx);
+    const value = oneOfMetadata(positionalType(spec));
+
+    expect(value.kind).toBe('oneOf');
+    expect(value.requiredContext).toBe('attribute');
+    expect(value.alternatives.map((alt) => alt.kind)).toEqual([
+      'str',
+      'num',
+      'bool',
+      'funcCall',
+      'funcCall',
+      'funcCall',
+      'funcCall',
+      'funcCall',
+      'funcCall',
+      'funcCall',
+    ]);
+    const uuid = value.alternatives.find(
+      (alt): alt is FuncCallMetadata<FieldAttributeCtx> =>
+        alt.kind === 'funcCall' && 'name' in alt && alt.name === 'uuid',
+    );
+    if (uuid === undefined) throw new Error('uuid default function arm is present');
+    const versionType = uuid.signature.positional?.[0]?.type;
+    if (versionType === undefined) throw new Error('uuid version argument is present');
+    const version = oneOfMetadata(versionType);
+    expect(version).toMatchObject({ kind: 'oneOf', optional: true });
+    expect(version.alternatives).toEqual([
+      expect.objectContaining({ kind: 'num', value: 4 }),
+      expect.objectContaining({ kind: 'num', value: 7 }),
+    ]);
+  });
+
+  it('exposes list default alternatives without hiding registry function calls', () => {
+    const listCtx = fieldSpecContext({
+      symbols: symbolTable,
+      model,
+      field: field(model, 'tags'),
+      controlMutationDefaults,
+    });
+    const value = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(listCtx)));
+
+    const listDefault = listMetadata<unknown, FieldAttributeCtx>(value.alternatives[0] ?? value);
+    expect(listDefault).toMatchObject({ kind: 'list', requiredContext: 'attribute' });
+    expect(listDefault.of).toMatchObject({ kind: 'oneOf', requiredContext: 'attribute' });
+    expect(
+      value.alternatives.slice(1).map((alt) => (alt as FuncCallMetadata<FieldAttributeCtx>).name),
+    ).toEqual(['autoincrement', 'now', 'uuid', 'cuid', 'ulid', 'nanoid', 'dbgenerated']);
+  });
+
+  it('exposes enum default alternatives and empty-enum rejection metadata', () => {
+    const enumProject = project(
+      'enum Priority {\n  Low\n  High\n}\nmodel Post {\n  id Int @id\n  priority Priority\n}\n',
+      'Post',
+    );
+    const priority = field(enumProject.model, 'priority');
+    const enumCtx = fieldSpecContext({
+      symbols: enumProject.symbolTable,
+      model: enumProject.model,
+      field: priority,
+      controlMutationDefaults,
+    });
+    const enumDefault = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(enumCtx)));
+    expect(enumDefault.alternatives).toEqual([
+      expect.objectContaining({ kind: 'identifier', name: 'Low' }),
+      expect.objectContaining({ kind: 'identifier', name: 'High' }),
+    ]);
+
+    const emptyProject = project(
+      'enum Empty {\n}\nmodel Post {\n  id Int @id\n  kind Empty\n}\n',
+      'Post',
+    );
+    const kind = field(emptyProject.model, 'kind');
+    const emptyCtx = fieldSpecContext({
+      symbols: emptyProject.symbolTable,
+      model: emptyProject.model,
+      field: kind,
+      controlMutationDefaults,
+    });
+    const emptyDefault = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(emptyCtx)));
+    expect(emptyDefault.alternatives).toEqual([
+      expect.objectContaining({
+        kind: 'rejecting',
+        label: 'enum member',
+        message: 'Enum declares no members',
+      }),
+    ]);
+  });
+
   it('accepts a member of a top-level enum and rejects a non-member', () => {
     const schema = (member: string) => `
 enum Priority {

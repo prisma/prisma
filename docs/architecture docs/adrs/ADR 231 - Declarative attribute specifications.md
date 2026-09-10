@@ -58,22 +58,41 @@ Attributes are a PSL authoring concern, so the kit is in `psl-parser` rather tha
 4. **Use native PSL literals for known structure.** Lists and records use `[…]` and `{…}`. A quoted string survives only for an arbitrary JSON object that the framework deliberately treats as opaque.
 5. **Keep leaf parsing diagnostic-pure.** Every combinator returns a `Result`; it does not mutate a shared diagnostic sink. `oneOf` can therefore discard failed branches safely.
 6. **Keep semantics at the right level.** A rule spanning arguments of one attribute belongs in `refine`. A rule spanning several attributes or entities remains in family-level semantic aggregation.
-7. **Preserve future inspectability without claiming it already exists.** Specs expose their top-level argument structure and combinator kinds. Language tooling will require child combinators, function signatures, and reference metadata to become fully traversable.
+7. **Preserve future inspectability without claiming editor behavior.** Specs expose their argument structure and framework-defined combinator variants directly. Language tooling can traverse those values, but completion and hover behavior remain separate consumers that must still be implemented and tested.
 
 ---
 
 ## Core types
 
-An argument combinator parses one `ExpressionAst` into `T`:
+An argument combinator parses one `ExpressionAst` into `T` and belongs to the framework-defined variant set:
 
 ```ts
+type ArgTypeKind =
+  | 'bool'
+  | 'entityRef'
+  | 'fieldRef'
+  | 'funcCall'
+  | 'identifier'
+  | 'int'
+  | 'json'
+  | 'list'
+  | 'num'
+  | 'oneOf'
+  | 'record'
+  | 'referencedFieldRef'
+  | 'rejecting'
+  | 'str';
+
 interface ArgType<T, Ctx extends AttributeCtx> {
-  readonly kind: string;
+  readonly kind: ArgTypeKind;
   readonly label: string;
+  readonly requiredContext: 'attribute' | 'model' | 'field';
   readonly _out?: T;
   readonly parse: (arg: ExpressionAst, ctx: Ctx) => Result<T, readonly PslDiagnostic[]>;
 }
 ```
+
+Concrete variants add the metadata a consumer needs to inspect the grammar: fixed identifiers carry `name`, pinned string and number literals carry `value`, lists and records carry `of`, alternatives carry `alternatives`, function calls carry `name` and `signature`, and rejecting leaves carry their `message`.
 
 A combinator declares what it reads. The contexts nest by what the site being parsed actually has, so a spec cannot demand facts its level never carries.
 
@@ -144,7 +163,7 @@ These leaves perform direct AST checks. They do not wrap arktype schemas.
 
 `entityRef()` parses an unresolved model-name string. Existence and family semantics remain downstream concerns.
 
-The current kit does not return declaration-bearing entity coordinates, provide a document-path scope, or include a codec reference combinator. Those would be separate additions if a future consumer requires them.
+The current kit does not return declaration-bearing entity coordinates, provide a document-path scope, or include a codec reference combinator. The reference variants still expose their local versus referenced-model scope through distinct `fieldRef` and `referencedFieldRef` kinds. Declaration-bearing results would be a separate addition if a future consumer requires them.
 
 ### Native collections
 
@@ -168,7 +187,7 @@ This is intentionally narrower than an arbitrary JSON value. Its shipped use is 
 
 `oneOf(first, ...rest)` tries its alternatives in order and returns the first success. If every alternative fails, it discards the branch diagnostics and emits one aggregate `Expected one of: …` diagnostic assembled from the alternatives' labels.
 
-This trade-off keeps the leaf contract small and allows backtracking, at the cost of less specific diagnostics for malformed input that resembles one particular branch.
+The value exposes every alternative through `alternatives`, and its `requiredContext` is the strongest context any alternative needs: `field` dominates `model`, which dominates `attribute`. A mixed alternation such as `oneOf(str(), fieldRef())` remains valid where a model context is available, but it cannot be smuggled into a block attribute whose parse context lacks a model. This trade-off keeps the leaf contract small and allows backtracking, at the cost of less specific diagnostics for malformed input that resembles one particular branch.
 
 ### Typed function calls
 
@@ -263,7 +282,7 @@ The distinction is semantic: projections and weights have a known grammar the sp
 
 ## 2026-09 amendment: inspectable combinator values
 
-The combinator kit is now a closed, framework-defined set of directly inspectable argument variants. The same values remain the parser input to `interpretAttribute`; no descriptor tree, compatibility layer, or language-server-specific grammar representation is introduced. Fixed identifiers and pinned string/number literals expose their authored values, unrestricted string/number primitives expose the absence of a fixed value, collections expose their child combinator and options, alternatives expose all arms, function calls expose their pinned name and signature, and local versus referenced field references use distinct kinds. Optional wrapping preserves the wrapped variant's metadata while adding optional/default markers.
+The combinator kit is now a closed, framework-defined set of directly inspectable argument variants. The same values remain the parser input to `interpretAttribute`; no descriptor tree, compatibility layer, or language-server-specific grammar representation is introduced. Fixed identifiers and pinned string/number literals expose their authored values, unrestricted string/number primitives expose the absence of a fixed value, collections expose their child combinator and options, alternatives expose all arms and the strongest required context, function calls expose their pinned name and signature, and local versus referenced field references use distinct kinds. Optional wrapping preserves the wrapped variant's metadata while adding optional/default markers.
 
 This amendment only makes the existing grammar traversable. It does not ship editor completion behavior, does not change accepted PSL syntax or diagnostics, and does not make interpretation dispatch on variant kind. Always-rejecting leaves such as an empty SQL enum default are represented as non-completable rejecting variants rather than counterfeit fixed identifiers.
 
@@ -274,8 +293,8 @@ The interpreter implementation proves that attribute grammars can be represented
 A language-tooling consumer will require additional work:
 
 - a central way to discover built-in and contributed specs by level and attribute name;
-- traversable child metadata for `list`, `record`, `oneOf`, and `funcCall`, whose children are currently captured by parse closures;
-- reference metadata and resolution results sufficient for go-to-definition and find-usages;
+- traversal policy for existing `list`, `record`, `oneOf`, and `funcCall` metadata, including how incomplete syntax maps to nested argument positions;
+- reference resolution results sufficient for go-to-definition and find-usages;
 - completion and hover behavior over named arguments, pinned alternatives, and nested function signatures;
 - diagnostics parity tests between editor and interpreter consumers.
 
