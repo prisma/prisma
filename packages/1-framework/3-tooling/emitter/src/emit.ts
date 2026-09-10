@@ -6,6 +6,7 @@ import { format } from 'prettier';
 import { getEmittedArtifactPaths } from './artifact-paths';
 import type { EmitOptions, EmitResult, EmitStackInput } from './emit-types';
 import { generateContractDts } from './generate-contract-dts';
+import { requireToOneRelationNullability } from './require-relation-nullability';
 
 const SCHEMA_VERSION = '1';
 
@@ -18,6 +19,7 @@ export async function emit(
   if (options.outputJsonPath !== undefined) {
     getEmittedArtifactPaths(options.outputJsonPath);
   }
+  requireToOneRelationNullability(contract);
 
   const { codecTypeImports, queryOperationTypeImports, aggregateDescriptors, codecDescriptors } =
     stack;

@@ -97,4 +97,6 @@ export type {
   PolymorphicIndexScope,
 } from '../polymorphic-index-scope';
 export { applyPolymorphicScopeToMongoIndex } from '../polymorphic-index-scope';
+export type { MongoToOneRelationFields } from '../relation-fields';
+export { resolveMongoToOneRelationFields } from '../relation-fields';
 export { validateMongoStorage } from '../validate-storage';

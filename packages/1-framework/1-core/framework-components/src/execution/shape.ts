@@ -7,16 +7,21 @@ export const RelationKeys: unique symbol = Symbol('RelationKeys');
 /**
  * The relation names an emitted model type declares.
  */
-export type RelationNamesOf<M> = M extends { readonly [RelationKeys]?: infer R extends string }
-  ? R
-  : never;
+export type RelationNamesOf<M> = Rel<M>;
+
+/**
+ * Without `exactOptionalPropertyTypes` the optional phantom infers `R | undefined`, so the
+ * inferred type is filtered rather than constrained: `infer R extends string` would fall back to
+ * `string` there.
+ */
+type Rel<M> = M extends { readonly [RelationKeys]?: infer R } ? Extract<R, string> : never;
 
 /**
  * The scalar row of a model: every field, no relations, no phantom.
  * Distributes over a union, so the row of a polymorphic `Any<Base>` is the union of its variants' rows.
  */
-export type Scalars<M> = M extends { readonly [RelationKeys]?: infer R extends string }
-  ? Omit<M, R | typeof RelationKeys>
+export type Scalars<M> = M extends { readonly [RelationKeys]?: unknown }
+  ? Omit<M, Rel<M> | typeof RelationKeys>
   : M;
 
 /**

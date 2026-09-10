@@ -1,3 +1,4 @@
+import { resolveToOneRelationNullable } from '@internal/contract-authoring';
 import {
   type AuthoringEntityTypeNamespace,
   isAuthoringEntityTypeDescriptor,
@@ -49,6 +50,7 @@ import {
   emitTypedNamedTypeFallbackWarnings,
 } from './contract-warnings';
 import { isEnumTypeHandle } from './enum-type';
+import { toOneNullabilityContradictionMessage } from './to-one-nullability-message';
 
 type RuntimeModel = ContractModelBuilder<
   string | undefined,
@@ -390,8 +392,36 @@ function resolveRelationAnchorFields(spec: RuntimeModelSpec): readonly string[] 
   );
 }
 
-function anyFieldNullable(spec: RuntimeModelSpec, fieldNames: readonly string[]): boolean {
-  return fieldNames.some((fieldName) => spec.fieldBuilders[fieldName]?.build().nullable === true);
+function belongsToNullable(
+  relationName: string,
+  declaredNullable: boolean | undefined,
+  spec: RuntimeModelSpec,
+  fieldNames: readonly string[],
+): boolean {
+  const { nullable, contradiction } = resolveToOneRelationNullable({
+    declaredNullable,
+    localFieldNullability: fieldNames.map(
+      (fieldName) => spec.fieldBuilders[fieldName]?.build().nullable === true,
+    ),
+    ownsForeignKey: true,
+  });
+  if (contradiction !== undefined) {
+    throw contractError(
+      'CONTRACT.RELATION_INVALID',
+      toOneNullabilityContradictionMessage(
+        `Relation "${spec.modelName}.${relationName}"`,
+        contradiction,
+      ),
+      {
+        meta: {
+          modelName: spec.modelName,
+          relationName,
+          reason: 'to-one-nullability-mismatch',
+        },
+      },
+    );
+  }
+  return nullable;
 }
 
 function lowerBelongsToRelation(
@@ -438,7 +468,7 @@ function lowerBelongsToRelation(
       toModel: targetModelName,
       toTable: targetTable,
       cardinality: 'N:1',
-      nullable: relation.optional ?? anyFieldNullable(currentSpec, fromFields),
+      nullable: belongsToNullable(relationName, relation.optional, currentSpec, fromFields),
       spaceId: relation.spaceId,
       ...(relation.namespaceId !== undefined ? { namespaceId: relation.namespaceId } : {}),
       on: {
@@ -464,7 +494,7 @@ function lowerBelongsToRelation(
     toModel: targetModelName,
     toTable: targetSpec.tableName,
     cardinality: 'N:1',
-    nullable: relation.optional ?? anyFieldNullable(currentSpec, fromFields),
+    nullable: belongsToNullable(relationName, relation.optional, currentSpec, fromFields),
     on: {
       parentTable: currentSpec.tableName,
       parentColumns: mapFieldNamesToColumnNames(

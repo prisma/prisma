@@ -71,7 +71,7 @@ const ToOneReferenceRelationSchema = type({
   '+': 'reject',
   to: CrossReferenceSchema,
   cardinality: "'1:1' | 'N:1'",
-  nullable: 'boolean',
+  'nullable?': 'boolean',
   on: RelationOnSchema,
 });
 

@@ -26,6 +26,7 @@ import {
   type CapabilityMatrix,
   type EnumTypeHandle,
   mergeCapabilityMatrices,
+  resolveToOneRelationNullable,
 } from '@internal/contract-authoring';
 import type {
   AuthoringContributions,
@@ -85,6 +86,7 @@ import type {
   ValueObjectFieldNode,
 } from './contract-definition';
 import { contractError } from './contract-errors';
+import { toOneNullabilityContradictionMessage } from './to-one-nullability-message';
 
 type DomainFieldRef =
   | { readonly kind: 'scalar'; readonly many?: boolean }
@@ -589,19 +591,20 @@ function toOneRelationNullable(semanticModel: ModelNode, relation: RelationNode)
       },
     );
   }
-  if (relation.cardinality !== 'N:1') {
-    return relation.nullable;
-  }
   const localColumns = relation.on.parentColumns;
-  const anyLocalColumnNullable = semanticModel.fields.some(
-    (field) => localColumns.includes(field.columnName) && field.nullable,
-  );
-  if (relation.nullable !== anyLocalColumnNullable) {
+  const { contradiction } = resolveToOneRelationNullable({
+    declaredNullable: relation.nullable,
+    localFieldNullability: semanticModel.fields
+      .filter((field) => localColumns.includes(field.columnName))
+      .map((field) => field.nullable),
+    ownsForeignKey: relation.cardinality === 'N:1',
+  });
+  if (contradiction !== undefined) {
     throw contractError(
       'CONTRACT.RELATION_INVALID',
-      relation.nullable
-        ? `${location} is optional but every local field it joins on is required`
-        : `${location} is required but a local field it joins on is nullable`,
+      relation.cardinality === 'N:1'
+        ? toOneNullabilityContradictionMessage(location, contradiction)
+        : `${location} is required but does not own the foreign key, so nothing in storage guarantees the related row exists`,
       {
         meta: {
           modelName: semanticModel.modelName,

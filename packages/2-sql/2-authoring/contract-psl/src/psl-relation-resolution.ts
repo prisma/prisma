@@ -1,6 +1,12 @@
 import type { ContractSourceDiagnostic } from '@internal/config/config-types';
 import type { AuthoringContributions } from '@internal/framework-components/authoring';
 import type { FieldSymbol, ModelSymbol, SymbolTable } from '@internal/psl-parser';
+import {
+  consumeInvalidFkPairing,
+  fkRelationPairKey,
+  type InvalidFkPairing,
+  requiredOneToOneBackrelationDiagnostic,
+} from '@internal/psl-parser/interpret';
 import type { SourceFile } from '@internal/psl-parser/syntax';
 import type { ReferentialAction } from '@internal/sql-contract/types';
 import type { RelationNode } from '@internal/sql-contract-ts/contract-builder';
@@ -55,34 +61,7 @@ export type ModelBackrelationCandidate = {
   readonly relationName?: string;
 };
 
-/**
- * An FK-side relation that was rejected (for example by the nullability check) and so never
- * became `FkRelationMetadata`. Its back-relation candidate is not orphaned; the FK-side
- * diagnostic already names the problem.
- */
-export type InvalidFkPairing = {
-  readonly pairKey: string;
-  readonly relationName?: string;
-};
-
 type ModelRelationMetadata = RelationNode;
-
-function backrelationMatchesInvalidFkPairing(
-  candidate: ModelBackrelationCandidate,
-  pairKey: string,
-  invalidFkPairings: readonly InvalidFkPairing[],
-): boolean {
-  return invalidFkPairings.some(
-    (pairing) =>
-      pairing.pairKey === pairKey &&
-      (candidate.relationName === undefined || pairing.relationName === candidate.relationName),
-  );
-}
-
-export function fkRelationPairKey(declaringModelName: string, targetModelName: string): string {
-  // NOTE: We assume PSL model identifiers do not contain the `::` separator.
-  return `${declaringModelName}::${targetModelName}`;
-}
 
 export function normalizeReferentialAction(actionToken: string): ReferentialAction | undefined {
   // the token is already validated by the `@relation` spec's `oneOf(identifier(...))`, so this is just a lookup — no second validation path here.
@@ -399,7 +378,7 @@ function fkColumnsAreUnique(
 export function applyBackrelationCandidates(input: {
   readonly backrelationCandidates: readonly ModelBackrelationCandidate[];
   readonly fkRelationsByPair: Map<string, readonly FkRelationMetadata[]>;
-  readonly invalidFkPairings: readonly InvalidFkPairing[];
+  readonly invalidFkPairings: InvalidFkPairing[];
   readonly fkRelationsByDeclaringModel: ReadonlyMap<string, readonly FkRelationMetadata[]>;
   readonly modelIdColumns: ReadonlyMap<string, readonly string[]>;
   readonly modelUniqueColumnSets: ReadonlyMap<string, readonly (readonly string[])[]>;
@@ -415,7 +394,7 @@ export function applyBackrelationCandidates(input: {
       : [...pairMatches];
 
     if (matches.length === 0) {
-      if (backrelationMatchesInvalidFkPairing(candidate, pairKey, input.invalidFkPairings)) {
+      if (consumeInvalidFkPairing(candidate, pairKey, input.invalidFkPairings)) {
         continue;
       }
       // A singular candidate is the back side of a 1:1 — many-to-many junction
@@ -485,12 +464,13 @@ export function applyBackrelationCandidates(input: {
 
     if (!candidate.isList && !candidate.field.optional) {
       input.diagnostics.push(
-        requiredOneToOneBackrelationDiagnostic(
-          candidate.modelName,
-          candidate.field,
-          candidate.targetModelName,
-          input.sourceId,
-        ),
+        requiredOneToOneBackrelationDiagnostic({
+          modelName: candidate.modelName,
+          field: candidate.field,
+          targetModelName: candidate.targetModelName,
+          sourceId: input.sourceId,
+          recordNoun: 'row',
+        }),
       );
     }
 
@@ -510,20 +490,6 @@ export function applyBackrelationCandidates(input: {
       },
     });
   }
-}
-
-export function requiredOneToOneBackrelationDiagnostic(
-  modelName: string,
-  field: FieldSymbol,
-  targetModelName: string,
-  sourceId: string,
-): ContractSourceDiagnostic {
-  return {
-    code: 'PSL_REQUIRED_ONE_TO_ONE_BACKRELATION',
-    message: `Backrelation field "${modelName}.${field.name}" is required, but it does not own the foreign key, so nothing in the database guarantees a "${targetModelName}" row exists. Make it optional: "${field.name} ${targetModelName}?".`,
-    sourceId,
-    span: field.span,
-  };
 }
 
 export function validateBackrelationFieldAttributes(input: {

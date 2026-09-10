@@ -125,6 +125,26 @@ function requireRelationTarget(
   );
 }
 
+function requireBase(
+  namespaces: readonly NamespaceModels[],
+  variant: ModelRef,
+  base: CrossReference,
+): ModelRef {
+  const found = findModel(namespaces, base);
+  if (found !== undefined) return found;
+  const variantSource = `${variant.namespaceId}.${variant.modelName}`;
+  const baseSource = `${base.namespace}.${base.model}`;
+  throw emitterError(
+    'CONTRACT.MODEL_BASE_MISSING',
+    `Model ${variantSource} names base ${baseSource}, which is not in the contract`,
+    {
+      why: "A variant's type is its base's fields plus its own, so the base must be a model the contract declares.",
+      fix: 'Declare the base model in the contract, or remove `base` from the variant.',
+      meta: { variant: variantSource, base: baseSource },
+    },
+  );
+}
+
 function requireVariant(
   namespaces: readonly NamespaceModels[],
   base: ModelRef,
@@ -210,7 +230,7 @@ function memberLines(
   resolvers: ModelFieldTypeResolvers,
 ): MemberLines {
   const base =
-    ref.model.base !== undefined ? findModel(index.namespaces, ref.model.base) : undefined;
+    ref.model.base !== undefined ? requireBase(index.namespaces, ref, ref.model.base) : undefined;
   if (base !== undefined && isPolymorphicBase(base.model)) {
     const discriminatorField = base.model.discriminator?.field ?? '';
     const variantValue = base.model.variants?.[ref.modelName]?.value;

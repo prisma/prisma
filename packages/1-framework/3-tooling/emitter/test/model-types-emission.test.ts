@@ -28,21 +28,12 @@ function sqlContract(
   namespaces: Record<string, Record<string, unknown>>,
   tables: Record<string, Record<string, TestTable>> = {},
 ): Contract {
-  const storageNamespaces = Object.fromEntries(
-    Object.entries(tables).map(([nsId, tableMap]) => [
-      nsId,
-      { id: nsId, entries: { table: tableMap } },
-    ]),
-  );
-  return {
-    ...createTestContract(),
-    domain: {
-      namespaces: Object.fromEntries(
-        Object.entries(namespaces).map(([nsId, models]) => [nsId, { models }]),
-      ),
-    },
-    storage: { namespaces: storageNamespaces },
-  } as unknown as Contract;
+  return createTestContract({
+    namespaces: Object.fromEntries(
+      Object.entries(namespaces).map(([nsId, models]) => [nsId, { models }]),
+    ),
+    tables,
+  });
 }
 
 const sqlSpi = createMockSpi();
@@ -1054,6 +1045,21 @@ describe('Models namespace and models constant emission', () => {
           relationName: 'customer',
           target: { namespaceId: 'crm', modelName: 'Customer' },
         },
+      }),
+    );
+  });
+
+  it('throws a structured error when a variant names a base that is not in the contract', () => {
+    const contract = sqlContract({
+      public: {
+        Bug: { fields: { id: int() }, relations: {}, base: ref('Ghost'), storage: {} },
+      },
+    });
+    expect(() => generateContractDts(contract, sqlSpi, [], HASHES)).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.MODEL_BASE_MISSING',
+        message: expect.stringContaining('public.Bug'),
+        meta: { variant: 'public.Bug', base: 'public.Ghost' },
       }),
     );
   });

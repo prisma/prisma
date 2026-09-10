@@ -4,9 +4,11 @@ to: "8.0.0-rc.10"
 changes:
   - id: to-one-relations-record-nullable
     summary: |
-      Every `1:1` and `N:1` relation in `contract.json` now carries a `nullable` boolean, and the
-      client refuses a contract without it. Re-run `prisma contract emit` so the emitted
-      `contract.json` / `contract.d.ts` match the installed toolchain.
+      Every `1:1` and `N:1` relation in `contract.json` now carries a `nullable` boolean. A
+      contract without it still loads, with the flag derived from the foreign-key columns (or
+      fields), but its `contract.d.ts` lacks the `Models` namespace. Re-run
+      `prisma contract emit` so the emitted `contract.json` / `contract.d.ts` match the installed
+      toolchain.
     detection:
       glob: "**/contract.json"
       matches:
@@ -20,7 +22,7 @@ changes:
 
 ## `to-one-relations-record-nullable`
 
-For every `contract.json` matched by `detection`, run the project's emit command (`prisma contract emit`, or the project's `contract:emit` script) once after upgrading. The emit reads the `?` on each to-one relation field in the schema and writes `"nullable": true` or `"nullable": false` next to that relation's `"cardinality"`. The emit also fails, rather than emitting, when a required relation field sits over a nullable foreign key or the reverse; fix the schema so the field's `?` matches the key's `?`, then emit again.
+For every `contract.json` matched by `detection`, run the project's emit command (`prisma contract emit`, or the project's `contract:emit` script) once after upgrading. The emit reads the `?` on each to-one relation field in the schema and writes `"nullable": true` or `"nullable": false` next to that relation's `"cardinality"`. The emit also fails, rather than emitting, when a required relation field sits over a nullable foreign key or the reverse; fix the schema so the field's `?` matches the key's `?`, then emit again. Until the re-emit, the client and the migration tools still load the old `contract.json`: a to-one relation without the flag is treated as nullable when any of its foreign-key columns (Mongo: fields) is nullable, and as required otherwise. Migration contract snapshots written by earlier versions are never rewritten and load the same way.
 
 ## `contract-dts-exports-models`
 

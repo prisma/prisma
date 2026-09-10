@@ -14,7 +14,7 @@ import {
   type JsonValue,
   type ValueSetRef,
 } from '@internal/contract/types';
-import type { EnumTypeHandle } from '@internal/contract-authoring';
+import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/contract-authoring';
 import { errorEnumCodecNotInPackStack } from '@internal/errors/control';
 import type {
   AuthoringContributions,
@@ -51,6 +51,12 @@ import type {
   TypedFuncCall,
 } from '@internal/psl-parser';
 import { nodePslSpan } from '@internal/psl-parser';
+import {
+  consumeInvalidFkPairing,
+  fkRelationPairKey,
+  type InvalidFkPairing,
+  requiredOneToOneBackrelationDiagnostic,
+} from '@internal/psl-parser/interpret';
 import type { SourceFile } from '@internal/psl-parser/syntax';
 import { assertDefined } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
@@ -196,46 +202,6 @@ function relationNullabilityMismatchDiagnostic(
     sourceId,
     span: field.span,
   };
-}
-
-function requiredOneToOneBackrelationDiagnostic(
-  modelName: string,
-  field: FieldSymbol,
-  targetModelName: string,
-  sourceId: string,
-): ContractSourceDiagnostic {
-  return {
-    code: 'PSL_REQUIRED_ONE_TO_ONE_BACKRELATION',
-    message: `Backrelation field "${modelName}.${field.name}" is required, but it does not own the foreign key, so nothing in the database guarantees a "${targetModelName}" document exists. Make it optional: "${field.name} ${targetModelName}?".`,
-    sourceId,
-    span: field.span,
-  };
-}
-
-/**
- * An FK-side relation that was rejected (for example by the nullability check) and so never
- * became an `FkRelation`. Its back-relation candidate is not orphaned; the FK-side diagnostic
- * already names the problem.
- */
-interface InvalidFkPairing {
-  readonly pairKey: string;
-  readonly relationName?: string;
-}
-
-function backrelationMatchesInvalidFkPairing(
-  candidate: { readonly relationName?: string },
-  pairKey: string,
-  invalidFkPairings: readonly InvalidFkPairing[],
-): boolean {
-  return invalidFkPairings.some(
-    (pairing) =>
-      pairing.pairKey === pairKey &&
-      (candidate.relationName === undefined || pairing.relationName === candidate.relationName),
-  );
-}
-
-function fkRelationPairKey(declaringModel: string, targetModel: string): string {
-  return `${declaringModel}::${targetModel}`;
 }
 
 function resolveFieldMappings(input: {
@@ -1266,10 +1232,14 @@ export function interpretPslDocumentToMongoContract(
         }
 
         if (relation?.fields && relation?.references) {
-          const anyLocalFieldOptional = relation.fields.some(
-            (localFieldName) => pslModel.fields[localFieldName]?.optional === true,
-          );
-          if (field.optional !== anyLocalFieldOptional) {
+          const nullability = resolveToOneRelationNullable({
+            declaredNullable: field.optional,
+            localFieldNullability: relation.fields.map(
+              (localFieldName) => pslModel.fields[localFieldName]?.optional === true,
+            ),
+            ownsForeignKey: true,
+          });
+          if (nullability.contradiction !== undefined) {
             diagnostics.push(relationNullabilityMismatchDiagnostic(pslModel.name, field, sourceId));
             invalidFkPairings.push({
               pairKey: fkRelationPairKey(pslModel.name, field.typeName),
@@ -1429,7 +1399,7 @@ export function interpretPslDocumentToMongoContract(
       : [...pairMatches];
 
     if (matches.length === 0) {
-      if (backrelationMatchesInvalidFkPairing(candidate, pairKey, invalidFkPairings)) {
+      if (consumeInvalidFkPairing(candidate, pairKey, invalidFkPairings)) {
         continue;
       }
       diagnostics.push({
@@ -1456,12 +1426,13 @@ export function interpretPslDocumentToMongoContract(
     if (!modelEntry) continue;
     if (candidate.cardinality === '1:1' && !candidate.field.optional) {
       diagnostics.push(
-        requiredOneToOneBackrelationDiagnostic(
-          candidate.modelName,
-          candidate.field,
-          candidate.targetModelName,
+        requiredOneToOneBackrelationDiagnostic({
+          modelName: candidate.modelName,
+          field: candidate.field,
+          targetModelName: candidate.targetModelName,
           sourceId,
-        ),
+          recordNoun: 'document',
+        }),
       );
     }
     modelEntry.relations[candidate.fieldName] = {

@@ -302,16 +302,14 @@ describe('validateContractDomain()', () => {
     }
 
     it.each(['N:1', '1:1'] as const)(
-      'rejects a %s relation without the flag and says to re-run prisma contract emit',
+      'accepts a %s relation without the flag, which hydration fills in from storage',
       (cardinality) => {
         const contract = contractWithRelation({
           to: crossRef('User'),
           cardinality,
           on: { localFields: ['userId'], targetFields: ['_id'] },
         });
-        expect(() => validateContractDomain(contract)).toThrow(
-          /Relation "rel" on model ".*Item".*"nullable".*re-run `prisma contract emit`/,
-        );
+        expect(() => validateContractDomain(contract)).not.toThrow();
       },
     );
 
@@ -332,7 +330,9 @@ describe('validateContractDomain()', () => {
         nullable: 'yes',
         on: { localFields: ['userId'], targetFields: ['_id'] },
       });
-      expect(() => validateContractDomain(contract)).toThrow(/Relation "rel".*"nullable"/);
+      expect(() => validateContractDomain(contract)).toThrow(
+        /Relation "rel" on model ".*Item".*"nullable" must be a boolean/,
+      );
     });
 
     it('rejects the flag on a 1:N relation', () => {

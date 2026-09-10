@@ -145,9 +145,6 @@
                               "cardinality": {
                                 "enum": ["1:1", "N:1"]
                               },
-                              "nullable": {
-                                "type": "boolean"
-                              },
                               "on": {
                                 "type": "object",
                                 "properties": {
@@ -182,9 +179,12 @@
                                 },
                                 "required": ["model", "namespace"],
                                 "additionalProperties": false
+                              },
+                              "nullable": {
+                                "type": "boolean"
                               }
                             },
-                            "required": ["cardinality", "nullable", "on", "to"],
+                            "required": ["cardinality", "on", "to"],
                             "additionalProperties": false
                           },
                           {

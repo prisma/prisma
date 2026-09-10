@@ -317,6 +317,10 @@ A command that requires a pre-signed database (marker present) as a precondition
 
 The marker row exists but its column values fail schema validation — the row is corrupt or written by an incompatible version. Fix path: delete the row and re-sign with `prisma db sign`. Payload: `space`.
 
+### CONTRACT.MODEL_BASE_MISSING
+
+A variant model names a `base` that is not a model in the contract, so its type in `contract.d.ts` cannot include the base's fields. Raised while emitting `contract.d.ts`. Payload: `variant`, `base`.
+
 ### CONTRACT.MODEL_RELATION_TARGET_MISSING
 
 A same-space relation points at a model the contract does not declare. Raised while emitting the `Models` namespace in `contract.d.ts`; only cross-space relations may reference models outside the contract. Payload: `owner`, `relationName`, `target` (`namespaceId`, `modelName`).

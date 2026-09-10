@@ -175,9 +175,9 @@ function validateRelationNullability(modelIndex: ModelIndex, errors: string[]): 
         relation.on !== undefined &&
         (relation.cardinality === '1:1' || relation.cardinality === 'N:1');
       if (isToOneReference) {
-        if (typeof relation.nullable !== 'boolean') {
+        if (relation.nullable !== undefined && typeof relation.nullable !== 'boolean') {
           errors.push(
-            `${location} is a ${relation.cardinality} relation and must carry a boolean "nullable"; re-run \`prisma contract emit\` to regenerate the contract`,
+            `${location} is a ${relation.cardinality} relation and its "nullable" must be a boolean`,
           );
         }
         continue;

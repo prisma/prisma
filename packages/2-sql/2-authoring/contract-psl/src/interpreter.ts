@@ -11,6 +11,7 @@ import type {
   ControlPolicy,
 } from '@internal/contract/types';
 import { crossRef } from '@internal/contract/types';
+import { resolveToOneRelationNullable } from '@internal/contract-authoring';
 import type {
   AuthoringContributions,
   AuthoringEntityContext,
@@ -56,6 +57,7 @@ import {
   type ResolvedAttribute,
   type SymbolTable,
 } from '@internal/psl-parser';
+import { fkRelationPairKey, type InvalidFkPairing } from '@internal/psl-parser/interpret';
 import type { SourceFile } from '@internal/psl-parser/syntax';
 import type {
   SqlModelStorage,
@@ -102,8 +104,6 @@ import { resolveNamedTypeDeclarations } from './psl-named-type-resolution';
 import {
   applyBackrelationCandidates,
   type FkRelationMetadata,
-  fkRelationPairKey,
-  type InvalidFkPairing,
   indexFkRelations,
   interpretRelationAttribute,
   type ModelBackrelationCandidate,
@@ -688,10 +688,15 @@ function relationNullabilityMismatch(
   localColumns: readonly string[],
   resolvedFields: readonly ResolvedField[],
 ): boolean {
-  const anyLocalColumnNullable = resolvedFields.some(
-    (resolvedField) => localColumns.includes(resolvedField.columnName) && resolvedField.nullable,
+  return (
+    resolveToOneRelationNullable({
+      declaredNullable: relationField.optional,
+      localFieldNullability: resolvedFields
+        .filter((resolvedField) => localColumns.includes(resolvedField.columnName))
+        .map((resolvedField) => resolvedField.nullable),
+      ownsForeignKey: true,
+    }).contradiction !== undefined
   );
-  return relationField.optional !== anyLocalColumnNullable;
 }
 
 function relationNullabilityMismatchDiagnostic(

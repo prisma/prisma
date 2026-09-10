@@ -406,6 +406,28 @@ describe('interpretPslDocumentToMongoContract', () => {
       });
     });
 
+    it('reports an unnamed backrelation as orphaned when only a differently named FK side was rejected', () => {
+      const result = interpret(`
+        model A {
+          id  ObjectId @id @map("_id")
+          bId ObjectId?
+          b   B @relation("named", fields: [bId], references: [id])
+        }
+
+        model B {
+          id ObjectId @id @map("_id")
+          as A[]
+        }
+      `);
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics.map((diagnostic) => diagnostic.code).sort()).toEqual([
+        'PSL_ORPHANED_BACKRELATION',
+        'PSL_RELATION_NULLABILITY_MISMATCH',
+      ]);
+    });
+
     it.each([
       ['required relation field on an optional FK field', 'ObjectId?', 'User', 'is required'],
       ['optional relation field on a required FK field', 'ObjectId', 'User?', 'is optional'],

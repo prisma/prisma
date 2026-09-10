@@ -20,6 +20,7 @@ import {
   type EntityHelpersFromNamespace,
   type ExtractAuthoringNamespaceFromPack,
   type MergeExtensionAuthoringNamespaces,
+  resolveToOneRelationNullable,
 } from '@internal/contract-authoring';
 import { errorEnumCodecNotInPackStack } from '@internal/errors/control';
 import type { AuthoringEntityTypeNamespace } from '@internal/framework-components/authoring';
@@ -1575,28 +1576,34 @@ function toOneRelationNullable(
   on: RelationOn,
   fields: Record<string, AnyFieldBuilder>,
 ): boolean {
-  if (relationBuilder.__cardinality === '1:1') {
-    return true;
-  }
-  const localFields = on.localFields.map((fieldName) => {
-    const localField = fields[fieldName];
-    if (localField === undefined) {
-      throw contractError(
-        'CONTRACT.RELATION_INVALID',
-        `Relation "${modelName}.${relationName}" joins on local field "${fieldName}", which model "${modelName}" does not declare`,
-        { meta: { modelName, relationName, fieldName, reason: 'local-field-unknown' } },
-      );
-    }
-    return localField;
+  const location = `Relation "${modelName}.${relationName}"`;
+  const ownsForeignKey = relationBuilder.__cardinality !== '1:1';
+  const localFields = ownsForeignKey
+    ? on.localFields.map((fieldName) => {
+        const localField = fields[fieldName];
+        if (localField === undefined) {
+          throw contractError(
+            'CONTRACT.RELATION_INVALID',
+            `${location} joins on local field "${fieldName}", which model "${modelName}" does not declare`,
+            { meta: { modelName, relationName, fieldName, reason: 'local-field-unknown' } },
+          );
+        }
+        return localField;
+      })
+    : [];
+  const { nullable, contradiction } = resolveToOneRelationNullable({
+    declaredNullable: relationBuilder.__nullable,
+    localFieldNullability: localFields.map((localField) => localField.__nullable === true),
+    ownsForeignKey,
   });
-  const anyLocalFieldNullable = localFields.some((localField) => localField.__nullable === true);
-  const nullable = relationBuilder.__nullable ?? anyLocalFieldNullable;
-  if (nullable !== anyLocalFieldNullable) {
+  if (contradiction !== undefined) {
     throw contractError(
       'CONTRACT.RELATION_INVALID',
-      nullable
-        ? `Relation "${modelName}.${relationName}" is optional but every local field it joins on is required`
-        : `Relation "${modelName}.${relationName}" is required but a local field it joins on is optional`,
+      !ownsForeignKey
+        ? `${location} is required but does not own the foreign key, so nothing in storage guarantees the related document exists`
+        : contradiction === 'declared-optional'
+          ? `${location} is optional but every local field it joins on is required`
+          : `${location} is required but a local field it joins on is nullable`,
       { meta: { modelName, relationName, reason: 'to-one-nullability-mismatch' } },
     );
   }

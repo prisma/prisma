@@ -246,6 +246,32 @@ model Profile {
     });
   });
 
+  it('reports an unnamed backrelation as orphaned when only a differently named FK side was rejected', () => {
+    const document = symbolTableInputFromParseArgs({
+      schema: `model A {
+  id Int @id
+  bId Int?
+  b B @relation("named", fields: [bId], references: [id])
+}
+
+model B {
+  id Int @id
+  as A[]
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+
+    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics.map((diagnostic) => diagnostic.code).sort()).toEqual([
+      'PSL_ORPHANED_BACKRELATION',
+      'PSL_RELATION_NULLABILITY_MISMATCH',
+    ]);
+  });
+
   it('reports an orphaned 1:1 backrelation candidate when no FK points back at it', () => {
     const document = symbolTableInputFromParseArgs({
       schema: `model User {
