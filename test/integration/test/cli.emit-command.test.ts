@@ -621,7 +621,7 @@ describe('emit command: additional fixtures', () => {
     }
   });
 
-  it('names the offending field in the human-mode provider failure', {
+  it('names the offending field and its position in human mode', {
     timeout: timeouts.typeScriptCompilation,
   }, async () => {
     const testSetup = setupIntegrationTestDirectoryFromFixtures(
@@ -644,8 +644,9 @@ describe('emit command: additional fixtures', () => {
       expect(run.exitCode).toBe(2);
 
       const reported = stripAnsi(run.stderr);
-      expect(reported).toContain('unsupported attribute "@updatedAt"');
-      expect(reported).toContain('schema.prisma:3:22');
+      expect(reported).toContain('Field "User.updatedAt" uses unsupported attribute "@updatedAt"');
+      expect(reported).toContain('temporal.updatedAt()');
+      expect(reported).toMatch(/schema\.prisma:3:\d+/);
     } finally {
       testSetup.cleanup();
     }

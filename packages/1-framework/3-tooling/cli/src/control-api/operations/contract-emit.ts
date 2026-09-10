@@ -130,12 +130,11 @@ function validateProviderResult(providerResult: unknown): ValidatedProviderResul
   }
   const issues = mapDiagnosticsToIssues(failure['diagnostics']);
   const summary = String(failure['summary']);
+  const why = [summary, ...issues.map((issue) => `  - ${issue.message}`)].join('\n');
   return {
     ok: false,
     error: failedToResolveContractSource(
-      issues.length === 0
-        ? summary
-        : `${summary}: ${issues.map((issue) => issue.message).join('; ')}`,
+      why,
       'Fix contract source diagnostics and return ok(Contract).',
       {
         diagnostics: failure['diagnostics'],
