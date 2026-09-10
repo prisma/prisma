@@ -234,11 +234,11 @@ const noCheckFieldSpec = fieldAttribute('noCheck', {
 });
 
 const idModelSpec = modelAttribute('id', {
-  positional: [{ key: 'fields', type: list(fieldRef(), { nonEmpty: true, unique: true }) }],
+  positional: [{ key: 'fields', type: list(fieldRef(), { allowEmpty: false, unique: true }) }],
   named: { map: optional(str()) },
 });
 const uniqueModelSpec = modelAttribute('unique', {
-  positional: [{ key: 'fields', type: list(fieldRef(), { nonEmpty: true, unique: true }) }],
+  positional: [{ key: 'fields', type: list(fieldRef(), { allowEmpty: false, unique: true }) }],
   named: { map: optional(str()) },
 });
 
@@ -253,7 +253,7 @@ export const PSL_INDEX_NAME_XOR_MAP: ContributedPslDiagnosticCode = 'PSL_INDEX_N
 
 const indexModelSpec = modelAttribute('index', {
   positional: [
-    { key: 'fields', type: optional(list(fieldRef(), { nonEmpty: true, unique: true })) },
+    { key: 'fields', type: optional(list(fieldRef(), { allowEmpty: false, unique: true })) },
   ],
   named: {
     expression: optional(str()),
@@ -428,8 +428,8 @@ const relationFieldSpec = fieldAttribute('relation', {
   positional: [{ key: 'name', type: optional(str()) }],
   named: {
     name: optional(str()),
-    fields: optional(list(fieldRef(), { nonEmpty: true, unique: true })),
-    references: optional(list(referencedFieldRef(), { nonEmpty: true, unique: true })),
+    fields: optional(list(fieldRef(), { allowEmpty: false, unique: true })),
+    references: optional(list(referencedFieldRef(), { allowEmpty: false, unique: true })),
     map: optional(str()),
     onDelete: optional(referentialActionArgument()),
     onUpdate: optional(referentialActionArgument()),

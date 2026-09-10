@@ -37,8 +37,8 @@ function field(model: ModelSymbol, name: string): FieldSymbol {
 interface ListMetadata<T, Ctx extends AttributeCtx> extends ArgType<readonly T[], Ctx> {
   readonly kind: 'list';
   readonly of: ArgType<T, Ctx>;
-  readonly nonEmpty: true | undefined;
-  readonly unique: true | undefined;
+  readonly allowEmpty: boolean;
+  readonly unique: boolean;
 }
 
 interface RecordMetadata<T, Ctx extends AttributeCtx> extends ArgType<Record<string, T>, Ctx> {
@@ -202,12 +202,12 @@ describe('sqlAttributeSpecs', () => {
 
     expect(fields).toMatchObject({ kind: 'list', optional: true });
     expect(fields.of).toMatchObject({ kind: 'fieldRef' });
-    expect(fields.nonEmpty).toBe(true);
+    expect(fields.allowEmpty).toBe(false);
     expect(fields.unique).toBe(true);
 
     expect(references).toMatchObject({ kind: 'list', optional: true });
     expect(references.of).toMatchObject({ kind: 'referencedFieldRef' });
-    expect(references.nonEmpty).toBe(true);
+    expect(references.allowEmpty).toBe(false);
     expect(references.unique).toBe(true);
   });
 
@@ -215,7 +215,7 @@ describe('sqlAttributeSpecs', () => {
     const idFields = listMetadata<string, ModelAttributeCtx>(
       positionalType(sqlAttributeSpecs.model.id()),
     );
-    expect(idFields).toMatchObject({ kind: 'list', nonEmpty: true });
+    expect(idFields).toMatchObject({ kind: 'list', allowEmpty: false, unique: true });
     expect(idFields.of).toMatchObject({ kind: 'fieldRef' });
 
     const options = recordMetadata<string, ModelAttributeCtx>(

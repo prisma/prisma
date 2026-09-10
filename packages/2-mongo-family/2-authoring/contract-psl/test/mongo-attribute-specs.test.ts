@@ -13,7 +13,7 @@ import { mongoAttributeSpecs } from '../src/mongo-attribute-specs';
 interface ListMetadata<T, Ctx extends AttributeCtx> extends ArgType<readonly T[], Ctx> {
   readonly kind: 'list';
   readonly of: ArgType<T, Ctx>;
-  readonly nonEmpty: true | undefined;
+  readonly allowEmpty: boolean;
 }
 
 interface RecordMetadata<T, Ctx extends AttributeCtx> extends ArgType<Record<string, T>, Ctx> {
@@ -141,7 +141,7 @@ describe('mongoAttributeSpecs', () => {
     );
     const element = oneOfMetadata(fields.of);
 
-    expect(fields).toMatchObject({ kind: 'list', nonEmpty: true });
+    expect(fields).toMatchObject({ kind: 'list', allowEmpty: false });
     expect(element.alternatives[0]).toMatchObject({ kind: 'fieldRef' });
     const wildcard = element.alternatives[1] as FuncCallMetadata<ModelAttributeCtx>;
     expect(wildcard).toMatchObject({ kind: 'funcCall', name: 'wildcard' });

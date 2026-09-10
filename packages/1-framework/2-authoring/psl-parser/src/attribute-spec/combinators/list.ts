@@ -5,7 +5,7 @@ import type { ArgType, AttributeCtx, ListArgType } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 export interface ListOptions {
-  readonly nonEmpty?: boolean;
+  readonly allowEmpty?: boolean;
   readonly unique?: boolean;
 }
 
@@ -13,13 +13,13 @@ export function list<T, Ctx extends AttributeCtx>(
   of: ArgType<T, Ctx>,
   opts?: ListOptions,
 ): ListArgType<T, Ctx> {
-  const nonEmpty = opts?.nonEmpty === true ? true : undefined;
-  const unique = opts?.unique === true ? true : undefined;
+  const allowEmpty = opts?.allowEmpty ?? true;
+  const unique = opts?.unique ?? false;
   return {
     kind: 'list',
     label: `${of.label}[]`,
     of,
-    nonEmpty,
+    allowEmpty,
     unique,
     parse: (arg, ctx): Result<T[], readonly PslDiagnostic[]> => {
       const literal = ArrayLiteralAst.cast(arg.syntax);
@@ -35,10 +35,10 @@ export function list<T, Ctx extends AttributeCtx>(
         if (result.ok) parsed.push({ node: element, value: result.value });
         else diagnostics.push(...result.failure);
       }
-      if (opts?.nonEmpty === true && count === 0) {
+      if (!allowEmpty && count === 0) {
         diagnostics.push(leafDiagnostic(ctx, arg, 'Expected a non-empty list'));
       }
-      if (opts?.unique === true) {
+      if (unique) {
         const seen = new Set<T>();
         for (const { node, value } of parsed) {
           if (seen.has(value)) diagnostics.push(leafDiagnostic(ctx, node, 'Duplicate list entry'));

@@ -2,15 +2,8 @@ import type { AnyArgType, CtxOf, OptionalArgType, OutOf } from './types';
 
 export function optional<Type extends AnyArgType>(
   type: Type,
-): OptionalArgType<OutOf<Type>, CtxOf<Type>, Type, false>;
-export function optional<Type extends AnyArgType>(
-  type: Type,
-  defaultValue: NoInfer<OutOf<Type>>,
-): OptionalArgType<OutOf<Type>, CtxOf<Type>, Type, true>;
-export function optional<Type extends AnyArgType>(
-  type: Type,
-  ...rest: [defaultValue: NoInfer<OutOf<Type>>] | []
-): OptionalArgType<OutOf<Type>, CtxOf<Type>, Type, boolean> {
+  ...rest: [] | [defaultValue: OutOf<Type> | undefined]
+): OptionalArgType<OutOf<Type>, CtxOf<Type>, Type> {
   if (rest.length === 0) {
     return { ...type, optional: true, hasDefault: false };
   }

@@ -180,7 +180,7 @@ test('fixed and unrestricted scalar metadata stay distinguishable', () => {
 });
 
 test('child and signature metadata preserve output and context types', () => {
-  const fields = list(fieldRef(), { nonEmpty: true, unique: true });
+  const fields = list(fieldRef(), { allowEmpty: false, unique: true });
   const namedRecord = record(int({ min: 1, max: 9 }));
   const call = funcCall('nanoid', {
     positional: [{ key: 'size', type: optional(int({ min: 2 })) }],
@@ -190,8 +190,8 @@ test('child and signature metadata preserve output and context types', () => {
   if (fields.kind === 'list') {
     expectTypeOf<OutOf<typeof fields.of>>().toEqualTypeOf<string>();
     expectTypeOf(fields.of).toMatchTypeOf<ArgType<string, ModelAttributeCtx>>();
-    expectTypeOf(fields.nonEmpty).toEqualTypeOf<true | undefined>();
-    expectTypeOf(fields.unique).toEqualTypeOf<true | undefined>();
+    expectTypeOf(fields.allowEmpty).toEqualTypeOf<boolean>();
+    expectTypeOf(fields.unique).toEqualTypeOf<boolean>();
   }
   if (namedRecord.kind === 'record') {
     expectTypeOf<OutOf<typeof namedRecord.of>>().toEqualTypeOf<number>();
@@ -209,16 +209,18 @@ test('child and signature metadata preserve output and context types', () => {
 });
 
 test('optional wrappers retain child metadata and optional markers', () => {
-  const optionalList = optional(list(str('tag'), { nonEmpty: true }), ['tag']);
+  const optionalList = optional(list(str('tag'), { allowEmpty: false }), ['tag']);
+  const explicitUndefinedDefault = optional(str(), undefined);
 
   expectTypeOf<OutOf<typeof optionalList>>().toEqualTypeOf<'tag'[]>();
   if (optionalList.kind === 'list') {
     expectTypeOf(optionalList.optional).toEqualTypeOf<true>();
-    expectTypeOf(optionalList.hasDefault).toEqualTypeOf<true>();
+    expectTypeOf(optionalList.hasDefault).toEqualTypeOf<boolean>();
     expectTypeOf(optionalList.defaultValue).toEqualTypeOf<'tag'[] | undefined>();
     expectTypeOf<OutOf<typeof optionalList.of>>().toEqualTypeOf<'tag'>();
-    expectTypeOf(optionalList.nonEmpty).toEqualTypeOf<true | undefined>();
+    expectTypeOf(optionalList.allowEmpty).toEqualTypeOf<boolean>();
   }
+  expectTypeOf(explicitUndefinedDefault.hasDefault).toEqualTypeOf<boolean>();
 });
 
 test('field references have distinct inspectable kinds', () => {

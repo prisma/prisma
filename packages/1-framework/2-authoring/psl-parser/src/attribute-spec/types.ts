@@ -111,8 +111,8 @@ export interface ListArgType<T = unknown, Ctx extends AttributeCtx = AttributeCt
   extends ArgTypeOutput<T[], Ctx> {
   readonly kind: 'list';
   readonly of: ArgType<T, Ctx>;
-  readonly nonEmpty: true | undefined;
-  readonly unique: true | undefined;
+  readonly allowEmpty: boolean;
+  readonly unique: boolean;
 }
 
 export interface UnrestrictedNumArgType<Ctx extends AttributeCtx = AttributeCtx>
@@ -220,7 +220,7 @@ export type OptionalArgType<
 > = Type & {
   readonly optional: true;
   readonly hasDefault: HasDefault;
-  readonly defaultValue?: T;
+  readonly defaultValue?: T | undefined;
 };
 
 export type Param<T, Ctx extends AttributeCtx> = ArgType<T, Ctx>;
