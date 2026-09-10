@@ -73,11 +73,7 @@
   },
   "overrides": [
     {
-      "includes": [
-        "**/*.test.{ts,tsx,mts,cts}",
-        "**/*.test-d.{ts,tsx,mts,cts}",
-        "**/test/**/*.{ts,tsx,mts,cts}"
-      ],
+      "includes": ["**/*.test.ts", "**/*.test-d.ts", "**/test/**/*.ts"],
       "javascript": {
         "globals": ["console", "process", "__dirname", "__filename", "URL"]
       },

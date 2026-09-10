@@ -1,5 +1,5 @@
 // Fixture (d): flat .test.ts file with bare `as` — no-bare-cast must NOT fire.
-// The plugin excludes **/*.test.{ts,tsx,mts,cts} paths.
+// The plugin's file() predicate excludes **/*.test.ts paths.
 
 declare const input: unknown;
 

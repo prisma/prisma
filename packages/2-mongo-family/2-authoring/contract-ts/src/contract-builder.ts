@@ -1578,9 +1578,18 @@ function toOneRelationNullable(
   if (relationBuilder.__cardinality === '1:1') {
     return true;
   }
-  const anyLocalFieldNullable = on.localFields.some(
-    (fieldName) => fields[fieldName]?.__nullable === true,
-  );
+  const localFields = on.localFields.map((fieldName) => {
+    const localField = fields[fieldName];
+    if (localField === undefined) {
+      throw contractError(
+        'CONTRACT.RELATION_INVALID',
+        `Relation "${modelName}.${relationName}" joins on local field "${fieldName}", which model "${modelName}" does not declare`,
+        { meta: { modelName, relationName, fieldName, reason: 'local-field-unknown' } },
+      );
+    }
+    return localField;
+  });
+  const anyLocalFieldNullable = localFields.some((localField) => localField.__nullable === true);
   const nullable = relationBuilder.__nullable ?? anyLocalFieldNullable;
   if (nullable !== anyLocalFieldNullable) {
     throw contractError(

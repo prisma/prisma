@@ -12,7 +12,7 @@ import type { Shape } from '@prisma/orm-postgres/family-contract/types';
 
 type UserResponse = Shape<Models.public_User, {
   '-': 'passwordHash';
-  posts: { '+': 'id' | 'title'; comments: {} };
+  posts: { '+': 'id' | 'title' | 'comments' };
 }>;
 
 export async function getUserWithPosts(id: string): Promise<UserResponse | null> {
@@ -39,10 +39,10 @@ So `Shape` is a small language for describing application data structures derive
 
 At every level of the spec:
 
-1. `'+'` is a union of names to keep, scalars and relations alike. A relation named in `'+'` is included with all of its scalars and none of its relations. When `'+'` is present, only the named scalars are kept.
+1. `'+'` is a union of names to keep, scalars and relations alike. A relation named in `'+'` is included with all of its scalars and none of its relations. Scalars are narrowed only when `'+'` names at least one scalar; `'+': 'posts'` alone is every scalar plus posts.
 2. `'-'` is a union of scalar names to drop. Every other scalar is kept. Relations cannot be dropped, since they are absent unless asked for.
-3. `'+'` and `'-'` together at one level is a compile error. "Only these" and "all but these" cannot both be meant. A relation named in `'+'` and also present as a key at the same level is a compile error for the same reason: "all its scalars" and "this nested spec" cannot both be meant. Use the key alone to narrow.
-4. Any other key is a relation of the current model, and its value is a nested spec applied to the related model. `{}` is the empty spec: all scalars, no relations.
+3. `'+'` naming a scalar together with `'-'` at one level is a compile error: "only these" and "all but these" cannot both be meant. `'+'` naming only relations beside `'-'` is fine: `{ '-': 'passwordHash'; '+': 'posts' }` is every scalar except the hash, plus posts. A relation named in `'+'` and also present as a key at the same level is a compile error: "all its scalars" and "this nested spec" cannot both be meant. Use the key alone to narrow.
+4. Any other key is a relation of the current model, and its value is a nested spec applied to the related model that narrows it. To include a relation whole, name it in `'+'`; a key is for narrowing.
 5. No `'+'` and no `'-'` means every scalar.
 6. Relations are absent unless they appear in `'+'` or as a key.
 7. Cardinality and nullability come from the model at every level: a to-many relation is `T[]`, a nullable to-one is `T | null`, a required to-one is `T`.
@@ -52,12 +52,12 @@ At every level of the spec:
 ### Examples
 
 ```ts
-Shape<User, {}>                                              // Scalars<User>
-Shape<User, { posts: {} }>                                   // all of User, plus posts
+Shape<User>                                                  // Scalars<User>
+Shape<User, { '+': 'posts' }>                                // all of User, plus posts
 Shape<User, { '+': 'id' | 'name' | 'posts' }>                // id, name, and posts
-Shape<User, { '-': 'passwordHash'; posts: {} }>              // all but the hash, plus posts
-Shape<User, { posts: { '+': 'title'; comments: {} } }>       // posts narrowed to title, with comments
-Shape<Task, { project: {} }>                                 // on a polymorphic base: distributes over the variants
+Shape<User, { '-': 'passwordHash'; '+': 'posts' }>           // all but the hash, plus posts
+Shape<User, { posts: { '+': 'title' | 'comments' } }>        // posts narrowed to title, with their comments
+Shape<Task, { '+': 'project' }>                              // on a polymorphic base: distributes over the variants
 ```
 
 ### What it produces
@@ -69,7 +69,7 @@ For a spec at a level, the result is the kept scalars intersected with one prope
 - A name in `'+'` or `'-'` that is neither a scalar nor a relation of the model. The error names the bad key.
 - A relation name in `'-'`.
 - A relation key whose value is not an object.
-- `'+'` and `'-'` at the same level, or a relation both in `'+'` and as a key.
+- `'+'` naming a scalar beside `'-'` at the same level, or a relation both in `'+'` and as a key.
 
 ## What is out of scope, deliberately
 
@@ -81,9 +81,9 @@ For a spec at a level, the result is the kept scalars intersected with one prope
 ## Relationship to what is on PR #30231
 
 - `Scalars<M>` stays. `Shape<M, {}>` equals it, and `Scalars` remains the name of the default fetch's row.
-- `With<M, R>` is removed before merge. `With<User, 'posts'>` is `Shape<User, { '+': 'posts' }>` plus all scalars, which the object form spells as `Shape<User, { posts: {} }>`. Keeping both would be two overlapping helpers.
+- `With<M, R>` is removed before merge. `With<User, 'posts'>` is `Shape<User, { '+': 'posts' }>`. Keeping both would be two overlapping helpers.
 - `ResultType<typeof query>` stays, for the other direction: when someone wants the raw shape of a query for an internal helper or a test. It needs the query bound to a name, because `typeof` cannot take a call expression.
-- The invariant tests change shape: for every fixture model, `ResultType` of a plain `.include(r)` equals `Shape<M, { r: {} }>`, and a `.select(...)` projection equals `Shape<M, { '+': ... }>`. The refined-include nullability rule is unchanged.
+- The invariant tests change shape: for every fixture model, `ResultType` of a plain `.include(r)` equals `Shape<M, { '+': r }>`, and a `.select(...)` projection equals `Shape<M, { '+': ... }>`. The refined-include nullability rule is unchanged.
 - The docs page's "A view with relations" section and the Prisma 7 mapping row for `GetPayload` become `Shape`.
 
 ## Naming
@@ -103,7 +103,7 @@ The implementation confirmed every rule and refusal as written, with a six-level
 
 ## Open questions
 
-- Whether `{}` as "everything" reads well enough, or whether the wide case wants a spelling like `posts: true` after all. The brief takes `{}` to keep one concept per key.
+- Settled 2026-09-10: `posts: {}` read as ambiguous, so the wide case is `'+': 'posts'` and a relation key is only for narrowing. `'+'` narrows scalars only when it names a scalar.
 - Whether `'-'` should also be allowed on a relation listed in `'+'` at the same level to remove one of its scalars. The brief says no; use a nested spec.
 
 ## Implementation notes

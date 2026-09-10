@@ -425,14 +425,12 @@ describe('interpretPslDocumentToMongoContract', () => {
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'PSL_RELATION_NULLABILITY_MISMATCH',
-            message: expect.stringContaining(`Relation field "Post.author" ${expectedMessage}`),
-          }),
-        ]),
-      );
+      expect(result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+          message: expect.stringContaining(`Relation field "Post.author" ${expectedMessage}`),
+        }),
+      ]);
     });
 
     it('creates 1:N backrelation for list fields referencing other models', () => {

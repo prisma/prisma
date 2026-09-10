@@ -1045,6 +1045,17 @@ describe('to-one relation nullability', () => {
     );
   });
 
+  it('rejects a local field the model does not declare', () => {
+    expect(() =>
+      userAndPost({ authorId: field.column(int4Column) }, { from: 'missingId' }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.FIELD_UNKNOWN',
+        message: 'Unknown field "Post.missingId" in contract definition',
+      }),
+    );
+  });
+
   it('hasOne is always nullable, and hasMany carries no flag', () => {
     const UserBase = model('User', { fields: { id: field.column(int4Column).id() } });
     const Profile = model('Profile', {

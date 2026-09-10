@@ -13,7 +13,7 @@
 // guard. `$filename` is biome's built-in current-file path; biome's GritQL
 // regex matching is anchored full-match, so patterns need a `.*` prefix. The
 // three file-exclusion regexes mirror biome's test-file override includes
-// (`**/*.test.{ts,tsx,mts,cts}`, `**/*.test-d.{ts,tsx,mts,cts}`, `**/test/**/*.{ts,tsx,mts,cts}`).
+// (`**/*.test.ts`, `**/*.test-d.ts`, `**/test/**/*.ts`).
 //
 // Severity is "info" so the plugin runs repo-wide without breaking existing
 // builds (thousands of pre-existing casts). The CI ratchet enforces the gate by
@@ -23,7 +23,7 @@ language js
 
 TsAsExpression(ty=$ty) as $cast where {
   not $ty <: r"^const$",
-  not $filename <: r".*\.(?:test|test-d)\.(?:ts|tsx|mts|cts)",
-  not $filename <: r".*/test/.*\.(?:ts|tsx|mts|cts)",
+  not $filename <: r".*\.(?:test|test-d)\.ts",
+  not $filename <: r".*/test/.*\.ts",
   register_diagnostic(span=$cast, message="no-bare-cast: bare `as` cast; replace with blindCast(...) or castAs(value), or rewrite to eliminate the cast", severity="info")
 }

@@ -152,6 +152,22 @@ describe('mongo contract builder', () => {
       );
     });
 
+    it('rejects a local field the model does not declare', () => {
+      expect(() => postWith(field.objectId(), { from: 'missingId' })).toThrow(
+        expect.objectContaining({
+          code: 'CONTRACT.RELATION_INVALID',
+          message:
+            'Relation "Post.author" joins on local field "missingId", which model "Post" does not declare',
+          meta: {
+            modelName: 'Post',
+            relationName: 'author',
+            fieldName: 'missingId',
+            reason: 'local-field-unknown',
+          },
+        }),
+      );
+    });
+
     it('hasOne reference is always nullable; embeds and hasMany carry no flag', () => {
       const Profile = model('Profile', {
         collection: 'profiles',

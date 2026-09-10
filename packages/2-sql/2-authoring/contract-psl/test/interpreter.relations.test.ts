@@ -162,14 +162,12 @@ model Post {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_RELATION_NULLABILITY_MISMATCH',
-          message: expect.stringContaining('Relation field "Post.user" is required'),
-        }),
-      ]),
-    );
+    expect(result.failure.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+        message: expect.stringContaining('Relation field "Post.user" is required'),
+      }),
+    ]);
   });
 
   it('rejects an optional relation field whose FK fields are all required', () => {
@@ -192,14 +190,12 @@ model Post {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_RELATION_NULLABILITY_MISMATCH',
-          message: expect.stringContaining('Relation field "Post.user" is optional'),
-        }),
-      ]),
-    );
+    expect(result.failure.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+        message: expect.stringContaining('Relation field "Post.user" is optional'),
+      }),
+    ]);
   });
 
   it('accepts a bare model-typed optional field with no @relation as the 1:1 back side', () => {

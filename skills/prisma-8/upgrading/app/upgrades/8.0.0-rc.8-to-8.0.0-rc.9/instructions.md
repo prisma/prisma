@@ -25,20 +25,6 @@ changes:
   - id: namespace-qualify-sql-orm-filter-types
     summary: |
       SQL ORM reusable filter types now require the domain namespace before the model name: `<Contract, Namespace, Model>`.
-  - id: to-one-relations-record-nullable
-    summary: |
-      Every `1:1` and `N:1` relation in `contract.json` now carries a `nullable` boolean, and the
-      client refuses a contract without it. Re-run `prisma contract emit` so the emitted
-      `contract.json` / `contract.d.ts` match the installed toolchain.
-    detection:
-      glob: "**/contract.json"
-      matches:
-        - '"cardinality":\s*"(?:N:1|1:1)",\s*"on":'
-  - id: contract-dts-exports-models
-    summary: |
-      `contract.d.ts` now exports a `Models` namespace and a `models` constant that name every
-      model with its fields and relations. The re-emit above produces them; use them with
-      `Scalars` and `Shape` to name row types without a client in scope.
   - id: mongo-unlowered-attributes-are-rejected
     summary: |
       MongoDB Prisma schema files must not carry `@default(...)`, `@updatedAt`, or `@db.*` attributes; the Mongo interpreter never lowered them and now rejects them.
@@ -70,13 +56,6 @@ Review queries that order text-backed enum columns and rely on declaration order
 
 Find TypeScript references to `ShorthandWhereFilter`, `RelationPredicate`, `RelationPredicateInput`, and `RelationFilterAccessor`. Add the model's domain namespace as the second generic argument and place the model name third. Rewrite `ShorthandWhereFilter<Contract, Model>` as `ShorthandWhereFilter<Contract, Namespace, Model>` and `ShorthandWhereFilter<Contract, Model, Namespace>` as `ShorthandWhereFilter<Contract, Namespace, Model>`. Rewrite the relation types from `<Contract, Model>` to `<Contract, Namespace, Model>`. Use the namespace facet through which the model is queried, such as `'public'` for `db.public.User`.
 
-## `to-one-relations-record-nullable`
-
-For every `contract.json` matched by `detection`, run the project's emit command (`prisma contract emit`, or the project's `contract:emit` script) once after upgrading. The emit reads the `?` on each to-one relation field in the schema and writes `"nullable": true` or `"nullable": false` next to that relation's `"cardinality"`. The emit also fails, rather than emitting, when a required relation field sits over a nullable foreign key or the reverse; fix the schema so the field's `?` matches the key's `?`, then emit again.
-
-## `contract-dts-exports-models`
-
-After the emit, `import type { Models, models } from './prisma/contract'` (the project's contract path) gives `Models.<namespace>_<Model>` for every model, and `Scalars<M>` / `Shape<M, { relation: {} }>` from `@prisma/orm-postgres/family-contract/types` (or the Mongo family package) derive the default row and a data structure with relations from it. Replace hand-written row types that duplicate a model's fields with these when convenient.
 ## `mongo-unlowered-attributes-are-rejected`
 
 First, before editing any schema, determine whether the project targets MongoDB: its `prisma.config.ts` imports `@prisma/orm-mongo`, or its `package.json` depends on that package. If neither holds, skip this change entirely and leave every schema untouched. The `detection` pattern also matches SQL schemas, where `@default(...)` and `@db.<Type>` are supported and deleting them breaks the contract.

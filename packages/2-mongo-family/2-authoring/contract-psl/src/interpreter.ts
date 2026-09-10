@@ -212,6 +212,28 @@ function requiredOneToOneBackrelationDiagnostic(
   };
 }
 
+/**
+ * An FK-side relation that was rejected (for example by the nullability check) and so never
+ * became an `FkRelation`. Its back-relation candidate is not orphaned; the FK-side diagnostic
+ * already names the problem.
+ */
+interface InvalidFkPairing {
+  readonly pairKey: string;
+  readonly relationName?: string;
+}
+
+function backrelationMatchesInvalidFkPairing(
+  candidate: { readonly relationName?: string },
+  pairKey: string,
+  invalidFkPairings: readonly InvalidFkPairing[],
+): boolean {
+  return invalidFkPairings.some(
+    (pairing) =>
+      pairing.pairKey === pairKey &&
+      (candidate.relationName === undefined || pairing.relationName === candidate.relationName),
+  );
+}
+
 function fkRelationPairKey(declaringModel: string, targetModel: string): string {
   return `${declaringModel}::${targetModel}`;
 }
@@ -1204,6 +1226,7 @@ export function interpretPslDocumentToMongoContract(
     readonly field: FieldSymbol;
   }
   const backrelationCandidates: BackrelationCandidate[] = [];
+  const invalidFkPairings: InvalidFkPairing[] = [];
 
   for (const pslModel of allModels) {
     const metadata = modelMetadataByName.get(pslModel.name);
@@ -1248,6 +1271,10 @@ export function interpretPslDocumentToMongoContract(
           );
           if (field.optional !== anyLocalFieldOptional) {
             diagnostics.push(relationNullabilityMismatchDiagnostic(pslModel.name, field, sourceId));
+            invalidFkPairings.push({
+              pairKey: fkRelationPairKey(pslModel.name, field.typeName),
+              ...ifDefined('relationName', relation.name),
+            });
             continue;
           }
           const localMapped = relation.fields.map((f) => fieldMappings.pslNameToMapped.get(f) ?? f);
@@ -1402,6 +1429,9 @@ export function interpretPslDocumentToMongoContract(
       : [...pairMatches];
 
     if (matches.length === 0) {
+      if (backrelationMatchesInvalidFkPairing(candidate, pairKey, invalidFkPairings)) {
+        continue;
+      }
       diagnostics.push({
         code: 'PSL_ORPHANED_BACKRELATION',
         message: `Backrelation list field "${candidate.modelName}.${candidate.fieldName}" has no matching FK-side relation on model "${candidate.targetModelName}". Add @relation(fields: [...], references: [...]) on the FK-side relation or use an explicit join model for many-to-many.`,

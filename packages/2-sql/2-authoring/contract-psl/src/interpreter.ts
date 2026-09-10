@@ -102,6 +102,8 @@ import { resolveNamedTypeDeclarations } from './psl-named-type-resolution';
 import {
   applyBackrelationCandidates,
   type FkRelationMetadata,
+  fkRelationPairKey,
+  type InvalidFkPairing,
   indexFkRelations,
   interpretRelationAttribute,
   type ModelBackrelationCandidate,
@@ -657,6 +659,7 @@ interface BuildModelNodeInput {
 interface BuildModelNodeResult {
   readonly modelNode: ModelNode;
   readonly fkRelationMetadata: FkRelationMetadata[];
+  readonly invalidFkPairings: InvalidFkPairing[];
   readonly backrelationCandidates: ModelBackrelationCandidate[];
   readonly resolvedFields: readonly ResolvedField[];
   /** Cross-contract-space relation nodes that bypass the local back-relation matching. */
@@ -1185,6 +1188,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
   }
 
   const resultFkRelationMetadata: FkRelationMetadata[] = [];
+  const resultInvalidFkPairings: InvalidFkPairing[] = [];
   const resultCrossSpaceRelations: RelationNode[] = [];
   for (const relationAttribute of relationAttributes) {
     const {
@@ -1449,6 +1453,10 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       diagnostics.push(
         relationNullabilityMismatchDiagnostic(model.name, relationAttribute, sourceId),
       );
+      resultInvalidFkPairings.push({
+        pairKey: fkRelationPairKey(model.name, targetMapping.model.name),
+        ...ifDefined('relationName', parsedRelation.name),
+      });
       continue;
     }
     const referencedColumns = mapFieldNamesToColumns({
@@ -1541,6 +1549,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       ...ifDefined('control', controlPolicy),
     },
     fkRelationMetadata: resultFkRelationMetadata,
+    invalidFkPairings: resultInvalidFkPairings,
     crossSpaceRelations: resultCrossSpaceRelations,
     backrelationCandidates: resultBackrelationCandidates,
     resolvedFields,
@@ -2427,6 +2436,7 @@ export function interpretPslDocumentToSqlContract(
   }
   const modelNodes: ModelNode[] = [];
   const fkRelationMetadata: FkRelationMetadata[] = [];
+  const invalidFkPairings: InvalidFkPairing[] = [];
   const backrelationCandidates: ModelBackrelationCandidate[] = [];
   const modelResolvedFields = new Map<string, readonly ResolvedField[]>();
   // Cross-space relation nodes keyed by declaring model name — merged into
@@ -2479,6 +2489,7 @@ export function interpretPslDocumentToSqlContract(
       namespaceId !== undefined ? { ...result.modelNode, namespaceId } : result.modelNode,
     );
     fkRelationMetadata.push(...result.fkRelationMetadata);
+    invalidFkPairings.push(...result.invalidFkPairings);
     backrelationCandidates.push(...result.backrelationCandidates);
     modelResolvedFields.set(coordinate, result.resolvedFields);
     if (result.crossSpaceRelations.length > 0) {
@@ -2516,6 +2527,7 @@ export function interpretPslDocumentToSqlContract(
   applyBackrelationCandidates({
     backrelationCandidates,
     fkRelationsByPair,
+    invalidFkPairings,
     fkRelationsByDeclaringModel,
     modelIdColumns,
     modelUniqueColumnSets,

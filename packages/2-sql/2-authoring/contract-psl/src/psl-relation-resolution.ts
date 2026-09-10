@@ -55,7 +55,29 @@ export type ModelBackrelationCandidate = {
   readonly relationName?: string;
 };
 
+/**
+ * An FK-side relation that was rejected (for example by the nullability check) and so never
+ * became `FkRelationMetadata`. Its back-relation candidate is not orphaned; the FK-side
+ * diagnostic already names the problem.
+ */
+export type InvalidFkPairing = {
+  readonly pairKey: string;
+  readonly relationName?: string;
+};
+
 type ModelRelationMetadata = RelationNode;
+
+function backrelationMatchesInvalidFkPairing(
+  candidate: ModelBackrelationCandidate,
+  pairKey: string,
+  invalidFkPairings: readonly InvalidFkPairing[],
+): boolean {
+  return invalidFkPairings.some(
+    (pairing) =>
+      pairing.pairKey === pairKey &&
+      (candidate.relationName === undefined || pairing.relationName === candidate.relationName),
+  );
+}
 
 export function fkRelationPairKey(declaringModelName: string, targetModelName: string): string {
   // NOTE: We assume PSL model identifiers do not contain the `::` separator.
@@ -377,6 +399,7 @@ function fkColumnsAreUnique(
 export function applyBackrelationCandidates(input: {
   readonly backrelationCandidates: readonly ModelBackrelationCandidate[];
   readonly fkRelationsByPair: Map<string, readonly FkRelationMetadata[]>;
+  readonly invalidFkPairings: readonly InvalidFkPairing[];
   readonly fkRelationsByDeclaringModel: ReadonlyMap<string, readonly FkRelationMetadata[]>;
   readonly modelIdColumns: ReadonlyMap<string, readonly string[]>;
   readonly modelUniqueColumnSets: ReadonlyMap<string, readonly (readonly string[])[]>;
@@ -392,6 +415,9 @@ export function applyBackrelationCandidates(input: {
       : [...pairMatches];
 
     if (matches.length === 0) {
+      if (backrelationMatchesInvalidFkPairing(candidate, pairKey, input.invalidFkPairings)) {
+        continue;
+      }
       // A singular candidate is the back side of a 1:1 — many-to-many junction
       // matching only makes sense for a list-typed backrelation.
       if (candidate.isList) {

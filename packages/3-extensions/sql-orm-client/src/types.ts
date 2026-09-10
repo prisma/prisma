@@ -1973,8 +1973,8 @@ type IsToOneRelationNullable<
 > =
   RelationsOf<TContract, ModelName, NsId> extends infer Rels extends Record<string, unknown>
     ? RelName extends keyof Rels
-      ? Rels[RelName] extends { readonly nullable: infer Nullable extends boolean }
-        ? Nullable
+      ? Rels[RelName] extends { readonly nullable: false }
+        ? false
         : true
       : true
     : true;
