@@ -547,7 +547,7 @@ A nested relation mutation's input is malformed: a relation field without a muta
 
 ### ORM.RELATION_MUTATION_UNSUPPORTED
 
-A nested relation mutation kind is not supported in this position: `disconnect()` outside `update()` nested mutations, or connect/disconnect through a junction table with required columns the relation API cannot populate. Payload: `kind`, `relation`.
+A nested relation mutation kind is not supported in this position: `disconnect()` outside `update()` nested mutations, or `create()`/`connect()` through a junction table with required columns the relation API cannot populate (`disconnect()` stays available). Payload: `kind`, `relation`.
 
 ### ORM.RELATION_ROW_MISSING
 
