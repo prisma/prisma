@@ -12,6 +12,9 @@ on:
     tags:
       - "!**"
 
+permissions:
+  contents: read
+
 concurrency:
   group: preview-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
@@ -41,9 +44,6 @@ jobs:
     needs: changes
     if: needs.changes.outputs.inert != 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write # Required for pkg.pr.new to post PR comments
 
     steps:
       - name: Checkout
@@ -65,21 +65,21 @@ jobs:
       - name: Build packages
         run: pnpm build
 
-      - name: Collect publishable packages
-        id: packages
+      - name: Publish to pkg.pr.new
         run: |
           PACKAGES=$(node scripts/list-publishable-packages.mjs)
-          # Use heredoc to safely write to GITHUB_OUTPUT (prevents injection)
-          {
-            echo "list<<EOF"
-            echo "$PACKAGES"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-          echo "Packages to publish:"
-          echo "$PACKAGES" | tr ' ' '\n'
+          PACKAGE_PATTERN='\./packages/([a-zA-Z0-9_@-]+/)*[a-zA-Z0-9_@-]+'
+          if [[ ! "$PACKAGES" =~ ^${PACKAGE_PATTERN}(\ ${PACKAGE_PATTERN})*$ ]]; then
+            printf '%s\n' 'Invalid publishable package list' >&2
+            exit 1
+          fi
+          read -r -a package_paths <<< "$PACKAGES"
+          pnpm exec pkg-pr-new publish --pnpm --comment=off --json preview-packages.json "${package_paths[@]}"
 
-      - name: Publish to pkg.pr.new
-        # Pin matches root devDependency pkg-pr-new; see https://github.com/stackblitz-labs/pkg.pr.new/tags
-        # --compact requires repository field in the *published* npm manifest;
-        # add it back after the next npm publish includes the repository field.
-        run: pnpm exec pkg-pr-new publish --pnpm --comment=update ${{ steps.packages.outputs.list }}
+      - name: Save preview package URLs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: preview-packages
+          path: preview-packages.json
+          if-no-files-found: error
+          retention-days: 7

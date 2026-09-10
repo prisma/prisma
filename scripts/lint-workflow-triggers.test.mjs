@@ -1,6 +1,77 @@
-import { deepStrictEqual, strictEqual } from 'node:assert/strict';
+import { deepStrictEqual, doesNotMatch, match, strictEqual } from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { findViolations, stripYamlComment } from './lint-workflow-triggers.mjs';
+
+const readWorkflow = (name) =>
+  readFileSync(new URL(`../.github/workflows/${name}.yml`, import.meta.url), 'utf8');
+
+describe('PR execution credentials', () => {
+  for (const name of ['bundle-size', 'pr-code-security', 'preview-publish']) {
+    it(`${name} has no write permissions, secret inputs, or persisted checkout credentials`, () => {
+      const source = readWorkflow(name);
+      doesNotMatch(source, /:\s*write\b|secrets[.:]|pull_request_target|workflow_run/);
+      match(source, /permissions:\n {2}contents: read/);
+      const checkouts = source.split(/uses: actions\/checkout@/).slice(1);
+      strictEqual(checkouts.length > 0, true);
+      for (const checkout of checkouts) {
+        match(checkout.split(/\n\s*- /)[0], /persist-credentials: false/);
+      }
+    });
+  }
+
+  it('runs Gitleaks directly for forks and retains redacted findings', () => {
+    const source = readWorkflow('pr-code-security');
+    doesNotMatch(source, /gitleaks-action|head\.repo\.fork|secrets: inherit/);
+    match(source, /sha256sum --check/);
+    match(source, /gitleaks" git .*--redact=100/);
+    match(source, /--log-opts="\$BASE_SHA\.\.\$HEAD_SHA"/);
+  });
+
+  it('publishes preview arguments as data, without PR comments', () => {
+    const source = readWorkflow('preview-publish');
+    const script = source.match(
+      /- name: Publish to pkg\.pr\.new[\s\S]*?run: \|\n((?: {10}[^\n]*\n|\n)+)/,
+    )?.[1];
+    strictEqual(typeof script, 'string');
+    doesNotMatch(script, /\$\{\{/);
+    const run = (packages) =>
+      spawnSync(
+        'bash',
+        [
+          '-euo',
+          'pipefail',
+          '-c',
+          `
+      node() { printf '%s\\n' "$TEST_PACKAGES"; }
+      pnpm() { printf '%s\\n' "$@"; }
+      ${script}
+    `,
+        ],
+        { env: { PATH: process.env.PATH, TEST_PACKAGES: packages }, encoding: 'utf8' },
+      );
+    const valid = run(
+      './packages/9-public/@prisma/orm-sql ./packages/9-public/@prisma/orm-postgres',
+    );
+    strictEqual(valid.status, 0, valid.stderr);
+    match(
+      valid.stdout,
+      /--comment=off\n--json\npreview-packages.json\n\.\/packages\/9-public\/@prisma\/orm-sql\n\.\/packages\/9-public\/@prisma\/orm-postgres/,
+    );
+    for (const invalid of [
+      '',
+      '--comment=update',
+      './packages/a;exit 0',
+      './packages/$(exit 0)',
+      './packages/a\n--comment=update',
+      './packages/../outside',
+      './packages/*',
+    ]) {
+      strictEqual(run(invalid).status, 1, invalid);
+    }
+  });
+});
 
 describe('stripYamlComment', () => {
   it('returns the line unchanged when no comment is present', () => {
