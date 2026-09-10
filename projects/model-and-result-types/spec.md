@@ -146,7 +146,7 @@ Every emitted `contract.d.ts` in the repo is regenerated with `pnpm fixtures:che
 
 - New page `docs/reference/model-and-result-types.md`, title "Naming model and result types". Sections: "The model" (`typeof models.public.User`, `Models.public_User`, `__unbound__`, polymorphic base, variant, `Any<Base>`), "The row a default fetch returns" (`Scalars`), "A view with relations" (`With`, and the hand-written `Scalars & {...}` form it replaces), "The result of any query" (`ResultType` on collections, projections, refined includes), "Input types" (`CreateInput`, `MutationUpdateInput`, `ShorthandWhereFilter`, `UniqueConstraintCriterion`, Mongo equivalents), "Coming from Prisma 7" (table: `Prisma.User` to `Models.public_User`; `Prisma.UserGetPayload<{ include: { posts: true } }>` to `With<Models.public_User, 'posts'>`; `Prisma.UserCreateInput` to `CreateInput`; `Prisma.UserWhereInput` to `ShorthandWhereFilter`; `Awaited<ReturnType<typeof fn>>` to `ResultType<typeof query>`), and a first paragraph stating that a query result is a view and the default fetch returns `Scalars<Model>`, not the model. Every snippet is copied from a passing type test and names its source file in a comment.
 - Index line in `docs/README.md` after the "Aggregate descriptor guide" line. "Related Docs" links in `packages/3-extensions/sql-orm-client/README.md` and `packages/2-mongo-family/5-query-builders/orm/README.md`. One sentence under the `ResultType` pattern in `docs/reference/query-patterns.md` pointing at the new page. One paragraph in `docs/architecture docs/subsystems/2. Contract Emitter & Types.md` describing the `Models` block and linking the ADR.
-- `docs/architecture docs/adrs/ADR 249 - Models and views are emitted from the contract.md`: the model-versus-view rule, the always-explicit namespace rule and its `db.enums` precedent, why `FieldOutputTypes` is untouched, the three-shape polymorphism rule, the phantom-relation-keys mechanism, why `With` is not a selection language, and the rejected alternatives copied from the brief.
+- `docs/architecture docs/adrs/ADR 250 - Models and views are emitted from the contract.md`: the model-versus-view rule, the always-explicit namespace rule and its `db.enums` precedent, why `FieldOutputTypes` is untouched, the three-shape polymorphism rule, the phantom-relation-keys mechanism, why `With` is not a selection language, and the rejected alternatives copied from the brief.
 
 ## Contract-impact
 
@@ -161,5 +161,5 @@ None.
 - [ ] Team-DoD floor (repo checks, `pnpm fixtures:check`, Linear close-out).
 - [ ] Every test in § Tests exists and passes.
 - [ ] All 333 fixtures regenerated; `contract.json` diff empty.
-- [ ] Docs page, index and README links, subsystem paragraph, and ADR 249 merged.
+- [ ] Docs page, index and README links, subsystem paragraph, and ADR 250 merged.
 - [ ] One PR, over 1,000 lines changed, on the branch of this worktree.

@@ -1,4 +1,4 @@
-# ADR 249 — Models and views are emitted from the contract
+# ADR 250 — Models and views are emitted from the contract
 
 Status: **Accepted**
 

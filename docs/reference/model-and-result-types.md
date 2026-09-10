@@ -278,6 +278,6 @@ The one difference to notice first: in Prisma 7 the generated `User` was scalars
 
 ## References
 
-- [ADR 249 — Models and views are emitted from the contract](../architecture%20docs/adrs/ADR%20249%20-%20Models%20and%20views%20are%20emitted%20from%20the%20contract.md)
+- [ADR 250 — Models and views are emitted from the contract](../architecture%20docs/adrs/ADR%20250%20-%20Models%20and%20views%20are%20emitted%20from%20the%20contract.md)
 - [Contract Emitter & Types](../architecture%20docs/subsystems/2.%20Contract%20Emitter%20%26%20Types.md)
 - [Query Patterns](./query-patterns.md)

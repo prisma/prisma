@@ -110,4 +110,4 @@ The implementation confirmed every rule and refusal as written, with a six-level
 
 - One recursive conditional type in `framework-components/src/execution/model-types.ts`, replacing `With`. Distributive over `M`. Validation of names via the constraint on `Spec`, built from `RelationNamesOf<M>` and `keyof Scalars<M>`, so errors land on the offending key.
 - Type tests: the framework file covers every rule and every refusal; the SQL and Mongo ORM files replace their `With` equalities with `Shape` equalities for plain includes, projections, nullable to-one, to-many, polymorphic base and variant, and a two-level nest.
-- Docs: the reference page, ADR 249, the user skill, the PR body, and `slice-2-extract-models-brief.md` replace `With` with `Shape`.
+- Docs: the reference page, ADR 250, the user skill, the PR body, and `slice-2-extract-models-brief.md` replace `With` with `Shape`.

@@ -15,7 +15,7 @@ The operator asked for all work on one PR and no PR under 1,000 lines. The fixtu
 `_row` on both collections. Regenerate every fixture with `pnpm fixtures:check`. Write and pass the SQL ORM, Mongo ORM, and demo type tests per spec. Ends with `pnpm test:packages`, `pnpm fixtures:check`, and `pnpm lint:deps` green.
 
 **Dispatch 3: docs and ADR.**
-Reference page, index and README links, subsystem paragraph, ADR 249. Snippets copied from the passing type tests. Ends with `pnpm lint` in the touched packages green.
+Reference page, index and README links, subsystem paragraph, ADR 250. Snippets copied from the passing type tests. Ends with `pnpm lint` in the touched packages green.
 
 **Review:** one reviewer pass over the whole diff after dispatch 3, then rework, then PR via `create-pr`.
 

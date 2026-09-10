@@ -1,10 +1,10 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { BooleanLiteralExprAst } from '../../syntax/ast/expressions';
-import type { ArgType } from '../types';
+import type { ArgType, AttributeCtx } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
-export function bool(): ArgType<boolean> {
+export function bool(): ArgType<boolean, AttributeCtx> {
   return {
     kind: 'bool',
     label: 'boolean',
