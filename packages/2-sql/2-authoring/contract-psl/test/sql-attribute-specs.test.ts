@@ -48,7 +48,6 @@ interface RecordMetadata<T, Ctx extends AttributeCtx> extends ArgType<Record<str
 
 interface OneOfMetadata<Ctx extends AttributeCtx> extends ArgType<unknown, Ctx> {
   readonly kind: 'oneOf';
-  readonly requiredContext: 'attribute' | 'model' | 'field';
   readonly alternatives: readonly ArgType<unknown, Ctx>[];
 }
 
@@ -201,13 +200,13 @@ describe('sqlAttributeSpecs', () => {
     const fields = listMetadata<string, FieldAttributeCtx>(namedType(spec, 'fields'));
     const references = listMetadata<string, FieldAttributeCtx>(namedType(spec, 'references'));
 
-    expect(fields).toMatchObject({ kind: 'list', optional: true, requiredContext: 'model' });
-    expect(fields.of).toMatchObject({ kind: 'fieldRef', requiredContext: 'model' });
+    expect(fields).toMatchObject({ kind: 'list', optional: true });
+    expect(fields.of).toMatchObject({ kind: 'fieldRef' });
     expect(fields.nonEmpty).toBe(true);
     expect(fields.unique).toBe(true);
 
-    expect(references).toMatchObject({ kind: 'list', optional: true, requiredContext: 'field' });
-    expect(references.of).toMatchObject({ kind: 'referencedFieldRef', requiredContext: 'field' });
+    expect(references).toMatchObject({ kind: 'list', optional: true });
+    expect(references.of).toMatchObject({ kind: 'referencedFieldRef' });
     expect(references.nonEmpty).toBe(true);
     expect(references.unique).toBe(true);
   });
@@ -216,13 +215,13 @@ describe('sqlAttributeSpecs', () => {
     const idFields = listMetadata<string, ModelAttributeCtx>(
       positionalType(sqlAttributeSpecs.model.id()),
     );
-    expect(idFields).toMatchObject({ kind: 'list', requiredContext: 'model', nonEmpty: true });
-    expect(idFields.of).toMatchObject({ kind: 'fieldRef', requiredContext: 'model' });
+    expect(idFields).toMatchObject({ kind: 'list', nonEmpty: true });
+    expect(idFields.of).toMatchObject({ kind: 'fieldRef' });
 
     const options = recordMetadata<string, ModelAttributeCtx>(
       namedType(sqlAttributeSpecs.model.index(), 'options'),
     );
-    expect(options).toMatchObject({ kind: 'record', optional: true, requiredContext: 'attribute' });
+    expect(options).toMatchObject({ kind: 'record', optional: true });
     expect(options.of).toMatchObject({ kind: 'str', value: undefined });
   });
 });
@@ -244,7 +243,6 @@ describe('sqlAttributeSpecs.field.default', () => {
     const value = oneOfMetadata(positionalType(spec));
 
     expect(value.kind).toBe('oneOf');
-    expect(value.requiredContext).toBe('attribute');
     expect(value.alternatives.map((alt) => alt.kind)).toEqual([
       'str',
       'num',
@@ -282,8 +280,8 @@ describe('sqlAttributeSpecs.field.default', () => {
     const value = oneOfMetadata(positionalType(sqlAttributeSpecs.field.default(listCtx)));
 
     const listDefault = listMetadata<unknown, FieldAttributeCtx>(value.alternatives[0] ?? value);
-    expect(listDefault).toMatchObject({ kind: 'list', requiredContext: 'attribute' });
-    expect(listDefault.of).toMatchObject({ kind: 'oneOf', requiredContext: 'attribute' });
+    expect(listDefault).toMatchObject({ kind: 'list' });
+    expect(listDefault.of).toMatchObject({ kind: 'oneOf' });
     expect(
       value.alternatives.slice(1).map((alt) => (alt as FuncCallMetadata<FieldAttributeCtx>).name),
     ).toEqual(['autoincrement', 'now', 'uuid', 'cuid', 'ulid', 'nanoid', 'dbgenerated']);

@@ -16,7 +16,6 @@ export function funcCall<const Name extends string, const Signature extends Func
   return {
     kind: 'funcCall',
     label: `${name}()`,
-    requiredContext: 'attribute',
     name,
     signature: sig,
     parse: (arg, ctx): Result<TypedFuncCall, readonly PslDiagnostic[]> => {

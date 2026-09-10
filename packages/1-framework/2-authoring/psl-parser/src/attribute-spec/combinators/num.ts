@@ -14,7 +14,6 @@ export function num<const T extends number>(
     return {
       kind: 'num',
       label: 'number',
-      requiredContext: 'attribute',
       value: undefined,
       parse: (arg, ctx): Result<number, readonly PslDiagnostic[]> => {
         const literal = NumberLiteralExprAst.cast(arg.syntax);
@@ -29,7 +28,6 @@ export function num<const T extends number>(
   return {
     kind: 'num',
     label: String(value),
-    requiredContext: 'attribute',
     value,
     parse: (arg, ctx): Result<T, readonly PslDiagnostic[]> => {
       const literal = NumberLiteralExprAst.cast(arg.syntax);

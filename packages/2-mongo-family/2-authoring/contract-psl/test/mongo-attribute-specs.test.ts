@@ -141,8 +141,8 @@ describe('mongoAttributeSpecs', () => {
     );
     const element = oneOfMetadata(fields.of);
 
-    expect(fields).toMatchObject({ kind: 'list', requiredContext: 'model', nonEmpty: true });
-    expect(element.alternatives[0]).toMatchObject({ kind: 'fieldRef', requiredContext: 'model' });
+    expect(fields).toMatchObject({ kind: 'list', nonEmpty: true });
+    expect(element.alternatives[0]).toMatchObject({ kind: 'fieldRef' });
     const wildcard = element.alternatives[1] as FuncCallMetadata<ModelAttributeCtx>;
     expect(wildcard).toMatchObject({ kind: 'funcCall', name: 'wildcard' });
     expect(wildcard.signature.positional?.[0]).toMatchObject({ key: 'scope' });
@@ -166,7 +166,7 @@ describe('mongoAttributeSpecs', () => {
   it('exposes nested optional index and text-index metadata from actual factories', () => {
     const { model } = contexts();
     const type = oneOfMetadata(namedType(mongoAttributeSpecs.model.index(model), 'type'));
-    expect(type).toMatchObject({ kind: 'oneOf', optional: true, requiredContext: 'attribute' });
+    expect(type).toMatchObject({ kind: 'oneOf', optional: true });
     expect(type.alternatives).toEqual([
       expect.objectContaining({ kind: 'num', value: 1 }),
       expect.objectContaining({ kind: 'num', value: -1 }),
@@ -179,13 +179,13 @@ describe('mongoAttributeSpecs', () => {
     const include = listMetadata<string, ModelAttributeCtx>(
       namedType(mongoAttributeSpecs.model.index(model), 'include'),
     );
-    expect(include).toMatchObject({ kind: 'list', optional: true, requiredContext: 'attribute' });
+    expect(include).toMatchObject({ kind: 'list', optional: true });
     expect(include.of).toMatchObject({ kind: 'str', value: undefined });
 
     const weights = recordMetadata<number, ModelAttributeCtx>(
       namedType(mongoAttributeSpecs.model.textIndex(model), 'weights'),
     );
-    expect(weights).toMatchObject({ kind: 'record', optional: true, requiredContext: 'attribute' });
+    expect(weights).toMatchObject({ kind: 'record', optional: true });
     expect(weights.of).toMatchObject({ kind: 'int', min: 1, max: 99_999 });
   });
 });

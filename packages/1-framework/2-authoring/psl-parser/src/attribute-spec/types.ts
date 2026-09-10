@@ -42,7 +42,6 @@ export type ArgTypeContext = 'attribute' | 'field' | 'model';
 
 export interface ArgTypeOutput<T, Ctx extends AttributeCtx> {
   readonly label: string;
-  readonly requiredContext: ArgTypeContext;
   readonly _out?: T;
   readonly parse: (arg: ExpressionAst, ctx: Ctx) => Result<T, readonly PslDiagnostic[]>;
 }
@@ -113,10 +112,8 @@ export interface ListArgType<
   Ctx extends AttributeCtx = AttributeCtx,
   NonEmpty extends true | undefined = true | undefined,
   Unique extends true | undefined = true | undefined,
-  Req extends ArgTypeContext = RequiredContextFor<Ctx>,
 > extends ArgTypeOutput<T[], Ctx> {
   readonly kind: 'list';
-  readonly requiredContext: Req;
   readonly of: ArgType<T, Ctx>;
   readonly nonEmpty: NonEmpty;
   readonly unique: Unique;
@@ -142,20 +139,14 @@ export type NumArgType<
 export interface OneOfArgType<
   Alts extends readonly [AnyArgType, ...AnyArgType[]],
   Ctx extends AttributeCtx = ContextForRequirement<RequiredContextFor<CtxOf<Alts[number]>>>,
-  Req extends ArgTypeContext = RequiredContextFor<CtxOf<Alts[number]>>,
 > extends ArgTypeOutput<OutOf<Alts[number]>, Ctx> {
   readonly kind: 'oneOf';
-  readonly requiredContext: Req;
   readonly alternatives: Alts;
 }
 
-export interface RecordArgType<
-  T = unknown,
-  Ctx extends AttributeCtx = AttributeCtx,
-  Req extends ArgTypeContext = RequiredContextFor<Ctx>,
-> extends ArgTypeOutput<Record<string, T>, Ctx> {
+export interface RecordArgType<T = unknown, Ctx extends AttributeCtx = AttributeCtx>
+  extends ArgTypeOutput<Record<string, T>, Ctx> {
   readonly kind: 'record';
-  readonly requiredContext: Req;
   readonly of: ArgType<T, Ctx>;
 }
 

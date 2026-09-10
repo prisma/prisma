@@ -65,20 +65,13 @@ test('oneOf with no alternatives is a compile error', () => {
   oneOf();
 });
 
-test('oneOf preserves every alternative context requirement', () => {
+test('oneOf preserves every alternative parse context', () => {
   const bareThenModel = oneOf(str(), fieldRef());
   const modelThenBare = oneOf(fieldRef(), str());
   const bareThenField = oneOf(str(), referencedFieldRef());
   const fieldThenBare = oneOf(referencedFieldRef(), str());
   const modelThenField = oneOf(fieldRef(), referencedFieldRef());
   const fieldThenModel = oneOf(referencedFieldRef(), fieldRef());
-
-  expectTypeOf(bareThenModel.requiredContext).toEqualTypeOf<'model'>();
-  expectTypeOf(modelThenBare.requiredContext).toEqualTypeOf<'model'>();
-  expectTypeOf(bareThenField.requiredContext).toEqualTypeOf<'field'>();
-  expectTypeOf(fieldThenBare.requiredContext).toEqualTypeOf<'field'>();
-  expectTypeOf(modelThenField.requiredContext).toEqualTypeOf<'field'>();
-  expectTypeOf(fieldThenModel.requiredContext).toEqualTypeOf<'field'>();
 
   expectTypeOf<typeof bareThenModel>().toExtend<ArgType<string, ModelAttributeCtx>>();
   expectTypeOf<typeof modelThenBare>().toExtend<ArgType<string, ModelAttributeCtx>>();
@@ -88,35 +81,58 @@ test('oneOf preserves every alternative context requirement', () => {
   expectTypeOf<typeof fieldThenModel>().toExtend<ArgType<string, FieldAttributeCtx>>();
 
   modelAttribute('modelOnly', { positional: [{ key: 'value', type: bareThenModel }] });
+  modelAttribute('modelOnly', { positional: [{ key: 'value', type: modelThenBare }] });
   fieldAttribute('fieldOnly', { positional: [{ key: 'value', type: bareThenField }] });
+  fieldAttribute('fieldOnly', { positional: [{ key: 'value', type: fieldThenBare }] });
   fieldAttribute('fieldOnly', { positional: [{ key: 'value', type: modelThenField }] });
+  fieldAttribute('fieldOnly', { positional: [{ key: 'value', type: fieldThenModel }] });
 
-  // @ts-expect-error model-requiring alternatives cannot enter block attribute specs
+  // @ts-expect-error model-only alternatives cannot enter block attribute specs
   blockAttribute('invalid', { positional: [{ key: 'value', type: bareThenModel }] });
-  // @ts-expect-error field-requiring alternatives cannot enter block attribute specs
+  // @ts-expect-error model-only alternatives cannot enter block attribute specs
+  blockAttribute('invalid', { positional: [{ key: 'value', type: modelThenBare }] });
+  // @ts-expect-error field-only alternatives cannot enter block attribute specs
   blockAttribute('invalid', { positional: [{ key: 'value', type: bareThenField }] });
-  // @ts-expect-error field-requiring alternatives cannot enter model attribute specs
+  // @ts-expect-error field-only alternatives cannot enter block attribute specs
+  blockAttribute('invalid', { positional: [{ key: 'value', type: fieldThenBare }] });
+  // @ts-expect-error field-only alternatives cannot enter model attribute specs
   modelAttribute('invalid', { positional: [{ key: 'value', type: modelThenField }] });
+  // @ts-expect-error field-only alternatives cannot enter model attribute specs
+  modelAttribute('invalid', { positional: [{ key: 'value', type: fieldThenModel }] });
 });
 
-test('oneOf context requirements survive optional and nested wrappers', () => {
+test('oneOf parse contexts survive optional and nested wrappers', () => {
   const optionalModelAlternative = optional(oneOf(str(), fieldRef()));
-  const modelAlternativeList = list(oneOf(str(), fieldRef()));
+  const modelAlternativeList = list(oneOf(fieldRef(), str()));
+  const fieldAlternativeList = list(optional(oneOf(str(), referencedFieldRef())));
   const fieldAlternativeRecord = record(optional(oneOf(fieldRef(), referencedFieldRef())));
+  const reverseFieldAlternativeRecord = record(optional(oneOf(referencedFieldRef(), fieldRef())));
 
-  expectTypeOf(optionalModelAlternative.requiredContext).toEqualTypeOf<'model'>();
-  expectTypeOf(modelAlternativeList.requiredContext).toEqualTypeOf<'model'>();
-  expectTypeOf(fieldAlternativeRecord.requiredContext).toEqualTypeOf<'field'>();
   expectTypeOf<typeof optionalModelAlternative>().toExtend<ArgType<string, ModelAttributeCtx>>();
   expectTypeOf<typeof modelAlternativeList>().toExtend<ArgType<string[], ModelAttributeCtx>>();
+  expectTypeOf<typeof fieldAlternativeList>().toExtend<ArgType<string[], FieldAttributeCtx>>();
   expectTypeOf<typeof fieldAlternativeRecord>().toExtend<
     ArgType<Record<string, string>, FieldAttributeCtx>
   >();
+  expectTypeOf<typeof reverseFieldAlternativeRecord>().toExtend<
+    ArgType<Record<string, string>, FieldAttributeCtx>
+  >();
 
-  // @ts-expect-error nested model-requiring alternatives cannot enter block attribute specs
+  fieldAttribute('fieldOnly', { positional: [{ key: 'value', type: fieldAlternativeList }] });
+  fieldAttribute('fieldOnly', {
+    positional: [{ key: 'value', type: reverseFieldAlternativeRecord }],
+  });
+
+  // @ts-expect-error nested model-only alternatives cannot enter block attribute specs
   blockAttribute('invalid', { positional: [{ key: 'value', type: optionalModelAlternative }] });
-  // @ts-expect-error nested field-requiring alternatives cannot enter model attribute specs
+  // @ts-expect-error nested field-only alternatives cannot enter model attribute specs
+  modelAttribute('invalid', { positional: [{ key: 'value', type: fieldAlternativeList }] });
+  // @ts-expect-error nested field-only alternatives cannot enter model attribute specs
   modelAttribute('invalid', { positional: [{ key: 'value', type: fieldAlternativeRecord }] });
+  modelAttribute('invalid', {
+    // @ts-expect-error nested field-only alternatives cannot enter model attribute specs
+    positional: [{ key: 'value', type: reverseFieldAlternativeRecord }],
+  });
 });
 
 test('list infers an array of its element type', () => {
@@ -209,6 +225,17 @@ test('field references have distinct inspectable kinds', () => {
   expectTypeOf(fieldRef().kind).toEqualTypeOf<'fieldRef'>();
   expectTypeOf(referencedFieldRef().kind).toEqualTypeOf<'referencedFieldRef'>();
   expectTypeOf(entityRef().kind).toEqualTypeOf<'entityRef'>();
+});
+
+test('runtime context metadata is rejected from arg types', () => {
+  const fake: ArgType<string, AttributeCtx> = {
+    kind: 'str',
+    label: 'custom',
+    // @ts-expect-error parse contexts live in the generic, not runtime metadata
+    requiredContext: 'attribute',
+    parse: () => ok('custom'),
+  };
+  void fake;
 });
 
 test('arbitrary combinator kinds are rejected', () => {

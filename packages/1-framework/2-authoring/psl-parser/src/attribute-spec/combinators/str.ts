@@ -14,7 +14,6 @@ export function str<const T extends string>(
     return {
       kind: 'str',
       label: 'string',
-      requiredContext: 'attribute',
       value: undefined,
       parse: (arg, ctx): Result<string, readonly PslDiagnostic[]> => {
         const literal = StringLiteralExprAst.cast(arg.syntax);
@@ -29,7 +28,6 @@ export function str<const T extends string>(
   return {
     kind: 'str',
     label: JSON.stringify(value),
-    requiredContext: 'attribute',
     value,
     parse: (arg, ctx): Result<T, readonly PslDiagnostic[]> => {
       const literal = StringLiteralExprAst.cast(arg.syntax);

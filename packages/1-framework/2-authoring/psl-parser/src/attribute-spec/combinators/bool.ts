@@ -8,7 +8,6 @@ export function bool(): BoolArgType<AttributeCtx> {
   return {
     kind: 'bool',
     label: 'boolean',
-    requiredContext: 'attribute',
     parse: (arg, ctx): Result<boolean, readonly PslDiagnostic[]> => {
       const literal = BooleanLiteralExprAst.cast(arg.syntax);
       if (literal !== undefined) {

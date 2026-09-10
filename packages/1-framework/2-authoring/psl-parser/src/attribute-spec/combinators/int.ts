@@ -12,7 +12,6 @@ export function int(opts?: { min?: number; max?: number }): IntArgType<Attribute
   return {
     kind: 'int',
     label: 'integer',
-    requiredContext: 'attribute',
     ...(min === undefined ? {} : { min }),
     ...(max === undefined ? {} : { max }),
     parse: (arg, ctx): Result<number, readonly PslDiagnostic[]> => {

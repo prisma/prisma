@@ -1,18 +1,13 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
-import { blindCast } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { ObjectLiteralExprAst } from '../../syntax/ast/expressions';
-import type { ArgType, AttributeCtx, RecordArgType, RequiredContextFor } from '../types';
+import type { ArgType, AttributeCtx, RecordArgType } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 export function record<T, Ctx extends AttributeCtx>(of: ArgType<T, Ctx>): RecordArgType<T, Ctx> {
   return {
     kind: 'record',
     label: `{ [key]: ${of.label} }`,
-    requiredContext: blindCast<
-      RequiredContextFor<Ctx>,
-      'A record requires exactly the same context as its value parser.'
-    >(of.requiredContext),
     of,
     parse: (arg, ctx): Result<Record<string, T>, readonly PslDiagnostic[]> => {
       const literal = ObjectLiteralExprAst.cast(arg.syntax);

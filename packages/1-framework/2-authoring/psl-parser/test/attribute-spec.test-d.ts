@@ -8,7 +8,6 @@ function leaf<T>(kind: ArgTypeKind, value: T): ArgType<T, AttributeCtx> {
   return {
     kind,
     label: kind,
-    requiredContext: 'attribute',
     parse: (): Result<T, readonly PslDiagnostic[]> => ok(value),
   };
 }

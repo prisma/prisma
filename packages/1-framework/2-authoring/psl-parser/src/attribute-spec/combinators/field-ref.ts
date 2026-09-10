@@ -38,7 +38,6 @@ export function fieldRef(): FieldRefArgType<ModelAttributeCtx> {
   return {
     kind: 'fieldRef',
     label: 'field name',
-    requiredContext: 'model',
     parse: (arg, ctx) => parseFieldName(arg, ctx, ctx.selfModel),
   };
 }
@@ -47,7 +46,6 @@ export function referencedFieldRef(): ReferencedFieldRefArgType<FieldAttributeCt
   return {
     kind: 'referencedFieldRef',
     label: 'field name',
-    requiredContext: 'field',
     parse: (arg, ctx) => parseFieldName(arg, ctx, ctx.resolveReferencedModel()),
   };
 }

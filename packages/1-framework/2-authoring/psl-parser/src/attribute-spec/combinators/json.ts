@@ -14,7 +14,6 @@ export function json(): JsonArgType<AttributeCtx> {
   return {
     kind: 'json',
     label: 'JSON object',
-    requiredContext: 'attribute',
     parse: (arg, ctx): Result<Record<string, unknown>, readonly PslDiagnostic[]> => {
       const literal = StringLiteralExprAst.cast(arg.syntax);
       if (literal === undefined) {

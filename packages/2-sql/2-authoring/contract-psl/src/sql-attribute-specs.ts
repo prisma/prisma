@@ -177,7 +177,6 @@ function noEnumMember(): RejectingArgType<never, AttributeCtx> {
   return {
     kind: 'rejecting',
     label: 'enum member',
-    requiredContext: 'attribute',
     message: 'Enum declares no members',
     parse: (arg, ctx) => notOk([leafDiagnostic(ctx, arg, 'Enum declares no members')]),
   };

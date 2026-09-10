@@ -10,7 +10,6 @@ export function entityRef(): EntityRefArgType<AttributeCtx> {
   return {
     kind: 'entityRef',
     label: 'model name',
-    requiredContext: 'attribute',
     parse: (arg, ctx): Result<string, readonly PslDiagnostic[]> => {
       const identifier = IdentifierAst.cast(arg.syntax);
       if (identifier === undefined) {

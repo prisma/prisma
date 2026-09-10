@@ -8,7 +8,6 @@ export function identifier<const N extends string>(name: N): IdentifierArgType<N
   return {
     kind: 'identifier',
     label: name,
-    requiredContext: 'attribute',
     name,
     parse: (arg, ctx): Result<N, readonly PslDiagnostic[]> => {
       const identifier = IdentifierAst.cast(arg.syntax);

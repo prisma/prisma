@@ -3,7 +3,6 @@ import { blindCast } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import type {
   AnyArgType,
-  ArgTypeContext,
   ContextForRequirement,
   CtxOf,
   OneOfArgType,
@@ -18,14 +17,9 @@ export function oneOf<Alts extends readonly [AnyArgType, ...AnyArgType[]]>(
   type RequiredContext = RequiredContextFor<CtxOf<Alts[number]>>;
   type ParseContext = ContextForRequirement<RequiredContext>;
   const label = alts.map((alt) => alt.label).join(' | ');
-  const requiredContext = strongestRequiredContext(alts);
   return {
     kind: 'oneOf',
     label,
-    requiredContext: blindCast<
-      RequiredContext,
-      'The runtime requirement reducer mirrors RequiredContextFor: field dominates model, which dominates bare attribute context.'
-    >(requiredContext),
     alternatives: alts,
     parse: (arg, ctx): Result<OutOf<Alts[number]>, readonly PslDiagnostic[]> => {
       for (const alt of alts) {
@@ -45,11 +39,5 @@ export function oneOf<Alts extends readonly [AnyArgType, ...AnyArgType[]]>(
       }
       return notOk([leafDiagnostic(ctx, arg, `Expected one of: ${label}`)]);
     },
-  } satisfies OneOfArgType<Alts, ParseContext, RequiredContext>;
-}
-
-function strongestRequiredContext(alts: readonly AnyArgType[]): ArgTypeContext {
-  if (alts.some((alt) => alt.requiredContext === 'field')) return 'field';
-  if (alts.some((alt) => alt.requiredContext === 'model')) return 'model';
-  return 'attribute';
+  } satisfies OneOfArgType<Alts, ParseContext>;
 }

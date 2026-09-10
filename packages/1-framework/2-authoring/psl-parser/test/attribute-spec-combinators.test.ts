@@ -473,13 +473,11 @@ describe('oneOf', () => {
     const first: ArgType<'first', AttributeCtx> = {
       kind: 'str',
       label: 'first',
-      requiredContext: 'attribute',
       parse: () => ok('first'),
     };
     const second: ArgType<'second', AttributeCtx> = {
       kind: 'str',
       label: 'second',
-      requiredContext: 'attribute',
       parse: () => ok('second'),
     };
 
@@ -498,19 +496,19 @@ describe('oneOf', () => {
     if (result.ok) expect(result.value).toBe('SetNull');
   });
 
-  it('reports the strongest context required by any alternative', () => {
-    expect(oneOf(str(), fieldRef()).requiredContext).toBe('model');
-    expect(oneOf(fieldRef(), str()).requiredContext).toBe('model');
-    expect(oneOf(str(), referencedFieldRef()).requiredContext).toBe('field');
-    expect(oneOf(referencedFieldRef(), str()).requiredContext).toBe('field');
-    expect(oneOf(fieldRef(), referencedFieldRef()).requiredContext).toBe('field');
-    expect(oneOf(referencedFieldRef(), fieldRef()).requiredContext).toBe('field');
-  });
+  it('preserves grammar metadata through alternatives and wrappers', () => {
+    const alternatives = oneOf(str(), fieldRef());
+    const optionalAlternative = optional(oneOf(str(), fieldRef()));
+    const alternativeList = list(oneOf(str(), fieldRef()), { nonEmpty: true });
+    const alternativeRecord = record(optional(oneOf(fieldRef(), referencedFieldRef())));
 
-  it('preserves strongest context metadata through nested wrappers', () => {
-    expect(optional(oneOf(str(), fieldRef())).requiredContext).toBe('model');
-    expect(list(oneOf(str(), fieldRef())).requiredContext).toBe('model');
-    expect(record(optional(oneOf(fieldRef(), referencedFieldRef()))).requiredContext).toBe('field');
+    expect(alternatives).toMatchObject({ kind: 'oneOf' });
+    expect(alternatives.alternatives.map((alt) => alt.kind)).toEqual(['str', 'fieldRef']);
+    expect(optionalAlternative).toMatchObject({ kind: 'oneOf', optional: true });
+    expect(alternativeList).toMatchObject({ kind: 'list', nonEmpty: true });
+    expect(alternativeList.of).toMatchObject({ kind: 'oneOf' });
+    expect(alternativeRecord).toMatchObject({ kind: 'record' });
+    expect(alternativeRecord.of).toMatchObject({ kind: 'oneOf', optional: true });
   });
 
   it('names each function when every function-call alternative fails', () => {
