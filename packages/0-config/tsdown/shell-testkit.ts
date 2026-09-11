@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { publicShells } from '@internal/publish-surface/shells';
 import { init as initLexer, parse as parseModule } from 'es-module-lexer';
+import { publicShells } from '../../0-shared/publish-surface/src/shells';
 
 /** A tarball-install smoke-test failure with the offending command output attached. */
 class ShellTestError extends Error {}
@@ -26,9 +26,6 @@ const TRUST_POLICY_EXCLUDE = [
   'undici@5.29.0',
   'undici-types@6.21.0',
 ] as const;
-// The root catalog pins @types/node to an attested dependency chain; scratch installs do not inherit it.
-const NODE_TYPES_VERSION = '26.1.2';
-
 export interface PackedShell {
   readonly name: string;
   readonly tarball: string;
@@ -42,7 +39,13 @@ export interface PackedShell {
 
 /** The `package.json` of a package directory, as a record. */
 function readManifest(packageDir: string): Record<string, unknown> {
-  const manifest: unknown = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
+  const manifestPath = join(packageDir, 'package.json');
+  let manifest: unknown;
+  try {
+    manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  } catch (error) {
+    throw new ShellTestError(`${manifestPath} is not valid JSON: ${String(error)}`);
+  }
   if (!isRecord(manifest)) throw new ShellTestError(`${packageDir}/package.json is not an object`);
   return manifest;
 }
@@ -145,12 +148,9 @@ export function tryInstallShells(
   // a `pnpm.overrides` field in package.json and pnpm-specific keys in
   // `.npmrc` are ignored, which would let cross-shell dependencies fall
   // through to the npm registry and strict-peer settings silently lapse.
-  const overrideLines = [
-    ...shells
-      .filter((s) => s.override !== false)
-      .map((s) => `  ${JSON.stringify(s.name)}: ${JSON.stringify(`file:${s.tarball}`)}`),
-    `  ${JSON.stringify('@types/node')}: ${JSON.stringify(NODE_TYPES_VERSION)}`,
-  ];
+  const overrideLines = shells
+    .filter((s) => s.override !== false)
+    .map((s) => `  ${JSON.stringify(s.name)}: ${JSON.stringify(`file:${s.tarball}`)}`);
   const settingLines = (options.npmrc ?? []).map((line) => {
     // Split on the first `=` only — an npmrc value may itself contain `=`
     // (e.g. a base64 auth token), and String#split's limit truncates it.
@@ -472,7 +472,12 @@ export function bundledSources(installedPackageDir: string): string[] {
   const sources = new Set<string>();
   for (const file of walk(join(installedPackageDir, 'dist'))) {
     if (!file.endsWith('.mjs.map')) continue;
-    const map: unknown = JSON.parse(readFileSync(file, 'utf8'));
+    let map: unknown;
+    try {
+      map = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (error) {
+      throw new ShellTestError(`${file} is not valid JSON: ${String(error)}`);
+    }
     if (!isRecord(map) || !Array.isArray(map['sources'])) continue;
     for (const source of map['sources']) {
       if (typeof source !== 'string') continue;

@@ -4539,6 +4539,9 @@ importers:
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
         version: 8.20.4
@@ -4835,6 +4838,9 @@ importers:
       '@prisma/orm-toolchain':
         specifier: workspace:8.0.0-rc.9
         version: link:../orm-toolchain
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
         version: 8.20.4
@@ -4958,6 +4964,9 @@ importers:
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
       '@types/pg':
         specifier: 'catalog:'
         version: 8.20.4

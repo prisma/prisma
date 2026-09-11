@@ -160,7 +160,7 @@ describe('an extension pack next to a target shell of a different version', () =
     const workspaceYaml = readFileSync(join(scratch, 'pnpm-workspace.yaml'), 'utf8');
     expect(workspaceYaml).toContain(`  ${JSON.stringify(extension)}: "file:`);
     expect(workspaceYaml).not.toContain(`  ${JSON.stringify(targetShell)}:`);
-    expect(workspaceYaml).toContain('  "@types/node": "26.1.2"\n');
+    expect(workspaceYaml).not.toContain('"@types/node"');
     expect(workspaceYaml).toContain('minimumReleaseAge: 1440\n');
     expect(workspaceYaml).toContain('strictPeerDependencies: true\n');
     expect(workspaceYaml).toContain('autoInstallPeers: false\n');
