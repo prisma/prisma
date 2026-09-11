@@ -220,20 +220,45 @@ describe('classifyPslCompletionContext', () => {
     expectUnsupported(['model Post {', '  |', '  id Int', '}'].join('\n'));
   });
 
-  it('classifies field, model, and block attribute names', () => {
-    expect(classify(['model Post {', '  id Int @|', '}'].join('\n'))).toMatchObject({
+  it('classifies field, model, and block attribute names with concrete owners', () => {
+    const fieldContext = classify(['model Post {', '  id Int @|', '}'].join('\n'));
+    expect(fieldContext).toMatchObject({
       kind: 'attributeName',
       level: 'field',
     });
-    expect(classify(['model Post {', '  id Int', '  @@|', '}'].join('\n'))).toMatchObject({
+    if (fieldContext.kind !== 'attributeName' || fieldContext.level !== 'field') {
+      throw new Error('expected field attributeName');
+    }
+    expect(fieldContext.model.name()?.name()).toBe('Post');
+    expect(fieldContext.field.name()?.name()).toBe('id');
+    expect(fieldContext).not.toHaveProperty('block');
+    expect(fieldContext).not.toHaveProperty('blockKeyword');
+
+    const modelContext = classify(['model Post {', '  id Int', '  @@|', '}'].join('\n'));
+    expect(modelContext).toMatchObject({
       kind: 'attributeName',
       level: 'model',
     });
-    expect(classify(['policy Foo {', '  @@|', '}'].join('\n'))).toMatchObject({
+    if (modelContext.kind !== 'attributeName' || modelContext.level !== 'model') {
+      throw new Error('expected model attributeName');
+    }
+    expect(modelContext.model.name()?.name()).toBe('Post');
+    expect(modelContext).not.toHaveProperty('field');
+    expect(modelContext).not.toHaveProperty('block');
+    expect(modelContext).not.toHaveProperty('blockKeyword');
+
+    const blockContext = classify(['policy Foo {', '  @@|', '}'].join('\n'));
+    expect(blockContext).toMatchObject({
       kind: 'attributeName',
       level: 'block',
       blockKeyword: 'policy',
     });
+    if (blockContext.kind !== 'attributeName' || blockContext.level !== 'block') {
+      throw new Error('expected block attributeName');
+    }
+    expect(blockContext.block.keyword()?.text).toBe('policy');
+    expect(blockContext).not.toHaveProperty('model');
+    expect(blockContext).not.toHaveProperty('field');
   });
 
   it('classifies partial attribute names with a replace range over the typed segment', () => {
@@ -247,23 +272,48 @@ describe('classifyPslCompletionContext', () => {
     });
   });
 
-  it('classifies top-level attribute named keys', () => {
-    expect(classify(['model M {', '  id Int @map(|)', '}'].join('\n'))).toMatchObject({
+  it('classifies top-level attribute named keys with concrete owners', () => {
+    const fieldContext = classify(['model M {', '  id Int @map(|)', '}'].join('\n'));
+    expect(fieldContext).toMatchObject({
       kind: 'attributeNamedKey',
       level: 'field',
       attributeName: 'map',
     });
-    expect(classify(['model M {', '  @@index(fields: [id], |)', '}'].join('\n'))).toMatchObject({
+    if (fieldContext.kind !== 'attributeNamedKey' || fieldContext.level !== 'field') {
+      throw new Error('expected field attributeNamedKey');
+    }
+    expect(fieldContext.model.name()?.name()).toBe('M');
+    expect(fieldContext.field.name()?.name()).toBe('id');
+    expect(fieldContext).not.toHaveProperty('block');
+    expect(fieldContext).not.toHaveProperty('blockKeyword');
+
+    const modelContext = classify(['model M {', '  @@index(fields: [id], |)', '}'].join('\n'));
+    expect(modelContext).toMatchObject({
       kind: 'attributeNamedKey',
       level: 'model',
       attributeName: 'index',
     });
-    expect(classify(['policy Foo {', '  @@audit(|)', '}'].join('\n'))).toMatchObject({
+    if (modelContext.kind !== 'attributeNamedKey' || modelContext.level !== 'model') {
+      throw new Error('expected model attributeNamedKey');
+    }
+    expect(modelContext.model.name()?.name()).toBe('M');
+    expect(modelContext).not.toHaveProperty('field');
+    expect(modelContext).not.toHaveProperty('block');
+    expect(modelContext).not.toHaveProperty('blockKeyword');
+
+    const blockContext = classify(['policy Foo {', '  @@audit(|)', '}'].join('\n'));
+    expect(blockContext).toMatchObject({
       kind: 'attributeNamedKey',
       level: 'block',
       attributeName: 'audit',
       blockKeyword: 'policy',
     });
+    if (blockContext.kind !== 'attributeNamedKey' || blockContext.level !== 'block') {
+      throw new Error('expected block attributeNamedKey');
+    }
+    expect(blockContext.block.keyword()?.text).toBe('policy');
+    expect(blockContext).not.toHaveProperty('model');
+    expect(blockContext).not.toHaveProperty('field');
   });
 
   it('does not classify attribute values or nested argument positions as named keys', () => {

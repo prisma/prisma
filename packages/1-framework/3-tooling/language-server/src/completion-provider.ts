@@ -224,9 +224,6 @@ function attributeNames(
   source: PslCompletionCandidateSource,
 ): readonly string[] {
   if (context.level === 'block') {
-    if (context.blockKeyword === undefined) {
-      return [];
-    }
     const descriptor = findBlockDescriptor(source.pslBlockDescriptors, context.blockKeyword);
     return sortedUnique(Object.keys(descriptor?.attributes ?? {}));
   }
@@ -295,7 +292,7 @@ function requiredAttributeArgumentSnippet(
 }
 
 function argSnippetPlaceholder(param: Param<unknown, never>, tabStop: number): string {
-  const placeholder = '${' + tabStop.toString() + ':}';
+  const placeholder = `\${${tabStop.toString()}:}`;
   if (param.kind === 'str') {
     return `"${placeholder}"`;
   }
@@ -351,52 +348,63 @@ function attributeSpecResolver(
   context: AttributeNameCompletionContext | AttributeNamedKeyCompletionContext,
   source: PslCompletionCandidateSource,
 ): (name: string) => AttributeSpec<never, never> | undefined {
-  if (context.level === 'block') {
-    if (context.blockKeyword === undefined) {
-      return () => undefined;
+  switch (context.level) {
+    case 'block': {
+      const descriptor = findBlockDescriptor(source.pslBlockDescriptors, context.blockKeyword);
+      return (name) => {
+        const factory = descriptor?.attributes?.[name];
+        if (factory === undefined) {
+          return undefined;
+        }
+        return blindCast<
+          BlockAttributeSpecFactory,
+          'block descriptor attributes are validated as factories at control-stack assembly but exposed through framework-components as unknown to avoid a parser dependency'
+        >(factory)();
+      };
     }
-    const descriptor = findBlockDescriptor(source.pslBlockDescriptors, context.blockKeyword);
-    return (name) => {
-      const factory = descriptor?.attributes?.[name];
-      if (factory === undefined) {
-        return undefined;
+    case 'model': {
+      const interpretation = source.interpretationContext;
+      if (interpretation === undefined) {
+        return () => undefined;
       }
-      return blindCast<
-        BlockAttributeSpecFactory,
-        'block descriptor attributes are validated as factories at control-stack assembly but exposed through framework-components as unknown to avoid a parser dependency'
-      >(factory)();
-    };
+      const model = modelSymbolForNode(source.symbolTable, context.model);
+      if (model === undefined) {
+        return () => undefined;
+      }
+      const specs = assembleAttributeSpecs(interpretation.authoringContributions);
+      const specContext = {
+        symbols: source.symbolTable,
+        model,
+        controlMutationDefaults: interpretation.controlMutationDefaults.defaultFunctionRegistry,
+      };
+      return (name) => specs.model[name]?.(specContext);
+    }
+    case 'field': {
+      const interpretation = source.interpretationContext;
+      if (interpretation === undefined) {
+        return () => undefined;
+      }
+      const model = modelSymbolForNode(source.symbolTable, context.model);
+      if (model === undefined) {
+        return () => undefined;
+      }
+      const field = fieldSymbolForNode(model, context.field);
+      if (field === undefined) {
+        return () => undefined;
+      }
+      const specs = assembleAttributeSpecs(interpretation.authoringContributions);
+      const specContext = {
+        symbols: source.symbolTable,
+        model,
+        controlMutationDefaults: interpretation.controlMutationDefaults.defaultFunctionRegistry,
+      };
+      return (name) =>
+        specs.field[name]?.({
+          ...specContext,
+          field,
+        });
+    }
   }
-
-  const interpretation = source.interpretationContext;
-  if (interpretation === undefined || context.model === undefined) {
-    return () => undefined;
-  }
-  const model = modelSymbolForNode(source.symbolTable, context.model);
-  if (model === undefined) {
-    return () => undefined;
-  }
-  const specContext = {
-    symbols: source.symbolTable,
-    model,
-    controlMutationDefaults: interpretation.controlMutationDefaults.defaultFunctionRegistry,
-  };
-  const specs = assembleAttributeSpecs(interpretation.authoringContributions);
-  if (context.level === 'model') {
-    return (name) => specs.model[name]?.(specContext);
-  }
-  if (context.field === undefined) {
-    return () => undefined;
-  }
-  const field = fieldSymbolForNode(model, context.field);
-  if (field === undefined) {
-    return () => undefined;
-  }
-  return (name) =>
-    specs.field[name]?.({
-      ...specContext,
-      field,
-    });
 }
 
 function existingAttributeNamedKeys(
@@ -416,13 +424,20 @@ function existingAttributeNamedKeys(
   return names;
 }
 
+type ModelOwnedAttributeCompletionContext = Extract<
+  AttributeNameCompletionContext | AttributeNamedKeyCompletionContext,
+  { readonly level: 'field' | 'model' }
+>;
+
+type FieldOwnedAttributeCompletionContext = Extract<
+  AttributeNameCompletionContext | AttributeNamedKeyCompletionContext,
+  { readonly level: 'field' }
+>;
+
 function modelSymbolForNode(
   symbolTable: SymbolTable,
-  node: AttributeNameCompletionContext['model'],
+  node: ModelOwnedAttributeCompletionContext['model'],
 ): ModelSymbol | undefined {
-  if (node === undefined) {
-    return undefined;
-  }
   const topLevelMatch = Object.values(symbolTable.topLevel.models).find((model) =>
     sameSyntax(model.node.syntax, node.syntax),
   );
@@ -442,11 +457,8 @@ function modelSymbolForNode(
 
 function fieldSymbolForNode(
   model: ModelSymbol,
-  node: AttributeNameCompletionContext['field'],
+  node: FieldOwnedAttributeCompletionContext['field'],
 ): FieldSymbol | undefined {
-  if (node === undefined) {
-    return undefined;
-  }
   return Object.values(model.fields).find((field) => sameSyntax(field.node.syntax, node.syntax));
 }
 
