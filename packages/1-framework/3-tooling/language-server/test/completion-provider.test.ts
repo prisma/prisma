@@ -1,10 +1,16 @@
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ContractSourceContext } from '@internal/config/config-types';
-import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import type {
+  AuthoringEntityTypeNamespace,
+  AuthoringPslBlockDescriptorNamespace,
+} from '@internal/framework-components/authoring';
 import {
   assembleAuthoringContributions,
   assembleControlMutationDefaults,
 } from '@internal/framework-components/control';
 import {
+  type AttributeSpecNamespace,
   blockAttribute,
   buildSymbolTable,
   type FieldAttributeSpecContext,
@@ -22,6 +28,7 @@ import { providePslCompletionItems } from '../src/completion-provider';
 
 const scalarTypes = ['String', 'Int', 'Boolean', 'DateTime'] as const;
 const nameSnippetPlaceholder = '$' + '{1:Name}';
+const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
 const markerAttribute = fieldAttribute('marker', {
   named: { name: str(), priority: optional(int()) },
@@ -136,15 +143,52 @@ function complete(
   markedFieldSource: string,
   options: { readonly clientSupportsSnippets?: boolean } = {},
 ) {
-  const markedSource = `${candidateSource}\n${markedFieldSource}`;
-  const cursorOffset = markedSource.indexOf('|');
+  return completeWithSource({
+    markedSource: `${candidateSource}\n${markedFieldSource}`,
+    pslBlockDescriptors,
+    interpretationContext,
+    clientSupportsSnippets: options.clientSupportsSnippets === true,
+  });
+}
+
+interface CompletionTestStack {
+  readonly attributeSpecs: AttributeSpecNamespace;
+  readonly entityTypes: AuthoringEntityTypeNamespace;
+  readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
+}
+
+interface ActualSqlAttributeModule {
+  readonly sqlAttributeSpecs: AttributeSpecNamespace;
+}
+
+interface ActualSqlBlockModule {
+  readonly sqlFamilyEntityTypes: AuthoringEntityTypeNamespace;
+  readonly sqlFamilyPslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
+}
+
+interface ActualMongoAttributeModule {
+  readonly mongoAttributeSpecs: AttributeSpecNamespace;
+}
+
+interface ActualMongoBlockModule {
+  readonly mongoFamilyEntityTypes: AuthoringEntityTypeNamespace;
+  readonly mongoFamilyPslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
+}
+
+function completeWithSource(input: {
+  readonly markedSource: string;
+  readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
+  readonly interpretationContext: ContractSourceContext;
+  readonly clientSupportsSnippets?: boolean;
+}) {
+  const cursorOffset = input.markedSource.indexOf('|');
   expect(cursorOffset).toBeGreaterThanOrEqual(0);
-  const source = `${markedSource.slice(0, cursorOffset)}${markedSource.slice(cursorOffset + 1)}`;
+  const source = `${input.markedSource.slice(0, cursorOffset)}${input.markedSource.slice(cursorOffset + 1)}`;
   const { document, sourceFile } = parse(source);
   const { table: symbolTable } = buildSymbolTable({
     document,
     sourceFile,
-    pslBlockDescriptors,
+    pslBlockDescriptors: input.pslBlockDescriptors,
   });
   const context = classifyPslCompletionContext({
     document,
@@ -156,12 +200,77 @@ function complete(
     items: providePslCompletionItems({
       context,
       sourceFile,
-      candidates: { scalarTypes, pslBlockDescriptors, symbolTable, interpretationContext },
-      clientSupportsSnippets: options.clientSupportsSnippets === true,
+      candidates: {
+        scalarTypes,
+        pslBlockDescriptors: input.pslBlockDescriptors,
+        symbolTable,
+        interpretationContext: input.interpretationContext,
+      },
+      clientSupportsSnippets: input.clientSupportsSnippets === true,
     }),
     sourceFile,
     cursorOffset,
   };
+}
+
+async function actualSqlStack(): Promise<CompletionTestStack> {
+  const [attributes, blocks] = await Promise.all([
+    importFromPackageRoot<ActualSqlAttributeModule>(
+      '../../../2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts',
+    ),
+    importFromPackageRoot<ActualSqlBlockModule>(
+      '../../../2-sql/9-family/src/core/authoring-entity-types.ts',
+    ),
+  ]);
+  return {
+    attributeSpecs: attributes.sqlAttributeSpecs,
+    entityTypes: blocks.sqlFamilyEntityTypes,
+    pslBlockDescriptors: blocks.sqlFamilyPslBlockDescriptors,
+  };
+}
+
+async function actualMongoStack(): Promise<CompletionTestStack> {
+  const [attributes, blocks] = await Promise.all([
+    importFromPackageRoot<ActualMongoAttributeModule>(
+      '../../../2-mongo-family/2-authoring/contract-psl/src/mongo-attribute-specs.ts',
+    ),
+    importFromPackageRoot<ActualMongoBlockModule>(
+      '../../../2-mongo-family/9-family/src/core/authoring-entity-types.ts',
+    ),
+  ]);
+  return {
+    attributeSpecs: attributes.mongoAttributeSpecs,
+    entityTypes: blocks.mongoFamilyEntityTypes,
+    pslBlockDescriptors: blocks.mongoFamilyPslBlockDescriptors,
+  };
+}
+
+async function importFromPackageRoot<T>(relativePath: string): Promise<T> {
+  return (await import(pathToFileURL(resolve(packageRoot, relativePath)).href)) as T;
+}
+
+function actualInterpretationContext(stack: CompletionTestStack): ContractSourceContext {
+  return {
+    authoringContributions: assembleAuthoringContributions([
+      {
+        id: 'actual-family',
+        authoring: {
+          attributeSpecs: stack.attributeSpecs,
+          entityTypes: stack.entityTypes,
+          pslBlockDescriptors: stack.pslBlockDescriptors,
+        },
+      },
+    ]),
+    controlMutationDefaults,
+  } as unknown as ContractSourceContext;
+}
+
+function completeWithActualStack(markedSource: string, stack: CompletionTestStack) {
+  return completeWithSource({
+    markedSource,
+    pslBlockDescriptors: stack.pslBlockDescriptors,
+    interpretationContext: actualInterpretationContext(stack),
+  });
 }
 
 describe('providePslCompletionItems', () => {
@@ -302,6 +411,115 @@ describe('providePslCompletionItems', () => {
 
     expect(items.map((item) => item.label)).toEqual(['scopedKey']);
   });
+
+  it('uses actual SQL attribute specs for names and top-level named keys', async () => {
+    const stack = await actualSqlStack();
+
+    expect(
+      completeWithActualStack(['model Post {', '  id Int @|', '}'].join('\n'), stack).items.map(
+        (item) => item.label,
+      ),
+    ).toEqual(['default', 'id', 'map', 'noCheck', 'relation', 'unique']);
+    expect(
+      completeWithActualStack(
+        ['model Post {', '  id Int', '  @@|', '}'].join('\n'),
+        stack,
+      ).items.map((item) => item.label),
+    ).toEqual(['base', 'check', 'control', 'discriminator', 'id', 'index', 'map', 'unique']);
+    expect(
+      completeWithActualStack(['enum Role {', '  Admin', '  @@|', '}'].join('\n'), stack).items.map(
+        (item) => item.label,
+      ),
+    ).toEqual(['type']);
+
+    const { items, sourceFile, cursorOffset } = completeWithActualStack(
+      ['model Post {', '  id Int', '  @@index(expression: "lower(name)", ma|)', '}'].join('\n'),
+      stack,
+    );
+    expect(items.map((item) => item.label)).toEqual([
+      'map',
+      'name',
+      'options',
+      'type',
+      'unique',
+      'where',
+    ]);
+    expect(items[0]?.textEdit).toEqual({
+      range: {
+        start: sourceFile.positionAt(cursorOffset - 'ma'.length),
+        end: sourceFile.positionAt(cursorOffset),
+      },
+      newText: 'map',
+    });
+
+    expect(
+      completeWithActualStack(['model Post {', '  id Int @default(|)', '}'].join('\n'), stack)
+        .items,
+    ).toEqual([]);
+  }, 5_000);
+
+  it('uses actual Mongo attribute specs for names and dynamic factory keys', async () => {
+    const stack = await actualMongoStack();
+
+    expect(
+      completeWithActualStack(['model Post {', '  id String @|', '}'].join('\n'), stack).items.map(
+        (item) => item.label,
+      ),
+    ).toEqual(['id', 'map', 'relation', 'unique']);
+    expect(
+      completeWithActualStack(
+        ['model Post {', '  id String', '  @@|', '}'].join('\n'),
+        stack,
+      ).items.map((item) => item.label),
+    ).toEqual(['base', 'discriminator', 'index', 'map', 'textIndex', 'unique']);
+    expect(
+      completeWithActualStack(['enum Role {', '  Admin', '  @@|', '}'].join('\n'), stack).items.map(
+        (item) => item.label,
+      ),
+    ).toEqual(['type']);
+
+    expect(
+      completeWithActualStack(
+        [
+          'namespace scoped {',
+          '  model User {',
+          '    id String',
+          '    localOnly String',
+          '    @@index(fields: [id], la|)',
+          '  }',
+          '}',
+          'model User {',
+          '  id String',
+          '}',
+        ].join('\n'),
+        stack,
+      ).items.map((item) => item.label),
+    ).toEqual([
+      'collationAlternate',
+      'collationBackwards',
+      'collationCaseFirst',
+      'collationCaseLevel',
+      'collationLocale',
+      'collationMaxVariable',
+      'collationNormalization',
+      'collationNumericOrdering',
+      'collationStrength',
+      'default_language',
+      'exclude',
+      'expireAfterSeconds',
+      'filter',
+      'include',
+      'languageOverride',
+      'sparse',
+      'type',
+    ]);
+    expect(
+      completeWithActualStack(
+        ['model Post {', '  author User @relation(name: "Author", f|)', '}'].join('\n'),
+        stack,
+      ).items.map((item) => item.label),
+    ).toEqual(['fields', 'references']);
+  }, 5_000);
 
   it('returns stable bare model field type completion candidates', () => {
     const { items, sourceFile, cursorOffset } = complete(
