@@ -34,6 +34,7 @@
     "@internal/sql-runtime": "workspace:8.0.0-rc.9",
     "@internal/target-postgres": "workspace:8.0.0-rc.9",
     "@internal/utils": "workspace:8.0.0-rc.9",
+    "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "pathe": "^2.0.3",
     "pg": "catalog:"
