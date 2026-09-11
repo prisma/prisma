@@ -1,8 +1,11 @@
+/// <reference types="vite/client" />
+
 import { LogLevel } from '@codingame/monaco-vscode-api';
 import {
   type IExtensionManifest,
   registerExtension,
 } from '@codingame/monaco-vscode-api/extensions';
+import editorWorkerUrl from '@codingame/monaco-vscode-editor-api/esm/vs/editor/editor.worker?worker&url';
 import getFilesServiceOverride, {
   RegisteredFileSystemProvider,
   RegisteredMemoryFile,
@@ -18,7 +21,7 @@ import {
   type MonacoVscodeApiConfig,
   MonacoVscodeApiWrapper,
 } from 'monaco-languageclient/vscodeApiWrapper';
-import { defineDefaultWorkerLoaders, useWorkerFactory } from 'monaco-languageclient/workerFactory';
+import { useWorkerFactory, Worker } from 'monaco-languageclient/workerFactory';
 import * as vscode from 'vscode';
 
 const LANGUAGE_ID = 'prisma';
@@ -90,8 +93,9 @@ async function loadRuntimeConfig(): Promise<RuntimeConfig> {
 }
 
 function configureWorkerFactory(logger?: ILogger): void {
-  const workerLoaders = defineDefaultWorkerLoaders();
-  workerLoaders['extensionHostWorkerMain'] = undefined;
+  const workerLoaders = {
+    editorWorkerService: () => new Worker(editorWorkerUrl, { type: 'module' }),
+  };
   const config = logger !== undefined ? { workerLoaders, logger } : { workerLoaders };
   useWorkerFactory(config);
 }
