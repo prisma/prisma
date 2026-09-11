@@ -95,7 +95,7 @@ await db.orm.User
   .all();
 ```
 
-**Sorting and pagination.** `.orderBy(...)` accepts a single lambda or an array of lambdas (each calling `.asc()` / `.desc()` on a field). `.limit(n)` limits; `.offset(n)` offsets.
+**Sorting and pagination.** `.orderBy(...)` accepts a single lambda or an array of lambdas (each calling `.asc()` / `.desc()` on a field). `.limit(n)` limits; `.offset(n)` offsets. Both require a non-negative integer (`Number.isInteger(n) && n >= 0`); anything else throws **`ORM.ARGUMENT_INVALID`** before the query runs.
 
 ```typescript
 await db.orm.Post

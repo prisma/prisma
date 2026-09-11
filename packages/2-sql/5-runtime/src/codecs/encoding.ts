@@ -32,6 +32,16 @@ const NO_METADATA: ParamMetadata = Object.freeze({
 // revisited when SQLite prepared statements ship and each adapter
 // carries codec metadata on its `LoweredParam` slots directly.
 export function deriveParamMetadata(ast: AnyQueryAst): readonly ParamMetadata[] {
+  if (
+    ast == null ||
+    typeof (ast as { collectParamRefs?: unknown }).collectParamRefs !== 'function'
+  ) {
+    throw runtimeError(
+      'RUNTIME.INVALID_PLAN',
+      'Expected a built SQL plan with an AST (for example `db.raw.sql`…`.returnsRow({…}).build()`). ' +
+        'An unterminated raw builder is not executable.',
+    );
+  }
   return collectOrderedParamRefs(ast).map((ref): ParamMetadata => {
     return { codec: ref.codec, name: ref.name };
   });

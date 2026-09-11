@@ -16,7 +16,8 @@ const NULL_PATTERN = /^NULL(?:::.+)?$/i;
 const TRUE_PATTERN = /^true$/i;
 const FALSE_PATTERN = /^false$/i;
 const NUMERIC_PATTERN = /^-?\d+(\.\d+)?$/;
-const STRING_LITERAL_PATTERN = /^'((?:[^']|'')*)'(?:::(?:"[^"]+"|[\w\s]+)(?:\(\d+\))?)?$/;
+const STRING_LITERAL_PATTERN =
+  /^'((?:[^']|'')*)'(?:::(?:"[^"]+"|[\w\s]+)(?:\(\d+(?:\s*,\s*\d+)*\))?)?$/;
 
 /**
  * Matches a Postgres array literal default of the form `'{...}'::elemtype[]`.

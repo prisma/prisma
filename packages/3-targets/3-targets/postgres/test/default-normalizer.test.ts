@@ -297,6 +297,13 @@ describe('parsePostgresDefault string literals', () => {
     });
   });
 
+  it('strips a numeric cast with precision and scale', () => {
+    expect(parsePostgresDefault("'0'::numeric(18,2)", 'numeric')).toEqual({
+      kind: 'literal',
+      value: '0',
+    });
+  });
+
   it('parses valid json content for a json column into its structured value', () => {
     expect(parsePostgresDefault('\'{"a":1}\'', 'json')).toEqual({
       kind: 'literal',

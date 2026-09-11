@@ -58,7 +58,7 @@ const articles = await db.orm.posts.variant('Article').all();
 const tutorials = await db.orm.posts.variant('Tutorial').where({ authorId }).all();
 ```
 
-**Sorting and pagination.** `.orderBy({ field: 1 | -1 })` (Mongo sort directions). `.limit(n)` maps to `$limit`; `.offset(n)` maps to `$skip`.
+**Sorting and pagination.** `.orderBy({ field: 1 | -1 })` (Mongo sort directions). `.limit(n)` maps to `$limit`; `.offset(n)` maps to `$skip`. Both require a non-negative integer (`Number.isInteger(n) && n >= 0`); anything else throws **`ORM.ARGUMENT_INVALID`** before the query runs.
 
 **`.first()` vs `.all()`.** `.first()` issues a limit-1 read; `.all()` returns every matching document. There is no `.first({ pk })` shorthand on Mongo — filter on `_id` explicitly: `.where({ _id: id }).first()`.
 

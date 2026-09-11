@@ -13,7 +13,8 @@ const TRUE_PATTERN = /^true$/i;
 const FALSE_PATTERN = /^false$/i;
 const NUMERIC_PATTERN = /^-?\d+(\.\d+)?$/;
 const JSON_CAST_SUFFIX = /::jsonb?$/i;
-const STRING_LITERAL_PATTERN = /^'((?:[^']|'')*)'(?:::(?:"[^"]+"|[\w\s]+)(?:\(\d+\))?)?$/;
+const STRING_LITERAL_PATTERN =
+  /^'((?:[^']|'')*)'(?:::(?:"[^"]+"|[\w\s]+)(?:\(\d+(?:\s*,\s*\d+)*\))?)?$/;
 
 function canonicalizeTimestampDefault(expr: string): string | undefined {
   if (NOW_FUNCTION_PATTERN.test(expr)) return 'now()';

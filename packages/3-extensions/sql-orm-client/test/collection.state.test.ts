@@ -173,6 +173,17 @@ describe('Collection', () => {
       expect(paged.state.limit).toBe(10);
       expect(paged.state.offset).toBe(5);
 
+      expect(() => ordered.limit('2' as unknown as number)).toThrow(
+        expect.objectContaining({
+          code: 'ORM.ARGUMENT_INVALID',
+        }),
+      );
+      expect(() => ordered.offset(-1)).toThrow(
+        expect.objectContaining({
+          code: 'ORM.ARGUMENT_INVALID',
+        }),
+      );
+
       expect(postCollection.distinct('userId').state.distinct).toEqual(['user_id']);
       expect(ordered.distinctOn('userId').state.distinctOn).toEqual(['user_id']);
       expect(postCollection.select('userId').state.selectedFields).toEqual(['user_id']);
