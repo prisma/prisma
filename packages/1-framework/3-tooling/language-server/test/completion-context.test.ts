@@ -119,12 +119,15 @@ describe('classifyPslCompletionContext', () => {
     });
   });
 
-  it('returns unsupported once the cursor is past a field attribute on a typeless field', () => {
-    expectUnsupported(['model Post {', '  author @id|', '}'].join('\n'));
-  });
-
-  it('returns unsupported when the cursor sits inside a typeless field attribute', () => {
-    expectUnsupported(['model Post {', '  author @i|d', '}'].join('\n'));
+  it('classifies a field attribute on a typeless field', () => {
+    expect(classify(['model Post {', '  author @id|', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeName',
+      level: 'field',
+    });
+    expect(classify(['model Post {', '  author @i|d', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeName',
+      level: 'field',
+    });
   });
 
   it('does not treat the cursor glued to the field name as a type slot', () => {
@@ -217,23 +220,56 @@ describe('classifyPslCompletionContext', () => {
     expectUnsupported(['model Post {', '  |', '  id Int', '}'].join('\n'));
   });
 
-  it('returns unsupported for ordinary field and block attributes', () => {
-    expectUnsupported(['model Post {', '  id Int @|', '}'].join('\n'));
-    expectUnsupported(['model Post {', '  id Int', '  @@|', '}'].join('\n'));
+  it('classifies field, model, and block attribute names', () => {
+    expect(classify(['model Post {', '  id Int @|', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeName',
+      level: 'field',
+    });
+    expect(classify(['model Post {', '  id Int', '  @@|', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeName',
+      level: 'model',
+    });
+    expect(classify(['policy Foo {', '  @@|', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeName',
+      level: 'block',
+      blockKeyword: 'policy',
+    });
   });
 
-  it('returns unsupported inside attribute arguments', () => {
-    expectUnsupported(['model Post {', '  id Int @default(|)', '}'].join('\n'));
+  it('classifies partial attribute names with a replace range over the typed segment', () => {
+    const context = classify(['model Post {', '  id Int @uni|', '}'].join('\n'));
+
+    expect(context).toMatchObject({
+      kind: 'attributeName',
+      level: 'field',
+      replacementStartOffset: 23,
+      offset: 26,
+    });
+  });
+
+  it('classifies top-level attribute named keys', () => {
+    expect(classify(['model M {', '  id Int @map(|)', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeNamedKey',
+      level: 'field',
+      attributeName: 'map',
+    });
+    expect(classify(['model M {', '  @@index(fields: [id], |)', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeNamedKey',
+      level: 'model',
+      attributeName: 'index',
+    });
+    expect(classify(['policy Foo {', '  @@audit(|)', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeNamedKey',
+      level: 'block',
+      attributeName: 'audit',
+      blockKeyword: 'policy',
+    });
+  });
+
+  it('does not classify attribute values or nested argument positions as named keys', () => {
+    expectUnsupported(['model Post {', '  id Int @map(name: value|)', '}'].join('\n'));
+    expectUnsupported(['model Post {', '  id Int @default(autoincrement(|))', '}'].join('\n'));
     expectUnsupported(['model Post {', '  authorId Int @relation(fields: [|])', '}'].join('\n'));
-  });
-
-  it('returns unsupported inside an attribute within a generic block', () => {
-    expectUnsupported(['policy Foo {', '  @@bar(baz|)', '}'].join('\n'));
-  });
-
-  it('returns unsupported inside field and model attribute arguments', () => {
-    expectUnsupported(['model M {', '  id Int @map(baz|)', '}'].join('\n'));
-    expectUnsupported(['model M {', '  @@map(baz|)', '}'].join('\n'));
   });
 
   it('classifies a composite-type field type position', () => {

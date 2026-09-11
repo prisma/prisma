@@ -1,5 +1,19 @@
+import type { ContractSourceContext } from '@internal/config/config-types';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
-import { buildSymbolTable } from '@internal/psl-parser';
+import {
+  assembleAuthoringContributions,
+  assembleControlMutationDefaults,
+} from '@internal/framework-components/control';
+import {
+  blockAttribute,
+  buildSymbolTable,
+  type FieldAttributeSpecContext,
+  fieldAttribute,
+  int,
+  modelAttribute,
+  optional,
+  str,
+} from '@internal/psl-parser';
 import { parse } from '@internal/psl-parser/syntax';
 import { describe, expect, it } from 'vitest';
 import { CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
@@ -8,6 +22,56 @@ import { providePslCompletionItems } from '../src/completion-provider';
 
 const scalarTypes = ['String', 'Int', 'Boolean', 'DateTime'] as const;
 const nameSnippetPlaceholder = '$' + '{1:Name}';
+
+const markerAttribute = fieldAttribute('marker', {
+  named: { name: str(), priority: optional(int()) },
+});
+const rlsAttribute = modelAttribute('rls', {
+  named: { enabled: optional(str()), mode: str() },
+});
+const auditAttribute = blockAttribute('audit', {
+  named: { reason: optional(str()), level: int() },
+});
+
+const attributeContributions = assembleAuthoringContributions([
+  {
+    id: 'fixture-family',
+    authoring: {
+      attributeSpecs: {
+        field: {
+          marker: () => markerAttribute,
+          ownerAware: (ctx: FieldAttributeSpecContext) =>
+            fieldAttribute('ownerAware', {
+              named: {
+                [Object.hasOwn(ctx.model.fields, 'scopedOnly') ? 'scopedKey' : 'topKey']: str(),
+              },
+            }),
+        },
+        model: {},
+      },
+    },
+  },
+  {
+    id: 'fixture-target',
+    authoring: {
+      modelAttributes: {
+        security: {
+          rls: {
+            kind: 'modelAttribute',
+            attribute: 'rls',
+            spec: () => rlsAttribute,
+            lower: () => undefined,
+          },
+        },
+      },
+    },
+  },
+]);
+const controlMutationDefaults = assembleControlMutationDefaults([]);
+const interpretationContext = {
+  authoringContributions: attributeContributions,
+  controlMutationDefaults,
+} as unknown as ContractSourceContext;
 
 const pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace = {
   policy: {
@@ -21,6 +85,7 @@ const pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace = {
       mode: { kind: 'option', values: ['permissive', 'restrictive'] },
       using: { kind: 'value', codecId: 'fixture/text@1' },
     },
+    attributes: { audit: () => auditAttribute },
   },
   access: {
     audit: {
@@ -42,6 +107,7 @@ const candidateSource = [
   '}',
   'model User {',
   '  id Int',
+  '  topOnly String',
   '}',
   'type Address {',
   '  street String',
@@ -55,6 +121,7 @@ const candidateSource = [
   '  }',
   '  model User {',
   '    id Int',
+  '    scopedOnly String',
   '  }',
   '  type Profile {',
   '    displayName String',
@@ -89,7 +156,7 @@ function complete(
     items: providePslCompletionItems({
       context,
       sourceFile,
-      candidates: { scalarTypes, pslBlockDescriptors, symbolTable },
+      candidates: { scalarTypes, pslBlockDescriptors, symbolTable, interpretationContext },
       clientSupportsSnippets: options.clientSupportsSnippets === true,
     }),
     sourceFile,
@@ -193,10 +260,47 @@ describe('providePslCompletionItems', () => {
     });
   });
 
-  it('returns an empty list for ordinary model attribute contexts', () => {
-    const { items } = complete(['model Post {', '  id Int', '  @@|', '}'].join('\n'));
+  it('returns registry-backed attribute name completions', () => {
+    expect(
+      complete(['model Post {', '  id Int @|', '}'].join('\n')).items.map((item) => item.label),
+    ).toEqual(['marker', 'ownerAware']);
+    expect(
+      complete(['model Post {', '  id Int', '  @@|', '}'].join('\n')).items.map(
+        (item) => item.label,
+      ),
+    ).toEqual(['rls']);
+    expect(
+      complete(['policy Rule {', '  @@|', '}'].join('\n')).items.map((item) => item.label),
+    ).toEqual(['audit']);
+  });
 
-    expect(items).toEqual([]);
+  it('returns attribute named keys including optional keys while omitting supplied keys', () => {
+    const { items, sourceFile, cursorOffset } = complete(
+      ['model Post {', '  id Int @marker(name: "id", pr|)', '}'].join('\n'),
+    );
+
+    expect(items.map((item) => item.label)).toEqual(['priority']);
+    expect(items[0]?.textEdit).toEqual({
+      range: {
+        start: sourceFile.positionAt(cursorOffset - 'pr'.length),
+        end: sourceFile.positionAt(cursorOffset),
+      },
+      newText: 'priority',
+    });
+  });
+
+  it('uses the current declaration owner when model names collide across namespaces', () => {
+    const { items } = complete(
+      [
+        'namespace feature {',
+        '  model User {',
+        '    scopedOnly String @ownerAware(|)',
+        '  }',
+        '}',
+      ].join('\n'),
+    );
+
+    expect(items.map((item) => item.label)).toEqual(['scopedKey']);
   });
 
   it('returns stable bare model field type completion candidates', () => {
@@ -399,7 +503,7 @@ describe('providePslCompletionItems', () => {
   });
 
   it('returns an empty list for unsupported classifier contexts', () => {
-    const { items } = complete(['model Post {', '  id Int @|', '}'].join('\n'));
+    const { items } = complete(['model Post {', '  // @|', '}'].join('\n'));
 
     expect(items).toEqual([]);
   });

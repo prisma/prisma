@@ -1,11 +1,29 @@
+import type { ContractSourceContext } from '@internal/config/config-types';
 import {
   type AuthoringPslBlockDescriptorNamespace,
   isAuthoringPslBlockDescriptor,
 } from '@internal/framework-components/authoring';
-import { findBlockDescriptor, type NamespaceSymbol, type SymbolTable } from '@internal/psl-parser';
-import type { GenericBlockDeclarationAst, SourceFile } from '@internal/psl-parser/syntax';
+import {
+  type AttributeSpec,
+  assembleAttributeSpecs,
+  type BlockAttributeSpecFactory,
+  type FieldSymbol,
+  findBlockDescriptor,
+  type ModelSymbol,
+  type NamespaceSymbol,
+  type SymbolTable,
+} from '@internal/psl-parser';
+import type {
+  FieldAttributeAst,
+  GenericBlockDeclarationAst,
+  ModelAttributeAst,
+  SourceFile,
+} from '@internal/psl-parser/syntax';
+import { blindCast } from '@internal/utils/casts';
 import { type CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
 import type {
+  AttributeNameCompletionContext,
+  AttributeNamedKeyCompletionContext,
   DeclarationKeywordCompletionContext,
   GenericBlockKeyCompletionContext,
   ModelTypeCompletionContext,
@@ -18,6 +36,7 @@ export interface PslCompletionCandidateSource {
   readonly scalarTypes: readonly string[];
   readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
   readonly symbolTable: SymbolTable;
+  readonly interpretationContext?: ContractSourceContext;
 }
 
 export interface ProvidePslCompletionItemsInput {
@@ -110,6 +129,10 @@ export function providePslCompletionItems(
     // work.
     case 'genericBlockValue':
       return [];
+    case 'attributeName':
+      return provideAttributeNameCompletionItems(context, input.sourceFile, input.candidates);
+    case 'attributeNamedKey':
+      return provideAttributeNamedKeyCompletionItems(context, input.sourceFile, input.candidates);
     case 'declarationKeyword':
       return provideDeclarationKeywordCompletionItems(
         context,
@@ -124,6 +147,181 @@ export function providePslCompletionItems(
     case 'namespaceMember':
       return provideNamespaceMemberCompletionItems(context, input.sourceFile, input.candidates);
   }
+}
+
+function provideAttributeNameCompletionItems(
+  context: AttributeNameCompletionContext,
+  sourceFile: SourceFile,
+  source: PslCompletionCandidateSource,
+): readonly CompletionItem[] {
+  const names = attributeNames(context, source);
+  const replacementRange = {
+    start: sourceFile.positionAt(context.replacementStartOffset),
+    end: sourceFile.positionAt(context.offset),
+  };
+
+  return names.map((name) => ({
+    label: name,
+    kind: CompletionItemKind.Property,
+    detail: 'PSL attribute',
+    sortText: name,
+    filterText: name,
+    textEdit: { range: replacementRange, newText: name },
+  }));
+}
+
+function provideAttributeNamedKeyCompletionItems(
+  context: AttributeNamedKeyCompletionContext,
+  sourceFile: SourceFile,
+  source: PslCompletionCandidateSource,
+): readonly CompletionItem[] {
+  const spec = attributeSpec(context, source);
+  if (spec === undefined) {
+    return [];
+  }
+  const existing = existingAttributeNamedKeys(context.attribute, context.offset);
+  const replacementRange = {
+    start: sourceFile.positionAt(context.replacementStartOffset),
+    end: sourceFile.positionAt(context.offset),
+  };
+
+  return Object.keys(spec.named)
+    .filter((name) => !existing.has(name))
+    .sort(compareNames)
+    .map((name) => ({
+      label: name,
+      kind: CompletionItemKind.Property,
+      detail: 'Attribute argument',
+      sortText: name,
+      filterText: name,
+      textEdit: { range: replacementRange, newText: name },
+    }));
+}
+
+function attributeNames(
+  context: AttributeNameCompletionContext,
+  source: PslCompletionCandidateSource,
+): readonly string[] {
+  if (context.level === 'block') {
+    if (context.blockKeyword === undefined) {
+      return [];
+    }
+    const descriptor = findBlockDescriptor(source.pslBlockDescriptors, context.blockKeyword);
+    return sortedUnique(Object.keys(descriptor?.attributes ?? {}));
+  }
+  const interpretation = source.interpretationContext;
+  if (interpretation === undefined) {
+    return [];
+  }
+  const specs = assembleAttributeSpecs(interpretation.authoringContributions);
+  return sortedUnique(Object.keys(context.level === 'field' ? specs.field : specs.model));
+}
+
+function attributeSpec(
+  context: AttributeNamedKeyCompletionContext,
+  source: PslCompletionCandidateSource,
+): AttributeSpec<never, never> | undefined {
+  if (context.level === 'block') {
+    if (context.blockKeyword === undefined) {
+      return undefined;
+    }
+    const descriptor = findBlockDescriptor(source.pslBlockDescriptors, context.blockKeyword);
+    const factory = descriptor?.attributes?.[context.attributeName];
+    if (factory === undefined) {
+      return undefined;
+    }
+    return blindCast<
+      BlockAttributeSpecFactory,
+      'block descriptor attributes are validated as factories at control-stack assembly but exposed through framework-components as unknown to avoid a parser dependency'
+    >(factory)();
+  }
+
+  const interpretation = source.interpretationContext;
+  if (interpretation === undefined || context.model === undefined) {
+    return undefined;
+  }
+  const model = modelSymbolForNode(source.symbolTable, context.model);
+  if (model === undefined) {
+    return undefined;
+  }
+  const specContext = {
+    symbols: source.symbolTable,
+    model,
+    controlMutationDefaults: interpretation.controlMutationDefaults.defaultFunctionRegistry,
+  };
+  const specs = assembleAttributeSpecs(interpretation.authoringContributions);
+  if (context.level === 'model') {
+    return specs.model[context.attributeName]?.(specContext);
+  }
+  if (context.field === undefined) {
+    return undefined;
+  }
+  const field = fieldSymbolForNode(model, context.field);
+  if (field === undefined) {
+    return undefined;
+  }
+  return specs.field[context.attributeName]?.({
+    ...specContext,
+    field,
+  });
+}
+
+function existingAttributeNamedKeys(
+  attribute: FieldAttributeAst | ModelAttributeAst,
+  cursorOffset: number,
+): Set<string> {
+  const names = new Set<string>();
+  for (const arg of attribute.argList()?.args() ?? []) {
+    if (!arg.syntax.isOutside(cursorOffset)) {
+      continue;
+    }
+    const name = arg.name()?.name();
+    if (name !== undefined) {
+      names.add(name);
+    }
+  }
+  return names;
+}
+
+function modelSymbolForNode(
+  symbolTable: SymbolTable,
+  node: AttributeNameCompletionContext['model'],
+): ModelSymbol | undefined {
+  if (node === undefined) {
+    return undefined;
+  }
+  const topLevelMatch = Object.values(symbolTable.topLevel.models).find((model) =>
+    sameSyntax(model.node.syntax, node.syntax),
+  );
+  if (topLevelMatch !== undefined) {
+    return topLevelMatch;
+  }
+  for (const namespace of Object.values(symbolTable.topLevel.namespaces)) {
+    const namespaceMatch = Object.values(namespace.models).find((model) =>
+      sameSyntax(model.node.syntax, node.syntax),
+    );
+    if (namespaceMatch !== undefined) {
+      return namespaceMatch;
+    }
+  }
+  return undefined;
+}
+
+function fieldSymbolForNode(
+  model: ModelSymbol,
+  node: AttributeNameCompletionContext['field'],
+): FieldSymbol | undefined {
+  if (node === undefined) {
+    return undefined;
+  }
+  return Object.values(model.fields).find((field) => sameSyntax(field.node.syntax, node.syntax));
+}
+
+function sameSyntax(
+  left: { readonly offset: number; readonly endOffset: number },
+  right: { readonly offset: number; readonly endOffset: number },
+): boolean {
+  return left.offset === right.offset && left.endOffset === right.endOffset;
 }
 
 function provideDeclarationKeywordCompletionItems(

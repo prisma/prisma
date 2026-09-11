@@ -4,9 +4,21 @@ import { pathToFileURL } from 'node:url';
 import type { ContractSourceContext } from '@internal/config/config-types';
 import { errorUnexpected } from '@internal/errors/control';
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
-import { buildSymbolTable, type SymbolTable } from '@internal/psl-parser';
+import {
+  assembleAuthoringContributions,
+  assembleControlMutationDefaults,
+} from '@internal/framework-components/control';
+import {
+  buildSymbolTable,
+  fieldAttribute,
+  int,
+  modelAttribute,
+  optional,
+  type SymbolTable,
+  str,
+} from '@internal/psl-parser';
 import type { FormatOptions } from '@internal/psl-parser/format';
-import type { PslInterpretCapable } from '@internal/psl-parser/interpret';
+import type { PslInterpretCapable, PslInterpretInput } from '@internal/psl-parser/interpret';
 import { type ParseDiagnostic, parse } from '@internal/psl-parser/syntax';
 import { notOk, ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
@@ -117,6 +129,43 @@ const pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace = {
   },
 };
 
+const markerAttribute = fieldAttribute('marker', {
+  named: { name: str(), priority: optional(int()) },
+});
+const rlsAttribute = modelAttribute('rls', {
+  named: { mode: str(), enabled: optional(str()) },
+});
+const completionAuthoringContributions = assembleAuthoringContributions([
+  {
+    id: 'completion-family',
+    authoring: {
+      attributeSpecs: {
+        field: { marker: () => markerAttribute },
+        model: {},
+      },
+    },
+  },
+  {
+    id: 'completion-target',
+    authoring: {
+      modelAttributes: {
+        security: {
+          rls: {
+            kind: 'modelAttribute',
+            attribute: 'rls',
+            spec: () => rlsAttribute,
+            lower: () => undefined,
+          },
+        },
+      },
+    },
+  },
+]);
+const completionInterpretationContext = {
+  authoringContributions: completionAuthoringContributions,
+  controlMutationDefaults: assembleControlMutationDefaults([]),
+} as unknown as ContractSourceContext;
+
 function resolutionForInputs(
   inputs: readonly string[],
   formatter?: FormatOptions,
@@ -141,6 +190,20 @@ function emptyResolution(): ConfigResolution {
 const resolveToSchema: ResolveInputs = async () => resolutionForInputs([schemaPath]);
 const resolveToSchemaWithPslBlockDescriptors: ResolveInputs = async () =>
   resolutionForInputs([schemaPath], undefined, pslBlockDescriptors);
+const completionInterpretationSource = {
+  format: 'psl',
+  inputs: [schemaPath],
+  load: async () => ok({} as never),
+  interpret: () => ok({} as never),
+} as unknown as PslInterpretCapable;
+
+const resolveToSchemaWithAttributeContributions: ResolveInputs = async () => ({
+  ...resolutionForInputs([schemaPath], undefined, pslBlockDescriptors),
+  interpretation: {
+    source: completionInterpretationSource,
+    context: completionInterpretationContext,
+  },
+});
 
 function resolveToSchemaWithFormatter(formatter: FormatOptions): ResolveInputs {
   return async () => resolutionForInputs([schemaPath], formatter);
@@ -739,6 +802,35 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
 
     const items = completionItems(await requestCompletion(harness, schemaUri, position));
     expect(items.map((item) => item.label)).toEqual(['on', 'where', 'mode']);
+  });
+
+  it('returns configured attribute names and named keys through server completion', async () => {
+    harness = startHarness(resolveToSchemaWithAttributeContributions);
+    await harness.initialize();
+    const namedKey = sourceWithCursor(
+      ['// use prisma-next', 'model User {', '  id Int @marker(name: "id", pr|)', '}'].join('\n'),
+    );
+    openDocument(harness, schemaUri, namedKey.source);
+    await harness.waitForDiagnostics(schemaUri);
+
+    const keyItems = completionItems(
+      await requestCompletion(harness, schemaUri, namedKey.position),
+    );
+    expect(keyItems.map((item) => item.label)).toEqual(['priority']);
+
+    const attributeName = sourceWithCursor(
+      ['// use prisma-next', 'model User {', '  id Int @|', '}'].join('\n'),
+    );
+    harness.client.sendNotification(DidChangeTextDocumentNotification.type, {
+      textDocument: { uri: schemaUri, version: 2 },
+      contentChanges: [{ text: attributeName.source }],
+    });
+    await settle();
+
+    const nameItems = completionItems(
+      await requestCompletion(harness, schemaUri, attributeName.position),
+    );
+    expect(nameItems.map((item) => item.label)).toEqual(['marker']);
   });
 
   it('returns declaration keyword completions with plain-text edits by default', async () => {
@@ -2281,7 +2373,7 @@ describe('language server interpreter diagnostics', { timeout: timeouts.database
   }
 
   function fixAwareInterpret(): PslInterpretCapable['interpret'] {
-    return (input) =>
+    return (input: PslInterpretInput) =>
       input.sourceFile.text.includes('// fixed')
         ? ok({} as never)
         : notOk({ summary: 'Schema has 1 error', diagnostics: [unresolvedDiagnostic] });
