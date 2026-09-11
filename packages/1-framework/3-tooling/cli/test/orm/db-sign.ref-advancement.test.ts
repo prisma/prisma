@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import {
@@ -106,7 +106,7 @@ describe('db sign', () => {
       });
     });
 
-    it('settles a rejected ref name as a structured failure after the marker is written', async () => {
+    it('refuses a rejected ref name before verifying or signing', async () => {
       const dir = await projectDir();
 
       const run = await harness(ormConfig()).run(
@@ -119,8 +119,38 @@ describe('db sign', () => {
         ok: false,
         error: { code: 'MIGRATION.INVALID_REF_NAME' },
       });
-      expect(mocks.sign).toHaveBeenCalledTimes(1);
+      expect(mocks.schemaVerify).not.toHaveBeenCalled();
+      expect(mocks.sign).not.toHaveBeenCalled();
       expect(existsSync(refsDirOf(dir))).toBe(false);
+    });
+
+    it('snapshots the contract it read once, even when contract.json is rewritten after the read', async () => {
+      const dir = await projectDir();
+      const rewritten = { storage: { storageHash: HASH_B }, target: 'postgres' };
+      const family = ormConfig()['family'] as Record<string, unknown>;
+      const rewritingFamily = {
+        ...family,
+        create: () => ({
+          deserializeContract: (json: unknown) => {
+            writeFileSync(join(dir, 'output', 'contract.json'), JSON.stringify(rewritten), 'utf-8');
+            return { ...Object(json), hydrated: true };
+          },
+        }),
+      };
+
+      const run = await harness(ormConfig({ family: rewritingFamily })).run(
+        ['db', 'sign', '--json'],
+        { cwd: dir },
+      );
+
+      expect(run.exitCode).toBe(0);
+      expect(mocks.sign).toHaveBeenCalledTimes(1);
+      expect(await refHashOf(dir, 'db')).toBe(HASH_A);
+      const storeDir = contractSnapshotDir(join(dir, 'migrations'), HASH_A);
+      expect(JSON.parse(await readFile(join(storeDir, 'contract.json'), 'utf-8'))).toEqual({
+        storage: { storageHash: HASH_A },
+        target: 'postgres',
+      });
     });
 
     it('writes no ref when verification refuses the signature', async () => {
@@ -153,7 +183,7 @@ describe('db sign', () => {
       expect(await refHashOf(dir, 'db')).toBe(HASH_A);
     });
 
-    it('settles a missing contract.d.ts as a file-not-found failure after the marker is written', async () => {
+    it('refuses a missing contract.d.ts before verifying or signing', async () => {
       const dir = await projectDir();
       await rm(join(dir, 'output', 'contract.d.ts'));
 
@@ -165,8 +195,23 @@ describe('db sign', () => {
         error: { code: 'CLI.FILE_NOT_FOUND' },
       });
       expect(JSON.stringify(run.json.at(-1))).toContain('contract.d.ts');
-      expect(mocks.sign).toHaveBeenCalledTimes(1);
+      expect(mocks.schemaVerify).not.toHaveBeenCalled();
+      expect(mocks.sign).not.toHaveBeenCalled();
       expect(existsSync(refsDirOf(dir))).toBe(false);
+    });
+
+    it('--no-advance-ref signs without contract.d.ts, since no snapshot is written', async () => {
+      const dir = await projectDir();
+      await rm(join(dir, 'output', 'contract.d.ts'));
+
+      const run = await harness(ormConfig()).run(['db', 'sign', '--no-advance-ref', '--json'], {
+        cwd: dir,
+      });
+
+      expect(run.exitCode).toBe(0);
+      expect(mocks.sign).toHaveBeenCalledTimes(1);
+      expect(run.presented?.data).toMatchObject({ advancedRef: null });
+      expect(existsSync(join(dir, 'migrations', 'snapshots'))).toBe(false);
     });
 
     it('writes the snapshot from the resolved contract when a migration dir is named', async () => {

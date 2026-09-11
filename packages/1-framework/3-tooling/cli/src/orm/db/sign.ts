@@ -11,7 +11,10 @@ import { flag, positional } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { createControlClient } from '../../control-api/client';
 import { resolveContractRefToSnapshot } from '../../control-api/operations/contract-snapshot-resolution';
-import { advanceRefSafely } from '../../control-api/operations/ref-advancement';
+import {
+  advanceRefSafely,
+  preflightRefAdvancement,
+} from '../../control-api/operations/ref-advancement';
 import { errorAdvanceRefArgConflict, errorContractArgConflict } from '../../utils/cli-errors';
 import { closeQuietly, maskConnectionUrl } from '../../utils/command-helpers';
 import { runCommandAction } from '../../utils/next-actions';
@@ -21,7 +24,6 @@ import { dbFlag } from '../flags';
 import { appRefsDirFor, displayPath, migrationsDirFor } from '../migration/paths';
 import { normalizeError } from '../normalize-error';
 import { controlProgressReporter } from '../progress';
-import { readContractDocument } from './prepare';
 import {
   readEmittedContract,
   requireVerifyConnection,
@@ -280,11 +282,20 @@ export function createDbSignCommand(
           jsonPath: resolvedRef.value.contractJsonPath,
         };
       } else {
-        const emittedJson = await readContractDocument(emitted.value.path);
-        if (!emittedJson.ok) {
-          return notOk(emittedJson.failure);
+        signedSource = { json: emitted.value.json, jsonPath: emitted.value.path };
+      }
+
+      const refName = args.flags.noAdvanceRef
+        ? null
+        : (args.flags.advanceRef ?? DEFAULT_ADVANCE_REF);
+      if (refName !== null) {
+        const preflight = await preflightRefAdvancement({
+          name: refName,
+          contractJsonPath: signedSource.jsonPath,
+        });
+        if (!preflight.ok) {
+          return notOk(normalizeError(preflight.failure));
         }
-        signedSource = { json: emittedJson.value, jsonPath: emitted.value.path };
       }
 
       const connection = requireVerifyConnection({
@@ -357,7 +368,7 @@ export function createDbSignCommand(
           );
         }
 
-        if (args.flags.noAdvanceRef) {
+        if (refName === null) {
           const document: DbSignDocument = { ...signed, advancedRef: null };
           return ok(
             ctx.present(
@@ -367,7 +378,6 @@ export function createDbSignCommand(
           );
         }
 
-        const refName = args.flags.advanceRef ?? DEFAULT_ADVANCE_REF;
         const refsDir = appRefsDirFor(ctx.config, ctx.cwd);
         const previousHash = await previousRefHash(refsDir, refName);
         const advanced = await advanceRefSafely({
