@@ -1,6 +1,11 @@
 import type { AnyExpression as AstExpression, CodecRef } from '@internal/sql-relational-core/ast';
 import { PreparedParamRef } from '@internal/sql-relational-core/ast';
-import type { Expression, ScopeField } from '@internal/sql-relational-core/expression';
+import {
+  type Expression,
+  expressionMarker,
+  type ScopeField,
+} from '@internal/sql-relational-core/expression';
+import { blindCast } from '@internal/utils/casts';
 import type { BindSiteParams, Declaration, ParamSpec } from './types';
 
 function normalizeSpec(spec: ParamSpec): { codec: CodecRef; nullable: boolean } {
@@ -13,6 +18,7 @@ function normalizeSpec(spec: ParamSpec): { codec: CodecRef; nullable: boolean } 
 }
 
 class BindSiteExpression implements Expression<ScopeField> {
+  readonly [expressionMarker] = true;
   readonly returnType: ScopeField;
   readonly #ast: AstExpression;
   constructor(ref: PreparedParamRef, returnType: ScopeField) {
@@ -28,11 +34,11 @@ export function buildBindSiteParams<D extends Declaration>(declaration: D): Bind
   const params: Record<string, Expression<ScopeField>> = {};
   for (const [name, spec] of Object.entries(declaration)) {
     const { codec, nullable } = normalizeSpec(spec);
-    const ref = PreparedParamRef.of(name, codec);
+    const ref = PreparedParamRef.of(name, codec, nullable);
     params[name] = new BindSiteExpression(ref, { codecId: codec.codecId, nullable });
   }
-  // The cast narrows the structurally-equivalent record to the per-key
-  // codecId/nullable types declared by D — TypeScript can't relate the
-  // mapped-type keys to the runtime keys without reflection.
-  return Object.freeze(params) as BindSiteParams<D>;
+  return blindCast<
+    BindSiteParams<D>,
+    'Each declaration key is mapped to its declared codec identity and nullability above'
+  >(Object.freeze(params));
 }
