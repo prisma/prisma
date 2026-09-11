@@ -28,11 +28,11 @@ import {
   str,
 } from '../src/exports';
 
-test('exports inspectable metadata without narrowing public child contracts', () => {
-  type List = Extract<InspectableArgType<never>, { kind: 'list' }>;
-  type Record = Extract<InspectableArgType<never>, { kind: 'record' }>;
-  expectTypeOf<List['of']>().toEqualTypeOf<ArgType<unknown, never>>();
-  expectTypeOf<Record['of']>().toEqualTypeOf<ArgType<unknown, never>>();
+test('inspectable lists and records expose ArgType children', () => {
+  type ListMetadata = Extract<InspectableArgType<never>, { kind: 'list' }>;
+  type RecordMetadata = Extract<InspectableArgType<never>, { kind: 'record' }>;
+  expectTypeOf<ListMetadata['of']>().toEqualTypeOf<ArgType<unknown, never>>();
+  expectTypeOf<RecordMetadata['of']>().toEqualTypeOf<ArgType<unknown, never>>();
 });
 
 test('identifier pins its name as the output literal type', () => {

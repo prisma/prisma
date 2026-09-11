@@ -98,8 +98,7 @@ export type AttributeNameCompletionContext =
   | FieldAttributeNameCompletionContext
   | ModelAttributeNameCompletionContext;
 
-export interface FieldAttributeNamedKeyCompletionContext {
-  readonly kind: 'fieldAttributeNamedKey';
+interface FieldAttributeArgumentContext {
   readonly offset: number;
   readonly replacementStartOffset: number;
   readonly attributeName: string;
@@ -108,8 +107,7 @@ export interface FieldAttributeNamedKeyCompletionContext {
   readonly model: ModelDeclarationAst;
 }
 
-export interface ModelAttributeNamedKeyCompletionContext {
-  readonly kind: 'modelAttributeNamedKey';
+interface ModelAttributeArgumentContext {
   readonly offset: number;
   readonly replacementStartOffset: number;
   readonly attributeName: string;
@@ -117,8 +115,7 @@ export interface ModelAttributeNamedKeyCompletionContext {
   readonly model: ModelDeclarationAst;
 }
 
-export interface BlockAttributeNamedKeyCompletionContext {
-  readonly kind: 'blockAttributeNamedKey';
+interface BlockAttributeArgumentContext {
   readonly offset: number;
   readonly replacementStartOffset: number;
   readonly attributeName: string;
@@ -127,23 +124,32 @@ export interface BlockAttributeNamedKeyCompletionContext {
   readonly blockKeyword: string;
 }
 
+export interface FieldAttributeNamedKeyCompletionContext extends FieldAttributeArgumentContext {
+  readonly kind: 'fieldAttributeNamedKey';
+}
+
+export interface ModelAttributeNamedKeyCompletionContext extends ModelAttributeArgumentContext {
+  readonly kind: 'modelAttributeNamedKey';
+}
+
+export interface BlockAttributeNamedKeyCompletionContext extends BlockAttributeArgumentContext {
+  readonly kind: 'blockAttributeNamedKey';
+}
+
 export type AttributeNamedKeyCompletionContext =
   | BlockAttributeNamedKeyCompletionContext
   | FieldAttributeNamedKeyCompletionContext
   | ModelAttributeNamedKeyCompletionContext;
 
-export interface FieldAttributeValueCompletionContext
-  extends Omit<FieldAttributeNamedKeyCompletionContext, 'kind'> {
+export interface FieldAttributeValueCompletionContext extends FieldAttributeArgumentContext {
   readonly kind: 'fieldAttributeValue';
 }
 
-export interface ModelAttributeValueCompletionContext
-  extends Omit<ModelAttributeNamedKeyCompletionContext, 'kind'> {
+export interface ModelAttributeValueCompletionContext extends ModelAttributeArgumentContext {
   readonly kind: 'modelAttributeValue';
 }
 
-export interface BlockAttributeValueCompletionContext
-  extends Omit<BlockAttributeNamedKeyCompletionContext, 'kind'> {
+export interface BlockAttributeValueCompletionContext extends BlockAttributeArgumentContext {
   readonly kind: 'blockAttributeValue';
 }
 
