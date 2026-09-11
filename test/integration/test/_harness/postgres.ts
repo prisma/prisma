@@ -170,7 +170,7 @@ export async function withPostgresPort<TContract extends Contract<SqlStorage>>(
   const storageHash = base.storage.storageHash;
   let database = databases.get(storageHash);
   if (database === undefined) {
-    database = await createDevDatabase({ databaseIdleTimeoutMillis: 30_000 });
+    database = await createDevDatabase();
     try {
       await pushContract(database.connectionString, options.contractJson);
     } catch (error) {
