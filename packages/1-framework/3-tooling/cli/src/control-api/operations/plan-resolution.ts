@@ -27,7 +27,7 @@ export function looksLikeFullHash(input: string): boolean {
 }
 
 export type FromResolution =
-  | { kind: 'greenfield'; fromHash: null; fromContract: null }
+  | { kind: 'greenfield'; fromHash: null; fromContract: null; defaulted: boolean }
   | { kind: 'graph-node'; fromHash: string; fromContract: Contract }
   | {
       kind: 'ref';
@@ -197,7 +197,7 @@ export async function resolveFromForPlan(
     const dbRef = refs['db'];
     if (!dbRef) {
       if (graphIsEmpty(space)) {
-        return ok({ kind: 'greenfield', fromHash: null, fromContract: null });
+        return ok({ kind: 'greenfield', fromHash: null, fromContract: null, defaulted: true });
       }
       return notOk(
         errorPlanOriginUnknown(
@@ -227,7 +227,7 @@ export async function resolveFromForPlan(
   }
 
   if (refResult.value.provenance.kind === 'reserved-empty') {
-    return ok({ kind: 'greenfield', fromHash: null, fromContract: null });
+    return ok({ kind: 'greenfield', fromHash: null, fromContract: null, defaulted: false });
   }
 
   return resolveFromPolicy(refResult.value, input, refs, optionsFrom);

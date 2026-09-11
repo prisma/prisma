@@ -131,7 +131,12 @@ describe('resolveFromForPlan', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual({ kind: 'greenfield', fromHash: null, fromContract: null });
+      expect(result.value).toEqual({
+        kind: 'greenfield',
+        fromHash: null,
+        fromContract: null,
+        defaulted: true,
+      });
     }
   });
 
@@ -167,7 +172,12 @@ describe('resolveFromForPlan', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual({ kind: 'greenfield', fromHash: null, fromContract: null });
+      expect(result.value).toEqual({
+        kind: 'greenfield',
+        fromHash: null,
+        fromContract: null,
+        defaulted: false,
+      });
     }
   });
 
@@ -178,7 +188,12 @@ describe('resolveFromForPlan', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual({ kind: 'greenfield', fromHash: null, fromContract: null });
+      expect(result.value).toEqual({
+        kind: 'greenfield',
+        fromHash: null,
+        fromContract: null,
+        defaulted: false,
+      });
     }
   });
 

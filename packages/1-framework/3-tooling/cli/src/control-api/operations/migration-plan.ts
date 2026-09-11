@@ -205,6 +205,11 @@ export interface MigrationPlanResult {
    * `node migration.ts` to self-emit `ops.json` / `migration.json`.
    */
   readonly pendingPlaceholders?: boolean;
+  /**
+   * True when no `--from` was given and no `db` ref existed, so the origin
+   * defaulted to the empty contract. Absent when the user named the origin.
+   */
+  readonly fromDefaulted?: boolean;
   readonly timings: {
     readonly total: number;
   };
@@ -328,6 +333,7 @@ async function executeMigrationPlanCommandInner(
     readonly contractDts: string;
   } | null = null;
   let isAutoBaseline = false;
+  let fromDefaulted = false;
 
   const tolerantAggregateResult = await loadContractSpaceAggregateForCli({
     targetId: config.target.targetId,
@@ -352,6 +358,7 @@ async function executeMigrationPlanCommandInner(
 
   switch (resolutionResult.value.kind) {
     case 'greenfield':
+      fromDefaulted = resolutionResult.value.defaulted;
       break;
     case 'graph-node':
       fromHash = resolutionResult.value.fromHash;
@@ -694,6 +701,7 @@ async function executeMigrationPlanCommandInner(
         operations: [],
         emittedExtensionDirs,
         pendingPlaceholders: true,
+        ...(fromDefaulted ? { fromDefaulted } : {}),
         summary:
           'Planned migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
         timings: { total: Date.now() - startTime },
@@ -718,6 +726,7 @@ async function executeMigrationPlanCommandInner(
       })),
       emittedExtensionDirs,
       ...(preview !== undefined ? { preview } : {}),
+      ...(fromDefaulted ? { fromDefaulted } : {}),
       summary: buildPlanSummary(plannedOps.length, emittedExtensionDirs.length),
       timings: { total: Date.now() - startTime },
     };
