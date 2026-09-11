@@ -16,6 +16,7 @@ import {
   type BinaryOp,
   type CodecRef,
   type CodecTrait,
+  type LimitOffsetValue,
   ListExpression,
   NullCheckExpr,
   OrderByItem,
@@ -91,8 +92,8 @@ export interface CollectionState {
   readonly distinct: readonly string[] | undefined;
   readonly distinctOn: readonly string[] | undefined;
   readonly selectedFields: readonly string[] | undefined;
-  readonly limit: number | undefined;
-  readonly offset: number | undefined;
+  readonly limit: LimitOffsetValue | undefined;
+  readonly offset: LimitOffsetValue | undefined;
   readonly variantName: string | undefined;
   /**
    * Annotations attached to this query at terminal-call time.
