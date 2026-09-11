@@ -99,7 +99,7 @@ pnpm prisma db verify --db $DATABASE_URL
 
 The `db` ref is a named pointer at `migrations/app/refs/db.json` — just `{ hash, invariants }`. It records which contract hash the project's dev database has been brought up to — the offline planner's stand-in for "where is my local DB?" without opening a connection at plan time. The contract it names resolves through the shared content-addressed store at `migrations/snapshots/<hex>/contract.json` by that hash, the same store every migration graph node resolves through.
 
-**What `db init` / `db update` / `db sign` write.** When run against the project's default `--db` URL (no explicit `--db` flag), `db init` and `db update` implicitly advance the `db` ref: they write-if-absent the post-command contract IR into the snapshot store, then write the ref's pointer. Override the ref name with `--advance-ref <name>`. When you pass `--db <non-default-url>`, ref advancement is suppressed unless `--advance-ref` is explicit — reconciling a different database is not the same as checkpointing this project's dev state. `db sign` also advances the `db` ref after a successful signature, writing the signed contract into the snapshot store first; `--advance-ref <name>` overrides the name, and `--db` does **not** suppress it — sign never mutates the schema, and adoption is normally done against the real database via `--db`.
+**What `db init` / `db update` / `db sign` write.** When run against the project's default `--db` URL (no explicit `--db` flag), `db init` and `db update` implicitly advance the `db` ref: they write-if-absent the post-command contract IR into the snapshot store, then write the ref's pointer. Override the ref name with `--advance-ref <name>`. When you pass `--db <non-default-url>`, ref advancement is suppressed unless `--advance-ref` is explicit — reconciling a different database is not the same as checkpointing this project's dev state. `db sign` also advances the `db` ref after a successful signature, writing the signed contract into the snapshot store first; `--advance-ref <name>` overrides the name, and `--db` does **not** suppress it — sign never mutates the schema, and adoption is normally done against the real database via `--db`. The only opt-out is `--no-advance-ref`, which signs without writing any ref or snapshot — what a CI or deployment pipeline, or a dev checkout re-signing a production database, usually wants.
 
 The on-disk layout is just the pointer:
 
@@ -412,7 +412,7 @@ pnpm prisma db verify --db $DATABASE_URL
 
 ## Workflow — Re-sign the marker
 
-The concept: `db sign` rewrites the marker to the current contract hash and moves the `db` ref to it (`--advance-ref <name>` overrides the ref name; `--db` does not suppress the ref write). Use after a manual repair where the DB is the source of truth and the marker is stale. `db sign` performs a schema-verify first and refuses to sign a DB whose schema disagrees with the contract — so a successful sign always means the schema matches and the marker is now correct.
+The concept: `db sign` rewrites the marker to the current contract hash and moves the `db` ref to it (`--advance-ref <name>` overrides the ref name; `--db` does not suppress the ref write; `--no-advance-ref` skips it). Use after a manual repair where the DB is the source of truth and the marker is stale. `db sign` performs a schema-verify first and refuses to sign a DB whose schema disagrees with the contract — so a successful sign always means the schema matches and the marker is now correct.
 
 ```bash
 pnpm prisma db sign --db $DATABASE_URL
