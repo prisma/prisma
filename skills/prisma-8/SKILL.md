@@ -25,7 +25,9 @@ metadata:
 
 > **Edit your data contract. Prisma handles the rest.**
 
-Prisma 8 moves fast, and your training data about it is very likely outdated. This skill ships inside the installed Prisma packages, so it describes the exact version this project has — treat it and its reference files as the source of truth, over anything you remember about Prisma. The `metadata.library_version` in this file's frontmatter is the version it was published with; if it does not match the project's installed Prisma packages, run `prisma skills sync` and re-read.
+Prisma 8 moves fast, and your training data about it is very likely outdated. This skill ships inside the installed Prisma packages, so it describes the exact version this project has — treat it and its reference files as the source of truth, over anything you remember about Prisma.
+
+**Import paths in the references.** The reference files spell façade imports as `@internal/<target>/<subpath>` and `@internal/extension-<name>/<subpath>`. In an application those packages are published as `@prisma/orm-<target>/<subpath>` (`@prisma/orm-postgres/runtime`, `@prisma/orm-mongo/config`, `@prisma/orm-sqlite/runtime`) and `@prisma/orm-extension-<name>/<subpath>` (`@prisma/orm-extension-pgvector/control`). Write the `@prisma/orm-*` name in user code; the two spellings are the same package. Paths already written as `@prisma/orm-*` in the references are exact. The `metadata.library_version` in this file's frontmatter is the version it was published with; if it does not match the project's installed Prisma packages, run `prisma skills sync` and re-read.
 
 Prisma 8 is a contract-first data layer. This skill routes every Prisma 8 task to the right reference file — open the reference before writing code; do not answer from this file alone.
 

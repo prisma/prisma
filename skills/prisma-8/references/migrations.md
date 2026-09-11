@@ -168,7 +168,7 @@ The JSON contains `plan.operations[]` with each `operationClass`, plus (in apply
 
 ## Workflow — `migration plan` + `db migrate` (formal path)
 
-The concept: `migration plan` writes a new migration package on disk. If the planner needed any data transforms, the package is *pending* — `migration.ts` holds `placeholder(...)` calls until you fill them in. `db migrate` runs every pending package in graph order inside one transaction.
+The concept: `migration plan` writes a new migration package on disk. If the planner needed any data transforms, the package is *pending* — `migration.ts` holds `placeholder(...)` calls until you fill them in. `db migrate` runs every pending package in graph order — on Postgres inside one transaction for the whole run; on Mongo op by op with verify-gated marker advancement (see *Apply atomicity* above).
 
 Plan a change:
 
@@ -438,7 +438,7 @@ Use `db verify` to confirm which side is wrong, then re-run it after either bran
 
 The concept: on **Postgres**, the whole `db migrate` run is one transaction — a failure anywhere rolls back every migration the run had applied, and the marker stays where it was before the command. On **Mongo**, DDL is resumable with verify-gated marker advancement; diagnose with `db verify` / `db schema`, fix the failed package's `migration.ts`, self-emit, and re-run `db migrate`.
 
-Failures that *can* leak partial state include: Postgres `rawSql(...)` steps outside the transaction wrapper, Mongo DDL that partially applied before verify failed, or external side-effects (calls out to other systems from a `run` closure).
+Failures that *can* leak partial state: Mongo DDL that partially applied before verify failed, and external side-effects (calls out to other systems from a `run` closure). On Postgres nothing runs outside the transaction — `rawSql(...)` steps are ordinary steps inside it and roll back with the rest.
 
 Diagnose:
 

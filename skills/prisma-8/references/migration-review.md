@@ -179,9 +179,25 @@ For a human-readable ordered preview of the migration path before applying, use 
       --to staging --db "$STAGING_DATABASE_URL" --json > status.json
     node -e '
       const s = JSON.parse(require("fs").readFileSync("status.json", "utf8"));
-      const warns = (s.diagnostics ?? []).filter(d => d.severity === "warn");
-      if (warns.length) {
-        console.error("Blocking diagnostics:", warns);
+      const problems = [];
+      for (const d of s.diagnostics ?? []) {
+        if (d.severity === "warn") problems.push(`${d.code}: ${d.message}`);
+      }
+      for (const space of s.spaces ?? []) {
+        if (space.currentContract === null) problems.push(`${space.space}: database has no marker`);
+        const unreachable = space.migrations.filter(m => m.status === "unreachable");
+        if (unreachable.length) problems.push(`${space.space}: ${unreachable.length} unreachable migration(s)`);
+      }
+      // Pending migrations are the normal case before Apply; block on them
+      // only if this job is a verify-only gate (set EXPECT_UP_TO_DATE=1).
+      if (process.env.EXPECT_UP_TO_DATE) {
+        for (const space of s.spaces ?? []) {
+          const pending = space.migrations.filter(m => m.status === "pending");
+          if (pending.length) problems.push(`${space.space}: ${pending.length} pending migration(s)`);
+        }
+      }
+      if (problems.length) {
+        console.error("Blocking:\n" + problems.join("\n"));
         process.exit(1);
       }
     '

@@ -96,7 +96,7 @@ If that prints `[{ id: 1, email: 'alice@example.com' }]`, the project is wired e
 
 `db.orm.<ns>.<Model>` is the default ORM lane — model-shaped, fully typed against the contract, lazily connects to the database on first use (it picks up `DATABASE_URL` from `.env` via the runtime's `dotenv/config`-loaded environment). The deeper `references/queries.md` reference covers the rest of the supported surface (filters, joins, transactions, the SQL builder, raw SQL via `db.raw.sql`, prepared statements) when the user is ready — and names the gaps (TypedSQL is not available).
 
-> **SQLite target:** SQLite has no schemas, so the façade exposes the unbound namespace directly — write `db.orm.User` rather than `db.orm.public.User`.
+> **SQLite target:** `prisma orm init` scaffolds only `postgres` and `mongodb`; a SQLite project is wired by hand with the `@internal/sqlite` façade (`references/runtime.md` § *Switch between Postgres, SQLite, and Mongo*; `examples/prisma-8-demo-sqlite`). SQLite has no schemas, so that façade exposes the unbound namespace directly — write `db.orm.User` rather than `db.orm.public.User`.
 >
 > **Mongo target:** the snippet above is SQL-target shape. On `@internal/mongo`, `db.orm` is keyed by the collection's storage name (`@@map(...)`, or the lowercased model name if no `@@map`), so the same arc reads `await db.orm.users.create(...)` / `await db.orm.users.select('id', 'email').all()` — not `db.orm.public.User`. Full rule and rewrite recipe in `references/queries.md` § *MongoDB ORM addressing*.
 
@@ -308,7 +308,7 @@ This skill is intentionally body-only; `prisma orm init --help`, `contract infer
 - [ ] Confirmed the user's target (`postgres` / `mongodb`) and authoring mode (`psl` / `typescript`).
 - [ ] **First-touch orientation:** read `prisma.config.ts`, the contract source, `db.ts`, and `.env` before proposing anything — didn't assume what the scaffold tool / teammate left in place.
 - [ ] **Greenfield path:** ran `prisma orm init` from the project directory — no positional project-name argument.
-- [ ] **All paths:** the project ended up in the canonical `src/prisma/contract.{prisma,ts}` + `src/prisma/db.ts` + `migrations/app/` layout (what `init` scaffolds by default).
+- [ ] **All paths (application projects):** the project ended up in the canonical `src/prisma/contract.{prisma,ts}` + `src/prisma/db.ts` + `migrations/app/` layout (what `init` scaffolds by default). An extension or aggregate-root package keeps its own `src/contract.{prisma,ts}` + `migrations/<timestamp>_<slug>/` layout — do not relocate it.
 - [ ] **Brownfield path:** ran `contract infer --db "$DATABASE_URL" --output src/prisma/contract.prisma`, reviewed the result, then `contract emit` + `db sign`.
 - [ ] Set `DATABASE_URL` in `.env` and confirmed the value is reachable.
 - [ ] Initialised the DB (`db init` greenfield / first-touch orientation) or signed the marker (`db sign` brownfield).
