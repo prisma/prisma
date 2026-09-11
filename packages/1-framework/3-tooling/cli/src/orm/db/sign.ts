@@ -72,8 +72,7 @@ const NO_PREVIOUS_HASH_CODES: ReadonlySet<string> = new Set([
 
 /**
  * The hash the ref held before the signature, read from that one ref file so a
- * corrupt sibling cannot fail a signature already written. An invalid name is
- * left for the guarded write to refuse.
+ * corrupt sibling cannot fail a signature already written.
  */
 async function previousRefHash(refsDir: string, name: string): Promise<string | undefined> {
   try {
