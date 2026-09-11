@@ -34,7 +34,7 @@
 The interactive scaffolder picks an app template (Next.js, Hono, Nuxt, Astro, NestJS, SvelteKit, TanStack Start, or Elysia) and wires Prisma 8 in with your chosen database (PostgreSQL or MongoDB):
 
 ```bash
-npx create-prisma@latest
+npm create prisma
 ```
 
 You finish with a runnable app, a starter contract, and the agent skills already installed. See the [create-prisma reference](https://www.prisma.io/docs/prisma-orm/create-prisma) for every template and flag, or follow the [PostgreSQL](https://www.prisma.io/docs/prisma-orm/quickstart/postgresql) and [MongoDB](https://www.prisma.io/docs/prisma-orm/quickstart/mongodb) quickstarts.
@@ -44,13 +44,13 @@ You finish with a runnable app, a starter contract, and the agent skills already
 Run this from your repo root:
 
 ```bash
-npx prisma@latest orm init
+npx prisma orm init
 ```
 
 `orm init` writes `prisma.config.ts`, scaffolds a starter contract and `db.ts` under `src/prisma/`, installs the runtime, and emits the contract. It does not touch your framework or build setup. Then install the agent skills:
 
 ```bash
-npx prisma@latest skills sync
+npx prisma skills sync
 ```
 
 See the [`orm init`](https://www.prisma.io/docs/cli/orm-init) and [`skills`](https://www.prisma.io/docs/cli/skills) CLI references, or the guides for adding Prisma 8 to an existing [PostgreSQL](https://www.prisma.io/docs/prisma-orm/add-to-existing-project/postgresql) or [MongoDB](https://www.prisma.io/docs/prisma-orm/add-to-existing-project/mongodb) app.
