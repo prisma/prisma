@@ -41,7 +41,6 @@ import {
   resolveRowIdentityColumns,
 } from './collection-contract';
 import {
-  acquireRuntimeScope,
   mapPolymorphicRow,
   mapResultRows,
   mapStorageRowToModelFields,
@@ -151,15 +150,8 @@ export function dispatchCollectionRows<Row>(
 
   resolvePolymorphismInfo(context.contract, namespaceId, modelName);
   const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-    const { scope, release } = await acquireRuntimeScope(runtime);
-    try {
-      const query = describeCollectionRows<Row>(descriptionOptions);
-      yield* query.consume(queryPlanRows(scope, query.plan));
-    } finally {
-      if (release) {
-        await release();
-      }
-    }
+    const query = describeCollectionRows<Row>(descriptionOptions);
+    yield* query.consume(queryPlanRows(runtime, query.plan));
   };
   return new AsyncIterableResult(generator());
 }

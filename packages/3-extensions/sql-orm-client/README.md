@@ -2,7 +2,7 @@
 
 ORM client for Prisma 8 — fluent, type-safe model collections.
 
-This package provides a high-level ORM client surface on top of the runtime. Ordinary and prepared SELECT reads with includes compile to a single correlated-subquery plan; nested mutations orchestrate several statements inside one scope.
+This package provides a high-level ORM client surface on top of the runtime. Ordinary and prepared SELECT reads with includes compile to a single correlated-subquery plan and use the supplied runtime without acquiring an additional connection scope. Caller-owned connections and transactions remain caller-owned; nested mutations orchestrate several statements inside one scope.
 
 ## Responsibilities
 
