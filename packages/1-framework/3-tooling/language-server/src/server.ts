@@ -468,9 +468,12 @@ function createServerOn(connection: Connection): LanguageServer {
             scalarTypes: project.controlStack.scalarTypes,
             pslBlockDescriptors: project.controlStack.pslBlockDescriptors,
             symbolTable: project.artifacts.symbolTable(),
-            ...(project.interpretation === undefined
+            ...(project.controlStack.authoringContributions === undefined
               ? {}
-              : { interpretationContext: project.interpretation.context }),
+              : { authoringContributions: project.controlStack.authoringContributions }),
+            ...(project.controlStack.controlMutationDefaults === undefined
+              ? {}
+              : { controlMutationDefaults: project.controlStack.controlMutationDefaults }),
           },
           clientSupportsSnippets: clientCapabilities.completionSnippets,
         }),

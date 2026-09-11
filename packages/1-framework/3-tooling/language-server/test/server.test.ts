@@ -200,13 +200,21 @@ const completionInterpretationSource = {
   interpret: () => ok({} as never),
 } as unknown as PslInterpretCapable;
 
-const resolveToSchemaWithAttributeContributions: ResolveInputs = async () => ({
-  ...resolutionForInputs([schemaPath], undefined, pslBlockDescriptors),
-  interpretation: {
-    source: completionInterpretationSource,
-    context: completionInterpretationContext,
-  },
-});
+const resolveToSchemaWithAttributeContributions: ResolveInputs = async () => {
+  const resolution = resolutionForInputs([schemaPath], undefined, pslBlockDescriptors);
+  return {
+    ...resolution,
+    controlStack: {
+      ...resolution.controlStack,
+      authoringContributions: completionAuthoringContributions,
+      controlMutationDefaults: completionInterpretationContext.controlMutationDefaults,
+    },
+    interpretation: {
+      source: completionInterpretationSource,
+      context: completionInterpretationContext,
+    },
+  };
+};
 
 function resolveToSchemaWithFormatter(formatter: FormatOptions): ResolveInputs {
   return async () => resolutionForInputs([schemaPath], formatter);
@@ -857,6 +865,45 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       await requestCompletion(harness, schemaUri, attributeName.position),
     );
     expect(nameItems.map((item) => item.label)).toEqual(['marker']);
+  });
+
+  it('returns configured attribute names through server completion when interpretation fails', async () => {
+    const failingInterpretationSource = {
+      ...completionInterpretationSource,
+      interpret: () =>
+        notOk({
+          summary: 'Schema has 1 error',
+          diagnostics: [
+            {
+              code: 'PSL_TEST_INTERPRETATION_FAILED',
+              message: 'interpretation failed',
+              span: {
+                start: { offset: 19, line: 2, column: 3 },
+                end: { offset: 25, line: 2, column: 9 },
+              },
+            },
+          ],
+        }),
+    } as unknown as PslInterpretCapable;
+    harness = startHarness(async (configPath) => {
+      const resolution = await resolveToSchemaWithAttributeContributions(configPath);
+      return {
+        ...resolution,
+        interpretation: {
+          source: failingInterpretationSource,
+          context: completionInterpretationContext,
+        },
+      };
+    });
+    await harness.initialize();
+    const completion = sourceWithCursor(
+      ['// use prisma-next', 'model User {', '  id Int @|', '}'].join('\n'),
+    );
+    openDocument(harness, schemaUri, completion.source);
+    await harness.waitForDiagnostics(schemaUri);
+
+    const items = completionItems(await requestCompletion(harness, schemaUri, completion.position));
+    expect(items.map((item) => item.label)).toEqual(['marker']);
   });
 
   it('returns configured required attribute argument snippets through server completion', async () => {

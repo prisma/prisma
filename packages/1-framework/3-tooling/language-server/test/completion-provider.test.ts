@@ -1,6 +1,5 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import type { ContractSourceContext } from '@internal/config/config-types';
 import type {
   AuthoringEntityTypeNamespace,
   AuthoringPslBlockDescriptorNamespace,
@@ -78,11 +77,6 @@ const attributeContributions = assembleAuthoringContributions([
   },
 ]);
 const controlMutationDefaults = assembleControlMutationDefaults([]);
-const interpretationContext = {
-  authoringContributions: attributeContributions,
-  controlMutationDefaults,
-} as unknown as ContractSourceContext;
-
 const pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace = {
   policy: {
     kind: 'pslBlock',
@@ -149,7 +143,8 @@ function complete(
   return completeWithSource({
     markedSource: `${candidateSource}\n${markedFieldSource}`,
     pslBlockDescriptors,
-    interpretationContext,
+    authoringContributions: attributeContributions,
+    controlMutationDefaults,
     clientSupportsSnippets: options.clientSupportsSnippets === true,
   });
 }
@@ -181,7 +176,8 @@ interface ActualMongoBlockModule {
 function completeWithSource(input: {
   readonly markedSource: string;
   readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
-  readonly interpretationContext: ContractSourceContext;
+  readonly authoringContributions?: typeof attributeContributions;
+  readonly controlMutationDefaults?: typeof controlMutationDefaults;
   readonly clientSupportsSnippets?: boolean;
 }) {
   const cursorOffset = input.markedSource.indexOf('|');
@@ -207,7 +203,12 @@ function completeWithSource(input: {
         scalarTypes,
         pslBlockDescriptors: input.pslBlockDescriptors,
         symbolTable,
-        interpretationContext: input.interpretationContext,
+        ...(input.authoringContributions === undefined
+          ? {}
+          : { authoringContributions: input.authoringContributions }),
+        ...(input.controlMutationDefaults === undefined
+          ? {}
+          : { controlMutationDefaults: input.controlMutationDefaults }),
       },
       clientSupportsSnippets: input.clientSupportsSnippets === true,
     }),
@@ -252,20 +253,17 @@ async function importFromPackageRoot<T>(relativePath: string): Promise<T> {
   return (await import(pathToFileURL(resolve(packageRoot, relativePath)).href)) as T;
 }
 
-function actualInterpretationContext(stack: CompletionTestStack): ContractSourceContext {
-  return {
-    authoringContributions: assembleAuthoringContributions([
-      {
-        id: 'actual-family',
-        authoring: {
-          attributeSpecs: stack.attributeSpecs,
-          entityTypes: stack.entityTypes,
-          pslBlockDescriptors: stack.pslBlockDescriptors,
-        },
+function actualAuthoringContributions(stack: CompletionTestStack): typeof attributeContributions {
+  return assembleAuthoringContributions([
+    {
+      id: 'actual-family',
+      authoring: {
+        attributeSpecs: stack.attributeSpecs,
+        entityTypes: stack.entityTypes,
+        pslBlockDescriptors: stack.pslBlockDescriptors,
       },
-    ]),
-    controlMutationDefaults,
-  } as unknown as ContractSourceContext;
+    },
+  ]);
 }
 
 function completeWithActualStack(
@@ -276,7 +274,8 @@ function completeWithActualStack(
   return completeWithSource({
     markedSource,
     pslBlockDescriptors: stack.pslBlockDescriptors,
-    interpretationContext: actualInterpretationContext(stack),
+    authoringContributions: actualAuthoringContributions(stack),
+    controlMutationDefaults,
     clientSupportsSnippets: options.clientSupportsSnippets === true,
   });
 }
@@ -398,18 +397,32 @@ describe('providePslCompletionItems', () => {
     });
   });
 
-  it('returns registry-backed attribute name completions', () => {
-    expect(
-      complete(['model Post {', '  id Int @|', '}'].join('\n')).items.map((item) => item.label),
-    ).toEqual(['marker', 'ownerAware']);
-    expect(
-      complete(['model Post {', '  id Int', '  @@|', '}'].join('\n')).items.map(
-        (item) => item.label,
-      ),
-    ).toEqual(['rls']);
-    expect(
-      complete(['policy Rule {', '  @@|', '}'].join('\n')).items.map((item) => item.label),
-    ).toEqual(['audit']);
+  it('returns registry-backed attribute name completions as function items', () => {
+    const fieldItems = complete(['model Post {', '  id Int @|', '}'].join('\n')).items;
+    expect(fieldItems.map((item) => item.label)).toEqual(['marker', 'ownerAware']);
+    expect(fieldItems.map((item) => item.kind)).toEqual([
+      CompletionItemKind.Function,
+      CompletionItemKind.Function,
+    ]);
+
+    const modelItems = complete(['model Post {', '  id Int', '  @@|', '}'].join('\n')).items;
+    expect(modelItems.map((item) => item.label)).toEqual(['rls']);
+    expect(modelItems.map((item) => item.kind)).toEqual([CompletionItemKind.Function]);
+
+    const blockItems = complete(['policy Rule {', '  @@|', '}'].join('\n')).items;
+    expect(blockItems.map((item) => item.label)).toEqual(['audit']);
+    expect(blockItems.map((item) => item.kind)).toEqual([CompletionItemKind.Function]);
+  });
+
+  it('returns configured attribute names from the control stack without an interpretation context', () => {
+    const { items } = completeWithSource({
+      markedSource: [candidateSource, 'model Post {', '  id Int @|', '}'].join('\n'),
+      pslBlockDescriptors,
+      authoringContributions: attributeContributions,
+      controlMutationDefaults,
+    });
+
+    expect(items.map((item) => item.label)).toEqual(['marker', 'ownerAware']);
   });
 
   it('resolves the attribute owner once per attribute-name completion request', () => {
@@ -441,29 +454,26 @@ describe('providePslCompletionItems', () => {
       },
     };
     const factoryOwnerNames: string[] = [];
-    const observedInterpretationContext = {
-      authoringContributions: assembleAuthoringContributions([
-        {
-          id: 'observed-family',
-          authoring: {
-            attributeSpecs: {
-              field: {
-                first: (ctx: FieldAttributeSpecContext) => {
-                  factoryOwnerNames.push(ctx.model.name);
-                  return fieldAttribute('first', {});
-                },
-                second: (ctx: FieldAttributeSpecContext) => {
-                  factoryOwnerNames.push(ctx.model.name);
-                  return fieldAttribute('second', {});
-                },
+    const observedAuthoringContributions = assembleAuthoringContributions([
+      {
+        id: 'observed-family',
+        authoring: {
+          attributeSpecs: {
+            field: {
+              first: (ctx: FieldAttributeSpecContext) => {
+                factoryOwnerNames.push(ctx.model.name);
+                return fieldAttribute('first', {});
               },
-              model: {},
+              second: (ctx: FieldAttributeSpecContext) => {
+                factoryOwnerNames.push(ctx.model.name);
+                return fieldAttribute('second', {});
+              },
             },
+            model: {},
           },
         },
-      ]),
-      controlMutationDefaults,
-    } as unknown as ContractSourceContext;
+      },
+    ]);
 
     const items = providePslCompletionItems({
       context,
@@ -472,7 +482,8 @@ describe('providePslCompletionItems', () => {
         scalarTypes,
         pslBlockDescriptors,
         symbolTable: observedSymbolTable,
-        interpretationContext: observedInterpretationContext,
+        authoringContributions: observedAuthoringContributions,
+        controlMutationDefaults,
       },
       clientSupportsSnippets: true,
     });
@@ -560,6 +571,19 @@ describe('providePslCompletionItems', () => {
     expect(item.textEdit).toMatchObject({ newText: 'marker' });
     expect(applyCompletionItem({ sourceFile, item })).toEqual(
       [candidateSource, 'model Post {', '  id Int @marker(name: "id") @unique', '}'].join('\n'),
+    );
+  });
+
+  it('uses the attribute AST to preserve an incomplete existing argument list', () => {
+    const { items, sourceFile } = complete(['model Post {', '  id Int @mar|ker(', '}'].join('\n'), {
+      clientSupportsSnippets: true,
+    });
+    const item = completionItemByLabel(items, 'marker');
+
+    expect(item.insertTextFormat).toBeUndefined();
+    expect(item.textEdit).toMatchObject({ newText: 'marker' });
+    expect(applyCompletionItem({ sourceFile, item })).toEqual(
+      [candidateSource, 'model Post {', '  id Int @marker(', '}'].join('\n'),
     );
   });
 

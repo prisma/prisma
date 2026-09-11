@@ -1,8 +1,11 @@
-import type { ContractSourceContext } from '@internal/config/config-types';
 import {
   type AuthoringPslBlockDescriptorNamespace,
   isAuthoringPslBlockDescriptor,
 } from '@internal/framework-components/authoring';
+import type {
+  AssembledAuthoringContributions,
+  ControlMutationDefaults,
+} from '@internal/framework-components/control';
 import {
   type AttributeSpec,
   assembleAttributeSpecs,
@@ -17,8 +20,10 @@ import {
 } from '@internal/psl-parser';
 import type {
   FieldAttributeAst,
+  FieldDeclarationAst,
   GenericBlockDeclarationAst,
   ModelAttributeAst,
+  ModelDeclarationAst,
   SourceFile,
 } from '@internal/psl-parser/syntax';
 import { blindCast } from '@internal/utils/casts';
@@ -38,7 +43,8 @@ export interface PslCompletionCandidateSource {
   readonly scalarTypes: readonly string[];
   readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
   readonly symbolTable: SymbolTable;
-  readonly interpretationContext?: ContractSourceContext;
+  readonly authoringContributions?: AssembledAuthoringContributions;
+  readonly controlMutationDefaults?: ControlMutationDefaults;
 }
 
 export interface ProvidePslCompletionItemsInput {
@@ -131,14 +137,18 @@ export function providePslCompletionItems(
     // work.
     case 'genericBlockValue':
       return [];
-    case 'attributeName':
+    case 'fieldAttributeName':
+    case 'modelAttributeName':
+    case 'blockAttributeName':
       return provideAttributeNameCompletionItems(
         context,
         input.sourceFile,
         input.candidates,
         input.clientSupportsSnippets,
       );
-    case 'attributeNamedKey':
+    case 'fieldAttributeNamedKey':
+    case 'modelAttributeNamedKey':
+    case 'blockAttributeNamedKey':
       return provideAttributeNamedKeyCompletionItems(context, input.sourceFile, input.candidates);
     case 'declarationKeyword':
       return provideDeclarationKeywordCompletionItems(
@@ -163,7 +173,7 @@ function provideAttributeNameCompletionItems(
   clientSupportsSnippets: boolean,
 ): readonly CompletionItem[] {
   const names = attributeNames(context, source);
-  const replacementEndOffset = identifierReplacementEndOffset(sourceFile, context.offset);
+  const replacementEndOffset = attributeNameReplacementEndOffset(context);
   const replacementRange = {
     start: sourceFile.positionAt(context.replacementStartOffset),
     end: sourceFile.positionAt(replacementEndOffset),
@@ -175,13 +185,12 @@ function provideAttributeNameCompletionItems(
     const newText = attributeNameEditText({
       name,
       spec: resolveSpec(name),
-      sourceFile,
-      replacementEndOffset,
+      attribute: context.attribute,
       clientSupportsSnippets,
     });
     return {
       label: name,
-      kind: CompletionItemKind.Property,
+      kind: CompletionItemKind.Function,
       detail: 'PSL attribute',
       sortText: name,
       filterText: name,
@@ -203,7 +212,7 @@ function provideAttributeNamedKeyCompletionItems(
   const existing = existingAttributeNamedKeys(context.attribute, context.offset);
   const replacementRange = {
     start: sourceFile.positionAt(context.replacementStartOffset),
-    end: sourceFile.positionAt(identifierReplacementEndOffset(sourceFile, context.offset)),
+    end: sourceFile.positionAt(namedKeyReplacementEndOffset(context)),
   };
 
   return Object.keys(spec.named)
@@ -223,29 +232,36 @@ function attributeNames(
   context: AttributeNameCompletionContext,
   source: PslCompletionCandidateSource,
 ): readonly string[] {
-  if (context.level === 'block') {
-    const descriptor = findBlockDescriptor(source.pslBlockDescriptors, context.blockKeyword);
-    return sortedUnique(Object.keys(descriptor?.attributes ?? {}));
+  switch (context.kind) {
+    case 'blockAttributeName': {
+      const descriptor = findBlockDescriptor(source.pslBlockDescriptors, context.blockKeyword);
+      return sortedUnique(Object.keys(descriptor?.attributes ?? {}));
+    }
+    case 'fieldAttributeName': {
+      if (source.authoringContributions === undefined) {
+        return [];
+      }
+      return sortedUnique(Object.keys(assembleAttributeSpecs(source.authoringContributions).field));
+    }
+    case 'modelAttributeName': {
+      if (source.authoringContributions === undefined) {
+        return [];
+      }
+      return sortedUnique(Object.keys(assembleAttributeSpecs(source.authoringContributions).model));
+    }
   }
-  const interpretation = source.interpretationContext;
-  if (interpretation === undefined) {
-    return [];
-  }
-  const specs = assembleAttributeSpecs(interpretation.authoringContributions);
-  return sortedUnique(Object.keys(context.level === 'field' ? specs.field : specs.model));
 }
 
 function attributeNameEditText(input: {
   readonly name: string;
   readonly spec: AttributeSpec<never, never> | undefined;
-  readonly sourceFile: SourceFile;
-  readonly replacementEndOffset: number;
+  readonly attribute: FieldAttributeAst | ModelAttributeAst;
   readonly clientSupportsSnippets: boolean;
 }): string {
   if (
     !input.clientSupportsSnippets ||
     input.spec === undefined ||
-    hasExistingAttributeArguments(input.sourceFile, input.replacementEndOffset)
+    input.attribute.argList() !== undefined
   ) {
     return input.name;
   }
@@ -309,24 +325,16 @@ function isOptionalParam(param: Param<unknown, never>): boolean {
   return 'optional' in param && param.optional === true;
 }
 
-function hasExistingAttributeArguments(sourceFile: SourceFile, offset: number): boolean {
-  let current = offset;
-  while (sourceFile.text[current] === ' ' || sourceFile.text[current] === '\t') {
-    current += 1;
-  }
-  return sourceFile.text[current] === '(';
+function attributeNameReplacementEndOffset(context: AttributeNameCompletionContext): number {
+  return context.attribute.name()?.syntax.endOffset ?? context.offset;
 }
 
-function identifierReplacementEndOffset(sourceFile: SourceFile, offset: number): number {
-  let current = offset;
-  while (isIdentifierCharacter(sourceFile.text[current])) {
-    current += 1;
+function namedKeyReplacementEndOffset(context: AttributeNamedKeyCompletionContext): number {
+  const token = context.attribute.syntax.tokenAtOffset(context.offset).rightBiased();
+  if (token?.kind === 'Ident' && token.offset <= context.offset) {
+    return token.endOffset;
   }
-  return current;
-}
-
-function isIdentifierCharacter(value: string | undefined): boolean {
-  return value !== undefined && /[A-Za-z0-9_]/u.test(value);
+  return context.offset;
 }
 
 function attributeSpec(
@@ -348,8 +356,9 @@ function attributeSpecResolver(
   context: AttributeNameCompletionContext | AttributeNamedKeyCompletionContext,
   source: PslCompletionCandidateSource,
 ): (name: string) => AttributeSpec<never, never> | undefined {
-  switch (context.level) {
-    case 'block': {
+  switch (context.kind) {
+    case 'blockAttributeName':
+    case 'blockAttributeNamedKey': {
       const descriptor = findBlockDescriptor(source.pslBlockDescriptors, context.blockKeyword);
       return (name) => {
         const factory = descriptor?.attributes?.[name];
@@ -362,41 +371,41 @@ function attributeSpecResolver(
         >(factory)();
       };
     }
-    case 'model': {
-      const interpretation = source.interpretationContext;
-      if (interpretation === undefined) {
+    case 'modelAttributeName':
+    case 'modelAttributeNamedKey': {
+      if (source.authoringContributions === undefined) {
         return () => undefined;
       }
       const model = modelSymbolForNode(source.symbolTable, context.model);
-      if (model === undefined) {
+      if (model === undefined || source.controlMutationDefaults === undefined) {
         return () => undefined;
       }
-      const specs = assembleAttributeSpecs(interpretation.authoringContributions);
+      const specs = assembleAttributeSpecs(source.authoringContributions);
       const specContext = {
         symbols: source.symbolTable,
         model,
-        controlMutationDefaults: interpretation.controlMutationDefaults.defaultFunctionRegistry,
+        controlMutationDefaults: source.controlMutationDefaults.defaultFunctionRegistry,
       };
       return (name) => specs.model[name]?.(specContext);
     }
-    case 'field': {
-      const interpretation = source.interpretationContext;
-      if (interpretation === undefined) {
+    case 'fieldAttributeName':
+    case 'fieldAttributeNamedKey': {
+      if (source.authoringContributions === undefined) {
         return () => undefined;
       }
       const model = modelSymbolForNode(source.symbolTable, context.model);
-      if (model === undefined) {
+      if (model === undefined || source.controlMutationDefaults === undefined) {
         return () => undefined;
       }
       const field = fieldSymbolForNode(model, context.field);
       if (field === undefined) {
         return () => undefined;
       }
-      const specs = assembleAttributeSpecs(interpretation.authoringContributions);
+      const specs = assembleAttributeSpecs(source.authoringContributions);
       const specContext = {
         symbols: source.symbolTable,
         model,
-        controlMutationDefaults: interpretation.controlMutationDefaults.defaultFunctionRegistry,
+        controlMutationDefaults: source.controlMutationDefaults.defaultFunctionRegistry,
       };
       return (name) =>
         specs.field[name]?.({
@@ -424,19 +433,9 @@ function existingAttributeNamedKeys(
   return names;
 }
 
-type ModelOwnedAttributeCompletionContext = Extract<
-  AttributeNameCompletionContext | AttributeNamedKeyCompletionContext,
-  { readonly level: 'field' | 'model' }
->;
-
-type FieldOwnedAttributeCompletionContext = Extract<
-  AttributeNameCompletionContext | AttributeNamedKeyCompletionContext,
-  { readonly level: 'field' }
->;
-
 function modelSymbolForNode(
   symbolTable: SymbolTable,
-  node: ModelOwnedAttributeCompletionContext['model'],
+  node: ModelDeclarationAst,
 ): ModelSymbol | undefined {
   const topLevelMatch = Object.values(symbolTable.topLevel.models).find((model) =>
     sameSyntax(model.node.syntax, node.syntax),
@@ -457,7 +456,7 @@ function modelSymbolForNode(
 
 function fieldSymbolForNode(
   model: ModelSymbol,
-  node: FieldOwnedAttributeCompletionContext['field'],
+  node: FieldDeclarationAst,
 ): FieldSymbol | undefined {
   return Object.values(model.fields).find((field) => sameSyntax(field.node.syntax, node.syntax));
 }

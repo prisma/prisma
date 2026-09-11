@@ -121,12 +121,10 @@ describe('classifyPslCompletionContext', () => {
 
   it('classifies a field attribute on a typeless field', () => {
     expect(classify(['model Post {', '  author @id|', '}'].join('\n'))).toMatchObject({
-      kind: 'attributeName',
-      level: 'field',
+      kind: 'fieldAttributeName',
     });
     expect(classify(['model Post {', '  author @i|d', '}'].join('\n'))).toMatchObject({
-      kind: 'attributeName',
-      level: 'field',
+      kind: 'fieldAttributeName',
     });
   });
 
@@ -220,14 +218,13 @@ describe('classifyPslCompletionContext', () => {
     expectUnsupported(['model Post {', '  |', '  id Int', '}'].join('\n'));
   });
 
-  it('classifies field, model, and block attribute names with concrete owners', () => {
+  it('classifies field, model, and block attribute names as distinct concrete kinds with concrete owners', () => {
     const fieldContext = classify(['model Post {', '  id Int @|', '}'].join('\n'));
     expect(fieldContext).toMatchObject({
-      kind: 'attributeName',
-      level: 'field',
+      kind: 'fieldAttributeName',
     });
-    if (fieldContext.kind !== 'attributeName' || fieldContext.level !== 'field') {
-      throw new Error('expected field attributeName');
+    if (fieldContext.kind !== 'fieldAttributeName') {
+      throw new Error('expected fieldAttributeName');
     }
     expect(fieldContext.model.name()?.name()).toBe('Post');
     expect(fieldContext.field.name()?.name()).toBe('id');
@@ -236,11 +233,10 @@ describe('classifyPslCompletionContext', () => {
 
     const modelContext = classify(['model Post {', '  id Int', '  @@|', '}'].join('\n'));
     expect(modelContext).toMatchObject({
-      kind: 'attributeName',
-      level: 'model',
+      kind: 'modelAttributeName',
     });
-    if (modelContext.kind !== 'attributeName' || modelContext.level !== 'model') {
-      throw new Error('expected model attributeName');
+    if (modelContext.kind !== 'modelAttributeName') {
+      throw new Error('expected modelAttributeName');
     }
     expect(modelContext.model.name()?.name()).toBe('Post');
     expect(modelContext).not.toHaveProperty('field');
@@ -249,12 +245,11 @@ describe('classifyPslCompletionContext', () => {
 
     const blockContext = classify(['policy Foo {', '  @@|', '}'].join('\n'));
     expect(blockContext).toMatchObject({
-      kind: 'attributeName',
-      level: 'block',
+      kind: 'blockAttributeName',
       blockKeyword: 'policy',
     });
-    if (blockContext.kind !== 'attributeName' || blockContext.level !== 'block') {
-      throw new Error('expected block attributeName');
+    if (blockContext.kind !== 'blockAttributeName') {
+      throw new Error('expected blockAttributeName');
     }
     expect(blockContext.block.keyword()?.text).toBe('policy');
     expect(blockContext).not.toHaveProperty('model');
@@ -265,22 +260,20 @@ describe('classifyPslCompletionContext', () => {
     const context = classify(['model Post {', '  id Int @uni|', '}'].join('\n'));
 
     expect(context).toMatchObject({
-      kind: 'attributeName',
-      level: 'field',
+      kind: 'fieldAttributeName',
       replacementStartOffset: 23,
       offset: 26,
     });
   });
 
-  it('classifies top-level attribute named keys with concrete owners', () => {
+  it('classifies top-level attribute named keys as distinct concrete kinds with concrete owners', () => {
     const fieldContext = classify(['model M {', '  id Int @map(|)', '}'].join('\n'));
     expect(fieldContext).toMatchObject({
-      kind: 'attributeNamedKey',
-      level: 'field',
+      kind: 'fieldAttributeNamedKey',
       attributeName: 'map',
     });
-    if (fieldContext.kind !== 'attributeNamedKey' || fieldContext.level !== 'field') {
-      throw new Error('expected field attributeNamedKey');
+    if (fieldContext.kind !== 'fieldAttributeNamedKey') {
+      throw new Error('expected fieldAttributeNamedKey');
     }
     expect(fieldContext.model.name()?.name()).toBe('M');
     expect(fieldContext.field.name()?.name()).toBe('id');
@@ -289,12 +282,11 @@ describe('classifyPslCompletionContext', () => {
 
     const modelContext = classify(['model M {', '  @@index(fields: [id], |)', '}'].join('\n'));
     expect(modelContext).toMatchObject({
-      kind: 'attributeNamedKey',
-      level: 'model',
+      kind: 'modelAttributeNamedKey',
       attributeName: 'index',
     });
-    if (modelContext.kind !== 'attributeNamedKey' || modelContext.level !== 'model') {
-      throw new Error('expected model attributeNamedKey');
+    if (modelContext.kind !== 'modelAttributeNamedKey') {
+      throw new Error('expected modelAttributeNamedKey');
     }
     expect(modelContext.model.name()?.name()).toBe('M');
     expect(modelContext).not.toHaveProperty('field');
@@ -303,13 +295,12 @@ describe('classifyPslCompletionContext', () => {
 
     const blockContext = classify(['policy Foo {', '  @@audit(|)', '}'].join('\n'));
     expect(blockContext).toMatchObject({
-      kind: 'attributeNamedKey',
-      level: 'block',
+      kind: 'blockAttributeNamedKey',
       attributeName: 'audit',
       blockKeyword: 'policy',
     });
-    if (blockContext.kind !== 'attributeNamedKey' || blockContext.level !== 'block') {
-      throw new Error('expected block attributeNamedKey');
+    if (blockContext.kind !== 'blockAttributeNamedKey') {
+      throw new Error('expected blockAttributeNamedKey');
     }
     expect(blockContext.block.keyword()?.text).toBe('policy');
     expect(blockContext).not.toHaveProperty('model');
@@ -328,16 +319,13 @@ describe('classifyPslCompletionContext', () => {
 
   it('keeps attribute completion active at the attribute end offset', () => {
     expect(classify(['model Post {', '  id Int @id|', '}'].join('\n'))).toMatchObject({
-      kind: 'attributeName',
-      level: 'field',
+      kind: 'fieldAttributeName',
     });
     expect(classify(['model Post {', '  id Int', '  @@id|', '}'].join('\n'))).toMatchObject({
-      kind: 'attributeName',
-      level: 'model',
+      kind: 'modelAttributeName',
     });
     expect(classify(['policy Foo {', '  @@audit|', '}'].join('\n'))).toMatchObject({
-      kind: 'attributeName',
-      level: 'block',
+      kind: 'blockAttributeName',
       blockKeyword: 'policy',
     });
   });
