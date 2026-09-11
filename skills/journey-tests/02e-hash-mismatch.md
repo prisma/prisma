@@ -13,8 +13,7 @@ Plan a migration. Edit its `migration.ts` (add a no-op comment). Do NOT self-emi
 > I get this error when I run `db migrate`:
 >
 > ```text
-> code: PN-MIG-2042
-> kind: MIGRATION.HASH_MISMATCH
+> code: MIGRATION.HASH_MISMATCH
 > message: ops.json hash does not match migration.json
 > ```
 >

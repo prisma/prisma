@@ -54,18 +54,15 @@ The graph is a static, committed artifact. Several branch tips may coexist, roll
 
 ### Diagnostic codes
 
-`migration status` emits structured diagnostics on the result envelope (`diagnostics[].code`) so the agent can branch on the code rather than parsing the prose summary. Each diagnostic also carries `severity` (`warn` or `info`), a human `message`, and `hints` — the same hints the CLI prints under the summary line.
+`migration status` answers with a document (`--json`): `spaces[]`, each with `currentContract` (the marker hash, or `null` when the database has no marker for that space), `targetContract`, and `migrations[]` carrying the `applied` / `pending` / `unreachable` status above; a `summary` line; and `diagnostics[]`. The ordinary states — up to date, N pending, no marker yet, marker on another branch, no path to the target — are read from `spaces[]` and the summary, not from diagnostic codes. The three diagnostics it can attach are all `warn`, and each carries a `message` and `hints` — the same hints the CLI prints under the summary line:
 
-| Code | Severity | Meaning in the navigation model | Next move |
-|---|---|---|---|
-| `MIGRATION.UP_TO_DATE` | info | Marker = destination; no edges to walk. | Nothing to do. |
-| `MIGRATION.DATABASE_BEHIND` | info | Marker is an ancestor of the destination; N pending edges in between. | `db migrate --to <name> --db $URL`. |
-| `MIGRATION.MISSING_INVARIANTS` | info | Marker reached destination structurally but missing required invariants the ref declares. | `db migrate --to <name> --db $URL` to take a path that covers them. |
-| `MIGRATION.NO_MARKER` | warn | Online, but the database has no marker row — never initialised. | `db migrate --db $URL` (first apply writes the marker). |
-| `MIGRATION.MARKER_NOT_IN_HISTORY` | warn | Online; marker hash is not a node in the graph. The database was changed outside the migration system. | Decide which side is truth: `db sign` (accept DB as truth), `db update` (push contract to DB), `contract infer` (re-derive contract from DB), or `db verify` (inspect first). **Not** the same as `MIGRATION.MARKER_MISMATCH`: `MARKER_NOT_IN_HISTORY` is emitted during the runner's graph walk when the live marker is off the path being traversed; `MARKER_MISMATCH` fires earlier, at the CLI pre-DDL gate, when the marker hash is not a graph node at all. |
-| `MIGRATION.DIVERGED` | warn | Multiple valid leaves; the destination is ambiguous. | Pass `--to <name>`, or `migration ref set <name> <hash>` to create one. |
-| `CONTRACT.AHEAD` | warn | Contract head is not in the graph — the contract was edited without re-planning. | `migration plan` to extend the graph. |
-| `CONTRACT.UNREADABLE` | warn | `contract.json` couldn't be read. | `contract emit` to regenerate it. |
+| Code | Meaning in the navigation model | Next move |
+|---|---|---|
+| `MIGRATION.MARKER_NOT_IN_HISTORY` | Online; marker hash is not a node in the graph. The database was changed outside the migration system. | Decide which side is truth: `db sign` (accept DB as truth), `db update` (push contract to DB), `contract infer` (re-derive contract from DB), or `db verify` (inspect first). **Not** the same as `MIGRATION.MARKER_MISMATCH`, which `db migrate` raises as an error before any DDL when the marker hash is not a graph node. |
+| `MIGRATION.MISSING_INVARIANTS` | Marker reached the destination structurally but lacks invariants the target ref declares. | `db migrate --to <name> --db $URL` to take a path that covers them. |
+| `CONTRACT.UNREADABLE` | `contract.json` couldn't be read. | `contract emit` to regenerate it. |
+
+Conditions that make the run *refuse* instead (exit `2`) arrive as ordinary errors: `MIGRATION.NO_INVARIANT_PATH` (no path covers the missing invariants), `MIGRATION.UNKNOWN_INVARIANT` (the ref names an invariant no edge provides), and the ref-resolution errors for a bad `--to` / `--from`.
 
 ### Graph-tree output
 
@@ -192,7 +189,7 @@ For a human-readable ordered preview of the migration path before applying, use 
   run: pnpm prisma db migrate --to staging --db "$STAGING_DATABASE_URL"
 ```
 
-`migration status` exits non-zero only on hard errors (unreadable migrations directory, unsatisfiable invariants, unreconstructable history). Diagnostics like `MIGRATION.MARKER_NOT_IN_HISTORY`, `MIGRATION.DIVERGED`, `CONTRACT.AHEAD`, and `MIGRATION.NO_MARKER` are reported on the result envelope with `severity: 'warn'` but the process exits `0` — the agent (or a CI gate) must inspect `diagnostics[]` and fail the build itself. Use `--json` so the gate parses a structured shape rather than the human summary.
+`migration status` exits non-zero only on hard errors (unreadable migrations directory, unsatisfiable invariants, unreconstructable history). Pending migrations, a missing marker (`currentContract: null`), and the `warn` diagnostics (`MIGRATION.MARKER_NOT_IN_HISTORY`, `MIGRATION.MISSING_INVARIANTS`, `CONTRACT.UNREADABLE`) all leave the exit code at `0` — the agent (or a CI gate) must inspect `spaces[]` and `diagnostics[]` and fail the build itself. Use `--json` so the gate parses a structured shape rather than the human summary.
 
 `db migrate` is interactive-free and has no destructive-op confirmation prompt — the safety rails that prompt for destructive changes live on `db update` (see the `references/migrations.md` skill). Whatever the planner put in the migration graph is what `db migrate` runs; review happens at `migration plan` and at `migration status` time, before the apply step.
 

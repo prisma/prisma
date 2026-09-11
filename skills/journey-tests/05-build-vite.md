@@ -36,4 +36,4 @@ The agent runtime has Prisma 8 skills registered (project level, as `init` insta
 - [ ] Editing the contract source triggers a re-emit log line.
 - [ ] `package.json` contains a `prebuild` script that runs `prisma contract emit`.
 - [ ] Agent did NOT confabulate `@internal/vite` or any other package name that doesn't exist.
-- [ ] Agent did NOT point the plugin at `schema.psl` / `prisma/contract.ts` directly (the argument is the config path).
+- [ ] Agent did NOT point the plugin at `src/prisma/contract.prisma` / `src/prisma/contract.ts` directly (the argument is the config path).

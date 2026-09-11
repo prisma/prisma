@@ -64,11 +64,11 @@ pnpm prisma migration ref delete <name>
 
 `migration plan` resolves its origin in exactly this order:
 
-1. Explicit `--from <ref-name | hash | hash-prefix | migration-dir | migration-dir^ | ./path | @contract | @db | @empty>` — `@db` reads the live database's marker and is the one origin form that is not offline; `@empty` names the empty database deliberately.
+1. Explicit `--from <ref-name | hash | hash-prefix | migration-dir | migration-dir^ | ./path | @empty>` — `@empty` names the empty database deliberately. The reserved forms `@db` and `@contract` exist in the shared ref grammar but do not resolve here: `migration plan` is offline, so `@db` (the live marker) has nothing to read, and `@contract` needs a contract hash the plan resolver does not pass. Use them with `db migrate --show` / `migration status`, not with `plan`.
 2. No `--from` → the `db` ref (`migrations/app/refs/db.json`).
 3. No `db` ref → **greenfield: the plan starts from the empty database.**
 
-It is **offline** — it never consults a database, never reads a marker. Whatever the refs on disk say is what it believes. The destination defaults to the emitted `contract.json` (`--to` overrides).
+It is **offline** — it never consults a database, never reads a marker (which is why `--from @db` is not an option here). Whatever the refs on disk say is what it believes. The destination defaults to the emitted `contract.json` (`--to` overrides).
 
 The human output names the resolved origin on its `from:` line. **`from: (baseline)` means the origin resolved to nothing — the plan starts from an empty database** and will contain a create for every object in the contract.
 
