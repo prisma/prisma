@@ -4,11 +4,17 @@ import { errorInvalidRefName, MigrationToolsError } from '@internal/migration-to
 import { validateRefName, writeRef } from '@internal/migration-tools/refs';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import type { CliStructuredError } from '../../utils/cli-errors';
+import { CliStructuredError, errorFileNotFound } from '../../utils/cli-errors';
 
 export interface ContractIR {
   readonly contract: unknown;
   readonly contractDts: string;
+}
+
+/** A contract.json and its path; the sibling .d.ts is read when the ref is advanced. */
+export interface ContractIRSource {
+  readonly contractJson: Record<string, unknown>;
+  readonly contractJsonPath: string;
 }
 
 export interface RefAdvancementFields {
@@ -29,13 +35,39 @@ export function computeRefAdvancementName(options: {
   return null;
 }
 
+function contractDtsPathOf(contractJsonPath: string): string {
+  return contractJsonPath.replace(/\.json$/i, '.d.ts');
+}
+
 export async function readContractIR(
   contractJson: Record<string, unknown>,
   contractJsonPath: string,
 ): Promise<ContractIR> {
-  const contractDtsPath = contractJsonPath.replace(/\.json$/i, '.d.ts');
-  const contractDts = await readFile(contractDtsPath, 'utf-8');
+  const contractDts = await readFile(contractDtsPathOf(contractJsonPath), 'utf-8');
   return { contract: contractJson, contractDts };
+}
+
+function isMissingFile(error: unknown): boolean {
+  return error instanceof Error && Reflect.get(error, 'code') === 'ENOENT';
+}
+
+async function loadContractIR(source: ContractIR | ContractIRSource): Promise<ContractIR> {
+  if ('contractDts' in source) {
+    return source;
+  }
+  try {
+    return await readContractIR(source.contractJson, source.contractJsonPath);
+  } catch (error) {
+    if (isMissingFile(error)) {
+      const contractDtsPath = contractDtsPathOf(source.contractJsonPath);
+      throw errorFileNotFound(contractDtsPath, {
+        why: `The contract types next to ${source.contractJsonPath} are missing: ${contractDtsPath}`,
+        fix: 'Run {bin} contract emit to regenerate the contract artifacts, then advance the ref again.',
+        cause: error,
+      });
+    }
+    throw error;
+  }
 }
 
 export async function executeRefAdvancement(
@@ -136,25 +168,30 @@ export async function resolveRefAdvancementFields(
   }
 }
 
-/** migrate's --advance-ref tail: executeRefAdvancement with MigrationToolsError passed through, others rethrown. */
+/**
+ * The --advance-ref tail of migrate and db sign: executeRefAdvancement with structured
+ * failures (a MigrationToolsError, or a missing .d.ts when handed a ContractIRSource) passed
+ * through as notOk, others rethrown.
+ */
 export async function advanceRefSafely(args: {
   readonly refsDir: string;
   readonly migrationsDir: string;
   readonly name: string;
   readonly hash: string;
-  readonly contractIR: ContractIR;
+  readonly contractIR: ContractIR | ContractIRSource;
 }): Promise<Result<{ readonly name: string; readonly hash: string }, CliStructuredError>> {
   try {
+    const contractIR = await loadContractIR(args.contractIR);
     const advanced = await executeRefAdvancement(
       args.refsDir,
       args.migrationsDir,
       args.name,
       args.hash,
-      args.contractIR,
+      contractIR,
     );
     return ok(advanced);
   } catch (error) {
-    if (MigrationToolsError.is(error)) {
+    if (MigrationToolsError.is(error) || error instanceof CliStructuredError) {
       return notOk(error);
     }
     throw error;

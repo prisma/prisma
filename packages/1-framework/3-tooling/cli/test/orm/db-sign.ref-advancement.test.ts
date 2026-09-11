@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { readFile, rm } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import {
   contractSnapshotDir,
@@ -139,6 +139,22 @@ describe('db sign', () => {
       expect(run.exitCode).toBe(4);
       expect(existsSync(refsDirOf(dir))).toBe(false);
       expect(existsSync(join(dir, 'migrations', 'snapshots'))).toBe(false);
+    });
+
+    it('settles a missing contract.d.ts as a file-not-found failure after the marker is written', async () => {
+      const dir = await projectDir();
+      await rm(join(dir, 'output', 'contract.d.ts'));
+
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(2);
+      expect(envelopeOf(run)).toMatchObject({
+        ok: false,
+        error: { code: 'CLI.FILE_NOT_FOUND' },
+      });
+      expect(JSON.stringify(run.json.at(-1))).toContain('contract.d.ts');
+      expect(mocks.sign).toHaveBeenCalledTimes(1);
+      expect(existsSync(refsDirOf(dir))).toBe(false);
     });
 
     it('writes the snapshot from the resolved contract when a migration dir is named', async () => {

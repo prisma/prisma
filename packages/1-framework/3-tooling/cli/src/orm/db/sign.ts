@@ -10,7 +10,7 @@ import { flag, positional } from '@prisma/cli-engine';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { createControlClient } from '../../control-api/client';
 import { resolveContractRefToSnapshot } from '../../control-api/operations/contract-snapshot-resolution';
-import { advanceRefSafely, readContractIR } from '../../control-api/operations/ref-advancement';
+import { advanceRefSafely } from '../../control-api/operations/ref-advancement';
 import { errorContractArgConflict } from '../../utils/cli-errors';
 import { closeQuietly, maskConnectionUrl } from '../../utils/command-helpers';
 import { runCommandAction } from '../../utils/next-actions';
@@ -319,7 +319,10 @@ export function createDbSignCommand(
           migrationsDir,
           name: refName,
           hash: signed.contract.storageHash,
-          contractIR: await readContractIR(signedSource.json, signedSource.jsonPath),
+          contractIR: {
+            contractJson: signedSource.json,
+            contractJsonPath: signedSource.jsonPath,
+          },
         });
         if (!advanced.ok) {
           return notOk(normalizeError(advanced.failure));
