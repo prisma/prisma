@@ -245,7 +245,7 @@ Atlas's parameterized model is the closer ancestor; we go one step further by gi
 
 **Reject the dev/deploy verb split.** `migrate --to <ref>` is the canonical and only forward-execution verb. `db update` (off-graph reconciliation, dev-only) and `migrate --to <ref>` (graph walk, environment-agnostic) are two different operations, not two flavors of one.
 
-The shadow-DB concept does not surface in our model at all: diffing is fully offline against on-disk contract snapshots, and no shadow database will ever exist (§ 7b).
+The shadow-DB concept does not surface in the core model: diffing is fully offline against on-disk contract snapshots, and the CLI never provisions a shadow database (§ 7b). Rehearsal against a fork of a real database is a database-extension preflight hook.
 
 ---
 
@@ -277,7 +277,7 @@ Most surveyed systems answer #1 implicitly (during apply) and #2 only via shadow
 
 ### Verdict
 
-**Adopt `db verify` as a first-class verb; reject sandbox preflight.** An earlier draft proposed `migration preflight <id>` (shadow-DB apply locally, PPg hosted). Rejected: diffing is fully offline against on-disk snapshots, and no shadow database will ever exist.
+**Adopt `db verify` as a first-class verb; reject sandbox preflight as a core verb.** An earlier draft proposed `migration preflight <id>` (shadow-DB apply locally, PPg hosted). Rejected from the core: diffing is fully offline against on-disk snapshots, and the CLI never provisions a shadow database. Preflight survives as a hook a database extension may provide.
 
 ---
 
@@ -413,7 +413,7 @@ The final step of the audit walks this table against every existing CLI command 
 | **contract spaces** | **Novel — keep** | Django's apps + Sqitch's foreign-project refs are closest analogs; neither is sufficient. |
 | **cyclic graph** | **Novel — don't expose** | Path-finding handles cycles internally; users see only refs and `migrate --to`. |
 | **emission** (canonical artifacts from authoring source) | **Adopt the underlying concept; keep `emit` as the verb** | Atlas's `migrate diff` is the closest analog. For migration source, use **`migration compile`** (TS → JSON) — `emit` reads wrong because `migration.ts` already *is* the migration. |
-| **shadow database** | **Reject** | Atlas and Prisma both rely on shadow DBs for diff safety. We never need one: every migration's bookend contracts are on-disk snapshots, so diffing is fully offline. No shadow database will ever exist. |
+| **shadow database** | **Reject (core)** | Atlas and Prisma both rely on shadow DBs for diff safety. We never need one for diffing: every migration's bookend contracts are on-disk snapshots, so diffing is fully offline, and the CLI never provisions a shadow database. Rehearsing a migration against a fork of a real database is a preflight hook a database extension may provide. |
 | **baseline** (the noun) | **Reject** | Atlas's baseline ≠ Prisma's baseline ≠ Django's `--fake-initial`. A migration from `∅` is just a regular migration. |
 
 ---

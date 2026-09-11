@@ -18,7 +18,7 @@
 
 > **Looking for Prisma ORM 7?** It lives on the [`v7` branch](https://github.com/prisma/prisma/tree/v7) of this repository, and the `prisma` and `@prisma/*` packages on npm continue to be published from there.
 
-> **Prisma Next is currently in [Early Access](https://pris.ly/pn-ea)** and we're building it in the open with the community. APIs will still evolve as your feedback shapes them, so we don't recommend it for production workloads yet. Come along for the ride: star the repo, follow [@prisma on X](https://pris.ly/x), or read along on the [Prisma blog](https://www.prisma.io/blog).
+> **Prisma 8 is a release candidate.** `8.0.0` final is expected in the next four to eight weeks. Until then a release candidate may include breaking changes, and every release ships with an upgrade recipe that the `prisma-8` skill applies for you. The candidate is a complete implementation we stand behind: we treat bugs in it as urgent, and the risk you take on is a feature that is not built yet rather than churn. The [feature scoreboard](./scorecard.md) names every gap. New projects should start here. Existing Prisma 7 applications can migrate incrementally, and Prisma 7 stays on the [`v7` branch](https://github.com/prisma/prisma/tree/v7) with bug fixes for twelve months after `8.0.0` final. Star the repo, follow [@prisma on X](https://pris.ly/x), or read along on the [Prisma blog](https://www.prisma.io/blog).
 
 **Prisma Next** is a TypeScript rewrite of Prisma ORM, designed to be **extensible**, **composable**, and **AI-agent friendly** by default. Read the full announcement: [The Next Evolution of Prisma ORM](https://pris.ly/pn-announcement).
 
@@ -91,7 +91,7 @@ Prisma 8 carries **PostgreSQL to general availability** — and that is all at t
 - **MongoDB** — early access; proves the framework works beyond SQL
 - **SQLite** — a proof of concept today
 
-MySQL follows later. See the [roadmap](./ROADMAP.md) for what must happen before the 8.0.0-rc.1 release.
+MySQL follows later. See the [feature scoreboard](./scorecard.md) for what each database supports today.
 
 ## Contributing
 

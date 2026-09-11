@@ -110,8 +110,8 @@ This document provides a comprehensive index of all Architectural Decision Recor
 | 022 | Lint Rule Taxonomy | Defines taxonomy and classification system for lint rules and violations | [ADR 022 - Lint Rule Taxonomy.md](adrs/ADR%20022%20-%20Lint%20Rule%20Taxonomy.md) |
 | 023 | Budget Evaluation | Establishes query budget evaluation and enforcement mechanisms | [ADR 023 - Budget Evaluation.md](adrs/ADR%20023%20-%20Budget%20Evaluation.md) |
 | 024 | Telemetry Schema | Defines telemetry schema and privacy controls for runtime observability | [ADR 024 - Telemetry Schema.md](adrs/ADR%20024%20-%20Telemetry%20Schema.md) |
-| 029 | Shadow DB preflight semantics | Superseded — no shadow database will ever exist; diffing is fully offline against on-disk snapshots | [ADR 029 - Shadow DB preflight semantics.md](adrs/ADR%20029%20-%20Shadow%20DB%20preflight%20semantics.md) |
-| 051 | PPg preflight-as-a-service contract | Superseded — the preflight concept is abandoned; no shadow database will ever exist | [ADR 051 - PPg preflight-as-a-service contract.md](adrs/ADR%20051%20-%20PPg%20preflight-as-a-service%20contract.md) |
+| 029 | Shadow DB preflight semantics | Superseded — the CLI never provisions a shadow database; diffing is fully offline against on-disk snapshots, and preflight is a database-extension hook | [ADR 029 - Shadow DB preflight semantics.md](adrs/ADR%20029%20-%20Shadow%20DB%20preflight%20semantics.md) |
+| 051 | PPg preflight-as-a-service contract | Superseded — the core preflight verb is abandoned; preflight is a database-extension hook, and Prisma Postgres will provide one | [ADR 051 - PPg preflight-as-a-service contract.md](adrs/ADR%20051%20-%20PPg%20preflight-as-a-service%20contract.md) |
 
 ## Extensions & Packs
 
@@ -176,7 +176,7 @@ This document provides a comprehensive index of all Architectural Decision Recor
 
 ## Notes
 
-- **ADRs 029 and 051** are superseded: the shadow-DB preflight design is abandoned (diffing is fully offline against on-disk snapshots)
+- **ADRs 029 and 051** are superseded: the core-CLI shadow-DB preflight design is abandoned (diffing is fully offline against on-disk snapshots; preflight is a database-extension hook)
 - **ADR 156** is partially superseded by ADR 244: its check-constraint half only; `storage.sets` remains in force
 - **ADRs 104-118** form the core extension system architecture (decorators, attributes, capabilities, packs)
 - **ADRs 126-127** introduce PSL top-level blocks and views as composable extensions
