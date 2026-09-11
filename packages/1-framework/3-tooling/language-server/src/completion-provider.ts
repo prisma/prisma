@@ -217,7 +217,6 @@ function provideAttributeNamedKeyCompletionItems(
 
   return Object.keys(spec.named)
     .filter((name) => !existing.has(name))
-    .sort(compareNames)
     .map((name) => ({
       label: name,
       kind: CompletionItemKind.Property,

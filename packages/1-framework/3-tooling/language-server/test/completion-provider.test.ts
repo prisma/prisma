@@ -35,6 +35,9 @@ const markerAttribute = fieldAttribute('marker', {
   positional: [{ key: 'target', type: str() }],
   named: { name: str(), priority: optional(int()) },
 });
+const orderFixtureAttribute = fieldAttribute('orderFixture', {
+  named: { zebra: int(), alpha: int(), middle: int() },
+});
 const rlsAttribute = modelAttribute('rls', {
   named: { enabled: optional(str()), mode: str() },
 });
@@ -49,6 +52,7 @@ const attributeContributions = assembleAuthoringContributions([
       attributeSpecs: {
         field: {
           marker: () => markerAttribute,
+          orderFixture: () => orderFixtureAttribute,
           ownerAware: (ctx: FieldAttributeSpecContext) =>
             fieldAttribute('ownerAware', {
               named: {
@@ -399,8 +403,9 @@ describe('providePslCompletionItems', () => {
 
   it('returns registry-backed attribute name completions as function items', () => {
     const fieldItems = complete(['model Post {', '  id Int @|', '}'].join('\n')).items;
-    expect(fieldItems.map((item) => item.label)).toEqual(['marker', 'ownerAware']);
+    expect(fieldItems.map((item) => item.label)).toEqual(['marker', 'orderFixture', 'ownerAware']);
     expect(fieldItems.map((item) => item.kind)).toEqual([
+      CompletionItemKind.Function,
       CompletionItemKind.Function,
       CompletionItemKind.Function,
     ]);
@@ -422,7 +427,7 @@ describe('providePslCompletionItems', () => {
       controlMutationDefaults,
     });
 
-    expect(items.map((item) => item.label)).toEqual(['marker', 'ownerAware']);
+    expect(items.map((item) => item.label)).toEqual(['marker', 'orderFixture', 'ownerAware']);
   });
 
   it('resolves the attribute owner once per attribute-name completion request', () => {
@@ -506,6 +511,17 @@ describe('providePslCompletionItems', () => {
       },
       newText: 'priority',
     });
+  });
+
+  it('preserves named-key declaration order while filtering supplied keys', () => {
+    const { items } = complete(
+      ['model Post {', '  id Int @orderFixture(alpha: 1, |)', '}'].join('\n'),
+    );
+
+    expect(items.map((item) => [item.label, item.kind])).toEqual([
+      ['zebra', CompletionItemKind.Property],
+      ['middle', CompletionItemKind.Property],
+    ]);
   });
 
   it('uses the current declaration owner when model names collide across namespaces', () => {
@@ -612,14 +628,14 @@ describe('providePslCompletionItems', () => {
       stack,
     );
     expect(items.map((item) => item.label)).toEqual([
-      'map',
-      'name',
-      'options',
-      'type',
-      'unique',
       'where',
+      'unique',
+      'name',
+      'map',
+      'type',
+      'options',
     ]);
-    expect(items[0]?.textEdit).toEqual({
+    expect(items.find((item) => item.label === 'map')?.textEdit).toEqual({
       range: {
         start: sourceFile.positionAt(cursorOffset - 'ma'.length),
         end: sourceFile.positionAt(cursorOffset),
@@ -705,23 +721,23 @@ describe('providePslCompletionItems', () => {
         stack,
       ).items.map((item) => item.label),
     ).toEqual([
-      'collationAlternate',
-      'collationBackwards',
-      'collationCaseFirst',
-      'collationCaseLevel',
-      'collationLocale',
-      'collationMaxVariable',
-      'collationNormalization',
-      'collationNumericOrdering',
-      'collationStrength',
-      'default_language',
-      'exclude',
+      'type',
+      'sparse',
       'expireAfterSeconds',
       'filter',
       'include',
+      'exclude',
+      'default_language',
       'languageOverride',
-      'sparse',
-      'type',
+      'collationLocale',
+      'collationStrength',
+      'collationCaseLevel',
+      'collationCaseFirst',
+      'collationNumericOrdering',
+      'collationAlternate',
+      'collationMaxVariable',
+      'collationBackwards',
+      'collationNormalization',
     ]);
     expect(
       completeWithActualStack(

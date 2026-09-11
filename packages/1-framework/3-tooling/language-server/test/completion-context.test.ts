@@ -307,6 +307,23 @@ describe('classifyPslCompletionContext', () => {
     expect(blockContext).not.toHaveProperty('field');
   });
 
+  it('does not classify closed attribute argument list end positions as named keys', () => {
+    expectUnsupported(['model Post {', '  id Int @map()|', '}'].join('\n'));
+    expectUnsupported(['model Post {', '  id Int', '  @@index()|', '}'].join('\n'));
+    expectUnsupported(['policy Rule {', '  @@audit()|', '}'].join('\n'));
+  });
+
+  it('keeps named-key completion active inside closed and unfinished attribute argument lists', () => {
+    expect(classify(['model Post {', '  id Int @map(|)', '}'].join('\n'))).toMatchObject({
+      kind: 'fieldAttributeNamedKey',
+      attributeName: 'map',
+    });
+    expect(classify(['model Post {', '  id Int @map(|'].join('\n'))).toMatchObject({
+      kind: 'fieldAttributeNamedKey',
+      attributeName: 'map',
+    });
+  });
+
   it('does not classify attribute values or nested argument positions as named keys', () => {
     expectUnsupported(['model Post {', '  id Int @map(name: value|)', '}'].join('\n'));
     expectUnsupported(['model Post {', '  id Int @default(autoincrement(|))', '}'].join('\n'));

@@ -544,6 +544,10 @@ function attributeNamedKeyName(
   if (argList === undefined || argList.syntax.isOutside(offset)) {
     return undefined;
   }
+  const rparen = argList.rparen();
+  if (rparen !== undefined && offset >= rparen.endOffset) {
+    return undefined;
+  }
   for (const arg of argList.args()) {
     const colon = arg.colon();
     if (
