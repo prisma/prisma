@@ -31,6 +31,7 @@ import {
 } from './db-sign-fixtures';
 
 const HASH_B = `55bada2${'0'.repeat(57)}`;
+const SNAPSHOT_B_DTS = 'export type Contract = { b: true };\n';
 
 beforeEach(resetMocks);
 afterEach(cleanupProjectDirs);
@@ -140,7 +141,7 @@ describe('db sign', () => {
       expect(existsSync(join(dir, 'migrations', 'snapshots'))).toBe(false);
     });
 
-    it('signs against the destination contract of a named migration dir', async () => {
+    it('writes the snapshot from the resolved contract when a migration dir is named', async () => {
       const dir = await projectDir();
       const dirName = '20260102T0000_add_users';
       const ops = [
@@ -164,9 +165,10 @@ describe('db sign', () => {
         migrationHash: computeMigrationHash(base, ops),
       };
       await writeMigrationPackage(join(dir, 'migrations', 'app', dirName), metadata, ops);
+      const snapshotB = { storage: { storageHash: HASH_B }, target: 'postgres' };
       await writeContractSnapshot(join(dir, 'migrations'), HASH_B, {
-        contractJson: { storage: { storageHash: HASH_B }, target: 'postgres' },
-        contractDts: EMITTED_CONTRACT_DTS,
+        contractJson: snapshotB,
+        contractDts: SNAPSHOT_B_DTS,
       });
 
       const run = await harness(ormConfig()).run(['db', 'sign', dirName, '--json'], {
@@ -180,6 +182,11 @@ describe('db sign', () => {
       };
       expect(signArg.contract.storage.storageHash).toBe(HASH_B);
       expect(await refHashOf(dir, 'db')).toBe(HASH_B);
+      const storeDir = contractSnapshotDir(join(dir, 'migrations'), HASH_B);
+      expect(JSON.parse(await readFile(join(storeDir, 'contract.json'), 'utf-8'))).toEqual(
+        snapshotB,
+      );
+      expect(await readFile(join(storeDir, 'contract.d.ts'), 'utf-8')).toBe(SNAPSHOT_B_DTS);
     });
   });
 });
