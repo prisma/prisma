@@ -1,14 +1,19 @@
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import type {
   MigrationPlanOperation,
   SchemaDiffIssue,
   SignDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
-import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
+import {
+  contractSnapshotDir,
+  writeContractSnapshot,
+} from '@internal/migration-tools/contract-snapshot-store';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { readRef, writeRef } from '@internal/migration-tools/refs';
 import { blindCast } from '@internal/utils/casts';
 import type { MountedTree, PresentedResult } from '@prisma/cli-engine';
 import type { Diagnostic } from '@prisma/cli-engine/protocol';
@@ -61,8 +66,23 @@ async function projectDir(options: { readonly contract?: boolean } = {}): Promis
       JSON.stringify({ storage: { storageHash: HASH_A }, target: 'postgres' }),
       'utf-8',
     );
+    await writeFile(
+      join(dir, 'output', 'contract.d.ts'),
+      'export type Contract = unknown;\n',
+      'utf-8',
+    );
   }
   return dir;
+}
+
+function refsDirOf(dir: string): string {
+  return join(dir, 'migrations', 'app', 'refs');
+}
+
+async function refHashOf(dir: string, name: string): Promise<string | undefined> {
+  return existsSync(join(refsDirOf(dir), `${name}.json`))
+    ? (await readRef(refsDirOf(dir), name)).hash
+    : undefined;
 }
 
 afterEach(async () => {
@@ -125,11 +145,11 @@ function schemaResult(
   };
 }
 
-function signResult(): SignDatabaseResult {
+function signResult(storageHash = HASH_A): SignDatabaseResult {
   return {
     ok: true,
     summary: 'Database signed',
-    contract: { storageHash: HASH_A },
+    contract: { storageHash },
     target: { expected: 'postgres' },
     marker: { created: false, updated: true, previous: { storageHash: HASH_PREVIOUS } },
     timings: { total: 2 },
@@ -140,8 +160,15 @@ beforeEach(() => {
   mocks.connect.mockReset().mockResolvedValue(undefined);
   mocks.close.mockReset().mockResolvedValue(undefined);
   mocks.schemaVerify.mockReset().mockResolvedValue(schemaResult());
-  mocks.sign.mockReset().mockResolvedValue(signResult());
+  mocks.sign.mockReset().mockImplementation(async (input: SignInput) => {
+    return signResult(input.contract.storage.storageHash);
+  });
 });
+
+/** The family signs the contract it is handed, so the fake reports that contract's hash. */
+interface SignInput {
+  readonly contract: { readonly storage: { readonly storageHash: string } };
+}
 
 function diagnosticsOf(run: {
   readonly presented: PresentedResult<unknown> | undefined;
@@ -168,7 +195,10 @@ describe('db sign', () => {
       expect(run.exitCode).toBe(0);
       expect(diagnosticsOf(run)).toEqual([]);
       expect(mocks.sign).toHaveBeenCalledTimes(1);
-      expect(run.presented?.data).toEqual(signResult());
+      expect(run.presented?.data).toEqual({
+        ...signResult(),
+        advancedRef: { name: 'db', hash: HASH_A },
+      });
     });
 
     it('reads the contract through the family seam rather than a bare JSON.parse', async () => {
@@ -209,9 +239,121 @@ describe('db sign', () => {
             { label: 'to', value: [{ text: HASH_A, tone: 'identifier' }] },
           ],
         },
+        {
+          kind: 'summary',
+          status: 'ok',
+          text: [{ text: 'Advanced ref "db" → ' }, { text: HASH_A, tone: 'identifier' }],
+        },
       ]);
       expect(run.presented?.presentation.stdout).toEqual([]);
       expect(run.stdout).toBe('');
+    });
+  });
+
+  describe('ref advancement', () => {
+    it('writes the db ref and the snapshot of the signed contract', async () => {
+      const dir = await projectDir();
+
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(0);
+      expect(await refHashOf(dir, 'db')).toBe(HASH_A);
+      const storeDir = contractSnapshotDir(join(dir, 'migrations'), HASH_A);
+      expect(JSON.parse(await readFile(join(storeDir, 'contract.json'), 'utf-8'))).toEqual({
+        storage: { storageHash: HASH_A },
+        target: 'postgres',
+      });
+      expect(await readFile(join(storeDir, 'contract.d.ts'), 'utf-8')).toBe(
+        'export type Contract = unknown;\n',
+      );
+    });
+
+    it('still advances db when --db names the database', async () => {
+      const dir = await projectDir();
+
+      const run = await harness(ormConfig({ db: undefined })).run(
+        ['db', 'sign', '--db', CONNECTION, '--json'],
+        { cwd: dir },
+      );
+
+      expect(run.exitCode).toBe(0);
+      expect(run.presented?.data).toMatchObject({ advancedRef: { name: 'db', hash: HASH_A } });
+      expect(await refHashOf(dir, 'db')).toBe(HASH_A);
+    });
+
+    it('advances the ref named by --advance-ref and leaves db untouched', async () => {
+      const dir = await projectDir();
+
+      const run = await harness(ormConfig()).run(
+        ['db', 'sign', '--advance-ref', 'staging', '--json'],
+        { cwd: dir },
+      );
+
+      expect(run.exitCode).toBe(0);
+      expect(run.presented?.data).toMatchObject({
+        advancedRef: { name: 'staging', hash: HASH_A },
+      });
+      expect(await refHashOf(dir, 'staging')).toBe(HASH_A);
+      expect(await refHashOf(dir, 'db')).toBeUndefined();
+    });
+
+    it('overwrites a ref pointing elsewhere and reports the previous hash', async () => {
+      const dir = await projectDir();
+      await writeRef(refsDirOf(dir), 'db', { hash: HASH_PREVIOUS, invariants: [] });
+
+      const run = await harness(ormConfig()).run(['db', 'sign'], {
+        cwd: dir,
+        isTty: { stdout: true },
+      });
+
+      expect(run.exitCode).toBe(0);
+      expect(await refHashOf(dir, 'db')).toBe(HASH_A);
+      expect(run.presented?.presentation.human.at(-1)).toEqual({
+        kind: 'summary',
+        status: 'ok',
+        text: [
+          { text: 'Advanced ref "db" → ' },
+          { text: HASH_A, tone: 'identifier' },
+          { text: ' (was ', tone: 'muted' },
+          { text: HASH_PREVIOUS, tone: 'identifier' },
+          { text: ')', tone: 'muted' },
+        ],
+      });
+    });
+
+    it('settles a rejected ref name as a structured failure after the marker is written', async () => {
+      const dir = await projectDir();
+
+      const run = await harness(ormConfig()).run(
+        ['db', 'sign', '--advance-ref', 'Not A Ref', '--json'],
+        { cwd: dir },
+      );
+
+      expect(run.exitCode).toBe(2);
+      expect(envelopeOf(run)).toMatchObject({
+        ok: false,
+        error: { code: 'MIGRATION.INVALID_REF_NAME' },
+      });
+      expect(mocks.sign).toHaveBeenCalledTimes(1);
+      expect(existsSync(refsDirOf(dir))).toBe(false);
+    });
+
+    it('writes no ref when verification refuses the signature', async () => {
+      const dir = await projectDir();
+      mocks.schemaVerify.mockResolvedValue(
+        schemaResult({
+          ok: false,
+          code: 'CONTRACT.SCHEMA_VERIFICATION_FAILED',
+          summary: 'Database schema does not satisfy contract',
+          schema: { issues: [MISSING_COLUMN] },
+        }),
+      );
+
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(4);
+      expect(existsSync(refsDirOf(dir))).toBe(false);
+      expect(existsSync(join(dir, 'migrations', 'snapshots'))).toBe(false);
     });
   });
 
@@ -417,6 +559,7 @@ describe('db sign', () => {
         contract: { storage: { storageHash: string } };
       };
       expect(signArg.contract.storage.storageHash).toBe(HASH_B);
+      expect(await refHashOf(dir, 'db')).toBe(HASH_B);
     });
 
     it('errors at exit 2 when the named contract reference resolves against nothing', async () => {
