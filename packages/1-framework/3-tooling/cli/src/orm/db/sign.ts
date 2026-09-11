@@ -2,7 +2,8 @@ import type {
   SignDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
-import { readRefs } from '@internal/migration-tools/refs';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import { readRef } from '@internal/migration-tools/refs';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import type { Block, Presentations, Span } from '@prisma/cli-engine';
@@ -58,6 +59,28 @@ interface AdvancedRef {
   readonly name: string;
   readonly hash: string;
   readonly previousHash: string | undefined;
+}
+
+const NO_PREVIOUS_HASH_CODES: ReadonlySet<string> = new Set([
+  'MIGRATION.UNKNOWN_REF',
+  'MIGRATION.INVALID_REF_FILE',
+  'MIGRATION.INVALID_REF_NAME',
+]);
+
+/**
+ * The hash the ref held before the signature, read from that one ref file so a
+ * corrupt sibling cannot fail a signature already written. An invalid name is
+ * left for the guarded write to refuse.
+ */
+async function previousRefHash(refsDir: string, name: string): Promise<string | undefined> {
+  try {
+    return (await readRef(refsDir, name)).hash;
+  } catch (error) {
+    if (MigrationToolsError.is(error) && NO_PREVIOUS_HASH_CODES.has(error.code)) {
+      return undefined;
+    }
+    throw error;
+  }
 }
 
 interface DbSignDocument extends SignDatabaseResult {
@@ -313,7 +336,7 @@ export function createDbSignCommand(
 
         const refName = args.flags.advanceRef ?? DEFAULT_ADVANCE_REF;
         const refsDir = appRefsDirFor(ctx.config, ctx.cwd);
-        const previousHash = (await readRefs(refsDir))[refName]?.hash;
+        const previousHash = await previousRefHash(refsDir, refName);
         const advanced = await advanceRefSafely({
           refsDir,
           migrationsDir,

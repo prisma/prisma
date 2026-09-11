@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { readFile, rm } from 'node:fs/promises';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import {
   contractSnapshotDir,
@@ -139,6 +139,18 @@ describe('db sign', () => {
       expect(run.exitCode).toBe(4);
       expect(existsSync(refsDirOf(dir))).toBe(false);
       expect(existsSync(join(dir, 'migrations', 'snapshots'))).toBe(false);
+    });
+
+    it('reads only the ref it advances, so a corrupt sibling ref cannot fail the signature', async () => {
+      const dir = await projectDir();
+      await writeRef(refsDirOf(dir), 'db', { hash: HASH_PREVIOUS, invariants: [] });
+      await writeFile(join(refsDirOf(dir), 'staging.json'), '{ not json', 'utf-8');
+
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(0);
+      expect(run.presented?.data).toMatchObject({ advancedRef: { name: 'db', hash: HASH_A } });
+      expect(await refHashOf(dir, 'db')).toBe(HASH_A);
     });
 
     it('settles a missing contract.d.ts as a file-not-found failure after the marker is written', async () => {
