@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { publicShells } from '@internal/publish-surface/shells';
 import { init as initLexer, parse as parseModule } from 'es-module-lexer';
-import { publicShells } from '../../0-shared/publish-surface/src/shells';
 
 /** A tarball-install smoke-test failure with the offending command output attached. */
 class ShellTestError extends Error {}
@@ -39,13 +39,7 @@ export interface PackedShell {
 
 /** The `package.json` of a package directory, as a record. */
 function readManifest(packageDir: string): Record<string, unknown> {
-  const manifestPath = join(packageDir, 'package.json');
-  let manifest: unknown;
-  try {
-    manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  } catch (error) {
-    throw new ShellTestError(`${manifestPath} is not valid JSON: ${String(error)}`);
-  }
+  const manifest: unknown = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
   if (!isRecord(manifest)) throw new ShellTestError(`${packageDir}/package.json is not an object`);
   return manifest;
 }
@@ -472,12 +466,7 @@ export function bundledSources(installedPackageDir: string): string[] {
   const sources = new Set<string>();
   for (const file of walk(join(installedPackageDir, 'dist'))) {
     if (!file.endsWith('.mjs.map')) continue;
-    let map: unknown;
-    try {
-      map = JSON.parse(readFileSync(file, 'utf8'));
-    } catch (error) {
-      throw new ShellTestError(`${file} is not valid JSON: ${String(error)}`);
-    }
+    const map: unknown = JSON.parse(readFileSync(file, 'utf8'));
     if (!isRecord(map) || !Array.isArray(map['sources'])) continue;
     for (const source of map['sources']) {
       if (typeof source !== 'string') continue;

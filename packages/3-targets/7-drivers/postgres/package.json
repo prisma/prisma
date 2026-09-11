@@ -23,6 +23,7 @@
     "@internal/sql-operations": "workspace:8.0.0-rc.9",
     "@internal/sql-relational-core": "workspace:8.0.0-rc.9",
     "@internal/utils": "workspace:8.0.0-rc.9",
+    "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "arktype": "^2.2.2",
     "pg": "catalog:",
