@@ -4,6 +4,7 @@ import type {
   InspectableArgType,
   Param,
   PositionalParam,
+  SymbolTable,
 } from '@internal/psl-parser';
 import {
   ArrayLiteralAst,
@@ -23,11 +24,13 @@ import { blindCast } from '@internal/utils/casts';
 import { type CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
 import type { AttributeArgumentCompletionContext } from './completion-context';
 import { requiredArgumentsSnippet } from './completion-snippets';
+import { localFieldNames, referencedFieldNames } from './completion-symbols';
 
 interface CompletionInput {
   readonly context: AttributeArgumentCompletionContext;
   readonly sourceFile: SourceFile;
   readonly clientSupportsSnippets: boolean;
+  readonly symbolTable: SymbolTable;
 }
 
 interface ArgumentSignature {
@@ -154,9 +157,11 @@ function completeValue(
       return scalarItems(input, expression, type.value === undefined ? [] : [String(type.value)]);
     case 'bool':
       return scalarItems(input, expression, ['true', 'false']);
-    case 'entityRef':
     case 'fieldRef':
+      return scalarItems(input, expression, localFieldNames(input.context, input.symbolTable));
     case 'referencedFieldRef':
+      return scalarItems(input, expression, referencedFieldNames(input.context, input.symbolTable));
+    case 'entityRef':
     case 'int':
     case 'json':
     case 'rejecting':

@@ -10,18 +10,14 @@ import {
   type AttributeSpec,
   assembleAttributeSpecs,
   type BlockAttributeSpecFactory,
-  type FieldSymbol,
   findBlockDescriptor,
-  type ModelSymbol,
   type NamespaceSymbol,
   type SymbolTable,
 } from '@internal/psl-parser';
 import type {
   FieldAttributeAst,
-  FieldDeclarationAst,
   GenericBlockDeclarationAst,
   ModelAttributeAst,
-  ModelDeclarationAst,
   SourceFile,
 } from '@internal/psl-parser/syntax';
 import { blindCast } from '@internal/utils/casts';
@@ -36,6 +32,7 @@ import type {
   PslCompletionContext,
 } from './completion-context';
 import { requiredArgumentsSnippet } from './completion-snippets';
+import { fieldSymbolForNode, modelSymbolForNode } from './completion-symbols';
 import { provideAttributeArgumentCompletionItems } from './completion-values';
 import { refinesScalarType } from './named-type-classification';
 
@@ -155,7 +152,15 @@ export function providePslCompletionItems(
       const spec = attributeSpecResolver(context, input.candidates)(context.attributeName);
       return spec === undefined
         ? []
-        : provideAttributeArgumentCompletionItems({ ...input, context }, spec);
+        : provideAttributeArgumentCompletionItems(
+            {
+              context,
+              sourceFile: input.sourceFile,
+              clientSupportsSnippets: input.clientSupportsSnippets,
+              symbolTable: input.candidates.symbolTable,
+            },
+            spec,
+          );
     }
     case 'declarationKeyword':
       return provideDeclarationKeywordCompletionItems(
@@ -318,41 +323,6 @@ function attributeSpecResolver(
         });
     }
   }
-}
-
-function modelSymbolForNode(
-  symbolTable: SymbolTable,
-  node: ModelDeclarationAst,
-): ModelSymbol | undefined {
-  const topLevelMatch = Object.values(symbolTable.topLevel.models).find((model) =>
-    sameSyntax(model.node.syntax, node.syntax),
-  );
-  if (topLevelMatch !== undefined) {
-    return topLevelMatch;
-  }
-  for (const namespace of Object.values(symbolTable.topLevel.namespaces)) {
-    const namespaceMatch = Object.values(namespace.models).find((model) =>
-      sameSyntax(model.node.syntax, node.syntax),
-    );
-    if (namespaceMatch !== undefined) {
-      return namespaceMatch;
-    }
-  }
-  return undefined;
-}
-
-function fieldSymbolForNode(
-  model: ModelSymbol,
-  node: FieldDeclarationAst,
-): FieldSymbol | undefined {
-  return Object.values(model.fields).find((field) => sameSyntax(field.node.syntax, node.syntax));
-}
-
-function sameSyntax(
-  left: { readonly offset: number; readonly endOffset: number },
-  right: { readonly offset: number; readonly endOffset: number },
-): boolean {
-  return left.offset === right.offset && left.endOffset === right.endOffset;
 }
 
 function provideDeclarationKeywordCompletionItems(
