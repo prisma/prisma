@@ -141,16 +141,10 @@ describe('what the check allows', () => {
     assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
   });
 
-  it('allows the roadmap narrating the move out of the old repository', () => {
-    write('ROADMAP.md', `Developed in a separate repository, \`prisma/${LEGACY}\`.\n`);
-    const result = run();
-    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
-  });
-
-  it('names the roadmap task on each allowance that is meant to be temporary', () => {
+  it('names the pending rename on each allowance that is meant to be temporary', () => {
     for (const line of [`${LEGACY} init`, `skills/${LEGACY}-queries/SKILL.md`]) {
       const allowance = allowanceFor('docs/x.md', line) ?? allowanceFor(line, line);
-      assert.match(allowance.why, /ROADMAP\.md § 3/);
+      assert.match(allowance.why, /rename of the remaining prisma-next identifiers/);
     }
   });
 });

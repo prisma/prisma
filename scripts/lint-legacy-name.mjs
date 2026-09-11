@@ -26,8 +26,9 @@ const GIT_ROOT = process.cwd();
 
 const LEGACY = 'prisma-next';
 
-/** The roadmap task both temporary allowances are waiting on. */
-const ROADMAP_TASK = 'ROADMAP.md § 3, "Decide the config filename and the command name"';
+/** The pending work both temporary allowances are waiting on. */
+const RENAME_TASK =
+  'the user-facing rename of the remaining prisma-next identifiers (primer file, config directories, skill names)';
 
 /**
  * An occurrence that is allowed, with the reason. Each returns true when it
@@ -57,7 +58,7 @@ const ALLOWED = [
       /linear\.app\/[^\s)]*$/.test(before),
   },
   {
-    why: `a name still written into user projects — the \`prisma-next.md\` quick reference and \`.prisma-next/\` directories, the per-user \`config/prisma-next/\` directory, and the \`// use prisma-next\` schema header. The bin and the retired config filename are gone (the unified \`prisma\` CLI reads \`prisma.config.ts\`); these residuals move with the remaining sweep in ${ROADMAP_TASK}`,
+    why: `a name still written into user projects — the \`prisma-next.md\` quick reference and \`.prisma-next/\` directories, the per-user \`config/prisma-next/\` directory, and the \`// use prisma-next\` schema header. The bin and the retired config filename are gone (the unified \`prisma\` CLI reads \`prisma.config.ts\`); these residuals move with the remaining sweep in ${RENAME_TASK}`,
     matches: (relPath, line, before, after) => {
       // Never the package scope, and never a path inside the old repository —
       // those are what this check exists to catch.
@@ -73,17 +74,13 @@ const ALLOWED = [
     },
   },
   {
-    why: `the published skill cluster — users install these by name (\`skills add prisma/prisma#v<version>\`), so the directory names are user-facing and move with the same sweep as the command name, tracked in ${ROADMAP_TASK}`,
+    why: `the published skill cluster — users install these by name (\`skills add prisma/prisma#v<version>\`), so the directory names are user-facing and move with the same sweep as the command name, tracked in ${RENAME_TASK}`,
     matches: (relPath, line, before, after) =>
       /^skills\//.test(relPath) ||
       (/skills\/(?:upgrade\/|extension-author\/)?$/.test(before) && /^[-/]/.test(after)) ||
       /^-(?:quickstart|contract|migrations|migration-review|queries|supabase|runtime|build|debug|feedback|upgrade|extension-upgrade)\b/.test(
         after,
       ),
-  },
-  {
-    why: 'the roadmap narrates the move out of the old repository, so naming it is the point of the sentence',
-    matches: (relPath) => /^ROADMAP\.(?:md|html)$/.test(relPath),
   },
 ];
 
