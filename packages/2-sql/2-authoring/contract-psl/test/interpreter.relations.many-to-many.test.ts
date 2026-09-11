@@ -89,11 +89,13 @@ model PostTag {
       post: {
         to: crossRef('Post', 'public'),
         cardinality: 'N:1',
+        nullable: false,
         on: { localFields: ['postId'], targetFields: ['id'] },
       },
       tag: {
         to: crossRef('Tag', 'public'),
         cardinality: 'N:1',
+        nullable: false,
         on: { localFields: ['tagId'], targetFields: ['id'] },
       },
     });
@@ -677,11 +679,13 @@ model PostTag {
       post: {
         to: crossRef('Post', 'public'),
         cardinality: 'N:1',
+        nullable: false,
         on: { localFields: ['postId'], targetFields: ['id'] },
       },
       tag: {
         to: crossRef('Tag', 'public'),
         cardinality: 'N:1',
+        nullable: false,
         on: { localFields: ['tagId'], targetFields: ['id'] },
       },
     });

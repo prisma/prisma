@@ -1,25 +1,12 @@
 import type { ContractSourceDiagnostic } from '@internal/config/config-types';
 import type { AuthoringContributions } from '@internal/framework-components/authoring';
-import type {
-  FieldSymbol,
-  InferAttr,
-  InterpretCtx,
-  ModelSymbol,
-  PslDiagnostic,
-  PslSpan,
-  SymbolTable,
-} from '@internal/psl-parser';
+import type { FieldSymbol, ModelSymbol, SymbolTable } from '@internal/psl-parser';
 import {
-  bool,
-  fieldAttribute,
-  fieldRef,
-  identifier,
-  list,
-  nodePslSpan,
-  oneOf,
-  optional,
-  str,
-} from '@internal/psl-parser';
+  consumeInvalidFkPairing,
+  fkRelationPairKey,
+  type InvalidFkPairing,
+  requiredOneToOneBackrelationDiagnostic,
+} from '@internal/psl-parser/interpret';
 import type { SourceFile } from '@internal/psl-parser/syntax';
 import type { ReferentialAction } from '@internal/sql-contract/types';
 import type { RelationNode } from '@internal/sql-contract-ts/contract-builder';
@@ -27,7 +14,12 @@ import { assertDefined, invariant } from '@internal/utils/assertions';
 import { ifDefined } from '@internal/utils/defined';
 
 import { checkUncomposedNamespace, reportUncomposedNamespace } from './psl-column-resolution';
-import { findFieldAttributeNode, interpretFieldAttribute } from './sql-attribute-specs';
+import {
+  findFieldAttributeNode,
+  interpretFieldAttribute,
+  type SqlRelationOutput,
+  sqlAttributeSpecs,
+} from './sql-attribute-specs';
 
 export const REFERENTIAL_ACTION_MAP: Record<string, ReferentialAction | undefined> = {
   NoAction: 'noAction',
@@ -53,6 +45,8 @@ export type FkRelationMetadata = {
   /** Resolved namespace coordinate of the related model, when known. */
   readonly targetNamespaceId?: string;
   readonly relationName?: string;
+  /** Optionality (`?`) of the declaring relation field. */
+  readonly nullable: boolean;
   readonly localColumns: readonly string[];
   readonly referencedColumns: readonly string[];
 };
@@ -69,84 +63,9 @@ export type ModelBackrelationCandidate = {
 
 type ModelRelationMetadata = RelationNode;
 
-export function fkRelationPairKey(declaringModelName: string, targetModelName: string): string {
-  // NOTE: We assume PSL model identifiers do not contain the `::` separator.
-  return `${declaringModelName}::${targetModelName}`;
-}
-
 export function normalizeReferentialAction(actionToken: string): ReferentialAction | undefined {
   // the token is already validated by the `@relation` spec's `oneOf(identifier(...))`, so this is just a lookup — no second validation path here.
   return REFERENTIAL_ACTION_MAP[actionToken];
-}
-
-function relationInvariants(
-  parsed: { readonly fields?: readonly string[]; readonly references?: readonly string[] },
-  ctx: InterpretCtx,
-): readonly PslDiagnostic[] {
-  const hasFields = parsed.fields !== undefined;
-  const hasReferences = parsed.references !== undefined;
-  // `fields` and `references` must be both set or both absent — a cross-argument rule that per-argument parsing can't enforce.
-  if (hasFields !== hasReferences) {
-    return [
-      {
-        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-        message: `Relation field "${ctx.selfModel.name}.${ctx.field?.name ?? ''}" requires fields and references arguments`,
-        sourceId: ctx.sourceId,
-        span: relationAttributeSpan(ctx),
-      },
-    ];
-  }
-  return [];
-}
-
-const sqlRelation = fieldAttribute('relation', {
-  positional: [{ key: 'name', type: optional(str()) }],
-  named: {
-    name: optional(str()),
-    fields: optional(list(fieldRef('self'), { nonEmpty: true, unique: true })),
-    references: optional(list(fieldRef('referenced'), { nonEmpty: true, unique: true })),
-    map: optional(str()),
-    onDelete: optional(
-      oneOf(
-        identifier('NoAction'),
-        identifier('Restrict'),
-        identifier('Cascade'),
-        identifier('SetNull'),
-        identifier('SetDefault'),
-      ),
-    ),
-    onUpdate: optional(
-      oneOf(
-        identifier('NoAction'),
-        identifier('Restrict'),
-        identifier('Cascade'),
-        identifier('SetNull'),
-        identifier('SetDefault'),
-      ),
-    ),
-    /**
-     * Opts a foreign key out of its default backing index
-     * (`index: false`). Omitted (the default) keeps the FK's derived
-     * backing-index expectation; only `false` is meaningful — there is no
-     * `index: true` spelling since that is already the default.
-     */
-    index: optional(bool()),
-  },
-  refine: relationInvariants,
-});
-
-export type SqlRelationOutput = InferAttr<typeof sqlRelation>;
-
-function relationAttributeSpan(ctx: InterpretCtx): PslSpan {
-  const field = ctx.field;
-  if (field !== undefined) {
-    const node = findFieldAttributeNode(field, 'relation');
-    if (node !== undefined) {
-      return nodePslSpan(node.syntax, ctx.sourceFile);
-    }
-    return field.span;
-  }
-  return ctx.selfModel.span;
 }
 
 function resolveReferencedModel(symbols: SymbolTable, field: FieldSymbol): ModelSymbol | undefined {
@@ -175,7 +94,7 @@ export function interpretRelationAttribute(input: {
   if (node === undefined) return undefined;
   return interpretFieldAttribute({
     node,
-    spec: sqlRelation,
+    spec: sqlAttributeSpecs.field.relation(),
     model: input.selfModel,
     field: input.field,
     sourceFile: input.sourceFile,
@@ -215,6 +134,7 @@ export function indexFkRelations(input: {
       toTable: relation.targetTableName,
       ...ifDefined('toNamespaceId', relation.targetNamespaceId),
       cardinality: 'N:1',
+      nullable: relation.nullable,
       on: {
         parentTable: relation.declaringTableName,
         parentColumns: relation.localColumns,
@@ -458,6 +378,7 @@ function fkColumnsAreUnique(
 export function applyBackrelationCandidates(input: {
   readonly backrelationCandidates: readonly ModelBackrelationCandidate[];
   readonly fkRelationsByPair: Map<string, readonly FkRelationMetadata[]>;
+  readonly invalidFkPairings: InvalidFkPairing[];
   readonly fkRelationsByDeclaringModel: ReadonlyMap<string, readonly FkRelationMetadata[]>;
   readonly modelIdColumns: ReadonlyMap<string, readonly string[]>;
   readonly modelUniqueColumnSets: ReadonlyMap<string, readonly (readonly string[])[]>;
@@ -473,6 +394,9 @@ export function applyBackrelationCandidates(input: {
       : [...pairMatches];
 
     if (matches.length === 0) {
+      if (consumeInvalidFkPairing(candidate, pairKey, input.invalidFkPairings)) {
+        continue;
+      }
       // A singular candidate is the back side of a 1:1 — many-to-many junction
       // matching only makes sense for a list-typed backrelation.
       if (candidate.isList) {
@@ -538,12 +462,26 @@ export function applyBackrelationCandidates(input: {
       }
     }
 
+    if (!candidate.isList && !candidate.field.optional) {
+      input.diagnostics.push(
+        requiredOneToOneBackrelationDiagnostic({
+          modelName: candidate.modelName,
+          field: candidate.field,
+          targetModelName: candidate.targetModelName,
+          sourceId: input.sourceId,
+          recordNoun: 'row',
+        }),
+      );
+    }
+
     relationsForModel(input.modelRelations, candidate.modelName).push({
       fieldName: candidate.field.name,
       toModel: matched.declaringModelName,
       toTable: matched.declaringTableName,
       ...ifDefined('toNamespaceId', matched.declaringNamespaceId),
-      cardinality: candidate.isList ? '1:N' : '1:1',
+      ...(candidate.isList
+        ? { cardinality: '1:N' as const }
+        : { cardinality: '1:1' as const, nullable: true }),
       on: {
         parentTable: candidate.tableName,
         parentColumns: matched.referencedColumns,

@@ -114,6 +114,7 @@ import {
   type IncludeCombineBranch,
   type IncludeExpr,
   type IncludeRelationOwner,
+  type IncludeRelationValue,
   type IncludeScalar,
   type InferRootRow,
   type MutationCreateInput,
@@ -221,6 +222,7 @@ class CollectionImpl<
 > implements RowSelection<Row>
 {
   declare readonly [RowType]: Row;
+  declare readonly _row?: Row;
   /** @internal */
   readonly ctx: CollectionContext<TContract>;
   /** @internal */
@@ -492,6 +494,110 @@ class CollectionImpl<
    * ).all();
    * ```
    */
+  include<
+    RelName extends VariantAwareIncludeRelationNames<
+      TContract,
+      ModelName,
+      State['variantName'],
+      State['nsId']
+    >,
+    RelationOwner extends string = IncludeRelationOwner<
+      TContract,
+      ModelName,
+      State['variantName'],
+      RelName,
+      State['nsId']
+    > &
+      string,
+    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> &
+      string = RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> & string,
+    TargetNs extends string = RelationTargetNamespace<
+      TContract,
+      RelationOwner,
+      RelName,
+      State['nsId']
+    >,
+  >(
+    relationName: RelName,
+  ): Collection<
+    TContract,
+    ModelName,
+    SimplifyDeep<
+      Row & {
+        [K in RelName]: IncludeRelationValue<
+          TContract,
+          RelationOwner,
+          K,
+          SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
+          State['nsId']
+        >;
+      }
+    >,
+    State
+  >;
+  include<
+    RelName extends VariantAwareIncludeRelationNames<
+      TContract,
+      ModelName,
+      State['variantName'],
+      State['nsId']
+    >,
+    RelationOwner extends string = IncludeRelationOwner<
+      TContract,
+      ModelName,
+      State['variantName'],
+      RelName,
+      State['nsId']
+    > &
+      string,
+    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> &
+      string = RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> & string,
+    TargetNs extends string = RelationTargetNamespace<
+      TContract,
+      RelationOwner,
+      RelName,
+      State['nsId']
+    >,
+    IsToMany extends boolean = IsToManyRelation<TContract, RelationOwner, RelName, State['nsId']>,
+    RefinedResult extends IncludeRefinementResult<
+      TContract,
+      RelatedName,
+      IsToMany
+    > = IncludeRefinementCollection<
+      TContract,
+      RelatedName,
+      SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
+      CollectionTypeState,
+      IsToMany
+    >,
+  >(
+    relationName: RelName,
+    refineFn: (
+      collection: IncludeRefinementCollection<
+        TContract,
+        RelatedName,
+        SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
+        DefaultCollectionTypeState,
+        IsToMany
+      >,
+    ) => RefinedResult,
+  ): Collection<
+    TContract,
+    ModelName,
+    SimplifyDeep<
+      Row & {
+        [K in RelName]: IncludeRefinementValue<
+          TContract,
+          RelationOwner,
+          K,
+          SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
+          RefinedResult,
+          State['nsId']
+        >;
+      }
+    >,
+    State
+  >;
   include<
     RelName extends VariantAwareIncludeRelationNames<
       TContract,
@@ -1004,15 +1110,9 @@ class CollectionImpl<
    * whichever fits the caller. A single result can only be consumed
    * once.
    *
-   * Streaming is the default and the expected execution model. The
-   * only scenarios that fall back to buffering internally before
-   * yielding are drivers that cannot expose a cursor to the
-   * underlying database, and — for queries with `include(...)` —
-   * targets whose SQL dialect supports neither lateral joins nor
-   * correlated subqueries (so child rows cannot be stitched in a
-   * single streaming query). These are implementation details below
-   * the public API; the iteration shape itself is genuinely
-   * streaming whenever the driver and plan allow it.
+   * Queries without `include(...)` stream rows as the driver yields them (drivers that cannot
+   * expose a cursor buffer internally first). Queries with `include(...)` read the whole parent
+   * result set into memory before yielding the first row.
    *
    * ```typescript
    * // Thenable — collect to an array:
@@ -1191,12 +1291,13 @@ class CollectionImpl<
    * `select(...)` / `include(...)` projections applied to the returned
    * shape).
    *
-   * Related rows can be created or linked through relation callbacks
-   * on parent/child-owned relations (one-to-one or one-to-many).
-   * The callback receives a mutator exposing `create(...)` and
-   * `connect(...)`; `disconnect(...)` is only supported in nested
-   * `update(...)` mutations. Many-to-many relations are not yet
-   * supported as nested-mutation targets.
+   * Related rows can be created or linked through relation callbacks on any relation: to-one
+   * (1:1, N:1), to-many (1:N), and many-to-many (N:M, written through the junction table). The
+   * callback receives a mutator exposing `create(...)` and `connect(...)`; `disconnect(...)` is
+   * only supported in nested `update(...)` mutations. To-one relations take a single row or
+   * criterion.
+   * N:M `create`/`connect` are unavailable when the junction has required columns the relation API
+   * cannot populate.
    *
    * ```typescript
    * // Simple insert:
@@ -1228,9 +1329,9 @@ class CollectionImpl<
    *
    * Note: when the input contains nested-mutation callbacks, the
    * operation is executed as a graph of internal queries via
-   * `withMutationScope`. In that path, annotations apply to the
-   * logical `create()` call but do not currently flow into each
-   * constituent SQL statement issued for the related rows.
+   * `withMutationScope`. In that path the `configure` callback still runs, so `meta.annotate`
+   * validation applies, but the recorded annotations are discarded: neither the nested
+   * statements nor the read-back query carry them.
    */
   async create(
     data: ResolvedCreateInput<TContract, ModelName, State['variantName'], State['nsId']>,
@@ -1833,12 +1934,13 @@ class CollectionImpl<
    * Requires a prior `.where(...)` — calling `update(...)` on an
    * unfiltered collection is a type error.
    *
-   * Related rows can be created or relinked through relation
-   * callbacks on parent/child-owned relations (one-to-one or
-   * one-to-many). The callback receives a mutator exposing
-   * `create(...)`, `connect(...)`, and `disconnect(...)`. Nested
-   * updates against existing related rows, and many-to-many relations
-   * as nested-mutation targets, are not supported through this API.
+   * Related rows can be created, linked, or unlinked through relation callbacks on any relation:
+   * to-one (1:1, N:1), to-many (1:N), and many-to-many (N:M, written through the junction table).
+   * The callback receives a mutator exposing `create(...)`, `connect(...)`, and `disconnect(...)`.
+   * A to-one `disconnect()` clears the foreign key; a to-many `disconnect()` with no criteria
+   * unlinks every related row; an N:M `disconnect()` requires criteria. N:M `create`/`connect` are
+   * unavailable when the junction has required columns the relation API cannot populate. Nested
+   * updates against existing related rows are not supported through this API.
    *
    * ```typescript
    * // Update one row by id:
@@ -1860,9 +1962,9 @@ class CollectionImpl<
    *
    * Note: when the input contains nested-mutation callbacks, the
    * operation is executed as a graph of internal queries via
-   * `withMutationScope`. In that path, annotations apply to the logical
-   * `update()` call but do not currently flow into each constituent SQL
-   * statement issued for the related rows.
+   * `withMutationScope`. In that path the `configure` callback still runs, so `meta.annotate`
+   * validation applies, but the recorded annotations are discarded: neither the nested
+   * statements nor the read-back query carry them.
    */
   async update(
     data: State['hasWhere'] extends true
@@ -2570,7 +2672,7 @@ class CollectionImpl<
    * compiled plan is post-wrapped via `mergeAnnotations` instead.
    * Read terminals `all` and `first` populate `state.annotations`
    * via `#withAnnotationsFromMeta` instead; `aggregate` uses this
-   * post-wrap path because its compile function doesn't take `state`.
+   * post-wrap path because `compileAggregate` does not forward `state.annotations` into the plan.
    * The meta builder's `annotate` method enforces applicability at the
    * type level and at runtime.
    */

@@ -730,6 +730,7 @@ class ControlClientImpl implements ControlClient {
         {
           serializeContract: (contract) =>
             this.options.target.contractSerializer.serializeContract(contract),
+          ...ifDefined('supportsNamespaces', this.options.target.supportsNamespaces),
         },
       );
 

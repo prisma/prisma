@@ -2,10 +2,14 @@ import type { ContractSourceDiagnostic } from '@internal/config/config-types';
 import type {
   ArgType,
   AttributeSpec,
+  AttributeSpecContext,
+  AttributeSpecNamespace,
+  FieldAttributeCtx,
+  FieldAttributeSpecContext,
   FieldSymbol,
   FuncCallSig,
   InferAttr,
-  InterpretCtx,
+  ModelAttributeCtx,
   ModelSymbol,
   TypedFuncCall,
 } from '@internal/psl-parser';
@@ -25,6 +29,7 @@ import {
   oneOf,
   optional,
   record,
+  referencedFieldRef,
   str,
 } from '@internal/psl-parser';
 import type { FieldAttributeAst, ModelAttributeAst, SourceFile } from '@internal/psl-parser/syntax';
@@ -49,29 +54,26 @@ export function findFieldAttributeNode(
   return undefined;
 }
 
-function buildModelInterpretCtx(input: {
+function buildModelAttributeCtx(input: {
   readonly selfModel: ModelSymbol;
   readonly sourceFile: SourceFile;
   readonly sourceId: string;
-}): InterpretCtx {
+}): ModelAttributeCtx {
   return {
-    level: 'model',
     sourceId: input.sourceId,
     sourceFile: input.sourceFile,
     selfModel: input.selfModel,
-    resolveReferencedModel: () => undefined,
   };
 }
 
-function buildFieldInterpretCtx(input: {
+function buildFieldAttributeCtx(input: {
   readonly selfModel: ModelSymbol;
   readonly field: FieldSymbol;
   readonly sourceFile: SourceFile;
   readonly sourceId: string;
   readonly resolveReferencedModel?: (() => ModelSymbol | undefined) | undefined;
-}): InterpretCtx {
+}): FieldAttributeCtx {
   return {
-    level: 'field',
     sourceId: input.sourceId,
     sourceFile: input.sourceFile,
     selfModel: input.selfModel,
@@ -85,7 +87,7 @@ function buildFieldInterpretCtx(input: {
 // failure so the caller can apply its own default/absence handling.
 export function interpretModelAttribute<Out>(input: {
   readonly node: ModelAttributeAst;
-  readonly spec: AttributeSpec<Out>;
+  readonly spec: AttributeSpec<Out, ModelAttributeCtx>;
   readonly model: ModelSymbol;
   readonly sourceFile: SourceFile;
   readonly sourceId: string;
@@ -94,7 +96,7 @@ export function interpretModelAttribute<Out>(input: {
   const result = interpretAttribute(
     input.node,
     input.spec,
-    buildModelInterpretCtx({
+    buildModelAttributeCtx({
       selfModel: input.model,
       sourceFile: input.sourceFile,
       sourceId: input.sourceId,
@@ -112,7 +114,7 @@ export function interpretModelAttribute<Out>(input: {
 // failure so the caller can apply its own default/absence handling.
 export function interpretFieldAttribute<Out>(input: {
   readonly node: FieldAttributeAst;
-  readonly spec: AttributeSpec<Out>;
+  readonly spec: AttributeSpec<Out, FieldAttributeCtx>;
   readonly model: ModelSymbol;
   readonly field: FieldSymbol;
   readonly sourceFile: SourceFile;
@@ -123,7 +125,7 @@ export function interpretFieldAttribute<Out>(input: {
   const result = interpretAttribute(
     input.node,
     input.spec,
-    buildFieldInterpretCtx({
+    buildFieldAttributeCtx({
       selfModel: input.model,
       field: input.field,
       sourceFile: input.sourceFile,
@@ -140,19 +142,21 @@ export function interpretFieldAttribute<Out>(input: {
 
 export const mapModelSpec = modelAttribute('map', { positional: [{ key: 'name', type: str() }] });
 export const mapFieldSpec = fieldAttribute('map', { positional: [{ key: 'name', type: str() }] });
+export const idFieldSpec = fieldAttribute('id', {});
+export const uniqueFieldSpec = fieldAttribute('unique', {});
 
 export const relationFieldSpec = fieldAttribute('relation', {
   positional: [{ key: 'name', type: optional(str()) }],
   named: {
     name: optional(str()),
-    fields: optional(list(fieldRef('self'), { nonEmpty: true, unique: true })),
-    references: optional(list(fieldRef('referenced'), { nonEmpty: true, unique: true })),
+    fields: optional(list(fieldRef(), { allowEmpty: false, unique: true })),
+    references: optional(list(referencedFieldRef(), { allowEmpty: false, unique: true })),
   },
 });
 export type RelationFieldOutput = InferAttr<typeof relationFieldSpec>;
 
 export const discriminatorModelSpec = modelAttribute('discriminator', {
-  positional: [{ key: 'field', type: fieldRef('self') }],
+  positional: [{ key: 'field', type: fieldRef() }],
 });
 export const baseModelSpec = modelAttribute('base', {
   positional: [
@@ -165,9 +169,14 @@ const sortSig = {
   named: { sort: oneOf(identifier('Asc'), identifier('Desc')) },
 } satisfies FuncCallSig;
 
-function indexFieldElement(fieldNames: readonly string[]): ArgType<string | TypedFuncCall> {
-  const arms: readonly [ArgType<string | TypedFuncCall>, ...ArgType<string | TypedFuncCall>[]] = [
-    fieldRef('self'),
+function indexFieldElement(
+  fieldNames: readonly string[],
+): ArgType<string | TypedFuncCall, ModelAttributeCtx> {
+  const arms: readonly [
+    ArgType<string | TypedFuncCall, ModelAttributeCtx>,
+    ...ArgType<string | TypedFuncCall, ModelAttributeCtx>[],
+  ] = [
+    fieldRef(),
     funcCall('wildcard', { positional: [{ key: 'scope', type: optional(entityRef()) }] }),
     ...fieldNames.map((name) => funcCall(name, sortSig)),
   ];
@@ -188,10 +197,10 @@ const collationNamedArgs = {
 
 function buildIndexModelSpec(
   name: 'index' | 'unique',
-  fieldElement: ArgType<string | TypedFuncCall>,
+  fieldElement: ArgType<string | TypedFuncCall, ModelAttributeCtx>,
 ) {
   return modelAttribute(name, {
-    positional: [{ key: 'fields', type: list(fieldElement, { nonEmpty: true }) }],
+    positional: [{ key: 'fields', type: list(fieldElement, { allowEmpty: false }) }],
     named: {
       type: optional(
         oneOf(num(1), num(-1), str('text'), str('2dsphere'), str('2d'), str('hashed')),
@@ -208,9 +217,9 @@ function buildIndexModelSpec(
   });
 }
 
-function buildTextIndexModelSpec(fieldElement: ArgType<string | TypedFuncCall>) {
+function buildTextIndexModelSpec(fieldElement: ArgType<string | TypedFuncCall, ModelAttributeCtx>) {
   return modelAttribute('textIndex', {
-    positional: [{ key: 'fields', type: list(fieldElement, { nonEmpty: true }) }],
+    positional: [{ key: 'fields', type: list(fieldElement, { allowEmpty: false }) }],
     named: {
       filter: optional(json()),
       weights: optional(record(int({ min: 1, max: 99_999 }))),
@@ -221,11 +230,33 @@ function buildTextIndexModelSpec(fieldElement: ArgType<string | TypedFuncCall>) 
   });
 }
 
-export function buildIndexModelSpecs(fieldNames: readonly string[]) {
-  const fieldElement = indexFieldElement(fieldNames);
-  return {
-    index: buildIndexModelSpec('index', fieldElement),
-    unique: buildIndexModelSpec('unique', fieldElement),
-    textIndex: buildTextIndexModelSpec(fieldElement),
-  };
+function modelFieldElement(
+  ctx: AttributeSpecContext,
+): ArgType<string | TypedFuncCall, ModelAttributeCtx> {
+  return indexFieldElement(Object.keys(ctx.model.fields));
 }
+
+function staticModelSpec<Spec>(spec: Spec): (ctx: AttributeSpecContext) => Spec {
+  return () => spec;
+}
+
+function staticFieldSpec<Spec>(spec: Spec): (ctx: FieldAttributeSpecContext) => Spec {
+  return () => spec;
+}
+
+export const mongoAttributeSpecs = {
+  model: {
+    map: staticModelSpec(mapModelSpec),
+    discriminator: staticModelSpec(discriminatorModelSpec),
+    base: staticModelSpec(baseModelSpec),
+    index: (ctx) => buildIndexModelSpec('index', modelFieldElement(ctx)),
+    unique: (ctx) => buildIndexModelSpec('unique', modelFieldElement(ctx)),
+    textIndex: (ctx) => buildTextIndexModelSpec(modelFieldElement(ctx)),
+  },
+  field: {
+    id: staticFieldSpec(idFieldSpec),
+    unique: staticFieldSpec(uniqueFieldSpec),
+    map: staticFieldSpec(mapFieldSpec),
+    relation: staticFieldSpec(relationFieldSpec),
+  },
+} as const satisfies AttributeSpecNamespace;

@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -311,6 +315,48 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    userToObjectives: public_UserToObjective[];
+    votes: public_Vote[];
+    readonly [RelationKeys]?: 'userToObjectives' | 'votes';
+  };
+  export type public_Objective = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    userToObjectives: public_UserToObjective[];
+    readonly [RelationKeys]?: 'userToObjectives';
+  };
+  export type public_UserToObjective = {
+    userId: CodecTypes['pg/int4@1']['output'];
+    objectiveId: CodecTypes['pg/int4@1']['output'];
+    objective: public_Objective;
+    user: public_User;
+    votes: public_Vote[];
+    readonly [RelationKeys]?: 'objective' | 'user' | 'votes';
+  };
+  export type public_Vote = {
+    userId: CodecTypes['pg/int4@1']['output'];
+    objectiveId: CodecTypes['pg/int4@1']['output'];
+    followerId: CodecTypes['pg/int4@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    user: public_User;
+    userObjective: public_UserToObjective;
+    readonly [RelationKeys]?: 'user' | 'userObjective';
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Objective: Models.public_Objective;
+    UserToObjective: Models.public_UserToObjective;
+    Vote: Models.public_Vote;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -599,6 +645,7 @@ type ContractBase = Omit<
                   readonly model: 'Objective';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['objectiveId'];
                   readonly targetFields: readonly ['id'];
@@ -607,6 +654,7 @@ type ContractBase = Omit<
               readonly user: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -656,6 +704,7 @@ type ContractBase = Omit<
               readonly user: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -667,6 +716,7 @@ type ContractBase = Omit<
                   readonly model: 'UserToObjective';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['objectiveId', 'followerId'];
                   readonly targetFields: readonly ['userId', 'objectiveId'];

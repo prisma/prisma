@@ -1,6 +1,6 @@
 import { ok } from '@internal/utils/result';
 import { describe, expect, it } from 'vitest';
-import type { ArgType, InterpretCtx } from '../src/exports';
+import type { ArgType, AttributeCtx, FieldAttributeCtx, ModelAttributeCtx } from '../src/exports';
 import {
   bool,
   entityRef,
@@ -18,6 +18,7 @@ import {
   oneOf,
   optional,
   record,
+  referencedFieldRef,
   str,
 } from '../src/exports';
 import { Cursor, parse, parseAttribute } from '../src/parse';
@@ -27,7 +28,7 @@ import { FieldAttributeAst, ModelAttributeAst } from '../src/syntax/ast/attribut
 import type { ExpressionAst } from '../src/syntax/ast/expressions';
 import { createSyntaxTree } from '../src/syntax/red';
 
-function makeCtx(sourceFile: SourceFile): InterpretCtx {
+function makeCtx(sourceFile: SourceFile): FieldAttributeCtx {
   const { document, sourceFile: modelSource } = parse('model M {\n  id Int @id\n}\n');
   const { table } = buildSymbolTable({
     document,
@@ -36,16 +37,18 @@ function makeCtx(sourceFile: SourceFile): InterpretCtx {
   });
   const selfModel = table.topLevel.models['M'];
   if (!selfModel) throw new Error('expected model M in the symbol table');
+  const field = selfModel.fields['id'];
+  if (!field) throw new Error('expected field id on model M');
   return {
-    level: 'field',
     sourceId: 'schema.prisma',
     sourceFile,
     selfModel,
+    field,
     resolveReferencedModel: () => undefined,
   };
 }
 
-function argOf(exprSource: string): { expr: ExpressionAst; ctx: InterpretCtx } {
+function argOf(exprSource: string): { expr: ExpressionAst; ctx: FieldAttributeCtx } {
   const cursor = new Cursor(`@x(${exprSource})`);
   const node = FieldAttributeAst.cast(createSyntaxTree(parseAttribute(cursor)));
   if (!node) throw new Error('expected a field attribute');
@@ -55,11 +58,11 @@ function argOf(exprSource: string): { expr: ExpressionAst; ctx: InterpretCtx } {
   return { expr, ctx: makeCtx(cursor.sourceFile) };
 }
 
-function modelAttrOf(source: string): { node: ModelAttributeAst; ctx: InterpretCtx } {
+function modelAttrOf(source: string): { node: ModelAttributeAst; ctx: ModelAttributeCtx } {
   const cursor = new Cursor(source);
   const node = ModelAttributeAst.cast(createSyntaxTree(parseAttribute(cursor)));
   if (!node) throw new Error('expected a model attribute');
-  return { node, ctx: { ...makeCtx(cursor.sourceFile), level: 'model' } };
+  return { node, ctx: makeCtx(cursor.sourceFile) };
 }
 
 describe('str', () => {
@@ -467,8 +470,16 @@ describe('modelAttribute', () => {
 describe('oneOf', () => {
   it('returns the first alternative that succeeds', () => {
     const { expr, ctx } = argOf('Cascade');
-    const first: ArgType<'first'> = { kind: 'const', label: 'first', parse: () => ok('first') };
-    const second: ArgType<'second'> = { kind: 'const', label: 'second', parse: () => ok('second') };
+    const first: ArgType<'first', AttributeCtx> = {
+      kind: 'str',
+      label: 'first',
+      parse: () => ok('first'),
+    };
+    const second: ArgType<'second', AttributeCtx> = {
+      kind: 'str',
+      label: 'second',
+      parse: () => ok('second'),
+    };
 
     const result = oneOf(first, second).parse(expr, ctx);
 
@@ -483,6 +494,21 @@ describe('oneOf', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value).toBe('SetNull');
+  });
+
+  it('preserves grammar metadata through alternatives and wrappers', () => {
+    const alternatives = oneOf(str(), fieldRef());
+    const optionalAlternative = optional(oneOf(str(), fieldRef()));
+    const alternativeList = list(oneOf(str(), fieldRef()), { allowEmpty: false });
+    const alternativeRecord = record(optional(oneOf(fieldRef(), referencedFieldRef())));
+
+    expect(alternatives).toMatchObject({ kind: 'oneOf' });
+    expect(alternatives.alternatives.map((alt) => alt.kind)).toEqual(['str', 'fieldRef']);
+    expect(optionalAlternative).toMatchObject({ kind: 'oneOf', optional: true });
+    expect(alternativeList).toMatchObject({ kind: 'list', allowEmpty: false, unique: false });
+    expect(alternativeList.of).toMatchObject({ kind: 'oneOf' });
+    expect(alternativeRecord).toMatchObject({ kind: 'record' });
+    expect(alternativeRecord.of).toMatchObject({ kind: 'oneOf', optional: true });
   });
 
   it('names each function when every function-call alternative fails', () => {
@@ -517,7 +543,7 @@ describe('fieldRef', () => {
   it('resolves a field that exists on the self model', () => {
     const { expr, ctx } = argOf('id');
 
-    const result = fieldRef('self').parse(expr, ctx);
+    const result = fieldRef().parse(expr, ctx);
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value).toBe('id');
@@ -526,7 +552,7 @@ describe('fieldRef', () => {
   it('emits an existence diagnostic for a field missing from the self model', () => {
     const { expr, ctx } = argOf('ghostField');
 
-    const result = fieldRef('self').parse(expr, ctx);
+    const result = fieldRef().parse(expr, ctx);
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -537,9 +563,12 @@ describe('fieldRef', () => {
 
   it('resolves a field against the referenced model when it is in scope', () => {
     const { expr, ctx } = argOf('id');
-    const referencedCtx: InterpretCtx = { ...ctx, resolveReferencedModel: () => ctx.selfModel };
+    const referencedCtx: FieldAttributeCtx = {
+      ...ctx,
+      resolveReferencedModel: () => ctx.selfModel,
+    };
 
-    const result = fieldRef('referenced').parse(expr, referencedCtx);
+    const result = referencedFieldRef().parse(expr, referencedCtx);
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value).toBe('id');
@@ -548,21 +577,21 @@ describe('fieldRef', () => {
   it('carries a referenced name through when the referenced model is out of scope', () => {
     const { expr, ctx } = argOf('ghostField');
 
-    const result = fieldRef('referenced').parse(expr, ctx);
+    const result = referencedFieldRef().parse(expr, ctx);
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value).toBe('ghostField');
   });
 
-  it('carries the scope as combinator metadata', () => {
-    expect(fieldRef('self').scope).toBe('self');
-    expect(fieldRef('referenced').scope).toBe('referenced');
+  it('labels both scopes as a field name', () => {
+    expect(fieldRef().label).toBe('field name');
+    expect(referencedFieldRef().label).toBe('field name');
   });
 
   it('rejects a non-identifier token', () => {
     const { expr, ctx } = argOf('"title"');
 
-    const result = fieldRef('self').parse(expr, ctx);
+    const result = fieldRef().parse(expr, ctx);
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.failure[0]?.code).toBe('PSL_INVALID_ATTRIBUTE_SYNTAX');
@@ -620,31 +649,60 @@ describe('list', () => {
     if (result.ok) expect(result.value).toEqual(['a', 'b']);
   });
 
-  it('rejects an empty list when nonEmpty is set', () => {
+  it('defaults to allowing empty lists and non-unique entries in metadata and parsing', () => {
+    const { expr, ctx } = argOf('[]');
+    const type = list(str());
+
+    const result = type.parse(expr, ctx);
+
+    expect(type).toMatchObject({ allowEmpty: true, unique: false });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value).toEqual([]);
+  });
+
+  it('rejects an empty list when allowEmpty is false', () => {
     const { expr, ctx } = argOf('[]');
 
-    const result = list(str(), { nonEmpty: true }).parse(expr, ctx);
+    const result = list(str(), { allowEmpty: false }).parse(expr, ctx);
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.failure).toHaveLength(1);
   });
 
-  it('accepts a populated list when nonEmpty is set', () => {
+  it('accepts a populated list when allowEmpty is false', () => {
     const { expr, ctx } = argOf('["a", "b"]');
 
-    const result = list(str(), { nonEmpty: true }).parse(expr, ctx);
+    const result = list(str(), { allowEmpty: false }).parse(expr, ctx);
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value).toEqual(['a', 'b']);
   });
 
-  it('rejects duplicates when unique is set, anchored per offending element', () => {
+  it('accepts an empty list when allowEmpty is explicitly true', () => {
+    const { expr, ctx } = argOf('[]');
+
+    const result = list(str(), { allowEmpty: true }).parse(expr, ctx);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value).toEqual([]);
+  });
+
+  it('rejects duplicates when unique is true, anchored per offending element', () => {
     const { expr, ctx } = argOf('["a", "a"]');
 
     const result = list(str(), { unique: true }).parse(expr, ctx);
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.failure).toHaveLength(1);
+  });
+
+  it('accepts duplicates when unique is explicitly false', () => {
+    const { expr, ctx } = argOf('["a", "a"]');
+
+    const result = list(str(), { unique: false }).parse(expr, ctx);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value).toEqual(['a', 'a']);
   });
 
   it('propagates an element parse error', () => {
@@ -663,6 +721,29 @@ describe('list', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.failure).toHaveLength(1);
+  });
+});
+
+describe('optional', () => {
+  it('marks default presence only when a default argument is passed', () => {
+    const withoutDefault = optional(str());
+    const withDefault = optional(str(), 'fallback');
+    const withExplicitUndefinedDefault = optional(str(), undefined);
+
+    expect(withoutDefault).toMatchObject({ kind: 'str', optional: true, hasDefault: false });
+    expect(withoutDefault).not.toHaveProperty('defaultValue');
+    expect(withDefault).toMatchObject({
+      kind: 'str',
+      optional: true,
+      hasDefault: true,
+      defaultValue: 'fallback',
+    });
+    expect(withExplicitUndefinedDefault).toMatchObject({
+      kind: 'str',
+      optional: true,
+      hasDefault: true,
+      defaultValue: undefined,
+    });
   });
 });
 

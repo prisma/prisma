@@ -1,10 +1,10 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { ok, type Result } from '@internal/utils/result';
 import { expectTypeOf, test } from 'vitest';
-import type { ArgType, InferAttr } from '../src/exports';
+import type { ArgType, ArgTypeKind, AttributeCtx, InferAttr } from '../src/exports';
 import { fieldAttribute, modelAttribute, optional } from '../src/exports';
 
-function leaf<T>(kind: string, value: T): ArgType<T> {
+function leaf<T>(kind: ArgTypeKind, value: T): ArgType<T, AttributeCtx> {
   return {
     kind,
     label: kind,
@@ -12,8 +12,8 @@ function leaf<T>(kind: string, value: T): ArgType<T> {
   };
 }
 
-const str = (): ArgType<string> => leaf('str', '');
-const int = (): ArgType<number> => leaf('int', 0);
+const str = (): ArgType<string, AttributeCtx> => leaf('str', '');
+const int = (): ArgType<number, AttributeCtx> => leaf('int', 0);
 
 test('a required named param becomes a required property', () => {
   const spec = fieldAttribute('demo', { named: { name: str() } });

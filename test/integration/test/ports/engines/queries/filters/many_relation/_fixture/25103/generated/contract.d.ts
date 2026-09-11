@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -311,6 +315,46 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_Contact = {
+    id: CodecTypes['pg/text@1']['output'];
+    identities: public_Identity[];
+    readonly [RelationKeys]?: 'identities';
+  };
+  export type public_Identity = {
+    id: CodecTypes['pg/text@1']['output'];
+    contactId: CodecTypes['pg/text@1']['output'];
+    contact: public_Contact;
+    subscriptions: public_Subscription[];
+    readonly [RelationKeys]?: 'contact' | 'subscriptions';
+  };
+  export type public_Subscription = {
+    id: CodecTypes['pg/text@1']['output'];
+    identityId: CodecTypes['pg/text@1']['output'];
+    audienceId: CodecTypes['pg/text@1']['output'];
+    optedOutAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    audience: public_Audience;
+    identity: public_Identity;
+    readonly [RelationKeys]?: 'audience' | 'identity';
+  };
+  export type public_Audience = {
+    id: CodecTypes['pg/text@1']['output'];
+    deletedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    subscriptions: public_Subscription[];
+    readonly [RelationKeys]?: 'subscriptions';
+  };
+}
+
+export declare const models: {
+  public: {
+    Contact: Models.public_Contact;
+    Identity: Models.public_Identity;
+    Subscription: Models.public_Subscription;
+    Audience: Models.public_Audience;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -567,6 +611,7 @@ type ContractBase = Omit<
                   readonly model: 'Contact';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['contactId'];
                   readonly targetFields: readonly ['id'];
@@ -622,6 +667,7 @@ type ContractBase = Omit<
                   readonly model: 'Audience';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['audienceId'];
                   readonly targetFields: readonly ['id'];
@@ -633,6 +679,7 @@ type ContractBase = Omit<
                   readonly model: 'Identity';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['identityId'];
                   readonly targetFields: readonly ['id'];

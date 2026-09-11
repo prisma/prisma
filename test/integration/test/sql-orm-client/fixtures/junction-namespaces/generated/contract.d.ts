@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -372,6 +376,59 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    roles: public_Role[];
+    readonly [RelationKeys]?: 'roles';
+  };
+  export type public_Role = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type public_UserRole = {
+    userId: CodecTypes['pg/int4@1']['output'];
+    roleId: CodecTypes['pg/text@1']['output'];
+    token: Char<36>;
+    readonly [RelationKeys]?: never;
+  };
+  export type shadow_ShadowUser = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    roles: shadow_ShadowRole[];
+    readonly [RelationKeys]?: 'roles';
+  };
+  export type shadow_ShadowRole = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type shadow_ShadowUserRole = {
+    userId: CodecTypes['pg/int4@1']['output'];
+    roleId: CodecTypes['pg/text@1']['output'];
+    token: CodecTypes['pg/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    Role: Models.public_Role;
+    UserRole: Models.public_UserRole;
+  };
+  shadow: {
+    ShadowUser: Models.shadow_ShadowUser;
+    ShadowRole: Models.shadow_ShadowRole;
+    ShadowUserRole: Models.shadow_ShadowUserRole;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,

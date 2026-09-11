@@ -15,8 +15,8 @@ const sqlRelation = fieldAttribute('relation', {
   positional: [{ key: 'name', type: optional(str()) }],
   named: {
     name: optional(str()),
-    fields: optional(list(fieldRef('self'), { nonEmpty: true })),
-    references: optional(list(fieldRef('referenced'), { nonEmpty: true })),
+    fields: optional(list(fieldRef(), { nonEmpty: true })),
+    references: optional(list(referencedFieldRef(), { nonEmpty: true })),
     map: optional(str()),
     onDelete: optional(
       oneOf(
@@ -46,7 +46,7 @@ The SQL and Mongo family interpreters are the first consumers. They define their
 
 The kit consumes `ExpressionAst` directly. No intermediate argument representation is introduced, and no combinator reparses flattened source text except `json()`, the deliberate quoted-JSON-object exception.
 
-Attributes are a PSL authoring concern, so the kit lives in `psl-parser` rather than framework core. The current constructors cover field and model attributes. `AttributeLevel` reserves a block level, but generic-block attribute construction and interpretation remain future work.
+Attributes are a PSL authoring concern, so the kit is in `psl-parser` rather than framework core. Field, model, and block attributes are all constructed through it. A block descriptor declares which attributes its block accepts, and the generic block reconstruction interprets them at parse time.
 
 ---
 
@@ -67,44 +67,47 @@ Attributes are a PSL authoring concern, so the kit lives in `psl-parser` rather 
 An argument combinator parses one `ExpressionAst` into `T`:
 
 ```ts
-interface ArgType<T> {
+interface ArgType<T, Ctx extends AttributeCtx> {
   readonly kind: string;
   readonly label: string;
   readonly _out?: T;
-  parse(arg: ExpressionAst, ctx: InterpretCtx): Result<T, readonly PslDiagnostic[]>;
+  readonly parse: (arg: ExpressionAst, ctx: Ctx) => Result<T, readonly PslDiagnostic[]>;
 }
 ```
 
-The context contains the source and family symbols needed by the shipped reference combinators:
+A combinator declares what it reads. The contexts nest by what the site being parsed actually has, so a spec cannot demand facts its level never carries.
 
 ```ts
-interface InterpretCtx {
-  readonly level: 'field' | 'model' | 'block';
+interface AttributeCtx {
   readonly sourceId: string;
   readonly sourceFile: SourceFile;
+}
+
+interface ModelAttributeCtx extends AttributeCtx {
   readonly selfModel: ModelSymbol;
+}
+
+interface FieldAttributeCtx extends ModelAttributeCtx {
+  readonly field: FieldSymbol;
   resolveReferencedModel(): ModelSymbol | undefined;
-  readonly field?: FieldSymbol;
 }
 ```
+
+A block has no model, so a block attribute is parsed with only the source context. A combinator is usable at any level that carries the facts it declares, and rejected where those facts do not exist.
 
 A spec fixes the attribute level and name, declares its arguments, and may refine the parsed result:
 
 ```ts
-interface AttributeSpec<Out> {
+interface AttributeSpec<Out, Ctx extends AttributeCtx> {
   readonly level: 'field' | 'model' | 'block';
   readonly name: string;
-  readonly positional: readonly PositionalParam[];
-  readonly named: Readonly<Record<string, Param<unknown>>>;
-  readonly refine?: (
-    parsed: Out,
-    ctx: InterpretCtx,
-    attributeNode: AstNode,
-  ) => readonly PslDiagnostic[];
+  readonly positional: readonly PositionalParam<unknown, Ctx>[];
+  readonly named: Readonly<Record<string, Param<unknown, Ctx>>>;
+  readonly refine?: (parsed: Out, ctx: Ctx, attributeNode: AstNode) => readonly PslDiagnostic[];
 }
 ```
 
-`fieldAttribute` and `modelAttribute` infer `AttributeOut<Pos, Named>` when constructing a spec. `InferAttr<S>` extracts that `Out` type. Optional parameters are `ArgType` values decorated by `optional(type)` or `optional(type, defaultValue)`; the engine detects the marker when finalizing absent arguments.
+Each constructor fixes the context its level carries and infers `AttributeOut<Pos, Named>` when constructing a spec. `InferAttr<S>` extracts that `Out` type. Optional parameters are `ArgType` values decorated by `optional(type)` or `optional(type, defaultValue)`; the engine detects the marker when finalizing absent arguments.
 
 Positionals are fixed slots with an output key. Variadic positionals are not supported. Positional and named parameters may intentionally share a key, which supports the relation-name alias while allowing the engine to diagnose conflicting duplicate values.
 
@@ -137,7 +140,7 @@ These leaves perform direct AST checks. They do not wrap arktype schemas.
 
 ### References
 
-`fieldRef('self')` parses a field-name identifier and validates it against the declaring model. `fieldRef('referenced')` validates against the relation target when that model can be resolved; cross-space references may defer the existence check when no referenced model is locally available. Both forms return the authored field name as a string and expose their scope as combinator metadata.
+`fieldRef()` parses a field-name identifier and validates it against the declaring model, so it is available to model and field attributes alike. `referencedFieldRef()` validates against the relation target, which only a field can resolve; cross-space references may defer the existence check when no referenced model is locally available. Both return the authored field name as a string.
 
 `entityRef()` parses an unresolved model-name string. Existence and family semantics remain downstream concerns.
 
@@ -173,8 +176,8 @@ This trade-off keeps the leaf contract small and allows backtracking, at the cos
 
 ```ts
 interface FuncCallSig {
-  readonly positional?: readonly PositionalParam<unknown>[];
-  readonly named?: Readonly<Record<string, Param<unknown>>>;
+  readonly positional?: readonly PositionalParam<unknown, AttributeCtx>[];
+  readonly named?: Readonly<Record<string, Param<unknown, AttributeCtx>>>;
 }
 
 interface TypedFuncCall {
@@ -219,7 +222,7 @@ const sortSig = {
 } satisfies FuncCallSig;
 
 const indexFieldElement = oneOf(
-  fieldRef('self'),
+  fieldRef(),
   funcCall('wildcard', {
     positional: [{ key: 'scope', type: optional(entityRef()) }],
   }),
@@ -298,7 +301,6 @@ The current implementation is sufficient for interpreter consumption but not yet
 
 - Add central spec discovery and traversable combinator metadata for language-tooling consumers.
 - Decide whether reference combinators should expose declaration-bearing results while preserving the interpreter's string-oriented lowering needs.
-- Add block-level construction and interpretation if generic-block attributes adopt this mechanism.
 - Revisit signature-derived `TypedFuncCall` output types if downstream code needs statically discriminated call unions.
 - Decide whether literal-to-field-type compatibility should remain in lowering or gain a dedicated field-context combinator.
 

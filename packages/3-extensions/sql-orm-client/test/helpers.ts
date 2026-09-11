@@ -303,6 +303,7 @@ export function buildMixedPolyContract(): TestContract {
       assignee: {
         to: { model: 'Assignee', namespace: 'public' },
         cardinality: 'N:1',
+        nullable: true,
         on: { localFields: ['assigneeId'], targetFields: ['id'] },
       },
     },
@@ -323,6 +324,7 @@ export function buildMixedPolyContract(): TestContract {
       assignee: {
         to: { model: 'Assignee', namespace: 'public' },
         cardinality: 'N:1',
+        nullable: true,
         on: { localFields: ['assigneeId'], targetFields: ['id'] },
       },
     },

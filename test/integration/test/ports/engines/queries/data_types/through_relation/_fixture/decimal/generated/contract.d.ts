@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -275,6 +279,29 @@ export type StorageColumnInputTypes = {
     readonly parent: { readonly id: CodecTypes['pg/int4@1']['input'] };
   };
 };
+
+export namespace Models {
+  export type public_Parent = {
+    id: CodecTypes['pg/int4@1']['output'];
+    children: public_Child[];
+    readonly [RelationKeys]?: 'children';
+  };
+  export type public_Child = {
+    childId: CodecTypes['pg/int4@1']['output'];
+    parentId: CodecTypes['pg/int4@1']['output'] | null;
+    dec: CodecTypes['pg/numeric@1']['output'];
+    parent: public_Parent | null;
+    readonly [RelationKeys]?: 'parent';
+  };
+}
+
+export declare const models: {
+  public: {
+    Parent: Models.public_Parent;
+    Child: Models.public_Child;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -389,6 +416,7 @@ type ContractBase = Omit<
                   readonly model: 'Parent';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['parentId'];
                   readonly targetFields: readonly ['id'];

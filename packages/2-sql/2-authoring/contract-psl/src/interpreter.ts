@@ -11,6 +11,7 @@ import type {
   ControlPolicy,
 } from '@internal/contract/types';
 import { crossRef } from '@internal/contract/types';
+import { resolveToOneRelationNullable } from '@internal/contract-authoring';
 import type {
   AuthoringContributions,
   AuthoringEntityContext,
@@ -56,6 +57,7 @@ import {
   type ResolvedAttribute,
   type SymbolTable,
 } from '@internal/psl-parser';
+import { fkRelationPairKey, type InvalidFkPairing } from '@internal/psl-parser/interpret';
 import type { SourceFile } from '@internal/psl-parser/syntax';
 import type {
   SqlModelStorage,
@@ -78,6 +80,7 @@ import {
 import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { contractError } from './contract-errors';
 
@@ -108,16 +111,10 @@ import {
   validateBackrelationFieldAttributes,
 } from './psl-relation-resolution';
 import {
-  baseModelSpec,
-  checkModelSpec,
-  controlModelSpec,
-  discriminatorModelSpec,
   findModelAttributeNode,
-  idModelSpec,
-  indexModelSpec,
   interpretModelAttribute,
   PSL_CHECK_ON_STI_VARIANT,
-  uniqueModelSpec,
+  sqlAttributeSpecs,
 } from './sql-attribute-specs';
 
 export interface InterpretPslDocumentToSqlContractInput {
@@ -662,6 +659,7 @@ interface BuildModelNodeInput {
 interface BuildModelNodeResult {
   readonly modelNode: ModelNode;
   readonly fkRelationMetadata: FkRelationMetadata[];
+  readonly invalidFkPairings: InvalidFkPairing[];
   readonly backrelationCandidates: ModelBackrelationCandidate[];
   readonly resolvedFields: readonly ResolvedField[];
   /** Cross-contract-space relation nodes that bypass the local back-relation matching. */
@@ -685,6 +683,39 @@ function relationAttributeDeclaresOwningSide(relationAttribute: ResolvedAttribut
   );
 }
 
+function relationNullabilityMismatch(
+  relationField: FieldSymbol,
+  localColumns: readonly string[],
+  resolvedFields: readonly ResolvedField[],
+): boolean {
+  return (
+    resolveToOneRelationNullable({
+      declaredNullable: relationField.optional,
+      localFieldNullability: resolvedFields
+        .filter((resolvedField) => localColumns.includes(resolvedField.columnName))
+        .map((resolvedField) => resolvedField.nullable),
+      ownsReference: true,
+    }).contradiction !== undefined
+  );
+}
+
+function relationNullabilityMismatchDiagnostic(
+  modelName: string,
+  relationAttribute: { readonly field: FieldSymbol; readonly relation: ResolvedAttribute },
+  sourceId: string,
+): ContractSourceDiagnostic {
+  const fieldLabel = `Relation field "${modelName}.${relationAttribute.field.name}"`;
+  const message = relationAttribute.field.optional
+    ? `${fieldLabel} is optional but every field in @relation(fields: [...]) is required. Make one of those fields optional with "?" or remove "?" from "${relationAttribute.field.name}".`
+    : `${fieldLabel} is required but a field in @relation(fields: [...]) is optional. Add "?" to "${relationAttribute.field.name}" or make those fields required.`;
+  return {
+    code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+    message,
+    sourceId,
+    span: relationAttribute.field.span,
+  };
+}
+
 function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult {
   const { model, mapping, sourceId, diagnostics } = input;
   const tableName = mapping.tableName;
@@ -696,6 +727,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
 
   const resolvedFields = collectResolvedFields({
     model,
+    symbolTable: input.symbolTable,
     mapping,
     enumTypeDescriptors: input.enumTypeDescriptors,
     namedTypeDescriptors: input.namedTypeDescriptors,
@@ -837,6 +869,37 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
 
   const modelAttributeNodes = Array.from(model.node.attributes());
   for (const [attributeIndex, modelAttribute] of model.attributes.entries()) {
+    if (
+      !Object.hasOwn(sqlAttributeSpecs.model, modelAttribute.name) &&
+      !input.modelAttributesByName.has(modelAttribute.name)
+    ) {
+      const uncomposedNamespace = checkUncomposedNamespace(
+        modelAttribute.name,
+        input.composedExtensions,
+        {
+          familyId: input.familyId,
+          targetId: input.targetId,
+          authoringContributions: input.authoringContributions,
+        },
+      );
+      if (uncomposedNamespace) {
+        reportUncomposedNamespace({
+          subjectLabel: `Attribute "@@${modelAttribute.name}"`,
+          namespace: uncomposedNamespace,
+          sourceId,
+          span: modelAttribute.span,
+          diagnostics,
+        });
+        continue;
+      }
+      diagnostics.push({
+        code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
+        message: `Model "${model.name}" uses unsupported attribute "@@${modelAttribute.name}"`,
+        sourceId,
+        span: modelAttribute.span,
+      });
+      continue;
+    }
     if (modelAttribute.name === 'map') {
       continue;
     }
@@ -862,7 +925,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: controlModelSpec,
+        spec: sqlAttributeSpecs.model.control(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -900,7 +963,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: idModelSpec,
+        spec: sqlAttributeSpecs.model.id(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -946,7 +1009,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: uniqueModelSpec,
+        spec: sqlAttributeSpecs.model.unique(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -980,7 +1043,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: indexModelSpec,
+        spec: sqlAttributeSpecs.model.index(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -1041,7 +1104,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: checkModelSpec,
+        spec: sqlAttributeSpecs.model.check(),
         model,
         sourceFile: input.sourceFile,
         sourceId,
@@ -1124,34 +1187,13 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       slot[lowered.key] = lowered.entity;
       continue;
     }
-    const uncomposedNamespace = checkUncomposedNamespace(
-      modelAttribute.name,
-      input.composedExtensions,
-      {
-        familyId: input.familyId,
-        targetId: input.targetId,
-        authoringContributions: input.authoringContributions,
-      },
+    throw new InternalError(
+      `Model attribute "@@${modelAttribute.name}" is registered but has no interpreter branch`,
     );
-    if (uncomposedNamespace) {
-      reportUncomposedNamespace({
-        subjectLabel: `Attribute "@@${modelAttribute.name}"`,
-        namespace: uncomposedNamespace,
-        sourceId,
-        span: modelAttribute.span,
-        diagnostics,
-      });
-      continue;
-    }
-    diagnostics.push({
-      code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
-      message: `Model "${model.name}" uses unsupported attribute "@@${modelAttribute.name}"`,
-      sourceId,
-      span: modelAttribute.span,
-    });
   }
 
   const resultFkRelationMetadata: FkRelationMetadata[] = [];
+  const resultInvalidFkPairings: InvalidFkPairing[] = [];
   const resultCrossSpaceRelations: RelationNode[] = [];
   for (const relationAttribute of relationAttributes) {
     const {
@@ -1232,6 +1274,13 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         continue;
       }
 
+      if (relationNullabilityMismatch(relationAttribute.field, localColumns, resolvedFields)) {
+        diagnostics.push(
+          relationNullabilityMismatchDiagnostic(model.name, relationAttribute, sourceId),
+        );
+        continue;
+      }
+
       // For cross-space references the `references` list provides field names from the remote
       // model. Since the interpreter has no access to the extension contract, these field names
       // are treated as column names directly (matching the TS builder's cross-space path).
@@ -1309,6 +1358,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         toModel: fieldTypeName,
         toTable: crossTargetTableName,
         cardinality: 'N:1',
+        nullable: relationAttribute.field.optional,
         spaceId: fieldTypeContractSpaceId,
         namespaceId: crossTargetNamespaceId,
         on: {
@@ -1404,6 +1454,16 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     if (!localColumns) {
       continue;
     }
+    if (relationNullabilityMismatch(relationAttribute.field, localColumns, resolvedFields)) {
+      diagnostics.push(
+        relationNullabilityMismatchDiagnostic(model.name, relationAttribute, sourceId),
+      );
+      resultInvalidFkPairings.push({
+        pairKey: fkRelationPairKey(model.name, targetMapping.model.name),
+        ...ifDefined('relationName', parsedRelation.name),
+      });
+      continue;
+    }
     const referencedColumns = mapFieldNamesToColumns({
       modelName: targetMapping.model.name,
       fieldNames: parsedRelation.references,
@@ -1460,6 +1520,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       targetTableName: targetMapping.tableName,
       ...ifDefined('targetNamespaceId', targetNamespaceId),
       ...ifDefined('relationName', parsedRelation.name),
+      nullable: relationAttribute.field.optional,
       localColumns,
       referencedColumns,
     });
@@ -1493,6 +1554,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       ...ifDefined('control', controlPolicy),
     },
     fkRelationMetadata: resultFkRelationMetadata,
+    invalidFkPairings: resultInvalidFkPairings,
     crossSpaceRelations: resultCrossSpaceRelations,
     backrelationCandidates: resultBackrelationCandidates,
     resolvedFields,
@@ -1643,7 +1705,7 @@ function collectPolymorphismDeclarations(
     if (discriminatorNode !== undefined) {
       const parsed = interpretModelAttribute({
         node: discriminatorNode,
-        spec: discriminatorModelSpec,
+        spec: sqlAttributeSpecs.model.discriminator(),
         model,
         sourceFile,
         sourceId,
@@ -1669,7 +1731,7 @@ function collectPolymorphismDeclarations(
     if (baseNode !== undefined) {
       const parsed = interpretModelAttribute({
         node: baseNode,
-        spec: baseModelSpec,
+        spec: sqlAttributeSpecs.model.base(),
         model,
         sourceFile,
         sourceId,
@@ -2379,6 +2441,7 @@ export function interpretPslDocumentToSqlContract(
   }
   const modelNodes: ModelNode[] = [];
   const fkRelationMetadata: FkRelationMetadata[] = [];
+  const invalidFkPairings: InvalidFkPairing[] = [];
   const backrelationCandidates: ModelBackrelationCandidate[] = [];
   const modelResolvedFields = new Map<string, readonly ResolvedField[]>();
   // Cross-space relation nodes keyed by declaring model name — merged into
@@ -2431,6 +2494,7 @@ export function interpretPslDocumentToSqlContract(
       namespaceId !== undefined ? { ...result.modelNode, namespaceId } : result.modelNode,
     );
     fkRelationMetadata.push(...result.fkRelationMetadata);
+    invalidFkPairings.push(...result.invalidFkPairings);
     backrelationCandidates.push(...result.backrelationCandidates);
     modelResolvedFields.set(coordinate, result.resolvedFields);
     if (result.crossSpaceRelations.length > 0) {
@@ -2468,6 +2532,7 @@ export function interpretPslDocumentToSqlContract(
   applyBackrelationCandidates({
     backrelationCandidates,
     fkRelationsByPair,
+    invalidFkPairings,
     fkRelationsByDeclaringModel,
     modelIdColumns,
     modelUniqueColumnSets,

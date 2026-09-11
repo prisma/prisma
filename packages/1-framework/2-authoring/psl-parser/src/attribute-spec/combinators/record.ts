@@ -1,13 +1,14 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { ObjectLiteralExprAst } from '../../syntax/ast/expressions';
-import type { ArgType } from '../types';
+import type { ArgType, AttributeCtx, RecordArgType } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
-export function record<T>(of: ArgType<T>): ArgType<Record<string, T>> {
+export function record<T, Ctx extends AttributeCtx>(of: ArgType<T, Ctx>): RecordArgType<T, Ctx> {
   return {
     kind: 'record',
     label: `{ [key]: ${of.label} }`,
+    of,
     parse: (arg, ctx): Result<Record<string, T>, readonly PslDiagnostic[]> => {
       const literal = ObjectLiteralExprAst.cast(arg.syntax);
       if (literal === undefined) {
@@ -16,7 +17,7 @@ export function record<T>(of: ArgType<T>): ArgType<Record<string, T>> {
       const diagnostics: PslDiagnostic[] = [];
       const entries: [string, T][] = [];
       const keys = new Set<string>();
-      for (const field of literal.fields()) {
+      for (const field of Array.from(literal.fields())) {
         const key = field.keyName();
         if (key === undefined) {
           diagnostics.push(leafDiagnostic(ctx, field, 'Expected a key'));

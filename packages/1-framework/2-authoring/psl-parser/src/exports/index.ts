@@ -38,12 +38,11 @@ export {
 export { getPositionalArgument, parseQuotedStringLiteral } from '../attribute-helpers';
 export type { AssembledAttributeSpecs } from '../attribute-spec/assemble';
 export { assembleAttributeSpecs } from '../attribute-spec/assemble';
+export { blockAttribute } from '../attribute-spec/block-attribute';
 export { bool } from '../attribute-spec/combinators/bool';
 export { leafDiagnostic } from '../attribute-spec/combinators/diagnostic';
 export { entityRef } from '../attribute-spec/combinators/entity-ref';
-export type { FieldRefArgType, FieldRefScope } from '../attribute-spec/combinators/field-ref';
-export { fieldRef } from '../attribute-spec/combinators/field-ref';
-export type { FuncCallSig, TypedFuncCall } from '../attribute-spec/combinators/func-call';
+export { fieldRef, referencedFieldRef } from '../attribute-spec/combinators/field-ref';
 export { funcCall } from '../attribute-spec/combinators/func-call';
 export { identifier } from '../attribute-spec/combinators/identifier';
 export { int } from '../attribute-spec/combinators/int';
@@ -62,23 +61,30 @@ export { optional } from '../attribute-spec/optional';
 export type {
   AttributeSpecContext,
   AttributeSpecNamespace,
+  BlockAttributeSpecFactory,
   FieldAttributeSpecContext,
   FieldAttributeSpecFactory,
   ModelAttributeSpecFactory,
 } from '../attribute-spec/spec-context';
 export type {
   ArgType,
+  ArgTypeKind,
+  AttributeCtx,
   AttributeLevel,
   AttributeOut,
   AttributeSpec,
+  FieldAttributeCtx,
+  FuncCallSig,
   InferAttr,
-  InterpretCtx,
+  ModelAttributeCtx,
   NamedOut,
   OptionalArgType,
   OutOf,
   Param,
   PositionalParam,
   PosOut,
+  RejectingArgType,
+  TypedFuncCall,
 } from '../attribute-spec/types';
 export { findBlockDescriptor, validateExtensionBlockFromSymbol } from '../extension-block';
 export {
