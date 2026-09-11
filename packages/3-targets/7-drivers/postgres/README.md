@@ -15,6 +15,7 @@ The PostgreSQL driver provides transport and connection management for PostgreSQ
 In Prisma 8, "driver" refers to the Prisma 8 interface (not the underlying `pg` library). Drivers are transport-agnostic: they own pooling, connection management, and transport protocol (TCP, HTTP, etc.), but contain no dialect-specific logic. All dialect behavior lives in adapters. Instantiation is separate from connection; `create()` returns an unbound driver, `connect(binding)` binds at the boundary ([ADR 159](../../../../docs/architecture%20docs/adrs/ADR%20159%20-%20Driver%20Terminology%20and%20Lifecycle.md)).
 
 This package spans multiple planes:
+
 - **Migration plane** (`src/exports/control.ts`): Control plane entry point for driver descriptors
 - **Runtime plane** (`src/exports/runtime.ts`): Runtime entry point for driver implementation
 
@@ -31,6 +32,7 @@ Provide PostgreSQL transport and connection management. Execute SQL statements a
 - **Transport Protocol**: Handle PostgreSQL protocol (TCP, HTTP, etc.)
 
 **Non-goals:**
+
 - Dialect-specific SQL lowering (adapters)
 - Query compilation (sql-query)
 - Runtime execution (runtime)
@@ -67,6 +69,7 @@ flowchart TD
 ## Components
 
 ### Driver (`postgres-driver.ts`)
+
 - Main driver implementation
 - Implements `SqlDriver` interface
 - Manages connections and executes statements
@@ -95,9 +98,12 @@ await driver.connect({ kind: 'url', url: process.env.DATABASE_URL });
 ```
 
 Binding variants:
+
 - `{ kind: 'url', url }`: Driver creates a Pool from the connection string
 - `{ kind: 'pgPool', pool }`: Use an existing pg Pool
 - `{ kind: 'pgClient', client }`: Use an existing pg Client (direct connection)
+
+With `cursor: { disabled: true }` (or buffered cursor fallback), driver-level pool queries return their connection after fetching, before yielding buffered rows for decoding or consumption. Cursor streams retain the connection until completion or iterator cleanup. Queries on caller-owned connections and transactions never release the caller's lease.
 
 ## Exports
 
@@ -106,4 +112,3 @@ Binding variants:
   - Types: `PostgresBinding`, `PostgresDriverCreateOptions`, `QueryResult`
 - `./control`: Control plane entry point for driver descriptors
   - Default export: `DriverDescriptor` for use in `prisma.config.ts`
-

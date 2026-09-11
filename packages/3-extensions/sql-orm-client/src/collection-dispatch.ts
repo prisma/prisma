@@ -40,7 +40,6 @@ import {
   resolveRowIdentityColumns,
 } from './collection-contract';
 import {
-  acquireRuntimeScope,
   mapPolymorphicRow,
   mapResultRows,
   mapStorageRowToModelFields,
@@ -116,51 +115,44 @@ function dispatchWithIncludes<Row>(
   const { context, runtime, state, tableName, modelName, namespaceId } = options;
   const { contract } = context;
   const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-    const { scope, release } = await acquireRuntimeScope(runtime);
-    try {
-      const compiled = compileSelectWithIncludes(
-        contract,
-        context.aggregateDescriptors,
-        namespaceId,
-        tableName,
-        state,
-        modelName,
-      );
+    const compiled = compileSelectWithIncludes(
+      contract,
+      context.aggregateDescriptors,
+      namespaceId,
+      tableName,
+      state,
+      modelName,
+    );
 
-      const parentRowsRaw = await queryPlanRows<Record<string, unknown>>(scope, compiled).toArray();
-      if (parentRowsRaw.length === 0) {
-        return;
-      }
+    const parentRowsRaw = await queryPlanRows<Record<string, unknown>>(runtime, compiled).toArray();
+    if (parentRowsRaw.length === 0) {
+      return;
+    }
 
-      const polyInfo = resolvePolymorphismInfo(contract, namespaceId, modelName);
-      const parentRows: RowEnvelope[] = parentRowsRaw.map((row) => {
-        const mapped = polyInfo
-          ? mapPolymorphicRow(contract, namespaceId, modelName, polyInfo, row, state.variantName)
-          : mapStorageRowToModelFields(contract, namespaceId, modelName, row);
-        return { raw: row, mapped };
-      });
+    const polyInfo = resolvePolymorphismInfo(contract, namespaceId, modelName);
+    const parentRows: RowEnvelope[] = parentRowsRaw.map((row) => {
+      const mapped = polyInfo
+        ? mapPolymorphicRow(contract, namespaceId, modelName, polyInfo, row, state.variantName)
+        : mapStorageRowToModelFields(contract, namespaceId, modelName, row);
+      return { raw: row, mapped };
+    });
 
-      for (const parent of parentRows) {
-        for (const include of state.includes) {
-          parent.mapped[include.relationName] = await decodeIncludePayload(
-            contract,
-            context,
-            include,
-            parent.raw[include.relationName],
-          );
-        }
+    for (const parent of parentRows) {
+      for (const include of state.includes) {
+        parent.mapped[include.relationName] = await decodeIncludePayload(
+          contract,
+          context,
+          include,
+          parent.raw[include.relationName],
+        );
       }
+    }
 
-      for (const row of parentRows) {
-        yield blindCast<
-          Row,
-          'collection row generic is supplied by the caller and matched to the selected model shape'
-        >(row.mapped);
-      }
-    } finally {
-      if (release) {
-        await release();
-      }
+    for (const row of parentRows) {
+      yield blindCast<
+        Row,
+        'collection row generic is supplied by the caller and matched to the selected model shape'
+      >(row.mapped);
     }
   };
 
