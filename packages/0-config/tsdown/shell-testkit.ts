@@ -42,14 +42,7 @@ export interface PackedShell {
 
 /** The `package.json` of a package directory, as a record. */
 function readManifest(packageDir: string): Record<string, unknown> {
-  let manifest: unknown;
-  try {
-    manifest = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
-  } catch (error) {
-    throw new ShellTestError(`${packageDir}/package.json could not be read as JSON`, {
-      cause: error,
-    });
-  }
+  const manifest: unknown = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
   if (!isRecord(manifest)) throw new ShellTestError(`${packageDir}/package.json is not an object`);
   return manifest;
 }
@@ -479,12 +472,7 @@ export function bundledSources(installedPackageDir: string): string[] {
   const sources = new Set<string>();
   for (const file of walk(join(installedPackageDir, 'dist'))) {
     if (!file.endsWith('.mjs.map')) continue;
-    let map: unknown;
-    try {
-      map = JSON.parse(readFileSync(file, 'utf8'));
-    } catch (error) {
-      throw new ShellTestError(`${file} could not be read as JSON`, { cause: error });
-    }
+    const map: unknown = JSON.parse(readFileSync(file, 'utf8'));
     if (!isRecord(map) || !Array.isArray(map['sources'])) continue;
     for (const source of map['sources']) {
       if (typeof source !== 'string') continue;
