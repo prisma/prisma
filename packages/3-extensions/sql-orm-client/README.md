@@ -2,7 +2,7 @@
 
 ORM client for Prisma Next — fluent, type-safe model collections.
 
-This package provides a high-level ORM client surface on top of the runtime that can orchestrate multiple single-statement plans for a single logical operation (for example, parent query + includes).
+This package provides a high-level ORM client surface on top of the runtime. Ordinary and prepared SELECT reads with includes compile to one SQL plan. Mutation operations can orchestrate multiple single-statement plans for a single logical operation (for example, creating a parent and its children with separate INSERT statements).
 
 ## Responsibilities
 
@@ -10,7 +10,8 @@ This package provides a high-level ORM client surface on top of the runtime that
 - Build filter/order/include state from fluent APIs (`where`, `include`, `orderBy`, `limit`, `offset`)
 - Accept lane-agnostic `WhereArg` filter inputs (`WhereExpr` or `ToWhereExpr`) and normalize bound payloads inside ORM while preserving bound params/descriptors for runtime encoding and adapter lowering
 - Compile collection state into SQL AST query plans (`SqlQueryPlan`) without rendering SQL in ORM
-- Execute and stitch include trees across multiple plan executions
+- Buffer SELECT include results and decode embedded include payloads in the ORM consumer
+- Orchestrate multi-statement mutations, such as nested creates
 - Map storage-column rows back to model-field row shapes
 - Expose an `orm()` client with typed collection keys (for example `db.Post`)
 
