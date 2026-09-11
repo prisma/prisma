@@ -114,6 +114,8 @@ const formattedPsl = '// use prisma-next\nmodel User {\n  id Int\n}\n';
 
 const scalarTypes = ['String', 'Int', 'Boolean', 'DateTime'] as const;
 const nameSnippetPlaceholder = '$' + '{1:Name}';
+const emptySnippetPlaceholder1 = '$' + '{1:}';
+const emptySnippetPlaceholder2 = '$' + '{2:}';
 
 const pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace = {
   policy: {
@@ -130,6 +132,7 @@ const pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace = {
 };
 
 const markerAttribute = fieldAttribute('marker', {
+  positional: [{ key: 'target', type: str() }],
   named: { name: str(), priority: optional(int()) },
 });
 const rlsAttribute = modelAttribute('rls', {
@@ -599,6 +602,29 @@ function sourceWithCursor(markedSource: string): {
   };
 }
 
+function applyCompletionItem(source: string, item: CompletionItem): string {
+  const edit = item.textEdit;
+  if (edit === undefined || !('range' in edit)) {
+    throw new Error('Expected a range text edit');
+  }
+  return applyTextEdit(source, edit);
+}
+
+function applyTextEdit(source: string, edit: TextEdit): string {
+  const { sourceFile } = parse(source);
+  const start = sourceFile.offsetAt(edit.range.start);
+  const end = sourceFile.offsetAt(edit.range.end);
+  return `${source.slice(0, start)}${edit.newText}${source.slice(end)}`;
+}
+
+function completionItemByLabel(items: readonly CompletionItem[], label: string): CompletionItem {
+  const item = items.find((candidate) => candidate.label === label);
+  if (item === undefined) {
+    throw new Error(`Expected completion item "${label}"`);
+  }
+  return item;
+}
+
 function deferred<T>(): { readonly promise: Promise<T>; readonly resolve: (value: T) => void } {
   let resolvePromise: (value: T) => void = () => undefined;
   const promise = new Promise<T>((resolve) => {
@@ -831,6 +857,36 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       await requestCompletion(harness, schemaUri, attributeName.position),
     );
     expect(nameItems.map((item) => item.label)).toEqual(['marker']);
+  });
+
+  it('returns configured required attribute argument snippets through server completion', async () => {
+    harness = startHarness(
+      resolveToSchemaWithAttributeContributions,
+      snippetCompletionCapabilities,
+    );
+    await harness.initialize();
+    const completion = sourceWithCursor(
+      ['// use prisma-next', 'model User {', '  id Int @mar| // keep', '}'].join('\n'),
+    );
+    openDocument(harness, schemaUri, completion.source);
+    await harness.waitForDiagnostics(schemaUri);
+
+    const items = completionItems(await requestCompletion(harness, schemaUri, completion.position));
+    const item = completionItemByLabel(items, 'marker');
+    expect(item).toMatchObject({
+      insertTextFormat: InsertTextFormat.Snippet,
+      textEdit: {
+        newText: `marker("${emptySnippetPlaceholder1}", name: "${emptySnippetPlaceholder2}")`,
+      },
+    });
+    expect(applyCompletionItem(completion.source, item)).toEqual(
+      [
+        '// use prisma-next',
+        'model User {',
+        `  id Int @marker("${emptySnippetPlaceholder1}", name: "${emptySnippetPlaceholder2}") // keep`,
+        '}',
+      ].join('\n'),
+    );
   });
 
   it('returns declaration keyword completions with plain-text edits by default', async () => {

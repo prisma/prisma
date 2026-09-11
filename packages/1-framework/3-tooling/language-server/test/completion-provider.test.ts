@@ -20,17 +20,20 @@ import {
   optional,
   str,
 } from '@internal/psl-parser';
-import { parse } from '@internal/psl-parser/syntax';
+import { parse, type SourceFile } from '@internal/psl-parser/syntax';
 import { describe, expect, it } from 'vitest';
-import { CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
+import { type CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
 import { classifyPslCompletionContext } from '../src/completion-context';
 import { providePslCompletionItems } from '../src/completion-provider';
 
 const scalarTypes = ['String', 'Int', 'Boolean', 'DateTime'] as const;
 const nameSnippetPlaceholder = '$' + '{1:Name}';
+const emptySnippetPlaceholder1 = '$' + '{1:}';
+const emptySnippetPlaceholder2 = '$' + '{2:}';
 const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
 const markerAttribute = fieldAttribute('marker', {
+  positional: [{ key: 'target', type: str() }],
   named: { name: str(), priority: optional(int()) },
 });
 const rlsAttribute = modelAttribute('rls', {
@@ -265,12 +268,38 @@ function actualInterpretationContext(stack: CompletionTestStack): ContractSource
   } as unknown as ContractSourceContext;
 }
 
-function completeWithActualStack(markedSource: string, stack: CompletionTestStack) {
+function completeWithActualStack(
+  markedSource: string,
+  stack: CompletionTestStack,
+  options: { readonly clientSupportsSnippets?: boolean } = {},
+) {
   return completeWithSource({
     markedSource,
     pslBlockDescriptors: stack.pslBlockDescriptors,
     interpretationContext: actualInterpretationContext(stack),
+    clientSupportsSnippets: options.clientSupportsSnippets === true,
   });
+}
+
+function applyCompletionItem(input: {
+  readonly sourceFile: SourceFile;
+  readonly item: CompletionItem;
+}) {
+  const edit = input.item.textEdit;
+  if (edit === undefined || !('range' in edit)) {
+    throw new Error('Expected a range text edit');
+  }
+  const start = input.sourceFile.offsetAt(edit.range.start);
+  const end = input.sourceFile.offsetAt(edit.range.end);
+  return `${input.sourceFile.text.slice(0, start)}${edit.newText}${input.sourceFile.text.slice(end)}`;
+}
+
+function completionItemByLabel(items: readonly CompletionItem[], label: string): CompletionItem {
+  const item = items.find((candidate) => candidate.label === label);
+  if (item === undefined) {
+    throw new Error(`Expected completion item "${label}"`);
+  }
+  return item;
 }
 
 describe('providePslCompletionItems', () => {
@@ -412,6 +441,58 @@ describe('providePslCompletionItems', () => {
     expect(items.map((item) => item.label)).toEqual(['scopedKey']);
   });
 
+  it('inserts required contributed attribute arguments as snippets for snippet clients', () => {
+    const { items, sourceFile } = complete(
+      ['model Post {', '  id Int @mar| // keep', '}'].join('\n'),
+      {
+        clientSupportsSnippets: true,
+      },
+    );
+    const item = completionItemByLabel(items, 'marker');
+
+    expect(item).toMatchObject({
+      insertTextFormat: InsertTextFormat.Snippet,
+      textEdit: {
+        newText: `marker("${emptySnippetPlaceholder1}", name: "${emptySnippetPlaceholder2}")`,
+      },
+    });
+    expect(applyCompletionItem({ sourceFile, item })).toEqual(
+      [
+        candidateSource,
+        'model Post {',
+        `  id Int @marker("${emptySnippetPlaceholder1}", name: "${emptySnippetPlaceholder2}") // keep`,
+        '}',
+      ].join('\n'),
+    );
+  });
+
+  it('keeps plain contributed attribute completion free of snippet syntax', () => {
+    const { items, sourceFile } = complete(
+      ['model Post {', '  id Int @mar| // keep', '}'].join('\n'),
+    );
+    const item = completionItemByLabel(items, 'marker');
+
+    expect(item.insertTextFormat).toBeUndefined();
+    expect(item.textEdit).toMatchObject({ newText: 'marker' });
+    expect(applyCompletionItem({ sourceFile, item })).toEqual(
+      [candidateSource, 'model Post {', '  id Int @marker // keep', '}'].join('\n'),
+    );
+  });
+
+  it('preserves existing attribute delimiters and suffixes instead of inserting required arguments again', () => {
+    const { items, sourceFile } = complete(
+      ['model Post {', '  id Int @mar|ker(name: "id") @unique', '}'].join('\n'),
+      { clientSupportsSnippets: true },
+    );
+    const item = completionItemByLabel(items, 'marker');
+
+    expect(item.insertTextFormat).toBeUndefined();
+    expect(item.textEdit).toMatchObject({ newText: 'marker' });
+    expect(applyCompletionItem({ sourceFile, item })).toEqual(
+      [candidateSource, 'model Post {', '  id Int @marker(name: "id") @unique', '}'].join('\n'),
+    );
+  });
+
   it('uses actual SQL attribute specs for names and top-level named keys', async () => {
     const stack = await actualSqlStack();
 
@@ -456,6 +537,41 @@ describe('providePslCompletionItems', () => {
       completeWithActualStack(['model Post {', '  id Int @default(|)', '}'].join('\n'), stack)
         .items,
     ).toEqual([]);
+
+    const mapCompletion = completeWithActualStack(
+      ['model Post {', '  id Int @ma| // keep', '}'].join('\n'),
+      stack,
+      { clientSupportsSnippets: true },
+    );
+    const mapItem = completionItemByLabel(mapCompletion.items, 'map');
+    expect(mapItem).toMatchObject({
+      insertTextFormat: InsertTextFormat.Snippet,
+      textEdit: { newText: `map("${emptySnippetPlaceholder1}")` },
+    });
+    expect(applyCompletionItem({ sourceFile: mapCompletion.sourceFile, item: mapItem })).toEqual(
+      ['model Post {', `  id Int @map("${emptySnippetPlaceholder1}") // keep`, '}'].join('\n'),
+    );
+
+    const checkCompletion = completeWithActualStack(
+      ['model Post {', '  id Int', '  @@che| // keep', '}'].join('\n'),
+      stack,
+      { clientSupportsSnippets: true },
+    );
+    const checkItem = completionItemByLabel(checkCompletion.items, 'check');
+    expect(checkItem).toMatchObject({
+      insertTextFormat: InsertTextFormat.Snippet,
+      textEdit: { newText: `check(expression: "${emptySnippetPlaceholder1}")` },
+    });
+    expect(
+      applyCompletionItem({ sourceFile: checkCompletion.sourceFile, item: checkItem }),
+    ).toEqual(
+      [
+        'model Post {',
+        '  id Int',
+        `  @@check(expression: "${emptySnippetPlaceholder1}") // keep`,
+        '}',
+      ].join('\n'),
+    );
   }, 5_000);
 
   it('uses actual Mongo attribute specs for names and dynamic factory keys', async () => {
@@ -519,6 +635,20 @@ describe('providePslCompletionItems', () => {
         stack,
       ).items.map((item) => item.label),
     ).toEqual(['fields', 'references']);
+
+    const mapCompletion = completeWithActualStack(
+      ['model Post {', '  id String @ma| // keep', '}'].join('\n'),
+      stack,
+      { clientSupportsSnippets: true },
+    );
+    const mapItem = completionItemByLabel(mapCompletion.items, 'map');
+    expect(mapItem).toMatchObject({
+      insertTextFormat: InsertTextFormat.Snippet,
+      textEdit: { newText: `map("${emptySnippetPlaceholder1}")` },
+    });
+    expect(applyCompletionItem({ sourceFile: mapCompletion.sourceFile, item: mapItem })).toEqual(
+      ['model Post {', `  id String @map("${emptySnippetPlaceholder1}") // keep`, '}'].join('\n'),
+    );
   }, 5_000);
 
   it('returns stable bare model field type completion candidates', () => {

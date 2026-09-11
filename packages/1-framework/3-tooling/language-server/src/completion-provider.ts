@@ -11,6 +11,8 @@ import {
   findBlockDescriptor,
   type ModelSymbol,
   type NamespaceSymbol,
+  type Param,
+  type PositionalParam,
   type SymbolTable,
 } from '@internal/psl-parser';
 import type {
@@ -130,7 +132,12 @@ export function providePslCompletionItems(
     case 'genericBlockValue':
       return [];
     case 'attributeName':
-      return provideAttributeNameCompletionItems(context, input.sourceFile, input.candidates);
+      return provideAttributeNameCompletionItems(
+        context,
+        input.sourceFile,
+        input.candidates,
+        input.clientSupportsSnippets,
+      );
     case 'attributeNamedKey':
       return provideAttributeNamedKeyCompletionItems(context, input.sourceFile, input.candidates);
     case 'declarationKeyword':
@@ -153,21 +160,33 @@ function provideAttributeNameCompletionItems(
   context: AttributeNameCompletionContext,
   sourceFile: SourceFile,
   source: PslCompletionCandidateSource,
+  clientSupportsSnippets: boolean,
 ): readonly CompletionItem[] {
   const names = attributeNames(context, source);
+  const replacementEndOffset = identifierReplacementEndOffset(sourceFile, context.offset);
   const replacementRange = {
     start: sourceFile.positionAt(context.replacementStartOffset),
-    end: sourceFile.positionAt(context.offset),
+    end: sourceFile.positionAt(replacementEndOffset),
   };
 
-  return names.map((name) => ({
-    label: name,
-    kind: CompletionItemKind.Property,
-    detail: 'PSL attribute',
-    sortText: name,
-    filterText: name,
-    textEdit: { range: replacementRange, newText: name },
-  }));
+  return names.map((name) => {
+    const newText = attributeNameEditText({
+      name,
+      spec: attributeSpecForName(context, source, name),
+      sourceFile,
+      replacementEndOffset,
+      clientSupportsSnippets,
+    });
+    return {
+      label: name,
+      kind: CompletionItemKind.Property,
+      detail: 'PSL attribute',
+      sortText: name,
+      filterText: name,
+      textEdit: { range: replacementRange, newText },
+      ...(newText !== name ? { insertTextFormat: InsertTextFormat.Snippet } : {}),
+    };
+  });
 }
 
 function provideAttributeNamedKeyCompletionItems(
@@ -182,7 +201,7 @@ function provideAttributeNamedKeyCompletionItems(
   const existing = existingAttributeNamedKeys(context.attribute, context.offset);
   const replacementRange = {
     start: sourceFile.positionAt(context.replacementStartOffset),
-    end: sourceFile.positionAt(context.offset),
+    end: sourceFile.positionAt(identifierReplacementEndOffset(sourceFile, context.offset)),
   };
 
   return Object.keys(spec.named)
@@ -217,16 +236,118 @@ function attributeNames(
   return sortedUnique(Object.keys(context.level === 'field' ? specs.field : specs.model));
 }
 
+function attributeNameEditText(input: {
+  readonly name: string;
+  readonly spec: AttributeSpec<never, never> | undefined;
+  readonly sourceFile: SourceFile;
+  readonly replacementEndOffset: number;
+  readonly clientSupportsSnippets: boolean;
+}): string {
+  if (
+    !input.clientSupportsSnippets ||
+    input.spec === undefined ||
+    hasExistingAttributeArguments(input.sourceFile, input.replacementEndOffset)
+  ) {
+    return input.name;
+  }
+
+  const required = requiredAttributeArguments(input.spec);
+  if (required.length === 0) {
+    return input.name;
+  }
+  return `${input.name}(${required
+    .map((argument, index) => requiredAttributeArgumentSnippet(argument, index + 1))
+    .join(', ')})`;
+}
+
+type RequiredAttributeArgument =
+  | { readonly kind: 'positional'; readonly argument: PositionalParam<unknown, never> }
+  | { readonly kind: 'named'; readonly key: string; readonly type: Param<unknown, never> };
+
+function requiredAttributeArguments(
+  spec: AttributeSpec<never, never>,
+): readonly RequiredAttributeArgument[] {
+  const positionalKeys = new Set(spec.positional.map((argument) => argument.key));
+  return [
+    ...spec.positional.flatMap((argument) =>
+      isOptionalParam(argument.type)
+        ? []
+        : [{ kind: 'positional', argument } satisfies RequiredAttributeArgument],
+    ),
+    ...Object.entries(spec.named).flatMap(([key, type]) =>
+      positionalKeys.has(key) || isOptionalParam(type)
+        ? []
+        : [{ kind: 'named', key, type } satisfies RequiredAttributeArgument],
+    ),
+  ];
+}
+
+function requiredAttributeArgumentSnippet(
+  argument: RequiredAttributeArgument,
+  tabStop: number,
+): string {
+  if (argument.kind === 'positional') {
+    return argSnippetPlaceholder(argument.argument.type, tabStop);
+  }
+  return `${argument.key}: ${argSnippetPlaceholder(argument.type, tabStop)}`;
+}
+
+function argSnippetPlaceholder(param: Param<unknown, never>, tabStop: number): string {
+  const placeholder = '${' + tabStop.toString() + ':}';
+  if (param.kind === 'str') {
+    return `"${placeholder}"`;
+  }
+  if (param.kind === 'list') {
+    return `[${placeholder}]`;
+  }
+  if (param.kind === 'record') {
+    return `{ ${placeholder} }`;
+  }
+  return placeholder;
+}
+
+function isOptionalParam(param: Param<unknown, never>): boolean {
+  return 'optional' in param && param.optional === true;
+}
+
+function hasExistingAttributeArguments(sourceFile: SourceFile, offset: number): boolean {
+  let current = offset;
+  while (sourceFile.text[current] === ' ' || sourceFile.text[current] === '\t') {
+    current += 1;
+  }
+  return sourceFile.text[current] === '(';
+}
+
+function identifierReplacementEndOffset(sourceFile: SourceFile, offset: number): number {
+  let current = offset;
+  while (isIdentifierCharacter(sourceFile.text[current])) {
+    current += 1;
+  }
+  return current;
+}
+
+function isIdentifierCharacter(value: string | undefined): boolean {
+  return value !== undefined && /[A-Za-z0-9_]/u.test(value);
+}
+
 function attributeSpec(
   context: AttributeNamedKeyCompletionContext,
   source: PslCompletionCandidateSource,
+): AttributeSpec<never, never> | undefined {
+  return attributeSpecForName(context, source, context.attributeName);
+}
+
+function attributeSpecForName(
+  context: AttributeNameCompletionContext | AttributeNamedKeyCompletionContext,
+  source: PslCompletionCandidateSource,
+  name: string,
 ): AttributeSpec<never, never> | undefined {
   if (context.level === 'block') {
     if (context.blockKeyword === undefined) {
       return undefined;
     }
     const descriptor = findBlockDescriptor(source.pslBlockDescriptors, context.blockKeyword);
-    const factory = descriptor?.attributes?.[context.attributeName];
+    const factory = descriptor?.attributes?.[name];
     if (factory === undefined) {
       return undefined;
     }
@@ -251,7 +372,7 @@ function attributeSpec(
   };
   const specs = assembleAttributeSpecs(interpretation.authoringContributions);
   if (context.level === 'model') {
-    return specs.model[context.attributeName]?.(specContext);
+    return specs.model[name]?.(specContext);
   }
   if (context.field === undefined) {
     return undefined;
@@ -260,7 +381,7 @@ function attributeSpec(
   if (field === undefined) {
     return undefined;
   }
-  return specs.field[context.attributeName]?.({
+  return specs.field[name]?.({
     ...specContext,
     field,
   });
