@@ -21,31 +21,31 @@ describe('resolveGating', () => {
     });
   });
 
-  it('returns enabled=false when PRISMA_NEXT_DISABLE_TELEMETRY=1 overrides a true stored preference', () => {
+  it('returns enabled=false when PRISMA_DISABLE_TELEMETRY=1 overrides a true stored preference', () => {
     expect(
       resolveGating({
-        env: { PRISMA_NEXT_DISABLE_TELEMETRY: '1' },
+        env: { PRISMA_DISABLE_TELEMETRY: '1' },
         config: { enableTelemetry: true },
       }),
     ).toEqual({ enabled: false, reason: 'env-override' });
   });
 
-  it('treats any truthy value of PRISMA_NEXT_DISABLE_TELEMETRY as opt-out', () => {
+  it('treats any truthy value of PRISMA_DISABLE_TELEMETRY as opt-out', () => {
     for (const value of ['1', 'true', 'yes', 'on', 'truthy-anything']) {
       expect(
         resolveGating({
-          env: { PRISMA_NEXT_DISABLE_TELEMETRY: value },
+          env: { PRISMA_DISABLE_TELEMETRY: value },
           config: { enableTelemetry: true },
         }).enabled,
       ).toBe(false);
     }
   });
 
-  it('treats PRISMA_NEXT_DISABLE_TELEMETRY=0 / empty / "false" as NOT an opt-out (set-but-falsy = unset)', () => {
+  it('treats PRISMA_DISABLE_TELEMETRY=0 / empty / "false" as NOT an opt-out (set-but-falsy = unset)', () => {
     for (const value of ['', '0', 'false', 'FALSE']) {
       expect(
         resolveGating({
-          env: { PRISMA_NEXT_DISABLE_TELEMETRY: value },
+          env: { PRISMA_DISABLE_TELEMETRY: value },
           config: { enableTelemetry: true },
         }).enabled,
       ).toBe(true);

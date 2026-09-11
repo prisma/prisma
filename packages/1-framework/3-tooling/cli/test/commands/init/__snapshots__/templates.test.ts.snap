@@ -33,7 +33,7 @@ Prisma ORM setup is scaffolded in:
 - \`prisma/db.ts\`
 - \`src/lib/prisma.ts\`
 
-For provider-specific Prisma ORM reference docs, see \`prisma-next.md\`. Prisma ORM skills live in the upstream \`skills/\` directory: https://github.com/prisma/prisma/tree/main/skills.
+For provider-specific Prisma ORM reference docs, see \`prisma-8.md\`. Prisma ORM skills live in the upstream \`skills/\` directory: https://github.com/prisma/prisma/tree/main/skills.
 
 Node-based Prisma ORM projects expect Node.js 24 LTS or newer.
 "
@@ -71,7 +71,7 @@ Prisma ORM setup is scaffolded in:
 - \`prisma/db.ts\`
 - \`src/lib/prisma.ts\`
 
-For provider-specific Prisma ORM reference docs, see \`prisma-next.md\`. Prisma ORM skills live in the upstream \`skills/\` directory: https://github.com/prisma/prisma/tree/main/skills.
+For provider-specific Prisma ORM reference docs, see \`prisma-8.md\`. Prisma ORM skills live in the upstream \`skills/\` directory: https://github.com/prisma/prisma/tree/main/skills.
 
 Node-based Prisma ORM projects expect Node.js 24 LTS or newer.
 "
@@ -239,7 +239,7 @@ If this project lives inside a pnpm workspace, a few things are worth knowing:
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + psl > starterSchema is stable 1`] = `
-"// use prisma-next
+"// use prisma-8
 
 model User {
   id       ObjectId @id @map("_id")
@@ -611,7 +611,7 @@ If this project lives inside a pnpm workspace, a few things are worth knowing:
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + psl > starterSchema is stable 1`] = `
-"// use prisma-next
+"// use prisma-8
 
 model User {
   id        Int      @id @default(autoincrement())

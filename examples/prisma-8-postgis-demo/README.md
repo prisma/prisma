@@ -128,7 +128,7 @@ completed before `pnpm dev` will return data.
 ## Schema
 
 ```prisma
-// use prisma-next
+// use prisma-8
 
 types {
   WgsGeometry = postgis.Geometry(4326)

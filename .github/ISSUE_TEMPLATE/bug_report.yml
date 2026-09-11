@@ -16,7 +16,7 @@ body:
     id: package-and-version
     attributes:
       label: Package and version
-      description: Which `@internal/*` package (or the umbrella `prisma-next`) and version are you using?
+      description: Which `@prisma/*` package (or the `prisma` CLI) and version are you using?
       placeholder: "e.g. @internal/postgres@0.5.2"
     validations:
       required: true

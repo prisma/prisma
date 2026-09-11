@@ -1,6 +1,6 @@
 # Journey 07 — First-touch orientation
 
-**Skills under test:** `prisma-next-quickstart` (First-touch orientation path), with hand-offs to `prisma-next-queries` and optionally `prisma-next-contract`.
+**Skills under test:** `prisma-8-quickstart` (First-touch orientation path), with hand-offs to `prisma-8-queries` and optionally `prisma-8-contract`.
 
 **Example app:** A Prisma 8 project the user is encountering for the first time. Three flavours of this initial state should all pass:
 
@@ -32,10 +32,10 @@ The journey should pass on each of:
 - [ ] Runs the snippet and confirms it round-trips data.
 - [ ] Surfaces CLI commands (`db init`, optionally `db update`, `contract emit`) **only when the user's current move requires them** — not as a pre-emptive tour. The *Commands you'll use day-to-day* table is offered as a reference once the first round-trip works, not recited beforehand.
 - [ ] Asks the user what they want to build next and routes:
-  - More queries → `prisma-next-queries`.
-  - Schema changes → `prisma-next-contract`.
-  - Runtime config / middleware → `prisma-next-runtime`.
-  - Dev-server integration → `prisma-next-build`.
+  - More queries → `prisma-8-queries`.
+  - Schema changes → `prisma-8-contract`.
+  - Runtime config / middleware → `prisma-8-runtime`.
+  - Dev-server integration → `prisma-8-build`.
 
 ## Success criteria
 

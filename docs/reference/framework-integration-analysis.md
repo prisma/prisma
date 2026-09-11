@@ -408,7 +408,7 @@ export class AppModule {}
 
 @Injectable()
 export class UserService {
-  constructor(@Inject(PRISMA_NEXT) private db: PrismaNextHandle) {}
+  constructor(@Inject(PRISMA) private db: PrismaHandle) {}
   findAll() { return this.db.orm.user.all(); }
 }
 ```

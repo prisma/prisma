@@ -1,6 +1,6 @@
 # Journey 06 — Feedback skill: bug report
 
-**Skill under test:** `prisma-next-feedback`.
+**Skill under test:** `prisma-8-feedback`.
 
 **Acceptance criterion:** AC8c (bug report path) from `specs/usage-skill.spec.md`.
 
@@ -14,7 +14,7 @@ A `prisma orm init`-scaffolded project (any target).
 
 ## Expected agent behaviour
 
-- [ ] Skill matcher fires on `prisma-next-feedback`.
+- [ ] Skill matcher fires on `prisma-8-feedback`.
 - [ ] Agent classifies as a **bug report** (the CLI exit code is arguably wrong vs. documented behaviour). Not a feature request.
 - [ ] Agent produces a minimal reproduction:
   - A small `schema.psl` excerpt (renamed to neutral domain names like `User`, `Post`).

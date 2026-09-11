@@ -178,7 +178,7 @@ jobs:
 
       # Lightweight git tag for non-latest publishes (dev / beta / …).
       # `latest` publishes get a tag implicitly via `gh release create`
-      # below; dev-channel builds need one too because `prisma-next init` resolves
+      # below; dev-channel builds need one too because `prisma init` resolves
       # its skill-cluster URL via `#v<cliVersion>` (see packages/1-framework/
       # 3-tooling/cli/src/commands/init/skill-install.ts), which 404s without a
       # matching git ref. Tag-only is intentional — a full Release per dev build

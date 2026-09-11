@@ -232,7 +232,7 @@ describe('init scaffold', () => {
                 'src/prisma/contract.prisma',
                 'prisma.config.ts',
                 'src/prisma/db.ts',
-                'prisma-next.md',
+                'prisma-8.md',
               ],
             },
           },

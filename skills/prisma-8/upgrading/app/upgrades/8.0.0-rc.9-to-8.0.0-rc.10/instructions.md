@@ -1,8 +1,35 @@
 ---
 from: "8.0.0-rc.9"
 to: "8.0.0-rc.10"
-# Prisma 8 naming sweep: prose only, no entry required
 changes:
+  - id: schema-header-use-prisma-8
+    summary: |
+      The schema header that marks a Prisma 8 schema is now `// use prisma-8`. The language server
+      and the inferred-schema printer recognise only the new form, so replace `// use prisma-next`
+      at the top of every `.prisma` file.
+    detection:
+      glob: "**/*.prisma"
+      contains:
+        - "// use prisma-next"
+  - id: env-vars-drop-next-infix
+    summary: |
+      The CLI environment variables lost their `NEXT_` infix: `PRISMA_NEXT_DISABLE_TELEMETRY`,
+      `PRISMA_NEXT_TELEMETRY_ENDPOINT`, `PRISMA_NEXT_DEBUG`, and the rest are now
+      `PRISMA_DISABLE_TELEMETRY`, `PRISMA_TELEMETRY_ENDPOINT`, `PRISMA_DEBUG`, and so on. Rename them
+      in shell profiles, `.env` files, and CI configuration. The per-user telemetry config also moved
+      from `~/.config/prisma-next/` to `~/.config/prisma-8/`, so the consent prompt runs once more.
+    detection:
+      glob: "**/*"
+      contains:
+        - "PRISMA_NEXT_"
+  - id: primer-file-prisma-8-md
+    summary: |
+      The quick-reference primer `init` writes at the project root is now `prisma-8.md`. Rename the
+      existing `prisma-next.md` and update any README or agent instruction that points at it.
+    detection:
+      glob: "**/prisma-next.md"
+      contains:
+        - "#"
   - id: to-one-relations-record-nullable
     summary: |
       Every `1:1` and `N:1` relation in `contract.json` now carries a `nullable` boolean. A
@@ -28,3 +55,15 @@ For every `contract.json` matched by `detection`, run the project's emit command
 ## `contract-dts-exports-models`
 
 After the emit, `import type { Models, models } from './prisma/contract'` (the project's contract path) gives `Models.<namespace>_<Model>` for every model, and `Scalars<M>` / `Shape<M, { '+': 'relation' }>` from `@prisma/orm-postgres/family-contract/types` (or the Mongo family package) derive the default row and a data structure with relations from it. Replace hand-written row types that duplicate a model's fields with these when convenient.
+
+## `schema-header-use-prisma-8`
+
+For every `.prisma` file matched by `detection`, replace the first-line header `// use prisma-next` with `// use prisma-8`. Nothing else in the file changes.
+
+## `env-vars-drop-next-infix`
+
+For every file matched by `detection`, replace the `PRISMA_NEXT_` prefix with `PRISMA_` on each environment variable name. Delete `~/.config/prisma-next/` (or `%APPDATA%\prisma-next\` on Windows); the CLI recreates its config under `prisma-8` and asks for telemetry consent once.
+
+## `primer-file-prisma-8-md`
+
+Rename `prisma-next.md` at the project root to `prisma-8.md`, and update any link to it in the project README or agent instructions.

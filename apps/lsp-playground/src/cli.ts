@@ -60,7 +60,7 @@ async function stageSchema(sourceFile?: string): Promise<string> {
   if (sourceFile !== undefined && (await fileExists(sourceFile))) {
     await copyFile(sourceFile, target);
   } else if (!(await fileExists(target))) {
-    await writeFile(target, '// use prisma-next\n\n', 'utf8');
+    await writeFile(target, '// use prisma-8\n\n', 'utf8');
   }
   return target;
 }

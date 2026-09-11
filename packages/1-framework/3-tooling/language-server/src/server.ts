@@ -94,7 +94,7 @@ function lastGoodProject(entry: ManagedProject | undefined): ProjectState | unde
   return entry.status === 'loaded' ? entry.project : entry.lastGood;
 }
 
-export const CONFIG_LOAD_FAILED_CODE = 'PRISMA_NEXT_CONFIG_LOAD_FAILED';
+export const CONFIG_LOAD_FAILED_CODE = 'PRISMA_CONFIG_LOAD_FAILED';
 
 const semanticTokenSourceLimit = 100_000;
 
@@ -285,7 +285,7 @@ function createServerOn(connection: Connection): LanguageServer {
           message: configFailureMessage(error),
           code: CONFIG_LOAD_FAILED_CODE,
           severity: DiagnosticSeverity.Error,
-          source: 'prisma-next',
+          source: 'prisma',
         },
       ],
     });
@@ -683,7 +683,7 @@ function toDiagnostics(computed: readonly LspDiagnostic[]): Diagnostic[] {
     message: diagnostic.message,
     code: diagnostic.code,
     severity: toLspSeverity(diagnostic.severity),
-    source: 'prisma-next',
+    source: 'prisma',
   }));
 }
 

@@ -46,7 +46,7 @@ export default defineConfig({
 **2. Declare a geometry column in your schema (PSL):**
 
 ```prisma
-// use prisma-next
+// use prisma-8
 
 types {
   WgsGeometry = postgis.Geometry(4326)

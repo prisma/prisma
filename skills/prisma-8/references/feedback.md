@@ -9,12 +9,12 @@ The skill's job is to pick the *right channel* — GitHub issue or Discord — a
 
 Canonical channels:
 
-- **GitHub Issues** (bugs + concrete feature requests): <https://github.com/prisma/prisma-next/issues/new/choose>
+- **GitHub Issues** (bugs + concrete feature requests): <https://github.com/prisma/orm/issues/new/choose>
 - **Prisma Discord** (Q&A, design feedback, direct team contact — including extension authors): <https://pris.ly/discord>
 
 ## When to Use
 
-- A capability-gap entry from another `prisma-next-*` skill fired and the user said *"yes, file the feature request"*.
+- A capability-gap entry from another `prisma-8` skill fired and the user said *"yes, file the feature request"*.
 - User says *"this is a bug"*, *"file this"*, *"report this"*, *"file an issue against PN"*, *"send feedback"*, *"this should be a feature"*.
 - User describes an unexpected behaviour — wrong exit code, error message that didn't match what happened, type signature that doesn't match runtime behaviour, planner refused a migration that looked safe — and wants it on the framework team's radar.
 - User asks *"can I ask the Prisma team about this?"*, *"is there somewhere I can talk to the team?"*, *"is this the intended way to do X?"*, *"how should I integrate <my extension / my tool> with PN?"*, or any other open-ended Q&A or design-feedback prompt — including extension authors asking integration questions.
@@ -42,7 +42,7 @@ The user wants to hand something off to the team. Which channel?
 
 - The user describes a concrete bug (see *Classify* below for the bug-vs-feature split).
 - The user has a concrete feature request — a named capability, a specific API shape, a specific CLI flag — that they want on the backlog.
-- A capability-gap entry from another `prisma-next-*` skill routed them here for a feature request.
+- A capability-gap entry from another `prisma-8` skill routed them here for a feature request.
 
 **Prisma Discord** (<https://pris.ly/discord>) if any of:
 
@@ -103,7 +103,7 @@ For **feature requests**, additionally:
 
 ### 4. Render the body
 
-The repository ships GitHub Issue Forms (`.github/ISSUE_TEMPLATE/bug_report.yml` and `feature_request.yml`). When the user lands on <https://github.com/prisma/prisma-next/issues/new/choose> they pick the matching template and fill in the form fields; the skill produces the body in the same structured shape so it maps onto the form one-to-one (and so `gh issue create --body-file` produces a parseable artifact even when the form isn't in play).
+The repository ships GitHub Issue Forms (`.github/ISSUE_TEMPLATE/bug_report.yml` and `feature_request.yml`). When the user lands on <https://github.com/prisma/orm/issues/new/choose> they pick the matching template and fill in the form fields; the skill produces the body in the same structured shape so it maps onto the form one-to-one (and so `gh issue create --body-file` produces a parseable artifact even when the form isn't in play).
 
 Bug-report body shape (fields named to match `.github/ISSUE_TEMPLATE/bug_report.yml`):
 
@@ -195,7 +195,7 @@ Preferred. Two steps:
 If `gh` is not installed: open the prefilled new-issue URL in the browser:
 
 ~~~text
-https://github.com/prisma/prisma-next/issues/new/choose
+https://github.com/prisma/orm/issues/new/choose
 ~~~
 
 …and instruct the user to paste the rendered body. The agent can copy the body to the clipboard via `pbcopy` (macOS), `xclip` (Linux), or by simply printing it in the chat for the user to copy.
@@ -205,7 +205,7 @@ https://github.com/prisma/prisma-next/issues/new/choose
 When step 1 picked the Discord channel (steps 2–7 do not apply):
 
 1. **Surface the link.** Give the user the canonical invite: <https://pris.ly/discord>. Suggest the channel that fits the question:
-   - General usage / Q&A → the public `#help` or `#prisma-next` channel (channel naming evolves; the invite landing page lists current channels).
+   - General usage / Q&A → the public `#help` channel (the invite landing page lists current channels).
    - Extension-author / partner-integration / breaking-change-coordination questions → the public extension-authors channel, or the user can ping a maintainer directly once they're in the server.
 2. **Help draft the opening message.** Prisma's Discord is searchable; a well-framed opening message gets a faster, more useful answer. The agent drafts a short message with:
    - One-sentence summary of what the user is trying to do.
@@ -231,11 +231,11 @@ When step 1 picked the Discord channel (steps 2–7 do not apply):
 
 ## What Prisma 8 doesn't do yet
 
-- **In-product feedback channel.** No `prisma-next feedback` CLI command. The GitHub Issues page is the canonical surface. If you want a CLI-side feedback command, file a feature request via this skill.
+- **In-product feedback channel.** No `prisma feedback` CLI command. The GitHub Issues page is the canonical surface. If you want a CLI-side feedback command, file a feature request via this skill.
 
 ## Reference Files
 
-- <https://github.com/prisma/prisma-next/issues/new/choose> — the canonical submission surface.
+- <https://github.com/prisma/orm/issues/new/choose> — the canonical submission surface.
 - <https://cli.github.com/manual/gh_issue_create> — the `gh` command reference.
 
 ## Checklist

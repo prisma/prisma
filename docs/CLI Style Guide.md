@@ -58,7 +58,7 @@ The CLI checks `process.stdout.isTTY` once at startup to determine the output mo
 - Verbose: `-v/--verbose` (debug: timings, resolved config), `--trace` (deep internals, stack traces).
 - JSON: `--json` outputs single JSON object to stdout.
 - Interactivity: `--interactive`/`--no-interactive`. Defaults to `process.stdout.isTTY`. `-y/--yes` accepts prompts.
-- Env toggles: `PRISMA_NEXT_DEBUG=1` ≅ `-v`, `PRISMA_NEXT_TRACE=1` ≅ `--trace`.
+- Env toggles: `PRISMA_DEBUG=1` ≅ `-v`, `PRISMA_TRACE=1` ≅ `--trace`.
 - CLI flags take precedence over env vars.
 
 > **Future**: If long-running streaming commands are introduced, `--json` may auto‑select NDJSON for those commands, and `--json=object|ndjson` override syntax can be re‑introduced.
@@ -139,7 +139,7 @@ This is a deliberate divergence from clig.dev §Arguments §Confirmation. AI age
 
 ## Config & Environment
 - Config file names: `prisma.config.ts|.mjs|.js` (ESM); optional CJS fallback.
-- Discovery precedence: `--config <path>` > `PRISMA_NEXT_CONFIG` > nearest `prisma.config.*` in CWD (no upward search).
+- Discovery precedence: `--config <path>` > `PRISMA_CONFIG` > nearest `prisma.config.*` in CWD (no upward search).
 - Precedence: flags > config > defaults.
 - Env policy: the CLI does not auto‑load `.env`. Apps may do so in `prisma.config.*` and pass values (e.g., `db.connection`).
 - Contract source: defined in config; no flag override.
@@ -253,8 +253,8 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
   - `prisma/contract.prisma` (PSL) — starter schema with two related models so the user has something to query immediately.
   - `prisma/db.ts` — runtime client (e.g. `postgres<Contract>({ contractJson })`) typed against the emitted contract.
   - `prisma/contract.json` and `prisma/contract.d.ts` — emitted by the post-install `contract emit` step.
-  - `prisma-next.md` — short human-facing quick reference (file locations, common commands, minimal query example).
-  - `.agents/skills/prisma-next/SKILL.md` — agent skill so AI tooling in the project knows the layout and conventions.
+  - `prisma-8.md` — short human-facing quick reference (file locations, common commands, minimal query example).
+  - `.agents/skills/prisma-8/SKILL.md` — agent skill so AI tooling in the project knows the layout and conventions.
   - `.env.example` with `DATABASE_URL=`; CLI still does not read `.env`.
   - After-init output: small celebratory header + a numbered "Next steps" list (edit the schema, run `pnpm prisma contract emit`, import `db` from `./prisma/db`).
 - Re-init detection: if `prisma.config.ts` already exists, init prompts once — *"This project is already initialized. Re-initialize? This will overwrite all generated files."* — and then either overwrites everything or exits. No per-file overwrite prompts.

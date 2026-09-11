@@ -324,7 +324,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           // command family, imported by the unified `prisma` shell as
           // `@prisma/orm-toolchain/cli` — is the published CLI surface. The
           // commander-era `./cli/commands/*` factories are gone, and the
-          // workspace-local `prisma-next` bin is not published.
+          // workspace-local standalone bin is not published.
           subpaths: [
             '.',
             'migration-cli',

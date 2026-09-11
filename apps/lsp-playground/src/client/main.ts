@@ -29,7 +29,7 @@ const RUNTIME_CONFIG_PATH = '/__psl_playground_runtime.json';
 
 const pslSemanticThemeExtension = {
   name: 'prisma-psl-semantic-theme-bridge',
-  publisher: 'prisma-next',
+  publisher: 'prisma',
   version: '0.0.0',
   engines: { vscode: '*' },
   contributes: {

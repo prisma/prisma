@@ -117,7 +117,7 @@ export interface CodecInstanceContext {
 export const voidParamsSchema: StandardSchemaV1<void> = {
   '~standard': {
     version: 1,
-    vendor: 'prisma-next',
+    vendor: 'prisma',
     validate: (input) =>
       input === undefined
         ? { value: undefined }

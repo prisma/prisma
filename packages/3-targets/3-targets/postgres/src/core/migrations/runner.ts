@@ -31,7 +31,7 @@ interface ApplyPlanSuccessValue {
   readonly executedOperations: readonly SqlMigrationPlanOperation<PostgresPlanTargetDetails>[];
 }
 
-const LOCK_DOMAIN = 'prisma_next.contract.marker';
+const LOCK_DOMAIN = 'prisma_8.contract.marker';
 
 /**
  * Deep clones and freezes a record object to prevent mutation.

@@ -20,7 +20,7 @@
 //     @@schema("transactional")
 //   }
 //
-// prisma-next maps @@schema("base") -> namespace base { model User {} }
+// Prisma 8 maps @@schema("base") -> namespace base { model User {} }
 // and @@schema("transactional") -> namespace transactional { model Post {} }.
 // Cross-namespace relation: user base.User @relation(...).
 

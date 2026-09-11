@@ -23,7 +23,7 @@
 //
 // Only the Cascade / foreignKeys entry is materialised because it is the only
 // matrix entry with a *portable* test: the nested-disconnect case (Test 4).
-// The nested-delete cases (Tests 1-3) are non-ported — prisma-next's nested
+// The nested-delete cases (Tests 1-3) are non-ported — Prisma 8's nested
 // update mutators are create/connect/disconnect only, with no nested `delete`.
 
 model Main {

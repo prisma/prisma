@@ -1,6 +1,6 @@
 # Journey 02e — Recover from `MIGRATION.HASH_MISMATCH`
 
-**Skills under test:** `prisma-next-debug`, `prisma-next-migrations`.
+**Skills under test:** `prisma-8-debug`, `prisma-8-migrations`.
 
 **Acceptance criterion:** AC5e.
 

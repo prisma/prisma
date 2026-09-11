@@ -1,5 +1,5 @@
-const PRISMA_NEXT_DIRECTIVE = /^\s*\/\/ *use +prisma-next *(?!\S)/;
+const PRISMA_8_DIRECTIVE = /^\s*\/\/ *use +prisma-8 *(?!\S)/;
 
 export function isPrismaNextSchema(text: string): boolean {
-  return PRISMA_NEXT_DIRECTIVE.test(text);
+  return PRISMA_8_DIRECTIVE.test(text);
 }

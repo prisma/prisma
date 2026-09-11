@@ -121,7 +121,7 @@ withTempDir(({ createTempDir }) => {
 
             const pslPath = join(testSetup.testDir, 'output/contract.prisma');
             expect(existsSync(pslPath)).toBe(true);
-            expect(readFileSync(pslPath, 'utf-8')).toBe(`// use prisma-next
+            expect(readFileSync(pslPath, 'utf-8')).toBe(`// use prisma-8
 // Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.
 
 model User {

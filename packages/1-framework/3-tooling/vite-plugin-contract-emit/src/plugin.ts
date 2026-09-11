@@ -165,7 +165,7 @@ export function prismaVitePlugin(
         server.ws.send({
           type: 'error',
           err: {
-            message: `[prisma-next] ${errorMessage}`,
+            message: `[prisma] ${errorMessage}`,
             stack: errorStack ?? '',
             plugin: PLUGIN_NAME,
           },
@@ -463,7 +463,7 @@ export function prismaVitePlugin(
         viteServer.ws.send({
           type: 'error',
           err: {
-            message: `[prisma-next] ${errorMessage}`,
+            message: `[prisma] ${errorMessage}`,
             stack: '',
             plugin: PLUGIN_NAME,
           },

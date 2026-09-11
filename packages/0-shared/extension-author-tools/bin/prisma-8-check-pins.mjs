@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { cwd, exit, stderr } from 'node:process';
 
 const DEP_FIELDS = ['dependencies', 'peerDependencies', 'optionalDependencies'];
-const PRISMA_NEXT_SCOPE = '@internal/';
+const INTERNAL_SCOPE = '@internal/';
 const EXACT_VERSION_RE = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
 
 function readPackageJson() {
@@ -30,7 +30,7 @@ function collectEntries(pkg) {
     const deps = pkg[field];
     if (!deps || typeof deps !== 'object') continue;
     for (const [name, spec] of Object.entries(deps)) {
-      if (!name.startsWith(PRISMA_NEXT_SCOPE)) continue;
+      if (!name.startsWith(INTERNAL_SCOPE)) continue;
       entries.push({ field, name, spec });
     }
   }

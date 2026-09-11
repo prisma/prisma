@@ -7,7 +7,7 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // (postgres matrix entry only; mongo-only features skipped).
 //
 // The upstream suite compares $queryRaw vs findMany for various scalar types.
-// In prisma-next there is no $queryRaw, so all "differences between queryRaw
+// In Prisma 8 there is no $queryRaw, so all "differences between queryRaw
 // and findMany" tests are non-portable.
 //
 // Prisma 8 type differences from upstream Prisma Client:
@@ -68,7 +68,7 @@ describe('ports/prisma/functional/multiple-types', () => {
   );
 
   // Non-portable: 'shows differences between queryRaw and findMany'
-  // prisma-next has no $queryRaw — recorded as non-ported in inbox ledger.
+  // Prisma 8 has no $queryRaw — recorded as non-ported in inbox ledger.
 
   it(
     'a record with all fields set to null should succeed',
