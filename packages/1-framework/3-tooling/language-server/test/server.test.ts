@@ -684,7 +684,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       full: true,
       range: true,
     });
-    expect(result.capabilities.completionProvider).toEqual({ triggerCharacters: ['.'] });
+    expect(result.capabilities.completionProvider).toEqual({ triggerCharacters: ['.', '@'] });
   });
 
   it('returns model field type completions for configured PSL inputs', async () => {
