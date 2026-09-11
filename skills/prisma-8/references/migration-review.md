@@ -190,7 +190,7 @@ For a human-readable ordered preview of the migration path before applying, use 
       }
       // Pending migrations are the normal case before Apply; block on them
       // only if this job is a verify-only gate (set EXPECT_UP_TO_DATE=1).
-      if (process.env.EXPECT_UP_TO_DATE) {
+      if (process.env.EXPECT_UP_TO_DATE === "1") {
         for (const space of s.spaces ?? []) {
           const pending = space.migrations.filter(m => m.status === "pending");
           if (pending.length) problems.push(`${space.space}: ${pending.length} pending migration(s)`);
