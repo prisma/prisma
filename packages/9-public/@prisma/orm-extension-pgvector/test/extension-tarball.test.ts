@@ -157,6 +157,16 @@ describe('an extension pack next to a target shell of a different version', () =
       direct: [extension, targetShell],
       npmrc: ['strict-peer-dependencies=true', 'auto-install-peers=false'],
     });
+    const workspaceYaml = readFileSync(join(scratch, 'pnpm-workspace.yaml'), 'utf8');
+    expect(workspaceYaml).toContain(`  ${JSON.stringify(extension)}: "file:`);
+    expect(workspaceYaml).not.toContain(`  ${JSON.stringify(targetShell)}:`);
+    expect(workspaceYaml).not.toContain('"@types/node"');
+    expect(workspaceYaml).toContain('minimumReleaseAge: 1440\n');
+    expect(workspaceYaml).toContain('strictPeerDependencies: true\n');
+    expect(workspaceYaml).toContain('autoInstallPeers: false\n');
+    expect(readFileSync(join(scratch, '.npmrc'), 'utf8')).toBe(
+      'strict-peer-dependencies=true\nauto-install-peers=false\n',
+    );
     expect(result.ok).toBe(false);
     // pnpm prints the offending version as `found <v>` in its tree-style
     // report and as `Installed: <v>` in the verbose one; assert the parts

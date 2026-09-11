@@ -1,4 +1,8 @@
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import type {
+  AssembledAuthoringContributions,
+  ControlMutationDefaults,
+} from '@internal/framework-components/control';
 import { buildSymbolTable, type SymbolTable } from '@internal/psl-parser';
 import { type DocumentAst, parse, type SourceFile } from '@internal/psl-parser/syntax';
 import { type LspDiagnostic, mapParseDiagnostics } from './diagnostic-mapping';
@@ -7,12 +11,15 @@ import { type LspDiagnostic, mapParseDiagnostics } from './diagnostic-mapping';
  * `pslBlockDescriptors` is kept complete on the live path so extension-block
  * validation matches the build; the structural diagnostics (duplicate
  * declaration, invalid qualified type) hold even without descriptors.
- * `scalarTypes` is not consumed by the pipeline itself — it is the
- * control-stack projection semantic tokens and completions classify against.
+ * `scalarTypes`, `authoringContributions`, and `controlMutationDefaults` are not
+ * consumed by the pipeline itself — they are the control-stack projection
+ * semantic tokens and completions classify against.
  */
 export interface PipelineInputs {
   readonly scalarTypes: readonly string[];
   readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
+  readonly authoringContributions?: AssembledAuthoringContributions;
+  readonly controlMutationDefaults?: ControlMutationDefaults;
 }
 
 export interface PipelineResult {

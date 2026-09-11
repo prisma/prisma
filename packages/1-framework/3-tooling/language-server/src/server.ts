@@ -468,6 +468,12 @@ function createServerOn(connection: Connection): LanguageServer {
             scalarTypes: project.controlStack.scalarTypes,
             pslBlockDescriptors: project.controlStack.pslBlockDescriptors,
             symbolTable: project.artifacts.symbolTable(),
+            ...(project.controlStack.authoringContributions === undefined
+              ? {}
+              : { authoringContributions: project.controlStack.authoringContributions }),
+            ...(project.controlStack.controlMutationDefaults === undefined
+              ? {}
+              : { controlMutationDefaults: project.controlStack.controlMutationDefaults }),
           },
           clientSupportsSnippets: clientCapabilities.completionSnippets,
         }),
@@ -492,7 +498,7 @@ function createServerOn(connection: Connection): LanguageServer {
           full: true,
           range: true,
         },
-        completionProvider: { triggerCharacters: ['.'] },
+        completionProvider: { triggerCharacters: ['.', '@'] },
         // Both flags reflect the current single-input implementation scope —
         // not a property of PSL. Once the project symbol table merges multiple
         // inputs, an edit in one file can change diagnostics in another and

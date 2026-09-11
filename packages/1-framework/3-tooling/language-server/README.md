@@ -9,3 +9,16 @@ The server only handles documents whose first non-whitespace content is a `// us
 ## Responsibilities
 
 - Serve diagnostics, whole-document formatting, folding ranges, semantic tokens, and completion for open configured PSL inputs carrying the directive.
+
+## PSL completion scope
+
+The completion provider uses the configured project's scalar types, PSL block descriptors, symbol table, and interpretation context. Attribute completion therefore comes from the same authoring contributions that interpretation uses rather than from a language-server-owned list of SQL, Mongo, target, or extension attributes.
+
+Supported attribute completion contexts are intentionally shallow:
+
+- Attribute names after `@` and `@@` for fields, models, and contributed PSL blocks.
+- Top-level named argument keys inside an attribute call, excluding keys already supplied before the cursor.
+- For clients that advertise LSP snippet support, attribute-name completions include only required positional arguments and required named arguments as empty editable tab stops. Optional arguments remain available through named-key completion instead of being inserted automatically.
+- For clients without snippet support, attribute-name completions use plain-text edits with no snippet placeholders.
+
+The provider preserves existing sigils, typed prefixes, completed attribute argument lists, and text after the cursor. It does not complete attribute values, recurse into record/list values, or offer nested function-call argument suggestions; those value-level completions are outside this package's current completion surface.

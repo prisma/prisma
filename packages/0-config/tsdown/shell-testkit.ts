@@ -26,7 +26,6 @@ const TRUST_POLICY_EXCLUDE = [
   'undici@5.29.0',
   'undici-types@6.21.0',
 ] as const;
-
 export interface PackedShell {
   readonly name: string;
   readonly tarball: string;

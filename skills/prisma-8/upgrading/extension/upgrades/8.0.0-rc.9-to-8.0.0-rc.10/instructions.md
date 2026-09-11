@@ -3,6 +3,7 @@ from: "8.0.0-rc.9"
 to: "8.0.0-rc.10"
 # Prisma 8 naming sweep: prose only, no entry required
 # sql-orm-client doc-comment sweep: reviewed, no entry required
+# postgres shell dependency ownership: reviewed, no extension-author action required; bundled packages now declare the catalog Node/pg type dependencies that public shell manifests mirror
 changes:
   - id: to-one-relations-record-nullable
     summary: |

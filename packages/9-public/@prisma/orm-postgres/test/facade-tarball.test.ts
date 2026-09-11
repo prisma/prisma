@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -90,6 +90,21 @@ describe('an application that installs only the Postgres facade', () => {
     // the unified `prisma` CLI imports the orm command family from
     // @prisma/orm-toolchain/cli instead.
     expect(existsSync(join(scratch, 'node_modules', '.bin', 'prisma-next'))).toBe(false);
+  });
+
+  it('installs the catalog-backed Node types required by pg declarations without a helper override', () => {
+    const workspaceYaml = readFileSync(join(scratch, 'pnpm-workspace.yaml'), 'utf8');
+    expect(workspaceYaml).not.toContain('"@types/node"');
+    const output = runInScratch(
+      scratch,
+      [
+        "import { createRequire } from 'node:module';",
+        `const require = createRequire(import.meta.resolve('${facade}/package.json'));`,
+        "const manifest = require('@types/node/package.json');",
+        "console.log(JSON.stringify({ version: manifest.version, undiciTypes: manifest.dependencies?.['undici-types'] }));",
+      ].join('\n'),
+    );
+    expect(JSON.parse(output)).toEqual({ version: '26.1.2', undiciTypes: '~8.3.0' });
   });
 
   it('bundles only its own wiring code', () => {
