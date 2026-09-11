@@ -13,7 +13,7 @@
 ## Expected agent behavior
 
 - [ ] Reads `prisma.config.ts` to confirm target and authoring mode.
-- [ ] Opens the contract source (`schema.psl` or `prisma/contract.ts`).
+- [ ] Opens the contract source (`src/prisma/contract.prisma` or `src/prisma/contract.ts`, whichever `prisma.config.ts` names).
 - [ ] Adds a `User` model with `id` (auto-increment PK) and `email` (string, unique).
 - [ ] Runs `pnpm prisma contract emit` (or the project-pm equivalent).
 - [ ] Plans + applies a migration (or uses `db update` for dev).
