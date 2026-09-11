@@ -1183,6 +1183,21 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await expect(requestFormatting(harness, schemaUri)).resolves.toEqual([]);
   });
 
+  it('serves a schema carrying the directive earlier releases wrote, and formatting renames it', async () => {
+    harness = startHarness(resolveToSchema);
+    await harness.initialize();
+    const legacyPsl = formattedPsl.replace('// use prisma-8', '// use prisma-next');
+    openDocument(harness, schemaUri, legacyPsl);
+    expect(await harness.waitForDiagnostics(schemaUri)).toEqual([]);
+
+    await expect(requestFormatting(harness, schemaUri)).resolves.toEqual([
+      {
+        range: { start: { line: 0, character: 0 }, end: { line: 4, character: 0 } },
+        newText: formattedPsl,
+      },
+    ]);
+  });
+
   it('returns no edits for unconfigured PSL documents', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();

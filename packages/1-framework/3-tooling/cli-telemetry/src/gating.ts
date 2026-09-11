@@ -44,7 +44,8 @@ function isTruthyOptOut(raw: string | undefined): boolean {
  * user config.
  *
  * Decision order:
- *   1. Env-var override (`PRISMA_DISABLE_TELEMETRY` truthy, or
+ *   1. Env-var override (`PRISMA_DISABLE_TELEMETRY` truthy, its
+ *      `PRISMA_NEXT_DISABLE_TELEMETRY` spelling from earlier releases, or
  *      `DO_NOT_TRACK=1`) → disabled. The env check runs first, so an
  *      opt-out env var wins over any stored or unset preference.
  *   2. Stored `enableTelemetry === false` → disabled (`stored-opt-out`).
@@ -60,6 +61,7 @@ function isTruthyOptOut(raw: string | undefined): boolean {
 export function resolveGating(inputs: GatingInputs): GatingResolution {
   if (
     isTruthyOptOut(inputs.env['PRISMA_DISABLE_TELEMETRY']) ||
+    isTruthyOptOut(inputs.env['PRISMA_NEXT_DISABLE_TELEMETRY']) ||
     inputs.env['DO_NOT_TRACK'] === '1'
   ) {
     return { enabled: false, reason: 'env-override' };

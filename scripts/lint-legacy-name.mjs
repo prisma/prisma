@@ -38,6 +38,16 @@ const RETIREMENT_PROOFS = new Set([
   'test/integration/test/cli.init-skill-distribution.integration.test.ts',
 ]);
 
+/** Files that read the retired name so projects and shells set up by earlier releases keep working. */
+const COMPATIBILITY_SITES = new Set([
+  'packages/1-framework/3-tooling/language-server/src/schema-directive.ts',
+  'packages/1-framework/3-tooling/language-server/test/schema-directive.test.ts',
+  'packages/1-framework/3-tooling/language-server/test/server.test.ts',
+  'packages/1-framework/3-tooling/cli-telemetry/src/gating.ts',
+  'packages/1-framework/3-tooling/cli-telemetry/test/gating.test.ts',
+  'docs/Telemetry.md',
+]);
+
 /**
  * An occurrence that is allowed, with the reason. Each returns true when it
  * recognises the occurrence as its own kind.
@@ -75,6 +85,10 @@ const ALLOWED = [
   {
     why: 'the retired name kept only to prove it stays gone — this check, the list of skill directories `init` deletes from older projects, and the tests asserting that no `prisma-next` bin or skill directory is installed any more',
     matches: (relPath) => RETIREMENT_PROOFS.has(relPath),
+  },
+  {
+    why: 'compatibility with what earlier releases wrote into user projects and shells — the language server still serves a schema headed `// use prisma-next` (and formatting renames it), and the telemetry opt-out still honours `PRISMA_NEXT_DISABLE_TELEMETRY`',
+    matches: (relPath) => COMPATIBILITY_SITES.has(relPath),
   },
 ];
 

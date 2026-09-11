@@ -42,7 +42,7 @@ import {
   type DocumentArtifacts,
   type ProjectArtifacts,
 } from './project-artifacts';
-import { isPrismaNextSchema } from './schema-directive';
+import { isPrismaNextSchema, renameLegacyDirective } from './schema-directive';
 import type { SchemaInputSet } from './schema-inputs';
 import { buildSemanticTokens, semanticTokensLegend } from './semantic-tokens';
 
@@ -392,7 +392,7 @@ function createServerOn(connection: Connection): LanguageServer {
 
     let formatted: string;
     try {
-      formatted = format(source, project.formatter);
+      formatted = renameLegacyDirective(format(source, project.formatter));
     } catch {
       return [];
     }

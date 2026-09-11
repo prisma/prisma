@@ -117,6 +117,7 @@ DO_NOT_TRACK=1 prisma db migrate
 ```
 
 - **`PRISMA_DISABLE_TELEMETRY`** — disables telemetry when set to any truthy value. The values `""`, `"0"`, and `"false"` (case-insensitive) are treated as "not set" so an exported-but-blanked variable doesn't accidentally disable telemetry.
+- **`PRISMA_NEXT_DISABLE_TELEMETRY`** — the spelling earlier releases documented. Still honoured, with the same truthy-value rule, so an existing opt-out keeps working after an upgrade.
 - **`DO_NOT_TRACK=1`** — the [community-standard opt-out signal](https://consoledonottrack.com). Disables telemetry when set to exactly `1`.
 
 Either variable wins over the stored `enableTelemetry` value. The CLI **does not** rewrite your `config.json` in response to an env-var opt-out — your stored choice is preserved untouched, so unsetting the variable later restores whatever you had configured.
@@ -145,7 +146,7 @@ Because telemetry is on by default, the CLI discloses it the first time it would
 
 On the first command that resolves to *enabled* and has no `installationId` stored yet, the CLI prints a one-time notice to **stderr** (never stdout, so it can't corrupt piped output) and then mints the `installationId` and sends the event. The wording (verbatim, with the resolved absolute path to your config file substituted in) is:
 
-> Prisma 8 collects anonymous CLI usage data, enabled by default. What's collected and why: https://prisma-8.dev/docs/cli/telemetry. Opt out: run "prisma telemetry disable", set DO_NOT_TRACK=1 or PRISMA_DISABLE_TELEMETRY=1, or set "enableTelemetry": false in &lt;your config.json path&gt;.
+> Prisma 8 collects anonymous CLI usage data, enabled by default. What's collected and why: https://www.prisma.io/docs/cli/telemetry. Opt out: run "prisma telemetry disable", set DO_NOT_TRACK=1 or PRISMA_DISABLE_TELEMETRY=1, or set "enableTelemetry": false in &lt;your config.json path&gt;.
 
 The notice is **idempotent via the `installationId`**: it prints only while no `installationId` is stored. Once the first enabled send mints the id, every later command sees the stored id and stays silent. Deleting `config.json` clears the id and makes the notice print once more on the next enabled command.
 

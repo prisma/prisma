@@ -7,7 +7,8 @@ changes:
   - id: schema-header-use-prisma-8
     summary: |
       The schema header that marks a Prisma 8 schema is now `// use prisma-8`. The language server
-      and the inferred-schema printer recognise only the new form, so replace `// use prisma-next`
+      still serves the old header and its Format action rewrites it; new schemas and the
+      inferred-schema printer write the new form. Replace `// use prisma-next`
       at the top of every `.prisma` file the extension ships or tests against.
     detection:
       glob: "**/*.prisma"
@@ -17,7 +18,8 @@ changes:
     summary: |
       The CLI environment variables lost their `NEXT_` infix: `PRISMA_NEXT_DISABLE_TELEMETRY`,
       `PRISMA_NEXT_TELEMETRY_ENDPOINT`, `PRISMA_NEXT_DEBUG`, and the rest are now
-      `PRISMA_DISABLE_TELEMETRY`, `PRISMA_TELEMETRY_ENDPOINT`, `PRISMA_DEBUG`, and so on. Rename them
+      `PRISMA_DISABLE_TELEMETRY`, `PRISMA_TELEMETRY_ENDPOINT`, `PRISMA_DEBUG`, and so on. The old
+      `PRISMA_NEXT_DISABLE_TELEMETRY` opt-out is still honoured; the others are not. Rename them
       in the extension's test setup and CI configuration.
     detection:
       glob: "**/*"

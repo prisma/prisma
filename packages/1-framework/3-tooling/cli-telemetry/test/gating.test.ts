@@ -52,6 +52,21 @@ describe('resolveGating', () => {
     }
   });
 
+  it('still honours the PRISMA_NEXT_DISABLE_TELEMETRY opt-out earlier releases documented', () => {
+    expect(
+      resolveGating({
+        env: { PRISMA_NEXT_DISABLE_TELEMETRY: '1' },
+        config: { enableTelemetry: true },
+      }),
+    ).toEqual({ enabled: false, reason: 'env-override' });
+    expect(
+      resolveGating({
+        env: { PRISMA_NEXT_DISABLE_TELEMETRY: '0' },
+        config: { enableTelemetry: true },
+      }).enabled,
+    ).toBe(true);
+  });
+
   it('returns enabled=false when DO_NOT_TRACK=1 overrides a true stored preference', () => {
     expect(
       resolveGating({
