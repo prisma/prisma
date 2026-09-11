@@ -99,7 +99,7 @@ pnpm prisma db verify --db $DATABASE_URL
 
 The `db` ref is a named pointer at `migrations/app/refs/db.json` — just `{ hash, invariants }`. It records which contract hash the project's dev database has been brought up to — the offline planner's stand-in for "where is my local DB?" without opening a connection at plan time. The contract it names resolves through the shared content-addressed store at `migrations/snapshots/<hex>/contract.json` by that hash, the same store every migration graph node resolves through.
 
-**What `db init` / `db update` write.** When run against the project's default `--db` URL (no explicit `--db` flag), both commands implicitly advance the `db` ref: they write-if-absent the post-command contract IR into the snapshot store, then write the ref's pointer. Override the ref name with `--advance-ref <name>`. When you pass `--db <non-default-url>`, ref advancement is suppressed unless `--advance-ref` is explicit — reconciling a different database is not the same as checkpointing this project's dev state.
+**What `db init` / `db update` / `db sign` write.** When run against the project's default `--db` URL (no explicit `--db` flag), `db init` and `db update` implicitly advance the `db` ref: they write-if-absent the post-command contract IR into the snapshot store, then write the ref's pointer. Override the ref name with `--advance-ref <name>`. When you pass `--db <non-default-url>`, ref advancement is suppressed unless `--advance-ref` is explicit — reconciling a different database is not the same as checkpointing this project's dev state. `db sign` also advances the `db` ref after a successful signature, writing the signed contract into the snapshot store first; `--advance-ref <name>` overrides the name, and `--db` does **not** suppress it — sign never mutates the schema, and adoption is normally done against the real database via `--db`.
 
 The on-disk layout is just the pointer:
 
@@ -108,7 +108,7 @@ migrations/app/refs/
 └── db.json                 # { "hash": "<hex>", "invariants": [] }
 ```
 
-**First `migration plan` after dev iteration.** `migration plan` defaults `--from` to the `db` ref (and, when no `db` ref exists at all, falls back to planning from an empty database with no warning — over a non-empty graph that fallback is almost always a mistake; see `references/migration-model.md` § *The trap*). When the on-disk migration graph is still **empty** and the `db` ref points at a non-null hash with a store entry (typical after one or more `db update` cycles), the planner emits **two** bundles instead of one:
+**First `migration plan` after dev iteration.** `migration plan` defaults `--from` to the `db` ref (and, when no `db` ref exists at all, falls back to planning from an empty database only while the migration graph is empty — the human output then adds a muted notice beneath the summary, `No db ref set — planning from an empty database. Run db init, db update, or db sign if a database already exists.`, and the JSON document carries `fromDefaulted: true`; over a non-empty graph there is no fallback: the command refuses with `MIGRATION.PLAN_ORIGIN_UNKNOWN`; see `references/migration-model.md` § *The trap*). When the on-disk migration graph is still **empty** and the `db` ref points at a non-null hash with a store entry (typical after one or more `db update` cycles), the planner emits **two** bundles instead of one:
 
 1. Baseline: `null → from-hash` (introduces `from-hash` as a graph node)
 2. Delta: `from-hash → current_contract`
@@ -412,7 +412,7 @@ pnpm prisma db verify --db $DATABASE_URL
 
 ## Workflow — Re-sign the marker
 
-The concept: `db sign` rewrites the marker to the current contract hash. Use after a manual repair where the DB is the source of truth and the marker is stale. `db sign` performs a schema-verify first and refuses to sign a DB whose schema disagrees with the contract — so a successful sign always means the schema matches and the marker is now correct.
+The concept: `db sign` rewrites the marker to the current contract hash and moves the `db` ref to it (`--advance-ref <name>` overrides the ref name; `--db` does not suppress the ref write). Use after a manual repair where the DB is the source of truth and the marker is stale. `db sign` performs a schema-verify first and refuses to sign a DB whose schema disagrees with the contract — so a successful sign always means the schema matches and the marker is now correct.
 
 ```bash
 pnpm prisma db sign --db $DATABASE_URL
@@ -423,7 +423,7 @@ pnpm prisma db sign --db $DATABASE_URL
 The concept: drift means `db verify` reports the live DB schema doesn't match what the marker says it should be. Two valid moves, picked by which side is correct:
 
 - **The contract is right; the DB is wrong** → run a migration. Either `db update` (quick path, dev DB only) or `migration plan` + `db migrate` (everywhere else).
-- **The DB is right; the contract or marker is wrong** → edit the contract to match the DB (see `references/contract.md`), emit, then `db sign` to refresh the marker.
+- **The DB is right; the contract or marker is wrong** → edit the contract to match the DB (see `references/contract.md`), emit, then `db sign` to refresh the marker. The sign also moves the `db` ref to the signed hash; when the migration graph is non-empty and that hash is not a graph node, the next default `migration plan` refuses with `MIGRATION.HASH_NOT_IN_GRAPH` (see *The forgot-the-flag pitfall* above for the recovery).
 
 The diagnostic that reveals which side is right:
 
