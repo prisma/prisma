@@ -1,24 +1,22 @@
 ---
 name: prisma-8
 description: >-
-  Comprehensive guide for building with Prisma 8 (Prisma 8), the
-  contract-first data layer. Use whenever working on Prisma code in a project
-  that uses it — authoring or editing the data contract (contract.prisma, PSL,
-  TypeScript builders), migrations, queries (db.orm / db.sql), runtime wiring
-  (db.ts, middleware, DATABASE_URL), build-tool integration, Supabase / RLS,
-  reading structured errors (dotted codes such as MIGRATION.HASH_MISMATCH),
-  or filing feedback — and for orientation questions like "what is Prisma
-  Next" or comparisons to other ORMs. Signals that this skill applies:
-  @internal/* or @prisma/orm-* imports, prisma.config.ts, contract.prisma /
-  contract.json / contract.d.ts, `prisma orm` CLI commands, dotted error
-  codes. Also covers upgrading Prisma in a project — "upgrade
-  Prisma 8", "bump Prisma 8", "move to Prisma 8 X.Y", or dealing
-  with an @internal/* version bump, in a consumer app or in an extension
-  package. Does not apply to Prisma ORM 7 or earlier
-  (schema.prisma + @prisma/client projects).
+  Use when working in a project that depends on @prisma/orm-postgres,
+  @prisma/orm-sqlite, or @prisma/orm-mongo (Prisma 8, formerly Prisma Next): editing
+  contract.prisma or a contract.ts builder, running `prisma contract emit`,
+  planning or applying migrations, editing migration.ts, writing db.orm /
+  db.sql / db.query queries, wiring db.ts or middleware, integrating a build
+  tool, using the Supabase extension or RLS, or reading a dotted error code
+  such as MIGRATION.HASH_MISMATCH. Use when the user asks "what is Prisma
+  8", "where do I start", or compares it to another ORM. Use when the user
+  asks to upgrade or bump Prisma 8 in an app or an extension package. Use when
+  you see @internal/* or @prisma/orm-* imports, prisma.config.ts with
+  definePrismaConfig, or contract.json / contract.d.ts. Do not use for Prisma
+  ORM 7 or earlier (schema.prisma + @prisma/client).
 metadata:
   library: '@prisma/orm-postgres'
   library_version: '8.0.0-rc.9'
+  version: '2026-09-11'
 ---
 
 # Prisma 8 (Prisma 8)
@@ -26,6 +24,14 @@ metadata:
 > **Edit your data contract. Prisma handles the rest.**
 
 Prisma 8 moves fast, and your training data about it is very likely outdated. This skill ships inside the installed Prisma packages, so it describes the exact version this project has — treat it and its reference files as the source of truth, over anything you remember about Prisma.
+
+## Pre-conditions
+
+Check these before acting on anything below. Halt on the first one that fails and tell the user what is missing.
+
+1. **The project is on Prisma 8.** `prisma.config.ts` exports `definePrismaConfig({ orm: ... })`, and `package.json` depends on `@prisma/orm-postgres`, `@prisma/orm-sqlite`, or `@prisma/orm-mongo`. A project with `schema.prisma` and `@prisma/client` is Prisma 7 or earlier; this skill does not apply to it, and its instructions will break such a project.
+2. **The skill matches the installed version.** Compare `metadata.library_version` in this file's frontmatter with the installed `@prisma/orm-*` version in `package.json`. If they differ, run `prisma skills sync` and re-read this file before continuing.
+3. **The contract artefacts exist.** `contract.json` and `contract.d.ts` sit next to the contract source named by `prisma.config.ts`. If they are missing or older than the source, run `prisma contract emit` first; every query and migration instruction below assumes current artefacts.
 
 **Import paths in the references.** The reference files spell façade imports as `@internal/<target>/<subpath>` and `@internal/extension-<name>/<subpath>`. In an application those packages are published as `@prisma/orm-<target>/<subpath>` (`@prisma/orm-postgres/runtime`, `@prisma/orm-mongo/config`, `@prisma/orm-sqlite/runtime`) and `@prisma/orm-extension-<name>/<subpath>` (`@prisma/orm-extension-pgvector/control`). Write the `@prisma/orm-*` name in user code; the two spellings are the same package. Paths already written as `@prisma/orm-*` in the references are exact. The `metadata.library_version` in this file's frontmatter is the version it was published with; if it does not match the project's installed Prisma packages, run `prisma skills sync` and re-read.
 

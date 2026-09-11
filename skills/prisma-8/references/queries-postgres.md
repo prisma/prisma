@@ -80,7 +80,7 @@ await db.orm.public.Sale
 
 The two forms emit the same SQL. Pick chained `.where()` when each clause adds a separate condition that reads as its own thought; pick `and(...)` when one logical predicate happens to have two parts and you want the visual grouping. Don't reach for a `between` helper — there isn't one.
 
-**Combinators** (`and`, `or`, `not`) compose predicates, and **relation predicates** (`.some(...)`, `.none(...)`, `.every(...)`) recurse into a relation. The combinators are exported from the façade's `orm-client` subpath:
+**Combinators** (`and`, `or`, `not`) compose predicates, and **relation predicates** (`.some(...)`, `.none(...)`, `.every(...)`) recurse into a relation. Their predicate argument is optional: `u.posts.none()` means "has no posts", `u.posts.some()` means "has at least one". The combinators are exported from the façade's `orm-client` subpath:
 
 ```typescript
 import { and, or, not } from '@prisma/orm-postgres/orm-client';
