@@ -39,7 +39,7 @@ interface PlanJson {
 interface SignJson {
   readonly ok: boolean;
   readonly contract: { readonly storageHash: string };
-  readonly advancedRef: { readonly name: string; readonly hash: string };
+  readonly advancedRef: { readonly name: string; readonly hash: string } | null;
 }
 
 function emittedStorageHash(ctx: JourneyContext): string {
@@ -224,6 +224,30 @@ withTempDir(({ createTempDir }) => {
 
           expect(refused.exitCode).toBe(4);
           expect(existsSync(refsDir(ctx))).toBe(false);
+        });
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      '--no-advance-ref writes the marker but no ref and no snapshot',
+      async () => {
+        await withDevDatabase(async ({ connectionString }) => {
+          const ctx = await setupInferredProject(connectionString, createTempDir);
+          const signedHash = emittedStorageHash(ctx);
+
+          const signed = await signJson(ctx, ['--no-advance-ref']);
+
+          expect(signed.advancedRef).toBeNull();
+          expect(existsSync(refsDir(ctx))).toBe(false);
+          expect(snapshotExists(ctx, signedHash)).toBe(false);
+          await withClient(connectionString, async (client) => {
+            const result = await client.query(
+              'select core_hash from prisma_contract.marker where space = $1',
+              ['app'],
+            );
+            expect(result.rows).toHaveLength(1);
+          });
         });
       },
       timeouts.spinUpPpgDev,

@@ -12,7 +12,7 @@ import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { createControlClient } from '../../control-api/client';
 import { resolveContractRefToSnapshot } from '../../control-api/operations/contract-snapshot-resolution';
 import { advanceRefSafely } from '../../control-api/operations/ref-advancement';
-import { errorContractArgConflict } from '../../utils/cli-errors';
+import { errorAdvanceRefArgConflict, errorContractArgConflict } from '../../utils/cli-errors';
 import { closeQuietly, maskConnectionUrl } from '../../utils/command-helpers';
 import { runCommandAction } from '../../utils/next-actions';
 import { ormConfigSection } from '../config-section';
@@ -51,7 +51,8 @@ type SchemaVerifyDocument = VerifyDatabaseSchemaResult;
 /**
  * The ref a signature checkpoints. Unlike `db init` / `db update`, `--db` does
  * not suppress the write: signing does not touch the schema, and adoption is
- * normally done against the real database via `--db`.
+ * normally done against the real database via `--db`. Only `--no-advance-ref`
+ * suppresses it.
  */
 const DEFAULT_ADVANCE_REF = 'db';
 
@@ -84,7 +85,7 @@ async function previousRefHash(refsDir: string, name: string): Promise<string | 
 }
 
 interface DbSignDocument extends SignDatabaseResult {
-  readonly advancedRef: { readonly name: string; readonly hash: string };
+  readonly advancedRef: { readonly name: string; readonly hash: string } | null;
 }
 
 /** The contract that was signed, as the bytes the snapshot store keeps. */
@@ -118,9 +119,20 @@ function advancedRefSpans(advanced: AdvancedRef): readonly Span[] {
   ];
 }
 
+function refOutcomeBlock(advanced: AdvancedRef | null): Block {
+  return advanced === null
+    ? {
+        kind: 'summary',
+        status: 'info',
+        tone: 'muted',
+        text: `Left ref "${DEFAULT_ADVANCE_REF}" untouched (--no-advance-ref)`,
+      }
+    : { kind: 'summary', status: 'ok', text: advancedRefSpans(advanced) };
+}
+
 function signPresentations(inputs: {
   readonly document: DbSignDocument;
-  readonly advanced: AdvancedRef;
+  readonly advanced: AdvancedRef | null;
   readonly header: Block;
 }): Presentations {
   const marker = inputs.document.marker;
@@ -146,7 +158,7 @@ function signPresentations(inputs: {
           },
         ],
       },
-      { kind: 'summary', status: 'ok', text: advancedRefSpans(inputs.advanced) },
+      refOutcomeBlock(inputs.advanced),
     ],
     json: () => inputs.document,
   };
@@ -180,9 +192,11 @@ export function createDbSignCommand(
       summary: 'Sign the database with your contract so you can safely run queries',
       description:
         'Verifies that your database schema satisfies the emitted contract, and if\n' +
-        'so, writes or updates the database signature. Idempotent and safe to run\n' +
-        'in CI or a deployment pipeline. The signature records that this database\n' +
-        'instance is aligned with a specific contract version.\n' +
+        'so, writes or updates the database signature. The signature records that\n' +
+        'this database instance is aligned with a specific contract version.\n' +
+        'Idempotent. After signing, the db ref in the checkout is advanced to the\n' +
+        'signed contract; pass --no-advance-ref to sign without touching any ref,\n' +
+        'which is what a CI or deployment pipeline usually wants.\n' +
         'Exit codes: 0 = signed, 2 = the command could not run (unresolvable\n' +
         'contract reference, no emitted contract, unreachable database),\n' +
         '4 = schema verification failed and no signature was written.',
@@ -192,6 +206,7 @@ export function createDbSignCommand(
         'db sign production --db $DATABASE_URL',
         'db sign --contract production --db $DATABASE_URL',
         'db sign --db $DATABASE_URL --advance-ref production',
+        'db sign --db $DATABASE_URL --no-advance-ref',
       ],
     },
     args: {
@@ -212,6 +227,9 @@ export function createDbSignCommand(
           brief: 'Advance the named ref to the post-command contract hash',
           placeholder: 'name',
         }),
+        noAdvanceRef: flag.boolean({
+          brief: 'Sign without advancing any ref (no ref file or snapshot is written)',
+        }),
       },
     },
     needs: { config: ormConfigSection },
@@ -227,6 +245,11 @@ export function createDbSignCommand(
         );
       }
       const contractRef = positionalContract ?? flagContract;
+      if (args.flags.noAdvanceRef && args.flags.advanceRef !== undefined) {
+        return notOk(
+          normalizeError(errorAdvanceRefArgConflict({ advanceRef: args.flags.advanceRef })),
+        );
+      }
 
       const emitted = await readEmittedContract({
         config: ctx.config,
@@ -331,6 +354,16 @@ export function createDbSignCommand(
         if (!signed.ok) {
           throw new InternalError(
             `The family returned a sign result that did not sign: ${signed.summary}`,
+          );
+        }
+
+        if (args.flags.noAdvanceRef) {
+          const document: DbSignDocument = { ...signed, advancedRef: null };
+          return ok(
+            ctx.present(
+              { data: document, exitCode: 0 },
+              signPresentations({ document, advanced: null, header }),
+            ),
           );
         }
 

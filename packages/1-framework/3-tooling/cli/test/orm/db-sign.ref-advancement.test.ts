@@ -217,5 +217,56 @@ describe('db sign', () => {
       );
       expect(await readFile(join(storeDir, 'contract.d.ts'), 'utf-8')).toBe(SNAPSHOT_B_DTS);
     });
+
+    it('--no-advance-ref signs but writes no ref and no snapshot', async () => {
+      const dir = await projectDir();
+
+      const run = await harness(ormConfig()).run(['db', 'sign', '--no-advance-ref', '--json'], {
+        cwd: dir,
+      });
+
+      expect(run.exitCode).toBe(0);
+      expect(mocks.sign).toHaveBeenCalledTimes(1);
+      expect(run.presented?.data).toMatchObject({ advancedRef: null });
+      expect(existsSync(refsDirOf(dir))).toBe(false);
+      expect(existsSync(join(dir, 'migrations', 'snapshots'))).toBe(false);
+    });
+
+    it('--no-advance-ref reports the ref as left untouched', async () => {
+      const dir = await projectDir();
+      await writeRef(refsDirOf(dir), 'db', { hash: HASH_PREVIOUS, invariants: [] });
+
+      const run = await harness(ormConfig()).run(['db', 'sign', '--no-advance-ref'], {
+        cwd: dir,
+        isTty: { stdout: true },
+      });
+
+      expect(run.exitCode).toBe(0);
+      expect(await refHashOf(dir, 'db')).toBe(HASH_PREVIOUS);
+      expect(run.presented?.presentation.human.at(-1)).toEqual({
+        kind: 'summary',
+        status: 'info',
+        tone: 'muted',
+        text: 'Left ref "db" untouched (--no-advance-ref)',
+      });
+    });
+
+    it('refuses --no-advance-ref together with --advance-ref before signing', async () => {
+      const dir = await projectDir();
+
+      const run = await harness(ormConfig()).run(
+        ['db', 'sign', '--no-advance-ref', '--advance-ref', 'staging', '--json'],
+        { cwd: dir },
+      );
+
+      expect(run.exitCode).toBe(2);
+      expect(envelopeOf(run)).toMatchObject({
+        ok: false,
+        error: { code: 'CLI.ADVANCE_REF_ARG_CONFLICT' },
+      });
+      expect(mocks.schemaVerify).not.toHaveBeenCalled();
+      expect(mocks.sign).not.toHaveBeenCalled();
+      expect(existsSync(refsDirOf(dir))).toBe(false);
+    });
   });
 });
