@@ -198,6 +198,7 @@ describe('db sign', () => {
         contractJson: snapshotB,
         contractDts: SNAPSHOT_B_DTS,
       });
+      await rm(join(dir, 'output', 'contract.d.ts'));
 
       const run = await harness(ormConfig()).run(['db', 'sign', dirName, '--json'], {
         cwd: dir,
