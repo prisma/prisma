@@ -182,7 +182,7 @@ pnpm dlx prisma@latest orm init                          # interactive
 pnpm dlx prisma@latest orm init --yes --target postgres --authoring psl
 ```
 
-> **Telemetry is opt-out.** The CLI collects anonymous usage data by default. Every command — including `init` — prints a one-time notice to **stderr** on first use, then sends; there is no interactive consent prompt. Opt out anytime by running `prisma telemetry disable`, or with `DO_NOT_TRACK=1` or `PRISMA_NEXT_DISABLE_TELEMETRY=1`. The command stores `"enableTelemetry": false` in your user config for you (the CLI's per-user config dir, **not** `prisma.config.ts`). Run `prisma telemetry status` to see what's currently in effect. This is relevant for agent-driven runs — the CLI records that an agent invoked it. What's collected, the per-user config path, and how to fully reset are documented in `docs/Telemetry.md`.
+> **Telemetry is opt-out.** The CLI collects anonymous usage data by default. Every command — including `init` — prints a one-time notice to **stderr** on first use, then sends; there is no interactive consent prompt. Opt out anytime by running `prisma telemetry disable`, or with `DO_NOT_TRACK=1` or `PRISMA_DISABLE_TELEMETRY=1`. The command stores `"enableTelemetry": false` in your user config for you (the CLI's per-user config dir, **not** `prisma.config.ts`). Run `prisma telemetry status` to see what's currently in effect. This is relevant for agent-driven runs — the CLI records that an agent invoked it. What's collected, the per-user config path, and how to fully reset are documented in `docs/Telemetry.md`.
 
 The flags `init` accepts (run `prisma orm init --help` for the source of truth):
 
@@ -203,7 +203,7 @@ The flags `init` accepts (run `prisma orm init --help` for the source of truth):
 - `prisma.config.ts` at the project root (envelope form — see `references/contract.md`).
 - The contract source at `--schema-path` (`src/prisma/contract.prisma` by default).
 - `db.ts` in the same directory as the contract source.
-- `prisma-next.md` — a human quick-reference.
+- `prisma-8.md` — a human quick-reference.
 - `.env.example` (and `.env` if `--write-env`).
 - Updates `package.json` (deps + a `contract:emit` script) and `tsconfig.json` (required compiler options).
 - Installs deps and runs `prisma contract emit` once. If the install or the emit fails, the scaffold is still on disk and init exits `4` (`CLI.INIT_INSTALL_FAILED`) or `5` (`CLI.INIT_EMIT_FAILED`) with the step to re-run.

@@ -200,7 +200,7 @@ The split between **dev** and **deploy** semantics is a **Prisma-current innovat
 
 ### Fit to our model
 
-**The user's proposed `prisma-next migrate --db URL --to <ref>` is excellent vocabulary.**
+**The user's proposed `prisma migrate --db URL --to <ref>` is excellent vocabulary.**
 
 - `migrate` as a verb is **the most common forward-execution verb across the surveyed systems** (Rails, Django, Atlas, Prisma all use it).
 - `--db URL` parameterizes the target, matching Atlas's URL-as-first-class-target convention.
@@ -384,7 +384,7 @@ Our cyclic graph enables "rollback" as a forward-applied migration to a destinat
 
 **Closest analog: Atlas's `migrate diff`** (generate a migration file from a desired-state input). Prisma's `migrate dev` does the same thing implicitly. No surveyed system has a separate verb for "compute the canonical artifacts from authoring sources" the way we do.
 
-**Verdict:** "Emit" / "emission" is internally established and precise. For user-facing, `contract emit` is acceptable (Atlas / Prisma users will recognize the pattern from `migrate diff` / `migrate dev`). The dual emission paths — contract emission and migration self-emission — should be named consistently. `prisma-next migration plan` is the analog of `atlas migrate diff` and the right user-facing verb for *generating a migration package from a contract diff*.
+**Verdict:** "Emit" / "emission" is internally established and precise. For user-facing, `contract emit` is acceptable (Atlas / Prisma users will recognize the pattern from `migrate diff` / `migrate dev`). The dual emission paths — contract emission and migration self-emission — should be named consistently. `prisma migration plan` is the analog of `atlas migrate diff` and the right user-facing verb for *generating a migration package from a contract diff*.
 
 ---
 

@@ -45,7 +45,7 @@ $ pnpm prisma-next migrate --to prod --db $DB --config fixtures/diamond/prisma.c
 
 **Reproduction.**
 1. `docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=postgres postgres:15-alpine`, create any empty database.
-2. `cd examples/prisma-8-demo && pnpm prisma-next contract emit --config fixtures/diamond/prisma.config.ts`
+2. `cd examples/prisma-8-demo && pnpm prisma contract emit --config fixtures/diamond/prisma.config.ts`
 3. `pnpm prisma-next migrate --to prod --db <url> --config fixtures/diamond/prisma.config.ts` → PN-CLI-4003 as above.
 
 **References.**
@@ -61,7 +61,7 @@ $ pnpm prisma-next migrate --to prod --db $DB --config fixtures/diamond/prisma.c
 **Version:** `main` @ `e7bd0deb8` (workspace `0.14.0`)
 **First hit:** planning the second migration of a fresh walkthrough project while writing the public migrations docs
 
-**Symptom.** With one migration already on disk and applied, adding a nullable field and running `prisma-next migration plan --name add_phone` produced a **full greenfield migration** (`from: null`, `Create schema "public"` + `Create table "user"`) instead of a one-column delta. No warning that the existing history was ignored.
+**Symptom.** With one migration already on disk and applied, adding a nullable field and running `prisma migration plan --name add_phone` produced a **full greenfield migration** (`from: null`, `Create schema "public"` + `Create table "user"`) instead of a one-column delta. No warning that the existing history was ignored.
 
 **Cause.** `resolveFromForPlan` ([`packages/1-framework/3-tooling/cli/src/control-api/operations/plan-resolution.ts`](packages/1-framework/3-tooling/cli/src/control-api/operations/plan-resolution.ts), `optionsFrom === undefined` branch) falls back to the ref named `db` and, when it does not exist, straight to greenfield. Nothing advances the `db` ref unless the user opted in with `migrate --advance-ref db`, so the very first delta plan of a project that skipped that flag rebuilds the world. The command's own help ("Compares the emitted contract against the latest on-disk migration state") promises more than the default does.
 
@@ -90,7 +90,7 @@ $ pnpm prisma-next migrate --to prod --db $DB --config fixtures/diamond/prisma.c
 **Symptom.** After a rollback edge creates a cycle (`C1→C2→C1`), planning the next migration fails even when the planning origin is supplied via a ref:
 
 ```text
-$ prisma-next migration plan --name add_bio --from db
+$ prisma migration plan --name add_bio --from db
 code: 'MIGRATION.NO_TARGET'
 why:  The migration history contains cycles and no target can be resolved automatically
       (reachable hashes: sha256:705b1a6..., sha256:e6b5c28...). This typically happens after

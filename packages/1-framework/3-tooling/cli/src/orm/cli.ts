@@ -44,7 +44,7 @@ import { resolveTelemetryHooks } from './telemetry/reporting';
  */
 export const BIN_NAME = 'prisma';
 
-export const TELEMETRY_DOCS_URL = 'https://prisma-next.dev/docs/cli/telemetry';
+export const TELEMETRY_DOCS_URL = 'https://www.prisma.io/docs/cli/telemetry';
 
 /**
  * The engine's consent surface — `telemetry status|enable|disable` and the

@@ -144,7 +144,7 @@ Agents can read the schema (IR), generate valid queries (DSL), and verify them (
 
 **Prisma 8:**
 1. Write `schema.psl`
-2. Run `prisma-next contract emit` — generates lightweight types + contract JSON
+2. Run `prisma contract emit` — generates lightweight types + contract JSON
 3. Write application code using composable DSL: `sql().from(t.user).select(...)`
 
 ## Deep Dives

@@ -2,7 +2,7 @@
 
 > **For the CLI command, install [`@prisma/cli`](https://www.npmjs.com/package/@prisma/cli) (`@next` dist-tag).**
 > The unified `prisma` binary mounts this package's `orm` command family;
-> the standalone `prisma-next` npm package is no longer published. Inside this
+> the standalone npm package is no longer published. Inside this
 > workspace a local `prisma` bin still exists for examples and development — it
 > is the same engine entry (`dist/bin.mjs`), just workspace-local.
 >

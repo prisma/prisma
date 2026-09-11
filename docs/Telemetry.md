@@ -44,8 +44,8 @@ Telemetry deliberately excludes anything that could identify you, your machine, 
 
 Your telemetry preference and the installation UUID live in a single per-user JSON file:
 
-- **Unix (Linux, macOS):** `$XDG_CONFIG_HOME/prisma-next/config.json`, defaulting to `~/.config/prisma-next/config.json` when `$XDG_CONFIG_HOME` is unset. This follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/latest/).
-- **Windows:** `%APPDATA%\prisma-next\config.json`, falling back to `%USERPROFILE%\AppData\Roaming\prisma-next\config.json`.
+- **Unix (Linux, macOS):** `$XDG_CONFIG_HOME/prisma-8/config.json`, defaulting to `~/.config/prisma-8/config.json` when `$XDG_CONFIG_HOME` is unset. This follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/latest/).
+- **Windows:** `%APPDATA%\prisma-8\config.json`, falling back to `%USERPROFILE%\AppData\Roaming\prisma-8\config.json`.
 
 The CLI writes this file for you: `prisma telemetry enable` / `disable` set the preference, and `prisma telemetry status` prints the resolved path along with what's currently in effect. The rest of this section describes what the file contains so you can read it; [changing it](#how-to-opt-out-or-back-in) is what those commands are for.
 
@@ -83,10 +83,10 @@ To start fresh — clear your installation ID and reset your preference — dele
 
 ```bash
 # Unix
-rm ~/.config/prisma-next/config.json
+rm ~/.config/prisma-8/config.json
 
 # Windows (PowerShell)
-Remove-Item "$env:APPDATA\prisma-next\config.json"
+Remove-Item "$env:APPDATA\prisma-8\config.json"
 ```
 
 Deleting the file returns you to the default (telemetry on). The next enabled command will reprint the one-time first-run notice and mint a fresh `installationId`. If your intent is to stay opted out, don't delete the file — run `prisma telemetry disable`, or use an [environment-variable opt-out](#1-environment-variables-runtime-only).
@@ -112,11 +112,12 @@ prisma telemetry status    # reports whether telemetry is on, why, the config pa
 Two env vars suppress telemetry without modifying any file on disk:
 
 ```bash
-PRISMA_NEXT_DISABLE_TELEMETRY=1 prisma db migrate
+PRISMA_DISABLE_TELEMETRY=1 prisma db migrate
 DO_NOT_TRACK=1 prisma db migrate
 ```
 
-- **`PRISMA_NEXT_DISABLE_TELEMETRY`** — disables telemetry when set to any truthy value. The values `""`, `"0"`, and `"false"` (case-insensitive) are treated as "not set" so an exported-but-blanked variable doesn't accidentally disable telemetry.
+- **`PRISMA_DISABLE_TELEMETRY`** — disables telemetry when set to any truthy value. The values `""`, `"0"`, and `"false"` (case-insensitive) are treated as "not set" so an exported-but-blanked variable doesn't accidentally disable telemetry.
+- **`PRISMA_NEXT_DISABLE_TELEMETRY`** — the spelling earlier releases documented. Still honoured, with the same truthy-value rule, so an existing opt-out keeps working after an upgrade.
 - **`DO_NOT_TRACK=1`** — the [community-standard opt-out signal](https://consoledonottrack.com). Disables telemetry when set to exactly `1`.
 
 Either variable wins over the stored `enableTelemetry` value. The CLI **does not** rewrite your `config.json` in response to an env-var opt-out — your stored choice is preserved untouched, so unsetting the variable later restores whatever you had configured.
@@ -145,11 +146,11 @@ Because telemetry is on by default, the CLI discloses it the first time it would
 
 On the first command that resolves to *enabled* and has no `installationId` stored yet, the CLI prints a one-time notice to **stderr** (never stdout, so it can't corrupt piped output) and then mints the `installationId` and sends the event. The wording (verbatim, with the resolved absolute path to your config file substituted in) is:
 
-> Prisma 8 collects anonymous CLI usage data, enabled by default. What's collected and why: https://prisma-next.dev/docs/cli/telemetry. Opt out: run "prisma telemetry disable", set DO_NOT_TRACK=1 or PRISMA_NEXT_DISABLE_TELEMETRY=1, or set "enableTelemetry": false in &lt;your config.json path&gt;.
+> Prisma 8 collects anonymous CLI usage data, enabled by default. What's collected and why: https://www.prisma.io/docs/cli/telemetry. Opt out: run "prisma telemetry disable", set DO_NOT_TRACK=1 or PRISMA_DISABLE_TELEMETRY=1, or set "enableTelemetry": false in &lt;your config.json path&gt;.
 
 The notice is **idempotent via the `installationId`**: it prints only while no `installationId` is stored. Once the first enabled send mints the id, every later command sees the stored id and stays silent. Deleting `config.json` clears the id and makes the notice print once more on the next enabled command.
 
-The notice does **not** fire when telemetry is disabled. If you've stored `enableTelemetry: false`, or set `DO_NOT_TRACK=1` / `PRISMA_NEXT_DISABLE_TELEMETRY`, or you're in CI, no notice is printed and nothing is sent — those paths have no `installationId` and never reach the first-run disclosure.
+The notice does **not** fire when telemetry is disabled. If you've stored `enableTelemetry: false`, or set `DO_NOT_TRACK=1` / `PRISMA_DISABLE_TELEMETRY`, or you're in CI, no notice is printed and nothing is sent — those paths have no `installationId` and never reach the first-run disclosure.
 
 The `prisma telemetry` command never prints the notice and emits no event: it is exempt from telemetry so you can inspect or change your preference without sending anything.
 

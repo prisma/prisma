@@ -8,7 +8,7 @@ import { createProjectArtifacts } from '../../../../packages/1-framework/3-tooli
 import { withTempDir } from '../utils/cli-test-helpers';
 import { runContractEmit, setupJourney } from '../utils/journey-test-helpers';
 
-const schema = `// use prisma-next
+const schema = `// use prisma-8
 
 model User {
   id        Int @id @default(autoincrement())
@@ -47,7 +47,7 @@ withTempDir(({ createTempDir }) => {
       },
       {
         name: 'literal defaults and mapped names',
-        text: `// use prisma-next
+        text: `// use prisma-8
 model Widget {
   id Int @id @default(autoincrement())
   label String @default("draft") @map("display_label")

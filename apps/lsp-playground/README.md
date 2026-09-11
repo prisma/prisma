@@ -20,7 +20,7 @@ psl-playground path/to/schema.psl
 pnpm --filter lsp-playground start path/to/schema.psl
 ```
 
-The PSL file is **optional**. With no argument — or a path that does not yet exist — the playground opens a writable scratch schema under `.playground/` so you can start authoring immediately. New scratch schemas start with `// use prisma-next` to enable language-server features; existing files are preserved. Then open the printed `http://localhost:5295/` URL; parse diagnostics update live as you edit, folding controls are available in the editor gutter, semantic highlighting is requested through the language client, and the header's **Format** button sends `textDocument/formatting` to the language server.
+The PSL file is **optional**. With no argument — or a path that does not yet exist — the playground opens a writable scratch schema under `.playground/` so you can start authoring immediately. New scratch schemas start with `// use prisma-8` to enable language-server features; existing files are preserved. Then open the printed `http://localhost:5295/` URL; parse diagnostics update live as you edit, folding controls are available in the editor gutter, semantic highlighting is requested through the language client, and the header's **Format** button sends `textDocument/formatting` to the language server.
 
 Everything (editor + LSP) is served on the single port `5295`.
 
@@ -60,7 +60,7 @@ Use this path when changing the language server, playground wiring, or docs for 
 2. Create or choose a representative PSL file that includes a namespace, models, a composite type, a `types` block, attributes, strings, numbers, booleans, and a comment. For example:
 
 ```psl
-// use prisma-next
+// use prisma-8
 // leading comment
 namespace billing {
   model Invoice {

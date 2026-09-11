@@ -1,10 +1,30 @@
 ---
 from: "8.0.0-rc.9"
 to: "8.0.0-rc.10"
-# Prisma 8 naming sweep: prose only, no entry required
 # sql-orm-client doc-comment sweep: reviewed, no entry required
 # postgres shell dependency ownership: reviewed, no extension-author action required; bundled packages now declare the catalog Node/pg type dependencies that public shell manifests mirror
 changes:
+  - id: schema-header-use-prisma-8
+    summary: |
+      The schema header that marks a Prisma 8 schema is now `// use prisma-8`. The language server
+      still serves the old header and its Format action rewrites it; new schemas and the
+      inferred-schema printer write the new form. Replace `// use prisma-next`
+      at the top of every `.prisma` file the extension ships or tests against.
+    detection:
+      glob: "**/*.prisma"
+      contains:
+        - "// use prisma-next"
+  - id: env-vars-drop-next-infix
+    summary: |
+      The CLI environment variables lost their `NEXT_` infix: `PRISMA_NEXT_DISABLE_TELEMETRY`,
+      `PRISMA_NEXT_TELEMETRY_ENDPOINT`, `PRISMA_NEXT_DEBUG`, and the rest are now
+      `PRISMA_DISABLE_TELEMETRY`, `PRISMA_TELEMETRY_ENDPOINT`, `PRISMA_DEBUG`, and so on. The old
+      `PRISMA_NEXT_DISABLE_TELEMETRY` opt-out is still honoured; the others are not. Rename them
+      in the extension's test setup and CI configuration.
+    detection:
+      glob: "**/*"
+      contains:
+        - "PRISMA_NEXT_"
   - id: to-one-relations-record-nullable
     summary: |
       `ContractNonJunctionRelation`'s `'1:1'` and `'N:1'` members now require `nullable: boolean`,
@@ -33,3 +53,11 @@ For every TypeScript file matched by `detection`, find each object literal that 
 ## `contract-space-re-emit-nullable`
 
 For every `contract.json` matched by `detection`, run the extension package's `build:contract-space` script (or its emit command) once after upgrading. The expected diff is one `"nullable"` boolean per to-one relation in `contract.json`, plus the `Models` namespace, `models` constant, and `RelationKeys` import in `contract.d.ts`.
+
+## `schema-header-use-prisma-8`
+
+For every `.prisma` file matched by `detection`, replace the first-line header `// use prisma-next` with `// use prisma-8`. Nothing else in the file changes.
+
+## `env-vars-drop-next-infix`
+
+For every file matched by `detection`, replace the `PRISMA_NEXT_` prefix with `PRISMA_` on each environment variable name.

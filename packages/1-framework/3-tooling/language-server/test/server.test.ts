@@ -109,8 +109,8 @@ const schemaPath = join(root, 'schema.psl');
 const schemaUri = pathToFileURL(schemaPath).toString();
 const configPath = join(root, 'prisma.config.ts');
 const configUri = pathToFileURL(configPath).toString();
-const unformattedPsl = '// use prisma-next\nmodel User {\nid Int\n}';
-const formattedPsl = '// use prisma-next\nmodel User {\n  id Int\n}\n';
+const unformattedPsl = '// use prisma-8\nmodel User {\nid Int\n}';
+const formattedPsl = '// use prisma-8\nmodel User {\n  id Int\n}\n';
 
 const scalarTypes = ['String', 'Int', 'Boolean', 'DateTime'] as const;
 const nameSnippetPlaceholder = '$' + '{1:Name}';
@@ -228,7 +228,7 @@ function toPublishedDiagnostics(diagnostics: readonly ParseDiagnostic[]): Diagno
     message: diagnostic.message,
     code: diagnostic.code,
     severity: DiagnosticSeverity.Error,
-    source: 'prisma-next',
+    source: 'prisma',
   }));
 }
 
@@ -692,7 +692,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await harness.initialize();
     const { source, position } = sourceWithCursor(
       [
-        '// use prisma-next',
+        '// use prisma-8',
         'model User {',
         '  id Int @id',
         '}',
@@ -725,10 +725,10 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
   it('refreshes completion artifacts from the current buffer before classifying', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
-    const initial = ['// use prisma-next', 'model Post {', '  author |', '}'].join('\n');
+    const initial = ['// use prisma-8', 'model Post {', '  author |', '}'].join('\n');
     const updated = sourceWithCursor(
       [
-        '// use prisma-next',
+        '// use prisma-8',
         'model User {',
         '  id Int @id',
         '}',
@@ -765,7 +765,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await harness.initialize();
     const { source, position } = sourceWithCursor(
       [
-        '// use prisma-next',
+        '// use prisma-8',
         'model User {',
         '  id Int @id',
         '}',
@@ -789,10 +789,10 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
   it('parses once for an edit followed by an immediate completion', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
-    const initial = ['// use prisma-next', 'model Post {', '  author ', '}'].join('\n');
+    const initial = ['// use prisma-8', 'model Post {', '  author ', '}'].join('\n');
     const updated = sourceWithCursor(
       [
-        '// use prisma-next',
+        '// use prisma-8',
         'model User {',
         '  id Int @id',
         '}',
@@ -829,7 +829,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     harness = startHarness(resolveToSchemaWithPslBlockDescriptors);
     await harness.initialize();
     const { source, position } = sourceWithCursor(
-      ['// use prisma-next', 'policy UserAccess {', '  wh|', '}'].join('\n'),
+      ['// use prisma-8', 'policy UserAccess {', '  wh|', '}'].join('\n'),
     );
     openDocument(harness, schemaUri, source);
     await harness.waitForDiagnostics(schemaUri);
@@ -842,7 +842,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     harness = startHarness(resolveToSchemaWithAttributeContributions);
     await harness.initialize();
     const namedKey = sourceWithCursor(
-      ['// use prisma-next', 'model User {', '  id Int @marker(name: "id", pr|)', '}'].join('\n'),
+      ['// use prisma-8', 'model User {', '  id Int @marker(name: "id", pr|)', '}'].join('\n'),
     );
     openDocument(harness, schemaUri, namedKey.source);
     await harness.waitForDiagnostics(schemaUri);
@@ -853,7 +853,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     expect(keyItems.map((item) => item.label)).toEqual(['priority']);
 
     const attributeName = sourceWithCursor(
-      ['// use prisma-next', 'model User {', '  id Int @|', '}'].join('\n'),
+      ['// use prisma-8', 'model User {', '  id Int @|', '}'].join('\n'),
     );
     harness.client.sendNotification(DidChangeTextDocumentNotification.type, {
       textDocument: { uri: schemaUri, version: 2 },
@@ -897,7 +897,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     });
     await harness.initialize();
     const completion = sourceWithCursor(
-      ['// use prisma-next', 'model User {', '  id Int @|', '}'].join('\n'),
+      ['// use prisma-8', 'model User {', '  id Int @|', '}'].join('\n'),
     );
     openDocument(harness, schemaUri, completion.source);
     await harness.waitForDiagnostics(schemaUri);
@@ -913,7 +913,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     );
     await harness.initialize();
     const completion = sourceWithCursor(
-      ['// use prisma-next', 'model User {', '  id Int @mar| // keep', '}'].join('\n'),
+      ['// use prisma-8', 'model User {', '  id Int @mar| // keep', '}'].join('\n'),
     );
     openDocument(harness, schemaUri, completion.source);
     await harness.waitForDiagnostics(schemaUri);
@@ -928,7 +928,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     });
     expect(applyCompletionItem(completion.source, item)).toEqual(
       [
-        '// use prisma-next',
+        '// use prisma-8',
         'model User {',
         `  id Int @marker("${emptySnippetPlaceholder1}", name: "${emptySnippetPlaceholder2}") // keep`,
         '}',
@@ -939,7 +939,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
   it('returns declaration keyword completions with plain-text edits by default', async () => {
     harness = startHarness(resolveToSchemaWithPslBlockDescriptors);
     await harness.initialize();
-    const { source, position } = sourceWithCursor('// use prisma-next\n|');
+    const { source, position } = sourceWithCursor('// use prisma-8\n|');
     openDocument(harness, schemaUri, source);
     await harness.waitForDiagnostics(schemaUri);
 
@@ -963,7 +963,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       const windowsDocumentUri = 'file:///d%3A/project/next.prisma';
       harness = startHarness(async () => resolutionForInputs(['D:\\project\\next.prisma']));
       await harness.initialize();
-      openDocument(harness, windowsDocumentUri, '// use prisma-next\n');
+      openDocument(harness, windowsDocumentUri, '// use prisma-8\n');
       await harness.waitForDiagnostics(windowsDocumentUri);
 
       const items = completionItems(
@@ -982,7 +982,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
   it('returns declaration keyword snippets when the client supports snippets', async () => {
     harness = startHarness(resolveToSchemaWithPslBlockDescriptors, snippetCompletionCapabilities);
     await harness.initialize();
-    const { source, position } = sourceWithCursor('// use prisma-next\n|');
+    const { source, position } = sourceWithCursor('// use prisma-8\n|');
     openDocument(harness, schemaUri, source);
     await harness.waitForDiagnostics(schemaUri);
 
@@ -1001,7 +1001,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     harness = startHarness(resolveToSchemaWithPslBlockDescriptors);
     await harness.initialize();
     const { source, position } = sourceWithCursor(
-      ['// use prisma-next', 'namespace feature {', '  |', '}'].join('\n'),
+      ['// use prisma-8', 'namespace feature {', '  |', '}'].join('\n'),
     );
     openDocument(harness, schemaUri, source);
     await harness.waitForDiagnostics(schemaUri);
@@ -1018,7 +1018,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     const otherUri = pathToFileURL(join(root, 'not-a-schema.psl')).toString();
     const { source, position } = sourceWithCursor(
       [
-        '// use prisma-next',
+        '// use prisma-8',
         'model User {',
         '  id Int @id',
         '}',
@@ -1038,7 +1038,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
     const { source, position } = sourceWithCursor(
-      ['// use prisma-next', 'model User {', '  id Int @|', '}'].join('\n'),
+      ['// use prisma-8', 'model User {', '  id Int @|', '}'].join('\n'),
     );
     openDocument(harness, schemaUri, source);
     await harness.waitForDiagnostics(schemaUri);
@@ -1051,7 +1051,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
     const { source, position } = sourceWithCursor(
-      ['// use prisma-next', 'model User {', '  id Int @id', '  @@|', '}'].join('\n'),
+      ['// use prisma-8', 'model User {', '  id Int @id', '  @@|', '}'].join('\n'),
     );
     openDocument(harness, schemaUri, source);
     await harness.waitForDiagnostics(schemaUri);
@@ -1069,7 +1069,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
 
@@ -1086,7 +1086,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel User {\n  id Int @id\n}\n',
+        text: '// use prisma-8\nmodel User {\n  id Int @id\n}\n',
       },
     });
 
@@ -1104,7 +1104,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
         uri: otherUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
 
@@ -1122,7 +1122,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
     const broken = await harness.waitForDiagnostics(schemaUri);
@@ -1137,7 +1137,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     });
     harness.client.sendNotification(DidChangeTextDocumentNotification.type, {
       textDocument: { uri: schemaUri, version: 2 },
-      contentChanges: [{ text: '// use prisma-next\nmodel User {\n  id Int @id\n}\n' }],
+      contentChanges: [{ text: '// use prisma-8\nmodel User {\n  id Int @id\n}\n' }],
     });
     expect(await cleared).toEqual([]);
   });
@@ -1152,7 +1152,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
     await waitUntil(() => configResolutionMock.resolveConfigInputs.mock.calls.length === 1);
@@ -1183,6 +1183,21 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await expect(requestFormatting(harness, schemaUri)).resolves.toEqual([]);
   });
 
+  it('serves a schema carrying the directive earlier releases wrote, and formatting renames it', async () => {
+    harness = startHarness(resolveToSchema);
+    await harness.initialize();
+    const legacyPsl = formattedPsl.replace('// use prisma-8', '// use prisma-next');
+    openDocument(harness, schemaUri, legacyPsl);
+    expect(await harness.waitForDiagnostics(schemaUri)).toEqual([]);
+
+    await expect(requestFormatting(harness, schemaUri)).resolves.toEqual([
+      {
+        range: { start: { line: 0, character: 0 }, end: { line: 4, character: 0 } },
+        newText: formattedPsl,
+      },
+    ]);
+  });
+
   it('returns no edits for unconfigured PSL documents', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
@@ -1195,7 +1210,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
   it('returns no edits for malformed PSL', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
-    openDocument(harness, schemaUri, '// use prisma-next\nmodel {');
+    openDocument(harness, schemaUri, '// use prisma-8\nmodel {');
     expect((await harness.waitForDiagnostics(schemaUri)).length).toBeGreaterThan(0);
 
     await expect(requestFormatting(harness, schemaUri)).resolves.toEqual([]);
@@ -1226,7 +1241,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await expect(requestFormatting(harness, schemaUri)).resolves.toEqual([
       {
         range: { start: { line: 0, character: 0 }, end: { line: 3, character: 1 } },
-        newText: '// use prisma-next\r\nmodel User {\r\n\tid Int\r\n}\r\n',
+        newText: '// use prisma-8\r\nmodel User {\r\n\tid Int\r\n}\r\n',
       },
     ]);
   });
@@ -1234,12 +1249,12 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
   it('returns full semantic tokens for a configured open PSL input', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
-    openDocument(harness, schemaUri, '// use prisma-next\nmodel User {\n  id Int @id\n}\n');
+    openDocument(harness, schemaUri, '// use prisma-8\nmodel User {\n  id Int @id\n}\n');
     expect(await harness.waitForDiagnostics(schemaUri)).toEqual([]);
 
     await expect(requestSemanticTokens(harness, schemaUri)).resolves.toEqual({
       data: [
-        0, 0, 18, 9, 0, 1, 0, 5, 0, 0, 0, 6, 4, 2, 1, 1, 2, 2, 5, 1, 0, 3, 3, 4, 2, 0, 4, 3, 6, 0,
+        0, 0, 15, 9, 0, 1, 0, 5, 0, 0, 0, 6, 4, 2, 1, 1, 2, 2, 5, 1, 0, 3, 3, 4, 2, 0, 4, 3, 6, 0,
       ],
     });
   });
@@ -1250,7 +1265,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     openDocument(
       harness,
       schemaUri,
-      '// use prisma-next\nmodel User {\n  id Int @id\n}\n\nmodel Post {\n  id Int @id\n}\n',
+      '// use prisma-8\nmodel User {\n  id Int @id\n}\n\nmodel Post {\n  id Int @id\n}\n',
     );
     expect(await harness.waitForDiagnostics(schemaUri)).toEqual([]);
 
@@ -1261,7 +1276,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       }),
     ).resolves.toEqual({
       data: [
-        0, 0, 18, 9, 0, 1, 0, 5, 0, 0, 0, 6, 4, 2, 1, 1, 2, 2, 5, 1, 0, 3, 3, 4, 2, 0, 4, 3, 6, 0,
+        0, 0, 15, 9, 0, 1, 0, 5, 0, 0, 0, 6, 4, 2, 1, 1, 2, 2, 5, 1, 0, 3, 3, 4, 2, 0, 4, 3, 6, 0,
       ],
     });
   });
@@ -1270,7 +1285,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
     const otherUri = pathToFileURL(join(root, 'not-a-schema.psl')).toString();
-    openDocument(harness, otherUri, '// use prisma-next\nmodel User {\n  id Int @id\n}\n');
+    openDocument(harness, otherUri, '// use prisma-8\nmodel User {\n  id Int @id\n}\n');
 
     await expect(requestSemanticTokens(harness, otherUri)).resolves.toEqual({ data: [] });
   });
@@ -1280,7 +1295,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await harness.initialize();
     await expect(requestSemanticTokens(harness, schemaUri)).resolves.toEqual({ data: [] });
 
-    openDocument(harness, schemaUri, '// use prisma-next\nmodel User {\n  id Int @id\n}\n');
+    openDocument(harness, schemaUri, '// use prisma-8\nmodel User {\n  id Int @id\n}\n');
     expect(await harness.waitForDiagnostics(schemaUri)).toEqual([]);
     const closed = harness.waitForDiagnosticsMatching(
       schemaUri,
@@ -1295,7 +1310,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
   it('returns best-effort semantic tokens for malformed configured inputs', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
-    openDocument(harness, schemaUri, '// use prisma-next\nmodel User {\n  id Int @id\n');
+    openDocument(harness, schemaUri, '// use prisma-8\nmodel User {\n  id Int @id\n');
     expect((await harness.waitForDiagnostics(schemaUri)).length).toBeGreaterThan(0);
 
     const tokens = await requestSemanticTokens(harness, schemaUri);
@@ -1316,7 +1331,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
   it('returns empty semantic tokens when config resolution fails', async () => {
     harness = startHarness(resolveFails);
     await harness.initialize();
-    openDocument(harness, schemaUri, '// use prisma-next\nmodel User {\n  id Int @id\n}\n');
+    openDocument(harness, schemaUri, '// use prisma-8\nmodel User {\n  id Int @id\n}\n');
     await waitUntil(() => configResolutionMock.resolveConfigInputs.mock.calls.length === 1);
 
     await expect(requestSemanticTokens(harness, schemaUri)).resolves.toEqual({ data: [] });
@@ -1325,7 +1340,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
   it('returns empty semantic tokens for oversized configured inputs', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
-    openDocument(harness, schemaUri, `// use prisma-next\n// ${'x'.repeat(100_000)}`);
+    openDocument(harness, schemaUri, `// use prisma-8\n// ${'x'.repeat(100_000)}`);
     expect(await harness.waitForDiagnostics(schemaUri)).toEqual([]);
 
     await expect(requestSemanticTokens(harness, schemaUri)).resolves.toEqual({ data: [] });
@@ -1334,7 +1349,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
   it('returns semantic tokens for the current edit', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
-    openDocument(harness, schemaUri, '// use prisma-next\nmodel User {\n  id Int @id\n}\n');
+    openDocument(harness, schemaUri, '// use prisma-8\nmodel User {\n  id Int @id\n}\n');
     expect(await harness.waitForDiagnostics(schemaUri)).toEqual([]);
 
     const cleared = harness.waitForDiagnosticsMatching(
@@ -1343,13 +1358,13 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     );
     harness.client.sendNotification(DidChangeTextDocumentNotification.type, {
       textDocument: { uri: schemaUri, version: 2 },
-      contentChanges: [{ text: '// use prisma-next\nmodel Invoice {\n  id Int @id\n}\n' }],
+      contentChanges: [{ text: '// use prisma-8\nmodel Invoice {\n  id Int @id\n}\n' }],
     });
     await cleared;
 
     await expect(requestSemanticTokens(harness, schemaUri)).resolves.toEqual({
       data: [
-        0, 0, 18, 9, 0, 1, 0, 5, 0, 0, 0, 6, 7, 2, 1, 1, 2, 2, 5, 1, 0, 3, 3, 4, 2, 0, 4, 3, 6, 0,
+        0, 0, 15, 9, 0, 1, 0, 5, 0, 0, 0, 6, 7, 2, 1, 1, 2, 2, 5, 1, 0, 3, 3, 4, 2, 0, 4, 3, 6, 0,
       ],
     });
   });
@@ -1359,28 +1374,28 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     harness = startHarness(async () => load.promise);
     await harness.initialize();
 
-    openDocument(harness, schemaUri, '// use prisma-next\nmodel User {\n  id Int @id\n}\n');
+    openDocument(harness, schemaUri, '// use prisma-8\nmodel User {\n  id Int @id\n}\n');
     const currentDiagnostics = harness.waitForDiagnosticsMatching(
       schemaUri,
       (diagnostics) => diagnostics.length === 0,
     );
     harness.client.sendNotification(DidChangeTextDocumentNotification.type, {
       textDocument: { uri: schemaUri, version: 2 },
-      contentChanges: [{ text: '// use prisma-next\nmodel Invoice {\n  id Int @id\n}\n' }],
+      contentChanges: [{ text: '// use prisma-8\nmodel Invoice {\n  id Int @id\n}\n' }],
     });
     load.resolve(resolutionForInputs([schemaPath]));
     await currentDiagnostics;
 
     await expect(requestSemanticTokens(harness, schemaUri)).resolves.toEqual({
       data: [
-        0, 0, 18, 9, 0, 1, 0, 5, 0, 0, 0, 6, 7, 2, 1, 1, 2, 2, 5, 1, 0, 3, 3, 4, 2, 0, 4, 3, 6, 0,
+        0, 0, 15, 9, 0, 1, 0, 5, 0, 0, 0, 6, 7, 2, 1, 1, 2, 2, 5, 1, 0, 3, 3, 4, 2, 0, 4, 3, 6, 0,
       ],
     });
   });
 });
 
 const duplicateModelSource = [
-  '// use prisma-next',
+  '// use prisma-8',
   'model User {',
   '  id Int @id',
   '}',
@@ -1414,7 +1429,7 @@ describe('language server symbol-table diagnostics', {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
 
-    const source = ['// use prisma-next', 'model Profile {', '  user a.b.c', '}'].join('\n');
+    const source = ['// use prisma-8', 'model Profile {', '  user a.b.c', '}'].join('\n');
     harness.client.sendNotification(DidOpenTextDocumentNotification.type, {
       textDocument: { uri: schemaUri, languageId: 'prisma', version: 1, text: source },
     });
@@ -1448,7 +1463,7 @@ describe('language server symbol-table diagnostics', {
       textDocument: { uri: schemaUri, version: 2 },
       contentChanges: [
         {
-          text: '// use prisma-next\nmodel User {\n  id Int @id\n}\n\nmodel Post {\n  id Int @id\n}\n',
+          text: '// use prisma-8\nmodel User {\n  id Int @id\n}\n\nmodel Post {\n  id Int @id\n}\n',
         },
       ],
     });
@@ -1464,7 +1479,7 @@ describe('language server symbol-table diagnostics', {
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel User {\n  id Int @id\n}\n',
+        text: '// use prisma-8\nmodel User {\n  id Int @id\n}\n',
       },
     });
 
@@ -1477,7 +1492,7 @@ describe('language server symbol-table diagnostics', {
     await harness.initialize();
 
     const source = [
-      '// use prisma-next',
+      '// use prisma-8',
       'model Profile {',
       '  user a.b.c',
       '}',
@@ -1506,7 +1521,7 @@ describe('language server symbol-table diagnostics', {
     // the duplicate `model User` (a symbol-table-tier diagnostic) in the source,
     // so a stable parse-then-symbol-table merge must reorder them on publish.
     const source = [
-      '// use prisma-next',
+      '// use prisma-8',
       'model User {',
       '  id Int @id',
       '}',
@@ -1546,7 +1561,7 @@ describe('language server symbol-table diagnostics', {
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel User {\n  id ',
+        text: '// use prisma-8\nmodel User {\n  id ',
       },
     });
 
@@ -1653,7 +1668,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
         uri: projectASchemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
     harness.client.sendNotification(DidOpenTextDocumentNotification.type, {
@@ -1661,7 +1676,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
         uri: projectBSchemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
 
@@ -1693,7 +1708,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
         uri: unseenSchemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
 
@@ -1720,7 +1735,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
         uri: otherUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
 
@@ -1755,7 +1770,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
         uri: childSchemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
 
@@ -1768,7 +1783,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
   it('serves reads during a config reload from the fresh resolution', async () => {
     const { source, position } = sourceWithCursor(
       [
-        '// use prisma-next',
+        '// use prisma-8',
         'model User {',
         '  id Int @id',
         '}',
@@ -1830,7 +1845,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
     await waitUntil(() => loadCount === 1);
@@ -1886,7 +1901,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
         uri: projectASchemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
     harness.client.sendNotification(DidOpenTextDocumentNotification.type, {
@@ -1894,7 +1909,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
         uri: projectBSchemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
     expect((await harness.waitForDiagnostics(projectASchemaUri)).length).toBeGreaterThan(0);
@@ -1961,7 +1976,7 @@ describe('language server config watching', { timeout: timeouts.databaseOperatio
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
     await settle();
@@ -1986,7 +2001,7 @@ describe('language server config watching', { timeout: timeouts.databaseOperatio
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
     expect((await harness.waitForDiagnostics(schemaUri)).length).toBeGreaterThan(0);
@@ -2010,7 +2025,7 @@ describe('language server config watching', { timeout: timeouts.databaseOperatio
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
     await waitUntil(() => configResolutionMock.resolveConfigInputs.mock.calls.length === 1);
@@ -2036,7 +2051,7 @@ describe('language server config watching', { timeout: timeouts.databaseOperatio
         uri: schemaUri,
         languageId: 'prisma',
         version: 1,
-        text: '// use prisma-next\nmodel {',
+        text: '// use prisma-8\nmodel {',
       },
     });
     const before = await harness.waitForDiagnostics(schemaUri);
@@ -2083,7 +2098,7 @@ describe('language server pull diagnostics', { timeout: timeouts.databaseOperati
     expect(fullReportItems(report).map((diagnostic) => diagnostic.code)).toContain(
       'PSL_DUPLICATE_DECLARATION',
     );
-    expect(fullReportItems(report).every((diagnostic) => diagnostic.source === 'prisma-next')).toBe(
+    expect(fullReportItems(report).every((diagnostic) => diagnostic.source === 'prisma')).toBe(
       true,
     );
 
@@ -2106,7 +2121,7 @@ describe('language server pull diagnostics', { timeout: timeouts.databaseOperati
   it('parses lazily on pull after an edit and never pushes to a pull client', async () => {
     harness = startHarness(resolveToSchema, pullDiagnosticsCapabilities);
     await harness.initialize();
-    openDocument(harness, schemaUri, '// use prisma-next\nmodel User {\n  id Int @id\n}\n');
+    openDocument(harness, schemaUri, '// use prisma-8\nmodel User {\n  id Int @id\n}\n');
     expect(fullReportItems(await requestPullDiagnostics(harness, schemaUri))).toEqual([]);
 
     pipelineMock.runPipeline.mockClear();
@@ -2298,7 +2313,7 @@ describe('language server preserved artifacts', { timeout: timeouts.databaseOper
       textDocument: { uri: schemaUri, version: 2 },
       contentChanges: [
         {
-          text: '// use prisma-next\nmodel User {\n  id Int @id\n}\n\nmodel Post {\n  id Int @id\n}\n',
+          text: '// use prisma-8\nmodel User {\n  id Int @id\n}\n\nmodel Post {\n  id Int @id\n}\n',
         },
       ],
     });
@@ -2440,21 +2455,21 @@ describe('language server disposal', { timeout: timeouts.databaseOperation }, ()
 });
 
 describe('language server interpreter diagnostics', { timeout: timeouts.databaseOperation }, () => {
-  const cleanSchema = '// use prisma-next\nmodel User {\n  id Int @id\n}\n';
-  const fixedSchema = '// use prisma-next\nmodel User {\n  id Int @id\n}\n// fixed\n';
+  const cleanSchema = '// use prisma-8\nmodel User {\n  id Int @id\n}\n';
+  const fixedSchema = '// use prisma-8\nmodel User {\n  id Int @id\n}\n// fixed\n';
   // Span covers "User" on the line after the directive: 1-based columns 7..11
   // map to the 0-based LSP range {1,6}..{1,10}.
   const unresolvedDiagnostic = {
     code: 'PSL_UNRESOLVED_RELATION',
     message: 'relation target not found',
-    span: { start: { offset: 25, line: 2, column: 7 }, end: { offset: 29, line: 2, column: 11 } },
+    span: { start: { offset: 22, line: 2, column: 7 }, end: { offset: 26, line: 2, column: 11 } },
   };
   const expectedUnresolved: Diagnostic = {
     range: { start: { line: 1, character: 6 }, end: { line: 1, character: 10 } },
     message: 'relation target not found',
     code: 'PSL_UNRESOLVED_RELATION',
     severity: DiagnosticSeverity.Error,
-    source: 'prisma-next',
+    source: 'prisma',
   };
 
   function interpretationResolution(interpret: PslInterpretCapable['interpret']): {
@@ -2528,7 +2543,7 @@ describe('language server interpreter diagnostics', { timeout: timeouts.database
         message: 'no span available',
         code: 'PSL_SPANLESS',
         severity: DiagnosticSeverity.Error,
-        source: 'prisma-next',
+        source: 'prisma',
       },
     ]);
   });
@@ -2586,13 +2601,13 @@ describe('language server interpreter diagnostics', { timeout: timeouts.database
 describe('language server config failure surfacing', {
   timeout: timeouts.databaseOperation,
 }, () => {
-  const cleanSchema = '// use prisma-next\nmodel User {\n  id Int @id\n}\n';
+  const cleanSchema = '// use prisma-8\nmodel User {\n  id Int @id\n}\n';
   const expectedConfigFailure = (message: string): Diagnostic => ({
     range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1 } },
     message,
     code: CONFIG_LOAD_FAILED_CODE,
     severity: DiagnosticSeverity.Error,
-    source: 'prisma-next',
+    source: 'prisma',
   });
 
   function interpretingResolution(): ConfigResolution {
@@ -2815,7 +2830,7 @@ describe('language server config failure surfacing', {
   });
 });
 
-describe('language server prisma-next directive gating', {
+describe('language server prisma-8 directive gating', {
   timeout: timeouts.databaseOperation,
 }, () => {
   const unmarkedDuplicate = [
@@ -2828,7 +2843,7 @@ describe('language server prisma-next directive gating', {
     '}',
     '',
   ].join('\n');
-  const markedDuplicate = `// use prisma-next\n${unmarkedDuplicate}`;
+  const markedDuplicate = `// use prisma-8\n${unmarkedDuplicate}`;
 
   it('publishes empty diagnostics and answers no feature requests for an unmarked configured input', async () => {
     harness = startHarness(resolveToSchemaWithPslBlockDescriptors);
@@ -2921,7 +2936,7 @@ describe('language server prisma-next directive gating', {
     harness = startHarness(async () => resolutionForInputs([schemaPath, schema2Path]));
     await harness.initialize();
 
-    openDocument(harness, schemaUri, '// use prisma-next\nmodel User {\n  id Int @id\n}\n');
+    openDocument(harness, schemaUri, '// use prisma-8\nmodel User {\n  id Int @id\n}\n');
     expect(await harness.waitForDiagnostics(schemaUri)).toEqual([]);
     openDocument(harness, schema2Uri, 'model Stray {\n  id Int @id\n}\n');
     expect(await harness.waitForDiagnostics(schema2Uri)).toEqual([]);

@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/prisma/orm">
-    <img src="./images/prisma-next.png" alt="Prisma 8" width="680" />
+    <img src="./images/prisma-8.png" alt="Prisma 8" width="680" />
   </a>
 </p>
 
@@ -57,7 +57,7 @@ See the [`orm init`](https://www.prisma.io/docs/cli/orm-init) and [`skills`](htt
 
 ### 3. Use your AI agent for everything Prisma 8
 
-Both installers leave a top-level **`prisma-next.md`** primer at your project root for any agent to read first, and install one **`SKILL.md`** per workflow into the directories agent runtimes read:
+Both installers leave a top-level **`prisma-8.md`** primer at your project root for any agent to read first, and install one **`SKILL.md`** per workflow into the directories agent runtimes read:
 
 - `.claude/skills/<skill-name>/SKILL.md` — Claude Code
 - `.cursor/skills/<skill-name>/SKILL.md` — Cursor

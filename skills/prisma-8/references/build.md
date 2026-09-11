@@ -67,7 +67,7 @@ Set `logLevel: 'debug'` only while troubleshooting; default `'info'` in committe
 ### 4. Verify the dev loop
 
 1. Start `vite dev`.
-2. Watch for the success log: `[prisma-next] emitted contract.d.ts + contract.json`.
+2. Watch for the success log: `[prisma] emitted contract.d.ts + contract.json`.
 3. Edit `prisma/schema.psl` (e.g. add a field to a model).
 4. Within ~150ms (the debounce), watch for a re-emit log line.
 5. Type-check your application code that uses the new field — should pass without restarting the dev server.

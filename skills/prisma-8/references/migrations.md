@@ -520,7 +520,7 @@ Objects whose `@@control` policy excludes them from Prisma 8's managed surface a
 
 ## Telemetry
 
-The CLI collects anonymous usage data by default. To opt out, set `PRISMA_NEXT_DISABLE_TELEMETRY=1` or `DO_NOT_TRACK=1` in your environment. See [`docs/Telemetry.md`](../../docs/Telemetry.md) for the full opt-out reference.
+The CLI collects anonymous usage data by default. To opt out, set `PRISMA_DISABLE_TELEMETRY=1` or `DO_NOT_TRACK=1` in your environment. See [`docs/Telemetry.md`](../../docs/Telemetry.md) for the full opt-out reference.
 
 ## Checklist
 

@@ -6,7 +6,7 @@
  * cover planning/apply-ordering but can't prove this cross-transaction
  * usability).
  *
- * Isolated in a throwaway database (`prisma_next_native_enum_add_value_realdb`)
+ * Isolated in a throwaway database (`prisma_8_native_enum_add_value_realdb`)
  * dropped and recreated on a maintenance connection; skips (does not fail)
  * when no real Postgres is reachable.
  */
@@ -193,7 +193,7 @@ function nativeEnumMembers(
 
 const MAINTENANCE_URL =
   process.env['DATABASE_URL'] ?? 'postgres://postgres:postgres@localhost:5432/postgres';
-const TEST_DB = 'prisma_next_native_enum_add_value_realdb';
+const TEST_DB = 'prisma_8_native_enum_add_value_realdb';
 
 function testDatabaseUrl(): string {
   const u = new URL(MAINTENANCE_URL);

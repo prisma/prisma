@@ -34,7 +34,7 @@ pnpm dev
 
 # TypeScript — re-emits when prisma/contract.ts (or anything else imported by
 # prisma.config.ts) changes
-PRISMA_NEXT_CONTRACT_SOURCE=ts pnpm dev
+PRISMA_CONTRACT_SOURCE=ts pnpm dev
 ```
 
 The TypeScript surface does not declare an explicit watch path. Instead,
@@ -53,7 +53,7 @@ Re-toggling mid-session requires restarting the dev server; the config is read o
 4. Save. The dev server emits a new `src/prisma/contract.json` and `src/prisma/contract.d.ts` without any command.
 5. Reload the page. The app still serves; types in your editor pick up the new field.
 
-For the TypeScript path, start with `PRISMA_NEXT_CONTRACT_SOURCE=ts pnpm dev` and edit `prisma/contract.ts` instead.
+For the TypeScript path, start with `PRISMA_CONTRACT_SOURCE=ts pnpm dev` and edit `prisma/contract.ts` instead.
 
 ## HMR runtime cache
 

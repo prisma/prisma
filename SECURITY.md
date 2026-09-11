@@ -10,7 +10,7 @@ If you cannot use GitHub's form for any reason, you may instead email `security@
 
 When reporting, please include:
 
-- The affected `@internal/*` package and version (or `prisma-next`).
+- The affected `@prisma/*` package and version (or the `prisma` CLI).
 - A reproduction or proof-of-concept, where possible.
 - Your assessment of severity and impact.
 - Any disclosure timeline you are working under.
@@ -27,7 +27,7 @@ We are still establishing public response-time and patch-time SLOs; the 5-busine
 
 In scope — we accept reports against any of the following published packages:
 
-- The umbrella package `prisma-next`.
+- The `prisma` CLI package.
 - All `@internal/*` packages published to npm — including the `target-*`, `adapter-*`, `driver-*`, `extension-*`, `mongo-*`, and `sql-*` families, plus the framework / authoring / tooling packages. The canonical list is whichever `@internal/*` packages appear on npm under that scope at any given time.
 
 Out of scope (please do not file vulnerability reports for these):

@@ -36,7 +36,7 @@ const controlStack: PipelineInputs = {
   pslBlockDescriptors: {},
 };
 
-const directive = '// use prisma-next\n';
+const directive = '// use prisma-8\n';
 const cleanSource = `${directive}model User {\n  id Int @id\n}\n`;
 const twoModelSource = `${directive}model User {\n  id Int @id\n}\n\nmodel Post {\n  id Int @id\n}\n`;
 const unmarkedSource = 'model Stray {\n  id Int @id\n}\n';
@@ -121,7 +121,7 @@ describe('createProjectArtifacts', () => {
     expect(pipelineMock.runPipeline).not.toHaveBeenCalled();
   });
 
-  it('returns undefined for a configured input without the prisma-next directive', () => {
+  it('returns undefined for a configured input without the prisma-8 directive', () => {
     const { texts, store } = projectWithMirror();
     texts.set(schemaUri, unmarkedSource);
 
@@ -250,7 +250,7 @@ describe('interpret slot', () => {
   const spanned = {
     code: 'PSL_UNRESOLVED_RELATION',
     message: 'relation target not found',
-    span: { start: { offset: 34, line: 3, column: 3 }, end: { offset: 40, line: 3, column: 9 } },
+    span: { start: { offset: 31, line: 3, column: 3 }, end: { offset: 37, line: 3, column: 9 } },
   };
 
   it('does not interpret on document reads, only when the slot is pulled', () => {

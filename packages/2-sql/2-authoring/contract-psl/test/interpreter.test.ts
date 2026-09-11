@@ -522,7 +522,7 @@ model Member {
   // through the SQL PSL interpreter.
   describe('round-trips printer output', () => {
     it('accepts the printer output for an id-less table', () => {
-      const printed = `// Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
+      const printed = `// Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.
 
 // WARNING: This table has no primary key in the database
 model AuditLog {
@@ -550,7 +550,7 @@ model AuditLog {
     });
 
     it('accepts the printer output for a composite-PK table', () => {
-      const printed = `// Contract inferred from the live database schema. Edit as needed, then run \`prisma-next contract emit\`.
+      const printed = `// Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.
 
 model OrderItem {
   orderId   Int @map("order_id")

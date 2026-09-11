@@ -388,7 +388,7 @@ Relevant points:
 
 2. Set up your database connection:
    - Create a `.env` file
-   - Add your PostgreSQL connection string: `DATABASE_URL=postgresql://user:pass@localhost:5432/prisma_next_demo?schema=public`
+   - Add your PostgreSQL connection string: `DATABASE_URL=postgresql://user:pass@localhost:5432/prisma_8_demo?schema=public`
    - **Note**: This demo uses the pgvector extension. Ensure pgvector is installed in your PostgreSQL database:
 
      ```sql
