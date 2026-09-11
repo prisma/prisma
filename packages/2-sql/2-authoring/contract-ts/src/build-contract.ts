@@ -965,7 +965,7 @@ export function buildSqlContractFromDefinition(
     const domainFields: Record<string, ContractField> = {};
     const domainFieldRefs: Record<string, DomainFieldRef> = {};
     const checksForTable: CheckConstraint[] = [];
-    // Enforcement is derived only for tables Prisma Next owns: the contract
+    // Enforcement is derived only for tables Prisma 8 owns: the contract
     // describes an external schema, it does not prescribe enforcement for it.
     // This reads the policy the source declares; a policy applied by a contract
     // specifier lands after the build and is handled by
@@ -1233,7 +1233,7 @@ export function buildSqlContractFromDefinition(
       );
       // Authored checks are lowered and merged into `checksForTable`
       // unconditionally — outside the `derivesChecks` guard above. A derived
-      // check is a Prisma Next prescription, scoped to tables it manages; an
+      // check is a Prisma 8 prescription, scoped to tables it manages; an
       // authored check is the author's own statement about a constraint they
       // know exists, and is emitted whatever the table's control policy.
       if (semanticModel.checks !== undefined && semanticModel.checks.length > 0) {

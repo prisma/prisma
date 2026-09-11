@@ -15,7 +15,7 @@
 //   }
 //
 // Prisma uses implicit many-to-many join tables (_upVotes, _downVotes).
-// Prisma-next PSL requires explicit junction models. We author two explicit
+// Prisma 8 PSL requires explicit junction models. We author two explicit
 // junction models — one per named relation — with composite @@id on the
 // FK pair. The backrelation list fields on Comment and User reference the
 // junction via the same named relations.

@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "On-disk migration persistence, hash verification, and chain reconstruction for Prisma Next",
+  "description": "On-disk migration persistence, hash verification, and chain reconstruction for Prisma 8",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",

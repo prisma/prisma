@@ -1,7 +1,7 @@
 # Gotchas — `prisma-8-postgis-demo`
 
 A running log of surprises, workarounds, and undocumented behaviour hit while
-using **Prisma Next** in this demo. Each entry is mirrored as a Triage-state
+using **Prisma 8** in this demo. Each entry is mirrored as a Triage-state
 ticket in the [`[PN] Gotchas`](https://linear.app/prisma-company/project/pn-gotchas-a6f6f5157a5c/overview)
 Linear project.
 
@@ -16,7 +16,7 @@ Linear project.
 ## `db init` fails with PN-MIG-5001 `declaredButUnmigrated` for extension spaces unless `migration plan` is run first
 
 **Filed upstream:** [TML-2495](https://linear.app/prisma-company/issue/TML-2495) — *"`db init` fails with PN-MIG-5001 `declaredButUnmigrated` for extension spaces unless `migration plan` is run first; remediation points at non-existent `prisma-next migrate` command"*
-**Product:** Prisma Next
+**Product:** Prisma 8
 **Version:** workspace HEAD (branch `ankur/feat-postgis-extensions-rebased` @ `bb9d531a`)
 **First hit:** postgis port to contract-spaces, demo setup
 **Cost:** ~10 minutes to diagnose (would be longer for a first-time user — the remediation text points at a non-existent CLI subcommand)

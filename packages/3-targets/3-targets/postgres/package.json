@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Postgres target pack for Prisma Next",
+  "description": "Postgres target pack for Prisma 8",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run --passWithNoTests",

@@ -1,6 +1,6 @@
-# Contributing to Prisma Next
+# Contributing to Prisma 8
 
-Thanks for your interest in Prisma Next. This document is the entry point for external contributors. Maintainer-onboarding lives elsewhere ([`AGENTS.md`](./AGENTS.md), [`docs/onboarding/`](./docs/onboarding/)) and may be linked as deeper-dive reference, but you do not need it to file a bug report or open a PR.
+Thanks for your interest in Prisma 8. This document is the entry point for external contributors. Maintainer-onboarding lives elsewhere ([`AGENTS.md`](./AGENTS.md), [`docs/onboarding/`](./docs/onboarding/)) and may be linked as deeper-dive reference, but you do not need it to file a bug report or open a PR.
 
 ## Status — please read first
 

@@ -3,7 +3,7 @@
   "version": "8.0.0-rc.9",
   "private": true,
   "type": "module",
-  "description": "Private dev playground: opens a PSL file in a browser Monaco editor wired to the Prisma Next language server for live diagnostics.",
+  "description": "Private dev playground: opens a PSL file in a browser Monaco editor wired to the Prisma 8 language server for live diagnostics.",
   "bin": {
     "psl-playground": "./bin/psl-playground.mjs"
   },

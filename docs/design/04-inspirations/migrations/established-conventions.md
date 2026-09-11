@@ -420,5 +420,5 @@ The final step of the audit walks this table against every existing CLI command 
 
 ## See also
 
-- [`../../10-domains/migration/`](../../10-domains/migration/) — the Prisma Next migration domain model, which acts on the verdicts in this synthesis.
+- [`../../10-domains/migration/`](../../10-domains/migration/) — the Prisma 8 migration domain model, which acts on the verdicts in this synthesis.
 - [`./atlas.md`](./atlas.md), [`./active-record.md`](./active-record.md) — per-system vocabulary summaries this synthesis drew from.

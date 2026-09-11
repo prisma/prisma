@@ -12,7 +12,7 @@ changes:
       anyMatch: true
   - id: facade-add-close-and-async-dispose
     summary: |
-      The official Prisma Next facades (`@internal/postgres`, `@internal/sqlite`, `@internal/mongo`) now expose `close()` and `[Symbol.asyncDispose]` so short-lived scripts can release facade-owned resources cleanly and exit instead of hanging on a live connection. Extensions that expose a facade in the same shape should add the same surface for parity, honouring the ownership rule (only close resources the facade itself constructed) and managing a terminal closed state (subsequent operations reject with a clear error). No script — manual code authoring per extension.
+      The official Prisma 8 facades (`@internal/postgres`, `@internal/sqlite`, `@internal/mongo`) now expose `close()` and `[Symbol.asyncDispose]` so short-lived scripts can release facade-owned resources cleanly and exit instead of hanging on a live connection. Extensions that expose a facade in the same shape should add the same surface for parity, honouring the ownership rule (only close resources the facade itself constructed) and managing a terminal closed state (subsequent operations reject with a clear error). No script — manual code authoring per extension.
     detection:
       glob: "**/src/runtime/*.ts"
       contains:

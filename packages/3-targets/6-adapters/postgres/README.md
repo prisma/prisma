@@ -1,6 +1,6 @@
 # @internal/adapter-postgres
 
-PostgreSQL adapter for Prisma Next.
+PostgreSQL adapter for Prisma 8.
 
 ## Package Classification
 
@@ -14,7 +14,7 @@ The PostgreSQL adapter implements the adapter SPI for PostgreSQL databases. It p
 
 ## Purpose
 
-Provide PostgreSQL-specific adapter implementation, codecs, and capabilities. Enable PostgreSQL dialect support in Prisma Next through the adapter SPI.
+Provide PostgreSQL-specific adapter implementation, codecs, and capabilities. Enable PostgreSQL dialect support in Prisma 8 through the adapter SPI.
 
 ## Responsibilities
 

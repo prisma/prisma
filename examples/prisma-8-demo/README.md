@@ -1,23 +1,23 @@
-# Prisma Next Demo
+# Prisma 8 Demo
 
-This example demonstrates **Prisma Next in its native form**, using the Prisma Next APIs directly without the compatibility layer.
+This example demonstrates **Prisma 8 in its native form**, using the Prisma 8 APIs directly without the compatibility layer.
 
 ## Purpose
 
 This demo shows:
 
-- Using Prisma Next's query lanes (SQL DSL, Raw SQL, etc.)
+- Using Prisma 8's query lanes (SQL DSL, Raw SQL, etc.)
 - Creating Plans and executing them via the Runtime
 - Contract verification and marker management
-- Native Prisma Next patterns and best practices
+- Native Prisma 8 patterns and best practices
 - ORM client end-to-end examples using `@internal/sql-orm-client`
 - **Two workflows**: Emit workflow (JSON-based) and No-Emit workflow (TypeScript-based)
 - Client-generated UUID identifiers via `@internal/ids`
 
 ## Comparison
 
-- **`prisma-8-demo`** (this example): Shows Prisma Next native APIs
-- **`prisma-orm-demo`**: Shows using Prisma Next via the compatibility layer (mimics Prisma 7 API)
+- **`prisma-8-demo`** (this example): Shows Prisma 8 native APIs
+- **`prisma-orm-demo`**: Shows using Prisma 8 via the compatibility layer (mimics Prisma 7 API)
 
 ## Workflows
 
@@ -438,7 +438,7 @@ Run `pnpm dev` for the Vite app that visualizes the contract. It renders directl
 - `scripts/stamp-marker.ts` - Contract marker management
 - `scripts/seed.ts` - Database seeding (includes vector embeddings)
 - `src/queries/similarity-search.ts` - Example vector similarity search query
-- `test/` - Integration tests demonstrating Prisma Next usage
+- `test/` - Integration tests demonstrating Prisma 8 usage
 
 ## Features Demonstrated
 

@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "PostGIS geometry types, operators, and indexes for Prisma Next",
+  "description": "PostGIS geometry types, operators, and indexes for Prisma 8",
   "files": [
     "dist"
   ],

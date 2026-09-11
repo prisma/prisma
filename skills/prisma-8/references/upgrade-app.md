@@ -12,13 +12,13 @@ Do the version bump first (step 1 of the per-step flow below), re-sync the skill
 
 ## Pre-flight — extension compatibility
 
-Before changing any code, refuse to upgrade past any installed extension's pinned Prisma Next version. Extensions in Prisma Next pin every `@internal/*` dependency to a single exact version (no carets, no ranges); that pin is the highest version the extension has been validated against. Upgrading the user app past that pin would silently desynchronise the extension's type identity from the app's.
+Before changing any code, refuse to upgrade past any installed extension's pinned Prisma 8 version. Extensions in Prisma 8 pin every `@internal/*` dependency to a single exact version (no carets, no ranges); that pin is the highest version the extension has been validated against. Upgrading the user app past that pin would silently desynchronise the extension's type identity from the app's.
 
 Steps:
 
 1. **Read `prisma.config.ts`** (or its TS-discoverable equivalent at the project root) and enumerate the list of extension packages it imports. Each `extensions: [...]` entry corresponds to an installed npm package.
 2. **For each extension**, read its installed `package.json` from `node_modules/<extension-package-name>/package.json` and find any `@internal/*` entry under `dependencies`, `peerDependencies`, or `optionalDependencies`. By construction those entries are exact-version pins (e.g. `"0.7.0"`), set when the extension author last ran their own upgrade.
-3. **Compute the lowest pinned version across all extensions.** That is the highest Prisma Next version reachable by this app on its current extension set.
+3. **Compute the lowest pinned version across all extensions.** That is the highest Prisma 8 version reachable by this app on its current extension set.
 4. **Compare to the user's target.** If the target exceeds the lowest pin, halt with a structured message naming each lagging extension and its pinned version, and offer two paths:
    - (a) Wait for the lagging extension to publish a compatible release, then re-run.
    - (b) Re-run with `--to=<highest-reachable>` (or whatever flag/option the user is using to set the target).
@@ -29,7 +29,7 @@ If `prisma.config.ts` is absent or names no extensions, skip the pre-flight.
 
 ## Role detection
 
-This flow applies when the project **consumes** Prisma Next:
+This flow applies when the project **consumes** Prisma 8:
 
 - `package.json` declares one or more `@internal/*` packages under `dependencies` / `devDependencies`, and
 - the package is *not* itself an extension (no `@internal/contract` (or other SPI) under `dependencies`/`peerDependencies`; name does not match `^@.*/extension-`; not referenced from a sibling app's `prisma.config.ts`).
@@ -38,7 +38,7 @@ If the project also matches the extension-author role, run **this** flow first a
 
 ## Version detection
 
-- **From-version.** Read the currently-installed Prisma Next version from `pnpm-lock.yaml` (or `package-lock.json` / `yarn.lock`) by inspecting the resolved version of any `@internal/*` package. If the lockfile shows multiple `@internal/*` packages at different minors (already broken), the **lowest** minor is the from-version.
+- **From-version.** Read the currently-installed Prisma 8 version from `pnpm-lock.yaml` (or `package-lock.json` / `yarn.lock`) by inspecting the resolved version of any `@internal/*` package. If the lockfile shows multiple `@internal/*` packages at different minors (already broken), the **lowest** minor is the from-version.
 - **To-version.** Either the version the user specified, or whatever `npm view @internal/postgres dist-tags.latest` reports. Do not assume that is a stable version: while Prisma 8 is a release candidate, `latest` tracks the newest release, `8.0.0-rc.N` included. If the user wants a stable version specifically, they must name it.
 
 Report both back to the user before continuing.

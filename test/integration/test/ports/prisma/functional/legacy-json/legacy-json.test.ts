@@ -9,7 +9,7 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // Upstream uses copycat.uuid(1) for the id; we use the same deterministic value
 // directly. Upstream's requiredJson is a static object; we use the same shape.
 //
-// Prisma-next JSON behaviour vs upstream Prisma Client:
+// Prisma 8 JSON behaviour vs upstream Prisma Client:
 //   - JSON fields map to `pg/jsonb@1` (jsonb) returning a plain JsonValue.
 //   - prisma-next shorthand `where({ requiredJson: value })` does equality
 //     filtering (jsonb supports @= comparison).

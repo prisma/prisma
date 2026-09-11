@@ -1,26 +1,26 @@
 ---
 name: record-upgrade-instructions
 description: >-
-  Record upgrade instructions alongside a Prisma Next breaking-change
+  Record upgrade instructions alongside a Prisma 8 breaking-change
   PR, so downstream consumers (users of `@internal/*` and authors
-  of Prisma Next extensions) can apply the matching code translation
+  of Prisma 8 extensions) can apply the matching code translation
   automatically via the published upgrade skills. Use when you have
   refactored framework code and the test suite went red in
   `examples/` or `packages/3-extensions/`, when you fixed those
   red tests by editing the substrate, when you are told to "record
   upgrade instructions for this PR", or when you made a breaking
-  change to Prisma Next that downstream consumers will need help
+  change to Prisma 8 that downstream consumers will need help
   migrating across.
 ---
 
 # Record upgrade instructions
 
-This skill fires on PRs **inside this repo** that make a breaking change to Prisma Next. It walks you through adding a per-transition upgrade-instructions entry in the right published skill package(s) — so downstream users and extension authors can run the matching agent flow to migrate their code automatically.
+This skill fires on PRs **inside this repo** that make a breaking change to Prisma 8. It walks you through adding a per-transition upgrade-instructions entry in the right published skill package(s) — so downstream users and extension authors can run the matching agent flow to migrate their code automatically.
 
 The published skills you will be authoring entries into:
 
-- `skills/prisma-8/upgrading/app/` — the upgrading branch of the `prisma-8` skill, shipped inside the `@prisma/orm-*` tarballs. **Audience: users of Prisma Next** (consumers of the public package API: `@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, on-disk migration shape).
-- `skills/prisma-8/upgrading/extension/` — the extension-author half of the same branch. **Audience: authors of Prisma Next extensions** (consumers of the framework SPI: `@internal/contract`, `@internal/framework-components`, `@internal/migration-tools`, etc.).
+- `skills/prisma-8/upgrading/app/` — the upgrading branch of the `prisma-8` skill, shipped inside the `@prisma/orm-*` tarballs. **Audience: users of Prisma 8** (consumers of the public package API: `@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, on-disk migration shape).
+- `skills/prisma-8/upgrading/extension/` — the extension-author half of the same branch. **Audience: authors of Prisma 8 extensions** (consumers of the framework SPI: `@internal/contract`, `@internal/framework-components`, `@internal/migration-tools`, etc.).
 
 The two skill clusters are independent (no shared content). Cross-audience breaking changes — where the same on-disk transformation applies to both substrates — are recorded *separately* in each cluster, including duplicated colocated scripts.
 

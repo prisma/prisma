@@ -1,6 +1,6 @@
 # Error reference
 
-Every user-facing Prisma Next error is a structured envelope identified by a dotted `NAMESPACE.SUBCODE` code (see [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md) and [Error Handling](../Error%20Handling.md)). This page lists every published code. It is the canonical source for the hosted reference at `https://docs.prisma.io/docs/orm/v8/reference/error-reference` (each code anchors as `#<CODE>`), and CI verifies completeness on every PR: `pnpm check:error-reference` fails if any code in production source is missing from this page.
+Every user-facing Prisma 8 error is a structured envelope identified by a dotted `NAMESPACE.SUBCODE` code (see [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md) and [Error Handling](../Error%20Handling.md)). This page lists every published code. It is the canonical source for the hosted reference at `https://docs.prisma.io/docs/orm/v8/reference/error-reference` (each code anchors as `#<CODE>`), and CI verifies completeness on every PR: `pnpm check:error-reference` fails if any code in production source is missing from this page.
 
 Recognize an error programmatically with `isStructuredError` from `@internal/utils/structured-error` and match on `error.code` — never `instanceof`. Envelopes carry `message`, and optionally `why`, `fix`, `where`, `cause`, `docsUrl`, and the structured context each entry below lists as its **Payload**. The payload arrives on `error.meta` when the envelope was built by `structuredError` and on `error.details` when it was built by `runtimeError`; a few codes are raised both ways, so read whichever property the envelope carries.
 
@@ -121,7 +121,7 @@ A flag passed to `prisma orm init` has a value outside its allowed set (for exam
 
 ### CLI.INIT_INVALID_OUTPUT_DOCUMENT
 
-`prisma orm init` completed but its own success output document failed schema validation. This indicates a bug in Prisma Next itself, not user error. The engine-hosted `init` settles it as an errored envelope at exit 2 (the commander `init`, deleted in the S5 cutover, mapped it to exit 1), because the ORM's error boundary converts every failure into a structured settlement and the engine reserves exit 1 for a throw that reaches it uncaught. Payload: none.
+`prisma orm init` completed but its own success output document failed schema validation. This indicates a bug in Prisma 8 itself, not user error. The engine-hosted `init` settles it as an errored envelope at exit 2 (the commander `init`, deleted in the S5 cutover, mapped it to exit 1), because the ORM's error boundary converts every failure into a structured settlement and the engine reserves exit 1 for a throw that reaches it uncaught. Payload: none.
 
 ### CLI.INIT_INVALID_TSCONFIG
 

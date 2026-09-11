@@ -1,6 +1,6 @@
 # Migration domain
 
-The conceptual reference for Prisma Next's migration system: the ubiquitous language, the entities and operations that make it up, the mental-model anchor (Git), and the CLI surface that follows from the model. This is the upstream source for user-facing documentation, and it is the doc to read first if you are designing, reviewing, or extending the migration system.
+The conceptual reference for Prisma 8's migration system: the ubiquitous language, the entities and operations that make it up, the mental-model anchor (Git), and the CLI surface that follows from the model. This is the upstream source for user-facing documentation, and it is the doc to read first if you are designing, reviewing, or extending the migration system.
 
 For the vocabulary in use — the workflows real users walk through, sequenced verb-by-verb — see the companion [user journeys](./user-journeys.md). For the implementation (planner, runner, emitter, on-disk file shapes, ADR cross-references), see [`docs/architecture docs/subsystems/7. Migration System.md`](../../../architecture%20docs/subsystems/7.%20Migration%20System.md). For the canonical user-facing definitions of individual terms, see [`docs/glossary.md`](../../../glossary.md) (the "Migration & Database Lifecycle" section). This doc, the journeys doc, and the glossary are kept in sync; the glossary wins on wording for individual entries, this doc wins on how the entries fit together.
 

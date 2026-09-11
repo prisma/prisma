@@ -1,6 +1,6 @@
 # @internal/mongo-contract-psl
 
-PSL-to-Mongo contract interpreter for Prisma Next. Transforms Prisma Schema Language (`.prisma`) files into Mongo `Contract`, enabling contract-first development with MongoDB.
+PSL-to-Mongo contract interpreter for Prisma 8. Transforms Prisma Schema Language (`.prisma`) files into Mongo `Contract`, enabling contract-first development with MongoDB.
 
 ## Responsibilities
 

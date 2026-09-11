@@ -1,6 +1,6 @@
 # @internal/sql-contract-psl
 
-PSL-first SQL contract interpretation for Prisma Next.
+PSL-first SQL contract interpretation for Prisma 8.
 
 ## Overview
 

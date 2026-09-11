@@ -1,6 +1,6 @@
 # Query Patterns
 
-This document covers standard patterns for working with Prisma Next queries, including table access, type inference, and common usage patterns.
+This document covers standard patterns for working with Prisma 8 queries, including table access, type inference, and common usage patterns.
 
 ## Keep a single `db.ts` entrypoint
 

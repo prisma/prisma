@@ -6,7 +6,7 @@
 
 ## Prompt
 
-> I need to compute a running total of order amounts per user using a Postgres window function. How do I write this in Prisma Next?
+> I need to compute a running total of order amounts per user using a Postgres window function. How do I write this in Prisma 8?
 
 ## Expected agent behavior
 

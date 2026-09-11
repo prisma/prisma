@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Enforce the exact-pin rule for Prisma Next extensions: every
+// Enforce the exact-pin rule for Prisma 8 extensions: every
 // `@internal/*` entry in `dependencies`, `peerDependencies`, and
 // `optionalDependencies` must be a single exact-version string, and
 // every entry must resolve to the same version. Exits 0 on success

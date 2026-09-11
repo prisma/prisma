@@ -1,5 +1,5 @@
 
-# Prisma Next — Contract Authoring
+# Prisma 8 — Contract Authoring
 
 > **Edit your data contract. Prisma handles the rest.**
 
@@ -26,7 +26,7 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 - User wants to install or configure an extension via `extensions: [...]` in `prisma.config.ts`, including `@internal/extension-supabase`.
 - User is migrating between authoring sources (PSL ↔ TypeScript builder).
 - User received `PN-CLI-4002`, `PN-CLI-4003`, or `PN-CLI-4011` from `contract emit`.
-- User mentions: *schema, fields, models, attributes, prisma schema, PSL, contract.prisma, contract.ts, contract.json, contract.d.ts, contract emit, façade imports, `@internal/postgres/config`, `@internal/postgres/contract-builder`, extensions, pgvector, cipherstash, postgis, paradedb, supabase, namespaces, cross-space FK, `@@control`, enums, check constraints, `@@check`, value objects, validations, callbacks, soft delete, paranoid, scopes*. (The last cluster routes to *What Prisma Next doesn't do yet* below.)
+- User mentions: *schema, fields, models, attributes, prisma schema, PSL, contract.prisma, contract.ts, contract.json, contract.d.ts, contract emit, façade imports, `@internal/postgres/config`, `@internal/postgres/contract-builder`, extensions, pgvector, cipherstash, postgis, paradedb, supabase, namespaces, cross-space FK, `@@control`, enums, check constraints, `@@check`, value objects, validations, callbacks, soft delete, paranoid, scopes*. (The last cluster routes to *What Prisma 8 doesn't do yet* below.)
 
 ## When Not to Use
 
@@ -34,7 +34,7 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 - User wants to write a query against the contract → `references/queries.md`.
 - User wants to wire `db.ts` (runtime entry point, middleware, env config) → `references/runtime.md`.
 - User wants the Vite / bundler integration → `references/build.md`.
-- User wants to set up Prisma Next for the first time → `references/quickstart.md`.
+- User wants to set up Prisma 8 for the first time → `references/quickstart.md`.
 - User wants a deeper read of a single structured error envelope → `references/debug.md`.
 - User wants to file a missing-feature request → `references/feedback.md`.
 
@@ -280,10 +280,10 @@ model Order {
 }
 ```
 
-`expression` is the raw predicate — the text that goes inside `CHECK (...)` — and it is never parsed, so get it right; Prisma Next does not validate SQL syntax. Exactly one of `name:` or `map:` is required, and they're mutually exclusive:
+`expression` is the raw predicate — the text that goes inside `CHECK (...)` — and it is never parsed, so get it right; Prisma 8 does not validate SQL syntax. Exactly one of `name:` or `map:` is required, and they're mutually exclusive:
 
-- **`name:`** — declaring a new rule. Prisma Next picks the physical constraint name and future plans compare by that name, so Postgres's own reprint of your predicate (which rarely matches what you typed byte-for-byte) never causes false drift.
-- **`map:`** — adopting a rule that already exists. Give the constraint's exact physical name and Prisma Next compares the predicate byte-for-byte against what's live. This is the form `contract infer` writes for you (see *Workflow — Brownfield introspection* below) when it finds a hand-written check in the database. Every `map:` body warns at emit time (`PN_EXACT_NAME_BODY_COMPARISON`) — the warning fires on the text, not on who wrote it, so the check `contract infer` just wrote warns again on your next `contract emit` too. That is expected, not a defect: the comparison is still sound because both sides are Postgres's own reprint. Prefer `name:` for anything you're authoring fresh: your text and Postgres's reprint of it rarely match character-for-character, and a byte comparison reports that as drift even when both mean exactly the same thing. Reserve `map:` for adopting what's already there, where both sides are the database's own reprint and so do match.
+- **`name:`** — declaring a new rule. Prisma 8 picks the physical constraint name and future plans compare by that name, so Postgres's own reprint of your predicate (which rarely matches what you typed byte-for-byte) never causes false drift.
+- **`map:`** — adopting a rule that already exists. Give the constraint's exact physical name and Prisma 8 compares the predicate byte-for-byte against what's live. This is the form `contract infer` writes for you (see *Workflow — Brownfield introspection* below) when it finds a hand-written check in the database. Every `map:` body warns at emit time (`PN_EXACT_NAME_BODY_COMPARISON`) — the warning fires on the text, not on who wrote it, so the check `contract infer` just wrote warns again on your next `contract emit` too. That is expected, not a defect: the comparison is still sound because both sides are Postgres's own reprint. Prefer `name:` for anything you're authoring fresh: your text and Postgres's reprint of it rarely match character-for-character, and a byte comparison reports that as drift even when both mean exactly the same thing. Reserve `map:` for adopting what's already there, where both sides are the database's own reprint and so do match.
 
 A model can carry any number of `@@check` attributes. The TS builder mirrors this with `check({ expression, name })` / `check({ expression, map })` on a model's `.sql({ checks: [...] })`, next to `index()`.
 
@@ -382,11 +382,11 @@ Infer captures indexes at full fidelity — expression, partial (`where:`), uniq
 1. **Forgetting to re-emit after an edit.** `contract.json` and `contract.d.ts` go stale; downstream typecheck and `migration plan` see the old shape. Re-emit, or install the Vite plugin (`references/build.md`).
 2. **Editing the emitted artefacts.** `contract.json` and `contract.d.ts` are emitted; edits there round-trip away on the next emit. Edit the source.
 3. **Wrong factory/import path for the TS builder.** `defineContract`, `field`, `model`, `rel` come from `@internal/postgres/contract-builder` (or `@internal/mongo/contract-builder`). Outside the callback overload, the available field constructors are `field.column(...)`, `field.generated(...)`, `field.namedType(...)`.
-4. **Reaching into internal packages from user code.** User-authored files (`prisma.config.ts`, `contract.ts`, `db.ts`, control clients) import only from `@internal/<target>/<subpath>` and `@internal/extension-<name>/<subpath>`. Imports from `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` are framework-internal — the façade composes them for you. If a façade subpath you need is missing for your target, see *What Prisma Next doesn't do yet* and route to `references/feedback.md`. The canonical worked examples are `examples/multi-extension-monorepo/app/prisma.config.ts` and `examples/prisma-8-postgis-demo/prisma.config.ts`.
+4. **Reaching into internal packages from user code.** User-authored files (`prisma.config.ts`, `contract.ts`, `db.ts`, control clients) import only from `@internal/<target>/<subpath>` and `@internal/extension-<name>/<subpath>`. Imports from `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` are framework-internal — the façade composes them for you. If a façade subpath you need is missing for your target, see *What Prisma 8 doesn't do yet* and route to `references/feedback.md`. The canonical worked examples are `examples/multi-extension-monorepo/app/prisma.config.ts` and `examples/prisma-8-postgis-demo/prisma.config.ts`.
 5. **Confusing the config `extensions` with the TS builder's `extensions`.** Same packs, two surfaces, one field name but two shapes: `defineConfig({ extensions: [pgvector] })` (array of *control* descriptors from `@internal/extension-<name>/control`) versus `defineContract({ extensions: { pgvector } })` (record of *pack* descriptors from `@internal/extension-<name>/pack`).
-6. **Renaming a field and expecting the planner to detect it.** Prisma Next has no in-contract rename hint; the planner sees a destructive drop+add. Hand-edit `migration.ts` after `migration plan` (see `references/migrations.md`), or use the keep-then-drop two-migration pattern.
+6. **Renaming a field and expecting the planner to detect it.** Prisma 8 has no in-contract rename hint; the planner sees a destructive drop+add. Hand-edit `migration.ts` after `migration plan` (see `references/migrations.md`), or use the keep-then-drop two-migration pattern.
 
-## What Prisma Next doesn't do yet
+## What Prisma 8 doesn't do yet
 
 - **In-contract rename hint.** No `@@rename(old: ..., new: ...)` or similar. Use the workarounds in *Common Pitfalls* #6. To request first-class rename, file via `references/feedback.md`.
 - **Model validations.** No declarative `@validates(...)` surface. Validate in application code (arktype). To request declarative validations in the contract, file via `references/feedback.md`.
@@ -410,8 +410,8 @@ Infer captures indexes at full fidelity — expression, partial (`where:`), uniq
 - [ ] All user-authored imports resolve to `@internal/<target>/<subpath>` (e.g. `@internal/postgres/config`) or `@internal/extension-<name>/<subpath>`. No imports from `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` in user files.
 - [ ] Edited the contract source (`contract.prisma` or `contract.ts`), not an emitted artefact.
 - [ ] For new extension namespaces: added the package, imported its control descriptor (`@internal/extension-<name>/control`), added it to `extensions: [...]` in `defineConfig({...})` (and the matching pack descriptor to `defineContract({extensions: {...}})` if using the TS builder).
-- [ ] For renames: hand-edited `migration.ts` after `migration plan` (or used the keep-then-drop two-migration pattern) — Prisma Next has no rename hint today.
+- [ ] For renames: hand-edited `migration.ts` after `migration plan` (or used the keep-then-drop two-migration pattern) — Prisma 8 has no rename hint today.
 - [ ] Ran `pnpm prisma contract emit` after the edit (or let the Vite plugin re-emit on save).
 - [ ] Confirmed `contract.json` and `contract.d.ts` updated next to the source.
 - [ ] Did **not** hand-edit `contract.json` / `contract.d.ts`.
-- [ ] Did **not** confabulate a missing feature (validations, callbacks, soft delete, scopes, in-contract rename hint) — referred the user to *What Prisma Next doesn't do yet* + `references/feedback.md`.
+- [ ] Did **not** confabulate a missing feature (validations, callbacks, soft delete, scopes, in-contract rename hint) — referred the user to *What Prisma 8 doesn't do yet* + `references/feedback.md`.

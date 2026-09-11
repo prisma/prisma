@@ -1,6 +1,6 @@
 # @internal/mongo-orm
 
-MongoDB ORM client for Prisma Next.
+MongoDB ORM client for Prisma 8.
 
 ## Responsibilities
 

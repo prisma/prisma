@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Arktype-validated JSON columns for Prisma Next",
+  "description": "Arktype-validated JSON columns for Prisma 8",
   "files": [
     "dist"
   ],

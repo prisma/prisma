@@ -1,5 +1,5 @@
 
-# Prisma Next — Queries
+# Prisma 8 — Queries
 
 > **Edit your data contract. Prisma handles the rest.**
 
@@ -24,7 +24,7 @@ Once the contract is emitted and the DB is up to date, this skill covers everyth
 
 ## Pick your target
 
-Prisma Next ships **two query lanes per target** on the same `db` value from `src/prisma/db.ts`. **Before writing queries, read `db.ts` and load the matching target guide:**
+Prisma 8 ships **two query lanes per target** on the same `db` value from `src/prisma/db.ts`. **Before writing queries, read `db.ts` and load the matching target guide:**
 
 | Runtime import in `db.ts` | Load |
 | --- | --- |
@@ -177,7 +177,7 @@ Coming from Prisma 7: `Prisma.User` → `Models.public_User` (note: now carries 
 
 Target-specific pitfalls live in the per-target guides.
 
-## What Prisma Next doesn't do yet
+## What Prisma 8 doesn't do yet
 
 - **N:M `.include()` across a junction table.** The contract IR supports many-to-many relations with a `through` junction table, and `N:M` relations appear as valid relation names on the ORM collection. However, `.include()` on an N:M relation does not emit the two-step junction join — the query plan builder only handles the direct join columns (`localColumn` / `targetColumn`) and ignores the `through` metadata. Attempting it either produces wrong results or an error. Workaround: express the N:M traversal through `db.sql.<table>` with an explicit join on the junction table.
 - **N:M nested mutations.** `mutation-executor.ts` explicitly throws `'N:M nested mutations are not supported yet'` for nested creates/links through an N:M relation.
@@ -185,13 +185,13 @@ Target-specific pitfalls live in the per-target guides.
 - **Ordering grouped aggregates by an aggregate alias (Postgres).** `db.orm.<Model>.groupBy(...)` supports `.orderBy(...)` on group keys plus `.limit(...)` / `.offset(...)`, but the grouped collection cannot order by an aggregate alias such as `SUM(amount)`. A "top-N groups by SUM" query therefore falls back to JS-side sort + slice over the full grouped result, which is fine at small cardinalities and bad at scale. Workarounds: (a) drop to `db.sql.<table>` and write the `GROUP BY` + `ORDER BY` + `LIMIT` against the aggregated table directly; (b) live with the JS-side sort/slice if the grouped cardinality is bounded. File a feature request via `references/feedback.md` if this is hitting you in production.
 - **A raw-SQL lane.** This one exists. Write whole-query raw SQL through the client's raw lane: ``db.raw.sql`SELECT ...`.returnsRow({ ... }).build()`` for rows, or `.affectedCount()` for a mutation's row count. Each declared column names the codec that decodes it, so the row stays typed. For an expression fragment inside a builder query, use `fns.raw` in a `.select(...)` callback instead.
 - **TypedSQL (`.sql` files compiled into typed callables).** Not implemented. Workaround: stick to the SQL builder; for repeated queries, extract a function that returns the built plan and call `db.runtime().execute(plan)` at the call site. If you want a `.sql`-file compile path, file a feature request via `references/feedback.md`.
-- **`EXPLAIN` / query-plan inspection.** Prisma Next does not expose an `.explain()` method. Workaround: connect a `pg.Pool` you control via the runtime's `pg:` binding (see `references/runtime.md`) and issue `EXPLAIN ANALYZE` through it. If you want a first-class plan-inspection surface, file a feature request via `references/feedback.md`.
+- **`EXPLAIN` / query-plan inspection.** Prisma 8 does not expose an `.explain()` method. Workaround: connect a `pg.Pool` you control via the runtime's `pg:` binding (see `references/runtime.md`) and issue `EXPLAIN ANALYZE` through it. If you want a first-class plan-inspection surface, file a feature request via `references/feedback.md`.
 - **Streaming large result sets.** No `.stream()` cursor today. Workaround: paginate via `.offset(n).limit(m)` for moderate sizes; for very large sets, hold a `pg.Client` from the runtime's `pg:` binding and stream through it directly. If you want a built-in streaming surface, file a feature request via `references/feedback.md`.
-- **Multi-statement batching (Prisma-7-style `db.$transaction([call1, call2])`).** Prisma Next runs each call sequentially. Workaround: wrap atomically-related work in `db.transaction(async (tx) => { ... })` on Postgres. If you want batch-as-array semantics, file a feature request via `references/feedback.md`.
-- **Mongo façade transactions.** `@internal/mongo/runtime` does not expose `db.transaction(...)`. Multi-document atomicity is not yet wrapped in the Prisma Next Mongo façade. Workaround: use the MongoDB driver's session API directly if you control the client binding (`mongoClient:` option). File a feature request via `references/feedback.md` if you need a first-class façade surface.
+- **Multi-statement batching (Prisma-7-style `db.$transaction([call1, call2])`).** Prisma 8 runs each call sequentially. Workaround: wrap atomically-related work in `db.transaction(async (tx) => { ... })` on Postgres. If you want batch-as-array semantics, file a feature request via `references/feedback.md`.
+- **Mongo façade transactions.** `@internal/mongo/runtime` does not expose `db.transaction(...)`. Multi-document atomicity is not yet wrapped in the Prisma 8 Mongo façade. Workaround: use the MongoDB driver's session API directly if you control the client binding (`mongoClient:` option). File a feature request via `references/feedback.md` if you need a first-class façade surface.
 - **Mongo ORM aggregates.** No `.aggregate(...)` / `.groupBy(...)` on `db.orm.<root>`. Workaround: express aggregations through `db.query.from(...).group(...).build()` and `runtime.execute(plan)`.
 - **Mongo filter helpers on the façade.** Rich filters (`.in`, ranges, boolean composition) currently import from `@internal/mongo-query-ast/execution` (`MongoFieldFilter`, etc.) — not yet re-exported on `@internal/mongo/runtime`. Workaround: use object equality `.where({ field: value })` where possible; import from the internal package only when necessary. Tracked alongside façade-completeness gaps in Linear `TML-2526`.
-- **Automatic N+1 detection.** Prisma Next does not warn when an `.include(...)` is missing. Workaround: be deliberate about `.include(...)` in code review; the `lints` middleware (see `references/runtime.md`) catches the more common authoring slips (missing `WHERE` on a `DELETE` / `UPDATE`, missing `LIMIT` on a `SELECT`).
+- **Automatic N+1 detection.** Prisma 8 does not warn when an `.include(...)` is missing. Workaround: be deliberate about `.include(...)` in code review; the `lints` middleware (see `references/runtime.md`) catches the more common authoring slips (missing `WHERE` on a `DELETE` / `UPDATE`, missing `LIMIT` on a `SELECT`).
 
 ## Reference Files
 

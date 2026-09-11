@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "pgvector embedding columns, distance operators, and indexes for Prisma Next",
+  "description": "pgvector embedding columns, distance operators, and indexes for Prisma 8",
   "files": [
     "dist"
   ],

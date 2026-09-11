@@ -22,7 +22,7 @@
 
 ## Success criteria
 
-- [ ] The added `User` model matches Prisma Next's PSL idioms (`@id`, `@default(autoincrement())`, `@unique`).
+- [ ] The added `User` model matches Prisma 8's PSL idioms (`@id`, `@default(autoincrement())`, `@unique`).
 - [ ] `contract.json` and `contract.d.ts` updated (timestamps advanced).
 - [ ] The DB has the `user` table (`pnpm prisma db schema` shows it).
 - [ ] The handler typechecks and runs without error.
