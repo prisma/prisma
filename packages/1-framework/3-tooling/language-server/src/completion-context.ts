@@ -372,37 +372,77 @@ function classifyAttribute(input: {
   readonly at: TokenAtOffset;
   readonly replacementStartOffset: number;
 }): PslCompletionContext | undefined {
-  const node = input.at.leftBiased()?.parent ?? input.at.rightBiased()?.parent;
-  const fieldAttribute = node?.findAncestor(FieldAttributeAst.cast);
-  if (fieldAttribute?.syntax.isInside(input.offset) === true) {
-    const field = fieldAttribute.syntax.findAncestor(FieldDeclarationAst.cast);
-    const model = fieldAttribute.syntax.findAncestor(ModelDeclarationAst.cast);
-    return classifyAttributeNode({
-      offset: input.offset,
-      replacementStartOffset: input.replacementStartOffset,
-      level: 'field',
-      attribute: fieldAttribute,
-      ...(field === undefined ? {} : { field }),
-      ...(model === undefined ? {} : { model }),
-    });
-  }
+  const classifierInput = {
+    offset: input.offset,
+    node: input.at.leftBiased()?.parent ?? input.at.rightBiased()?.parent,
+    replacementStartOffset: input.replacementStartOffset,
+  };
+  return (
+    classifyFieldAttribute(classifierInput) ??
+    classifyGenericBlockAttribute(classifierInput) ??
+    classifyModelAttribute(classifierInput)
+  );
+}
 
-  const modelAttribute = node?.findAncestor(ModelAttributeAst.cast);
-  if (modelAttribute === undefined || !modelAttribute.syntax.isInside(input.offset)) {
+interface AttributeClassifierInput {
+  readonly offset: number;
+  readonly node: SyntaxNode | undefined;
+  readonly replacementStartOffset: number;
+}
+
+function classifyFieldAttribute(input: AttributeClassifierInput): PslCompletionContext | undefined {
+  const attribute = input.node?.findAncestor(FieldAttributeAst.cast);
+  if (attribute === undefined || attribute.syntax.isOutside(input.offset)) {
     return undefined;
   }
-  const block = modelAttribute.syntax.findAncestor(GenericBlockDeclarationAst.cast);
-  const model = modelAttribute.syntax.findAncestor(ModelDeclarationAst.cast);
-  const blockKeyword = block?.keyword()?.text;
   return classifyAttributeNode({
     offset: input.offset,
     replacementStartOffset: input.replacementStartOffset,
-    level: block === undefined ? 'model' : 'block',
-    attribute: modelAttribute,
-    ...(model === undefined ? {} : { model }),
-    ...(block === undefined ? {} : { block }),
-    ...(blockKeyword === undefined ? {} : { blockKeyword }),
+    level: 'field',
+    attribute,
+    field: attribute.syntax.findAncestor(FieldDeclarationAst.cast),
+    model: attribute.syntax.findAncestor(ModelDeclarationAst.cast),
   });
+}
+
+function classifyGenericBlockAttribute(
+  input: AttributeClassifierInput,
+): PslCompletionContext | undefined {
+  const attribute = activeModelAttribute(input);
+  const block = attribute?.syntax.findAncestor(GenericBlockDeclarationAst.cast);
+  if (attribute === undefined || block === undefined) {
+    return undefined;
+  }
+  return classifyAttributeNode({
+    offset: input.offset,
+    replacementStartOffset: input.replacementStartOffset,
+    level: 'block',
+    attribute,
+    block,
+    blockKeyword: block.keyword()?.text,
+  });
+}
+
+function classifyModelAttribute(input: AttributeClassifierInput): PslCompletionContext | undefined {
+  const attribute = activeModelAttribute(input);
+  if (attribute === undefined) {
+    return undefined;
+  }
+  return classifyAttributeNode({
+    offset: input.offset,
+    replacementStartOffset: input.replacementStartOffset,
+    level: 'model',
+    attribute,
+    model: attribute.syntax.findAncestor(ModelDeclarationAst.cast),
+  });
+}
+
+function activeModelAttribute(input: AttributeClassifierInput): ModelAttributeAst | undefined {
+  const attribute = input.node?.findAncestor(ModelAttributeAst.cast);
+  if (attribute === undefined || attribute.syntax.isOutside(input.offset)) {
+    return undefined;
+  }
+  return attribute;
 }
 
 function classifyAttributeNode(input: {
@@ -410,10 +450,10 @@ function classifyAttributeNode(input: {
   readonly replacementStartOffset: number;
   readonly level: AttributeCompletionLevel;
   readonly attribute: FieldAttributeAst | ModelAttributeAst;
-  readonly field?: FieldDeclarationAst;
-  readonly model?: ModelDeclarationAst;
-  readonly block?: GenericBlockDeclarationAst;
-  readonly blockKeyword?: string;
+  readonly field?: FieldDeclarationAst | undefined;
+  readonly model?: ModelDeclarationAst | undefined;
+  readonly block?: GenericBlockDeclarationAst | undefined;
+  readonly blockKeyword?: string | undefined;
 }): PslCompletionContext {
   const argList = input.attribute.argList();
   if (argList?.syntax.isInside(input.offset)) {

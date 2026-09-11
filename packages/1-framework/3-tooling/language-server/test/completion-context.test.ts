@@ -272,6 +272,26 @@ describe('classifyPslCompletionContext', () => {
     expectUnsupported(['model Post {', '  authorId Int @relation(fields: [|])', '}'].join('\n'));
   });
 
+  it('bounds field attribute completion to the active attribute span', () => {
+    expectUnsupported(['model Post {', '  id Int @id |', '}'].join('\n'));
+  });
+
+  it('keeps attribute completion active at the attribute end offset', () => {
+    expect(classify(['model Post {', '  id Int @id|', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeName',
+      level: 'field',
+    });
+    expect(classify(['model Post {', '  id Int', '  @@id|', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeName',
+      level: 'model',
+    });
+    expect(classify(['policy Foo {', '  @@audit|', '}'].join('\n'))).toMatchObject({
+      kind: 'attributeName',
+      level: 'block',
+      blockKeyword: 'policy',
+    });
+  });
+
   it('classifies a composite-type field type position', () => {
     expect(classify(['type Address {', '  city |', '}'].join('\n'))).toMatchObject({
       kind: 'modelType',
