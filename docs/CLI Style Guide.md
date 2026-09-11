@@ -135,7 +135,7 @@ This is a deliberate divergence from clig.dev §Arguments §Confirmation. AI age
 
 - `db update`: when the plan includes destructive ops, asks the user to type the database name; `--no-interactive --confirm <database>` applies without a prompt. The name is the `database` a driver connection object carries, or the connection URL's first path segment, else its host, falling back to the target id.
 - `init`: re-running `init` in a directory with a generated `prisma.config.ts` asks the user to type the directory's basename; `-y` alone is not sufficient to authorise overwriting generated files. (The commander-era `--force` retired with the commander shell in the S5 cutover; the engine-hosted `init` uses the consent form above.)
-- `db sign`: overwriting a marker that holds a different hash currently happens without consent (the previous hash is reported). If that ever grows a switch, it takes the consent form above — not a `--force`.
+- `db sign`: overwriting a marker that holds a different hash happens without consent (the previous hash is reported). This is an intentional exception to the rule above: `db sign` verifies the live schema against the contract before writing, so the overwrite only ever records a contract the database already satisfies. If that ever grows a switch, it takes the consent form above — not a `--force`.
 
 ## Config & Environment
 - Config file names: `prisma.config.ts|.mjs|.js` (ESM); optional CJS fallback.

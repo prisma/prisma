@@ -127,7 +127,7 @@ Ref advancement is **implicit** for dev-shaped reconciliation commands and **opt
 | Command | Default ref advancement | Override |
 |---|---|---|
 | `db init` | Advances `db` when `--db` is omitted (project default URL) | `--advance-ref <name>` |
-| `db update` | Same | `--advance-ref <name>`; **no** implicit advance when `--db <non-default-url>` unless `--advance-ref` is explicit |
+| `db update` | Same | `--advance-ref <name>`; **no** implicit advance with any explicit `--db` (even one naming the default URL) unless `--advance-ref` is explicit |
 | `migrate` | **None** | `--advance-ref <name>` only |
 | `ref set` | Sets `<name>` (always explicit) | N/A — user names the ref |
 | `db sign` (added after this ADR) | Advances `db` whether or not `--db` is given — sign never mutates the schema, and adoption normally names the database with `--db`; `--no-advance-ref` skips it | `--advance-ref <name>`; `--no-advance-ref` |
