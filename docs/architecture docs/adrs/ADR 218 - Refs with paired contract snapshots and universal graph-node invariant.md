@@ -132,7 +132,7 @@ Ref advancement is **implicit** for dev-shaped reconciliation commands and **opt
 | `ref set` | Sets `<name>` (always explicit) | N/A — user names the ref |
 | `db sign` (added after this ADR) | Advances `db` whether or not `--db` is given — sign never mutates the schema, and adoption normally names the database with `--db` | `--advance-ref <name>` |
 
-The default name selection for `db init`, `db update`, and `migrate` is implemented in `computeRefAdvancementName`; `db sign` does not go through it — the sign command picks `--advance-ref <name>` if given, else `db`:
+The default name selection for `db init` and `db update` is implemented in `computeRefAdvancementName`; `db sign` does not go through it — the sign command picks `--advance-ref <name>` if given, else `db`:
 
 ```25:36:packages/1-framework/3-tooling/cli/src/control-api/operations/ref-advancement.ts
 export function computeRefAdvancementName(options: {

@@ -135,7 +135,7 @@ pnpm prisma contract emit
 pnpm prisma db sign --db "$DATABASE_URL"                # advances the db ref even with --db
 ```
 
-`db sign` sets the `db` ref to the signed contract's hash and stores its snapshot, so the next `migration plan` chains from the adopted schema: the graph is still empty at that point, so the plan auto-emits the baseline `null → signed-hash` plus the delta `signed-hash → contract`. No baseline is written at sign time. If the graph is already non-empty and the signed hash is not a graph node, the next plan refuses with `MIGRATION.HASH_NOT_IN_GRAPH`, exactly as after `db update`.
+`db sign` sets the `db` ref to the signed contract's hash and stores its snapshot, so the next `migration plan` chains from the adopted schema: the graph is still empty at that point, so the plan auto-emits the baseline `null → signed-hash`, plus a delta `signed-hash → contract` once the contract has moved on from the signed one. No baseline is written at sign time. If the graph is already non-empty and the signed hash is not a graph node, the next plan refuses with `MIGRATION.HASH_NOT_IN_GRAPH`, exactly as after `db update`.
 
 ## Workflow — retrofit a database that has no on-disk migrations
 
