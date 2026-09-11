@@ -130,8 +130,23 @@ export type IncludeRefinementValue<
       // cardinality-wrapped; Collection carries a raw row that still needs it.
       RefinedResult extends { readonly kind: 'includeScalar' | 'includeCombine' }
       ? V
-      : IncludeRelationValue<TContract, ParentModelName, RelName, V, NsId>
+      : RefinedIncludeRelationValue<TContract, ParentModelName, RelName, V, NsId>
     : IncludeRelationValue<TContract, ParentModelName, RelName, DefaultIncludedRow, NsId>;
+
+/**
+ * A refined to-one include is nullable whatever the relation's `nullable` flag
+ * says: the refinement's filter can exclude the related row.
+ */
+type RefinedIncludeRelationValue<
+  TContract extends Contract<SqlStorage>,
+  ParentModelName extends string,
+  RelName extends string,
+  IncludedRow,
+  NsId extends string = never,
+> =
+  RelationCardinality<TContract, ParentModelName, RelName, NsId> extends '1:1' | 'N:1'
+    ? IncludedRow | null
+    : IncludedRow[];
 
 export type WhereInput<
   TContract extends Contract<SqlStorage>,

@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Structured error types for Prisma Next control and execution planes",
+  "description": "Structured error types for Prisma 8 control and execution planes",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",

@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Prisma Next Postgres target: target descriptor, adapter, driver",
+  "description": "Prisma 8 Postgres target: target descriptor, adapter, driver",
   "files": [
     "dist"
   ],

@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Prisma Next target-agnostic runtime: contract, components, authoring surface",
+  "description": "Prisma 8 target-agnostic runtime: contract, components, authoring surface",
   "files": [
     "dist"
   ],

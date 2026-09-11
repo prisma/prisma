@@ -73,7 +73,7 @@ describe('ports/prisma/functional/composites/list/updateMany', () => {
   );
 
   // Upstream asserts null on required `contents` is a type error and a runtime throw.
-  // Prisma Next rejects it at the type level (@ts-expect-error holds), and MongoDB
+  // Prisma 8 rejects it at the type level (@ts-expect-error holds), and MongoDB
   // rejects it through the provisioned collection validator.
   it(
     'set null',

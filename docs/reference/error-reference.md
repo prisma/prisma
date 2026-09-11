@@ -1,6 +1,6 @@
 # Error reference
 
-Every user-facing Prisma Next error is a structured envelope identified by a dotted `NAMESPACE.SUBCODE` code (see [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md) and [Error Handling](../Error%20Handling.md)). This page lists every published code. It is the canonical source for the hosted reference at `https://docs.prisma.io/docs/orm/v8/reference/error-reference` (each code anchors as `#<CODE>`), and CI verifies completeness on every PR: `pnpm check:error-reference` fails if any code in production source is missing from this page.
+Every user-facing Prisma 8 error is a structured envelope identified by a dotted `NAMESPACE.SUBCODE` code (see [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md) and [Error Handling](../Error%20Handling.md)). This page lists every published code. It is the canonical source for the hosted reference at `https://docs.prisma.io/docs/orm/v8/reference/error-reference` (each code anchors as `#<CODE>`), and CI verifies completeness on every PR: `pnpm check:error-reference` fails if any code in production source is missing from this page.
 
 Recognize an error programmatically with `isStructuredError` from `@internal/utils/structured-error` and match on `error.code` — never `instanceof`. Envelopes carry `message`, and optionally `why`, `fix`, `where`, `cause`, `docsUrl`, and the structured context each entry below lists as its **Payload**. The payload arrives on `error.meta` when the envelope was built by `structuredError` and on `error.details` when it was built by `runtimeError`; a few codes are raised both ways, so read whichever property the envelope carries.
 
@@ -121,7 +121,7 @@ A flag passed to `prisma orm init` has a value outside its allowed set (for exam
 
 ### CLI.INIT_INVALID_OUTPUT_DOCUMENT
 
-`prisma orm init` completed but its own success output document failed schema validation. This indicates a bug in Prisma Next itself, not user error. The engine-hosted `init` settles it as an errored envelope at exit 2 (the commander `init`, deleted in the S5 cutover, mapped it to exit 1), because the ORM's error boundary converts every failure into a structured settlement and the engine reserves exit 1 for a throw that reaches it uncaught. Payload: none.
+`prisma orm init` completed but its own success output document failed schema validation. This indicates a bug in Prisma 8 itself, not user error. The engine-hosted `init` settles it as an errored envelope at exit 2 (the commander `init`, deleted in the S5 cutover, mapped it to exit 1), because the ORM's error boundary converts every failure into a structured settlement and the engine reserves exit 1 for a throw that reaches it uncaught. Payload: none.
 
 ### CLI.INIT_INVALID_TSCONFIG
 
@@ -317,13 +317,33 @@ A command that requires a pre-signed database (marker present) as a precondition
 
 The marker row exists but its column values fail schema validation — the row is corrupt or written by an incompatible version. Fix path: delete the row and re-sign with `prisma db sign`. Payload: `space`.
 
+### CONTRACT.MODEL_BASE_MISSING
+
+A variant model names a `base` that is not a model in the contract, so its type in `contract.d.ts` cannot include the base's fields. Raised while emitting `contract.d.ts`. Payload: `variant`, `base`.
+
+### CONTRACT.MODEL_RELATION_TARGET_MISSING
+
+A same-space relation points at a model the contract does not declare. Raised while emitting the `Models` namespace in `contract.d.ts`; only cross-space relations may reference models outside the contract. Payload: `owner`, `relationName`, `target` (`namespaceId`, `modelName`).
+
 ### CONTRACT.MODEL_TOKEN_INVALID
 
 A model token is misused in the TS authoring DSL: an unnamed token is used in `.ref(...)` or as a relation target (tokens need `model("Name", ...)`), or a token is assigned under a `models` key that does not match its name. Payload: `tokenModelName`, `assignedKey`.
 
+### CONTRACT.MODEL_TYPE_NAME_COLLISION
+
+Two models produce the same emitted type name in the `Models` namespace of `contract.d.ts`, formed as `<namespace>_<Model>`, for example a `public_User` model beside a `public` namespace holding `User`, or a model named `AnyTask` beside a polymorphic base `Task`. Raised while emitting `contract.d.ts`. Payload: `memberName`, `sources`.
+
+### CONTRACT.MODEL_TYPE_NAME_INVALID
+
+An emitted model type name, formed as `<namespace>_<Model>`, is not a TypeScript identifier, for example because the namespace contains a hyphen. Raised while emitting `contract.d.ts`. Payload: `memberName`, `source`.
+
 ### CONTRACT.MODEL_UNKNOWN
 
 A relation, foreign key, junction (`through`) reference, or context declaration names a model that is not declared in the contract. Raised while lowering/building a SQL contract. Payload: `sourceModel`, `relationName`, `targetModel`.
+
+### CONTRACT.MODEL_VARIANT_MISSING
+
+A polymorphic base names a variant that is not a model in the same namespace, so the `Any<Base>` union in `contract.d.ts` cannot be formed. Raised while emitting `contract.d.ts`. Payload: `base`, `variantName`.
 
 ### CONTRACT.MODULE_EXPORT_MISSING
 
@@ -527,7 +547,7 @@ A nested relation mutation's input is malformed: a relation field without a muta
 
 ### ORM.RELATION_MUTATION_UNSUPPORTED
 
-A nested relation mutation kind is not supported in this position: `disconnect()` outside `update()` nested mutations, or connect/disconnect through a junction table with required columns the relation API cannot populate. Payload: `kind`, `relation`.
+A nested relation mutation kind is not supported in this position: `disconnect()` outside `update()` nested mutations, or `create()`/`connect()` through a junction table with required columns the relation API cannot populate (`disconnect()` stays available). Payload: `kind`, `relation`.
 
 ### ORM.RELATION_ROW_MISSING
 

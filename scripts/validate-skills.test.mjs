@@ -115,7 +115,7 @@ description: ${longDescription}
     // `extensions: [supabasePack]` reads as a nested YAML mapping, not text.
     const broken = `---
 name: prisma-next-supabase
-description: Use Prisma Next with Supabase — wire extensions: [supabasePack] into your db.
+description: Use Prisma 8 with Supabase — wire extensions: [supabasePack] into your db.
 ---
 
 # Supabase

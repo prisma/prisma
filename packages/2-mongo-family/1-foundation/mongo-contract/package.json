@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Contract types and validation for Prisma Next MongoDB support",
+  "description": "Contract types and validation for Prisma 8 MongoDB support",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",

@@ -74,7 +74,7 @@ const FAILING_DIAGNOSTIC: PslDiagnostic = {
 
 function failing(): ArgType<never, AttributeCtx> {
   return {
-    kind: 'failing',
+    kind: 'rejecting',
     label: 'failing',
     parse: (): Result<never, readonly PslDiagnostic[]> => notOk([FAILING_DIAGNOSTIC]),
   };

@@ -1,12 +1,12 @@
 
-# Prisma Next — Migration Authoring
+# Prisma 8 — Migration Authoring
 
-> **Edit your data contract. Prisma Next plans the migration. You fill in any data transforms.**
+> **Edit your data contract. Prisma 8 plans the migration. You fill in any data transforms.**
 
 The three-step user model:
 
 1. **You edit your data contract.** (`references/contract.md`)
-2. **Prisma Next plans the migration for you.** ← this skill
+2. **Prisma 8 plans the migration for you.** ← this skill
 3. **If a data transform is needed, you edit `migration.ts` and self-emit.** ← this skill
 
 Once the contract changes, you choose how the change reaches the database. This skill covers the two paths (`db update` and `migration plan` + `db migrate`), the migration-package contract, the `migration.ts` authoring API, and the failure modes you recover from without leaving the loop.
@@ -377,7 +377,7 @@ There is no built-in filter flag — pipe the JSON through `jq` (or your favouri
 
 The concept: `db verify` is a **standalone diagnostic** — not a routine step after `db update` or `db migrate` on the happy path (those commands already verify and advance the marker when they succeed). Reach for `db verify` when you suspect drift or need to prove the DB matches the contract:
 
-- Following manual SQL or ad-hoc edits outside Prisma Next.
+- Following manual SQL or ad-hoc edits outside Prisma 8.
 - When restoring a database from backup.
 - If a `db migrate` fails or partially applies (especially on Mongo, where DDL is resumable rather than transaction-wrapped).
 - When `PN-RUN-3002` / `PN-RUN-3001` surfaces at runtime or from another command.
@@ -478,15 +478,15 @@ In non-interactive contexts (CI, `--no-interactive`, `--json`), the destructive-
 5. **Routine `db verify` after a successful `db update` or `db migrate`.** Redundant on the happy path — reserve `db verify` for drift diagnosis (manual edits, restore, failed `db migrate`).
 6. **Aggregate `check` closure in Postgres `this.dataTransform`.** Returning `count(*)` or `bool_and(...)` breaks the precheck/postcheck contract — both sides resolve to constants. Use a rowset shape: `select('id').where(<violation>).limit(1)`.
 7. **Two contract references in one migration.** Building a query plan against a different contract than the one passed to `this.dataTransform(endContract, ...)` raises `PN-MIG-2005`. Always import `endContract` once at module scope and use the same reference.
-8. **Renaming and expecting the planner to detect it (Postgres).** Prisma Next has no in-contract rename hint today; the planner emits a destructive drop+add. Hand-edit `migration.ts` to rewrite the destructive op as a `rawSql({ ... })` that issues `ALTER TABLE ... RENAME COLUMN ...` (or use the two-migration keep / backfill / drop pattern), then self-emit. See `references/contract.md` § *Edit a field — rename*.
+8. **Renaming and expecting the planner to detect it (Postgres).** Prisma 8 has no in-contract rename hint today; the planner emits a destructive drop+add. Hand-edit `migration.ts` to rewrite the destructive op as a `rawSql({ ... })` that issues `ALTER TABLE ... RENAME COLUMN ...` (or use the two-migration keep / backfill / drop pattern), then self-emit. See `references/contract.md` § *Edit a field — rename*.
 9. **Planning with no `db` ref and no `--from` in a project that already has migrations.** The origin falls through to the empty database, which would make the plan a full-create migration; `migration plan` refuses with `MIGRATION.PLAN_ORIGIN_UNKNOWN` rather than writing it. Pick the exit that matches your intent — the error lists them, and `references/migration-model.md` § *The trap* explains which to choose.
 10. **Hand-authoring `migration.ts` from a blank file, or rewriting the rendered import line.** Migration files are framework-rendered — let `prisma migration plan` (or `migration new`) render the package, then edit only the holes the framework leaves for you. On Postgres leave the rendered `@internal/postgres/migration` (or `@internal/sqlite/migration`) import path alone; on Mongo use `@internal/family-mongo/migration` + `@internal/target-mongo/migration` as rendered. Add symbols to the existing factory import line rather than introducing new import paths.
 
-## What Prisma Next doesn't do yet
+## What Prisma 8 doesn't do yet
 
-- **Runtime-apply migrations.** Prisma Next doesn't apply pending migrations from your app's startup code (the "Drizzle pattern" for serverless / edge). Workaround: run `prisma db migrate` from your deploy pipeline before the app starts. If you need runtime-apply built-in, file a feature request via the `references/feedback.md` skill.
-- **Seeds-as-first-class.** Prisma Next doesn't ship a `prisma db seed` equivalent. Workaround: write a TypeScript script that imports your `db` instance and runs your setup queries; invoke it from `package.json`'s scripts. If you need first-class seeding, file a feature request via the `references/feedback.md` skill.
-- **Migration squashing.** Prisma Next doesn't squash older migrations into a baseline. They accumulate; for very large histories, manual baseline-and-truncate is the path. If you need built-in squashing, file a feature request via the `references/feedback.md` skill.
+- **Runtime-apply migrations.** Prisma 8 doesn't apply pending migrations from your app's startup code (the "Drizzle pattern" for serverless / edge). Workaround: run `prisma db migrate` from your deploy pipeline before the app starts. If you need runtime-apply built-in, file a feature request via the `references/feedback.md` skill.
+- **Seeds-as-first-class.** Prisma 8 doesn't ship a `prisma db seed` equivalent. Workaround: write a TypeScript script that imports your `db` instance and runs your setup queries; invoke it from `package.json`'s scripts. If you need first-class seeding, file a feature request via the `references/feedback.md` skill.
+- **Migration squashing.** Prisma 8 doesn't squash older migrations into a baseline. They accumulate; for very large histories, manual baseline-and-truncate is the path. If you need built-in squashing, file a feature request via the `references/feedback.md` skill.
 - **In-contract rename hints.** The planner cannot detect that a field rename is a rename rather than a drop+add. Workaround: hand-edit `migration.ts` to issue a `RENAME COLUMN` via `rawSql(...)`, or use a keep / backfill / drop pattern across two migrations. If you need a contract-level rename hint, file a feature request via the `references/feedback.md` skill.
 
 ## Graph and history commands
@@ -500,7 +500,7 @@ For the full graph topology: `pnpm prisma migration graph` (also supports `--leg
 
 ## `@@control` and DDL scope
 
-Objects whose `@@control` policy excludes them from Prisma Next's managed surface are omitted from planned DDL. The four policies are: `managed` (Prisma plans and applies DDL), `tolerated` (object may exist, no DDL emitted), `external` (object is expected to exist, no DDL), `observed` (Prisma reads but never writes). Declare `@@control(managed|tolerated|external|observed)` in your schema; see `references/contract.md` and [`packages/2-sql/2-authoring/contract-psl/README.md`](../../packages/2-sql/2-authoring/contract-psl/README.md) for authoring syntax.
+Objects whose `@@control` policy excludes them from Prisma 8's managed surface are omitted from planned DDL. The four policies are: `managed` (Prisma plans and applies DDL), `tolerated` (object may exist, no DDL emitted), `external` (object is expected to exist, no DDL), `observed` (Prisma reads but never writes). Declare `@@control(managed|tolerated|external|observed)` in your schema; see `references/contract.md` and [`packages/2-sql/2-authoring/contract-psl/README.md`](../../packages/2-sql/2-authoring/contract-psl/README.md) for authoring syntax.
 
 ## Telemetry
 

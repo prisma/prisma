@@ -209,6 +209,7 @@ type PolyModels = {
           readonly model: 'Assignee';
         };
         readonly cardinality: 'N:1';
+        readonly nullable: true;
         readonly on: {
           readonly localFields: readonly ['assigneeId'];
           readonly targetFields: readonly ['id'];
@@ -242,6 +243,7 @@ type PolyModels = {
           readonly model: 'Assignee';
         };
         readonly cardinality: 'N:1';
+        readonly nullable: true;
         readonly on: {
           readonly localFields: readonly ['assigneeId'];
           readonly targetFields: readonly ['id'];
@@ -756,6 +758,7 @@ type CollisionModels = Omit<PolyModels, 'Task' | 'Bug' | 'Feature'> & {
       readonly owner: {
         readonly to: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Task' };
         readonly cardinality: 'N:1';
+        readonly nullable: true;
         readonly on: {
           readonly localFields: readonly ['assigneeId'];
           readonly targetFields: readonly ['id'];

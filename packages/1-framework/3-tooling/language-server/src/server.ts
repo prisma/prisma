@@ -522,7 +522,7 @@ function createServerOn(connection: Connection): LanguageServer {
       });
     } else {
       logWarn(
-        'Client does not support dynamic file-watcher registration; Prisma Next config changes will not be picked up without a restart.',
+        'Client does not support dynamic file-watcher registration; Prisma 8 config changes will not be picked up without a restart.',
       );
     }
   });

@@ -5,6 +5,7 @@ import type { CodecTypes as SqliteTypes } from '@prisma/orm-sqlite/adapter/codec
 
 import type {
   ContractWithTypeMaps,
+  RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-sqlite/family-contract/types';
 import type {
@@ -277,6 +278,63 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type User = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    name: CodecTypes['sqlite/text@1']['output'];
+    email: CodecTypes['sqlite/text@1']['output'];
+    invitedById: CodecTypes['sqlite/integer@1']['output'] | null;
+    posts: Post[];
+    profile: Profile | null;
+    readonly [RelationKeys]?: 'posts' | 'profile';
+  };
+  export type Post = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    title: CodecTypes['sqlite/text@1']['output'];
+    userId: CodecTypes['sqlite/integer@1']['output'];
+    views: CodecTypes['sqlite/integer@1']['output'];
+    comments: Comment[];
+    author: User;
+    readonly [RelationKeys]?: 'comments' | 'author';
+  };
+  export type Comment = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    body: CodecTypes['sqlite/text@1']['output'];
+    postId: CodecTypes['sqlite/integer@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type Profile = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    userId: CodecTypes['sqlite/integer@1']['output'];
+    bio: CodecTypes['sqlite/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type TypedRow = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    active: CodecTypes['sqlite/integer@1']['output'];
+    createdAt: CodecTypes['sqlite/datetime@1']['output'];
+    metadata: CodecTypes['sqlite/json@1']['output'] | null;
+    label: CodecTypes['sqlite/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type Item = {
+    id: CodecTypes['sqlite/integer@1']['output'];
+    name: CodecTypes['sqlite/text@1']['output'];
+    label: CodecTypes['sqlite/text@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+}
+
+export declare const models: {
+  User: Models.User;
+  Post: Models.Post;
+  Comment: Models.Comment;
+  Profile: Models.Profile;
+  TypedRow: Models.TypedRow;
+  Item: Models.Item;
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -577,6 +635,7 @@ type ContractBase = Omit<
                   readonly model: 'User';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -693,6 +752,7 @@ type ContractBase = Omit<
                   readonly model: 'Profile';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['userId'];

@@ -1,6 +1,6 @@
 # @internal/target-postgres
 
-Postgres target pack for Prisma Next.
+Postgres target pack for Prisma 8.
 
 ## Package Classification
 

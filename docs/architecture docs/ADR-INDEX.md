@@ -1,6 +1,6 @@
 # ADR Index
 
-This document provides a comprehensive index of all Architectural Decision Records (ADRs) for the Prisma Next prototype, organized by category and ADR number.
+This document provides a comprehensive index of all Architectural Decision Records (ADRs) for the Prisma 8 prototype, organized by category and ADR number.
 
 ## Core Architecture
 
@@ -34,6 +34,7 @@ This document provides a comprehensive index of all Architectural Decision Recor
 | 171 | Parameterized native types in contracts | Contracts represent parameterized storage types as base `nativeType` + structured `typeParams`; expansion to SQL strings is hook-driven per component | [ADR 171 - Parameterized native types in contracts.md](adrs/ADR%20171%20-%20Parameterized%20native%20types%20in%20contracts.md) |
 | 246 | Option arguments and select templates for authoring helpers | Adds a shared `option` argument kind (bare token in PSL, literal union in TS; one type across block parameters and helper arguments) and a `select` template node — registration-validated against the option's values — so preset vocabulary never leaks generator ids. An undefined execution-defaults phase omits the phase; an empty resolved `typeParams` omits the key — the two rules carry each other, and the `updatedAt()` ≡ `timestamptz(now, now)` shorthand is test-enforced, not structural. Per-codec preset name = codec base name. Records which check protects which surface (PSL validator vs TS literal union; the TS surface has no runtime validation) and which protects which argument object (weak type vs excess-property). | [ADR 246 - Option arguments and select templates for authoring helpers.md](adrs/ADR%20246%20-%20Option%20arguments%20and%20select%20templates%20for%20authoring%20helpers.md) |
 | 249 | Central attribute-spec registry | Registers every model-level and field-level PSL attribute of both families in one place, keyed by level and name, as a spec *factory* over a framework-owned construction-time context (`AttributeSpecContext` / `FieldAttributeSpecContext`) — the uniform signature is what lets the language server invoke the same factories the interpreters run. `assembleAttributeSpecs` merges family built-ins with [ADR 236](adrs/ADR%20236%20-%20Target-contributed%20model%20attributes.md)'s model-attribute descriptors into frozen plain records and restores the factory types core erases (they return `AttributeSpec<never>`, because `refine` makes `Out` contravariant and `unknown` would reject every spec that refines). Registry keys drive unknown-attribute diagnostics at field and model level in both families; block attributes are declared on `AuthoringPslBlockDescriptor.attributes` and parsed by the kit. | [ADR 249 - Central attribute-spec registry.md](adrs/ADR%20249%20-%20Central%20attribute-spec%20registry.md) |
+| 250 | Models and views are emitted from the contract | `contract.d.ts` gains a `Models` namespace (one member per model, `<ns>_<Model>`, plus `<ns>_Any<Base>` for each polymorphic base) and a type-only `models` constant; relations are typed as the related member with a phantom `RelationKeys` key so `Scalars<M>` names a default fetch's row and `Shape<M, Spec>` names an application data structure derived from the model, and both ORM collections carry `_row` so `ResultType` names any query's result. To-one nullability is a family hook (SQL reads foreign keys and column nullability; Mongo takes the nullable default); name collisions and non-identifier names are emitter errors | [ADR 250 - Models and views are emitted from the contract.md](adrs/ADR%20250%20-%20Models%20and%20views%20are%20emitted%20from%20the%20contract.md) |
 
 ## Query System
 
@@ -42,7 +43,7 @@ This document provides a comprehensive index of all Architectural Decision Recor
 | 011 | Unified Plan Model | Establishes common Plan structure across all query lanes with AST, SQL, and metadata | [ADR 011 - Unified Plan Model.md](adrs/ADR%20011%20-%20Unified%20Plan%20Model.md) |
 | 012 | Raw SQL Escape Hatch | **Plan construction superseded by ADR 247.** Provides safe raw SQL execution with required annotations and verification; the annotation schema stands, the AST-less plan shape does not | [ADR 012 - Raw SQL Escape Hatch.md](adrs/ADR%20012%20-%20Raw%20SQL%20Escape%20Hatch.md) |
 | 013 | Lane Agnostic Plan Identity | Ensures Plan identity and hashing work consistently across all query lanes | [ADR 013 - Lane Agnostic Plan Identity.md](adrs/ADR%20013%20-%20Lane%20Agnostic%20Plan%20Identity.md) |
-| 162 | Kysely lane emits PN SQL AST | **Superseded.** The Kysely lane was removed from Prisma Next; this ADR is retained for historical context only | [ADR 162 - Kysely lane emits PN SQL AST.md](adrs/ADR%20162%20-%20Kysely%20lane%20emits%20PN%20SQL%20AST.md) |
+| 162 | Kysely lane emits PN SQL AST | **Superseded.** The Kysely lane was removed from Prisma 8; this ADR is retained for historical context only | [ADR 162 - Kysely lane emits PN SQL AST.md](adrs/ADR%20162%20-%20Kysely%20lane%20emits%20PN%20SQL%20AST.md) |
 | 165 | ORM WhereArg literal normalization | Records Phase 2 decision to validate bound ToWhereExpr payloads then normalize ParamRef values into literals at ORM boundaries | [ADR 165 - ORM WhereArg literal normalization.md](adrs/ADR%20165%20-%20ORM%20WhereArg%20literal%20normalization.md) |
 | 018 | Plan Annotations Schema | Defines canonical JSON schema for Plan annotations and validation rules | [ADR 018 - Plan Annotations Schema.md](adrs/ADR%20018%20-%20Plan%20Annotations%20Schema.md) |
 | 019 | TypedSQL as Separate CLI | Establishes TypedSQL as out-of-tree tool that emits Plan factories | [ADR 019 - TypedSQL as Separate CLI.md](adrs/ADR%20019%20-%20TypedSQL%20as%20Separate%20CLI.md) |
@@ -109,8 +110,8 @@ This document provides a comprehensive index of all Architectural Decision Recor
 | 022 | Lint Rule Taxonomy | Defines taxonomy and classification system for lint rules and violations | [ADR 022 - Lint Rule Taxonomy.md](adrs/ADR%20022%20-%20Lint%20Rule%20Taxonomy.md) |
 | 023 | Budget Evaluation | Establishes query budget evaluation and enforcement mechanisms | [ADR 023 - Budget Evaluation.md](adrs/ADR%20023%20-%20Budget%20Evaluation.md) |
 | 024 | Telemetry Schema | Defines telemetry schema and privacy controls for runtime observability | [ADR 024 - Telemetry Schema.md](adrs/ADR%20024%20-%20Telemetry%20Schema.md) |
-| 029 | Shadow DB preflight semantics | Superseded — no shadow database will ever exist; diffing is fully offline against on-disk snapshots | [ADR 029 - Shadow DB preflight semantics.md](adrs/ADR%20029%20-%20Shadow%20DB%20preflight%20semantics.md) |
-| 051 | PPg preflight-as-a-service contract | Superseded — the preflight concept is abandoned; no shadow database will ever exist | [ADR 051 - PPg preflight-as-a-service contract.md](adrs/ADR%20051%20-%20PPg%20preflight-as-a-service%20contract.md) |
+| 029 | Shadow DB preflight semantics | Superseded — the CLI never provisions a shadow database; diffing is fully offline against on-disk snapshots, and preflight is a database-extension hook | [ADR 029 - Shadow DB preflight semantics.md](adrs/ADR%20029%20-%20Shadow%20DB%20preflight%20semantics.md) |
+| 051 | PPg preflight-as-a-service contract | Superseded — the core preflight verb is abandoned; preflight is a database-extension hook, and Prisma Postgres will provide one | [ADR 051 - PPg preflight-as-a-service contract.md](adrs/ADR%20051%20-%20PPg%20preflight-as-a-service%20contract.md) |
 
 ## Extensions & Packs
 
@@ -139,6 +140,7 @@ This document provides a comprehensive index of all Architectural Decision Recor
 | 065 | Adapter capability schema & negotiation v1 | Defines adapter capability schema and negotiation protocol | [ADR 065 - Adapter capability schema & negotiation v1.md](adrs/ADR%20065%20-%20Adapter%20capability%20schema%20&%20negotiation%20v1.md) |
 | 068 | Error mapping to RuntimeError | Establishes stable mapping from engine/driver errors to RuntimeError envelope | [ADR 068 - Error mapping to RuntimeError.md](adrs/ADR%20068%20-%20Error%20mapping%20to%20RuntimeError.md) |
 | 207 | Per-environment facade asymmetry | Records why `postgres()` (long-lived) and `postgresServerless()` (per-request) ship asymmetric runtime-bound surfaces — same authoring surface, different lifecycle ergonomics — and rejects AsyncLocalStorage / single-facade / per-product alternatives | [ADR 207 - Per-environment facade asymmetry.md](adrs/ADR%20207%20-%20Per-environment%20facade%20asymmetry.md) |
+| 248 | PostgreSQL floor lowered to 15 | Amends ADR 222: the minimum supported PostgreSQL server version is 15 (previously 17), declared in `@internal/target-postgres`'s `package.json#prismaNext.minServerVersion`, mirrored by the CLI's `MIN_SERVER_VERSION`, and held equal by a drift test; 15 is the oldest version CI exercises, and nothing emitted or read needs more than 12 | [ADR 248 - PostgreSQL floor lowered to 15.md](adrs/ADR%20248%20-%20PostgreSQL%20floor%20lowered%20to%2015.md) |
 
 ## Development & Tooling
 
@@ -174,7 +176,7 @@ This document provides a comprehensive index of all Architectural Decision Recor
 
 ## Notes
 
-- **ADRs 029 and 051** are superseded: the shadow-DB preflight design is abandoned (diffing is fully offline against on-disk snapshots)
+- **ADRs 029 and 051** are superseded: the core-CLI shadow-DB preflight design is abandoned (diffing is fully offline against on-disk snapshots; preflight is a database-extension hook)
 - **ADR 156** is partially superseded by ADR 244: its check-constraint half only; `storage.sets` remains in force
 - **ADRs 104-118** form the core extension system architecture (decorators, attributes, capabilities, packs)
 - **ADRs 126-127** introduce PSL top-level blocks and views as composable extensions

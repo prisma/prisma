@@ -10,8 +10,7 @@
  *
  * See `packages/2-sql/5-runtime/src/codecs/decoding.ts` for the decode-once-
  * per-row contract; this file is the consumer side of that contract. See also
- * ADR 030 (codecs registry & decode boundary) and the m3 coverage in
- * `test/integration/codec-async.test.ts` and `test/codec-async.types.test-d.ts`.
+ * ADR 030 (codecs registry & decode boundary) and `test/codec-async.types.test-d.ts`.
  */
 
 import type { Contract, JsonValue } from '@internal/contract/types';
@@ -342,11 +341,9 @@ function buildIdentityInFilter(
  *
  * Scalar leaves arrive wrapped in a `{ value: <primitive> }` JSON
  * envelope (see `buildIncludeChildScalarSelect`); the branch below
- * unwraps that envelope and passes the value straight through. The
- * empty-relation default is driven by SQL semantics, not the decoder:
- * `COUNT(*)` over an empty input set is `0`; `SUM` / `AVG` / `MIN` /
- * `MAX` over an empty input set are SQL `NULL`, which surfaces as
- * `null` in TS — the documented contract for those reducers.
+ * unwraps that envelope and passes the value straight through. The empty-relation value reads off
+ * the operation's declared row via `emptyAggregateResult`: `null` where the row is nullable,
+ * otherwise the row's declared empty value (so `count()` is `0`).
  *
  * Combine descriptors arrive as a JSON object keyed by branch name;
  * each branch is dispatched to the row or scalar decoder per its
@@ -596,10 +593,7 @@ function wrapIncludedDecodeFailure(error: unknown, ref: DecodedValueRef, codecId
  * On a parent with zero matching child rows the correlated subquery
  * still produces one row (aggregates collapse the empty input to a
  * single row), so the combine envelope here is always present in the
- * read path. The
- * mutation read-back's `assignEmptyMutationIncludes` writes the empty
- * per-branch shape directly to `parent.mapped[relationName]` for any
- * parent absent from the read-back result and never enters the decoder,
+ * read path. Mutation read-back goes through the same read dispatch,
  * so a missing or non-object envelope here is always a planner/decoder
  * bug — `parseCombineEnvelope` throws loudly rather than papering over
  * it with an empty shape.
@@ -672,8 +666,7 @@ function describeEnvelopeShape(value: unknown): string {
  *
  * Contract: the envelope is always either
  *   - a `{ value: <primitive> }` JSON object (the SQL path), or
- *   - `null` / `undefined` (the mutation read-back's empty-include
- *     short-circuit, for a parent absent from the read-back result).
+ *   - `null` / `undefined` (no row reached the decoder), answered with `emptyAggregateResult`.
  *
  * Any other shape — array, primitive, string that JSON-parses to
  * non-object — indicates a planner / decoder bug, so we throw

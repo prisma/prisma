@@ -1,5 +1,5 @@
 
-# Prisma Next — Migration Review (Deployment + Concurrency)
+# Prisma 8 — Migration Review (Deployment + Concurrency)
 
 > **Edit your data contract. Prisma handles the rest.**
 
@@ -204,7 +204,7 @@ For a human-readable ordered preview of the migration path before applying, use 
 4. **Treating diamond convergence as a special procedure.** It's not. It's the normal *edit → plan → apply* loop applied to the post-rebase state. The only extra step is *"port any data-transform logic from your old `migration.ts` over."*
 5. **Running `migration ref set` to silence a CI mismatch without understanding the cause.** That can mask out-of-band changes or rollback drift. Investigate first.
 
-## What Prisma Next doesn't do yet
+## What Prisma 8 doesn't do yet
 
 - **Per-environment migration ordering beyond the default chain.** If you need staging to skip a migration that production requires (or vice versa), the supported path is to author the per-env divergence as separate migrations and gate them in your deploy script. If you want first-class per-env routing, file a feature request via the `references/feedback.md` skill.
 - **A built-in side-by-side "branch diff" view.** There is a full-graph render (`migration graph`) that shows branches, but no `git diff`-style comparison between two branches' migration sets. Workaround: run `migration status` on each branch and `diff` the output. If you want a built-in branch-comparison view, file a feature request via the `references/feedback.md` skill.

@@ -20,7 +20,11 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
+import type {
+  ContractWithTypeMaps,
+  RelationKeys,
+  TypeMaps as TypeMapsType,
+} from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
@@ -1831,6 +1835,537 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type auth_AuditLogEntries = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    instanceId: CodecTypes['pg/uuid@1']['output'] | null;
+    payload: CodecTypes['pg/json@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    ipAddress: Varchar<64>;
+    readonly [RelationKeys]?: never;
+  };
+  export type auth_AuthUser = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    instanceId: CodecTypes['pg/uuid@1']['output'] | null;
+    aud: Varchar<255> | null;
+    role: Varchar<255> | null;
+    email: Varchar<255> | null;
+    encryptedPassword: Varchar<255> | null;
+    emailConfirmedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    invitedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    confirmationToken: Varchar<255> | null;
+    confirmationSentAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    recoveryToken: Varchar<255> | null;
+    recoverySentAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    emailChangeTokenNew: Varchar<255> | null;
+    emailChange: Varchar<255> | null;
+    emailChangeSentAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    lastSignInAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    rawAppMetaData: CodecTypes['pg/jsonb@1']['output'] | null;
+    rawUserMetaData: CodecTypes['pg/jsonb@1']['output'] | null;
+    isSuperAdmin: CodecTypes['pg/bool@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    phone: CodecTypes['pg/text@1']['output'] | null;
+    phoneConfirmedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    phoneChange: CodecTypes['pg/text@1']['output'] | null;
+    phoneChangeToken: Varchar<255> | null;
+    phoneChangeSentAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    confirmedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    emailChangeTokenCurrent: Varchar<255> | null;
+    emailChangeConfirmStatus: CodecTypes['pg/int2@1']['output'] | null;
+    bannedUntil: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    reauthenticationToken: Varchar<255> | null;
+    reauthenticationSentAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    isSsoUser: CodecTypes['pg/bool@1']['output'];
+    deletedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    isAnonymous: CodecTypes['pg/bool@1']['output'];
+    identities: auth_AuthIdentity[];
+    mfaFactors: auth_MfaFactors[];
+    oauthAuthorizations: auth_OauthAuthorizations[];
+    oauthConsents: auth_OauthConsents[];
+    oneTimeTokens: auth_OneTimeTokens[];
+    sessions: auth_AuthSession[];
+    webauthnChallenges: auth_WebauthnChallenges[];
+    webauthnCredentials: auth_WebauthnCredentials[];
+    readonly [RelationKeys]?:
+      | 'identities'
+      | 'mfaFactors'
+      | 'oauthAuthorizations'
+      | 'oauthConsents'
+      | 'oneTimeTokens'
+      | 'sessions'
+      | 'webauthnChallenges'
+      | 'webauthnCredentials';
+  };
+  export type auth_AuthIdentity = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    providerId: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'];
+    identityData: CodecTypes['pg/jsonb@1']['output'];
+    provider: CodecTypes['pg/text@1']['output'];
+    lastSignInAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    email: CodecTypes['pg/text@1']['output'] | null;
+    user: auth_AuthUser;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type auth_OauthClients = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    clientSecretHash: CodecTypes['pg/text@1']['output'] | null;
+    registrationType: 'dynamic' | 'manual';
+    redirectUris: CodecTypes['pg/text@1']['output'];
+    grantTypes: CodecTypes['pg/text@1']['output'];
+    clientName: CodecTypes['pg/text@1']['output'] | null;
+    clientUri: CodecTypes['pg/text@1']['output'] | null;
+    logoUri: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    deletedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    clientType: 'public' | 'confidential';
+    tokenEndpointAuthMethod: CodecTypes['pg/text@1']['output'];
+    oauthAuthorizations: auth_OauthAuthorizations[];
+    oauthConsents: auth_OauthConsents[];
+    sessions: auth_AuthSession[];
+    readonly [RelationKeys]?: 'oauthAuthorizations' | 'oauthConsents' | 'sessions';
+  };
+  export type auth_AuthSession = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    factorId: CodecTypes['pg/uuid@1']['output'] | null;
+    aal: 'aal1' | 'aal2' | 'aal3' | null;
+    notAfter: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    refreshedAt: CodecTypes['pg/timestamp-temporal@1']['output'] | null;
+    userAgent: CodecTypes['pg/text@1']['output'] | null;
+    ip: CodecTypes['pg/inet@1']['output'] | null;
+    tag: CodecTypes['pg/text@1']['output'] | null;
+    oauthClientId: CodecTypes['pg/uuid@1']['output'] | null;
+    refreshTokenHmacKey: CodecTypes['pg/text@1']['output'] | null;
+    refreshTokenCounter: CodecTypes['pg/int8@1']['output'] | null;
+    scopes: CodecTypes['pg/text@1']['output'] | null;
+    mfaAmrClaims: auth_MfaAmrClaims[];
+    oauthClient: auth_OauthClients | null;
+    refreshTokens: auth_RefreshTokens[];
+    user: auth_AuthUser;
+    readonly [RelationKeys]?: 'mfaAmrClaims' | 'oauthClient' | 'refreshTokens' | 'user';
+  };
+  export type auth_CustomOauthProviders = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    providerType: CodecTypes['pg/text@1']['output'];
+    identifier: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    clientId: CodecTypes['pg/text@1']['output'];
+    clientSecret: CodecTypes['pg/text@1']['output'];
+    acceptableClientIds: ReadonlyArray<CodecTypes['pg/text@1']['output']>;
+    scopes: ReadonlyArray<CodecTypes['pg/text@1']['output']>;
+    pkceEnabled: CodecTypes['pg/bool@1']['output'];
+    attributeMapping: CodecTypes['pg/jsonb@1']['output'];
+    authorizationParams: CodecTypes['pg/jsonb@1']['output'];
+    enabled: CodecTypes['pg/bool@1']['output'];
+    emailOptional: CodecTypes['pg/bool@1']['output'];
+    issuer: CodecTypes['pg/text@1']['output'] | null;
+    discoveryUrl: CodecTypes['pg/text@1']['output'] | null;
+    skipNonceCheck: CodecTypes['pg/bool@1']['output'];
+    cachedDiscovery: CodecTypes['pg/jsonb@1']['output'] | null;
+    discoveryCachedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    authorizationUrl: CodecTypes['pg/text@1']['output'] | null;
+    tokenUrl: CodecTypes['pg/text@1']['output'] | null;
+    userinfoUrl: CodecTypes['pg/text@1']['output'] | null;
+    jwksUri: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type auth_FlowState = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'] | null;
+    authCode: CodecTypes['pg/text@1']['output'] | null;
+    codeChallengeMethod: 's256' | 'plain' | null;
+    codeChallenge: CodecTypes['pg/text@1']['output'] | null;
+    providerType: CodecTypes['pg/text@1']['output'];
+    providerAccessToken: CodecTypes['pg/text@1']['output'] | null;
+    providerRefreshToken: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    authenticationMethod: CodecTypes['pg/text@1']['output'];
+    authCodeIssuedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    inviteToken: CodecTypes['pg/text@1']['output'] | null;
+    referrer: CodecTypes['pg/text@1']['output'] | null;
+    oauthClientStateId: CodecTypes['pg/uuid@1']['output'] | null;
+    linkingTargetId: CodecTypes['pg/uuid@1']['output'] | null;
+    emailOptional: CodecTypes['pg/bool@1']['output'];
+    samlRelayStates: auth_SamlRelayStates[];
+    readonly [RelationKeys]?: 'samlRelayStates';
+  };
+  export type auth_Instances = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    uuid: CodecTypes['pg/uuid@1']['output'] | null;
+    rawBaseConfig: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    readonly [RelationKeys]?: never;
+  };
+  export type auth_MfaAmrClaims = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    sessionId: CodecTypes['pg/uuid@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    authenticationMethod: CodecTypes['pg/text@1']['output'];
+    session: auth_AuthSession;
+    readonly [RelationKeys]?: 'session';
+  };
+  export type auth_MfaFactors = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'];
+    friendlyName: CodecTypes['pg/text@1']['output'] | null;
+    factorType: 'totp' | 'webauthn' | 'phone';
+    status: 'unverified' | 'verified';
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    secret: CodecTypes['pg/text@1']['output'] | null;
+    phone: CodecTypes['pg/text@1']['output'] | null;
+    lastChallengedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    webAuthnCredential: CodecTypes['pg/jsonb@1']['output'] | null;
+    webAuthnAaguid: CodecTypes['pg/uuid@1']['output'] | null;
+    lastWebauthnChallengeData: CodecTypes['pg/jsonb@1']['output'] | null;
+    mfaChallenges: auth_MfaChallenges[];
+    user: auth_AuthUser;
+    readonly [RelationKeys]?: 'mfaChallenges' | 'user';
+  };
+  export type auth_MfaChallenges = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    factorId: CodecTypes['pg/uuid@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    verifiedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    ipAddress: CodecTypes['pg/inet@1']['output'];
+    otpCode: CodecTypes['pg/text@1']['output'] | null;
+    webAuthnSessionData: CodecTypes['pg/jsonb@1']['output'] | null;
+    factor: auth_MfaFactors;
+    readonly [RelationKeys]?: 'factor';
+  };
+  export type auth_OauthAuthorizations = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    authorizationId: CodecTypes['pg/text@1']['output'];
+    clientId: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'] | null;
+    redirectUri: CodecTypes['pg/text@1']['output'];
+    scope: CodecTypes['pg/text@1']['output'];
+    state: CodecTypes['pg/text@1']['output'] | null;
+    resource: CodecTypes['pg/text@1']['output'] | null;
+    codeChallenge: CodecTypes['pg/text@1']['output'] | null;
+    codeChallengeMethod: 's256' | 'plain' | null;
+    responseType: 'code';
+    status: 'pending' | 'approved' | 'denied' | 'expired';
+    authorizationCode: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    expiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    approvedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    nonce: CodecTypes['pg/text@1']['output'] | null;
+    client: auth_OauthClients;
+    user: auth_AuthUser | null;
+    readonly [RelationKeys]?: 'client' | 'user';
+  };
+  export type auth_OauthClientStates = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    providerType: CodecTypes['pg/text@1']['output'];
+    codeVerifier: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
+  export type auth_OauthConsents = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'];
+    clientId: CodecTypes['pg/uuid@1']['output'];
+    scopes: CodecTypes['pg/text@1']['output'];
+    grantedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    revokedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    client: auth_OauthClients;
+    user: auth_AuthUser;
+    readonly [RelationKeys]?: 'client' | 'user';
+  };
+  export type auth_OneTimeTokens = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'];
+    tokenType:
+      | 'confirmation_token'
+      | 'reauthentication_token'
+      | 'recovery_token'
+      | 'email_change_token_new'
+      | 'email_change_token_current'
+      | 'phone_change_token';
+    tokenHash: CodecTypes['pg/text@1']['output'];
+    relatesTo: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamp-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamp-temporal@1']['output'];
+    user: auth_AuthUser;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type auth_RefreshTokens = {
+    id: CodecTypes['pg/int8@1']['output'];
+    instanceId: CodecTypes['pg/uuid@1']['output'] | null;
+    token: Varchar<255> | null;
+    userId: Varchar<255> | null;
+    revoked: CodecTypes['pg/bool@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    parent: Varchar<255> | null;
+    sessionId: CodecTypes['pg/uuid@1']['output'] | null;
+    session: auth_AuthSession | null;
+    readonly [RelationKeys]?: 'session';
+  };
+  export type auth_SsoProviders = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    resourceId: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    disabled: CodecTypes['pg/bool@1']['output'] | null;
+    samlProviders: auth_SamlProviders[];
+    samlRelayStates: auth_SamlRelayStates[];
+    ssoDomains: auth_SsoDomains[];
+    readonly [RelationKeys]?: 'samlProviders' | 'samlRelayStates' | 'ssoDomains';
+  };
+  export type auth_SamlProviders = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    ssoProviderId: CodecTypes['pg/uuid@1']['output'];
+    entityId: CodecTypes['pg/text@1']['output'];
+    metadataXml: CodecTypes['pg/text@1']['output'];
+    metadataUrl: CodecTypes['pg/text@1']['output'] | null;
+    attributeMapping: CodecTypes['pg/jsonb@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    nameIdFormat: CodecTypes['pg/text@1']['output'] | null;
+    ssoProvider: auth_SsoProviders;
+    readonly [RelationKeys]?: 'ssoProvider';
+  };
+  export type auth_SamlRelayStates = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    ssoProviderId: CodecTypes['pg/uuid@1']['output'];
+    requestId: CodecTypes['pg/text@1']['output'];
+    forEmail: CodecTypes['pg/text@1']['output'] | null;
+    redirectTo: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    flowStateId: CodecTypes['pg/uuid@1']['output'] | null;
+    flowState: auth_FlowState | null;
+    ssoProvider: auth_SsoProviders;
+    readonly [RelationKeys]?: 'flowState' | 'ssoProvider';
+  };
+  export type auth_SchemaMigrations = {
+    version: Varchar<255>;
+    readonly [RelationKeys]?: never;
+  };
+  export type auth_SsoDomains = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    ssoProviderId: CodecTypes['pg/uuid@1']['output'];
+    domain: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    ssoProvider: auth_SsoProviders;
+    readonly [RelationKeys]?: 'ssoProvider';
+  };
+  export type auth_WebauthnChallenges = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'] | null;
+    challengeType: CodecTypes['pg/text@1']['output'];
+    sessionData: CodecTypes['pg/jsonb@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    expiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    user: auth_AuthUser | null;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type auth_WebauthnCredentials = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'];
+    credentialId: CodecTypes['pg/bytea@1']['output'];
+    publicKey: CodecTypes['pg/bytea@1']['output'];
+    attestationType: CodecTypes['pg/text@1']['output'];
+    aaguid: CodecTypes['pg/uuid@1']['output'] | null;
+    signCount: CodecTypes['pg/int8@1']['output'];
+    transports: CodecTypes['pg/jsonb@1']['output'];
+    backupEligible: CodecTypes['pg/bool@1']['output'];
+    backedUp: CodecTypes['pg/bool@1']['output'];
+    friendlyName: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    lastUsedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    user: auth_AuthUser;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type storage_BucketsAnalytics = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    _type: 'STANDARD' | 'ANALYTICS' | 'VECTOR';
+    format: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    deletedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    icebergNamespaces: storage_IcebergNamespaces[];
+    icebergTables: storage_IcebergTables[];
+    readonly [RelationKeys]?: 'icebergNamespaces' | 'icebergTables';
+  };
+  export type storage_BucketsVectors = {
+    id: CodecTypes['pg/text@1']['output'];
+    _type: 'STANDARD' | 'ANALYTICS' | 'VECTOR';
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    vectorIndexes: storage_VectorIndexes[];
+    readonly [RelationKeys]?: 'vectorIndexes';
+  };
+  export type storage_IcebergNamespaces = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    bucketName: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    metadata: CodecTypes['pg/jsonb@1']['output'];
+    catalogId: CodecTypes['pg/uuid@1']['output'];
+    catalog: storage_BucketsAnalytics;
+    icebergTables: storage_IcebergTables[];
+    readonly [RelationKeys]?: 'catalog' | 'icebergTables';
+  };
+  export type storage_IcebergTables = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    namespaceId: CodecTypes['pg/uuid@1']['output'];
+    bucketName: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    location: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    remoteTableId: CodecTypes['pg/text@1']['output'] | null;
+    shardKey: CodecTypes['pg/text@1']['output'] | null;
+    shardId: CodecTypes['pg/text@1']['output'] | null;
+    catalogId: CodecTypes['pg/uuid@1']['output'];
+    catalog: storage_BucketsAnalytics;
+    namespace: storage_IcebergNamespaces;
+    readonly [RelationKeys]?: 'catalog' | 'namespace';
+  };
+  export type storage_Migrations = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: Varchar<100>;
+    hash: Varchar<40>;
+    executedAt: CodecTypes['pg/timestamp-temporal@1']['output'] | null;
+    readonly [RelationKeys]?: never;
+  };
+  export type storage_StorageBucket = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    owner: CodecTypes['pg/uuid@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    public: CodecTypes['pg/bool@1']['output'] | null;
+    avifAutodetection: CodecTypes['pg/bool@1']['output'] | null;
+    fileSizeLimit: CodecTypes['pg/int8@1']['output'] | null;
+    ownerId: CodecTypes['pg/text@1']['output'] | null;
+    _type: 'STANDARD' | 'ANALYTICS' | 'VECTOR';
+    objects: storage_StorageObject[];
+    s3MultipartUploads: storage_S3MultipartUploads[];
+    s3MultipartUploadsParts: storage_S3MultipartUploadsParts[];
+    readonly [RelationKeys]?: 'objects' | 's3MultipartUploads' | 's3MultipartUploadsParts';
+  };
+  export type storage_S3MultipartUploads = {
+    id: CodecTypes['pg/text@1']['output'];
+    inProgressSize: CodecTypes['pg/int8@1']['output'];
+    uploadSignature: CodecTypes['pg/text@1']['output'];
+    bucketId: CodecTypes['pg/text@1']['output'];
+    key: CodecTypes['pg/text@1']['output'];
+    version: CodecTypes['pg/text@1']['output'];
+    ownerId: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    userMetadata: CodecTypes['pg/jsonb@1']['output'] | null;
+    metadata: CodecTypes['pg/jsonb@1']['output'] | null;
+    bucket: storage_StorageBucket;
+    s3MultipartUploadsParts: storage_S3MultipartUploadsParts[];
+    readonly [RelationKeys]?: 'bucket' | 's3MultipartUploadsParts';
+  };
+  export type storage_S3MultipartUploadsParts = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    uploadId: CodecTypes['pg/text@1']['output'];
+    size: CodecTypes['pg/int8@1']['output'];
+    partNumber: CodecTypes['pg/int4@1']['output'];
+    bucketId: CodecTypes['pg/text@1']['output'];
+    key: CodecTypes['pg/text@1']['output'];
+    etag: CodecTypes['pg/text@1']['output'];
+    ownerId: CodecTypes['pg/text@1']['output'] | null;
+    version: CodecTypes['pg/text@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    bucket: storage_StorageBucket;
+    upload: storage_S3MultipartUploads;
+    readonly [RelationKeys]?: 'bucket' | 'upload';
+  };
+  export type storage_StorageObject = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    bucketId: CodecTypes['pg/text@1']['output'] | null;
+    name: CodecTypes['pg/text@1']['output'] | null;
+    owner: CodecTypes['pg/uuid@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    lastAccessedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    metadata: CodecTypes['pg/jsonb@1']['output'] | null;
+    version: CodecTypes['pg/text@1']['output'] | null;
+    ownerId: CodecTypes['pg/text@1']['output'] | null;
+    userMetadata: CodecTypes['pg/jsonb@1']['output'] | null;
+    bucket: storage_StorageBucket | null;
+    readonly [RelationKeys]?: 'bucket';
+  };
+  export type storage_VectorIndexes = {
+    id: CodecTypes['pg/text@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    bucketId: CodecTypes['pg/text@1']['output'];
+    dataType: CodecTypes['pg/text@1']['output'];
+    dimension: CodecTypes['pg/int4@1']['output'];
+    distanceMetric: CodecTypes['pg/text@1']['output'];
+    metadataConfiguration: CodecTypes['pg/jsonb@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    bucket: storage_BucketsVectors;
+    readonly [RelationKeys]?: 'bucket';
+  };
+}
+
+export declare const models: {
+  auth: {
+    AuditLogEntries: Models.auth_AuditLogEntries;
+    AuthUser: Models.auth_AuthUser;
+    AuthIdentity: Models.auth_AuthIdentity;
+    OauthClients: Models.auth_OauthClients;
+    AuthSession: Models.auth_AuthSession;
+    CustomOauthProviders: Models.auth_CustomOauthProviders;
+    FlowState: Models.auth_FlowState;
+    Instances: Models.auth_Instances;
+    MfaAmrClaims: Models.auth_MfaAmrClaims;
+    MfaFactors: Models.auth_MfaFactors;
+    MfaChallenges: Models.auth_MfaChallenges;
+    OauthAuthorizations: Models.auth_OauthAuthorizations;
+    OauthClientStates: Models.auth_OauthClientStates;
+    OauthConsents: Models.auth_OauthConsents;
+    OneTimeTokens: Models.auth_OneTimeTokens;
+    RefreshTokens: Models.auth_RefreshTokens;
+    SsoProviders: Models.auth_SsoProviders;
+    SamlProviders: Models.auth_SamlProviders;
+    SamlRelayStates: Models.auth_SamlRelayStates;
+    SchemaMigrations: Models.auth_SchemaMigrations;
+    SsoDomains: Models.auth_SsoDomains;
+    WebauthnChallenges: Models.auth_WebauthnChallenges;
+    WebauthnCredentials: Models.auth_WebauthnCredentials;
+  };
+  storage: {
+    BucketsAnalytics: Models.storage_BucketsAnalytics;
+    BucketsVectors: Models.storage_BucketsVectors;
+    IcebergNamespaces: Models.storage_IcebergNamespaces;
+    IcebergTables: Models.storage_IcebergTables;
+    Migrations: Models.storage_Migrations;
+    StorageBucket: Models.storage_StorageBucket;
+    S3MultipartUploads: Models.storage_S3MultipartUploads;
+    S3MultipartUploadsParts: Models.storage_S3MultipartUploadsParts;
+    StorageObject: Models.storage_StorageObject;
+    VectorIndexes: Models.storage_VectorIndexes;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -5230,6 +5765,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -5349,6 +5885,7 @@ type ContractBase = Omit<
                   readonly model: 'OauthClients';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['oauthClientId'];
                   readonly targetFields: readonly ['id'];
@@ -5371,6 +5908,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -6059,6 +6597,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthSession';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['sessionId'];
                   readonly targetFields: readonly ['id'];
@@ -6121,6 +6660,7 @@ type ContractBase = Omit<
                   readonly model: 'MfaFactors';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['factorId'];
                   readonly targetFields: readonly ['id'];
@@ -6231,6 +6771,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -6358,6 +6899,7 @@ type ContractBase = Omit<
                   readonly model: 'OauthClients';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['clientId'];
                   readonly targetFields: readonly ['id'];
@@ -6369,6 +6911,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -6600,6 +7143,7 @@ type ContractBase = Omit<
                   readonly model: 'OauthClients';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['clientId'];
                   readonly targetFields: readonly ['id'];
@@ -6611,6 +7155,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -6678,6 +7223,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -6750,6 +7296,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthSession';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['sessionId'];
                   readonly targetFields: readonly ['id'];
@@ -6824,6 +7371,7 @@ type ContractBase = Omit<
                   readonly model: 'SsoProviders';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['ssoProviderId'];
                   readonly targetFields: readonly ['id'];
@@ -6894,6 +7442,7 @@ type ContractBase = Omit<
                   readonly model: 'FlowState';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['flowStateId'];
                   readonly targetFields: readonly ['id'];
@@ -6905,6 +7454,7 @@ type ContractBase = Omit<
                   readonly model: 'SsoProviders';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['ssoProviderId'];
                   readonly targetFields: readonly ['id'];
@@ -6976,6 +7526,7 @@ type ContractBase = Omit<
                   readonly model: 'SsoProviders';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['ssoProviderId'];
                   readonly targetFields: readonly ['id'];
@@ -7110,6 +7661,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -7204,6 +7756,7 @@ type ContractBase = Omit<
                   readonly model: 'AuthUser';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -7414,6 +7967,7 @@ type ContractBase = Omit<
                   readonly model: 'BucketsAnalytics';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['catalogId'];
                   readonly targetFields: readonly ['id'];
@@ -7505,6 +8059,7 @@ type ContractBase = Omit<
                   readonly model: 'BucketsAnalytics';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['catalogId'];
                   readonly targetFields: readonly ['id'];
@@ -7516,6 +8071,7 @@ type ContractBase = Omit<
                   readonly model: 'IcebergNamespaces';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['namespaceId'];
                   readonly targetFields: readonly ['id'];
@@ -7627,6 +8183,7 @@ type ContractBase = Omit<
                   readonly model: 'StorageBucket';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['bucketId'];
                   readonly targetFields: readonly ['id'];
@@ -7714,6 +8271,7 @@ type ContractBase = Omit<
                   readonly model: 'StorageBucket';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['bucketId'];
                   readonly targetFields: readonly ['id'];
@@ -7725,6 +8283,7 @@ type ContractBase = Omit<
                   readonly model: 'S3MultipartUploads';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['uploadId'];
                   readonly targetFields: readonly ['id'];
@@ -7916,6 +8475,7 @@ type ContractBase = Omit<
                   readonly model: 'StorageBucket';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['bucketId'];
                   readonly targetFields: readonly ['id'];
@@ -7992,6 +8552,7 @@ type ContractBase = Omit<
                   readonly model: 'BucketsVectors';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['bucketId'];
                   readonly targetFields: readonly ['id'];

@@ -343,7 +343,7 @@ function orderStatusRefusalMessage(
   return (
     'Native enum type "public"."order_status" changed beyond appending new values ' +
     `(contract declares [${expectedMembers.join(', ')}], database has [${actualMembers.join(', ')}]). ` +
-    "Prisma Next does not modify a native enum's existing values (rename, removal, reorder) — " +
+    "Prisma 8 does not modify a native enum's existing values (rename, removal, reorder) — " +
     'see https://pris.ly/d/postgres-native-enums. Author the change manually with `migration new`.'
   );
 }

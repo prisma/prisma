@@ -1145,6 +1145,9 @@ importers:
 
   packages/1-framework/2-authoring/contract:
     dependencies:
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.9
+        version: link:../../0-foundation/contract
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.9
         version: link:../../1-core/framework-components
@@ -2207,6 +2210,9 @@ importers:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.9
         version: link:../../1-framework/0-foundation/contract
+      '@internal/contract-authoring':
+        specifier: workspace:8.0.0-rc.9
+        version: link:../../1-framework/2-authoring/contract
       '@internal/emitter':
         specifier: workspace:8.0.0-rc.9
         version: link:../../1-framework/3-tooling/emitter
@@ -2406,6 +2412,9 @@ importers:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.9
         version: link:../../../1-framework/0-foundation/contract
+      '@internal/contract-authoring':
+        specifier: workspace:8.0.0-rc.9
+        version: link:../../../1-framework/2-authoring/contract
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.9
         version: link:../../../1-framework/1-core/framework-components
@@ -2425,9 +2434,6 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
-      '@internal/contract-authoring':
-        specifier: workspace:8.0.0-rc.9
-        version: link:../../../1-framework/2-authoring/contract
       '@repo/test-utils':
         specifier: workspace:8.0.0-rc.9
         version: link:../../../../test/utils
@@ -2718,6 +2724,9 @@ importers:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.9
         version: link:../../1-framework/0-foundation/contract
+      '@internal/contract-authoring':
+        specifier: workspace:8.0.0-rc.9
+        version: link:../../1-framework/2-authoring/contract
       '@internal/emitter':
         specifier: workspace:8.0.0-rc.9
         version: link:../../1-framework/3-tooling/emitter

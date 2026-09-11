@@ -1,6 +1,6 @@
 # @internal/postgres
 
-One-package Postgres setup for Prisma Next. Install this single package to get config, runtime, and all transitive type dependencies.
+One-package Postgres setup for Prisma 8. Install this single package to get config, runtime, and all transitive type dependencies.
 
 Two runtime facades ship under different entrypoints:
 

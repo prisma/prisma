@@ -14,7 +14,7 @@ import {
   type JsonValue,
   type ValueSetRef,
 } from '@internal/contract/types';
-import type { EnumTypeHandle } from '@internal/contract-authoring';
+import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/contract-authoring';
 import { errorEnumCodecNotInPackStack } from '@internal/errors/control';
 import type {
   AuthoringContributions,
@@ -51,6 +51,12 @@ import type {
   TypedFuncCall,
 } from '@internal/psl-parser';
 import { nodePslSpan } from '@internal/psl-parser';
+import {
+  consumeInvalidFkPairing,
+  fkRelationPairKey,
+  type InvalidFkPairing,
+  requiredOneToOneBackrelationDiagnostic,
+} from '@internal/psl-parser/interpret';
 import type { SourceFile } from '@internal/psl-parser/syntax';
 import { assertDefined } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
@@ -182,8 +188,20 @@ interface FkRelation {
   readonly targetFields: readonly string[];
 }
 
-function fkRelationPairKey(declaringModel: string, targetModel: string): string {
-  return `${declaringModel}::${targetModel}`;
+function relationNullabilityMismatchDiagnostic(
+  modelName: string,
+  field: FieldSymbol,
+  sourceId: string,
+): ContractSourceDiagnostic {
+  const fieldLabel = `Relation field "${modelName}.${field.name}"`;
+  return {
+    code: 'PSL_RELATION_NULLABILITY_MISMATCH',
+    message: field.optional
+      ? `${fieldLabel} is optional but every field in @relation(fields: [...]) is required. Make one of those fields optional with "?" or remove "?" from "${field.name}".`
+      : `${fieldLabel} is required but a field in @relation(fields: [...]) is optional. Add "?" to "${field.name}" or make those fields required.`,
+    sourceId,
+    span: field.span,
+  };
 }
 
 function resolveFieldMappings(input: {
@@ -1174,6 +1192,7 @@ export function interpretPslDocumentToMongoContract(
     readonly field: FieldSymbol;
   }
   const backrelationCandidates: BackrelationCandidate[] = [];
+  const invalidFkPairings: InvalidFkPairing[] = [];
 
   for (const pslModel of allModels) {
     const metadata = modelMetadataByName.get(pslModel.name);
@@ -1213,6 +1232,21 @@ export function interpretPslDocumentToMongoContract(
         }
 
         if (relation?.fields && relation?.references) {
+          const nullability = resolveToOneRelationNullable({
+            declaredNullable: field.optional,
+            localFieldNullability: relation.fields.map(
+              (localFieldName) => pslModel.fields[localFieldName]?.optional === true,
+            ),
+            ownsReference: true,
+          });
+          if (nullability.contradiction !== undefined) {
+            diagnostics.push(relationNullabilityMismatchDiagnostic(pslModel.name, field, sourceId));
+            invalidFkPairings.push({
+              pairKey: fkRelationPairKey(pslModel.name, field.typeName),
+              ...ifDefined('relationName', relation.name),
+            });
+            continue;
+          }
           const localMapped = relation.fields.map((f) => fieldMappings.pslNameToMapped.get(f) ?? f);
 
           const targetFieldMappings = modelMetadataByName.get(field.typeName)?.fieldMappings;
@@ -1223,6 +1257,7 @@ export function interpretPslDocumentToMongoContract(
           relations[field.name] = {
             to: mongoCrossRef(field.typeName),
             cardinality: 'N:1' as const,
+            nullable: field.optional,
             on: {
               localFields: localMapped,
               targetFields: targetMapped,
@@ -1364,6 +1399,9 @@ export function interpretPslDocumentToMongoContract(
       : [...pairMatches];
 
     if (matches.length === 0) {
+      if (consumeInvalidFkPairing(candidate, pairKey, invalidFkPairings)) {
+        continue;
+      }
       diagnostics.push({
         code: 'PSL_ORPHANED_BACKRELATION',
         message: `Backrelation list field "${candidate.modelName}.${candidate.fieldName}" has no matching FK-side relation on model "${candidate.targetModelName}". Add @relation(fields: [...], references: [...]) on the FK-side relation or use an explicit join model for many-to-many.`,
@@ -1386,9 +1424,22 @@ export function interpretPslDocumentToMongoContract(
     if (!fk) continue;
     const modelEntry = models[candidate.modelName];
     if (!modelEntry) continue;
+    if (candidate.cardinality === '1:1' && !candidate.field.optional) {
+      diagnostics.push(
+        requiredOneToOneBackrelationDiagnostic({
+          modelName: candidate.modelName,
+          field: candidate.field,
+          targetModelName: candidate.targetModelName,
+          sourceId,
+          recordNoun: 'document',
+        }),
+      );
+    }
     modelEntry.relations[candidate.fieldName] = {
       to: mongoCrossRef(candidate.targetModelName),
-      cardinality: candidate.cardinality,
+      ...(candidate.cardinality === '1:N'
+        ? { cardinality: '1:N' as const }
+        : { cardinality: '1:1' as const, nullable: true }),
       on: {
         localFields: fk.targetFields,
         targetFields: fk.localFields,

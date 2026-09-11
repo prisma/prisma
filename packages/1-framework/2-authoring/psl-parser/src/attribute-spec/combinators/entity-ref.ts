@@ -1,12 +1,12 @@
 import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { IdentifierAst } from '../../syntax/ast/identifier';
-import type { ArgType, AttributeCtx } from '../types';
+import type { AttributeCtx, EntityRefArgType } from '../types';
 import { leafDiagnostic } from './diagnostic';
 
 // A bare model-name reference. Existence of a model with this name is resolved
 // downstream (e.g. `resolvePolymorphism`), not here.
-export function entityRef(): ArgType<string, AttributeCtx> {
+export function entityRef(): EntityRefArgType<AttributeCtx> {
   return {
     kind: 'entityRef',
     label: 'model name',

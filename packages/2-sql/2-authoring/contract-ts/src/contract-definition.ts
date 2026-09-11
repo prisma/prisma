@@ -141,6 +141,11 @@ export interface RelationNode {
   readonly toNamespaceId?: string;
   readonly cardinality: '1:1' | '1:N' | 'N:1' | 'N:M';
   /**
+   * Whether the related row may be absent, as stated by the schema. Present on
+   * every `'1:1'` and `'N:1'` relation; absent on `'1:N'` and `'N:M'`.
+   */
+  readonly nullable?: boolean;
+  /**
    * Contract-space identity of the related model. When present, the
    * related model lives in a different contract space. Absent for local
    * (same-space) relations.

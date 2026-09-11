@@ -47,7 +47,7 @@ describe('ports/prisma/functional/issues-4004', () => {
           .all();
 
         studentClasses.forEach((sc) => {
-          expect(sc.student.id).toEqual(student1.id);
+          expect(sc.student!.id).toEqual(student1.id);
         });
       }),
     timeouts.spinUpPpgDev,

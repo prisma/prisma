@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Target-neutral operation registry and capability helpers for Prisma Next",
+  "description": "Target-neutral operation registry and capability helpers for Prisma 8",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run --passWithNoTests",

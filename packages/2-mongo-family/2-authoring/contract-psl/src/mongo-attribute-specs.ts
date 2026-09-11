@@ -149,8 +149,8 @@ export const relationFieldSpec = fieldAttribute('relation', {
   positional: [{ key: 'name', type: optional(str()) }],
   named: {
     name: optional(str()),
-    fields: optional(list(fieldRef(), { nonEmpty: true, unique: true })),
-    references: optional(list(referencedFieldRef(), { nonEmpty: true, unique: true })),
+    fields: optional(list(fieldRef(), { allowEmpty: false, unique: true })),
+    references: optional(list(referencedFieldRef(), { allowEmpty: false, unique: true })),
   },
 });
 export type RelationFieldOutput = InferAttr<typeof relationFieldSpec>;
@@ -200,7 +200,7 @@ function buildIndexModelSpec(
   fieldElement: ArgType<string | TypedFuncCall, ModelAttributeCtx>,
 ) {
   return modelAttribute(name, {
-    positional: [{ key: 'fields', type: list(fieldElement, { nonEmpty: true }) }],
+    positional: [{ key: 'fields', type: list(fieldElement, { allowEmpty: false }) }],
     named: {
       type: optional(
         oneOf(num(1), num(-1), str('text'), str('2dsphere'), str('2d'), str('hashed')),
@@ -219,7 +219,7 @@ function buildIndexModelSpec(
 
 function buildTextIndexModelSpec(fieldElement: ArgType<string | TypedFuncCall, ModelAttributeCtx>) {
   return modelAttribute('textIndex', {
-    positional: [{ key: 'fields', type: list(fieldElement, { nonEmpty: true }) }],
+    positional: [{ key: 'fields', type: list(fieldElement, { allowEmpty: false }) }],
     named: {
       filter: optional(json()),
       weights: optional(record(int({ min: 1, max: 99_999 }))),

@@ -43,7 +43,6 @@ export { bool } from '../attribute-spec/combinators/bool';
 export { leafDiagnostic } from '../attribute-spec/combinators/diagnostic';
 export { entityRef } from '../attribute-spec/combinators/entity-ref';
 export { fieldRef, referencedFieldRef } from '../attribute-spec/combinators/field-ref';
-export type { FuncCallSig, TypedFuncCall } from '../attribute-spec/combinators/func-call';
 export { funcCall } from '../attribute-spec/combinators/func-call';
 export { identifier } from '../attribute-spec/combinators/identifier';
 export { int } from '../attribute-spec/combinators/int';
@@ -69,11 +68,13 @@ export type {
 } from '../attribute-spec/spec-context';
 export type {
   ArgType,
+  ArgTypeKind,
   AttributeCtx,
   AttributeLevel,
   AttributeOut,
   AttributeSpec,
   FieldAttributeCtx,
+  FuncCallSig,
   InferAttr,
   ModelAttributeCtx,
   NamedOut,
@@ -82,6 +83,8 @@ export type {
   Param,
   PositionalParam,
   PosOut,
+  RejectingArgType,
+  TypedFuncCall,
 } from '../attribute-spec/types';
 export { findBlockDescriptor, validateExtensionBlockFromSymbol } from '../extension-block';
 export {

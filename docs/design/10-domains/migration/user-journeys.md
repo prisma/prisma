@@ -159,7 +159,7 @@ Two distinct verification verbs, two distinct questions:
 | `db verify` | Live DB satisfies its contract | Yes (read-only) |
 | `migration check [<m>]` | Migration artifact / graph integrity | No |
 
-The two are deliberately separately named — sharing `verify` across both would make "which verification?" the question at every call site. There is no sandbox-execution verb: no shadow database will ever exist, so a migration's behaviour is enforced during the real apply (pre/post invariants, destination-hash check), not previewed in a sandbox. See the [glossary entry for `migration check`](../../../glossary.md#migration-check) for the per-PN-code breakdown of what graph-integrity covers.
+The two are deliberately separately named — sharing `verify` across both would make "which verification?" the question at every call site. There is no core sandbox-execution verb: the CLI never provisions a shadow database, so a migration's behaviour is enforced during the real apply (pre/post invariants, destination-hash check). Rehearsal against a fork of a real database is a preflight hook a database extension may provide. See the [glossary entry for `migration check`](../../../glossary.md#migration-check) for the per-PN-code breakdown of what graph-integrity covers.
 
 **Exercised by:** `migration-check.e2e.test.ts`.
 
@@ -169,7 +169,7 @@ The two are deliberately separately named — sharing `verify` across both would
 
 ### Brownfield: bring an existing database into the graph
 
-**Persona:** application developer adopting Prisma Next on a database that already has schema and data.
+**Persona:** application developer adopting Prisma 8 on a database that already has schema and data.
 **Question:** "I have a real database with real tables. How do I start managing it with migrations without nuking it?"
 
 ```bash
@@ -189,7 +189,7 @@ Step-count ergonomics for this path are a tracked concern — the underlying ste
 ### Adopting migrations on production
 
 **Persona:** operator enabling the migration workflow on a database that's been running without it.
-**Question:** "We've been using `db update` (or no Prisma Next at all) on production; how do we switch to managing it with migrations from now on?"
+**Question:** "We've been using `db update` (or no Prisma 8 at all) on production; how do we switch to managing it with migrations from now on?"
 
 ```bash
 # on the running DB

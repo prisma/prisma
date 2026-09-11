@@ -271,6 +271,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -448,6 +449,7 @@
               },
               "oauthClient": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "oauthClientId"
@@ -478,6 +480,7 @@
               },
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -1581,6 +1584,7 @@
             "relations": {
               "session": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "sessionId"
@@ -1672,6 +1676,7 @@
             "relations": {
               "factor": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "factorId"
@@ -1832,6 +1837,7 @@
               },
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -2026,6 +2032,7 @@
             "relations": {
               "client": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "clientId"
@@ -2041,6 +2048,7 @@
               },
               "user": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "userId"
@@ -2405,6 +2413,7 @@
             "relations": {
               "client": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "clientId"
@@ -2420,6 +2429,7 @@
               },
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -2517,6 +2527,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -2628,6 +2639,7 @@
             "relations": {
               "session": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "sessionId"
@@ -2745,6 +2757,7 @@
             "relations": {
               "ssoProvider": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "ssoProviderId"
@@ -2855,6 +2868,7 @@
             "relations": {
               "flowState": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "flowStateId"
@@ -2870,6 +2884,7 @@
               },
               "ssoProvider": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "ssoProviderId"
@@ -2977,6 +2992,7 @@
             "relations": {
               "ssoProvider": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "ssoProviderId"
@@ -3168,6 +3184,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "userId"
@@ -3311,6 +3328,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -3618,6 +3636,7 @@
             "relations": {
               "catalog": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "catalogId"
@@ -3758,6 +3777,7 @@
             "relations": {
               "catalog": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "catalogId"
@@ -3773,6 +3793,7 @@
               },
               "namespace": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "namespaceId"
@@ -3954,6 +3975,7 @@
             "relations": {
               "bucket": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "bucketId"
@@ -4096,6 +4118,7 @@
             "relations": {
               "bucket": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "bucketId"
@@ -4111,6 +4134,7 @@
               },
               "upload": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "uploadId"
@@ -4405,6 +4429,7 @@
             "relations": {
               "bucket": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "bucketId"
@@ -4528,6 +4553,7 @@
             "relations": {
               "bucket": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "bucketId"

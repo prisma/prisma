@@ -1,8 +1,8 @@
 # @internal/sql-orm-client
 
-ORM client for Prisma Next — fluent, type-safe model collections.
+ORM client for Prisma 8 — fluent, type-safe model collections.
 
-This package provides a high-level ORM client surface on top of the runtime. Ordinary and prepared SELECT reads with includes compile to one SQL plan. Mutation operations can orchestrate multiple single-statement plans for a single logical operation (for example, creating a parent and its children with separate INSERT statements).
+This package provides a high-level ORM client surface on top of the runtime. Ordinary and prepared SELECT reads with includes compile to a single correlated-subquery plan; nested mutations orchestrate several statements inside one scope.
 
 ## Responsibilities
 
@@ -12,6 +12,7 @@ This package provides a high-level ORM client surface on top of the runtime. Ord
 - Compile collection state into SQL AST query plans (`SqlQueryPlan`) without rendering SQL in ORM
 - Buffer SELECT include results and decode embedded include payloads in the ORM consumer
 - Orchestrate multi-statement mutations, such as nested creates
+- Decode single-query include payloads into nested relation values
 - Map storage-column rows back to model-field row shapes
 - Expose an `orm()` client with typed collection keys (for example `db.Post`)
 
@@ -20,17 +21,17 @@ This package provides a high-level ORM client surface on top of the runtime. Ord
 This package depends on:
 
 - `@internal/sql-contract` for contract shape and mappings
-- `@internal/contract` for `ExecutionPlan` metadata
-- `@internal/framework-components` for `AsyncIterableResult` and the canonical `RuntimeExecutor<TPlan>` interface (imported from `@internal/framework-components/runtime`)
-- `@internal/sql-relational-core` for SQL AST and plan types
+- `@internal/contract` for the contract shape and `PlanMeta`
+- `@internal/framework-components` for `AsyncIterableResult`
+- `@internal/sql-relational-core` for SQL AST, plan types, and the `RuntimeScope` interface
 
 This package should not depend on target adapters or drivers directly; execution is delegated to the runtime queryable interface.
 
 ## Runtime surface
 
-`RuntimeQueryable` is the SQL-domain wrapper this client uses to talk to a runtime. It extends the canonical `RuntimeExecutor<SqlExecutionPlan | SqlQueryPlan>` execute surface (one structural source of truth for the `execute<Row>(plan)` shape across families) and adds the optional SQL-domain primitives the ORM needs for nested-mutation orchestration:
+`RuntimeQueryable` is the SQL-domain wrapper this client uses to talk to a runtime. It extends `RuntimeScope` from `@internal/sql-relational-core` and adds the optional primitives the ORM needs for nested-mutation orchestration:
 
-- `execute<Row>(plan)` — borrowed from `RuntimeExecutor` via `Pick`, accepts both AST-level `SqlQueryPlan` and pre-lowered `SqlExecutionPlan`.
+- `query<Row>(plan)` — streams rows; `execute(plan)` — returns statement stats. Both come from `RuntimeScope` and accept AST-level `SqlQueryPlan` and pre-lowered `SqlExecutionPlan`.
 - `connection?()` — opt-in connection acquisition for grouped multi-statement work.
 - `transaction?()` — opt-in transaction acquisition for atomic mutation scopes.
 
@@ -110,12 +111,12 @@ const posts = await db.Post.where((p) => p.userId.eq(userId)).all();
 posts[0].secret.length;
 
 // Same for streaming via AsyncIterableResult.
-for await (const post of db.Post.where(...).stream()) {
+for await (const post of db.Post.where(...).all()) {
   post.secret.length;
 }
 ```
 
-Read and write surfaces share **one** field type-map. `MutationUpdateInput`, `CreateInput`, `UniqueConstraintCriterion`, `ShorthandWhereFilter`, and `DefaultModelInputRow` accept plain `T` regardless of how the corresponding codec was authored.
+Read and write surfaces share **one** field type-map. `MutationUpdateInput`, `CreateInput`, `UniqueConstraintCriterion`, and `ShorthandWhereFilter` accept plain `T` regardless of how the corresponding codec was authored.
 
 See [ADR 204 — Single-Path Async Codec Runtime](../../../docs/architecture%20docs/adrs/ADR%20204%20-%20Single-Path%20Async%20Codec%20Runtime.md).
 
@@ -125,3 +126,4 @@ See [ADR 204 — Single-Path Async Codec Runtime](../../../docs/architecture%20d
 - [ADR 164 - Repository Layer](../../../docs/architecture%20docs/adrs/ADR%20164%20-%20Repository%20Layer.md)
 - [ADR 204 - Single-Path Async Codec Runtime](../../../docs/architecture%20docs/adrs/ADR%20204%20-%20Single-Path%20Async%20Codec%20Runtime.md)
 - [Query Lanes Subsystem](../../../docs/architecture%20docs/subsystems/3.%20Query%20Lanes.md)
+- [Naming model and result types](../../../docs/reference/model-and-result-types.md)

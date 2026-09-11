@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "SQL family descriptor for Prisma Next",
+  "description": "SQL family descriptor for Prisma 8",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@internal/contract": "workspace:8.0.0-rc.9",
+    "@internal/contract-authoring": "workspace:8.0.0-rc.9",
     "@internal/emitter": "workspace:8.0.0-rc.9",
     "@internal/framework-components": "workspace:8.0.0-rc.9",
     "@internal/migration-tools": "workspace:8.0.0-rc.9",

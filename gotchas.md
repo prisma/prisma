@@ -1,10 +1,10 @@
 # Gotchas
 
-A running log of surprises, workarounds, and undocumented behaviour hit while *consuming* **Prisma Next**, **Prisma Compute**, or **Prisma Postgres** in this repo's examples and public surfaces. Each entry captures friction a real user of these products would also experience.
+A running log of surprises, workarounds, and undocumented behaviour hit while *consuming* **Prisma 8**, **Prisma Compute**, or **Prisma Postgres** in this repo's examples and public surfaces. Each entry captures friction a real user of these products would also experience.
 
 Each entry should also be filed as a Triage-state Linear ticket in the matching gotchas project so the team can pick them up:
 
-- Prisma Next → [`pn-gotchas`](https://linear.app/prisma-company/project/pn-gotchas-a6f6f5157a5c/overview)
+- Prisma 8 → [`pn-gotchas`](https://linear.app/prisma-company/project/pn-gotchas-a6f6f5157a5c/overview)
 - Prisma Compute → [`compute-gotchas`](https://linear.app/prisma-company/project/compute-gotchas-dd3ac34b5ad4/overview)
 - Prisma Postgres → [`ppg-gotchas`](https://linear.app/prisma-company/project/ppg-gotchas-afe77336f696/overview)
 
@@ -23,7 +23,7 @@ The capture workflow is documented in [`.claude/skills/record-gotchas/SKILL.md`]
 ## Demo fixture contract snapshots fail to deserialize during `migrate` (PN-CLI-4003)
 
 **Filed upstream:** pending — authored in a session without Linear access; please file in [`pn-gotchas`](https://linear.app/prisma-company/project/pn-gotchas-a6f6f5157a5c/overview) and replace this line.
-**Product:** Prisma Next
+**Product:** Prisma 8
 **Version:** `main` @ `e7bd0deb8` (workspace `0.14.0`)
 **First hit:** running the migration-graph demo fixtures end-to-end while writing the public migrations docs
 **Cost:** ~30 minutes (ruling out my own setup before reading the snapshots)
@@ -57,7 +57,7 @@ $ pnpm prisma-next migrate --to prod --db $DB --config fixtures/diamond/prisma.c
 ## `migration plan` silently planned from an empty database when no `db` ref existed (resolved)
 
 **Filed upstream:** pending — authored in a session without Linear access; please file in [`pn-gotchas`](https://linear.app/prisma-company/project/pn-gotchas-a6f6f5157a5c/overview) and replace this line.
-**Product:** Prisma Next
+**Product:** Prisma 8
 **Version:** `main` @ `e7bd0deb8` (workspace `0.14.0`)
 **First hit:** planning the second migration of a fresh walkthrough project while writing the public migrations docs
 
@@ -83,7 +83,7 @@ $ pnpm prisma-next migrate --to prod --db $DB --config fixtures/diamond/prisma.c
 ## `migration plan --from db` fails with MIGRATION.NO_TARGET once a rollback cycle exists
 
 **Filed upstream:** pending — authored in a session without Linear access; please file in [`pn-gotchas`](https://linear.app/prisma-company/project/pn-gotchas-a6f6f5157a5c/overview) and replace this line.
-**Product:** Prisma Next
+**Product:** Prisma 8
 **Version:** `main` @ `e7bd0deb8` (workspace `0.14.0`)
 **First hit:** planning the next forward migration after a verified rollback, while writing the public migrations docs
 

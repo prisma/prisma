@@ -39,12 +39,12 @@ Out of scope (please do not file vulnerability reports for these):
 
 ## Supported versions
 
-Prisma Next is **pre-1.0**. While we are pre-1.0:
+Prisma 8 ships as a release candidate (`8.0.0-rc.N`). While we are on the release-candidate line:
 
-- **Only the latest minor version receives security fixes.** Older minor versions (e.g. `0.3.x` once `0.4.0` is released) are not supported and will not receive backports. If you are on an older minor and report an issue, the fix will land on the latest minor and you will need to upgrade to receive it.
-- We reserve the right to introduce breaking changes between minor versions while addressing a security issue, if the simpler fix requires it.
+- **Only the latest release receives security fixes.** Older releases (e.g. `8.0.0-rc.7` once `8.0.0-rc.8` is published) are not supported and will not receive backports. If you are on an older release and report an issue, the fix will land on the latest release and you will need to upgrade to receive it.
+- We reserve the right to introduce breaking changes between releases while addressing a security issue, if the simpler fix requires it.
 
-When Prisma Next reaches 1.0 this section will be revised; the supported-versions story will be more conservative.
+When `8.0.0` final ships this section will be revised; the supported-versions story will be more conservative.
 
 For the supply-chain practices that protect published `@internal/*` packages — license declarations, npm provenance attestations, the Dependabot cooldown window, and the `NOTICE`-propagation audit — see [`docs/oss/supply-chain.md`](./docs/oss/supply-chain.md).
 

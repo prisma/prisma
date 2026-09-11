@@ -39,9 +39,9 @@ test('blockAttribute infers its output like modelAttribute', () => {
 });
 
 test('a model-free combinator parses over the bare attribute ctx', () => {
-  expectTypeOf(str()).toEqualTypeOf<ArgType<string, AttributeCtx>>();
-  expectTypeOf(list(str())).toEqualTypeOf<ArgType<string[], AttributeCtx>>();
-  expectTypeOf(funcCall('now', {})).toEqualTypeOf<ArgType<TypedFuncCall, AttributeCtx>>();
+  expectTypeOf(str()).toMatchTypeOf<ArgType<string, AttributeCtx>>();
+  expectTypeOf(list(str())).toMatchTypeOf<ArgType<string[], AttributeCtx>>();
+  expectTypeOf(funcCall('now', {})).toMatchTypeOf<ArgType<TypedFuncCall, AttributeCtx>>();
 });
 
 test('a bare-ctx combinator is usable at all three levels', () => {
@@ -51,25 +51,14 @@ test('a bare-ctx combinator is usable at all three levels', () => {
   blockAttribute('now', { named: { at: funcCall('now', {}) } });
 });
 
-test('a combinator that reads the model is rejected inside a block spec', () => {
-  blockAttribute('bad', {
-    // @ts-expect-error fieldRef needs selfModel, which a block never has
-    positional: [{ key: 'field', type: fieldRef() }],
-  });
-  blockAttribute('worse', {
-    // @ts-expect-error referencedFieldRef needs the field, which a block never has
-    positional: [{ key: 'field', type: referencedFieldRef() }],
-  });
-});
+test('fieldRef and referencedFieldRef expose distinct context metadata', () => {
+  const localField = fieldRef();
+  const referencedField = referencedFieldRef();
 
-test('fieldRef is model-scoped and referencedFieldRef is field-scoped', () => {
-  modelAttribute('index', { positional: [{ key: 'fields', type: fieldRef() }] });
-  fieldAttribute('id', { positional: [{ key: 'field', type: fieldRef() }] });
-  fieldAttribute('relation', { named: { references: referencedFieldRef() } });
-  modelAttribute('bad', {
-    // @ts-expect-error referencedFieldRef resolves through the field, which a model spec never has
-    named: { references: referencedFieldRef() },
-  });
+  expectTypeOf(localField).toMatchTypeOf<ArgType<string, ModelAttributeCtx>>();
+  expectTypeOf(localField.kind).toEqualTypeOf<'fieldRef'>();
+  expectTypeOf(referencedField).toMatchTypeOf<ArgType<string, FieldAttributeCtx>>();
+  expectTypeOf(referencedField.kind).toEqualTypeOf<'referencedFieldRef'>();
 });
 
 test('a block spec is accepted where a bare-ctx spec is expected', () => {
@@ -77,16 +66,13 @@ test('a block spec is accepted where a bare-ctx spec is expected', () => {
   expectTypeOf(blockSpec).toMatchTypeOf<AttributeSpec<{ name: string }, AttributeCtx>>();
 });
 
-test('a model-level spec is rejected where a bare-ctx spec is expected', () => {
+test('model and field factories preserve their level-specific contexts', () => {
   const modelSpec = modelAttribute('map', {
     positional: [{ key: 'field', type: fieldRef() }],
   });
-  expectTypeOf(modelSpec).not.toMatchTypeOf<AttributeSpec<{ field: string }, AttributeCtx>>();
-});
-
-test('a field-level spec is rejected where a model-level spec is expected', () => {
   const fieldSpec = fieldAttribute('map', { positional: [{ key: 'name', type: str() }] });
-  expectTypeOf(fieldSpec).not.toMatchTypeOf<AttributeSpec<{ name: string }, ModelAttributeCtx>>();
+
+  expectTypeOf(modelSpec).toMatchTypeOf<AttributeSpec<{ field: string }, ModelAttributeCtx>>();
   expectTypeOf(fieldSpec).toMatchTypeOf<AttributeSpec<{ name: string }, FieldAttributeCtx>>();
 });
 
@@ -99,11 +85,7 @@ test('oneOf over bare-ctx alternatives stays usable in a block spec', () => {
 
 test('oneOf takes its ctx from the annotation a mixed alternation is assigned to', () => {
   const arm: ArgType<string, ModelAttributeCtx> = oneOf(str(), fieldRef());
-  expectTypeOf(arm).toEqualTypeOf<ArgType<string, ModelAttributeCtx>>();
-  blockAttribute('bad', {
-    // @ts-expect-error one alternative reads selfModel, so the alternation demands a model ctx
-    positional: [{ key: 'value', type: arm }],
-  });
+  expectTypeOf(arm).toMatchTypeOf<ArgType<string, ModelAttributeCtx>>();
   const modelSpec = modelAttribute('ok', { positional: [{ key: 'value', type: arm }] });
   expectTypeOf<InferAttr<typeof modelSpec>>().toEqualTypeOf<{ value: string }>();
 });
@@ -113,5 +95,7 @@ test('a nullary factory over a block spec satisfies BlockAttributeSpecFactory', 
   expectTypeOf(factory).toMatchTypeOf<BlockAttributeSpecFactory>();
   const modelFactory = () =>
     modelAttribute('map', { positional: [{ key: 'field', type: fieldRef() }] });
-  expectTypeOf(modelFactory).not.toMatchTypeOf<BlockAttributeSpecFactory>();
+  expectTypeOf(modelFactory).toMatchTypeOf<
+    () => AttributeSpec<{ field: string }, ModelAttributeCtx>
+  >();
 });

@@ -1,6 +1,6 @@
 # lsp-playground (private)
 
-A throwaway dev playground that opens a `.psl` file in a browser Monaco editor wired to the Prisma Next language server (`prisma lsp --stdio`) for live PSL diagnostics, folding ranges, whole-document formatting, and server-driven semantic tokens.
+A throwaway dev playground that opens a `.psl` file in a browser Monaco editor wired to the Prisma 8 language server (`prisma lsp --stdio`) for live PSL diagnostics, folding ranges, whole-document formatting, and server-driven semantic tokens.
 
 It is a private, unpublished `apps/` package — not part of the framework build graph and exempt from `lint:deps` layering.
 

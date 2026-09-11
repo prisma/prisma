@@ -1,6 +1,6 @@
 # @internal/driver-postgres
 
-PostgreSQL driver for Prisma Next.
+PostgreSQL driver for Prisma 8.
 
 ## Package Classification
 
@@ -12,7 +12,7 @@ PostgreSQL driver for Prisma Next.
 
 The PostgreSQL driver provides transport and connection management for PostgreSQL databases. It implements the `SqlDriver` interface for executing SQL statements, explaining queries, and managing connections.
 
-In Prisma Next, "driver" refers to the Prisma Next interface (not the underlying `pg` library). Drivers are transport-agnostic: they own pooling, connection management, and transport protocol (TCP, HTTP, etc.), but contain no dialect-specific logic. All dialect behavior lives in adapters. Instantiation is separate from connection; `create()` returns an unbound driver, `connect(binding)` binds at the boundary ([ADR 159](../../../../docs/architecture%20docs/adrs/ADR%20159%20-%20Driver%20Terminology%20and%20Lifecycle.md)).
+In Prisma 8, "driver" refers to the Prisma 8 interface (not the underlying `pg` library). Drivers are transport-agnostic: they own pooling, connection management, and transport protocol (TCP, HTTP, etc.), but contain no dialect-specific logic. All dialect behavior lives in adapters. Instantiation is separate from connection; `create()` returns an unbound driver, `connect(binding)` binds at the boundary ([ADR 159](../../../../docs/architecture%20docs/adrs/ADR%20159%20-%20Driver%20Terminology%20and%20Lifecycle.md)).
 
 This package spans multiple planes:
 - **Migration plane** (`src/exports/control.ts`): Control plane entry point for driver descriptors

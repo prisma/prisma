@@ -10,7 +10,7 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // In prisma-next there is no $queryRaw, so all "differences between queryRaw
 // and findMany" tests are non-portable.
 //
-// Prisma-next type differences from upstream Prisma Client:
+// Prisma 8 type differences from upstream Prisma Client:
 //   - BigInt  → bigint   (pg/int8@1 carries the full signed 64-bit range, which a
 //                         JS number cannot hold past 2^53)
 //   - Decimal → string   (pg/numeric@1 codec output is `string`, not Prisma.Decimal)

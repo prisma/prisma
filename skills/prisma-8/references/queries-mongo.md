@@ -1,4 +1,4 @@
-# Prisma Next — Queries (Mongo)
+# Prisma 8 — Queries (Mongo)
 
 > Load this guide when `db.ts` imports from `@internal/mongo/runtime`.
 
@@ -49,7 +49,7 @@ const recent = await db.orm.posts
 
 **`.where(...)`** accepts a plain object whose keys are model field names and values are compared with equality (codec-aware — `ObjectId` fields accept string ids from the contract). Chain multiple `.where({ ... })` calls to AND-compose filters.
 
-For operators the object form doesn't cover (`.in([...])`, range comparisons, nested logic), pass a `MongoFilterExpr` — today that means importing filter helpers from `@internal/mongo-query-ast/execution` (a façade-completeness gap; see *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md)). Prefer the object form whenever equality suffices.
+For operators the object form doesn't cover (`.in([...])`, range comparisons, nested logic), pass a `MongoFilterExpr` — today that means importing filter helpers from `@internal/mongo-query-ast/execution` (a façade-completeness gap; see *What Prisma 8 doesn't do yet* in [`queries.md`](./queries.md)). Prefer the object form whenever equality suffices.
 
 **Polymorphic roots.** When the contract declares variants on a model, narrow before querying:
 
@@ -213,7 +213,7 @@ Update callbacks return arrays of field operations (`.set`, `.inc`, `.push`, `.p
 3. **Calling `.update()` / `.delete()` without `.where()`.** Mutations other than `.create` / `.createAll` require a filter — the compiler enforces this at the type level where possible.
 4. **Using PascalCase model names on ORM.** Roots are lowercased plurals from the contract (`db.orm.users`, not `db.orm.User`).
 5. **Expecting Postgres-style lambda `.where((u) => u.email.eq(...))` on ORM.** Prefer object equality `.where({ email: '...' })`; richer operators need `MongoFilterExpr` helpers (façade gap today).
-6. **Expecting `db.transaction(...)`.** The Mongo façade does not expose it today. Multi-document atomicity requires MongoDB transactions on a replica set via the driver — not yet wrapped in the Prisma Next façade. Route to *What Prisma Next doesn't do yet* / `references/feedback.md` if the user needs this.
+6. **Expecting `db.transaction(...)`.** The Mongo façade does not expose it today. Multi-document atomicity requires MongoDB transactions on a replica set via the driver — not yet wrapped in the Prisma 8 façade. Route to *What Prisma 8 doesn't do yet* / `references/feedback.md` if the user needs this.
 7. **Trying to use `db.sql`.** There is no `db.sql` on Mongo.
 8. **Trying to `db.execute(plan)` directly.** Execute query-builder plans via `(await db.runtime()).execute(plan)`.
 9. **Expecting ORM `.aggregate(...)` / `.groupBy(...)`.** Use `db.query.from(...).group(...).build()` instead.
@@ -232,5 +232,5 @@ Update callbacks return arrays of field operations (`.set`, `.inc`, `.push`, `.p
 - [ ] Used `.where({ ... }).first()` for single-row reads — not `.all()`.
 - [ ] Executed query-builder plans via `(await db.runtime()).execute(plan)`.
 - [ ] For aggregations, used `db.query.from(...).group(...)` rather than a non-existent ORM `.aggregate(...)`.
-- [ ] Did NOT confabulate `db.transaction`, `db.sql`, or ORM `.aggregate(...)` — routed to *What Prisma Next doesn't do yet* / `references/feedback.md` instead.
+- [ ] Did NOT confabulate `db.transaction`, `db.sql`, or ORM `.aggregate(...)` — routed to *What Prisma 8 doesn't do yet* / `references/feedback.md` instead.
 - [ ] Did NOT use the lower-level builder for something the ORM cleanly expresses.
