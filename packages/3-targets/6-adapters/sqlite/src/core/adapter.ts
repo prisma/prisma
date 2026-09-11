@@ -228,8 +228,22 @@ function renderLimitOffset(
   ctx: SqliteRenderContext,
 ): string {
   if (value === undefined) return '';
-  if (typeof value === 'number') return `${keyword} ${value}`;
-  return `${keyword} ${renderExpr(value, ctx)}`;
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value) || value < 0 || !Number.isInteger(value)) {
+      throw structuredError(
+        'RUNTIME.ARGUMENT_INVALID',
+        `${keyword} expects a non-negative integer, got ${value}`,
+      );
+    }
+    return `${keyword} ${value}`;
+  }
+  if (value !== null && typeof value === 'object' && 'kind' in value) {
+    return `${keyword} ${renderExpr(value, ctx)}`;
+  }
+  throw structuredError(
+    'RUNTIME.ARGUMENT_INVALID',
+    `${keyword} expects a non-negative integer or expression node, got ${typeof value}`,
+  );
 }
 
 function renderSelect(ast: SelectAst, ctx: SqliteRenderContext): string {

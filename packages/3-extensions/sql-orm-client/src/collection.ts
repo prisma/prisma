@@ -83,6 +83,16 @@ import {
   withMutationScope,
 } from './mutation-executor';
 import { ormError } from './orm-errors';
+
+function assertNonNegativeInteger(label: 'limit' | 'offset', n: unknown): asserts n is number {
+  if (typeof n !== 'number' || !Number.isFinite(n) || !Number.isInteger(n) || n < 0) {
+    throw ormError(
+      'ORM.ARGUMENT_INVALID',
+      `.${label}() expects a non-negative integer, got ${typeof n === 'number' ? String(n) : typeof n}`,
+    );
+  }
+}
+
 import {
   compileAggregate,
   compileDeleteCount,
@@ -1082,6 +1092,7 @@ class CollectionImpl<
    * ```
    */
   limit(n: number): Collection<TContract, ModelName, Row, State> {
+    assertNonNegativeInteger('limit', n);
     return this.#clone({ limit: n });
   }
 
@@ -1097,6 +1108,7 @@ class CollectionImpl<
    * ```
    */
   offset(n: number): Collection<TContract, ModelName, Row, State> {
+    assertNonNegativeInteger('offset', n);
     return this.#clone({ offset: n });
   }
 
