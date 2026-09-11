@@ -73,7 +73,7 @@ Treat the rendered import lines as framework-managed on both targets:
 | `MIGRATION.HASH_MISMATCH` *Migration package is corrupt* | `db migrate` (or any read of the package) | `ops.json` / `migration.json` were edited without self-emitting. Run `node migrations/app/<dir>/migration.ts` to re-emit, then re-run `db migrate`. |
 | `MIGRATION.DESTRUCTIVE_CHANGES` | `db update` run non-interactively without consent | Re-run with `--confirm <database>` (the database name from the connection), or `--dry-run` to preview. |
 | `CONTRACT.MARKER_MISMATCH` | `db verify` (finding, exit 4) | The marker disagrees with the contract hash (**Postgres:** `prisma_contract.marker`; **Mongo:** `_prisma_migrations`). The DB is at a different contract version than the code thinks. Either run a migration forward, or — if the DB is correct and the marker is stale after a manual fix-up — run `db sign`. |
-| `CONTRACT.MARKER_MISSING` | `db verify` (finding, exit 4), runtime startup (warning) | The DB has no marker yet. Run `prisma db init --db <url>` to baseline an empty database, or `db update --db <url>` to apply the current contract directly. |
+| `CONTRACT.MARKER_MISSING` | `db verify` (finding, exit 4), runtime startup (warning) | The DB has no marker yet. Run `prisma db init --db <url>` to baseline an empty database, `db update --db <url>` to apply the current contract directly, or `db sign --db <url>` if the schema already matches the contract. |
 
 ## Decision — which path do you take?
 

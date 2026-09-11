@@ -116,7 +116,7 @@ If the envelope's `code` is not in this table, follow the envelope's `fix` field
 
 ## Common Pitfalls
 
-1. **Reading only `summary`, not the rest of the envelope.** `code`, `severity`, `why`, `fix`, `meta`/`details`, and (for CLI errors) `where` are all load-bearing. The agent routes on `code`; the user sees `summary`.
+1. **Reading only `summary`, not the rest of the envelope.** `code`, `severity`, `why`, `fix`, `meta`/`details`, and (for CLI errors) `where` all carry information the recovery depends on. The agent routes on `code`; the user sees `summary`.
 2. **Ignoring `severity`.** `migration status` emits warn-level diagnostics and **exits 0**. An agent that only checks exit code misses every concurrent-migration warning.
 3. **Stopping at `code` on `MIGRATION.RUNNER_FAILED`.** That envelope is a wrapper — the detail lives in `why` and `meta`.
 4. **Treating drift as something to silence with `db sign`.** `db sign` writes the marker from the current contract hash and advances the `db` ref to it, but it requires schema verification to pass first. Run `db verify` before reaching for `db sign`.
