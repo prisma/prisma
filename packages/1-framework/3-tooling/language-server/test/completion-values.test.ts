@@ -51,6 +51,9 @@ const signature = {
     mode: oneOf(identifier('Asc'), identifier('Desc'), identifier('Asc')),
     fixed: oneOf(str('quoted"value'), num(-1), bool(), identifier('Fixed')),
     flags: list(bool()),
+    matrices: list(list(bool())),
+    scalar: bool(),
+    call: funcCall('f', { named: { x: bool() } }),
     records: record(list(bool())),
     choice: oneOf(ordered, funcCall('empty', {})),
     nested: funcCall('wrap', {
@@ -116,6 +119,7 @@ function complete(markedSource: string, snippets = false) {
     clientSupportsSnippets: snippets,
   });
   return {
+    source,
     items,
     labels: items.map((item) => item.label),
     apply(label: string) {
@@ -214,6 +218,54 @@ describe('recursive attribute values', () => {
     'model Example { value String @probe(mode: Asc // |\n) }',
   ])('does not complete after a closed delimiter or inside a comment: %s', (source) => {
     expect(complete(source).items).toEqual([]);
+  });
+
+  it.each([
+    ['flags: [true |]', 'flags: [true ]'],
+    ['scalar: true |', 'scalar: true '],
+    ['call: f |(x: true)', 'call: f (x: true)'],
+  ])('does not append another token in completed-expression trivia: %s', (marked, unchanged) => {
+    const result = field(marked);
+    const candidate = result.items[0];
+    const edited = candidate === undefined ? result.source : result.apply(candidate.label);
+    const source = `model Example {\n  value String @probe(${unchanged})\n}`;
+    expect(parse(source).diagnostics).toEqual([]);
+    expect(parse(edited).diagnostics).toEqual([]);
+    expect(edited).toBe(source);
+    expect(result.items).toEqual([]);
+  });
+
+  it.each([
+    ['flags: [, |]', ['true', 'false']],
+    ['flags: [true,, |]', ['true', 'false']],
+    ['matrices: [[, |]]', ['true', 'false']],
+    ['records: { key: [, |] }', ['true', 'false']],
+    ['choice: ordered(Asc, required: [, |])', ['true', 'false']],
+    ['recordValues: { enabled: , next: | }', ['true', 'false']],
+    ['recordValues: { enabled: , | }', []],
+  ])('retains the nested container after a missing expression: %s', (args, expected) => {
+    expect(field(args).labels).toEqual(expected);
+  });
+
+  it('returns to the attribute signature after a closed collection', () => {
+    expect(field('flags: [true], |').labels).toEqual([
+      'First',
+      'Second',
+      ...Object.keys(signature.named).filter((key) => key !== 'flags'),
+    ]);
+  });
+
+  it('inserts a recovered list value without replacing an outer argument key', () => {
+    expect(field('flags: [, |]').apply('false')).toBe(
+      'model Example {\n  value String @probe(flags: [, false])\n}',
+    );
+  });
+
+  it('completes an escaped nested comma gap at EOF', () => {
+    expect(complete('model Example { value String @probe(records: { key: [, |').labels).toEqual([
+      'true',
+      'false',
+    ]);
   });
 
   it('replaces the full identifier token', () => {

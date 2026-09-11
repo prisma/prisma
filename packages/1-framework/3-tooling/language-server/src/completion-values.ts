@@ -12,6 +12,7 @@ import {
   type ExpressionAst,
   FunctionCallAst,
   IdentifierAst,
+  isTrivia,
   ObjectLiteralExprAst,
   type SourceFile,
   type SyntaxNode,
@@ -70,7 +71,7 @@ function completeArguments(
   let positionalSlot = 0;
   for (const arg of container.args()) {
     if (arg.syntax.offset > offset) break;
-    if (containsCursor(arg.syntax, input)) {
+    if (containsCursor(arg.syntax, input) || recoveredContainerContainsCursor(arg.value(), input)) {
       return completeArgument(input, arg, positionalSlot, container, signature);
     }
     if (arg.name() === undefined) positionalSlot += 1;
@@ -101,7 +102,8 @@ function completeArgument(
   }
   const value = arg.value();
   const values = completeValue(input, signature.positional?.[positionalSlot]?.type, value);
-  return value === undefined || value instanceof IdentifierAst
+  return value === undefined ||
+    (value instanceof IdentifierAst && value.syntax.isInside(input.context.offset))
     ? [...values, ...completeNamedKeys(input, container, signature)]
     : values;
 }
@@ -178,7 +180,9 @@ function completeList(
   )
     return [];
   for (const element of expression.elements()) {
-    if (containsCursor(element.syntax, input)) return completeValue(input, elementType, element);
+    if (containsCursor(element.syntax, input) || recoveredContainerContainsCursor(element, input)) {
+      return completeValue(input, elementType, element);
+    }
   }
   return followsSeparator(expression.syntax, offset, ['LBracket', 'Comma'])
     ? completeValue(input, elementType, undefined)
@@ -196,7 +200,12 @@ function completeRecord(
   if (closing !== undefined && offset >= closing.endOffset) return [];
   for (const field of expression.fields()) {
     const colon = field.colon();
-    if (containsCursor(field.syntax, input) && colon !== undefined && offset > colon.offset) {
+    if (
+      (containsCursor(field.syntax, input) ||
+        recoveredContainerContainsCursor(field.value(), input)) &&
+      colon !== undefined &&
+      offset > colon.offset
+    ) {
       return completeValue(input, valueType, field.value());
     }
   }
@@ -215,7 +224,13 @@ function completeFunction(
         ? completeArguments(input, expression, type.signature)
         : [];
     }
-  } else if (expression instanceof ArrayLiteralAst || expression instanceof ObjectLiteralExprAst) {
+    if (expression.name()?.syntax.isInside(input.context.offset) !== true) return [];
+  } else if (
+    expression !== undefined &&
+    (expression instanceof ArrayLiteralAst ||
+      expression instanceof ObjectLiteralExprAst ||
+      expression.syntax.isOutside(input.context.offset))
+  ) {
     return [];
   }
   const useSnippet = input.clientSupportsSnippets && !(expression instanceof FunctionCallAst);
@@ -231,7 +246,8 @@ function scalarItems(
   if (
     expression instanceof ArrayLiteralAst ||
     expression instanceof ObjectLiteralExprAst ||
-    expression instanceof FunctionCallAst
+    expression instanceof FunctionCallAst ||
+    expression?.syntax.isOutside(input.context.offset) === true
   )
     return [];
   return labels.map((label) => completionItem(input, label, label, CompletionItemKind.Value));
@@ -270,6 +286,29 @@ function isValueToken(token: SyntaxToken | undefined): token is SyntaxToken {
     token !== undefined &&
     (token.kind === 'Ident' || token.kind === 'StringLiteral' || token.kind === 'NumberLiteral')
   );
+}
+
+function recoveredContainerContainsCursor(
+  expression: ExpressionAst | undefined,
+  input: CompletionInput,
+): boolean {
+  if (expression === undefined || expression.syntax.endOffset > input.context.offset) return false;
+  const unfinished =
+    expression instanceof ArrayLiteralAst
+      ? expression.rbracket() === undefined
+      : expression instanceof ObjectLiteralExprAst
+        ? expression.rbrace() === undefined
+        : expression instanceof FunctionCallAst && expression.rparen() === undefined;
+  if (!unfinished) return false;
+  for (
+    let token = expression.syntax.lastToken?.nextToken;
+    token !== undefined;
+    token = token.nextToken
+  ) {
+    if (token.offset >= input.context.offset) return true;
+    if (!isTrivia(token) && token.kind !== 'Comma') return false;
+  }
+  return true;
 }
 
 function containsCursor(node: SyntaxNode, input: CompletionInput): boolean {
