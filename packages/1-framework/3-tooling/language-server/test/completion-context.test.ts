@@ -325,9 +325,15 @@ describe('classifyPslCompletionContext', () => {
   });
 
   it('does not classify attribute values or nested argument positions as named keys', () => {
-    expectUnsupported(['model Post {', '  id Int @map(name: value|)', '}'].join('\n'));
-    expectUnsupported(['model Post {', '  id Int @default(autoincrement(|))', '}'].join('\n'));
-    expectUnsupported(['model Post {', '  authorId Int @relation(fields: [|])', '}'].join('\n'));
+    expect(classify(['model Post {', '  id Int @map(name: value|)', '}'].join('\n'))).toMatchObject(
+      { kind: 'fieldAttributeValue' },
+    );
+    expect(
+      classify(['model Post {', '  id Int @default(autoincrement(|))', '}'].join('\n')),
+    ).toMatchObject({ kind: 'fieldAttributeValue' });
+    expect(
+      classify(['model Post {', '  authorId Int @relation(fields: [|])', '}'].join('\n')),
+    ).toMatchObject({ kind: 'fieldAttributeValue' });
   });
 
   it('bounds field attribute completion to the active attribute span', () => {

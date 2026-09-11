@@ -644,9 +644,11 @@ describe('providePslCompletionItems', () => {
     });
 
     expect(
-      completeWithActualStack(['model Post {', '  id Int @default(|)', '}'].join('\n'), stack)
-        .items,
-    ).toEqual([]);
+      completeWithActualStack(
+        ['model Post {', '  id Int @default(|)', '}'].join('\n'),
+        stack,
+      ).items.map((item) => item.label),
+    ).toEqual(['true', 'false']);
 
     const mapCompletion = completeWithActualStack(
       ['model Post {', '  id Int @ma| // keep', '}'].join('\n'),

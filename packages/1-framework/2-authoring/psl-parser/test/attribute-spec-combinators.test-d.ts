@@ -4,6 +4,7 @@ import type {
   ArgType,
   AttributeCtx,
   FieldAttributeCtx,
+  InspectableArgType,
   ModelAttributeCtx,
   OutOf,
   TypedFuncCall,
@@ -26,6 +27,13 @@ import {
   referencedFieldRef,
   str,
 } from '../src/exports';
+
+test('exports inspectable metadata without narrowing public child contracts', () => {
+  type List = Extract<InspectableArgType<never>, { kind: 'list' }>;
+  type Record = Extract<InspectableArgType<never>, { kind: 'record' }>;
+  expectTypeOf<List['of']>().toEqualTypeOf<ArgType<unknown, never>>();
+  expectTypeOf<Record['of']>().toEqualTypeOf<ArgType<unknown, never>>();
+});
 
 test('identifier pins its name as the output literal type', () => {
   const action = identifier('NoAction');
