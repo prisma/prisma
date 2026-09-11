@@ -100,7 +100,7 @@ describe('ports/prisma/functional/composites/object/upsert-update', () => {
     );
 
     // Upstream asserts null on required `content` is both a type error and a runtime throw.
-    // Prisma Next rejects it at the type level, and MongoDB rejects it through the
+    // Prisma 8 rejects it at the type level, and MongoDB rejects it through the
     // provisioned collection validator.
     it(
       'set null',

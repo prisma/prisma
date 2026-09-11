@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Prisma Next for Postgres: the one package a Postgres application installs",
+  "description": "Prisma 8 for Postgres: the one package a Postgres application installs",
   "files": [
     "dist",
     "skills"

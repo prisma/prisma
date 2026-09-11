@@ -973,7 +973,7 @@ describe('noCheck — wire schema', () => {
   });
 });
 
-// Enforcement is derived only for tables Prisma Next owns. The policy reaches
+// Enforcement is derived only for tables Prisma 8 owns. The policy reaches
 // the builder two ways — declared in the source, or stamped onto the finished
 // contract by a contract specifier — so the rule is applied twice.
 describe('check emission — derivation is scoped to managed tables', () => {

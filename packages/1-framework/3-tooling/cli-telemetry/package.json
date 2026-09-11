@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "CLI telemetry client for Prisma Next: detached subprocess sender, gating resolution, user-config store, and consent surface",
+  "description": "CLI telemetry client for Prisma 8: detached subprocess sender, gating resolution, user-config store, and consent surface",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",

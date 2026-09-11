@@ -137,7 +137,7 @@ function errorLegacyMarkerShape(options: {
 }): CliStructuredError {
   return errorRunnerFailed(
     `Legacy marker-table shape detected on ${options.markerLocation} (no \`space\` column). ` +
-      'Prisma Next is in pre-1.0; the previous transitional auto-migration to the per-space-row schema has been removed. ' +
+      'Prisma 8 is in pre-1.0; the previous transitional auto-migration to the per-space-row schema has been removed. ' +
       `Drop \`${options.markerLocation}\` and re-run \`{bin} db init\` to reinitialise from a clean baseline.`,
     {
       why: options.why,

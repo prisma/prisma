@@ -1,6 +1,6 @@
 # integration-tests
 
-Integration tests for Prisma Next that verify end-to-end behavior across packages.
+Integration tests for Prisma 8 that verify end-to-end behavior across packages.
 
 ## Overview
 

@@ -2,7 +2,7 @@
 
 **Status:** Current SQL TypeScript contract authoring surface
 
-This package owns the SQL TypeScript authoring API for Prisma Next.
+This package owns the SQL TypeScript authoring API for Prisma 8.
 
 ## Package Classification
 

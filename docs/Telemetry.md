@@ -1,6 +1,6 @@
 # Telemetry
 
-The ORM's CLI commands (`prisma orm ...`) send a small, anonymous usage event each time you run one. The team uses this data to answer adoption questions — how many people are actively using Prisma Next, which databases they target, which extensions get adopted, and how often the CLI is invoked by AI coding agents versus humans.
+The ORM's CLI commands (`prisma orm ...`) send a small, anonymous usage event each time you run one. The team uses this data to answer adoption questions — how many people are actively using Prisma 8, which databases they target, which extensions get adopted, and how often the CLI is invoked by AI coding agents versus humans.
 
 Telemetry is **on by default (opt-out)**. On the first command that would send an event — including the very first `prisma orm init` — the CLI prints a one-time notice to stderr telling you telemetry is enabled and exactly how to turn it off. There is no interactive consent prompt; the first-run notice is the single disclosure for every command. You can opt out at any time and the opt-out is honoured immediately — see [How to opt out (or back in)](#how-to-opt-out-or-back-in).
 
@@ -71,7 +71,7 @@ Two fields matter to the CLI:
 - **`enableTelemetry`** (`boolean`, optional) — your explicit choice. `true` enables telemetry; `false` disables it; **absent means "on" (the opt-out default)**. The CLI writes this field only when you make an explicit choice with `prisma telemetry enable` / `disable`; the default-on path never writes it.
 - **`installationId`** (`string`) — a v4 random UUID, minted locally on the first command that sends an event (the first enabled send). The CLI never rotates it on its own.
 
-Any other fields are tolerated and preserved across writes, so future Prisma Next versions can add new settings here without losing your existing data.
+Any other fields are tolerated and preserved across writes, so future Prisma 8 versions can add new settings here without losing your existing data.
 
 ### Flipping your choice
 
@@ -121,7 +121,7 @@ DO_NOT_TRACK=1 prisma db migrate
 
 Either variable wins over the stored `enableTelemetry` value. The CLI **does not** rewrite your `config.json` in response to an env-var opt-out — your stored choice is preserved untouched, so unsetting the variable later restores whatever you had configured.
 
-Export them in your shell profile if you want them to apply to every Prisma Next invocation.
+Export them in your shell profile if you want them to apply to every Prisma 8 invocation.
 
 ### 2. The stored preference
 
@@ -145,7 +145,7 @@ Because telemetry is on by default, the CLI discloses it the first time it would
 
 On the first command that resolves to *enabled* and has no `installationId` stored yet, the CLI prints a one-time notice to **stderr** (never stdout, so it can't corrupt piped output) and then mints the `installationId` and sends the event. The wording (verbatim, with the resolved absolute path to your config file substituted in) is:
 
-> Prisma Next collects anonymous CLI usage data, enabled by default. What's collected and why: https://prisma-next.dev/docs/cli/telemetry. Opt out: run "prisma telemetry disable", set DO_NOT_TRACK=1 or PRISMA_NEXT_DISABLE_TELEMETRY=1, or set "enableTelemetry": false in &lt;your config.json path&gt;.
+> Prisma 8 collects anonymous CLI usage data, enabled by default. What's collected and why: https://prisma-next.dev/docs/cli/telemetry. Opt out: run "prisma telemetry disable", set DO_NOT_TRACK=1 or PRISMA_NEXT_DISABLE_TELEMETRY=1, or set "enableTelemetry": false in &lt;your config.json path&gt;.
 
 The notice is **idempotent via the `installationId`**: it prints only while no `installationId` is stored. Once the first enabled send mints the id, every later command sees the stored id and stays silent. Deleting `config.json` clears the id and makes the notice print once more on the next enabled command.
 
@@ -173,13 +173,13 @@ If you ever need to force the CLI to treat a CI environment as non-CI (e.g. to v
 
 The `agent` field is populated by the [`@vercel/detect-agent`](https://www.npmjs.com/package/@vercel/detect-agent) package, which recognises well-known environment-variable markers set by AI coding tools. It reports lowercase agent identifiers such as `"claude"` (Claude Code), `"cursor"` / `"cursor-cli"`, `"codex"`, `"gemini"`, `"devin"`, `"github-copilot"`, `"replit"`, and others; it also honours the emerging `AI_AGENT` convention, so a tool that exports `AI_AGENT=<name>` is reported under that name.
 
-When no marker is set, `agent` is `null`. The detection is **best-effort**: it cannot identify an agent that doesn't set a recognised env var. False negatives are expected and treated as "unknown" rather than "human". The full marker list lives in the [`@vercel/detect-agent` source](https://github.com/vercel/vercel/tree/main/packages/detect-agent); new agents are recognised by upgrading the dependency rather than by patching Prisma Next.
+When no marker is set, `agent` is `null`. The detection is **best-effort**: it cannot identify an agent that doesn't set a recognised env var. False negatives are expected and treated as "unknown" rather than "human". The full marker list lives in the [`@vercel/detect-agent` source](https://github.com/vercel/vercel/tree/main/packages/detect-agent); new agents are recognised by upgrading the dependency rather than by patching Prisma 8.
 
 ## How the data is used
 
 Telemetry events feed a small set of product questions:
 
-- **Is Prisma Next being used, and by how many people?** Monthly active users, computed from distinct `installationId`s.
+- **Is Prisma 8 being used, and by how many people?** Monthly active users, computed from distinct `installationId`s.
 - **Which databases do users target?** Distribution over `databaseTarget`, so target maintenance effort follows real usage.
 - **Which extensions are adopted?** Counts over `extensions`, so first-party extension packs and community packs get visible adoption signal.
 - **Which runtime and TypeScript versions are in use?** So deprecations follow actual user impact.

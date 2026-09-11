@@ -1,6 +1,6 @@
 # @internal/sql-orm-client
 
-ORM client for Prisma Next — fluent, type-safe model collections.
+ORM client for Prisma 8 — fluent, type-safe model collections.
 
 This package provides a high-level ORM client surface on top of the runtime. Reads with includes compile to a single correlated-subquery plan; nested mutations orchestrate several statements inside one scope.
 

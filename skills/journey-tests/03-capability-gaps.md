@@ -4,7 +4,7 @@
 
 **Acceptance criterion:** The agent names the gap, names the workaround, and routes to `prisma-next-feedback`; it does not fabricate an API call.
 
-The point: when the user asks about a feature Prisma Next doesn't have yet, the agent must NOT confabulate an API. It must name the gap, suggest the workaround, and route to `prisma-next-feedback` so the request becomes a tracked issue.
+The point: when the user asks about a feature Prisma 8 doesn't have yet, the agent must NOT confabulate an API. It must name the gap, suggest the workaround, and route to `prisma-next-feedback` so the request becomes a tracked issue.
 
 ## Prompts and expected responses
 
@@ -50,7 +50,7 @@ The point: when the user asks about a feature Prisma Next doesn't have yet, the 
 
 ### 03f — Next.js plugin
 
-> Set up Prisma Next contract auto-emit in my Next.js project.
+> Set up Prisma 8 contract auto-emit in my Next.js project.
 
 - [ ] Agent loads `prisma-next-build`.
 - [ ] Agent names the gap: no first-party Next.js plugin yet.

@@ -1,6 +1,6 @@
 # @internal/psl-parser
 
-Reusable PSL parser for Prisma Next.
+Reusable PSL parser for Prisma 8.
 
 ## Overview
 

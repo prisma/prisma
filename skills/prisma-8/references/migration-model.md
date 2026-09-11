@@ -1,5 +1,5 @@
 
-# Prisma Next — The Migration Graph and Refs (Mental Model)
+# Prisma 8 — The Migration Graph and Refs (Mental Model)
 
 > **Edit your data contract. Prisma handles the rest.**
 
@@ -125,7 +125,7 @@ If you skip the chaining, the next default plan resolves to greenfield: the trap
 
 ## Workflow — adopt a pre-existing database
 
-The concept: a database that predates Prisma Next enters the system by describing it, not migrating it — `contract infer` derives the contract from the live schema, and after review + `contract emit`, `db sign` records the marker. Full recipe: `references/quickstart.md` § *Brownfield-DB*.
+The concept: a database that predates Prisma 8 enters the system by describing it, not migrating it — `contract infer` derives the contract from the live schema, and after review + `contract emit`, `db sign` records the marker. Full recipe: `references/quickstart.md` § *Brownfield-DB*.
 
 ```bash
 pnpm prisma contract infer --db "$DATABASE_URL" --output src/prisma/contract.prisma
@@ -159,7 +159,7 @@ The concept: the database exists and its marker is accurate (hash **M**) — it 
 6. **Treating `db` as reserved.** It's a naming default. Setting it yourself is fine and sometimes exactly right (deploy-first chaining, retrofit); just expect dev commands on the default URL to overwrite it.
 7. **Authoring the first migration after the first deploy.** Then no graph node corresponds to what shipped, and every incremental path needs the retrofit. Baseline before the first deploy — it's one command.
 
-## What Prisma Next doesn't do yet
+## What Prisma 8 doesn't do yet
 
 - **No plan-time ref advancement.** `migration plan` cannot advance a ref for you; keeping the chain current is manual (`migration ref set` after each plan, or `--from` every time). If you want a plan-time advancement flag, file a feature request via the `references/feedback.md` skill.
 

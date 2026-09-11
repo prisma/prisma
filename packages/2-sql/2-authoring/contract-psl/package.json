@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "PSL-to-SQL ContractIR interpreter for Prisma Next",
+  "description": "PSL-to-SQL ContractIR interpreter for Prisma 8",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",

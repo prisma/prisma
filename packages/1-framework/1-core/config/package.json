@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Prisma Next config authoring types and validation",
+  "description": "Prisma 8 config authoring types and validation",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run --passWithNoTests",

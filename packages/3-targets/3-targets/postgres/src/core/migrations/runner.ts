@@ -319,7 +319,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     return runnerFailure(
       'MIGRATION.LEGACY_MARKER_SHAPE',
       'Legacy marker-table shape detected on prisma_contract.marker (no `space` column). ' +
-        'Prisma Next is in pre-1.0; the previous transitional auto-migration to the per-space-row schema has been removed. ' +
+        'Prisma 8 is in pre-1.0; the previous transitional auto-migration to the per-space-row schema has been removed. ' +
         'Drop `prisma_contract.marker` and re-run `dbInit` to reinitialise from a clean baseline.',
       {
         meta: {

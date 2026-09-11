@@ -1,6 +1,6 @@
 # ADR Index
 
-This document provides a comprehensive index of all Architectural Decision Records (ADRs) for the Prisma Next prototype, organized by category and ADR number.
+This document provides a comprehensive index of all Architectural Decision Records (ADRs) for the Prisma 8 prototype, organized by category and ADR number.
 
 ## Core Architecture
 
@@ -43,7 +43,7 @@ This document provides a comprehensive index of all Architectural Decision Recor
 | 011 | Unified Plan Model | Establishes common Plan structure across all query lanes with AST, SQL, and metadata | [ADR 011 - Unified Plan Model.md](adrs/ADR%20011%20-%20Unified%20Plan%20Model.md) |
 | 012 | Raw SQL Escape Hatch | **Plan construction superseded by ADR 247.** Provides safe raw SQL execution with required annotations and verification; the annotation schema stands, the AST-less plan shape does not | [ADR 012 - Raw SQL Escape Hatch.md](adrs/ADR%20012%20-%20Raw%20SQL%20Escape%20Hatch.md) |
 | 013 | Lane Agnostic Plan Identity | Ensures Plan identity and hashing work consistently across all query lanes | [ADR 013 - Lane Agnostic Plan Identity.md](adrs/ADR%20013%20-%20Lane%20Agnostic%20Plan%20Identity.md) |
-| 162 | Kysely lane emits PN SQL AST | **Superseded.** The Kysely lane was removed from Prisma Next; this ADR is retained for historical context only | [ADR 162 - Kysely lane emits PN SQL AST.md](adrs/ADR%20162%20-%20Kysely%20lane%20emits%20PN%20SQL%20AST.md) |
+| 162 | Kysely lane emits PN SQL AST | **Superseded.** The Kysely lane was removed from Prisma 8; this ADR is retained for historical context only | [ADR 162 - Kysely lane emits PN SQL AST.md](adrs/ADR%20162%20-%20Kysely%20lane%20emits%20PN%20SQL%20AST.md) |
 | 165 | ORM WhereArg literal normalization | Records Phase 2 decision to validate bound ToWhereExpr payloads then normalize ParamRef values into literals at ORM boundaries | [ADR 165 - ORM WhereArg literal normalization.md](adrs/ADR%20165%20-%20ORM%20WhereArg%20literal%20normalization.md) |
 | 018 | Plan Annotations Schema | Defines canonical JSON schema for Plan annotations and validation rules | [ADR 018 - Plan Annotations Schema.md](adrs/ADR%20018%20-%20Plan%20Annotations%20Schema.md) |
 | 019 | TypedSQL as Separate CLI | Establishes TypedSQL as out-of-tree tool that emits Plan factories | [ADR 019 - TypedSQL as Separate CLI.md](adrs/ADR%20019%20-%20TypedSQL%20as%20Separate%20CLI.md) |

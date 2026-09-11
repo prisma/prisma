@@ -1,6 +1,6 @@
-# Prisma Next CLI Style Guide
+# Prisma 8 CLI Style Guide
 
-This guide defines how Prisma Next's CLI behaves and looks. It exists to keep our developer experience consistent across commands and packages while aligning with our architecture: contract‑first, deterministic, agent‑friendly.
+This guide defines how Prisma 8's CLI behaves and looks. It exists to keep our developer experience consistent across commands and packages while aligning with our architecture: contract‑first, deterministic, agent‑friendly.
 
 For the architectural view of the CLI (distribution, command surface, init pipeline, programmatic API, layering), see the [CLI subsystem doc](architecture%20docs/subsystems/11.%20CLI.md).
 
@@ -155,7 +155,7 @@ Streams are covered in [Output Conventions](#output-conventions-composable-cli-o
 
 ### Reserved (CLI-wide)
 
-These codes have a fixed meaning across every Prisma Next CLI command. Specific commands MUST NOT redefine them.
+These codes have a fixed meaning across every Prisma 8 CLI command. Specific commands MUST NOT redefine them.
 
 | Code | Name | Meaning |
 |---|---|---|

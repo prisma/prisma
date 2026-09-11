@@ -1,6 +1,7 @@
 ---
 from: "8.0.0-rc.9"
 to: "8.0.0-rc.10"
+# Prisma 8 naming sweep: prose only, no entry required
 # sql-orm-client doc-comment sweep: reviewed, no entry required
 changes:
   - id: to-one-relations-record-nullable

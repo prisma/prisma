@@ -1,7 +1,7 @@
 /**
  * CLI Application Entry Point (Emitted Contract Workflow)
  *
- * This is a command-line demo application that showcases Prisma Next's query
+ * This is a command-line demo application that showcases Prisma 8's query
  * capabilities using the standard emitted contract workflow:
  * - contract.json (runtime contract data)
  * - contract.d.ts (compile-time types)

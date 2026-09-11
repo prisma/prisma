@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Normalized SQL driver error types for Prisma Next",
+  "description": "Normalized SQL driver error types for Prisma 8",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",

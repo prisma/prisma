@@ -1,9 +1,9 @@
 
-# Prisma Next — Feedback (Bug Reports, Feature Requests, Team Q&A)
+# Prisma 8 — Feedback (Bug Reports, Feature Requests, Team Q&A)
 
 > **Edit your data contract. Prisma handles the rest.**
 
-This skill is the *terminal* of the capability-gap routing pattern. Every other Prisma Next skill's *What Prisma Next doesn't do yet* entries route here when the user wants the gap closed; the skill also fires directly on prompts like *"this is a bug"*, *"file an issue"*, *"feature request"*, *"can I ask the team about this?"*, *"how should I integrate X with Prisma Next?"*.
+This skill is the *terminal* of the capability-gap routing pattern. Every other Prisma 8 skill's *What Prisma 8 doesn't do yet* entries route here when the user wants the gap closed; the skill also fires directly on prompts like *"this is a bug"*, *"file an issue"*, *"feature request"*, *"can I ask the team about this?"*, *"how should I integrate X with Prisma 8?"*.
 
 The skill's job is to pick the *right channel* — GitHub issue or Discord — and then either produce a **structured, public-safe** issue body (no secrets, no proprietary schema) the framework team can act on, or hand the user a direct link to the Prisma Discord for synchronous Q&A. Submission to GitHub never happens without explicit user confirmation.
 
@@ -22,7 +22,7 @@ Canonical channels:
 ## When Not to Use
 
 - User wants to fix the bug themselves in the user's own code. The fix lives in another workflow reference (debug / contract / migrations / queries / runtime / build). Open the right reference first; only fall back to feedback if the user explicitly wants the framework to do something differently.
-- User wants to upgrade Prisma Next (the bug may already be fixed) → [`upgrade-app.md`](upgrade-app.md); this reference mentions it as a pre-flight check.
+- User wants to upgrade Prisma 8 (the bug may already be fixed) → [`upgrade-app.md`](upgrade-app.md); this reference mentions it as a pre-flight check.
 - The user's question is already covered by a workflow reference in this skill (*"how do I add a column?"* → `references/contract.md`; *"what's the right query interface?"* → `references/queries.md`). Route to the workflow reference, not to the team — open the reference, answer the question, and only escalate to Discord if the agent can't.
 
 ## Key Concepts
@@ -80,7 +80,7 @@ If both — a bug *and* the user wants a related feature — file two separate i
 
 For **either** kind:
 
-- **Prisma Next version**: `pnpm ls @internal/postgres` (or `@internal/mongo`). If the project uses a target package, that version is canonical.
+- **Prisma 8 version**: `pnpm ls @internal/postgres` (or `@internal/mongo`). If the project uses a target package, that version is canonical.
 - **Node version**: `node -v`.
 - **Package manager**: `pnpm` / `npm` / `yarn` / `bun` / `deno`.
 - **OS**: `darwin` / `linux` / `win32` and the version string is enough.
@@ -209,7 +209,7 @@ When step 1 picked the Discord channel (steps 2–7 do not apply):
    - Extension-author / partner-integration / breaking-change-coordination questions → the public extension-authors channel, or the user can ping a maintainer directly once they're in the server.
 2. **Help draft the opening message.** Prisma's Discord is searchable; a well-framed opening message gets a faster, more useful answer. The agent drafts a short message with:
    - One-sentence summary of what the user is trying to do.
-   - The Prisma Next version (`pnpm ls @internal/postgres` or equivalent).
+   - The Prisma 8 version (`pnpm ls @internal/postgres` or equivalent).
    - A short code snippet (PSL excerpt, query, config file) where relevant — redacted the same way as a GitHub issue body (no `DATABASE_URL`, no customer schema names).
    - The specific question the user wants answered.
 3. **Do not auto-post.** The agent surfaces the drafted message to the user — *"here's an opening message you can paste into Discord; want to adjust before sending?"* — and lets the user decide whether to paste it as-is, edit it, or pick a different framing.
@@ -217,7 +217,7 @@ When step 1 picked the Discord channel (steps 2–7 do not apply):
 
 ### 9. Follow up
 
-- **Issue path**: record the issue URL in the user's project notes (or in the project's `wip/` if there is one) so a later upgrade or related work can reference it. If the bug is the symptom of an old version of Prisma Next, suggest an upgrade following [`upgrade-app.md`](upgrade-app.md) — many bugs are fixed in newer releases.
+- **Issue path**: record the issue URL in the user's project notes (or in the project's `wip/` if there is one) so a later upgrade or related work can reference it. If the bug is the symptom of an old version of Prisma 8, suggest an upgrade following [`upgrade-app.md`](upgrade-app.md) — many bugs are fixed in newer releases.
 - **Discord path**: once the conversation on Discord settles into a concrete bug or a concrete feature request, return to step 1 of this skill and file the issue (the Discord thread becomes the *Notes* / *Where the gap surfaces* reference in the issue body).
 
 ## Common Pitfalls
@@ -227,9 +227,9 @@ When step 1 picked the Discord channel (steps 2–7 do not apply):
 3. **Pasting a customer's confidential domain schema.** When original model and field names would leak confidential information (product codenames, customer identifiers, regulated-data fields), rename to neutral placeholders before the body goes into a public issue. Otherwise, keep the original names — a faithful excerpt is easier for the framework team to reason about than a re-themed one. Over-renaming is its own readability cost.
 4. **Filing a documentation question as a bug.** Documentation questions belong in another skill or in a GitHub Discussion (if the repo enables them). Bugs are about the surface misbehaving.
 5. **Conflating bug + feature in one issue.** File two. Mixed issues are hard to triage and hard to close.
-6. **Filing without a version.** "I'm using Prisma Next, it's broken" without the version makes triage hopeless. The version is the cheapest piece of context to capture; always include it.
+6. **Filing without a version.** "I'm using Prisma 8, it's broken" without the version makes triage hopeless. The version is the cheapest piece of context to capture; always include it.
 
-## What Prisma Next doesn't do yet
+## What Prisma 8 doesn't do yet
 
 - **In-product feedback channel.** No `prisma-next feedback` CLI command. The GitHub Issues page is the canonical surface. If you want a CLI-side feedback command, file a feature request via this skill.
 

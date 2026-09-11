@@ -513,7 +513,7 @@ function nativeEnumMemberChangeRefusal(options: {
   return (
     `Native enum type "${options.ddlSchemaName}"."${options.typeName}" changed beyond appending new values ` +
     `(contract declares [${options.expectedMembers.join(', ')}], database has [${options.actualMembers.join(', ')}]). ` +
-    "Prisma Next does not modify a native enum's existing values (rename, removal, reorder) — " +
+    "Prisma 8 does not modify a native enum's existing values (rename, removal, reorder) — " +
     'see https://pris.ly/d/postgres-native-enums. Author the change manually with `migration new`.'
   );
 }

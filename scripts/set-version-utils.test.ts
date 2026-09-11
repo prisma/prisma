@@ -172,7 +172,7 @@ describe('stampSkillMetadata', () => {
     "  library_version: '0.16.0'",
     '---',
     '',
-    '# Prisma Next (Prisma 8)',
+    '# Prisma 8 (Prisma 8)',
     '',
     'library_version: 0.16.0 in the body is prose, not the stamp.',
     '',

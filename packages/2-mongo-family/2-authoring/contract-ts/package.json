@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
-  "description": "Mongo-specific TypeScript contract authoring surface for Prisma Next",
+  "description": "Mongo-specific TypeScript contract authoring surface for Prisma 8",
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",

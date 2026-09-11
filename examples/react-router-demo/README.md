@@ -1,11 +1,11 @@
 # react-router-demo
 
-A minimal React Router v7 Framework Mode example that proves Prisma Next's Vite plugin re-emits contract artifacts on save, inside a real framework.
+A minimal React Router v7 Framework Mode example that proves Prisma 8's Vite plugin re-emits contract artifacts on save, inside a real framework.
 
 ## What this demonstrates
 
 - `@internal/vite-plugin-contract-emit` auto-emits `contract.json` + `contract.d.ts` on dev-server startup and on every contract edit.
-- A React Router `loader` and `action` on `/` exercise the Prisma Next runtime against Postgres via the emitted contract.
+- A React Router `loader` and `action` on `/` exercise the Prisma 8 runtime against Postgres via the emitted contract.
 - Editing `prisma/contract.prisma` (or `prisma/contract.ts`) while `pnpm dev` is running re-emits the artifacts — no manual `prisma contract emit`.
 
 ## Prerequisites

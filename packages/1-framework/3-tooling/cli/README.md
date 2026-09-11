@@ -19,7 +19,7 @@
 > Command examples below use the workspace-local `prisma` bin; end users
 > run the same commands through the published `@prisma/cli` binary.
 
-Command-line interface for Prisma Next contract emission and management.
+Command-line interface for Prisma 8 contract emission and management.
 
 ## Overview
 

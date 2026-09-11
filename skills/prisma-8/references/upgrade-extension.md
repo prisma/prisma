@@ -14,19 +14,19 @@ Do the version bump first (step 1 of the per-step flow below), re-sync the skill
 
 ## Role detection
 
-This flow applies when the project **is** a Prisma Next extension. Heuristics:
+This flow applies when the project **is** a Prisma 8 extension. Heuristics:
 
 - `package.json` declares `@internal/contract` (or another SPI package) under `dependencies` or `peerDependencies`, and
 - the package's `name` matches `^@.*/extension-` (the in-tree convention used by `@internal/extension-pgvector`, etc.), or
 - the package is referenced as an `extensions` entry from a sibling app's `prisma.config.ts` in the same monorepo.
 
-If the project additionally consumes Prisma Next from its own app code, run [`upgrade-app.md`](upgrade-app.md) first, then this flow in the same session.
+If the project additionally consumes Prisma 8 from its own app code, run [`upgrade-app.md`](upgrade-app.md) first, then this flow in the same session.
 
 If detection is ambiguous, ask the user which role to operate under.
 
 ## Version detection
 
-- **From-version.** Read the currently-installed Prisma Next version from `pnpm-lock.yaml` (or `package-lock.json` / `yarn.lock`) by inspecting the resolved version of any `@internal/*` entry. If the lockfile shows multiple `@internal/*` packages at different minors, the lowest minor is the from-version.
+- **From-version.** Read the currently-installed Prisma 8 version from `pnpm-lock.yaml` (or `package-lock.json` / `yarn.lock`) by inspecting the resolved version of any `@internal/*` entry. If the lockfile shows multiple `@internal/*` packages at different minors, the lowest minor is the from-version.
 - **To-version.** Either the version the user specified, or whatever `npm view @internal/contract dist-tags.latest` reports. Do not assume that is a stable version: while Prisma 8 is a release candidate, `latest` tracks the newest release, `8.0.0-rc.N` included. If the user wants a stable version specifically, they must name it.
 
 Report both back to the user before continuing.
@@ -82,7 +82,7 @@ Move on to the next step. Repeat.
 
 ## Exact-pin rule
 
-Prisma Next extensions pin every `@internal/*` dependency to a single **exact** version (no `^`, no `~`, no range, no wildcard, no `workspace:` specifier in the published `package.json`). All `@internal/*` entries share the same version. The pin advances only after a successful upgrade run against the new minor.
+Prisma 8 extensions pin every `@internal/*` dependency to a single **exact** version (no `^`, no `~`, no range, no wildcard, no `workspace:` specifier in the published `package.json`). All `@internal/*` entries share the same version. The pin advances only after a successful upgrade run against the new minor.
 
 `prisma-8-check-pins` (shipped by `@internal/extension-author-tools` — install with `pnpm add -D @internal/extension-author-tools`) enforces the rule. Run it locally with:
 

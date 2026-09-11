@@ -1,9 +1,9 @@
 
-# Prisma Next — Debug
+# Prisma 8 — Debug
 
 > **Edit your data contract. Prisma handles the rest.**
 
-When a Prisma Next call fails, the framework returns a **structured envelope**. The agent's job is to read the envelope, route on the `code`, and chain to the right authoring skill for the actual fix. This skill teaches the envelope shapes and the routing — it does not duplicate sibling-skill workflows.
+When a Prisma 8 call fails, the framework returns a **structured envelope**. The agent's job is to read the envelope, route on the `code`, and chain to the right authoring skill for the actual fix. This skill teaches the envelope shapes and the routing — it does not duplicate sibling-skill workflows.
 
 ## When to Use
 
@@ -22,7 +22,7 @@ When a Prisma Next call fails, the framework returns a **structured envelope**. 
 
 ### Two envelope shapes
 
-Prisma Next emits **two distinct envelopes** depending on which seam threw. Read which one you have *before* routing.
+Prisma 8 emits **two distinct envelopes** depending on which seam threw. Read which one you have *before* routing.
 
 **1. CLI envelope** — produced by `prisma ...` commands (emit, db init/update/verify/sign/schema, migration plan/apply/show/status, init). Shape (see `CliErrorEnvelope` in `packages/1-framework/1-core/errors/src/control.ts`):
 
@@ -119,7 +119,7 @@ If the envelope's `code` is not in this table, follow the envelope's `fix` field
 4. **Treating drift as something to silence with `db sign`.** `db sign` writes the marker from the current contract hash, but it requires schema verification to pass first. Run `db verify` before reaching for `db sign`.
 5. **Re-running `db migrate` after a partial failure without inspecting state.** `db schema --db <url>` shows the live shape; `migration status --db <url> --json` shows where the marker actually is.
 
-## What Prisma Next doesn't do yet
+## What Prisma 8 doesn't do yet
 
 - **Studio / GUI database browser.** No first-party Studio. Workaround: `prisma db schema` for a CLI tree of the live schema, or use a third-party tool (TablePlus, DataGrip, `psql`) against your `DATABASE_URL`. If you need a built-in GUI, file a feature request via `references/feedback.md`.
 - **First-class query logger middleware.** No built-in "log every query" middleware ships with the framework. Workaround: write a small custom middleware that wraps each operation (see `references/runtime.md` for middleware composition). If you need a built-in query log, file a feature request via `references/feedback.md`.
