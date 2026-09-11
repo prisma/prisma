@@ -169,10 +169,12 @@ function provideAttributeNameCompletionItems(
     end: sourceFile.positionAt(replacementEndOffset),
   };
 
+  const resolveSpec = attributeSpecResolver(context, source);
+
   return names.map((name) => {
     const newText = attributeNameEditText({
       name,
-      spec: attributeSpecForName(context, source, name),
+      spec: resolveSpec(name),
       sourceFile,
       replacementEndOffset,
       clientSupportsSnippets,
@@ -342,28 +344,37 @@ function attributeSpecForName(
   source: PslCompletionCandidateSource,
   name: string,
 ): AttributeSpec<never, never> | undefined {
+  return attributeSpecResolver(context, source)(name);
+}
+
+function attributeSpecResolver(
+  context: AttributeNameCompletionContext | AttributeNamedKeyCompletionContext,
+  source: PslCompletionCandidateSource,
+): (name: string) => AttributeSpec<never, never> | undefined {
   if (context.level === 'block') {
     if (context.blockKeyword === undefined) {
-      return undefined;
+      return () => undefined;
     }
     const descriptor = findBlockDescriptor(source.pslBlockDescriptors, context.blockKeyword);
-    const factory = descriptor?.attributes?.[name];
-    if (factory === undefined) {
-      return undefined;
-    }
-    return blindCast<
-      BlockAttributeSpecFactory,
-      'block descriptor attributes are validated as factories at control-stack assembly but exposed through framework-components as unknown to avoid a parser dependency'
-    >(factory)();
+    return (name) => {
+      const factory = descriptor?.attributes?.[name];
+      if (factory === undefined) {
+        return undefined;
+      }
+      return blindCast<
+        BlockAttributeSpecFactory,
+        'block descriptor attributes are validated as factories at control-stack assembly but exposed through framework-components as unknown to avoid a parser dependency'
+      >(factory)();
+    };
   }
 
   const interpretation = source.interpretationContext;
   if (interpretation === undefined || context.model === undefined) {
-    return undefined;
+    return () => undefined;
   }
   const model = modelSymbolForNode(source.symbolTable, context.model);
   if (model === undefined) {
-    return undefined;
+    return () => undefined;
   }
   const specContext = {
     symbols: source.symbolTable,
@@ -372,19 +383,20 @@ function attributeSpecForName(
   };
   const specs = assembleAttributeSpecs(interpretation.authoringContributions);
   if (context.level === 'model') {
-    return specs.model[name]?.(specContext);
+    return (name) => specs.model[name]?.(specContext);
   }
   if (context.field === undefined) {
-    return undefined;
+    return () => undefined;
   }
   const field = fieldSymbolForNode(model, context.field);
   if (field === undefined) {
-    return undefined;
+    return () => undefined;
   }
-  return specs.field[name]?.({
-    ...specContext,
-    field,
-  });
+  return (name) =>
+    specs.field[name]?.({
+      ...specContext,
+      field,
+    });
 }
 
 function existingAttributeNamedKeys(

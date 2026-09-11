@@ -412,6 +412,76 @@ describe('providePslCompletionItems', () => {
     ).toEqual(['audit']);
   });
 
+  it('resolves the attribute owner once per attribute-name completion request', () => {
+    const markedSource = ['model User {', '  id Int @|', '}'].join('\n');
+    const cursorOffset = markedSource.indexOf('|');
+    const source = `${markedSource.slice(0, cursorOffset)}${markedSource.slice(cursorOffset + 1)}`;
+    const { document, sourceFile } = parse(source);
+    const { table: symbolTable } = buildSymbolTable({
+      document,
+      sourceFile,
+      pslBlockDescriptors,
+    });
+    const context = classifyPslCompletionContext({
+      document,
+      sourceFile,
+      position: sourceFile.positionAt(cursorOffset),
+    });
+    let modelEnumerationCount = 0;
+    const observedSymbolTable = {
+      ...symbolTable,
+      topLevel: {
+        ...symbolTable.topLevel,
+        models: new Proxy(symbolTable.topLevel.models, {
+          ownKeys(target) {
+            modelEnumerationCount += 1;
+            return Reflect.ownKeys(target);
+          },
+        }),
+      },
+    };
+    const factoryOwnerNames: string[] = [];
+    const observedInterpretationContext = {
+      authoringContributions: assembleAuthoringContributions([
+        {
+          id: 'observed-family',
+          authoring: {
+            attributeSpecs: {
+              field: {
+                first: (ctx: FieldAttributeSpecContext) => {
+                  factoryOwnerNames.push(ctx.model.name);
+                  return fieldAttribute('first', {});
+                },
+                second: (ctx: FieldAttributeSpecContext) => {
+                  factoryOwnerNames.push(ctx.model.name);
+                  return fieldAttribute('second', {});
+                },
+              },
+              model: {},
+            },
+          },
+        },
+      ]),
+      controlMutationDefaults,
+    } as unknown as ContractSourceContext;
+
+    const items = providePslCompletionItems({
+      context,
+      sourceFile,
+      candidates: {
+        scalarTypes,
+        pslBlockDescriptors,
+        symbolTable: observedSymbolTable,
+        interpretationContext: observedInterpretationContext,
+      },
+      clientSupportsSnippets: true,
+    });
+
+    expect(items.map((item) => item.label)).toEqual(['first', 'second']);
+    expect(factoryOwnerNames).toEqual(['User', 'User']);
+    expect(modelEnumerationCount).toBe(1);
+  });
+
   it('returns attribute named keys including optional keys while omitting supplied keys', () => {
     const { items, sourceFile, cursorOffset } = complete(
       ['model Post {', '  id Int @marker(name: "id", pr|)', '}'].join('\n'),
