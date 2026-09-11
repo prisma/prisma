@@ -4,7 +4,7 @@
 
 **Accepted** — closes the dev → ship transition trap tracked in [TML-2629](https://linear.app/prisma-company/issue/TML-2629/dev-ship-transition-broken-first-migration-plan-after-db-update).
 
-The **paired contract snapshot** part of this decision (a ref carrying its own `<name>.contract.json` / `<name>.contract.d.ts` copy) was folded into the shared content-addressed store introduced by [ADR 240](ADR%20240%20-%20Contract%20snapshots%20live%20in%20a%20content-addressed%20store.md) (TML-3072). A ref is now only its pointer file (`{hash, invariants}`); the contract bytes it names resolve through `migrations/snapshots/<hex>/contract.{json,d.ts}` by that hash, the same store every graph node resolves through. The **universal graph-node invariant** and **asymmetric ref-advancement** decisions below are unaffected and remain current. `db sign` was later added to the implicit-advancement set (see the row in the table under *Asymmetric ref-advancement*); unlike `db init` / `db update`, its `--db` flag does not suppress the advancement.
+The **paired contract snapshot** part of this decision (a ref carrying its own `<name>.contract.json` / `<name>.contract.d.ts` copy) was folded into the shared content-addressed store introduced by [ADR 240](ADR%20240%20-%20Contract%20snapshots%20live%20in%20a%20content-addressed%20store.md) (TML-3072). A ref is now only its pointer file (`{hash, invariants}`); the contract bytes it names resolve through `migrations/snapshots/<hex>/contract.{json,d.ts}` by that hash, the same store every graph node resolves through. The **universal graph-node invariant** and **asymmetric ref-advancement** decisions below are unaffected and remain current. `db sign` was later added to the implicit-advancement set (see the row in the table under *Asymmetric ref-advancement*); unlike `db init` / `db update`, its `--db` flag does not suppress the advancement; `--no-advance-ref` skips it.
 
 ## Context
 
@@ -130,7 +130,7 @@ Ref advancement is **implicit** for dev-shaped reconciliation commands and **opt
 | `db update` | Same | `--advance-ref <name>`; **no** implicit advance when `--db <non-default-url>` unless `--advance-ref` is explicit |
 | `migrate` | **None** | `--advance-ref <name>` only |
 | `ref set` | Sets `<name>` (always explicit) | N/A — user names the ref |
-| `db sign` (added after this ADR) | Advances `db` whether or not `--db` is given — sign never mutates the schema, and adoption normally names the database with `--db` | `--advance-ref <name>` |
+| `db sign` (added after this ADR) | Advances `db` whether or not `--db` is given — sign never mutates the schema, and adoption normally names the database with `--db`; `--no-advance-ref` skips it | `--advance-ref <name>`; `--no-advance-ref` |
 
 The default name selection for `db init` and `db update` is implemented in `computeRefAdvancementName`; `db sign` does not go through it — the sign command picks `--advance-ref <name>` if given, else `db`:
 

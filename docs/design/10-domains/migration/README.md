@@ -146,7 +146,7 @@ The load-bearing semantics of a ref is **"the contract CD will `migrate --to` in
 Consequences:
 - Refs are **environment-named** (`production`, `staging`, ...). The Git-generic `head` ref has been dropped — it carried no information the emitted `contract.json` doesn't already imply.
 - A ref is a *promise* the repo makes about the next CD run. The PR is the moment that promise is staked.
-- The `db` ref differs in meaning, not mechanics: it records the contract the project's dev database has been brought to (advanced implicitly by `db init`/`db update` on the default URL, and by `db sign` regardless of `--db`) and serves as `migration plan`'s default origin. A default name, not a magic one — see [ADR 218](../../../architecture%20docs/adrs/ADR%20218%20-%20Refs%20with%20paired%20contract%20snapshots%20and%20universal%20graph-node%20invariant.md).
+- The `db` ref differs in meaning, not mechanics: it records the contract the project's dev database has been brought to (advanced implicitly by `db init`/`db update` on the default URL, and by `db sign` regardless of `--db`; `--no-advance-ref` skips it) and serves as `migration plan`'s default origin. A default name, not a magic one — see [ADR 218](../../../architecture%20docs/adrs/ADR%20218%20-%20Refs%20with%20paired%20contract%20snapshots%20and%20universal%20graph-node%20invariant.md).
 
 ### Initialization vs adoption-by-signing
 
