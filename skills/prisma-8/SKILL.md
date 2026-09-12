@@ -15,8 +15,8 @@ description: >-
   ORM 7 or earlier (schema.prisma + @prisma/client).
 metadata:
   library: '@prisma/orm-postgres'
-  library_version: '8.0.0-rc.9'
-  version: '2026-09-11'
+  library_version: '8.0.0-rc.10'
+  version: '2026-09-12'
 ---
 
 # Prisma 8 (Prisma 8)
