@@ -16,7 +16,7 @@ description: >-
 metadata:
   library: '@prisma/orm-postgres'
   library_version: '8.0.0-rc.10'
-  version: '2026-09-11'
+  version: '2026-09-12'
 ---
 
 # Prisma 8 (Prisma 8)
