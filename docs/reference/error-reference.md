@@ -91,6 +91,10 @@ The migration-file CLI (`prisma migration`) received `--config` without a path a
 
 `prisma db sign` was given a contract reference twice — once as the positional argument and once as `--contract` — and there is no rule for which one wins. Pass it once. Payload: `positional`, `flag`.
 
+### CLI.ADVANCE_REF_ARG_CONFLICT
+
+`prisma db sign` was told both which ref to advance (`--advance-ref <name>`) and not to advance any ref (`--no-advance-ref`), and there is no rule for which one wins. Pass one of them. Payload: `advanceRef`.
+
 ### CLI.FILE_NOT_FOUND
 
 A file the command needs does not exist at the given path. Produced by several commands: the migration command scaffold, `migrate`, `migration plan`, `migration show`, `db sign`, `db update`, `db verify`, and `ref` all raise it when the emitted `contract.json` (or another required file) is missing from the expected location. Most sites carry the path in `where.path`; the `migration new` contract-file site carries it in the summary text only. Payload: none.

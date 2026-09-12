@@ -384,3 +384,57 @@ describe('migration plan', () => {
     expect(envelope).not.toHaveProperty('fix');
   });
 });
+
+describe('migration plan greenfield notice', () => {
+  const NOTICE =
+    'No db ref set — planning from an empty database. Run db init, db update, or db sign if a database already exists.';
+
+  it('explains the empty origin when no db ref exists and the graph is empty', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    const run = await harness(project).run(['migration', 'plan', '--name', 'init'], {
+      cwd: project.dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.data).toMatchObject({ from: null, to: HASH_TO, fromDefaulted: true });
+    expect(run.presented?.presentation.human.at(2)).toEqual({
+      kind: 'summary',
+      status: 'info',
+      tone: 'muted',
+      text: NOTICE,
+    });
+  });
+
+  it('stays silent when --from @empty names the origin', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    const run = await harness(project).run(['migration', 'plan', '--from', '@empty'], {
+      cwd: project.dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.data).toMatchObject({ from: null, to: HASH_TO });
+    expect(run.presented?.data).not.toHaveProperty('fromDefaulted');
+    expect(run.presented?.presentation.human).not.toContainEqual(
+      expect.objectContaining({ text: NOTICE }),
+    );
+  });
+
+  it('stays silent when a db ref sets the origin', async () => {
+    const project = await plannableProject();
+
+    const run = await harness(project).run(['migration', 'plan'], {
+      cwd: project.dir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.exitCode).toBe(0);
+    expect(run.presented?.data).not.toHaveProperty('fromDefaulted');
+    expect(run.presented?.presentation.human).not.toContainEqual(
+      expect.objectContaining({ text: NOTICE }),
+    );
+  });
+});

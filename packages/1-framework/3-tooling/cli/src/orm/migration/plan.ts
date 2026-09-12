@@ -104,16 +104,35 @@ function previewBlocks(result: MigrationPlanResult): readonly Block[] {
   ];
 }
 
+function originNoticeBlocks(result: MigrationPlanResult): readonly Block[] {
+  if (result.fromDefaulted !== true) {
+    return [];
+  }
+  return [
+    {
+      kind: 'summary',
+      status: 'info',
+      tone: 'muted',
+      text: 'No db ref set — planning from an empty database. Run db init, db update, or db sign if a database already exists.',
+    },
+  ];
+}
+
 function planBlocks(result: MigrationPlanResult, migrationsRelative: string): readonly Block[] {
   const outcome = outcomeFields(result, migrationsRelative);
   if (result.noOp) {
     return [{ kind: 'summary', status: 'ok', text: 'No changes detected' }, outcome];
   }
   if (result.pendingPlaceholders === true) {
-    return [{ kind: 'summary', status: 'warn', text: result.summary }, outcome];
+    return [
+      { kind: 'summary', status: 'warn', text: result.summary },
+      ...originNoticeBlocks(result),
+      outcome,
+    ];
   }
   return [
     { kind: 'summary', status: 'ok', text: result.summary },
+    ...originNoticeBlocks(result),
     ...operationBlocks(result),
     outcome,
     ...previewBlocks(result),

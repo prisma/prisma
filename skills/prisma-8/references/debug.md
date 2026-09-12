@@ -91,7 +91,7 @@ The single source of truth: read the envelope, find the row by `code`, follow th
 | `MIGRATION.INVALID_DEFAULT_EXPORT` | Loading `migration.ts` | Use `export default class extends Migration<Start, End> { ... }` (or a factory returning `{ operations, targetId, destination }`). See `references/migrations.md`. |
 | `MIGRATION.DATA_TRANSFORM_CONTRACT_MISMATCH` | Building a data-transform query plan | Pass the same `endContract` reference to both `this.dataTransform(endContract, …)` and the query-builder context. |
 | `MIGRATION.HASH_MISMATCH` | Any read of a migration package (`plan`, `list`, `db migrate`) | `ops.json` / `migration.json` were edited without self-emitting. Run `node migrations/app/<dir>/migration.ts` to re-emit. |
-| `CONTRACT.MARKER_MISSING` | `db verify` (`error` diagnostic, exit 4), runtime startup (warning) | DB has no marker yet. Run `prisma db init --db <url>` (baseline empty DB), `db update --db <url>` (apply contract directly), or `db sign` if the schema already matches. |
+| `CONTRACT.MARKER_MISSING` | `db verify` (`error` diagnostic, exit 4), runtime startup (warning) | DB has no marker yet. Run `prisma db init --db <url>` (baseline empty DB), `db update --db <url>` (apply contract directly), or `db sign --db <url>` if the schema already matches the contract. |
 | `CONTRACT.MARKER_MISMATCH` | `db verify` (exit 4), runtime startup (warning) | Marker disagrees with contract hash (`meta.expected` / `meta.actual`). Either migrate forward (`db migrate` / `db update`), or — if the DB is correct after a manual fix-up — `db sign`. See `references/migrations.md`. |
 | `CONTRACT.TARGET_MISMATCH` | `db verify`, runtime startup | Contract target ≠ config target; align them (see `meta.expected` / `meta.actual`). |
 | `CONTRACT.SCHEMA_VERIFICATION_FAILED` | `db verify`, `db sign` (both exit 4 with the finding) | Live schema does not satisfy the contract; `meta.issues` lists the drifted paths per `meta.space`. Run `db update` to reconcile, or adjust the contract. |
@@ -116,10 +116,10 @@ If the envelope's `code` is not in this table, follow the envelope's `fix` field
 
 ## Common Pitfalls
 
-1. **Reading only `summary`, not the rest of the envelope.** `code`, `severity`, `why`, `fix`, `meta`/`details`, and (for CLI errors) `where` are all load-bearing. The agent routes on `code`; the user sees `summary`.
+1. **Reading only `summary`, not the rest of the envelope.** `code`, `severity`, `why`, `fix`, `meta`/`details`, and (for CLI errors) `where` all carry information the recovery depends on. The agent routes on `code`; the user sees `summary`.
 2. **Ignoring `severity`.** `migration status` emits warn-level diagnostics and **exits 0**. An agent that only checks exit code misses every concurrent-migration warning.
 3. **Stopping at `code` on `MIGRATION.RUNNER_FAILED`.** That envelope is a wrapper — the detail lives in `why` and `meta`.
-4. **Treating drift as something to silence with `db sign`.** `db sign` writes the marker from the current contract hash, but it requires schema verification to pass first. Run `db verify` before reaching for `db sign`.
+4. **Treating drift as something to silence with `db sign`.** `db sign` writes the marker from the current contract hash and, by default, advances the `db` ref to it (`--no-advance-ref` skips the ref), but it requires schema verification to pass first. Run `db verify` before reaching for `db sign`.
 5. **Re-running `db migrate` after a partial failure without inspecting state.** `db schema --db <url>` shows the live shape; `migration status --db <url> --json` shows where the marker actually is.
 
 ## What Prisma 8 doesn't do yet
