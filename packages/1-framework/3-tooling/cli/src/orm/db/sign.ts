@@ -13,6 +13,7 @@ import { createControlClient } from '../../control-api/client';
 import { resolveContractRefToSnapshot } from '../../control-api/operations/contract-snapshot-resolution';
 import {
   advanceRefSafely,
+  type ContractIR,
   preflightRefAdvancement,
 } from '../../control-api/operations/ref-advancement';
 import { errorAdvanceRefArgConflict, errorContractArgConflict } from '../../utils/cli-errors';
@@ -287,14 +288,17 @@ export function createDbSignCommand(
       const refName = args.flags.noAdvanceRef
         ? null
         : (args.flags.advanceRef ?? DEFAULT_ADVANCE_REF);
+      let advancement: { readonly name: string; readonly contractIR: ContractIR } | null = null;
       if (refName !== null) {
         const preflight = await preflightRefAdvancement({
           name: refName,
+          contractJson: signedSource.json,
           contractJsonPath: signedSource.jsonPath,
         });
         if (!preflight.ok) {
           return notOk(normalizeError(preflight.failure));
         }
+        advancement = { name: refName, contractIR: preflight.value };
       }
 
       const connection = requireVerifyConnection({
@@ -367,7 +371,7 @@ export function createDbSignCommand(
           );
         }
 
-        if (refName === null) {
+        if (advancement === null) {
           const document: DbSignDocument = { ...signed, advancedRef: null };
           return ok(
             ctx.present(
@@ -378,16 +382,13 @@ export function createDbSignCommand(
         }
 
         const refsDir = appRefsDirFor(ctx.config, ctx.cwd);
-        const previousHash = await previousRefHash(refsDir, refName);
+        const previousHash = await previousRefHash(refsDir, advancement.name);
         const advanced = await advanceRefSafely({
           refsDir,
           migrationsDir,
-          name: refName,
+          name: advancement.name,
           hash: signed.contract.storageHash,
-          contractIR: {
-            contractJson: signedSource.json,
-            contractJsonPath: signedSource.jsonPath,
-          },
+          contractIR: advancement.contractIR,
         });
         if (!advanced.ok) {
           return notOk(normalizeError(advanced.failure));

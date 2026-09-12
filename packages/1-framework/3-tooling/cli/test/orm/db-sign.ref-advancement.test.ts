@@ -1,5 +1,5 @@
 import { existsSync, writeFileSync } from 'node:fs';
-import { readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import {
   contractSnapshotDir,
@@ -199,6 +199,46 @@ describe('db sign', () => {
       expect(mocks.sign).not.toHaveBeenCalled();
       expect(existsSync(refsDirOf(dir))).toBe(false);
     });
+
+    it('refuses a contract.d.ts that is a directory before verifying or signing', async () => {
+      const dir = await projectDir();
+      const dtsPath = join(dir, 'output', 'contract.d.ts');
+      await rm(dtsPath);
+      await mkdir(dtsPath);
+
+      const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
+
+      expect(run.exitCode).toBe(2);
+      expect(envelopeOf(run)).toMatchObject({
+        ok: false,
+        error: { code: 'CLI.FILE_NOT_FOUND' },
+      });
+      expect(JSON.stringify(run.json.at(-1))).toContain('contract.d.ts');
+      expect(mocks.schemaVerify).not.toHaveBeenCalled();
+      expect(mocks.sign).not.toHaveBeenCalled();
+      expect(existsSync(refsDirOf(dir))).toBe(false);
+    });
+
+    it.skipIf(process.getuid?.() === 0)(
+      'refuses an unreadable contract.d.ts before verifying or signing',
+      async () => {
+        const dir = await projectDir();
+        const dtsPath = join(dir, 'output', 'contract.d.ts');
+        await chmod(dtsPath, 0o000);
+
+        const run = await harness(ormConfig()).run(['db', 'sign', '--json'], { cwd: dir });
+
+        expect(run.exitCode).toBe(2);
+        expect(envelopeOf(run)).toMatchObject({
+          ok: false,
+          error: { code: 'CLI.FILE_NOT_FOUND' },
+        });
+        expect(JSON.stringify(run.json.at(-1))).toContain('contract.d.ts');
+        expect(mocks.schemaVerify).not.toHaveBeenCalled();
+        expect(mocks.sign).not.toHaveBeenCalled();
+        expect(existsSync(refsDirOf(dir))).toBe(false);
+      },
+    );
 
     it('--no-advance-ref signs without contract.d.ts, since no snapshot is written', async () => {
       const dir = await projectDir();
