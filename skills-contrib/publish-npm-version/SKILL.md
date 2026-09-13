@@ -7,7 +7,9 @@ description: >-
   <next-version>". When the maintainer merges the PR, the `Publish to npm`
   workflow runs automatically and ships the new version to npm under the
   dist-tag its shape implies (`latest`; RC releases get a pre-release GitHub Release),
-  plus a matching GitHub Release. Use when a maintainer asks to "cut the
+  plus a matching GitHub Release. Also prepares the matching prisma/web
+  docs-site PR from the same release notes, to merge once the release is
+  published. Use when a maintainer asks to "cut the
   next RC", "cut the next release", "bump to the next version", "open a
   release PR", or "prepare a publish PR".
 ---
@@ -83,6 +85,9 @@ If either precondition is unmet, stop and surface the issue. Do **not** try to a
    - Every modified file is either a `package.json` or `pnpm-lock.yaml`.
    - The `package.json` diffs are exactly `version` field changes plus internal `workspace:<old> → workspace:<new>` specifier bumps (no other fields).
    - The `pnpm-lock.yaml` diff is exactly `specifier: workspace:<old> → workspace:<new>` lines (no resolution churn for external packages).
+   - `skills/prisma-8/SKILL.md` changed only its `library_version` stamp (the bump script writes it).
+
+   Two more files always need a follow-up commit, and CI fails without them. The Supabase extension stamps its own package version into every contract it emits, so `examples/supabase/src/contract.{json,d.ts}` and the three fixture pairs under `packages/3-extensions/supabase/test/fixtures/` still carry the old version and the `Fixtures` job diffs them; move the `version` string in those eight files to `<version>` (the only change an emit would make). Then the `check:upgrade-coverage` PR-mode check requires this PR to declare that re-emit: add a `reemit-supabase-extension-version` entry to `skills/prisma-8/upgrading/app/upgrades/<prev>-to-<version>/instructions.md`, copying the shape of the previous transition's entry. Commit both together after the bump commit.
 
 6. **Commit.** Stage `package.json` files and `pnpm-lock.yaml` together in a single commit:
 
@@ -109,7 +114,17 @@ If either precondition is unmet, stop and surface the issue. Do **not** try to a
    - Point reviewers at the committed `docs/releases/v<version>.md` (authored by the `draft-release-notes` skill in step 7) as the human-review surface for the release's user-facing changes.
    - Note that **merging this PR ships the release**: the resulting push to `main` carries the bumped root `version`, the `Publish to npm` workflow detects the change and publishes `<new>` under dist-tag `latest`, and a matching GitHub Release (marked pre-release on the RC line) is created automatically.
 
-10. **Stop and report** the PR URL **and the worktree path** to the maintainer. The maintainer can `git worktree remove ../release-<version>` after the PR merges. Do not merge the PR yourself; the merge is a human gate where someone confirms the release notes are acceptable. (Merging triggers the publish — there is no separate dispatch step.)
+10. **Update the docs site.** The public docs live in [prisma/web](https://github.com/prisma/web) (`apps/docs/content/docs/`), and every release changes what they should say. Prepare that PR now, from the same release notes, so it is ready when the release is published:
+
+    1. Clone `prisma/web` into a gitignored path inside the release worktree (`wip/web`) and branch from `main` as `docs/orm8-<version>`. Run `pnpm install --frozen-lockfile` there; the linters below need it.
+    2. Move the version numbers first. `(index)/prisma-orm/release-status.mdx` carries a version table and a "Versions were checked on <date>" line; `guides/upgrade-prisma-orm/postgresql.mdx` and `mongodb.mdx` each name the `@prisma/orm-*` version they target. Grep the tree for the previous version string to catch any page added since.
+    3. Walk `docs/releases/v<version>.md` entry by entry and find every page that states the old behaviour. Breaking changes and renames usually live in code samples and tables across many pages (grep for the old identifier, excluding the `v6/` and `v7/` trees, which document older versions and must not change). New CLI flags go in the command's page under `cli/`. New client or type surface goes in the matching page under `orm/reference/`, with a short section, and in `orm/coming-from-prisma-orm-7.mdx` if the feature replaces a Prisma ORM 7 one. A fix that removes a workaround means finding the guide that taught the workaround; the migration guides under `guides/upgrade-prisma-orm/` and the pages under `orm/migrations/` are the usual places.
+    4. Follow `apps/docs/AGENTS.md` for page kinds and placement, and write in plain English. From `apps/docs`, run `pnpm lint:links`, `pnpm lint:spellcheck`, and `pnpm lint:code`.
+    5. Commit as `docs(docs): update the Prisma ORM 8 pages for <version>` and open the PR against `main` with `gh pr create -R prisma/web`. The body lists each release-notes entry and the pages that now reflect it, names anything from the notes that has no page to land on, and says that the PR must merge only after the ORM release PR is published, because until then the site would describe a version that is not on the registry. Link the two PRs to each other.
+
+11. **Stop and report** both PR URLs **and the worktree path** to the maintainer. The maintainer can `git worktree remove ../release-<version>` after the PRs merge. Do not merge either PR yourself; the release PR merge is a human gate where someone confirms the release notes are acceptable, and the docs PR waits for the publish. (Merging the release PR triggers the publish — there is no separate dispatch step.)
+
+    If the maintainer asks you to merge, the order is: release PR first, wait for the `Publish to npm` run on `main` to succeed and for `pnpm view @prisma/orm-postgres dist-tags.latest` to report `<version>`, then merge the docs PR and confirm its Vercel `docs` deployment succeeds. On `prisma/orm` the merge queue refuses a PR with any unresolved review thread, even with green checks; CodeRabbit routinely flags the tag-pinned recipe links in the notes as dead, which is expected (the tag is created by the publish), so answer and resolve that thread rather than change the links.
 
 ## Idempotency
 
@@ -117,6 +132,6 @@ If either precondition is unmet, stop and surface the issue. Do **not** try to a
 
 ## Out of scope
 
-- **Merging the PR.** The skill stops at "PR opened" so a human can confirm the release notes. Merging is what triggers the actual publish, but it remains a human gate by design.
+- **Merging the PRs.** The skill stops at "PRs opened" so a human can confirm the release notes. Merging the release PR is what triggers the actual publish, but it remains a human gate by design; the docs PR follows once the publish has succeeded.
 - **Patch releases.** On the RC line there are none (a fix is just the next `rc.N`, which this skill handles). For stable-line patches (`patch+1`), the manual procedure in `docs/oss/versioning.md` applies.
 - **Beta tags.** The `beta` dist-tag is hand-cut via a manual `workflow_dispatch` of `Publish to npm`; this skill always advances to the next release version.
