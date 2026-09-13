@@ -6,6 +6,16 @@ Changelog tracking starts at **v0.12.0**, the first release cut after this conve
 
 <!-- New release entries go here, newest first, each mirroring docs/releases/v<version>.md under a `## v<version>` header. -->
 
+## v8.0.0-rc.11
+
+This release moves the toolchain onto `@prisma/cli-engine@0.4.0`, which adds a Markdown output format to every CLI command. Nothing else changed since rc.10.
+
+The upgrade recipes for this hop: the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.11/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.10-to-8.0.0-rc.11/) and the [extension recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.11/skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.10-to-8.0.0-rc.11/).
+
+### Changed
+
+- **The toolchain now requires `@prisma/cli-engine` 0.4.0.** `@prisma/orm-toolchain` declares the unified CLI's engine as an exact peer, and this release moves that peer from 0.3.0 to 0.4.0. Under a host CLI running on that engine, every command supports `--format markdown`, which prints the command's output as Markdown; the engine's `Format` type widens from `"human" | "json"` to `"human" | "json" | "markdown"`. No other public API changed. Projects assembled by the `prisma` CLI resolve the engine automatically; a project that pins `@prisma/cli-engine` itself must move the pin to `0.4.0`. ([prisma/prisma-cli#260](https://github.com/prisma/prisma-cli/pull/260))
+
 ## v8.0.0-rc.10
 
 This RC finishes the rename from Prisma Next to Prisma 8 in every identifier a project can see (the old schema header keeps working, the old environment variables do not), adds named model and result types to the emitted contract, makes `db sign` set the `db` ref so the first plan after adoption stays incremental, and adds attribute completion to the language server.
