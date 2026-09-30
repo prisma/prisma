@@ -6,7 +6,7 @@ import { join } from 'pathe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   canonicalFileIdentity,
-  isWatcherCacheEligible,
+  isClientWatcherCompatible,
   normalizeFileUri,
   resolveSchemaInputs,
   type SchemaInputConfig,
@@ -76,7 +76,7 @@ describe('watcher cache eligibility', () => {
     '/project/**/*.prisma',
     '/project/model?.prisma',
   ])('accepts interoperable pattern %s', (pattern) =>
-    expect(isWatcherCacheEligible(configWith([pattern]))).toBe(true),
+    expect(isClientWatcherCompatible(configWith([pattern]))).toBe(true),
   );
 
   it.each([
@@ -91,13 +91,13 @@ describe('watcher cache eligibility', () => {
     '/project/**model.prisma',
     '/project/***/schema.prisma',
   ])('rejects uncertain pattern %s even alongside a literal input', (pattern) => {
-    expect(isWatcherCacheEligible(configWith(['/project/schema.prisma', pattern]))).toBe(false);
+    expect(isClientWatcherCompatible(configWith(['/project/schema.prisma', pattern]))).toBe(false);
   });
 
   it('requires nonempty PSL inputs', () => {
-    expect(isWatcherCacheEligible(configWith([]))).toBe(false);
-    expect(isWatcherCacheEligible(configWith(undefined))).toBe(false);
-    expect(isWatcherCacheEligible(configWith(['/project/schema.prisma'], 'ts'))).toBe(false);
+    expect(isClientWatcherCompatible(configWith([]))).toBe(false);
+    expect(isClientWatcherCompatible(configWith(undefined))).toBe(false);
+    expect(isClientWatcherCompatible(configWith(['/project/schema.prisma'], 'ts'))).toBe(false);
   });
 });
 

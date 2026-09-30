@@ -610,7 +610,7 @@ function startHarness(
     );
   const isSchemaWatcherRegistration = (params: RegistrationParams) =>
     isWatchedFilesRegistration(params) &&
-    !JSON.stringify(params.registrations).includes('prisma.config.ts');
+    params.registrations.some((registration) => registration.id !== 'prisma-8-config-watcher');
   interface RegistrationWaiter {
     readonly resolve: () => void;
   }
@@ -787,7 +787,10 @@ function startHarness(
       while (pendingMessages.size > 0) {
         await Promise.all(pendingMessages);
       }
-      disconnect();
+      await server.dispose();
+      client.dispose();
+      clientToServer.end();
+      serverToClient.end();
     },
     disconnect,
   };
@@ -3255,6 +3258,7 @@ describe('language server project registry', { timeout: timeouts.databaseOperati
     await harness.waitForDiagnostics(schemaUri);
 
     harness.notifyConfigChanged();
+    await waitUntil(() => loadCount === 2);
     const completion = requestCompletion(harness, schemaUri, position);
     await settle();
     refreshLoad.resolve();
@@ -3405,9 +3409,7 @@ describe('language server config watching', { timeout: timeouts.databaseOperatio
   it('does not request registration when the client lacks dynamic registration', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
-    await harness.waitForWarning((message) =>
-      message.includes('does not support dynamic file-watcher registration'),
-    );
+    await requestFormatting(harness, schemaUri);
 
     expect(watchedFilesRegistrations(harness).length).toBe(0);
   });
@@ -3898,6 +3900,9 @@ describe('language server disposal', { timeout: timeouts.databaseOperation }, ()
       });
       let disposed = false;
       await harness.initialize();
+      if (method === DiagnosticRefreshRequest.method) {
+        await requestPullDiagnostics(harness, schemaUri);
+      }
       harness.notifyConfigChanged();
       await entered.promise;
 
@@ -4438,8 +4443,12 @@ describe('language server config failure surfacing', {
     await harness.waitForDiagnostics(schemaUri);
 
     broken = true;
+    const failure = harness.waitForDiagnosticsMatching(
+      configUri,
+      (diagnostics) => diagnostics.length > 0,
+    );
     harness.notifyConfigChanged();
-    await harness.waitForDiagnostics(configUri);
+    await failure;
 
     harness.client.sendNotification(DidCloseTextDocumentNotification.type, {
       textDocument: { uri: schemaUri },
@@ -5179,7 +5188,7 @@ describe('language server whole-project push and freshness', {
     expect(activeHarness.unregisteredIds()).not.toContain(secondRegistrationId);
   });
 
-  it('picks up an external edit to a closed member via stat revalidation when no watcher is registered', async () => {
+  it('picks up an external edit to a closed member via internal notifications', async () => {
     const dir = await fixtureDir();
     const memberAPath = join(dir, 'a.prisma');
     const memberBPath = join(dir, 'b.prisma');
@@ -5200,10 +5209,6 @@ describe('language server whole-project push and freshness', {
     expect(watchedFilesRegistrations(harness).length).toBe(0);
 
     const conflicted = harness.waitForDiagnosticsMatching(memberBUri, isDuplicateDeclaration);
-    harness.client.sendNotification(DidChangeTextDocumentNotification.type, {
-      textDocument: { uri: memberAUri, version: 2 },
-      contentChanges: [{ text: `${userSchema}// trigger a revalidation pass\n` }],
-    });
     expect(isDuplicateDeclaration(await conflicted)).toBe(true);
   });
 

@@ -24,6 +24,9 @@ catalogs:
     bson:
       specifier: ^7.2.0
       version: 7.3.1
+    chokidar:
+      specifier: ^5.0.0
+      version: 5.0.0
     gray-matter:
       specifier: ^4.0.3
       version: 4.0.3
@@ -1643,9 +1646,15 @@ importers:
       '@internal/utils':
         specifier: workspace:8.0.0-rc.17
         version: link:../../0-foundation/utils
+      chokidar:
+        specifier: 'catalog:'
+        version: 5.0.0
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
+      tinyglobby:
+        specifier: 'catalog:'
+        version: 0.2.17
       vscode-languageserver:
         specifier: 'catalog:'
         version: 10.1.0
@@ -5350,6 +5359,9 @@ importers:
       c12:
         specifier: ^3.3.4
         version: 3.3.4(magicast@0.5.4)
+      chokidar:
+        specifier: 'catalog:'
+        version: 5.0.0
       ci-info:
         specifier: ^4.3.1
         version: 4.4.0

@@ -29,7 +29,7 @@ import { normalizeFileUri } from './schema-inputs';
 import { semanticTokensLegend } from './semantic-tokens';
 
 export interface LanguageServer {
-  dispose(): void;
+  dispose(): Promise<void>;
   getDocumentAst(uri: string): DocumentSnapshot | undefined;
   getProjectSymbolTable(uri: string): SymbolTable | undefined;
 }
@@ -216,6 +216,7 @@ function createServerOn(connection: Connection): LanguageServer {
     projects.documentClosed(document.uri);
   });
 
+  connection.onShutdown(() => projects.dispose());
   connection.listen();
 
   function artifactsForDocument(uri: string): ProjectArtifacts | undefined {
@@ -223,7 +224,10 @@ function createServerOn(connection: Connection): LanguageServer {
   }
 
   return {
-    dispose: () => connection.dispose(),
+    dispose: async () => {
+      await projects.dispose();
+      connection.dispose();
+    },
     getDocumentAst: (uri) => artifactsForDocument(uri)?.document(uri),
     getProjectSymbolTable: (uri) => {
       const artifacts = artifactsForDocument(uri);

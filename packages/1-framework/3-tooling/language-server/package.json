@@ -22,7 +22,9 @@
     "@internal/framework-components": "workspace:8.0.0-rc.17",
     "@internal/psl-parser": "workspace:8.0.0-rc.17",
     "@internal/utils": "workspace:8.0.0-rc.17",
+    "chokidar": "catalog:",
     "pathe": "^2.0.3",
+    "tinyglobby": "catalog:",
     "vscode-languageserver": "catalog:",
     "vscode-languageserver-textdocument": "catalog:"
   },

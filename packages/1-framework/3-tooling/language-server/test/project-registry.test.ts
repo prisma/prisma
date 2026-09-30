@@ -5,6 +5,12 @@ import { DocumentStore } from '../src/document-store';
 import { Project } from '../src/project';
 import { ProjectRegistry } from '../src/project-registry';
 
+vi.mock('../src/internal-watcher', () => ({
+  InternalWatcher: class {
+    async close() {}
+  },
+}));
+
 const mocks = vi.hoisted(() => ({
   discover: vi.fn<(path: string) => Promise<string | undefined>>(),
   load: vi.fn<() => Promise<ConfigResolution>>(),
@@ -72,28 +78,34 @@ describe('ProjectRegistry', () => {
     expect(project?.artifacts).toBeDefined();
   });
 
-  it('allocates watcher arrival order before asynchronous config discovery', async () => {
+  it('does not create a project after disposal while discovery is pending', async () => {
     const { registry } = setup();
-    const project = await registry.nearestProject(uri);
-    await project?.diagnosticReport(uri);
-    let finishDiscovery!: (config: string) => void;
-    const discovery = new Promise<string>((resolve) => {
-      finishDiscovery = resolve;
-    });
-    mocks.discover.mockImplementationOnce(() => discovery);
-    const refresh = vi.spyOn(Project.prototype, 'refreshMembership').mockResolvedValue(true);
+    let resolve!: (config: string) => void;
+    mocks.discover.mockReturnValueOnce(
+      new Promise((done) => {
+        resolve = done;
+      }),
+    );
+    const pending = registry.nearestProject(uri);
+    await registry.dispose();
+    resolve(configPath);
+    expect(await pending).toBeUndefined();
+    expect(registry.associatedProject(uri)).toBeUndefined();
+  });
+
+  it('routes client notifications to existing owners without asynchronous rediscovery', async () => {
+    const { registry } = setup();
+    await registry.nearestProject(uri);
+    const route = vi.spyOn(Project.prototype, 'filesChanged').mockImplementation(() => {});
     try {
-      const first = registry.watchedFilesChanged([{ uri, type: FileChangeType.Changed }]);
-      const secondUri = 'file:///project/second.prisma';
-      await registry.watchedFilesChanged([{ uri: secondUri, type: FileChangeType.Changed }]);
-      finishDiscovery(configPath);
-      await first;
-      expect(refresh.mock.calls).toEqual([
-        [secondUri, 3],
-        [uri, 2],
-      ]);
+      const secondUri = 'file:///external/second.prisma';
+      registry.watchedFilesChanged([{ uri, type: FileChangeType.Changed }]);
+      registry.watchedFilesChanged([{ uri: secondUri, type: FileChangeType.Deleted }]);
+      expect(route.mock.calls).toEqual([[[uri]], [[secondUri]]]);
+      expect(mocks.discover).toHaveBeenCalledOnce();
     } finally {
-      refresh.mockRestore();
+      route.mockRestore();
+      await registry.dispose();
     }
   });
 });

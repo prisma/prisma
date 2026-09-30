@@ -463,14 +463,13 @@ describe('ProjectArtifacts snapshots', () => {
     expect(parse).toHaveBeenCalledTimes(3);
   });
 
-  it.each([false, true])('refreshes disk snapshots with watcher coverage %s', async (watched) => {
+  it('refreshes disk snapshots after explicit invalidation', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'project-artifacts-'));
     try {
       const path = join(dir, 'schema.psl');
       const uri = pathToFileURL(path).href;
       await writeFile(path, cleanSource);
       const documents = new DocumentStore();
-      if (watched) documents.setWatchCoverage('project', [uri]);
       const project = new ProjectArtifacts({
         controlStack,
         inputs: await resolveSchemaInputs(
@@ -485,10 +484,8 @@ describe('ProjectArtifacts snapshots', () => {
       expect(parse).not.toHaveBeenCalled();
       project.symbolTable();
       await writeFile(path, siblingSource);
-      if (watched) {
-        expect(project.document(uri)).toBe(first);
-        documents.invalidate(uri);
-      }
+      expect(project.document(uri)).toBe(first);
+      documents.invalidate(uri);
       expect(project.document(uri)).not.toBe(first);
       expect(Object.keys(project.symbolTable().defaultNamespace.models)).toEqual(['Post']);
       expect(parse).toHaveBeenCalledTimes(2);
