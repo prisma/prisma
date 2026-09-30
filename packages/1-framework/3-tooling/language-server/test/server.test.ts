@@ -33,7 +33,7 @@ import { type ParseDiagnostic, parse } from '@internal/psl-parser/syntax';
 import { notOk, ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import {
   type ClientCapabilities,
   type CompletionItem,
@@ -90,7 +90,7 @@ import {
 import type { ConfigResolution } from '../src/config-resolution';
 import type { DocumentSnapshot } from '../src/document-snapshot';
 import { guardedConnection } from '../src/guarded-connection';
-import { CONFIG_LOAD_FAILED_CODE } from '../src/project';
+import { CONFIG_LOAD_FAILED_CODE, Project } from '../src/project';
 import { ProjectArtifacts, type ProjectArtifactsOptions } from '../src/project-artifacts';
 import { resolveSchemaInputs, type SchemaInputConfig } from '../src/schema-inputs';
 import { semanticTokensLegend } from '../src/semantic-tokens';
@@ -3738,8 +3738,9 @@ describe('language server project lifecycle', { timeout: timeouts.databaseOperat
     await cleared;
 
     harness.notifyConfigChanged();
-    await settle();
-    expect(configResolutionMock.resolveConfigInputs).toHaveBeenCalledTimes(2);
+    await vi.waitFor(() =>
+      expect(configResolutionMock.resolveConfigInputs).toHaveBeenCalledTimes(2),
+    );
   });
 });
 
@@ -4403,7 +4404,7 @@ describe('language server config failure surfacing', {
       const previous = spy.mock.calls.at(-1)![0];
 
       harness.notifyConfigChanged();
-      await waitUntil(() => calls === 2);
+      await vi.waitFor(() => expect(calls).toBe(2));
       if (event === 'close') {
         closeDocument(harness, siblingUri);
       } else {
@@ -4470,7 +4471,7 @@ describe('language server config failure surfacing', {
     await harness.waitForDiagnostics(schemaUri);
 
     harness.notifyConfigChanged();
-    await waitUntil(() => call === 2);
+    await vi.waitFor(() => expect(call).toBe(2));
     harness.client.sendNotification(DidCloseTextDocumentNotification.type, {
       textDocument: { uri: schemaUri },
     });
@@ -4495,8 +4496,10 @@ describe('language server config failure surfacing', {
     });
     await harness.initialize();
     openDocument(harness, schemaUri, cleanSchema);
+    const reload = vi.spyOn(Project.prototype, 'reload');
+    onTestFinished(() => reload.mockRestore());
     harness.notifyConfigChanged();
-    await settle();
+    await vi.waitFor(() => expect(reload).toHaveBeenCalledOnce());
     first.reject(new Error('superseded failure'));
 
     const published = await harness.waitForDiagnostics(schemaUri);
@@ -4518,11 +4521,10 @@ describe('language server config failure surfacing', {
     await harness.initialize();
     openDocument(harness, schemaUri, cleanSchema);
 
+    const reload = vi.spyOn(Project.prototype, 'reload');
+    onTestFinished(() => reload.mockRestore());
     harness.notifyConfigChanged();
-    // The watched-config handler swaps the current load synchronously before
-    // its first await; settling lets that notification dispatch, so the
-    // rejection below lands on a superseded load.
-    await settle();
+    await vi.waitFor(() => expect(reload).toHaveBeenCalledOnce());
     first.reject(new Error('superseded failure'));
 
     await harness.waitForDiagnostics(schemaUri);
@@ -5041,11 +5043,15 @@ describe('language server whole-project push and freshness', {
         changes: [{ uri: memberBUri, type: FileChangeType.Changed }],
       });
       if (refreshSupport) await harness.waitForDiagnosticRefresh();
-      else await settle();
-      expect(await requestPullDiagnostics(harness, memberAUri)).toMatchObject({
-        relatedDocuments: {
-          [memberBUri]: { items: [expect.objectContaining({ code: 'PSL_DUPLICATE_DECLARATION' })] },
-        },
+      const activeHarness = harness;
+      await vi.waitFor(async () => {
+        expect(await requestPullDiagnostics(activeHarness, memberAUri)).toMatchObject({
+          relatedDocuments: {
+            [memberBUri]: {
+              items: [expect.objectContaining({ code: 'PSL_DUPLICATE_DECLARATION' })],
+            },
+          },
+        });
       });
       expect(harness.diagnosticRefreshCount()).toBe(refreshSupport ? 1 : 0);
       expect(harness.publishCount(memberAUri)).toBe(0);

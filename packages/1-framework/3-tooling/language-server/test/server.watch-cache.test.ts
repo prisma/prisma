@@ -265,6 +265,25 @@ it('reconciles readiness and coalesces external changes without editor messages'
   await vi.waitFor(() => expect(h.publish).toHaveBeenCalledOnce());
   expect(h.publish).toHaveBeenLastCalledWith({ uri: h.uri, diagnostics: [] });
 });
+it('reads the final write after the backend change-coalescing window', async () => {
+  const h = await fixture();
+  await h.project.reload();
+  h.publish.mockClear();
+  vi.useFakeTimers();
+  try {
+    await writeFile(h.path, duplicate);
+    state.watchers[0]!.onChange(h.path);
+    await vi.advanceTimersByTimeAsync(25);
+    expect(h.documents.text(h.uri)).toBe(alpha);
+    await writeFile(h.path, alpha);
+    await vi.advanceTimersByTimeAsync(25);
+  } finally {
+    vi.useRealTimers();
+  }
+  await vi.waitFor(() => expect(h.refresh).toHaveBeenCalledOnce());
+  expect(h.publish).toHaveBeenLastCalledWith({ uri: h.uri, diagnostics: [] });
+});
+
 it('logs errors without stat fallback or suspension and reload recovers missed changes', async () => {
   const h = await fixture();
   await h.project.reload();
