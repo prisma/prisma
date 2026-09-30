@@ -7,12 +7,18 @@ import { dirname, join } from 'pathe';
 import { afterEach, expect, it, vi } from 'vitest';
 import {
   createConnection,
+  InitializeRequest,
+  RegistrationRequest,
+  ShutdownRequest,
   StreamMessageReader,
   StreamMessageWriter,
+  UnregistrationRequest,
 } from 'vscode-languageserver/node';
 import { DocumentStore } from '../src/document-store';
+import { guardedConnection } from '../src/guarded-connection';
 import { Project } from '../src/project';
 import { resolveSchemaInputs } from '../src/schema-inputs';
+import { createServer } from '../src/server';
 import { testTypeConstructors } from './helpers/binder';
 
 const state = vi.hoisted(() => ({
@@ -70,7 +76,7 @@ vi.mock('../src/config-resolution', async (importOriginal) => {
 const cleanups: (() => void | Promise<void>)[] = [];
 const alpha = '// use prisma-8\nmodel Alpha {\n id Int\n}\n';
 const duplicate = `${alpha}\nmodel Alpha {\n id Int\n}\n`;
-async function fixture(watched = false, deadline = 10000) {
+async function fixture(watched = false, deadline = 10000, protocolRegistration = false) {
   const dir = await mkdtemp(join(tmpdir(), 'project-watching-'));
   const path = join(dir, 'schema.prisma');
   const config = join(dir, 'prisma.config.ts');
@@ -86,19 +92,20 @@ async function fixture(watched = false, deadline = 10000) {
   const warn = vi.spyOn(connection.console, 'warn').mockImplementation(() => {});
   const register =
     vi.fn<() => Promise<{ dispose: () => void; disposeSingle: () => boolean } | undefined>>();
+  const request = vi.spyOn(connection, 'sendRequest');
   const documents = new DocumentStore();
   let sequence = 0;
   const refresh = vi.fn();
   const project = new Project(config, {
     documents,
-    connection,
+    connection: guardedConnection(connection),
     pullDiagnostics: false,
     watchedFilesRegistration: watched,
     nextSequence: () => ++sequence,
     unmanage: vi.fn(),
     refreshDiagnostics: refresh,
     registrationTimeoutMs: deadline,
-    registerWatcher: register,
+    ...(protocolRegistration ? {} : { registerWatcher: register }),
   });
   cleanups.push(async () => {
     await project.dispose();
@@ -107,7 +114,22 @@ async function fixture(watched = false, deadline = 10000) {
     output.destroy();
     await rm(dir, { recursive: true, force: true });
   });
-  return { dir, path, config, uri, project, documents, register, publish, warn, refresh };
+  return {
+    dir,
+    path,
+    config,
+    uri,
+    project,
+    documents,
+    register,
+    request,
+    publish,
+    warn,
+    refresh,
+    connection,
+    input,
+    output,
+  };
 }
 afterEach(async () => {
   for (const cleanup of cleanups.reverse()) await cleanup();
@@ -116,6 +138,70 @@ afterEach(async () => {
   state.inputs = undefined;
   vi.restoreAllMocks();
 });
+
+it.each(['success', 'rejection'] as const)(
+  'distinguishes void registration success from rejection through the guarded connection: %s',
+  async (outcome) => {
+    const h = await fixture(true, 10000, true);
+    if (outcome === 'success') h.request.mockResolvedValue(undefined);
+    else h.request.mockRejectedValue(new Error('registration denied'));
+    await h.project.reload();
+    if (outcome === 'success') {
+      await vi.waitFor(() => expect(h.refresh).toHaveBeenCalledOnce());
+      expect(state.watchers).toHaveLength(0);
+      expect(h.warn).not.toHaveBeenCalled();
+    } else {
+      await vi.waitFor(() => expect(state.watchers).toHaveLength(1));
+      expect(h.warn).toHaveBeenCalledWith(expect.stringContaining('registration denied'));
+      expect(await h.project.diagnosticReport(h.uri)).toMatchObject({ items: [] });
+    }
+  },
+);
+
+it.each(['success', 'rejection'] as const)(
+  'selects watching from an actual client registration response: %s',
+  async (outcome) => {
+    const h = await fixture();
+    await writeFile(h.config, '');
+    const client = createConnection(
+      new StreamMessageReader(h.output),
+      new StreamMessageWriter(h.input),
+    );
+    const registration = vi.fn(() => {
+      if (outcome === 'rejection') throw new Error('client refused watching');
+      return undefined;
+    });
+    client.onRequest(RegistrationRequest.type, registration);
+    client.onRequest(UnregistrationRequest.type, () => undefined);
+    const server = createServer(h.connection);
+    client.listen();
+    cleanups.push(async () => {
+      await client.sendRequest(ShutdownRequest.type);
+      for (const request of h.request.mock.results) {
+        if (request.type === 'return') await request.value.catch(() => undefined);
+      }
+      await server.dispose();
+      client.dispose();
+    });
+    await client.sendRequest(InitializeRequest.type, {
+      processId: null,
+      rootUri: null,
+      capabilities: { workspace: { didChangeWatchedFiles: { dynamicRegistration: true } } },
+    });
+    await client.sendRequest('textDocument/foldingRange', { textDocument: { uri: h.uri } });
+    await vi.waitFor(() => expect(registration).toHaveBeenCalledOnce());
+    if (outcome === 'rejection') {
+      await vi.waitFor(() => expect(state.watchers).toHaveLength(1));
+      expect(h.warn).toHaveBeenCalledWith(expect.stringContaining('client refused watching'));
+    } else {
+      await vi.waitFor(() =>
+        expect(h.publish).toHaveBeenCalledWith({ uri: h.uri, diagnostics: [] }),
+      );
+      expect(state.watchers).toHaveLength(0);
+      expect(h.warn).not.toHaveBeenCalled();
+    }
+  },
+);
 
 it('uses compatible successful client registration without an internal duplicate', async () => {
   const h = await fixture(true);
@@ -200,9 +286,10 @@ it('preserves overlays and rejects callbacks from superseded generations', async
   await writeFile(h.path, duplicate);
   await h.project.reload();
   h.publish.mockClear();
+  expect(old.close).not.toHaveBeenCalled();
   old.onReady();
-  old.onChange(h.config);
   state.watchers[1]!.onReady();
+  old.onChange(h.config);
   await vi.waitFor(() => expect(h.publish).toHaveBeenCalledOnce());
   expect(h.documents.text(h.uri)).toBe(alpha);
   expect(state.watchers).toHaveLength(2);

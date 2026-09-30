@@ -4470,13 +4470,17 @@ describe('language server config failure surfacing', {
     await harness.waitForDiagnostics(schemaUri);
 
     harness.notifyConfigChanged();
-    await settle();
+    await waitUntil(() => call === 2);
     harness.client.sendNotification(DidCloseTextDocumentNotification.type, {
       textDocument: { uri: schemaUri },
     });
-    await settle();
+    await requestFormatting(harness, schemaUri);
+    const failure = harness.waitForDiagnosticsMatching(
+      configUri,
+      (diagnostics) => diagnostics.length > 0,
+    );
     gate.reject(new Error('config exploded'));
-    await settle();
+    await failure;
 
     expect(harness.nonEmptyPublishCount(configUri)).toBe(1);
     expect(harness.latestDiagnostics(configUri)?.length).toBeGreaterThan(0);
