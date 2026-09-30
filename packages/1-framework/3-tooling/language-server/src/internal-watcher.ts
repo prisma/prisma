@@ -117,13 +117,6 @@ export class InternalWatcher {
         },
       });
       this.#watchers.push(watcher);
-      if (watcher.options.usePolling) {
-        await watcher.close();
-        throw structuredError(
-          'LSP.WATCH_UNAVAILABLE',
-          'Internal file watching cannot enable polling',
-        );
-      }
       watcher.on('error', callbacks.onError);
       watcher.on('all', (_event, path) => {
         if (!this.#closed) callbacks.onChange(path);

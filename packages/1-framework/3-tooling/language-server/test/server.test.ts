@@ -3098,7 +3098,7 @@ function controlledPromise(): { readonly promise: Promise<void>; readonly resolv
 async function waitUntil(predicate: () => boolean): Promise<void> {
   const startedAt = Date.now();
   while (!predicate()) {
-    if (Date.now() - startedAt > timeouts.default) {
+    if (Date.now() - startedAt > timeouts.databaseOperation) {
       throw new Error('Timed out waiting for condition');
     }
     await new Promise((resolve) => setTimeout(resolve, 1));

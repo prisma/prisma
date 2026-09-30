@@ -265,25 +265,74 @@ it('reconciles readiness and coalesces external changes without editor messages'
   await vi.waitFor(() => expect(h.publish).toHaveBeenCalledOnce());
   expect(h.publish).toHaveBeenLastCalledWith({ uri: h.uri, diagnostics: [] });
 });
-it('reads the final write after the backend change-coalescing window', async () => {
+it('batches multiple files after 100 ms of silence following the last notification', async () => {
   const h = await fixture();
   await h.project.reload();
-  h.publish.mockClear();
+  const membership = vi.spyOn(h.project, 'refreshMembership').mockResolvedValue(true);
+  const invalidate = vi.spyOn(h.documents, 'invalidateTree');
+  const other = join(h.dir, 'other.prisma');
   vi.useFakeTimers();
   try {
-    await writeFile(h.path, duplicate);
-    state.watchers[0]!.onChange(join(h.dir, 'other.prisma'));
-    await vi.advanceTimersByTimeAsync(25);
+    state.watchers[0]!.onChange(other);
+    await vi.advanceTimersByTimeAsync(75);
+    expect(membership).not.toHaveBeenCalled();
     state.watchers[0]!.onChange(h.path);
-    await vi.advanceTimersByTimeAsync(25);
-    expect(h.documents.text(h.uri)).toBe(alpha);
-    await writeFile(h.path, alpha);
-    await vi.advanceTimersByTimeAsync(25);
+    await vi.advanceTimersByTimeAsync(75);
+    state.watchers[0]!.onChange(other);
+    await vi.advanceTimersByTimeAsync(99);
+    expect(membership).not.toHaveBeenCalled();
+    expect(invalidate).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(membership).toHaveBeenCalledOnce();
+    expect(invalidate.mock.calls).toEqual([[pathToFileURL(other).toString()], [h.uri]]);
+    expect(h.refresh).toHaveBeenCalledOnce();
   } finally {
     vi.useRealTimers();
   }
-  await vi.waitFor(() => expect(h.refresh).toHaveBeenCalledOnce());
-  expect(h.publish).toHaveBeenLastCalledWith({ uri: h.uri, diagnostics: [] });
+});
+
+it('queues multiple files and readiness received during analysis for a later batch', async () => {
+  const h = await fixture();
+  await h.project.reload();
+  let finish!: (value: boolean) => void;
+  const membership = vi
+    .spyOn(h.project, 'refreshMembership')
+    .mockResolvedValue(true)
+    .mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finish = resolve;
+        }),
+    );
+  const invalidate = vi.spyOn(h.documents, 'invalidateTree');
+  const snapshots = vi.spyOn(h.documents, 'invalidate');
+  const other = join(h.dir, 'other.prisma');
+  vi.useFakeTimers();
+  try {
+    state.watchers[0]!.onChange(h.path);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(membership).toHaveBeenCalledOnce();
+    invalidate.mockClear();
+    snapshots.mockClear();
+    state.watchers[0]!.onChange(other);
+    state.watchers[0]!.onChange(h.path);
+    state.watchers[0]!.onReady();
+    await vi.advanceTimersByTimeAsync(200);
+    expect(membership).toHaveBeenCalledOnce();
+    expect(invalidate).not.toHaveBeenCalled();
+    finish(true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(h.refresh).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(99);
+    expect(membership).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(membership).toHaveBeenCalledTimes(2);
+    expect(invalidate.mock.calls).toEqual([[pathToFileURL(other).toString()], [h.uri]]);
+    expect(snapshots).toHaveBeenCalledWith(h.uri);
+    expect(h.refresh).toHaveBeenCalledTimes(2);
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 it('logs errors without stat fallback or suspension and reload recovers missed changes', async () => {
