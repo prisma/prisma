@@ -17,7 +17,7 @@ import {
 import type { PslInterpretCapable } from '@internal/psl-parser/interpret';
 import { parse } from '@internal/psl-parser/syntax';
 import { notOk, ok } from '@internal/utils/result';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import { LSPErrorCodes, ResponseError } from 'vscode-languageserver';
 import type { ProjectInterpretation } from '../src/config-resolution';
 import { mapParseDiagnostics } from '../src/diagnostic-mapping';
@@ -36,18 +36,24 @@ afterEach(() => {
   vi.mocked(parse).mockClear();
 });
 
-const schemaUri = 'file:///abs/schema.psl';
-const siblingUri = 'file:///abs/sibling.psl';
-const aliasUri = 'file:///abs/%73chema.psl';
+const fixtureRoot = await mkdtemp(join(tmpdir(), 'project-artifacts-inputs-'));
+afterAll(() => rm(fixtureRoot, { recursive: true, force: true }));
+const schemaPath = join(fixtureRoot, 'schema.psl');
+const siblingPath = join(fixtureRoot, 'sibling.psl');
+const schemaUri = pathToFileURL(schemaPath).toString();
+const siblingUri = pathToFileURL(siblingPath).toString();
+const aliasUri = schemaUri.replace('/schema.psl', '/%73chema.psl');
 const directive = '// use prisma-8\n';
 const cleanSource = `${directive}model User {\n  id Int @id\n}\n`;
 const siblingSource = `${directive}model Post {\n  id Int @id\n  user User\n}\n`;
+await writeFile(schemaPath, cleanSource);
+await writeFile(siblingPath, siblingSource);
 const inputs = await resolveSchemaInputs(
-  { contract: { source: { format: 'psl', inputs: ['/abs/schema.psl'] } } },
+  { contract: { source: { format: 'psl', inputs: [schemaPath] } } },
   () => directive,
 );
 const bothInputs = await resolveSchemaInputs(
-  { contract: { source: { format: 'psl', inputs: ['/abs/schema.psl', '/abs/sibling.psl'] } } },
+  { contract: { source: { format: 'psl', inputs: [schemaPath, siblingPath] } } },
   () => directive,
 );
 

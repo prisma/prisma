@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import type { PrismaNextConfig } from '@internal/config-loader';
@@ -21,6 +21,21 @@ import { resolveConfigInputs } from '../src/config-resolution';
 
 vi.mock('@internal/config-loader', { spy: true });
 vi.mock('@internal/framework-components/control', { spy: true });
+
+const schemaFixtureRoots: string[] = [];
+afterEach(async () => {
+  await Promise.all(
+    schemaFixtureRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
+  );
+});
+
+async function schemaFixture(name: string): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), 'config-resolution-schema-'));
+  schemaFixtureRoots.push(root);
+  const path = join(root, name);
+  await writeFile(path, '// use prisma-8\n');
+  return path;
+}
 
 function mockLoadedConfig(
   config: PrismaNextConfig,
@@ -229,7 +244,8 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
   });
 
   it('surfaces the control-stack-derived inputs for a psl config', async () => {
-    mockLoadedConfig(loadedConfig('psl', ['/abs/schema.psl']));
+    const schemaPath = await schemaFixture('schema.psl');
+    mockLoadedConfig(loadedConfig('psl', [schemaPath]));
     vi.spyOn(control, 'createControlStack').mockReturnValue(stubStack(['Int'], {}));
 
     const result = await resolveConfigInputs('/abs/prisma.config.ts', () => '// use prisma-8\n');
@@ -242,7 +258,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
       dataTypes: stubDataTypes,
     });
     expect(result.controlStack.dataTypes).toBe(stubDataTypes);
-    expect(result.inputs.includes(pathToFileURL('/abs/schema.psl').toString())).toBe(true);
+    expect(result.inputs.includes(pathToFileURL(schemaPath).toString())).toBe(true);
   });
 });
 
@@ -328,7 +344,8 @@ describe('interpretation resolution', () => {
   });
 
   it('carries the guarded source and a stack-assembled context for a capable psl config', async () => {
-    const config = interpretCapableConfig(['/abs/schema.prisma']);
+    const schemaPath = await schemaFixture('schema.prisma');
+    const config = interpretCapableConfig([schemaPath]);
     const stack = stubStackWithContext();
     mockLoadedConfig(config);
     vi.spyOn(control, 'createControlStack').mockReturnValue(stack);
@@ -344,7 +361,7 @@ describe('interpretation resolution', () => {
     expect(context?.codecLookup).toBe(stack.codecLookup);
     expect(context?.controlMutationDefaults).toBe(stack.controlMutationDefaults);
     expect(context?.capabilities).toBe(stack.capabilities);
-    expect(context?.resolvedInputs).toEqual([pathToFileURL('/abs/schema.prisma').toString()]);
+    expect(context?.resolvedInputs).toEqual([pathToFileURL(schemaPath).toString()]);
     expect(context?.defaultNamespaceId).toBe('demo_default');
   });
 
