@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -102,6 +102,76 @@ describe('expandContractInputs', () => {
     const result = await expandContractInputs([join(dir, 'a/*.prisma'), join(dir, 'b/*.prisma')]);
 
     expect(result).toEqual([first, second]);
+  });
+
+  it.each([
+    {
+      pattern: '[ab].prisma',
+      files: ['a.prisma', 'b.prisma', '[ab].prisma'],
+      matches: ['a.prisma', 'b.prisma'],
+    },
+    { pattern: '[[]id[]].prisma', files: ['[id].prisma', 'i.prisma'], matches: ['[id].prisma'] },
+    {
+      pattern: '[!a].prisma',
+      files: ['a.prisma', 'b.prisma', '!.prisma'],
+      matches: ['!.prisma', 'b.prisma'],
+    },
+    {
+      pattern: '{a,b}.prisma',
+      files: ['a.prisma', 'b.prisma', 'c.prisma'],
+      matches: ['a.prisma', 'b.prisma'],
+    },
+    {
+      pattern: '**/?.prisma',
+      files: ['a.prisma', 'nested/b.prisma', 'nested/long.prisma'],
+      matches: ['a.prisma', 'nested/b.prisma'],
+    },
+    {
+      pattern: '**/*.prisma',
+      files: ['a.prisma', '.hidden.prisma', '.hidden/b.prisma', 'nested/.hidden.prisma'],
+      matches: ['a.prisma'],
+    },
+    {
+      pattern: '**/.*.prisma',
+      files: ['a.prisma', '.hidden.prisma', 'nested/.hidden.prisma', '.hidden/b.prisma'],
+      matches: ['.hidden.prisma', 'nested/.hidden.prisma'],
+    },
+    {
+      pattern: '.hidden/*.prisma',
+      files: ['.hidden/a.prisma', '.hidden/.hidden.prisma'],
+      matches: ['.hidden/a.prisma'],
+    },
+  ])(
+    'uses Node defaults for $pattern outside cwd and for future paths',
+    async ({ pattern, files, matches }) => {
+      const dir = await createFixtureDir();
+      const absolutePattern = join(dir, pattern);
+      for (const file of files) {
+        const path = join(dir, file);
+        expect(globContractInputMatching([absolutePattern], path)).toBe(
+          matches.includes(file) ? absolutePattern : undefined,
+        );
+        await mkdir(join(path, '..'), { recursive: true });
+        await writeFile(path, 'model User {}\n', 'utf-8');
+      }
+
+      expect(await expandContractInputs([absolutePattern])).toEqual(
+        matches.map((file) => join(dir, file)).sort(),
+      );
+    },
+  );
+
+  it('includes symlink files but excludes symlink directories and dangling symlinks', async () => {
+    const dir = await createFixtureDir();
+    const file = join(dir, 'schema.prisma');
+    const link = join(dir, 'link.prisma');
+    await writeFile(file, 'model User {}\n', 'utf-8');
+    await mkdir(join(dir, 'nested'));
+    await symlink(file, link, 'file');
+    await symlink(join(dir, 'nested'), join(dir, 'directory.prisma'), 'dir');
+    await symlink(join(dir, 'missing.prisma'), join(dir, 'dangling.prisma'), 'file');
+
+    expect(await expandContractInputs([join(dir, '*.prisma'), file])).toEqual([link, file]);
   });
 
   it('passes a Windows UNC literal through byte-intact, without collapsing the authority', async () => {

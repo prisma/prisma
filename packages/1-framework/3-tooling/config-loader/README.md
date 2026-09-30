@@ -17,6 +17,12 @@ performs the emitter-derived artifact-collision check (`getEmittedArtifactPaths`
 
 The package also exports the pieces `loadConfig` is built from: `loadConfigFiles` evaluates the config chain and returns each file's sections as written, `evaluateConfigModule` returns one config file's raw default export, and `buildLoadedConfig` validates an `orm` section built in memory, resolving its paths against a given directory as if a `prisma.config.ts` there had written it.
 
+## Contract input expansion
+
+The config schema resolves `contract.source.inputs` against the config file that declares them. `expandContractInputs` expands these absolute patterns using Node.js 24+ built-in `fs/promises.glob` defaults, including locations outside the process working directory. Results are absolute, deduplicated, sorted files. Symbolic links to files are included; directories and dangling symbolic links matched by a glob are excluded. Literal paths pass through without checking existence or expanding directories, preserving UNC literals intact.
+
+`globContractInputMatching` uses Node's `path.matchesGlob` to check potential future paths without requiring files to exist. Wildcards do not match leading dots by default: explicitly name dot-prefixed segments to include hidden files or directories (for example, `**/.*.prisma` or `.schemas/*.prisma`). Bracket classes, bracket escapes such as `[[]id[]]`, brace alternatives, `?`, and `**` follow Node's semantics, not an exact VS Code-compatible grammar. There is no configurable dotfile option. `tinyglobby.isDynamicPattern` remains the classification helper that distinguishes patterns from literal inputs; it no longer enumerates files.
+
 ## Usage
 
 ```ts
