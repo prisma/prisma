@@ -272,6 +272,8 @@ it('reads the final write after the backend change-coalescing window', async () 
   vi.useFakeTimers();
   try {
     await writeFile(h.path, duplicate);
+    state.watchers[0]!.onChange(join(h.dir, 'other.prisma'));
+    await vi.advanceTimersByTimeAsync(25);
     state.watchers[0]!.onChange(h.path);
     await vi.advanceTimersByTimeAsync(25);
     expect(h.documents.text(h.uri)).toBe(alpha);

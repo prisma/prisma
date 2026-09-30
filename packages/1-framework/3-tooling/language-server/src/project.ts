@@ -638,7 +638,8 @@ export class Project {
     if (this.#disposed) return;
     for (const uri of uris) this.#pendingPaths.add(uri);
     this.#reconcile ||= reconcile;
-    if (this.#batchTimer !== undefined || this.#batch !== undefined) return;
+    if (this.#batch !== undefined) return;
+    if (this.#batchTimer !== undefined) clearTimeout(this.#batchTimer);
     this.#batchTimer = setTimeout(() => {
       this.#batchTimer = undefined;
       const generation = this.#watcherGeneration;
