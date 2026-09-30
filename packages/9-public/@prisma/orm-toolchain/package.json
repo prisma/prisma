@@ -27,10 +27,10 @@
     "jsonc-parser": "^3.3.1",
     "package-manager-detector": "^1.8.0",
     "pathe": "^2.0.3",
+    "picomatch": "^4.0.5",
     "prettier": "^3.9.6",
     "string-width": "^8.2.2",
     "strip-ansi": "^7.2.0",
-    "tinyglobby": "catalog:",
     "vscode-languageserver": "catalog:",
     "vscode-languageserver-textdocument": "catalog:",
     "wrap-ansi": "^10.0.0"

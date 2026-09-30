@@ -5392,6 +5392,9 @@ importers:
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
+      picomatch:
+        specifier: ^4.0.5
+        version: 4.0.5
       prettier:
         specifier: ^3.9.6
         version: 3.9.6
@@ -5401,9 +5404,6 @@ importers:
       strip-ansi:
         specifier: ^7.2.0
         version: 7.2.0
-      tinyglobby:
-        specifier: 'catalog:'
-        version: 0.2.17
       vite:
         specifier: ^7.0.0 || ^8.0.0
         version: 8.1.4(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0)
