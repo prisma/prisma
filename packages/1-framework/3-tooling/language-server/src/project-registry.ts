@@ -1,4 +1,4 @@
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { findNearestConfigPathForFile } from '@internal/config-loader';
 import { join } from 'pathe';
 import {
@@ -103,7 +103,10 @@ export class ProjectRegistry {
           .filter((change) => {
             const path = filePathFromUri(change.uri);
             return (
-              path !== undefined && (!path.endsWith(CONFIG_FILENAME) || path === project.configPath)
+              path !== undefined &&
+              (!path.endsWith(CONFIG_FILENAME) ||
+                canonicalFileIdentity(change.uri) ===
+                  canonicalFileIdentity(pathToFileURL(project.configPath).toString()))
             );
           })
           .map((change) => change.uri),
