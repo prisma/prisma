@@ -174,6 +174,16 @@ describe('expandContractInputs', () => {
     expect(await expandContractInputs([join(dir, '*.prisma'), file])).toEqual([link, file]);
   });
 
+  it('excludes a self-referencing symlink without losing other glob matches', async () => {
+    const dir = await createFixtureDir();
+    const file = join(dir, 'real.prisma');
+    const loop = join(dir, 'loop.prisma');
+    await writeFile(file, 'model User {}\n', 'utf-8');
+    await symlink(loop, loop, 'file');
+
+    expect(await expandContractInputs([join(dir, '*.prisma')])).toEqual([file]);
+  });
+
   it('passes a Windows UNC literal through byte-intact, without collapsing the authority', async () => {
     const uncPath = '\\\\server\\share\\schema.prisma';
 

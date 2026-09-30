@@ -13,6 +13,17 @@ function resolveLiteral(entry: string): string {
   return isUncLike(entry) ? entry : resolve(entry);
 }
 
+async function isSymlinkFile(path: string): Promise<boolean> {
+  try {
+    return (await stat(path, { throwIfNoEntry: false }))?.isFile() ?? false;
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ELOOP') {
+      return false;
+    }
+    throw error;
+  }
+}
+
 export async function expandContractInputs(
   patterns: readonly string[] | undefined,
 ): Promise<readonly string[]> {
@@ -28,10 +39,7 @@ export async function expandContractInputs(
   if (globPatterns.length > 0) {
     for await (const entry of glob(globPatterns, { withFileTypes: true })) {
       const path = resolve(entry.parentPath, entry.name);
-      if (
-        entry.isFile() ||
-        (entry.isSymbolicLink() && (await stat(path, { throwIfNoEntry: false }))?.isFile())
-      ) {
+      if (entry.isFile() || (entry.isSymbolicLink() && (await isSymlinkFile(path)))) {
         canonical.add(path);
       }
     }
