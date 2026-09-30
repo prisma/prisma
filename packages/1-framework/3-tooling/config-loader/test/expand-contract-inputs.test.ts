@@ -34,24 +34,24 @@ describe('expandContractInputs', () => {
     expect(await expandContractInputs([join(dir, '*.prisma')])).toEqual([]);
   });
 
-  it('passes a nonexistent literal path through unchanged, no existence check', async () => {
+  it('excludes a nonexistent wildcard-free path', async () => {
     const dir = await createFixtureDir();
     const missing = join(dir, 'schema.prisma');
 
-    expect(await expandContractInputs([missing])).toEqual([missing]);
+    expect(await expandContractInputs([missing])).toEqual([]);
   });
 
   it.each(['{literal}.prisma', '[unfinished.prisma', 'plain.prisma'])(
-    'preserves a missing literal %s',
+    'excludes a missing input %s while matching future paths with Node semantics',
     async (name) => {
       const dir = await createFixtureDir();
       const path = join(dir, name);
-      expect(await expandContractInputs([path])).toEqual([path]);
-      expect(globContractInputMatching([path], path)).toBeUndefined();
+      expect(await expandContractInputs([path])).toEqual([]);
+      expect(globContractInputMatching([path], path)).toBe(path);
     },
   );
 
-  it('passes an existing wildcard-free literal path through unchanged', async () => {
+  it('expands an existing wildcard-free input to its file', async () => {
     const dir = await createFixtureDir();
     const file = join(dir, 'schema.prisma');
     await writeFile(file, 'model User {}\n', 'utf-8');
@@ -59,12 +59,12 @@ describe('expandContractInputs', () => {
     expect(await expandContractInputs([file])).toEqual([file]);
   });
 
-  it('passes a directory literal through unchanged, no directory expansion', async () => {
+  it('excludes a directory input without expanding its children', async () => {
     const dir = await createFixtureDir();
     await writeFile(join(dir, 'a.prisma'), 'model A {}\n', 'utf-8');
     await writeFile(join(dir, 'b.prisma'), 'model B {}\n', 'utf-8');
 
-    expect(await expandContractInputs([dir])).toEqual([dir]);
+    expect(await expandContractInputs([dir])).toEqual([]);
   });
 
   it('expands a glob matching a directory to its files only, never the directory itself', async () => {
@@ -219,19 +219,19 @@ describe('expandContractInputs', () => {
     expect(await expandContractInputs([join(dir, '*.prisma')])).toEqual([file]);
   });
 
-  it('passes a Windows UNC literal through byte-intact, without collapsing the authority', async () => {
+  it('excludes a missing Windows UNC input', async () => {
     const uncPath = '\\\\server\\share\\schema.prisma';
 
-    expect(await expandContractInputs([uncPath])).toEqual([uncPath]);
+    expect(await expandContractInputs([uncPath])).toEqual([]);
   });
 
-  it('passes a forward-slash-normalized UNC literal through byte-intact', async () => {
+  it('excludes a missing forward-slash UNC input', async () => {
     const uncPath = '//server/share/schema.prisma';
 
-    expect(await expandContractInputs([uncPath])).toEqual([uncPath]);
+    expect(await expandContractInputs([uncPath])).toEqual([]);
   });
 
-  it('reaches resolvedInputs intact through the same assembly every emit consumer uses', async () => {
+  it('includes only existing files in resolvedInputs', async () => {
     const dir = await createFixtureDir();
     const ordinary = join(dir, 'schema.prisma');
     await writeFile(ordinary, 'model User {}\n', 'utf-8');
@@ -239,7 +239,7 @@ describe('expandContractInputs', () => {
 
     const resolvedInputs = await expandContractInputs([ordinary, uncPath]);
 
-    expect(resolvedInputs).toEqual([ordinary, uncPath].sort());
+    expect(resolvedInputs).toEqual([ordinary]);
   });
 });
 
@@ -262,9 +262,9 @@ describe('globContractInputMatching', () => {
     ).toBeUndefined();
   });
 
-  it('does not treat an input with no wildcard as a glob', () => {
+  it('matches an input with no wildcard using Node semantics', () => {
     expect(
       globContractInputMatching(['/app/prisma/contract.prisma'], '/app/prisma/contract.prisma'),
-    ).toBeUndefined();
+    ).toBe('/app/prisma/contract.prisma');
   });
 });

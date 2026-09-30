@@ -35,6 +35,17 @@ it('derives literal safe roots for glob syntax and future directories', async ()
   expect(await watchRoots([join(dir, '{one/nested,two}/**/*.prisma')])).toEqual([dir]);
   await expect(watchRoots([`${dir}/*/../../*.prisma`])).rejects.toThrow('traversal');
 });
+it.each(['*', '?', '[unfinished', '{literal}', '@(one|two)', '!(one)'])(
+  'uses a conservative root boundary for %s outside the config directory',
+  async (segment) => {
+    const dir = await directory();
+    await mkdir(join(dir, segment));
+    expect(await watchRoots([join(dir, segment, 'nested/schema.prisma')])).toEqual([dir]);
+    await expect(watchRoots([`${dir}/${segment}/../../schema.prisma`])).rejects.toThrow(
+      'traversal',
+    );
+  },
+);
 it('refuses an environment override that would enable polling', async () => {
   const dir = await directory();
   vi.stubEnv('CHOKIDAR_USEPOLLING', 'true');
