@@ -1548,9 +1548,9 @@ importers:
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
-      tinyglobby:
-        specifier: 'catalog:'
-        version: 0.2.17
+      picomatch:
+        specifier: ^4.0.5
+        version: 4.0.5
     devDependencies:
       '@prisma/cli-engine':
         specifier: 0.7.0
@@ -1567,6 +1567,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 26.1.2
+      '@types/picomatch':
+        specifier: ^4.0.3
+        version: 4.0.3
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
@@ -1652,9 +1655,9 @@ importers:
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
-      tinyglobby:
-        specifier: 'catalog:'
-        version: 0.2.17
+      picomatch:
+        specifier: ^4.0.5
+        version: 4.0.5
       vscode-languageserver:
         specifier: 'catalog:'
         version: 10.1.0
@@ -1674,6 +1677,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 26.1.2
+      '@types/picomatch':
+        specifier: ^4.0.3
+        version: 4.0.3
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
@@ -9035,6 +9041,9 @@ packages:
   '@types/pg@8.20.4':
     resolution: {integrity: sha512-Jz7UDOlIiFJuacC0TlBoLyNtmwlA/wpIyPDd3tvUqlRM+HzkWy2xUgpFpaXtbfTAFF6sIGq5lsCDBdJnhky1Xg==}
 
+  '@types/picomatch@4.0.3':
+    resolution: {integrity: sha512-iG0T6+nYJ9FAPmx9SsUlnwcq1ZVRuCXcVEvWnntoPlrOpwtSTKNDC9uVAxTsC3PUvJ+99n4RpAcNgBbHX3JSnQ==}
+
   '@types/pluralize@0.0.33':
     resolution: {integrity: sha512-JOqsl+ZoCpP4e8TDke9W79FDcSgPAR0l6pixx2JHkhnRjvShyYiAYw2LVsnA7K08Y6DeOnaU6ujmENO4os/cYg==}
 
@@ -14585,6 +14594,8 @@ snapshots:
       '@types/node': 26.1.2
       pg-protocol: 1.15.0
       pg-types: 2.2.0
+
+  '@types/picomatch@4.0.3': {}
 
   '@types/pluralize@0.0.33': {}
 

@@ -24,7 +24,7 @@
     "@internal/utils": "workspace:8.0.0-rc.17",
     "chokidar": "catalog:",
     "pathe": "^2.0.3",
-    "tinyglobby": "catalog:",
+    "picomatch": "^4.0.5",
     "vscode-languageserver": "catalog:",
     "vscode-languageserver-textdocument": "catalog:"
   },
@@ -33,6 +33,7 @@
     "@repo/tsconfig": "workspace:8.0.0-rc.17",
     "@repo/tsdown": "workspace:8.0.0-rc.17",
     "@types/node": "catalog:",
+    "@types/picomatch": "^4.0.3",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

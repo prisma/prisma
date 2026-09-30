@@ -1,9 +1,14 @@
 import { glob, stat } from 'node:fs/promises';
 import { matchesGlob } from 'node:path';
 import { resolve } from 'pathe';
-import { isDynamicPattern } from 'tinyglobby';
+import picomatch from 'picomatch';
 
 const UNC_PREFIX_RE = /^(?:\\\\|\/\/)/;
+
+function isDynamicPattern(pattern: string): boolean {
+  const { isGlob, negated } = picomatch.scan(pattern);
+  return isGlob || negated;
+}
 
 function isUncLike(entry: string): boolean {
   return UNC_PREFIX_RE.test(entry);

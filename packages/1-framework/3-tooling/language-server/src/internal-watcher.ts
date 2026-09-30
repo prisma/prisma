@@ -3,7 +3,12 @@ import { dirname, isAbsolute, parse, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { structuredError } from '@internal/utils/structured-error';
 import { FSWatcher } from 'chokidar';
-import { isDynamicPattern } from 'tinyglobby';
+import picomatch from 'picomatch';
+
+function isDynamicPattern(pattern: string): boolean {
+  const { isGlob, negated } = picomatch.scan(pattern);
+  return isGlob || negated;
+}
 
 interface WatchCallbacks {
   readonly onReady: () => void;

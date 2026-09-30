@@ -15,13 +15,17 @@ async function directory() {
   cleanups.push(() => rm(dir, { recursive: true, force: true }));
   return dir;
 }
-it('derives literal safe roots for tinyglobby syntax and future directories', async () => {
+it('derives literal safe roots for glob syntax and future directories', async () => {
   const dir = await directory();
   await mkdir(join(dir, 'schemas'));
   expect(
     await watchRoots([
       join(dir, 'schemas/@(user|post)/*.prisma'),
       join(dir, 'schemas/{one,two}/**/*.prisma'),
+      join(dir, 'schemas/[[]id[]]/schema.prisma'),
+      join(dir, 'schemas/[!a]/schema.prisma'),
+      join(dir, 'schemas/!(user)/schema.prisma'),
+      join(dir, 'schemas/{1..3}/schema.prisma'),
     ]),
   ).toEqual([join(dir, 'schemas')]);
   expect(await watchRoots([join(dir, 'missing/deeper/*.prisma')])).toEqual([dir]);

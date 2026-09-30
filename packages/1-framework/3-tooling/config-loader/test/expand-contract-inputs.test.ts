@@ -41,6 +41,16 @@ describe('expandContractInputs', () => {
     expect(await expandContractInputs([missing])).toEqual([missing]);
   });
 
+  it.each(['{literal}.prisma', '[unfinished.prisma', 'plain.prisma'])(
+    'preserves a missing literal %s',
+    async (name) => {
+      const dir = await createFixtureDir();
+      const path = join(dir, name);
+      expect(await expandContractInputs([path])).toEqual([path]);
+      expect(globContractInputMatching([path], path)).toBeUndefined();
+    },
+  );
+
   it('passes an existing wildcard-free literal path through unchanged', async () => {
     const dir = await createFixtureDir();
     const file = join(dir, 'schema.prisma');
@@ -120,6 +130,31 @@ describe('expandContractInputs', () => {
       pattern: '{a,b}.prisma',
       files: ['a.prisma', 'b.prisma', 'c.prisma'],
       matches: ['a.prisma', 'b.prisma'],
+    },
+    {
+      pattern: '@(user|post).prisma',
+      files: ['user.prisma', 'post.prisma', 'other.prisma'],
+      matches: ['user.prisma', 'post.prisma'],
+    },
+    {
+      pattern: '!(user).prisma',
+      files: ['user.prisma', 'post.prisma'],
+      matches: ['post.prisma'],
+    },
+    {
+      pattern: '{1..3}.prisma',
+      files: ['1.prisma', '2.prisma', '3.prisma', '4.prisma'],
+      matches: ['1.prisma', '2.prisma', '3.prisma'],
+    },
+    {
+      pattern: '[^a].prisma',
+      files: ['a.prisma', 'b.prisma'],
+      matches: ['b.prisma'],
+    },
+    {
+      pattern: '?.prisma',
+      files: ['a.prisma', 'long.prisma'],
+      matches: ['a.prisma'],
     },
     {
       pattern: '**/?.prisma',
