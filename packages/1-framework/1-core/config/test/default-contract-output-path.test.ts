@@ -16,6 +16,17 @@ describe('defaultContractOutputPath', () => {
     expect(defaultContractOutputPath('.\\prisma\\**\\*.prisma')).toBe('./prisma/contract.json');
   });
 
+  it.each([
+    ['./schemas/{one/nested,two}/**/*.prisma', './schemas/contract.json'],
+    ['./schemas/[[]id[]]/*.prisma', './schemas/contract.json'],
+    ['./schemas/@(one|two)/*.prisma', './schemas/contract.json'],
+    ['/**/*.prisma', '/contract.json'],
+    ['./schemas/{literal}/schema.prisma', './schemas/{literal}/schema.json'],
+    ['./schemas/[unfinished/schema.prisma', './schemas/[unfinished/schema.json'],
+  ])('resolves %s to %s', (input, output) => {
+    expect(defaultContractOutputPath(input)).toBe(output);
+  });
+
   it('uses contract.json when a glob has no static prefix', () => {
     expect(defaultContractOutputPath('*.prisma')).toBe('contract.json');
   });

@@ -1,6 +1,7 @@
 import { lstat } from 'node:fs/promises';
 import { dirname, isAbsolute, parse, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { contractInputDirectory } from '@internal/config/config-types';
 import { structuredError } from '@internal/utils/structured-error';
 import { FSWatcher } from 'chokidar';
 
@@ -17,16 +18,16 @@ export async function watchRoots(inputs: readonly string[]): Promise<string[]> {
     const path = input.startsWith('file:') ? fileURLToPath(input) : input;
     if (!isAbsolute(path))
       throw structuredError('LSP.WATCH_UNAVAILABLE', `Watch input is not absolute: ${input}`);
-    const parts = (sep === '\\' ? path.replaceAll('/', sep) : path).split(sep);
-    const boundary = parts.findIndex((part) => /[*?\\()[\]{}]/.test(part));
-    if (boundary >= 0 && /(?:^|[/\\({,|])\.\.(?:$|[/\\)},|])/.test(path)) {
+    const { directory, hasPatternBoundary } = contractInputDirectory(
+      sep === '\\' ? path.replaceAll('\\', '/') : path,
+    );
+    if (hasPatternBoundary && /(?:^|[/\\({,|])\.\.(?:$|[/\\)},|])/.test(path)) {
       throw structuredError(
         'LSP.WATCH_UNAVAILABLE',
         `Dynamic parent traversal is unsupported: ${input}`,
       );
     }
-    let root = boundary < 0 ? dirname(path) : parts.slice(0, boundary).join(sep) || sep;
-    root = resolve(root);
+    let root = resolve(directory);
     while (true) {
       if (root === parse(root).root)
         throw structuredError(

@@ -37,7 +37,17 @@ it('derives literal safe roots for glob syntax and future directories', async ()
   expect(await watchRoots([join(dir, '{one/nested,two}/**/*.prisma')])).toEqual([dir]);
   await expect(watchRoots([`${dir}/*/../../*.prisma`])).rejects.toThrow('traversal');
 });
-it.each(['*', '?', '[unfinished', '{literal}', '@(one|two)', '!(one)'])(
+it('keeps literal parent traversal and external roots available', async () => {
+  const dir = await directory();
+  await mkdir(join(dir, 'config'));
+  await mkdir(join(dir, 'outside'));
+  expect(await watchRoots([`${dir}/config/../outside/schema.prisma`])).toEqual([
+    join(dir, 'outside'),
+  ]);
+  await expect(watchRoots([`${dir}/config/../outside/**/*.prisma`])).rejects.toThrow('traversal');
+});
+
+it.each(['*', '?', '[unfinished', '{literal}', '@(one|two)', '!(one)', '\\[id\\]'])(
   'uses a conservative root boundary for %s outside the config directory',
   async (segment) => {
     const dir = await directory();
