@@ -150,7 +150,7 @@ import {
 } from './mutation-executor';
 import { assertCursorCompatibleOrder, assertDistinctOnCompatibleOrder } from './order-by-guards';
 import { ormError } from './orm-errors';
-import type { PreparedCollection, PreparedCollectionFor } from './prepared-collection';
+import type { PreparedCollection } from './prepared-collection';
 import {
   compileAggregate,
   compileDeleteCount,
@@ -1638,7 +1638,7 @@ export class CollectionBase<
     return this.#withAnnotationsFromMeta(configure, 'all').#dispatch();
   }
 
-  get prepared(): PreparedCollectionFor<
+  get prepared(): PreparedCollection<
     TContract,
     ModelName,
     CollectionRowOf<this>,
@@ -1660,12 +1660,7 @@ export class CollectionBase<
       },
     };
     return blindCast<
-      PreparedCollectionFor<
-        TContract,
-        ModelName,
-        CollectionRowOf<this>,
-        CollectionTypeStateOf<this>
-      >,
+      PreparedCollection<TContract, ModelName, CollectionRowOf<this>, CollectionTypeStateOf<this>>,
       'the row this collection reads is the row its type carries'
     >(prepared);
   }
