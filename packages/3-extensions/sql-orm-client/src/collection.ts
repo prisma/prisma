@@ -105,10 +105,12 @@ import type {
   CollectionRowOf,
   CollectionTypeStateOf,
   Filtered,
+  HasNoUniqueFilter,
   HasNoVariant,
   HasOrderBy,
   HasRow,
   HasTypeState,
+  HasUniqueFilter,
   HasWhere,
   Including,
   ModelFragmentReceiver,
@@ -117,6 +119,8 @@ import type {
   // biome-ignore lint/correctness/noUnusedImports: used in `declare` properties
   RowType,
   TypeState,
+  UniquelyFiltered,
+  WithoutUniqueFilter,
 } from './collection-types';
 import { shorthandToWhereExpr, whereArgOf } from './filters';
 import {
@@ -554,6 +558,21 @@ export class CollectionBase<
     return this.#cloneSelf<HasWhere>({
       tables,
       filters: [...this.state.filters, filter],
+    });
+  }
+
+  whereUnique<Self>(
+    this: Self,
+    criterion: UniqueConstraintCriterion<TContract, ModelName>,
+  ): UniquelyFiltered<Self>;
+  whereUnique(criterion: UniqueConstraintCriterion<TContract, ModelName>): UniquelyFiltered<this> {
+    const filter = normalizeWhereArg(
+      shorthandToWhereExpr(this.ctx.context, this.namespaceId, this.modelName, criterion),
+      { contract: this.contract, namespaceId: this.namespaceId },
+    );
+
+    return this.#cloneSelf<HasWhere & HasUniqueFilter>({
+      filters: filter ? [...this.state.filters, filter] : this.state.filters,
     });
   }
 
@@ -1110,8 +1129,30 @@ export class CollectionBase<
    *   .all();
    * ```
    */
-  orderBy<Self>(
+  orderBy<Self extends WithoutUniqueFilter<Self>>(
     this: Self,
+    selection:
+      | ((
+          model: VariantAwareModelAccessor<
+            TContract,
+            ModelName,
+            State['variantName'],
+            State['nsId']
+          >,
+        ) => OrderByItem)
+      | ReadonlyArray<
+          (
+            model: VariantAwareModelAccessor<
+              TContract,
+              ModelName,
+              State['variantName'],
+              State['nsId']
+            >,
+          ) => OrderByItem
+        >,
+  ): Ordered<Self>;
+  orderBy<Self>(
+    this: Self & HasNoUniqueFilter,
     selection:
       | ((
           model: VariantAwareModelAccessor<
@@ -1303,8 +1344,12 @@ export class CollectionBase<
    *   .all();
    * ```
    */
-  cursor<Self extends HasOrderBy>(
+  cursor<Self extends HasOrderBy & WithoutUniqueFilter<Self>>(
     this: Self,
+    cursorValues: Partial<Record<keyof DefaultModelRow<TContract, ModelName> & string, unknown>>,
+  ): Self;
+  cursor<Self extends HasOrderBy>(
+    this: Self & HasNoUniqueFilter,
     cursorValues: Partial<Record<keyof DefaultModelRow<TContract, ModelName> & string, unknown>>,
   ): Self;
   cursor(
@@ -1340,8 +1385,15 @@ export class CollectionBase<
       keyof DefaultModelRow<TContract, ModelName> & string,
       ...(keyof DefaultModelRow<TContract, ModelName> & string)[],
     ],
-    Self,
+    Self extends WithoutUniqueFilter<Self>,
   >(this: Self, ...fields: Fields): Self;
+  distinct<
+    Fields extends readonly [
+      keyof DefaultModelRow<TContract, ModelName> & string,
+      ...(keyof DefaultModelRow<TContract, ModelName> & string)[],
+    ],
+    Self,
+  >(this: Self & HasNoUniqueFilter, ...fields: Fields): Self;
   distinct<
     Fields extends readonly [
       keyof DefaultModelRow<TContract, ModelName> & string,
@@ -1382,9 +1434,19 @@ export class CollectionBase<
       keyof DefaultModelRow<TContract, ModelName> & string,
       ...(keyof DefaultModelRow<TContract, ModelName> & string)[],
     ],
-    Self extends HasOrderBy,
+    Self extends HasOrderBy & WithoutUniqueFilter<Self>,
   >(
     this: Self,
+    ...fields: TContract['capabilities'] extends { postgres: { distinctOn: true } } ? Fields : never
+  ): Self;
+  distinctOn<
+    Fields extends readonly [
+      keyof DefaultModelRow<TContract, ModelName> & string,
+      ...(keyof DefaultModelRow<TContract, ModelName> & string)[],
+    ],
+    Self extends HasOrderBy,
+  >(
+    this: Self & HasNoUniqueFilter,
     ...fields: TContract['capabilities'] extends { postgres: { distinctOn: true } } ? Fields : never
   ): Self;
   distinctOn<
@@ -1473,8 +1535,12 @@ export class CollectionBase<
    * const firstTen = await db.orm.User.orderBy((u) => u.id.asc()).limit(10).all();
    * ```
    */
-  limit<Self>(
+  limit<Self extends WithoutUniqueFilter<Self>>(
     this: Self,
+    n: number | TraitExpression<readonly ['numeric'], false, ExtractCodecTypes<TContract>>,
+  ): Self;
+  limit<Self>(
+    this: Self & HasNoUniqueFilter,
     n: number | TraitExpression<readonly ['numeric'], false, ExtractCodecTypes<TContract>>,
   ): Self;
   limit(
@@ -1494,8 +1560,12 @@ export class CollectionBase<
    *   .all();
    * ```
    */
-  offset<Self>(
+  offset<Self extends WithoutUniqueFilter<Self>>(
     this: Self,
+    n: number | TraitExpression<readonly ['numeric'], false, ExtractCodecTypes<TContract>>,
+  ): Self;
+  offset<Self>(
+    this: Self & HasNoUniqueFilter,
     n: number | TraitExpression<readonly ['numeric'], false, ExtractCodecTypes<TContract>>,
   ): Self;
   offset(
@@ -1540,10 +1610,13 @@ export class CollectionBase<
    * ```
    */
   all<Self extends this>(
-    this: Self,
+    this: Self & HasNoUniqueFilter,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): AsyncIterableResult<CollectionRowOf<Self>>;
-  all(configure?: (meta: MetaBuilder<'read'>) => void): AsyncIterableResult<CollectionRowOf<this>>;
+  all<Self>(
+    this: Self & HasNoUniqueFilter,
+    configure?: (meta: MetaBuilder<'read'>) => void,
+  ): AsyncIterableResult<CollectionRowOf<this>>;
   all(configure?: (meta: MetaBuilder<'read'>) => void): AsyncIterableResult<unknown> {
     return this.#withAnnotationsFromMeta(configure, 'all').#dispatch();
   }
@@ -1675,6 +1748,11 @@ export class CollectionBase<
    * `MetaBuilder<'read'>` for attaching typed annotations.
    * Annotations are merged into the compiled plan's `meta.annotations`.
    */
+  async aggregate<Spec extends AggregateSpec, Self = unknown>(
+    this: Self & HasNoUniqueFilter,
+    fn: (aggregate: AggregateBuilder<TContract, ModelName, State['nsId']>) => Spec,
+    configure?: (meta: MetaBuilder<'read'>) => void,
+  ): Promise<AggregateResult<Spec>>;
   async aggregate<Spec extends AggregateSpec>(
     fn: (aggregate: AggregateBuilder<TContract, ModelName, State['nsId']>) => Spec,
     configure?: (meta: MetaBuilder<'read'>) => void,
@@ -2708,7 +2786,7 @@ export class CollectionBase<
    * `MetaBuilder<'write'>` for attaching typed annotations.
    */
   updateAll<Self extends HasWhere>(
-    this: Self,
+    this: Self & HasNoUniqueFilter,
     data: Partial<DefaultModelRow<TContract, ModelName, State['nsId']>>,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): AsyncIterableResult<CollectionRowOf<Self & HasRow<CollectionRowOf<this>>>>;
@@ -2786,7 +2864,7 @@ export class CollectionBase<
    * ```
    */
   async updateAndCount<Self extends HasWhere>(
-    this: Self,
+    this: Self & HasNoUniqueFilter,
     data: Partial<DefaultModelRow<TContract, ModelName, State['nsId']>>,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<number>;
@@ -2886,7 +2964,7 @@ export class CollectionBase<
    * `MetaBuilder<'write'>` for attaching typed annotations.
    */
   deleteAll<Self extends HasWhere>(
-    this: Self,
+    this: Self & HasNoUniqueFilter,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): AsyncIterableResult<CollectionRowOf<Self & HasRow<CollectionRowOf<this>>>>;
   deleteAll(configure?: (meta: MetaBuilder<'write'>) => void): AsyncIterableResult<unknown> {
@@ -2996,7 +3074,7 @@ export class CollectionBase<
    * ```
    */
   async deleteAndCount<Self extends HasWhere>(
-    this: Self,
+    this: Self & HasNoUniqueFilter,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<number>;
   async deleteAndCount(configure?: (meta: MetaBuilder<'write'>) => void): Promise<number> {
