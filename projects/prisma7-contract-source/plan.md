@@ -2,63 +2,70 @@
 
 > Refreshed 2026-10-09 against `main` at 19bbe0e986. Linear project: [Prisma 7 contract source: gaps and defects](https://linear.app/prisma-company/project/prisma-7-contract-source-gaps-and-defects-b1952f4c6133).
 
-## Where the project is
+## Summary
 
-Slices 1 to 6 have merged. A Prisma 7 user can point Prisma 8 at `schema.prisma`, sign the database, hand migrations to Prisma 8 while Prisma 7 still serves queries (slice 5), and convert the schema with `contract print` (slice 3). Slice 6 (#30606) made autoincrement and constraint names survive the handover.
+The core of the project is finished. A Prisma 7 user can point Prisma 8 at their `schema.prisma`, sign the database, let Prisma 8 take over migrations while Prisma 7 still serves queries, and convert the schema to Prisma 8 when they drop Prisma 7.
 
-The Linear project still holds 25 open tickets. They are not one project. Most are Prisma 8 features that the reader refuses today, as ADR 252 intends, and several are projects of their own. This plan keeps three slices that finish the handover story, and moves or defers the rest.
+What remains is 25 open Linear tickets. Most are Prisma 8 features that are missing, so Prisma 8 refuses a Prisma 7 schema that uses them. This plan keeps the work that matters most to Prisma 7 users in this project and moves or defers the rest:
 
-## Slices
-
-All three slices are independent and can run in parallel.
-
-| # | Outcome | Tickets | Builds on | Hands to | Decision needed first |
-|---|---|---|---|---|---|
-| 7 | After the handover, `migration plan` changes a foreign key's `onDelete` or `onUpdate`, and a table's primary key columns, in place, as Prisma 7's `migrate dev` did. | TML-3457, TML-3458 | Slice 6 (constraint names are right) | Planner pairs a drop and an add of the same key into one change | No. Position below. |
-| 8 | A Prisma 7 schema with `@updatedAt` and `@default(now())` on one field, or a generator on an optional field, reads into a contract, and Prisma 8 PSL can write both. | TML-3267, TML-3268 | Nothing | Two `PSL.PRISMA7_*` codes removed | Yes: what an explicit `null` means on an optional generated field. |
-| 9 | Every temporal codec has a "now" generator that produces the value the codec encodes, so `@updatedAt` works on `date`, `time` and `timetz`, and the string timestamp presets stop handing a `Date` to a text codec. | TML-3275, TML-3255 | Nothing | `PSL.PRISMA7_UPDATED_AT_TYPE_UNSUPPORTED` removed | No. Position below. |
-
-### Positions on the slices
-
-- **Slice 7.** Drop and add the constraint in the same migration, as Prisma 7 did. Do not use `NOT VALID` plus `VALIDATE CONSTRAINT`: Prisma 7 never did, and it is an optimisation any foreign key add could use, not something this change needs. A primary key change drops the foreign keys that reference the old key first and adds them back afterwards. The planner code is `mapForeignKeyNodeIssue` and `mapPrimaryKeyNodeIssue` in `packages/3-targets/3-targets/postgres/src/core/migrations/issue-planner.ts`, which handle add and drop today and refuse the in-place change.
-- **Slice 8.** Match Prisma 7. An omitted value is generated. An explicit `null` is kept. TML-3264 already settled that `@updatedAt` is an ORM-side generator. The contract keeps a column default and generators as separate fields, so the open question is whether Prisma 8 PSL accepts `@default(now())` beside the updated-at preset. I recommend it does.
-- **Slice 9.** Give the two string timestamp codecs a generator that writes the text form Postgres reads back for `timestamp` and `timestamptz`, rather than withdrawing their `now` argument. Withdrawing it would be a breaking change to authoring.
-
-## Moved out of this project
-
-| Tickets | Where | Why |
+| | Work | Size |
 |---|---|---|
-| TML-3272, TML-3273, TML-3341, TML-3280 | A new project, "Type references across namespaces" | One design problem. ADR 221 says every reference across namespaces names the namespace. Enum references do; value object references carry only a name, which is the TML-3341 bug. One ADR covers enums and value objects, then the reader, builder and validator change together. TML-3280 (models keyed by bare name) belongs with it. |
-| TML-3269 | A new project, "Database views" | Needs a view entity, introspection, verify, read-only ORM access and a migration decision. The ticket already says so. |
-| TML-3456 | The migration statements project (TML-3474) for renames; the rest stays refused | The native enums project made removal and reorder a permanent non-goal: Prisma 8 never rewrites every column of an enum type on its own (`projects/native-postgres-enums/spec.md`, R9). A rename is a statement, which that project already plans for enum values. For removal and reorder, the refusal should print the SQL to put in `migration new`. Reversing R9 is your call. |
-| TML-3462 | ADR 267, [prisma/orm#30641](https://github.com/prisma/orm/pull/30641) | That design decides how `@ignore` storage lives in the contract, which is what this ticket needs. |
-| TML-3261 | The `prisma-cli` repository | The renderer lives there. |
+| Do in this project | 3 pull requests that add features, and 4 small fixes | 2 medium, 1 small, 4 very small |
+| Moved to other projects | 2 new projects, and 3 tickets that other work already covers | Not estimated here |
+| Deferred | 6 tickets, each waiting on a product decision | Not scheduled |
 
-## Direct changes, outside the slice plan
+## Work in this project, in priority order
 
-Each is a small diff with no dependency on a slice. I will open them as separate PRs without asking.
+Priority follows how many Prisma 7 users hit the problem and how badly.
 
-- TML-3258: `contract format` keeps a comment between a block's name and `{`.
-- TML-3259: the `CONFIG.VERSION_MARKER_MISSING` advice shows `definePrismaConfig`.
-- TML-3262: the infer round-trip journey test checks `db verify --json` instead of a pattern that never matches.
-- TML-3461: Prisma 7's `migrate` commands answer with their Prisma 8 replacements. `migrate reset` and `migrate resolve` have no replacement, so they answer with what to do instead.
+| # | What the user gets | Tickets | Size | Blocked on you? |
+|---|---|---|---|---|
+| 1 | Prisma 8 accepts `updatedAt DateTime @default(now()) @updatedAt`, and `uuid()` or `@updatedAt` on an optional field. Today Prisma 8 refuses the whole schema. The first is very common: Prisma's own documentation uses it. | TML-3267, TML-3268 | Medium: new Prisma 8 schema syntax, ORM behaviour for `null`, and the Prisma 7 reader | Yes, decision A |
+| 2 | Typing `prisma migrate dev` out of habit prints the Prisma 8 commands to use. Today it fails with an unknown-command error. | TML-3461 | Very small | No |
+| 3 | After Prisma 8 takes over migrations, changing a relation's `onDelete` or `onUpdate`, or a table's primary key columns, plans a migration. Today Prisma 8 refuses both and tells the user to write the migration by hand; Prisma 7 handled them. | TML-3457, TML-3458 | Medium: one change to the Postgres migration planner, tested on a real database | No |
+| 4 | `@updatedAt` works on `@db.Date`, `@db.Time` and `@db.Timetz` columns. This also fixes a bug: two string timestamp presets write a JavaScript `Date` to a text column. | TML-3275, TML-3255 | Small | No |
+| 5 | Three fixes: `contract format` stops deleting a comment written between a block's name and `{`; the advice for `CONFIG.VERSION_MARKER_MISSING` shows the config that works; a test assertion that can never fail is replaced with one that can. | TML-3258, TML-3259, TML-3262 | Very small each | No |
+
+Items 2 to 5 can start now and run in parallel. Item 1 starts when you answer decision A.
+
+### How I will build them
+
+- **Item 3.** The migration drops the constraint and adds it again, as Prisma 7 did. Changing a primary key also drops and adds back the foreign keys that point at it. I will not use Postgres's `NOT VALID` option to shorten the lock: Prisma 7 never did, and it would apply to every foreign key Prisma 8 adds, not just this case.
+- **Item 4.** The string timestamp presets get a generator that writes text. Removing their `now` option instead would break existing schemas.
+
+## Decisions for you
+
+**A. On an optional field with a generated value, what does an explicit `null` mean?** I recommend matching Prisma 7: a value the client leaves out is generated, and an explicit `null` is stored as `null`. This also decides that Prisma 8's schema language accepts `@default(now())` together with `@updatedAt`.
+
+**B. Should Prisma 8 remove, rename or reorder a Postgres enum's values automatically (TML-3456)?** Prisma 7 did it by recreating the type and rewriting every column that uses it. The native enums project ruled this out permanently (`projects/native-postgres-enums/spec.md`, requirement R9), because the rewrite locks and copies whole tables. I recommend keeping that ruling:
+- A rename is written with `--rename`, which the migration statements project already plans for enum values.
+- A removal or reorder stays refused, but the message prints the SQL to paste into `migration new`.
+
+**C. Agree the moves below.** They change the project's scope.
+
+## Moved to other projects
+
+- **New project, "Type references across namespaces":** TML-3272, TML-3273, TML-3341, TML-3280. Today a field can use an enum or a composite type only from its own namespace. Prisma 7 projects with several Postgres schemas, and Supabase projects that use `auth` enums, need this. ADR 221 already says every reference to another namespace must name the namespace. Enum references follow that rule. References to composite types carry only a name, which is the bug in TML-3341. One ADR should cover both, then one implementation.
+- **New project, "Database views":** TML-3269. It needs a view in the contract, introspection, `db verify`, read-only ORM access, and a decision on whether Prisma 8 migrations create views.
+- **Migration statements project:** enum value renames from TML-3456, if you accept decision B.
+- **ADR 267, [prisma/orm#30641](https://github.com/prisma/orm/pull/30641):** TML-3462, removing `@ignore` after Prisma 8 takes over. That design decides how a column without a field lives in the contract.
+- **The `prisma-cli` repository:** TML-3261. The CLI renders finding locations there.
 
 ## Deferred
 
-Each stays in the Linear project until someone schedules it. Each needs a decision before code.
+Each needs a product decision before code. In priority order:
 
-- TML-3460, Postgres extensions. Recommendation: document now that a fresh database needs the extensions created before `db migrate`. Making the contract describe required extensions is a contract change with its own design.
-- TML-3270, codecs for `citext` and five rare types. Do `citext` first, as a text codec.
-- TML-3274, index column options. Do `sort` first.
-- TML-3277, a JSON `null` default. TML-3276, `dbgenerated()` with no expression. Both are rare.
-- TML-3455, storing `Bytes` and `DateTime` defaults as values. It changes the storage hash of every affected Prisma 7 contract, so every such project has to sign again. Not worth doing on its own.
+1. **TML-3270, the `citext` column type and five rare Postgres types.** `citext` is common for case-insensitive emails. It should come first, as a text codec.
+2. **TML-3274, index options.** `sort: Desc` on a timestamp index is common, so it should come first.
+3. **TML-3460, Postgres extensions listed in the Prisma 7 datasource.** A database Prisma 8 builds from scratch does not get them. For now I recommend documenting that the user must create them first. Describing extensions in the contract is a design of its own.
+4. **TML-3455, storing `Bytes` and `DateTime` defaults as values instead of SQL text.** Every affected project would have to sign its database again. It is not worth that cost on its own.
+5. **TML-3277, a JSON `null` default,** and **TML-3276, `dbgenerated()` with no expression.** Both are rare.
 
-## Tracker cleanup
+## Housekeeping
 
-- TML-3250 is fixed by #30520 and still shows In Progress. Set it to Done.
-- The ranked defect list in the Linear project description is out of date. Replace it with a link to this plan.
-- Slices 7 to 9 reuse their existing tickets, so they need no new Linear issues. The two new projects are created after this plan is agreed.
+- TML-3250 is fixed by #30520 but still shows In Progress in Linear. It should be set to Done.
+- The ranked list in the Linear project description is out of date. It should be replaced with a link to this plan.
 
-## Close-out
+## When the project closes
 
-The project closes when slices 7 to 9 merge, the moved tickets are in their new homes, and the direct changes are open or merged. Close-out then follows `projects/README.md`: long-lived docs move to `docs/` and `projects/prisma7-contract-source/` is deleted.
+When items 1 to 5 have merged and the moved tickets are in their new projects. Long-lived docs then move to `docs/`, and `projects/prisma7-contract-source/` is deleted, as `projects/README.md` describes.
