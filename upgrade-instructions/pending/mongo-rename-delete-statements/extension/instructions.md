@@ -13,7 +13,7 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
-        - '(?<![\w$])(?:MongoDdlCommandVisitor|AnyMongoDdlWireCommand)(?![\w$])'
+        - '(?<![\w$])(?:MongoDdlCommandVisitor|AnyMongoDdlCommand|AnyMongoDdlWireCommand)(?![\w$])'
   - id: mongo-run-shaped-operations
     summary: |
       `MongoDataTransformOperation.operationClass` is any `MigrationOperationClass`, not only `'data'`: the planner's document rewrites (`renameField`, `unsetField`) have its shape and carry `widening` or `destructive`. Tell an operation that runs queries from a DDL operation with `isMongoDataTransformOperation(operation)` (it has `run`), not with `operationClass === 'data'`.
@@ -35,8 +35,7 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
-        - '(?<![\w$])renderOps\s*\('
-        - '\.toOp\(\)'
+        - '["'']@(?:prisma/orm-target-mongo|internal/target-mongo)(?:/[^"'']*)?["''][\s\S]*(?:\.toOp\(\)|(?<![\w$])renderOps\s*\()'
 ---
 
 # MongoDB carries out `--rename` and `--delete`
