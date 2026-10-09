@@ -3,11 +3,13 @@
  * Postgres planner call strategy (plan.md AC R2.2):
  *
  * - `notNullBackfillCallStrategy` (#1): an existing table gains a NOT NULL
- *   column with no default. The planner emits `addColumn(nullable) →
- *   DataTransformCall(placeholder slots) → setNotNull`.
+ *   column with no default, and `--backfill` names it. The planner emits
+ *   `addColumn(nullable) → DataTransformCall(placeholder slots) → setNotNull`.
+ *   Without the flag, the column gets a temporary default instead.
  * - `nullableTighteningCallStrategy` (#3): an existing column flips from
- *   nullable to NOT NULL (no addColumn, no type change). The planner emits
- *   `DataTransformCall(placeholder slots) → setNotNull`.
+ *   nullable to NOT NULL (no addColumn, no type change), and `--backfill`
+ *   names it. The planner emits `DataTransformCall(placeholder slots) →
+ *   setNotNull`.
  * - `typeChangeCallStrategy` (#2): a column's type changes (text → int4) and
  *   `--convert` names it. The planner emits one `alterColumnType` classed
  *   `data` whose `using` is a placeholder slot.
@@ -51,6 +53,8 @@ interface Scenario {
   readonly seedSql: string;
   readonly targetContract: ContractVariant;
   readonly migrationName: string;
+  /** The statement that asks the plan for the data transform. */
+  readonly statements: readonly string[];
   readonly dirToken: string;
   readonly placeholderId: string;
   readonly assertScaffold: (scaffold: string) => void;
@@ -73,6 +77,7 @@ const scenarios: readonly Scenario[] = [
     seedSql: `INSERT INTO "public"."user" (id, email) VALUES (1, 'alice@example.com'), (2, 'bob@test.org')`,
     targetContract: 'contract-additive-required-name',
     migrationName: 'add-required-name',
+    statements: ['--backfill', 'User.name'],
     dirToken: 'add_required_name',
     placeholderId: 'backfill-user-name',
     assertScaffold: () => {},
@@ -98,6 +103,7 @@ const scenarios: readonly Scenario[] = [
     seedSql: `INSERT INTO "public"."user" (id, email, "name") VALUES (1, 'alice@example.com', 'Alice'), (2, 'bob@test.org', NULL)`,
     targetContract: 'contract-nullable-name-required',
     migrationName: 'tighten-name-not-null',
+    statements: ['--backfill', 'User.name'],
     dirToken: 'tighten_name_not_null',
     placeholderId: 'handle-nulls-user-name',
     assertScaffold: (scaffold) => {
@@ -159,6 +165,7 @@ withTempDir(({ createTempDir }) => {
           scenario.migrationName,
           '--from',
           latestMigrationDirName(ctx),
+          ...scenario.statements,
         ]);
         expect(planResult.exitCode, `plan: ${planResult.stderr}`).toBe(0);
 
@@ -247,6 +254,77 @@ withTempDir(({ createTempDir }) => {
           expect(reapply.exitCode, `reapply: ${reapply.stdout}\n${reapply.stderr}`).toBe(0);
           expect(reapply.stderr).toContain('Already up to date');
         }
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('Journey: a new required field with no statement — notNullAddColumnCallStrategy', () => {
+    const db = useDevDatabase();
+
+    it(
+      'fills existing rows with a temporary value, then leaves the column NOT NULL with no default',
+      async () => {
+        const ctx: JourneyContext = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+        });
+        expect((await runContractEmit(ctx)).exitCode, 'emit base').toBe(0);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
+        expect(plan0.exitCode, `plan initial: ${plan0.stderr}`).toBe(0);
+        expect((await runMigrate(ctx)).exitCode, 'apply initial').toBe(0);
+        await sql(
+          db.connectionString,
+          `INSERT INTO "public"."user" (id, email) VALUES (1, 'alice@example.com'), (2, 'bob@test.org')`,
+        );
+
+        swapContract(ctx, 'contract-additive-required-name');
+        expect((await runContractEmit(ctx)).exitCode, 'emit target').toBe(0);
+        const planResult = await runMigrationPlan(ctx, [
+          '--name',
+          'add-required-name',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--json',
+        ]);
+        expect(planResult.exitCode, `plan: ${planResult.stderr}`).toBe(0);
+        expect(parseJsonOutput(planResult)).not.toHaveProperty('pendingPlaceholders');
+
+        const migrationsDir = join(ctx.testDir, 'migrations', 'app');
+        const [dirName] = readdirSync(migrationsDir).filter((d) => d.includes('add_required_name'));
+        const migrationDir = join(migrationsDir, dirName ?? '');
+        const scaffold = readFileSync(join(migrationDir, 'migration.ts'), 'utf-8');
+        expect(scaffold).toContain('this.addColumnWithTemporaryDefault(');
+        expect(scaffold).not.toContain('placeholder(');
+        const opsPlanned = readFileSync(join(migrationDir, 'ops.json'), 'utf-8');
+        const manifestPlanned = readFileSync(join(migrationDir, 'migration.json'), 'utf-8');
+
+        const emitResult = await selfEmitMigration(ctx, [
+          '--dir',
+          migrationDir,
+          '--config',
+          ctx.configPath,
+        ]);
+        expect(emitResult.exitCode, `emit: ${emitResult.stdout}\n${emitResult.stderr}`).toBe(0);
+        expect(readFileSync(join(migrationDir, 'ops.json'), 'utf-8')).toBe(opsPlanned);
+        expect(readFileSync(join(migrationDir, 'migration.json'), 'utf-8')).toBe(manifestPlanned);
+
+        const apply1 = await runMigrate(ctx);
+        expect(apply1.exitCode, `apply: ${apply1.stdout}\n${apply1.stderr}`).toBe(0);
+        const rows = await sql(
+          db.connectionString,
+          `SELECT id, "name" FROM "public"."user" ORDER BY id`,
+        );
+        expect(rows.rows).toEqual([
+          { id: 1, name: '' },
+          { id: 2, name: '' },
+        ]);
+        const column = await sql(
+          db.connectionString,
+          `SELECT is_nullable, column_default FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = 'user' AND column_name = 'name'`,
+        );
+        expect(column.rows).toEqual([{ is_nullable: 'NO', column_default: null }]);
       },
       timeouts.spinUpPpgDev,
     );

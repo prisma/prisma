@@ -17,7 +17,6 @@ import {
   DropCheckConstraintCall,
   DropConstraintCall,
 } from '../../src/core/migrations/op-factory-call';
-import { postgresTypeLookups } from '../postgres-type-lookups';
 
 function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
@@ -250,7 +249,7 @@ describe('AddNotNullColumnDirectCall', () => {
   it('lowers a typed AlterTable DDL node for the ADD COLUMN execute step', async () => {
     const { lowerer, received } = recordingCheckLowerer();
     const column = col('name', 'text', { notNull: true });
-    const call = new AddNotNullColumnDirectCall('public', 'user', 'name', column);
+    const call = new AddNotNullColumnDirectCall('public', 'user', column);
     const op = await call.toOp(lowerer);
 
     expect(isAlterTableNode(received[0])).toBe(true);
@@ -267,31 +266,34 @@ describe('AddNotNullColumnDirectCall', () => {
     const call = new AddNotNullColumnDirectCall(
       'public',
       'user',
-      'name',
       col('name', 'text', { notNull: true }),
     );
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 });
 
+describe('the NOT NULL add-column calls', () => {
+  it('render as migration methods with the column and, for the temporary default, its SQL', () => {
+    const name = col('name', 'text', { notNull: true });
+    expect([
+      new AddNotNullColumnDirectCall('public', 'user', name).renderTypeScript(),
+      new AddNotNullColumnWithTempDefaultCall('public', 'user', name, "''").renderTypeScript(),
+    ]).toEqual([
+      'this.addColumnToEmptyTable({ schema: "public", table: "user", column: col("name", "text", { notNull: true }) })',
+      'this.addColumnWithTemporaryDefault({ schema: "public", table: "user", column: col("name", "text", { notNull: true }), temporaryDefault: "\'\'" })',
+    ]);
+  });
+});
+
 describe('AddNotNullColumnWithTempDefaultCall', () => {
   it('lowers a typed AlterTable DDL node for the ADD COLUMN execute step', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const storageColumn = {
-      many: false,
-      dataType: 'pg/text',
-      codecId: 'pg/text@1',
-      nullable: false,
-    } as const;
-    const call = new AddNotNullColumnWithTempDefaultCall({
-      schemaName: 'public',
-      tableName: 'user',
-      columnName: 'name',
-      column: storageColumn,
-      types: postgresTypeLookups,
-      storageTypes: {},
-      temporaryDefault: "''",
-    });
+    const call = new AddNotNullColumnWithTempDefaultCall(
+      'public',
+      'user',
+      col('name', 'text', { notNull: true }),
+      "''",
+    );
     const op = await call.toOp(lowerer);
 
     expect(isAlterTableNode(received[0])).toBe(true);
@@ -306,15 +308,12 @@ describe('AddNotNullColumnWithTempDefaultCall', () => {
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
-    const call = new AddNotNullColumnWithTempDefaultCall({
-      schemaName: 'public',
-      tableName: 'user',
-      columnName: 'name',
-      column: { many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
-      types: postgresTypeLookups,
-      storageTypes: {},
-      temporaryDefault: "''",
-    });
+    const call = new AddNotNullColumnWithTempDefaultCall(
+      'public',
+      'user',
+      col('name', 'text', { notNull: true }),
+      "''",
+    );
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 });

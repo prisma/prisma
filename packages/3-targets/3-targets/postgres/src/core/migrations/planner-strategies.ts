@@ -192,10 +192,28 @@ function columnNodePair(
   };
 }
 
+/** Whether a `--backfill` statement names the column an issue is about. */
+function backfillNames(
+  ctx: StrategyContext,
+  ddlSchemaName: string,
+  tableName: string,
+  columnName: string,
+): boolean {
+  const namespaceId = namespaceIdForDdlSchema(ctx, ddlSchemaName);
+  return ctx.statementColumns.backfill.some(
+    (column) =>
+      column.namespaceId === namespaceId &&
+      column.table === tableName &&
+      column.column === columnName,
+  );
+}
+
+/**
+ * Handles a required column with no default added to an existing table, for a field a
+ * `--backfill` statement names: a nullable add, a data transform whose slots the user fills, then
+ * `SET NOT NULL`. Every other such column is left to `notNullAddColumnCallStrategy`.
+ */
 export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) => {
-  // `DataTransformCall` is operation class `'data'`. When the policy excludes
-  // it (`db update` / `db init`), skip so `notNullAddColumnCallStrategy`
-  // (temp-default backfill) or `mapNodeIssueToCall` can take the issue.
   if (!ctx.policy.allowedOperationClasses.includes('data')) return { kind: 'no_match' };
 
   const matched: SchemaDiffIssue[] = [];
@@ -214,6 +232,7 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
     const ddlSchemaName = issueSchemaName(issue);
     const tableName = issueTableName(issue);
     if (ddlSchemaName === undefined || tableName === undefined) continue;
+    if (!backfillNames(ctx, ddlSchemaName, tableName, expected.name)) continue;
     const schemaName = emissionSchemaName(ctx, ddlSchemaName);
 
     matched.push(issue);
@@ -334,16 +353,13 @@ function columnTypeChangedNativeOnly(expected: SqlColumnIR, actual: SqlColumnIR)
 }
 
 /**
- * Handles `not-equal` column issues whose type did NOT change but
- * nullability tightened (contract requires NOT NULL, live column is
- * nullable). A type-changed issue's nullability delta (if any) is already
- * handled by `typeChangeCallStrategy`, which runs first — this strategy
- * only ever sees issues that strategy left behind.
+ * Handles a `not-equal` column issue whose type did not change but which becomes required, for a
+ * field a `--backfill` statement names: a data transform whose slots the user fills with values for
+ * the NULLs, then `SET NOT NULL`. Every other such column gets the direct `SET NOT NULL` of
+ * `mapNodeIssueToCall`. A type-changed issue's nullability is handled by `typeChangeCallStrategy`
+ * or the direct alter.
  */
 export const nullableTighteningCallStrategy: CallMigrationStrategy = (issues, ctx) => {
-  // `DataTransformCall` is operation class `'data'`. When the policy excludes
-  // it (`db update` / `db init`), skip so `mapNodeIssueToCall` emits a direct
-  // `SET NOT NULL` instead.
   if (!ctx.policy.allowedOperationClasses.includes('data')) return { kind: 'no_match' };
 
   const matched: SchemaDiffIssue[] = [];
@@ -360,6 +376,7 @@ export const nullableTighteningCallStrategy: CallMigrationStrategy = (issues, ct
     const ddlSchemaName = issueSchemaName(issue);
     const tableName = issueTableName(issue);
     if (ddlSchemaName === undefined || tableName === undefined) continue;
+    if (!backfillNames(ctx, ddlSchemaName, tableName, expected.name)) continue;
     const schemaName = emissionSchemaName(ctx, ddlSchemaName);
 
     matched.push(issue);
@@ -458,11 +475,6 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
 
   const schemaLookups = buildSchemaLookupMap(ctx.schema);
 
-  const mutableStorageTypes = blindCast<
-    Record<string, StorageTypeInstance>,
-    'strategy context owns mutable storage type entries during planning'
-  >(ctx.storageTypes);
-
   for (const issue of issues) {
     if (issueOutcome(issue) !== 'not-found') continue;
     const node = issueNode(issue);
@@ -499,28 +511,11 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
 
     matched.push(issue);
 
-    if (canUseSharedTempDefault && temporaryDefault !== null) {
-      calls.push(
-        new AddNotNullColumnWithTempDefaultCall({
-          schemaName,
-          tableName,
-          columnName: expected.name,
-          column,
-          types: ctx.types,
-          storageTypes: mutableStorageTypes,
-          temporaryDefault,
-        }),
-      );
-      continue;
-    }
-
+    const ddl = renderColumnDdl(expected.name, expected, ctx.types);
     calls.push(
-      new AddNotNullColumnDirectCall(
-        schemaName,
-        tableName,
-        expected.name,
-        renderColumnDdl(expected.name, expected, ctx.types),
-      ),
+      canUseSharedTempDefault && temporaryDefault !== null
+        ? new AddNotNullColumnWithTempDefaultCall(schemaName, tableName, ddl, temporaryDefault)
+        : new AddNotNullColumnDirectCall(schemaName, tableName, ddl),
     );
   }
 
@@ -570,19 +565,15 @@ function canUseSharedTemporaryDefaultStrategy(options: {
  * Ordered list of Postgres planner strategies, shared by `migration plan`
  * and `db update` / `db init`. The issue planner runs each strategy in
  * order, letting it consume any issues it handles, and routes whatever's
- * left through `mapNodeIssueToCall`. Behavior diverges purely on
- * `policy.allowedOperationClasses`:
+ * left through `mapNodeIssueToCall`.
  *
- * - When `'data'` is allowed (`migration plan`), the data-safe strategies
- *   (`notNullBackfillCallStrategy`, `typeChangeCallStrategy`,
- *   `nullableTighteningCallStrategy`) consume their matching issues and emit
- *   `DataTransformCall` placeholders or recipe ops.
- *
- * - When `'data'` is not allowed (`db update` / `db init`), the
- *   placeholder-emitting strategies short-circuit to `no_match`, leaving
- *   the issue for the downstream strategies (`storageTypePlanCallStrategy`,
- *   `notNullAddColumnCallStrategy`) or the `mapNodeIssueToCall` default to
- *   handle with direct DDL.
+ * The strategies that write a placeholder (`notNullBackfillCallStrategy`,
+ * `typeChangeCallStrategy`, `nullableTighteningCallStrategy`) act only on a
+ * field a `--backfill` or `--convert` statement names, and only when the
+ * policy allows `data` (`migration plan`). Every other required field added to
+ * an existing table gets the temporary default of
+ * `notNullAddColumnCallStrategy`, and every other change the direct DDL of
+ * `mapNodeIssueToCall`, under either command.
  *
  * Codec-typed storage type entries are dispatched through
  * `storageTypePlanCallStrategy`.

@@ -1,4 +1,3 @@
-import { StorageColumn } from '@internal/sql-contract/types';
 import {
   checkExpression,
   col,
@@ -53,7 +52,6 @@ import {
 import { renderCallsToTypeScript } from '../../src/core/migrations/render-typescript';
 import { PostgresRlsPolicy } from '../../src/core/postgres-rls-policy';
 import * as migrationFacade from '../../src/exports/migration';
-import { postgresTypeLookups } from '../postgres-type-lookups';
 
 const SNAPSHOTS_IMPORT_PATH = '../../snapshots';
 const FROM_HASH = 'a'.repeat(64);
@@ -181,12 +179,6 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     postcheck: [],
   };
 
-  const storageColumn = new StorageColumn({
-    dataType: 'pg/text',
-    codecId: 'pg/text@1',
-    nullable: false,
-  });
-
   const oneCallPerClass = [
     new CreateTableCall(
       'public',
@@ -219,16 +211,13 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     new DropNotNullCall('public', 'note', 'kind'),
     new SetDefaultCall('public', 'note', col('kind', 'text', { default: lit('draft') })),
     new DropDefaultCall('public', 'note', 'kind'),
-    new AddNotNullColumnDirectCall('public', 'note', 'title', col('title', 'text')),
-    new AddNotNullColumnWithTempDefaultCall({
-      schemaName: 'public',
-      tableName: 'note',
-      columnName: 'title',
-      column: storageColumn,
-      types: postgresTypeLookups,
-      storageTypes: {},
-      temporaryDefault: "''",
-    }),
+    new AddNotNullColumnDirectCall('public', 'note', col('title', 'text', { notNull: true })),
+    new AddNotNullColumnWithTempDefaultCall(
+      'public',
+      'note',
+      col('title', 'text', { notNull: true }),
+      "''",
+    ),
     new AddPrimaryKeyCall('public', 'note', 'note_pkey', ['id']),
     new AddForeignKeyCall('public', 'note', {
       name: 'note_owner_fkey',

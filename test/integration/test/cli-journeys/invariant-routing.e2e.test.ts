@@ -128,7 +128,7 @@ withTempDir(({ createTempDir }) => {
         );
 
         // O.03: swap to the contract that adds a NOT NULL `name` column;
-        // the planner emits a placeholder dataTransform.
+        // `--backfill` makes the planner emit a placeholder dataTransform.
         swapContract(ctx, 'contract-additive-required-name');
         expect((await runContractEmit(ctx)).exitCode, 'O.03: emit C2').toBe(0);
         const planResult = await runMigrationPlan(ctx, [
@@ -136,6 +136,8 @@ withTempDir(({ createTempDir }) => {
           'add-required-name',
           '--from',
           latestMigrationDirName(ctx),
+          '--backfill',
+          'User.name',
         ]);
         expect(planResult.exitCode, 'O.03: plan add-required-name').toBe(0);
 
@@ -269,6 +271,8 @@ withTempDir(({ createTempDir }) => {
               'add-required-name',
               '--from',
               latestMigrationDirName(ctx),
+              '--backfill',
+              'User.name',
             ])
           ).exitCode,
           'P.02: plan',
@@ -360,6 +364,8 @@ withTempDir(({ createTempDir }) => {
           'branch-a-with-invariant',
           '--from',
           latestMigrationDirName(ctx),
+          '--backfill',
+          'User.name',
         ]);
         expect(planA.exitCode, 'Q.02: plan branch A').toBe(0);
         const migrationsDir = join(ctx.testDir, 'migrations', 'app');
@@ -469,6 +475,8 @@ withTempDir(({ createTempDir }) => {
               'add-required-name',
               '--from',
               latestMigrationDirName(ctx),
+              '--backfill',
+              'User.name',
             ])
           ).exitCode,
           'R.02: plan',

@@ -29,8 +29,6 @@ import type {
   MigrationOperationClass,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
-import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
 import type { AnyDdlColumnDefault, DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import {
   DdlColumn,
@@ -936,19 +934,24 @@ export class DropDefaultCall extends PostgresOpFactoryCallNode {
 }
 
 // ============================================================================
-// NOT NULL column additions (planner-internal; no authored surface)
+// NOT NULL column additions
 // ============================================================================
 
+function columnCallOptions(schemaName: string, tableName: string, column: DdlColumn): string[] {
+  return [
+    ...(schemaName === UNBOUND_NAMESPACE_ID ? [] : [`schema: ${jsonToTsSource(schemaName)}`]),
+    `table: ${jsonToTsSource(tableName)}`,
+    `column: ${renderDdlColumnAsTsCall(column)}`,
+  ];
+}
+
 /**
- * Planner-internal call for adding a NOT NULL column (no contract default) to
- * a table that must be empty at migration time. Carries the typed `DdlColumn`
- * and lowers it to an ADD COLUMN execute step via the adapter at `toOp` time.
- *
- * No authored `PostgresMigration` method: this call is only emitted by the
- * planner, never hand-written by migration authors.
+ * Adds a required column with no default to a table that must be empty when the migration runs:
+ * a column in a new primary key, unique constraint or foreign key, where one temporary value in
+ * every row would break the constraint.
  */
 export class AddNotNullColumnDirectCall extends PostgresOpFactoryCallNode {
-  readonly factoryName = 'rawSql' as const;
+  readonly factoryName = 'addColumnToEmptyTable' as const;
   readonly operationClass = 'additive' as const;
   readonly schemaName: string;
   readonly tableName: string;
@@ -956,13 +959,13 @@ export class AddNotNullColumnDirectCall extends PostgresOpFactoryCallNode {
   readonly column: DdlColumn;
   readonly label: string;
 
-  constructor(schemaName: string, tableName: string, columnName: string, column: DdlColumn) {
+  constructor(schemaName: string, tableName: string, column: DdlColumn) {
     super();
     this.schemaName = schemaName;
     this.tableName = tableName;
-    this.columnName = columnName;
+    this.columnName = column.name;
     this.column = column;
-    this.label = `Add column ${columnName} to ${tableName}`;
+    this.label = `Add column ${column.name} to ${tableName}`;
     this.freeze();
   }
 
@@ -978,50 +981,37 @@ export class AddNotNullColumnDirectCall extends PostgresOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
-    return `rawSql(${jsonToTsSource({ id: `column.${this.tableName}.${this.columnName}`, label: this.label, operationClass: 'additive' })})`;
+    return `this.addColumnToEmptyTable({ ${columnCallOptions(this.schemaName, this.tableName, this.column).join(', ')} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [{ moduleSpecifier: POSTGRES_MIGRATION_FACADE, symbol: 'col' }];
   }
 }
 
 /**
- * Planner-internal call for adding a NOT NULL column (no contract default)
- * using a temporary default value for non-empty tables. Carries all parameters
- * needed for `buildAddNotNullColumnWithTemporaryDefaultOperation`; both the
- * typed ADD COLUMN execute step and the pre/postchecks are lowered via the
- * adapter at `toOp` time.
- *
- * No authored `PostgresMigration` method: this call is only emitted by the
- * planner, never hand-written by migration authors.
+ * Adds a required column with no default to a table that may have rows: the column is added with
+ * `temporaryDefault`, a SQL value every existing row takes, and the default is then dropped.
  */
 export class AddNotNullColumnWithTempDefaultCall extends PostgresOpFactoryCallNode {
-  readonly factoryName = 'rawSql' as const;
+  readonly factoryName = 'addColumnWithTemporaryDefault' as const;
   readonly operationClass = 'additive' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly columnName: string;
-  readonly column: StorageColumn;
-  readonly types: SqlTypeLookups;
-  readonly storageTypes: Record<string, StorageTypeInstance>;
+  readonly column: DdlColumn;
+  /** SQL for the value existing rows take, such as `''` or `0`. */
   readonly temporaryDefault: string;
   readonly label: string;
 
-  constructor(options: {
-    readonly schemaName: string;
-    readonly tableName: string;
-    readonly columnName: string;
-    readonly column: StorageColumn;
-    readonly types: SqlTypeLookups;
-    readonly storageTypes: Record<string, StorageTypeInstance>;
-    readonly temporaryDefault: string;
-  }) {
+  constructor(schemaName: string, tableName: string, column: DdlColumn, temporaryDefault: string) {
     super();
-    this.schemaName = options.schemaName;
-    this.tableName = options.tableName;
-    this.columnName = options.columnName;
-    this.column = options.column;
-    this.types = options.types;
-    this.storageTypes = options.storageTypes;
-    this.temporaryDefault = options.temporaryDefault;
-    this.label = `Add column ${options.columnName} to ${options.tableName}`;
+    this.schemaName = schemaName;
+    this.tableName = tableName;
+    this.columnName = column.name;
+    this.column = column;
+    this.temporaryDefault = temporaryDefault;
+    this.label = `Add column ${column.name} to ${tableName}`;
     this.freeze();
   }
 
@@ -1037,16 +1027,21 @@ export class AddNotNullColumnWithTempDefaultCall extends PostgresOpFactoryCallNo
       schema: this.schemaName,
       tableName: this.tableName,
       columnName: this.columnName,
-      column: this.column,
-      types: this.types,
-      storageTypes: this.storageTypes,
+      type: this.column.type,
       temporaryDefault: this.temporaryDefault,
       lowerer,
     });
   }
 
   renderTypeScript(): string {
-    return `rawSql(${jsonToTsSource({ id: `column.${this.tableName}.${this.columnName}`, label: this.label, operationClass: 'additive' })})`;
+    return `this.addColumnWithTemporaryDefault({ ${[
+      ...columnCallOptions(this.schemaName, this.tableName, this.column),
+      `temporaryDefault: ${jsonToTsSource(this.temporaryDefault)}`,
+    ].join(', ')} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [{ moduleSpecifier: POSTGRES_MIGRATION_FACADE, symbol: 'col' }];
   }
 }
 

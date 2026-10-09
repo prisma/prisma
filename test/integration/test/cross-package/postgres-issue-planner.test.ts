@@ -107,6 +107,20 @@ function planAgainst(
   });
 }
 
+function backfillOf(column: string): FieldStatementColumns {
+  return {
+    convert: [],
+    backfill: [
+      {
+        namespaceId: UNBOUND_NAMESPACE_ID,
+        table: 'user',
+        column,
+        field: { namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID), model: 'User', field: column },
+      },
+    ],
+  };
+}
+
 describe('planIssues', () => {
   describe('missing_table', () => {
     it('emits CreateTableCall with columns', () => {
@@ -192,8 +206,10 @@ describe('planIssues', () => {
       });
     }
 
-    it('emits AddColumnCall(nullable) + DataTransformCall + SetNotNullCall', () => {
-      const result = planAgainst(contractWithStatus(), actualWithoutStatus());
+    it('emits AddColumnCall(nullable) + DataTransformCall + SetNotNullCall for --backfill', () => {
+      const result = planAgainst(contractWithStatus(), actualWithoutStatus(), {
+        statementColumns: backfillOf('status'),
+      });
 
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error('expected ok');
@@ -205,7 +221,9 @@ describe('planIssues', () => {
     });
 
     it('DataTransformCall.toOp() rejects with MIGRATION.UNFILLED_PLACEHOLDER', async () => {
-      const result = planAgainst(contractWithStatus(), actualWithoutStatus());
+      const result = planAgainst(contractWithStatus(), actualWithoutStatus(), {
+        statementColumns: backfillOf('status'),
+      });
 
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error('expected ok');
@@ -216,7 +234,7 @@ describe('planIssues', () => {
   });
 
   describe('nullableTightening call strategy', () => {
-    it('emits DataTransformCall + SetNotNullCall', () => {
+    it('emits DataTransformCall + SetNotNullCall for --backfill, and a direct SetNotNullCall without it', () => {
       const toContract = makeContract({
         entries: {
           table: {
@@ -269,7 +287,8 @@ describe('planIssues', () => {
         pgVersion: 'unknown',
       });
 
-      const result = planAgainst(toContract, actual);
+      const result = planAgainst(toContract, actual, { statementColumns: backfillOf('email') });
+      const direct = planAgainst(toContract, actual);
 
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error('expected ok');
@@ -277,6 +296,9 @@ describe('planIssues', () => {
       expect(calls).toHaveLength(2);
       expect(calls[0]).toMatchObject({ factoryName: 'dataTransform' });
       expect(calls[1]).toMatchObject({ factoryName: 'setNotNull', operationClass: 'widening' });
+      expect(direct.ok && direct.value.calls).toEqual([
+        expect.objectContaining({ factoryName: 'setNotNull', operationClass: 'widening' }),
+      ]);
     });
   });
 
@@ -667,7 +689,7 @@ describe('planIssues', () => {
         pgVersion: 'unknown',
       });
 
-      const result = planAgainst(toContract, actual);
+      const result = planAgainst(toContract, actual, { statementColumns: backfillOf('status') });
       if (!result.ok) throw new Error('expected ok');
 
       const ts = renderCallsToTypeScript(result.value.calls, {

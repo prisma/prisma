@@ -3,6 +3,7 @@ export {
   AddColumnCall,
   AddForeignKeyCall,
   AddNativeEnumValueCall,
+  AddNotNullColumnDirectCall,
   AddNotNullColumnWithTempDefaultCall,
   AddPrimaryKeyCall,
   AddUniqueCall,

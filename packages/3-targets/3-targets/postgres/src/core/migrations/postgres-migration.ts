@@ -28,6 +28,8 @@ import {
   AddColumnCall,
   AddForeignKeyCall,
   AddNativeEnumValueCall,
+  AddNotNullColumnDirectCall,
+  AddNotNullColumnWithTempDefaultCall,
   AddPrimaryKeyCall,
   AddUniqueCall,
   AlterColumnTypeCall,
@@ -270,6 +272,35 @@ export abstract class PostgresMigration<
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new AddColumnCall(options.schema, options.table, options.column).toOp(
       this.controlAdapterFor('addColumn'),
+    );
+  }
+
+  /**
+   * Adds a required column to a table that may have rows. Every existing row takes
+   * `temporaryDefault`, SQL such as `''` or `0`, and the default is dropped once the column is added.
+   */
+  protected addColumnWithTemporaryDefault(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly column: DdlColumn;
+    readonly temporaryDefault: string;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new AddNotNullColumnWithTempDefaultCall(
+      options.schema,
+      options.table,
+      options.column,
+      options.temporaryDefault,
+    ).toOp(this.controlAdapterFor('addColumnWithTemporaryDefault'));
+  }
+
+  /** Adds a required column with no default to a table, checking first that the table is empty. */
+  protected addColumnToEmptyTable(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly column: DdlColumn;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new AddNotNullColumnDirectCall(options.schema, options.table, options.column).toOp(
+      this.controlAdapterFor('addColumnToEmptyTable'),
     );
   }
 

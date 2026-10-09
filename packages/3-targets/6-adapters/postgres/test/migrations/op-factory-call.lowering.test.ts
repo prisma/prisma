@@ -326,15 +326,12 @@ describe('AddNotNullColumnWithTempDefaultCall', () => {
     }
     expect(temporaryDefault).toBe("'[0,0,0]'");
 
-    const call = new AddNotNullColumnWithTempDefaultCall({
-      schemaName: 'public',
-      tableName: 'doc',
-      columnName: 'embedding',
-      column,
-      types,
-      storageTypes: {},
+    const call = new AddNotNullColumnWithTempDefaultCall(
+      'public',
+      'doc',
+      col('embedding', 'vector(3)', { notNull: true }),
       temporaryDefault,
-    });
+    );
     const op = await call.toOp(testAdapter);
 
     expect(op.execute[0]?.sql).toBe(
