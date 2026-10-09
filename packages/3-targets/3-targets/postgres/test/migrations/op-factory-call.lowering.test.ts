@@ -229,6 +229,15 @@ describe('AlterColumnTypeCall', () => {
     expect(call.label).toBe('Alter type of "user"."age" to int8');
   });
 
+  it('is a data change when it converts with a USING clause and nothing says otherwise', () => {
+    expect([
+      alter({ using: { kind: 'sql', sql: '"age"::int8' } }).operationClass,
+      alter({ using: { kind: 'placeholder', slot: 'User.age:using' } }).operationClass,
+      alter({ using: { kind: 'sql', sql: '"age"::int8' }, operationClass: 'destructive' })
+        .operationClass,
+    ]).toEqual(['data', 'data', 'destructive']);
+  });
+
   it('is destructive unless the planner says the type change is a safe widening or a conversion', async () => {
     const { lowerer } = recordingCheckLowerer();
     const classes = await Promise.all(
@@ -282,26 +291,26 @@ describe('AlterColumnTypeCall', () => {
     await expect(async () => alter().toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 
-  it('renders this.alterColumnType with plain options, and the class when it is not destructive', () => {
+  it('renders this.alterColumnType with plain options, and the class when it is not the default', () => {
     expect([
       alter().renderTypeScript(),
       alter({ operationClass: 'widening' }).renderTypeScript(),
-      alter({ using: { kind: 'sql', sql: '"age"::int8' } }).renderTypeScript(),
+      alter({
+        using: { kind: 'sql', sql: '"age"::int8' },
+        operationClass: 'destructive',
+      }).renderTypeScript(),
     ]).toEqual([
       'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8" })',
       'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", operationClass: "widening" })',
-      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: "\\"age\\"::int8" })',
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: "\\"age\\"::int8", operationClass: "destructive" })',
     ]);
     expect(alter().importRequirements()).toEqual([]);
   });
 
   it('renders an unfilled USING slot as a placeholder call, and imports placeholder', () => {
-    const call = alter({
-      operationClass: 'data',
-      using: { kind: 'placeholder', slot: 'User.age:using' },
-    });
+    const call = alter({ using: { kind: 'placeholder', slot: 'User.age:using' } });
     expect(call.renderTypeScript()).toBe(
-      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: placeholder("User.age:using"), operationClass: "data" })',
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: placeholder("User.age:using") })',
     );
     expect(call.importRequirements()).toEqual([expect.objectContaining({ symbol: 'placeholder' })]);
   });

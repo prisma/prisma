@@ -553,11 +553,7 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     const where = { schema: 'public', table: 'widget', column: 'count', type: 'int8' };
     const lossy = await m.callAlterColumnType(where);
     const widening = await m.callAlterColumnType({ ...where, operationClass: 'widening' });
-    const converted = await m.callAlterColumnType({
-      ...where,
-      using: '"count"::int8',
-      operationClass: 'data',
-    });
+    const converted = await m.callAlterColumnType({ ...where, using: '"count"::int8' });
 
     expect([lossy.operationClass, widening.operationClass, converted.operationClass]).toEqual([
       'destructive',

@@ -33,12 +33,12 @@ describe('alterTypeCheckText', () => {
     ]);
   });
 
-  it('names an enum by its quoted name, quoted where Postgres quotes it', () => {
+  it('names an enum by its quoted name, quoted where Postgres quotes it, and without public', () => {
     expect(
-      ['"Mood"', '"app"."status"', '"app"."Status"'].map((type) =>
-        alterTypeCheckText(type, postgresDataTypes, where),
+      ['"Mood"', '"app"."status"', '"app"."Status"', '"public"."Mood"', '"public"."mood"'].map(
+        (type) => alterTypeCheckText(type, postgresDataTypes, where),
       ),
-    ).toEqual(['"Mood"', 'app.status', 'app."Status"']);
+    ).toEqual(['"Mood"', 'app.status', 'app."Status"', '"Mood"', 'mood']);
   });
 
   it('refuses a type no data type of the stack reads, naming the text and where it was written', () => {

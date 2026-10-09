@@ -92,6 +92,7 @@ import {
   renameTableByHandStatements,
   renderRenameTableCall,
 } from './table-rename-calls';
+import { withChecksAroundTypeChanges } from './type-change-checks';
 import { verifyPostgresNamespacePresence } from './verify-postgres-namespaces';
 import { createWorkingSchema } from './working-schema';
 
@@ -251,7 +252,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       return plannerFailure([statements.failure]);
     }
     const { schema } = statements.value;
-    const { issues: rawIssues } = buildPostgresPlanDiff({
+    const { issues: rawIssues, expected: expectedSchema } = buildPostgresPlanDiff({
       contract: options.contract,
       actualSchema: schema,
       frameworkComponents: options.frameworkComponents,
@@ -427,7 +428,18 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       fieldEventPostgresCalls,
       options.contract,
     );
-    const ordered = movePolicyDropsBeforeBlockedDdl(result.value.calls, schemaDiffPartition.kept);
+    const ordered = movePolicyDropsBeforeBlockedDdl(
+      withChecksAroundTypeChanges({
+        calls: result.value.calls,
+        expected: expectedSchema,
+        actual: schema,
+        ddlSchemaOf: (name) =>
+          name === UNBOUND_NAMESPACE_ID
+            ? resolveDdlSchemaForNamespaceStorage(options.contract.storage, UNBOUND_NAMESPACE_ID)
+            : name,
+      }),
+      schemaDiffPartition.kept,
+    );
     const calls = [
       ...statements.value.calls,
       ...ordered.structural,

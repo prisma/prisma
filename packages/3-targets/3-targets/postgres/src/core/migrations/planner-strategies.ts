@@ -68,7 +68,7 @@ import {
 } from './op-factory-call';
 import { buildSchemaLookupMap, hasForeignKey, hasUniqueConstraint } from './planner-schema-lookup';
 import { buildTargetDetails, type PostgresPlanTargetDetails } from './planner-target-details';
-import { columnDataType, isSafeTypeWidening } from './safe-widenings';
+import { columnType, isSafeTypeWidening } from './safe-widenings';
 
 /**
  * Look up a storage table by its explicit namespace coordinate. Returns
@@ -285,9 +285,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
         column.column === expected.name,
     );
     if (converted === undefined) continue;
-    if (
-      isSafeTypeWidening(columnDataType(actual, ctx.types), columnDataType(expected, ctx.types))
-    ) {
+    if (isSafeTypeWidening(columnType(actual, ctx.types), columnType(expected, ctx.types))) {
       continue;
     }
 
@@ -304,7 +302,6 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
           slot: `${fieldStatementText(ctx, converted.field)}:using`,
         },
         dataTypes: ctx.dataTypes,
-        operationClass: 'data',
       }),
     );
     if (expected.nullable !== actual.nullable) {

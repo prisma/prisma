@@ -12,6 +12,7 @@ import {
 } from '@internal/sql-contract/data-type';
 import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
 import { postgresError } from '../errors';
+import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { postgresCreateNamespace } from '../postgres-schema';
 import { quoteIdentifierWhereNeeded } from '../sql-utils';
 import { resolveColumnTypeMetadata } from './planner-type-resolution';
@@ -94,7 +95,8 @@ function columnTypeUnreadable(type: string, where: string, reason: string): neve
 /**
  * The type `format_type` prints for a column altered to `type`, written as a migration writes it:
  * the catalog text of the one data type of `dataTypes` that reads it, or for an enum, named by its
- * quoted name, that name quoted where Postgres quotes it. A list type keeps one `[]`, as
+ * quoted name, that name quoted where Postgres quotes it, without the `public` schema, which
+ * `format_type` leaves out as the planner's own enum names do. A list type keeps one `[]`, as
  * `format_type` prints it. The planner and the `alterColumnType` facade both check the alter with
  * this text, so re-running a migration reproduces its operations. `where` names the call in the
  * error a type no data type reads raises.
@@ -127,7 +129,9 @@ export function alterTypeCheckText(
     (dataType) => isSqlDataType(dataType) && dataType.sql.claimsKind !== undefined,
   );
   if (name !== undefined && namesItself) {
-    return `${name.map(quoteIdentifierWhereNeeded).join('.')}${suffix}`;
+    const [schema, ...rest] = name;
+    const unqualified = rest.length > 0 && schema === DEFAULT_NAMESPACE_ID ? rest : name;
+    return `${unqualified.map(quoteIdentifierWhereNeeded).join('.')}${suffix}`;
   }
   return columnTypeUnreadable(
     type,

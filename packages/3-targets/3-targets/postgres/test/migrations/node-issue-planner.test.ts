@@ -243,6 +243,49 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       ]).toEqual(['widening', 'widening', 'widening']);
     });
 
+    it('is widening for a parameter that grows on one data type, and varchar to text', () => {
+      const varchar = (length?: number) => ({
+        dataType: 'pg/varchar',
+        codecId: 'pg/varchar@1',
+        nullable: false,
+        ...(length === undefined ? {} : { typeParams: { length } }),
+      });
+      const numeric = (precision?: number, scale?: number) => ({
+        dataType: 'pg/numeric',
+        codecId: 'pg/numeric@1',
+        nullable: false,
+        ...(precision === undefined
+          ? {}
+          : { typeParams: { precision, ...(scale === undefined ? {} : { scale }) } }),
+      });
+      expect([
+        alterClass({ nativeType: 'character varying(10)' }, varchar(20)),
+        alterClass({ nativeType: 'character varying(10)' }, varchar()),
+        alterClass(
+          { nativeType: 'character varying(10)' },
+          { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
+        ),
+        alterClass({ nativeType: 'numeric(10,2)' }, numeric(12, 2)),
+        alterClass({ nativeType: 'numeric(10,2)' }, numeric(12, 4)),
+        alterClass({ nativeType: 'numeric(10,2)' }, numeric()),
+      ]).toEqual(Array(6).fill('widening'));
+      expect([
+        alterClass({ nativeType: 'character varying(20)' }, varchar(10)),
+        alterClass({ nativeType: 'text' }, varchar(10)),
+        alterClass({ nativeType: 'numeric(10,2)' }, numeric(10, 3)),
+        alterClass({ nativeType: 'numeric' }, numeric(10, 2)),
+        alterClass(
+          { nativeType: 'character(5)' },
+          {
+            dataType: 'pg/char',
+            codecId: 'pg/char@1',
+            nullable: false,
+            typeParams: { length: 10 },
+          },
+        ),
+      ]).toEqual(Array(5).fill('destructive'));
+    });
+
     it('is destructive for a type change that can change values, or one between lists', () => {
       expect([
         alterClass(

@@ -515,6 +515,7 @@ export abstract class PostgresMigration<
     readonly type: string;
     /** The SQL that converts each value to the new type; by default a cast of the column. */
     readonly using?: string;
+    /** By default `data` when `using` is given, and `destructive` otherwise. */
     readonly operationClass?: AlterColumnTypeClass;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     const adapter = this.controlAdapterFor('alterColumnType');

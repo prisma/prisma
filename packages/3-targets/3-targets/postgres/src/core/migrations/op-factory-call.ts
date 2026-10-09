@@ -660,6 +660,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     readonly using?: AlterColumnTypeUsing;
     /** The data types of the stack, which read `type` for the postcheck. */
     readonly dataTypes: readonly DataType[];
+    /** By default `data` when `using` converts the values, and `destructive` otherwise. */
     readonly operationClass?: AlterColumnTypeClass;
   }) {
     super();
@@ -668,10 +669,14 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     this.columnName = input.columnName;
     this.type = input.type;
     this.using = input.using;
-    this.operationClass = input.operationClass ?? 'destructive';
+    this.operationClass = input.operationClass ?? this.#defaultClass();
     this.checkType = alterTypeCheckText(input.type, input.dataTypes, this.#callText());
     this.label = `Alter type of "${input.tableName}"."${input.columnName}" to ${input.type}`;
     this.freeze();
+  }
+
+  #defaultClass(): AlterColumnTypeClass {
+    return this.using === undefined ? 'destructive' : 'data';
   }
 
   #location(): readonly string[] {
@@ -728,7 +733,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
       ...this.#location(),
       `type: ${jsonToTsSource(this.type)}`,
       ...using,
-      ...(this.operationClass === 'destructive'
+      ...(this.operationClass === this.#defaultClass()
         ? []
         : [`operationClass: ${jsonToTsSource(this.operationClass)}`]),
     ];

@@ -32,6 +32,18 @@ const ALL_CLASSES = {
 const unbound = asNamespaceId(UNBOUND_NAMESPACE_ID);
 
 const columnTypes = {
+  'varchar(10)': {
+    dataType: 'pg/varchar',
+    codecId: 'pg/varchar@1',
+    nullable: false,
+    typeParams: { length: 10 },
+  },
+  'varchar(20)': {
+    dataType: 'pg/varchar',
+    codecId: 'pg/varchar@1',
+    nullable: false,
+    typeParams: { length: 20 },
+  },
   int4: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
   int8: { dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false },
   text: { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
@@ -537,10 +549,24 @@ describe('Postgres planner, convert and backfill statements', () => {
     expect(result.dataLoss).toEqual([]);
     const rendered = result.plan.renderTypeScript((specifier) => specifier);
     expect(rendered).toContain(
-      'this.alterColumnType({ schema: "public", table: "User", column: "age", type: "int4", using: placeholder("User.age:using"), operationClass: "data" })',
+      'this.alterColumnType({ schema: "public", table: "User", column: "age", type: "int4", using: placeholder("User.age:using") })',
     );
     expect(rendered).not.toContain('dataTransform');
     expect(rendered).toMatch(/import \{[^}]*placeholder[^}]*\}/);
+  });
+
+  it('plans a growing varchar length as a widening, with or without a convert', async () => {
+    const from = contract('from', { User: { columns: { id: 'int4', age: 'varchar(10)' } } });
+    const to = contract('to', { User: { columns: { id: 'int4', age: 'varchar(20)' } } });
+
+    expect([
+      await settled(planWith(from, to, [])),
+      await settled(planWith(from, to, [convertAge])),
+    ]).toEqual([
+      ['Alter type of "User"."age" to character varying(20) (widening)'],
+      ['Alter type of "User"."age" to character varying(20) (widening)'],
+    ]);
+    expect(planWith(from, to, []).dataLoss).toEqual([]);
   });
 
   it('leaves a safe widening to the widening alter, whatever a convert says', async () => {
