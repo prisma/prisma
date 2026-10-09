@@ -25,7 +25,12 @@ import {
 import { retryCommandFor } from '../../control-api/operations/ref-resolution';
 import { shellQuoted, statementFlag } from '../../control-api/statements/statement-flag';
 import { isStatementVerb, type StatementText } from '../../control-api/statements/statement-text';
-import type { AskedSubject, CreateControlClient, DbUpdateSuccess } from '../../control-api/types';
+import type {
+  AskedDataLoss,
+  AskedSubject,
+  CreateControlClient,
+  DbUpdateSuccess,
+} from '../../control-api/types';
 import {
   CliStructuredError,
   errorContractValidationFailed,
@@ -90,14 +95,14 @@ function updatePresentations(inputs: {
 }
 
 /**
- * The entries a dry run lists, each marked answered when a flag it was given answers its question:
- * a `--delete` answers every loss of its subject, and an `--allow` one operation, in order.
+ * Whether a flag the run was given answers each entry's question: a `--delete` answers every loss
+ * of its subject, and an `--allow` one operation, in order.
  */
-function subjectEntriesJson(
+function answeredByFlags(
   entries: readonly AskedSubject[],
   verb: 'delete' | 'allow',
   given: readonly StatementText[],
-) {
+): readonly boolean[] {
   const flagsLeft = new Map<string, number>();
   for (const statement of given) {
     if (statement.verb === verb) {
@@ -107,13 +112,32 @@ function subjectEntriesJson(
   return entries.map((entry) => {
     const left = flagsLeft.get(entry.text) ?? 0;
     if (left > 0 && verb === 'allow') flagsLeft.set(entry.text, left - 1);
-    return {
-      operationIndex: entry.operationIndex,
-      subject: migrationSubjectJson(entry.subject),
-      text: entry.text,
-      answered: left > 0,
-    };
+    return left > 0;
   });
+}
+
+function subjectEntryJson(entry: AskedSubject, answered: boolean | undefined) {
+  return {
+    operationIndex: entry.operationIndex,
+    subject: migrationSubjectJson(entry.subject),
+    text: entry.text,
+    answered: answered === true,
+  };
+}
+
+/** The data-loss entries a dry run lists, each with how it loses data and whether a flag answers it. */
+function dataLossEntriesJson(entries: readonly AskedDataLoss[], given: readonly StatementText[]) {
+  const answered = answeredByFlags(entries, 'delete', given);
+  return entries.map((entry, index) => ({
+    ...subjectEntryJson(entry, answered[index]),
+    loss: entry.loss,
+  }));
+}
+
+/** The access entries a dry run lists, each marked answered when an `--allow` it was given answers it. */
+function accessEntriesJson(entries: readonly AskedSubject[], given: readonly StatementText[]) {
+  const answered = answeredByFlags(entries, 'allow', given);
+  return entries.map((entry, index) => subjectEntryJson(entry, answered[index]));
 }
 
 function updateDocument(inputs: {
@@ -162,8 +186,8 @@ function updateDocument(inputs: {
     appliedStatements: value.appliedStatements,
     ...(value.mode === 'plan'
       ? {
-          dataLoss: subjectEntriesJson(value.dataLoss, 'delete', inputs.statements),
-          accessWidening: subjectEntriesJson(value.accessWidening, 'allow', inputs.statements),
+          dataLoss: dataLossEntriesJson(value.dataLoss, inputs.statements),
+          accessWidening: accessEntriesJson(value.accessWidening, inputs.statements),
         }
       : {}),
     ...ifDefined('warnings', value.warnings),

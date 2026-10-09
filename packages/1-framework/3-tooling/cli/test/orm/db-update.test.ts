@@ -212,8 +212,15 @@ describe('db update --rename', () => {
 
   it('lists what an apply would ask about on a dry run, in its output and its JSON', async () => {
     const legacy = { kind: 'model', namespaceId: 'app', model: 'Legacy' } as const;
+    const age = { kind: 'field', namespaceId: 'app', model: 'User', field: 'age' } as const;
     mocks.dbUpdate.mockResolvedValue(
-      ok({ ...planSuccess(), dataLoss: [{ operationIndex: 0, subject: legacy, text: 'Legacy' }] }),
+      ok({
+        ...planSuccess(),
+        dataLoss: [
+          { operationIndex: 0, subject: legacy, text: 'Legacy', loss: 'drop' },
+          { operationIndex: 0, subject: age, text: 'User.age', loss: 'typeChange' },
+        ],
+      }),
     );
     const human = await harness().run(['db', 'update', '--dry-run'], {
       cwd: projectDir,
@@ -226,12 +233,24 @@ describe('db update --rename', () => {
       roots: [
         {
           label: 'An apply asks about',
-          children: [{ label: 'drop relation legacy: --delete Legacy' }],
+          children: [
+            { label: 'drop relation legacy: --delete Legacy' },
+            { label: 'drop relation legacy: --delete User.age' },
+          ],
         },
       ],
     });
     expect(json.presented?.data).toMatchObject({
-      dataLoss: [{ operationIndex: 0, subject: legacy, text: 'Legacy' }],
+      dataLoss: [
+        { operationIndex: 0, subject: legacy, text: 'Legacy', loss: 'drop', answered: false },
+        {
+          operationIndex: 0,
+          subject: age,
+          text: 'User.age',
+          loss: 'typeChange',
+          answered: false,
+        },
+      ],
       accessWidening: [],
     });
   });
