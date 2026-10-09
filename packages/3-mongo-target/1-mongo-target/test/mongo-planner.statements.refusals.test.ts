@@ -1,0 +1,205 @@
+import { describe, expect, it } from 'vitest';
+import {
+  contract,
+  plan,
+  profiles,
+  profilesSchema,
+  refusal,
+  renameField,
+  renameModel,
+  schemaCollection,
+  users,
+} from './mongo-statement-fixtures';
+
+describe('MongoMigrationPlanner, statements it refuses', () => {
+  it('refuses renaming _id', () => {
+    const to = contract(
+      'to',
+      { Profile: { collection: 'profiles', fields: ['key', 'name'] } },
+      { profiles: { unique: ['name'], required: ['name'] } },
+    );
+    expect(
+      refusal(
+        plan({
+          from: profiles,
+          to,
+          schema: profilesSchema,
+          statements: [renameField('Profile', '_id', 'Profile', 'key')],
+        }),
+      ),
+    ).toEqual([
+      {
+        kind: 'statementRefused',
+        summary: 'Cannot rename field "Profile._id" to "Profile.key": it renames _id',
+        why: 'MongoDB does not let a document change its _id. Leave out this statement.',
+      },
+    ]);
+  });
+
+  it('refuses renaming a stored field whose name MongoDB reads as a path, and says to rename it by hand', () => {
+    const named = (field: string) =>
+      contract(
+        field,
+        { Profile: { collection: 'profiles', fields: ['_id', field] } },
+        { profiles: {} },
+      );
+    expect(
+      refusal(
+        plan({
+          from: named('o.d'),
+          to: named('od'),
+          schema: [schemaCollection('profiles')],
+          statements: [renameField('Profile', 'o.d', 'Profile', 'od')],
+        }),
+      ),
+    ).toEqual([
+      {
+        kind: 'statementRefused',
+        summary:
+          'Cannot rename field "Profile.o.d" to "Profile.od": the stored field name "o.d" cannot be rewritten',
+        why: 'MongoDB reads a name containing "." as a path into embedded documents, so a statement cannot move its values. Rename it in the database yourself, or leave out this statement.',
+      },
+    ]);
+  });
+
+  it('refuses a stored field name MongoDB reads as a path or an operator', () => {
+    const to = (field: string) =>
+      contract(
+        field,
+        { Profile: { collection: 'profiles', fields: ['_id', field] } },
+        { profiles: {} },
+      );
+    expect(
+      ['a.b', '$a'].flatMap((field) =>
+        refusal(
+          plan({
+            from: to('name'),
+            to: to(field),
+            schema: [schemaCollection('profiles')],
+            statements: [renameField('Profile', 'name', 'Profile', field)],
+          }),
+        ).map(({ summary }) => summary),
+      ),
+    ).toEqual([
+      'Cannot rename field "Profile.name" to "Profile.a.b": the stored field name "a.b" cannot be written',
+      'Cannot rename field "Profile.name" to "Profile.$a": the stored field name "$a" cannot be written',
+    ]);
+  });
+
+  it('refuses renaming a time-series collection, a collection the schema does not have, and onto a name it already has', () => {
+    const statements = [renameModel('Profile', 'User')];
+    expect(
+      [
+        [schemaCollection('profiles', { unique: ['name'], required: ['name'], timeseries: true })],
+        [],
+        [...profilesSchema, schemaCollection('users')],
+      ].flatMap((schema) =>
+        refusal(plan({ from: profiles, to: users, schema, statements })).map(
+          ({ summary }) => summary,
+        ),
+      ),
+    ).toEqual([
+      'Cannot rename model "Profile" to "User": collection "profiles" is a time-series collection',
+      'Cannot rename model "Profile" to "User": the schema being planned from has no collection "profiles"',
+      'Cannot rename model "Profile" to "User": the schema being planned from already has a collection "users"',
+    ]);
+  });
+
+  it('refuses a collection name MongoDB rejects', () => {
+    const to = (collection: string) =>
+      contract('to', { User: { collection, fields: ['_id', 'name'] } }, { [collection]: {} });
+    expect(
+      ['a$b', 'system.users', 'a\0b'].flatMap((collection) =>
+        refusal(
+          plan({
+            from: profiles,
+            to: to(collection),
+            schema: profilesSchema,
+            statements: [renameModel('Profile', 'User')],
+          }),
+        ).map(({ summary }) => summary),
+      ),
+    ).toEqual([
+      'Cannot rename model "Profile" to "User": MongoDB does not accept the collection name "a$b": it contains "$"',
+      'Cannot rename model "Profile" to "User": MongoDB does not accept the collection name "system.users": it starts with "system.", which MongoDB reserves',
+      'Cannot rename model "Profile" to "User": MongoDB does not accept the collection name "a\0b": it contains a null character',
+    ]);
+  });
+
+  it('refuses a field stored on one side of the statement only', () => {
+    const to = contract(
+      'to',
+      { Profile: { collection: 'profiles', fields: ['_id', 'name'], relations: ['owner'] } },
+      { profiles: { unique: ['name'], required: ['name'] } },
+    );
+    const from = contract(
+      'from',
+      { Profile: { collection: 'profiles', fields: ['_id', 'name', 'ownerName'] } },
+      { profiles: { unique: ['name'], required: ['name'] } },
+    );
+    expect(
+      refusal(
+        plan({
+          from,
+          to,
+          schema: profilesSchema,
+          statements: [renameField('Profile', 'ownerName', 'Profile', 'owner')],
+        }),
+      ).map(({ summary }) => summary),
+    ).toEqual([
+      'Cannot rename field "Profile.ownerName" to "Profile.owner": the field is stored in documents on one side of the statement only',
+    ]);
+  });
+
+  it('refuses a statement on a collection whose control policy is not managed', () => {
+    const to = contract(
+      'to',
+      { User: { collection: 'users', fields: ['_id', 'name'] } },
+      { users: { unique: ['name'], required: ['name'], control: 'external' } },
+    );
+    expect(
+      refusal(
+        plan({
+          from: profiles,
+          to,
+          schema: profilesSchema,
+          statements: [renameModel('Profile', 'User')],
+        }),
+      ).map(({ summary }) => summary),
+    ).toEqual([
+      'Cannot rename model "Profile" to "User": collection "users" has control policy "external"',
+    ]);
+  });
+
+  it("refuses a field rename when the model's collection changes and no statement renames it", () => {
+    const to = contract(
+      'to',
+      { Profile: { collection: 'users', fields: ['_id', 'fullName'] } },
+      { users: {} },
+    );
+    expect(
+      refusal(
+        plan({
+          from: profiles,
+          to,
+          schema: profilesSchema,
+          statements: [renameField('Profile', 'name', 'Profile', 'fullName')],
+        }),
+      ).map(({ summary }) => summary),
+    ).toEqual([
+      'Cannot rename field "Profile.name" to "Profile.fullName": the model\'s collection changes from "profiles" to "users", and no statement renames it',
+    ]);
+    expect(
+      refusal(
+        plan({
+          from: profiles,
+          to,
+          schema: profilesSchema,
+          statements: [renameField('Profile', 'name', 'Profile', 'fullName')],
+        }),
+      )[0]?.why,
+    ).toBe(
+      'A statement cannot rename the collection of a model that keeps its name. Rename the collection in a step of its own first: change only @@map and emit the contract. With db update, rename the collection in the database yourself, for example db.getCollection("profiles").renameCollection("users") in mongosh, then run db update. With migration plan, plan it, passing --delete Profile to answer its question; in its migration.ts replace the drop of "profiles" and the create of "users" with renameCollection("profiles", "users"), imported with the other operations; run node migration.ts in the migration\'s directory, so it writes ops.json again; then apply it with migrate. Then change the field and run this statement again.',
+    );
+  });
+});
