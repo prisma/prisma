@@ -1,0 +1,218 @@
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
+import {
+  APP_SPACE_ID,
+  type MigrationOperationPolicy,
+  planOriginOf,
+  type ResolvedMigrationStatement,
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { applicationDomainOf } from '@repo/test-utils';
+import { describe, expect, it } from 'vitest';
+import { sqliteContractToSchema } from '../../src/core/migrations/diff-database-schema';
+import { createSqliteMigrationPlanner } from '../../src/core/migrations/planner';
+import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
+import { sqliteTestComponents, sqliteTestTypes } from '../sqlite-test-types';
+import { stubLowerer } from './rename-table-fixtures';
+
+const unbound = asNamespaceId(UNBOUND_NAMESPACE_ID);
+const MIGRATION_PLAN: MigrationOperationPolicy = {
+  allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'],
+};
+const DB_UPDATE: MigrationOperationPolicy = {
+  allowedOperationClasses: ['additive', 'widening', 'destructive'],
+};
+
+const columnTypes = {
+  integer: { dataType: 'sqlite/integer', codecId: 'sqlite/integer@1', nullable: false },
+  text: { dataType: 'sqlite/text', codecId: 'sqlite/text@1', nullable: false },
+  'text?': { dataType: 'sqlite/text', codecId: 'sqlite/text@1', nullable: true },
+  datetime: { dataType: 'sqlite/text', codecId: 'sqlite/datetime@1', nullable: false },
+} as const;
+
+type Columns = Readonly<Record<string, keyof typeof columnTypes>>;
+
+function contract(
+  seed: string,
+  columns: Columns,
+  uniques: readonly string[] = [],
+): Contract<SqlStorage> {
+  return {
+    target: 'sqlite',
+    targetFamily: 'sql',
+    profileHash: profileHash(seed),
+    storage: new SqlStorage({
+      storageHash: coreHash(seed),
+      namespaces: {
+        [UNBOUND_NAMESPACE_ID]: sqliteCreateNamespace({
+          id: UNBOUND_NAMESPACE_ID,
+          entries: {
+            table: {
+              User: new StorageTable({
+                columns: Object.fromEntries(
+                  Object.entries(columns).map(([column, type]) => [column, columnTypes[type]]),
+                ),
+                primaryKey: { columns: ['id'] },
+                uniques: uniques.map((column) => ({ columns: [column] })),
+                indexes: [],
+                foreignKeys: [],
+              }),
+            },
+          },
+        }),
+      },
+    }),
+    roots: {},
+    domain: applicationDomainOf({
+      models: {
+        User: {
+          fields: Object.fromEntries(
+            Object.entries(columns).map(([column, type]) => [
+              column,
+              {
+                nullable: type.endsWith('?'),
+                type: { kind: 'scalar', codecId: columnTypes[type].codecId },
+              },
+            ]),
+          ),
+          relations: {},
+          storage: {
+            table: 'User',
+            namespaceId: UNBOUND_NAMESPACE_ID,
+            fields: Object.fromEntries(Object.keys(columns).map((column) => [column, { column }])),
+          },
+        },
+      },
+    }),
+    capabilities: {},
+    extensions: {},
+    meta: {},
+  };
+}
+
+const statement = (kind: 'convert' | 'backfill', field: string): ResolvedMigrationStatement => ({
+  kind,
+  entity: 'field',
+  field: { namespaceId: unbound, model: 'User', field },
+});
+
+function plan(
+  from: Contract<SqlStorage>,
+  to: Contract<SqlStorage>,
+  options: {
+    readonly policy?: MigrationOperationPolicy;
+    readonly statements?: readonly ResolvedMigrationStatement[];
+  } = {},
+) {
+  const policy = options.policy ?? MIGRATION_PLAN;
+  const fromContract = policy === MIGRATION_PLAN ? from : null;
+  const result = createSqliteMigrationPlanner(stubLowerer).plan({
+    contract: to,
+    schema: sqliteContractToSchema(from, sqliteTestTypes),
+    policy,
+    fromContract,
+    origin: planOriginOf(fromContract),
+    statements: options.statements ?? [],
+    frameworkComponents: sqliteTestComponents,
+    spaceId: APP_SPACE_ID,
+    snapshotsImportPath: '../../snapshots',
+  });
+  if (result.kind !== 'success') throw new Error(JSON.stringify(result.conflicts));
+  return result;
+}
+
+async function planned(...args: Parameters<typeof plan>) {
+  const settled = await Promise.allSettled(plan(...args).plan.operations);
+  return settled.map((entry) =>
+    entry.status === 'fulfilled'
+      ? `${entry.value.label} (${entry.value.operationClass})`
+      : 'placeholder',
+  );
+}
+
+function rendered(...args: Parameters<typeof plan>): string {
+  return plan(...args).plan.renderTypeScript((specifier) => specifier);
+}
+
+const hex = (letter: string) => letter.repeat(64);
+const textAge = contract(hex('a'), { id: 'integer', age: 'text', nickname: 'text?' });
+const intAge = contract(hex('b'), { id: 'integer', age: 'integer', nickname: 'text?' });
+const withName = contract(hex('c'), {
+  id: 'integer',
+  age: 'text',
+  nickname: 'text?',
+  name: 'text',
+});
+const nicknameRequired = contract(hex('d'), { id: 'integer', age: 'text', nickname: 'text' });
+
+describe('SQLite planner, a type change', () => {
+  it('rebuilds the table as a destructive change, a data loss, without a statement', async () => {
+    const result = plan(textAge, intAge);
+    expect(await planned(textAge, intAge)).toEqual(['Recreate table User (destructive)']);
+    expect(result.dataLoss.map(({ loss }) => loss)).toEqual(['typeChange']);
+  });
+
+  it('copies the column through a conversion slot for --convert, a data change that loses nothing', async () => {
+    const result = plan(textAge, intAge, { statements: [statement('convert', 'age')] });
+    expect(await planned(textAge, intAge, { statements: [statement('convert', 'age')] })).toEqual([
+      'placeholder',
+    ]);
+    expect(result.dataLoss).toEqual([]);
+    expect(rendered(textAge, intAge, { statements: [statement('convert', 'age')] })).toContain(
+      'copyExpressions: { "age": placeholder("User.age:using") }',
+    );
+  });
+});
+
+describe('SQLite planner, a required field without a value in existing rows', () => {
+  it('rebuilds with a temporary value for a new required field, under migration plan and db update', async () => {
+    expect([
+      await planned(textAge, withName),
+      await planned(textAge, withName, { policy: DB_UPDATE }),
+    ]).toEqual([['Recreate table User (additive)'], ['Recreate table User (additive)']]);
+    expect(rendered(textAge, withName)).toContain(`copyExpressions: { "name": "''" }`);
+  });
+
+  it('fills a new required datetime field with the instant the codec writes for the epoch', () => {
+    const withStamp = contract(hex('e'), {
+      id: 'integer',
+      age: 'text',
+      nickname: 'text?',
+      stamp: 'datetime',
+    });
+    expect(rendered(textAge, withStamp)).toContain(
+      `copyExpressions: { "stamp": "'1970-01-01T00:00:00.000Z'" }`,
+    );
+  });
+
+  it('adds a new required unique field without a temporary value, since one value would repeat', async () => {
+    const unique = contract(
+      hex('f'),
+      { id: 'integer', age: 'text', nickname: 'text?', name: 'text' },
+      ['name'],
+    );
+    expect(rendered(textAge, unique)).not.toContain('copyExpressions');
+  });
+
+  it('adds a new required field nullable, fills it through a slot, then tightens it for --backfill', async () => {
+    const statements = [statement('backfill', 'name')];
+    expect(await planned(textAge, withName, { statements })).toEqual([
+      'Add column name on User (additive)',
+      'placeholder',
+      'Recreate table User (widening)',
+    ]);
+    expect(rendered(textAge, withName, { statements })).toContain('placeholder("User.name:run")');
+  });
+
+  it('tightens an optional field made required, with a slot first for --backfill', async () => {
+    expect([
+      await planned(textAge, nicknameRequired),
+      await planned(textAge, nicknameRequired, { policy: DB_UPDATE }),
+      await planned(textAge, nicknameRequired, { statements: [statement('backfill', 'nickname')] }),
+    ]).toEqual([
+      ['Recreate table User (widening)'],
+      ['Recreate table User (widening)'],
+      ['placeholder', 'Recreate table User (widening)'],
+    ]);
+  });
+});

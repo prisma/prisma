@@ -160,6 +160,12 @@ export interface RecreateTableArgs {
    */
   readonly postchecks: readonly RecreatePostcheck[];
   readonly operationClass: MigrationOperationClass;
+  /**
+   * SQL each named column of the new table is copied from, in place of the live column of the same
+   * name: a conversion of a column whose type changes, or a value for a column the live table does
+   * not have. Keyed by the new table's column names.
+   */
+  readonly copyExpressions?: Readonly<Record<string, string>>;
 }
 
 export async function recreateTable(
@@ -174,12 +180,20 @@ export async function recreateTable(
     summary,
     postchecks,
     operationClass,
+    copyExpressions = {},
   } = args;
   refuseEarlierColumnSpecs('recreateTable', tableName, contractTable.columns);
   const tempName = `_prisma_new_${tableName}`;
   const liveSet = new Set(schemaColumnNames);
-  const sharedColumns = contractTable.columns.filter((c) => liveSet.has(c.name)).map((c) => c.name);
+  const copiedFrom = (column: string): string | undefined =>
+    Object.hasOwn(copyExpressions, column) ? copyExpressions[column] : undefined;
+  const sharedColumns = contractTable.columns
+    .filter((c) => liveSet.has(c.name) || copiedFrom(c.name) !== undefined)
+    .map((c) => c.name);
   const columnList = sharedColumns.map(quoteIdentifier).join(', ');
+  const selectList = sharedColumns
+    .map((column) => copiedFrom(column) ?? quoteIdentifier(column))
+    .join(', ');
 
   const indexStatements = indexes.map((idx) => ({
     description: `recreate index "${idx.name}" on "${tableName}"`,
@@ -195,7 +209,7 @@ export async function recreateTable(
       ? [
           step(
             `copy data from "${tableName}" to "${tempName}"`,
-            `INSERT INTO ${quoteIdentifier(tempName)} (${columnList}) SELECT ${columnList} FROM ${quoteIdentifier(tableName)}`,
+            `INSERT INTO ${quoteIdentifier(tempName)} (${columnList}) SELECT ${selectList} FROM ${quoteIdentifier(tableName)}`,
           ),
         ]
       : [];
@@ -395,6 +409,16 @@ export function buildRecreatePostchecks(
 
   for (const issue of issues) {
     const nodeKind = nodeKindOf(issue);
+    if (nodeKind === RelationalSchemaNodeKind.column && issueOutcome(issue) === 'not-found') {
+      const columnName = columnNameFromNode(issue);
+      const column = columnName === undefined ? undefined : byName.get(columnName);
+      if (columnName === undefined || column === undefined) continue;
+      checks.push({
+        description: `verify "${columnName}" nullability on "${tableName}"`,
+        sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${escapeLiteral(columnName)}' AND "notnull" = ${column.nullable ? 0 : 1}`,
+      });
+      continue;
+    }
     if (nodeKind === RelationalSchemaNodeKind.column && issueOutcome(issue) === 'not-equal') {
       const columnName = columnNameFromNode(issue);
       if (columnName === undefined) continue;

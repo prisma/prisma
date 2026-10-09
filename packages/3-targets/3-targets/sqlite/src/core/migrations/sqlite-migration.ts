@@ -290,7 +290,23 @@ export abstract class SqliteMigration<
     readonly summary: string;
     readonly postchecks: readonly RecreatePostcheck[];
     readonly operationClass: MigrationOperationClass;
+    /** SQL each named column is copied from, such as `CAST("age" AS INTEGER)`. */
+    readonly copyExpressions?: Readonly<Record<string, string>>;
   }): Promise<Op> {
-    return new RecreateTableCall(options).toOp(this.controlAdapterFor('recreateTable'));
+    const adapter = this.controlAdapterFor('recreateTable');
+    const { copyExpressions, ...args } = options;
+    return new RecreateTableCall({
+      ...args,
+      ...(copyExpressions === undefined
+        ? {}
+        : {
+            copyExpressions: Object.fromEntries(
+              Object.entries(copyExpressions).map(([column, sql]) => [
+                column,
+                { kind: 'sql' as const, sql },
+              ]),
+            ),
+          }),
+    }).toOp(adapter);
   }
 }

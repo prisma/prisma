@@ -477,6 +477,32 @@ export class RenameColumnCall extends SqliteOpFactoryCallNode {
   }
 }
 
+/** What a rebuild copies a column from: written SQL, or a slot the user fills in `migration.ts`. */
+export type CopyExpression =
+  | { readonly kind: 'sql'; readonly sql: string }
+  | { readonly kind: 'placeholder'; readonly slot: string };
+
+const UNSAFE_COPY_EXPRESSION = /;|--|\/\*/;
+
+function refuseUnsafeCopyExpressions(
+  tableName: string,
+  copyExpressions: Readonly<Record<string, CopyExpression>>,
+): void {
+  for (const [column, expression] of Object.entries(copyExpressions)) {
+    if (expression.kind !== 'sql' || !UNSAFE_COPY_EXPRESSION.test(expression.sql)) continue;
+    const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
+    throw sqliteError(
+      'MIGRATION.COPY_EXPRESSION_INVALID',
+      `${call}: copyExpressions.${column} ${JSON.stringify(expression.sql)} is not one SQL expression`,
+      {
+        why: 'A copy expression is written into the SELECT that copies the rows into the rebuilt table, so it must be one expression, with no semicolon or SQL comment.',
+        fix: `Write copyExpressions.${column} as one SQL expression over the old table's columns, such as CAST("${column}" AS INTEGER).`,
+        meta: { table: tableName, column, expression: expression.sql },
+      },
+    );
+  }
+}
+
 export class RecreateTableCall extends SqliteOpFactoryCallNode {
   readonly factoryName = 'recreateTable' as const;
   readonly operationClass: MigrationOperationClass;
@@ -492,6 +518,8 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
    * them to name what the recreate loses; they never reach the operation or `migration.ts`.
    */
   readonly lossyColumns: readonly string[];
+  /** What each named column of the new table is copied from, in place of the live column. */
+  readonly copyExpressions: Readonly<Record<string, CopyExpression>>;
 
   constructor(
     args: {
@@ -502,10 +530,13 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
       summary: string;
       postchecks: readonly RecreatePostcheck[];
       operationClass: MigrationOperationClass;
+      copyExpressions?: Readonly<Record<string, CopyExpression>>;
     },
     lossyColumns: readonly string[] = [],
   ) {
     super();
+    refuseUnsafeCopyExpressions(args.tableName, args.copyExpressions ?? {});
+    this.copyExpressions = Object.freeze({ ...args.copyExpressions });
     this.lossyColumns = Object.freeze([...lossyColumns]);
     this.tableName = args.tableName;
     this.contractTable = args.contractTable;
@@ -526,6 +557,10 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
         { meta: { factory: this.factoryName, tableName: this.tableName } },
       );
     }
+    const copies = Object.entries(this.copyExpressions);
+    if (copies.some(([, expression]) => expression.kind === 'placeholder')) {
+      return unfilledPlaceholderOperation(this.label);
+    }
     return recreateTable(
       {
         tableName: this.tableName,
@@ -535,9 +570,30 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
         summary: this.summary,
         postchecks: this.postchecks,
         operationClass: this.operationClass,
+        ...(copies.length === 0
+          ? {}
+          : {
+              copyExpressions: Object.fromEntries(
+                copies.flatMap(([column, expression]) =>
+                  expression.kind === 'sql' ? [[column, expression.sql]] : [],
+                ),
+              ),
+            }),
       },
       lowerer,
     );
+  }
+
+  #copyExpressionsSource(): string {
+    const entries = Object.entries(this.copyExpressions).map(
+      ([column, expression]) =>
+        `${jsonToTsSource(column)}: ${
+          expression.kind === 'placeholder'
+            ? `placeholder(${jsonToTsSource(expression.slot)})`
+            : jsonToTsSource(expression.sql)
+        }`,
+    );
+    return `{ ${entries.join(', ')} }`;
   }
 
   renderTypeScript(): string {
@@ -549,12 +605,17 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
       ['summary', jsonToTsSource(this.summary)],
       ['postchecks', tsArraySource(this.postchecks.map(renderPostcheck))],
       ['operationClass', jsonToTsSource(this.operationClass)],
+      ...(Object.keys(this.copyExpressions).length === 0
+        ? []
+        : [['copyExpressions', this.#copyExpressionsSource()] as const]),
     ]);
     return `this.recreateTable(${args})`;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
-    return [];
+    return Object.values(this.copyExpressions).some(({ kind }) => kind === 'placeholder')
+      ? [{ moduleSpecifier: TARGET_MIGRATION_MODULE, symbol: 'placeholder' }]
+      : [];
   }
 }
 
@@ -826,13 +887,16 @@ export class DataTransformCall extends SqliteOpFactoryCallNode {
   readonly label: string;
   readonly tableName: string;
   readonly columnName: string;
+  /** The slot the user fills with the statement that fills the column: `<Model.field>:run`. */
+  readonly slot: string;
 
-  constructor(id: string, label: string, tableName: string, columnName: string) {
+  constructor(id: string, label: string, tableName: string, columnName: string, slot: string) {
     super();
     this.id = id;
     this.label = label;
     this.tableName = tableName;
     this.columnName = columnName;
+    this.slot = slot;
     this.freeze();
   }
 
@@ -841,7 +905,7 @@ export class DataTransformCall extends SqliteOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
-    const slot = `${this.tableName}-${this.columnName}-backfill-sql`;
+    const slot = this.slot;
     return [
       'dataTransform({',
       `  id: ${jsonToTsSource(this.id)},`,

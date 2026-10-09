@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { columnExistsAst } from '../../src/contract-free/checks';
 import {
   AddColumnCall,
+  type CopyExpression,
   CreateIndexCall,
   CreateTableCall,
   DataTransformCall,
@@ -647,6 +648,7 @@ describe('DataTransformCall', () => {
       'Backfill NULLs in "user"."email" before NOT NULL tightening',
       'user',
       'email',
+      'User.email:run',
     );
 
   it('toOp() rejects with MIGRATION.UNFILLED_PLACEHOLDER (unfilled placeholder)', async () => {
@@ -658,7 +660,7 @@ describe('DataTransformCall', () => {
   it('renderTypeScript() emits a dataTransform({...}) call with a placeholder run slot', () => {
     const ts = makeCall().renderTypeScript();
     expect(ts).toContain('dataTransform({');
-    expect(ts).toContain('placeholder("user-email-backfill-sql")');
+    expect(ts).toContain('placeholder("User.email:run")');
     expect(ts).toContain('"data_migration.backfill-user-email"');
   });
 
@@ -668,5 +670,49 @@ describe('DataTransformCall', () => {
       { moduleSpecifier: '@internal/sqlite/migration', symbol: 'dataTransform' },
       { moduleSpecifier: '@internal/sqlite/migration', symbol: 'placeholder' },
     ]);
+  });
+});
+
+describe('RecreateTableCall copy expressions', () => {
+  const spec = {
+    columns: [
+      { name: 'id', typeSql: 'INTEGER', nullable: false },
+      { name: 'age', typeSql: 'INTEGER', nullable: false },
+    ],
+    primaryKey: { columns: ['id'] },
+    uniques: [],
+    foreignKeys: [],
+  };
+  const rebuild = (copyExpressions: Record<string, CopyExpression>) =>
+    new RecreateTableCall({
+      tableName: 'user',
+      contractTable: spec,
+      schemaColumnNames: ['id', 'age'],
+      indexes: [],
+      summary: 'Recreates table user',
+      postchecks: [],
+      operationClass: 'data',
+      copyExpressions,
+    });
+
+  it('refuses an expression that is not one SQL expression, naming the call', () => {
+    expect(() => rebuild({ age: { kind: 'sql', sql: '0; DROP TABLE x' } })).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COPY_EXPRESSION_INVALID',
+        message:
+          'recreateTable({ tableName: "user" }): copyExpressions.age "0; DROP TABLE x" is not one SQL expression',
+      }),
+    );
+  });
+
+  it('is an unfilled placeholder while a slot is unfilled, and imports placeholder', async () => {
+    const call = rebuild({ age: { kind: 'placeholder', slot: 'User.age:using' } });
+    await expect(call.toOp(stubLowerer('SQL'))).rejects.toMatchObject({
+      code: 'MIGRATION.UNFILLED_PLACEHOLDER',
+    });
+    expect(call.renderTypeScript()).toContain(
+      'copyExpressions: { "age": placeholder("User.age:using") }',
+    );
+    expect(call.importRequirements()).toEqual([expect.objectContaining({ symbol: 'placeholder' })]);
   });
 });

@@ -34,12 +34,6 @@ On SQL a statement names the model's field (`User.fullName`), and the storage br
 
 When one plan renames a column on SQLite and a later step rebuilds the same table, the column rename's companion index replacement (drop and create) runs, then the rebuild creates the index again. Rows are kept; one index build is wasted. Removing the companion would need the planner to rewrite statement calls after the diff, and then re-running `migration.ts` (whose `renameColumn` cannot see the later rebuild) would no longer reproduce `ops.json`. Fixing it properly needs operations that carry dependency information, which the design notes already name as a direction.
 
-## SQLite `db update` cannot add a required field to a table that has rows
-
-**Found:** slice 2, dispatch 5 (2026-10-08). Pre-existing, not caused by the refusal.
-
-The Postgres planner has a temporary-default recipe for a required column added to a populated table under `db update`; SQLite has none, so the runner fails with `MIGRATION.RUNNER_FAILED` ("Cannot add a NOT NULL column with default value NULL"). The slice 2 SQLite journey adds the field to an empty table and says so. Resolving it means a SQLite temporary-default recipe or a table rebuild with a backfill; `--backfill` (slice 3) covers `migration plan`, not `db update`.
-
 ## `--delete <namespace>` consenting for every model in the namespace
 
 **Found:** slice 2, whole-slice architect review (2026-10-08). For slice 3.
