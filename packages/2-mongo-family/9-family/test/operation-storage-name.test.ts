@@ -1,5 +1,6 @@
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { DropCollectionCommand } from '@internal/mongo-query-ast/control';
+import { RawUpdateManyCommand } from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import { mongoStorageNameOf } from '../src/core/operation-storage-name';
 
@@ -20,6 +21,24 @@ describe('mongoStorageNameOf', () => {
         ]),
       ),
     ]).toEqual(['events', 'logs']);
+  });
+
+  it('names a field rewrite by its collection and the field it removes or renames', () => {
+    const rewrite = (update: Record<string, unknown>): MigrationPlanOperation => {
+      const command = new RawUpdateManyCommand('users', {}, update);
+      const run = [{ collection: 'users', command, meta: {} }];
+      return {
+        id: 'rewrite',
+        label: 'rewrite',
+        operationClass: 'destructive',
+        run,
+      } as MigrationPlanOperation;
+    };
+    expect([
+      mongoStorageNameOf(rewrite({ $unset: { nickname: '' } })),
+      mongoStorageNameOf(rewrite({ $rename: { name: 'fullName' } })),
+      mongoStorageNameOf(rewrite({ $set: { status: 'active' } })),
+    ]).toEqual(['users.nickname', 'users.name', 'users']);
   });
 
   it('names an operation whose commands name no collection by its id, never its label', () => {

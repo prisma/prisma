@@ -82,17 +82,20 @@ export class UpdateManyWireCommand extends MongoWireCommand {
   readonly filter: Document;
   readonly update: Document | ReadonlyArray<Document>;
   readonly upsert: boolean;
+  readonly bypassDocumentValidation: boolean;
 
   constructor(
     collection: string,
     filter: Document,
     update: Document | ReadonlyArray<Document>,
     upsert = false,
+    bypassDocumentValidation = false,
   ) {
     super(collection);
     this.filter = filter;
     this.update = update;
     this.upsert = upsert;
+    this.bypassDocumentValidation = bypassDocumentValidation;
     this.freeze();
   }
 }

@@ -26,8 +26,8 @@ import type {
   MongoDataTransformOperation,
   MongoInspectionCommandVisitor,
   MongoMigrationCheck,
-  MongoMigrationPlanOperation,
 } from '@internal/mongo-query-ast/control';
+import { isMongoDataTransformOperation } from '@internal/mongo-query-ast/control';
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -116,12 +116,9 @@ export class MongoMigrationRunner {
     for (const operation of operations) {
       options.callbacks?.onOperationStart?.(operation);
       try {
-        if (operation.operationClass === 'data') {
+        if (isMongoDataTransformOperation(operation)) {
           const result = await this.executeDataTransform(
-            blindCast<
-              MongoDataTransformOperation,
-              'operationClass data discriminates Mongo data transform operations'
-            >(operation),
+            operation,
             adapter,
             driver,
             filterEvaluator,
@@ -136,14 +133,9 @@ export class MongoMigrationRunner {
           continue;
         }
 
-        const ddlOp = blindCast<
-          MongoMigrationPlanOperation,
-          'non-data Mongo operations are DDL migration plan operations'
-        >(operation);
-
         if (runPostchecks && runIdempotency) {
           const allSatisfied = await this.allChecksSatisfied(
-            ddlOp.postcheck,
+            operation.postcheck,
             inspectionExecutor,
             filterEvaluator,
           );
@@ -152,7 +144,7 @@ export class MongoMigrationRunner {
 
         if (runPrechecks) {
           const precheckResult = await this.evaluateChecks(
-            ddlOp.precheck,
+            operation.precheck,
             inspectionExecutor,
             filterEvaluator,
           );
@@ -165,13 +157,13 @@ export class MongoMigrationRunner {
           }
         }
 
-        for (const step of ddlOp.execute) {
+        for (const step of operation.execute) {
           await executeDdl(step.command);
         }
 
         if (runPostchecks) {
           const postcheckResult = await this.evaluateChecks(
-            ddlOp.postcheck,
+            operation.postcheck,
             inspectionExecutor,
             filterEvaluator,
           );

@@ -169,7 +169,10 @@ export class MongoDriverImpl implements MongoDriver {
     cmd: UpdateManyWireCommand,
   ): AsyncIterable<UpdateManyResult> {
     const collection = this.db.collection(cmd.collection);
-    const result = await collection.updateMany(cmd.filter, cmd.update, { upsert: cmd.upsert });
+    const result = await collection.updateMany(cmd.filter, cmd.update, {
+      upsert: cmd.upsert,
+      ...(cmd.bypassDocumentValidation ? { bypassDocumentValidation: true } : {}),
+    });
     yield {
       matchedCount: result.matchedCount,
       modifiedCount: result.modifiedCount,

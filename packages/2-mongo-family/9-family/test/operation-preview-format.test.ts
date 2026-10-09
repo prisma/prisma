@@ -7,6 +7,7 @@ import {
   type MongoMigrationPlanOperation,
   RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
+import { RawUpdateManyCommand } from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import { formatMongoOperations } from '../src/core/operation-preview';
 
@@ -30,7 +31,7 @@ describe('formatMongoOperations', () => {
     };
     const result = formatMongoOperations([op]);
     expect(result).toEqual([
-      'db.users.createIndex({ "email": 1 }, { unique: true, name: "email_1" })',
+      'db.getCollection("users").createIndex({ "email": 1 }, { unique: true, name: "email_1" })',
     ]);
   });
 
@@ -49,7 +50,7 @@ describe('formatMongoOperations', () => {
       postcheck: [],
     };
     const result = formatMongoOperations([op]);
-    expect(result).toEqual(['db.posts.createIndex({ "title": 1 })']);
+    expect(result).toEqual(['db.getCollection("posts").createIndex({ "title": 1 })']);
   });
 
   it('formats dropIndex', () => {
@@ -67,7 +68,7 @@ describe('formatMongoOperations', () => {
       postcheck: [],
     };
     const result = formatMongoOperations([op]);
-    expect(result).toEqual(['db.users.dropIndex("email_1")']);
+    expect(result).toEqual(['db.getCollection("users").dropIndex("email_1")']);
   });
 
   it('formats compound index', () => {
@@ -93,7 +94,7 @@ describe('formatMongoOperations', () => {
     };
     const result = formatMongoOperations([op]);
     expect(result).toEqual([
-      'db.users.createIndex({ "email": 1, "tenantId": -1 }, { unique: true })',
+      'db.getCollection("users").createIndex({ "email": 1, "tenantId": -1 }, { unique: true })',
     ]);
   });
 
@@ -132,6 +133,55 @@ describe('formatMongoOperations', () => {
     expect(result[1]).toContain('dropIndex');
   });
 
+  it('writes every collection name as an escaped string', () => {
+    const step = (command: MongoMigrationPlanOperation['execute'][number]['command']) => ({
+      id: 'test',
+      label: 'test',
+      operationClass: 'widening' as const,
+      precheck: [],
+      execute: [{ description: 'step', command }],
+      postcheck: [],
+    });
+    expect(
+      formatMongoOperations([
+        step(new DropCollectionCommand('my-coll')),
+        step(new DropIndexCommand('a"b', 'x_1')),
+        step(new CreateIndexCommand('my-coll', [{ field: 'x', direction: 1 }])),
+        step(new RenameCollectionCommand('my-coll', 'a"b')),
+      ]),
+    ).toEqual([
+      'db.getCollection("my-coll").drop()',
+      'db.getCollection("a\\"b").dropIndex("x_1")',
+      'db.getCollection("my-coll").createIndex({ "x": 1 })',
+      'db.getCollection("my-coll").renameCollection("a\\"b")',
+    ]);
+  });
+
+  it('formats a document rewrite as updateMany', () => {
+    const plan = {
+      collection: 'my-coll',
+      command: new RawUpdateManyCommand(
+        'my-coll',
+        { name: { $exists: true } },
+        { $rename: { name: 'fullName' } },
+        { bypassDocumentValidation: true },
+      ),
+      meta: { target: 'mongo', storageHash: '', lane: 'mongo-raw' },
+    };
+    const rewrite = {
+      id: 'field.my-coll.name.rename(fullName)',
+      label: 'Rename field',
+      operationClass: 'widening' as const,
+      name: 'rename',
+      precheck: [],
+      run: [plan],
+      postcheck: [],
+    };
+    expect(formatMongoOperations([rewrite])).toEqual([
+      'db.getCollection("my-coll").updateMany({"name":{"$exists":true}}, {"$rename":{"name":"fullName"}}, { bypassDocumentValidation: true })',
+    ]);
+  });
+
   it('skips operations without execute steps', () => {
     const ops = [{ id: 'test', label: 'test', operationClass: 'additive' as const }];
     const result = formatMongoOperations(ops);
@@ -157,7 +207,7 @@ describe('formatMongoOperations', () => {
     };
     const result = formatMongoOperations([op]);
     expect(result).toEqual([
-      'db.sessions.createIndex({ "expiresAt": 1 }, { sparse: true, expireAfterSeconds: 3600 })',
+      'db.getCollection("sessions").createIndex({ "expiresAt": 1 }, { sparse: true, expireAfterSeconds: 3600 })',
     ]);
   });
 
@@ -244,7 +294,7 @@ describe('formatMongoOperations', () => {
       postcheck: [],
     };
     const result = formatMongoOperations([op]);
-    expect(result).toEqual(['db.events.drop()']);
+    expect(result).toEqual(['db.getCollection("events").drop()']);
   });
 
   it('formats renameCollection', () => {
@@ -261,7 +311,9 @@ describe('formatMongoOperations', () => {
       ],
       postcheck: [],
     };
-    expect(formatMongoOperations([op])).toEqual(['db.profiles.renameCollection("users")']);
+    expect(formatMongoOperations([op])).toEqual([
+      'db.getCollection("profiles").renameCollection("users")',
+    ]);
   });
 
   it('formats collMod with validator', () => {

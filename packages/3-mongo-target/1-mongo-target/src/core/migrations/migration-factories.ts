@@ -22,10 +22,14 @@ import {
   type MongoMigrationPlanOperation,
   RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
-import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
+import {
+  type MongoQueryPlan,
+  RawAggregateCommand,
+  RawUpdateManyCommand,
+} from '@internal/mongo-query-ast/execution';
 import { createFieldAccessor } from '@internal/mongo-query-builder';
 import { collection } from '@internal/mongo-query-builder/contract-free';
-import type { MongoValue } from '@internal/mongo-value';
+import type { Document, MongoValue } from '@internal/mongo-value';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import type { CollModMeta } from './op-factory-call';
@@ -105,6 +109,99 @@ export function dataTransform(
     precheck,
     run,
     postcheck,
+  };
+}
+
+export interface FieldRewriteOptions {
+  readonly filter?: Document;
+}
+
+const REWRITE_PLAN_META = { target: 'mongo', storageHash: '', lane: 'mongo-raw' } as const;
+
+function documentsHolding(field: string, filter: Document | undefined): Document {
+  const holds = { [field]: { $exists: true } };
+  return filter === undefined ? holds : { $and: [filter, holds] };
+}
+
+function rewritePlan(collectionName: string, command: RawAggregateCommand | RawUpdateManyCommand) {
+  return { collection: collectionName, command, meta: { ...REWRITE_PLAN_META } };
+}
+
+function noDocumentHolds(
+  collectionName: string,
+  field: string,
+  filter: Document | undefined,
+): MongoDataTransformCheck {
+  return {
+    description: `no document in ${collectionName} holds ${field}`,
+    source: rewritePlan(
+      collectionName,
+      new RawAggregateCommand(collectionName, [
+        { $match: documentsHolding(field, filter) },
+        { $limit: 1 },
+      ]),
+    ),
+    filter: MATCH_ALL_FILTER,
+    expect: 'notExists',
+  };
+}
+
+function rewriteUpdate(
+  collectionName: string,
+  field: string,
+  filter: Document | undefined,
+  update: Document,
+): MongoQueryPlan {
+  return rewritePlan(
+    collectionName,
+    new RawUpdateManyCommand(collectionName, documentsHolding(field, filter), update, {
+      bypassDocumentValidation: true,
+    }),
+  );
+}
+
+function idSuffix(filter: Document | undefined): string {
+  return filter === undefined ? '' : `.where(${JSON.stringify(filter)})`;
+}
+
+function labelSuffix(filter: Document | undefined): string {
+  return filter === undefined ? '' : ` where ${JSON.stringify(filter)}`;
+}
+
+export function renameField(
+  collectionName: string,
+  from: string,
+  to: string,
+  options?: FieldRewriteOptions,
+): MongoDataTransformOperation {
+  const filter = options?.filter;
+  const id = `field.${collectionName}.${from}.rename(${to})${idSuffix(filter)}`;
+  return {
+    id,
+    label: `Rename field ${from} to ${to} in collection ${collectionName}${labelSuffix(filter)}`,
+    operationClass: 'widening',
+    name: id,
+    precheck: [noDocumentHolds(collectionName, to, filter)],
+    run: [rewriteUpdate(collectionName, from, filter, { $rename: { [from]: to } })],
+    postcheck: [noDocumentHolds(collectionName, from, filter)],
+  };
+}
+
+export function unsetField(
+  collectionName: string,
+  field: string,
+  options?: FieldRewriteOptions,
+): MongoDataTransformOperation {
+  const filter = options?.filter;
+  const id = `field.${collectionName}.${field}.unset${idSuffix(filter)}`;
+  return {
+    id,
+    label: `Remove field ${field} from collection ${collectionName}${labelSuffix(filter)}`,
+    operationClass: 'destructive',
+    name: id,
+    precheck: [],
+    run: [rewriteUpdate(collectionName, field, filter, { $unset: { [field]: '' } })],
+    postcheck: [noDocumentHolds(collectionName, field, filter)],
   };
 }
 

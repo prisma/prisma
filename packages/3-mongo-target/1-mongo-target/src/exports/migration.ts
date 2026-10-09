@@ -20,6 +20,8 @@ export {
   dropCollection,
   dropIndex,
   renameCollection,
+  renameField,
   setValidation,
+  unsetField,
   validatedCollection,
 } from '../core/migrations/migration-factories';

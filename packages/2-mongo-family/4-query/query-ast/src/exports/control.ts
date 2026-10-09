@@ -34,4 +34,5 @@ export type {
   MongoMigrationPlanOperation,
   MongoMigrationStep,
 } from '../migration-operation-types';
+export { isMongoDataTransformOperation } from '../migration-operation-types';
 export type { MongoFilterVisitor } from '../visitors';

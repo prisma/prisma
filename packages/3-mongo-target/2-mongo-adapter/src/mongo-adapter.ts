@@ -186,6 +186,7 @@ class MongoAdapterImpl implements MongoAdapter {
           collection: command.collection,
           filter: command.filter,
           update: command.update,
+          bypassDocumentValidation: command.bypassDocumentValidation ?? false,
         };
       case 'rawDeleteOne':
         return { kind: 'rawDeleteOne', collection: command.collection, filter: command.filter };
@@ -294,7 +295,13 @@ class MongoAdapterImpl implements MongoAdapter {
       case 'rawUpdateOne':
         return new UpdateOneWireCommand(draft.collection, draft.filter, draft.update);
       case 'rawUpdateMany':
-        return new UpdateManyWireCommand(draft.collection, draft.filter, draft.update);
+        return new UpdateManyWireCommand(
+          draft.collection,
+          draft.filter,
+          draft.update,
+          false,
+          draft.bypassDocumentValidation,
+        );
       case 'rawDeleteOne':
         return new DeleteOneWireCommand(draft.collection, draft.filter);
       case 'rawDeleteMany':

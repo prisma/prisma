@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildIndexOpId, defaultMongoIndexName, keysToKeySpec } from '../src/migration-helpers';
+import { isMongoDataTransformOperation } from '../src/migration-operation-types';
 
 describe('buildIndexOpId', () => {
   it('produces deterministic create ID for single key', () => {
@@ -65,5 +66,21 @@ describe('keysToKeySpec', () => {
 
   it('preserves text direction as string', () => {
     expect(keysToKeySpec([{ field: 'content', direction: 'text' }])).toEqual({ content: 'text' });
+  });
+});
+
+describe('isMongoDataTransformOperation', () => {
+  it('tells an operation that runs queries from one that executes DDL, whatever its class', () => {
+    const common = { id: 'op', label: 'op', precheck: [], postcheck: [] };
+    expect([
+      isMongoDataTransformOperation({ ...common, operationClass: 'widening', execute: [] }),
+      isMongoDataTransformOperation({
+        ...common,
+        operationClass: 'widening',
+        name: 'rewrite',
+        run: [],
+      }),
+      isMongoDataTransformOperation({ ...common, operationClass: 'data', name: 'data', run: [] }),
+    ]).toEqual([false, true, true]);
   });
 });

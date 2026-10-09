@@ -173,6 +173,38 @@ describe('MongoDriver', () => {
   describe('updateMany', () => {
     const col = 'driver_update_many';
 
+    it('skips validation when bypassDocumentValidation is set', async () => {
+      const db = seedClient.db(dbName);
+      const driver = MongoDriverImpl.fromDb(db);
+      const closed = 'driver_update_many_bypass';
+      await db.dropCollection(closed).catch(() => undefined);
+      await db.createCollection(closed, {
+        validator: {
+          $jsonSchema: {
+            bsonType: 'object',
+            required: ['name'],
+            properties: { _id: { bsonType: 'objectId' }, name: { bsonType: 'string' } },
+            additionalProperties: false,
+          },
+        },
+        validationLevel: 'strict',
+        validationAction: 'error',
+      });
+      await db.collection(closed).insertOne({ name: 'Ada' });
+      const rename = { $rename: { name: 'fullName' } };
+
+      await expect(
+        collect(driver.execute(new UpdateManyWireCommand(closed, {}, rename))),
+      ).rejects.toThrow(/Document failed validation/);
+      await collect(driver.execute(new UpdateManyWireCommand(closed, {}, rename, false, true)));
+
+      const docs = await db
+        .collection(closed)
+        .find({}, { projection: { _id: 0 } })
+        .toArray();
+      expect(docs).toEqual([{ fullName: 'Ada' }]);
+    });
+
     it('updates multiple documents and returns counts', async () => {
       const driver = await createMongoDriver(connectionUri, dbName);
       try {

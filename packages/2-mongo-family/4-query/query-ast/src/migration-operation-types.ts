@@ -33,7 +33,7 @@ export interface MongoDataTransformCheck {
 }
 
 export interface MongoDataTransformOperation extends MigrationPlanOperation {
-  readonly operationClass: 'data';
+  readonly operationClass: MigrationOperationClass;
   /**
    * Human-readable label for this data transform.
    */
@@ -50,5 +50,11 @@ export interface MongoDataTransformOperation extends MigrationPlanOperation {
 }
 
 export type AnyMongoMigrationOperation = MongoMigrationPlanOperation | MongoDataTransformOperation;
+
+export function isMongoDataTransformOperation(
+  operation: AnyMongoMigrationOperation,
+): operation is MongoDataTransformOperation {
+  return 'run' in operation;
+}
 
 export type { MigrationOperationClass, MigrationPlanOperation };

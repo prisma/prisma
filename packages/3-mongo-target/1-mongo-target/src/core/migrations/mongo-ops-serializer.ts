@@ -196,6 +196,7 @@ const RawUpdateManyJson = type({
   collection: 'string',
   filter: 'Record<string, unknown>',
   update: 'Record<string, unknown> | Record<string, unknown>[]',
+  'bypassDocumentValidation?': 'boolean',
 });
 
 const RawDeleteOneJson = type({
@@ -321,7 +322,7 @@ const DataTransformCheckJson = type({
 const DataTransformOperationJson = type({
   id: 'string',
   label: 'string',
-  operationClass: '"data"',
+  operationClass: '"additive" | "widening" | "destructive" | "data"',
   name: 'string',
   precheck: 'Record<string, unknown>[]',
   run: 'Record<string, unknown>[]',
@@ -585,7 +586,12 @@ export function deserializeDmlCommand(json: unknown): AnyMongoCommand {
     }
     case 'rawUpdateMany': {
       const data = validate(RawUpdateManyJson, json, 'rawUpdateMany command');
-      return new RawUpdateManyCommand(data.collection, data.filter, data.update);
+      return new RawUpdateManyCommand(
+        data.collection,
+        data.filter,
+        data.update,
+        ifDefined('bypassDocumentValidation', data.bypassDocumentValidation),
+      );
     }
     case 'rawDeleteOne': {
       const data = validate(RawDeleteOneJson, json, 'rawDeleteOne command');
@@ -746,7 +752,7 @@ function deserializeStep(json: unknown): MongoMigrationStep {
 }
 
 function isDataTransformJson(json: unknown): boolean {
-  return recordValue(json, 'operationClass', 'migration operation') === 'data';
+  return Array.isArray(recordValue(json, 'run', 'migration operation'));
 }
 
 function deserializeDdlOp(json: unknown): MongoMigrationPlanOperation {
@@ -776,7 +782,7 @@ function deserializeDataTransformOp(json: unknown): MongoDataTransformOperation 
   return {
     id: data.id,
     label: data.label,
-    operationClass: 'data',
+    operationClass: data.operationClass,
     name: data.name,
     precheck: data.precheck.map(deserializeDataTransformCheck),
     run: data.run.map(deserializeMongoQueryPlan),

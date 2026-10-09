@@ -335,6 +335,35 @@ describe('migration file E2E', () => {
       expect(deserializeMongoOps(ops)).toEqual([call.toOp()]);
     });
 
+    it('reproduces renameField and unsetField operations in ops.json', async () => {
+      const { renderCallsToTypeScript } = await import('../src/core/migrations/render-typescript');
+      const { RenameFieldCall, UnsetFieldCall } = await import(
+        '../src/core/migrations/op-factory-call'
+      );
+      const { deserializeMongoOps } = await import('../src/core/migrations/mongo-ops-serializer');
+      const calls = [
+        new RenameFieldCall('users', 'name', 'fullName'),
+        new UnsetFieldCall('posts', 'score', { type: 'bug' }),
+      ];
+
+      const tsSource = renderCallsToTypeScript(calls, defaultMeta);
+      const resolvedSource = tsSource.replace(
+        "'@internal/target-mongo/migration'",
+        `'${factoryExport}'`,
+      );
+      await writeFile(join(tmpDir, 'migration.ts'), resolvedSource);
+      await writeContractFixtures(defaultMeta);
+
+      const result = await runFile('migration.ts');
+      expect({ exitCode: result.exitCode, stderr: result.stderr }).toEqual({
+        exitCode: 0,
+        stderr: '',
+      });
+
+      const ops = JSON.parse(await readFile(join(tmpDir, 'ops.json'), 'utf-8'));
+      expect(deserializeMongoOps(ops)).toEqual(calls.map((call) => call.toOp()));
+    });
+
     it('round-trips describe() meta through TypeScript execution', async () => {
       const { renderCallsToTypeScript } = await import('../src/core/migrations/render-typescript');
       const { DropCollectionCall } = await import('../src/core/migrations/op-factory-call');
