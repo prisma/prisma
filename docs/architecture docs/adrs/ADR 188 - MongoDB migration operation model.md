@@ -135,7 +135,7 @@ interface MongoDmlOperation extends MigrationPlanOperation {
 }
 ```
 
-A transform built with `dataTransform`, whether a user writes it or the planner scaffolds it with a placeholder, has `operationClass: 'data'`. The `renameField` and `unsetField` rewrites carry the class of their effect, whoever writes them, as every other operation does: `renameField` is `widening` and `unsetField` is `destructive`. So `db update`, which does not allow `data`, can run a rename. The runner and the serializer tell a transform from a DDL operation by its shape (`run` against `execute`), not by its class. The `run` array contains `MongoQueryPlan` objects — aggregation pipelines or raw commands (`rawUpdateMany`, `rawInsertOne`, etc.) — rather than DDL commands. The `precheck` and `postcheck` arrays contain `MongoDmlCheck` objects instead of `MongoMigrationCheck`.
+A transform built with `dataTransform`, whether a user writes it or the planner scaffolds it with a placeholder, has `operationClass: 'data'`. The `renameField` and `unsetField` rewrites carry the class of their effect, whoever writes them, as every other operation does: `renameField` is `widening` and `unsetField` is `destructive`. So `db update`, which does not allow `data`, can run a rename. The runner and the serializer tell a DML operation from a DDL operation by its shape (`run` against `execute`), not by its class. The `run` array contains `MongoQueryPlan` objects — aggregation pipelines or raw commands (`rawUpdateMany`, `rawInsertOne`, etc.) — rather than DDL commands. The `precheck` and `postcheck` arrays contain `MongoDmlCheck` objects instead of `MongoMigrationCheck`.
 
 `MongoDmlCheck` has the same four-field shape as `MongoMigrationCheck`:
 
