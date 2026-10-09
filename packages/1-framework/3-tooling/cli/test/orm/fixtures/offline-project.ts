@@ -230,6 +230,7 @@ export interface FakePlannerScript {
 export interface ScriptedDataLoss {
   readonly operationIndex: number;
   readonly loss?: 'drop' | 'typeChange';
+  readonly label?: string;
   readonly subject:
     | { readonly kind: 'model'; readonly namespaceId: string; readonly model: string }
     | {

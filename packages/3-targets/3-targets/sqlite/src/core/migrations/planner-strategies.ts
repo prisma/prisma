@@ -18,6 +18,7 @@ import {
   type MigrationOperationClass,
   type MigrationOperationPolicy,
   type StatementColumn,
+  type TableColumn,
 } from '@internal/family-sql/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
@@ -54,6 +55,8 @@ export interface StrategyContext {
   readonly types: SqlTypeLookups;
   /** The columns of the fields `--convert` and `--backfill` statements name. */
   readonly statementColumns: FieldStatementColumns;
+  /** The columns whose values come from a value set, which no temporary value fills. */
+  readonly valueSetColumns: readonly TableColumn[];
 }
 
 export type CallMigrationStrategy = (
@@ -175,6 +178,10 @@ function inKey(table: SqlTableIR, column: string): boolean {
   );
 }
 
+function hasValueSet(ctx: StrategyContext, tableName: string, column: string): boolean {
+  return ctx.valueSetColumns.some((entry) => entry.table === tableName && entry.column === column);
+}
+
 const CLASS_ORDER: readonly MigrationOperationClass[] = [
   'additive',
   'widening',
@@ -208,9 +215,10 @@ interface TableRebuild {
  * - A nullability or constraint change alone is `widening`: a tightening copy fails on a NULL
  *   rather than losing it.
  * - A required column with no default added to an existing table is copied from a temporary value
- *   (`additive`), unless it is in a key or foreign key, or its type has no such value, when
- *   `mapNodeIssueToCall` adds it as it is. A column a `--backfill` statement names was added
- *   nullable and filled by earlier calls, so the rebuild copies it like a live column.
+ *   (`additive`). A column in a key or foreign key, whose values come from a value set, or whose
+ *   type has no such value is carried with nothing to copy from: the rebuild succeeds on an empty
+ *   table and fails on `NOT NULL` when the table has rows. A column a `--backfill` statement names
+ *   was added nullable and filled by earlier calls, so the rebuild copies it like a live column.
  * - A rebuild that leaves a live column out loses its values, so it is `destructive`.
  *
  * The table shapes come from `ctx.expected` and `ctx.actual`, keyed by table name: SQLite is a
@@ -249,13 +257,14 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
         continue;
       }
       const fill =
-        expectedTable === undefined || inKey(expectedTable, added.name)
+        expectedTable === undefined ||
+        inKey(expectedTable, added.name) ||
+        hasValueSet(ctx, tableName, added.name)
           ? undefined
           : sqliteFillValue(added, codecHooks, ctx.types);
-      if (fill === undefined) continue;
       const rebuild = rebuildOf(tableName);
       rebuild.issues.push(issue);
-      rebuild.copyExpressions[added.name] = { kind: 'sql', sql: fill };
+      if (fill !== undefined) rebuild.copyExpressions[added.name] = { kind: 'sql', sql: fill };
       rebuild.classes.push('additive');
       consumed.add(issue);
       continue;

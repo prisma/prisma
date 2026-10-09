@@ -835,6 +835,19 @@ describe('migration plan', () => {
       expect(answered.presented?.data).toMatchObject({ pendingPlaceholders: true });
     });
 
+    it('names a loss by the planned call that loses it while a slot of the plan is unfilled', async () => {
+      const project = await losingProject();
+      const refused = await harness(project, {
+        script: {
+          operations: [ADDITIVE_OP, DESTRUCTIVE_OP],
+          operationsAccessorThrows: errorUnfilledPlaceholder('backfill'),
+          dataLoss: [{ ...LEGACY_LOSS, loss: 'drop', label: 'Drop table "legacy"' }],
+        },
+      }).run(['migration', 'plan', '--json'], { cwd: project.dir });
+
+      expect(JSON.stringify(envelopeOf(refused))).toContain('Drop table \\"legacy\\" would lose');
+    });
+
     it('asks a question a re-plan brings up in a second batch', async () => {
       const project = await losingProject();
 

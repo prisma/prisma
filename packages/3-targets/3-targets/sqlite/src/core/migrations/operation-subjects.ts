@@ -72,6 +72,7 @@ export function sqliteCallSubjects(
   );
   return calls.map((call): CallSubjects => {
     const operationCount = operationCountOf(call);
+    const { label } = call;
     if (call instanceof RecreateTableCall) {
       const columns = recreateLosses(call);
       for (const { column } of columns) lostColumns.add(`${call.tableName}.${column}`);
@@ -79,21 +80,27 @@ export function sqliteCallSubjects(
         columns.length === 0 && call.operationClass === 'destructive'
           ? [lost(tableTarget(call.tableName))]
           : columns.map(({ column, loss }) => lost(columnTarget(call.tableName, column), loss));
-      return { operationCount, dataLoss, accessWidening: [] };
+      return { operationCount, label, dataLoss, accessWidening: [] };
     }
     if (call instanceof DropColumnCall) {
       const alreadyLost = lostColumns.has(`${call.tableName}.${call.columnName}`);
       return {
         operationCount,
+        label,
         dataLoss: alreadyLost ? [] : [lost(columnTarget(call.tableName, call.columnName))],
         accessWidening: [],
       };
     }
     if (call instanceof DropTableCall) {
-      return { operationCount, dataLoss: [lost(tableTarget(call.tableName))], accessWidening: [] };
+      return {
+        operationCount,
+        label,
+        dataLoss: [lost(tableTarget(call.tableName))],
+        accessWidening: [],
+      };
     }
     if (call.operationClass !== 'destructive') {
-      return { operationCount, dataLoss: [], accessWidening: [] };
+      return { operationCount, label, dataLoss: [], accessWidening: [] };
     }
     const fieldEvent = fieldEvents.get(call);
     const lossTarget: SubjectStorage =
@@ -102,6 +109,6 @@ export function sqliteCallSubjects(
         : fieldEvent !== undefined
           ? fieldEventStorage(fieldEvent)
           : { storageName: unknownNames.get(call) ?? call.factoryName, table: undefined };
-    return { operationCount, dataLoss: [lost(lossTarget)], accessWidening: [] };
+    return { operationCount, label, dataLoss: [lost(lossTarget)], accessWidening: [] };
   });
 }

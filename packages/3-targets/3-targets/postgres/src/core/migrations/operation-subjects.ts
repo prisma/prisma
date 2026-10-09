@@ -134,6 +134,7 @@ export function postgresCallSubjects(
     const loss: MigrationDataLossKind = call instanceof AlterColumnTypeCall ? 'typeChange' : 'drop';
     return {
       operationCount: operationCountOf(call),
+      label: call.label,
       dataLoss:
         lossTarget !== undefined
           ? [{ ...lossTarget, loss }]

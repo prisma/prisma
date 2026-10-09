@@ -28,6 +28,17 @@ const columnTypes = {
   text: { dataType: 'sqlite/text', codecId: 'sqlite/text@1', nullable: false },
   'text?': { dataType: 'sqlite/text', codecId: 'sqlite/text@1', nullable: true },
   datetime: { dataType: 'sqlite/text', codecId: 'sqlite/datetime@1', nullable: false },
+  role: {
+    dataType: 'sqlite/text',
+    codecId: 'sqlite/text@1',
+    nullable: false,
+    valueSet: {
+      plane: 'storage',
+      namespaceId: UNBOUND_NAMESPACE_ID,
+      entityKind: 'valueSet',
+      entityName: 'Role',
+    },
+  },
 } as const;
 
 type Columns = Readonly<Record<string, keyof typeof columnTypes>>;
@@ -164,6 +175,17 @@ describe('SQLite planner, a type change', () => {
   });
 });
 
+describe('SQLite planner, the data-loss entries of a plan with an unfilled slot', () => {
+  it('name each loss by the label of the call that loses it', () => {
+    const noNickname = contract(hex('8'), { id: 'integer', age: 'integer' });
+    expect(
+      plan(textAge, noNickname, { statements: [statement('convert', 'age')] }).dataLoss.map(
+        ({ label, loss }) => ({ label, loss }),
+      ),
+    ).toEqual([{ label: 'Recreate table User', loss: 'drop' }]);
+  });
+});
+
 describe('SQLite planner, a required field without a value in existing rows', () => {
   it('rebuilds with a temporary value for a new required field, under migration plan and db update', async () => {
     expect([
@@ -185,13 +207,28 @@ describe('SQLite planner, a required field without a value in existing rows', ()
     );
   });
 
-  it('adds a new required unique field without a temporary value, since one value would repeat', async () => {
+  it('rebuilds with a new required unique field and no temporary value, since one value would repeat', async () => {
     const unique = contract(
       hex('f'),
       { id: 'integer', age: 'text', nickname: 'text?', name: 'text' },
       ['name'],
     );
+    expect(await planned(textAge, unique)).toEqual(['Recreate table User (widening)']);
     expect(rendered(textAge, unique)).not.toContain('copyExpressions');
+  });
+
+  it('rebuilds with a new required field whose values come from a value set and no temporary value, since no one value stands for every member', async () => {
+    const withRole = contract(hex('9'), {
+      id: 'integer',
+      age: 'text',
+      nickname: 'text?',
+      role: 'role',
+    });
+    expect([
+      await planned(textAge, withRole),
+      await planned(textAge, withRole, { policy: DB_UPDATE }),
+    ]).toEqual([['Recreate table User (additive)'], ['Recreate table User (additive)']]);
+    expect(rendered(textAge, withRole)).not.toContain('copyExpressions');
   });
 
   it('adds a new required field nullable, fills it through a slot, then tightens it for --backfill', async () => {

@@ -21,7 +21,11 @@
  */
 
 import { unfilledPlaceholderOperation } from '@internal/errors/migration';
-import { checkSqlDefaultText, type SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import {
+  checkSqlDefaultText,
+  checkSqlExpressionText,
+  type SqlMigrationPlanOperation,
+} from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { DataType } from '@internal/framework-components/codec';
 import type {
@@ -669,9 +673,26 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     this.type = input.type;
     this.using = input.using;
     this.operationClass = input.operationClass ?? this.#defaultClass();
+    this.#refuseUnsafeUsing();
     this.checkType = alterTypeCheckText(input.type, input.dataTypes, this.#callText());
     this.label = `Alter type of "${input.tableName}"."${input.columnName}" to ${input.type}`;
     this.freeze();
+  }
+
+  #refuseUnsafeUsing(): void {
+    if (this.using?.kind !== 'sql') return;
+    const refused = checkSqlExpressionText(this.using.sql);
+    if (refused === undefined) return;
+    const call = this.#callText();
+    throw postgresError(
+      'MIGRATION.SQL_EXPRESSION_INVALID',
+      `${call}: using ${JSON.stringify(this.using.sql)} is not one SQL expression: it holds ${refused}`,
+      {
+        why: 'The conversion is written into the USING clause of ALTER COLUMN … TYPE, so it must be one expression that cannot end or reshape that statement.',
+        fix: `Write using as one SQL expression over the column, such as "${this.columnName}"::${this.type}.`,
+        meta: { call, field: 'using', expression: this.using.sql, refused },
+      },
+    );
   }
 
   #defaultClass(): AlterColumnTypeClass {

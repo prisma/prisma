@@ -698,11 +698,27 @@ describe('RecreateTableCall copy expressions', () => {
   it('refuses an expression that is not one SQL expression, naming the call', () => {
     expect(() => rebuild({ age: { kind: 'sql', sql: '0; DROP TABLE x' } })).toThrow(
       expect.objectContaining({
-        code: 'MIGRATION.COPY_EXPRESSION_INVALID',
+        code: 'MIGRATION.SQL_EXPRESSION_INVALID',
         message:
-          'recreateTable({ tableName: "user" }): copyExpressions.age "0; DROP TABLE x" is not one SQL expression',
+          'recreateTable({ tableName: "user" }): copyExpressions.age "0; DROP TABLE x" is not one SQL expression: it holds a semicolon outside a quoted literal',
       }),
     );
+    expect(
+      ['"age" -- note', '"age" FROM "user"', '1 UNION SELECT 2', '1 WHERE 1'].map((sql) => {
+        try {
+          rebuild({ age: { kind: 'sql', sql } });
+          return undefined;
+        } catch (error) {
+          return (error as { code?: string }).code;
+        }
+      }),
+    ).toEqual(Array(4).fill('MIGRATION.SQL_EXPRESSION_INVALID'));
+  });
+
+  it('accepts a semicolon inside a quoted literal', () => {
+    expect(
+      rebuild({ age: { kind: 'sql', sql: `coalesce(nullif("age", ';'), 0)` } }).copyExpressions,
+    ).toEqual({ age: { kind: 'sql', sql: `coalesce(nullif("age", ';'), 0)` } });
   });
 
   it('is an unfilled placeholder while a slot is unfilled, and imports placeholder', async () => {

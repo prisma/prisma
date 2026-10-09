@@ -1,7 +1,10 @@
 /**
  * `--convert`, `--backfill` and the temporary value on SQLite, end to end on a table with rows:
  * `migration plan` writes the rebuild or the data transform, the user fills its slot, runs the
- * `migration.ts`, and `db migrate` applies it.
+ * `migration.ts`, and `db migrate` applies it. A new required field in a key, or whose values come
+ * from a value set, gets no temporary value: the rebuild applies to an empty table and fails on
+ * `NOT NULL` when the table has rows. `cli.backfill-enum.sqlite.e2e.test.ts` fills such a field
+ * through `--backfill` and reads it back through the ORM.
  */
 
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -68,16 +71,47 @@ async function emit(ctx: JourneyContext, psl: string): Promise<void> {
   expect(emitted.exitCode, `emit: ${emitted.stderr}`).toBe(0);
 }
 
-/** The base table, applied, with two rows. */
-async function seeded(createTempDir: () => string): Promise<SqliteJourney> {
+/** The base table, applied, with no rows. */
+async function applied(createTempDir: () => string): Promise<SqliteJourney> {
   const ctx = setup(createTempDir);
   expect((await runContractEmit(ctx)).exitCode, 'emit base').toBe(0);
   const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
   expect(plan0.exitCode, `plan initial: ${plan0.stderr}`).toBe(0);
   const apply0 = await runMigrate(ctx);
   expect(apply0.exitCode, `apply initial: ${apply0.stderr}`).toBe(0);
+  return ctx;
+}
+
+/** The base table, applied, with two rows. */
+async function seeded(createTempDir: () => string): Promise<SqliteJourney> {
+  const ctx = await applied(createTempDir);
   exec(ctx.dbPath, `INSERT INTO "User" (id, age, nickname) VALUES (1, '10', 'al'), (2, '7', NULL)`);
   return ctx;
+}
+
+const WITH_ROLE = `${BASE.replace('  nickname String?\n', '  nickname String?\n  role     Role\n')}
+enum Role {
+  @@type("sqlite/text@1")
+  Admin = "admin"
+  Member = "member"
+}
+`;
+
+const WITH_CODE = BASE.replace(
+  '  nickname String?\n',
+  '  nickname String?\n  code     String @unique\n',
+);
+
+/** Plans the emitted contract from the latest migration, with no statement, and self-emits it. */
+async function plannedPlain(ctx: SqliteJourney, name: string): Promise<string> {
+  const planned = await planMigrationAndSelfEmit(ctx, [
+    '--name',
+    name,
+    '--from',
+    latestMigrationDirName(ctx),
+  ]);
+  expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
+  return plannedDir(ctx, name.replaceAll('-', '_'));
 }
 
 function plannedDir(ctx: JourneyContext, token: string): string {
@@ -240,6 +274,55 @@ withTempDir(({ createTempDir }) => {
           { id: 1, nickname: 'al' },
           { id: 2, nickname: 'anon' },
         ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'gives a new required enum field no temporary value, so a table with rows refuses it',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        await emit(ctx, WITH_ROLE);
+        const migrationDir = await plannedPlain(ctx, 'add-role');
+        expect(readFileSync(join(migrationDir, 'migration.ts'), 'utf-8')).not.toContain(
+          'copyExpressions',
+        );
+
+        const refused = await runMigrate(ctx);
+        expect(refused.exitCode, 'the rebuild cannot copy the rows').not.toBe(0);
+        expect(`${refused.stdout}${refused.stderr}`).toContain('NOT NULL');
+        expect(
+          query(ctx.dbPath, `SELECT name FROM pragma_table_info('User') ORDER BY name`),
+        ).toEqual([{ name: 'age' }, { name: 'id' }, { name: 'nickname' }]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'carries a new required unique field through the rebuild, which applies to an empty table',
+      async () => {
+        const ctx = await applied(createTempDir);
+        await emit(ctx, WITH_CODE);
+        await plannedPlain(ctx, 'add-code');
+        const added = await runMigrate(ctx);
+        expect(added.exitCode, `apply: ${added.stdout}\n${added.stderr}`).toBe(0);
+        expect(
+          query(ctx.dbPath, `SELECT "notnull" FROM pragma_table_info('User') WHERE name = 'code'`),
+        ).toEqual([{ notnull: 1 }]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'carries a new required unique field through the rebuild, which a table with rows refuses',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        await emit(ctx, WITH_CODE);
+        await plannedPlain(ctx, 'add-code');
+        const refused = await runMigrate(ctx);
+        expect(refused.exitCode, 'the rebuild cannot copy the rows').not.toBe(0);
+        expect(`${refused.stdout}${refused.stderr}`).toContain('NOT NULL');
+        expect(query(ctx.dbPath, `SELECT count(*) AS rows FROM "User"`)).toEqual([{ rows: 2 }]);
       },
       timeouts.spinUpPpgDev,
     );

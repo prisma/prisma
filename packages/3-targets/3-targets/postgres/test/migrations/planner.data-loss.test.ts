@@ -514,6 +514,21 @@ describe('Postgres planner, convert and backfill statements', () => {
     ]);
   });
 
+  it('names each loss by the label of the call that loses it, beside an unfilled conversion slot', () => {
+    const from = contract('from', {
+      User: { columns: { id: 'int4', age: 'text', nick: 'text?' } },
+    });
+    const to = contract('to', { User: { columns: { id: 'int4', age: 'int4' } } });
+    const convert: ResolvedMigrationStatement = {
+      kind: 'convert',
+      entity: 'field',
+      field: user('age'),
+    };
+    expect(planWith(from, to, [convert]).dataLoss.map(({ label }) => label)).toEqual([
+      'Drop column "nick" from "User"',
+    ]);
+  });
+
   const convertAge: ResolvedMigrationStatement = {
     kind: 'convert',
     entity: 'field',

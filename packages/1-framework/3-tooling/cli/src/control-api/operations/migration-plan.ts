@@ -218,11 +218,12 @@ async function runPlannerLeg(
     plannedOps,
     migrationTsContent: plannerResult.plan.renderTypeScript(resolveImportSpecifier),
     hasPlaceholders,
-    dataLoss: plannerResult.dataLoss.map(({ operationIndex, subject, loss }) => ({
+    dataLoss: plannerResult.dataLoss.map(({ operationIndex, subject, loss, label }) => ({
       operationIndex: position(operationIndex),
       subject,
       loss,
       label:
+        label ??
         resolved[operationIndex]?.label ??
         subjectText(subject, { origin: fromContract ?? EMPTY_ORIGIN, statements: [] }),
     })),

@@ -254,14 +254,35 @@ describe('AlterColumnTypeCall', () => {
     ]);
   });
 
-  it('uses an explicit USING clause when provided, ending a line comment with a line break', async () => {
+  it('uses an explicit USING clause when provided', async () => {
     const { lowerer } = recordingCheckLowerer();
     const sqlOf = async (sql: string) =>
       (await alter({ using: { kind: 'sql', sql } }).toOp(lowerer)).execute[0]?.sql;
-    expect([await sqlOf('age::int8 * 2'), await sqlOf('age::int8 -- widen')]).toEqual([
+    expect([await sqlOf('age::int8 * 2'), await sqlOf(`nullif("age", ';')::int8`)]).toEqual([
       'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING age::int8 * 2',
-      'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING age::int8 -- widen\n',
+      `ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING nullif("age", ';')::int8`,
     ]);
+  });
+
+  it('refuses a USING clause that is not one SQL expression, naming the call', () => {
+    const refusal = (sql: string) => {
+      try {
+        alter({ using: { kind: 'sql', sql } });
+        return undefined;
+      } catch (error) {
+        return error;
+      }
+    };
+    expect(refusal('"age"::int8; DROP TABLE "user"')).toMatchObject({
+      code: 'MIGRATION.SQL_EXPRESSION_INVALID',
+      message:
+        'alterColumnType({ schema: "public", table: "user", column: "age" }): using "\\"age\\"::int8; DROP TABLE \\"user\\"" is not one SQL expression: it holds a semicolon outside a quoted literal',
+    });
+    expect(
+      ['age::int8 -- widen', '"age" FROM "user"', '1 UNION SELECT 2'].map(
+        (sql) => (refusal(sql) as { code?: string } | undefined)?.code,
+      ),
+    ).toEqual(Array(3).fill('MIGRATION.SQL_EXPRESSION_INVALID'));
   });
 
   it('is an unfilled placeholder while its USING slot is unfilled', async () => {

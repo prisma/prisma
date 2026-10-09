@@ -26,12 +26,18 @@ function column(tableName: string, columnName: string): SubjectStorage {
 function losing(...targets: readonly SubjectStorage[]): CallSubjects {
   return {
     operationCount: 1,
+    label: 'Drop',
     dataLoss: targets.map((target) => ({ ...target, loss: 'drop' })),
     accessWidening: [],
   };
 }
 
-const unchanged: CallSubjects = { operationCount: 1, dataLoss: [], accessWidening: [] };
+const unchanged: CallSubjects = {
+  operationCount: 1,
+  label: 'Unchanged',
+  dataLoss: [],
+  accessWidening: [],
+};
 
 const origin = contractOf({
   Legacy: { table: 'legacy', fields: { id: 'id' } },
@@ -52,11 +58,13 @@ describe('subjectsOfCalls', () => {
           operationIndex: 1,
           subject: { kind: 'model', namespaceId: app, model: 'Legacy' },
           loss: 'drop',
+          label: 'Drop',
         },
         {
           operationIndex: 2,
           subject: { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
           loss: 'drop',
+          label: 'Drop',
         },
       ],
       accessWidening: [],
@@ -66,7 +74,10 @@ describe('subjectsOfCalls', () => {
   it('counts every operation of a call with companions before the next call', () => {
     expect(
       subjectsOfCalls(
-        [{ operationCount: 3, dataLoss: [], accessWidening: [] }, losing(table('legacy'))],
+        [
+          { operationCount: 3, label: 'Rename', dataLoss: [], accessWidening: [] },
+          losing(table('legacy')),
+        ],
         { fromContract: origin, contract: origin, statements: [] },
       ).dataLoss,
     ).toEqual([
@@ -74,6 +85,7 @@ describe('subjectsOfCalls', () => {
         operationIndex: 3,
         subject: { kind: 'model', namespaceId: app, model: 'Legacy' },
         loss: 'drop',
+        label: 'Drop',
       },
     ]);
   });
@@ -99,16 +111,18 @@ describe('subjectsOfCalls', () => {
         operationIndex: 0,
         subject: { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
         loss: 'drop',
+        label: 'Drop',
       },
     ]);
   });
 
-  it('keeps how each operation loses data', () => {
+  it('keeps how each operation loses data, and the label of the call that loses it', () => {
     expect(
       subjectsOfCalls(
         [
           {
             operationCount: 1,
+            label: 'Alter type',
             dataLoss: [{ ...column('user', 'full_name'), loss: 'typeChange' }],
             accessWidening: [],
           },
@@ -120,6 +134,7 @@ describe('subjectsOfCalls', () => {
         operationIndex: 0,
         subject: { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
         loss: 'typeChange',
+        label: 'Alter type',
       },
     ]);
   });
@@ -148,8 +163,18 @@ describe('subjectsOfCalls', () => {
         },
       ).dataLoss,
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'public.audit_log' }, loss: 'drop' },
-      { operationIndex: 0, subject: { kind: 'storage', name: 'user.nickname' }, loss: 'drop' },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'public.audit_log' },
+        loss: 'drop',
+        label: 'Drop',
+      },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'user.nickname' },
+        loss: 'drop',
+        label: 'Drop',
+      },
     ]);
   });
 
@@ -161,8 +186,18 @@ describe('subjectsOfCalls', () => {
         statements: [],
       }).dataLoss,
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'legacy' }, loss: 'drop' },
-      { operationIndex: 0, subject: { kind: 'storage', name: 'user.full_name' }, loss: 'drop' },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'legacy' },
+        loss: 'drop',
+        label: 'Drop',
+      },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'user.full_name' },
+        loss: 'drop',
+        label: 'Drop',
+      },
     ]);
   });
 
@@ -174,7 +209,12 @@ describe('subjectsOfCalls', () => {
         statements: [],
       }).dataLoss,
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'public.mood' }, loss: 'drop' },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'public.mood' },
+        loss: 'drop',
+        label: 'Drop',
+      },
     ]);
   });
 
@@ -185,6 +225,7 @@ describe('subjectsOfCalls', () => {
           unchanged,
           {
             operationCount: 1,
+            label: 'Drop policy',
             dataLoss: [],
             accessWidening: [{ ...table('user'), widens: false }],
           },

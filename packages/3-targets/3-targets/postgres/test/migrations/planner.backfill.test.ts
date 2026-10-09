@@ -32,6 +32,17 @@ const columnTypes = {
   int4: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
   text: { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
   'text?': { dataType: 'pg/text', codecId: 'pg/text@1', nullable: true },
+  role: {
+    dataType: 'pg/text',
+    codecId: 'pg/text@1',
+    nullable: false,
+    valueSet: {
+      plane: 'storage',
+      namespaceId: 'public',
+      entityKind: 'valueSet',
+      entityName: 'Role',
+    },
+  },
 } as const;
 
 type Columns = Readonly<Record<string, keyof typeof columnTypes>>;
@@ -159,6 +170,18 @@ describe('Postgres planner, a required field without a value in existing rows', 
     expect((await planned(before, unique))[0]).toBe(
       'Add column name to User (additive): add column "name"',
     );
+  });
+
+  it('adds a new required field whose values come from a value set to an empty table only, since no one value stands for every member', async () => {
+    const withRole = contract('role', { id: 'int4', nickname: 'text?', role: 'role' });
+    expect(
+      [await planned(before, withRole), await planned(before, withRole, { policy: DB_UPDATE })].map(
+        (operations) => operations.find((operation) => operation.includes('"role"')),
+      ),
+    ).toEqual([
+      'Add column role to User (additive): add column "role"',
+      'Add column role to User (additive): add column "role"',
+    ]);
   });
 
   it('makes an optional field required with SET NOT NULL, under migration plan and db update', async () => {

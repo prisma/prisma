@@ -12,7 +12,7 @@ export type {
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 export { assembleAuthoringContributions } from '@internal/framework-components/control';
-export { checkSqlDefaultText } from '@internal/sql-contract/validators';
+export { checkSqlDefaultText, checkSqlExpressionText } from '@internal/sql-contract/validators';
 export { extractCodecControlHooks } from '../core/assembly';
 export type { SqlControlFamilyInstance } from '../core/control-instance';
 export type {
@@ -143,6 +143,8 @@ export type {
   SqlPlanTargetDetails,
   StorageTypePlanResult,
 } from '../core/migrations/types';
+export type { TableColumn } from '../core/migrations/value-set-columns';
+export { valueSetColumns } from '../core/migrations/value-set-columns';
 export {
   temporalCodecPresetWithPrecision,
   temporalStringAuthoringPresets,

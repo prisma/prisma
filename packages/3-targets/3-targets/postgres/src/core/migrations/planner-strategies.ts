@@ -467,7 +467,8 @@ export const storageTypePlanCallStrategy: CallMigrationStrategy = (issues, ctx) 
  *    nullable → backfill identity value → `SET NOT NULL` → `DROP DEFAULT`).
  *    The temp-default value is resolved from the column node's `codecRef`
  *    (`resolveColumnTemporaryDefault`, wrapping `resolveIdentityValue`).
- *  - Empty-table guarded: emit a hand-built op with a `tableIsEmptyCheck`
+ *  - Empty-table guarded, for a column in a key, or whose values come from a value set, which
+ *    no one value stands in for: emit a hand-built op with a `tableIsEmptyCheck`
  *    precheck so the failure message is "table is not empty" rather than the
  *    raw PG NOT NULL violation.
  *
@@ -507,6 +508,7 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
     const schemaLookup = schemaLookups.get(tableName);
     const canUseSharedTempDefault =
       temporaryDefault !== null &&
+      column.valueSet === undefined &&
       canUseSharedTemporaryDefaultStrategy({
         table: contractTable,
         schemaTable,

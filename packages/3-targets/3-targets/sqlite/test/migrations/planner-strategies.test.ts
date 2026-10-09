@@ -27,6 +27,7 @@ function makeContext(overrides: Partial<StrategyContext> = {}): StrategyContext 
     frameworkComponents: sqliteTestComponents,
     types: sqliteTestTypes,
     statementColumns: { convert: [], backfill: [] },
+    valueSetColumns: [],
     ...overrides,
   };
 }

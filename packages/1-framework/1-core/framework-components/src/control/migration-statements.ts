@@ -110,6 +110,8 @@ export type MigrationDataLossKind = 'drop' | 'typeChange';
 /** An operation that loses data: its subject, and how it loses that subject's data. */
 export interface MigrationDataLoss extends MigrationOperationSubject {
   readonly loss: MigrationDataLossKind;
+  /** The label of the planned call that loses the data, which names it while a slot of the plan is unfilled. */
+  readonly label?: string;
 }
 
 /** What the operations of a plan lose and whose access they change, each by its position in the plan. */

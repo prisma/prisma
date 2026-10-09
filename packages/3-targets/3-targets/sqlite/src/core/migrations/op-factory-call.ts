@@ -11,9 +11,10 @@
 
 import type { ColumnDefault } from '@internal/contract/types';
 import { unfilledPlaceholderOperation } from '@internal/errors/migration';
-import type {
-  MigrationOperationClass,
-  SqlMigrationPlanOperation,
+import {
+  checkSqlExpressionText,
+  type MigrationOperationClass,
+  type SqlMigrationPlanOperation,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { OpFactoryCall as FrameworkOpFactoryCall } from '@internal/framework-components/control';
@@ -482,22 +483,22 @@ export type CopyExpression =
   | { readonly kind: 'sql'; readonly sql: string }
   | { readonly kind: 'placeholder'; readonly slot: string };
 
-const UNSAFE_COPY_EXPRESSION = /;|--|\/\*/;
-
 function refuseUnsafeCopyExpressions(
   tableName: string,
   copyExpressions: Readonly<Record<string, CopyExpression>>,
 ): void {
   for (const [column, expression] of Object.entries(copyExpressions)) {
-    if (expression.kind !== 'sql' || !UNSAFE_COPY_EXPRESSION.test(expression.sql)) continue;
+    if (expression.kind !== 'sql') continue;
+    const refused = checkSqlExpressionText(expression.sql);
+    if (refused === undefined) continue;
     const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
     throw sqliteError(
-      'MIGRATION.COPY_EXPRESSION_INVALID',
-      `${call}: copyExpressions.${column} ${JSON.stringify(expression.sql)} is not one SQL expression`,
+      'MIGRATION.SQL_EXPRESSION_INVALID',
+      `${call}: copyExpressions.${column} ${JSON.stringify(expression.sql)} is not one SQL expression: it holds ${refused}`,
       {
-        why: 'A copy expression is written into the SELECT that copies the rows into the rebuilt table, so it must be one expression, with no semicolon or SQL comment.',
+        why: 'A copy expression is written into the SELECT that copies the rows into the rebuilt table, so it must be one expression that cannot end or reshape that statement.',
         fix: `Write copyExpressions.${column} as one SQL expression over the old table's columns, such as CAST("${column}" AS INTEGER).`,
-        meta: { table: tableName, column, expression: expression.sql },
+        meta: { call, field: `copyExpressions.${column}`, expression: expression.sql, refused },
       },
     );
   }

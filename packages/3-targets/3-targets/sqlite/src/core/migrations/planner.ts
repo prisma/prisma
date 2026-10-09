@@ -16,6 +16,7 @@ import {
   plannerFailure,
   planStatements,
   subjectsOfCalls,
+  valueSetColumns,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
@@ -206,6 +207,7 @@ export class SqliteMigrationPlanner
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
       statementColumns: fieldStatementColumns(options.statements, options.contract),
+      valueSetColumns: valueSetColumns(options.contract),
       strategies: sqlitePlannerStrategies,
     });
 

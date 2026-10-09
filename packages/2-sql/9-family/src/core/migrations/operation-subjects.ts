@@ -68,6 +68,8 @@ export function unknownCallNames<TCall extends { readonly factoryName: string }>
 /** A call of a plan: how many operations it lowers to, and what the first of them is about. */
 export interface CallSubjects {
   readonly operationCount: number;
+  /** The call's label, which names its operation before the plan's slots are filled. */
+  readonly label: string;
   /** What the call's operation loses, one entry per model, field or storage name, and how. */
   readonly dataLoss: readonly (SubjectStorage & { readonly loss: MigrationDataLossKind })[];
   /** What the call's operation changes access to, and whether it widens it. */
@@ -180,7 +182,12 @@ export function subjectsOfCalls(
   let operationIndex = 0;
   for (const call of calls) {
     for (const target of call.dataLoss) {
-      dataLoss.push({ operationIndex, subject: subjectOf(target, context), loss: target.loss });
+      dataLoss.push({
+        operationIndex,
+        subject: subjectOf(target, context),
+        loss: target.loss,
+        label: call.label,
+      });
     }
     for (const target of call.accessWidening) {
       accessWidening.push({

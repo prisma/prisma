@@ -1390,10 +1390,6 @@ A `migration check` finding, carried as an `error` diagnostic on a completed run
 
 A Postgres column type change names a type that no data type of the configured stack reads. `alterColumnType` checks after it runs that the column has the new type as `format_type()` prints it, and finds that text from `type`, written as a migration writes it, through the data types the target, adapter and extensions register: any of a data type's texts, such as `int4`, `integer` or `varchar(20)`, with `[]` for a list, or an enum named by its quoted name, such as `"Mood"` or `"app"."status"`; an enum in `public` may be written with or without `"public".`, and the check leaves the schema out, as `format_type()` does. The message names the call, for example `alterColumnType({ table: "User", column: "age" })`, and the text. Write the type as a migration writes it, or, for a type an extension provides, add that extension to the configuration. Raised when `migration.ts` runs, and by the planner, which builds the same call. Payload: `type`, `where`.
 
-### MIGRATION.COPY_EXPRESSION_INVALID
-
-A SQLite `recreateTable` call in a `migration.ts` has a copy expression that is not one SQL expression: it holds a semicolon or a SQL comment token. A copy expression is written into the `SELECT` that copies the old table's rows into the rebuilt table, as the conversion of a column whose type changes or the value a new column takes, so a second statement or a comment would change what the copy runs. The message names the call and the column, for example `recreateTable({ tableName: "User" }): copyExpressions.age "0; DROP TABLE x" is not one SQL expression`. Write the expression as one SQL expression over the old table's columns, such as `CAST("age" AS INTEGER)`. Payload: `table`, `column`, `expression`.
-
 ### MIGRATION.CONTRACT_DESERIALIZATION_FAILED
 
 A contract JSON on disk failed to deserialize into a valid contract: either a snapshot-store entry read while migration tooling resolved a contract at a ref or hash, or the emitted `contract.json` read as the fallback source by `db sign` / `db update --to` (invalid JSON, or a value that is not a JSON object). Re-emit the owning migration package (or re-run `prisma contract emit` for the emitted contract), or restore the file from version control. Payload: `filePath`, `message`. Also raised by `migration new` when the emitted `contract.json` fails to deserialize; that site has no meta and attaches the deserialization failure as `cause`.
@@ -1667,6 +1663,10 @@ A `--from` reference cannot produce a contract: either a ref name has no pointer
 ### MIGRATION.SQLITE_CONTROL_STACK_MISSING
 
 SQLite twin of `MIGRATION.POSTGRES_CONTROL_STACK_MISSING`: a `SqliteMigration` operation needing the control adapter was invoked on an instance constructed without a control stack (only introspection is valid in that form). Payload: `operation`.
+
+### MIGRATION.SQL_EXPRESSION_INVALID
+
+A `migration.ts` writes SQL that must be one expression and is more than that: the `using` of a Postgres `alterColumnType` call, which goes into the `USING` clause of `ALTER COLUMN … TYPE`, or a copy expression of a SQLite `recreateTable` call, which goes into the `SELECT` that copies the old table's rows into the rebuilt table. Outside quoted literals and quoted identifiers the text holds a semicolon, a SQL comment, dollar quoting, an unclosed quote, parentheses that do not match, or, outside parentheses, a keyword that would end the expression and reshape the statement around it (`FROM`, `WHERE`, `UNION`, `INTERSECT`, `EXCEPT`, `GROUP`, `ORDER`, `HAVING`, `LIMIT`, `WINDOW`, `RETURNING`). A semicolon or keyword inside a quoted literal, such as `';'`, or inside parentheses, such as `(SELECT max("id") FROM "Other")`, is accepted. The message names the call and what the text holds, for example `recreateTable({ tableName: "User" }): copyExpressions.age "0; DROP TABLE x" is not one SQL expression: it holds a semicolon outside a quoted literal`. Raised when the call is built, so `migration.ts` writes no `ops.json`. Write the text as one SQL expression over the column, such as `CAST("age" AS INTEGER)`. Payload: `call`, `field`, `expression`, `refused`.
 
 ### MIGRATION.STATEMENT_ANSWERS_NO_QUESTION
 
