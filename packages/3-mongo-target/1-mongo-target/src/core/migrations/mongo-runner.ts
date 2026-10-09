@@ -22,12 +22,12 @@ import type { MongoContract } from '@internal/mongo-contract';
 import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
 import type {
   AnyMongoMigrationOperation,
-  MongoDataTransformCheck,
-  MongoDataTransformOperation,
+  MongoDmlCheck,
+  MongoDmlOperation,
   MongoInspectionCommandVisitor,
   MongoMigrationCheck,
 } from '@internal/mongo-query-ast/control';
-import { isMongoDataTransformOperation } from '@internal/mongo-query-ast/control';
+import { isMongoDmlOperation } from '@internal/mongo-query-ast/control';
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -116,8 +116,8 @@ export class MongoMigrationRunner {
     for (const operation of operations) {
       options.callbacks?.onOperationStart?.(operation);
       try {
-        if (isMongoDataTransformOperation(operation)) {
-          const result = await this.executeDataTransform(
+        if (isMongoDmlOperation(operation)) {
+          const result = await this.executeDmlOperation(
             operation,
             adapter,
             driver,
@@ -298,8 +298,8 @@ export class MongoMigrationRunner {
     }
   }
 
-  private async executeDataTransform(
-    op: MongoDataTransformOperation,
+  private async executeDmlOperation(
+    op: MongoDmlOperation,
     adapter: MongoAdapter,
     driver: MongoDriver,
     filterEvaluator: FilterEvaluator,
@@ -308,7 +308,7 @@ export class MongoMigrationRunner {
     runPostchecks: boolean,
   ): Promise<{ executed: boolean; failure?: MongoMigrationRunnerResult }> {
     if (runPostchecks && runIdempotency && op.postcheck.length > 0) {
-      const allSatisfied = await this.evaluateDataTransformChecks(
+      const allSatisfied = await this.evaluateDmlChecks(
         op.postcheck,
         adapter,
         driver,
@@ -318,12 +318,7 @@ export class MongoMigrationRunner {
     }
 
     if (runPrechecks && op.precheck.length > 0) {
-      const passed = await this.evaluateDataTransformChecks(
-        op.precheck,
-        adapter,
-        driver,
-        filterEvaluator,
-      );
+      const passed = await this.evaluateDmlChecks(op.precheck, adapter, driver, filterEvaluator);
       if (!passed) {
         return {
           executed: false,
@@ -346,12 +341,7 @@ export class MongoMigrationRunner {
     }
 
     if (runPostchecks && op.postcheck.length > 0) {
-      const passed = await this.evaluateDataTransformChecks(
-        op.postcheck,
-        adapter,
-        driver,
-        filterEvaluator,
-      );
+      const passed = await this.evaluateDmlChecks(op.postcheck, adapter, driver, filterEvaluator);
       if (!passed) {
         return {
           executed: false,
@@ -369,8 +359,8 @@ export class MongoMigrationRunner {
     return { executed: true };
   }
 
-  private async evaluateDataTransformChecks(
-    checks: readonly MongoDataTransformCheck[],
+  private async evaluateDmlChecks(
+    checks: readonly MongoDmlCheck[],
     adapter: MongoAdapter,
     driver: MongoDriver,
     filterEvaluator: FilterEvaluator,

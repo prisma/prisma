@@ -28,11 +28,11 @@ export { ListCollectionsCommand, ListIndexesCommand } from '../inspection-comman
 export { buildIndexOpId, defaultMongoIndexName, keysToKeySpec } from '../migration-helpers';
 export type {
   AnyMongoMigrationOperation,
-  MongoDataTransformCheck,
-  MongoDataTransformOperation,
+  MongoDmlCheck,
+  MongoDmlOperation,
   MongoMigrationCheck,
   MongoMigrationPlanOperation,
   MongoMigrationStep,
 } from '../migration-operation-types';
-export { isMongoDataTransformOperation } from '../migration-operation-types';
+export { isMongoDmlOperation } from '../migration-operation-types';
 export type { MongoFilterVisitor } from '../visitors';

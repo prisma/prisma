@@ -25,35 +25,37 @@ export interface MongoMigrationPlanOperation extends MigrationPlanOperation {
   readonly postcheck: readonly MongoMigrationCheck[];
 }
 
-export interface MongoDataTransformCheck {
+export interface MongoDmlCheck {
   readonly description: string;
   readonly source: MongoQueryPlan;
   readonly filter: MongoFilterExpr;
   readonly expect: 'exists' | 'notExists';
 }
 
-export interface MongoDataTransformOperation extends MigrationPlanOperation {
+/**
+ * An operation that runs queries (`run`) where a DDL operation executes commands (`execute`): a
+ * `dataTransform`, with class `data`, or a document rewrite the planner plans, with the class of
+ * its effect.
+ */
+export interface MongoDmlOperation extends MigrationPlanOperation {
   readonly operationClass: MigrationOperationClass;
-  /**
-   * Human-readable label for this data transform.
-   */
   readonly name: string;
   /**
-   * Optional opt-in routing identity. Presence opts the transform into
-   * invariant-aware routing; absence means the transform is
-   * path-dependent and not referenceable from refs.
+   * Optional opt-in routing identity. Presence opts the operation into
+   * invariant-aware routing; absence means it is path-dependent and not
+   * referenceable from refs.
    */
   readonly invariantId?: string;
-  readonly precheck: readonly MongoDataTransformCheck[];
+  readonly precheck: readonly MongoDmlCheck[];
   readonly run: readonly MongoQueryPlan[];
-  readonly postcheck: readonly MongoDataTransformCheck[];
+  readonly postcheck: readonly MongoDmlCheck[];
 }
 
-export type AnyMongoMigrationOperation = MongoMigrationPlanOperation | MongoDataTransformOperation;
+export type AnyMongoMigrationOperation = MongoMigrationPlanOperation | MongoDmlOperation;
 
-export function isMongoDataTransformOperation(
+export function isMongoDmlOperation(
   operation: AnyMongoMigrationOperation,
-): operation is MongoDataTransformOperation {
+): operation is MongoDmlOperation {
   return 'run' in operation;
 }
 

@@ -11,8 +11,8 @@ import {
   ListCollectionsCommand,
   ListIndexesCommand,
   MongoAndExpr,
-  type MongoDataTransformCheck,
-  type MongoDataTransformOperation,
+  type MongoDmlCheck,
+  type MongoDmlOperation,
   MongoExistsExpr,
   MongoFieldFilter,
   type MongoFilterExpr,
@@ -312,14 +312,14 @@ const DdlOperationJson = type({
   postcheck: 'Record<string, unknown>[]',
 });
 
-const DataTransformCheckJson = type({
+const DmlCheckJson = type({
   description: 'string',
   source: 'Record<string, unknown>',
   filter: 'Record<string, unknown>',
   expect: '"exists" | "notExists"',
 });
 
-const DataTransformOperationJson = type({
+const DmlOperationJson = type({
   id: 'string',
   label: 'string',
   operationClass: '"additive" | "widening" | "destructive" | "data"',
@@ -751,7 +751,7 @@ function deserializeStep(json: unknown): MongoMigrationStep {
   };
 }
 
-function isDataTransformJson(json: unknown): boolean {
+function isDmlOperationJson(json: unknown): boolean {
   return Array.isArray(recordValue(json, 'run', 'migration operation'));
 }
 
@@ -767,8 +767,8 @@ function deserializeDdlOp(json: unknown): MongoMigrationPlanOperation {
   };
 }
 
-function deserializeDataTransformCheck(json: unknown): MongoDataTransformCheck {
-  const data = validate(DataTransformCheckJson, json, 'data transform check');
+function deserializeDmlCheck(json: unknown): MongoDmlCheck {
+  const data = validate(DmlCheckJson, json, 'DML operation check');
   return {
     description: data.description,
     source: deserializeMongoQueryPlan(data.source),
@@ -777,22 +777,22 @@ function deserializeDataTransformCheck(json: unknown): MongoDataTransformCheck {
   };
 }
 
-function deserializeDataTransformOp(json: unknown): MongoDataTransformOperation {
-  const data = validate(DataTransformOperationJson, json, 'data transform operation');
+function deserializeDmlOp(json: unknown): MongoDmlOperation {
+  const data = validate(DmlOperationJson, json, 'DML operation');
   return {
     id: data.id,
     label: data.label,
     operationClass: data.operationClass,
     name: data.name,
-    precheck: data.precheck.map(deserializeDataTransformCheck),
+    precheck: data.precheck.map(deserializeDmlCheck),
     run: data.run.map(deserializeMongoQueryPlan),
-    postcheck: data.postcheck.map(deserializeDataTransformCheck),
+    postcheck: data.postcheck.map(deserializeDmlCheck),
   };
 }
 
 export function deserializeMongoOp(json: unknown): AnyMongoMigrationOperation {
-  if (isDataTransformJson(json)) {
-    return deserializeDataTransformOp(json);
+  if (isDmlOperationJson(json)) {
+    return deserializeDmlOp(json);
   }
   return deserializeDdlOp(json);
 }

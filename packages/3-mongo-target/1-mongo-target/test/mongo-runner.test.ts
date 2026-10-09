@@ -280,7 +280,7 @@ async function execute(
   });
 }
 
-describe('MongoMigrationRunner.executeDataTransform', () => {
+describe('MongoMigrationRunner.executeDmlOperation', () => {
   it('runs the DML wire command once when there are no checks to gate it', async () => {
     const harness = makeHarness();
     const op = dataTransform('backfill-status', { run: () => makeRunPlan() });

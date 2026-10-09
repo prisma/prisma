@@ -1,6 +1,6 @@
 import type {
-  MongoDataTransformCheck,
-  MongoDataTransformOperation,
+  MongoDmlCheck,
+  MongoDmlOperation,
   MongoFilterExpr,
   MongoIndexKey,
 } from '@internal/mongo-query-ast/control';
@@ -83,9 +83,9 @@ export function dataTransform(
     };
     run: () => MongoQueryPlan | Buildable;
   },
-): MongoDataTransformOperation {
-  let precheck: readonly MongoDataTransformCheck[] = [];
-  let postcheck: readonly MongoDataTransformCheck[] = [];
+): MongoDmlOperation {
+  let precheck: readonly MongoDmlCheck[] = [];
+  let postcheck: readonly MongoDmlCheck[] = [];
 
   if (options.check) {
     const source = resolveQuery(options.check.source());
@@ -162,7 +162,7 @@ function noDocumentHolds(
   collectionName: string,
   fields: readonly string[],
   filter: Document | undefined,
-): MongoDataTransformCheck {
+): MongoDmlCheck {
   return {
     description: `no document in ${collectionName} holds ${fields.length === 1 ? fields[0] : `both ${fields.join(' and ')}`}`,
     source: rewritePlan(
@@ -204,7 +204,7 @@ export function renameField(
   from: string,
   to: string,
   options?: FieldRewriteOptions,
-): MongoDataTransformOperation {
+): MongoDmlOperation {
   assertRewritableField(collectionName, from);
   assertRewritableField(collectionName, to);
   if (from === to) {
@@ -231,7 +231,7 @@ export function unsetField(
   collectionName: string,
   field: string,
   options?: FieldRewriteOptions,
-): MongoDataTransformOperation {
+): MongoDmlOperation {
   assertRewritableField(collectionName, field);
   const filter = options?.filter;
   const id = `field.${collectionName}.${field}.unset${idSuffix(filter)}`;

@@ -14,14 +14,14 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - '(?<![\w$])(?:MongoDdlCommandVisitor|AnyMongoDdlCommand|AnyMongoDdlWireCommand)(?![\w$])'
-  - id: mongo-run-shaped-operations
+  - id: mongo-dml-operations
     summary: |
-      `MongoDataTransformOperation.operationClass` is any `MigrationOperationClass`, not only `'data'`: the planner's document rewrites (`renameField`, `unsetField`) have its shape and carry `widening` or `destructive`. Tell an operation that runs queries from a DDL operation with `isMongoDataTransformOperation(operation)` (it has `run`), not with `operationClass === 'data'`.
+      `MongoDataTransformOperation` is renamed `MongoDmlOperation`, and `MongoDataTransformCheck` `MongoDmlCheck`. Its `operationClass` is any `MigrationOperationClass`, not only `'data'`: the planner's document rewrites (`renameField`, `unsetField`) are DML operations with class `widening` or `destructive`. Tell a DML operation from a DDL operation with `isMongoDmlOperation(operation)` (it has `run`), not with `operationClass === 'data'`.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - 'operationClass\s*===?\s*["'']data["'']'
-        - '(?<![\w$])MongoDataTransformOperation(?![\w$])'
+        - '(?<![\w$])MongoDataTransform(?:Operation|Check)(?![\w$])'
   - id: mongo-update-many-bypass-validation
     summary: |
       `RawUpdateManyCommand` takes an optional fourth argument `{ bypassDocumentValidation }`; `UpdateManyWireCommand` takes it as an optional fifth constructor argument and carries `bypassDocumentValidation: boolean`; the lowered `rawUpdateMany` draft (`MongoLoweredDraft`) requires `bypassDocumentValidation: boolean`.
@@ -31,7 +31,7 @@ changes:
         - 'kind:\s*["'']rawUpdateMany["'']'
   - id: mongo-op-factory-call-to-op
     summary: |
-      A Mongo `OpFactoryCall`'s `toOp()`, and `renderOps(calls)`, return `AnyMongoMigrationOperation`, since `RenameFieldCall` and `UnsetFieldCall` produce run-shaped operations.
+      A Mongo `OpFactoryCall`'s `toOp()`, and `renderOps(calls)`, return `AnyMongoMigrationOperation`, since `RenameFieldCall` and `UnsetFieldCall` produce DML operations.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
@@ -56,16 +56,23 @@ new RenameCollectionCommand('profiles', 'users');
 
 A `MongoDdlCommandVisitor<R>` implementation adds `renameCollection(command)`. A Mongo driver's `run(wireCommand)` handles `kind: 'renameCollection'`, as the shipped driver does with `db.renameCollection(collection, to)`, without `dropTarget`. An adapter's DDL lowering maps the command to `new RenameCollectionWireCommand(command.collection, command.to)`.
 
-## `mongo-run-shaped-operations`
+## `mongo-dml-operations`
+
+Rename the types where code names them:
+
+```diff
+- import type { MongoDataTransformCheck, MongoDataTransformOperation } from '@prisma/orm-family-mongo/query-ast/control';
++ import type { MongoDmlCheck, MongoDmlOperation } from '@prisma/orm-family-mongo/query-ast/control';
+```
 
 Where code narrows `AnyMongoMigrationOperation` by `operation.operationClass === 'data'`, use the guard instead:
 
 ```diff
 - if (operation.operationClass === 'data') {
-+ if (isMongoDataTransformOperation(operation)) {
++ if (isMongoDmlOperation(operation)) {
 ```
 
-`isMongoDataTransformOperation` comes from `@prisma/orm-family-mongo/query-ast/control`. An operation without `run` is a DDL operation. A hand-written `dataTransform` still has class `data`, so a policy that leaves out `data` (as `db update`'s does) still refuses it, and runs `renameField` and `unsetField`.
+`isMongoDmlOperation` comes from `@prisma/orm-family-mongo/query-ast/control`. An operation without `run` is a DDL operation. The `dataTransform` factory keeps its name: it builds a DML operation with class `data`. A hand-written `dataTransform` still has class `data`, so a policy that leaves out `data` (as `db update`'s does) still refuses it, and runs `renameField` and `unsetField`.
 
 ## `mongo-update-many-bypass-validation`
 
@@ -73,4 +80,4 @@ A hand-built lowered draft of kind `rawUpdateMany` adds `bypassDocumentValidatio
 
 ## `mongo-op-factory-call-to-op`
 
-Code typed against the result of `toOp()` or `renderOps(...)` as `MongoMigrationPlanOperation` widens it to `AnyMongoMigrationOperation`, and narrows with `isMongoDataTransformOperation` where it needs `execute`.
+Code typed against the result of `toOp()` or `renderOps(...)` as `MongoMigrationPlanOperation` widens it to `AnyMongoMigrationOperation`, and narrows with `isMongoDmlOperation` where it needs `execute` or `run`.
