@@ -5,6 +5,7 @@ import {
   DropCollectionCommand,
   DropIndexCommand,
   type MongoMigrationPlanOperation,
+  RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import { describe, expect, it } from 'vitest';
 import { formatMongoOperations } from '../src/core/operation-preview';
@@ -244,6 +245,23 @@ describe('formatMongoOperations', () => {
     };
     const result = formatMongoOperations([op]);
     expect(result).toEqual(['db.events.drop()']);
+  });
+
+  it('formats renameCollection', () => {
+    const op: MongoMigrationPlanOperation = {
+      id: 'collection.profiles.rename',
+      label: 'Rename collection',
+      operationClass: 'widening',
+      precheck: [],
+      execute: [
+        {
+          description: 'rename collection',
+          command: new RenameCollectionCommand('profiles', 'users'),
+        },
+      ],
+      postcheck: [],
+    };
+    expect(formatMongoOperations([op])).toEqual(['db.profiles.renameCollection("users")']);
   });
 
   it('formats collMod with validator', () => {

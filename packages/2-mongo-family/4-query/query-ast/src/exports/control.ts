@@ -11,6 +11,7 @@ export {
   CreateIndexCommand,
   DropCollectionCommand,
   DropIndexCommand,
+  RenameCollectionCommand,
 } from '../ddl-commands';
 export type { MongoDdlCommandVisitor, MongoInspectionCommandVisitor } from '../ddl-visitors';
 export type { MongoFilterExpr } from '../filter-expressions';

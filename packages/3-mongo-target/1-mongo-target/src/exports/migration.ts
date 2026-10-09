@@ -19,6 +19,7 @@ export {
   dataTransform,
   dropCollection,
   dropIndex,
+  renameCollection,
   setValidation,
   validatedCollection,
 } from '../core/migrations/migration-factories';

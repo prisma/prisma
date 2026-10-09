@@ -250,6 +250,17 @@ export class DropCollectionWireCommand extends MongoWireCommand {
   }
 }
 
+export class RenameCollectionWireCommand extends MongoWireCommand {
+  readonly kind = 'renameCollection' as const;
+  readonly to: string;
+
+  constructor(collection: string, to: string) {
+    super(collection);
+    this.to = to;
+    this.freeze();
+  }
+}
+
 export class DropIndexWireCommand extends MongoWireCommand {
   readonly kind = 'dropIndex' as const;
   readonly name: string;
@@ -294,6 +305,7 @@ export type AnyMongoDdlWireCommand =
   | CreateCollectionWireCommand
   | CreateIndexWireCommand
   | DropCollectionWireCommand
+  | RenameCollectionWireCommand
   | DropIndexWireCommand
   | CollModWireCommand;
 
@@ -303,6 +315,7 @@ const DDL_KINDS: ReadonlySet<string> = new Set([
   'createCollection',
   'createIndex',
   'dropCollection',
+  'renameCollection',
   'dropIndex',
   'collMod',
 ]);

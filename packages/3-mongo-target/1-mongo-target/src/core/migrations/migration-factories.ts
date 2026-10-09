@@ -20,6 +20,7 @@ import {
   MongoExistsExpr,
   MongoFieldFilter,
   type MongoMigrationPlanOperation,
+  RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import { createFieldAccessor } from '@internal/mongo-query-builder';
@@ -246,6 +247,32 @@ export function dropCollection(collectionName: string): MongoMigrationPlanOperat
       },
     ],
     postcheck: [],
+  };
+}
+
+function collectionCheck(name: string, expect: 'exists' | 'notExists') {
+  return {
+    description:
+      expect === 'exists' ? `collection ${name} exists` : `collection ${name} does not exist`,
+    source: new ListCollectionsCommand(),
+    filter: MongoFieldFilter.eq('name', name),
+    expect,
+  };
+}
+
+export function renameCollection(from: string, to: string): MongoMigrationPlanOperation {
+  return {
+    id: `collection.${from}.rename(${to})`,
+    label: `Rename collection ${from} to ${to}`,
+    operationClass: 'widening',
+    precheck: [collectionCheck(from, 'exists'), collectionCheck(to, 'notExists')],
+    execute: [
+      {
+        description: `rename collection ${from} to ${to}`,
+        command: new RenameCollectionCommand(from, to),
+      },
+    ],
+    postcheck: [collectionCheck(to, 'exists'), collectionCheck(from, 'notExists')],
   };
 }
 

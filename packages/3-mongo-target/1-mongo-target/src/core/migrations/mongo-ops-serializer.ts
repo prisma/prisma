@@ -21,6 +21,7 @@ import {
   type MongoMigrationStep,
   MongoNotExpr,
   MongoOrExpr,
+  RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import {
   AggregateCommand,
@@ -113,6 +114,12 @@ const CreateCollectionJson = type({
 const DropCollectionJson = type({
   kind: '"dropCollection"',
   collection: 'string',
+});
+
+const RenameCollectionJson = type({
+  kind: '"renameCollection"',
+  collection: 'string',
+  to: 'string',
 });
 
 const CollModJson = type({
@@ -677,6 +684,10 @@ function deserializeDdlCommand(json: unknown): AnyMongoDdlCommand {
     case 'dropCollection': {
       const data = validate(DropCollectionJson, json, 'dropCollection command');
       return new DropCollectionCommand(data.collection);
+    }
+    case 'renameCollection': {
+      const data = validate(RenameCollectionJson, json, 'renameCollection command');
+      return new RenameCollectionCommand(data.collection, data.to);
     }
     case 'collMod': {
       const data = validate(CollModJson, json, 'collMod command');

@@ -10,6 +10,7 @@ import type {
   DropIndexCommand,
   MongoDdlCommandVisitor,
   MongoIndexKey,
+  RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 
 function formatKeySpec(keys: ReadonlyArray<MongoIndexKey>): string {
@@ -57,6 +58,10 @@ class MongoDdlCommandFormatter implements MongoDdlCommandVisitor<string> {
 
   dropCollection(cmd: DropCollectionCommand): string {
     return `db.${cmd.collection}.drop()`;
+  }
+
+  renameCollection(cmd: RenameCollectionCommand): string {
+    return `db.${cmd.collection}.renameCollection(${JSON.stringify(cmd.to)})`;
   }
 
   collMod(cmd: CollModCommand): string {

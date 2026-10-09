@@ -11,6 +11,7 @@ import {
   FindOneAndUpdateWireCommand,
   InsertManyWireCommand,
   InsertOneWireCommand,
+  RenameCollectionWireCommand,
   UpdateManyWireCommand,
   UpdateOneWireCommand,
 } from '@internal/mongo-wire';
@@ -454,6 +455,30 @@ describe('MongoDriver', () => {
 
       const colls = await db.listCollections({ name: col }).toArray();
       expect(colls).toHaveLength(0);
+    });
+  });
+
+  describe('renameCollection', () => {
+    it('renames the collection and keeps its documents', async () => {
+      const db = seedClient.db(dbName);
+      const driver = MongoDriverImpl.fromDb(db);
+      const from = 'driver_rename_from';
+      const to = 'driver_rename_to';
+
+      await db.dropCollection(from).catch(() => undefined);
+      await db.dropCollection(to).catch(() => undefined);
+      await db.collection(from).insertOne({ name: 'Ada' });
+
+      await driver.run(new RenameCollectionWireCommand(from, to));
+
+      const names = (await db.listCollections({ name: { $in: [from, to] } }).toArray()).map(
+        (c) => c.name,
+      );
+      const docs = await db
+        .collection(to)
+        .find({}, { projection: { _id: 0 } })
+        .toArray();
+      expect({ names, docs }).toEqual({ names: [to], docs: [{ name: 'Ada' }] });
     });
   });
 

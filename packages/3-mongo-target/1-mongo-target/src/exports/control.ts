@@ -19,6 +19,7 @@ export {
   CreateIndexCall,
   DropCollectionCall,
   DropIndexCall,
+  RenameCollectionCall,
   schemaCollectionToCreateCollectionOptions,
   schemaIndexToCreateIndexOptions,
 } from '../core/migrations/op-factory-call';

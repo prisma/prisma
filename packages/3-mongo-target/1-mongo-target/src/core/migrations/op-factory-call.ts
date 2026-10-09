@@ -42,6 +42,7 @@ import {
   createIndex,
   dropCollection,
   dropIndex,
+  renameCollection,
 } from './migration-factories';
 
 export interface CollModMeta {
@@ -182,6 +183,30 @@ export class DropCollectionCall extends OpFactoryCallNode {
   }
 }
 
+export class RenameCollectionCall extends OpFactoryCallNode {
+  readonly factoryName = 'renameCollection' as const;
+  readonly operationClass = 'widening' as const;
+  readonly from: string;
+  readonly to: string;
+  readonly label: string;
+
+  constructor(from: string, to: string) {
+    super();
+    this.from = from;
+    this.to = to;
+    this.label = `Rename collection ${from} to ${to}`;
+    this.freeze();
+  }
+
+  toOp(): MongoMigrationPlanOperation {
+    return renameCollection(this.from, this.to);
+  }
+
+  renderTypeScript(): string {
+    return `renameCollection(${jsonToTsSource(this.from)}, ${jsonToTsSource(this.to)})`;
+  }
+}
+
 export class CollModCall extends OpFactoryCallNode {
   readonly factoryName = 'collMod' as const;
   readonly collection: string;
@@ -216,6 +241,7 @@ export type OpFactoryCall =
   | DropIndexCall
   | CreateCollectionCall
   | DropCollectionCall
+  | RenameCollectionCall
   | CollModCall;
 
 export function schemaIndexToCreateIndexOptions(index: MongoSchemaIndex): CreateIndexOptions {

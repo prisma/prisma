@@ -26,6 +26,7 @@ import {
   FindOneAndUpdateWireCommand,
   InsertManyWireCommand,
   InsertOneWireCommand,
+  RenameCollectionWireCommand,
   UpdateManyWireCommand,
   UpdateOneWireCommand,
 } from '@internal/mongo-wire';
@@ -66,6 +67,8 @@ function lowerDdlCommand(command: AnyMongoDdlCommand): AnyMongoDdlWireCommand {
       return new CreateIndexWireCommand(command.collection, keysToKeySpec(command.keys), command);
     case 'dropCollection':
       return new DropCollectionWireCommand(command.collection);
+    case 'renameCollection':
+      return new RenameCollectionWireCommand(command.collection, command.to);
     case 'dropIndex':
       return new DropIndexWireCommand(command.collection, command.name);
     case 'collMod':
