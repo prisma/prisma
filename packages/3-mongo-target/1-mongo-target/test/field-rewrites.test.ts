@@ -158,11 +158,16 @@ describe('field names a rewrite refuses', () => {
     });
   }
 
-  it('refuses renaming a field to its own name', () => {
+  it('refuses renaming a field to its own name as an invalid operation, not an unsupported name', () => {
     expect(() => renameField('users', 'name', 'name')).toThrow(
       expect.objectContaining({
-        code: 'MIGRATION.FIELD_NAME_UNSUPPORTED',
-        meta: expect.objectContaining({ collection: 'users', field: 'name' }),
+        code: 'MIGRATION.INVALID_OPERATION_ENTRY',
+        meta: expect.objectContaining({
+          context: 'renameField',
+          collection: 'users',
+          field: 'name',
+          reason: 'the new name is the old name',
+        }),
       }),
     );
   });

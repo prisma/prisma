@@ -1452,7 +1452,7 @@ A migration operation's SQL step failed while being executed against the databas
 
 ### MIGRATION.FIELD_NAME_UNSUPPORTED
 
-A MongoDB `renameField` or `unsetField` operation names a field it cannot rewrite: an empty name, `_id` (MongoDB does not let a document change its `_id`), a name containing `.` (MongoDB reads it as a path into embedded documents), or a name starting with `$` (MongoDB reads it as an operator). `renameField` also refuses a new name equal to the old one. Raised when the operation is built, before anything runs. Payload: `collection`, `field`, `reason`.
+A MongoDB `renameField` or `unsetField` operation names a field it cannot rewrite: an empty name, `_id` (MongoDB does not let a document change its `_id`), a name containing `.` (MongoDB reads it as a path into embedded documents), or a name starting with `$` (MongoDB reads it as an operator). Raised when the operation is built, before anything runs. Payload: `collection`, `field`, `reason`.
 
 ### MIGRATION.FILE_MISSING
 
@@ -1496,7 +1496,7 @@ The migration name given to `migration new`/`migration plan --name` contains no 
 
 ### MIGRATION.INVALID_OPERATION_ENTRY
 
-An operation returned by an authored migration class failed schema validation during emit: each entry of `operations` must carry `id`, `label`, and an `operationClass` of `additive`, `widening`, `destructive`, or `data`. Also raised when deserializing a persisted Mongo migration plan hits a malformed or unknown entry (filter, pipeline stage, DML/DDL/inspection command). Payload: `index`, `reason` (emit validation) or `context`, `kind` (plan deserialization).
+An operation returned by an authored migration class failed schema validation during emit: each entry of `operations` must carry `id`, `label`, and an `operationClass` of `additive`, `widening`, `destructive`, or `data`. Also raised when deserializing a persisted Mongo migration plan hits a malformed or unknown entry (filter, pipeline stage, DML/DDL/inspection command). A MongoDB `renameField` whose new name is its old name raises it when the operation is built, with `context: 'renameField'`, `collection`, `field` and `reason`. Payload: `index`, `reason` (emit validation) or `context`, `kind` (plan deserialization).
 
 ### MIGRATION.INVALID_REF_FILE
 

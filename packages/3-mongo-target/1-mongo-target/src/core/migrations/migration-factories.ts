@@ -144,8 +144,13 @@ const UNREWRITABLE_FIELD_NAMES: ReadonlyArray<{
   },
 ];
 
+/** Why `renameField` and `unsetField` cannot rewrite a field of this name, if they cannot. */
+export function unrewritableFieldNameReason(field: string): string | undefined {
+  return UNREWRITABLE_FIELD_NAMES.find((rule) => rule.matches(field))?.reason;
+}
+
 function assertRewritableField(collectionName: string, field: string): void {
-  const reason = UNREWRITABLE_FIELD_NAMES.find((rule) => rule.matches(field))?.reason;
+  const reason = unrewritableFieldNameReason(field);
   if (reason === undefined) return;
   throw mongoTargetError(
     'MIGRATION.FIELD_NAME_UNSUPPORTED',
@@ -209,9 +214,16 @@ export function renameField(
   assertRewritableField(collectionName, to);
   if (from === to) {
     throw mongoTargetError(
-      'MIGRATION.FIELD_NAME_UNSUPPORTED',
-      `Field "${from}" in collection ${collectionName} cannot be renamed to its own name.`,
-      { meta: { collection: collectionName, field: from, reason: 'the new name is the old name' } },
+      'MIGRATION.INVALID_OPERATION_ENTRY',
+      `renameField renames field "${from}" in collection ${collectionName} to its own name.`,
+      {
+        meta: {
+          context: 'renameField',
+          collection: collectionName,
+          field: from,
+          reason: 'the new name is the old name',
+        },
+      },
     );
   }
   const filter = options?.filter;

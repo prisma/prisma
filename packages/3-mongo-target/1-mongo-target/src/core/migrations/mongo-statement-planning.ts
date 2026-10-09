@@ -19,6 +19,7 @@ import {
 import type { MongoContract } from '@internal/mongo-contract';
 import { MongoSchemaCollection, MongoSchemaIR } from '@internal/mongo-schema-ir';
 import { notOk, ok, type Result } from '@internal/utils/result';
+import { unrewritableFieldNameReason } from './migration-factories';
 import {
   type OpFactoryCall,
   RenameCollectionCall,
@@ -71,14 +72,6 @@ function collectionControlPolicy(contract: MongoContract, collection: string) {
     .map((namespace) => namespace?.entries.collection?.[collection])
     .find((entry) => entry !== undefined);
   return effectiveControlPolicy(declared?.control, contract.defaultControlPolicy);
-}
-
-/** Why MongoDB would read a stored field name as something other than a field, if it would. */
-function unsafeFieldNameReason(field: string): string | undefined {
-  if (field.includes('.'))
-    return 'MongoDB reads a name containing "." as a path into embedded documents';
-  if (field.startsWith('$')) return 'MongoDB reads a name starting with "$" as an operator';
-  return undefined;
 }
 
 /** Why MongoDB would refuse a collection name, if it would. */
@@ -288,14 +281,14 @@ function planFieldStatement(
   if (statement.from.field === '_id' || statement.to.field === '_id') {
     return refuse('it renames _id', `MongoDB does not let a document change its _id. ${LEAVE_OUT}`);
   }
-  const unsafeFrom = unsafeFieldNameReason(statement.from.field);
+  const unsafeFrom = unrewritableFieldNameReason(statement.from.field);
   if (unsafeFrom !== undefined) {
     return refuse(
       `the stored field name "${statement.from.field}" cannot be rewritten`,
       `${unsafeFrom}, so a statement cannot move its values. Rename it in the database yourself, or ${LEAVE_OUT.toLowerCase()}`,
     );
   }
-  const unsafeTo = unsafeFieldNameReason(statement.to.field);
+  const unsafeTo = unrewritableFieldNameReason(statement.to.field);
   if (unsafeTo !== undefined) {
     return refuse(
       `the stored field name "${statement.to.field}" cannot be written`,
@@ -457,8 +450,7 @@ export function planFieldRemovals(input: FieldRemovalInput): readonly FieldRemov
     return Object.keys(model.fields)
       .filter(
         (field) =>
-          field !== '_id' &&
-          unsafeFieldNameReason(field) === undefined &&
+          unrewritableFieldNameReason(field) === undefined &&
           !renamedByStatement(input, { ...origin, field }),
       )
       .sort()
@@ -506,10 +498,7 @@ export function planValidatorFieldRemovals(input: {
       ...branchPropertyNames(destination.validator?.jsonSchema),
     ]);
     return propertyNames(originCollection.validator.jsonSchema)
-      .filter(
-        (field) =>
-          field !== '_id' && unsafeFieldNameReason(field) === undefined && !kept.has(field),
-      )
+      .filter((field) => unrewritableFieldNameReason(field) === undefined && !kept.has(field))
       .sort()
       .map((field) => ({
         call: new UnsetFieldCall(originCollection.name, field),
