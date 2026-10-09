@@ -1,6 +1,6 @@
 # ADR 188 — MongoDB migration operation model: data-driven commands and checks
 
-> **Update — 2026-10:** document rewrites the planner writes for `--rename` and `--delete` statements are classed by their effect, not as `data`. See § Data transform operations.
+> **Update — 2026-10:** document rewrites the planner writes for `--rename` and `--delete` statements are classed by their effect, not as `data`. See § DML operations and unified check shape.
 
 ## Grounding example
 
@@ -121,9 +121,9 @@ interface MongoMigrationCheck {
 
 This gives checks the same expressive power as MongoDB query filters, without inventing a separate vocabulary.
 
-### Data transform operations and unified check shape
+### DML operations and unified check shape
 
-The envelope described above covers DDL operations — creating indexes, modifying collections. Data transform operations (backfills, renames, seed inserts) use the same three-phase envelope but carry different payloads.
+The envelope described above covers DDL operations — creating indexes, modifying collections. DML operations, which read and write documents (backfills, field renames and removals, seed inserts), use the same three-phase envelope but carry different payloads. A data transform is a DML operation built with `dataTransform`.
 
 ```ts
 interface MongoDmlOperation extends MigrationPlanOperation {
@@ -150,7 +150,7 @@ interface MongoDmlCheck {
 
 The only difference is the `source` type: `MongoQueryPlan` (an aggregation or raw command) instead of `AnyMongoInspectionCommand`. Both use `MongoFilterExpr` for `filter` and `'exists' | 'notExists'` for `expect`. Both are evaluated by the same `FilterEvaluator` path in the runner — run the source query, apply the filter client-side, check against the expectation.
 
-The two types are kept concrete rather than collapsed into a generic `MigrationCheck<TSource>` because the source types need different executors — DDL checks dispatch through `MongoInspectionCommandVisitor`, data transform checks dispatch through `MongoAdapter.lower()` → `MongoDriver.execute()`. Two concrete types with a shared shape let the runner dispatch internally based on which operation type it's processing.
+The two types are kept concrete rather than collapsed into a generic `MigrationCheck<TSource>` because the source types need different executors — DDL checks dispatch through `MongoInspectionCommandVisitor`, DML checks dispatch through `MongoAdapter.lower()` → `MongoDriver.execute()`. Two concrete types with a shared shape let the runner dispatch internally based on which operation type it's processing.
 
 #### One factory derives both precheck and postcheck
 
@@ -171,11 +171,11 @@ The factory resolves this into a precheck with `expect: 'exists'` (violations fo
 
 #### DML execution
 
-Data transform `run` commands execute via `MongoAdapter.lower()` → `MongoDriver.execute()` — the same adapter+driver transport used for runtime queries. No bespoke DML executor is needed; the adapter lowers each `MongoQueryPlan` to a wire command, and the driver executes it against the database.
+DML `run` commands execute via `MongoAdapter.lower()` → `MongoDriver.execute()` — the same adapter+driver transport used for runtime queries. No bespoke DML executor is needed; the adapter lowers each `MongoQueryPlan` to a wire command, and the driver executes it against the database.
 
 #### Relationship to the generic envelope
 
-Both DDL and data transform operations are specializations of the generic three-phase migration operation envelope described in [ADR 191](ADR%20191%20-%20Generic%20three-phase%20migration%20operation%20envelope.md). The DDL variant fills the phases with inspection commands, DDL commands, and `MongoMigrationCheck`; the data transform variant fills them with query plans and `MongoDmlCheck`. The runner processes both through the same three-phase loop.
+Both DDL and DML operations are specializations of the generic three-phase migration operation envelope described in [ADR 191](ADR%20191%20-%20Generic%20three-phase%20migration%20operation%20envelope.md). The DDL variant fills the phases with inspection commands, DDL commands, and `MongoMigrationCheck`; the DML variant fills them with query plans and `MongoDmlCheck`. The runner processes both through the same three-phase loop.
 
 ## Serialization
 
