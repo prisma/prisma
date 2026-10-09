@@ -97,16 +97,16 @@ function bypassValidationRefusal(
   }
   if (typeof error !== 'object' || error === null) return undefined;
   if (Reflect.get(error, 'code') !== MONGO_UNAUTHORIZED) return undefined;
-  const message: unknown = Reflect.get(error, 'message');
+  const codeName: unknown = Reflect.get(error, 'codeName');
   return runnerFailure(
     'MIGRATION.EXECUTION_FAILED',
     `Operation ${op.id} failed: the database user may not skip document validation`,
     {
-      why: `Renaming or removing a field rewrites documents with bypassDocumentValidation, because the old validator requires the old field. MongoDB refused it: ${String(message)}. Grant the user the bypassDocumentValidation action on the database, for example with the dbAdmin or restore role, then run the command again; operations that already ran are skipped.`,
+      why: `Renaming or removing a field rewrites documents with bypassDocumentValidation, because the old validator requires the old field. MongoDB refused it with error ${MONGO_UNAUTHORIZED} (${String(codeName)}). Grant the user the bypassDocumentValidation action on the database, for example with the dbAdmin or restore role, then run the command again; operations that already ran are skipped.`,
       meta: {
         operationId: op.id,
         mongoCode: MONGO_UNAUTHORIZED,
-        codeName: Reflect.get(error, 'codeName'),
+        codeName,
       },
     },
   );

@@ -792,14 +792,16 @@ describe('MongoMigrationRunner - per-edge ledger', () => {
   });
 });
 
+const COMMAND_ECHO =
+  'not authorized on app to execute command { update: "users", ordered: true, bypassDocumentValidation: true, lsid: { id: UUID("0b2c8a4e-6f0d-4a7e-9d6f-2f1d5c3e8a91") }, txnNumber: 1, $clusterTime: { clusterTime: Timestamp(1791552000, 3), signature: { hash: BinData(0, 7F3C1D9E2A4B6C8D0E1F2A3B4C5D6E7F8A9B0C1D), keyId: 7421987654321098753 } }, $db: "app" }';
+
 describe('MongoMigrationRunner, a document rewrite without the privilege to skip validation', () => {
   const unauthorized = () =>
     new MongoServerError({
       ok: 0,
       code: 13,
       codeName: 'Unauthorized',
-      errmsg:
-        'not authorized on app to execute command { update: "users", updates: [ { q: { nickname: { $exists: true } }, u: { $unset: { nickname: "" } }, multi: true } ], ordered: true, bypassDocumentValidation: true, $db: "app" }',
+      errmsg: COMMAND_ECHO,
     });
 
   it('names the bypassDocumentValidation action and the roles that grant it', async () => {
@@ -809,11 +811,12 @@ describe('MongoMigrationRunner, a document rewrite without the privilege to skip
 
     const result = await execute(harness, [unsetField('users', 'nickname')]);
 
+    expect(JSON.stringify(result.assertNotOk())).not.toContain('clusterTime');
     expect(result.assertNotOk()).toEqual({
       code: 'MIGRATION.EXECUTION_FAILED',
       summary:
         'Operation field.users.nickname.unset failed: the database user may not skip document validation',
-      why: 'Renaming or removing a field rewrites documents with bypassDocumentValidation, because the old validator requires the old field. MongoDB refused it: not authorized on app to execute command { update: "users", updates: [ { q: { nickname: { $exists: true } }, u: { $unset: { nickname: "" } }, multi: true } ], ordered: true, bypassDocumentValidation: true, $db: "app" }. Grant the user the bypassDocumentValidation action on the database, for example with the dbAdmin or restore role, then run the command again; operations that already ran are skipped.',
+      why: 'Renaming or removing a field rewrites documents with bypassDocumentValidation, because the old validator requires the old field. MongoDB refused it with error 13 (Unauthorized). Grant the user the bypassDocumentValidation action on the database, for example with the dbAdmin or restore role, then run the command again; operations that already ran are skipped.',
       meta: { operationId: 'field.users.nickname.unset', mongoCode: 13, codeName: 'Unauthorized' },
     });
   });
