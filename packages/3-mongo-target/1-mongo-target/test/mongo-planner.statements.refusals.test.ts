@@ -203,3 +203,54 @@ describe('MongoMigrationPlanner, statements it refuses', () => {
     );
   });
 });
+
+describe('MongoMigrationPlanner, a variant rename whose discriminator value changes', () => {
+  const tasks = (seed: string, variant: string, value: string) =>
+    contract(
+      seed,
+      {
+        Task: {
+          collection: 'tasks',
+          fields: ['_id', 'type'],
+          discriminator: 'type',
+          variants: { [variant]: value, Feature: 'feature' },
+        },
+        [variant]: { collection: 'tasks', fields: ['score'], base: 'Task' },
+        Feature: { collection: 'tasks', fields: ['priority'], base: 'Task' },
+      },
+      { tasks: {} },
+    );
+
+  it('is refused, and says to keep the value', () => {
+    expect(
+      refusal(
+        plan({
+          from: tasks('from', 'Bug', 'bug'),
+          to: tasks('to', 'Defect', 'defect'),
+          schema: [schemaCollection('tasks')],
+          statements: [renameModel('Bug', 'Defect')],
+        }),
+      ),
+    ).toEqual([
+      {
+        kind: 'statementRefused',
+        summary:
+          'Cannot rename model "Bug" to "Defect": its discriminator value changes from "bug" to "defect"',
+        why: 'The documents of "Bug" hold type "bug", and this release does not rewrite a discriminator value, so they would no longer match "Defect" and would fail validation. Keep the value: declare "Defect" with @@base(Task, "bug"). A later release changes a stored value with --convert.',
+      },
+    ]);
+  });
+
+  it('plans nothing when the value is kept', () => {
+    const keep = tasks('to', 'Defect', 'bug');
+    const result = plan({
+      from: tasks('from', 'Bug', 'bug'),
+      to: keep,
+      schema: [schemaCollection('tasks')],
+      statements: [renameModel('Bug', 'Defect')],
+    });
+    expect(
+      result.kind === 'success' ? result.appliedStatements[0]?.operationIndexes : result,
+    ).toEqual([]);
+  });
+});

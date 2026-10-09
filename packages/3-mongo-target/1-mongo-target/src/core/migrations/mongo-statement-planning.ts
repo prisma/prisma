@@ -222,12 +222,39 @@ function controlPolicyRefusal(
   };
 }
 
+/**
+ * The reason and advice when a statement renames a variant whose discriminator value changes: its
+ * documents keep the old value, which the new validator does not accept.
+ */
+function discriminatorValueChange(
+  statement: ResolvedModelRenameStatement,
+  input: { readonly fromContract: ContractWithDomain; readonly contract: MongoContract },
+): readonly [reason: string, why: string] | undefined {
+  const before = variantFilter(input.fromContract, statement.from);
+  const after = variantFilter(input.contract, statement.to);
+  const base = modelAt(input.contract, statement.to)?.base;
+  if (before === undefined || after === undefined || base === undefined) return undefined;
+  const [field, oldValue] = Object.entries(before)[0] ?? [];
+  const newValue = Object.values(after)[0];
+  if (field === undefined || oldValue === newValue) return undefined;
+  const fromName = modelDisplayName(statement.from);
+  const toName = modelDisplayName(statement.to);
+  return [
+    `its discriminator value changes from ${JSON.stringify(oldValue)} to ${JSON.stringify(newValue)}`,
+    `The documents of "${fromName}" hold ${field} ${JSON.stringify(oldValue)}, and this release does not rewrite a discriminator value, so they would no longer match "${toName}" and would fail validation. Keep the value: declare "${toName}" with @@base(${base.model}, ${JSON.stringify(oldValue)}). A later release changes a stored value with --convert.`,
+  ];
+}
+
 function planModelStatement(
   statement: ResolvedModelRenameStatement,
   label: string,
   schema: MongoSchemaIR,
   input: { readonly fromContract: ContractWithDomain; readonly contract: MongoContract },
 ): StatementOutcome {
+  const discriminatorChange = discriminatorValueChange(statement, input);
+  if (discriminatorChange !== undefined) {
+    return { kind: 'refused', conflict: refused(statement, label, ...discriminatorChange) };
+  }
   const from = collectionOf(input.fromContract, statement.from);
   const to = collectionOf(input.contract, statement.to);
   if (from === to) return { kind: 'unchanged' };
