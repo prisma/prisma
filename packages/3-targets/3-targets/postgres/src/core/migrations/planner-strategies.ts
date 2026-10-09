@@ -29,6 +29,7 @@
 import type { Contract } from '@internal/contract/types';
 import type {
   CodecControlHooks,
+  FieldStatementColumns,
   MigrationOperationPolicy,
   SqlMigrationPlanOperation,
 } from '@internal/family-sql/control';
@@ -141,6 +142,8 @@ export interface StrategyContext {
   readonly schema: SqlSchemaIR;
   readonly policy: MigrationOperationPolicy;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
+  /** The columns of the fields `--convert` and `--backfill` statements name. */
+  readonly statementColumns: FieldStatementColumns;
 }
 
 // ============================================================================

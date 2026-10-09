@@ -3,8 +3,8 @@ import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
   describeMigrationStatement,
+  type MigrationDataLoss,
   type MigrationOperationPolicy,
-  type MigrationOperationSubject,
   type MigrationPlanner,
   type MigrationPlannerConflict,
   type MigrationPlannerResult,
@@ -156,7 +156,7 @@ function modelStoredIn(
 function collectionDrops(
   calls: readonly OpFactoryCall[],
   fromContract: ContractWithDomain | null,
-): readonly MigrationOperationSubject[] {
+): readonly MigrationDataLoss[] {
   return calls.flatMap((call, operationIndex) => {
     if (!(call instanceof DropCollectionCall)) return [];
     const model = fromContract === null ? undefined : modelStoredIn(fromContract, call.collection);
@@ -164,7 +164,7 @@ function collectionDrops(
       model === undefined
         ? { kind: 'storage', name: call.collection }
         : { kind: 'model', ...model };
-    return [{ operationIndex, subject }];
+    return [{ operationIndex, subject, loss: 'drop' as const }];
   });
 }
 
@@ -200,6 +200,9 @@ function keepTheData(
   fromContract: ContractWithDomain | null,
   contract: ContractWithDomain,
 ): string {
+  if (statement.kind !== 'rename') {
+    return `MongoDB cannot carry out ${statement.kind} statements in this release. Leave out the statement.`;
+  }
   const from = collectionOf(fromContract, statement.from);
   if (statement.entity === 'field') {
     const { field } = statement.from;
@@ -221,7 +224,7 @@ function statementNotApplied(
 ): MigrationPlannerConflict {
   return {
     kind: 'statementRefused',
-    summary: `MongoDB does not apply rename statements in this release, so nothing was planned: ${describeMigrationStatement(statement, fromContract ?? contract, contract)}`,
+    summary: `MongoDB does not apply ${statement.kind} statements in this release, so nothing was planned: ${describeMigrationStatement(statement, fromContract ?? contract, contract)}`,
     why: keepTheData(statement, fromContract, contract),
     refusedStatement: statement,
   };

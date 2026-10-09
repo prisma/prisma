@@ -1,0 +1,200 @@
+import { describe, expect, it } from 'vitest';
+import {
+  resolveStatements,
+  type StatementOrigin,
+} from '../../../src/control-api/statements/resolve-statements';
+import type { StatementText } from '../../../src/control-api/statements/statement-text';
+import { contractOf, expectFailure, expectValue } from './statement-fixtures';
+
+const UNRESOLVED = 'MIGRATION.STATEMENT_UNRESOLVED';
+const INVALID = 'MIGRATION.STATEMENT_INVALID';
+
+const int = { codecId: 'test/int@1' };
+const optional = { nullable: true };
+
+const origin = contractOf({
+  app: {
+    models: {
+      User: {
+        fields: ['id', 'age', 'bio', 'email'],
+        relations: ['posts'],
+        fieldTypes: { bio: optional },
+      },
+    },
+  },
+});
+const destination = contractOf({
+  app: {
+    models: {
+      User: {
+        fields: ['id', 'age', 'bio', 'email', 'handle', 'nickname'],
+        relations: ['posts'],
+        fieldTypes: { age: int, nickname: optional },
+      },
+      Post: { fields: ['id', 'title'] },
+    },
+  },
+});
+
+const missingOrigin: StatementOrigin = {
+  kind: 'missing',
+  hash: 'sha256:abc',
+  snapshotDirectory: 'migrations/snapshots',
+  unreadable: undefined,
+};
+
+const convert = (text: string): StatementText => ({ verb: 'convert', text });
+const backfill = (text: string): StatementText => ({ verb: 'backfill', text });
+const rename = (text: string): StatementText => ({ verb: 'rename', text });
+
+function resolve(
+  statements: readonly StatementText[],
+  from: ReturnType<typeof contractOf> = origin,
+  to: ReturnType<typeof contractOf> = destination,
+) {
+  return resolveStatements({
+    statements,
+    origin: { kind: 'contract', contract: from },
+    destination: to,
+  });
+}
+
+const userField = (field: string) => ({ namespaceId: 'app', model: 'User', field });
+
+describe('resolveStatements, convert statements', () => {
+  it('resolves a field whose type changes to the field as the destination names it', () => {
+    const converted = [{ kind: 'convert', entity: 'field', field: userField('age') }];
+    expect([
+      expectValue(resolve([convert('User.age')])),
+      expectValue(resolve([convert('app.User.age')])),
+    ]).toEqual([converted, converted]);
+  });
+
+  it('names a renamed field by its new name, whatever order the statements are given in', () => {
+    const from = contractOf({ app: { models: { User: { fields: ['age'] } } } });
+    const to = contractOf({
+      app: { models: { User: { fields: ['years'], fieldTypes: { years: int } } } },
+    });
+    const renamed = {
+      kind: 'rename',
+      entity: 'field',
+      from: userField('age'),
+      to: userField('years'),
+    };
+    const converted = { kind: 'convert', entity: 'field', field: userField('years') };
+
+    expect([
+      expectValue(resolve([rename('User.age:User.years'), convert('User.years')], from, to)),
+      expectValue(resolve([convert('User.years'), rename('User.age:User.years')], from, to)),
+    ]).toEqual([
+      [renamed, converted],
+      [converted, renamed],
+    ]);
+  });
+
+  it('refuses the old name of a renamed field, which the destination does not have', () => {
+    const from = contractOf({ app: { models: { User: { fields: ['age'] } } } });
+    const to = contractOf({
+      app: { models: { User: { fields: ['years'], fieldTypes: { years: int } } } },
+    });
+    expectFailure(
+      resolve([rename('User.age:User.years'), convert('User.age')], from, to),
+      UNRESOLVED,
+      'The destination model "app.User" has no field "age" (fields: years)',
+      'as the destination contract names it',
+    );
+  });
+
+  it('refuses a field whose type does not change, naming the type', () => {
+    expectFailure(
+      resolve([convert('User.email')]),
+      UNRESOLVED,
+      'Cannot resolve statement "--convert User.email"',
+      'has the same type, test/text@1, in the origin and destination contracts',
+      'Leave out --convert User.email.',
+    );
+  });
+
+  it('refuses a field the origin does not have and no rename gives it', () => {
+    expectFailure(
+      resolve([convert('User.handle')]),
+      UNRESOLVED,
+      'The origin model "app.User" has no field "handle" (fields: age, bio, email, id, posts), and no rename statement renames a field to it',
+      'If the field was renamed, add --rename User.<old name>:User.handle',
+    );
+  });
+
+  it('refuses a model, a relation and a model the origin does not have', () => {
+    expectFailure(resolve([convert('User')]), INVALID, 'Model.field or namespace.Model.field');
+    expectFailure(resolve([convert('User.posts')]), UNRESOLVED, '"app.User.posts" is a relation');
+    expectFailure(
+      resolve([convert('Post.title')]),
+      UNRESOLVED,
+      'The destination model "app.Post" has no counterpart in the origin contract',
+    );
+  });
+
+  it('refuses a second statement about the same field', () => {
+    expectFailure(
+      resolve([convert('User.age'), convert('app.User.age')]),
+      INVALID,
+      'An earlier statement already converts "app.User.age".',
+    );
+  });
+
+  it('needs the origin contract', () => {
+    expectFailure(
+      resolveStatements({
+        statements: [convert('User.age')],
+        origin: missingOrigin,
+        destination,
+      }),
+      'MIGRATION.STATEMENT_ORIGIN_UNKNOWN',
+    );
+  });
+});
+
+describe('resolveStatements, backfill statements', () => {
+  it('resolves a required field new on a model the origin has, and an optional field made required', () => {
+    expect(expectValue(resolve([backfill('User.handle'), backfill('User.bio')]))).toEqual([
+      { kind: 'backfill', entity: 'field', field: userField('handle') },
+      { kind: 'backfill', entity: 'field', field: userField('bio') },
+    ]);
+  });
+
+  it('refuses a field that is optional in the destination', () => {
+    expectFailure(
+      resolve([backfill('User.nickname')]),
+      UNRESOLVED,
+      'The field "app.User.nickname" is optional in the destination contract, so no existing row needs a value',
+      'Leave out --backfill User.nickname',
+    );
+  });
+
+  it('refuses a field that is already required in the origin', () => {
+    expectFailure(
+      resolve([backfill('User.email')]),
+      UNRESOLVED,
+      'The field "app.User.email" is already required in the origin contract, so every existing row has a value',
+    );
+  });
+
+  it('refuses a field of a model the origin does not have, which has no existing rows', () => {
+    expectFailure(
+      resolve([backfill('Post.title')]),
+      UNRESOLVED,
+      'The destination model "app.Post" has no counterpart in the origin contract',
+    );
+  });
+
+  it('needs the origin contract', () => {
+    expectFailure(
+      resolveStatements({
+        statements: [backfill('User.handle')],
+        origin: missingOrigin,
+        destination,
+      }),
+      'MIGRATION.STATEMENT_ORIGIN_UNKNOWN',
+    );
+  });
+});

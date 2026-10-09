@@ -1,7 +1,8 @@
 import { asNamespaceId, type ContractWithDomain } from '@internal/contract/types';
 import type {
   MigrationAccessChange,
-  MigrationOperationSubject,
+  MigrationDataLoss,
+  MigrationDataLossKind,
   MigrationPlanSubjects,
   MigrationSubject,
   ModelCoordinate,
@@ -67,8 +68,8 @@ export function unknownCallNames<TCall extends { readonly factoryName: string }>
 /** A call of a plan: how many operations it lowers to, and what the first of them is about. */
 export interface CallSubjects {
   readonly operationCount: number;
-  /** What the call's operation loses, one entry per model, field or storage name. */
-  readonly dataLoss: readonly SubjectStorage[];
+  /** What the call's operation loses, one entry per model, field or storage name, and how. */
+  readonly dataLoss: readonly (SubjectStorage & { readonly loss: MigrationDataLossKind })[];
   /** What the call's operation changes access to, and whether it widens it. */
   readonly accessWidening: readonly (SubjectStorage & { readonly widens: boolean })[];
 }
@@ -76,7 +77,7 @@ export interface CallSubjects {
 interface SubjectContext {
   readonly fromContract: ContractWithDomain | null;
   readonly contract: ContractWithDomain;
-  /** The rename statements the plan applied, whose renames a target names the new way. */
+  /** The statements the plan applied: a target names what their renames renamed the new way. */
   readonly statements: readonly ResolvedMigrationStatement[];
 }
 
@@ -86,7 +87,7 @@ function originTable(
   table: string,
 ): string {
   for (const statement of context.statements) {
-    if (statement.entity !== 'model') continue;
+    if (statement.kind !== 'rename' || statement.entity !== 'model') continue;
     const effect = modelRenameStorageEffect(statement, context.fromContract, context.contract);
     if (!effect.ok || effect.value.kind !== 'renameTable') continue;
     const { rename } = effect.value;
@@ -102,7 +103,7 @@ function originColumn(
   column: string,
 ): string {
   for (const statement of context.statements) {
-    if (statement.entity !== 'field') continue;
+    if (statement.kind !== 'rename' || statement.entity !== 'field') continue;
     const effect = fieldRenameStorageEffect(statement, context.fromContract, context.contract);
     if (!effect.ok || effect.value.kind !== 'renameColumn') continue;
     const rename = effect.value;
@@ -174,12 +175,12 @@ export function subjectsOfCalls(
   calls: readonly CallSubjects[],
   context: SubjectContext,
 ): MigrationPlanSubjects {
-  const dataLoss: MigrationOperationSubject[] = [];
+  const dataLoss: MigrationDataLoss[] = [];
   const accessWidening: MigrationAccessChange[] = [];
   let operationIndex = 0;
   for (const call of calls) {
     for (const target of call.dataLoss) {
-      dataLoss.push({ operationIndex, subject: subjectOf(target, context) });
+      dataLoss.push({ operationIndex, subject: subjectOf(target, context), loss: target.loss });
     }
     for (const target of call.accessWidening) {
       accessWidening.push({

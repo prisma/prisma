@@ -125,4 +125,43 @@ describe('MongoMigrationPlanner with statements', () => {
       },
     ]);
   });
+
+  it('refuses a convert or backfill statement, which it cannot carry out', () => {
+    const convert: ResolvedMigrationStatement = {
+      kind: 'convert',
+      entity: 'field',
+      field: { namespaceId: NAMESPACE, model: 'User', field: 'age' },
+    };
+    const backfill: ResolvedMigrationStatement = {
+      kind: 'backfill',
+      entity: 'field',
+      field: { namespaceId: NAMESPACE, model: 'User', field: 'age' },
+    };
+    expect([plan([convert]), plan([backfill])]).toEqual([
+      {
+        kind: 'failure',
+        conflicts: [
+          {
+            kind: 'statementRefused',
+            summary:
+              'MongoDB does not apply convert statements in this release, so nothing was planned: convert field "User.age"',
+            why: 'MongoDB cannot carry out convert statements in this release. Leave out the statement.',
+            refusedStatement: convert,
+          },
+        ],
+      },
+      {
+        kind: 'failure',
+        conflicts: [
+          {
+            kind: 'statementRefused',
+            summary:
+              'MongoDB does not apply backfill statements in this release, so nothing was planned: backfill field "User.age"',
+            why: 'MongoDB cannot carry out backfill statements in this release. Leave out the statement.',
+            refusedStatement: backfill,
+          },
+        ],
+      },
+    ]);
+  });
 });

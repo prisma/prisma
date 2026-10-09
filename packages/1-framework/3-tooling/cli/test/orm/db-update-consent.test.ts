@@ -68,7 +68,8 @@ const destination = {
 const contracts = {
   origin,
   destination,
-  renames: [],
+  statements: [],
+  canConvert: false,
   originKnown: true,
   keepDataByHand: undefined,
 };
@@ -81,6 +82,7 @@ function planQuestions(): readonly PlanQuestion[] {
         operationIndex: 0,
         label: 'Drop table "audit_old"',
         subject: { kind: 'storage', name: 'audit_old' },
+        loss: 'drop',
       },
       contracts,
     ),
@@ -89,6 +91,7 @@ function planQuestions(): readonly PlanQuestion[] {
         operationIndex: 1,
         label: 'Drop table "Legacy"',
         subject: { kind: 'model', namespaceId: asNamespaceId('app'), model: 'Legacy' },
+        loss: 'drop',
       },
       contracts,
     ),
@@ -211,6 +214,7 @@ describe('db update questions', () => {
             operationIndex: 0,
             label: 'Drop table "Legacy"',
             subject: { kind: 'model', namespaceId: asNamespaceId('app'), model: 'Legacy' },
+            loss: 'drop',
           },
           contracts,
         ),
@@ -219,6 +223,7 @@ describe('db update questions', () => {
             operationIndex: 1,
             label: 'Drop table "Legacy:x"',
             subject: { kind: 'storage', name: 'Legacy:x' },
+            loss: 'drop',
           },
           contracts,
         ),
@@ -289,6 +294,42 @@ describe('db update questions', () => {
       { error: { code: 'CLI.CONSENT_REQUIRED' } },
       { error: { code: 'CLI.CONSENT_REQUIRED' } },
     ]);
+  });
+
+  it('refuses --convert and --backfill before it plans anything, naming migration plan', async () => {
+    const run = await harness().run(
+      ['db', 'update', '--convert', 'User.age', '--backfill', 'User.email', '--json'],
+      { cwd: projectDir },
+    );
+
+    expect(run.exitCode).not.toBe(0);
+    expect(envelopeOf(run.json)).toMatchObject({
+      error: {
+        code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+        meta: {
+          statements: [
+            { verb: 'convert', text: 'User.age' },
+            { verb: 'backfill', text: 'User.email' },
+          ],
+        },
+      },
+    });
+    expect(mocks.connect).not.toHaveBeenCalled();
+    expect(mocks.dbUpdate).not.toHaveBeenCalled();
+  });
+
+  it('offers only delete for a type change, since it has no migration file to fill in', async () => {
+    const typeChange = dataLossQuestion(
+      {
+        operationIndex: 0,
+        label: 'Alter type of "User"."age" to int4',
+        subject: { kind: 'field', namespaceId: asNamespaceId('app'), model: 'User', field: 'age' },
+        loss: 'typeChange',
+      },
+      contracts,
+    );
+
+    expect(typeChange.verbs).toEqual(['delete']);
   });
 
   it('refuses a --delete no question asks about', async () => {

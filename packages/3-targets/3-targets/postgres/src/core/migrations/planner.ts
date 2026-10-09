@@ -8,9 +8,11 @@ import type {
   SuppressionRecord,
 } from '@internal/family-sql/control';
 import {
+  appliedStatementsInOrder,
   controlPolicyForCall,
   detectTableNameCaseChanges,
   extractCodecControlHooks,
+  fieldStatementColumns,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
   planFieldEventCalls,
@@ -24,8 +26,8 @@ import type { TargetBoundComponentDescriptor } from '@internal/framework-compone
 import type {
   AppliedMigrationStatement,
   MigrationAccessChange,
+  MigrationDataLoss,
   MigrationOperationClass,
-  MigrationOperationSubject,
   MigrationPlanner,
   MigrationPlanWithAuthoringSurface,
   MigrationScaffoldContext,
@@ -34,7 +36,7 @@ import type {
   SchemaDiffIssue,
   SchemaOwnership,
 } from '@internal/framework-components/control';
-import { issueOutcome } from '@internal/framework-components/control';
+import { isRenameStatement, issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { namingOf, parseWireName } from '@internal/sql-schema-ir/naming';
@@ -134,7 +136,7 @@ export type PostgresPlanResult =
       readonly plan: TypeScriptRenderablePostgresMigration;
       readonly warnings?: readonly SqlPlannerConflict[];
       readonly appliedStatements: readonly AppliedMigrationStatement[];
-      readonly dataLoss: readonly MigrationOperationSubject[];
+      readonly dataLoss: readonly MigrationDataLoss[];
       readonly accessWidening: readonly MigrationAccessChange[];
     }
   | SqlPlannerFailureResult;
@@ -377,6 +379,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       ...ifDefined('schema', relationalSchema),
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
+      statementColumns: fieldStatementColumns(options.statements, options.contract),
       strategies: postgresPlannerStrategies,
     });
 
@@ -464,7 +467,10 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         options.snapshotsImportPath,
         this.#lowerer,
       ),
-      appliedStatements: statements.value.appliedStatements,
+      appliedStatements: appliedStatementsInOrder(
+        options.statements,
+        statements.value.appliedStatements,
+      ),
       ...subjectsOfCalls(
         postgresCallSubjects(calls, {
           contract: options.fromContract ?? options.contract,
@@ -721,7 +727,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
   > {
     const working = createWorkingSchema(schema);
     const planned = planStatements<RenameTableCall | RenameColumnCall>({
-      statements: options.statements,
+      statements: options.statements.filter(isRenameStatement),
       fromContract: options.fromContract,
       contract: options.contract,
       policy: options.policy,

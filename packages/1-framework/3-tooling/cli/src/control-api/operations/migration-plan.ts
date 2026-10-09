@@ -54,7 +54,7 @@ import {
   type AnswerPlanQuestions,
   askPlanQuestions,
   keepDataByHandFor,
-  type PlannedSubject,
+  type PlannedDataLoss,
   subjectText,
 } from '../statements/plan-questions';
 import {
@@ -63,7 +63,7 @@ import {
   reportConsentStatement,
 } from '../statements/report-applied-statements';
 import { resolveStatements } from '../statements/resolve-statements';
-import type { StatementText } from '../statements/statement-text';
+import { isPlannedStatement, type StatementText } from '../statements/statement-text';
 import type { ControlClient } from '../types';
 import { errorFromCaught } from './caught-errors';
 import {
@@ -114,7 +114,7 @@ type PlannerSuccess = {
   readonly hasPlaceholders: boolean;
   readonly appliedStatements: readonly AppliedStatementReport[];
   /** The operations that would lose data, positioned in the plan's operations. */
-  readonly dataLoss: readonly PlannedSubject[];
+  readonly dataLoss: readonly PlannedDataLoss[];
 };
 
 /** The origin of a plan from an empty database: no models, so no statement resolves. */
@@ -218,12 +218,13 @@ async function runPlannerLeg(
     plannedOps,
     migrationTsContent: plannerResult.plan.renderTypeScript(resolveImportSpecifier),
     hasPlaceholders,
-    dataLoss: plannerResult.dataLoss.map(({ operationIndex, subject }) => ({
+    dataLoss: plannerResult.dataLoss.map(({ operationIndex, subject, loss }) => ({
       operationIndex: position(operationIndex),
       subject,
+      loss,
       label:
         resolved[operationIndex]?.label ??
-        subjectText(subject, { origin: fromContract ?? EMPTY_ORIGIN, renames: [] }),
+        subjectText(subject, { origin: fromContract ?? EMPTY_ORIGIN, statements: [] }),
     })),
     appliedStatements: reportAppliedStatements(
       plannerResult.appliedStatements.map((applied) => ({
@@ -288,14 +289,14 @@ async function writePlannedMigrationPackage(
 
 /**
  * Asks about every operation of the planned legs that would lose data, until each is answered,
- * before anything is written. A delete answer consents to the loss of its subject. A rename typed
- * at the prompt is a statement the plan did not have, so the delta is planned again with it, and
- * the loss it answered must be gone.
+ * before anything is written. A delete answer consents to the loss of its subject. A rename or
+ * convert typed at the prompt is a statement the plan did not have, so the delta is planned again
+ * with every statement, and the loss it answered must be gone.
  */
 async function answerPlannedDataLoss(input: {
   readonly baseline: PlannerSuccess | undefined;
   readonly delta: PlannerSuccess | undefined;
-  readonly renames: readonly StatementText[];
+  readonly statements: readonly StatementText[];
   readonly consents: readonly StatementText[];
   readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
@@ -303,7 +304,7 @@ async function answerPlannedDataLoss(input: {
   readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
   readonly planDelta: (
-    renames: readonly StatementText[],
+    statements: readonly StatementText[],
   ) => Promise<Result<PlannerSuccess, CliStructuredError>>;
 }): Promise<
   Result<
@@ -322,7 +323,8 @@ async function answerPlannedDataLoss(input: {
   const answered = await askPlanQuestions({
     plan: legs(input.delta),
     askAccess: false,
-    renames: input.renames,
+    canConvert: true,
+    statements: input.statements,
     preAnswers: input.consents,
     consentAll: { delete: false, allow: false },
     origin: input.origin,
@@ -330,8 +332,8 @@ async function answerPlannedDataLoss(input: {
     keepDataByHand: input.keepDataByHand,
     destination: input.destination,
     answer: input.answer,
-    replan: async (renames) => {
-      const replanned = await input.planDelta(renames);
+    replan: async (statements) => {
+      const replanned = await input.planDelta(statements);
       return replanned.ok ? ok(legs(replanned.value)) : replanned;
     },
   });
@@ -748,16 +750,16 @@ async function executeMigrationPlanCommandInner(
       answerPlannedDataLoss({
         baseline,
         delta,
-        renames: statementTexts.filter((statement) => statement.verb === 'rename'),
-        consents: statementTexts.filter((statement) => statement.verb !== 'rename'),
+        statements: statementTexts.filter(isPlannedStatement),
+        consents: statementTexts.filter((statement) => !isPlannedStatement(statement)),
         origin: fromContract ?? EMPTY_ORIGIN,
         originKnown: true,
         keepDataByHand: keepDataByHandFor(migrations, fromContract ?? EMPTY_ORIGIN),
         destination: toContract,
         answer: options.answerQuestions,
-        planDelta: async (renames) => {
+        planDelta: async (planned) => {
           const resolved = resolveStatements({
-            statements: renames,
+            statements: planned,
             origin: { kind: 'contract', contract: fromContract ?? EMPTY_ORIGIN },
             destination: toContract,
           });

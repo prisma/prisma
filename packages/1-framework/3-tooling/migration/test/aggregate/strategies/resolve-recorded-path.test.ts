@@ -37,7 +37,11 @@ describe('resolveRecordedPath', () => {
 
     expect(outcome.kind === 'ok' && outcome.result).toMatchObject({
       dataLoss: [
-        { operationIndex: 1, subject: { kind: 'storage', name: 'storage of table.legacy' } },
+        {
+          operationIndex: 1,
+          subject: { kind: 'storage', name: 'storage of table.legacy' },
+          loss: 'drop',
+        },
       ],
       accessWidening: [],
     });

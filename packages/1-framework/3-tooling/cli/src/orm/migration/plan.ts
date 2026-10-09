@@ -20,7 +20,7 @@ import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { promptPlanQuestions } from '../plan-question-prompt';
 import { appliedStatementBlocks } from '../statement-blocks';
-import { ormStatementVerbs } from '../statement-verbs';
+import { migrationPlanStatementVerbs } from '../statement-verbs';
 import {
   appMigrationsDirFor,
   baseDirFor,
@@ -290,7 +290,7 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
         }),
       },
     },
-    statements: { rename: ormStatementVerbs.rename, delete: ormStatementVerbs.delete },
+    statements: migrationPlanStatementVerbs,
     needs: { config: ormConfigSection },
     handler: async (args, ctx) => {
       const seeded = (record: ContractSpaceSeedPhaseRecord): void => {
@@ -315,9 +315,9 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
           ...ifDefined('name', args.flags.name),
           ...ifDefined('from', args.flags.from),
           ...ifDefined('to', args.flags.to),
-          statements: ctx.statements
-            .take('rename')
-            .map(({ text }) => ({ verb: 'rename' as const, text })),
+          statements: (['rename', 'convert', 'backfill'] as const).flatMap((verb) =>
+            ctx.statements.take(verb).map(({ text }) => ({ verb, text })),
+          ),
           answerQuestions: promptPlanQuestions(ctx.prompt),
           client: createClient({
             family: ctx.config.family,

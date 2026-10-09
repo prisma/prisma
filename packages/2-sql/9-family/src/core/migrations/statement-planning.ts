@@ -10,6 +10,7 @@ import {
   type ResolvedFieldRenameStatement,
   type ResolvedMigrationStatement,
   type ResolvedModelRenameStatement,
+  type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
 import { type SqlModelStorage, type SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -341,7 +342,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
   }
 
   /** Plans one statement; the result is the positions of the operations it accounts for. */
-  plan(statement: ResolvedMigrationStatement): Result<readonly number[], SqlPlannerConflict> {
+  plan(statement: ResolvedRenameStatement): Result<readonly number[], SqlPlannerConflict> {
     return statement.entity === 'model' ? this.#planModel(statement) : this.#planField(statement);
   }
 
@@ -519,7 +520,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
  * plan with a `statementRefused` conflict that carries the statement.
  */
 export function planStatements<TCall extends CallWithCompanions>(input: {
-  readonly statements: readonly ResolvedMigrationStatement[];
+  readonly statements: readonly ResolvedRenameStatement[];
   readonly fromContract: Contract<SqlStorage> | null;
   readonly contract: Contract<SqlStorage>;
   readonly policy: MigrationOperationPolicy;
@@ -553,4 +554,53 @@ export function planStatements<TCall extends CallWithCompanions>(input: {
     columnRenames: planner.columnRenames,
     appliedStatements,
   });
+}
+
+/** A column a statement names, in a table of a storage namespace, as the destination contract stores it. */
+export interface StatementColumn {
+  readonly namespaceId: string;
+  readonly table: string;
+  readonly column: string;
+}
+
+/** The columns of the fields that convert and backfill statements name. */
+export interface FieldStatementColumns {
+  readonly convert: readonly StatementColumn[];
+  readonly backfill: readonly StatementColumn[];
+}
+
+/**
+ * The column of each field a convert or backfill statement names, as the destination contract
+ * stores it. These statements rename nothing, so the strategies that plan a field's change read
+ * them instead of the working schema. A field with no column has none to list.
+ */
+export function fieldStatementColumns(
+  statements: readonly ResolvedMigrationStatement[],
+  contract: ContractWithDomain,
+): FieldStatementColumns {
+  const columnsOf = (kind: 'convert' | 'backfill'): readonly StatementColumn[] =>
+    statements.flatMap((statement) => {
+      if (statement.kind !== kind) return [];
+      const table = modelTable(contract, statement.field);
+      const column = fieldColumn(contract, statement.field);
+      return table === undefined || column === undefined ? [] : [{ ...table, column }];
+    });
+  return { convert: columnsOf('convert'), backfill: columnsOf('backfill') };
+}
+
+/**
+ * Every statement of a plan in the order given, with the operations it accounts for: a rename's
+ * from `renames`, and none yet for any other statement.
+ */
+export function appliedStatementsInOrder(
+  statements: readonly ResolvedMigrationStatement[],
+  renames: readonly AppliedMigrationStatement[],
+): readonly AppliedMigrationStatement[] {
+  return statements.map(
+    (statement) =>
+      renames.find((applied) => applied.statement === statement) ?? {
+        statement,
+        operationIndexes: [],
+      },
+  );
 }

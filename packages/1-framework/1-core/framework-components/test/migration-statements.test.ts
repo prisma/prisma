@@ -2,6 +2,7 @@ import { asNamespaceId, type ContractWithDomain } from '@internal/contract/types
 import { describe, expect, it } from 'vitest';
 import {
   describeMigrationStatement,
+  isRenameStatement,
   migrationStatementJson,
   migrationSubjectJson,
   migrationSubjectKey,
@@ -83,6 +84,18 @@ describe('describeMigrationStatement', () => {
     ).toBe('rename field "User.name" to "User.fullName"');
   });
 
+  it('names the field a convert or backfill statement names as the destination names it', () => {
+    const field = { namespaceId: app, model: 'User', field: 'years' };
+    const contracts = [
+      contractWith({ app: ['Profile'] }),
+      contractWith({ app: ['User'] }),
+    ] as const;
+    expect([
+      describeMigrationStatement({ kind: 'convert', entity: 'field', field }, ...contracts),
+      describeMigrationStatement({ kind: 'backfill', entity: 'field', field }, ...contracts),
+    ]).toEqual(['convert field "User.years"', 'backfill field "User.years"']);
+  });
+
   it('names a model in the unbound namespace without the internal namespace id', () => {
     const unbound = asNamespaceId(UNBOUND_NAMESPACE_ID);
     expect(
@@ -154,6 +167,43 @@ describe('migrationStatementJson', () => {
         to: { namespaceId: 'app', model: 'User' },
       },
     ]);
+  });
+});
+
+describe('migrationStatementJson for a statement about one field', () => {
+  it('writes the field without the unbound namespace', () => {
+    const unbound = asNamespaceId(UNBOUND_NAMESPACE_ID);
+    expect([
+      migrationStatementJson({
+        kind: 'convert',
+        entity: 'field',
+        field: { namespaceId: unbound, model: 'User', field: 'age' },
+      }),
+      migrationStatementJson({
+        kind: 'backfill',
+        entity: 'field',
+        field: { namespaceId: app, model: 'User', field: 'email' },
+      }),
+    ]).toEqual([
+      { kind: 'convert', entity: 'field', field: { model: 'User', field: 'age' } },
+      {
+        kind: 'backfill',
+        entity: 'field',
+        field: { namespaceId: 'app', model: 'User', field: 'email' },
+      },
+    ]);
+  });
+});
+
+describe('isRenameStatement', () => {
+  it('is true for a model or field rename only', () => {
+    const field = { namespaceId: app, model: 'User', field: 'age' };
+    expect([
+      isRenameStatement(renameModel('Profile', 'User')),
+      isRenameStatement(renameField('User', 'User', 'age', 'years')),
+      isRenameStatement({ kind: 'convert', entity: 'field', field }),
+      isRenameStatement({ kind: 'backfill', entity: 'field', field }),
+    ]).toEqual([true, true, false, false]);
   });
 });
 

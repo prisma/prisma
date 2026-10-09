@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   askPlanQuestions,
   ORIGIN_SNAPSHOT_RECOVERY,
+  type PlannedDataLoss,
   type PlannedQuestions,
   type PlannedSubject,
   type PlanQuestion,
@@ -20,16 +21,24 @@ const ratio: PlannedSubject['subject'] = {
 };
 
 function planWith(
-  ...losses: readonly { label: string; operationIndex: number }[]
+  ...losses: readonly {
+    label: string;
+    operationIndex: number;
+    loss?: PlannedDataLoss['loss'];
+  }[]
 ): PlannedQuestions {
   return {
-    dataLoss: losses.map((loss) => ({ ...loss, subject: ratio })),
+    dataLoss: losses.map((loss) => ({ loss: 'drop', ...loss, subject: ratio })),
     accessWidening: [],
   };
 }
 
 const dropRatio = { label: 'Drop column "ratio" from "T"', operationIndex: 1 };
-const convertRatio = { label: 'Alter type of "T"."ratio2" to int4', operationIndex: 1 };
+const convertRatio = {
+  label: 'Alter type of "T"."ratio2" to int4',
+  operationIndex: 1,
+  loss: 'typeChange',
+} as const;
 
 function run(replanned: PlannedQuestions, typed: readonly (readonly string[])[]) {
   const asked: (readonly string[])[] = [];
@@ -39,7 +48,8 @@ function run(replanned: PlannedQuestions, typed: readonly (readonly string[])[])
     result: askPlanQuestions({
       plan: planWith(dropRatio),
       askAccess: false,
-      renames: [],
+      canConvert: true,
+      statements: [],
       preAnswers: [],
       consentAll: { delete: false, allow: false },
       origin,
@@ -92,11 +102,13 @@ describe('questions about storage when the origin contract is unknown', () => {
       operationIndex,
       label: `Drop table ${name}`,
       subject: { kind: 'storage', name } as const,
+      loss: 'drop' as const,
     });
     await askPlanQuestions({
       plan: { dataLoss: [storage('Legacy', 0), storage('Profile', 1)], accessWidening: [] },
       askAccess: false,
-      renames: [],
+      canConvert: true,
+      statements: [],
       preAnswers: [],
       consentAll: { delete: false, allow: false },
       origin,
@@ -145,7 +157,8 @@ describe('questions about access', () => {
         ],
       },
       askAccess: true,
-      renames: [],
+      canConvert: false,
+      statements: [],
       preAnswers: [],
       consentAll: { delete: false, allow: false },
       origin,
@@ -191,7 +204,8 @@ describe('allow statements given as pre-answers', () => {
     const result = askPlanQuestions({
       plan,
       askAccess: true,
-      renames: [],
+      canConvert: false,
+      statements: [],
       preAnswers,
       consentAll: { delete: false, allow: false },
       origin,
@@ -247,11 +261,12 @@ describe('an access change consented before a typed rename', () => {
     let rounds = 0;
     const result = await askPlanQuestions({
       plan: {
-        dataLoss: [{ ...dropRatio, operationIndex: 0, subject: ratio }],
+        dataLoss: [{ ...dropRatio, operationIndex: 0, subject: ratio, loss: 'drop' }],
         accessWidening: [{ ...policyDrop, operationIndex: 1 }],
       },
       askAccess: true,
-      renames: [],
+      canConvert: false,
+      statements: [],
       preAnswers: [],
       consentAll: { delete: false, allow: false },
       origin,
@@ -288,12 +303,14 @@ describe('questions about storage on a target that carries out no rename', () =>
             operationIndex: 0,
             label: 'Drop collection events',
             subject: { kind: 'storage', name: 'events' },
+            loss: 'drop',
           },
         ],
         accessWidening: [],
       },
       askAccess: false,
-      renames: [],
+      canConvert: true,
+      statements: [],
       preAnswers: [],
       consentAll: { delete: false, allow: false },
       origin,
@@ -309,6 +326,87 @@ describe('questions about storage on a target that carries out no rename', () =>
 
     expect(asked).toEqual([
       'Drop collection events would lose the data in "events", named by its storage name because the origin contract is unknown; --delete loses its rows. Rename the collection by hand first.',
+    ]);
+  });
+});
+
+describe('a convert typed at the prompt', () => {
+  const typed = {
+    label: 'Alter type of "T"."ratio" to int4',
+    operationIndex: 0,
+    loss: 'typeChange',
+  } as const;
+  const typedOrigin = contractOf({
+    app: { models: { T: { fields: ['id', 'ratio'] } } },
+  });
+  const typedDestination = contractOf({
+    app: {
+      models: { T: { fields: ['id', 'ratio'], fieldTypes: { ratio: { codecId: 'test/int@1' } } } },
+    },
+  });
+
+  function ask(replanned: PlannedQuestions) {
+    const replans: (readonly unknown[])[] = [];
+    const result = askPlanQuestions({
+      plan: planWith(typed),
+      askAccess: false,
+      canConvert: true,
+      statements: [],
+      preAnswers: [],
+      consentAll: { delete: false, allow: false },
+      origin: typedOrigin,
+      originKnown: true,
+      keepDataByHand: undefined,
+      destination: typedDestination,
+      answer: async (questions) =>
+        questions.map(() => ({ verb: 'convert', text: 'T.ratio' }) as const),
+      replan: async (statements) => {
+        replans.push(statements);
+        return ok(replanned);
+      },
+    });
+    return { replans, result };
+  }
+
+  it('plans again with the convert, and returns it among the statements', async () => {
+    const { replans, result } = ask({ dataLoss: [], accessWidening: [] });
+
+    const outcome = await result;
+    expect({ replans, statements: outcome.ok && outcome.value.statements }).toEqual({
+      replans: [[{ verb: 'convert', text: 'T.ratio' }]],
+      statements: [{ verb: 'convert', text: 'T.ratio' }],
+    });
+  });
+
+  it('fails when the type change it answered is still in the plan', async () => {
+    const outcome = await ask(planWith(typed)).result;
+
+    expect(!outcome.ok && outcome.failure).toMatchObject({
+      code: 'MIGRATION.STATEMENT_DID_NOT_RESOLVE_LOSS',
+      message: '"--convert T.ratio" does not keep the data of "T.ratio"',
+    });
+  });
+});
+
+describe('a delete that answers a type change', () => {
+  it('is recorded as answering a type change', async () => {
+    const result = await askPlanQuestions({
+      plan: planWith(convertRatio),
+      askAccess: false,
+      canConvert: false,
+      statements: [],
+      preAnswers: [{ verb: 'delete', text: 'T.ratio' }],
+      consentAll: { delete: false, allow: false },
+      origin,
+      originKnown: true,
+      keepDataByHand: undefined,
+      destination,
+      answer: async () => [],
+      replan: async () => ok({ dataLoss: [], accessWidening: [] }),
+    });
+
+    expect(result.ok && result.value.consented.map(({ verb, loss }) => ({ verb, loss }))).toEqual([
+      { verb: 'delete', loss: 'typeChange' },
     ]);
   });
 });

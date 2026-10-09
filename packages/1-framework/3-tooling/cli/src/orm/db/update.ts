@@ -26,7 +26,11 @@ import { retryCommandFor } from '../../control-api/operations/ref-resolution';
 import { shellQuoted, statementFlag } from '../../control-api/statements/statement-flag';
 import type { StatementText } from '../../control-api/statements/statement-text';
 import type { AskedSubject, CreateControlClient, DbUpdateSuccess } from '../../control-api/types';
-import { CliStructuredError, errorContractValidationFailed } from '../../utils/cli-errors';
+import {
+  CliStructuredError,
+  errorContractValidationFailed,
+  errorStatementNeedsMigrationFile,
+} from '../../utils/cli-errors';
 import { closeQuietly } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
 import { mapDbUpdateFailure } from '../../utils/db-update-failure';
@@ -37,7 +41,7 @@ import { baseDirFor, migrationsDirFor } from '../migration/paths';
 import { normalizeError } from '../normalize-error';
 import { promptPlanQuestions } from '../plan-question-prompt';
 import { controlProgressReporter } from '../progress';
-import { ormStatementVerbs } from '../statement-verbs';
+import { dbUpdateStatementVerbs } from '../statement-verbs';
 import { migrationResultBlocks, migrationResultNextActions } from './migration-blocks';
 import { prepareMigrationRun } from './prepare';
 
@@ -213,10 +217,16 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
         }),
       },
     },
-    statements: ormStatementVerbs,
+    statements: dbUpdateStatementVerbs,
     needs: { config: ormConfigSection },
     handler: async (args, ctx) => {
       const startedAt = Date.now();
+      const needsMigrationFile = (['convert', 'backfill'] as const).flatMap((verb) =>
+        ctx.statements.take(verb).map(({ text }) => ({ verb, text })),
+      );
+      if (needsMigrationFile.length > 0) {
+        return notOk(normalizeError(errorStatementNeedsMigrationFile(needsMigrationFile)));
+      }
       const renames = ctx.statements
         .take('rename')
         .map(({ text }) => ({ verb: 'rename' as const, text }));

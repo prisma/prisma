@@ -94,6 +94,7 @@ describe('postgresCallSubjects', () => {
           model: 'User',
           field: 'email',
         },
+        loss: 'drop',
       },
       {
         operationIndex: 1,
@@ -103,6 +104,7 @@ describe('postgresCallSubjects', () => {
           model: 'User',
           field: 'bio',
         },
+        loss: 'drop',
       },
     ]);
   });
@@ -114,9 +116,9 @@ describe('postgresCallSubjects', () => {
         [],
       ),
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'rebuild#1' } },
-      { operationIndex: 1, subject: { kind: 'storage', name: 'rebuild#2' } },
-      { operationIndex: 2, subject: { kind: 'storage', name: 'purge' } },
+      { operationIndex: 0, subject: { kind: 'storage', name: 'rebuild#1' }, loss: 'drop' },
+      { operationIndex: 1, subject: { kind: 'storage', name: 'rebuild#2' }, loss: 'drop' },
+      { operationIndex: 2, subject: { kind: 'storage', name: 'purge' }, loss: 'drop' },
     ]);
   });
 });

@@ -1,12 +1,16 @@
 import { ok } from '@internal/utils/result';
 import { describe, expect, it } from 'vitest';
 import {
+  appliedStatementsInOrder,
+  fieldStatementColumns,
   modelRenameStorageEffect,
   planStatements,
 } from '../src/core/migrations/statement-planning';
 import {
   ALL_CLASSES,
+  backfillField,
   contractOf,
+  convertField,
   fakeTarget,
   planned,
   rejection,
@@ -45,6 +49,50 @@ describe('modelRenameStorageEffect', () => {
         to: { namespaceId: 'billing', table: 'User' },
       }),
     );
+  });
+});
+
+describe('fieldStatementColumns', () => {
+  it('names the column of each convert and backfill statement as the destination stores it', () => {
+    const destination = contractOf({
+      User: { table: 'user', fields: { id: 'id', years: 'age_years', email: 'email' } },
+      Ledger: { table: 'ledger', namespace: 'billing', fields: { total: 'total' } },
+    });
+    expect(
+      fieldStatementColumns(
+        [
+          renameModel('Profile', 'User'),
+          convertField('User', 'years'),
+          backfillField('User', 'email'),
+          backfillField('Ledger', 'total', 'billing'),
+        ],
+        destination,
+      ),
+    ).toEqual({
+      convert: [{ namespaceId: 'app', table: 'user', column: 'age_years' }],
+      backfill: [
+        { namespaceId: 'app', table: 'user', column: 'email' },
+        { namespaceId: 'billing', table: 'ledger', column: 'total' },
+      ],
+    });
+  });
+});
+
+describe('appliedStatementsInOrder', () => {
+  it('lists every statement in the order given, a convert or backfill with no operations yet', () => {
+    const rename = renameModel('Profile', 'User');
+    const convert = convertField('User', 'years');
+    const backfill = backfillField('User', 'email');
+    expect(
+      appliedStatementsInOrder(
+        [convert, rename, backfill],
+        [{ statement: rename, operationIndexes: [0, 1] }],
+      ),
+    ).toEqual([
+      { statement: convert, operationIndexes: [] },
+      { statement: rename, operationIndexes: [0, 1] },
+      { statement: backfill, operationIndexes: [] },
+    ]);
   });
 });
 

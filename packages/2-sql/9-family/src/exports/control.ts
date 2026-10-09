@@ -90,16 +90,20 @@ export { sqlTypeLookupsOf } from '../core/migrations/sql-type-lookups';
 export type {
   CallWithCompanions,
   ColumnOnOneSide,
+  FieldStatementColumns,
   FieldStorageEffect,
   ModelStorageEffect,
   ModelTable,
   NoTable,
   PlannedStatements,
   SingleOperationCall,
+  StatementColumn,
   StatementPlanningTarget,
 } from '../core/migrations/statement-planning';
 export {
+  appliedStatementsInOrder,
   fieldRenameStorageEffect,
+  fieldStatementColumns,
   modelRenameStorageEffect,
   planStatements,
 } from '../core/migrations/statement-planning';

@@ -40,19 +40,29 @@ export async function removeOfflineProjects(): Promise<void> {
  * An emitted contract. With `models`, it carries an application domain whose
  * one namespace `app` declares those models, so statements can resolve.
  */
-/** A model of a fixture contract: its name, or its name and the names of its scalar fields. */
-export type FixtureModel = string | { readonly name: string; readonly fields: readonly string[] };
+/**
+ * A model of a fixture contract: its name, or its name and the names of its scalar fields, each
+ * `pg/text@1` unless `codecs` names another codec for it.
+ */
+export type FixtureModel =
+  | string
+  | {
+      readonly name: string;
+      readonly fields: readonly string[];
+      readonly codecs?: Readonly<Record<string, string>>;
+    };
 
 function modelEntry(model: FixtureModel): readonly [string, Record<string, unknown>] {
   const name = typeof model === 'string' ? model : model.name;
   const fields = typeof model === 'string' ? [] : model.fields;
+  const codecs = typeof model === 'string' ? {} : (model.codecs ?? {});
   return [
     name,
     {
       fields: Object.fromEntries(
         fields.map((field) => [
           field,
-          { nullable: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
+          { nullable: false, type: { kind: 'scalar', codecId: codecs[field] ?? 'pg/text@1' } },
         ]),
       ),
       relations: {},
@@ -213,9 +223,13 @@ export interface FakePlannerScript {
   readonly operationsAccessorThrows?: unknown;
 }
 
-/** A `dataLoss` entry of a scripted plan: the position of an operation and what it loses. */
+/**
+ * A `dataLoss` entry of a scripted plan: the position of an operation, what it loses, and how; a
+ * drop unless `loss` says otherwise.
+ */
 export interface ScriptedDataLoss {
   readonly operationIndex: number;
+  readonly loss?: 'drop' | 'typeChange';
   readonly subject:
     | { readonly kind: 'model'; readonly namespaceId: string; readonly model: string }
     | {
@@ -253,7 +267,7 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
       return script.conflicts === undefined
         ? {
             kind: 'success',
-            dataLoss,
+            dataLoss: dataLoss.map((entry) => ({ loss: 'drop', ...entry })),
             accessWidening: [],
             appliedStatements: options.statements.map((statement) => ({
               statement,

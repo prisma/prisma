@@ -15,6 +15,7 @@
  */
 
 import type {
+  FieldStatementColumns,
   MigrationOperationPolicy,
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
@@ -421,6 +422,8 @@ export interface IssuePlannerOptions {
   readonly actual?: SqlSchemaIR;
   readonly policy?: MigrationOperationPolicy;
   readonly frameworkComponents?: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
+  /** The columns of the fields convert and backfill statements name; none when omitted. */
+  readonly statementColumns?: FieldStatementColumns;
   readonly strategies?: readonly CallMigrationStrategy[];
 }
 
@@ -445,6 +448,7 @@ export function planIssues(
     policy,
     frameworkComponents,
     types: sqlTypeLookupsOf(frameworkComponents),
+    statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
   };
 
   const strategies = options.strategies ?? sqlitePlannerStrategies;

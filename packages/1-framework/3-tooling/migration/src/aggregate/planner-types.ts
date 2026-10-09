@@ -152,7 +152,9 @@ export interface AggregateMigrationEdgeRef {
  * - `dataLoss` and `accessWidening`: what the operations of `plan` lose
  *   and whose access they widen. A recorded path names each destructive
  *   operation by its storage name, since no planner mapped it to a model,
- *   and lists no widening: a written migration is reviewed before it runs.
+ *   lists each as a `drop`, since a recorded operation does not say whether
+ *   it drops or changes a type, and lists no widening: a written migration is
+ *   reviewed before it runs.
  */
 export interface PerSpacePlan extends MigrationPlanSubjects {
   readonly plan: MigrationPlan;

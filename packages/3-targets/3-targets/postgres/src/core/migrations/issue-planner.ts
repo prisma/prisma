@@ -19,6 +19,7 @@
 import type { Contract } from '@internal/contract/types';
 import type {
   CodecControlHooks,
+  FieldStatementColumns,
   MigrationOperationPolicy,
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
@@ -1001,6 +1002,8 @@ export interface IssuePlannerOptions {
    * future strategies that may consult component metadata at plan time.
    */
   readonly frameworkComponents?: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
+  /** The columns of the fields convert and backfill statements name; none when omitted. */
+  readonly statementColumns?: FieldStatementColumns;
   readonly strategies?: readonly CallMigrationStrategy[];
 }
 
@@ -1029,6 +1032,7 @@ export function planIssues(
     schema,
     policy,
     frameworkComponents,
+    statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
   };
 
   const strategies = options.strategies ?? postgresPlannerStrategies;

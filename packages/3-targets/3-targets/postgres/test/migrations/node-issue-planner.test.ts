@@ -470,6 +470,7 @@ describe('mapNodeIssueToCall — synthesized namespace issue', () => {
       schema: undefined as never,
       policy: { allowedOperationClasses: ['additive'] as const },
       frameworkComponents: postgresTypeComponents,
+      statementColumns: { convert: [], backfill: [] },
     };
     const result = mapNodeIssueToCall(issue, ctx);
     expect(result.ok).toBe(true);
@@ -643,6 +644,7 @@ describe('mapNodeIssueToCall — table rlsEnabled drift', () => {
     schema: undefined as never,
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] as const },
     frameworkComponents: postgresTypeComponents,
+    statementColumns: { convert: [], backfill: [] },
   };
 
   function tableNode(rlsEnabled: boolean): PostgresTableSchemaNode {
@@ -758,5 +760,34 @@ describe('operation-class gating of a RenameIndexCall', () => {
         index: 'user_email_idx_46df9cad',
       },
     });
+  });
+});
+
+describe('statement columns', () => {
+  it('reach every strategy through its context', () => {
+    const contract = makeContract({ user: userTable });
+    const statementColumns = {
+      convert: [{ namespaceId: 'public', table: 'user', column: 'email' }],
+      backfill: [{ namespaceId: 'public', table: 'user', column: 'id' }],
+    };
+    const seen: unknown[] = [];
+    planNodeIssues({
+      issues: [],
+      toContract: contract,
+      fromContract: null,
+      schemaName: 'public',
+      codecHooks: new Map(),
+      types: postgresTypeLookups,
+      storageTypes: {},
+      statementColumns,
+      strategies: [
+        (issues, context) => {
+          seen.push(context.statementColumns);
+          return { kind: 'match', issues, calls: [] };
+        },
+      ],
+    });
+
+    expect(seen).toEqual([statementColumns]);
   });
 });

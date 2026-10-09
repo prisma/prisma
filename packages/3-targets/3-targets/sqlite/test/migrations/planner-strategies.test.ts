@@ -25,6 +25,7 @@ function makeContext(overrides: Partial<StrategyContext> = {}): StrategyContext 
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] },
     frameworkComponents: sqliteTestComponents,
     types: sqliteTestTypes,
+    statementColumns: { convert: [], backfill: [] },
     ...overrides,
   };
 }

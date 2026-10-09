@@ -1,6 +1,9 @@
 import { asNamespaceId } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
-import { dataLossQuestion } from '../../../src/control-api/statements/plan-questions';
+import {
+  consentDescription,
+  dataLossQuestion,
+} from '../../../src/control-api/statements/plan-questions';
 import { contractOf } from './statement-fixtures';
 
 const origin = contractOf({ app: { models: { User: { fields: ['email'] } } } });
@@ -9,6 +12,7 @@ const drop = {
   operationIndex: 0,
   label: 'Drop column age from user',
   subject: { kind: 'storage', name: 'public.user.age' },
+  loss: 'drop',
 } as const;
 
 describe('dataLossQuestion for data no model names', () => {
@@ -16,7 +20,8 @@ describe('dataLossQuestion for data no model names', () => {
     const question = dataLossQuestion(drop, {
       origin,
       destination,
-      renames: [],
+      statements: [],
+      canConvert: true,
       originKnown: true,
       keepDataByHand: undefined,
     });
@@ -32,7 +37,8 @@ describe('dataLossQuestion for data no model names', () => {
     const question = dataLossQuestion(drop, {
       origin,
       destination,
-      renames: [],
+      statements: [],
+      canConvert: true,
       originKnown: false,
       keepDataByHand: undefined,
     });
@@ -62,8 +68,16 @@ describe('dataLossQuestion verbs', () => {
         operationIndex: 0,
         label: 'An operation',
         subject: { kind: 'field', namespaceId: unbound, model: 'User', field },
+        loss: 'drop',
       },
-      { origin: withNickname, destination, renames: [], originKnown: true, keepDataByHand },
+      {
+        origin: withNickname,
+        destination,
+        statements: [],
+        canConvert: true,
+        originKnown: true,
+        keepDataByHand,
+      },
     );
   }
 
@@ -75,7 +89,7 @@ describe('dataLossQuestion verbs', () => {
     expect(verbsFor('nickname', destinationWithoutNickname, true)).toEqual(['rename', 'delete']);
   });
 
-  it('offers only delete for a field that keeps its name, such as one whose type changes', () => {
+  it('offers only delete for a dropped field the destination still has', () => {
     expect(verbsFor('email', destinationWithoutNickname, true)).toEqual(['delete']);
   });
 
@@ -86,11 +100,13 @@ describe('dataLossQuestion verbs', () => {
         operationIndex: 1,
         label: 'Recreate table User',
         subject: { kind: 'field', namespaceId: unbound, model: 'User', field: 'nickname' },
+        loss: 'drop',
       },
       {
         origin: withNickname,
         destination,
-        renames: [{ verb: 'rename', text: 'User.nickname:User.handle' }],
+        statements: [{ verb: 'rename', text: 'User.nickname:User.handle' }],
+        canConvert: true,
         originKnown: true,
         keepDataByHand: undefined,
       },
@@ -111,5 +127,83 @@ describe('dataLossQuestion verbs', () => {
     expect(questionFor('nickname', destinationWithoutNickname, undefined).forms).toEqual({
       rename: 'User.nickname:User.<new name>',
     });
+  });
+});
+
+describe('dataLossQuestion for a type change', () => {
+  const unbound = asNamespaceId('app');
+  const int = { codecId: 'test/int@1' };
+  const from = contractOf({ app: { models: { User: { fields: ['age'] } } } });
+  const to = contractOf({
+    app: { models: { User: { fields: ['age'], fieldTypes: { age: int } } } },
+  });
+  const renamedTo = contractOf({
+    app: { models: { User: { fields: ['years'], fieldTypes: { years: int } } } },
+  });
+  const ageChange = {
+    operationIndex: 0,
+    label: 'Alter type of "User"."age" to int4',
+    subject: { kind: 'field', namespaceId: unbound, model: 'User', field: 'age' },
+    loss: 'typeChange',
+  } as const;
+
+  function question(
+    canConvert: boolean,
+    destination = to,
+    statements: readonly { verb: 'rename'; text: string }[] = [],
+  ) {
+    return dataLossQuestion(ageChange, {
+      origin: from,
+      destination,
+      statements,
+      canConvert,
+      originKnown: true,
+      keepDataByHand: undefined,
+    });
+  }
+
+  it('offers convert and delete where the command writes a migration to fill in', () => {
+    const asked = question(true);
+    expect({ verbs: asked.verbs, forms: asked.forms }).toEqual({
+      verbs: ['convert', 'delete'],
+      forms: { convert: 'User.age' },
+    });
+    expect(asked.validate('convert', 'User.age')).toBeUndefined();
+  });
+
+  it('offers only delete where the command has no migration to fill in', () => {
+    expect(question(false).verbs).toEqual(['delete']);
+  });
+
+  it('names the field to convert as the destination names it after a rename', () => {
+    const asked = question(true, renamedTo, [{ verb: 'rename', text: 'User.age:User.years' }]);
+    expect({
+      subject: asked.subject,
+      forms: asked.forms,
+      accepted: asked.validate('convert', 'User.years'),
+      rejected: asked.validate('convert', 'User.age'),
+    }).toEqual({
+      subject: 'User.age',
+      forms: { convert: 'User.years' },
+      accepted: undefined,
+      rejected:
+        'convert names the field as the destination contract names it: --convert User.years.',
+    });
+  });
+});
+
+describe('consentDescription', () => {
+  const age = {
+    kind: 'field',
+    namespaceId: asNamespaceId('app'),
+    model: 'User',
+    field: 'age',
+  } as const;
+
+  it('says a delete that answers a type change loses the values, not the field', () => {
+    expect([
+      consentDescription('delete', age, 'User.age', 'typeChange'),
+      consentDescription('delete', age, 'User.age', 'drop'),
+    ]).toEqual(['delete values of field "User.age" (type change)', 'delete field "User.age"']);
   });
 });

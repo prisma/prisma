@@ -59,10 +59,10 @@ import {
   reportConsentStatement,
 } from '../statements/report-applied-statements';
 import { resolveStatements, type StatementOrigin } from '../statements/resolve-statements';
-import type { StatementText } from '../statements/statement-text';
+import { isPlannedStatement, type StatementText } from '../statements/statement-text';
 import type {
   AskedAccessChange,
-  AskedSubject,
+  AskedDataLoss,
   DbInitFailure,
   DbInitResult,
   DbInitSuccess,
@@ -312,7 +312,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     return first.failure;
   }
   let run = first.value;
-  let renameTexts = statementTexts.filter((statement) => statement.verb === 'rename');
+  let plannedTexts: readonly StatementText[] = statementTexts.filter(isPlannedStatement);
   let consented: readonly ConsentedSubject[] = [];
   // 3a. Questions: an apply of `db update` asks what each operation that would lose data means,
   // and whether each that would widen access may run, before it applies anything. A dry run asks
@@ -321,15 +321,16 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     const answered = await askPlanQuestions({
       plan: run,
       askAccess: true,
-      renames: renameTexts,
-      preAnswers: statementTexts.filter((statement) => statement.verb !== 'rename'),
+      canConvert: false,
+      statements: plannedTexts,
+      preAnswers: statementTexts.filter((statement) => !isPlannedStatement(statement)),
       consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessWidening },
       origin: fromContract ?? EMPTY_ORIGIN,
       originKnown: fromContract !== null,
       keepDataByHand: keepDataByHandFor(migrations, fromContract ?? EMPTY_ORIGIN),
       destination: contract,
       answer: options.answerQuestions,
-      replan: (renames) => plan(resolveRenames(renames)),
+      replan: (planned) => plan(resolveRenames(planned)),
     });
     if (!answered.ok) {
       if (CliStructuredError.is(answered.failure)) {
@@ -338,7 +339,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       return answered.failure;
     }
     run = answered.value.plan;
-    renameTexts = [...answered.value.renames];
+    plannedTexts = answered.value.statements;
     consented = answered.value.consented;
   }
   if (options.action === 'dbUpdate' && mode === 'plan') {
@@ -348,7 +349,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       contracts: {
         origin: fromContract ?? EMPTY_ORIGIN,
         destination: contract,
-        renames: renameTexts,
+        statements: plannedTexts,
       },
     });
     if (!refused.ok) {
@@ -394,7 +395,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   const contractsAsked = {
     origin: fromContract ?? EMPTY_ORIGIN,
     destination: contract,
-    renames: renameTexts,
+    statements: plannedTexts,
   };
   const asked = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
     entries.map((entry) => ({ ...entry, text: subjectText(entry.subject, contractsAsked) }));
@@ -672,7 +673,7 @@ function wrapPlanResult(args: {
   /** `undefined` for `db init`, which reports no statements. */
   readonly appliedStatements: readonly AppliedStatementReport[] | undefined;
   /** `undefined` for `db init`, which reports no data loss. */
-  readonly subjects: MigrationPlanSubjects<AskedSubject, AskedAccessChange> | undefined;
+  readonly subjects: MigrationPlanSubjects<AskedDataLoss, AskedAccessChange> | undefined;
   readonly warnings?: readonly MigrationPlannerConflict[];
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
@@ -704,7 +705,7 @@ function wrapApplyResult(args: {
   /** `undefined` for `db init`, which reports no statements. */
   readonly appliedStatements: readonly AppliedStatementReport[] | undefined;
   /** `undefined` for `db init`, which reports no data loss. */
-  readonly subjects: MigrationPlanSubjects<AskedSubject, AskedAccessChange> | undefined;
+  readonly subjects: MigrationPlanSubjects<AskedDataLoss, AskedAccessChange> | undefined;
   readonly warnings?: readonly MigrationPlannerConflict[];
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {

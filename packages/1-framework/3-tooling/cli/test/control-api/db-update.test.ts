@@ -498,7 +498,7 @@ describe('executeDbUpdate', () => {
         ...(executeSpy === undefined ? {} : { executeSpy }),
         planResult: {
           kind: 'success',
-          dataLoss: [{ operationIndex: 0, subject: NICKNAME }],
+          dataLoss: [{ operationIndex: 0, subject: NICKNAME, loss: 'drop' }],
           accessWidening: [{ operationIndex: 2, subject: USER, widens: true }],
           appliedStatements: [],
           plan: {
@@ -762,7 +762,7 @@ describe('executeDbUpdate', () => {
           accessWidening: result.value.accessWidening,
         },
       ).toEqual({
-        dataLoss: [{ operationIndex: 0, subject: NICKNAME, text: 'user.nickname' }],
+        dataLoss: [{ operationIndex: 0, subject: NICKNAME, loss: 'drop', text: 'user.nickname' }],
         accessWidening: [{ operationIndex: 2, subject: USER, widens: true, text: 'user' }],
       });
     });

@@ -95,6 +95,7 @@ describe('sqliteCallSubjects', () => {
           model: 'User',
           field: 'email',
         },
+        loss: 'drop',
       },
       {
         operationIndex: 1,
@@ -104,6 +105,7 @@ describe('sqliteCallSubjects', () => {
           model: 'User',
           field: 'bio',
         },
+        loss: 'drop',
       },
     ]);
   });
@@ -115,9 +117,9 @@ describe('sqliteCallSubjects', () => {
         [],
       ),
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'rebuild#1' } },
-      { operationIndex: 1, subject: { kind: 'storage', name: 'rebuild#2' } },
-      { operationIndex: 2, subject: { kind: 'storage', name: 'purge' } },
+      { operationIndex: 0, subject: { kind: 'storage', name: 'rebuild#1' }, loss: 'drop' },
+      { operationIndex: 1, subject: { kind: 'storage', name: 'rebuild#2' }, loss: 'drop' },
+      { operationIndex: 2, subject: { kind: 'storage', name: 'purge' }, loss: 'drop' },
     ]);
   });
 });

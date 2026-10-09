@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { errorStatementOriginUnknown } from '../src/utils/cli-errors';
+import {
+  errorStatementNeedsMigrationFile,
+  errorStatementOriginUnknown,
+} from '../src/utils/cli-errors';
 
 const HASH = 'sha256:abc';
 const DIR = 'migrations/snapshots/sha256:abc';
@@ -63,5 +66,32 @@ describe('errorStatementOriginUnknown', () => {
         'Adding --advance-ref to this command alone does not help: it would store the new contract, not the one the database is at. `migration plan --from` does not apply to `db update`.',
       ].join('\n'),
     );
+  });
+});
+
+describe('errorStatementNeedsMigrationFile', () => {
+  it('says db update has no migration file to fill, and names migration plan with the statements', () => {
+    const envelope = errorStatementNeedsMigrationFile([
+      { verb: 'convert', text: 'User.age' },
+      { verb: 'backfill', text: 'User.email' },
+    ]).toEnvelope();
+
+    expect(envelope).toMatchObject({
+      code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+      summary: 'db update cannot carry out "--convert User.age" and "--backfill User.email"',
+      why: expect.stringContaining('db update has no migration file to fill'),
+      nextActions: [
+        expect.objectContaining({
+          command: '{bin} migration plan --convert User.age --backfill User.email',
+        }),
+        expect.anything(),
+      ],
+      meta: {
+        statements: [
+          { verb: 'convert', text: 'User.age' },
+          { verb: 'backfill', text: 'User.email' },
+        ],
+      },
+    });
   });
 });

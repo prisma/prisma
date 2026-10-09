@@ -7,7 +7,7 @@ import {
   storageNameOfOperation,
   unknownCallNames,
 } from '@internal/family-sql/control';
-import type { OpFactoryCall } from '@internal/framework-components/control';
+import type { MigrationDataLossKind, OpFactoryCall } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { parseWireName } from '@internal/sql-schema-ir/naming';
@@ -131,13 +131,14 @@ export function postgresCallSubjects(
   return calls.map((call) => {
     const lossTarget = known.get(call);
     const unknownName = unknownNames.get(call);
+    const loss: MigrationDataLossKind = call instanceof AlterColumnTypeCall ? 'typeChange' : 'drop';
     return {
       operationCount: operationCountOf(call),
       dataLoss:
         lossTarget !== undefined
-          ? [lossTarget]
+          ? [{ ...lossTarget, loss }]
           : unknownName !== undefined
-            ? [{ storageName: unknownName, table: undefined }]
+            ? [{ storageName: unknownName, table: undefined, loss }]
             : [],
       accessWidening: accessWideningOf(locator, call, replaced),
     };

@@ -1,6 +1,9 @@
+import { isDeepStrictEqual } from 'node:util';
 import {
   type ApplicationDomainNamespace,
   asNamespaceId,
+  type ContractField,
+  type ContractFieldType,
   type ContractModelBase,
   type ContractWithDomain,
 } from '@internal/contract/types';
@@ -20,6 +23,7 @@ import {
   errorStatementUnresolved,
 } from '../../utils/cli-errors';
 import { parseConsentStatement } from './parse-consent';
+import { type ParsedFieldStatement, parseFieldStatement } from './parse-field-statement';
 import {
   mixedSidesFix,
   type ParsedRename,
@@ -93,8 +97,12 @@ interface ResolutionState {
   readonly origin: NamedContract;
   readonly destination: NamedContract;
   readonly originOfRenamedModel: Map<string, ModelCoordinate>;
+  /** The origin field of each renamed field, keyed by the field as the destination names it. */
+  readonly originOfRenamedField: Map<string, FieldCoordinate>;
   readonly renamedFrom: Set<string>;
   readonly renamedTo: Set<string>;
+  /** Each field a convert or backfill statement names, keyed by its verb and the field. */
+  readonly fieldStatements: Set<string>;
 }
 
 const MODEL_RENAMES = 'model';
@@ -592,6 +600,7 @@ function resolveFieldRename(
   }
   state.renamedFrom.add(fromKey);
   state.renamedTo.add(toKey);
+  state.originOfRenamedField.set(qualifiedField(to.coordinate), from.coordinate);
   return ok({ kind: 'rename', entity: 'field', from: from.coordinate, to: to.coordinate });
 }
 
@@ -693,18 +702,130 @@ function resolveStatement(
   );
 }
 
+function typeText(type: ContractFieldType): string {
+  switch (type.kind) {
+    case 'scalar':
+      return type.typeParams === undefined
+        ? type.codecId
+        : `${type.codecId}(${JSON.stringify(type.typeParams)})`;
+    case 'valueObject':
+      return type.name;
+    case 'union':
+      return type.members.map(typeText).join(' | ');
+  }
+}
+
+function fieldTypeText(field: ContractField): string {
+  return `${typeText(field.type)}${field.many ? '[]' : ''}${field.dict ? ' dict' : ''}`;
+}
+
+function sameType(origin: ContractField, destination: ContractField): boolean {
+  const shape = (field: ContractField) => ({
+    type: field.type,
+    many: field.many ?? false,
+    dict: field.dict ?? false,
+  });
+  return isDeepStrictEqual(shape(origin), shape(destination));
+}
+
 /**
- * Resolves the rename statements a user gave, in order, against the origin and
- * destination contracts. Each resolved statement names its old and new entity
- * by namespace, model and field. A delete or allow statement is checked and
- * left out: it names what a plan would do to a subject, so it is matched against
- * the plan, and it needs no origin contract.
+ * A convert or backfill statement names a field as the destination contract names it. A convert
+ * needs the field in the origin contract, under its origin name when a rename gave it a new one,
+ * with another type. A backfill needs the field required in the destination contract and, on a
+ * model the origin has, either new or optional there.
+ */
+function resolveFieldStatement(
+  state: ResolutionState,
+  statement: ParsedFieldStatement,
+): Result<ResolvedMigrationStatement, CliStructuredError> {
+  const { verb } = statement;
+  const [namespaceId, modelName, field] =
+    statement.field.length === 3 ? statement.field : [undefined, ...statement.field];
+  const leaveOut = `Leave out --${verb} ${statement.text}.`;
+  const refuse = (reason: string, fix: string = leaveOut) =>
+    notOk(unresolved(statement, { reason, fix }));
+  const destination = lookupModel(state.destination, namespaceId, modelName);
+  if (destination.kind !== 'found') return notOk(unresolved(statement, destination));
+  const coordinate: FieldCoordinate = { ...destination.coordinate, field };
+  const name = qualifiedField(coordinate);
+  if (Object.hasOwn(destination.model.relations, field)) {
+    return refuse(`"${name}" is a relation, which holds no values of its own to ${verb}`);
+  }
+  const destinationField = Object.hasOwn(destination.model.fields, field)
+    ? destination.model.fields[field]
+    : undefined;
+  if (destinationField === undefined) {
+    return refuse(
+      `the destination model "${qualifiedModel(destination.coordinate)}" has no field "${field}" (fields: ${listed(fieldNames(destination.model))})`,
+      `A --${verb} statement names the field as the destination contract names it: after --rename User.age:User.years, write --${verb} User.years. Names match exactly, including case.`,
+    );
+  }
+  const key = `${verb}:${name}`;
+  if (state.fieldStatements.has(key)) {
+    return notOk(
+      errorStatementInvalid(
+        statement,
+        `An earlier statement already ${verb}s "${name}".`,
+        `Give each field at most one --${verb} statement.`,
+      ),
+    );
+  }
+  if (verb === 'backfill' && destinationField.nullable) {
+    return refuse(
+      `the field "${name}" is optional in the destination contract, so no existing row needs a value`,
+      `${leaveOut} A --backfill statement fills a required field.`,
+    );
+  }
+  const counterpart = originCounterpart(state, destination.coordinate);
+  if (counterpart === undefined) {
+    const model = qualifiedModel(destination.coordinate);
+    return refuse(
+      `the destination model "${model}" has no counterpart in the origin contract: the origin has no model "${model}" and no rename statement renames a model to it`,
+      verb === 'convert'
+        ? `If the model was renamed, add --rename <old name>:${model}. A new model has no values to convert: ${leaveOut.toLowerCase()}`
+        : `A new model has no existing rows to backfill. ${leaveOut}`,
+    );
+  }
+  const originName = state.originOfRenamedField.get(name)?.field ?? field;
+  const originField = Object.hasOwn(counterpart.model.fields, originName)
+    ? counterpart.model.fields[originName]
+    : undefined;
+  if (verb === 'convert') {
+    if (originField === undefined) {
+      const model = statement.field.slice(0, -1).join('.');
+      return refuse(
+        `the origin model "${qualifiedModel(counterpart.coordinate)}" has no field "${field}" (fields: ${listed(fieldNames(counterpart.model))}), and no rename statement renames a field to it`,
+        `If the field was renamed, add --rename ${model}.<old name>:${model}.${field}. A new field has no values to convert: ${leaveOut.toLowerCase()}`,
+      );
+    }
+    if (sameType(originField, destinationField)) {
+      return refuse(
+        `the field "${name}" has the same type, ${fieldTypeText(destinationField)}, in the origin and destination contracts, so it has no values to convert`,
+      );
+    }
+  } else if (originField !== undefined && !originField.nullable) {
+    return refuse(
+      `the field "${name}" is already required in the origin contract, so every existing row has a value`,
+    );
+  }
+  state.fieldStatements.add(key);
+  return ok({ kind: verb, entity: 'field', field: coordinate });
+}
+
+/**
+ * Resolves the statements a user gave against the origin and destination contracts. Renames
+ * resolve first, in the order given, so a convert or backfill statement can name a renamed field
+ * by its new name wherever it is given; the result keeps the order given. A delete or allow
+ * statement is checked and left out: it names what a plan would do to a subject, so it is matched
+ * against the plan, and it needs no origin contract.
  */
 export function resolveStatements(
   input: ResolveStatementsInput,
 ): Result<readonly ResolvedMigrationStatement[], CliStructuredError> {
-  const parsed: ParsedRename[] = [];
-  for (const entry of input.statements) {
+  const renames: { readonly index: number; readonly statement: ParsedRename }[] = [];
+  const fieldStatements: { readonly index: number; readonly statement: ParsedFieldStatement }[] =
+    [];
+  for (const [index, entry] of input.statements.entries()) {
     if (entry.verb === 'delete' || entry.verb === 'allow') {
       const statement = parseConsentStatement({ ...entry, verb: entry.verb });
       if (!statement.ok) return statement;
@@ -713,23 +834,39 @@ export function resolveStatements(
     if (input.origin.kind === 'missing') {
       return notOk(errorStatementOriginUnknown(input.origin));
     }
-    const statement = parseRenameStatement({ ...entry, verb: entry.verb });
-    if (!statement.ok) return statement;
-    parsed.push(statement.value);
+    if (entry.verb === 'rename') {
+      const statement = parseRenameStatement({ ...entry, verb: entry.verb });
+      if (!statement.ok) return statement;
+      renames.push({ index, statement: statement.value });
+    } else {
+      const statement = parseFieldStatement({ ...entry, verb: entry.verb });
+      if (!statement.ok) return statement;
+      fieldStatements.push({ index, statement: statement.value });
+    }
   }
-  if (parsed.length === 0 || input.origin.kind === 'missing') return ok([]);
+  if (input.origin.kind === 'missing') return ok([]);
   const state: ResolutionState = {
     origin: { name: 'origin', contract: input.origin.contract },
     destination: { name: 'destination', contract: input.destination },
     originOfRenamedModel: new Map(),
+    originOfRenamedField: new Map(),
     renamedFrom: new Set(),
     renamedTo: new Set(),
+    fieldStatements: new Set(),
   };
-  const resolved: ResolvedMigrationStatement[] = [];
-  for (const [index, statement] of parsed.entries()) {
-    const result = resolveStatement(state, statement, parsed.slice(index + 1));
+  const resolved: { readonly index: number; readonly statement: ResolvedMigrationStatement }[] = [];
+  const parsedRenames = renames.map(({ statement }) => statement);
+  for (const [position, { index, statement }] of renames.entries()) {
+    const result = resolveStatement(state, statement, parsedRenames.slice(position + 1));
     if (!result.ok) return result;
-    resolved.push(result.value);
+    resolved.push({ index, statement: result.value });
   }
-  return ok(resolved);
+  for (const { index, statement } of fieldStatements) {
+    const result = resolveFieldStatement(state, statement);
+    if (!result.ok) return result;
+    resolved.push({ index, statement: result.value });
+  }
+  return ok(
+    [...resolved].sort((left, right) => left.index - right.index).map(({ statement }) => statement),
+  );
 }

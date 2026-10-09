@@ -14,6 +14,7 @@
  */
 
 import type {
+  FieldStatementColumns,
   MigrationOperationClass,
   MigrationOperationPolicy,
 } from '@internal/family-sql/control';
@@ -41,6 +42,8 @@ export interface StrategyContext {
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
   /** The composed stack's codecs and data types, which write each column's type. */
   readonly types: SqlTypeLookups;
+  /** The columns of the fields `--convert` and `--backfill` statements name. */
+  readonly statementColumns: FieldStatementColumns;
 }
 
 export type CallMigrationStrategy = (

@@ -19,7 +19,10 @@ import { ok } from '@internal/utils/result';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { executeDbUpdate } from '../../src/control-api/operations/db-update';
-import { renameStatements } from '../../src/control-api/statements/statement-text';
+import {
+  renameStatements,
+  type StatementText,
+} from '../../src/control-api/statements/statement-text';
 import { createTestProjectDir } from '../utils/test-project-dir';
 
 const ORIGIN_HASH = 'a'.repeat(64);
@@ -161,6 +164,7 @@ function update(options: {
   readonly migrationsDir: string;
   readonly marker: ContractMarkerRecord | undefined;
   readonly renames: readonly string[];
+  readonly fieldStatements?: readonly StatementText[];
   readonly mode?: 'plan' | 'apply';
   readonly unreadableOrigin?: boolean;
   readonly verifySnapshotContent?: SnapshotContentVerifier;
@@ -183,7 +187,7 @@ function update(options: {
     migrationsDir: options.migrationsDir,
     answerQuestions: async () => [],
     targetId: 'postgres',
-    statements: renameStatements(options.renames),
+    statements: [...renameStatements(options.renames), ...(options.fieldStatements ?? [])],
     ...(options.verifySnapshotContent === undefined
       ? {}
       : { verifySnapshotContent: options.verifySnapshotContent }),
@@ -191,6 +195,23 @@ function update(options: {
 }
 
 describe('executeDbUpdate with statements', () => {
+  it('refuses convert and backfill statements before it plans, since it writes no migration file', async () => {
+    const { migrations, calls } = recordingMigrations();
+    await expect(
+      update({
+        migrationsDir: await migrationsDirWithSnapshot(origin),
+        marker: markerAt(ORIGIN_HASH),
+        renames: ['Profile:User'],
+        fieldStatements: [{ verb: 'convert', text: 'User.age' }],
+        migrations,
+      }),
+    ).rejects.toMatchObject({
+      code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+      meta: { statements: [{ verb: 'convert', text: 'User.age' }] },
+    });
+    expect(calls).toEqual([]);
+  });
+
   it('plans from the snapshot of the marker hash and hands the planner the resolved statements', async () => {
     const { migrations, calls } = recordingMigrations();
     const result = await update({
@@ -387,6 +408,7 @@ describe('executeDbUpdate with statements', () => {
           model: 'Profile',
           field: 'nickname',
         },
+        loss: 'drop',
       },
     ]);
 
@@ -401,6 +423,7 @@ describe('executeDbUpdate with statements', () => {
       {
         operationIndex: 0,
         subject: { kind: 'field', namespaceId: 'app', model: 'Profile', field: 'nickname' },
+        loss: 'drop',
         text: 'User.nickname',
       },
     ]);

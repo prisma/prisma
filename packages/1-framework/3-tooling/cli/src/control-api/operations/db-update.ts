@@ -9,6 +9,7 @@ import type {
 } from '@internal/framework-components/control';
 import type { SnapshotContentVerifier } from '@internal/migration-tools/contract-snapshot-store';
 import { ifDefined } from '@internal/utils/defined';
+import { errorStatementNeedsMigrationFile } from '../../utils/cli-errors';
 import type { AnswerPlanQuestions } from '../statements/plan-questions';
 import type { StatementText } from '../statements/statement-text';
 import type { DbUpdateResult, OnControlProgress } from '../types';
@@ -49,7 +50,8 @@ export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId exte
   readonly verifySnapshotContent?: SnapshotContentVerifier;
   /**
    * The statements as the user wrote them, in the order given. A `rename` is planned; a `delete`
-   * or `allow` answers the question about the subject it names.
+   * or `allow` answers the question about the subject it names. A `convert` or `backfill` fails
+   * with `MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE`: `db update` has no migration file to fill.
    */
   readonly statements?: readonly StatementText[];
   /** Asks the questions no statement answered; see {@link AnswerPlanQuestions}. */
@@ -61,6 +63,12 @@ export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId exte
 export async function executeDbUpdate<TFamilyId extends string, TTargetId extends string>(
   options: ExecuteDbUpdateOptions<TFamilyId, TTargetId>,
 ): Promise<DbUpdateResult> {
+  const needsMigrationFile = (options.statements ?? []).filter(
+    (statement) => statement.verb === 'convert' || statement.verb === 'backfill',
+  );
+  if (needsMigrationFile.length > 0) {
+    throw errorStatementNeedsMigrationFile(needsMigrationFile);
+  }
   return (await executeRun<TFamilyId, TTargetId>({
     driver: options.driver,
     adapter: options.adapter,

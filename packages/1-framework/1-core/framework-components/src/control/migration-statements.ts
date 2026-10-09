@@ -29,15 +29,39 @@ export interface ResolvedFieldRenameStatement {
   readonly to: FieldCoordinate;
 }
 
+/** A rename: `from` is a coordinate of the origin contract and `to` one of the destination contract. */
+export type ResolvedRenameStatement = ResolvedModelRenameStatement | ResolvedFieldRenameStatement;
+
+/** A field whose values the migration converts to its new type with code the user writes. */
+export interface ResolvedFieldConvertStatement {
+  readonly kind: 'convert';
+  readonly entity: 'field';
+  /** The field as the destination contract names it. */
+  readonly field: FieldCoordinate;
+}
+
+/** A required field whose values in existing rows the migration fills with code the user writes. */
+export interface ResolvedFieldBackfillStatement {
+  readonly kind: 'backfill';
+  readonly entity: 'field';
+  /** The field as the destination contract names it. */
+  readonly field: FieldCoordinate;
+}
+
 /**
- * A statement resolved against the origin and destination contracts into domain coordinates:
- * `from` is a coordinate of the origin contract and `to` one of the destination contract. Each
- * member's `entity` names the kind of coordinate its sides use, so another kind of entity is a
- * further member with its own coordinate type.
+ * A statement resolved against the origin and destination contracts into domain coordinates. `kind`
+ * names what the statement asks the plan to do, and `entity` the kind of coordinate it names.
  */
 export type ResolvedMigrationStatement =
-  | ResolvedModelRenameStatement
-  | ResolvedFieldRenameStatement;
+  | ResolvedRenameStatement
+  | ResolvedFieldConvertStatement
+  | ResolvedFieldBackfillStatement;
+
+export function isRenameStatement(
+  statement: ResolvedMigrationStatement,
+): statement is ResolvedRenameStatement {
+  return statement.kind === 'rename';
+}
 
 /**
  * What an operation of a plan is about, in the contract's terms where the family can say: a model
@@ -77,13 +101,24 @@ export interface MigrationAccessChange extends MigrationOperationSubject {
   readonly widens: boolean;
 }
 
+/**
+ * How an operation loses its subject's data: `drop` removes the subject, and `typeChange` keeps the
+ * field but changes its type, which loses the values that do not fit the new one.
+ */
+export type MigrationDataLossKind = 'drop' | 'typeChange';
+
+/** An operation that loses data: its subject, and how it loses that subject's data. */
+export interface MigrationDataLoss extends MigrationOperationSubject {
+  readonly loss: MigrationDataLossKind;
+}
+
 /** What the operations of a plan lose and whose access they change, each by its position in the plan. */
 export interface MigrationPlanSubjects<
-  TEntry extends MigrationOperationSubject = MigrationOperationSubject,
+  TLoss extends MigrationDataLoss = MigrationDataLoss,
   TAccess extends MigrationAccessChange = MigrationAccessChange,
 > {
   /** Each operation that loses data, in plan order, with what it loses. */
-  readonly dataLoss: readonly TEntry[];
+  readonly dataLoss: readonly TLoss[];
   /** Each operation that changes who can read or write data, in plan order, with what it is about. */
   readonly accessWidening: readonly TAccess[];
 }
@@ -139,6 +174,11 @@ export type MigrationStatementJson =
       readonly entity: 'field';
       readonly from: FieldCoordinateJson;
       readonly to: FieldCoordinateJson;
+    }
+  | {
+      readonly kind: 'convert' | 'backfill';
+      readonly entity: 'field';
+      readonly field: FieldCoordinateJson;
     };
 
 /** A subject in JSON output: `namespaceId` is left out for the unbound namespace. */
@@ -159,9 +199,15 @@ function coordinateJson<T extends ModelCoordinate>(
 export function migrationStatementJson(
   statement: ResolvedMigrationStatement,
 ): MigrationStatementJson {
-  return statement.entity === 'model'
-    ? { ...statement, from: coordinateJson(statement.from), to: coordinateJson(statement.to) }
-    : { ...statement, from: coordinateJson(statement.from), to: coordinateJson(statement.to) };
+  switch (statement.kind) {
+    case 'rename':
+      return statement.entity === 'model'
+        ? { ...statement, from: coordinateJson(statement.from), to: coordinateJson(statement.to) }
+        : { ...statement, from: coordinateJson(statement.from), to: coordinateJson(statement.to) };
+    case 'convert':
+    case 'backfill':
+      return { ...statement, field: coordinateJson(statement.field) };
+  }
 }
 
 /** The subject as JSON output writes it. */
@@ -196,6 +242,9 @@ export function describeMigrationStatement(
   fromContract: ContractWithDomain,
   contract: ContractWithDomain,
 ): string {
+  if (statement.kind !== 'rename') {
+    return `${statement.kind} field "${modelName(contract, statement.field)}.${statement.field.field}"`;
+  }
   if (statement.entity === 'model') {
     return `rename model "${modelName(fromContract, statement.from)}" to "${modelName(contract, statement.to)}"`;
   }

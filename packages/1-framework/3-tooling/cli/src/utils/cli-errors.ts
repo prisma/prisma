@@ -610,22 +610,51 @@ export function errorStatementUnresolved(
 }
 
 /**
- * A rename typed in answer to a data-loss question was planned, and the plan still loses the
- * subject's data: the rename does not account for the operation the question was about.
+ * A rename or convert typed in answer to a data-loss question was planned, and the plan still loses
+ * the subject's data: the statement does not account for the operation the question was about.
  */
 export function errorStatementDidNotResolveLoss(
   statement: WrittenStatement,
   subject: string,
 ): ActionableCliError {
-  const fix = `Answer the question about "${subject}" with --delete ${subject} if its data may be lost, or give a rename whose old name stores that data.`;
+  const fix = `Answer the question about "${subject}" with --delete ${subject} if its data may be lost, or give a ${statement.verb} statement that keeps that data.`;
   return new ActionableCliError(
     'MIGRATION.STATEMENT_DID_NOT_RESOLVE_LOSS',
     `"--${statement.verb} ${statement.text}" does not keep the data of "${subject}"`,
     {
-      why: `The plan was made again with the rename, and it still loses the data of "${subject}".`,
+      why: `The plan was made again with the statement, and it still loses the data of "${subject}".`,
       fix,
       nextActions: [chooseAction(fix)],
       meta: { statement: statement.text, verb: statement.verb, subject },
+    },
+  );
+}
+
+/**
+ * `--convert` or `--backfill` statements were given to `db update`, which applies its plan
+ * directly and so has no migration file whose slot the user could fill.
+ */
+export function errorStatementNeedsMigrationFile(
+  statements: readonly WrittenStatement[],
+): ActionableCliError {
+  const written = statements.map(({ verb, text }) => `"--${verb} ${text}"`);
+  const listed =
+    written.length === 1 ? written[0] : `${written.slice(0, -1).join(', ')} and ${written.at(-1)}`;
+  const flags = statements.map(({ verb, text }) => `--${verb} ${text}`).join(' ');
+  return new ActionableCliError(
+    'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+    `db update cannot carry out ${listed}`,
+    {
+      why: '--convert and --backfill ask for a migration file with a slot for the code that converts or fills in the values, and db update has no migration file to fill: it applies its plan directly.',
+      fix: `Plan the change with migration plan ${flags}, fill in the migration file it writes, and apply it with migrate. Or leave out these statements: db update then asks before it loses any data.`,
+      nextActions: [
+        runCommandAction(
+          'Plan the change into a migration file to fill in',
+          `{bin} migration plan ${flags}`,
+        ),
+        chooseAction('Or run db update without these statements'),
+      ],
+      meta: { statements: statements.map(({ verb, text }) => ({ verb, text })) },
     },
   );
 }

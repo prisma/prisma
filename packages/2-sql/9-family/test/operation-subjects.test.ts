@@ -8,7 +8,7 @@ import {
   subjectsOfCalls,
   unknownCallNames,
 } from '../src/core/migrations/operation-subjects';
-import { contractOf, renameField, renameModel } from './statement-fixtures';
+import { contractOf, convertField, renameField, renameModel } from './statement-fixtures';
 
 const app = asNamespaceId('app');
 
@@ -24,7 +24,11 @@ function column(tableName: string, columnName: string): SubjectStorage {
 }
 
 function losing(...targets: readonly SubjectStorage[]): CallSubjects {
-  return { operationCount: 1, dataLoss: targets, accessWidening: [] };
+  return {
+    operationCount: 1,
+    dataLoss: targets.map((target) => ({ ...target, loss: 'drop' })),
+    accessWidening: [],
+  };
 }
 
 const unchanged: CallSubjects = { operationCount: 1, dataLoss: [], accessWidening: [] };
@@ -44,10 +48,15 @@ describe('subjectsOfCalls', () => {
       }),
     ).toEqual({
       dataLoss: [
-        { operationIndex: 1, subject: { kind: 'model', namespaceId: app, model: 'Legacy' } },
+        {
+          operationIndex: 1,
+          subject: { kind: 'model', namespaceId: app, model: 'Legacy' },
+          loss: 'drop',
+        },
         {
           operationIndex: 2,
           subject: { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
+          loss: 'drop',
         },
       ],
       accessWidening: [],
@@ -61,7 +70,11 @@ describe('subjectsOfCalls', () => {
         { fromContract: origin, contract: origin, statements: [] },
       ).dataLoss,
     ).toEqual([
-      { operationIndex: 3, subject: { kind: 'model', namespaceId: app, model: 'Legacy' } },
+      {
+        operationIndex: 3,
+        subject: { kind: 'model', namespaceId: app, model: 'Legacy' },
+        loss: 'drop',
+      },
     ]);
   });
 
@@ -85,8 +98,43 @@ describe('subjectsOfCalls', () => {
       {
         operationIndex: 0,
         subject: { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
+        loss: 'drop',
       },
     ]);
+  });
+
+  it('keeps how each operation loses data', () => {
+    expect(
+      subjectsOfCalls(
+        [
+          {
+            operationCount: 1,
+            dataLoss: [{ ...column('user', 'full_name'), loss: 'typeChange' }],
+            accessWidening: [],
+          },
+        ],
+        { fromContract: origin, contract: origin, statements: [] },
+      ).dataLoss,
+    ).toEqual([
+      {
+        operationIndex: 0,
+        subject: { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
+        loss: 'typeChange',
+      },
+    ]);
+  });
+
+  it('reads no rename into a convert statement', () => {
+    const destination = contractOf({
+      User: { table: 'user', fields: { id: 'id', name: 'display_name' } },
+    });
+    expect(
+      subjectsOfCalls([losing(column('user', 'full_name'))], {
+        fromContract: origin,
+        contract: destination,
+        statements: [convertField('User', 'name')],
+      }).dataLoss.map(({ subject }) => subject),
+    ).toEqual([{ kind: 'field', namespaceId: app, model: 'User', field: 'name' }]);
   });
 
   it('names storage the origin contract does not declare by its storage name', () => {
@@ -100,8 +148,8 @@ describe('subjectsOfCalls', () => {
         },
       ).dataLoss,
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'public.audit_log' } },
-      { operationIndex: 0, subject: { kind: 'storage', name: 'user.nickname' } },
+      { operationIndex: 0, subject: { kind: 'storage', name: 'public.audit_log' }, loss: 'drop' },
+      { operationIndex: 0, subject: { kind: 'storage', name: 'user.nickname' }, loss: 'drop' },
     ]);
   });
 
@@ -113,8 +161,8 @@ describe('subjectsOfCalls', () => {
         statements: [],
       }).dataLoss,
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'legacy' } },
-      { operationIndex: 0, subject: { kind: 'storage', name: 'user.full_name' } },
+      { operationIndex: 0, subject: { kind: 'storage', name: 'legacy' }, loss: 'drop' },
+      { operationIndex: 0, subject: { kind: 'storage', name: 'user.full_name' }, loss: 'drop' },
     ]);
   });
 
@@ -125,7 +173,9 @@ describe('subjectsOfCalls', () => {
         contract: origin,
         statements: [],
       }).dataLoss,
-    ).toEqual([{ operationIndex: 0, subject: { kind: 'storage', name: 'public.mood' } }]);
+    ).toEqual([
+      { operationIndex: 0, subject: { kind: 'storage', name: 'public.mood' }, loss: 'drop' },
+    ]);
   });
 
   it('lists access-widening operations with the model of their table', () => {

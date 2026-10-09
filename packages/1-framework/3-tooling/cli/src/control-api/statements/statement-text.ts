@@ -1,5 +1,8 @@
 /** The verbs a statement can have. */
-export type StatementVerb = 'rename' | 'delete' | 'allow';
+export type StatementVerb = 'rename' | 'delete' | 'allow' | 'convert' | 'backfill';
+
+/** A verb whose statement the plan carries out, rather than one that consents to what it does. */
+export type PlannedStatementVerb = 'rename' | 'convert' | 'backfill';
 
 /**
  * A statement as the user wrote it, before it is parsed: its verb and its text, for example
@@ -14,4 +17,12 @@ export interface StatementText {
 /** The `--rename` texts a command was given, as statements, in the order given. */
 export function renameStatements(texts: readonly string[] | undefined): readonly StatementText[] {
   return (texts ?? []).map((text) => ({ verb: 'rename', text }));
+}
+
+export function isPlannedStatement(
+  statement: StatementText,
+): statement is StatementText & { readonly verb: PlannedStatementVerb } {
+  return (
+    statement.verb === 'rename' || statement.verb === 'convert' || statement.verb === 'backfill'
+  );
 }
