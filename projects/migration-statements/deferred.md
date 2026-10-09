@@ -71,3 +71,15 @@ Adding a required field to a populated collection, or making an optional field r
 
 On MongoDB a variant's field rename touches only that variant's documents. On SQL today a variant's field is a column in the shared table, and a rename applies to every row. When SQL supports variants stored in their own tables, a variant's field statements must act on that variant's table only.
 
+
+## `@map` accepts a MongoDB field name MongoDB reads as a path or an operator
+
+**Found:** slice 4a review, dispatch 3 (2026-10-09). Authoring side.
+
+A MongoDB field can be given a stored name containing `.` or starting with `$` through `@map`, and nothing rejects it. MongoDB reads such a name as a path into embedded documents or as an operator, so the derived validator rejects documents that hold it, and the planner cannot rename or unset it: a statement naming it is refused, and a removed field with such a name is left as it is. Authoring should refuse these names.
+
+## A data-loss question can offer one flag value per verb
+
+**Found:** slice 4a review, dispatch 3 (2026-10-09). Engine side.
+
+The statement prompt writes one flag value per verb, so a question about a field whose model the destination names differently cannot print the two statements that keep its values (the model rename, then the field rename). The question offers only `--delete` and says to pass the model rename first, after which the next question offers the field rename. Printing both statements at once would need the engine to accept several flag values for one verb.

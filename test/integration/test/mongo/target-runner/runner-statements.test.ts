@@ -359,4 +359,82 @@ describe('MongoMigrationPlanner and runner - statements', () => {
     },
     timeouts.spinUpMongoMemoryServer,
   );
+
+  it(
+    'removes a base field moved to one variant from the documents of every other variant',
+    async () => {
+      const branch = (value: string, fields: readonly string[]) => ({
+        properties: Object.fromEntries([
+          ['_id', { bsonType: 'objectId' }],
+          ['type', { enum: [value] }],
+          ...fields.map((field) => [field, { bsonType: 'string' }]),
+        ]),
+        required: ['type'],
+        additionalProperties: false,
+      });
+      const tasksValidator = (base: readonly string[], bug: readonly string[]) => ({
+        bsonType: 'object',
+        required: ['_id', 'type'],
+        properties: Object.fromEntries([
+          ['_id', { bsonType: 'objectId' }],
+          ['type', { bsonType: 'string' }],
+          ...base.map((field) => [field, { bsonType: 'string' }]),
+        ]),
+        oneOf: [branch('bug', [...base, ...bug]), branch('feature', [...base, 'priority'])],
+      });
+      const tasks = (storageHash: string, base: readonly string[], bug: readonly string[]) =>
+        contract(
+          storageHash,
+          {
+            Task: {
+              collection: 'tasks',
+              fields: ['_id', 'type', ...base],
+              variants: { Bug: 'bug', Feature: 'feature' },
+            },
+            Bug: { collection: 'tasks', fields: bug, base: 'Task' },
+            Feature: { collection: 'tasks', fields: ['priority'], base: 'Task' },
+          },
+          {
+            tasks: new MongoCollection({
+              validator: {
+                jsonSchema: tasksValidator(base, bug),
+                validationLevel: 'strict',
+                validationAction: 'error',
+              },
+            }),
+          },
+        );
+      await db.createCollection('tasks', {
+        validator: { $jsonSchema: tasksValidator(['note'], []) },
+        validationLevel: 'strict',
+        validationAction: 'error',
+      });
+      await db.collection('tasks').insertMany([
+        { type: 'bug', note: 'b' },
+        { type: 'feature', note: 'f' },
+      ]);
+      const to = tasks('to', [], ['note']);
+
+      const { planned, result } = await planAndRun(tasks('from', ['note'], []), to);
+
+      expect(result.ok ? result.value.operationsExecuted : result.failure).toBe(2);
+      expect(planned.kind === 'success' ? planned.dataLoss : undefined).toEqual([
+        {
+          operationIndex: 0,
+          subject: { kind: 'field', namespaceId: NS, model: 'Task', field: 'note' },
+        },
+      ]);
+      expect({ tasks: await documents('tasks'), further: await furtherPlanLabels(to) }).toEqual({
+        tasks: [{ type: 'bug', note: 'b' }, { type: 'feature' }],
+        further: [],
+      });
+      await expect(
+        db.collection('tasks').updateOne({ type: 'feature' }, { $set: { priority: 'p1' } }),
+      ).resolves.toMatchObject({ modifiedCount: 1 });
+      await expect(
+        db.collection('tasks').updateOne({ type: 'bug' }, { $set: { note: 'b2' } }),
+      ).resolves.toMatchObject({ modifiedCount: 1 });
+    },
+    timeouts.spinUpMongoMemoryServer,
+  );
 });

@@ -406,6 +406,32 @@ describe('MongoMigrationPlanner, statements it refuses', () => {
     ]);
   });
 
+  it('refuses renaming a stored field whose name MongoDB reads as a path, and says to rename it by hand', () => {
+    const named = (field: string) =>
+      contract(
+        field,
+        { Profile: { collection: 'profiles', fields: ['_id', field] } },
+        { profiles: {} },
+      );
+    expect(
+      refusal(
+        plan({
+          from: named('o.d'),
+          to: named('od'),
+          schema: [schemaCollection('profiles')],
+          statements: [renameField('Profile', 'o.d', 'Profile', 'od')],
+        }),
+      ),
+    ).toEqual([
+      {
+        kind: 'statementRefused',
+        summary:
+          'Cannot rename field "Profile.o.d" to "Profile.od": the stored field name "o.d" cannot be rewritten',
+        why: 'MongoDB reads a name containing "." as a path into embedded documents, so a statement cannot move its values. Rename it in the database yourself, or leave out this statement.',
+      },
+    ]);
+  });
+
   it('refuses a stored field name MongoDB reads as a path or an operator', () => {
     const to = (field: string) =>
       contract(
@@ -425,8 +451,8 @@ describe('MongoMigrationPlanner, statements it refuses', () => {
         ).map(({ summary }) => summary),
       ),
     ).toEqual([
-      'Cannot rename field "Profile.name" to "Profile.a.b": the stored field name "a.b" cannot be rewritten',
-      'Cannot rename field "Profile.name" to "Profile.$a": the stored field name "$a" cannot be rewritten',
+      'Cannot rename field "Profile.name" to "Profile.a.b": the stored field name "a.b" cannot be written',
+      'Cannot rename field "Profile.name" to "Profile.$a": the stored field name "$a" cannot be written',
     ]);
   });
 
@@ -533,6 +559,18 @@ describe('MongoMigrationPlanner, statements it refuses', () => {
     ).toEqual([
       'Cannot rename field "Profile.name" to "Profile.fullName": the model\'s collection changes from "profiles" to "users", and no statement renames it',
     ]);
+    expect(
+      refusal(
+        plan({
+          from: profiles,
+          to,
+          schema: profilesSchema,
+          statements: [renameField('Profile', 'name', 'Profile', 'fullName')],
+        }),
+      )[0]?.why,
+    ).toBe(
+      'A statement cannot rename the collection of a model that keeps its name. Rename the collection in a step of its own first: change only @@map and emit the contract. With db update, rename the collection in the database yourself, for example db.getCollection("profiles").renameCollection("users") in mongosh, then run db update. With migration plan, plan it, passing --delete Profile to answer its question, then in its migration.ts replace the drop of "profiles" and the create of "users" with renameCollection("profiles", "users"), imported with the other operations. Then change the field and run this statement again.',
+    );
   });
 });
 
@@ -577,31 +615,33 @@ describe('MongoMigrationPlanner, removed fields', () => {
     expect(planned(plan({ from, to: none, schema })).labels).toEqual(['Drop collection profiles']);
   });
 
-  it("unsets a variant's removed field only from that variant's documents, and keeps a field another variant now stores", () => {
-    const tasks = (
-      bugFields: readonly string[],
-      featureFields: readonly string[],
-      baseFields: readonly string[],
-    ) =>
-      contract(
-        bugFields.join(),
-        {
-          Task: {
-            collection: 'tasks',
-            fields: ['_id', 'type', ...baseFields],
-            discriminator: 'type',
-            variants: { Bug: 'bug', Feature: 'feature' },
-          },
-          Bug: { collection: 'tasks', fields: bugFields, base: 'Task' },
-          Feature: { collection: 'tasks', fields: featureFields, base: 'Task' },
+  const tasks = (
+    seed: string,
+    baseFields: readonly string[],
+    bugFields: readonly string[],
+    featureFields: readonly string[],
+  ) =>
+    contract(
+      seed,
+      {
+        Task: {
+          collection: 'tasks',
+          fields: ['_id', 'type', ...baseFields],
+          discriminator: 'type',
+          variants: { Bug: 'bug', Feature: 'feature' },
         },
-        { tasks: {} },
-      );
+        Bug: { collection: 'tasks', fields: bugFields, base: 'Task' },
+        Feature: { collection: 'tasks', fields: featureFields, base: 'Task' },
+      },
+      { tasks: {} },
+    );
+
+  it("unsets a variant's removed field only from that variant's documents", () => {
     expect(
       planned(
         plan({
-          from: tasks(['score', 'severity'], ['score'], ['title']),
-          to: tasks(['severity'], ['score', 'title'], []),
+          from: tasks('from', [], ['score', 'severity'], ['score']),
+          to: tasks('to', [], ['severity'], ['score']),
           schema: [schemaCollection('tasks')],
         }),
       ),
@@ -614,6 +654,49 @@ describe('MongoMigrationPlanner, removed fields', () => {
         },
       ],
     });
+  });
+
+  it('unsets a base field moved to one variant from the documents of every other variant', () => {
+    expect(
+      planned(
+        plan({
+          from: tasks('from', ['note'], [], []),
+          to: tasks('to', [], ['note'], []),
+          schema: [schemaCollection('tasks')],
+        }),
+      ),
+    ).toMatchObject({
+      labels: ['Remove field note from collection tasks where {"type":{"$nin":["bug"]}}'],
+      dataLoss: [
+        {
+          operationIndex: 0,
+          subject: { kind: 'field', namespaceId: NS, model: 'Task', field: 'note' },
+        },
+      ],
+    });
+  });
+
+  it('keeps a variant field its base now stores', () => {
+    expect(
+      planned(
+        plan({
+          from: tasks('from', [], ['note'], []),
+          to: tasks('to', ['note'], [], []),
+          schema: [schemaCollection('tasks')],
+        }),
+      ).labels,
+    ).toEqual([]);
+  });
+
+  it('unsets nothing without an origin contract when the destination collection has no validator', () => {
+    const unvalidated = contract(
+      'to',
+      { Profile: { collection: 'profiles', fields: ['_id', 'email'] } },
+      { profiles: {} },
+    );
+    expect(planned(plan({ from: null, to: unvalidated, schema })).labels).toEqual([
+      'Remove validator on profiles',
+    ]);
   });
 
   it('unsets nothing for a field a statement renames', () => {

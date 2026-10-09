@@ -36,7 +36,7 @@ describe('dataLossQuestion for data no model names', () => {
     });
 
     expect(question.question).toBe(
-      'Drop column age from user would lose the data in "public.user.age", named by its storage name because the origin contract is unknown; --delete loses its rows.',
+      'Drop column age from user would lose the data in "public.user.age", named by its storage name because the origin contract is unknown; --delete loses that data.',
     );
   });
 });
@@ -92,6 +92,51 @@ describe('dataLossQuestion verbs', () => {
   it('writes the rename form of a field with its model, as a field rename is written', () => {
     expect(questionFor('nickname', destinationWithoutNickname).forms).toEqual({
       rename: 'User.nickname:User.<new name>',
+    });
+  });
+});
+
+describe('dataLossQuestion for a field whose model the destination names differently', () => {
+  const app = asNamespaceId('app');
+  const profile = contractOf({ app: { models: { Profile: { fields: ['email', 'nickname'] } } } });
+  const person = contractOf({ app: { models: { Person: { fields: ['email', 'alias'] } } } });
+  const loss = {
+    operationIndex: 0,
+    label: 'Remove field nickname from collection profiles',
+    subject: { kind: 'field', namespaceId: app, model: 'Profile', field: 'nickname' },
+  } as const;
+
+  it('offers only delete, and says to rename the model first', () => {
+    const question = dataLossQuestion(loss, {
+      origin: profile,
+      destination: person,
+      renames: [],
+      originKnown: true,
+    });
+    expect({ verbs: question.verbs, question: question.question }).toEqual({
+      verbs: ['delete'],
+      question:
+        'Remove field nickname from collection profiles would lose the values of field "Profile.nickname". The destination contract has no model "Profile"; to keep the values instead, also pass --rename Profile:<new model name>, naming the model that stores them now, and the question then offers to rename the field.',
+    });
+  });
+
+  it('offers the field rename once the printed model rename is passed, and accepts it', () => {
+    const question = dataLossQuestion(loss, {
+      origin: profile,
+      destination: person,
+      renames: [{ verb: 'rename', text: 'Profile:Person' }],
+      originKnown: true,
+    });
+    expect({
+      subject: question.subject,
+      verbs: question.verbs,
+      forms: question.forms,
+      accepted: question.validate('rename', 'Person.nickname:Person.alias'),
+    }).toEqual({
+      subject: 'Person.nickname',
+      verbs: ['rename', 'delete'],
+      forms: { rename: 'Person.nickname:Person.<new name>' },
+      accepted: undefined,
     });
   });
 });

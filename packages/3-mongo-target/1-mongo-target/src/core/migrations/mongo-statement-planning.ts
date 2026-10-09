@@ -11,6 +11,7 @@ import {
   type MigrationPlannerConflict,
   type MigrationSubject,
   type ModelCoordinate,
+  modelDisplayName,
   type ResolvedFieldRenameStatement,
   type ResolvedMigrationStatement,
   type ResolvedModelRenameStatement,
@@ -240,14 +241,14 @@ function planModelStatement(
   if (source.options?.timeseries !== undefined) {
     return refuse(
       `collection "${from}" is a time-series collection`,
-      `MongoDB cannot rename a time-series collection. Copy its documents into the new collection yourself, or ${LEAVE_OUT.toLowerCase()}`,
+      `MongoDB cannot rename a time-series collection. Leave out this statement. To keep the documents, first create collection "${to}" yourself with the same time-series options and copy them into it; the plan then drops "${from}" once --delete names the model.`,
     );
   }
   const invalid = invalidCollectionNameReason(to);
   if (invalid !== undefined) {
     return refuse(
       `MongoDB does not accept the collection name "${to}": ${invalid}`,
-      `Give the model a collection name MongoDB accepts with @@map, or ${LEAVE_OUT.toLowerCase()}`,
+      'Give the model a collection name MongoDB accepts with @@map, then run this command again.',
     );
   }
   if (schema.collection(to) !== undefined) {
@@ -284,27 +285,30 @@ function planFieldStatement(
       `A relation is not stored in documents, so a statement cannot rename a field to or from one. ${LEAVE_OUT}`,
     );
   }
-  for (const field of [statement.from.field, statement.to.field]) {
-    if (field === '_id') {
-      return refuse(
-        'it renames _id',
-        `MongoDB does not let a document change its _id. ${LEAVE_OUT}`,
-      );
-    }
-    const unsafe = unsafeFieldNameReason(field);
-    if (unsafe !== undefined) {
-      return refuse(
-        `the stored field name "${field}" cannot be rewritten`,
-        `${unsafe}. Give the field a stored name without "." and not starting with "$", or ${LEAVE_OUT.toLowerCase()}`,
-      );
-    }
+  if (statement.from.field === '_id' || statement.to.field === '_id') {
+    return refuse('it renames _id', `MongoDB does not let a document change its _id. ${LEAVE_OUT}`);
+  }
+  const unsafeFrom = unsafeFieldNameReason(statement.from.field);
+  if (unsafeFrom !== undefined) {
+    return refuse(
+      `the stored field name "${statement.from.field}" cannot be rewritten`,
+      `${unsafeFrom}, so a statement cannot move its values. Rename it in the database yourself, or ${LEAVE_OUT.toLowerCase()}`,
+    );
+  }
+  const unsafeTo = unsafeFieldNameReason(statement.to.field);
+  if (unsafeTo !== undefined) {
+    return refuse(
+      `the stored field name "${statement.to.field}" cannot be written`,
+      `${unsafeTo}. Give the field a stored name without "." that does not start with "$" (with @map), or ${LEAVE_OUT.toLowerCase()}`,
+    );
   }
   const originCollection = collectionOf(input.fromContract, statement.from);
   const collection = renamedCollections.get(originCollection) ?? originCollection;
-  if (collection !== collectionOf(input.contract, statement.to)) {
+  const destinationCollection = collectionOf(input.contract, statement.to);
+  if (collection !== destinationCollection) {
     return refuse(
-      `the model's collection changes from "${originCollection}" to "${collectionOf(input.contract, statement.to)}", and no statement renames it`,
-      `Add a statement that renames the model, so its collection is renamed with its documents, or ${LEAVE_OUT.toLowerCase()}`,
+      `the model's collection changes from "${originCollection}" to "${destinationCollection}", and no statement renames it`,
+      collectionChangeAdvice(statement, originCollection, destinationCollection),
     );
   }
   if (statement.from.field === statement.to.field) return { kind: 'unchanged' };
@@ -319,6 +323,17 @@ function planFieldStatement(
       variantFilter(input.fromContract, statement.from),
     ),
   };
+}
+
+function collectionChangeAdvice(
+  statement: ResolvedFieldRenameStatement,
+  from: string,
+  to: string,
+): string {
+  if (!sameModel(statement.from, statement.to)) {
+    return `Add --rename ${modelDisplayName(statement.from)}:${modelDisplayName(statement.to)} before this statement, so the collection is renamed with its documents.`;
+  }
+  return `A statement cannot rename the collection of a model that keeps its name. Rename the collection in a step of its own first: change only @@map and emit the contract. With db update, rename the collection in the database yourself, for example db.getCollection(${JSON.stringify(from)}).renameCollection(${JSON.stringify(to)}) in mongosh, then run db update. With migration plan, plan it, passing --delete ${modelDisplayName(statement.from)} to answer its question, then in its migration.ts replace the drop of "${from}" and the create of "${to}" with renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)}), imported with the other operations. Then change the field and run this statement again.`;
 }
 
 export interface FieldRemoval {
@@ -394,20 +409,35 @@ function storedFieldsOf(contract: ContractWithDomain, coordinate: ModelCoordinat
   return new Set([...Object.keys(model.fields), ...Object.keys(base?.fields ?? {})]);
 }
 
-function fieldsDeclaredIn(contract: ContractWithDomain, collection: string): Set<string> {
-  return new Set(
-    modelCoordinates(contract)
-      .filter((coordinate) => collectionOf(contract, coordinate) === collection)
-      .flatMap((coordinate) => Object.keys(modelAt(contract, coordinate)?.fields ?? {})),
-  );
+/**
+ * The documents of a root model that lose `field`: all of them, or, when some of its destination
+ * variants now store the field themselves, those whose discriminator value is none of theirs.
+ * `undefined` when the root model itself still stores it.
+ */
+function rootDocumentsLosing(
+  contract: ContractWithDomain,
+  root: ModelCoordinate,
+  field: string,
+): { readonly filter: Document | undefined } | undefined {
+  const model = modelAt(contract, root);
+  if (model === undefined || Object.hasOwn(model.fields, field)) return undefined;
+  const discriminator = model.discriminator?.field;
+  const keeping = Object.entries(model.variants ?? {})
+    .filter(([variant]) =>
+      Object.hasOwn(modelAt(contract, { ...root, model: variant })?.fields ?? {}, field),
+    )
+    .map(([, entry]) => entry.value)
+    .sort();
+  if (discriminator === undefined || keeping.length === 0) return { filter: undefined };
+  return { filter: { [discriminator]: { $nin: keeping } } };
 }
 
 /**
  * Each field an origin model stores that its destination model no longer stores, in a collection
  * the plan keeps: removing it is data loss, carried out by unsetting it from the documents that
- * hold it. A variant's field is unset only from that variant's documents. A field the base no
- * longer stores is unset only when no model of the collection stores it any more, since a variant
- * may now store it.
+ * hold it. A variant's field is unset only from that variant's documents, unless its destination
+ * base now stores it. A base field is unset from the documents of every variant that does not now
+ * store it itself.
  */
 export function planFieldRemovals(input: FieldRemovalInput): readonly FieldRemoval[] {
   return modelCoordinates(input.fromContract).flatMap((origin) => {
@@ -417,24 +447,34 @@ export function planFieldRemovals(input: FieldRemovalInput): readonly FieldRemov
     if (destination === undefined) return [];
     const model = modelAt(input.fromContract, origin);
     if (model === undefined) return [];
-    const filter = variantFilter(input.fromContract, origin);
-    const stillStored =
-      filter === undefined
-        ? fieldsDeclaredIn(input.contract, collection)
-        : storedFieldsOf(input.contract, destination);
+    const variant = variantFilter(input.fromContract, origin);
+    const losing = (field: string): { readonly filter: Document | undefined } | undefined => {
+      if (variant !== undefined) {
+        return storedFieldsOf(input.contract, destination).has(field)
+          ? undefined
+          : { filter: variant };
+      }
+      return rootDocumentsLosing(input.contract, destination, field);
+    };
     return Object.keys(model.fields)
       .filter(
         (field) =>
           field !== '_id' &&
           unsafeFieldNameReason(field) === undefined &&
-          !stillStored.has(field) &&
           !renamedByStatement(input, { ...origin, field }),
       )
       .sort()
-      .map((field) => ({
-        call: new UnsetFieldCall(collection, field, filter),
-        subject: { kind: 'field' as const, ...origin, field },
-      }));
+      .flatMap((field) => {
+        const lost = losing(field);
+        return lost === undefined
+          ? []
+          : [
+              {
+                call: new UnsetFieldCall(collection, field, lost.filter),
+                subject: { kind: 'field' as const, ...origin, field },
+              },
+            ];
+      });
   });
 }
 
@@ -462,7 +502,7 @@ export function planValidatorFieldRemovals(input: {
 }): readonly FieldRemoval[] {
   return input.origin.collections.flatMap((originCollection) => {
     const destination = input.destination.collection(originCollection.name);
-    if (destination === undefined || originCollection.validator === undefined) return [];
+    if (destination?.validator === undefined || originCollection.validator === undefined) return [];
     const kept = new Set([
       ...propertyNames(destination.validator?.jsonSchema),
       ...branchPropertyNames(destination.validator?.jsonSchema),

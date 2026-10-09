@@ -356,7 +356,13 @@ function readSide(
   segments: StatementSide,
 ): Result<SideReading, Refusal> {
   if (segments.length === 1) return readModel(state, side, undefined, segments[0]);
-  if (segments.length === 3) return readField(state, side, ...segments);
+  if (segments.length === 3) {
+    const [first, second, third] = segments;
+    const qualified = readField(state, side, first, second, third);
+    if (qualified.ok) return qualified;
+    const dotted = readField(state, side, undefined, first, `${second}.${third}`);
+    return dotted.ok ? dotted : qualified;
+  }
   const [first, second] = segments;
   const asModel = readModel(state, side, first, second);
   const asField = readField(state, side, undefined, first, second);

@@ -145,12 +145,12 @@ function lossText(subject: MigrationSubject, text: string, originKnown: boolean)
     case 'storage':
       return originKnown
         ? `would lose the data in "${text}", which no model of the origin contract stores`
-        : `would lose the data in "${text}", named by its storage name because the origin contract is unknown; --delete loses its rows`;
+        : `would lose the data in "${text}", named by its storage name because the origin contract is unknown; --delete loses that data`;
   }
 }
 
 /**
- * How to keep the rows of a storage subject that was renamed, when the origin contract is unknown:
+ * How to keep the data of a storage subject that was renamed, when the origin contract is unknown:
  * store the snapshot of the contract the database is at, as `MIGRATION.STATEMENT_ORIGIN_UNKNOWN`
  * advises, then answer with a rename. The refusal gives it once, on its first storage question. The
  * engine does not put the CLI's name in a question's text, so the steps name `prisma`.
@@ -172,6 +172,11 @@ function sameCoordinate(statement: ResolvedMigrationStatement, subject: Migratio
 function namesSubject(verb: ConsentVerb, subject: string) {
   return (text: string): string | undefined =>
     text === subject ? undefined : `${verb} names "${subject}": --${verb} ${subject}.`;
+}
+
+function modelRenameAdvice(model: ModelCoordinate, contracts: StatementContracts): string {
+  const name = modelText(contracts.origin, model);
+  return `The destination contract has no model "${name}"; to keep the values instead, also pass --rename ${name}:<new model name>, naming the model that stores them now, and the question then offers to rename the field.`;
 }
 
 /** A rename as a statement is written: a field's new name keeps the model, `User.nickname:User.<new name>`. */
@@ -209,11 +214,29 @@ function inDestination(
 }
 
 /**
+ * The model of a field subject, under the name a rename of the plan gives it, when the destination
+ * has no model of that name: a rename of the field cannot be written until a statement renames the
+ * model.
+ */
+function missingFieldModel(
+  subject: MigrationSubject,
+  contracts: StatementContracts & { readonly destination: ContractWithDomain },
+): ModelCoordinate | undefined {
+  if (subject.kind !== 'field') return undefined;
+  const model = renamedModel(subject, contracts) ?? subject;
+  return contracts.destination.domain.namespaces[model.namespaceId]?.models[model.model] ===
+    undefined
+    ? model
+    : undefined;
+}
+
+/**
  * The question for one operation that would lose data. A model or field the destination no longer
  * has, and no rename of the plan renamed, may be renamed instead of deleted; a rename is resolved
  * against the two contracts after the plan's other renames, and its old name must be the subject.
  * A subject the destination keeps, such as a field whose type changes, and data no model stores,
- * can only be deleted.
+ * can only be deleted. A field whose model the destination names differently can be renamed only
+ * after a statement renames the model, so the question says to pass one.
  */
 export function dataLossQuestion(
   loss: PlannedSubject,
@@ -223,13 +246,18 @@ export function dataLossQuestion(
   },
 ): PlanQuestion {
   const subject = subjectText(loss.subject, contracts);
+  const missingModel = missingFieldModel(loss.subject, contracts);
   const renamable =
+    missingModel === undefined &&
     loss.subject.kind !== 'storage' &&
     !inDestination(loss.subject, contracts) &&
     !renamedByPlan(loss.subject, contracts);
   const deleteNames = namesSubject('delete', subject);
   return {
-    question: `${loss.label} ${lossText(loss.subject, subject, contracts.originKnown)}.`,
+    question: [
+      `${loss.label} ${lossText(loss.subject, subject, contracts.originKnown)}.`,
+      ...(missingModel === undefined ? [] : [modelRenameAdvice(missingModel, contracts)]),
+    ].join(' '),
     subject,
     verbs: renamable ? ['rename', 'delete'] : ['delete'],
     forms: renamable ? { rename: renameForm(loss.subject, subject) } : {},
