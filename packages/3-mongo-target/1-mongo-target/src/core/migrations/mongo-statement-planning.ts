@@ -101,6 +101,19 @@ function storedField(model: ContractModelBase | undefined, field: string): Store
   return isEmbedRelation(relation) ? { kind: 'embed' } : { kind: 'reference' };
 }
 
+/**
+ * The calls statements and removed fields add to a plan, with the schema the diff starts from:
+ * the origin with each renamed collection under its new name, so the diff does not drop and
+ * create it again.
+ */
+export interface StatementCalls {
+  readonly schema: MongoSchemaIR;
+  /** Run first. */
+  readonly collectionRenames: readonly RenameCollectionCall[];
+  /** Run after index drops and before index creates. */
+  readonly rewrites: readonly (RenameFieldCall | UnsetFieldCall)[];
+}
+
 export interface StatementPlan {
   /** The origin schema with each renamed collection under its new name, for the diff to compare. */
   readonly schema: MongoSchemaIR;

@@ -30,6 +30,7 @@ import {
   planFieldRemovals,
   planStatements,
   planValidatorFieldRemovals,
+  type StatementCalls,
 } from './mongo-statement-planning';
 import type { OpFactoryCall } from './op-factory-call';
 import {
@@ -188,19 +189,19 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
     readonly schema: unknown;
     readonly policy: MigrationOperationPolicy;
     readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'mongo', 'mongo'>>;
-    /** Collection renames, which run first; `schema` already has each collection under its new name. */
-    readonly collectionRenames?: readonly OpFactoryCall[];
-    /** Document rewrites, which run after index drops and before index creates. */
-    readonly rewrites?: readonly OpFactoryCall[];
+    /** What the statements and removed fields plan; its `schema` is diffed in place of `schema`. */
+    readonly statementCalls?: StatementCalls;
   }): PlanCallsResult {
     const contract = blindCast<
       MongoContract,
       'framework planner passes the Mongo contract selected for the mongo target'
     >(options.contract);
-    const originIR = blindCast<
-      MongoSchemaIR,
-      'framework planner passes the inspected Mongo schema IR selected for the mongo target'
-    >(options.schema);
+    const originIR =
+      options.statementCalls?.schema ??
+      blindCast<
+        MongoSchemaIR,
+        'framework planner passes the inspected Mongo schema IR selected for the mongo target'
+      >(options.schema);
     const destinationIR = contractToMongoSchemaIR(contract);
 
     const collCreates: OpFactoryCall[] = [];
@@ -301,10 +302,10 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
     }
 
     const allCalls = [
-      ...(options.collectionRenames ?? []),
+      ...(options.statementCalls?.collectionRenames ?? []),
       ...collCreates,
       ...drops,
-      ...(options.rewrites ?? []),
+      ...(options.statementCalls?.rewrites ?? []),
       ...creates,
       ...validatorOps,
       ...mutableOptionOps,
@@ -380,9 +381,11 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
           });
     const result = this.planCalls({
       ...options,
-      schema,
-      collectionRenames,
-      rewrites: [...fieldRenames, ...removals.map((removal) => removal.call)],
+      statementCalls: {
+        schema,
+        collectionRenames,
+        rewrites: [...fieldRenames, ...removals.map((removal) => removal.call)],
+      },
     });
     if (result.kind === 'failure') return result;
     const { calls } = result;
