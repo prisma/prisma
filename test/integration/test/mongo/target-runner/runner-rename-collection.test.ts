@@ -140,12 +140,12 @@ describe('MongoMigrationRunner - renameCollection', () => {
       const result = await runRename();
 
       expect(result.ok ? result.value.operationsExecuted : result.failure).toBe(1);
-      const [users] = await db.listCollections({ name: 'users' }).toArray();
+      const [users] = await db.listCollections({ name: 'users' }, { nameOnly: false }).toArray();
       const indexes = await db.collection('users').indexes();
       expect({
         names: await collectionNames(),
         emails: await emails('users'),
-        validator: users?.['options']?.validator,
+        validator: users && 'options' in users ? users.options?.['validator'] : undefined,
         emailIndex: indexes.find((i) => i.name === 'email_1'),
       }).toEqual({
         names: ['users'],
