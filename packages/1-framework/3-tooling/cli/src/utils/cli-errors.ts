@@ -29,6 +29,8 @@ import {
 import type { RefResolutionError } from '@internal/migration-tools/ref-resolution';
 import { ifDefined } from '@internal/utils/defined';
 import type { NextAction } from '@prisma/cli-engine/protocol';
+import { statementFlag } from '../control-api/statements/statement-flag';
+import type { StatementText } from '../control-api/statements/statement-text';
 import type { MigrateFailure } from '../control-api/types';
 import { chooseAction, runCommandAction } from './next-actions';
 
@@ -617,7 +619,7 @@ export function errorStatementDidNotResolveLoss(
   statement: WrittenStatement,
   subject: string,
 ): ActionableCliError {
-  const fix = `Answer the question about "${subject}" with --delete ${subject} if its data may be lost, or give a ${statement.verb} statement that keeps that data.`;
+  const fix = `Answer the question about "${subject}" with ${statementFlag({ verb: 'delete', text: subject })} if its data may be lost, or give a ${statement.verb} statement that keeps that data.`;
   return new ActionableCliError(
     'MIGRATION.STATEMENT_DID_NOT_RESOLVE_LOSS',
     `"--${statement.verb} ${statement.text}" does not keep the data of "${subject}"`,
@@ -630,17 +632,25 @@ export function errorStatementDidNotResolveLoss(
   );
 }
 
+const MIGRATION_PLAN_VERBS: readonly string[] = ['rename', 'delete', 'convert', 'backfill'];
+
 /**
  * `--convert` or `--backfill` statements were given to `db update`, which applies its plan
- * directly and so has no migration file whose slot the user could fill.
+ * directly and so has no migration file whose slot the user could fill. `statements` are every
+ * statement the user gave, in the order given: the `migration plan` command the error suggests
+ * carries each one that command accepts.
  */
 export function errorStatementNeedsMigrationFile(
-  statements: readonly WrittenStatement[],
+  statements: readonly StatementText[],
 ): ActionableCliError {
-  const written = statements.map(({ verb, text }) => `"--${verb} ${text}"`);
+  const refused = statements.filter(({ verb }) => verb === 'convert' || verb === 'backfill');
+  const written = refused.map(({ verb, text }) => `"--${verb} ${text}"`);
   const listed =
     written.length === 1 ? written[0] : `${written.slice(0, -1).join(', ')} and ${written.at(-1)}`;
-  const flags = statements.map(({ verb, text }) => `--${verb} ${text}`).join(' ');
+  const flags = statements
+    .filter(({ verb }) => MIGRATION_PLAN_VERBS.includes(verb))
+    .map(statementFlag)
+    .join(' ');
   return new ActionableCliError(
     'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
     `db update cannot carry out ${listed}`,
@@ -654,7 +664,7 @@ export function errorStatementNeedsMigrationFile(
         ),
         chooseAction('Or run db update without these statements'),
       ],
-      meta: { statements: statements.map(({ verb, text }) => ({ verb, text })) },
+      meta: { statements: refused.map(({ verb, text }) => ({ verb, text })) },
     },
   );
 }

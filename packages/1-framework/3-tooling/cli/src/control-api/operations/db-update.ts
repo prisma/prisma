@@ -63,11 +63,9 @@ export interface ExecuteDbUpdateOptions<TFamilyId extends string, TTargetId exte
 export async function executeDbUpdate<TFamilyId extends string, TTargetId extends string>(
   options: ExecuteDbUpdateOptions<TFamilyId, TTargetId>,
 ): Promise<DbUpdateResult> {
-  const needsMigrationFile = (options.statements ?? []).filter(
-    (statement) => statement.verb === 'convert' || statement.verb === 'backfill',
-  );
-  if (needsMigrationFile.length > 0) {
-    throw errorStatementNeedsMigrationFile(needsMigrationFile);
+  const statements = options.statements ?? [];
+  if (statements.some(({ verb }) => verb === 'convert' || verb === 'backfill')) {
+    throw errorStatementNeedsMigrationFile(statements);
   }
   return (await executeRun<TFamilyId, TTargetId>({
     driver: options.driver,

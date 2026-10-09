@@ -30,6 +30,7 @@ import {
   parseRenameStatement,
   type StatementSide,
 } from './parse-rename';
+import { statementFlag } from './statement-flag';
 import type { StatementText } from './statement-text';
 
 /**
@@ -74,6 +75,8 @@ interface Refusal {
   readonly fix: string;
   /** Set when a field's model has no origin counterpart: the model, as the destination names it. */
   readonly modelWithoutCounterpart?: string;
+  /** Set when the name is a value object's rather than a model's: the value object's name. */
+  readonly valueObject?: string;
 }
 
 type ModelLookup =
@@ -182,6 +185,7 @@ function valueObjectRefusal(name: string): Refusal {
   return {
     reason: `"${name}" is a value object, and value object renames are not supported in this release`,
     fix: VALUE_OBJECT_FIX,
+    valueObject: name,
   };
 }
 
@@ -741,11 +745,24 @@ function resolveFieldStatement(
   const { verb } = statement;
   const [namespaceId, modelName, field] =
     statement.field.length === 3 ? statement.field : [undefined, ...statement.field];
-  const leaveOut = `Leave out --${verb} ${statement.text}.`;
+  const flag = statementFlag(statement);
+  const leaveOut = `Leave out ${flag}.`;
   const refuse = (reason: string, fix: string = leaveOut) =>
     notOk(unresolved(statement, { reason, fix }));
   const destination = lookupModel(state.destination, namespaceId, modelName);
-  if (destination.kind !== 'found') return notOk(unresolved(statement, destination));
+  if (destination.kind !== 'found') {
+    if (destination.valueObject !== undefined) {
+      return refuse(
+        `"${destination.valueObject}" is a value object; a --${verb} statement names a field of a model`,
+      );
+    }
+    return refuse(
+      destination.reason,
+      destination.kind === 'missing'
+        ? `A --${verb} statement names a field as the destination contract names it, Model.field or namespace.Model.field. Names match exactly, including case.`
+        : destination.fix,
+    );
+  }
   const coordinate: FieldCoordinate = { ...destination.coordinate, field };
   const name = qualifiedField(coordinate);
   if (Object.hasOwn(destination.model.relations, field)) {
@@ -782,7 +799,7 @@ function resolveFieldStatement(
     return refuse(
       `the destination model "${model}" has no counterpart in the origin contract: the origin has no model "${model}" and no rename statement renames a model to it`,
       verb === 'convert'
-        ? `If the model was renamed, add --rename <old name>:${model}. A new model has no values to convert: ${leaveOut.toLowerCase()}`
+        ? `If the model was renamed, add --rename <old name>:${model}. A new model has no values to convert, so leave out ${flag}.`
         : `A new model has no existing rows to backfill. ${leaveOut}`,
     );
   }
@@ -795,7 +812,7 @@ function resolveFieldStatement(
       const model = statement.field.slice(0, -1).join('.');
       return refuse(
         `the origin model "${qualifiedModel(counterpart.coordinate)}" has no field "${field}" (fields: ${listed(fieldNames(counterpart.model))}), and no rename statement renames a field to it`,
-        `If the field was renamed, add --rename ${model}.<old name>:${model}.${field}. A new field has no values to convert: ${leaveOut.toLowerCase()}`,
+        `If the field was renamed, add --rename ${model}.<old name>:${model}.${field}. A new field has no values to convert, so leave out ${flag}.`,
       );
     }
     if (sameType(originField, destinationField)) {

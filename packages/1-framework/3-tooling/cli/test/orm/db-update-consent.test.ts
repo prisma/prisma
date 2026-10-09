@@ -298,7 +298,19 @@ describe('db update questions', () => {
 
   it('refuses --convert and --backfill before it plans anything, naming migration plan', async () => {
     const run = await harness().run(
-      ['db', 'update', '--convert', 'User.age', '--backfill', 'User.email', '--json'],
+      [
+        'db',
+        'update',
+        '--rename',
+        'User.years:User.age',
+        '--convert',
+        'User.age',
+        '--allow',
+        'User',
+        '--backfill',
+        'User.email',
+        '--json',
+      ],
       { cwd: projectDir },
     );
 
@@ -306,6 +318,13 @@ describe('db update questions', () => {
     expect(envelopeOf(run.json)).toMatchObject({
       error: {
         code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+        nextActions: [
+          expect.objectContaining({
+            command:
+              'prisma-test migration plan --rename User.years:User.age --convert User.age --backfill User.email',
+          }),
+          expect.anything(),
+        ],
         meta: {
           statements: [
             { verb: 'convert', text: 'User.age' },

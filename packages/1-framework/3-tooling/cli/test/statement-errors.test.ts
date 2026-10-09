@@ -70,28 +70,46 @@ describe('errorStatementOriginUnknown', () => {
 });
 
 describe('errorStatementNeedsMigrationFile', () => {
-  it('says db update has no migration file to fill, and names migration plan with the statements', () => {
+  function commandOf(error: ReturnType<typeof errorStatementNeedsMigrationFile>) {
+    return (error.toEnvelope().nextActions ?? []).flatMap((action) =>
+      'command' in action && typeof action.command === 'string' ? [action.command] : [],
+    );
+  }
+
+  it('names the refused statements, and gives migration plan every statement it accepts, in the order given', () => {
     const envelope = errorStatementNeedsMigrationFile([
-      { verb: 'convert', text: 'User.age' },
+      { verb: 'rename', text: 'User.age:User.years' },
+      { verb: 'allow', text: 'User' },
+      { verb: 'convert', text: 'User.years' },
+      { verb: 'delete', text: 'Legacy' },
       { verb: 'backfill', text: 'User.email' },
     ]).toEnvelope();
 
     expect(envelope).toMatchObject({
       code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
-      summary: 'db update cannot carry out "--convert User.age" and "--backfill User.email"',
+      summary: 'db update cannot carry out "--convert User.years" and "--backfill User.email"',
       why: expect.stringContaining('db update has no migration file to fill'),
-      nextActions: [
-        expect.objectContaining({
-          command: '{bin} migration plan --convert User.age --backfill User.email',
-        }),
-        expect.anything(),
-      ],
+      fix: expect.stringContaining(
+        'migration plan --rename User.age:User.years --convert User.years --delete Legacy --backfill User.email,',
+      ),
       meta: {
         statements: [
-          { verb: 'convert', text: 'User.age' },
+          { verb: 'convert', text: 'User.years' },
           { verb: 'backfill', text: 'User.email' },
         ],
       },
     });
+  });
+
+  it('quotes a value a shell would read', () => {
+    const error = errorStatementNeedsMigrationFile([
+      { verb: 'rename', text: "Old's:New" },
+      { verb: 'backfill', text: 'User.$(x)' },
+    ]);
+
+    expect(commandOf(error)).toEqual([
+      `{bin} migration plan --rename 'Old'\\''s:New' --backfill 'User.$(x)'`,
+    ]);
+    expect(error.toEnvelope().fix).toContain(`--backfill 'User.$(x)'`);
   });
 });

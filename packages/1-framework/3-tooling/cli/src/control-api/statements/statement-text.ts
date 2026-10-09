@@ -19,6 +19,18 @@ export function renameStatements(texts: readonly string[] | undefined): readonly
   return (texts ?? []).map((text) => ({ verb: 'rename', text }));
 }
 
+const STATEMENT_VERBS: readonly string[] = [
+  'rename',
+  'delete',
+  'allow',
+  'convert',
+  'backfill',
+] satisfies readonly StatementVerb[];
+
+export function isStatementVerb(verb: string): verb is StatementVerb {
+  return STATEMENT_VERBS.includes(verb);
+}
+
 export function isPlannedStatement(
   statement: StatementText,
 ): statement is StatementText & { readonly verb: PlannedStatementVerb } {

@@ -3,7 +3,11 @@ import {
   resolveStatements,
   type StatementOrigin,
 } from '../../../src/control-api/statements/resolve-statements';
-import type { StatementText } from '../../../src/control-api/statements/statement-text';
+import {
+  isStatementVerb,
+  type StatementText,
+} from '../../../src/control-api/statements/statement-text';
+import { errorStatementNeedsMigrationFile } from '../../../src/utils/cli-errors';
 import { contractOf, expectFailure, expectValue } from './statement-fixtures';
 
 const UNRESOLVED = 'MIGRATION.STATEMENT_UNRESOLVED';
@@ -124,6 +128,45 @@ describe('resolveStatements, convert statements', () => {
     );
   });
 
+  it('says to leave out the statement as the user wrote it', () => {
+    const from = contractOf({ app: { models: { User: { fields: ['id'] } } } });
+    const to = contractOf({
+      app: { models: { User: { fields: ['id', 'Years'], fieldTypes: { Years: int } } } },
+    });
+    const failure = expectFailure(resolve([convert('User.Years')], from, to), UNRESOLVED);
+    expect(failure.fix).toBe(
+      'If the field was renamed, add --rename User.<old name>:User.Years. A new field has no values to convert, so leave out --convert User.Years.',
+    );
+  });
+
+  it('gives a field statement its own advice when the model or namespace is unknown', () => {
+    const advice =
+      'A --convert statement names a field as the destination contract names it, Model.field or namespace.Model.field. Names match exactly, including case.';
+    const unknownModel = expectFailure(
+      resolve([convert('Ghost.x')]),
+      UNRESOLVED,
+      'The destination contract has no model "Ghost"',
+    );
+    const unknownNamespace = expectFailure(
+      resolve([convert('billing.User.years')]),
+      UNRESOLVED,
+      'The destination contract has no namespace "billing"',
+    );
+    expect([unknownModel.fix, unknownNamespace.fix]).toEqual([advice, advice]);
+  });
+
+  it('refuses a value object without speaking of renames', () => {
+    const withValueObject = contractOf({
+      app: { models: { User: { fields: ['id'] } }, valueObjects: { Address: ['city'] } },
+    });
+    const failure = expectFailure(
+      resolve([backfill('Address.city')], withValueObject, withValueObject),
+      UNRESOLVED,
+      '"Address" is a value object; a --backfill statement names a field of a model',
+    );
+    expect(`${failure.why} ${failure.fix}`).not.toMatch(/rename/i);
+  });
+
   it('refuses a model, a relation and a model the origin does not have', () => {
     expectFailure(resolve([convert('User')]), INVALID, 'Model.field or namespace.Model.field');
     expectFailure(resolve([convert('User.posts')]), UNRESOLVED, '"app.User.posts" is a relation');
@@ -196,5 +239,33 @@ describe('resolveStatements, backfill statements', () => {
       }),
       'MIGRATION.STATEMENT_ORIGIN_UNKNOWN',
     );
+  });
+});
+
+describe('the migration plan command the db update refusal prints', () => {
+  it('resolves, renames included', () => {
+    const from = contractOf({ app: { models: { User: { fields: ['age'] } } } });
+    const to = contractOf({
+      app: { models: { User: { fields: ['years'], fieldTypes: { years: int } } } },
+    });
+    const [command] = (
+      errorStatementNeedsMigrationFile([
+        rename('User.age:User.years'),
+        convert('User.years'),
+      ]).toEnvelope().nextActions ?? []
+    ).flatMap((action) =>
+      'command' in action && typeof action.command === 'string' ? [action.command] : [],
+    );
+    const words = (command ?? '').split(' ').slice(3);
+    const statements = words.flatMap((word, index) => {
+      const verb = word.slice(2);
+      const text = words[index + 1];
+      return word.startsWith('--') && isStatementVerb(verb) && text !== undefined
+        ? [{ verb, text }]
+        : [];
+    });
+
+    expect(statements).toEqual([rename('User.age:User.years'), convert('User.years')]);
+    expect(resolve(statements, from, to).ok).toBe(true);
   });
 });

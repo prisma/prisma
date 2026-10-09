@@ -19,6 +19,7 @@ import {
 } from '../../utils/cli-errors';
 import type { ConsentVerb } from './parse-consent';
 import { resolveStatements } from './resolve-statements';
+import { statementFlag } from './statement-flag';
 import { isPlannedStatement, type StatementText } from './statement-text';
 
 /** A verb a plan question accepts. */
@@ -321,7 +322,7 @@ export function dataLossQuestion(
       validate: (verb, text) => {
         if (verb !== 'convert') return deleteNames(text);
         if (text !== convert) {
-          return `convert names the field as the destination contract names it: --convert ${convert}.`;
+          return `convert names the field as the destination contract names it: ${statementFlag({ verb: 'convert', text: convert })}.`;
         }
         const resolved = resolvesWith({ verb: 'convert', text }, contracts);
         return resolved.ok ? undefined : resolved.failure;

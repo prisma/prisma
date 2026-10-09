@@ -24,7 +24,7 @@ import {
 } from '../../control-api/operations/ref-advancement';
 import { retryCommandFor } from '../../control-api/operations/ref-resolution';
 import { shellQuoted, statementFlag } from '../../control-api/statements/statement-flag';
-import type { StatementText } from '../../control-api/statements/statement-text';
+import { isStatementVerb, type StatementText } from '../../control-api/statements/statement-text';
 import type { AskedSubject, CreateControlClient, DbUpdateSuccess } from '../../control-api/types';
 import {
   CliStructuredError,
@@ -221,11 +221,14 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
     needs: { config: ormConfigSection },
     handler: async (args, ctx) => {
       const startedAt = Date.now();
+      const given = ctx.statements
+        .values()
+        .flatMap(({ verb, text }) => (isStatementVerb(verb) ? [{ verb, text }] : []));
       const needsMigrationFile = (['convert', 'backfill'] as const).flatMap((verb) =>
-        ctx.statements.take(verb).map(({ text }) => ({ verb, text })),
+        ctx.statements.take(verb),
       );
       if (needsMigrationFile.length > 0) {
-        return notOk(normalizeError(errorStatementNeedsMigrationFile(needsMigrationFile)));
+        return notOk(normalizeError(errorStatementNeedsMigrationFile(given)));
       }
       const renames = ctx.statements
         .take('rename')
