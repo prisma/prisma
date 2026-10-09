@@ -10,7 +10,7 @@ import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-cor
 import { col, lit } from '@internal/sql-relational-core/contract-free';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
-import type { AlterColumnTypeOptions } from '../src/core/migrations/op-factory-call';
+import { postgresDataTypes } from '../src/core/data-types';
 import type { AlterColumnTypeClass } from '../src/core/migrations/operations/columns';
 import type { DataTransformOptions } from '../src/core/migrations/operations/data-transform';
 import type { CreateIndexExtras } from '../src/core/migrations/operations/indexes';
@@ -158,7 +158,8 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
     readonly schema: string;
     readonly table: string;
     readonly column: string;
-    readonly options: AlterColumnTypeOptions;
+    readonly type: string;
+    readonly using?: string;
     readonly operationClass?: AlterColumnTypeClass;
   }): Promise<Op> {
     return this.alterColumnType(options);
@@ -345,11 +346,7 @@ const cases: ReadonlyArray<{
         schema: 'public',
         table: 'widget',
         column: 'name',
-        options: {
-          qualifiedTargetType: 'text',
-          formatTypeExpected: 'text',
-          rawTargetTypeForLabel: 'text',
-        },
+        type: 'text',
       }),
   },
   {
@@ -461,7 +458,9 @@ function fakeControlStack(): ControlStack<'sql', 'postgres'> {
   };
   const adapter = lowerer as unknown as SqlControlAdapter<'postgres'>;
   return {
-    adapter: { create: () => adapter },
+    target: { id: 'postgres' },
+    adapter: { id: 'postgres-test', create: () => adapter, dataTypes: postgresDataTypes },
+    extensions: [],
   } as unknown as ControlStack<'sql', 'postgres'>;
 }
 
@@ -549,28 +548,41 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     expect(typeof op.execute[0]?.sql).toBe('string');
   });
 
-  it('alterColumnType is destructive unless the migration says it is a widening', async () => {
+  it('alterColumnType takes plain options, and is destructive unless the migration says otherwise', async () => {
     const m = new ExposedMigration(fakeControlStack());
-    const options = {
-      qualifiedTargetType: 'int8',
-      formatTypeExpected: 'bigint',
-      rawTargetTypeForLabel: 'int8',
-    };
-    const lossy = await m.callAlterColumnType({
-      schema: 'public',
-      table: 'widget',
-      column: 'count',
-      options,
-    });
-    const widening = await m.callAlterColumnType({
-      schema: 'public',
-      table: 'widget',
-      column: 'count',
-      options,
-      operationClass: 'widening',
+    const where = { schema: 'public', table: 'widget', column: 'count', type: 'int8' };
+    const lossy = await m.callAlterColumnType(where);
+    const widening = await m.callAlterColumnType({ ...where, operationClass: 'widening' });
+    const converted = await m.callAlterColumnType({
+      ...where,
+      using: '"count"::int8',
+      operationClass: 'data',
     });
 
-    expect([lossy.operationClass, widening.operationClass]).toEqual(['destructive', 'widening']);
+    expect([lossy.operationClass, widening.operationClass, converted.operationClass]).toEqual([
+      'destructive',
+      'widening',
+      'data',
+    ]);
+    expect(converted.execute[0]?.sql).toBe(
+      'ALTER TABLE "public"."widget" ALTER COLUMN "count" TYPE int8 USING "count"::int8',
+    );
+    expect(converted.postcheck[0]?.description).toBe('verify column "count" has type "bigint"');
+  });
+
+  it('alterColumnType refuses a type the stack cannot read, naming the call', () => {
+    const m = new ExposedMigration(fakeControlStack());
+    expect(() =>
+      m.callAlterColumnType({ schema: 'public', table: 'widget', column: 'count', type: 'int9' }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
+        meta: {
+          type: 'int9',
+          where: 'alterColumnType({ schema: "public", table: "widget", column: "count" })',
+        },
+      }),
+    );
   });
 
   it('setNotNull lowers to a widening operation', async () => {

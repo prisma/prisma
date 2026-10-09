@@ -18,6 +18,7 @@ import { MigrationContractViews } from '@internal/migration-tools/migration';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { errorPostgresMigrationStackMissing } from '../errors';
 import { PostgresContractView } from '../postgres-contract-view';
 import { PostgresRlsPolicy, type RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
@@ -30,7 +31,6 @@ import {
   AddPrimaryKeyCall,
   AddUniqueCall,
   AlterColumnTypeCall,
-  type AlterColumnTypeOptions,
   CreateIndexCall,
   CreateNativeEnumTypeCall,
   CreatePostgresRlsPolicyCall,
@@ -59,6 +59,7 @@ import { type DataTransformOptions, dataTransform } from './operations/data-tran
 import { installExtension } from './operations/dependencies';
 import type { CreateIndexExtras } from './operations/indexes';
 import type { ForeignKeySpec } from './operations/shared';
+import { stackDataTypes } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 import { postgresContractToSchema } from './postgres-contract-to-schema';
 import { postgresSchemaTables } from './schema-tables';
@@ -510,16 +511,25 @@ export abstract class PostgresMigration<
     readonly schema: string;
     readonly table: string;
     readonly column: string;
-    readonly options: AlterColumnTypeOptions;
+    /** The new type as a migration writes it, such as `int4` or `varchar(20)`. */
+    readonly type: string;
+    /** The SQL that converts each value to the new type; by default a cast of the column. */
+    readonly using?: string;
     readonly operationClass?: AlterColumnTypeClass;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new AlterColumnTypeCall(
-      options.schema,
-      options.table,
-      options.column,
-      options.options,
-      options.operationClass,
-    ).toOp(this.controlAdapterFor('alterColumnType'));
+    const adapter = this.controlAdapterFor('alterColumnType');
+    return new AlterColumnTypeCall({
+      schemaName: options.schema,
+      tableName: options.table,
+      columnName: options.column,
+      type: options.type,
+      ...ifDefined(
+        'using',
+        options.using === undefined ? undefined : { kind: 'sql' as const, sql: options.using },
+      ),
+      dataTypes: stackDataTypes(this.frameworkComponents()),
+      ...ifDefined('operationClass', options.operationClass),
+    }).toOp(adapter);
   }
 
   protected setNotNull(options: {

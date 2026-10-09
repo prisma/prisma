@@ -8,9 +8,9 @@
  * - `nullableTighteningCallStrategy` (#3): an existing column flips from
  *   nullable to NOT NULL (no addColumn, no type change). The planner emits
  *   `DataTransformCall(placeholder slots) → setNotNull`.
- * - `typeChangeCallStrategy` (#2): a column's type changes (text → int4).
- *   The planner emits `DataTransformCall(placeholder slots) →
- *   alterColumnType`.
+ * - `typeChangeCallStrategy` (#2): a column's type changes (text → int4) and
+ *   `--convert` names it. The planner emits one `alterColumnType` classed
+ *   `data` whose `using` is a placeholder slot.
  *
  * Each scenario simulates the user editing the planner-emitted
  * `migration.ts` (string-patching the placeholder stubs and injecting a
@@ -26,6 +26,7 @@ import {
   injectMigrationSqlDbSetup,
   type JourneyContext,
   latestMigrationDirName,
+  parseJsonOutput,
   planMigrationAndSelfEmit,
   runContractEmit,
   runMigrate,
@@ -50,8 +51,6 @@ interface Scenario {
   readonly seedSql: string;
   readonly targetContract: ContractVariant;
   readonly migrationName: string;
-  /** The statements the plan needs, such as consent to a type change that can lose values. */
-  readonly statements?: readonly string[];
   readonly dirToken: string;
   readonly placeholderId: string;
   readonly assertScaffold: (scaffold: string) => void;
@@ -124,43 +123,6 @@ const scenarios: readonly Scenario[] = [
     expectedColumnInfo: [{ is_nullable: 'NO' }],
     assertReapplyNoop: false,
   },
-  {
-    strategy: 'typeChangeCallStrategy',
-    title: 'text → int4 type change: planner emits placeholder() stubs; apply alters column type',
-    // The user-filled queries here are intentionally no-ops (guarded by
-    // `id = -1`): the goal is the dataTransform → alterColumnType pipeline
-    // end-to-end, with the `USING score::int4` cast doing the conversion.
-    // A real "score is not castable" check against a text column through
-    // the int4-typed ORM surface isn't currently expressible without an
-    // escape hatch.
-    initialContract: 'contract-typechange-text',
-    seedSql: `INSERT INTO "public"."user" (id, email, score) VALUES (1, 'alice@example.com', '10'), (2, 'bob@test.org', '20')`,
-    targetContract: 'contract-typechange-int',
-    migrationName: 'retype-score-to-int',
-    statements: ['--delete', 'User.score'],
-    dirToken: 'retype_score_to_int',
-    placeholderId: 'typechange-user-score',
-    assertScaffold: (scaffold) => {
-      expect(scaffold).toContain('alterColumnType');
-    },
-    checkReplacement:
-      "() => db.public.user.select('id').where((f, fns) => fns.eq(f.id, -1)).limit(1)",
-    runReplacement: '() => db.public.user.update({ score: 0 }).where((f, fns) => fns.eq(f.id, -1))',
-    assertOps: (ops) => {
-      const alterOp = ops.find((op) => op.id.startsWith('alterType.user.score'));
-      expect(alterOp, 'alterColumnType op exists').toBeDefined();
-      expect(alterOp?.operationClass).toBe('destructive');
-    },
-    postApplySelect: `SELECT id, email, score FROM "public"."user" ORDER BY id`,
-    expectedRows: [
-      { id: 1, email: 'alice@example.com', score: 10 },
-      { id: 2, email: 'bob@test.org', score: 20 },
-    ],
-    columnInfoSql: `SELECT data_type FROM information_schema.columns
-       WHERE table_schema = 'public' AND table_name = 'user' AND column_name = 'score'`,
-    expectedColumnInfo: [{ data_type: 'integer' }],
-    assertReapplyNoop: false,
-  },
 ];
 
 withTempDir(({ createTempDir }) => {
@@ -197,7 +159,6 @@ withTempDir(({ createTempDir }) => {
           scenario.migrationName,
           '--from',
           latestMigrationDirName(ctx),
-          ...(scenario.statements ?? []),
         ]);
         expect(planResult.exitCode, `plan: ${planResult.stderr}`).toBe(0);
 
@@ -286,6 +247,99 @@ withTempDir(({ createTempDir }) => {
           expect(reapply.exitCode, `reapply: ${reapply.stdout}\n${reapply.stderr}`).toBe(0);
           expect(reapply.stderr).toContain('Already up to date');
         }
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('Journey: --convert — typeChangeCallStrategy (planner-assisted)', () => {
+    const db = useDevDatabase();
+
+    it(
+      'text → int4 with --convert: the alter has a USING slot; filled, it converts the values',
+      async () => {
+        const ctx: JourneyContext = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+        });
+        swapContract(ctx, 'contract-typechange-text');
+        expect((await runContractEmit(ctx)).exitCode, 'emit base').toBe(0);
+        const plan0 = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
+        expect(plan0.exitCode, `plan initial: ${plan0.stderr}`).toBe(0);
+        expect((await runMigrate(ctx)).exitCode, 'apply initial').toBe(0);
+        await sql(
+          db.connectionString,
+          `INSERT INTO "public"."user" (id, email, score) VALUES (1, 'alice@example.com', '10'), (2, 'bob@test.org', ' 20')`,
+        );
+
+        swapContract(ctx, 'contract-typechange-int');
+        expect((await runContractEmit(ctx)).exitCode, 'emit target').toBe(0);
+        const from = ['--name', 'retype-score-to-int', '--from', latestMigrationDirName(ctx)];
+
+        const unanswered = await runMigrationPlan(ctx, [...from, '--json']);
+        expect(unanswered.exitCode, 'a type change with no statement is a question').toBe(2);
+        expect(JSON.stringify(parseJsonOutput(unanswered))).toContain('--convert User.score');
+
+        const planResult = await runMigrationPlan(ctx, [
+          ...from,
+          '--convert',
+          'User.score',
+          '--json',
+        ]);
+        expect(planResult.exitCode, `plan: ${planResult.stderr}`).toBe(0);
+        expect(parseJsonOutput(planResult)).toMatchObject({
+          pendingPlaceholders: true,
+          appliedStatements: [{ verb: 'convert', description: 'convert field "User.score"' }],
+        });
+
+        const migrationsDir = join(ctx.testDir, 'migrations', 'app');
+        const [dirName] = readdirSync(migrationsDir).filter((d) =>
+          d.includes('retype_score_to_int'),
+        );
+        expect(dirName, 'planned migration dir exists').toBeDefined();
+        const migrationDir = join(migrationsDir, dirName ?? '');
+        const migrationTsPath = join(migrationDir, 'migration.ts');
+        const scaffold = readFileSync(migrationTsPath, 'utf-8');
+        const slot = /placeholder\((['"])User\.score:using\1\)/;
+        expect(scaffold).toMatch(slot);
+        expect(scaffold).not.toContain('dataTransform');
+        expect(JSON.parse(readFileSync(join(migrationDir, 'ops.json'), 'utf-8'))).toEqual([]);
+
+        writeFileSync(migrationTsPath, scaffold.replace(slot, `'trim("score")::integer'`));
+        const emitResult = await selfEmitMigration(ctx, [
+          '--dir',
+          migrationDir,
+          '--config',
+          ctx.configPath,
+        ]);
+        expect(emitResult.exitCode, `emit: ${emitResult.stdout}\n${emitResult.stderr}`).toBe(0);
+        const ops = JSON.parse(readFileSync(join(migrationDir, 'ops.json'), 'utf-8')) as readonly {
+          id: string;
+          operationClass: string;
+          execute: readonly { sql: string }[];
+        }[];
+        const alter = ops.find((op) => op.id === 'alterType.user.score');
+        expect(alter?.operationClass).toBe('data');
+        expect(alter?.execute[0]?.sql).toBe(
+          'ALTER TABLE "public"."user" ALTER COLUMN "score" TYPE int4 USING trim("score")::integer',
+        );
+
+        const apply1 = await runMigrate(ctx);
+        expect(apply1.exitCode, `apply: ${apply1.stdout}\n${apply1.stderr}`).toBe(0);
+        const rows = await sql(
+          db.connectionString,
+          `SELECT id, score FROM "public"."user" ORDER BY id`,
+        );
+        expect(rows.rows).toEqual([
+          { id: 1, score: 10 },
+          { id: 2, score: 20 },
+        ]);
+        const column = await sql(
+          db.connectionString,
+          `SELECT data_type FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = 'user' AND column_name = 'score'`,
+        );
+        expect(column.rows).toEqual([{ data_type: 'integer' }]);
       },
       timeouts.spinUpPpgDev,
     );

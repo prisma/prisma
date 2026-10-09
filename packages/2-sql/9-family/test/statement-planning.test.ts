@@ -69,10 +69,27 @@ describe('fieldStatementColumns', () => {
         destination,
       ),
     ).toEqual({
-      convert: [{ namespaceId: 'app', table: 'user', column: 'age_years' }],
+      convert: [
+        {
+          namespaceId: 'app',
+          table: 'user',
+          column: 'age_years',
+          field: convertField('User', 'years').field,
+        },
+      ],
       backfill: [
-        { namespaceId: 'app', table: 'user', column: 'email' },
-        { namespaceId: 'billing', table: 'ledger', column: 'total' },
+        {
+          namespaceId: 'app',
+          table: 'user',
+          column: 'email',
+          field: backfillField('User', 'email').field,
+        },
+        {
+          namespaceId: 'billing',
+          table: 'ledger',
+          column: 'total',
+          field: backfillField('Ledger', 'total', 'billing').field,
+        },
       ],
     });
   });

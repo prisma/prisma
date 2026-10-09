@@ -328,7 +328,6 @@ describe('Postgres planner, data loss', () => {
       'Rename primary key "User_pkey" to "Account_pkey" on "Account"',
       expect.stringMatching(/^Rename index "User_handle_idx_\w+" to "Account_handle_idx_\w+"/),
       'Drop column "nickname" from "Account"',
-      'placeholder',
       'Alter type of "Account"."age" to int4',
     ]);
     expect(result.dataLoss).toEqual([
@@ -500,6 +499,56 @@ describe('Postgres planner, convert and backfill statements', () => {
     expect(planWith(from, to, [rename, convert]).appliedStatements).toEqual([
       { statement: rename, operationIndexes: [0] },
       { statement: convert, operationIndexes: [] },
+    ]);
+  });
+
+  const convertAge: ResolvedMigrationStatement = {
+    kind: 'convert',
+    entity: 'field',
+    field: user('age'),
+  };
+
+  async function settled(result: ReturnType<typeof planWith>) {
+    return (await Promise.allSettled(result.plan.operations)).map((entry) =>
+      entry.status === 'fulfilled'
+        ? `${entry.value.label} (${entry.value.operationClass})`
+        : `placeholder: ${String(entry.reason.code)}`,
+    );
+  }
+
+  it('plans the direct destructive alter for a lossy type change no statement names', async () => {
+    const from = contract('from', { User: { columns: { id: 'int4', age: 'text' } } });
+    const to = contract('to', { User: { columns: { id: 'int4', age: 'int4' } } });
+    const result = planWith(from, to, []);
+
+    expect(await settled(result)).toEqual(['Alter type of "User"."age" to int4 (destructive)']);
+    expect(result.dataLoss.map(({ loss }) => loss)).toEqual(['typeChange']);
+  });
+
+  it('plans one data alter whose USING clause is a slot for a convert, losing nothing', async () => {
+    const from = contract('b'.repeat(64), { User: { columns: { id: 'int4', age: 'text?' } } });
+    const to = contract('c'.repeat(64), { User: { columns: { id: 'int4', age: 'int4' } } });
+    const result = planWith(from, to, [convertAge]);
+
+    expect(await settled(result)).toEqual([
+      'placeholder: MIGRATION.UNFILLED_PLACEHOLDER',
+      'Set NOT NULL on "User"."age" (widening)',
+    ]);
+    expect(result.dataLoss).toEqual([]);
+    const rendered = result.plan.renderTypeScript((specifier) => specifier);
+    expect(rendered).toContain(
+      'this.alterColumnType({ schema: "public", table: "User", column: "age", type: "int4", using: placeholder("User.age:using"), operationClass: "data" })',
+    );
+    expect(rendered).not.toContain('dataTransform');
+    expect(rendered).toMatch(/import \{[^}]*placeholder[^}]*\}/);
+  });
+
+  it('leaves a safe widening to the widening alter, whatever a convert says', async () => {
+    const from = contract('from', { User: { columns: { id: 'int4', age: 'int4' } } });
+    const to = contract('to', { User: { columns: { id: 'int4', age: 'int8' } } });
+
+    expect(await settled(planWith(from, to, [convertAge]))).toEqual([
+      'Alter type of "User"."age" to int8 (widening)',
     ]);
   });
 });

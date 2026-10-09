@@ -2,8 +2,8 @@ import postgresAdapterControl, {
   createPostgresBuiltinCodecLookup,
   PostgresControlAdapter,
 } from '@internal/adapter-postgres/control';
-import { type Contract, coreHash, profileHash } from '@internal/contract/types';
-import { sqlTypeLookupsOf } from '@internal/family-sql/control';
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { type FieldStatementColumns, sqlTypeLookupsOf } from '@internal/family-sql/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   SqlStorage,
@@ -82,6 +82,7 @@ function planAgainst(
   options: {
     readonly fromContract?: Contract<SqlStorage> | null;
     readonly strategies?: readonly [];
+    readonly statementColumns?: FieldStatementColumns;
   } = {},
 ) {
   const { issues } = buildPostgresPlanDiff({
@@ -98,7 +99,11 @@ function planAgainst(
     codecHooks: new Map(),
     types: sqlTypeLookupsOf(frameworkComponents),
     storageTypes: contract.storage.types ?? {},
+    frameworkComponents,
     ...(options.strategies !== undefined ? { strategies: options.strategies } : {}),
+    ...(options.statementColumns !== undefined
+      ? { statementColumns: options.statementColumns }
+      : {}),
   });
 }
 
@@ -350,7 +355,7 @@ describe('planIssues', () => {
       });
     });
 
-    it('emits DataTransformCall + AlterColumnTypeCall for unsafe change', () => {
+    it('emits one destructive AlterColumnTypeCall for an unsafe change no statement names, and a data one with a USING slot for a converted one', () => {
       const toContract = makeContract({
         entries: {
           table: {
@@ -368,19 +373,40 @@ describe('planIssues', () => {
         },
       });
 
-      const result = planAgainst(toContract, actualWithAge('int4', 'pg/int4@1'), {
+      const plain = planAgainst(toContract, actualWithAge('int4', 'pg/int4@1'), {
         fromContract: toContract,
       });
-
-      expect(result.ok).toBe(true);
-      if (!result.ok) throw new Error('expected ok');
-      const calls = result.value.calls;
-      expect(calls).toHaveLength(2);
-      expect(calls[0]).toMatchObject({ factoryName: 'dataTransform' });
-      expect(calls[1]).toMatchObject({
-        factoryName: 'alterColumnType',
-        operationClass: 'destructive',
+      const converted = planAgainst(toContract, actualWithAge('int4', 'pg/int4@1'), {
+        fromContract: toContract,
+        statementColumns: {
+          convert: [
+            {
+              namespaceId: UNBOUND_NAMESPACE_ID,
+              table: 'user',
+              column: 'age',
+              field: {
+                namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
+                model: 'User',
+                field: 'age',
+              },
+            },
+          ],
+          backfill: [],
+        },
       });
+
+      expect([plain.ok, converted.ok]).toEqual([true, true]);
+      if (!plain.ok || !converted.ok) throw new Error('expected ok');
+      expect(plain.value.calls).toEqual([
+        expect.objectContaining({ factoryName: 'alterColumnType', operationClass: 'destructive' }),
+      ]);
+      expect(converted.value.calls).toEqual([
+        expect.objectContaining({
+          factoryName: 'alterColumnType',
+          operationClass: 'data',
+          using: { kind: 'placeholder', slot: 'User.age:using' },
+        }),
+      ]);
     });
   });
 

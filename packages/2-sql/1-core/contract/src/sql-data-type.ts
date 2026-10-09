@@ -527,18 +527,44 @@ export function resolveReportedSqlType(
   for (const type of sqlTypes) {
     for (const candidate of type.sql.texts) {
       if (!claims(candidate)) continue;
-      const match = patternOf(candidate.text).exec(text);
-      if (match === null) continue;
-      const params = Object.fromEntries(
-        placeholdersOf(candidate.text).map((name, index) => [
-          name,
-          Number.parseInt(match[index + 1] ?? '', 10),
-        ]),
-      );
-      return resolvedWith(type, params);
+      const params = paramsMatching(candidate, text);
+      if (params !== undefined) return resolvedWith(type, params);
     }
   }
   return undefined;
+}
+
+function paramsMatching(candidate: SqlTypeText, text: string): SqlTypeParams | undefined {
+  const match = patternOf(candidate.text).exec(text);
+  if (match === null) return undefined;
+  return Object.fromEntries(
+    placeholdersOf(candidate.text).map((name, index) => [
+      name,
+      Number.parseInt(match[index + 1] ?? '', 10),
+    ]),
+  );
+}
+
+/**
+ * Every data type in `dataTypes` that reads `text` as a migration may write it, with its parameters
+ * in normal form: any of a type's texts counts, whether written, printed by the catalog or only
+ * claimed. Empty when no type reads it or its parameters fail the type's schema. A type that claims
+ * a kind has no texts, so it never reads one.
+ */
+export function resolveWrittenSqlTypes(
+  text: string,
+  dataTypes: readonly DataType[],
+): readonly ResolvedSqlType[] {
+  const prepared = prepareReportedText(text);
+  return dataTypes.filter(isSqlDataType).flatMap((type) => {
+    for (const candidate of type.sql.texts) {
+      const params = paramsMatching(candidate, prepared);
+      if (params === undefined) continue;
+      const resolved = resolvedWith(type, params);
+      if (resolved !== undefined) return [resolved];
+    }
+    return [];
+  });
 }
 
 function resolvedWith(type: SqlDataType, params: SqlTypeParams): ResolvedSqlType | undefined {

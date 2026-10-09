@@ -13,6 +13,7 @@ import {
   rlsPolicyExistsAst,
   tableExistsAst,
 } from '../../src/contract-free/checks';
+import { postgresDataTypes } from '../../src/core/data-types';
 import {
   PostgresAlterIndexRename,
   PostgresCreateIndex,
@@ -190,22 +191,28 @@ describe('DropColumnCall', () => {
 });
 
 describe('AlterColumnTypeCall', () => {
-  const options = {
-    qualifiedTargetType: 'bigint',
-    formatTypeExpected: 'bigint',
-    rawTargetTypeForLabel: 'bigint',
-  };
+  const alter = (
+    overrides: Partial<ConstructorParameters<typeof AlterColumnTypeCall>[0]> = {},
+  ): AlterColumnTypeCall =>
+    new AlterColumnTypeCall({
+      schemaName: 'public',
+      tableName: 'user',
+      columnName: 'age',
+      type: 'int8',
+      dataTypes: postgresDataTypes,
+      ...overrides,
+    });
 
   it('lowers typed checks and alters the column type with an implicit cast USING clause', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const call = new AlterColumnTypeCall('public', 'user', 'age', options);
+    const call = alter();
     const op = await call.toOp(lowerer);
 
     expect(received).toHaveLength(3);
     expect(op.execute).toEqual([
       {
         description: 'alter type of "age"',
-        sql: 'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE bigint USING "age"::bigint',
+        sql: 'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING "age"::int8',
       },
     ]);
     expect(op.precheck).toEqual([
@@ -219,62 +226,84 @@ describe('AlterColumnTypeCall', () => {
       },
     ]);
     expect(op.meta).toEqual({ warning: 'TABLE_REWRITE' });
-    expect(call.label).toBe('Alter type of "user"."age" to bigint');
+    expect(call.label).toBe('Alter type of "user"."age" to int8');
   });
 
-  it('is destructive unless the planner says the type change is a safe widening', async () => {
+  it('is destructive unless the planner says the type change is a safe widening or a conversion', async () => {
     const { lowerer } = recordingCheckLowerer();
-    const call = new AlterColumnTypeCall('public', 'user', 'age', options);
-    const op = await call.toOp(lowerer);
-    expect([call.operationClass, op.operationClass]).toEqual(['destructive', 'destructive']);
-  });
-
-  it('is widening when constructed as a safe widening, and renders the class', async () => {
-    const { lowerer } = recordingCheckLowerer();
-    const call = new AlterColumnTypeCall('public', 'user', 'age', options, 'widening');
-    const op = await call.toOp(lowerer);
-    expect([call.operationClass, op.operationClass]).toEqual(['widening', 'widening']);
-    expect(call.renderTypeScript()).toContain('operationClass: "widening"');
-  });
-
-  it('uses an explicit USING clause when provided', async () => {
-    const { lowerer } = recordingCheckLowerer();
-    const call = new AlterColumnTypeCall('public', 'user', 'age', {
-      ...options,
-      using: 'age::bigint * 2',
-    });
-    const op = await call.toOp(lowerer);
-    expect(op.execute[0]?.sql).toBe(
-      'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE bigint USING age::bigint * 2',
+    const classes = await Promise.all(
+      [
+        alter(),
+        alter({ operationClass: 'widening' }),
+        alter({ operationClass: 'data', using: { kind: 'sql', sql: '"age"::int8' } }),
+      ].map(async (call) => [call.operationClass, (await call.toOp(lowerer)).operationClass]),
     );
+    expect(classes).toEqual([
+      ['destructive', 'destructive'],
+      ['widening', 'widening'],
+      ['data', 'data'],
+    ]);
   });
 
-  it('ends a USING clause containing a line comment with a line break', async () => {
+  it('uses an explicit USING clause when provided, ending a line comment with a line break', async () => {
     const { lowerer } = recordingCheckLowerer();
-    const call = new AlterColumnTypeCall('public', 'user', 'age', {
-      ...options,
-      using: 'age::bigint -- widen',
+    const sqlOf = async (sql: string) =>
+      (await alter({ using: { kind: 'sql', sql } }).toOp(lowerer)).execute[0]?.sql;
+    expect([await sqlOf('age::int8 * 2'), await sqlOf('age::int8 -- widen')]).toEqual([
+      'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING age::int8 * 2',
+      'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING age::int8 -- widen\n',
+    ]);
+  });
+
+  it('is an unfilled placeholder while its USING slot is unfilled', async () => {
+    const { lowerer } = recordingCheckLowerer();
+    const call = alter({
+      operationClass: 'data',
+      using: { kind: 'placeholder', slot: 'User.age:using' },
     });
-    const op = await call.toOp(lowerer);
-    expect(op.execute[0]?.sql).toBe(
-      'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE bigint USING age::bigint -- widen\n',
+    await expect(call.toOp(lowerer)).rejects.toMatchObject({
+      code: 'MIGRATION.UNFILLED_PLACEHOLDER',
+    });
+  });
+
+  it('refuses a type no data type of the stack reads, naming the call', () => {
+    expect(() => alter({ type: 'int9' })).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
+        meta: {
+          type: 'int9',
+          where: 'alterColumnType({ schema: "public", table: "user", column: "age" })',
+        },
+      }),
     );
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
-    const call = new AlterColumnTypeCall('public', 'user', 'age', options);
-    await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
+    await expect(async () => alter().toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 
-  it('renders this.alterColumnType with the schema/table/column and options fields', () => {
-    const call = new AlterColumnTypeCall('public', 'user', 'age', options);
-    const ts = call.renderTypeScript();
-    expect(ts).toContain('this.alterColumnType({ schema: "public", table: "user", column: "age"');
-    expect(ts).toContain('qualifiedTargetType: "bigint"');
-    expect(ts).toContain('formatTypeExpected: "bigint"');
-    expect(ts).toContain('rawTargetTypeForLabel: "bigint"');
-    expect(ts).not.toContain('operationClass');
-    expect(call.importRequirements()).toEqual([]);
+  it('renders this.alterColumnType with plain options, and the class when it is not destructive', () => {
+    expect([
+      alter().renderTypeScript(),
+      alter({ operationClass: 'widening' }).renderTypeScript(),
+      alter({ using: { kind: 'sql', sql: '"age"::int8' } }).renderTypeScript(),
+    ]).toEqual([
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8" })',
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", operationClass: "widening" })',
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: "\\"age\\"::int8" })',
+    ]);
+    expect(alter().importRequirements()).toEqual([]);
+  });
+
+  it('renders an unfilled USING slot as a placeholder call, and imports placeholder', () => {
+    const call = alter({
+      operationClass: 'data',
+      using: { kind: 'placeholder', slot: 'User.age:using' },
+    });
+    expect(call.renderTypeScript()).toBe(
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: placeholder("User.age:using"), operationClass: "data" })',
+    );
+    expect(call.importRequirements()).toEqual([expect.objectContaining({ symbol: 'placeholder' })]);
   });
 });
 

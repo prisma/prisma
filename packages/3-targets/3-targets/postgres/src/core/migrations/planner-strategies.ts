@@ -33,9 +33,10 @@ import type {
   MigrationOperationPolicy,
   SqlMigrationPlanOperation,
 } from '@internal/family-sql/control';
+import type { DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
-import type { SchemaDiffIssue } from '@internal/framework-components/control';
-import { issueOutcome } from '@internal/framework-components/control';
+import type { FieldCoordinate, SchemaDiffIssue } from '@internal/framework-components/control';
+import { issueOutcome, modelDisplayName } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlStorage, StorageTable, StorageTypeInstance } from '@internal/sql-contract/types';
@@ -144,6 +145,8 @@ export interface StrategyContext {
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
   /** The columns of the fields `--convert` and `--backfill` statements name. */
   readonly statementColumns: FieldStatementColumns;
+  /** The data types of the stack, which read a type as a migration writes it. */
+  readonly dataTypes: readonly DataType[];
 }
 
 // ============================================================================
@@ -239,22 +242,24 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
 };
 
 /**
- * Handles `not-equal` column issues whose TYPE differs, for a plan that has an
- * origin contract and may include `data` operations: `migration plan`. Under
- * `db update` or `db init`, whose policies leave out `data`, it never fires,
- * whether or not an origin contract is known: it could only plan the in-place
- * ALTER that `mapNodeIssueToCall` plans, so leaving that to the mapper keeps
- * the plan, and its order, the same either way.
+ * Handles a `not-equal` column issue whose type differs, for a field a `--convert` statement names,
+ * in a plan that may include `data` operations: `migration plan`. The alter is classed `data` and
+ * its USING clause is a slot the user fills with the conversion. A known-safe widening needs no
+ * conversion and is left to `mapNodeIssueToCall`, as is every type change no statement names: a
+ * direct alter, `widening` or `destructive`, which the plan asks about.
  *
- * A single node issue can carry BOTH type and nullability drift (Postgres
- * alters in place, so the differ emits one `not-equal` column issue where
- * the legacy coordinate walk emitted two: `type_mismatch` +
- * `nullability_mismatch`). When this strategy consumes the issue for its
- * type portion, it also emits whatever nullability delta the same node pair
- * carries — using the same construction `nullableTighteningCallStrategy` /
- * the mapper's direct dispatch would have used — so the issue is never
- * partially handled.
+ * One node issue can carry both type and nullability drift, so the strategy also emits the
+ * nullability change: `SET NOT NULL` after the alter, whose conversion can map NULL to a value.
  */
+/** A field as a statement names it: with its namespace only when the contract has several. */
+function fieldStatementText(ctx: StrategyContext, field: FieldCoordinate): string {
+  const model =
+    Object.keys(ctx.toContract.domain.namespaces).length > 1
+      ? modelDisplayName(field)
+      : field.model;
+  return `${model}.${field.field}`;
+}
+
 export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
   if (ctx.fromContract === null || !ctx.policy.allowedOperationClasses.includes('data')) {
     return { kind: 'no_match' };
@@ -269,51 +274,45 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
     if (pair === undefined) continue;
     const { expected, actual } = pair;
     if (!columnTypeChangedNativeOnly(expected, actual)) continue;
-
-    const fromType = columnDataType(actual, ctx.types);
-    const toType = columnDataType(expected, ctx.types);
-    const isSafeWidening = isSafeTypeWidening(fromType, toType);
-
     const ddlSchemaName = issueSchemaName(issue);
     const tableName = issueTableName(issue);
     if (ddlSchemaName === undefined || tableName === undefined) continue;
-    const schemaName = emissionSchemaName(ctx, ddlSchemaName);
-
-    matched.push(issue);
-    const { qualifiedTargetType, formatTypeExpected } = renderColumnAlterType(expected, ctx.types);
-    const alterOpts = {
-      qualifiedTargetType,
-      formatTypeExpected,
-      rawTargetTypeForLabel: qualifiedTargetType,
-    };
-    if (isSafeWidening) {
-      calls.push(
-        new AlterColumnTypeCall(schemaName, tableName, expected.name, alterOpts, 'widening'),
-      );
-    } else {
-      calls.push(
-        new DataTransformCall(
-          `typechange-${tableName}-${expected.name}`,
-          `typechange-${tableName}-${expected.name}:check`,
-          `typechange-${tableName}-${expected.name}:run`,
-        ),
-        new AlterColumnTypeCall(schemaName, tableName, expected.name, alterOpts),
-      );
+    const namespaceId = namespaceIdForDdlSchema(ctx, ddlSchemaName);
+    const converted = ctx.statementColumns.convert.find(
+      (column) =>
+        column.namespaceId === namespaceId &&
+        column.table === tableName &&
+        column.column === expected.name,
+    );
+    if (converted === undefined) continue;
+    if (
+      isSafeTypeWidening(columnDataType(actual, ctx.types), columnDataType(expected, ctx.types))
+    ) {
+      continue;
     }
 
+    const schemaName = emissionSchemaName(ctx, ddlSchemaName);
+    matched.push(issue);
+    calls.push(
+      new AlterColumnTypeCall({
+        schemaName,
+        tableName,
+        columnName: expected.name,
+        type: renderColumnAlterType(expected, ctx.types),
+        using: {
+          kind: 'placeholder',
+          slot: `${fieldStatementText(ctx, converted.field)}:using`,
+        },
+        dataTypes: ctx.dataTypes,
+        operationClass: 'data',
+      }),
+    );
     if (expected.nullable !== actual.nullable) {
-      if (expected.nullable) {
-        calls.push(new DropNotNullCall(schemaName, tableName, expected.name));
-      } else {
-        calls.push(
-          new DataTransformCall(
-            `handle-nulls-${tableName}-${expected.name}`,
-            `handle-nulls-${tableName}-${expected.name}:check`,
-            `handle-nulls-${tableName}-${expected.name}:run`,
-          ),
-          new SetNotNullCall(schemaName, tableName, expected.name),
-        );
-      }
+      calls.push(
+        expected.nullable
+          ? new DropNotNullCall(schemaName, tableName, expected.name)
+          : new SetNotNullCall(schemaName, tableName, expected.name),
+      );
     }
   }
 

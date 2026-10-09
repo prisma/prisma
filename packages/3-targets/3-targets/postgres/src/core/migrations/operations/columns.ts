@@ -112,25 +112,23 @@ export async function renameColumn(
   };
 }
 
-/** A type change is `widening` when every value of the old type converts to the new type unchanged. */
-export type AlterColumnTypeClass = 'widening' | 'destructive';
+/**
+ * A type change is `widening` when every value of the old type converts to the new type unchanged,
+ * and `data` when the user writes the conversion in its USING clause.
+ */
+export type AlterColumnTypeClass = 'widening' | 'destructive' | 'data';
 
 /**
- * `qualifiedTargetType` is the new column type as it appears in the
- * `ALTER COLUMN TYPE` clause (schema-qualified for user-defined types, raw
- * native name for built-ins). `formatTypeExpected` is the unqualified
- * `format_type` form used in the postcheck. `rawTargetTypeForLabel` is the
- * string appearing in the human-readable label (typically `toType` when
- * explicit, else the column's native type).
+ * `type` is the new column type as a migration writes it, into the `ALTER COLUMN TYPE` clause.
+ * `checkType` is the type `format_type` prints for it, which the postcheck compares.
  */
 export async function alterColumnType(
   schemaName: string,
   tableName: string,
   columnName: string,
   options: {
-    readonly qualifiedTargetType: string;
-    readonly formatTypeExpected: string;
-    readonly rawTargetTypeForLabel: string;
+    readonly type: string;
+    readonly checkType: string;
     readonly using?: string;
   },
   lowerer: ExecuteRequestLowerer,
@@ -139,7 +137,7 @@ export async function alterColumnType(
   const qualified = qualifyTableName(schemaName, tableName);
   const usingClause = options.using
     ? ` USING ${renderOpaqueSql(opaqueSql(options.using))}`
-    : ` USING ${quoteIdentifier(columnName)}::${options.qualifiedTargetType}`;
+    : ` USING ${quoteIdentifier(columnName)}::${options.type}`;
   const { present } = await columnExistsSteps(lowerer, {
     schema: schemaName,
     table: tableName,
@@ -150,24 +148,24 @@ export async function alterColumnType(
       schema: schemaName,
       table: tableName,
       column: columnName,
-      expectedType: options.formatTypeExpected,
+      expectedType: options.checkType,
     }),
   );
   return {
     id: `alterType.${tableName}.${columnName}`,
-    label: `Alter type of "${tableName}"."${columnName}" to ${options.rawTargetTypeForLabel}`,
+    label: `Alter type of "${tableName}"."${columnName}" to ${options.type}`,
     operationClass,
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
     execute: [
       step(
         `alter type of "${columnName}"`,
-        `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} TYPE ${options.qualifiedTargetType}${usingClause}`,
+        `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} TYPE ${options.type}${usingClause}`,
       ),
     ],
     postcheck: [
       step(
-        `verify column "${columnName}" has type "${options.formatTypeExpected}"`,
+        `verify column "${columnName}" has type "${options.checkType}"`,
         typeCheck.sql,
         typeCheck.params,
       ),

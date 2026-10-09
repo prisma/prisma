@@ -556,11 +556,15 @@ export function planStatements<TCall extends CallWithCompanions>(input: {
   });
 }
 
-/** A column a statement names, in a table of a storage namespace, as the destination contract stores it. */
+/**
+ * A column a statement names, in a table of a storage namespace, as the destination contract stores
+ * it, with the field the statement names.
+ */
 export interface StatementColumn {
   readonly namespaceId: string;
   readonly table: string;
   readonly column: string;
+  readonly field: FieldCoordinate;
 }
 
 /** The columns of the fields that convert and backfill statements name. */
@@ -583,7 +587,9 @@ export function fieldStatementColumns(
       if (statement.kind !== kind) return [];
       const table = modelTable(contract, statement.field);
       const column = fieldColumn(contract, statement.field);
-      return table === undefined || column === undefined ? [] : [{ ...table, column }];
+      return table === undefined || column === undefined
+        ? []
+        : [{ ...table, column, field: statement.field }];
     });
   return { convert: columnsOf('convert'), backfill: columnsOf('backfill') };
 }

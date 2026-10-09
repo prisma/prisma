@@ -1,3 +1,4 @@
+import { asNamespaceId } from '@internal/contract/types';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { index } from '@internal/sql-contract/factories';
 import { toStorageTypeInstance } from '@internal/sql-contract/types';
@@ -6,6 +7,7 @@ import { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
+import { postgresDataTypes } from '../../src/core/data-types';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';
 import {
   coalesceSubtreeIssues,
@@ -48,6 +50,12 @@ const userTable: TableSpec = {
   uniques: [],
   indexes: [],
 };
+
+const userField = (field: string) => ({
+  namespaceId: asNamespaceId('public'),
+  model: 'User',
+  field,
+});
 
 describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
   it('a fresh table becomes CreateTable (+ PK inline)', () => {
@@ -313,11 +321,9 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
     });
     const [call] = planFor(contract, actual);
     expect(call).toBeInstanceOf(AlterColumnTypeCall);
-    expect(call instanceof AlterColumnTypeCall && call.options).toEqual({
-      qualifiedTargetType: 'int8',
-      formatTypeExpected: 'bigint',
-      rawTargetTypeForLabel: 'int8',
-    });
+    expect(
+      call instanceof AlterColumnTypeCall && { type: call.type, checkType: call.checkType },
+    ).toEqual({ type: 'int8', checkType: 'bigint' });
   });
 
   it.each([
@@ -362,13 +368,11 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         }),
       });
       const call = planFor(contract, actual).find((c) => c instanceof AlterColumnTypeCall);
-      expect(call instanceof AlterColumnTypeCall && call.options.formatTypeExpected).toBe(
-        formatTypeExpected,
-      );
+      expect(call instanceof AlterColumnTypeCall && call.checkType).toBe(formatTypeExpected);
     },
   );
 
-  it('refuses to plan a type change for a live column that carries no codec', () => {
+  it('refuses to plan a conversion for a live column that carries no codec', () => {
     const contract = makeContract({
       user: {
         columns: {
@@ -411,6 +415,13 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         codecHooks: new Map(),
         types: postgresTypeLookups,
         storageTypes: {},
+        frameworkComponents: postgresTypeComponents,
+        statementColumns: {
+          convert: [
+            { namespaceId: 'public', table: 'user', column: 'age', field: userField('age') },
+          ],
+          backfill: [],
+        },
       }),
     ).toThrow(InternalError);
   });
@@ -471,6 +482,7 @@ describe('mapNodeIssueToCall — synthesized namespace issue', () => {
       policy: { allowedOperationClasses: ['additive'] as const },
       frameworkComponents: postgresTypeComponents,
       statementColumns: { convert: [], backfill: [] },
+      dataTypes: postgresDataTypes,
     };
     const result = mapNodeIssueToCall(issue, ctx);
     expect(result.ok).toBe(true);
@@ -645,6 +657,7 @@ describe('mapNodeIssueToCall — table rlsEnabled drift', () => {
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] as const },
     frameworkComponents: postgresTypeComponents,
     statementColumns: { convert: [], backfill: [] },
+    dataTypes: postgresDataTypes,
   };
 
   function tableNode(rlsEnabled: boolean): PostgresTableSchemaNode {
@@ -767,8 +780,10 @@ describe('statement columns', () => {
   it('reach every strategy through its context', () => {
     const contract = makeContract({ user: userTable });
     const statementColumns = {
-      convert: [{ namespaceId: 'public', table: 'user', column: 'email' }],
-      backfill: [{ namespaceId: 'public', table: 'user', column: 'id' }],
+      convert: [
+        { namespaceId: 'public', table: 'user', column: 'email', field: userField('email') },
+      ],
+      backfill: [{ namespaceId: 'public', table: 'user', column: 'id', field: userField('id') }],
     };
     const seen: unknown[] = [];
     planNodeIssues({

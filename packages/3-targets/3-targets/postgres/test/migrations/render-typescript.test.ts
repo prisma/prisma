@@ -11,6 +11,7 @@ import {
 import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { TsExpression } from '@internal/ts-render';
 import { describe, expect, it } from 'vitest';
+import { postgresDataTypes } from '../../src/core/data-types';
 import * as opFactoryCalls from '../../src/core/migrations/op-factory-call';
 import {
   AddCheckConstraintCall,
@@ -207,10 +208,12 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     new RenameColumnCall('public', 'archived', 'title', 'heading', []),
     new AddColumnCall('public', 'note', col('nickname', 'text')),
     new DropColumnCall('public', 'note', 'nickname'),
-    new AlterColumnTypeCall('public', 'note', 'kind', {
-      qualifiedTargetType: 'text',
-      formatTypeExpected: 'text',
-      rawTargetTypeForLabel: 'text',
+    new AlterColumnTypeCall({
+      schemaName: 'public',
+      tableName: 'note',
+      columnName: 'kind',
+      type: 'text',
+      dataTypes: postgresDataTypes,
     }),
     new SetNotNullCall('public', 'note', 'kind'),
     new DropNotNullCall('public', 'note', 'kind'),

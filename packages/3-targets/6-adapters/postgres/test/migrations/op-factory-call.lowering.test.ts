@@ -32,7 +32,10 @@ import {
   createPostgresBuiltinCodecLookup,
   postgresCodecDescriptorRegistry,
 } from '@internal/target-postgres/codecs';
-import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
+import {
+  createPostgresBuiltinDataTypeLookup,
+  postgresDataTypes,
+} from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
   AddForeignKeyCall,
@@ -88,10 +91,12 @@ describe('renderOps', () => {
       new DropTableCall('public', 'stale'),
       new AddColumnCall('public', 'user', col('email', 'text')),
       new DropColumnCall('public', 'user', 'legacy'),
-      new AlterColumnTypeCall('public', 'user', 'age', {
-        qualifiedTargetType: 'integer',
-        formatTypeExpected: 'integer',
-        rawTargetTypeForLabel: 'integer',
+      new AlterColumnTypeCall({
+        schemaName: 'public',
+        tableName: 'user',
+        columnName: 'age',
+        type: 'integer',
+        dataTypes: postgresDataTypes,
       }),
       new SetNotNullCall('public', 'user', 'email'),
       new DropNotNullCall('public', 'user', 'nickname'),

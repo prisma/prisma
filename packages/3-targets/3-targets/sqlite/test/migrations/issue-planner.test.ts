@@ -1,3 +1,4 @@
+import { asNamespaceId } from '@internal/contract/types';
 import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import {
@@ -405,11 +406,21 @@ describe('planIssues — policy', () => {
   });
 });
 
+const userField = (field: string) => ({
+  namespaceId: asNamespaceId('__unbound__'),
+  model: 'User',
+  field,
+});
+
 describe('planIssues — statement columns', () => {
   it('hands the columns of convert and backfill statements to every strategy', () => {
     const statementColumns = {
-      convert: [{ namespaceId: '__unbound__', table: 'user', column: 'age' }],
-      backfill: [{ namespaceId: '__unbound__', table: 'user', column: 'email' }],
+      convert: [
+        { namespaceId: '__unbound__', table: 'user', column: 'age', field: userField('age') },
+      ],
+      backfill: [
+        { namespaceId: '__unbound__', table: 'user', column: 'email', field: userField('email') },
+      ],
     };
     const seen: unknown[] = [];
     planIssues({

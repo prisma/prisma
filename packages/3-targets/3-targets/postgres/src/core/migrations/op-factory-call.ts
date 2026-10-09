@@ -23,6 +23,7 @@
 import { unfilledPlaceholderOperation } from '@internal/errors/migration';
 import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
+import type { DataType } from '@internal/framework-components/codec';
 import type {
   OpFactoryCall as FrameworkOpFactoryCall,
   MigrationOperationClass,
@@ -102,6 +103,7 @@ import type { ForeignKeySpec } from './operations/shared';
 import { step, targetDetails } from './operations/shared';
 import { dropTable, renameTable } from './operations/tables';
 import { buildAddNotNullColumnWithTemporaryDefaultOperation } from './planner-recipes';
+import { alterTypeCheckText } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 
 type Op = SqlMigrationPlanOperation<PostgresPlanTargetDetails>;
@@ -632,12 +634,10 @@ export class DropColumnCall extends PostgresOpFactoryCallNode {
   }
 }
 
-export interface AlterColumnTypeOptions {
-  readonly qualifiedTargetType: string;
-  readonly formatTypeExpected: string;
-  readonly rawTargetTypeForLabel: string;
-  readonly using?: string;
-}
+/** The USING clause of a type change: written SQL, or a slot the user fills in `migration.ts`. */
+export type AlterColumnTypeUsing =
+  | { readonly kind: 'sql'; readonly sql: string }
+  | { readonly kind: 'placeholder'; readonly slot: string };
 
 export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'alterColumnType' as const;
@@ -645,27 +645,53 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly schemaName: string;
   readonly tableName: string;
   readonly columnName: string;
-  readonly options: AlterColumnTypeOptions;
+  /** The new type as a migration writes it. */
+  readonly type: string;
+  readonly using: AlterColumnTypeUsing | undefined;
+  /** The type `format_type` prints once the alter has run, which the postcheck compares. */
+  readonly checkType: string;
   readonly label: string;
 
-  constructor(
-    schemaName: string,
-    tableName: string,
-    columnName: string,
-    options: AlterColumnTypeOptions,
-    operationClass: AlterColumnTypeClass = 'destructive',
-  ) {
+  constructor(input: {
+    readonly schemaName: string;
+    readonly tableName: string;
+    readonly columnName: string;
+    readonly type: string;
+    readonly using?: AlterColumnTypeUsing;
+    /** The data types of the stack, which read `type` for the postcheck. */
+    readonly dataTypes: readonly DataType[];
+    readonly operationClass?: AlterColumnTypeClass;
+  }) {
     super();
-    this.schemaName = schemaName;
-    this.tableName = tableName;
-    this.columnName = columnName;
-    this.options = options;
-    this.operationClass = operationClass;
-    this.label = `Alter type of "${tableName}"."${columnName}" to ${options.rawTargetTypeForLabel}`;
+    this.schemaName = input.schemaName;
+    this.tableName = input.tableName;
+    this.columnName = input.columnName;
+    this.type = input.type;
+    this.using = input.using;
+    this.operationClass = input.operationClass ?? 'destructive';
+    this.checkType = alterTypeCheckText(input.type, input.dataTypes, this.#callText());
+    this.label = `Alter type of "${input.tableName}"."${input.columnName}" to ${input.type}`;
     this.freeze();
   }
 
+  #location(): readonly string[] {
+    return [
+      ...(this.schemaName === UNBOUND_NAMESPACE_ID
+        ? []
+        : [`schema: ${jsonToTsSource(this.schemaName)}`]),
+      `table: ${jsonToTsSource(this.tableName)}`,
+      `column: ${jsonToTsSource(this.columnName)}`,
+    ];
+  }
+
+  #callText(): string {
+    return `alterColumnType({ ${this.#location().join(', ')} })`;
+  }
+
   async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    if (this.using?.kind === 'placeholder') {
+      return unfilledPlaceholderOperation(this.label);
+    }
     if (lowerer === undefined) {
       throw postgresError(
         'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
@@ -677,28 +703,42 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
       this.schemaName,
       this.tableName,
       this.columnName,
-      this.options,
+      {
+        type: this.type,
+        checkType: this.checkType,
+        ...ifDefined('using', this.using?.kind === 'sql' ? this.using.sql : undefined),
+      },
       lowerer,
       this.operationClass,
     );
   }
 
   renderTypeScript(): string {
-    const opts: string[] = [];
-    if (this.schemaName !== UNBOUND_NAMESPACE_ID) {
-      opts.push(`schema: ${jsonToTsSource(this.schemaName)}`);
-    }
-    opts.push(`table: ${jsonToTsSource(this.tableName)}`);
-    opts.push(`column: ${jsonToTsSource(this.columnName)}`);
-    opts.push(`options: ${jsonToTsSource(this.options)}`);
-    if (this.operationClass !== 'destructive') {
-      opts.push(`operationClass: ${jsonToTsSource(this.operationClass)}`);
-    }
+    const using =
+      this.using === undefined
+        ? []
+        : [
+            `using: ${
+              this.using.kind === 'placeholder'
+                ? `placeholder(${jsonToTsSource(this.using.slot)})`
+                : jsonToTsSource(this.using.sql)
+            }`,
+          ];
+    const opts = [
+      ...this.#location(),
+      `type: ${jsonToTsSource(this.type)}`,
+      ...using,
+      ...(this.operationClass === 'destructive'
+        ? []
+        : [`operationClass: ${jsonToTsSource(this.operationClass)}`]),
+    ];
     return `this.alterColumnType({ ${opts.join(', ')} })`;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
-    return [];
+    return this.using?.kind === 'placeholder'
+      ? [{ moduleSpecifier: POSTGRES_MIGRATION_FACADE, symbol: 'placeholder' }]
+      : [];
   }
 }
 

@@ -15,6 +15,7 @@
  */
 
 import { col, fn, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
+import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
   AddForeignKeyCall,
@@ -211,28 +212,28 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
     expect(call.importRequirements()).toEqual([]);
   });
 
-  it('AlterColumnTypeCall emits this.alterColumnType({...}) and contributes no imports', () => {
-    const call = new AlterColumnTypeCall('public', 'user', 'age', {
-      qualifiedTargetType: 'integer',
-      formatTypeExpected: 'integer',
-      rawTargetTypeForLabel: 'integer',
+  const alterAge = (using?: { readonly kind: 'sql'; readonly sql: string }) =>
+    new AlterColumnTypeCall({
+      schemaName: 'public',
+      tableName: 'user',
+      columnName: 'age',
+      type: 'integer',
+      dataTypes: postgresDataTypes,
+      ...(using === undefined ? {} : { using }),
     });
-    const rendered = call.renderTypeScript();
-    expect(rendered.startsWith('this.alterColumnType({')).toBe(true);
-    expect(rendered).toContain('table: "user"');
-    expect(rendered).toContain('column: "age"');
-    expect(rendered).toContain('qualifiedTargetType: "integer"');
+
+  it('AlterColumnTypeCall emits this.alterColumnType({...}) with plain options and contributes no imports', () => {
+    const call = alterAge();
+    expect(call.renderTypeScript()).toBe(
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "integer" })',
+    );
     expect(call.importRequirements()).toEqual([]);
   });
 
-  it('AlterColumnTypeCall preserves an explicit USING clause in the options literal', () => {
-    const call = new AlterColumnTypeCall('public', 'user', 'age', {
-      qualifiedTargetType: 'integer',
-      formatTypeExpected: 'integer',
-      rawTargetTypeForLabel: 'integer',
-      using: '"age"::integer',
-    });
-    expect(call.renderTypeScript()).toContain('using: "\\"age\\"::integer"');
+  it('AlterColumnTypeCall writes an explicit USING clause as a string', () => {
+    expect(alterAge({ kind: 'sql', sql: '"age"::integer' }).renderTypeScript()).toContain(
+      'using: "\\"age\\"::integer"',
+    );
   });
 
   it('SetNotNullCall / DropNotNullCall / DropDefaultCall emit this.X({...}) and contribute no imports', () => {
