@@ -139,6 +139,28 @@ function refused(
 
 const LEAVE_OUT = 'Leave out this statement.';
 
+const TIME_SERIES_UPDATES =
+  'MongoDB updates the documents of a time-series collection only through its metaField';
+
+/**
+ * A removal the plan cannot carry out because its collection is a time-series collection, whose
+ * documents MongoDB does not let an update change except through the metaField.
+ */
+export function timeSeriesRemovalRefusals(
+  removals: readonly FieldRemoval[],
+  schema: MongoSchemaIR,
+): readonly MigrationPlannerConflict[] {
+  return removals
+    .filter(
+      (removal) => schema.collection(removal.call.collection)?.options?.timeseries !== undefined,
+    )
+    .map((removal) => ({
+      kind: 'fieldRemovalRefused',
+      summary: `Cannot remove field ${JSON.stringify(removal.call.field)} from collection ${JSON.stringify(removal.call.collection)}: it is a time-series collection`,
+      why: `${TIME_SERIES_UPDATES}, so the field cannot be removed from the documents that hold it. Keep the field in the contract, as an optional field if new documents leave it out, then run this command again.`,
+    }));
+}
+
 /**
  * Plans the rename each statement states, in order: a model statement whose collection changes renames the
  * collection in the schema the diff then starts from, and a field statement whose stored name
@@ -162,7 +184,7 @@ export function planStatements(input: {
     const outcome =
       statement.entity === 'model'
         ? planModelStatement(statement, label, schema, input)
-        : planFieldStatement(statement, label, renamedCollections, input);
+        : planFieldStatement(statement, label, renamedCollections, schema, input);
     if (outcome.kind === 'refused') {
       conflicts.push(outcome.conflict);
       callOfStatement.push(undefined);
@@ -297,6 +319,7 @@ function planFieldStatement(
   statement: ResolvedFieldRenameStatement,
   label: string,
   renamedCollections: ReadonlyMap<string, string>,
+  schema: MongoSchemaIR,
   input: { readonly fromContract: ContractWithDomain; readonly contract: MongoContract },
 ): StatementOutcome {
   const refuse = (reason: string, why: string): StatementOutcome => ({
@@ -345,6 +368,12 @@ function planFieldStatement(
     );
   }
   if (statement.from.field === statement.to.field) return { kind: 'unchanged' };
+  if (schema.collection(collection)?.options?.timeseries !== undefined) {
+    return refuse(
+      `collection "${collection}" is a time-series collection`,
+      `${TIME_SERIES_UPDATES}, so a statement cannot move the values of a field in them. Keep the stored name: name the field ${JSON.stringify(statement.from.field)} in the contract (with @map(${JSON.stringify(statement.from.field)}) in PSL), then run this command again without this statement.`,
+    );
+  }
   const policyRefusal = controlPolicyRefusal(statement, label, input.contract, collection);
   if (policyRefusal !== undefined) return policyRefusal;
   const filter =

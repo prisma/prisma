@@ -254,3 +254,52 @@ describe('MongoMigrationPlanner, a variant rename whose discriminator value chan
     ).toEqual([]);
   });
 });
+
+describe('MongoMigrationPlanner, a field of a time-series collection', () => {
+  const readings = (seed: string, fields: readonly string[]) =>
+    contract(
+      seed,
+      { Reading: { collection: 'readings', fields: ['_id', 'at', ...fields] } },
+      { readings: { timeField: 'at' } },
+    );
+  const schema = [schemaCollection('readings', { timeseries: true })];
+
+  it('cannot be renamed, and the refusal says to keep its stored name', () => {
+    expect(
+      refusal(
+        plan({
+          from: readings('from', ['value']),
+          to: readings('to', ['reading']),
+          schema,
+          statements: [renameField('Reading', 'value', 'Reading', 'reading')],
+        }),
+      ),
+    ).toEqual([
+      {
+        kind: 'statementRefused',
+        summary:
+          'Cannot rename field "Reading.value" to "Reading.reading": collection "readings" is a time-series collection',
+        why: 'MongoDB updates the documents of a time-series collection only through its metaField, so a statement cannot move the values of a field in them. Keep the stored name: name the field "value" in the contract (with @map("value") in PSL), then run this command again without this statement.',
+      },
+    ]);
+  });
+
+  it('plans nothing once the stored name is kept, as the refusal says', () => {
+    expect(
+      plan({ from: readings('from', ['value']), to: readings('to', ['value']), schema }).kind,
+    ).toBe('success');
+  });
+
+  it('cannot be removed, and the refusal says to keep it', () => {
+    expect(
+      refusal(plan({ from: readings('from', ['value']), to: readings('to', []), schema })),
+    ).toEqual([
+      {
+        kind: 'fieldRemovalRefused',
+        summary:
+          'Cannot remove field "value" from collection "readings": it is a time-series collection',
+        why: 'MongoDB updates the documents of a time-series collection only through its metaField, so the field cannot be removed from the documents that hold it. Keep the field in the contract, as an optional field if new documents leave it out, then run this command again.',
+      },
+    ]);
+  });
+});

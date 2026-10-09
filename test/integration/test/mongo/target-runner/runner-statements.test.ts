@@ -207,4 +207,63 @@ describe('MongoMigrationPlanner and runner - statements', () => {
     },
     timeouts.spinUpMongoMemoryServer,
   );
+
+  it(
+    'refuses at plan time to rename or remove a field of a live time-series collection, and plans nothing once it is kept',
+    async () => {
+      const withFields = (storageHash: string, fields: readonly string[]) =>
+        contract(
+          storageHash,
+          { Reading: { collection: 'readings', fields: ['_id', 'at', ...fields] } },
+          {
+            readings: new MongoCollection({ options: { timeseries: { timeField: 'at' } } }),
+          },
+        );
+      await live.db().createCollection('readings', { timeseries: { timeField: 'at' } });
+      await live
+        .db()
+        .collection('readings')
+        .insertOne({ at: new Date('2026-01-01'), value: 1 });
+      const planFor = async (
+        to: ReturnType<typeof withFields>,
+        statements: Parameters<MongoMigrationPlanner['plan']>[0]['statements'] = [],
+      ) =>
+        new MongoMigrationPlanner().plan({
+          contract: to,
+          schema: await introspectSchema(live.db()),
+          policy,
+          fromContract: withFields('from', ['value']),
+          origin: { storageHash: 'from' },
+          statements,
+          frameworkComponents: [],
+          snapshotsImportPath: '../../snapshots',
+        });
+
+      const renamed = await planFor(withFields('to', ['reading']), [
+        {
+          kind: 'rename',
+          entity: 'field',
+          from: { namespaceId: NS, model: 'Reading', field: 'value' },
+          to: { namespaceId: NS, model: 'Reading', field: 'reading' },
+        },
+      ]);
+      const removed = await planFor(withFields('to', []));
+      const kept = await planFor(withFields('to', ['value']));
+
+      expect({
+        renamed: renamed.kind === 'failure' ? renamed.conflicts.map(({ summary }) => summary) : [],
+        removed: removed.kind === 'failure' ? removed.conflicts.map(({ summary }) => summary) : [],
+        kept: kept.kind === 'success' ? kept.plan.operations.length : kept.conflicts,
+      }).toEqual({
+        renamed: [
+          'Cannot rename field "Reading.value" to "Reading.reading": collection "readings" is a time-series collection',
+        ],
+        removed: [
+          'Cannot remove field "value" from collection "readings": it is a time-series collection',
+        ],
+        kept: 0,
+      });
+    },
+    timeouts.spinUpMongoMemoryServer,
+  );
 });
