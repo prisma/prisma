@@ -6,7 +6,6 @@ import {
   migrationSubjectKey,
   modelDisplayName,
   type ResolvedMigrationStatement,
-  type TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -175,18 +174,6 @@ function namesSubject(verb: ConsentVerb, subject: string) {
     text === subject ? undefined : `${verb} names "${subject}": --${verb} ${subject}.`;
 }
 
-/**
- * How the target says to keep a subject's data by hand when its planner carries out no rename, or
- * `undefined` when it carries them out.
- */
-export function keepDataByHandFor(
-  migrations: { readonly renameStatements?: TargetMigrationsCapability['renameStatements'] },
-  origin: ContractWithDomain,
-): ((subject: MigrationSubject) => string) | undefined {
-  const refused = migrations.renameStatements;
-  return refused === undefined ? undefined : (subject) => refused.keepDataByHand(subject, origin);
-}
-
 /** A rename as a statement is written: a field's new name keeps the model, `User.nickname:User.<new name>`. */
 function renameForm(subject: MigrationSubject, text: string): string {
   return subject.kind === 'field'
@@ -226,29 +213,23 @@ function inDestination(
  * has, and no rename of the plan renamed, may be renamed instead of deleted; a rename is resolved
  * against the two contracts after the plan's other renames, and its old name must be the subject.
  * A subject the destination keeps, such as a field whose type changes, and data no model stores,
- * can only be deleted. Where the target's planner carries out no rename, `keepDataByHand` says how
- * to keep the data instead.
+ * can only be deleted.
  */
 export function dataLossQuestion(
   loss: PlannedSubject,
   contracts: StatementContracts & {
     readonly destination: ContractWithDomain;
     readonly originKnown: boolean;
-    readonly keepDataByHand: ((subject: MigrationSubject) => string) | undefined;
   },
 ): PlanQuestion {
   const subject = subjectText(loss.subject, contracts);
   const renamable =
-    contracts.keepDataByHand === undefined &&
     loss.subject.kind !== 'storage' &&
     !inDestination(loss.subject, contracts) &&
     !renamedByPlan(loss.subject, contracts);
   const deleteNames = namesSubject('delete', subject);
   return {
-    question: [
-      `${loss.label} ${lossText(loss.subject, subject, contracts.originKnown)}.`,
-      ...(contracts.keepDataByHand === undefined ? [] : [contracts.keepDataByHand(loss.subject)]),
-    ].join(' '),
+    question: `${loss.label} ${lossText(loss.subject, subject, contracts.originKnown)}.`,
     subject,
     verbs: renamable ? ['rename', 'delete'] : ['delete'],
     forms: renamable ? { rename: renameForm(loss.subject, subject) } : {},
@@ -383,7 +364,6 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
   readonly consentAll: { readonly [verb in ConsentVerb]: boolean };
   readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
-  readonly keepDataByHand: ((subject: MigrationSubject) => string) | undefined;
   readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
   readonly replan: (renames: readonly StatementText[]) => Promise<Result<TPlan, TFailure>>;
@@ -405,7 +385,6 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     const contracts = {
       origin: input.origin,
       originKnown: input.originKnown,
-      keepDataByHand: input.keepDataByHand,
       destination: input.destination,
       renames,
     };
@@ -443,7 +422,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     const questions = [
       ...withRecoveryOnFirstStorageQuestion(
         losses.map((loss) => ({ loss, question: dataLossQuestion(loss, contracts) })),
-        !input.originKnown && input.keepDataByHand === undefined,
+        !input.originKnown,
       ),
       ...widenings.map((widening) => accessWideningQuestion(widening, contracts)),
     ];

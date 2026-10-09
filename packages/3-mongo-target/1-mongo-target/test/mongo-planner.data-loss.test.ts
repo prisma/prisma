@@ -4,7 +4,7 @@ import { MongoCollection, type MongoContract } from '@internal/mongo-contract';
 import { MongoSchemaCollection, MongoSchemaIndex, MongoSchemaIR } from '@internal/mongo-schema-ir';
 import { expectDataLossMatchesDestructive } from '@repo/test-utils/data-loss-expectations';
 import { describe, expect, it } from 'vitest';
-import { keepDataByHand, MongoMigrationPlanner } from '../src/core/migrations/mongo-planner';
+import { MongoMigrationPlanner } from '../src/core/migrations/mongo-planner';
 import type { PlannerProducedMongoMigration } from '../src/core/migrations/planner-produced-migration';
 
 const ALL_CLASSES_POLICY: MigrationOperationPolicy = {
@@ -141,24 +141,5 @@ describe('MongoDB planner, data loss', () => {
         subject: { kind: 'model', namespaceId: asNamespaceId('__unbound__'), model: 'Event' },
       },
     ]);
-  });
-});
-
-describe('keepDataByHand', () => {
-  it('says to rename the collection a dropped model stores its documents in', () => {
-    expect(
-      keepDataByHand(
-        { kind: 'model', namespaceId: asNamespaceId('__unbound__'), model: 'Event' },
-        contractWith({ Event: 'events' }, 'from'),
-      ),
-    ).toBe(
-      'If it was renamed, keep its documents instead: rename collection "events" by hand on each database before a plan that drops it is applied there, for example with db.getCollection("events").renameCollection("<new collection>") in mongosh. db update then drops nothing; a migration written by migration plan still drops "events", so remove that operation from its migration.ts, or do not apply it where the collection was renamed.',
-    );
-  });
-
-  it('names a collection no model stores by its name', () => {
-    expect(keepDataByHand({ kind: 'storage', name: 'audit' }, contractWith({}, 'from'))).toBe(
-      'If it was renamed, keep its documents instead: rename collection "audit" by hand on each database before a plan that drops it is applied there, for example with db.getCollection("audit").renameCollection("<new collection>") in mongosh. db update then drops nothing; a migration written by migration plan still drops "audit", so remove that operation from its migration.ts, or do not apply it where the collection was renamed.',
-    );
   });
 });

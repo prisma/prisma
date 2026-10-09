@@ -9,7 +9,6 @@ import {
   createControlStack,
   hasOperationPreview,
   type MigrationPlanOperation,
-  type MigrationSubject,
   migrationSubjectKey,
   type OperationPreview,
   planOriginOf,
@@ -53,7 +52,6 @@ import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
 import {
   type AnswerPlanQuestions,
   askPlanQuestions,
-  keepDataByHandFor,
   type PlannedSubject,
   subjectText,
 } from '../statements/plan-questions';
@@ -299,7 +297,6 @@ async function answerPlannedDataLoss(input: {
   readonly consents: readonly StatementText[];
   readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
-  readonly keepDataByHand: ((subject: MigrationSubject) => string) | undefined;
   readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
   readonly planDelta: (
@@ -327,7 +324,6 @@ async function answerPlannedDataLoss(input: {
     consentAll: { delete: false, allow: false },
     origin: input.origin,
     originKnown: input.originKnown,
-    keepDataByHand: input.keepDataByHand,
     destination: input.destination,
     answer: input.answer,
     replan: async (renames) => {
@@ -752,7 +748,6 @@ async function executeMigrationPlanCommandInner(
         consents: statementTexts.filter((statement) => statement.verb !== 'rename'),
         origin: fromContract ?? EMPTY_ORIGIN,
         originKnown: true,
-        keepDataByHand: keepDataByHandFor(migrations, fromContract ?? EMPTY_ORIGIN),
         destination: toContract,
         answer: options.answerQuestions,
         planDelta: async (renames) => {

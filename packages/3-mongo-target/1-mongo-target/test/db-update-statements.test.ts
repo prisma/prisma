@@ -9,6 +9,7 @@ import type {
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
+import { MongoCollection } from '@internal/mongo-contract';
 import { MongoSchemaCollection, MongoSchemaIR } from '@internal/mongo-schema-ir';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -21,7 +22,16 @@ function contractWithModel(storageHash: string, model: string): Contract {
   return {
     target: 'mongo',
     targetFamily: 'mongo',
-    storage: { storageHash, namespaces: {} },
+    storage: {
+      storageHash,
+      namespaces: {
+        app: {
+          id: 'app',
+          kind: 'mongo-namespace',
+          entries: { collection: { [model]: new MongoCollection({}) } },
+        },
+      },
+    },
     domain: {
       namespaces: { app: { models: { [model]: { fields: {}, relations: {}, storage: {} } } } },
     },
@@ -56,7 +66,7 @@ afterEach(async () => {
 });
 
 describe('db update with statements on MongoDB', () => {
-  it('fails planning with the statement the Mongo planner refuses', async () => {
+  it('plans the collection rename the statement states, and nothing that loses data', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'mongo-db-update-statements-'));
     tempDirs.push(dir);
     const migrationsDir = join(dir, 'migrations');
@@ -91,21 +101,21 @@ describe('db update with statements on MongoDB', () => {
     });
 
     expect(result).toMatchObject({
-      ok: false,
-      failure: {
-        code: 'PLANNING_FAILED',
-        conflicts: [
-          {
-            kind: 'statementRefused',
-            summary: expect.stringContaining('MongoDB does not apply rename statements'),
-            refusedStatement: {
-              kind: 'rename',
-              entity: 'model',
-              from: { namespaceId: 'app', model: 'Profile' },
-              to: { namespaceId: 'app', model: 'User' },
-            },
-          },
+      ok: true,
+      value: {
+        appliedStatements: [
+          { statement: { entity: 'model', from: { model: 'Profile' } }, operationIndexes: [0] },
         ],
+        dataLoss: [],
+        plan: {
+          operations: [
+            {
+              id: 'collection.Profile.rename(User)',
+              label: 'Rename collection Profile to User',
+              operationClass: 'widening',
+            },
+          ],
+        },
       },
     });
   });

@@ -782,10 +782,13 @@ describe('MongoMigrationPlanner', () => {
             }),
           }),
         ]);
-        const [operation] = planSuccess(planner, contract, origin).operations;
-        expect(operation?.label).toBe(
-          'Update validator on items (changed: name; added: note; removed: legacy)',
+        const labels = planSuccess(planner, contract, origin).operations.map(
+          (operation) => operation.label,
         );
+        expect(labels).toEqual([
+          'Remove field legacy from collection items',
+          'Update validator on items (changed: name; added: note; removed: legacy)',
+        ]);
       });
     });
 

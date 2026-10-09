@@ -3,7 +3,7 @@
  *
  * Dropping a collection loses its documents, so `migration plan` and `db update` ask what the drop means; `--delete <Model>` answers. The MongoDB planner refuses rename statements in this release.
  *
- * Journey S1 removes `Event` through `migration plan`: refused without `--delete Event`, planned with it, and applied by `migrate`. Journey S2 does the same through `db update`, where `--confirm <database>` no longer consents. Journey S3 adds a required field with no refusal. Journey S4 gives a rename, which the planner refuses with `statementRefused`.
+ * Journey S1 removes `Event` through `migration plan`: refused without `--delete Event`, planned with it, and applied by `migrate`. Journey S2 does the same through `db update`, where `--confirm <database>` no longer consents. Journey S3 adds a required field with no refusal. Journey S4 gives a rename, which renames the collection and keeps its documents.
  */
 
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -278,13 +278,14 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
     ]);
   });
 
-  it('S4: the planner refuses a rename statement', async () => {
+  it('S4: a rename statement renames the collection and keeps its documents', async () => {
     const dbName = 'mongo_delete_rename';
     const ctx = setupProject(withDatabase(replSet.getUri(), dbName));
     created.add(ctx.testDir);
     await emit(ctx, 'S4.01');
     const create = await runDbUpdate(ctx, ['--no-interactive', '--json']);
     expect(create.exitCode, `S4.02: db update creates the collections: ${create.stderr}`).toBe(0);
+    await client.db(dbName).collection('events').insertOne({ name: 'launch' });
     useFixture(ctx, 'contract-events-renamed.ts');
     await emit(ctx, 'S4.03');
 
@@ -294,12 +295,16 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
       'Event:Occasion',
       '--json',
     ]);
-    expect(renamed.exitCode, 'S4.04: the rename is refused').not.toBe(0);
-    const refusal = engineError(renamed);
-    expect(refusal?.code, 'S4.04: planning failed').toBe('MIGRATION.PLANNING_FAILED');
-    expect(JSON.stringify(refusal?.meta), 'S4.04: the conflict is the refused statement').toContain(
-      'statementRefused',
-    );
-    expect(await collections(dbName), 'S4.04: nothing changed').toEqual(['events', 'users']);
+    expect(renamed.exitCode, `S4.04: the rename runs: ${renamed.stderr}`).toBe(0);
+    expect(await collections(dbName), 'S4.04: the collection is renamed').toEqual([
+      'occasions',
+      'users',
+    ]);
+    const documents = await client
+      .db(dbName)
+      .collection('occasions')
+      .find({}, { projection: { _id: 0 } })
+      .toArray();
+    expect(documents, 'S4.04: its documents are kept').toEqual([{ name: 'launch' }]);
   });
 });
