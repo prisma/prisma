@@ -200,8 +200,34 @@ function idSuffix(filter: Document | undefined): string {
   return filter === undefined ? '' : `.where(${JSON.stringify(filter)})`;
 }
 
+function valueList(values: readonly unknown[]): string {
+  return values.map((value) => JSON.stringify(value)).join(', ');
+}
+
+/** A field condition in words: `type is "bug"`, `type is not "bug"`, `type is none of "bug", "task"`. */
+function conditionInWords(field: string, condition: unknown): string | undefined {
+  const excluded: unknown =
+    typeof condition === 'object' && condition !== null && !Array.isArray(condition)
+      ? Reflect.get(condition, '$nin')
+      : undefined;
+  if (Array.isArray(excluded)) {
+    return excluded.length === 1
+      ? `${field} is not ${valueList(excluded)}`
+      : `${field} is none of ${valueList(excluded)}`;
+  }
+  return typeof condition === 'object' && condition !== null
+    ? undefined
+    : `${field} is ${JSON.stringify(condition)}`;
+}
+
+/** The documents a filter selects, in words where the planner wrote it, for an operation's label. */
 function labelSuffix(filter: Document | undefined): string {
-  return filter === undefined ? '' : ` where ${JSON.stringify(filter)}`;
+  if (filter === undefined) return '';
+  const entries = Object.entries(filter);
+  const words = entries.map(([field, condition]) => conditionInWords(field, condition));
+  return words.every((word) => word !== undefined) && words.length > 0
+    ? ` in documents whose ${words.join(' and ')}`
+    : ` in documents matching ${JSON.stringify(filter)}`;
 }
 
 export function renameField(

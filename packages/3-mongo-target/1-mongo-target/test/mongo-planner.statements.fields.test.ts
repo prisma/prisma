@@ -98,7 +98,9 @@ describe('MongoMigrationPlanner, field statements', () => {
           statements: [renameField('Bug', 'score', 'Bug', 'severity')],
         }),
       ).labels,
-    ).toEqual(['Rename field score to severity in collection tasks where {"type":"bug"}']);
+    ).toEqual([
+      'Rename field score to severity in collection tasks in documents whose type is "bug"',
+    ]);
   });
 
   it('plans nothing for a relation renamed to another relation, which documents do not store', () => {
@@ -193,7 +195,7 @@ describe('MongoMigrationPlanner, removed fields', () => {
         }),
       ),
     ).toMatchObject({
-      labels: ['Remove field score from collection tasks where {"type":"bug"}'],
+      labels: ['Remove field score from collection tasks in documents whose type is "bug"'],
       dataLoss: [
         {
           operationIndex: 0,
@@ -213,7 +215,7 @@ describe('MongoMigrationPlanner, removed fields', () => {
         }),
       ),
     ).toMatchObject({
-      labels: ['Remove field note from collection tasks where {"type":{"$nin":["bug"]}}'],
+      labels: ['Remove field note from collection tasks in documents whose type is not "bug"'],
       dataLoss: [
         {
           operationIndex: 0,
@@ -234,7 +236,9 @@ describe('MongoMigrationPlanner, removed fields', () => {
         }),
       ),
     ).toMatchObject({
-      labels: ['Rename field note to remark in collection tasks where {"type":{"$nin":["bug"]}}'],
+      labels: [
+        'Rename field note to remark in collection tasks in documents whose type is not "bug"',
+      ],
       applied: [[0]],
       dataLoss: [],
     });

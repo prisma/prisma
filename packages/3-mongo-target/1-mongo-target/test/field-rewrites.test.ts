@@ -68,7 +68,7 @@ describe('renameField', () => {
       postcheck: op.postcheck[0]?.source.command,
     }).toEqual({
       id: 'field.posts.title.rename(headline).where({"type":"bug"})',
-      label: 'Rename field title to headline in collection posts where {"type":"bug"}',
+      label: 'Rename field title to headline in collection posts in documents whose type is "bug"',
       precheck: new RawAggregateCommand('posts', [
         {
           $match: {
@@ -133,6 +133,18 @@ describe('unsetField', () => {
         { bypassDocumentValidation: true },
       ),
     });
+  });
+});
+
+describe('field rewrite labels', () => {
+  it('describe the documents a filter selects in words', () => {
+    expect([
+      unsetField('tasks', 'note', { filter: { type: { $nin: ['bug', 'task'] } } }).label,
+      unsetField('tasks', 'note', { filter: { type: { $in: ['bug'] } } }).label,
+    ]).toEqual([
+      'Remove field note from collection tasks in documents whose type is none of "bug", "task"',
+      'Remove field note from collection tasks in documents matching {"type":{"$in":["bug"]}}',
+    ]);
   });
 });
 
