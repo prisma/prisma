@@ -126,21 +126,21 @@ This gives checks the same expressive power as MongoDB query filters, without in
 The envelope described above covers DDL operations — creating indexes, modifying collections. Data transform operations (backfills, renames, seed inserts) use the same three-phase envelope but carry different payloads.
 
 ```ts
-interface MongoDataTransformOperation extends MigrationPlanOperation {
+interface MongoDmlOperation extends MigrationPlanOperation {
   readonly operationClass: MigrationOperationClass;
   readonly name: string;
-  readonly precheck: readonly MongoDataTransformCheck[];
+  readonly precheck: readonly MongoDmlCheck[];
   readonly run: readonly MongoQueryPlan[];
-  readonly postcheck: readonly MongoDataTransformCheck[];
+  readonly postcheck: readonly MongoDmlCheck[];
 }
 ```
 
-A transform built with `dataTransform`, whether a user writes it or the planner scaffolds it with a placeholder, has `operationClass: 'data'`. The `renameField` and `unsetField` rewrites carry the class of their effect, whoever writes them, as every other operation does: `renameField` is `widening` and `unsetField` is `destructive`. So `db update`, which does not allow `data`, can run a rename. The runner and the serializer tell a transform from a DDL operation by its shape (`run` against `execute`), not by its class. The `run` array contains `MongoQueryPlan` objects — aggregation pipelines or raw commands (`rawUpdateMany`, `rawInsertOne`, etc.) — rather than DDL commands. The `precheck` and `postcheck` arrays contain `MongoDataTransformCheck` objects instead of `MongoMigrationCheck`.
+A transform built with `dataTransform`, whether a user writes it or the planner scaffolds it with a placeholder, has `operationClass: 'data'`. The `renameField` and `unsetField` rewrites carry the class of their effect, whoever writes them, as every other operation does: `renameField` is `widening` and `unsetField` is `destructive`. So `db update`, which does not allow `data`, can run a rename. The runner and the serializer tell a transform from a DDL operation by its shape (`run` against `execute`), not by its class. The `run` array contains `MongoQueryPlan` objects — aggregation pipelines or raw commands (`rawUpdateMany`, `rawInsertOne`, etc.) — rather than DDL commands. The `precheck` and `postcheck` arrays contain `MongoDmlCheck` objects instead of `MongoMigrationCheck`.
 
-`MongoDataTransformCheck` has the same four-field shape as `MongoMigrationCheck`:
+`MongoDmlCheck` has the same four-field shape as `MongoMigrationCheck`:
 
 ```ts
-interface MongoDataTransformCheck {
+interface MongoDmlCheck {
   readonly description: string;
   readonly source: MongoQueryPlan;
   readonly filter: MongoFilterExpr;
@@ -175,7 +175,7 @@ Data transform `run` commands execute via `MongoAdapter.lower()` → `MongoDrive
 
 #### Relationship to the generic envelope
 
-Both DDL and data transform operations are specializations of the generic three-phase migration operation envelope described in [ADR 191](ADR%20191%20-%20Generic%20three-phase%20migration%20operation%20envelope.md). The DDL variant fills the phases with inspection commands, DDL commands, and `MongoMigrationCheck`; the data transform variant fills them with query plans and `MongoDataTransformCheck`. The runner processes both through the same three-phase loop.
+Both DDL and data transform operations are specializations of the generic three-phase migration operation envelope described in [ADR 191](ADR%20191%20-%20Generic%20three-phase%20migration%20operation%20envelope.md). The DDL variant fills the phases with inspection commands, DDL commands, and `MongoMigrationCheck`; the data transform variant fills them with query plans and `MongoDmlCheck`. The runner processes both through the same three-phase loop.
 
 ## Serialization
 
