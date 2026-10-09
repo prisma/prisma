@@ -25,7 +25,9 @@ describe('mongoStorageNameOf', () => {
 
   it('names a field rewrite by its collection and the field it removes or renames', () => {
     const rewrite = (update: Record<string, unknown>): MigrationPlanOperation => {
-      const command = new RawUpdateManyCommand('users', {}, update);
+      const command = new RawUpdateManyCommand('users', {}, update, {
+        bypassDocumentValidation: true,
+      });
       const run = [{ collection: 'users', command, meta: {} }];
       return {
         id: 'rewrite',

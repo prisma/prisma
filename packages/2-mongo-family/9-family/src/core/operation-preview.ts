@@ -14,6 +14,7 @@ import type {
   RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import type { RawUpdateManyCommand } from '@internal/mongo-query-ast/execution';
+import { fieldRewriteOf } from './field-rewrite';
 
 function formatKeySpec(keys: ReadonlyArray<MongoIndexKey>): string {
   const entries = keys.map((k) => `${JSON.stringify(k.field)}: ${JSON.stringify(k.direction)}`);
@@ -103,20 +104,6 @@ function isDdlCommand(value: object | undefined): value is AnyMongoDdlCommand {
   return value !== undefined && typeof Reflect.get(value, 'accept') === 'function';
 }
 
-function isFieldRewrite(value: object | undefined): value is RawUpdateManyCommand {
-  return (
-    value !== undefined &&
-    Reflect.get(value, 'kind') === 'rawUpdateMany' &&
-    Reflect.get(value, 'bypassDocumentValidation') === true
-  );
-}
-
-function fieldRewritesOf(operation: object): readonly RawUpdateManyCommand[] {
-  const commands = arrayAt(operation, 'run').map((plan) => objectAt(plan, 'command'));
-  const rewrites = commands.filter(isFieldRewrite);
-  return rewrites.length === commands.length ? rewrites : [];
-}
-
 export function formatMongoOperations(operations: readonly MigrationPlanOperation[]): string[] {
   const statements: string[] = [];
   for (const operation of operations) {
@@ -124,7 +111,8 @@ export function formatMongoOperations(operations: readonly MigrationPlanOperatio
       const command = objectAt(step, 'command');
       if (isDdlCommand(command)) statements.push(command.accept(formatter));
     }
-    statements.push(...fieldRewritesOf(operation).map(formatUpdateMany));
+    const rewrite = fieldRewriteOf(operation);
+    if (rewrite !== undefined) statements.push(formatUpdateMany(rewrite.command));
   }
   return statements;
 }
