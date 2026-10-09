@@ -227,6 +227,22 @@ describe('MongoMigrationRunner - field rewrites', () => {
   );
 
   it(
+    'finishes a rename that stopped part way, where some documents already hold only the new name',
+    async () => {
+      await db.collection('users').insertMany([{ fullName: 'a' }, { name: 'b' }]);
+
+      const result = await run(
+        [renameField('users', 'name', 'fullName')],
+        contractWith({ users: new MongoCollection({}) }),
+      );
+
+      expect(result.ok ? result.value.operationsExecuted : result.failure).toBe(1);
+      expect(await documents('users')).toEqual([{ fullName: 'a' }, { fullName: 'b' }]);
+    },
+    timeouts.spinUpMongoMemoryServer,
+  );
+
+  it(
     'removes a field from every document that holds it, past a closed validator',
     async () => {
       await db.createCollection('users', {

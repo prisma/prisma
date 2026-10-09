@@ -32,6 +32,7 @@ import { collection } from '@internal/mongo-query-builder/contract-free';
 import type { Document, MongoValue } from '@internal/mongo-value';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { mongoTargetError } from '../mongo-target-errors';
 import type { CollModMeta } from './op-factory-call';
 
 type StringField = { readonly codecId: 'mongo/string@1'; readonly nullable: false };
@@ -118,9 +119,39 @@ export interface FieldRewriteOptions {
 
 const REWRITE_PLAN_META = { target: 'mongo', storageHash: '', lane: 'mongo-raw' } as const;
 
-function documentsHolding(field: string, filter: Document | undefined): Document {
-  const holds = { [field]: { $exists: true } };
-  return filter === undefined ? holds : { $and: [filter, holds] };
+function documentsHolding(fields: readonly string[], filter: Document | undefined): Document {
+  const conditions: Document[] = [
+    ...(filter === undefined ? [] : [filter]),
+    ...fields.map((field) => ({ [field]: { $exists: true } })),
+  ];
+  const [only] = conditions;
+  return conditions.length === 1 && only !== undefined ? only : { $and: conditions };
+}
+
+const UNREWRITABLE_FIELD_NAMES: ReadonlyArray<{
+  readonly matches: (field: string) => boolean;
+  readonly reason: string;
+}> = [
+  { matches: (field) => field === '', reason: 'it is empty' },
+  { matches: (field) => field === '_id', reason: 'MongoDB does not let a document change its _id' },
+  {
+    matches: (field) => field.includes('.'),
+    reason: 'MongoDB reads a name containing "." as a path into embedded documents',
+  },
+  {
+    matches: (field) => field.startsWith('$'),
+    reason: 'MongoDB reads a name starting with "$" as an operator',
+  },
+];
+
+function assertRewritableField(collectionName: string, field: string): void {
+  const reason = UNREWRITABLE_FIELD_NAMES.find((rule) => rule.matches(field))?.reason;
+  if (reason === undefined) return;
+  throw mongoTargetError(
+    'MIGRATION.FIELD_NAME_UNSUPPORTED',
+    `Field "${field}" in collection ${collectionName} cannot be rewritten: ${reason}.`,
+    { meta: { collection: collectionName, field, reason } },
+  );
 }
 
 function rewritePlan(collectionName: string, command: RawAggregateCommand | RawUpdateManyCommand) {
@@ -129,15 +160,15 @@ function rewritePlan(collectionName: string, command: RawAggregateCommand | RawU
 
 function noDocumentHolds(
   collectionName: string,
-  field: string,
+  fields: readonly string[],
   filter: Document | undefined,
 ): MongoDataTransformCheck {
   return {
-    description: `no document in ${collectionName} holds ${field}`,
+    description: `no document in ${collectionName} holds ${fields.length === 1 ? fields[0] : `both ${fields.join(' and ')}`}`,
     source: rewritePlan(
       collectionName,
       new RawAggregateCommand(collectionName, [
-        { $match: documentsHolding(field, filter) },
+        { $match: documentsHolding(fields, filter) },
         { $limit: 1 },
       ]),
     ),
@@ -154,7 +185,7 @@ function rewriteUpdate(
 ): MongoQueryPlan {
   return rewritePlan(
     collectionName,
-    new RawUpdateManyCommand(collectionName, documentsHolding(field, filter), update, {
+    new RawUpdateManyCommand(collectionName, documentsHolding([field], filter), update, {
       bypassDocumentValidation: true,
     }),
   );
@@ -174,6 +205,15 @@ export function renameField(
   to: string,
   options?: FieldRewriteOptions,
 ): MongoDataTransformOperation {
+  assertRewritableField(collectionName, from);
+  assertRewritableField(collectionName, to);
+  if (from === to) {
+    throw mongoTargetError(
+      'MIGRATION.FIELD_NAME_UNSUPPORTED',
+      `Field "${from}" in collection ${collectionName} cannot be renamed to its own name.`,
+      { meta: { collection: collectionName, field: from, reason: 'the new name is the old name' } },
+    );
+  }
   const filter = options?.filter;
   const id = `field.${collectionName}.${from}.rename(${to})${idSuffix(filter)}`;
   return {
@@ -181,9 +221,9 @@ export function renameField(
     label: `Rename field ${from} to ${to} in collection ${collectionName}${labelSuffix(filter)}`,
     operationClass: 'widening',
     name: id,
-    precheck: [noDocumentHolds(collectionName, to, filter)],
+    precheck: [noDocumentHolds(collectionName, [from, to], filter)],
     run: [rewriteUpdate(collectionName, from, filter, { $rename: { [from]: to } })],
-    postcheck: [noDocumentHolds(collectionName, from, filter)],
+    postcheck: [noDocumentHolds(collectionName, [from], filter)],
   };
 }
 
@@ -192,6 +232,7 @@ export function unsetField(
   field: string,
   options?: FieldRewriteOptions,
 ): MongoDataTransformOperation {
+  assertRewritableField(collectionName, field);
   const filter = options?.filter;
   const id = `field.${collectionName}.${field}.unset${idSuffix(filter)}`;
   return {
@@ -201,7 +242,7 @@ export function unsetField(
     name: id,
     precheck: [],
     run: [rewriteUpdate(collectionName, field, filter, { $unset: { [field]: '' } })],
-    postcheck: [noDocumentHolds(collectionName, field, filter)],
+    postcheck: [noDocumentHolds(collectionName, [field], filter)],
   };
 }
 

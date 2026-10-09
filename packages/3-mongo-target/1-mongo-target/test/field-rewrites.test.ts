@@ -35,8 +35,8 @@ describe('renameField', () => {
       precheck: [
         noDocumentHolds(
           'users',
-          { fullName: { $exists: true } },
-          'no document in users holds fullName',
+          { $and: [{ name: { $exists: true } }, { fullName: { $exists: true } }] },
+          'no document in users holds both name and fullName',
         ),
       ],
       run: [
@@ -70,7 +70,11 @@ describe('renameField', () => {
       id: 'field.posts.title.rename(headline).where({"type":"bug"})',
       label: 'Rename field title to headline in collection posts where {"type":"bug"}',
       precheck: new RawAggregateCommand('posts', [
-        { $match: { $and: [{ type: 'bug' }, { headline: { $exists: true } }] } },
+        {
+          $match: {
+            $and: [{ type: 'bug' }, { title: { $exists: true } }, { headline: { $exists: true } }],
+          },
+        },
         { $limit: 1 },
       ]),
       run: new RawUpdateManyCommand(
@@ -129,6 +133,38 @@ describe('unsetField', () => {
         { bypassDocumentValidation: true },
       ),
     });
+  });
+});
+
+describe('field names a rewrite refuses', () => {
+  const refusals = [
+    { field: 'a.b', reason: 'contains "."' },
+    { field: '$a', reason: 'starts with "$"' },
+    { field: '_id', reason: 'is _id' },
+    { field: '', reason: 'is empty' },
+  ];
+
+  for (const { field, reason } of refusals) {
+    it(`refuses a field name that ${reason}`, () => {
+      const expected = expect.objectContaining({
+        code: 'MIGRATION.FIELD_NAME_UNSUPPORTED',
+        meta: expect.objectContaining({ collection: 'users', field }),
+      });
+      expect(() => renameField('users', field, 'x')).toThrow(expected);
+      expect(() => renameField('users', 'x', field)).toThrow(expected);
+      expect(() => unsetField('users', field)).toThrow(expected);
+      expect(() => new RenameFieldCall('users', field, 'x')).toThrow(expected);
+      expect(() => new UnsetFieldCall('users', field)).toThrow(expected);
+    });
+  }
+
+  it('refuses renaming a field to its own name', () => {
+    expect(() => renameField('users', 'name', 'name')).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.FIELD_NAME_UNSUPPORTED',
+        meta: expect.objectContaining({ collection: 'users', field: 'name' }),
+      }),
+    );
   });
 });
 

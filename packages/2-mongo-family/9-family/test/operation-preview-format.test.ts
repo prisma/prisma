@@ -7,7 +7,7 @@ import {
   type MongoMigrationPlanOperation,
   RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
-import { RawUpdateManyCommand } from '@internal/mongo-query-ast/execution';
+import { RawInsertOneCommand, RawUpdateManyCommand } from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import { formatMongoOperations } from '../src/core/operation-preview';
 
@@ -180,6 +180,31 @@ describe('formatMongoOperations', () => {
     expect(formatMongoOperations([rewrite])).toEqual([
       'db.getCollection("my-coll").updateMany({"name":{"$exists":true}}, {"$rename":{"name":"fullName"}}, { bypassDocumentValidation: true })',
     ]);
+  });
+
+  it('renders nothing for a user data transform, even one with an updateMany step', () => {
+    const meta = { target: 'mongo', storageHash: 'h', lane: 'mongo-raw' };
+    const transform = {
+      id: 'data_transform.backfill',
+      label: 'Data transform: backfill',
+      operationClass: 'data' as const,
+      name: 'backfill',
+      precheck: [],
+      run: [
+        {
+          collection: 'users',
+          command: new RawUpdateManyCommand('users', {}, { $set: { status: 'active' } }),
+          meta,
+        },
+        {
+          collection: 'users',
+          command: new RawInsertOneCommand('users', { name: 'seed' }),
+          meta,
+        },
+      ],
+      postcheck: [],
+    };
+    expect(formatMongoOperations([transform])).toEqual([]);
   });
 
   it('skips operations without execute steps', () => {

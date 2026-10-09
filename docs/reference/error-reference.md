@@ -1450,6 +1450,10 @@ The per-space migration planner received the same contract-space id more than on
 
 A migration operation's SQL step failed while being executed against the database during apply (`db init`, `db update`, `db migrate`). The envelope carries the database error detail so you can see which statement failed and why. Payload: `operationId`, `stepDescription`, `sql`, `sqlState`, `constraint`, `table`, `column`, `detail`.
 
+### MIGRATION.FIELD_NAME_UNSUPPORTED
+
+A MongoDB `renameField` or `unsetField` operation names a field it cannot rewrite: an empty name, `_id` (MongoDB does not let a document change its `_id`), a name containing `.` (MongoDB reads it as a path into embedded documents), or a name starting with `$` (MongoDB reads it as an operator). `renameField` also refuses a new name equal to the old one. Raised when the operation is built, before anything runs. Payload: `collection`, `field`, `reason`.
+
 ### MIGRATION.FILE_MISSING
 
 A required migration file is absent: either an on-disk package is missing `migration.json`/`ops.json` (migration-tools loader; re-emit via the package's `migration.ts`), or a `migration.ts` source file was expected at a package directory and not found (scaffold one with `migration new` or `migration plan`). Payload: `file`, `dir` (loader variant) or `dir` (source-file variant).

@@ -103,8 +103,18 @@ function isDdlCommand(value: object | undefined): value is AnyMongoDdlCommand {
   return value !== undefined && typeof Reflect.get(value, 'accept') === 'function';
 }
 
-function isRawUpdateMany(value: object | undefined): value is RawUpdateManyCommand {
-  return value !== undefined && Reflect.get(value, 'kind') === 'rawUpdateMany';
+function isFieldRewrite(value: object | undefined): value is RawUpdateManyCommand {
+  return (
+    value !== undefined &&
+    Reflect.get(value, 'kind') === 'rawUpdateMany' &&
+    Reflect.get(value, 'bypassDocumentValidation') === true
+  );
+}
+
+function fieldRewritesOf(operation: object): readonly RawUpdateManyCommand[] {
+  const commands = arrayAt(operation, 'run').map((plan) => objectAt(plan, 'command'));
+  const rewrites = commands.filter(isFieldRewrite);
+  return rewrites.length === commands.length ? rewrites : [];
 }
 
 export function formatMongoOperations(operations: readonly MigrationPlanOperation[]): string[] {
@@ -114,10 +124,7 @@ export function formatMongoOperations(operations: readonly MigrationPlanOperatio
       const command = objectAt(step, 'command');
       if (isDdlCommand(command)) statements.push(command.accept(formatter));
     }
-    for (const plan of arrayAt(operation, 'run')) {
-      const command = objectAt(plan, 'command');
-      if (isRawUpdateMany(command)) statements.push(formatUpdateMany(command));
-    }
+    statements.push(...fieldRewritesOf(operation).map(formatUpdateMany));
   }
   return statements;
 }
