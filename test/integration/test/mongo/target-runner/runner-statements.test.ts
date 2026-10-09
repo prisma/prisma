@@ -211,7 +211,9 @@ async function furtherPlanLabels(to: MongoContract): Promise<readonly string[]> 
     snapshotsImportPath: '../../snapshots',
   });
   if (planned.kind !== 'success') throw new Error(JSON.stringify(planned.conflicts));
-  return planned.plan.operations.map((operation) => operation.label);
+  return (planned.plan.operations as readonly AnyMongoMigrationOperation[]).map(
+    (operation) => operation.label,
+  );
 }
 
 async function documents(name: string) {
