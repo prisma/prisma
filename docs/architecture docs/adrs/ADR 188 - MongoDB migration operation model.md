@@ -1,5 +1,7 @@
 # ADR 188 — MongoDB migration operation model: data-driven commands and checks
 
+> **Update — 2026-10:** document rewrites the planner writes for `--rename` and `--delete` statements are classed by their effect, not as `data`. See § Data transform operations.
+
 ## Grounding example
 
 The migration planner has compared two contracts and determined that a unique ascending index on `users.email` needs to be created. It needs to produce an operation that the runner can execute.
@@ -125,7 +127,7 @@ The envelope described above covers DDL operations — creating indexes, modifyi
 
 ```ts
 interface MongoDataTransformOperation extends MigrationPlanOperation {
-  readonly operationClass: 'data';
+  readonly operationClass: MigrationOperationClass;
   readonly name: string;
   readonly precheck: readonly MongoDataTransformCheck[];
   readonly run: readonly MongoQueryPlan[];
@@ -133,7 +135,7 @@ interface MongoDataTransformOperation extends MigrationPlanOperation {
 }
 ```
 
-The `operationClass` is always `'data'`. The `run` array contains `MongoQueryPlan` objects — aggregation pipelines or raw commands (`rawUpdateMany`, `rawInsertOne`, etc.) — rather than DDL commands. The `precheck` and `postcheck` arrays contain `MongoDataTransformCheck` objects instead of `MongoMigrationCheck`.
+A transform a user writes, or one the planner scaffolds with a placeholder, has `operationClass: 'data'`. A rewrite the planner writes itself carries the class of its effect, as every other planned operation does: `renameField` is `widening` and `unsetField` is `destructive`. So `db update`, which does not allow `data`, can run a rename. The runner and the serializer tell a transform from a DDL operation by its shape (`run` against `execute`), not by its class. The `run` array contains `MongoQueryPlan` objects — aggregation pipelines or raw commands (`rawUpdateMany`, `rawInsertOne`, etc.) — rather than DDL commands. The `precheck` and `postcheck` arrays contain `MongoDataTransformCheck` objects instead of `MongoMigrationCheck`.
 
 `MongoDataTransformCheck` has the same four-field shape as `MongoMigrationCheck`:
 
