@@ -227,6 +227,60 @@ describe('MongoMigrationRunner - field rewrites', () => {
   );
 
   it(
+    'finishes the plan once the documents its before-check names are fixed as its message says',
+    async () => {
+      await createClosedUsers();
+      await db
+        .collection('users')
+        .insertOne({ name: 'Dee', fullName: 'Dee D.' }, { bypassDocumentValidation: true });
+
+      const stopped = await run(renameNamePlan, usersWithFullName);
+      if (stopped.ok) throw new Error('Expected the rename to stop at its before-check');
+      const printedFind = /db\.getCollection\("users"\)\.find\((.*)\) in mongosh/.exec(
+        stopped.failure.why ?? '',
+      );
+      const found = await db
+        .collection('users')
+        .find(JSON.parse(printedFind?.[1] ?? 'null'), { projection: { _id: 0 } })
+        .toArray();
+      expect({
+        summary: stopped.failure.summary,
+        found,
+        indexes: (await db.collection('users').indexes()).map(({ name }) => name),
+      }).toEqual({
+        summary:
+          'Operation field.users.name.rename(fullName) stopped: some documents in collection users already hold fullName as well as name',
+        found: [{ name: 'Dee', fullName: 'Dee D.' }],
+        indexes: ['_id_'],
+      });
+
+      await db.collection('users').updateMany(
+        JSON.parse(printedFind?.[1] ?? 'null'),
+        { $unset: { fullName: '' } },
+        {
+          bypassDocumentValidation: true,
+        },
+      );
+      const finished = await run(renameNamePlan, usersWithFullName);
+
+      expect(finished.ok ? finished.value.operationsExecuted : finished.failure).toBe(3);
+      expect({
+        documents: await documents('users'),
+        indexes: (await db.collection('users').indexes()).map(({ name }) => name),
+      }).toEqual({
+        documents: [
+          { fullName: 'Ada' },
+          { fullName: 'Bo' },
+          { fullName: 'Cy' },
+          { fullName: 'Dee' },
+        ],
+        indexes: ['_id_', 'fullName_1'],
+      });
+    },
+    timeouts.spinUpMongoMemoryServer,
+  );
+
+  it(
     'finishes a rename that stopped part way, where some documents already hold only the new name',
     async () => {
       await db.collection('users').insertMany([{ fullName: 'a' }, { name: 'b' }]);

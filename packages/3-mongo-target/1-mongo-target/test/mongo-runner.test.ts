@@ -44,6 +44,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createCollection,
   dataTransform,
+  renameField,
   unsetField,
 } from '../src/core/migrations/migration-factories';
 import { serializeMongoOps } from '../src/core/migrations/mongo-ops-serializer';
@@ -828,5 +829,28 @@ describe('MongoMigrationRunner, a document rewrite without the privilege to skip
     await expect(
       execute(harness, [dataTransform('backfill-status', { run: () => makeRunPlan() })]),
     ).rejects.toBeInstanceOf(MongoServerError);
+  });
+});
+
+describe('MongoMigrationRunner, a field rename stopped because documents already hold the new name', () => {
+  it('says which collection, how to find the documents, and that the operations before it already ran', async () => {
+    const harness = makeHarness();
+    harness.driver.queueResponse([{ _id: 1 }]);
+    harness.driver.queueResponse([{ _id: 2 }]);
+
+    const result = await execute(harness, [
+      renameField('posts', 'title', 'headline', { filter: { type: 'bug' } }),
+    ]);
+
+    expect(result.assertNotOk()).toEqual({
+      code: 'MIGRATION.PRECHECK_FAILED',
+      summary:
+        'Operation field.posts.title.rename(headline).where({"type":"bug"}) stopped: some documents in collection posts already hold headline as well as title',
+      why: 'Renaming title to headline would overwrite their headline. Find them with db.getCollection("posts").find({"$and":[{"type":"bug"},{"title":{"$exists":true}},{"headline":{"$exists":true}}]}) in mongosh, and move or remove one of the two values in each. Nothing was renamed. The operations before this one in the plan already ran, such as dropping an index on title; once the documents are fixed, run the command again and the plan finishes from here.',
+      meta: {
+        operationId: 'field.posts.title.rename(headline).where({"type":"bug"})',
+        name: 'field.posts.title.rename(headline).where({"type":"bug"})',
+      },
+    });
   });
 });

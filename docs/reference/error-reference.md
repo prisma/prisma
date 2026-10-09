@@ -1602,7 +1602,7 @@ A `PostgresMigration` operation (e.g. `createTable`, `dataTransform`) was invoke
 
 ### MIGRATION.PRECHECK_FAILED
 
-Before executing a migration operation, one of its precheck steps (a query expected to return true) did not hold: the database is not in the state the operation requires, so the apply stops and rolls back. Payload: `operationId`, `phase`, `stepDescription`.
+Before executing a migration operation, one of its precheck steps (a query expected to return true) did not hold: the database is not in the state the operation requires, so the apply stops and rolls back. Payload: `operationId`, `phase`, `stepDescription`. On MongoDB, where operations are not wrapped in a transaction, the operations before it stay applied, and a re-run skips them. A field rename (`renameField`) stops here when documents already hold the new name as well as the old one: the message names the collection, gives the `mongosh` query that finds those documents, and says to fix them and run the command again. Payload on MongoDB: `operationId`, `name`.
 
 ### MIGRATION.PROVIDED_INVARIANTS_MISMATCH
 

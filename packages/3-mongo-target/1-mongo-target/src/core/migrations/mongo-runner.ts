@@ -1,5 +1,6 @@
 import type { ContractMarkerRecord } from '@internal/contract/types';
 import { errorRunnerFailed } from '@internal/errors/execution';
+import { fieldRewriteOf } from '@internal/family-mongo/control';
 import type {
   MarkerOperations,
   MongoRunnerDependencies,
@@ -28,7 +29,11 @@ import type {
   MongoMigrationCheck,
 } from '@internal/mongo-query-ast/control';
 import { isMongoDmlOperation } from '@internal/mongo-query-ast/control';
-import { type MongoQueryPlan, RawUpdateManyCommand } from '@internal/mongo-query-ast/execution';
+import {
+  type MongoQueryPlan,
+  RawAggregateCommand,
+  RawUpdateManyCommand,
+} from '@internal/mongo-query-ast/execution';
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -79,6 +84,36 @@ function runnerFailure(
     summary,
     ...opts,
   });
+}
+
+/**
+ * The failure when a field rename's before-check finds documents that already hold the new name,
+ * which `$rename` would overwrite: what to look for and fix, and that the plan resumes.
+ */
+function renameOverwriteRefusal(op: MongoDmlOperation): MongoMigrationRunnerResult | undefined {
+  const rewrite = fieldRewriteOf(op);
+  if (rewrite === undefined) return undefined;
+  const renames: unknown = Reflect.get(rewrite.command.update, '$rename');
+  const to: unknown =
+    typeof renames === 'object' && renames !== null
+      ? Reflect.get(renames, rewrite.field)
+      : undefined;
+  if (typeof to !== 'string') return undefined;
+  const [check] = op.precheck;
+  const source = check?.source.command;
+  const match: unknown =
+    source instanceof RawAggregateCommand
+      ? Reflect.get(source.pipeline[0] ?? {}, '$match')
+      : undefined;
+  const find = `db.getCollection(${JSON.stringify(rewrite.collection)}).find(${JSON.stringify(match ?? {})})`;
+  return runnerFailure(
+    'MIGRATION.PRECHECK_FAILED',
+    `Operation ${op.id} stopped: some documents in collection ${rewrite.collection} already hold ${to} as well as ${rewrite.field}`,
+    {
+      why: `Renaming ${rewrite.field} to ${to} would overwrite their ${to}. Find them with ${find} in mongosh, and move or remove one of the two values in each. Nothing was renamed. The operations before this one in the plan already ran, such as dropping an index on ${rewrite.field}; once the documents are fixed, run the command again and the plan finishes from here.`,
+      meta: { operationId: op.id, name: op.name },
+    },
+  );
 }
 
 const MONGO_UNAUTHORIZED = 13;
@@ -354,13 +389,15 @@ export class MongoMigrationRunner {
       if (!passed) {
         return {
           executed: false,
-          failure: runnerFailure(
-            'MIGRATION.PRECHECK_FAILED',
-            `Operation ${op.id} failed during precheck`,
-            {
-              meta: { operationId: op.id, name: op.name },
-            },
-          ),
+          failure:
+            renameOverwriteRefusal(op) ??
+            runnerFailure(
+              'MIGRATION.PRECHECK_FAILED',
+              `Operation ${op.id} failed during precheck`,
+              {
+                meta: { operationId: op.id, name: op.name },
+              },
+            ),
         };
       }
     }
