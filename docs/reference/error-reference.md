@@ -1448,7 +1448,7 @@ The per-space migration planner received the same contract-space id more than on
 
 ### MIGRATION.EXECUTION_FAILED
 
-A migration operation's SQL step failed while being executed against the database during apply (`db init`, `db update`, `db migrate`). The envelope carries the database error detail so you can see which statement failed and why. Payload: `operationId`, `stepDescription`, `sql`, `sqlState`, `constraint`, `table`, `column`, `detail`.
+A migration operation's SQL step failed while being executed against the database during apply (`db init`, `db update`, `db migrate`). The envelope carries the database error detail so you can see which statement failed and why. Payload: `operationId`, `stepDescription`, `sql`, `sqlState`, `constraint`, `table`, `column`, `detail`. On MongoDB it is raised when a field rename or removal rewrites documents with `bypassDocumentValidation` and the database user lacks that action (MongoDB error 13, `Unauthorized`), as a `readWrite` user on a hosted cluster does; the message says to grant the `bypassDocumentValidation` action, for example with the `dbAdmin` or `restore` role, and to run the command again. Payload: `operationId`, `mongoCode`, `codeName`.
 
 ### MIGRATION.FIELD_NAME_UNSUPPORTED
 

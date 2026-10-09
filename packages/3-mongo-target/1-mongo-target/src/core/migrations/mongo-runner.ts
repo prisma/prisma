@@ -28,6 +28,7 @@ import type {
   MongoMigrationCheck,
 } from '@internal/mongo-query-ast/control';
 import { isMongoDmlOperation } from '@internal/mongo-query-ast/control';
+import { type MongoQueryPlan, RawUpdateManyCommand } from '@internal/mongo-query-ast/execution';
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -78,6 +79,37 @@ function runnerFailure(
     summary,
     ...opts,
   });
+}
+
+const MONGO_UNAUTHORIZED = 13;
+
+/**
+ * The failure for a rewrite that skips validation when the database user lacks the
+ * `bypassDocumentValidation` action, as a `readWrite` user on a hosted cluster does.
+ */
+function bypassValidationRefusal(
+  op: MongoDmlOperation,
+  plan: MongoQueryPlan,
+  error: unknown,
+): MongoMigrationRunnerResult | undefined {
+  if (!(plan.command instanceof RawUpdateManyCommand) || !plan.command.bypassDocumentValidation) {
+    return undefined;
+  }
+  if (typeof error !== 'object' || error === null) return undefined;
+  if (Reflect.get(error, 'code') !== MONGO_UNAUTHORIZED) return undefined;
+  const message: unknown = Reflect.get(error, 'message');
+  return runnerFailure(
+    'MIGRATION.EXECUTION_FAILED',
+    `Operation ${op.id} failed: the database user may not skip document validation`,
+    {
+      why: `Renaming or removing a field rewrites documents with bypassDocumentValidation, because the old validator requires the old field. MongoDB refused it: ${String(message)}. Grant the user the bypassDocumentValidation action on the database, for example with the dbAdmin or restore role, then run the command again; operations that already ran are skipped.`,
+      meta: {
+        operationId: op.id,
+        mongoCode: MONGO_UNAUTHORIZED,
+        codeName: Reflect.get(error, 'codeName'),
+      },
+    },
+  );
 }
 
 export class MongoMigrationRunner {
@@ -335,8 +367,14 @@ export class MongoMigrationRunner {
 
     for (const plan of op.run) {
       const wireCommand = await adapter.lower(plan, {});
-      for await (const _ of driver.execute(wireCommand)) {
-        /* consume */
+      try {
+        for await (const _ of driver.execute(wireCommand)) {
+          /* consume */
+        }
+      } catch (error) {
+        const refusal = bypassValidationRefusal(op, plan, error);
+        if (refusal === undefined) throw error;
+        return { executed: false, failure: refusal };
       }
     }
 
