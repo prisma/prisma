@@ -579,7 +579,7 @@ describe('executeDbUpdate', () => {
 
       expect(asked).toEqual([
         {
-          question: `Drop column nickname from user would lose the data in "user.nickname", named by its storage name because the origin contract is unknown; --delete loses that data. ${ORIGIN_SNAPSHOT_RECOVERY}`,
+          question: `Drop column nickname from user would lose the data in "user.nickname", named by its storage name because the origin contract is unknown; --delete loses that data.\n${ORIGIN_SNAPSHOT_RECOVERY}`,
           subject: 'user.nickname',
           verbs: ['delete'],
         },

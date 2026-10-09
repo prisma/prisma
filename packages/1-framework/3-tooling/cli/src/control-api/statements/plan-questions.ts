@@ -158,7 +158,7 @@ function lossText(subject: MigrationSubject, text: string, originKnown: boolean)
 export const ORIGIN_SNAPSHOT_RECOVERY = [
   'If it was renamed, keep its data instead: store the snapshot of the contract the database is at, then run this command again and answer with --rename.',
   ...STORE_ORIGIN_SNAPSHOT_STEPS.map((step) => step.replaceAll('{bin}', 'prisma')),
-].join(' ');
+].join('\n');
 
 function sameCoordinate(statement: ResolvedMigrationStatement, subject: MigrationSubject): boolean {
   if (subject.kind === 'storage') return false;
@@ -370,7 +370,7 @@ function withRecoveryOnFirstStorageQuestion(
     : -1;
   return asked.map(({ question }, index) =>
     index === first
-      ? { ...question, question: `${question.question} ${ORIGIN_SNAPSHOT_RECOVERY}` }
+      ? { ...question, question: `${question.question}\n${ORIGIN_SNAPSHOT_RECOVERY}` }
       : question,
   );
 }
