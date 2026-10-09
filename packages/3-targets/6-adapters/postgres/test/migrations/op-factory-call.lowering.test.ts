@@ -329,7 +329,8 @@ describe('AddNotNullColumnWithTempDefaultCall', () => {
     const call = new AddNotNullColumnWithTempDefaultCall(
       'public',
       'doc',
-      col('embedding', 'vector(3)', { notNull: true }),
+      'embedding',
+      'vector(3)',
       temporaryDefault,
     );
     const op = await call.toOp(testAdapter);

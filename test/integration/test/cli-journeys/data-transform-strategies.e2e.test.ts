@@ -56,7 +56,10 @@ interface Scenario {
   /** The statement that asks the plan for the data transform. */
   readonly statements: readonly string[];
   readonly dirToken: string;
-  readonly placeholderId: string;
+  /** The data transform's name, which its operation id carries. */
+  readonly transformName: string;
+  /** The field the slots are named by. */
+  readonly slot: string;
   readonly assertScaffold: (scaffold: string) => void;
   readonly checkReplacement: string;
   readonly runReplacement: string;
@@ -79,7 +82,8 @@ const scenarios: readonly Scenario[] = [
     migrationName: 'add-required-name',
     statements: ['--backfill', 'User.name'],
     dirToken: 'add_required_name',
-    placeholderId: 'backfill-user-name',
+    transformName: 'backfill-user-name',
+    slot: 'User.name',
     assertScaffold: () => {},
     checkReplacement:
       "() => db.public.user.select('id').where((f, fns) => fns.eq(f.name, null)).limit(1)",
@@ -105,7 +109,8 @@ const scenarios: readonly Scenario[] = [
     migrationName: 'tighten-name-not-null',
     statements: ['--backfill', 'User.name'],
     dirToken: 'tighten_name_not_null',
-    placeholderId: 'handle-nulls-user-name',
+    transformName: 'handle-nulls-user-name',
+    slot: 'User.name',
     assertScaffold: (scaffold) => {
       expect(scaffold).toContain('setNotNull');
       // The planner *must not* emit an addColumn here: this is the
@@ -178,8 +183,8 @@ withTempDir(({ createTempDir }) => {
         const migrationTsPath = join(migrationDir, 'migration.ts');
 
         const scaffold = readFileSync(migrationTsPath, 'utf-8');
-        expect(scaffold).toContain(`placeholder('${scenario.placeholderId}:check')`);
-        expect(scaffold).toContain(`placeholder('${scenario.placeholderId}:run')`);
+        expect(scaffold).toContain(`placeholder('${scenario.slot}:check')`);
+        expect(scaffold).toContain(`placeholder('${scenario.slot}:run')`);
         scenario.assertScaffold(scaffold);
         const manifestBefore = JSON.parse(
           readFileSync(join(migrationDir, 'migration.json'), 'utf-8'),
@@ -193,11 +198,8 @@ withTempDir(({ createTempDir }) => {
         expect(JSON.parse(readFileSync(join(migrationDir, 'ops.json'), 'utf-8'))).toEqual([]);
 
         const filled = injectMigrationSqlDbSetup(scaffold)
-          .replace(
-            `() => placeholder('${scenario.placeholderId}:check')`,
-            scenario.checkReplacement,
-          )
-          .replace(`() => placeholder('${scenario.placeholderId}:run')`, scenario.runReplacement);
+          .replace(`() => placeholder('${scenario.slot}:check')`, scenario.checkReplacement)
+          .replace(`() => placeholder('${scenario.slot}:run')`, scenario.runReplacement);
         expect(filled).not.toContain('placeholder(');
         expect(filled).toContain('const db = sql(');
         writeFileSync(migrationTsPath, filled);
@@ -220,7 +222,7 @@ withTempDir(({ createTempDir }) => {
           postcheck?: readonly unknown[];
         }[];
         const dataTransformOp = opsAfterEmit.find(
-          (op) => op.id === `data_migration.${scenario.placeholderId}`,
+          (op) => op.id === `data_migration.${scenario.transformName}`,
         );
         expect(dataTransformOp, 'dataTransform op exists').toBeDefined();
         expect(dataTransformOp?.operationClass).toBe('data');

@@ -44,6 +44,8 @@ import {
 } from '../utils/journey-test-helpers';
 
 const INVARIANT_ID = 'backfill-user-name';
+/** The slots `--backfill User.name` writes, named by the field. */
+const BACKFILL_SLOT = 'User.name';
 const BACKFILLED_NAME = 'unknown';
 
 /**
@@ -81,11 +83,11 @@ function patchBackfillMigrationTs(
 
   let filled = injectMigrationSqlDbSetup(scaffold)
     .replace(
-      `() => placeholder('${INVARIANT_ID}:check')`,
+      `() => placeholder('${BACKFILL_SLOT}:check')`,
       "() => db.public.user.select('id').where((f, fns) => fns.eq(f.name, null)).limit(1)",
     )
     .replace(
-      `() => placeholder('${INVARIANT_ID}:run')`,
+      `() => placeholder('${BACKFILL_SLOT}:run')`,
       `() => db.public.user.update({ name: '${BACKFILLED_NAME}' }).where((f, fns) => fns.eq(f.name, null))`,
     );
 

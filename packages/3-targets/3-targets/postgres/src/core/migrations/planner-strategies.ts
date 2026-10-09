@@ -32,6 +32,7 @@ import type {
   FieldStatementColumns,
   MigrationOperationPolicy,
   SqlMigrationPlanOperation,
+  StatementColumn,
 } from '@internal/family-sql/control';
 import type { DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
@@ -192,15 +193,15 @@ function columnNodePair(
   };
 }
 
-/** Whether a `--backfill` statement names the column an issue is about. */
-function backfillNames(
+/** The `--backfill` statement's column an issue is about, if a statement names it. */
+function backfilled(
   ctx: StrategyContext,
   ddlSchemaName: string,
   tableName: string,
   columnName: string,
-): boolean {
+): StatementColumn | undefined {
   const namespaceId = namespaceIdForDdlSchema(ctx, ddlSchemaName);
-  return ctx.statementColumns.backfill.some(
+  return ctx.statementColumns.backfill.find(
     (column) =>
       column.namespaceId === namespaceId &&
       column.table === tableName &&
@@ -232,8 +233,10 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
     const ddlSchemaName = issueSchemaName(issue);
     const tableName = issueTableName(issue);
     if (ddlSchemaName === undefined || tableName === undefined) continue;
-    if (!backfillNames(ctx, ddlSchemaName, tableName, expected.name)) continue;
+    const named = backfilled(ctx, ddlSchemaName, tableName, expected.name);
+    if (named === undefined) continue;
     const schemaName = emissionSchemaName(ctx, ddlSchemaName);
+    const slot = fieldStatementText(ctx, named.field);
 
     matched.push(issue);
     const ddl = renderColumnDdl(expected.name, expected, ctx.types);
@@ -244,8 +247,8 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
       new AddColumnCall(schemaName, tableName, nullableSpec),
       new DataTransformCall(
         `backfill-${tableName}-${expected.name}`,
-        `backfill-${tableName}-${expected.name}:check`,
-        `backfill-${tableName}-${expected.name}:run`,
+        `${slot}:check`,
+        `${slot}:run`,
       ),
       new SetNotNullCall(schemaName, tableName, expected.name),
     );
@@ -376,15 +379,17 @@ export const nullableTighteningCallStrategy: CallMigrationStrategy = (issues, ct
     const ddlSchemaName = issueSchemaName(issue);
     const tableName = issueTableName(issue);
     if (ddlSchemaName === undefined || tableName === undefined) continue;
-    if (!backfillNames(ctx, ddlSchemaName, tableName, expected.name)) continue;
+    const named = backfilled(ctx, ddlSchemaName, tableName, expected.name);
+    if (named === undefined) continue;
     const schemaName = emissionSchemaName(ctx, ddlSchemaName);
+    const slot = fieldStatementText(ctx, named.field);
 
     matched.push(issue);
     calls.push(
       new DataTransformCall(
         `handle-nulls-${tableName}-${expected.name}`,
-        `handle-nulls-${tableName}-${expected.name}:check`,
-        `handle-nulls-${tableName}-${expected.name}:run`,
+        `${slot}:check`,
+        `${slot}:run`,
       ),
       new SetNotNullCall(schemaName, tableName, expected.name),
     );
@@ -514,8 +519,14 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
     const ddl = renderColumnDdl(expected.name, expected, ctx.types);
     calls.push(
       canUseSharedTempDefault && temporaryDefault !== null
-        ? new AddNotNullColumnWithTempDefaultCall(schemaName, tableName, ddl, temporaryDefault)
-        : new AddNotNullColumnDirectCall(schemaName, tableName, ddl),
+        ? new AddNotNullColumnWithTempDefaultCall(
+            schemaName,
+            tableName,
+            ddl.name,
+            ddl.type,
+            temporaryDefault,
+          )
+        : new AddNotNullColumnDirectCall(schemaName, tableName, ddl.name, ddl.type),
     );
   }
 

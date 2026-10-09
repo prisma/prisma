@@ -211,13 +211,8 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     new DropNotNullCall('public', 'note', 'kind'),
     new SetDefaultCall('public', 'note', col('kind', 'text', { default: lit('draft') })),
     new DropDefaultCall('public', 'note', 'kind'),
-    new AddNotNullColumnDirectCall('public', 'note', col('title', 'text', { notNull: true })),
-    new AddNotNullColumnWithTempDefaultCall(
-      'public',
-      'note',
-      col('title', 'text', { notNull: true }),
-      "''",
-    ),
+    new AddNotNullColumnDirectCall('public', 'note', 'title', 'text'),
+    new AddNotNullColumnWithTempDefaultCall('public', 'note', 'title', 'text', "''"),
     new AddPrimaryKeyCall('public', 'note', 'note_pkey', ['id']),
     new AddForeignKeyCall('public', 'note', {
       name: 'note_owner_fkey',

@@ -40,6 +40,7 @@ function contract(
   seed: string,
   columns: Columns,
   uniques: readonly (readonly string[])[] = [],
+  table = 'User',
 ): Contract<SqlStorage> {
   return {
     target: 'postgres',
@@ -52,7 +53,7 @@ function contract(
           id: 'public',
           entries: {
             table: {
-              User: new StorageTable({
+              [table]: new StorageTable({
                 columns: Object.fromEntries(
                   Object.entries(columns).map(([column, type]) => [column, columnTypes[type]]),
                 ),
@@ -81,7 +82,7 @@ function contract(
           ),
           relations: {},
           storage: {
-            table: 'User',
+            table,
             namespaceId: 'public',
             fields: Object.fromEntries(Object.keys(columns).map((column) => [column, { column }])),
           },
@@ -171,6 +172,35 @@ describe('Postgres planner, a required field without a value in existing rows', 
   it('fills an optional field made required with a backfill slot for --backfill', async () => {
     expect(await planned(before, nicknameRequired, { statements: [backfill('nickname')] })).toEqual(
       ['placeholder', 'Set NOT NULL on "User"."nickname" (widening): set NOT NULL on "nickname"'],
+    );
+  });
+});
+
+describe('the backfill slots', () => {
+  it('are named by the field the statement names, whatever its table is called', async () => {
+    const hex = (letter: string) => letter.repeat(64);
+    const from = contract(hex('a'), { id: 'int4', nickname: 'text?' }, [], 'users');
+    const to = contract(hex('b'), { id: 'int4', nickname: 'text', name: 'text' }, [], 'users');
+    const result = createPostgresMigrationPlanner(stubLowerer).plan({
+      contract: to,
+      schema: postgresContractToSchema(from, postgresTypeComponents),
+      policy: MIGRATION_PLAN,
+      fromContract: from,
+      origin: planOriginOf(from),
+      statements: [backfill('name'), backfill('nickname')],
+      frameworkComponents: postgresTypeComponents,
+      spaceId: APP_SPACE_ID,
+      snapshotsImportPath: '../../snapshots',
+    });
+    if (result.kind !== 'success') throw new Error(JSON.stringify(result.conflicts));
+    const slots = [
+      ...result.plan
+        .renderTypeScript((specifier) => specifier)
+        .matchAll(/placeholder\("([^"]+)"\)/g),
+    ].map((match) => match[1]);
+
+    expect(slots.sort()).toEqual(
+      ['User.name:check', 'User.name:run', 'User.nickname:check', 'User.nickname:run'].sort(),
     );
   });
 });

@@ -248,13 +248,8 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       ),
       new AddColumnCall('public', 'user', col('nickname', 'text')),
       new AddColumnCall('public', 'user', col('meta', 'jsonb')),
-      new AddNotNullColumnWithTempDefaultCall(
-        'public',
-        'user',
-        col('handle', 'text', { notNull: true }),
-        "''",
-      ),
-      new AddNotNullColumnDirectCall('public', 'user', col('code', 'int4', { notNull: true })),
+      new AddNotNullColumnWithTempDefaultCall('public', 'user', 'handle', 'text', "''"),
+      new AddNotNullColumnDirectCall('public', 'user', 'code', 'int4'),
       new AlterColumnTypeCall({
         schemaName: 'public',
         tableName: 'user',
