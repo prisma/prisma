@@ -369,7 +369,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
     const renamedTo = new Map(collectionRenames.map((call) => [call.from, call.to]));
     const removals: readonly FieldRemoval[] =
       fromContract === null
-        ? planValidatorFieldRemovals({ origin: schema, destination: destinationIR })
+        ? planValidatorFieldRemovals({ origin: schema, destination: destinationIR, contract })
         : planFieldRemovals({
             statements: options.statements,
             fromContract,

@@ -439,7 +439,7 @@ function rootDocumentsLosing(
 /**
  * Each field an origin model stores that its destination model no longer stores, in a collection
  * the plan keeps: removing it is data loss, carried out by unsetting it from the documents that
- * hold it. A variant's field is unset only from that variant's documents, unless its destination
+ * hold it, in a collection whose control policy is `managed`. A variant's field is unset only from that variant's documents, unless its destination
  * base now stores it. A base field is unset from the documents of every variant that does not now
  * store it itself.
  */
@@ -447,6 +447,7 @@ export function planFieldRemovals(input: FieldRemovalInput): readonly FieldRemov
   return modelCoordinates(input.fromContract).flatMap((origin) => {
     const collection = input.collectionAfterRenames(collectionOf(input.fromContract, origin));
     if (!input.keptCollections.has(collection)) return [];
+    if (collectionControlPolicy(input.contract, collection) !== 'managed') return [];
     const destination = destinationModelOf(origin, input);
     if (destination === undefined) return [];
     const model = modelAt(input.fromContract, origin);
@@ -502,8 +503,10 @@ function branchPropertyNames(schema: unknown): readonly string[] {
 export function planValidatorFieldRemovals(input: {
   readonly origin: MongoSchemaIR;
   readonly destination: MongoSchemaIR;
+  readonly contract: MongoContract;
 }): readonly FieldRemoval[] {
   return input.origin.collections.flatMap((originCollection) => {
+    if (collectionControlPolicy(input.contract, originCollection.name) !== 'managed') return [];
     const destination = input.destination.collection(originCollection.name);
     if (destination?.validator === undefined || originCollection.validator === undefined) return [];
     const kept = new Set([

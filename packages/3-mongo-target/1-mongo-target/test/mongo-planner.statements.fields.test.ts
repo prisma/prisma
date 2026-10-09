@@ -1,3 +1,4 @@
+import type { ControlPolicy } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import {
   contract,
@@ -279,4 +280,35 @@ describe('MongoMigrationPlanner, removed fields', () => {
       ).dataLoss,
     ).toEqual([]);
   });
+});
+
+describe('MongoMigrationPlanner, removed fields in a collection that is not managed', () => {
+  const schema = [schemaCollection('auth_users', { required: ['email', 'legacy'] })];
+  const authUsers = (seed: string, fields: readonly string[], control: ControlPolicy) =>
+    contract(
+      seed,
+      { AuthUser: { collection: 'auth_users', fields: ['_id', ...fields] } },
+      { auth_users: { required: fields, control } },
+    );
+
+  for (const control of ['external', 'observed', 'tolerated'] as const) {
+    it(`unsets nothing and asks nothing when the collection is ${control}`, () => {
+      const result = planned(
+        plan({
+          from: authUsers('from', ['email', 'legacy'], control),
+          to: authUsers('to', ['email'], control),
+          schema,
+        }),
+      );
+      const noOrigin = planned(
+        plan({ from: null, to: authUsers('to', ['email'], control), schema }),
+      );
+      expect({
+        unsets: [...result.labels, ...noOrigin.labels].filter((label) =>
+          label.startsWith('Remove field'),
+        ),
+        dataLoss: [...result.dataLoss, ...noOrigin.dataLoss],
+      }).toEqual({ unsets: [], dataLoss: [] });
+    });
+  }
 });
