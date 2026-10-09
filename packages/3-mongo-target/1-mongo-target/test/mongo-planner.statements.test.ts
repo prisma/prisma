@@ -34,6 +34,7 @@ interface CollectionSpec {
   readonly unique?: readonly string[];
   readonly required?: readonly string[];
   readonly control?: ControlPolicy;
+  readonly timeField?: string;
 }
 
 function jsonSchema(fields: readonly string[]) {
@@ -125,6 +126,9 @@ function contract(
                         },
                       }),
                   ...(spec.control === undefined ? {} : { control: spec.control }),
+                  ...(spec.timeField === undefined
+                    ? {}
+                    : { options: { timeseries: { timeField: spec.timeField } } }),
                 }),
               ]),
             ),
@@ -569,7 +573,7 @@ describe('MongoMigrationPlanner, statements it refuses', () => {
         }),
       )[0]?.why,
     ).toBe(
-      'A statement cannot rename the collection of a model that keeps its name. Rename the collection in a step of its own first: change only @@map and emit the contract. With db update, rename the collection in the database yourself, for example db.getCollection("profiles").renameCollection("users") in mongosh, then run db update. With migration plan, plan it, passing --delete Profile to answer its question, then in its migration.ts replace the drop of "profiles" and the create of "users" with renameCollection("profiles", "users"), imported with the other operations. Then change the field and run this statement again.',
+      'A statement cannot rename the collection of a model that keeps its name. Rename the collection in a step of its own first: change only @@map and emit the contract. With db update, rename the collection in the database yourself, for example db.getCollection("profiles").renameCollection("users") in mongosh, then run db update. With migration plan, plan it, passing --delete Profile to answer its question; in its migration.ts replace the drop of "profiles" and the create of "users" with renameCollection("profiles", "users"), imported with the other operations; run node migration.ts in the migration\'s directory, so it writes ops.json again; then apply it with migrate. Then change the field and run this statement again.',
     );
   });
 });
@@ -676,6 +680,23 @@ describe('MongoMigrationPlanner, removed fields', () => {
     });
   });
 
+  it('renames a base field moved to one variant only in the documents of the other variants', () => {
+    expect(
+      planned(
+        plan({
+          from: tasks('from', ['note'], [], []),
+          to: tasks('to', ['remark'], ['note'], []),
+          schema: [schemaCollection('tasks')],
+          statements: [renameField('Task', 'note', 'Task', 'remark')],
+        }),
+      ),
+    ).toMatchObject({
+      labels: ['Rename field note to remark in collection tasks where {"type":{"$nin":["bug"]}}'],
+      applied: [[0]],
+      dataLoss: [],
+    });
+  });
+
   it('keeps a variant field its base now stores', () => {
     expect(
       planned(
@@ -715,5 +736,25 @@ describe('MongoMigrationPlanner, removed fields', () => {
         }),
       ).dataLoss,
     ).toEqual([]);
+  });
+});
+
+describe('MongoMigrationPlanner, time-series options the server fills in', () => {
+  it('plans nothing when the live collection holds only server defaults the contract leaves out', () => {
+    const readings = contract(
+      'to',
+      { Reading: { collection: 'readings', fields: ['_id', 'at'] } },
+      { readings: { timeField: 'at' } },
+    );
+    const serverFilled = {
+      timeField: 'at',
+      granularity: 'seconds' as const,
+      bucketMaxSpanSeconds: 3600,
+    };
+    const live = new MongoSchemaCollection({
+      name: 'readings',
+      options: new MongoSchemaCollectionOptions({ timeseries: serverFilled }),
+    });
+    expect(planned(plan({ from: readings, to: readings, schema: [live] })).labels).toEqual([]);
   });
 });

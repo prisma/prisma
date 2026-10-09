@@ -47,7 +47,8 @@ afterAll(async () => {
 beforeEach(async () => {
   const collections = await db.listCollections().toArray();
   for (const col of collections) {
-    await db.dropCollection(col['name'] as string);
+    const name = col['name'] as string;
+    if (!name.startsWith('system.')) await db.dropCollection(name);
   }
 });
 
@@ -223,6 +224,67 @@ async function documents(name: string) {
     .toArray();
 }
 
+function branchSchema(value: string, fields: readonly string[]) {
+  return {
+    properties: Object.fromEntries([
+      ['_id', { bsonType: 'objectId' }],
+      ['type', { enum: [value] }],
+      ...fields.map((field) => [field, { bsonType: 'string' }]),
+    ]),
+    required: ['type'],
+    additionalProperties: false,
+  };
+}
+
+function tasksValidator(base: readonly string[], bug: readonly string[]) {
+  return {
+    bsonType: 'object',
+    required: ['_id', 'type'],
+    properties: Object.fromEntries([
+      ['_id', { bsonType: 'objectId' }],
+      ['type', { bsonType: 'string' }],
+      ...base.map((field) => [field, { bsonType: 'string' }]),
+    ]),
+    oneOf: [branchSchema('bug', [...base, ...bug]), branchSchema('feature', [...base, 'priority'])],
+  };
+}
+
+function tasks(storageHash: string, base: readonly string[], bug: readonly string[]) {
+  return contract(
+    storageHash,
+    {
+      Task: {
+        collection: 'tasks',
+        fields: ['_id', 'type', ...base],
+        variants: { Bug: 'bug', Feature: 'feature' },
+      },
+      Bug: { collection: 'tasks', fields: bug, base: 'Task' },
+      Feature: { collection: 'tasks', fields: ['priority'], base: 'Task' },
+    },
+    {
+      tasks: new MongoCollection({
+        validator: {
+          jsonSchema: tasksValidator(base, bug),
+          validationLevel: 'strict',
+          validationAction: 'error',
+        },
+      }),
+    },
+  );
+}
+
+async function createTasksWithNote(): Promise<void> {
+  await db.createCollection('tasks', {
+    validator: { $jsonSchema: tasksValidator(['note'], []) },
+    validationLevel: 'strict',
+    validationAction: 'error',
+  });
+  await db.collection('tasks').insertMany([
+    { type: 'bug', note: 'b' },
+    { type: 'feature', note: 'f' },
+  ]);
+}
+
 describe('MongoMigrationPlanner and runner - statements', () => {
   it(
     'renames a model and a uniquely indexed field behind a closed validator, keeping every document',
@@ -363,56 +425,7 @@ describe('MongoMigrationPlanner and runner - statements', () => {
   it(
     'removes a base field moved to one variant from the documents of every other variant',
     async () => {
-      const branch = (value: string, fields: readonly string[]) => ({
-        properties: Object.fromEntries([
-          ['_id', { bsonType: 'objectId' }],
-          ['type', { enum: [value] }],
-          ...fields.map((field) => [field, { bsonType: 'string' }]),
-        ]),
-        required: ['type'],
-        additionalProperties: false,
-      });
-      const tasksValidator = (base: readonly string[], bug: readonly string[]) => ({
-        bsonType: 'object',
-        required: ['_id', 'type'],
-        properties: Object.fromEntries([
-          ['_id', { bsonType: 'objectId' }],
-          ['type', { bsonType: 'string' }],
-          ...base.map((field) => [field, { bsonType: 'string' }]),
-        ]),
-        oneOf: [branch('bug', [...base, ...bug]), branch('feature', [...base, 'priority'])],
-      });
-      const tasks = (storageHash: string, base: readonly string[], bug: readonly string[]) =>
-        contract(
-          storageHash,
-          {
-            Task: {
-              collection: 'tasks',
-              fields: ['_id', 'type', ...base],
-              variants: { Bug: 'bug', Feature: 'feature' },
-            },
-            Bug: { collection: 'tasks', fields: bug, base: 'Task' },
-            Feature: { collection: 'tasks', fields: ['priority'], base: 'Task' },
-          },
-          {
-            tasks: new MongoCollection({
-              validator: {
-                jsonSchema: tasksValidator(base, bug),
-                validationLevel: 'strict',
-                validationAction: 'error',
-              },
-            }),
-          },
-        );
-      await db.createCollection('tasks', {
-        validator: { $jsonSchema: tasksValidator(['note'], []) },
-        validationLevel: 'strict',
-        validationAction: 'error',
-      });
-      await db.collection('tasks').insertMany([
-        { type: 'bug', note: 'b' },
-        { type: 'feature', note: 'f' },
-      ]);
+      await createTasksWithNote();
       const to = tasks('to', [], ['note']);
 
       const { planned, result } = await planAndRun(tasks('from', ['note'], []), to);
@@ -434,6 +447,116 @@ describe('MongoMigrationPlanner and runner - statements', () => {
       await expect(
         db.collection('tasks').updateOne({ type: 'bug' }, { $set: { note: 'b2' } }),
       ).resolves.toMatchObject({ modifiedCount: 1 });
+    },
+    timeouts.spinUpMongoMemoryServer,
+  );
+
+  it(
+    'renames a base field moved to one variant only in the documents of the other variants',
+    async () => {
+      await createTasksWithNote();
+      const to = tasks('to', ['remark'], ['note']);
+
+      const { result } = await planAndRun(tasks('from', ['note'], []), to, [
+        {
+          kind: 'rename',
+          entity: 'field',
+          from: { namespaceId: NS, model: 'Task', field: 'note' },
+          to: { namespaceId: NS, model: 'Task', field: 'remark' },
+        },
+      ]);
+
+      expect(result.ok ? result.value.operationsExecuted : result.failure).toBe(2);
+      expect({ tasks: await documents('tasks'), further: await furtherPlanLabels(to) }).toEqual({
+        tasks: [
+          { type: 'bug', note: 'b' },
+          { type: 'feature', remark: 'f' },
+        ],
+        further: [],
+      });
+      await expect(
+        db.collection('tasks').updateOne({ type: 'feature' }, { $set: { priority: 'p1' } }),
+      ).resolves.toMatchObject({ modifiedCount: 1 });
+      await expect(
+        db.collection('tasks').updateOne({ type: 'bug' }, { $set: { note: 'b2' } }),
+      ).resolves.toMatchObject({ modifiedCount: 1 });
+    },
+    timeouts.spinUpMongoMemoryServer,
+  );
+
+  function readings(storageHash: string, model: string, collection: string) {
+    return contract(
+      storageHash,
+      { [model]: { collection, fields: ['_id', 'at'] } },
+      { [collection]: new MongoCollection({ options: { timeseries: { timeField: 'at' } } }) },
+    );
+  }
+
+  it(
+    'plans nothing for a time-series collection that has not changed',
+    async () => {
+      const to = readings('to', 'Reading', 'readings');
+
+      const { result } = await planAndRun(contract('from', {}, {}), to);
+
+      expect(result.ok ? result.value.operationsExecuted : result.failure).toBe(1);
+      expect(await furtherPlanLabels(to)).toEqual([]);
+    },
+    timeouts.spinUpMongoMemoryServer,
+  );
+
+  it(
+    'keeps the documents of a time-series collection when its refusal is followed as printed',
+    async () => {
+      const from = readings('from', 'Reading', 'readings');
+      const to = readings('to', 'Measurement', 'measurements');
+      await db.createCollection('readings', { timeseries: { timeField: 'at' } });
+      await db.collection('readings').insertOne({ at: new Date('2026-01-01T00:00:00Z') });
+      const refused = new MongoMigrationPlanner().plan({
+        contract: to,
+        schema: await introspectSchema(db),
+        policy,
+        fromContract: from,
+        origin: { storageHash: 'from' },
+        statements: [
+          {
+            kind: 'rename',
+            entity: 'model',
+            from: { namespaceId: NS, model: 'Reading' },
+            to: { namespaceId: NS, model: 'Measurement' },
+          },
+        ],
+        frameworkComponents: [],
+        snapshotsImportPath: '../../snapshots',
+      });
+      expect(refused.kind === 'failure' ? refused.conflicts[0]?.why : refused.kind).toBe(
+        'MongoDB cannot rename a time-series collection. Leave out this statement. To keep the documents, first create collection "measurements" yourself with the same time-series options and copy them into it; the plan then drops "readings" once --delete names the model.',
+      );
+
+      await db.createCollection('measurements', { timeseries: { timeField: 'at' } });
+      const copied = await db
+        .collection('readings')
+        .find({}, { projection: { _id: 0 } })
+        .toArray();
+      await db.collection('measurements').insertMany(copied);
+      const { planned, result } = await planAndRun(from, to);
+
+      expect(result.ok ? result.value.operationsExecuted : result.failure).toBe(1);
+      expect(
+        planned.kind === 'success' ? planned.dataLoss.map(({ subject }) => subject) : [],
+      ).toEqual([{ kind: 'model', namespaceId: NS, model: 'Reading' }]);
+      expect({
+        measurements: await db
+          .collection('measurements')
+          .find({}, { projection: { _id: 0 } })
+          .toArray(),
+        readings: await db.listCollections({ name: 'readings' }).toArray(),
+        further: await furtherPlanLabels(to),
+      }).toEqual({
+        measurements: [{ at: new Date('2026-01-01T00:00:00Z') }],
+        readings: [],
+        further: [],
+      });
     },
     timeouts.spinUpMongoMemoryServer,
   );

@@ -109,14 +109,31 @@ function validatorUpdateLabel(
     : `Update validator on ${collName} (${parts.join('; ')})`;
 }
 
+/**
+ * The origin's value of an option the server fills in, keeping only the keys the destination
+ * names: MongoDB adds defaults such as a time-series collection's `bucketMaxSpanSeconds`, which a
+ * contract that leaves them out does not change.
+ */
+function asDeclared(origin: unknown, dest: unknown): unknown {
+  if (!isPlainObject(origin) || !isPlainObject(dest)) return origin;
+  return Object.fromEntries(Object.entries(origin).filter(([key]) => Object.hasOwn(dest, key)));
+}
+
 function hasImmutableOptionChange(
   origin: MongoSchemaCollectionOptions | undefined,
   dest: MongoSchemaCollectionOptions | undefined,
 ): string | undefined {
   if (canonicalize(origin?.capped) !== canonicalize(dest?.capped)) return 'capped';
-  if (canonicalize(origin?.timeseries) !== canonicalize(dest?.timeseries)) return 'timeseries';
+  if (
+    canonicalize(asDeclared(origin?.timeseries, dest?.timeseries)) !==
+    canonicalize(dest?.timeseries)
+  )
+    return 'timeseries';
   if (canonicalize(origin?.collation) !== canonicalize(dest?.collation)) return 'collation';
-  if (canonicalize(origin?.clusteredIndex) !== canonicalize(dest?.clusteredIndex))
+  if (
+    canonicalize(asDeclared(origin?.clusteredIndex, dest?.clusteredIndex)) !==
+    canonicalize(dest?.clusteredIndex)
+  )
     return 'clusteredIndex';
   return undefined;
 }

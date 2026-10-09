@@ -314,14 +314,12 @@ function planFieldStatement(
   if (statement.from.field === statement.to.field) return { kind: 'unchanged' };
   const policyRefusal = controlPolicyRefusal(statement, label, input.contract, collection);
   if (policyRefusal !== undefined) return policyRefusal;
+  const filter =
+    variantFilter(input.fromContract, statement.from) ??
+    rootDocumentsLosing(input.contract, statement.to, statement.from.field)?.filter;
   return {
     kind: 'renameField',
-    call: new RenameFieldCall(
-      collection,
-      statement.from.field,
-      statement.to.field,
-      variantFilter(input.fromContract, statement.from),
-    ),
+    call: new RenameFieldCall(collection, statement.from.field, statement.to.field, filter),
   };
 }
 
@@ -333,7 +331,7 @@ function collectionChangeAdvice(
   if (!sameModel(statement.from, statement.to)) {
     return `Add --rename ${modelDisplayName(statement.from)}:${modelDisplayName(statement.to)} before this statement, so the collection is renamed with its documents.`;
   }
-  return `A statement cannot rename the collection of a model that keeps its name. Rename the collection in a step of its own first: change only @@map and emit the contract. With db update, rename the collection in the database yourself, for example db.getCollection(${JSON.stringify(from)}).renameCollection(${JSON.stringify(to)}) in mongosh, then run db update. With migration plan, plan it, passing --delete ${modelDisplayName(statement.from)} to answer its question, then in its migration.ts replace the drop of "${from}" and the create of "${to}" with renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)}), imported with the other operations. Then change the field and run this statement again.`;
+  return `A statement cannot rename the collection of a model that keeps its name. Rename the collection in a step of its own first: change only @@map and emit the contract. With db update, rename the collection in the database yourself, for example db.getCollection(${JSON.stringify(from)}).renameCollection(${JSON.stringify(to)}) in mongosh, then run db update. With migration plan, plan it, passing --delete ${modelDisplayName(statement.from)} to answer its question; in its migration.ts replace the drop of "${from}" and the create of "${to}" with renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)}), imported with the other operations; run node migration.ts in the migration's directory, so it writes ops.json again; then apply it with migrate. Then change the field and run this statement again.`;
 }
 
 export interface FieldRemoval {

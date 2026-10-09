@@ -3,7 +3,7 @@
  *
  * Dropping a collection loses its documents, so `migration plan` and `db update` ask what the drop means; `--delete <Model>` answers. The MongoDB planner refuses rename statements in this release.
  *
- * Journey S1 removes `Event` through `migration plan`: refused without `--delete Event`, planned with it, and applied by `migrate`. Journey S2 does the same through `db update`, where `--confirm <database>` no longer consents. Journey S3 adds a required field with no refusal. Journey S4 gives a rename, which renames the collection and keeps its documents.
+ * Journey S1 removes `Event` through `migration plan`: refused without `--delete Event`, planned with it, and applied by `migrate`. Journey S2 does the same through `db update`, where `--confirm <database>` no longer consents. Journey S3 adds a required field with no refusal. Journey S4 gives a rename, which renames the collection and keeps its documents. Journey S5 follows, as printed, the refusal of a field rename whose model keeps its name while its collection changes.
  */
 
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -23,6 +23,7 @@ import {
   runDbUpdate,
   runMigrate,
   runMigrationPlan,
+  selfEmitMigration,
 } from '../utils/journey-test-helpers';
 
 const FIXTURES_DIR = join(fixtureAppDir, 'fixtures/mongo-cli-journeys');
@@ -306,5 +307,92 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
       .find({}, { projection: { _id: 0 } })
       .toArray();
     expect(documents, 'S4.04: its documents are kept').toEqual([{ name: 'launch' }]);
+  });
+
+  it('S5: the advice for a field rename whose collection changes keeps the documents when followed as printed', async () => {
+    const dbName = 'mongo_remap_then_rename';
+    const ctx = setupProject(withDatabase(replSet.getUri(), dbName));
+    created.add(ctx.testDir);
+    await emit(ctx, 'S5.01');
+    const initial = await runMigrationPlan(ctx, ['--name', 'initial']);
+    expect(initial.exitCode, `S5.02: plan initial: ${initial.stderr}`).toBe(0);
+    expect((await runMigrate(ctx)).exitCode, 'S5.03: migrate initial').toBe(0);
+    await client.db(dbName).collection('events').insertOne({ name: 'launch' });
+    const origin = latestMigrationDirName(ctx);
+
+    useFixture(ctx, 'contract-events-remapped-title.ts');
+    await emit(ctx, 'S5.04');
+    const refused = await runMigrationPlan(ctx, [
+      '--from',
+      origin,
+      '--rename',
+      'Event.name:Event.title',
+      '--json',
+    ]);
+    expect(refused.exitCode, 'S5.05: the field rename is refused').not.toBe(0);
+    expect(JSON.stringify(engineError(refused)?.meta), 'S5.05: the advice').toContain(
+      'run node migration.ts in the migration',
+    );
+
+    useFixture(ctx, 'contract-events-remapped.ts');
+    await emit(ctx, 'S5.06');
+    const remap = await runMigrationPlan(ctx, [
+      '--name',
+      'remap',
+      '--from',
+      origin,
+      '--delete',
+      'Event',
+    ]);
+    expect(
+      remap.exitCode,
+      `S5.07: plan the collection change with --delete Event: ${remap.stderr}`,
+    ).toBe(0);
+    const remapDir = latestMigrationDirName(ctx);
+    const migrationTs = join(ctx.testDir, 'migrations/app', remapDir, 'migration.ts');
+    const planned = readFileSync(migrationTs, 'utf-8');
+    const edited = planned
+      .replace(
+        /createCollection\(['"]occasions['"][^)]*\)/,
+        'renameCollection("events", "occasions")',
+      )
+      .replace(/,?\s*dropCollection\(['"]events['"]\)/, '')
+      .replace(/\bdropCollection,/, 'dropCollection,\n  renameCollection,');
+    expect(edited, `S5.08: migration.ts is edited as the advice says:\n${planned}`).toContain(
+      'renameCollection("events", "occasions")',
+    );
+    expect(edited, `S5.08: the drop is gone:\n${edited}`).not.toMatch(/dropCollection\(['"]events/);
+    writeFileSync(migrationTs, edited, 'utf-8');
+    const emitted = await selfEmitMigration(ctx, ['--dir', `migrations/app/${remapDir}`]);
+    expect(emitted.exitCode, `S5.09: node migration.ts: ${emitted.stderr}`).toBe(0);
+    const applyRemap = await runMigrate(ctx);
+    expect(applyRemap.exitCode, `S5.10: migrate: ${applyRemap.stderr}`).toBe(0);
+
+    useFixture(ctx, 'contract-events-remapped-title.ts');
+    await emit(ctx, 'S5.11');
+    const rename = await runMigrationPlan(ctx, [
+      '--name',
+      'title',
+      '--from',
+      remapDir,
+      '--rename',
+      'Event.name:Event.title',
+    ]);
+    expect(rename.exitCode, `S5.12: plan the field rename: ${rename.stderr}`).toBe(0);
+    const applyRename = await runMigrate(ctx);
+    expect(applyRename.exitCode, `S5.13: migrate: ${applyRename.stderr}`).toBe(0);
+
+    expect(await collections(dbName), 'S5.14: the collection is renamed').toEqual([
+      'occasions',
+      'users',
+    ]);
+    const documents = await client
+      .db(dbName)
+      .collection('occasions')
+      .find({}, { projection: { _id: 0 } })
+      .toArray();
+    expect(documents, 'S5.14: its document is kept under the new field').toEqual([
+      { title: 'launch' },
+    ]);
   });
 });
