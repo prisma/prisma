@@ -67,6 +67,36 @@ import type { SqliteContract } from './types';
 const SQLITE_MARKER_TABLE = '_prisma_marker';
 const SQLITE_LEDGER_TABLE = '_prisma_ledger';
 
+/**
+ * Tables another migration tool, not Prisma 8, keeps in the database: Prisma 7's ledger. `introspect` leaves them out unless the contract declares a table of that name.
+ */
+const OTHER_TOOL_MIGRATION_TABLES: ReadonlySet<string> = new Set(['_prisma_migrations']);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function extractContractDeclaredTableNames(contract: unknown): ReadonlySet<string> {
+  if (!isRecord(contract)) return new Set();
+  const storage = contract['storage'];
+  if (!isRecord(storage)) return new Set();
+  const namespaces = storage['namespaces'];
+  if (!isRecord(namespaces)) return new Set();
+  const declared = new Set<string>();
+  for (const namespace of Object.values(namespaces)) {
+    if (!isRecord(namespace)) continue;
+    const entries = namespace['entries'];
+    if (!isRecord(entries)) continue;
+    const tables = entries['table'];
+    if (isRecord(tables)) {
+      for (const name of Object.keys(tables)) {
+        declared.add(name);
+      }
+    }
+  }
+  return declared;
+}
+
 type SqliteLedgerRow = {
   readonly space: string;
   readonly migration_name: string;
@@ -529,8 +559,9 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
 
   async introspect(
     driver: SqlControlDriverInstance<'sqlite'>,
-    _contract?: unknown,
+    contract?: unknown,
   ): Promise<SqlSchemaIR> {
+    const declaredTables = extractContractDeclaredTableNames(contract);
     // Filter out runner-managed control tables (`_prisma_marker`,
     // `_prisma_ledger`) — they're an implementation detail of the migration
     // runner, not part of the user-authored contract, so they must not
@@ -548,6 +579,9 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
 
     for (const tableRow of tablesResult.rows) {
       const tableName = tableRow.name;
+      if (OTHER_TOOL_MIGRATION_TABLES.has(tableName) && !declaredTables.has(tableName)) {
+        continue;
+      }
 
       // SQLite's synchronous driver serializes reads — no benefit from Promise.all
       const columnsResult = await driver.query<PragmaTableInfoRow>(
