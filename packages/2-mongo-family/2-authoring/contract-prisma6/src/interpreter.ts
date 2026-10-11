@@ -19,11 +19,12 @@ import {
 import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/contract-authoring';
 import {
   type AuthoringEntityContext,
+  type DataTypeSupport,
   instantiateAuthoringEntityType,
   isAuthoringEntityTypeDescriptor,
   type ParsedPslExtensionBlock,
 } from '@internal/framework-components/authoring';
-import type { CodecLookup } from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
@@ -50,7 +51,6 @@ import {
   type PslSpan,
   type ResolvedAttribute,
   readResolvedAttribute,
-  readResolvedAttributes,
 } from '@internal/psl-parser';
 import { fkRelationPairKey, type InvalidFkPairing } from '@internal/psl-parser/interpret';
 import type {
@@ -92,7 +92,8 @@ export interface InterpretPrisma6DocumentsInput {
   readonly seedDiagnostics: readonly ContractSourceDiagnostic[];
   readonly binding: Prisma6TargetBinding;
   readonly authoringContributions: AssembledAuthoringContributions;
-  readonly codecLookup: CodecLookup;
+  readonly codecLookup: CodecLookupWithDescriptors;
+  readonly dataTypes: DataTypeSupport;
 }
 
 const SUMMARY = 'Prisma 6 MongoDB schema interpretation failed';
@@ -403,7 +404,7 @@ function reportDottedBlockValues(
   sources: PslSources,
   diagnostics: Diagnostics,
 ): void {
-  for (const entry of block.node.entries()) {
+  for (const entry of block.entries) {
     const value = entry.value();
     if (value === undefined) continue;
     for (const path of dottedPathsIn(value)) {
@@ -435,7 +436,7 @@ function checkDatasource(
   }
   const block = datasource.symbol;
   let parameter: KeyValuePairAst | undefined;
-  for (const entry of block.node.entries()) {
+  for (const entry of block.entries) {
     if (entry.key()?.name() === 'provider') {
       parameter = entry;
       break;
@@ -460,7 +461,7 @@ function buildEnum(
   diagnostics: Diagnostics,
 ): EnumBuild | undefined {
   const { symbol: block, sourceId, sources } = located;
-  for (const attribute of readResolvedAttributes(block.node.attributes(), sources)) {
+  for (const attribute of block.attributes) {
     if (attribute.name === 'map') continue;
     if (attribute.name === 'schema') {
       diagnostics.push(schemaUnsupported(`Enum "${block.name}"`, attribute, sourceId));
@@ -470,7 +471,7 @@ function buildEnum(
   }
   const values: Record<string, string> = Object.create(null);
   const parameterSpans: Record<string, PslSpan> = Object.create(null);
-  for (const entry of block.node.entries()) {
+  for (const entry of block.entries) {
     const name = entry.key()?.name();
     if (name === undefined) continue;
     let value = name;
@@ -503,6 +504,7 @@ function buildEnum(
     family: input.binding.target.familyId,
     target: input.binding.target.targetId,
     codecLookup: input.codecLookup,
+    dataTypeLookup: input.dataTypes.lookup,
     sourceId,
     enumInferenceCodecs: {
       text: input.binding.scalarCodecIds.String,
@@ -1401,7 +1403,7 @@ function assembleContract(input: {
   readonly valueObjects: Record<string, ContractValueObject>;
   readonly enums: ReadonlyMap<string, EnumBuild>;
   readonly executionDefaults: readonly ExecutionMutationDefault[];
-  readonly codecLookup: CodecLookup;
+  readonly codecLookup: CodecLookupWithDescriptors;
 }): Contract {
   const target = input.binding.target.targetId;
   const targetFamily = input.binding.target.familyId;

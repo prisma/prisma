@@ -1,6 +1,7 @@
 import type {
   AuthoringPslBlockDescriptor,
   AuthoringPslBlockDescriptorNamespace,
+  DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import type {
   ParsedPslExtensionBlock,
@@ -15,11 +16,13 @@ import type { BlockAttributeCtx } from '../attribute-spec/types';
 import type { Binder } from '../binder';
 import { diagnosticSource, type PslDiagnostic } from '../diagnostic';
 import { findBlockDescriptor } from '../extension-block';
-import { nodePslSpan, readResolvedAttribute } from '../resolve';
+import { nodePslSpan } from '../resolve';
 import type { PslSources } from '../source-file';
 import type { BlockSymbol, SymbolTable } from '../symbol-table';
+import { NumberLiteralExprAst } from '../syntax/ast/expressions';
 import type { AstNode } from '../syntax/ast-helpers';
 import { blockSpecFactoryOf } from './descriptor';
+import { blockSpecContext } from './spec-context';
 import type { BlockSpec, InferBlock, MapBlockSpec, StructBlockSpec } from './types';
 
 export interface InterpretExtensionBlockInput<S> {
@@ -29,12 +32,13 @@ export interface InterpretExtensionBlockInput<S> {
   readonly symbols: SymbolTable;
   readonly sources: PslSources;
   readonly binder: Binder;
+  readonly dataTypes: DataTypeSupport;
 }
 
 export function interpretExtensionBlock<S extends BlockSpec<unknown>>(
   input: InterpretExtensionBlockInput<S>,
 ): Result<ParsedPslExtensionBlock<InferBlock<S>>, readonly PslDiagnostic[]> {
-  const { block, descriptor, spec, symbols, sources, binder } = input;
+  const { block, descriptor, spec, symbols, sources, binder, dataTypes } = input;
   const ctx: BlockAttributeCtx = { sources, symbols, binder, selfBlock: block };
   const entries =
     spec.mode === 'struct'
@@ -48,6 +52,7 @@ export function interpretExtensionBlock<S extends BlockSpec<unknown>>(
     symbols,
     sources,
     binder,
+    dataTypes,
   });
   diagnostics.push(...interpretedAttributes.diagnostics);
 
@@ -63,6 +68,7 @@ export function interpretExtensionBlock<S extends BlockSpec<unknown>>(
       'The interpreter builds the output record structurally from the spec; TypeScript cannot relate the dynamically-keyed record to the spec-inferred output type.'
     >(entries.values),
     parameterSpans: entries.parameterSpans,
+    numberTexts: entries.numberTexts,
     attributes: interpretedAttributes.attributes,
     span: block.span,
   });
@@ -71,6 +77,7 @@ export function interpretExtensionBlock<S extends BlockSpec<unknown>>(
 interface InterpretedBlockEntries {
   readonly values: Record<string, unknown>;
   readonly parameterSpans: Record<string, PslSpan>;
+  readonly numberTexts: Record<string, string>;
   readonly diagnostics: readonly PslDiagnostic[];
   readonly failed: boolean;
 }
@@ -84,9 +91,10 @@ function interpretStructBlock(
   let failed = false;
   const values: Record<string, unknown> = Object.create(null);
   const parameterSpans: Record<string, PslSpan> = Object.create(null);
+  const numberTexts: Record<string, string> = Object.create(null);
   const seen = new Set<string>();
 
-  for (const entry of block.node.entries()) {
+  for (const entry of block.entries) {
     const key = entry.key()?.name();
     if (key === undefined) continue;
     const span = nodePslSpan(entry.syntax, ctx.sources);
@@ -119,6 +127,7 @@ function interpretStructBlock(
     const parsed = rule.parse(value, ctx);
     if (parsed.ok) {
       values[key] = parsed.value;
+      recordNumberText(numberTexts, key, value);
     } else {
       failed = true;
       diagnostics.push(...parsed.failure);
@@ -142,7 +151,7 @@ function interpretStructBlock(
     );
   }
 
-  return { values, parameterSpans, diagnostics, failed };
+  return { values, parameterSpans, numberTexts, diagnostics, failed };
 }
 
 function interpretMapBlock(
@@ -154,9 +163,10 @@ function interpretMapBlock(
   let failed = false;
   const values: Record<string, unknown> = Object.create(null);
   const parameterSpans: Record<string, PslSpan> = Object.create(null);
+  const numberTexts: Record<string, string> = Object.create(null);
   const seen = new Set<string>();
 
-  for (const entry of block.node.entries()) {
+  for (const entry of block.entries) {
     const key = entry.key()?.name();
     if (key === undefined) continue;
     const span = nodePslSpan(entry.syntax, ctx.sources);
@@ -179,13 +189,19 @@ function interpretMapBlock(
     const parsed = spec.value.type.parse(value, ctx);
     if (parsed.ok) {
       values[key] = parsed.value;
+      recordNumberText(numberTexts, key, value);
     } else {
       failed = true;
       diagnostics.push(...parsed.failure);
     }
   }
 
-  return { values, parameterSpans, diagnostics, failed };
+  return { values, parameterSpans, numberTexts, diagnostics, failed };
+}
+
+function recordNumberText(numberTexts: Record<string, string>, key: string, value: AstNode): void {
+  const text = NumberLiteralExprAst.cast(value.syntax)?.token()?.text;
+  if (text !== undefined) numberTexts[key] = text;
 }
 
 function duplicateParameterDiagnostic(
@@ -226,26 +242,26 @@ export interface InterpretExtensionBlockAttributesInput {
   readonly symbols: SymbolTable;
   readonly sources: PslSources;
   readonly binder: Binder;
+  readonly dataTypes: DataTypeSupport;
 }
 
 export function interpretExtensionBlockAttributes(input: InterpretExtensionBlockAttributesInput): {
   readonly attributes: Readonly<Record<string, PslExtensionBlockParsedAttribute>>;
   readonly diagnostics: readonly PslDiagnostic[];
 } {
-  const { block, descriptor, symbols, sources, binder } = input;
+  const { block, descriptor, symbols, sources, binder, dataTypes } = input;
   const declared = descriptor.attributes ?? {};
   const attributes: Record<string, PslExtensionBlockParsedAttribute> = Object.create(null);
   const diagnostics: PslDiagnostic[] = [];
   const seenNames = new Set<string>();
 
-  for (const attribute of block.node.attributes()) {
-    const name = attribute.name()?.path().join('.') ?? '';
-    const span = nodePslSpan(attribute.syntax, sources);
+  for (const attribute of block.attributes) {
+    const { name, span } = attribute;
     if (!Object.hasOwn(declared, name)) {
       diagnostics.push({
         code: 'PSL_EXTENSION_UNKNOWN_BLOCK_ATTRIBUTE',
         message: `Unknown attribute "@@${name}" in "${block.keyword}" block "${block.name}"`,
-        ...diagnosticSource(sources, attribute.syntax).at(span),
+        ...diagnosticSource(sources, attribute.node.syntax).at(span),
       });
       continue;
     }
@@ -253,7 +269,7 @@ export function interpretExtensionBlockAttributes(input: InterpretExtensionBlock
       diagnostics.push({
         code: 'PSL_INVALID_EXTENSION_BLOCK_ATTRIBUTE',
         message: `Duplicate attribute "@@${name}" in "${block.keyword}" block "${block.name}"; first occurrence wins`,
-        ...diagnosticSource(sources, attribute.syntax).at(span),
+        ...diagnosticSource(sources, attribute.node.syntax).at(span),
       });
       continue;
     }
@@ -262,8 +278,8 @@ export function interpretExtensionBlockAttributes(input: InterpretExtensionBlock
       BlockAttributeSpecFactory,
       'framework core cannot name AttributeSpec, so block-attribute factories transit the descriptor erased as unknown; this is the single point that restores the factory type the descriptor surface documents'
     >(declared[name]);
-    const spec = factory({ symbols });
-    const result = interpretAttribute(attribute, spec, {
+    const spec = factory(blockSpecContext({ symbols, dataTypes }));
+    const result = interpretAttribute(attribute.node, spec, {
       sources,
       symbols,
       binder,
@@ -272,7 +288,7 @@ export function interpretExtensionBlockAttributes(input: InterpretExtensionBlock
     if (result.ok) {
       const argSpans: Record<string, PslSpan> = Object.create(null);
       let positionalSlot = 0;
-      for (const arg of readResolvedAttribute(attribute, sources).args) {
+      for (const arg of attribute.args) {
         const key = arg.name ?? spec.positional[positionalSlot++]?.key;
         if (key !== undefined) argSpans[key] = arg.span;
       }
@@ -305,12 +321,14 @@ export interface InterpretExtensionBlocksInput {
   readonly sources: PslSources;
   readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
   readonly binder: Binder;
+  /** The data types `binder` was created with, so binding and interpretation build each block's spec from the same data types. */
+  readonly dataTypes: DataTypeSupport;
 }
 
 export function interpretExtensionBlocks(
   input: InterpretExtensionBlocksInput,
 ): InterpretExtensionBlocksResult {
-  const { symbolTable, sources, pslBlockDescriptors, binder } = input;
+  const { symbolTable, sources, pslBlockDescriptors, binder, dataTypes } = input;
   const parsedBlocks = new Map<BlockSymbol, ParsedPslExtensionBlock>();
   const diagnostics: PslDiagnostic[] = [];
   const scopes = [symbolTable.topLevel, ...Object.values(symbolTable.topLevel.namespaces)];
@@ -318,7 +336,9 @@ export function interpretExtensionBlocks(
     for (const block of Object.values(scope.blocks)) {
       const descriptor = findBlockDescriptor(pslBlockDescriptors, block.keyword);
       if (descriptor === undefined) continue;
-      const spec = blockSpecFactoryOf(descriptor)({ symbols: symbolTable });
+      const spec = blockSpecFactoryOf(descriptor)(
+        blockSpecContext({ symbols: symbolTable, dataTypes }),
+      );
       const parsed = interpretExtensionBlock({
         block,
         descriptor,
@@ -326,6 +346,7 @@ export function interpretExtensionBlocks(
         symbols: symbolTable,
         sources,
         binder,
+        dataTypes,
       });
       if (parsed.ok) parsedBlocks.set(block, parsed.value);
       else diagnostics.push(...parsed.failure);

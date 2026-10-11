@@ -2,7 +2,10 @@ import type {
   ColumnDefaultLiteralInputValue,
   ExecutionMutationDefaultPhases,
 } from '@internal/contract/types';
-import type { AuthoringContributions } from '@internal/framework-components/authoring';
+import type {
+  AuthoringContributions,
+  DataTypeSupport,
+} from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { CapabilityMatrix } from '@internal/framework-components/components';
 import type {
@@ -13,6 +16,7 @@ import type {
   Binder,
   BlockSymbol,
   DescribeUnsupportedAttribute,
+  FieldAttributeSpecContext,
   FieldSymbol,
   ModelSymbol,
   NamedTypeSymbol,
@@ -34,7 +38,6 @@ import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
-import type { DataTypeSupport } from './data-type-default';
 import {
   formatDbAttributeMigrationMessage,
   getAttribute,
@@ -68,7 +71,7 @@ function lowerEnumDefaultForField(input: {
   readonly binder: Binder;
   readonly enumHandle: EnumTypeHandle;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
-  readonly dataTypeSupport: DataTypeSupport;
+  readonly dataTypes: DataTypeSupport;
   readonly diagnostics: PslDiagnosticCollector;
 }): LoweredFieldDefault {
   const { field, model, enumHandle, diagnostics } = input;
@@ -81,10 +84,8 @@ function lowerEnumDefaultForField(input: {
       model,
       field,
       binder: input.binder,
-      controlMutationDefaults: {
-        defaultFunctionRegistry: input.defaultFunctionRegistry,
-        dataTypeEntries: input.dataTypeSupport.entries,
-      },
+      defaultFunctionRegistry: input.defaultFunctionRegistry,
+      dataTypes: input.dataTypes,
     }),
   );
   const interpreted = interpretFieldAttribute({
@@ -99,12 +100,19 @@ function lowerEnumDefaultForField(input: {
   });
   if (interpreted === undefined) return {};
   const member = interpreted.value;
-  if (Array.isArray(member)) {
-    if (member.includes(null) && rejectStrictListNullDefault({ ...input, node })) return {};
-    const values = member.map((entry) =>
-      entry === null
+  if (member.kind === 'member-list') {
+    if (
+      rejectStrictListNullDefault({
+        ...input,
+        elements: member.elements,
+        source: diagnosticSource(input.sources, node.syntax),
+      })
+    )
+      return {};
+    const values = member.elements.map((entry) =>
+      entry.kind === 'null'
         ? null
-        : enumHandle.enumMembers.find((candidate) => candidate.name === entry)?.value,
+        : enumHandle.enumMembers.find((candidate) => candidate.name === entry.name)?.value,
     );
     return {
       defaultValue: {
@@ -116,11 +124,8 @@ function lowerEnumDefaultForField(input: {
       },
     };
   }
-  invariant(
-    typeof member === 'string',
-    'the enum @default grammar admits only member identifiers, so the parsed value is a string',
-  );
-  const match = enumHandle.enumMembers.find((m) => m.name === member);
+  invariant(member.kind === 'member', 'the enum @default grammar admits only member identifiers');
+  const match = enumHandle.enumMembers.find((m) => m.name === member.name);
   if (!match) return {};
 
   return {
@@ -184,7 +189,7 @@ export interface CollectResolvedFieldsInput {
   readonly authoringContributions: AuthoringContributions | undefined;
   readonly targetId: string;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
-  readonly dataTypeSupport: DataTypeSupport;
+  readonly dataTypes: DataTypeSupport;
   readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
   readonly diagnostics: PslDiagnosticCollector;
   readonly sources: PslSources;
@@ -197,7 +202,7 @@ export interface CollectResolvedFieldsInput {
   /** Extension entities already lowered for this namespace — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
   readonly namespaceExtensionEntities?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
   /** Codec-id-keyed descriptor lookup — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
-  readonly codecLookup?: CodecLookupWithDescriptors;
+  readonly codecLookup: CodecLookupWithDescriptors;
 }
 
 /**
@@ -281,6 +286,7 @@ function extractFieldConstraintNames(input: {
   readonly symbolTable: SymbolTable;
   readonly model: ModelSymbol;
   readonly field: FieldSymbol;
+  readonly specContext: FieldAttributeSpecContext;
   readonly sources: PslSources;
   readonly binder: Binder;
   readonly diagnostics: PslDiagnosticCollector;
@@ -299,7 +305,7 @@ function extractFieldConstraintNames(input: {
       : interpretFieldAttribute({
           node: idNode,
           symbols: input.symbolTable,
-          spec: sqlAttributeSpecs.field.id(),
+          spec: sqlAttributeSpecs.field.id(input.specContext),
           model: input.model,
           field: input.field,
           sources: input.sources,
@@ -313,7 +319,7 @@ function extractFieldConstraintNames(input: {
       : interpretFieldAttribute({
           node: uniqueNode,
           symbols: input.symbolTable,
-          spec: sqlAttributeSpecs.field.unique(),
+          spec: sqlAttributeSpecs.field.unique(input.specContext),
           model: input.model,
           field: input.field,
           sources: input.sources,
@@ -338,6 +344,7 @@ function lowerNoCheckForField(input: {
   readonly symbolTable: SymbolTable;
   readonly model: ModelSymbol;
   readonly field: FieldSymbol;
+  readonly specContext: FieldAttributeSpecContext;
   readonly sources: PslSources;
   readonly binder: Binder;
   readonly isListColumn: boolean;
@@ -349,7 +356,7 @@ function lowerNoCheckForField(input: {
   if (node === undefined) return undefined;
   const interpreted = interpretFieldAttribute({
     node,
-    spec: sqlAttributeSpecs.field.noCheck(),
+    spec: sqlAttributeSpecs.field.noCheck(input.specContext),
     symbols: input.symbolTable,
     model: input.model,
     field: input.field,
@@ -407,7 +414,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     binder,
     targetId,
     defaultFunctionRegistry,
-    dataTypeSupport,
+    dataTypes,
     generatorDescriptorById,
     diagnostics,
     sources,
@@ -487,7 +494,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       entityLabel: `Field "${model.name}.${field.name}"`,
       ...ifDefined('namespaceId', namespaceId),
       ...ifDefined('namespaceExtensionEntities', namespaceExtensionEntities),
-      ...ifDefined('codecLookup', codecLookup),
+      codecLookup,
     };
 
     if (isValueObjectField) {
@@ -580,7 +587,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
             binder: input.binder,
             enumHandle,
             defaultFunctionRegistry,
-            dataTypeSupport,
+            dataTypes,
             diagnostics,
           })
         : lowerDefaultForField({
@@ -599,7 +606,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
                 : { valueObjectName, types: valueObjectTypes },
             generatorDescriptorById,
             defaultFunctionRegistry,
-            dataTypeSupport,
+            dataTypes,
             codecLookup,
             diagnostics,
           })
@@ -639,10 +646,19 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       continue;
     }
     const mappedColumnName = storageName(field, input.physicalNames);
+    const specContext = fieldSpecContext({
+      symbols: symbolTable,
+      model,
+      field,
+      binder,
+      defaultFunctionRegistry,
+      dataTypes,
+    });
     const { idAttribute, uniqueAttribute, idName, uniqueName } = extractFieldConstraintNames({
       symbolTable: input.symbolTable,
       model,
       field,
+      specContext,
       sources: input.sources,
       binder: input.binder,
       diagnostics,
@@ -690,6 +706,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
           symbolTable: input.symbolTable,
           model,
           field,
+          specContext,
           sources: input.sources,
           binder: input.binder,
           isListColumn,

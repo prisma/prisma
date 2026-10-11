@@ -4,7 +4,7 @@ import { fieldRef, list, modelAttribute, optional, str, structBlock } from '@int
 import type { SqlNamespaceInput } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
-import { fixtureDataTypeSupport } from './fixture-data-types';
+import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import {
   createBuiltinLikeControlMutationDefaults,
   interpretSqlContract,
@@ -16,9 +16,7 @@ const builtinControlMutationDefaults = createBuiltinLikeControlMutationDefaults(
 
 function stampScopeFrom(ctx: Parameters<ModelAttributeSpecFactory>[0]): string {
   const declaredModels = Object.keys(ctx.symbols.topLevel.models).sort().join('+');
-  const defaultFunctions = [...ctx.controlMutationDefaults.defaultFunctionRegistry.keys()]
-    .sort()
-    .join('+');
+  const defaultFunctions = [...ctx.defaultFunctionRegistry.keys()].sort().join('+');
   return `${ctx.model.name}|${declaredModels}|${defaultFunctions}`;
 }
 
@@ -67,7 +65,7 @@ function interpretWith(schema: string, authoringContributions?: AuthoringContrib
     scalarColumnDescriptors: postgresScalarTypeDescriptors,
     controlMutationDefaults: builtinControlMutationDefaults,
     composedExtensionContracts: new Map(),
-    dataTypeLookup: fixtureDataTypeSupport.lookup,
+    ...fixtureInterpreterTypes,
     createNamespace,
     capabilities: { sql: { scalarList: true } },
     ...(authoringContributions !== undefined ? { authoringContributions } : {}),

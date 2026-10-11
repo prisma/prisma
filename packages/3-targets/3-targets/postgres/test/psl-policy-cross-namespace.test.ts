@@ -1,4 +1,3 @@
-import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import { bindPslSchema } from '@internal/psl-parser/test';
@@ -8,16 +7,17 @@ import {
   sqlAttributeSpecs,
 } from '@internal/sql-contract-psl/attribute-specs';
 import { sqlContextInput } from '@internal/sql-contract-psl/test';
-import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import { describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,
   postgresAuthoringModelAttributes,
   postgresAuthoringPslBlockDescriptors,
 } from '../src/core/authoring';
+import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { postgresCreateNamespace } from '../src/core/postgres-schema';
+import { postgresDataTypeSupport } from './fixtures/postgres-data-type-support';
 
-const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
+const postgresCodecLookup = createPostgresBuiltinCodecLookup();
 
 const assembled = assembleAuthoringContributions([
   {
@@ -39,17 +39,17 @@ const postgresTarget = {
   defaultNamespaceId: 'public',
 };
 
-const scalarColumnDescriptors = new Map<string, { codecId: string; nativeType: string }>([
-  ['String', { codecId: 'pg/text@1', nativeType: 'text' }],
-  ['Int', { codecId: 'pg/int4@1', nativeType: 'int4' }],
-  ['Boolean', { codecId: 'pg/bool@1', nativeType: 'bool' }],
-  ['BigInt', { codecId: 'pg/int8@1', nativeType: 'int8' }],
-  ['Float', { codecId: 'pg/float8@1', nativeType: 'float8' }],
-  ['Decimal', { codecId: 'pg/numeric@1', nativeType: 'numeric' }],
-  ['DateTime', { codecId: 'pg/timestamptz-temporal@1', nativeType: 'timestamptz' }],
-  ['Json', { codecId: 'pg/json@1', nativeType: 'json' }],
-  ['Jsonb', { codecId: 'pg/jsonb@1', nativeType: 'jsonb' }],
-  ['Bytes', { codecId: 'pg/bytea@1', nativeType: 'bytea' }],
+const scalarColumnDescriptors = new Map<string, { codecId: string }>([
+  ['String', { codecId: 'pg/text@1' }],
+  ['Int', { codecId: 'pg/int4@1' }],
+  ['Boolean', { codecId: 'pg/bool@1' }],
+  ['BigInt', { codecId: 'pg/int8@1' }],
+  ['Float', { codecId: 'pg/float8@1' }],
+  ['Decimal', { codecId: 'pg/numeric@1' }],
+  ['DateTime', { codecId: 'pg/timestamptz-temporal@1' }],
+  ['Json', { codecId: 'pg/json@1' }],
+  ['Jsonb', { codecId: 'pg/jsonb@1' }],
+  ['Bytes', { codecId: 'pg/bytea@1' }],
 ]);
 
 const scalarTypeConstructors = Object.fromEntries(
@@ -71,9 +71,9 @@ function interpret(text: string) {
         attributeSpecs: sqlAttributeSpecs,
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
-      codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+      codecLookup: postgresCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
-      dataTypeLookup: postgresDataTypeLookup,
+      dataTypes: postgresDataTypeSupport,
       resolvedInputs: [],
       capabilities: { sql: { scalarList: true } },
     },
@@ -143,7 +143,7 @@ describe('policies that reference another namespace', () => {
 policy_select p_read {
   target = auth.account
   roles  = [unbound.auditor, app_user]
-  using  = "true"
+  using  = sql\`true\`
 }
 `),
     ).toEqual({
@@ -158,7 +158,7 @@ namespace public {
   policy_all p_admin {
     target = auth.account
     roles  = [unbound.auditor]
-    using  = "true"
+    using  = sql\`true\`
   }
 }
 `),

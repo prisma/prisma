@@ -13,9 +13,15 @@
  *  3. Negative: a bare (value-less) member is a diagnostic, not accepted.
  */
 
-import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
+import { isAuthoringPslBlockDescriptor } from '@internal/framework-components/authoring';
+import { createDataTypeLookup } from '@internal/framework-components/codec';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
-import { buildSymbolTable, createBinder, interpretExtensionBlocks } from '@internal/psl-parser';
+import {
+  buildSymbolTable,
+  createBinder,
+  EMPTY_DATA_TYPES,
+  interpretExtensionBlocks,
+} from '@internal/psl-parser';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import { parse } from '@internal/psl-parser/syntax';
 import { bindPslSchema } from '@internal/psl-parser/test';
@@ -31,10 +37,12 @@ import {
   postgresAuthoringEntityTypes,
   postgresAuthoringPslBlockDescriptors,
 } from '../src/core/authoring';
+import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { PostgresNativeEnum } from '../src/core/postgres-native-enum';
 import { PostgresSchema, postgresCreateNamespace } from '../src/core/postgres-schema';
 
 const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
+const postgresCodecLookup = createPostgresBuiltinCodecLookup();
 
 const assembled = assembleAuthoringContributions([
   {
@@ -58,6 +66,7 @@ function blockResolutionBinder(
         pslBlockDescriptors: assembled.pslBlockDescriptors,
       },
       controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      dataTypes: EMPTY_DATA_TYPES,
     },
   }).binder;
 }
@@ -72,9 +81,9 @@ const postgresTarget = {
   defaultNamespaceId: 'public',
 };
 
-const scalarColumnDescriptors = new Map<string, { codecId: string; nativeType: string }>([
-  ['String', { codecId: 'pg/text@1', nativeType: 'text' }],
-  ['Int', { codecId: 'pg/int4@1', nativeType: 'int4' }],
+const scalarColumnDescriptors = new Map<string, { codecId: string }>([
+  ['String', { codecId: 'pg/text@1' }],
+  ['Int', { codecId: 'pg/int4@1' }],
 ]);
 
 const scalarTypeConstructors = Object.fromEntries(
@@ -95,6 +104,7 @@ function parsePsl(source: string) {
     sources,
     pslBlockDescriptors: assembled.pslBlockDescriptors,
     binder: blockResolutionBinder(symbolTable, sources),
+    dataTypes: EMPTY_DATA_TYPES,
   });
   return {
     symbolTable,
@@ -115,9 +125,9 @@ function interpret(source: string) {
         attributeSpecs: sqlAttributeSpecs,
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
-      codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+      codecLookup: postgresCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
-      dataTypeLookup: postgresDataTypeLookup,
+      dataTypes: { entries: assembled.dataTypes, lookup: postgresDataTypeLookup },
       resolvedInputs: [],
       capabilities: {},
     },
@@ -151,6 +161,15 @@ namespace auth {
   }
 }
 `;
+
+  it('declares the native_enum block name as the storage name, and no other block name', () => {
+    const keywords = Object.values(assembled.pslBlockDescriptors)
+      .filter(isAuthoringPslBlockDescriptor)
+      .filter((descriptor) => descriptor.nameIsStorageName === true)
+      .map((descriptor) => descriptor.keyword);
+
+    expect(keywords).toEqual(['native_enum']);
+  });
 
   it('parses the native_enum block without diagnostics', () => {
     const { diagnostics } = parsePsl(source);

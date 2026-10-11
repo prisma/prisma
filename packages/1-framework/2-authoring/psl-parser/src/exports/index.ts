@@ -36,6 +36,7 @@ export type { AssembledAttributeSpecs } from '../attribute-spec/assemble';
 export { assembleAttributeSpecs } from '../attribute-spec/assemble';
 export { blockAttribute } from '../attribute-spec/block-attribute';
 export { bool } from '../attribute-spec/combinators/bool';
+export { dataTypeValue } from '../attribute-spec/combinators/data-type-value';
 export { leafDiagnostic } from '../attribute-spec/combinators/diagnostic';
 export { entityRef } from '../attribute-spec/combinators/entity-ref';
 export { fieldRef, referencedFieldRef } from '../attribute-spec/combinators/field-ref';
@@ -46,12 +47,18 @@ export { json } from '../attribute-spec/combinators/json';
 export { jsonValue } from '../attribute-spec/combinators/json-value';
 export type { ListOptions } from '../attribute-spec/combinators/list';
 export { list } from '../attribute-spec/combinators/list';
+export { mapArg } from '../attribute-spec/combinators/map-arg';
 export { num } from '../attribute-spec/combinators/num';
 export { numLiteral } from '../attribute-spec/combinators/num-literal';
 export { oneOf } from '../attribute-spec/combinators/one-of';
 export { record } from '../attribute-spec/combinators/record';
 export { str } from '../attribute-spec/combinators/str';
 export { taggedLiteral } from '../attribute-spec/combinators/tagged-literal';
+export type {
+  ParsedWrittenList,
+  ParsedWrittenScalar,
+} from '../attribute-spec/combinators/written-scalar';
+export { writtenList, writtenScalar } from '../attribute-spec/combinators/written-scalar';
 export { fieldAttribute } from '../attribute-spec/field-attribute';
 export type { ArgBindingSpec } from '../attribute-spec/interpret';
 export { interpretArgs, interpretAttribute } from '../attribute-spec/interpret';
@@ -65,6 +72,7 @@ export type {
   FieldAttributeSpecFactory,
   ModelAttributeSpecFactory,
 } from '../attribute-spec/spec-context';
+export { EMPTY_DATA_TYPES } from '../attribute-spec/spec-context';
 export type {
   ArgType,
   ArgTypeKind,
@@ -73,6 +81,7 @@ export type {
   AttributeOut,
   AttributeSpec,
   BlockAttributeCtx,
+  DataTypeValueArgType,
   EntityRefArgType,
   FieldAttributeCtx,
   FixedIdentifierArgType,
@@ -89,6 +98,7 @@ export type {
   OutOf,
   Param,
   ParsedTaggedLiteral,
+  ParsedTypedValue,
   PositionalParam,
   PosOut,
   RejectingArgType,
@@ -102,9 +112,12 @@ export type {
   BinderContext,
   BinderResult,
   BoundSpec,
+  ConstantSymbol,
   CreateBinderInput,
   DescribeUnresolvedType,
   DescribeUnsupportedAttribute,
+  FunctionSymbol,
+  ParameterSymbol,
   PslSymbol,
   Resolution,
   UnresolvedTypeReference,
@@ -129,6 +142,7 @@ export {
   interpretExtensionBlockAttributes,
   interpretExtensionBlocks,
 } from '../block-spec/interpret';
+export { blockSpecContext } from '../block-spec/spec-context';
 export type {
   BlockEntryValueSpec,
   BlockSpec,
@@ -190,3 +204,5 @@ export type {
 } from '../symbol-table';
 export { buildSymbolTable } from '../symbol-table';
 export { isPslIdentifier } from '../tokenizer';
+export type { WrittenScalarResult } from '../written-scalar';
+export { readWrittenScalar } from '../written-scalar';

@@ -12,7 +12,6 @@
  */
 
 import type { Contract } from '@internal/contract/types';
-import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import { buildSymbolTable, createBinder, interpretExtensionBlocks } from '@internal/psl-parser';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
@@ -25,18 +24,19 @@ import {
   sqlAttributeSpecs,
 } from '@internal/sql-contract-psl/attribute-specs';
 import { sqlContextInput } from '@internal/sql-contract-psl/test';
-import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import { describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,
   postgresAuthoringModelAttributes,
   postgresAuthoringPslBlockDescriptors,
 } from '../src/core/authoring';
+import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { PostgresContractSerializer } from '../src/core/postgres-contract-serializer';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { type PostgresSchema, postgresCreateNamespace } from '../src/core/postgres-schema';
+import { postgresDataTypeSupport } from './fixtures/postgres-data-type-support';
 
-const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
+const postgresCodecLookup = createPostgresBuiltinCodecLookup();
 
 const assembled = assembleAuthoringContributions([
   {
@@ -61,6 +61,7 @@ function blockResolutionBinder(
         pslBlockDescriptors: assembled.pslBlockDescriptors,
       },
       controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      dataTypes: postgresDataTypeSupport,
     },
   }).binder;
 }
@@ -75,9 +76,9 @@ const postgresTarget = {
   defaultNamespaceId: 'public',
 };
 
-const scalarTypeDescriptors = new Map<string, { codecId: string; nativeType: string }>([
-  ['String', { codecId: 'pg/text@1', nativeType: 'text' }],
-  ['Int', { codecId: 'pg/int4@1', nativeType: 'int4' }],
+const scalarTypeDescriptors = new Map<string, { codecId: string }>([
+  ['String', { codecId: 'pg/text@1' }],
+  ['Int', { codecId: 'pg/int4@1' }],
 ]);
 
 const scalarTypeConstructors = Object.fromEntries(
@@ -100,6 +101,7 @@ function interpretWithSymbolDiagnostics(source: string) {
       sources,
       pslBlockDescriptors: assembled.pslBlockDescriptors,
       binder: blockResolutionBinder(symbolTable, sources),
+      dataTypes: postgresDataTypeSupport,
     }).diagnostics,
   ];
   const bound = bindPslSchema(source, {
@@ -113,9 +115,9 @@ function interpretWithSymbolDiagnostics(source: string) {
         attributeSpecs: sqlAttributeSpecs,
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
-      codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+      codecLookup: postgresCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
-      dataTypeLookup: postgresDataTypeLookup,
+      dataTypes: postgresDataTypeSupport,
       resolvedInputs: [],
       capabilities: { sql: { scalarList: true } },
     },
@@ -170,7 +172,7 @@ ${MODEL}
   policy_delete p_del {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
   }
 }
 `);
@@ -186,7 +188,7 @@ ${MODEL}
   policy_insert p_ins {
     target   = profile
     roles    = [app_user]
-    withCheck = "owner_id = 1"
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `);
@@ -202,8 +204,8 @@ ${MODEL}
   policy_update p_upd {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 1"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `);
@@ -219,8 +221,8 @@ ${MODEL}
   policy_all p_all {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 2"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 2\`
   }
 }
 `);
@@ -238,8 +240,8 @@ ${MODEL}
   policy_all p {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 1"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `);
@@ -249,8 +251,8 @@ ${MODEL}
   policy_all p {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 2"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 2\`
   }
 }
 `);
@@ -265,7 +267,7 @@ ${MODEL}
   policy_delete p {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
   }
 }
 `);
@@ -275,7 +277,7 @@ ${MODEL}
   policy_insert p {
     target    = profile
     roles     = [app_user]
-    withCheck = "owner_id = 1"
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `);
@@ -291,8 +293,8 @@ ${MODEL}
   policy_update p_upd {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 2"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 2\`
   }
 }
 `);
@@ -340,8 +342,8 @@ ${MODEL}
   policy_insert p_ins {
     target    = profile
     roles     = [app_user]
-    withCheck = "owner_id = 1"
-    using     = "owner_id = 1"
+    withCheck = sql\`owner_id = 1\`
+    using     = sql\`owner_id = 1\`
   }
 }
 `,
@@ -357,8 +359,8 @@ ${MODEL}
   policy_select p_read {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 1"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `,
@@ -374,8 +376,8 @@ ${MODEL}
   policy_delete p_del {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 1"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `,
@@ -393,10 +395,10 @@ describe('every keyword requires the @@rls-marked target', () => {
 `;
 
   for (const [keyword, body] of [
-    ['policy_insert', 'withCheck = "owner_id = 1"'],
-    ['policy_update', 'using = "owner_id = 1"\n    withCheck = "owner_id = 1"'],
-    ['policy_delete', 'using = "owner_id = 1"'],
-    ['policy_all', 'using = "owner_id = 1"\n    withCheck = "owner_id = 1"'],
+    ['policy_insert', 'withCheck = sql`owner_id = 1`'],
+    ['policy_update', 'using = sql`owner_id = 1`\n    withCheck = sql`owner_id = 1`'],
+    ['policy_delete', 'using = sql`owner_id = 1`'],
+    ['policy_all', 'using = sql`owner_id = 1`\n    withCheck = sql`owner_id = 1`'],
   ] as const) {
     it(`${keyword} on an unmarked model fails with PSL_EXTENSION_TARGET_MODEL_MISSING_ATTRIBUTE`, () => {
       const result = interpret(`

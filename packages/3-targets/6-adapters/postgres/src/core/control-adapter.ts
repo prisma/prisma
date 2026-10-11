@@ -9,10 +9,13 @@ import {
   rethrowMarkerReadError,
   withMarkerReadErrorHandling,
 } from '@internal/errors/execution';
-import { checkSqlDefaultBody } from '@internal/family-sql/control';
+import { checkSqlDefaultText } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { parseContractMarkerRow } from '@internal/family-sql/verify';
-import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type {
+  CodecLookupWithDescriptors,
+  DataTypeLookup,
+} from '@internal/framework-components/codec';
 import { APP_SPACE_ID, type SchemaNodeRef } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { ledgerOriginFromStored } from '@internal/migration-tools/ledger-origin';
@@ -38,6 +41,7 @@ import {
   encodeLiteralDefault,
   isDdlNode,
   type LiteralDefaultColumn,
+  renderOpaqueSql,
 } from '@internal/sql-relational-core/ast';
 import type { ColumnDescriptor, ExcludedProxy } from '@internal/sql-relational-core/contract-free';
 import { namingOfLiveName } from '@internal/sql-schema-ir/naming';
@@ -81,10 +85,8 @@ import type {
 } from '@internal/target-postgres/ddl';
 import { parsePostgresDefault } from '@internal/target-postgres/default-normalizer';
 import { postgresError } from '@internal/target-postgres/errors';
-import {
-  introspectedNativeType,
-  normalizeSchemaNativeType,
-} from '@internal/target-postgres/native-type-normalizer';
+import { MARKER_LOCK_KEY, MARKER_LOCK_SQL } from '@internal/target-postgres/marker-lock';
+import { introspectedNativeType } from '@internal/target-postgres/native-type-normalizer';
 import {
   isPostgresDateTimeDataType,
   postgresDateTimeDdlText,
@@ -102,6 +104,7 @@ import {
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { adapterError } from './adapter-errors';
+import { postgresAdapterCapabilities } from './capabilities';
 import { encodeControlQueryParams } from './control-codecs';
 import {
   execute,
@@ -119,8 +122,20 @@ import type { PostgresContract } from './types';
 const POSTGRES_MARKER_TABLE = 'prisma_contract.marker';
 const POSTGRES_LEDGER_TABLE = 'prisma_contract.ledger';
 
+/**
+ * Tables another migration tool, not Prisma 8, keeps in an application schema: Prisma 7's ledger. `introspect` leaves them out unless the contract declares a table of that name in the same namespace.
+ */
+const OTHER_TOOL_MIGRATION_TABLES: ReadonlySet<string> = new Set(['_prisma_migrations']);
+
 function markerRowDecodeWhy(detail: string): string {
   return `Invalid contract marker row: ${detail}`;
+}
+
+function decodeMarkerInteger(value: string): number {
+  if (!/^-?\d+$/.test(value)) {
+    throw new TypeError(`expected integer text, got ${JSON.stringify(value)}`);
+  }
+  return Number(value);
 }
 
 function decodePostgresMarkerRow(row: unknown, space: string): Record<string, unknown> {
@@ -134,12 +149,15 @@ function decodePostgresMarkerRow(row: unknown, space: string): Record<string, un
     });
   }
   const record = blindCast<
-    { readonly invariants: unknown } & Record<string, unknown>,
+    { readonly invariants: unknown; readonly canonical_version: unknown } & Record<string, unknown>,
     'Postgres marker rows are object-shaped at this boundary'
   >(row);
   try {
     return {
       ...record,
+      ...(typeof record.canonical_version === 'string'
+        ? { canonical_version: decodeMarkerInteger(record.canonical_version) }
+        : {}),
       invariants: parsePostgresListText(record.invariants),
     };
   } catch (error) {
@@ -171,20 +189,16 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'postgres' as const;
 
-  constructor(private readonly codecRegistry: PostgresCodecRegistry) {}
+  constructor(
+    private readonly codecRegistry: PostgresCodecRegistry,
+    private readonly dataTypeLookup: DataTypeLookup,
+  ) {}
 
   /**
    * Target-specific normalizer for raw Postgres default expressions.
    * Used by schema verification to normalize raw defaults before comparison.
    */
   readonly normalizeDefault = parsePostgresDefault;
-
-  /**
-   * Target-specific normalizer for Postgres schema native type names.
-   * Used by schema verification to normalize introspected type names
-   * before comparison with contract native types.
-   */
-  readonly normalizeNativeType = normalizeSchemaNativeType;
 
   bootstrapControlTableQueries(): readonly DdlNode[] {
     return buildControlTableBootstrapQueries();
@@ -216,6 +230,8 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         context.contract,
       ),
       this.codecRegistry,
+      this.dataTypeLookup,
+      postgresAdapterCapabilities,
     );
   }
 
@@ -253,7 +269,13 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
     const contract = blindCast<PostgresContract, 'Caller must supply matching contract'>(
       context?.contract,
     );
-    const lowered = renderLoweredSql(ast, contract, this.codecRegistry);
+    const lowered = renderLoweredSql(
+      ast,
+      contract,
+      this.codecRegistry,
+      this.dataTypeLookup,
+      postgresAdapterCapabilities,
+    );
     const codecRegistry = blindCast<
       ContractCodecRegistry,
       'framework CodecRegistry: its descriptors materialise SQL codecs; the framework Codec type erases to BaseCodec at this boundary'
@@ -524,13 +546,34 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
     return rows.length > 0;
   }
 
+  async withTransaction<T>(
+    driver: SqlControlDriverInstance<'postgres'>,
+    fn: () => Promise<T>,
+  ): Promise<T> {
+    await driver.query('BEGIN');
+    let result: T;
+    try {
+      result = await fn();
+    } catch (error) {
+      try {
+        await driver.query('ROLLBACK');
+      } catch (rollbackError) {
+        if (error instanceof Error && error.cause === undefined) {
+          error.cause = rollbackError;
+        }
+      }
+      throw error;
+    }
+    await driver.query('COMMIT');
+    return result;
+  }
+
+  async lockMarker(driver: SqlControlDriverInstance<'postgres'>): Promise<void> {
+    await driver.query(MARKER_LOCK_SQL, [MARKER_LOCK_KEY]);
+  }
+
   /**
-   * Appends a ledger entry for `space`. When the edge carries a
-   * destination contract snapshot, the content-addressed
-   * `prisma_contract.contract` store is populated first (keyed by the
-   * destination hash, DO NOTHING on revisit) so a reader never sees a
-   * ledger row whose stored destination contract is missing. See the
-   * `SqlControlAdapter.writeLedgerEntry` contract.
+   * Appends a ledger entry for `space`. When the edge carries a destination contract snapshot, the content-addressed `prisma_contract.contract` store is populated first (keyed by the destination hash, DO NOTHING on revisit) so a reader never sees a ledger row whose stored destination contract is missing. See the `SqlControlAdapter.writeLedgerEntry` contract.
    */
   async writeLedgerEntry(
     driver: SqlControlDriverInstance<'postgres'>,
@@ -668,19 +711,23 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
     schema = 'public',
   ): Promise<PostgresDatabaseSchemaNode> {
     return readWithDefaultOutputSettings(driver, async () => {
-      const declaredNamespaces = extractContractNamespaceIds(contract);
-      const resolvedSchemas =
-        declaredNamespaces.length > 0
-          ? await this.resolveNamespaceSchemas(driver, declaredNamespaces)
-          : [schema];
+      const declaredTables = extractContractTableNames(contract);
+      const declaredTablesBySchema =
+        declaredTables.size > 0
+          ? await this.resolveNamespaceSchemas(driver, declaredTables)
+          : new Map([[schema, new Set<string>()]]);
 
       // Walk schemas sequentially: every introspectSchema call shares the one
       // control connection, so a parallel walk only serialises behind the wire
       // protocol and trips pg's "already executing a query" deprecation.
       const namespaces: Record<string, PostgresNamespaceSchemaNode> = {};
       let pgVersion = 'unknown';
-      for (const resolved of resolvedSchemas) {
-        const { namespace, pgVersion: version } = await this.introspectSchema(driver, resolved);
+      for (const [resolved, tablesDeclaredHere] of declaredTablesBySchema) {
+        const { namespace, pgVersion: version } = await this.introspectSchema(
+          driver,
+          resolved,
+          tablesDeclaredHere,
+        );
         namespaces[resolved] = namespace;
         pgVersion = version;
       }
@@ -740,26 +787,30 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   /**
    * Resolves the declared namespace ids to their live DDL schema names,
    * mapping `UNBOUND_NAMESPACE_ID` to the connection's `current_schema()`
-   * and de-duplicating. The caller introspects one namespace node per
-   * resolved schema — there is no flat cross-schema merge, so two schemas
-   * holding a same-named table no longer collide.
+   * and merging the table names declared for each schema. The caller
+   * introspects one namespace node per resolved schema — there is no flat
+   * cross-schema merge, so two schemas holding a same-named table no longer
+   * collide.
    */
   private async resolveNamespaceSchemas(
     driver: SqlControlDriverInstance<'postgres'>,
-    namespaceIds: readonly string[],
-  ): Promise<readonly string[]> {
-    const resolvedSchemas: string[] = [];
-    for (const id of namespaceIds) {
-      if (id === UNBOUND_NAMESPACE_ID) {
-        const { rows } = await driver.query<{ current_schema: string }>(
-          'SELECT current_schema() AS current_schema',
-        );
-        resolvedSchemas.push(rows[0]?.current_schema ?? 'public');
-      } else {
-        resolvedSchemas.push(id);
-      }
+    declaredTables: ReadonlyMap<string, readonly string[]>,
+  ): Promise<ReadonlyMap<string, ReadonlySet<string>>> {
+    const tablesBySchema = new Map<string, Set<string>>();
+    for (const [id, tableNames] of declaredTables) {
+      const resolved = id === UNBOUND_NAMESPACE_ID ? await this.currentSchema(driver) : id;
+      const tables = tablesBySchema.get(resolved) ?? new Set<string>();
+      for (const name of tableNames) tables.add(name);
+      tablesBySchema.set(resolved, tables);
     }
-    return Array.from(new Set(resolvedSchemas));
+    return tablesBySchema;
+  }
+
+  private async currentSchema(driver: SqlControlDriverInstance<'postgres'>): Promise<string> {
+    const { rows } = await driver.query<{ current_schema: string }>(
+      'SELECT current_schema() AS current_schema',
+    );
+    return rows[0]?.current_schema ?? 'public';
   }
 
   /**
@@ -771,6 +822,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   private async introspectSchema(
     driver: SqlControlDriverInstance<'postgres'>,
     schema: string,
+    declaredTables: ReadonlySet<string>,
   ): Promise<{ readonly namespace: PostgresNamespaceSchemaNode; readonly pgVersion: string }> {
     // Issue the schema-wide queries one at a time. A single control connection
     // serialises queries anyway, so Promise.all buys no parallelism here and
@@ -1381,6 +1433,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
 
     const tables: Record<string, PostgresTableSchemaNode> = {};
     for (const [tableName, input] of Object.entries(tableInputs)) {
+      if (OTHER_TOOL_MIGRATION_TABLES.has(tableName) && !declaredTables.has(tableName)) continue;
       tables[tableName] = new PostgresTableSchemaNode({
         ...input,
         policies: policiesByTable.get(tableName) ?? [],
@@ -1453,12 +1506,6 @@ function mapPgCmd(cmd: string): RlsPolicyOperation {
   }
 }
 
-/**
- * Extracts the namespace coordinate ids declared on a contract's storage,
- * or returns an empty array when no contract (or no storage / namespaces)
- * is present. Used by `PostgresControlAdapter.introspect` to decide
- * between the multi-namespace walk and the single-schema fallback.
- */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -1467,13 +1514,26 @@ function freezeStringArray(values: readonly string[]): readonly string[] {
   return Object.freeze([...values]);
 }
 
-function extractContractNamespaceIds(contract: unknown): readonly string[] {
-  if (!isRecord(contract)) return [];
+/**
+ * The table names a contract's storage declares, keyed by namespace id. Empty when no contract (or no storage / namespaces) is present, which makes `PostgresControlAdapter.introspect` fall back to the single-schema walk.
+ */
+function extractContractTableNames(contract: unknown): ReadonlyMap<string, readonly string[]> {
+  if (!isRecord(contract)) return new Map();
   const storage = contract['storage'];
-  if (!isRecord(storage)) return [];
+  if (!isRecord(storage)) return new Map();
   const namespaces = storage['namespaces'];
-  if (!isRecord(namespaces)) return [];
-  return Object.keys(namespaces);
+  if (!isRecord(namespaces)) return new Map();
+  return new Map(
+    Object.entries(namespaces).map(([id, namespace]) => [id, declaredTableNames(namespace)]),
+  );
+}
+
+function declaredTableNames(namespace: unknown): readonly string[] {
+  if (!isRecord(namespace)) return [];
+  const entries = namespace['entries'];
+  if (!isRecord(entries)) return [];
+  const tables = entries['table'];
+  return isRecord(tables) ? Object.keys(tables) : [];
 }
 
 /**
@@ -1635,13 +1695,14 @@ interface OutputSettings {
   readonly timeZone: string;
   readonly dateStyle: string;
   readonly intervalStyle: string;
+  readonly byteaOutput: string;
 }
 
-/** Postgres's own defaults, the text the default parser reads: UTC, ISO dates, postgres intervals. */
 const INTROSPECTION_OUTPUT_SETTINGS: OutputSettings = {
   timeZone: 'UTC',
   dateStyle: 'ISO, MDY',
   intervalStyle: 'postgres',
+  byteaOutput: 'hex',
 };
 
 async function readOutputSettings(
@@ -1650,7 +1711,8 @@ async function readOutputSettings(
   const { rows } = await driver.query<OutputSettings>(
     `SELECT current_setting('TimeZone') AS "timeZone",
             current_setting('DateStyle') AS "dateStyle",
-            current_setting('IntervalStyle') AS "intervalStyle"`,
+            current_setting('IntervalStyle') AS "intervalStyle",
+            current_setting('bytea_output') AS "byteaOutput"`,
   );
   return rows[0];
 }
@@ -1661,24 +1723,28 @@ async function applyOutputSettings(
   local: boolean,
 ): Promise<void> {
   await driver.query(
-    `SELECT set_config('TimeZone', $1, $4),
-            set_config('DateStyle', $2, $4),
-            set_config('IntervalStyle', $3, $4)`,
-    [settings.timeZone, settings.dateStyle, settings.intervalStyle, local],
+    `SELECT set_config('TimeZone', $1, $5),
+            set_config('DateStyle', $2, $5),
+            set_config('IntervalStyle', $3, $5),
+            set_config('bytea_output', $4, $5)`,
+    [settings.timeZone, settings.dateStyle, settings.intervalStyle, settings.byteaOutput, local],
   );
 }
 
 function sameOutputSettings(a: OutputSettings | undefined, b: OutputSettings): boolean {
   return (
-    a?.timeZone === b.timeZone && a.dateStyle === b.dateStyle && a.intervalStyle === b.intervalStyle
+    a?.timeZone === b.timeZone &&
+    a.dateStyle === b.dateStyle &&
+    a.intervalStyle === b.intervalStyle &&
+    a.byteaOutput === b.byteaOutput
   );
 }
 
 /**
  * Runs `read` with the settings that shape printed values pinned to Postgres's defaults, then
  * restores the caller's. Postgres prints a `timestamptz` default in the session time zone, and
- * dates and intervals in the session styles, so pinning them gives the same text whatever the
- * server, the role, or the caller set.
+ * dates, intervals and bytea in the session styles, so pinning them gives the same text whatever
+ * the server, the role, or the caller set.
  *
  * The settings are first set locally. A local setting outlives its own statement only inside a
  * transaction, so reading them back tells the two cases apart. Inside the caller's transaction they
@@ -1773,7 +1839,7 @@ async function pgRenderDdlColumnDefault(
   where: LiteralDefaultColumn,
 ): Promise<string> {
   if (def.kind === 'function') {
-    if (def.expression === 'autoincrement()') {
+    if (def.expression.text === 'autoincrement()') {
       if (!SERIAL_FAMILY_TYPES.has(nativeType.toLowerCase())) {
         throw postgresError(
           'CONTRACT.DEFAULT_INVALID',
@@ -1785,15 +1851,15 @@ async function pgRenderDdlColumnDefault(
       }
       return '';
     }
-    if (checkSqlDefaultBody(def.expression) !== undefined) {
+    if (checkSqlDefaultText(def.expression.text) !== undefined) {
       throw postgresError(
         'CONTRACT.DEFAULT_INVALID',
-        `Unsafe default expression in contract: "${def.expression}". ` +
+        `Unsafe default expression in contract: "${def.expression.text}". ` +
           'Default expressions must not contain semicolons, SQL comment tokens, dollar-quoting, or subqueries.',
-        { meta: { expression: def.expression } },
+        { meta: { expression: def.expression.text } },
       );
     }
-    return `DEFAULT (${def.expression})`;
+    return `DEFAULT (${renderOpaqueSql(def.expression)})`;
   }
   const dataTypeId =
     codecRef === undefined ? undefined : codecLookup.descriptorFor(codecRef.codecId)?.dataType;
@@ -1892,7 +1958,7 @@ function pgRenderDdlConstraint(constraint: DdlTableConstraint): string {
     return sql;
   }
   if (constraint.kind === 'check-expression') {
-    return `CONSTRAINT ${quoteIdentifier(constraint.name)} CHECK (${constraint.expression})`;
+    return `CONSTRAINT ${quoteIdentifier(constraint.name)} CHECK (${renderOpaqueSql(constraint.expression)})`;
   }
   const cols = constraint.columns.map(quoteIdentifier).join(', ');
   if (constraint.name !== undefined) {
@@ -2002,10 +2068,10 @@ function pgRenderCreatePolicy(node: PostgresCreatePolicy): SqlExecuteRequest {
   const roles = node.roles.length === 0 ? 'PUBLIC' : node.roles.join(', ');
   let sql = `CREATE POLICY ${quoteIdentifier(node.name)} ON ${tableRef} AS ${permissiveness} FOR ${command} TO ${roles}`;
   if (node.using !== undefined) {
-    sql += ` USING (${node.using})`;
+    sql += ` USING (${renderOpaqueSql(node.using)})`;
   }
   if (node.withCheck !== undefined) {
-    sql += ` WITH CHECK (${node.withCheck})`;
+    sql += ` WITH CHECK (${renderOpaqueSql(node.withCheck)})`;
   }
   return { sql, params: [] };
 }
@@ -2053,7 +2119,7 @@ function pgRenderCreateIndex(node: PostgresCreateIndex): SqlExecuteRequest {
   const elementList =
     'columns' in node.elements
       ? node.elements.columns.map(quoteIdentifier).join(', ')
-      : node.elements.expression;
+      : renderOpaqueSql(node.elements.expression);
   const unique = node.unique ? 'UNIQUE ' : '';
   const using = node.type !== undefined ? ` USING ${quoteIdentifier(node.type)}` : '';
   const withClause =
@@ -2064,7 +2130,7 @@ function pgRenderCreateIndex(node: PostgresCreateIndex): SqlExecuteRequest {
           )
           .join(', ')})`
       : '';
-  const whereClause = node.where !== undefined ? ` WHERE (${node.where})` : '';
+  const whereClause = node.where !== undefined ? ` WHERE (${renderOpaqueSql(node.where)})` : '';
   return {
     sql: `CREATE ${unique}INDEX ${quoteIdentifier(node.name)} ON ${pgQualify(node.schema, node.table)}${using} (${elementList})${withClause}${whereClause}`,
     params: [],

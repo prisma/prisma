@@ -290,6 +290,86 @@ policy Probe { target = Invoice\n value = Int }`);
     ]);
   });
 
+  it('classifies a qualifier from its binder resolution', () => {
+    const source = `namespace pgvector { model Vector { id Int } }
+model Doc { declared pgvector.Vector\n contributed postgis.Geometry\n model Doc.Vector\n remote other:pgvector.Vector }`;
+    const { document, sources } = parse(source, 'language-server-test.psl');
+    const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+    const typeConstructor = {
+      kind: 'typeConstructor',
+      output: { codecId: 'fixture/scalar', nativeType: 'fixture' },
+    } as const;
+    const binder = testBinder({
+      sources,
+      symbolTable,
+      authoringContributions: {
+        field: {},
+        type: {
+          pgvector: { Vector: typeConstructor },
+          postgis: { Geometry: typeConstructor },
+        },
+        entityTypes: {},
+        pslBlockDescriptors: {},
+        modelAttributes: {},
+        attributeSpecs: { model: {}, field: {} },
+        dataTypes: {},
+      },
+    });
+    const details = collectDetails({
+      binder,
+      document,
+      sourceFile: sources.sourceFileFor(document.syntax),
+      symbolTable,
+      scalarTypes,
+    });
+
+    expect(
+      details
+        .filter(({ line }) => line > 0)
+        .filter(({ text }) => ['pgvector', 'Vector', 'postgis', 'Geometry', 'Doc'].includes(text))
+        .map(({ text, tokenType, modifiers }) => ({ text, tokenType, modifiers })),
+    ).toEqual([
+      { text: 'Doc', tokenType: 'class', modifiers: ['declaration'] },
+      { text: 'pgvector', tokenType: 'namespace', modifiers: [] },
+      { text: 'Vector', tokenType: 'class', modifiers: [] },
+      { text: 'postgis', tokenType: 'namespace', modifiers: [] },
+      { text: 'Geometry', tokenType: 'type', modifiers: ['defaultLibrary'] },
+      { text: 'Vector', tokenType: 'type', modifiers: [] },
+      { text: 'Vector', tokenType: 'type', modifiers: [] },
+    ]);
+  });
+
+  it('classifies the qualifier of a qualified entity reference as a namespace', () => {
+    const source = parseSemanticTokenSource(
+      `namespace auth { model User { id Int } }
+model Top { id Int }
+policy Probe { on = auth.User\n other = Top.User }`,
+      {
+        policy: {
+          kind: 'pslBlock',
+          keyword: 'policy',
+          discriminator: 'policy',
+          name: { required: true },
+          spec: () =>
+            structBlock({
+              parameters: {
+                on: { type: entityRef({ kind: 'model' }), documentation: '' },
+                other: { type: entityRef({ kind: 'model' }), documentation: '' },
+              },
+            }),
+        },
+      },
+    );
+    expect(
+      collectDetails(source)
+        .filter(({ line, text }) => line >= 2 && ['auth', 'Top'].includes(text))
+        .map(({ text, tokenType, modifiers }) => ({ text, tokenType, modifiers })),
+    ).toEqual([
+      { text: 'auth', tokenType: 'namespace', modifiers: [] },
+      { text: 'Top', tokenType: 'property', modifiers: [] },
+    ]);
+  });
+
   it('keeps the semantic token legend stable', () => {
     expect(semanticTokenTypes).toEqual([
       'keyword',
@@ -433,6 +513,51 @@ policy Probe { target = Invoice\n value = Int }`);
     expect(
       details.find((token) => token.text === 'id' && token.tokenType === 'type'),
     ).toBeUndefined();
+  });
+
+  it('classifies a sql literal as a keyword tag and a string per line of its literal', () => {
+    const source = parseSemanticTokenSource(
+      [
+        'model Post {',
+        '  id Int',
+        '  @@check(expression: sql`',
+        '    id > 0',
+        '    AND id < 10',
+        '  `, name: "post_id_range")',
+        '}',
+      ].join('\n'),
+    );
+
+    const details = collectDetails(source).filter((token) => token.line >= 2 && token.line <= 5);
+
+    expect(details.map(({ text, tokenType }) => ({ text, tokenType }))).toEqual([
+      { text: '@@check', tokenType: 'decorator' },
+      { text: 'expression', tokenType: 'property' },
+      { text: 'sql', tokenType: 'keyword' },
+      { text: '`', tokenType: 'string' },
+      { text: '    id > 0', tokenType: 'string' },
+      { text: '    AND id < 10', tokenType: 'string' },
+      { text: '  `', tokenType: 'string' },
+      { text: 'name', tokenType: 'property' },
+      { text: '"post_id_range"', tokenType: 'string' },
+    ]);
+  });
+
+  it('classifies the namespace of a namespaced tag', () => {
+    const source = parseSemanticTokenSource(
+      ['model Post {', '  id Int @default(ext.money`1`)', '}'].join('\n'),
+    );
+
+    const details = collectDetails(source).filter((token) => token.line === 1);
+
+    expect(details.map(({ text, tokenType }) => ({ text, tokenType }))).toEqual([
+      { text: 'id', tokenType: 'property' },
+      { text: 'Int', tokenType: 'type' },
+      { text: '@default', tokenType: 'decorator' },
+      { text: 'ext', tokenType: 'namespace' },
+      { text: 'money', tokenType: 'keyword' },
+      { text: '`1`', tokenType: 'string' },
+    ]);
   });
 
   it('classifies each segment of a dotted index path as a property', () => {

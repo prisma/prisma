@@ -33,14 +33,11 @@ import { parsePostgresDefault } from '../../src/core/default-normalizer';
 import { type PostgresSchema, postgresCreateNamespace } from '../../src/core/postgres-schema';
 import { INFERRED_PSL_TYPE_NAMES } from '../../src/core/psl-build/postgres-type-map';
 import { postgresCodecRegistry } from '../../src/core/registry';
-import {
-  postgresNativeAuthoringTypes,
-  postgresScalarAuthoringTypes,
-} from '../../src/core/type-constructors';
+import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
 import { printPslFromFlat } from './fixtures';
 
-/** The type constructors the printed schema names, as the adapter contributes them. */
-const authoringTypes = { ...postgresScalarAuthoringTypes, ...postgresNativeAuthoringTypes };
+/** The type constructors the printed schema names, as the target contributes them. */
+const authoringTypes = postgresPslTypeConstructors;
 
 const assembled = assembleAuthoringContributions([
   {
@@ -67,7 +64,6 @@ const target = {
 const codecLookup: CodecLookupWithDescriptors = {
   get: (id) => postgresCodecRegistry.descriptorFor(id)?.factory({})({ name: id }),
   descriptorFor: (id) => postgresCodecRegistry.descriptorFor(id),
-  targetTypesFor: (id) => postgresCodecRegistry.descriptorFor(id)?.targetTypes,
   renderOutputTypeFor: () => undefined,
 };
 
@@ -123,7 +119,7 @@ function roundTrippedDefaults(columns: readonly SqlColumnIRInput[]) {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
-      dataTypeLookup: createDataTypeLookup(postgresDataTypes),
+      dataTypes: { entries: assembled.dataTypes, lookup: createDataTypeLookup(postgresDataTypes) },
       resolvedInputs: [],
       capabilities: { sql: { scalarList: true } },
     },
@@ -190,6 +186,51 @@ two lines é'::text`,
       scores: { kind: 'literal', value: [1, 2] },
       docs: { kind: 'literal', value: [{}, []] },
     });
+  });
+
+  it.each([
+    ['timestamp', "'2024-01-01 00:00:00'::timestamp without time zone", '2024-01-01T00:00:00'],
+    [
+      'timestamp(3)',
+      "'2024-01-01 00:00:00.5'::timestamp(3) without time zone",
+      '2024-01-01T00:00:00.5',
+    ],
+    ['timestamptz', "'2024-01-01 01:00:00+00'::timestamp with time zone", '2024-01-01T01:00:00Z'],
+    [
+      'timestamptz(6)',
+      "'2024-01-01 01:00:00.123456+00'::timestamp(6) with time zone",
+      '2024-01-01T01:00:00.123456Z',
+    ],
+    [
+      'timestamptz',
+      "'0044-03-15 00:00:00+00 BC'::timestamp with time zone",
+      '-000043-03-15T00:00:00Z',
+    ],
+    ['date', "'2024-01-01'::date", '2024-01-01'],
+    ['date', "'0044-03-15 BC'::date", '-000043-03-15'],
+    ['time', "'12:34:56.5'::time without time zone", '12:34:56.5'],
+    ['time(3)', "'12:34:56.123'::time(3) without time zone", '12:34:56.123'],
+    ['timetz', "'12:34:56+02'::time with time zone", '12:34:56+02:00'],
+    ['timestamp', "'infinity'::timestamp without time zone", 'infinity'],
+    ['timestamptz', "'-infinity'::timestamp with time zone", '-infinity'],
+    ['date', "'infinity'::date", 'infinity'],
+  ])('round-trips a %s default of %s', (nativeType, rawDefault, value) => {
+    expect(roundTrippedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
+      stamp: { kind: 'literal', value },
+    });
+  });
+
+  it('round-trips a list of timestamps', () => {
+    expect(
+      roundTrippedDefaults([
+        introspected(
+          'stamps',
+          'timestamp(3)',
+          "ARRAY['2024-01-01 00:00:00'::timestamp(3) without time zone]",
+          { many: true },
+        ),
+      ]),
+    ).toEqual({ stamps: { kind: 'literal', value: ['2024-01-01T00:00:00'] } });
   });
 
   it('round-trips a default of every parameterized type the type map writes', () => {

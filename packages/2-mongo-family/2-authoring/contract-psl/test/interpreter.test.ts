@@ -8,7 +8,7 @@ import {
   type StorageHashBase,
 } from '@internal/contract/types';
 import { enumType, member } from '@internal/contract-authoring';
-import type { CodecLookup, CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoNamespace,
@@ -36,6 +36,7 @@ import {
   describeUnsupportedMongoAttribute,
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
+import { mongoCodecLookup, mongoDataTypeLookup } from './derive-json-schema-helpers';
 import {
   expectInvalidAttributeSyntax,
   expectUnresolvedReference,
@@ -62,32 +63,6 @@ const mongoScalarTypeDescriptors: ReadonlyMap<string, string> = new Map([
   ['ObjectId', 'mongo/objectId@1'],
   ['Double', 'mongo/double@1'],
 ]);
-
-const mongoTargetTypes: Record<string, readonly string[]> = {
-  'mongo/string@1': ['string'],
-  'mongo/int32@1': ['int'],
-  'mongo/bool@1': ['bool'],
-  'mongo/date@1': ['date'],
-  'mongo/objectId@1': ['objectId'],
-  'mongo/double@1': ['double'],
-};
-
-const mongoCodecLookup: CodecLookupWithDescriptors = {
-  get(id: string) {
-    const targetTypes = mongoTargetTypes[id];
-    if (!targetTypes) return undefined;
-    return {
-      id,
-      encode: async (v: unknown) => v,
-      decode: async (w: unknown) => w,
-      encodeJson: (v: unknown) => v,
-      decodeJson: (j: unknown) => j,
-    } as ReturnType<CodecLookup['get']>;
-  },
-  targetTypesFor: (id: string) => mongoTargetTypes[id],
-  renderOutputTypeFor: () => undefined,
-  descriptorFor: () => undefined,
-};
 
 function mongoCollectionsFromIr(ir: {
   readonly storage: unknown;
@@ -132,11 +107,9 @@ function interpret(
     schema,
     {
       scalarTypeCodecIds: mongoScalarTypeDescriptors,
-      controlMutationDefaults: {
-        dataTypeEntries: {},
-        defaultFunctionRegistry: new Map(),
-      },
+      defaultFunctionRegistry: new Map(),
       codecLookup: mongoCodecLookup,
+      dataTypes: { entries: {}, lookup: mongoDataTypeLookup },
       ...overrides,
     },
     'test.prisma',
@@ -184,12 +157,7 @@ model Item {
               kind: 'entity',
               discriminator: 'enum',
               output: {
-                factory: () =>
-                  enumType(
-                    'Role',
-                    { codecId: 'mongo/string@1', nativeType: 'string' },
-                    member('USER'),
-                  ),
+                factory: () => enumType('Role', { codecId: 'mongo/string@1' }, member('USER')),
               },
             },
           },
@@ -271,7 +239,7 @@ model Item {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
       codecLookup: mongoCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
-      dataTypeLookup: { has: () => false, get: () => undefined },
+      dataTypes: { entries: {}, lookup: mongoDataTypeLookup },
       resolvedInputs: [],
       capabilities: {},
     };
@@ -291,10 +259,8 @@ model Item {
         symbolTable,
         binder,
         scalarTypeCodecIds: new Map(),
-        controlMutationDefaults: {
-          ...context.controlMutationDefaults,
-          dataTypeEntries: context.authoringContributions.dataTypes,
-        },
+        defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
+        dataTypes: context.dataTypes,
         codecLookup: context.codecLookup,
         authoringContributions: context.authoringContributions,
       }),
@@ -481,6 +447,28 @@ model Item {
         storage: { collection: 'UserProfile' },
       });
       expect(Object.keys(mongoCollectionsFromIr(ir))).toEqual(['UserProfile']);
+    });
+
+    it('keeps every storage name when a model and a field are renamed and mapped to their old names', () => {
+      const before = interpretOk(`
+        model User {
+          id   ObjectId @id @map("_id")
+          name String
+        }
+      `);
+      const after = interpretOk(`
+        model Account {
+          id       ObjectId @id @map("_id")
+          fullName String @map("name")
+
+          @@map("User")
+        }
+      `);
+
+      expect(after.storage).toEqual(before.storage);
+      expect(Object.keys(model(after, 'Account').fields)).toEqual(
+        Object.keys(model(before, 'User').fields),
+      );
     });
 
     it('uses @@map() to override collection name', () => {
@@ -1627,19 +1615,41 @@ model Item {
         model Events {
           id       ObjectId @id @map("_id")
           wildcard String
-          @@index([wildcard(sort: Desc)])
+          @@index([sort(wildcard, Desc)])
         }
       `);
       const indexes = getIndexes(ir, 'Events');
       expect(indexes![0]!['keys']).toEqual([{ field: 'wildcard', direction: -1 }]);
     });
 
-    it('creates descending index from sort: Desc', () => {
+    it('reports an invalid sort direction in @@index inside the sort function', () => {
+      const result = interpret(`model Events {
+  id    ObjectId @id @map("_id")
+  email String
+  @@index([sort(email, Up)])
+}
+`);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual([
+        {
+          code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
+          message: 'Expected one of: Asc | Desc',
+          sourceId: 'test.prisma',
+          span: {
+            start: { offset: 86, line: 4, column: 24 },
+            end: { offset: 88, line: 4, column: 26 },
+          },
+        },
+      ]);
+    });
+
+    it('creates descending index from sort(field, Desc)', () => {
       const ir = interpretOk(`
         model Events {
           id        ObjectId @id @map("_id")
           createdAt Date
-          @@index([createdAt(sort: Desc)])
+          @@index([sort(createdAt, Desc)])
         }
       `);
       const indexes = getIndexes(ir, 'Events');
@@ -1652,7 +1662,7 @@ model Item {
           id        ObjectId @id @map("_id")
           status    String
           createdAt Date
-          @@index([status, createdAt(sort: Desc)])
+          @@index([status, sort(createdAt, Desc)])
         }
       `);
       const indexes = getIndexes(ir, 'Events');
@@ -2356,7 +2366,7 @@ model Item {
                   factory: () =>
                     enumType(
                       'Role',
-                      { codecId: 'mongo/string@1', nativeType: 'string' },
+                      { codecId: 'mongo/string@1' },
                       { name: 'User', value: 'user' },
                       { name: 'Admin', value: 'admin' },
                     ),
@@ -2624,10 +2634,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            dataTypeEntries: {},
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 
@@ -2653,10 +2660,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            dataTypeEntries: {},
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 
@@ -2678,10 +2682,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            dataTypeEntries: {},
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 

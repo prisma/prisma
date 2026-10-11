@@ -9,7 +9,11 @@ import {
   parseDefaultAttributeString,
   positionalArg,
 } from '../psl-build/psl-literals';
-import { refuseDefaultOutsideEnum, refuseUnwritableLiteralDefault } from './refusals';
+import {
+  refuseDefaultOutsideEnum,
+  refuseSqlTextThatDoesNotReadBack,
+  refuseUnwritableLiteralDefault,
+} from './refusals';
 
 /**
  * The `@default(…)` attribute for a storage column, or `undefined` when the column carries no
@@ -22,7 +26,8 @@ import { refuseDefaultOutsideEnum, refuseUnwritableLiteralDefault } from './refu
  * tagged literal.
  *
  * A literal is refused when the column's codec has no data type in the stack, or when no PSL
- * literal of that data type reads back as the stored value.
+ * literal of that data type reads back as the stored value. A function default is refused when a
+ * `sql` literal cannot write its text back unchanged.
  */
 export function buildColumnDefault(input: {
   readonly column: StorageColumn;
@@ -55,13 +60,20 @@ export function buildColumnDefault(input: {
     return buildAttribute('field', 'default', [positionalArg(memberName)]);
   }
 
+  if (columnDefault.kind === 'function') {
+    refuseSqlTextThatDoesNotReadBack({
+      kind: 'default',
+      coordinate,
+      texts: [columnDefault.expression],
+    });
+  }
+
   const { context } = input;
   const result = mapDefault(columnDefault, {
-    dataTypeEntries: context.authoringContributions.dataTypes,
-    dataTypes: context.dataTypeLookup,
-    columnDataType: context.codecLookup.descriptorFor(
+    dataTypes: context.dataTypes,
+    columnCodec: context.codecLookup.descriptorFor(
       input.isEnum ? PG_TEXT_CODEC_ID : input.column.codecId,
-    )?.dataType,
+    ),
     list: input.column.many !== false,
   });
   if (result === undefined) {

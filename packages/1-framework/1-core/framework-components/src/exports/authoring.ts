@@ -5,6 +5,11 @@ export type {
 export { findAuthoringTypeConstructorCall } from '../shared/authoring-type-constructor-call';
 export { type EnumBlockMember, readEnumBlockMembers } from '../shared/enum-block-members';
 export {
+  type DuplicateStoredValue,
+  duplicateStoredMembers,
+  type StoredEnumMember,
+} from '../shared/enum-stored-members';
+export {
   fieldPresetSpellings,
   getAuthoringFieldPreset,
 } from '../shared/field-preset-resolution';
@@ -46,6 +51,7 @@ export type {
 export {
   assertNoCrossRegistryCollisions,
   assertResolvableTypeConstructorTemplates,
+  authoringEntryType,
   classifyEnumMemberType,
   collectScalarTypeConstructors,
   flushAuthoringWarnings,
@@ -59,10 +65,13 @@ export {
   isAuthoringModelAttributeDescriptor,
   isAuthoringPslBlockDescriptor,
   isAuthoringTypeConstructorDescriptor,
+  isTagEntryKey,
   mergeAuthoringNamespaces,
   resolveAuthoringTemplateValue,
   resolveEnumCodecId,
+  tagEntryKey,
   validateAuthoringHelperArguments,
+  validateAuthoringTypeParams,
 } from '../shared/framework-authoring';
 export type { AuthoringOption } from '../shared/option-descriptor';
 export type {
@@ -71,7 +80,14 @@ export type {
   PslExtensionBlockParsedAttribute,
   PslExtensionBlockPrintEntry,
 } from '../shared/psl-extension-block';
-export { printTaggedLiteral } from '../shared/tagged-literal';
+export type { TaggedLiteralCanonicalization } from '../shared/tagged-literal';
+export {
+  canonicalizeTaggedLiteralBody,
+  describeTaggedLiteralFailure,
+  printedTaggedLiteralReadsBack,
+  printTaggedLiteral,
+  resolveTemplateTagEscapes,
+} from '../shared/tagged-literal';
 export type { PresetStorageTemplate } from '../shared/temporal-presets';
 export {
   TEMPORAL_ON_CREATE_ARG,
@@ -81,3 +97,29 @@ export {
   temporalCodecPreset,
   temporalPhaseTemplate,
 } from '../shared/temporal-presets';
+export type {
+  CastRefusal,
+  DataTypeSupport,
+  ReadRefusal,
+  RefusalDescription,
+  RefusalGuidance,
+  TypedValue,
+  WrittenForm,
+  WrittenScalar,
+  WrittenValue,
+} from '../shared/written-value';
+export {
+  admittedForms,
+  admittedTags,
+  castTypedValue,
+  describeAdmittedForms,
+  describeExpected,
+  describeRefusal,
+  describeRefusedValueType,
+  entryForPlain,
+  entryForTag,
+  exactRewrite,
+  knownTags,
+  readWrittenValue,
+  tagForm,
+} from '../shared/written-value';

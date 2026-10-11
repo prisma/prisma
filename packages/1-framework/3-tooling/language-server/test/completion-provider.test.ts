@@ -5,7 +5,10 @@ import type {
   AuthoringPslBlockDescriptorNamespace,
   AuthoringTypeNamespace,
   DataTypeAuthoringEntry,
+  DataTypeSupport,
 } from '@internal/framework-components/authoring';
+import { createDataTypeLookup } from '@internal/framework-components/codec';
+
 import {
   assembleAuthoringContributions,
   assembleControlMutationDefaults,
@@ -13,6 +16,7 @@ import {
 } from '@internal/framework-components/control';
 import {
   type AttributeSpecNamespace,
+  type BlockSpecContext,
   blockAttribute,
   buildSymbolTable,
   entityRef,
@@ -44,6 +48,7 @@ import { testBinder } from './helpers/binder';
 const scalarTypes = ['String', 'Int', 'Boolean', 'DateTime'] as const;
 const nameSnippetPlaceholder = '$' + '{1:Name}';
 const emptySnippetPlaceholder1 = '$' + '{1:}';
+const sqlExpressionSnippet = 'sql`$' + '{1:expression}`';
 const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
 const markerAttribute = fieldAttribute('marker', {
@@ -251,8 +256,11 @@ interface ActualSqliteDataTypesModule {
 }
 
 interface ActualSqlExpressionModule {
-  readonly SQL_EXPRESSION_DATA_TYPE_ID: string;
-  readonly sqlExpressionAuthoringEntry: DataTypeAuthoringEntry;
+  readonly sqlExpressionRegistration: {
+    readonly authoring: {
+      readonly dataTypes: Readonly<Record<string, DataTypeAuthoringEntry>>;
+    };
+  };
 }
 
 interface ActualMongoAttributeModule {
@@ -270,6 +278,7 @@ function completeWithSource(input: {
   readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
   readonly authoringContributions?: typeof attributeContributions;
   readonly controlMutationDefaults?: typeof controlMutationDefaults;
+  readonly dataTypes?: DataTypeSupport;
   readonly clientSupportsSnippets?: boolean;
   readonly clientSupportsTriggerSuggestCommand?: boolean;
   readonly clientSupportsTriggerParameterHintsCommand?: boolean;
@@ -313,6 +322,7 @@ function completeWithSource(input: {
         ...(input.controlMutationDefaults === undefined
           ? {}
           : { controlMutationDefaults: input.controlMutationDefaults }),
+        ...(input.dataTypes === undefined ? {} : { dataTypes: input.dataTypes }),
       },
       clientSupportsSnippets: input.clientSupportsSnippets === true,
       clientSupportsTriggerSuggestCommand: input.clientSupportsTriggerSuggestCommand === true,
@@ -356,6 +366,13 @@ async function actualMongoStack(): Promise<CompletionTestStack> {
   };
 }
 
+async function sqlExpressionDataTypes(): Promise<Readonly<Record<string, DataTypeAuthoringEntry>>> {
+  const family = await importFromPackageRoot<ActualSqlExpressionModule>(
+    '../../../2-sql/1-core/contract/src/exports/sql-expression.ts',
+  );
+  return family.sqlExpressionRegistration.authoring.dataTypes;
+}
+
 async function importFromPackageRoot<T>(relativePath: string): Promise<T> {
   return (await import(pathToFileURL(resolve(packageRoot, relativePath)).href)) as T;
 }
@@ -382,14 +399,13 @@ function completeWithActualStack(
     readonly dataTypes?: Readonly<Record<string, DataTypeAuthoringEntry>>;
   } = {},
 ) {
-  const contributions = actualAuthoringContributions(stack);
   return completeWithSource({
     markedSource,
     pslBlockDescriptors: stack.pslBlockDescriptors,
-    authoringContributions:
-      options.dataTypes === undefined
-        ? contributions
-        : { ...contributions, dataTypes: options.dataTypes },
+    authoringContributions: actualAuthoringContributions(stack),
+    ...(options.dataTypes === undefined
+      ? {}
+      : { dataTypes: { entries: options.dataTypes, lookup: createDataTypeLookup([]) } }),
     controlMutationDefaults: options.controlMutationDefaults ?? controlMutationDefaults,
     clientSupportsSnippets: options.clientSupportsSnippets === true,
   });
@@ -459,7 +475,7 @@ namespace other { model Hidden { id Int } }`,
                 Value: {
                   kind: 'typeConstructor',
                   documentation: 'Custom value',
-                  output: { codecId: 'value', nativeType: 'value' },
+                  output: { codecId: 'value' },
                 },
               },
             },
@@ -512,17 +528,17 @@ namespace other { model Hidden { id Int } }`,
       const types: AuthoringTypeNamespace = {
         Scalar: {
           kind: 'typeConstructor',
-          output: { codecId: 'fixture/value', nativeType: 'value' },
+          output: { codecId: 'fixture/value' },
         },
         Deprecated: {
           kind: 'typeConstructor',
           deprecated: { replacement: 'Scalar' },
-          output: { codecId: 'fixture/value', nativeType: 'value' },
+          output: { codecId: 'fixture/value' },
         },
         Empty: {
           kind: 'typeConstructor',
           args: [],
-          output: { codecId: 'fixture/value', nativeType: 'value' },
+          output: { codecId: 'fixture/value' },
         },
         Required: {
           kind: 'typeConstructor',
@@ -531,12 +547,12 @@ namespace other { model Hidden { id Int } }`,
             { name: 'label', kind: 'string' },
             { name: 'scale', kind: 'number', optional: true },
           ],
-          output: { codecId: 'fixture/value', nativeType: 'value' },
+          output: { codecId: 'fixture/value' },
         },
         Optional: {
           kind: 'typeConstructor',
           args: [{ name: 'size', kind: 'number', optional: true }],
-          output: { codecId: 'fixture/value', nativeType: 'value' },
+          output: { codecId: 'fixture/value' },
         },
         Entity: {
           kind: 'typeConstructor',
@@ -993,7 +1009,7 @@ namespace app {
     ).toEqual(['type']);
 
     const { items, sourceFile, cursorOffset } = completeWithActualStack(
-      ['model Post {', '  id Int', '  @@index(expression: "lower(name)", ma|)', '}'].join('\n'),
+      ['model Post {', '  id Int', '  @@index(expression: sql`lower(name)`, ma|)', '}'].join('\n'),
       stack,
     );
     expect(items.map((item) => item.label)).toEqual([
@@ -1036,20 +1052,81 @@ namespace app {
     const checkCompletion = completeWithActualStack(
       ['model Post {', '  id Int', '  @@che| // keep', '}'].join('\n'),
       stack,
-      { clientSupportsSnippets: true },
+      { clientSupportsSnippets: true, dataTypes: await sqlExpressionDataTypes() },
     );
     const checkItem = completionItemByLabel(checkCompletion.items, 'check');
     expect(checkItem).toMatchObject({
       insertTextFormat: InsertTextFormat.Snippet,
-      textEdit: { newText: `check(expression: "\${1:expression}")` },
+      textEdit: { newText: `check(expression: ${sqlExpressionSnippet})` },
     });
     expect(
       applyCompletionItem({ sourceFile: checkCompletion.sourceFile, item: checkItem }),
     ).toEqual(
-      ['model Post {', '  id Int', `  @@check(expression: "\${1:expression}") // keep`, '}'].join(
-        '\n',
-      ),
+      [
+        'model Post {',
+        '  id Int',
+        `  @@check(expression: ${sqlExpressionSnippet}) // keep`,
+        '}',
+      ].join('\n'),
     );
+  }, 5_000);
+
+  it('offers a sql literal where @@index and @@check take SQL', async () => {
+    const stack = await actualSqlStack();
+    const dataTypes = await sqlExpressionDataTypes();
+    const [entry] = Object.values(dataTypes);
+    const valuesAt = (attribute: string) =>
+      completeWithActualStack(
+        ['model Post {', '  id Int', `  ${attribute}`, '}'].join('\n'),
+        stack,
+        {
+          clientSupportsSnippets: true,
+          dataTypes,
+        },
+      ).items.map((item) => ({
+        label: item.label,
+        detail: item.detail,
+        newText: item.textEdit?.newText,
+        insertTextFormat: item.insertTextFormat,
+      }));
+    const sqlItem = {
+      label: 'sql',
+      detail: entry?.documentation,
+      newText: 'sql`$1`',
+      insertTextFormat: InsertTextFormat.Snippet,
+    };
+
+    expect(valuesAt('@@index([id], where: |)')).toEqual([sqlItem]);
+    expect(valuesAt('@@index(expression: |, map: "post_idx")')).toEqual([sqlItem]);
+    expect(valuesAt('@@check(expression: |, name: "post_check")')).toEqual([sqlItem]);
+  }, 5_000);
+
+  it('completes model and field attributes when the source has no data types', async () => {
+    const stack = await actualSqlStack();
+    const labelsAt = (markedSource: string) =>
+      completeWithActualStack(markedSource, stack).items.map((item) => item.label);
+
+    expect(labelsAt(['model Post {', '  id Int', '  @@|', '}'].join('\n'))).toEqual([
+      'base',
+      'check',
+      'control',
+      'discriminator',
+      'id',
+      'index',
+      'map',
+      'unique',
+    ]);
+    expect(labelsAt(['model Post {', '  id Int @|', '}'].join('\n'))).toEqual([
+      'default',
+      'id',
+      'map',
+      'noCheck',
+      'relation',
+      'unique',
+    ]);
+    expect(
+      labelsAt(['model Post {', '  id Int', '  @@check(expression: |)', '}'].join('\n')),
+    ).toEqual([]);
   }, 5_000);
 
   it('uses actual Mongo attribute specs for names and dynamic factory keys', async () => {
@@ -1338,8 +1415,9 @@ namespace app {
     expect(items.map((item) => item.label)).toEqual(['on', 'where', 'mode', 'using']);
   });
 
-  it('calls the spec factory with the symbol table only and never invokes rule parsing', () => {
-    const factoryContexts: unknown[] = [];
+  it('calls the spec factory with the spec context and never invokes rule parsing', () => {
+    const dataTypes: DataTypeSupport = { entries: {}, lookup: createDataTypeLookup([]) };
+    const factoryContexts: BlockSpecContext[] = [];
     const throwingRule = {
       kind: 'str' as const,
       label: 'string',
@@ -1356,7 +1434,7 @@ namespace app {
           keyword: 'guard',
           discriminator: 'fixture-guard',
           name: { required: true },
-          spec: (ctx: unknown) => {
+          spec: (ctx: BlockSpecContext) => {
             factoryContexts.push(ctx);
             return structBlock({
               parameters: {
@@ -1366,13 +1444,15 @@ namespace app {
           },
         },
       },
+      dataTypes,
     });
 
     expect(items.map((item) => item.label)).toEqual(['shield']);
     expect(items[0]?.detail).toBe('The shield key.');
     expect(factoryContexts).toHaveLength(2);
     for (const ctx of factoryContexts) {
-      expect(ctx).toEqual({ symbols: expect.any(Object) });
+      expect(ctx).toEqual({ symbols: expect.any(Object), dataTypes: expect.any(Object) });
+      expect(ctx.dataTypes).toBe(dataTypes);
     }
   });
 
@@ -1423,7 +1503,7 @@ namespace app {
               String: {
                 kind: 'typeConstructor',
                 documentation: 'Variable-length Unicode text.',
-                output: { codecId: 'fixture/text@1', nativeType: 'text' },
+                output: { codecId: 'fixture/text@1' },
               },
             },
           },
@@ -1447,7 +1527,7 @@ namespace app {
             field: {
               stamp: {
                 kind: 'fieldPreset',
-                output: { codecId: 'fixture/timestamp@1', nativeType: 'timestamp' },
+                output: { codecId: 'fixture/timestamp@1' },
               },
             },
           },
@@ -1583,7 +1663,7 @@ namespace app {
     const withFamilyEntry = (
       targetEntries: Readonly<Record<string, DataTypeAuthoringEntry>>,
     ): Readonly<Record<string, DataTypeAuthoringEntry>> => ({
-      [family.SQL_EXPRESSION_DATA_TYPE_ID]: family.sqlExpressionAuthoringEntry,
+      ...family.sqlExpressionRegistration.authoring.dataTypes,
       ...targetEntries,
     });
     const complete = (
@@ -1669,11 +1749,11 @@ namespace app {
     ).toEqual(['NoAction', 'Restrict', 'Cascade', 'SetNull', 'SetDefault']);
   }, 5_000);
 
-  it('uses actual Mongo field-named functions and keeps distinct snippet edits', async () => {
+  it('uses actual Mongo sort functions and completes their positional arguments', async () => {
     const stack = await actualMongoStack();
     const schema = (args: string) => `model Post { title String\n slug String\n @@index(${args}) }`;
     const plain = completeWithActualStack(schema('[|]'), stack).items;
-    expect(plain.map((item) => item.label)).toEqual(['title', 'slug', 'wildcard']);
+    expect(plain.map((item) => item.label)).toEqual(['title', 'slug', 'wildcard', 'sort']);
     const snippets = completeWithActualStack(schema('[|]'), stack, {
       clientSupportsSnippets: true,
     }).items;
@@ -1681,14 +1761,13 @@ namespace app {
       ['title', 'title'],
       ['slug', 'slug'],
       ['wildcard', `wildcard(${emptySnippetPlaceholder1})`],
-      ['title', 'title(sort: $' + '{1:sort})'],
-      ['slug', 'slug(sort: $' + '{1:sort})'],
+      ['sort', 'sort($' + '{1:field}, $' + '{2:direction})'],
     ]);
     expect(
-      completeWithActualStack(schema('[title(|)]'), stack).items.map((item) => item.label),
-    ).toEqual(['sort']);
+      completeWithActualStack(schema('[sort(|)]'), stack).items.map((item) => item.label),
+    ).toEqual(['title', 'slug']);
     expect(
-      completeWithActualStack(schema('[title(sort: |)]'), stack).items.map((item) => item.label),
+      completeWithActualStack(schema('[sort(title, |)]'), stack).items.map((item) => item.label),
     ).toEqual(['Asc', 'Desc']);
     expect(completeWithActualStack(schema('[wildcard(|)]'), stack).items).toEqual([]);
     expect(
@@ -1696,7 +1775,7 @@ namespace app {
     ).toEqual(['1', '-1', '"text"', '"2dsphere"', '"2d"', '"hashed"']);
   }, 5_000);
 
-  it('scopes actual Mongo dynamic function names to the declaring namespace model', async () => {
+  it('scopes actual Mongo sort fields to the declaring namespace model', async () => {
     const stack = await actualMongoStack();
     const schema =
       'model Post { topOnly String }\nnamespace scoped { model Post { scopedOnly String\n @@index([|]) } }';
@@ -1708,8 +1787,13 @@ namespace app {
     ).toEqual([
       ['scopedOnly', 'scopedOnly'],
       ['wildcard', `wildcard(${emptySnippetPlaceholder1})`],
-      ['scopedOnly', 'scopedOnly(sort: $' + '{1:sort})'],
+      ['sort', 'sort($' + '{1:field}, $' + '{2:direction})'],
     ]);
+    expect(
+      completeWithActualStack(schema.replace('[|]', '[sort(|)]'), stack).items.map(
+        (item) => item.label,
+      ),
+    ).toEqual(['scopedOnly']);
   }, 5_000);
 
   it('does not return generic block symbols as model field type candidates', () => {

@@ -20,7 +20,7 @@ type ColumnMultiplicityOptions =
   | { readonly many?: false; readonly elementNullable?: never };
 
 export function col(
-  nativeType: string,
+  dataType: string,
   codecId: string,
   nullable = false,
   opts?: ColumnMultiplicityOptions,
@@ -34,7 +34,7 @@ export function col(
   }
 
   return new StorageColumn({
-    nativeType,
+    dataType,
     codecId,
     nullable,
     many: opts?.many === true ? { elementNullable: opts.elementNullable ?? false } : false,
@@ -83,6 +83,7 @@ export function fk(
     ...(opts?.name !== undefined && { name: opts.name }),
     ...(opts?.onDelete !== undefined && { onDelete: opts.onDelete }),
     ...(opts?.onUpdate !== undefined && { onUpdate: opts.onUpdate }),
+    ...(opts?.index !== undefined && { index: opts.index }),
   });
 }
 

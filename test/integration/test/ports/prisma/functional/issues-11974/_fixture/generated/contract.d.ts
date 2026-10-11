@@ -18,7 +18,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'5ee4271de58d510d3800d53a22d1b252e0733525c9411c46d35663d24e129881'>;
+  StorageHashBase<'79d2ddc4bb621bd431f563a89975c26387754fc0e3242bafc86f9a8e29f7ca2b'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -347,7 +347,7 @@ type ContractBase = Omit<
             readonly comment: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -361,13 +361,13 @@ type ContractBase = Omit<
             readonly downVote: {
               columns: {
                 readonly commentId: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly userId: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -419,13 +419,13 @@ type ContractBase = Omit<
             readonly upVote: {
               columns: {
                 readonly commentId: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly userId: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -477,7 +477,7 @@ type ContractBase = Omit<
             readonly user: {
               columns: {
                 readonly uid: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -697,6 +697,8 @@ type ContractBase = Omit<
   readonly capabilities: {
     readonly postgres: {
       readonly distinctOn: true;
+      readonly forKeyShare: true;
+      readonly forNoKeyUpdate: true;
       readonly jsonAgg: true;
       readonly lateral: true;
       readonly limit: true;
@@ -707,9 +709,14 @@ type ContractBase = Omit<
       readonly checkConstraint: true;
       readonly defaultInInsert: true;
       readonly enums: true;
+      readonly forShare: true;
+      readonly forUpdate: true;
       readonly insertOnConflictSkip: true;
       readonly insertOnConflictWithoutTarget: true;
       readonly lateral: true;
+      readonly lockNowait: true;
+      readonly lockOf: true;
+      readonly lockSkipLocked: true;
       readonly returning: true;
       readonly scalarList: true;
     };

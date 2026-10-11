@@ -18,7 +18,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'a48c772b9f2a78c1367b59b1622a00e0c9992dfc4b70852277b796fc22510f2b'>;
+  StorageHashBase<'e8175007d8b67d8a3aeddb2c71bacf5fe905cbc3ecd15736028b6e85f9e95b0d'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -343,13 +343,13 @@ type ContractBase = Omit<
             readonly postOneToMany: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly userId: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                   readonly default: {
@@ -387,13 +387,13 @@ type ContractBase = Omit<
             readonly profileOneToOne: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly userId: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                   readonly default: {
@@ -424,7 +424,7 @@ type ContractBase = Omit<
             readonly userOneToMany: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -438,7 +438,7 @@ type ContractBase = Omit<
             readonly userOneToOne: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -609,6 +609,8 @@ type ContractBase = Omit<
   readonly capabilities: {
     readonly postgres: {
       readonly distinctOn: true;
+      readonly forKeyShare: true;
+      readonly forNoKeyUpdate: true;
       readonly jsonAgg: true;
       readonly lateral: true;
       readonly limit: true;
@@ -619,9 +621,14 @@ type ContractBase = Omit<
       readonly checkConstraint: true;
       readonly defaultInInsert: true;
       readonly enums: true;
+      readonly forShare: true;
+      readonly forUpdate: true;
       readonly insertOnConflictSkip: true;
       readonly insertOnConflictWithoutTarget: true;
       readonly lateral: true;
+      readonly lockNowait: true;
+      readonly lockOf: true;
+      readonly lockSkipLocked: true;
       readonly returning: true;
       readonly scalarList: true;
     };

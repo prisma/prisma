@@ -8,6 +8,7 @@ import type { AttributeSpecContext, AttributeSpecNamespace } from '@internal/psl
 import {
   assembleAttributeSpecs,
   buildSymbolTable,
+  EMPTY_DATA_TYPES,
   fieldAttribute,
   modelAttribute,
 } from '@internal/psl-parser';
@@ -111,10 +112,8 @@ describe('assembled attribute specs are consumable from a resolved project', () 
     const spec = assembleAttributeSpecs(authoringContributions).model['base']?.({
       symbols: pipeline.symbolTable,
       model,
-      controlMutationDefaults: {
-        defaultFunctionRegistry: controlMutationDefaults.defaultFunctionRegistry,
-        dataTypeEntries: {},
-      },
+      defaultFunctionRegistry: controlMutationDefaults.defaultFunctionRegistry,
+      dataTypes: EMPTY_DATA_TYPES,
     });
     expect(spec).toMatchObject({
       name: 'base',
@@ -205,10 +204,9 @@ describe('assembled attribute specs are consumable from a resolved project', () 
       model,
       field,
       typeResolution: undefined,
-      controlMutationDefaults: {
-        ...interpretation.context.controlMutationDefaults,
-        dataTypeEntries: interpretation.context.authoringContributions.dataTypes,
-      },
+      defaultFunctionRegistry:
+        interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
+      dataTypes: interpretation.context.dataTypes,
     });
     expect(spec).toMatchObject({
       name: 'marker',
@@ -238,10 +236,9 @@ describe('assembled attribute specs are consumable from a resolved project', () 
     const ctx: AttributeSpecContext = {
       symbols: pipeline.symbolTable,
       model,
-      controlMutationDefaults: {
-        ...interpretation.context.controlMutationDefaults,
-        dataTypeEntries: interpretation.context.authoringContributions.dataTypes,
-      },
+      defaultFunctionRegistry:
+        interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
+      dataTypes: interpretation.context.dataTypes,
     };
 
     const spec = assembleAttributeSpecs(interpretation.context.authoringContributions).model[

@@ -46,10 +46,9 @@ describe('postgres attribute specs are consumable from a resolved language-serve
     const ctx: AttributeSpecContext = {
       symbols: symbolTable,
       model,
-      controlMutationDefaults: {
-        ...interpretation.context.controlMutationDefaults,
-        dataTypeEntries: interpretation.context.authoringContributions.dataTypes,
-      },
+      defaultFunctionRegistry:
+        interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
+      dataTypes: interpretation.context.dataTypes,
     };
 
     const spec = assembleAttributeSpecs(interpretation.context.authoringContributions).model[
@@ -98,10 +97,9 @@ describe('mongo attribute specs are consumable from a resolved language-server p
     const ctx: AttributeSpecContext = {
       symbols: symbolTable,
       model,
-      controlMutationDefaults: {
-        ...interpretation.context.controlMutationDefaults,
-        dataTypeEntries: interpretation.context.authoringContributions.dataTypes,
-      },
+      defaultFunctionRegistry:
+        interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
+      dataTypes: interpretation.context.dataTypes,
     };
 
     const spec = assembleAttributeSpecs(interpretation.context.authoringContributions).model[
@@ -169,10 +167,9 @@ describe('mongo attribute specs are consumable from a resolved language-server p
       model,
       field,
       typeResolution: undefined,
-      controlMutationDefaults: {
-        ...interpretation.context.controlMutationDefaults,
-        dataTypeEntries: interpretation.context.authoringContributions.dataTypes,
-      },
+      defaultFunctionRegistry:
+        interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
+      dataTypes: interpretation.context.dataTypes,
     });
 
     expect(spec).toMatchObject({

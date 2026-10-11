@@ -14,7 +14,6 @@
  */
 
 import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
-import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import { buildSymbolTable, createBinder, interpretExtensionBlocks } from '@internal/psl-parser';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
@@ -26,7 +25,6 @@ import {
   sqlAttributeSpecs,
 } from '@internal/sql-contract-psl/attribute-specs';
 import { sqlContextInput } from '@internal/sql-contract-psl/test';
-import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
@@ -34,12 +32,14 @@ import {
   postgresAuthoringModelAttributes,
   postgresAuthoringPslBlockDescriptors,
 } from '../src/core/authoring';
+import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { PostgresContractSerializer } from '../src/core/postgres-contract-serializer';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { PostgresSchema, postgresCreateNamespace } from '../src/core/postgres-schema';
 import { computeContentHash } from '../src/core/rls/canonicalize';
+import { postgresDataTypeSupport } from './fixtures/postgres-data-type-support';
 
-const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
+const postgresCodecLookup = createPostgresBuiltinCodecLookup();
 
 const assembled = assembleAuthoringContributions([
   {
@@ -64,6 +64,7 @@ function blockResolutionBinder(
         pslBlockDescriptors: assembled.pslBlockDescriptors,
       },
       controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      dataTypes: postgresDataTypeSupport,
     },
   }).binder;
 }
@@ -97,7 +98,7 @@ namespace public {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int"
+    using  = sql\`owner_id = current_setting('app.uid')::int\`
   }
 }
 `;
@@ -110,6 +111,7 @@ namespace public {
       sources,
       pslBlockDescriptors: assembled.pslBlockDescriptors,
       binder: blockResolutionBinder(symbolTable, sources),
+      dataTypes: postgresDataTypeSupport,
     });
     return { document, sources, symbolTable, diagnostics, parsedBlocks };
   }
@@ -141,7 +143,7 @@ namespace public {
     const target = envelope.values['target'] as { declaration: { name: string } };
     const tableName = target.declaration.name;
     const roles = [...readRoleNames(envelope.values)].sort();
-    const using = envelope.values['using'] as string;
+    const using = (envelope.values['using'] as { value: string }).value;
 
     const wireHash = computeContentHash({ using, roles, operation: 'select', permissive: true });
     const wireName = `${prefix}_${wireHash}`;
@@ -200,7 +202,7 @@ namespace public {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int"
+    using  = sql\`owner_id = current_setting('app.uid')::int\`
   }
 }
 `;
@@ -215,17 +217,17 @@ namespace public {
     defaultNamespaceId: 'public',
   };
 
-  const scalarColumnDescriptors = new Map<string, { codecId: string; nativeType: string }>([
-    ['String', { codecId: 'pg/text@1', nativeType: 'text' }],
-    ['Int', { codecId: 'pg/int4@1', nativeType: 'int4' }],
-    ['Boolean', { codecId: 'pg/bool@1', nativeType: 'bool' }],
-    ['BigInt', { codecId: 'pg/int8@1', nativeType: 'int8' }],
-    ['Float', { codecId: 'pg/float8@1', nativeType: 'float8' }],
-    ['Decimal', { codecId: 'pg/numeric@1', nativeType: 'numeric' }],
-    ['DateTime', { codecId: 'pg/timestamptz-temporal@1', nativeType: 'timestamptz' }],
-    ['Json', { codecId: 'pg/json@1', nativeType: 'json' }],
-    ['Jsonb', { codecId: 'pg/jsonb@1', nativeType: 'jsonb' }],
-    ['Bytes', { codecId: 'pg/bytea@1', nativeType: 'bytea' }],
+  const scalarColumnDescriptors = new Map<string, { codecId: string }>([
+    ['String', { codecId: 'pg/text@1' }],
+    ['Int', { codecId: 'pg/int4@1' }],
+    ['Boolean', { codecId: 'pg/bool@1' }],
+    ['BigInt', { codecId: 'pg/int8@1' }],
+    ['Float', { codecId: 'pg/float8@1' }],
+    ['Decimal', { codecId: 'pg/numeric@1' }],
+    ['DateTime', { codecId: 'pg/timestamptz-temporal@1' }],
+    ['Json', { codecId: 'pg/json@1' }],
+    ['Jsonb', { codecId: 'pg/jsonb@1' }],
+    ['Bytes', { codecId: 'pg/bytea@1' }],
   ]);
 
   const scalarTypeConstructors: Record<string, AuthoringTypeConstructorDescriptor> =
@@ -246,9 +248,9 @@ namespace public {
         attributeSpecs: sqlAttributeSpecs,
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
-      codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+      codecLookup: postgresCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
-      dataTypeLookup: postgresDataTypeLookup,
+      dataTypes: postgresDataTypeSupport,
       resolvedInputs: [],
       capabilities: { sql: { scalarList: true } },
     };
@@ -273,11 +275,11 @@ namespace public {
     );
   }
 
-  it('reads a policy expression as a JSON string, and keeps any other backslash sequence as written', () => {
+  it('reads the escapes of a double-quoted sql literal as a string does, and keeps any other backslash sequence as written', () => {
     const result = interpret(
       source.replace(
-        `using  = "owner_id = current_setting('app.uid')::int"`,
-        String.raw`using  = "a\tb\u0041 \"q\" \\ \/ \d"`,
+        `using  = sql\`owner_id = current_setting('app.uid')::int\``,
+        String.raw`using  = sql"a\tb\u0041 \"q\" \\ \/ \d"`,
       ),
     );
 
@@ -352,8 +354,8 @@ describe('PostgresContractSerializer policy round-trip', () => {
               table: {
                 profile: {
                   columns: {
-                    id: { nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
-                    owner_id: { nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
+                    id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+                    owner_id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
                   },
                   primaryKey: { columns: ['id'] },
                   uniques: [],

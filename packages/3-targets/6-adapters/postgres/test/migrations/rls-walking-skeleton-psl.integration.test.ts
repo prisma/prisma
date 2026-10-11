@@ -2,7 +2,6 @@ import type { Contract } from '@internal/contract/types';
 import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
 import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
-import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
 import {
   APP_SPACE_ID,
   assembleAuthoringContributions,
@@ -16,14 +15,15 @@ import {
   sqlAttributeSpecs,
 } from '@internal/sql-contract-psl/attribute-specs';
 import { sqlContextInput } from '@internal/sql-contract-psl/test';
+import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { postgresScalarAuthoringTypes } from '@internal/target-postgres/control';
-import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
   PostgresRlsPolicy,
   PostgresSchema,
   postgresCreateNamespace,
 } from '@internal/target-postgres/types';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { postgresDataTypeSupport } from '../helpers/postgres-data-type-support';
 import {
   controlAdapter,
   createDriver,
@@ -36,7 +36,7 @@ import {
   testTimeout,
 } from './fixtures/runner-fixtures';
 
-const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
+const postgresCodecLookup = createPostgresBuiltinCodecLookup();
 
 // ============================================================================
 // PSL source — the author-facing input
@@ -54,7 +54,7 @@ namespace public {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int"
+    using  = sql\`owner_id = current_setting('app.uid')::int\`
   }
 }
 `;
@@ -63,10 +63,7 @@ namespace public {
 // PSL → contract
 // ============================================================================
 
-function buildScalarTypeDescriptors(): ReadonlyMap<
-  string,
-  { codecId: string; nativeType: string }
-> {
+function buildScalarTypeDescriptors(): ReadonlyMap<string, { codecId: string }> {
   return collectScalarTypeConstructors(postgresScalarAuthoringTypes);
 }
 
@@ -92,9 +89,9 @@ function buildPslContract() {
         attributeSpecs: sqlAttributeSpecs,
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
-      codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+      codecLookup: postgresCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
-      dataTypeLookup: postgresDataTypeLookup,
+      dataTypes: postgresDataTypeSupport,
       resolvedInputs: [],
       capabilities: { sql: { scalarList: true } },
     },
@@ -188,6 +185,8 @@ describe('RLS walking skeleton — PSL author → plan → apply → filter → 
         schema: emptySchema,
         policy: INIT_ADDITIVE_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: '../../snapshots',

@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'22e2633fb68e81380243a7fb492d650f4b45dcf990f2a3a146744fe8e2277423'>;
+  StorageHashBase<'254e34b6bf4a1f74980cfdfb8c038a58e2c06fdc73c1b19bd6f4019373e3ca58'>;
 export type ExecutionHash =
   ExecutionHashBase<'73426d737fd7fe88107a86f2a5602ff842560bf4a193aaf5ae7355b79f511658'>;
 export type ProfileHash =
@@ -365,21 +365,21 @@ type ContractBase = Omit<
             readonly cafe: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'character';
+                  readonly dataType: 'pg/char';
                   readonly codecId: 'sql/char@1';
                   readonly nullable: false;
                   readonly typeParams: { readonly length: 36 };
                   readonly many: false;
                 };
                 readonly location: {
-                  readonly nativeType: 'geometry';
+                  readonly dataType: 'postgis/geometry';
                   readonly codecId: 'pg/geometry@1';
                   readonly nullable: false;
                   readonly typeRef: 'WgsGeometry';
                   readonly many: false;
                 };
                 readonly name: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -393,21 +393,21 @@ type ContractBase = Omit<
             readonly neighborhood: {
               columns: {
                 readonly boundary: {
-                  readonly nativeType: 'geometry';
+                  readonly dataType: 'postgis/geometry';
                   readonly codecId: 'pg/geometry@1';
                   readonly nullable: false;
                   readonly typeRef: 'WgsGeometry';
                   readonly many: false;
                 };
                 readonly id: {
-                  readonly nativeType: 'character';
+                  readonly dataType: 'pg/char';
                   readonly codecId: 'sql/char@1';
                   readonly nullable: false;
                   readonly typeParams: { readonly length: 36 };
                   readonly many: false;
                 };
                 readonly name: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -421,20 +421,20 @@ type ContractBase = Omit<
             readonly route: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'character';
+                  readonly dataType: 'pg/char';
                   readonly codecId: 'sql/char@1';
                   readonly nullable: false;
                   readonly typeParams: { readonly length: 36 };
                   readonly many: false;
                 };
                 readonly name: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly path: {
-                  readonly nativeType: 'geometry';
+                  readonly dataType: 'postgis/geometry';
                   readonly codecId: 'pg/geometry@1';
                   readonly nullable: false;
                   readonly typeRef: 'WgsGeometry';
@@ -454,7 +454,7 @@ type ContractBase = Omit<
       readonly WgsGeometry: {
         readonly kind: 'codec-instance';
         readonly codecId: 'pg/geometry@1';
-        readonly nativeType: 'geometry';
+        readonly dataType: 'postgis/geometry';
         readonly typeParams: { readonly srid: 4326 };
       };
     };
@@ -585,6 +585,8 @@ type ContractBase = Omit<
   readonly capabilities: {
     readonly postgres: {
       readonly distinctOn: true;
+      readonly forKeyShare: true;
+      readonly forNoKeyUpdate: true;
       readonly jsonAgg: true;
       readonly lateral: true;
       readonly limit: true;
@@ -596,9 +598,14 @@ type ContractBase = Omit<
       readonly checkConstraint: true;
       readonly defaultInInsert: true;
       readonly enums: true;
+      readonly forShare: true;
+      readonly forUpdate: true;
       readonly insertOnConflictSkip: true;
       readonly insertOnConflictWithoutTarget: true;
       readonly lateral: true;
+      readonly lockNowait: true;
+      readonly lockOf: true;
+      readonly lockSkipLocked: true;
       readonly returning: true;
       readonly scalarList: true;
     };
@@ -632,14 +639,6 @@ type ContractBase = Omit<
             readonly package: '@internal/extension-postgis/operation-types';
           };
         };
-        readonly storage: readonly [
-          {
-            readonly familyId: 'sql';
-            readonly nativeType: 'geometry';
-            readonly targetId: 'postgres';
-            readonly typeId: 'pg/geometry@1';
-          },
-        ];
       };
       readonly version: '0.0.1';
     };

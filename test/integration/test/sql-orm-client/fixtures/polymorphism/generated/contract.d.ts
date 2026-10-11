@@ -18,7 +18,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'ea5a7a82d2517faa41ea5d93e27a33bf33d008a7f0f8db17199bad8c14fc24f0'>;
+  StorageHashBase<'2ccba7c309ee13e4714b958e47eb88ca06415dac60cd475a51940499c3331f8a'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -597,7 +597,7 @@ type ContractBase = Omit<
             readonly accounts: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly default: {
@@ -607,7 +607,7 @@ type ContractBase = Omit<
                   readonly many: false;
                 };
                 readonly name: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -621,13 +621,13 @@ type ContractBase = Omit<
             readonly epics: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly scope: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -654,19 +654,19 @@ type ContractBase = Omit<
             readonly features: {
               columns: {
                 readonly feature_assignee_person_id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly priority: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -712,7 +712,7 @@ type ContractBase = Omit<
             readonly people: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly default: {
@@ -722,7 +722,7 @@ type ContractBase = Omit<
                   readonly many: false;
                 };
                 readonly name: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -736,7 +736,7 @@ type ContractBase = Omit<
             readonly projects_tbl: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly default: {
@@ -746,7 +746,7 @@ type ContractBase = Omit<
                   readonly many: false;
                 };
                 readonly name: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -760,13 +760,13 @@ type ContractBase = Omit<
             readonly task_comments: {
               columns: {
                 readonly body: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly default: {
@@ -776,7 +776,7 @@ type ContractBase = Omit<
                   readonly many: false;
                 };
                 readonly task_id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                   readonly many: false;
@@ -810,13 +810,13 @@ type ContractBase = Omit<
             readonly tasks: {
               columns: {
                 readonly bug_assignee_person_id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly default: {
@@ -826,31 +826,31 @@ type ContractBase = Omit<
                   readonly many: false;
                 };
                 readonly project_id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
                 readonly reporter_id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
                 readonly severity: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
                 readonly title: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly type: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -902,7 +902,7 @@ type ContractBase = Omit<
             readonly tickets: {
               columns: {
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly default: {
@@ -912,13 +912,13 @@ type ContractBase = Omit<
                   readonly many: false;
                 };
                 readonly owner_id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
                 readonly subject: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
@@ -952,19 +952,19 @@ type ContractBase = Omit<
             readonly users: {
               columns: {
                 readonly account_id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
                 readonly email: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly id: {
-                  readonly nativeType: 'int4';
+                  readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                   readonly default: {
@@ -974,25 +974,25 @@ type ContractBase = Omit<
                   readonly many: false;
                 };
                 readonly kind: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly name: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
                 readonly plan: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
                 readonly role: {
-                  readonly nativeType: 'text';
+                  readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
                   readonly many: false;
@@ -1468,6 +1468,8 @@ type ContractBase = Omit<
   readonly capabilities: {
     readonly postgres: {
       readonly distinctOn: true;
+      readonly forKeyShare: true;
+      readonly forNoKeyUpdate: true;
       readonly jsonAgg: true;
       readonly lateral: true;
       readonly limit: true;
@@ -1478,9 +1480,14 @@ type ContractBase = Omit<
       readonly checkConstraint: true;
       readonly defaultInInsert: true;
       readonly enums: true;
+      readonly forShare: true;
+      readonly forUpdate: true;
       readonly insertOnConflictSkip: true;
       readonly insertOnConflictWithoutTarget: true;
       readonly lateral: true;
+      readonly lockNowait: true;
+      readonly lockOf: true;
+      readonly lockSkipLocked: true;
       readonly returning: true;
       readonly scalarList: true;
     };

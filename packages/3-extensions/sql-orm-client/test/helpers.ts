@@ -24,6 +24,7 @@ import {
   type SqlRuntimeExtensionDescriptor,
 } from '@internal/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import { expect } from 'vitest';
 import type { RuntimeQueryable } from '../src/types';
 import { defineContract, field, model, rel, type ScalarFieldBuilder } from './contract-builder';
 import type { Contract } from './fixtures/generated/contract';
@@ -120,7 +121,6 @@ const pgVectorCodecStubExtension: SqlRuntimeExtensionDescriptor<'postgres'> = ((
     codecId: 'pg/vector@1',
     dataType: dataTypeId('pg/vector'),
     traits: ['equality'],
-    targetTypes: ['vector'],
     paramsSchema: {
       '~standard': {
         version: 1,
@@ -236,6 +236,7 @@ export interface MockRuntime extends RuntimeQueryable {
  *   `assignee` relation (assignee_id → assignees.id, on the base table)
  * - Feature (MTI, table: features, value: feature) with `priority` field and
  *   an `assignee` relation (assignee_id → assignees.id, on the variant table)
+ * - `features.internal_note`, a column no field maps
  *
  * A non-polymorphic `Project` parent (table: projects_tbl) owns a `tasks`
  * relation targeting the polymorphic `Task`, so an include can be planned
@@ -353,13 +354,13 @@ export function buildMixedPolyContract(): TestContract {
 
   raw.storage.namespaces.public.entries.table.tasks = {
     columns: {
-      id: { many: false, nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
-      title: { many: false, nativeType: 'text', codecId: 'pg/text@1', nullable: false },
-      type: { many: false, nativeType: 'text', codecId: 'pg/text@1', nullable: false },
-      severity: { many: false, nativeType: 'text', codecId: 'pg/text@1', nullable: true },
-      project_id: { many: false, nativeType: 'int4', codecId: 'pg/int4@1', nullable: true },
-      parent_id: { many: false, nativeType: 'int4', codecId: 'pg/int4@1', nullable: true },
-      assignee_id: { many: false, nativeType: 'int4', codecId: 'pg/int4@1', nullable: true },
+      id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+      title: { many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
+      type: { many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
+      severity: { many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: true },
+      project_id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: true },
+      parent_id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: true },
+      assignee_id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: true },
     },
     primaryKey: { columns: ['id'] },
     uniques: [],
@@ -369,8 +370,8 @@ export function buildMixedPolyContract(): TestContract {
 
   raw.storage.namespaces.public.entries.table.projects_tbl = {
     columns: {
-      id: { many: false, nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
-      name: { many: false, nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+      id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+      name: { many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
     },
     primaryKey: { columns: ['id'] },
     uniques: [],
@@ -380,9 +381,10 @@ export function buildMixedPolyContract(): TestContract {
 
   raw.storage.namespaces.public.entries.table.features = {
     columns: {
-      id: { many: false, nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
-      priority: { many: false, nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
-      assignee_id: { many: false, nativeType: 'int4', codecId: 'pg/int4@1', nullable: true },
+      id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+      priority: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+      assignee_id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: true },
+      internal_note: { many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: true },
     },
     primaryKey: { columns: ['id'] },
     uniques: [],
@@ -392,8 +394,8 @@ export function buildMixedPolyContract(): TestContract {
 
   raw.storage.namespaces.public.entries.table.assignees = {
     columns: {
-      id: { many: false, nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
-      name: { many: false, nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+      id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+      name: { many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
     },
     primaryKey: { columns: ['id'] },
     uniques: [],
@@ -489,32 +491,32 @@ export function buildStiPolyContract(): TestContract {
   usersStorageTable.columns['kind'] = {
     many: false,
     codecId: 'pg/text@1',
-    nativeType: 'text',
+    dataType: 'pg/text',
     nullable: false,
   };
   usersStorageTable.columns['role'] = {
     many: false,
     codecId: 'pg/text@1',
-    nativeType: 'text',
+    dataType: 'pg/text',
     nullable: true,
   };
   usersStorageTable.columns['plan'] = {
     many: false,
     codecId: 'pg/text@1',
-    nativeType: 'text',
+    dataType: 'pg/text',
     nullable: true,
   };
   usersStorageTable.columns['account_id'] = {
     many: false,
     codecId: 'pg/int4@1',
-    nativeType: 'int4',
+    dataType: 'pg/int4',
     nullable: true,
   };
 
   raw.storage.namespaces.public.entries.table.accounts = {
     columns: {
-      id: { many: false, nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
-      name: { many: false, nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+      id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+      name: { many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
     },
     primaryKey: { columns: ['id'] },
     uniques: [],
@@ -527,7 +529,6 @@ export function buildStiPolyContract(): TestContract {
 
 type RawColumn = {
   readonly many: false;
-  nativeType: string;
   codecId: string;
   nullable: boolean;
   // A string default is treated as a SQL expression (`defaultSql`); any other
@@ -535,11 +536,11 @@ type RawColumn = {
   default?: string | ColumnDefaultLiteralInputValue;
 };
 
-// extraColumns carry a raw codecId/nativeType pair; a ColumnTypeDescriptor is
-// exactly that pair, so the DSL accepts it directly without any contract-shaped
+// extraColumns carry a raw codecId; a ColumnTypeDescriptor is
+// exactly that codecId, so the DSL accepts it directly without any contract-shaped
 // literal.
 function extraColumnDescriptor(col: RawColumn): ColumnTypeDescriptor {
-  return { codecId: col.codecId, nativeType: col.nativeType };
+  return { codecId: col.codecId };
 }
 
 /**
@@ -820,4 +821,29 @@ export function createMockRuntime(): MockRuntime {
   };
 
   return runtime;
+}
+
+/** The refusal every name-resolution surface raises for a name that is not a field of the model in scope. */
+export function fieldUnknown(model: string, field: string) {
+  return expect.objectContaining({
+    code: 'ORM.FIELD_UNKNOWN',
+    message: `Model "${model}" has no field "${field}"`,
+    meta: { model, field },
+  });
+}
+
+export function columnPassedForField(model: string, column: string, field: string) {
+  return expect.objectContaining({
+    code: 'ORM.FIELD_UNKNOWN',
+    message: `Model "${model}" has no field "${column}". "${column}" is the column of field "${field}"; pass the field name.`,
+    meta: { model, field: column, fieldForColumn: field },
+  });
+}
+
+export function unmappedColumnPassed(model: string, table: string, column: string) {
+  return expect.objectContaining({
+    code: 'ORM.FIELD_UNKNOWN',
+    message: `Model "${model}" has no field "${column}". Table "${table}" has a column "${column}" that no field maps, so the ORM cannot read or write it.`,
+    meta: { model, field: column },
+  });
 }

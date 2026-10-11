@@ -1,5 +1,6 @@
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
+import { opaqueSql, renderOpaqueSql } from '@internal/sql-relational-core/ast';
 import { InternalError } from '@internal/utils/internal-error';
 import { constraintExistsAst } from '../../../contract-free/checks';
 import { quoteIdentifier } from '../../sql-utils';
@@ -154,7 +155,7 @@ export async function addCheckConstraint(
     execute: [
       step(
         `add check constraint "${constraintName}"`,
-        `ALTER TABLE ${qualified} ADD CONSTRAINT ${quoteIdentifier(constraintName)} CHECK (${expression})`,
+        `ALTER TABLE ${qualified} ADD CONSTRAINT ${quoteIdentifier(constraintName)} CHECK (${renderOpaqueSql(opaqueSql(expression))})`,
       ),
     ],
     postcheck: [step(`verify constraint "${constraintName}" exists`, present.sql, present.params)],
@@ -179,6 +180,15 @@ export function renameConstraintLabel(
   return `Rename ${CONSTRAINT_KIND_LABEL[kind]} "${fromName}" to "${toName}" on "${tableName}"`;
 }
 
+export function renameConstraintOperationId(
+  kind: RenamableConstraintKind,
+  schemaName: string,
+  tableName: string,
+  fromName: string,
+): string {
+  return `${kind}.${schemaName}.${tableName}.${fromName}.rename`;
+}
+
 export async function renameConstraint(
   schemaName: string,
   tableName: string,
@@ -201,7 +211,7 @@ export async function renameConstraint(
     table: tableName,
   });
   return {
-    id: `${kind}.${schemaName}.${tableName}.${fromName}.rename`,
+    id: renameConstraintOperationId(kind, schemaName, tableName, fromName),
     label: renameConstraintLabel(kind, fromName, toName, tableName),
     operationClass: 'widening',
     // The NEW name is the constraint's contract-side identity — the rename
@@ -236,7 +246,7 @@ export async function dropCheckConstraint(
   return {
     id: `dropCheckConstraint.${tableName}.${constraintName}`,
     label: `Drop check constraint "${constraintName}" on "${tableName}"`,
-    operationClass: 'destructive',
+    operationClass: 'widening',
     target: targetDetails('checkConstraint', constraintName, schemaName, tableName),
     precheck: [step(`ensure constraint "${constraintName}" exists`, present.sql, present.params)],
     execute: [
@@ -274,7 +284,7 @@ export async function dropConstraint(
   return {
     id: `dropConstraint.${tableName}.${constraintName}`,
     label: `Drop constraint "${constraintName}" on "${tableName}"`,
-    operationClass: 'destructive',
+    operationClass: 'widening',
     target: targetDetails(kind, constraintName, schemaName, tableName),
     precheck: [step(`ensure constraint "${constraintName}" exists`, present.sql, present.params)],
     execute: [

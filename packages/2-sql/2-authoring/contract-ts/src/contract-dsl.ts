@@ -15,17 +15,21 @@ import { instantiateAuthoringFieldPreset } from '@internal/framework-components/
 import type {
   CodecLookupWithDescriptors,
   ColumnTypeDescriptor,
+  DataTypeLookup,
+  ScalarFieldDeclarationBuilder,
 } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
 } from '@internal/framework-components/components';
+import { readSqlExpression, type SqlExpression } from '@internal/sql-contract/sql-expression';
 import type {
+  AuthoredStorageTypeInstance,
   SqlNamespaceBase,
   SqlNamespaceInput,
-  StorageTypeInstance,
 } from '@internal/sql-contract/types';
+import { checkSqlDefaultText, reservedSqlDefaultText } from '@internal/sql-contract/validators';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import type { NamedConstraintSpec } from './authoring-type-utils';
@@ -41,7 +45,7 @@ export type NamingConfig = {
   readonly columns?: NamingStrategy;
 };
 
-type NamedStorageTypeRef = string | StorageTypeInstance | EnumTypeHandle;
+type NamedStorageTypeRef = string | AuthoredStorageTypeInstance | EnumTypeHandle;
 
 type NamedConstraintNameSpec<Name extends string = string> = {
   readonly name: Name;
@@ -201,17 +205,39 @@ type EnumHandleOf<State> = State extends { readonly typeRef?: infer TypeRef }
 
 type DefaultArgumentOf<State> =
   | ([EnumHandleOf<State>] extends [never]
-      ? DefaultLiteralOf<State> | ColumnDefault
+      ? DefaultLiteralOf<State> | ColumnDefault | SqlExpression
       : IsList<State> extends true
         ? readonly (EnumHandleOf<State>['values'][number] | NullElementOf<State>)[]
         : EnumHandleOf<State>['values'][number])
   | (State extends { readonly nullable: true } ? null : never);
 
 function toColumnDefault(value: unknown): AuthoredColumnDefault {
+  const expression = readSqlExpression(value);
+  if (expression !== undefined) {
+    return sqlExpressionDefault(expression);
+  }
   if (isColumnDefault(value)) {
     return value;
   }
   return { kind: 'literal', value };
+}
+
+function sqlExpressionDefault(value: SqlExpression): AuthoredColumnDefault {
+  const reserved = reservedSqlDefaultText(value.text);
+  if (reserved !== undefined) {
+    throw contractError(
+      'CONTRACT.DEFAULT_INVALID',
+      `Write .default(${reserved}()) instead of sql\`${reserved}()\`; ${reserved}() is a Prisma default function, not raw SQL.`,
+      { meta: { reason: 'reserved-function', expression: value.text } },
+    );
+  }
+  const unsafe = checkSqlDefaultText(value.text);
+  if (unsafe !== undefined) {
+    throw contractError('CONTRACT.DEFAULT_INVALID', unsafe, {
+      meta: { reason: 'unsafe-sql', expression: value.text },
+    });
+  }
+  return { kind: 'function', expression: value.text };
 }
 
 type ApplyMany<State extends AnyScalarFieldState, ElementsNullable extends boolean> =
@@ -239,7 +265,9 @@ export type ManyOptions =
   | { readonly elementsNullable: true }
   | { readonly elementsNullable: false };
 
-export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFieldState> {
+export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFieldState>
+  implements ScalarFieldDeclarationBuilder
+{
   declare readonly __state: State;
 
   constructor(private readonly state: State) {}
@@ -571,7 +599,7 @@ export class EnumScalarFieldBuilder<
 type CodecTypesOfNoPacks = Record<never, never>;
 
 export type ColumnFieldHelper<CodecTypes extends CodecTypeMap = CodecTypesOfNoPacks> = <
-  Descriptor extends ColumnTypeDescriptor,
+  const Descriptor extends ColumnTypeDescriptor,
 >(
   descriptor: Descriptor,
 ) => ScalarFieldBuilder<
@@ -587,7 +615,7 @@ export type NamedTypeFieldHelper<CodecTypes extends CodecTypeMap = CodecTypesOfN
   <TypeRef extends string>(
     typeRef: TypeRef,
   ): ScalarFieldBuilder<ScalarFieldState<ColumnTypeDescriptor, TypeRef, false, undefined>>;
-  <TypeRef extends StorageTypeInstance>(
+  <TypeRef extends AuthoredStorageTypeInstance>(
     typeRef: TypeRef,
   ): ScalarFieldBuilder<
     ScalarFieldState<
@@ -906,7 +934,7 @@ type IndexOptionsBase<Name extends string | undefined> = {
   /** Exact physical name — adopted verbatim, no wire hash. Xor `name`. */
   readonly map?: string;
   /** Opaque SQL: partial-index predicate (WHERE body, without the keyword). */
-  readonly where?: string;
+  readonly where?: SqlExpression;
   readonly unique?: boolean;
 };
 
@@ -920,13 +948,13 @@ type IndexInput<
       | {
           readonly [K in keyof IndexTypes & string]: IndexOptionsBase<Name> & {
             readonly type: K;
-            readonly options: IndexTypes[K]['options'];
+            readonly options: IndexOptionsInput<IndexTypes[K]['options']>;
           };
         }[keyof IndexTypes & string];
 
 /**
  * The expression overload's input: the whole CREATE INDEX element list as
- * one opaque string. `name` or `map` is required — enforced at lowering
+ * one opaque `sql` value. `name` or `map` is required — enforced at lowering
  * with the same diagnostics as PSL.
  */
 type ExpressionIndexInput<
@@ -939,7 +967,10 @@ type ForeignKeyOptions<Name extends string | undefined = string | undefined> =
     readonly onDelete?: 'noAction' | 'restrict' | 'cascade' | 'setNull' | 'setDefault';
     readonly onUpdate?: 'noAction' | 'restrict' | 'cascade' | 'setNull' | 'setDefault';
     readonly constraint?: boolean;
-    readonly index?: boolean;
+    /**
+     * `false` for no backing index, or the name of an index, unique constraint or primary key the table declares, used instead of a derived backing index. The name is the `name` or `map` it was given, or an index's stored name, and its first columns must be the foreign key's columns in order.
+     */
+    readonly index?: boolean | string;
   };
 
 type BelongsToRelationSqlSpec<Name extends string | undefined = string | undefined> = {
@@ -964,14 +995,6 @@ export type UniqueConstraint<
   readonly name?: Name;
 };
 
-/**
- * An index expression rendered at lowering, once the storage column names are
- * known. `fields` resolve exactly as the field-tuple form's do — a `.column()`
- * override first, then the contract's column naming convention — and `render`
- * receives the resolved names in the same order. Authoring code cannot know
- * either, so an expression over a column has to be written this way rather
- * than as a string, or it silently stops matching the column it names.
- */
 /** A field the lowering resolved, as the renderer sees it. */
 export type DeferredIndexColumn = {
   /** The storage column name, after `.column()` and the naming convention. */
@@ -980,13 +1003,35 @@ export type DeferredIndexColumn = {
   readonly codecId: string;
 };
 
+/**
+ * An index expression rendered at lowering, once the storage column names are
+ * known. `fields` resolve exactly as the field-tuple form's do — a `.column()`
+ * override first, then the contract's column naming convention — and `render`
+ * receives the resolved names in the same order. Authoring code cannot know
+ * either, so an expression over a column has to be written this way rather
+ * than as a `sql` value, or it silently stops matching the column it names.
+ */
 export type DeferredIndexExpression = {
   readonly fields: readonly ColumnRef[];
   readonly render: (columns: readonly DeferredIndexColumn[]) => string;
 };
 
 /** Opaque SQL, either written out or rendered at lowering. */
-export type IndexExpressionInput = string | DeferredIndexExpression;
+export type IndexExpressionInput = SqlExpression | DeferredIndexExpression;
+
+/**
+ * Index options rendered at lowering from the storage columns the index covers, in order: its
+ * `fields`, or the `fields` of a deferred expression. For options that name columns, which authoring
+ * code cannot know.
+ */
+export type DeferredIndexOptions<Options = Record<string, unknown>> = (
+  columns: readonly DeferredIndexColumn[],
+) => Options;
+
+/** Options, either written out or rendered at lowering. */
+export type IndexOptionsInput<Options = Record<string, unknown>> =
+  | Options
+  | DeferredIndexOptions<Options>;
 
 /** An authored index constraint's element structure — field tuple xor expression. */
 export type IndexConstraintElements<FieldNames extends readonly string[] = readonly string[]> =
@@ -1004,7 +1049,7 @@ export type IndexConstraintElements<FieldNames extends readonly string[] = reado
 /** Options only exist as options of a type, so the pair is one union. */
 export type IndexConstraintMethod =
   | { readonly type?: undefined; readonly options?: undefined }
-  | { readonly type: string; readonly options?: Record<string, unknown> };
+  | { readonly type: string; readonly options?: IndexOptionsInput };
 
 export type IndexConstraint<
   FieldNames extends readonly string[] = readonly string[],
@@ -1012,7 +1057,7 @@ export type IndexConstraint<
 > = IndexConstraintElements<FieldNames> &
   IndexConstraintMethod & {
     readonly kind: 'index';
-    readonly where?: string;
+    readonly where?: SqlExpression;
     readonly unique?: boolean;
     readonly name?: Name;
     readonly map?: string;
@@ -1026,7 +1071,7 @@ export type IndexConstraint<
  */
 export type AuthoredCheckConstraint = {
   readonly kind: 'check';
-  readonly expression: string;
+  readonly expression: SqlExpression;
   readonly name?: string;
   readonly map?: string;
 };
@@ -1062,7 +1107,7 @@ export type ForeignKeyConstraint<
   readonly onDelete?: 'noAction' | 'restrict' | 'cascade' | 'setNull' | 'setDefault';
   readonly onUpdate?: 'noAction' | 'restrict' | 'cascade' | 'setNull' | 'setDefault';
   readonly constraint?: boolean;
-  readonly index?: boolean;
+  readonly index?: boolean | string;
 };
 
 function normalizeFieldRefInput(input: ColumnRef | readonly ColumnRef[]): readonly string[] {
@@ -1208,7 +1253,7 @@ function createConstraintsDsl<IndexTypes extends IndexTypeMap = Record<never, ne
           readonly expression: IndexExpressionInput;
           readonly name?: string;
           readonly map?: string;
-          readonly where?: string;
+          readonly where?: SqlExpression;
           readonly unique?: boolean;
           readonly type?: string;
           readonly options?: unknown;
@@ -1216,7 +1261,7 @@ function createConstraintsDsl<IndexTypes extends IndexTypeMap = Record<never, ne
     options?: {
       readonly name?: string;
       readonly map?: string;
-      readonly where?: string;
+      readonly where?: SqlExpression;
       readonly unique?: boolean;
       readonly type?: string;
       readonly options?: unknown;
@@ -1237,8 +1282,8 @@ function createConstraintsDsl<IndexTypes extends IndexTypeMap = Record<never, ne
       ...(opts?.options !== undefined
         ? {
             options: blindCast<
-              Record<string, unknown>,
-              'the public overloads type options as the pack-declared options object; the loose implementation signature erases it to unknown'
+              IndexOptionsInput,
+              'the public overloads type options as the pack-declared options object or a function of the covered columns that returns it; the loose implementation signature erases it to unknown'
             >(opts.options),
           }
         : {}),
@@ -1325,7 +1370,7 @@ export type ConstraintsDsl = ReturnType<typeof createConstraintsDsl>;
  * rather than a method on `constraints`.
  */
 export function check(input: {
-  readonly expression: string;
+  readonly expression: SqlExpression;
   readonly name?: string;
   readonly map?: string;
 }): AuthoredCheckConstraint {
@@ -1638,8 +1683,10 @@ export class ContractModelBuilder<
   SqlSpec extends SqlStageSpec | undefined = undefined,
   IndexTypes extends IndexTypeMap = Record<never, never>,
   TSpaceId extends string = '<self>',
+  Namespace extends string | undefined = string | undefined,
 > {
   declare readonly __name: ModelName;
+  declare readonly __namespace: Namespace;
   declare readonly __fields: Fields;
   declare readonly __relations: Relations;
   declare readonly __attributes: AttributesSpec;
@@ -1657,7 +1704,7 @@ export class ContractModelBuilder<
   constructor(
     readonly stageOne: {
       readonly modelName?: ModelName;
-      readonly namespace?: string;
+      readonly namespace?: Namespace;
       readonly fields: Fields;
       readonly relations: Relations;
     },
@@ -1686,7 +1733,16 @@ export class ContractModelBuilder<
 
   ref<FieldName extends keyof Fields & string>(
     this: ModelName extends string
-      ? ContractModelBuilder<ModelName, Fields, Relations, AttributesSpec, SqlSpec, IndexTypes>
+      ? ContractModelBuilder<
+          ModelName,
+          Fields,
+          Relations,
+          AttributesSpec,
+          SqlSpec,
+          IndexTypes,
+          TSpaceId,
+          Namespace
+        >
       : never,
     fieldName: FieldName,
   ): TargetFieldRef<ModelName & string, FieldName> {
@@ -1715,7 +1771,8 @@ export class ContractModelBuilder<
     AttributesSpec,
     SqlSpec,
     IndexTypes,
-    TSpaceId
+    TSpaceId,
+    Namespace
   > {
     const duplicateRelationName = findDuplicateRelationName(this.stageOne.relations, relations);
     if (duplicateRelationName) {
@@ -1750,7 +1807,16 @@ export class ContractModelBuilder<
   attributes<const NextAttributesSpec extends ModelAttributesSpec>(
     specOrFactory: StageInput<AttributeContext<Fields>, NextAttributesSpec>,
   ): [ValidateAttributesStageSpec<Fields, Relations, SqlSpec, NextAttributesSpec>] extends [never]
-    ? ContractModelBuilder<ModelName, Fields, Relations, never, SqlSpec, IndexTypes, TSpaceId>
+    ? ContractModelBuilder<
+        ModelName,
+        Fields,
+        Relations,
+        never,
+        SqlSpec,
+        IndexTypes,
+        TSpaceId,
+        Namespace
+      >
     : ContractModelBuilder<
         ModelName,
         Fields,
@@ -1758,7 +1824,8 @@ export class ContractModelBuilder<
         NextAttributesSpec,
         SqlSpec,
         IndexTypes,
-        TSpaceId
+        TSpaceId,
+        Namespace
       > {
     return blindCast<
       never,
@@ -1784,7 +1851,8 @@ export class ContractModelBuilder<
         AttributesSpec,
         never,
         IndexTypes,
-        TSpaceId
+        TSpaceId,
+        Namespace
       >
     : ContractModelBuilder<
         ModelName,
@@ -1793,7 +1861,8 @@ export class ContractModelBuilder<
         AttributesSpec,
         NextSqlSpec,
         IndexTypes,
-        TSpaceId
+        TSpaceId,
+        Namespace
       > {
     // Conditional return type cannot be verified by the implementation; the runtime value is always a valid ContractModelBuilder regardless of the validation outcome (validation is type-level only).
     // When specOrFactory is a static object (not a function), extract tableName for the cross-space coordinate.
@@ -1932,7 +2001,7 @@ function normalizeRelationModelSource(
 export type ContractInput<
   Family extends FamilyPackRef<string> = FamilyPackRef<string>,
   Target extends TargetPackRef<'sql', string> = TargetPackRef<'sql', string>,
-  Types extends Record<string, StorageTypeInstance> = Record<never, never>,
+  Types extends Record<string, AuthoredStorageTypeInstance> = Record<never, never>,
   Models extends Record<
     string,
     ContractModelBuilder<
@@ -1993,7 +2062,10 @@ export type ContractInput<
   readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
   readonly types?: Types;
   readonly models?: Models;
-  readonly codecLookup?: CodecLookupWithDescriptors;
+  /** The codecs of the packs the contract is authored with; a column's database type is its codec's data type's. */
+  readonly codecLookup: CodecLookupWithDescriptors;
+  /** The data types of the packs the contract is authored with. */
+  readonly dataTypeLookup: DataTypeLookup;
   /**
    * Domain enum handles authored via `enumType()`. Each handle lowers to a
    * domain `enum` entry and a storage `valueSet` entry in the target's
@@ -2015,23 +2087,43 @@ export function model<
   const ModelName extends string,
   Fields extends Record<string, ScalarFieldBuilder>,
   Relations extends Record<string, AnyRelationBuilder> = Record<never, never>,
+  const Namespace extends string | undefined = undefined,
 >(
   modelName: ModelName,
   input: {
     readonly fields: Fields;
     readonly relations?: Relations;
-    readonly namespace?: string;
+    readonly namespace?: Namespace;
   },
-): ContractModelBuilder<ModelName, Fields, Relations>;
+): ContractModelBuilder<
+  ModelName,
+  Fields,
+  Relations,
+  undefined,
+  undefined,
+  Record<never, never>,
+  '<self>',
+  NoInfer<Namespace>
+>;
 
 export function model<
   Fields extends Record<string, ScalarFieldBuilder>,
   Relations extends Record<string, AnyRelationBuilder> = Record<never, never>,
+  const Namespace extends string | undefined = undefined,
 >(input: {
   readonly fields: Fields;
   readonly relations?: Relations;
-  readonly namespace?: string;
-}): ContractModelBuilder<undefined, Fields, Relations>;
+  readonly namespace?: Namespace;
+}): ContractModelBuilder<
+  undefined,
+  Fields,
+  Relations,
+  undefined,
+  undefined,
+  Record<never, never>,
+  '<self>',
+  NoInfer<Namespace>
+>;
 
 export function model<
   const ModelName extends string,
