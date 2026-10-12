@@ -1300,12 +1300,10 @@ function buildSelectAst(
   const where = options.where ?? buildStateWhere(contract, state);
 
   // `buildDedupedTableSource` wraps for `.distinct(cols)`, aliased back to the root alias.
-  const modelColumnsProjection = getColumnsReadOnTable(
-    contract,
-    namespaceId,
-    addressed,
-    tableName,
-  ).map((column) => ProjectionItem.of(column, root.column(column)));
+  const modelColumns = getColumnsReadOnTable(contract, namespaceId, addressed, tableName);
+  const modelColumnsProjection = modelColumns.map((column) =>
+    ProjectionItem.of(column, root.column(column)),
+  );
   const { source: fromSource, where: effectiveWhere } = buildDedupedTableSource(
     contract,
     state,

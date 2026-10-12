@@ -347,15 +347,10 @@ export function compileGroupedAggregate(
     const polyInfo = modelName
       ? resolvePolymorphismInfo(contract, namespaceId, modelName)
       : undefined;
+    const { tables, variantName } = preGroupState;
     const variantJoins =
       polyInfo && polyInfo.mtiVariants.length > 0
-        ? buildMtiJoins(
-            contract,
-            preGroupState.tables,
-            polyInfo,
-            preGroupState.variantName,
-            undefined,
-          ).joins
+        ? buildMtiJoins(contract, tables, polyInfo, variantName, undefined).joins
         : [];
 
     ast = SelectAst.from(root.tableSource(contract))

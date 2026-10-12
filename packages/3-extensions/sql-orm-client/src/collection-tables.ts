@@ -24,8 +24,8 @@ function createModelTables(
 ): CollectionTables {
   const root = scope.aliasTable({ namespaceId, tableName });
   const variants = new Map<string, AliasedTable>();
-  for (const variant of resolvePolymorphismInfo(contract, namespaceId, modelName)?.mtiVariants ??
-    []) {
+  const mtiVariants = resolvePolymorphismInfo(contract, namespaceId, modelName)?.mtiVariants ?? [];
+  for (const variant of mtiVariants) {
     variants.set(variant.modelName, scope.aliasTable({ namespaceId, tableName: variant.table }));
   }
   return { scope, root, variants };
