@@ -47,6 +47,7 @@ function contract(
   seed: string,
   columns: Columns,
   uniques: readonly string[] = [],
+  indexes: readonly string[] = [],
 ): Contract<SqlStorage> {
   return {
     target: 'sqlite',
@@ -65,7 +66,14 @@ function contract(
                 ),
                 primaryKey: { columns: ['id'] },
                 uniques: uniques.map((column) => ({ columns: [column] })),
-                indexes: [],
+                indexes: indexes.map((column) => ({
+                  naming: { kind: 'exact' as const, name: `User_${column}_idx` },
+                  columns: [column],
+                  where: undefined,
+                  unique: false,
+                  type: undefined,
+                  options: undefined,
+                })),
                 foreignKeys: [],
               }),
             },
@@ -194,6 +202,26 @@ describe('SQLite planner, a type change', () => {
     expect(rendered(textAge, intAge, { statements: [statement('convert', 'age')] })).toContain(
       'copyExpressions: { "age": placeholder("User.age:using") }',
     );
+  });
+});
+
+describe('SQLite planner, a new required indexed column', () => {
+  it('leaves the index to the rebuild that adds the column', async () => {
+    const indexed = contract(
+      hex('7'),
+      { id: 'integer', age: 'text', nickname: 'text?', name: 'text' },
+      [],
+      ['name'],
+    );
+    expect([
+      await planned(textAge, indexed),
+      await planned(textAge, indexed, { policy: DB_UPDATE }),
+      await planned(textAge, indexed, { statements: [statement('backfill', 'name')] }),
+    ]).toEqual([
+      ['Recreate table User (additive)'],
+      ['Recreate table User (additive)'],
+      ['Add column name on User (additive)', 'placeholder', 'Recreate table User (widening)'],
+    ]);
   });
 });
 

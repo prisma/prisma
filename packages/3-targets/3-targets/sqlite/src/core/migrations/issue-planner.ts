@@ -51,6 +51,7 @@ import {
   DropColumnCall,
   DropIndexCall,
   DropTableCall,
+  RecreateTableCall,
   type SqliteOpFactoryCall,
 } from './op-factory-call';
 import type {
@@ -523,7 +524,20 @@ export function planIssues(
 
   // Final emission order matches the current monolithic planner:
   //   create-table → add-column → create-index → recreate → drop-column → drop-index → drop-table
-  const combined = [...gatedDefault, ...gatedBucketable];
+  // A rebuild creates its table's indexes itself, after any column it adds, so a separate
+  // createIndex for one of them is left out.
+  const rebuiltIndexes = new Set(
+    gatedRecipe.flatMap((call) =>
+      call instanceof RecreateTableCall
+        ? call.indexes.map((index) => indexKey(call.tableName, index.name))
+        : [],
+    ),
+  );
+  const combined = [...gatedDefault, ...gatedBucketable].filter(
+    (call) =>
+      !(call instanceof CreateIndexCall) ||
+      !rebuiltIndexes.has(indexKey(call.tableName, call.indexName)),
+  );
   const byCategory = (cat: CallCategory) => combined.filter((c) => classifyCall(c) === cat);
 
   const calls: SqliteOpFactoryCall[] = [
@@ -537,6 +551,10 @@ export function planIssues(
   ];
 
   return ok({ calls });
+}
+
+function indexKey(tableName: string, indexName: string): string {
+  return JSON.stringify([tableName, indexName]);
 }
 
 function emptySchemaIR(): SqlSchemaIR {

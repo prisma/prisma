@@ -619,4 +619,126 @@ withTempDir(({ createTempDir }) => {
       timeouts.spinUpPpgDev,
     );
   });
+
+  describe('SQLite: a new required indexed field and a new required relation', () => {
+    const TEAMS = `// use prisma-8
+
+model Team {
+  id    Int    @id
+}
+
+model User {
+  id    Int    @id
+  name  String
+}
+`;
+    const withRank = TEAMS.replace(
+      '  name  String\n',
+      '  name  String\n  rank  Int\n\n  @@index([rank])\n',
+    );
+    const withTeam = withRank
+      .replace('  id    Int    @id\n}', '  id    Int    @id\n  users User[]\n}')
+      .replace(
+        '  rank  Int\n',
+        '  rank  Int\n  teamId Int\n  team  Team @relation(fields: [teamId], references: [id])\n',
+      );
+
+    async function base(createTempDir: () => string, apply: 'db update' | 'db migrate') {
+      const ctx = setup(createTempDir);
+      await emit(ctx, TEAMS);
+      if (apply === 'db update') {
+        expect((await runDbUpdate(ctx)).exitCode, 'db update base').toBe(0);
+      } else {
+        const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
+        expect(initial.exitCode, `plan initial: ${initial.stderr}`).toBe(0);
+        expect((await runMigrate(ctx)).exitCode, 'apply initial').toBe(0);
+      }
+      return ctx;
+    }
+
+    async function planAndMigrate(ctx: SqliteJourney, name: string, extra: readonly string[] = []) {
+      const planned = await planMigrationAndSelfEmit(ctx, [
+        '--name',
+        name,
+        '--from',
+        latestMigrationDirName(ctx),
+        ...extra,
+      ]);
+      expect(planned.exitCode, `plan ${name}: ${planned.stderr}`).toBe(0);
+      return runMigrate(ctx, ['--json']);
+    }
+
+    it(
+      'adds both to an empty table through db update and through migration plan and db migrate',
+      async () => {
+        const updated = await base(createTempDir, 'db update');
+        await emit(updated, withTeam);
+        const update = await runDbUpdate(updated);
+        expect(update.exitCode, `db update: ${update.stdout}\n${update.stderr}`).toBe(0);
+        const verify = await runDbVerify(updated, ['--schema-only']);
+        expect(verify.exitCode, `db verify: ${verify.stdout}\n${verify.stderr}`).toBe(0);
+
+        const migrated = await base(createTempDir, 'db migrate');
+        await emit(migrated, withTeam);
+        const applied = await planAndMigrate(migrated, 'rank-and-team');
+        expect(applied.exitCode, `db migrate: ${applied.stdout}\n${applied.stderr}`).toBe(0);
+        await expectSettled(migrated);
+        expect(
+          query(migrated.dbPath, `SELECT name FROM pragma_index_list('User') ORDER BY name`).map(
+            ({ name }) => name,
+          ),
+        ).toEqual(expect.arrayContaining([expect.stringMatching(/rank/)]));
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'gives the indexed field a temporary value on a table with rows, and fills the relation through --backfill',
+      async () => {
+        const updated = await base(createTempDir, 'db update');
+        exec(
+          updated.dbPath,
+          `INSERT INTO "Team" (id) VALUES (1); INSERT INTO "User" (id, name) VALUES (1, 'a')`,
+        );
+        await emit(updated, withRank);
+        const update = await runDbUpdate(updated);
+        expect(update.exitCode, `db update: ${update.stdout}\n${update.stderr}`).toBe(0);
+        expect(query(updated.dbPath, `SELECT rank FROM "User"`)).toEqual([{ rank: 0 }]);
+        await emit(updated, withTeam);
+        const refused = await runDbUpdate(updated, ['--json']);
+        expect(parseJsonOutput<{ readonly summary: string }>(refused).summary).toBe(
+          '"User" has 1 row, so the new required column "teamId" cannot be added: it can be added to an empty table only.',
+        );
+
+        const migrated = await base(createTempDir, 'db migrate');
+        exec(
+          migrated.dbPath,
+          `INSERT INTO "Team" (id) VALUES (1); INSERT INTO "User" (id, name) VALUES (1, 'a')`,
+        );
+        await emit(migrated, withRank);
+        const ranked = await planAndMigrate(migrated, 'rank');
+        expect(ranked.exitCode, `db migrate rank: ${ranked.stdout}\n${ranked.stderr}`).toBe(0);
+        await emit(migrated, withTeam);
+        const planned = await runMigrationPlan(migrated, [
+          '--name',
+          'team',
+          '--from',
+          latestMigrationDirName(migrated),
+          '--backfill',
+          'User.teamId',
+        ]);
+        expect(planned.exitCode, `plan team: ${planned.stderr}`).toBe(0);
+        await fillAndApply(migrated, plannedDir(migrated, 'team'), (scaffold) =>
+          scaffold.replace(
+            /\(\) => placeholder\((['"])User\.teamId:run\1\)/,
+            '() => `UPDATE "User" SET "teamId" = 1 WHERE "teamId" IS NULL`',
+          ),
+        );
+        expect(query(migrated.dbPath, `SELECT id, rank, "teamId" FROM "User"`)).toEqual([
+          { id: 1, rank: 0, teamId: 1 },
+        ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
 });
