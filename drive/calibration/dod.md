@@ -70,6 +70,7 @@ In addition to the canonical slice DoD:
 - If the slice touches `packages/3-*-extensions/**`, the slice plan must include a `pnpm fixtures:check` dispatch step.
 - If the slice touches package boundaries / imports, the slice plan must include `pnpm lint:deps`.
 - If the slice changes typed surfaces consumed elsewhere, the slice plan must include a downstream `pnpm typecheck` after the producing package's `pnpm build`.
+- If the slice adds or changes a committed `contract.json`, the gate before queueing includes `PLANNER_GOLDEN_WRITE=1 pnpm --filter integration-tests test test/planner-golden` and a read of the recorded DDL; see [`failure-modes.md § F48`](./failure-modes.md#f48-a-new-committed-contract-fixture-passes-pr-ci-and-fails-the-planner-golden-test-in-the-merge-queue). (Added 2026-10-12, SQL expression literals close-out.)
 - If a dispatch adds a JavaScript or TypeScript file outside a package, `projects/` included, the gate includes `pnpm lint:throws` and `pnpm lint:casts`: CI's Lint job runs them over those files too. (Added 2026-10-07, lsp-find-references: a QA driver under `projects/` failed CI's Lint job on a bare `throw new Error`.)
 
 ### PR-side items
