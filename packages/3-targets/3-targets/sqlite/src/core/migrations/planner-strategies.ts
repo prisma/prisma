@@ -60,6 +60,8 @@ export interface StrategyContext {
   /** The columns whose values come from a value set, which no temporary value fills. */
   /** Whether a required column the plan adds to a table may take a temporary value in its rows. */
   readonly takesTemporaryValue: (table: string, column: string) => boolean;
+  /** The codec a column has in the origin contract, which the live schema does not record. */
+  readonly originCodecId: (table: string, column: string) => string | undefined;
 }
 
 export type CallMigrationStrategy = (
@@ -96,7 +98,30 @@ function columnNameOf(issue: SchemaDiffIssue): string {
   ).name;
 }
 
-function classifyNodeIssue(issue: SchemaDiffIssue): 'widening' | 'destructive' | null {
+/**
+ * The changes of codec a table rebuild's copy makes without losing a value: the column's type
+ * affinity stores each old value as the same value of the new type. An integer becomes its decimal
+ * text; a real is not listed, since SQLite writes it as text with fifteen significant digits.
+ */
+const LOSSLESS_COPIES = new Set([
+  'sqlite/integer@1→sqlite/text@1',
+  'sqlite/bigint@1→sqlite/text@1',
+  'sqlite/integer@1→sqlite/bigint@1',
+]);
+
+function copyKeepsEveryValue(fromCodec: string | undefined, to: SqlColumnIR): boolean {
+  const toCodec = to.codecRef?.codecId;
+  return (
+    fromCodec !== undefined &&
+    toCodec !== undefined &&
+    LOSSLESS_COPIES.has(`${fromCodec}→${toCodec}`)
+  );
+}
+
+function classifyNodeIssue(
+  issue: SchemaDiffIssue,
+  ctx: StrategyContext,
+): 'widening' | 'destructive' | null {
   const node = issue.expected ?? issue.actual;
   if (node === undefined) return null;
   const nodeKind = blindCast<
@@ -112,7 +137,10 @@ function classifyNodeIssue(issue: SchemaDiffIssue): 'widening' | 'destructive' |
       const actual = blindCast<SqlColumnIR, 'a not-equal column issue carries the actual node'>(
         issue.actual,
       );
-      return columnTypeChanged(expected, actual) ? 'destructive' : 'widening';
+      const fromCodec = ctx.originCodecId(String(issue.path[1]), actual.name);
+      return columnTypeChanged(expected, actual) && !copyKeepsEveryValue(fromCodec, expected)
+        ? 'destructive'
+        : 'widening';
     }
     case RelationalSchemaNodeKind.columnDefault:
     case RelationalSchemaNodeKind.primaryKey:
@@ -250,7 +278,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
       consumed.add(issue);
       continue;
     }
-    const cls = classifyNodeIssue(issue);
+    const cls = classifyNodeIssue(issue, ctx);
     if (!cls) continue;
     const rebuild = rebuildOf(tableName);
     rebuild.issues.push(issue);

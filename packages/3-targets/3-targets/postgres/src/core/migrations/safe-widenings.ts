@@ -35,8 +35,17 @@ const SAFE_WIDENINGS = new Set([
   `${pgInt2.id}→${pgInt4.id}`,
   `${pgInt2.id}→${pgInt8.id}`,
   `${pgInt4.id}→${pgInt8.id}`,
+  `${pgInt2.id}→${pgFloat4.id}`,
+  `${pgInt2.id}→${pgFloat8.id}`,
+  `${pgInt4.id}→${pgFloat8.id}`,
   `${pgFloat4.id}→${pgFloat8.id}`,
   `${pgVarchar.id}→${pgText.id}`,
+  `${pgInt2.id}→${pgText.id}`,
+  `${pgInt4.id}→${pgText.id}`,
+  `${pgInt8.id}→${pgText.id}`,
+  `${pgNumeric.id}→${pgText.id}`,
+  `${pgFloat4.id}→${pgText.id}`,
+  `${pgFloat8.id}→${pgText.id}`,
 ]);
 
 /** Types whose `length` caps their values; a larger cap, or none, keeps every value. */

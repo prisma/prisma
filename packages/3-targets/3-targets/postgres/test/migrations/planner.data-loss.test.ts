@@ -46,6 +46,7 @@ const columnTypes = {
   },
   int4: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
   int8: { dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false },
+  float8: { dataType: 'pg/float8', codecId: 'pg/float8@1', nullable: false },
   text: { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
   'text?': { dataType: 'pg/text', codecId: 'pg/text@1', nullable: true },
 } as const;
@@ -236,6 +237,16 @@ describe('Postgres planner, data loss', () => {
         subject: { kind: 'field', namespaceId: unbound, model: 'User', field: 'age' },
       },
     ]);
+  });
+
+  it('asks nothing for a type change to text or a wider number, which keeps every value', async () => {
+    const from = contract('from', {
+      User: { columns: { id: 'int4', age: 'int4', big: 'int8', ratio: 'float8', small: 'int4' } },
+    });
+    const to = contract('to', {
+      User: { columns: { id: 'int4', age: 'text', big: 'text', ratio: 'text', small: 'float8' } },
+    });
+    expect((await planned(from, to)).dataLoss).toEqual([]);
   });
 
   it('says a dropped column drops its field and a type change changes its type', async () => {

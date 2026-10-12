@@ -314,7 +314,7 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
           { dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false },
         ),
         alterClass(
-          { nativeType: 'int4' },
+          { nativeType: 'int8' },
           { dataType: 'pg/float8', codecId: 'pg/float8@1', nullable: false },
         ),
       ]).toEqual(Array(6).fill('destructive'));

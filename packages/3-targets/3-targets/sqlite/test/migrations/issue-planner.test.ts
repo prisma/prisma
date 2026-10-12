@@ -30,6 +30,7 @@ const emptyCtx: StrategyContext = {
   types: sqliteTestTypes,
   statementColumns: { convert: [], backfill: [] },
   takesTemporaryValue: () => true,
+  originCodecId: () => undefined,
 };
 
 describe('mapNodeIssueToCall — table', () => {

@@ -216,6 +216,9 @@ export class SqliteMigrationPlanner
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
       statementColumns: fieldStatementColumns(options.statements, options.contract),
+      originCodecId: (table, column) =>
+        options.fromContract?.storage.namespaces[UNBOUND_NAMESPACE_ID]?.entries.table?.[table]
+          ?.columns[column]?.codecId,
       takesTemporaryValue: (table, column) => {
         const storageTable =
           options.contract.storage.namespaces[UNBOUND_NAMESPACE_ID]?.entries.table?.[table];

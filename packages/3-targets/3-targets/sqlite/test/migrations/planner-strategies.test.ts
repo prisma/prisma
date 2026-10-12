@@ -28,6 +28,7 @@ function makeContext(overrides: Partial<StrategyContext> = {}): StrategyContext 
     types: sqliteTestTypes,
     statementColumns: { convert: [], backfill: [] },
     takesTemporaryValue: () => true,
+    originCodecId: () => undefined,
     ...overrides,
   };
 }

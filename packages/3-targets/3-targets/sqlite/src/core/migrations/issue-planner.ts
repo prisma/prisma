@@ -427,6 +427,8 @@ export interface IssuePlannerOptions {
   readonly statementColumns?: FieldStatementColumns;
   /** Whether a required column the plan adds may take a temporary value; every column may when omitted. */
   readonly takesTemporaryValue?: (table: string, column: string) => boolean;
+  /** The codec a column has in the origin contract; none known when omitted. */
+  readonly originCodecId?: (table: string, column: string) => string | undefined;
   readonly strategies?: readonly CallMigrationStrategy[];
 }
 
@@ -453,6 +455,7 @@ export function planIssues(
     types: sqlTypeLookupsOf(frameworkComponents),
     statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
     takesTemporaryValue: options.takesTemporaryValue ?? (() => true),
+    originCodecId: options.originCodecId ?? (() => undefined),
   };
 
   const strategies = options.strategies ?? sqlitePlannerStrategies;

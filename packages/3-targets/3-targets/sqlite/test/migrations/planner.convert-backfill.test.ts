@@ -327,6 +327,13 @@ describe('SQLite planner, the columns a rebuild makes required', () => {
   });
 });
 
+describe('SQLite planner, a type change the copy makes without losing a value', () => {
+  it('rebuilds the table as a widening and asks nothing for an integer field made text', async () => {
+    expect(await planned(intAge, textAge)).toEqual(['Recreate table User (widening)']);
+    expect(plan(intAge, textAge).dataLoss).toEqual([]);
+  });
+});
+
 describe('SQLite planner, the data-loss entries of a plan with an unfilled slot', () => {
   it('name each loss by the label of the call that loses it', () => {
     const noNickname = contract(hex('8'), { id: 'integer', age: 'integer' });
