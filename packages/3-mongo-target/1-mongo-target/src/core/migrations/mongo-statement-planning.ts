@@ -397,7 +397,7 @@ function collectionChangeAdvice(
 }
 
 function renameCollectionByHandSteps(model: ModelCoordinate, from: string, to: string): string {
-  return `With db update, rename the collection in the database yourself, for example db.getCollection(${JSON.stringify(from)}).renameCollection(${JSON.stringify(to)}) in mongosh, then run db update. With migration plan, plan it, passing --delete ${modelDisplayName(model)} to answer its question; in its migration.ts replace the drop of "${from}" and the create of "${to}" with renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)}), imported with the other operations; run node migration.ts in the migration's directory, so it writes ops.json again; then apply it with migrate.`;
+  return `With db update, rename the collection in the database yourself, for example db.getCollection(${JSON.stringify(from)}).renameCollection(${JSON.stringify(to)}) in mongosh, then run db update. With migration plan, plan it, passing --delete ${modelDisplayName(model)} to answer its question; in its migration.ts replace the drop of "${from}" and the create of "${to}" with renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)}), imported with the other operations; from the project directory, run node migrations/app/<directory>/migration.ts, naming the directory migration plan wrote, so it writes ops.json again; then apply it with prisma db migrate.`;
 }
 
 /**

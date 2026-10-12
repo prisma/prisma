@@ -6,6 +6,7 @@
  * so journey tests stay concise and readable.
  */
 
+import { spawnSync } from 'node:child_process';
 import {
   copyFileSync,
   existsSync,
@@ -548,6 +549,30 @@ export async function selfEmitMigration(
     ? join(dirArg, 'migration.ts')
     : join(ctx.testDir, dirArg, 'migration.ts');
   return runMigrationFile(migrationTs, args, ctx.testDir);
+}
+
+/**
+ * Finds the `node migrations/app/<directory>/migration.ts` command `message` prints, names the
+ * migration directory in it, and runs it as a user would type it in the project directory.
+ */
+export function runPrintedSelfEmit(
+  ctx: JourneyContext,
+  message: string,
+  migrationDir: string,
+): CommandResult {
+  const printed = /\bnode (migrations\/app\/<directory>\/migration\.ts)/.exec(message)?.[1];
+  if (printed === undefined) {
+    return {
+      exitCode: -1,
+      stdout: '',
+      stderr: `the message prints no node migrations/app/<directory>/migration.ts command: ${message}`,
+    };
+  }
+  const run = spawnSync(process.execPath, [printed.replace('<directory>', migrationDir)], {
+    cwd: ctx.testDir,
+    encoding: 'utf-8',
+  });
+  return { exitCode: run.status ?? -1, stdout: run.stdout, stderr: run.stderr };
 }
 
 /**

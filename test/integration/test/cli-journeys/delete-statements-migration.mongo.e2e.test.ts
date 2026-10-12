@@ -23,7 +23,7 @@ import {
   runDbUpdate,
   runMigrate,
   runMigrationPlan,
-  selfEmitMigration,
+  runPrintedSelfEmit,
 } from '../utils/journey-test-helpers';
 
 const FIXTURES_DIR = join(fixtureAppDir, 'fixtures/mongo-cli-journeys');
@@ -331,7 +331,7 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
     ]);
     expect(refused.exitCode, 'S5.05: the field rename is refused').not.toBe(0);
     expect(JSON.stringify(engineError(refused)?.meta), 'S5.05: the advice').toContain(
-      'run node migration.ts in the migration',
+      'from the project directory, run node migrations/app/<directory>/migration.ts',
     );
 
     useFixture(ctx, 'contract-events-remapped.ts');
@@ -369,8 +369,8 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
     );
     expect(edited, `S5.08: the drop is gone:\n${edited}`).not.toMatch(/dropCollection\(['"]events/);
     writeFileSync(migrationTs, edited, 'utf-8');
-    const emitted = await selfEmitMigration(ctx, ['--dir', `migrations/app/${remapDir}`]);
-    expect(emitted.exitCode, `S5.09: node migration.ts: ${emitted.stderr}`).toBe(0);
+    const emitted = runPrintedSelfEmit(ctx, String(engineError(asked)?.why), remapDir);
+    expect(emitted.exitCode, `S5.09: the printed node command: ${emitted.stderr}`).toBe(0);
     const applyRemap = await runMigrate(ctx);
     expect(applyRemap.exitCode, `S5.10: migrate: ${applyRemap.stderr}`).toBe(0);
 

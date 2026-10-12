@@ -779,8 +779,8 @@ function noOperationsConflict(
         summary:
           'This contract describes nothing migration plan can create, so there is no first migration to plan.',
         why: destination.isEmitted
-          ? 'If the database needs something the contract does not describe, run `prisma migration new`, add its operations to the new `migration.ts`, then run `node migration.ts` in that directory to write `ops.json`.'
-          : '`prisma migration new` writes a migration only to the emitted contract. If the database needs something this contract does not describe, emit it, run `prisma migration new`, add its operations to the new `migration.ts`, then run `node migration.ts` in that directory to write `ops.json`.',
+          ? 'If the database needs something the contract does not describe, run `prisma migration new`, add its operations to the new `migration.ts`, then, from the project directory, run `node migrations/app/<directory>/migration.ts`, naming the directory it wrote, to write `ops.json`.'
+          : '`prisma migration new` writes a migration only to the emitted contract. If the database needs something this contract does not describe, emit it, run `prisma migration new`, add its operations to the new `migration.ts`, then, from the project directory, run `node migrations/app/<directory>/migration.ts`, naming the directory it wrote, to write `ops.json`.',
       };
     case 'baseline':
       return {
