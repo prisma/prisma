@@ -106,18 +106,30 @@ function createMockDriver(rows: Record<string, unknown>[] = []): MongoDriver {
 }
 
 describe('MongoRuntime middleware lifecycle', () => {
-  it('calls beforeQuery, onRow, afterQuery in order', async () => {
+  it('calls activityStarted, beforeEncode, onQuery, onRow, activityEnded, activityFinalized in order', async () => {
     const callOrder: string[] = [];
     const middleware: MongoMiddleware = {
       name: 'test',
-      async beforeQuery() {
-        callOrder.push('beforeQuery');
+      async activityStarted() {
+        callOrder.push('activityStarted');
+      },
+      async beforeEncode() {
+        callOrder.push('beforeEncode');
+      },
+      intercept: {
+        async onQuery() {
+          callOrder.push('onQuery');
+          return undefined;
+        },
       },
       async onRow() {
         callOrder.push('onRow');
       },
-      async afterQuery() {
-        callOrder.push('afterQuery');
+      async activityEnded() {
+        callOrder.push('activityEnded');
+      },
+      async activityFinalized(_activity, result) {
+        callOrder.push(`activityFinalized:${result.outcome}`);
       },
     };
 
@@ -133,7 +145,14 @@ describe('MongoRuntime middleware lifecycle', () => {
       void _row;
     }
 
-    expect(callOrder).toEqual(['beforeQuery', 'onRow', 'afterQuery']);
+    expect(callOrder).toEqual([
+      'activityStarted',
+      'beforeEncode',
+      'onQuery',
+      'onRow',
+      'activityEnded',
+      'activityFinalized:committed',
+    ]);
   });
 
   it('works with no middleware', async () => {
@@ -151,7 +170,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     expect(results).toHaveLength(1);
   });
 
-  it('intercepts execute statistics through only execute hooks', async () => {
+  it('intercepts execute statistics through intercept.onExecute only', async () => {
     const calls: string[] = [];
     const contexts: MongoMiddlewareContext[] = [];
     const driver = createMockDriver([{ deletedCount: 99 }]);
@@ -162,46 +181,50 @@ describe('MongoRuntime middleware lifecycle', () => {
       middleware: [
         {
           name: 'query-only',
-          async beforeQuery() {
-            calls.push('beforeQuery');
-          },
-          async interceptQuery() {
-            calls.push('interceptQuery');
-            return undefined;
-          },
-          async afterQuery() {
-            calls.push('afterQuery');
+          intercept: {
+            async onQuery() {
+              calls.push('onQuery');
+              return undefined;
+            },
           },
         },
         {
           name: 'passthrough',
-          async beforeExecute(_plan, ctx) {
-            calls.push('beforeExecute');
+          async beforeEncode(_plan, ctx) {
+            calls.push('beforeEncode');
             contexts.push(ctx);
           },
-          async interceptExecute(_plan, ctx) {
-            calls.push('passthrough');
-            contexts.push(ctx);
-            return undefined;
+          intercept: {
+            async onExecute(_plan, ctx) {
+              calls.push('passthrough');
+              contexts.push(ctx);
+              return undefined;
+            },
           },
-          async afterExecute(_plan, result, ctx) {
-            calls.push(`afterExecute:${result.completed ? result.stats.affectedRows : 'failed'}`);
+          async activityEnded(_activity, result, ctx) {
+            calls.push(
+              `ended:${result.kind === 'statement' && result.returns === 'stats' ? result.stats?.affectedRows : 'rows'}`,
+            );
             contexts.push(ctx);
           },
         },
         {
           name: 'winner',
-          async interceptExecute(_plan, ctx) {
-            calls.push('winner');
-            contexts.push(ctx);
-            return { stats: { affectedRows: 5 } };
+          intercept: {
+            async onExecute(_plan, ctx) {
+              calls.push('winner');
+              contexts.push(ctx);
+              return { stats: { affectedRows: 5 } };
+            },
           },
         },
         {
           name: 'tail',
-          async interceptExecute() {
-            calls.push('tail');
-            return { stats: { affectedRows: 6 } };
+          intercept: {
+            async onExecute() {
+              calls.push('tail');
+              return { stats: { affectedRows: 6 } };
+            },
           },
         },
       ],
@@ -209,12 +232,12 @@ describe('MongoRuntime middleware lifecycle', () => {
 
     await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 5 });
     expect(driver.execute).not.toHaveBeenCalled();
-    expect(calls).toEqual(['beforeExecute', 'passthrough', 'winner', 'afterExecute:5']);
+    expect(calls).toEqual(['beforeEncode', 'passthrough', 'winner', 'ended:5']);
     expect(contexts).toHaveLength(4);
     expect(contexts.every((ctx) => ctx === contexts[0])).toBe(true);
     expect(contexts[0]?.contract).toBe(context.contract);
     expect(contexts[0]?.scope).toBe('runtime');
-    expect(contexts[0]?.planExecutionId).toBeTypeOf('string');
+    expect(contexts[0]?.parent).toBeUndefined();
   });
 
   it('maps updateOne modifiedCount to affectedRows', async () => {
@@ -322,7 +345,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     const receivedMeta: PlanMeta[] = [];
     const middleware: MongoMiddleware = {
       name: 'meta-inspector',
-      async beforeQuery(plan) {
+      async beforeEncode(plan) {
         receivedMeta.push(plan.meta);
       },
     };
@@ -344,7 +367,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     expect(receivedMeta[0]!.lane).toBe('orm');
   });
 
-  it('calls afterQuery with completed: false on error, then rethrows', async () => {
+  it('ends the statement failed on error, then rethrows', async () => {
     const failingDriver = {
       execute: vi.fn(async function* () {
         yield* []; // satisfy generator contract before throwing
@@ -353,11 +376,13 @@ describe('MongoRuntime middleware lifecycle', () => {
       close: vi.fn(async () => {}),
     } as unknown as MongoDriver;
 
-    let afterResult: { completed: boolean; rowCount: number } | undefined;
+    let afterResult: { outcome: string; rowCount: number } | undefined;
     const middleware: MongoMiddleware = {
       name: 'error-observer',
-      async afterQuery(_plan, result) {
-        afterResult = { completed: result.completed, rowCount: result.rowCount };
+      async activityEnded(_activity, result) {
+        if (result.kind === 'statement' && result.returns === 'rows') {
+          afterResult = { outcome: result.outcome, rowCount: result.rowCount };
+        }
       },
     };
 
@@ -374,10 +399,10 @@ describe('MongoRuntime middleware lifecycle', () => {
       }
     }).rejects.toThrow('driver failure');
 
-    expect(afterResult).toEqual({ completed: false, rowCount: 0 });
+    expect(afterResult).toEqual({ outcome: 'failed', rowCount: 0 });
   });
 
-  it('handles error path with middleware that has no afterQuery', async () => {
+  it('handles error path with middleware that has no activityEnded', async () => {
     const failingDriver = {
       execute: vi.fn(async function* () {
         yield* [];
@@ -388,8 +413,8 @@ describe('MongoRuntime middleware lifecycle', () => {
 
     const beforeCalled = vi.fn();
     const middleware: MongoMiddleware = {
-      name: 'no-afterQuery',
-      async beforeQuery() {
+      name: 'no-activityEnded',
+      async beforeEncode() {
         beforeCalled();
       },
     };
@@ -410,7 +435,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     expect(beforeCalled).toHaveBeenCalledOnce();
   });
 
-  it('swallows afterQuery errors during error handling and rethrows the original', async () => {
+  it('swallows activityEnded errors during error handling and rethrows the original', async () => {
     const failingDriver = {
       execute: vi.fn(async function* () {
         yield* [];
@@ -420,9 +445,9 @@ describe('MongoRuntime middleware lifecycle', () => {
     } as unknown as MongoDriver;
 
     const middleware: MongoMiddleware = {
-      name: 'failing-afterQuery',
-      async afterQuery() {
-        throw new Error('afterQuery also fails');
+      name: 'failing-activityEnded',
+      async activityEnded() {
+        throw new Error('activityEnded also fails');
       },
     };
 
@@ -440,12 +465,14 @@ describe('MongoRuntime middleware lifecycle', () => {
     }).rejects.toThrow('driver failure');
   });
 
-  it('reports correct rowCount and completed: true on success', async () => {
-    let afterResult: { completed: boolean; rowCount: number } | undefined;
+  it('reports the row count and a succeeded outcome on success', async () => {
+    let afterResult: { outcome: string; rowCount: number } | undefined;
     const middleware: MongoMiddleware = {
       name: 'result-observer',
-      async afterQuery(_plan, result) {
-        afterResult = { completed: result.completed, rowCount: result.rowCount };
+      async activityEnded(_activity, result) {
+        if (result.kind === 'statement' && result.returns === 'rows') {
+          afterResult = { outcome: result.outcome, rowCount: result.rowCount };
+        }
       },
     };
 
@@ -460,14 +487,14 @@ describe('MongoRuntime middleware lifecycle', () => {
       void _row;
     }
 
-    expect(afterResult).toEqual({ completed: true, rowCount: 3 });
+    expect(afterResult).toEqual({ outcome: 'succeeded', rowCount: 3 });
   });
 
   it('passes mode through to middleware context', async () => {
     let receivedMode: string | undefined;
     const middleware: MongoMiddleware = {
       name: 'mode-inspector',
-      async beforeQuery(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         receivedMode = ctx.mode;
       },
     };
@@ -491,7 +518,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     let logWorks = false;
     const middleware: MongoMiddleware = {
       name: 'ctx-tester',
-      async beforeQuery(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         ctx.log.info('test');
         ctx.log.warn('test');
         ctx.log.error('test');
@@ -518,8 +545,11 @@ describe('MongoRuntime middleware lifecycle', () => {
     const observedKeys: string[] = [];
     const middleware: MongoMiddleware = {
       name: 'content-hash-tester',
-      async afterQuery(plan, _result, ctx) {
-        observedKeys.push(await ctx.contentHash(plan));
+      intercept: {
+        async onQuery(plan, ctx) {
+          observedKeys.push(await ctx.contentHash(plan));
+          return undefined;
+        },
       },
     };
 
@@ -543,29 +573,32 @@ describe('MongoRuntime middleware lifecycle', () => {
   });
 });
 
-describe('MongoRuntime planExecutionId (ADR 220)', () => {
+describe('MongoRuntime statement activity identity', () => {
   interface Observation {
-    readonly hook: 'beforeQuery' | 'afterQuery';
-    readonly planExecutionId: string;
+    readonly hook: 'activityStarted' | 'beforeEncode' | 'activityEnded';
+    readonly id: string | undefined;
+    readonly ctx: MongoMiddlewareContext;
   }
 
   function observerMiddleware(log: Observation[]): MongoMiddleware {
     return {
       name: 'observer',
-      async beforeQuery(_plan, ctx) {
-        log.push({ hook: 'beforeQuery', planExecutionId: ctx.planExecutionId });
+      async activityStarted(activity, ctx) {
+        log.push({ hook: 'activityStarted', id: activity.id, ctx });
       },
-      async afterQuery(_plan, _result, ctx) {
-        log.push({ hook: 'afterQuery', planExecutionId: ctx.planExecutionId });
+      async beforeEncode(_plan, ctx) {
+        log.push({ hook: 'beforeEncode', id: undefined, ctx });
+      },
+      async activityEnded(activity, _result, ctx) {
+        log.push({ hook: 'activityEnded', id: activity.id, ctx });
       },
     };
   }
 
-  it('assigns the same planExecutionId to beforeQuery and afterQuery within one query call', async () => {
+  it('gives every hook of one query the same activity id and context', async () => {
     const log: Observation[] = [];
-    const adapter = createMockAdapter();
     const runtime = createMongoRuntime({
-      context: makeContext(adapter),
+      context: makeContext(createMockAdapter()),
       driver: createMockDriver([{ _id: '1' }]),
       middleware: [observerMiddleware(log)],
     });
@@ -574,18 +607,16 @@ describe('MongoRuntime planExecutionId (ADR 220)', () => {
       void _row;
     }
 
-    expect(log).toHaveLength(2);
-    expect(log[0]?.hook).toBe('beforeQuery');
-    expect(log[1]?.hook).toBe('afterQuery');
-    expect(log[0]?.planExecutionId).toBeTypeOf('string');
-    expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
+    expect(log.map((o) => o.hook)).toEqual(['activityStarted', 'beforeEncode', 'activityEnded']);
+    expect(log[0]?.id).toBeTypeOf('string');
+    expect(log[0]?.id).toBe(log[2]?.id);
+    expect(new Set(log.map((o) => o.ctx)).size).toBe(1);
   });
 
-  it('assigns distinct planExecutionIds to two queries of the same plan instance', async () => {
+  it('gives two queries of the same plan instance distinct activities', async () => {
     const log: Observation[] = [];
-    const adapter = createMockAdapter();
     const runtime = createMongoRuntime({
-      context: makeContext(adapter),
+      context: makeContext(createMockAdapter()),
       driver: createMockDriver([{ _id: '1' }]),
       middleware: [observerMiddleware(log)],
     });
@@ -598,10 +629,11 @@ describe('MongoRuntime planExecutionId (ADR 220)', () => {
       void _row;
     }
 
-    expect(log).toHaveLength(4);
-    expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
-    expect(log[2]?.planExecutionId).toBe(log[3]?.planExecutionId);
-    expect(log[0]?.planExecutionId).not.toBe(log[2]?.planExecutionId);
+    expect(log).toHaveLength(6);
+    expect(log[0]?.id).toBe(log[2]?.id);
+    expect(log[3]?.id).toBe(log[5]?.id);
+    expect(log[0]?.id).not.toBe(log[3]?.id);
+    expect(log[0]?.ctx).not.toBe(log[3]?.ctx);
   });
 });
 
