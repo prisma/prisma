@@ -1,6 +1,6 @@
 # The runtime's middleware sees a tree of activities, not a flat list of statements
 
-Status: design settled on 2026-10-07, 2026-10-08 and 2026-10-09. Recorded as [ADR 271](../../docs/architecture%20docs/adrs/ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities%2C%20each%20started%2C%20ended%20and%20completed.md), status Proposed. Not built, not ticketed.
+Status: design settled on 2026-10-07, 2026-10-08 and 2026-10-09. Recorded as [ADR 271](../../docs/architecture%20docs/adrs/ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities%2C%20each%20started%2C%20ended%20and%20finalized.md), status Accepted. Not built, not ticketed.
 
 This document records the decisions and the reasoning behind them. The ADR states the decision; this document holds the scenarios, the prior art and every rejected alternative.
 
@@ -58,7 +58,7 @@ The SQL ORM adds `orm-call`. The framework names no client vocabulary.
 
 ### 3. `query()` and `execute()` both send a statement
 
-`query()` sends a statement for its rows; `execute()` sends one for its statistics, such as the number of affected rows. To the runtime the two have the same lifecycle: start, block or change parameters, intercept, run, end, complete. The only differences are what comes back, that `onRow` has rows to visit only for `query()`, and that a row stream ends lazily, when the caller stops reading. So there is one kind, and the activity's `returns: 'rows' | 'stats'` records which the caller asked for. The same plan can be sent either way: `update()` sends it for rows and `updateAndCount()` for statistics.
+`query()` sends a statement for its rows; `execute()` sends one for its statistics, such as the number of affected rows. To the runtime the two have the same lifecycle: start, block or change parameters, intercept, run, end, be finalized. The only differences are what comes back, that `onRow` has rows to visit only for `query()`, and that a row stream ends lazily, when the caller stops reading. So there is one kind, and the activity's `returns: 'rows' | 'stats'` records which the caller asked for. The same plan can be sent either way: `update()` sends it for rows and `updateAndCount()` for statistics.
 
 Rejected: a `query` kind (the word already means a statement in general and the `query()` method), an `execution` kind (the word already means running any plan), and two kinds, one per method (they share a lifecycle).
 
@@ -74,7 +74,7 @@ A parent is open while children start and end beneath it, and it ends last. Nobo
 
 ### 6. An activity has a parent and, while open, its direct children
 
-The runtime drops the child list when the activity completes. It already keeps such a list for transactions (`rememberQueriesUntilEnd` in [`sql-runtime.ts`](../../packages/2-sql/5-runtime/src/sql-runtime.ts)). Today it keeps that list only when some middleware implements `afterTransaction`. Under the tree it keeps it always: one code path, at the cost of holding a few objects per open transaction.
+The runtime drops the child list when the activity is finalized. It already keeps such a list for transactions (`rememberQueriesUntilEnd` in [`sql-runtime.ts`](../../packages/2-sql/5-runtime/src/sql-runtime.ts)). Today it keeps that list only when some middleware implements `afterTransaction`. Under the tree it keeps it always: one code path, at the cost of holding a few objects per open transaction.
 
 Ending an activity while one of its children is open is a runtime error. It is a client bug, and ending the children automatically would hide it.
 
@@ -90,24 +90,24 @@ Rejected: one wrapping hook with a `next()` to call, as Django's `execute_wrappe
 
 - **`activityStarted`**: the act begins.
 - **`activityEnded`**: the act ends, with `succeeded`, `failed`, or `stopped` when the caller stopped reading a row stream early. For a statement it also carries latency, `source: 'driver' | 'middleware'`, and the row count or statistics. An error thrown here fails the activity; the latency budget relies on that.
-- **`activityCompleted`**: the effects are final, with `committed`, `rolled-back` or `unknown`. An error thrown here is logged and swallowed.
+- **`activityFinalized`**: the effects are final, with `committed`, `rolled-back` or `unknown`. An error thrown here is logged and swallowed.
 
-Ended and completed are separate because they are different moments inside a transaction, and different middleware need each:
+Ended and finalized are separate because they are different moments inside a transaction, and different middleware need each:
 
 ```ts
 await db.transaction(async (tx) => {
   await tx.orm.User.update(...);   // ended here
   await callAnotherService();      // seconds pass
-});                                 // completed here, after COMMIT
+});                                 // finalized here, after COMMIT
 ```
 
-Budgets and tracing need the end: a budget must fail the statement while the caller still holds it, and a span ends when its work ends. The cache needs completion: invalidating before the commit lets a concurrent read put the old row back. Outside a transaction the two moments coincide, and completion fires right after the end. ActiveRecord has the same pair: `after_save` and `after_commit`.
+Budgets and tracing need the end: a budget must fail the statement while the caller still holds it, and a span ends when its work ends. The cache needs finalization: invalidating before the commit lets a concurrent read put the old row back. Outside a transaction the two moments coincide, and finalization follows right after the end. ActiveRecord has the same pair: `after_save` and `after_commit`.
 
 Each lifecycle event is one hook whatever the kind. They return nothing, so a single hook can narrow its input by reading the activity, and the main consumers, the cache's write path and a tracer, do not care about the kind. Kinds are open, so per-kind hooks would need a catch-all anyway.
 
-Named after Spring's and JTA's `afterCompletion(status)`. "Settled" was rejected: in JavaScript a promise settles when it resolves or rejects, which readers took to mean the end.
+Named for what the moment is: the effects are final. Suggested by the team when the ADR was reviewed on 2026-10-12. "Settled" was rejected: in JavaScript a promise settles when it resolves or rejects, which readers took to mean the end. "Completed", from Spring's and JTA's `afterCompletion(status)`, was rejected for the same reason: it is a near synonym of "ended", and Spring's hook belongs only to a transaction, for which ending and completing are one moment. The hook keeps Spring's three statuses and its rule that errors are logged, not propagated.
 
-### 9. When an activity completes
+### 9. When an activity is finalized
 
 With no enclosing transaction: right after it ends, `committed` when it succeeded and `unknown` when it failed or was stopped, since a statement that errors on the response path may already have applied. Inside a transaction: when the outermost enclosing transaction ends, with its outcome. Rails `after_commit` and Django `on_commit` follow the same rule.
 
@@ -120,7 +120,7 @@ With no enclosing transaction: right after it ends, `committed` when it succeede
 
 `unknown` stays. A rejected `COMMIT` may have landed before the error came back; a resolved `COMMIT` after a failed statement is a silent `ROLLBACK` on Postgres and a commit elsewhere. The ORMs with two outcomes (Rails `after_commit`/`after_rollback`, Django `on_commit`, Hibernate's `successful` flag) fire nothing in these cases, and their documentation warns against relying on the hooks for external state. Spring and JTA keep the third status for exactly that use.
 
-Order: children before parent. A transaction's statements and child activities complete in the order they started, then the transaction, then its parent if the parent has ended. A tracer then closes inner spans before outer ones.
+Order: children before parent. A transaction's statements and child activities are finalized in the order they started, then the transaction, then its parent if the parent has ended. A tracer then closes inner spans before outer ones.
 
 ### 10. Four interceptors
 
@@ -183,7 +183,7 @@ A child learns its parent because its opener passed it the handle. ADR 160 and A
 
 ### 17. A middleware keeps state on an activity with `ctx.state(key)`
 
-`ctx.state(key)` returns the state object stored under `key` for the activity, created empty on first use. The key is a string or a symbol, unconstrained; two middleware that use the same key share the object, and a middleware that wants privacy uses a `Symbol()` or an unusual string. The state is dropped when the activity completes. The runtime stores it in a plain `Map`, since keys may be strings.
+`ctx.state(key)` returns the state object stored under `key` for the activity, created empty on first use. The key is a string or a symbol, unconstrained; two middleware that use the same key share the object, and a middleware that wants privacy uses a `Symbol()` or an unusual string. The state is dropped when the activity is finalized. The runtime stores it in a plain `Map`, since keys may be strings.
 
 Middleware carry state between hooks today by keying a `WeakMap` on the plan (`pending` in the cache, `observedRowsByPlan` in budgets). That idiom is hard to discover, and it breaks across encoding: the hook before encoding receives the draft plan and later hooks the encoded plan, a different object. Requested by the team when the design was reviewed on 2026-10-08.
 
@@ -194,7 +194,7 @@ Middleware carry state between hooks today by keying a `WeakMap` on the plan (`p
 | `beforeQuery`, `beforeExecute` | `beforeEncode` |
 | `interceptQuery`, `interceptExecute` | `intercept.onQuery`, `intercept.onExecute` |
 | `afterQuery`, `afterExecute` | `activityEnded` on a statement |
-| ADR 260 `afterTransaction` | `activityCompleted` on a statement |
+| ADR 260 `afterTransaction` | `activityFinalized` on a statement |
 | ADR 160 `groupingKey` (never built) | the parent activity |
 | ADR 220 `planExecutionId` | a statement activity's identity |
 | deferred transaction begin and end hooks | `activityStarted` and `activityEnded` on a transaction |
@@ -205,17 +205,17 @@ Middleware carry state between hooks today by keying a `WeakMap` on the plan (`p
 
 | Scenario | Needs | Covered by |
 |---|---|---|
-| Cache invalidation after commit | the annotated activity's `activityCompleted` | 8, 9, 12 |
+| Cache invalidation after commit | the annotated activity's `activityFinalized` | 8, 9, 12 |
 | Annotated ORM call sending several statements | annotations on the call activity | 4, 12 |
 | Caching a whole ORM call | content hash, `intercept.onActivity`, result at `end()` | 13 |
-| ORM calls inside `db.transaction(fn)` | call under transaction; completion waits for it; cache skips it | 9, 11, 14 |
+| ORM calls inside `db.transaction(fn)` | call under transaction; finalization waits for it; cache skips it | 9, 11, 14 |
 | Supabase role-bound reads | cache skips the held connection | 14 |
 | Tracing | started and ended per activity, parent, content hash | 8, 13, 17 |
-| Audit, once per call | the call activity's `activityEnded` or `activityCompleted` | 4, 8 |
+| Audit, once per call | the call activity's `activityEnded` or `activityFinalized` | 4, 8 |
 | Lints and the SQL-size budget block a statement | `beforeEncode` throws | 10 |
 | Encrypting parameters | `beforeEncode` changes values | 10 |
 | Row and latency budgets | `onRow` throws; `activityEnded` throws | 8, 10 |
-| Nested transactions (a later goal) | transaction under transaction; completes at the outermost | 9 |
+| Nested transactions (a later goal) | transaction under transaction; is finalized at the outermost | 9 |
 | A statement sent on the connection while its transaction is open | child of the transaction | 6 |
 | An activity that never ends | holds its children | as today |
 
@@ -232,7 +232,7 @@ Middleware carry state between hooks today by keying a `WeakMap` on the plan (`p
 - **Two statement kinds, `query` and `execute`, or an `execution` kind with an operation field.** See decision 3.
 - **`intercept` checked at run time; lifecycle events split by kind; an `intercept` handler for transactions.** See decisions 8 and 10.
 - **Serving cached reads inside a transaction.** See decision 14.
-- **Two completion outcomes, as in Rails.** See decision 9.
+- **Two finalization outcomes, as in Rails.** See decision 9.
 - **`activitySettled`.** See decision 8.
 - **`startActivity` on the user-facing scope.** Exposes a client-only method to users on `tx`.
 - **Every write is followed by a read-back on targets without `RETURNING`.** Claimed in an earlier discussion document. The ORM refuses those writes with `ORM.CAPABILITY_MISSING`; no read-back path exists.
@@ -246,7 +246,7 @@ Settled on 2026-10-08 and 2026-10-09, after checking each against this repo and 
 | activity, `startActivity`, `ActivityHandle` | .NET `ActivitySource.StartActivity` returns an `Activity` |
 | `statement` | ADR 003; JDBC's `Statement` runs both `executeQuery` and `executeUpdate` |
 | `returns: 'rows' \| 'stats'` | the runtime's `execute()` returns `stats` |
-| `activityStarted`, `activityEnded`, `activityCompleted` | Spring and JTA `afterCompletion` |
+| `activityStarted`, `activityEnded`, `activityFinalized` | "finality", the point after which a transaction cannot be reversed; outcomes and error rule from Spring's `afterCompletion` |
 | `succeeded`, `failed`, `stopped` | `stopped` is the existing ending for a row stream the caller stopped reading |
 | lifecycle events, interceptors | EF Core: interceptors versus diagnostic listeners |
 | `beforeCompile`, `beforeEncode` | named after the step they precede; `encodeParams` is the existing step name |
@@ -255,7 +255,7 @@ Settled on 2026-10-08 and 2026-10-09, after checking each against this repo and 
 | `ctx.inTransaction()` | Ecto `in_transaction?`, Rails `transaction_open?` |
 | `ctx.state(key)` | kept as a method; keyed access is what lets a middleware use a private symbol |
 
-Rejected words: "operation" (overloaded), "scope" (`ctx.scope`), "call" (does not cover a transaction), "execution" (running any plan), "query" (a statement in general, and the `query()` method), "span" (ADR 160 keeps OpenTelemetry's words free), "settled" (a JavaScript promise).
+Rejected words: "operation" (overloaded), "scope" (`ctx.scope`), "call" (does not cover a transaction), "execution" (running any plan), "query" (a statement in general, and the `query()` method), "span" (ADR 160 keeps OpenTelemetry's words free), "settled" (a JavaScript promise), "completed" (a near synonym of "ended").
 
 ## Still open
 
@@ -263,7 +263,7 @@ Rejected words: "operation" (overloaded), "scope" (`ctx.scope`), "call" (does no
 
 ## What it means for the cache project
 
-`invalidateAnnotation({ keys, meta })` on write terminal methods is unchanged for the user. Under this design the cache reads it from the call activity in `activityCompleted`. Built on `afterTransaction` today, the annotation would reach only the statements it already reaches, missing writes with relation callbacks and creates on models with multi-table inheritance, and the cache's hook would be rewritten when the tree lands.
+`invalidateAnnotation({ keys, meta })` on write terminal methods is unchanged for the user. Under this design the cache reads it from the call activity in `activityFinalized`. Built on `afterTransaction` today, the annotation would reach only the statements it already reaches, missing writes with relation callbacks and creates on models with multi-table inheritance, and the cache's hook would be rewritten when the tree lands.
 
 Recommendation: build the write annotation as a consumer of the tree, not on `afterTransaction`.
 

@@ -1,6 +1,6 @@
-# ADR 271 — The runtime middleware observes a tree of activities, each started, ended and completed
+# ADR 271 — The runtime middleware observes a tree of activities, each started, ended and finalized
 
-Status: **Proposed**
+Status: **Accepted**
 
 ## Decision
 
@@ -11,7 +11,7 @@ import type { CrossFamilyMiddleware } from '@internal/framework-components/runti
 // It does not know whether the activity is an ORM call, a statement or a transaction.
 export const cache: CrossFamilyMiddleware = {
   name: 'cache',
-  async activityCompleted(activity, result, ctx) {
+  async activityFinalized(activity, result, ctx) {
     const target = invalidateAnnotation.read(activity);
     if (target === undefined || result.outcome === 'rolled-back') return;
     await invalidate(target);
@@ -39,9 +39,9 @@ sequenceDiagram
     ORM->>R: tx.commit()
     R->>D: COMMIT
     R->>M: activityEnded(tx)
-    R->>M: activityCompleted(SELECT), activityCompleted(UPDATE), activityCompleted(tx): committed
+    R->>M: activityFinalized(SELECT), activityFinalized(UPDATE), activityFinalized(tx): committed
     ORM->>R: call.end(succeeded)
-    R->>M: activityEnded(call), activityCompleted(call): committed
+    R->>M: activityEnded(call), activityFinalized(call): committed
     M->>M: invalidate keys
 ```
 
@@ -62,15 +62,15 @@ Every activity has the same three, and each is one hook whatever the activity's 
 
 - **`activityStarted(activity, ctx)`**: the act begins.
 - **`activityEnded(activity, result, ctx)`**: the act ends, with the outcome as the actor saw it: `succeeded`, `failed`, or `stopped` when the caller stopped reading a row stream early. A statement's result also carries its latency, where its result came from (`source: 'driver' | 'middleware'`), and its row count or statistics, discriminated by `result.returns`. An error thrown from this hook fails the activity: the actor receives it. A latency budget fails a statement this way.
-- **`activityCompleted(activity, result, ctx)`**: the act's effects are final, with `committed`, `rolled-back` or `unknown`. An error thrown from this hook is passed to `ctx.log.error` and swallowed; later middleware still run.
+- **`activityFinalized(activity, result, ctx)`**: the act's effects are final, with `committed`, `rolled-back` or `unknown`. An error thrown from this hook is passed to `ctx.log.error` and swallowed; later middleware still run.
 
 A middleware that only cares about some kinds checks `activity.kind` at the top of the hook.
 
-### When an activity completes
+### When an activity is finalized
 
-An activity with no enclosing transaction completes right after it ends: `committed` when it succeeded, `unknown` when it failed or was stopped, because a statement that errors on the response path, or whose caller stopped reading, may already have applied.
+An activity with no enclosing transaction is finalized right after it ends: `committed` when it succeeded, `unknown` when it failed or was stopped, because a statement that errors on the response path, or whose caller stopped reading, may already have applied.
 
-An activity inside a transaction completes when the outermost enclosing transaction ends, with that transaction's outcome:
+An activity inside a transaction is finalized when the outermost enclosing transaction ends, with that transaction's outcome:
 
 | What happened | Outcome |
 |---|---|
@@ -81,7 +81,7 @@ An activity inside a transaction completes when the outermost enclosing transact
 
 `unknown` means the runtime cannot tell whether the writes landed. A rejected `COMMIT` may have landed on the server before the error came back, and the cleanup `ROLLBACK` that follows succeeds either way. A resolved `COMMIT` after a failed statement is answered by Postgres with a silent `ROLLBACK`, while other databases commit. A consumer that must not miss a committed write treats `unknown` like `committed`.
 
-When a transaction ends, the activities beneath it complete children first: its statements and child activities in the order they started, then the transaction itself, then its parent if the parent has already ended. An activity's own end cannot stand in for its completion: inside a transaction it ends before the `COMMIT`, and acting then lets a concurrent read store rows the transaction is about to replace.
+When a transaction ends, the activities beneath it are finalized children first: its statements and child activities in the order they started, then the transaction itself, then its parent if the parent has already ended. An activity's own end cannot stand in for its finalization: inside a transaction it ends before the `COMMIT`, and acting then lets a concurrent read store rows the transaction is about to replace.
 
 ### Interceptors
 
@@ -157,7 +157,7 @@ Each activity has its own `ctx`, and every hook of that activity receives the sa
 - **`ctx.parent`** is the parent activity's context, or `undefined` at the root. A child learns its parent because its opener passed the handle; nothing is propagated through ambient context.
 - **`ctx.inTransaction()`** walks up the parents and returns whether any of them is a transaction.
 - **`ctx.scope`** stays as today: `'runtime'`, `'connection'` or `'transaction'`, the scope of the queryable the activity was started on.
-- **`ctx.state(key)`** returns the state object stored under `key` for this activity, created empty on first use. The key is a string or a symbol, and the runtime places no constraint on it: two middleware that use the same key share the object, and a middleware that wants its state to itself uses a `Symbol()` or an unusual string. The state is dropped when the activity completes.
+- **`ctx.state(key)`** returns the state object stored under `key` for this activity, created empty on first use. The key is a string or a symbol, and the runtime places no constraint on it: two middleware that use the same key share the object, and a middleware that wants its state to itself uses a `Symbol()` or an unusual string. The state is dropped when the activity is finalized.
 
 A tracer keeps its span this way and finds its parent's through `ctx.parent`:
 
@@ -168,7 +168,7 @@ activityStarted(activity, ctx) {
   const parentSpan = ctx.parent?.state(tracing).span;
   ctx.state(tracing).span = tracer.startSpan(activity.kind, { parent: parentSpan });
 },
-activityCompleted(activity, result, ctx) {
+activityFinalized(activity, result, ctx) {
   ctx.state(tracing).span?.end(result.outcome);
 },
 ```
@@ -203,11 +203,11 @@ Two of the interceptors are also not new to this runtime. `beforeCompile` exists
 - **.NET `Activity.SetCustomProperty(name, value)`** "attaches any custom object to this activity", and its documentation recommends "a unique property name to avoid conflicts". `ctx.state(key)` is the same mechanism with the same rule: keys are unconstrained, and avoiding collisions is the middleware author's choice.
 - **OpenTelemetry's JavaScript context** stores values under keys created with `createContextKey(description)` and read with `getValue(key)`.
 
-### An end, and a later completion once effects are final
+### An end, and a later finalization once effects are final
 
 - **Rails** has both moments on one record: `after_save` runs when the save finishes, and `after_commit` runs once the outermost transaction commits, or at once when no transaction is open.
 - **Django's `on_commit`** runs its callback immediately when no transaction is active, and otherwise after the outermost `atomic` block commits.
-- **Spring's `TransactionSynchronization.afterCompletion(status)`** and **JTA's `Synchronization.afterCompletion(status)`** are the completion hook this ADR names `activityCompleted`. Spring's has exactly three statuses, `STATUS_COMMITTED`, `STATUS_ROLLED_BACK` and `STATUS_UNKNOWN`, and its documentation says an exception thrown from the callback "will be logged but not propagated", because the transaction has already finished. `activityCompleted` has the same three outcomes and the same error rule.
+- **Spring's `TransactionSynchronization.afterCompletion(status)`** and **JTA's `Synchronization.afterCompletion(status)`** are the hook this ADR names `activityFinalized`. Spring's has exactly three statuses, `STATUS_COMMITTED`, `STATUS_ROLLED_BACK` and `STATUS_UNKNOWN`, and its documentation says an exception thrown from the callback "will be logged but not propagated", because the transaction has already finished. `activityFinalized` has the same three outcomes and the same error rule.
 
 ### Observing kept apart from changing
 
@@ -252,7 +252,7 @@ Rewriting the query tree before it becomes SQL is the standard home for soft del
   | `interceptQuery`, `interceptExecute` | `intercept.onQuery`, `intercept.onExecute` |
   | `onRow` | `onRow` |
   | `afterQuery`, `afterExecute` | `activityEnded` on a statement |
-  | `afterTransaction` (ADR 260) | `activityCompleted` on a statement |
+  | `afterTransaction` (ADR 260) | `activityFinalized` on a statement |
   | `beforeCompile` | unchanged |
 
   Every middleware is rewritten: the cache, budgets, lints, the demo's slow-query warning, and external middleware. ADR 260 is amended to say so.
@@ -260,9 +260,9 @@ Rewriting the query tree before it becomes SQL is the standard home for soft del
 - `planExecutionId` (ADR 220) is a statement activity's identity.
 - The deferred transaction begin and end hooks are `activityStarted` and `activityEnded` on a transaction activity.
 - Middleware state moves from `WeakMap`s keyed by plan to `ctx.state(key)`. This also removes the case ADR 260 documents, where the hook before encoding and the hooks after it receive different plan objects.
-- The runtime always holds a transaction's child activities until the transaction ends, whether or not any middleware implements `activityCompleted`. A transaction that never ends holds them, as it holds its statements today.
-- Nested transactions, when built, are a transaction activity under a transaction activity, and completion waits for the outermost.
-- Mongo has no transactions; every Mongo activity completes right after it ends.
+- The runtime always holds a transaction's child activities until the transaction ends, whether or not any middleware implements `activityFinalized`. A transaction that never ends holds them, as it holds its statements today.
+- Nested transactions, when built, are a transaction activity under a transaction activity, and finalization waits for the outermost.
+- Mongo has no transactions; every Mongo activity is finalized right after it ends.
 - The direct single-client Postgres driver runs a runtime-scope statement sent while a transaction is open inside that transaction, and the runtime cannot see it. That limit is unchanged.
 - Touches: `RuntimeMiddleware` and `RuntimeMiddlewareContext` in `framework-components`; the runners in `run-with-middleware.ts`; the SQL runtime's transaction bookkeeping and queryables; the Mongo runtime; the Supabase role session; the Postgres, SQLite and Supabase client facades; `withMutationScope` and every terminal method in `sql-orm-client`; the ORM's structural `RuntimeQueryable` type, which requires `startActivity`; the cache, budgets and lints middleware.
 
@@ -271,15 +271,15 @@ Rewriting the query tree before it becomes SQL is the standard home for soft del
 - **Copy the call's annotations onto every statement.** Misstates what was annotated and multiplies the payload. Rejected.
 - **Attach them to one chosen statement.** The ORM decides which statement represents the call. Rejected.
 - **The cache reads a statement's annotations, then its parent's.** Would cache the same work twice when both are annotated. The cache acts only on the activity in hand. Rejected.
-- **Parent pointers only, no child list.** The runtime needs the child list to complete a transaction's activities. Rejected.
+- **Parent pointers only, no child list.** The runtime needs the child list to finalize a transaction's activities. Rejected.
 - **One wrapping hook around execution, with a `next()` to call.** ADR 014 rejected it because it is harder to keep compile-time work, run-time work and budgets apart, and it mixes observing with changing. Rejected again.
 - **Two statement kinds, one per runtime method.** Both have the same lifecycle; only the result differs, which `returns` records. Rejected.
 - **One `intercept` hook for all results, checked at run time.** The compiler could not check that a middleware returned rows to a statement that asked for rows. Rejected for one handler per result type.
 - **Lifecycle events split by kind.** They return nothing, so splitting buys no type safety, and kind-agnostic consumers such as the cache and a tracer would implement the same body several times. Kinds are also open, so a catch-all would be needed anyway. Rejected.
 - **An `intercept` handler for transactions.** A transaction has no result to supply, and skipping it would run its actor's statements outside any transaction. Rejected.
 - **Serve cached reads inside a transaction, and defer storing to commit,** as Spring's `TransactionAwareCacheDecorator` does. A transaction would read rows from before its own writes. Rejected.
-- **Name the completion hook `activitySettled`.** In JavaScript a promise "settles" when it resolves or rejects, which is when an activity ends, not when its effects are final. Rejected for Spring and JTA's "completion".
+- **Name the hook `activitySettled` or `activityCompleted`.** In JavaScript a promise "settles" when it resolves or rejects, which is when an activity ends, not when its effects are final. "Completed" is a near synonym of "ended", so readers cannot tell which moment comes first; Spring's `afterCompletion` belongs only to a transaction, for which ending and completing are the same moment, and does not carry over to statements and ORM calls. Rejected for "finalized", which says that the effects are final.
 - **Name the leaf activity `execution` or `query`.** "Execution" already means running any plan, and "query" already means both a statement in general and the `query()` method. Rejected.
-- **Two completion outcomes, as in Rails.** A rejected `COMMIT` and a silently rolled-back `COMMIT` fire nothing, and a cache holds stale rows until expiry. Rejected.
+- **Two finalization outcomes, as in Rails.** A rejected `COMMIT` and a silently rolled-back `COMMIT` fire nothing, and a cache holds stale rows until expiry. Rejected.
 - **`startActivity` on the user-facing scope.** Users would see a client-only method on `tx`. Rejected.
 - **`AsyncLocalStorage` to find the parent.** Rejected by ADR 160 and ADR 220; still rejected.
