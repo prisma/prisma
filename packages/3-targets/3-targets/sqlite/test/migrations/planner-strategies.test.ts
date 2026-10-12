@@ -352,6 +352,7 @@ describe('nullabilityTighteningBackfillStrategy', () => {
           table: 'user',
           column: 'email',
           field: { namespaceId: asNamespaceId('__unbound__'), model: 'User', field: 'email' },
+          text: 'User.email',
         },
       ],
     };

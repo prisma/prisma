@@ -2,11 +2,12 @@ import type { ContractWithDomain } from '@internal/contract/types';
 import type { CliStructuredError } from '@internal/errors/control';
 import {
   type FieldCoordinate,
+  fieldStatementText,
   type MigrationDataLossKind,
   type MigrationSubject,
   type ModelCoordinate,
   migrationSubjectKey,
-  modelDisplayName,
+  modelStatementText,
   type ResolvedMigrationStatement,
   type TargetMigrationsCapability,
 } from '@internal/framework-components/control';
@@ -79,12 +80,6 @@ export interface PlannedQuestions {
   readonly accessWidening: readonly PlannedAccessChange[];
 }
 
-function modelText(contract: ContractWithDomain, coordinate: ModelCoordinate): string {
-  return Object.keys(contract.domain.namespaces).length > 1
-    ? modelDisplayName(coordinate)
-    : coordinate.model;
-}
-
 /** The contracts a statement names things in, and the statements the plan carries out so far. */
 export interface StatementContracts {
   readonly origin: ContractWithDomain;
@@ -154,13 +149,13 @@ function destinationField(
 export function subjectText(subject: MigrationSubject, contracts: StatementContracts): string {
   switch (subject.kind) {
     case 'model':
-      return modelText(contracts.origin, subject);
+      return modelStatementText(contracts.origin, subject);
     case 'field': {
       const renamed = renamedModel(subject, contracts);
       const model =
         renamed === undefined || contracts.destination === undefined
-          ? modelText(contracts.origin, subject)
-          : modelText(contracts.destination, renamed);
+          ? modelStatementText(contracts.origin, subject)
+          : modelStatementText(contracts.destination, renamed);
       return `${model}.${subject.field}`;
     }
     case 'storage':
@@ -313,7 +308,7 @@ export function dataLossQuestion(
       };
     }
     const field = destinationField(loss.subject, contracts);
-    const convert = `${modelText(contracts.destination, field)}.${field.field}`;
+    const convert = fieldStatementText(contracts.destination, field);
     return {
       question,
       subject,

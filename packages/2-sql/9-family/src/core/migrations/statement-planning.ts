@@ -3,6 +3,7 @@ import {
   type AppliedMigrationStatement,
   describeMigrationStatement,
   type FieldCoordinate,
+  fieldStatementText,
   type MigrationOperationClass,
   type MigrationOperationPolicy,
   type ModelCoordinate,
@@ -565,6 +566,8 @@ export interface StatementColumn {
   readonly table: string;
   readonly column: string;
   readonly field: FieldCoordinate;
+  /** The field as the statement names it, which also names the statement's slots. */
+  readonly text: string;
 }
 
 /** The columns of the fields that convert and backfill statements name. */
@@ -589,7 +592,14 @@ export function fieldStatementColumns(
       const column = fieldColumn(contract, statement.field);
       return table === undefined || column === undefined
         ? []
-        : [{ ...table, column, field: statement.field }];
+        : [
+            {
+              ...table,
+              column,
+              field: statement.field,
+              text: fieldStatementText(contract, statement.field),
+            },
+          ];
     });
   return { convert: columnsOf('convert'), backfill: columnsOf('backfill') };
 }

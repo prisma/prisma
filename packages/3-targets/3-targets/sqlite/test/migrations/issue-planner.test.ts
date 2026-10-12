@@ -417,10 +417,22 @@ describe('planIssues — statement columns', () => {
   it('hands the columns of convert and backfill statements to every strategy', () => {
     const statementColumns = {
       convert: [
-        { namespaceId: '__unbound__', table: 'user', column: 'age', field: userField('age') },
+        {
+          namespaceId: '__unbound__',
+          table: 'user',
+          column: 'age',
+          field: userField('age'),
+          text: 'User.age',
+        },
       ],
       backfill: [
-        { namespaceId: '__unbound__', table: 'user', column: 'email', field: userField('email') },
+        {
+          namespaceId: '__unbound__',
+          table: 'user',
+          column: 'email',
+          field: userField('email'),
+          text: 'User.email',
+        },
       ],
     };
     const seen: unknown[] = [];

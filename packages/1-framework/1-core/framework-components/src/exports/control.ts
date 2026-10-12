@@ -148,11 +148,13 @@ export type {
 } from '../control/migration-statements';
 export {
   describeMigrationStatement,
+  fieldStatementText,
   isRenameStatement,
   migrationStatementJson,
   migrationSubjectJson,
   migrationSubjectKey,
   modelDisplayName,
+  modelStatementText,
 } from '../control/migration-statements';
 export { orderIssuesByDependencies } from '../control/order-issues-by-dependencies';
 export type {

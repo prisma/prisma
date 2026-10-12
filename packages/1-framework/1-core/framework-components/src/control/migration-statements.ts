@@ -146,10 +146,19 @@ export function modelDisplayName(coordinate: ModelCoordinate): string {
     : `${coordinate.namespaceId}.${coordinate.model}`;
 }
 
-function modelName(contract: ContractWithDomain, coordinate: ModelCoordinate): string {
+/** A model as a statement names it: with its namespace only when the contract has several. */
+export function modelStatementText(
+  contract: ContractWithDomain,
+  coordinate: ModelCoordinate,
+): string {
   return Object.keys(contract.domain.namespaces).length > 1
     ? modelDisplayName(coordinate)
     : coordinate.model;
+}
+
+/** A field as a statement names it, through its model: `User.age`, or `app.User.age` when the contract has several namespaces. */
+export function fieldStatementText(contract: ContractWithDomain, field: FieldCoordinate): string {
+  return `${modelStatementText(contract, field)}.${field.field}`;
 }
 
 /** A model coordinate in JSON output: `namespaceId` is left out for the unbound namespace. */
@@ -245,11 +254,11 @@ export function describeMigrationStatement(
   contract: ContractWithDomain,
 ): string {
   if (statement.kind !== 'rename') {
-    return `${statement.kind} field "${modelName(contract, statement.field)}.${statement.field.field}"`;
+    return `${statement.kind} field "${modelStatementText(contract, statement.field)}.${statement.field.field}"`;
   }
   if (statement.entity === 'model') {
-    return `rename model "${modelName(fromContract, statement.from)}" to "${modelName(contract, statement.to)}"`;
+    return `rename model "${modelStatementText(fromContract, statement.from)}" to "${modelStatementText(contract, statement.to)}"`;
   }
-  const model = modelName(contract, statement.to);
+  const model = modelStatementText(contract, statement.to);
   return `rename field "${model}.${statement.from.field}" to "${model}.${statement.to.field}"`;
 }

@@ -461,7 +461,13 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         frameworkComponents: postgresTypeComponents,
         statementColumns: {
           convert: [
-            { namespaceId: 'public', table: 'user', column: 'age', field: userField('age') },
+            {
+              namespaceId: 'public',
+              table: 'user',
+              column: 'age',
+              field: userField('age'),
+              text: 'User.age',
+            },
           ],
           backfill: [],
         },
@@ -824,9 +830,23 @@ describe('statement columns', () => {
     const contract = makeContract({ user: userTable });
     const statementColumns = {
       convert: [
-        { namespaceId: 'public', table: 'user', column: 'email', field: userField('email') },
+        {
+          namespaceId: 'public',
+          table: 'user',
+          column: 'email',
+          field: userField('email'),
+          text: 'User.email',
+        },
       ],
-      backfill: [{ namespaceId: 'public', table: 'user', column: 'id', field: userField('id') }],
+      backfill: [
+        {
+          namespaceId: 'public',
+          table: 'user',
+          column: 'id',
+          field: userField('id'),
+          text: 'User.id',
+        },
+      ],
     };
     const seen: unknown[] = [];
     planNodeIssues({

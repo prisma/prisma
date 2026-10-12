@@ -36,8 +36,8 @@ import type {
 } from '@internal/family-sql/control';
 import type { DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
-import type { FieldCoordinate, SchemaDiffIssue } from '@internal/framework-components/control';
-import { issueOutcome, modelDisplayName } from '@internal/framework-components/control';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlStorage, StorageTable, StorageTypeInstance } from '@internal/sql-contract/types';
@@ -236,7 +236,7 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
     const named = backfilled(ctx, ddlSchemaName, tableName, expected.name);
     if (named === undefined) continue;
     const schemaName = emissionSchemaName(ctx, ddlSchemaName);
-    const slot = fieldStatementText(ctx, named.field);
+    const slot = named.text;
 
     matched.push(issue);
     const ddl = renderColumnDdl(expected.name, expected, ctx.types);
@@ -274,14 +274,6 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
  * nullability change: `SET NOT NULL` after the alter, whose conversion can map NULL to a value.
  */
 /** A field as a statement names it: with its namespace only when the contract has several. */
-function fieldStatementText(ctx: StrategyContext, field: FieldCoordinate): string {
-  const model =
-    Object.keys(ctx.toContract.domain.namespaces).length > 1
-      ? modelDisplayName(field)
-      : field.model;
-  return `${model}.${field.field}`;
-}
-
 export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
   if (ctx.fromContract === null || !ctx.policy.allowedOperationClasses.includes('data')) {
     return { kind: 'no_match' };
@@ -321,7 +313,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
         type: renderColumnAlterType(expected, ctx.types),
         using: {
           kind: 'placeholder',
-          slot: `${fieldStatementText(ctx, converted.field)}:using`,
+          slot: `${converted.text}:using`,
         },
         dataTypes: ctx.dataTypes,
       }),
@@ -382,7 +374,7 @@ export const nullableTighteningCallStrategy: CallMigrationStrategy = (issues, ct
     const named = backfilled(ctx, ddlSchemaName, tableName, expected.name);
     if (named === undefined) continue;
     const schemaName = emissionSchemaName(ctx, ddlSchemaName);
-    const slot = fieldStatementText(ctx, named.field);
+    const slot = named.text;
 
     matched.push(issue);
     calls.push(

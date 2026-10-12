@@ -22,7 +22,7 @@ import {
 } from '@internal/family-sql/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
-import { issueOutcome, modelDisplayName } from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
 import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import {
   RelationalSchemaNodeKind,
@@ -149,10 +149,6 @@ function statementColumn(
   return ctx.statementColumns[kind].find(
     (column) => column.table === tableName && column.column === columnName,
   );
-}
-
-function slotOf(column: StatementColumn): string {
-  return `${modelDisplayName(column.field)}.${column.field.field}`;
 }
 
 /**
@@ -289,7 +285,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
       rebuild.lossyColumns.push(column);
       continue;
     }
-    rebuild.copyExpressions[column] = { kind: 'placeholder', slot: `${slotOf(converted)}:using` };
+    rebuild.copyExpressions[column] = { kind: 'placeholder', slot: `${converted.text}:using` };
     rebuild.classes.push('data');
   }
 
@@ -395,7 +391,7 @@ export const nullabilityTighteningBackfillStrategy: CallMigrationStrategy = (iss
         `Backfill NULLs in "${tableName}"."${column.name}" before NOT NULL tightening`,
         tableName,
         column.name,
-        `${slotOf(named)}:run`,
+        `${named.text}:run`,
       ),
     );
   }

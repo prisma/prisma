@@ -2,11 +2,13 @@ import { asNamespaceId, type ContractWithDomain } from '@internal/contract/types
 import { describe, expect, it } from 'vitest';
 import {
   describeMigrationStatement,
+  fieldStatementText,
   isRenameStatement,
   migrationStatementJson,
   migrationSubjectJson,
   migrationSubjectKey,
   modelDisplayName,
+  modelStatementText,
   type ResolvedMigrationStatement,
 } from '../src/control/migration-statements';
 import { UNBOUND_NAMESPACE_ID } from '../src/ir/namespace';
@@ -52,6 +54,21 @@ function renameField(
     to: { namespaceId: app, model: toModel, field: to },
   };
 }
+
+describe('modelStatementText and fieldStatementText', () => {
+  it('write a model and a field as a statement names them: with the namespace only when the contract has several', () => {
+    const user = { namespaceId: app, model: 'User' };
+    expect([
+      modelStatementText(contractWith({ app: ['User'] }), user),
+      fieldStatementText(contractWith({ app: ['User'] }), { ...user, field: 'age' }),
+      modelStatementText(contractWith({ app: ['User'], billing: ['Bill'] }), user),
+      fieldStatementText(contractWith({ app: ['User'], billing: ['Bill'] }), {
+        ...user,
+        field: 'age',
+      }),
+    ]).toEqual(['User', 'User.age', 'app.User', 'app.User.age']);
+  });
+});
 
 describe('describeMigrationStatement', () => {
   it('names models without their namespace when the contract has one namespace', () => {
