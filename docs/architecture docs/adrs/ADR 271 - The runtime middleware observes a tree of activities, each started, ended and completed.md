@@ -189,10 +189,58 @@ The per-statement hooks also mix two jobs. Some only observe (`afterQuery` for a
 
 ## Prior art
 
-- **.NET `System.Diagnostics.Activity`** has the same shape: `ActivitySource.StartActivity` returns an `Activity` with a parent, and it maps onto OpenTelemetry spans.
-- **Spring's `TransactionSynchronization.afterCompletion(status)`** and **JTA's `Synchronization`** are the completion hook: one callback, the statuses committed, rolled back and unknown, errors logged rather than propagated. Rails `after_commit` and Django `on_commit` fire immediately outside a transaction and wait for the outermost commit inside one, which is the rule for when an activity completes.
-- **EF Core** separates interceptors, which "allow modification or suppression of the operation", from diagnostic listeners and logging, which observe. Its command interceptors are split by result type (`ReaderExecuting`, `NonQueryExecuting`), as `intercept` is.
-- **Rails `transaction_open?`, Django `in_atomic_block`, Ecto `in_transaction?`** expose "inside a transaction?" as one check, as `ctx.inTransaction()` does. Shopify's IdentityCache skips its cache whenever a transaction is open.
+This ADR invents no mechanism. Each piece below is an established feature of widely used data-access and tracing frameworks, and this ADR adopts it with the same meaning. What is new is only that they share one tree.
+
+Two of the interceptors are also not new to this runtime. `beforeCompile` exists today under that name, and the parameter mutator that `beforeEncode` receives exists today on `beforeQuery` and `beforeExecute`. This ADR moves them into the new structure; it does not add them.
+
+### A tree of activities, each with a parent
+
+- **.NET `System.Diagnostics.Activity`** is the model. `ActivitySource.StartActivity(name)` returns an `Activity` that knows its parent, is started and stopped, and is what .NET's OpenTelemetry support is built on. `startActivity`, `ActivityHandle` and the word "activity" are taken from it.
+- **OpenTelemetry spans** have the same structure: each span has a parent, a start and an end, and children end before their parents. A tracer built on `activityStarted` and `activityEnded` maps onto spans one to one.
+
+### State a middleware keeps on an activity
+
+- **.NET `Activity.SetCustomProperty(name, value)`** "attaches any custom object to this activity", and its documentation recommends "a unique property name to avoid conflicts". `ctx.state(key)` is the same mechanism with the same rule: keys are unconstrained, and avoiding collisions is the middleware author's choice.
+- **OpenTelemetry's JavaScript context** stores values under keys created with `createContextKey(description)` and read with `getValue(key)`.
+
+### An end, and a later completion once effects are final
+
+- **Rails** has both moments on one record: `after_save` runs when the save finishes, and `after_commit` runs once the outermost transaction commits, or at once when no transaction is open.
+- **Django's `on_commit`** runs its callback immediately when no transaction is active, and otherwise after the outermost `atomic` block commits.
+- **Spring's `TransactionSynchronization.afterCompletion(status)`** and **JTA's `Synchronization.afterCompletion(status)`** are the completion hook this ADR names `activityCompleted`. Spring's has exactly three statuses, `STATUS_COMMITTED`, `STATUS_ROLLED_BACK` and `STATUS_UNKNOWN`, and its documentation says an exception thrown from the callback "will be logged but not propagated", because the transaction has already finished. `activityCompleted` has the same three outcomes and the same error rule.
+
+### Observing kept apart from changing
+
+- **EF Core** draws the line this ADR draws. Its documentation: "Interceptors are different from logging and diagnostics in that they allow modification or suppression of the operation being intercepted." Diagnostic listeners observe; interceptors change or stop.
+- **datasource-proxy**, a JDBC proxy commonly used with Spring Boot, registers `QueryExecutionListener`s, which observe before and after each statement, separately from a `QueryTransformer` and a `ParameterTransformer`, which change the statement and its parameters.
+
+### Rewriting a query before it is compiled: `beforeCompile`
+
+Rewriting the query tree before it becomes SQL is the standard home for soft delete and tenant isolation:
+
+- **EF Core's global query filters** attach a filter that is "applied whenever a query on that entity type is executed". Its documentation names soft deletion and multi-tenancy as the two main uses. EF Core also has `IQueryExpressionInterceptor`, for "modifying the LINQ expression tree before a query is compiled".
+- **Ecto's `prepare_query/3`** can "further modify the query and options before it is transformed and sent to the database". Its documentation's example is a soft-delete filter, and its multi-tenancy guide adds an `org_id` filter to every query and raises when none is set.
+- **Hibernate's `StatementInspector`** inspects each SQL command and may return "a different SQL command to be used instead".
+
+### Blocking a statement, or changing its parameters, before it runs: `beforeEncode`
+
+- **Blocking.** EF Core's command interceptors can throw before the command runs. Ecto's multi-tenancy guide raises from `prepare_query`. Django's documentation shows an `execute_wrapper` that blocks every query. In this runtime, lints and the SQL-size budget block a statement today.
+- **Changing parameter values.** datasource-proxy's `ParameterTransformer` does this for JDBC. Most frameworks instead transform values in the type layer: Rails' attribute encryption, Hibernate's `AttributeConverter`, EF Core's value converters. In this runtime that layer is codecs, and a codec is still the place for a transform of one value. The mutator exists for transforms that need all of a statement's values at once: the Cipherstash extension encrypts them in a single SDK call, which a per-value codec cannot do. ADR 215 made that decision, and this ADR keeps it unchanged.
+
+### Supplying a result instead of running: `intercept`
+
+- **EF Core** lets a command interceptor skip the database with `InterceptionResult.SuppressWithResult`. Its documentation's own worked example is a caching interceptor that "suppress[es] executing the operation" and returns a cached result instead.
+- **EF Core splits its command interceptors by result type**: `ReaderExecuting` for rows, `NonQueryExecuting` for an affected-row count, `ScalarExecuting` for a single value. `intercept.onQuery` and `intercept.onExecute` follow the same split.
+- **JDBC's `Statement`** has the same split for sending one statement: `executeQuery` returns rows, `executeUpdate` returns a count. That is why a single `statement` kind with `returns: 'rows' | 'stats'` covers both runtime methods.
+
+### Caching a whole call, keyed by its inputs: `intercept.onActivity`
+
+- **Spring's `@Cacheable`** stores a method's result so that "on subsequent invocations (with the same arguments), the value in the cache is returned without having to actually invoke the method". By default the key is built from the method's parameters. A cached ORM call is the same mechanism: the ORM call is the method, and its content hash is the key built from its inputs.
+
+### Not caching inside a transaction: `ctx.inTransaction()`
+
+- **"Is a transaction open?" is one call everywhere**: Rails `transaction_open?`, Django `in_atomic_block`, Ecto `in_transaction?`, Spring `TransactionSynchronizationManager.isActualTransactionActive()`.
+- **Caches built on them stay out of transactions.** Shopify's IdentityCache skips the cache whenever a transaction is open, which is this ADR's rule. django-cacheops turns caching off once a transaction has written and runs invalidations "on the outer commit of transaction". Spring's `TransactionAwareCacheDecorator` defers puts and evictions to "the after-commit phase of a successful transaction" but still serves reads, which lets a transaction read rows from before its own writes; this ADR does not.
 
 ## Consequences
 
