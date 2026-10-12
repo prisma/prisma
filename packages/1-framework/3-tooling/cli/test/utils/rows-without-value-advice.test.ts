@@ -21,7 +21,7 @@ describe('the advice for rows a required field has no value for', () => {
         ...runnerFailed,
         conflicts: undefined,
         rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
-        databaseContract: DATABASE,
+        databaseStorageHash: DATABASE,
       }).fix,
     ).toBe(
       `Set a value in those rows, or keep the field optional. Or plan it with \`{bin} migration plan --from ${DATABASE} --backfill Item.note\`, fill the backfill steps in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`,
@@ -39,7 +39,7 @@ describe('the advice for rows a required field has no value for', () => {
           { field: 'My Model.code', reason: 'newField' },
           { field: undefined, reason: 'nullValues' },
         ],
-        databaseContract: DATABASE,
+        databaseStorageHash: DATABASE,
       }).fix,
     ).toBe(
       `Plan it with \`{bin} migration plan --from ${DATABASE} --backfill 'My Model.code' --backfill 'My Model.role'\`, fill the backfill steps in the migration.ts it writes, and apply it with \`{bin} db migrate\`. Or make the field optional, or give it a default.`,

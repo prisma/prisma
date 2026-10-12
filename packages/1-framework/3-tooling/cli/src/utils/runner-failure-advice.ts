@@ -1,6 +1,6 @@
 import { statementFlag } from '../control-api/statements/statement-flag';
 import type {
-  FailedCastReport,
+  FailedTypeChangeCastReport,
   MigrateFailure,
   RowsWithoutValueReport,
 } from '../control-api/types';
@@ -8,7 +8,7 @@ import type {
 type FailedMigration = NonNullable<MigrateFailure['failedMigration']>;
 
 /** What a runner failure says of a type change whose cast failed. */
-export function failedCastText(cast: FailedCastReport): string {
+export function failedCastText(cast: FailedTypeChangeCastReport): string {
   return cast.reason === 'noCast'
     ? `The database has no cast from the old type of field "${cast.field}" to its new type.`
     : `A value of field "${cast.field}" cannot be converted to its new type by the database's cast.`;
@@ -31,12 +31,12 @@ function backfillFlags(reports: readonly RowsWithoutValueReport[]): readonly str
 
 /** The way out of a failed cast for `db update`, which plans and applies in one step. */
 export function dbUpdateFailedCastFix(
-  cast: FailedCastReport,
-  databaseContract: string | undefined,
+  cast: FailedTypeChangeCastReport,
+  databaseStorageHash: string | undefined,
 ): string {
   const plan = migrationPlanCommand(
     [statementFlag({ verb: 'convert', text: cast.field })],
-    databaseContract,
+    databaseStorageHash,
   );
   return `${failedCastText(cast)} Plan the change with ${plan}, write the conversion in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`;
 }
@@ -44,13 +44,13 @@ export function dbUpdateFailedCastFix(
 /** The way out of rows without a value for `db update`, which plans and applies in one step. */
 export function dbUpdateRowsWithoutValueFix(
   reports: readonly RowsWithoutValueReport[],
-  databaseContract: string | undefined,
+  databaseStorageHash: string | undefined,
 ): string {
   const flags = backfillFlags(reports);
   const plan =
     flags.length === 0
       ? undefined
-      : `${migrationPlanCommand(flags, databaseContract)}, fill the backfill steps in the migration.ts it writes, and apply it with \`{bin} db migrate\``;
+      : `${migrationPlanCommand(flags, databaseStorageHash)}, fill the backfill steps in the migration.ts it writes, and apply it with \`{bin} db migrate\``;
   if (reports[0]?.reason === 'nullValues') {
     const keep = 'Set a value in those rows, or keep the field optional.';
     return plan === undefined ? keep : `${keep} Or plan it with ${plan}.`;
@@ -84,7 +84,7 @@ function replan(
 }
 
 function migrateFailedCastFix(
-  cast: FailedCastReport,
+  cast: FailedTypeChangeCastReport,
   failedMigration: FailedMigration | undefined,
 ): string {
   const convert = statementFlag({ verb: 'convert', text: cast.field });

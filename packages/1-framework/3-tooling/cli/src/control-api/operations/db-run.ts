@@ -69,7 +69,7 @@ import type {
   DbUpdateFailure,
   DbUpdateResult,
   DbUpdateSuccess,
-  FailedCastReport,
+  FailedTypeChangeCastReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
   RowsWithoutValueReport,
@@ -457,7 +457,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('warnings', plannerWarnings),
       ...ifDefined('failedCast', applied.failure.failedCast),
       ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
-      ...ifDefined('databaseContract', recordedDatabaseContract(aggregate, markerRows)),
+      ...ifDefined('databaseStorageHash', recordedDatabaseContract(aggregate, markerRows)),
       ...ifDefined('cause', applied.failure.cause),
     });
   }
@@ -741,10 +741,10 @@ function buildRunnerFailure(args: {
   readonly why?: string;
   readonly meta: Record<string, unknown>;
   readonly warnings?: readonly MigrationPlannerConflict[];
-  readonly failedCast?: FailedCastReport;
+  readonly failedCast?: FailedTypeChangeCastReport;
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The contract the database is at, when a migration of the graph ends at it. */
-  readonly databaseContract?: string;
+  readonly databaseStorageHash?: string;
   readonly cause?: unknown;
 }): DbInitResult | DbUpdateResult {
   const failure: DbInitFailure | DbUpdateFailure = {
@@ -756,7 +756,7 @@ function buildRunnerFailure(args: {
     ...ifDefined('warnings', args.warnings),
     ...ifDefined('failedCast', args.failedCast),
     ...ifDefined('rowsWithoutValue', args.rowsWithoutValue),
-    ...ifDefined('databaseContract', args.databaseContract),
+    ...ifDefined('databaseStorageHash', args.databaseStorageHash),
     ...ifDefined('cause', args.cause),
   };
   return blindCast<

@@ -22,7 +22,7 @@ import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { subjectText } from '../statements/plan-questions';
 import type {
-  FailedCastReport,
+  FailedTypeChangeCastReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
   RowsWithoutValueReport,
@@ -53,7 +53,7 @@ export interface RunnerFailure {
   readonly why?: string;
   readonly meta: Record<string, unknown>;
   /** The type change whose cast failed. */
-  readonly failedCast?: FailedCastReport;
+  readonly failedCast?: FailedTypeChangeCastReport;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The written migration of the failed operation, when the runner named the operation. */

@@ -509,7 +509,7 @@ export interface DbUpdateSuccess extends MigrationPlanSubjects<AskedDataLoss, As
 }
 
 /** A type change whose cast the database could not carry out, as the advice for it names it. */
-export interface FailedCastReport {
+export interface FailedTypeChangeCastReport {
   /** The field, as a `convert` statement names it. */
   readonly field: string;
   /** `value`: the database met a value it could not cast. `noCast`: it has no cast between the two types. */
@@ -545,9 +545,9 @@ export interface DbUpdateFailure {
    * The storage hash of the contract the database is at, when a migration of the graph ends at it:
    * the origin a `migration plan` for this database starts from.
    */
-  readonly databaseContract?: string;
+  readonly databaseStorageHash?: string;
   /** The type change whose cast failed. */
-  readonly failedCast?: FailedCastReport;
+  readonly failedCast?: FailedTypeChangeCastReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }
@@ -765,7 +765,7 @@ export interface MigrateFailure {
   /** The written migration of the failed operation: its directory, and the contract it starts from. */
   readonly failedMigration?: { readonly directory: string; readonly from: string };
   /** The type change whose cast failed. */
-  readonly failedCast?: FailedCastReport;
+  readonly failedCast?: FailedTypeChangeCastReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }

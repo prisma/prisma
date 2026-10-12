@@ -23,9 +23,9 @@ export function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError
         : undefined;
     const fix =
       failure.failedCast !== undefined
-        ? dbUpdateFailedCastFix(failure.failedCast, failure.databaseContract)
+        ? dbUpdateFailedCastFix(failure.failedCast, failure.databaseStorageHash)
         : failure.rowsWithoutValue !== undefined
-          ? dbUpdateRowsWithoutValueFix(failure.rowsWithoutValue, failure.databaseContract)
+          ? dbUpdateRowsWithoutValueFix(failure.rowsWithoutValue, failure.databaseStorageHash)
           : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
             ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
               'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'

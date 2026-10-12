@@ -18,7 +18,7 @@ describe('the advice for a type change whose cast failed', () => {
         ...runnerFailed,
         conflicts: undefined,
         failedCast: { field: 'User.age', reason: 'value' },
-        databaseContract: FROM,
+        databaseStorageHash: FROM,
       }).fix,
     ).toBe(
       `A value of field "User.age" cannot be converted to its new type by the database's cast. Plan the change with \`{bin} migration plan --from ${FROM} --convert User.age\`, write the conversion in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`,

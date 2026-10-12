@@ -5,7 +5,7 @@ import {
   type SqlMigrationPlanOperationStep,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
-import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import type { RowsWithoutValue, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
 import { RelationalSchemaNodeKind, type SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
@@ -272,7 +272,7 @@ export async function recreateTable(
 /** A column the rebuild makes required: one that held NULL before, or a new one the copy gives no value. */
 export interface RecreateRequiredColumn {
   readonly column: string;
-  readonly reason: 'nullValues' | 'newField';
+  readonly reason: RowsWithoutValue['reason'];
 }
 
 /** A recreate postcheck written as SQL. */

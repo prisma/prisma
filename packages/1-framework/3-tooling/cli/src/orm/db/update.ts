@@ -254,14 +254,14 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
         ctx.statements.take(verb),
       );
       if (needsMigrationFile.length > 0) {
-        const databaseContract = await databaseContractIfReachable({
+        const databaseStorageHash = await databaseContractIfReachable({
           config: ctx.config,
           cwd: ctx.cwd,
           db: args.flags.db,
           commandName: 'db update',
           createClient,
         });
-        return notOk(normalizeError(errorStatementNeedsMigrationFile(given, databaseContract)));
+        return notOk(normalizeError(errorStatementNeedsMigrationFile(given, databaseStorageHash)));
       }
       const renames = ctx.statements
         .take('rename')
