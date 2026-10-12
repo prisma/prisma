@@ -60,6 +60,7 @@ export async function chainingMethods() {
   expectTypeOf(posts.filtered()).toEqualTypeOf<Filtered<PostLibrary>>();
   expectTypeOf(posts.ordered()).toEqualTypeOf<Ordered<PostLibrary>>();
   expectTypeOf(posts.search('zebra')).toEqualTypeOf<Ordered<Filtered<PostLibrary>>>();
+  expectTypeOf(posts.searchUsing('zebra')).toEqualTypeOf<Ordered<Filtered<PostLibrary>>>();
   expectTypeOf(posts.where(matchesSearch('zebra'))).toEqualTypeOf<Filtered<PostLibrary>>();
   expectTypeOf(posts.with(searched('zebra'))).toEqualTypeOf<
     ReturnType<ReturnType<typeof searched>>

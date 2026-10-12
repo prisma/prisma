@@ -10,7 +10,7 @@ import {
   orderByField,
   orm,
 } from '@prisma/orm-postgres/orm-client';
-import type { ExecutionContext } from '@prisma/orm-postgres/relational-core/query-lane-context';
+import type { PostgresClient } from '@prisma/orm-postgres/runtime';
 import { websearchToTsquery } from '@prisma/orm-postgres/target/full-text';
 import type { Contract } from '../../src/prisma/contract.d';
 
@@ -25,7 +25,8 @@ export const labelledAs = (labels: readonly string[]) => (row: { labels: Labels 
   row.labels.eq(labels);
 
 declare const runtime: Runtime;
-declare const context: ExecutionContext<Contract>;
+declare const postgresClient: PostgresClient<Contract>;
+const context = postgresClient.context;
 
 const client = orm({ runtime, context });
 
@@ -76,6 +77,10 @@ export class PostLibrary extends Collection<Contract, 'Post'> {
     return this.where((_post, { fns, indexes }) =>
       fns.fullTextMatches(indexes.post_search, q),
     ).orderBy((_post, { fns, indexes }) => fns.fullTextRank(indexes.post_search, q).desc());
+  }
+
+  searchUsing(query: string) {
+    return this.using.post_search(websearchToTsquery(query));
   }
 
   summaries() {
