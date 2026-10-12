@@ -343,6 +343,12 @@ describe('Journeys (MongoDB): --rename and --delete', {
     expect(refused.exitCode, 'R3.04: the removed field needs a statement').toBe(2);
     const printed = printedFlags(refused, 'delete');
     expect(printed, 'R3.04: named by its collection').toEqual(['--delete', 'profiles.nickname']);
+    expect(
+      String(engineError(refused)?.why)
+        .split('\n')
+        .map((line) => line.slice(0, 3)),
+      'R3.04: the question, then each way to keep the data on a line of its own',
+    ).toEqual(['Rem', 'If ', '1. ', '2. ', '3. ']);
 
     const updated = await runDbUpdate(ctx, ['--no-interactive', ...printed]);
     expect(updated.exitCode, `R3.05: db update with the printed flag: ${updated.stderr}`).toBe(0);
