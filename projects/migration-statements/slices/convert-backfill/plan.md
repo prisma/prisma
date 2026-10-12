@@ -35,3 +35,4 @@ One implementer and one reviewer, both on Opus, resumed across every dispatch. B
 ## Open items
 
 - ADR 200 amendment: written by the orchestrator in dispatch 6's branch, not by the implementer.
+- Both 3a and 4a add a framework type `MigrationDataLoss` (3a with an optional `label`, 4a with an optional `keepDataAdvice`). Whichever merges second combines them into one type.
