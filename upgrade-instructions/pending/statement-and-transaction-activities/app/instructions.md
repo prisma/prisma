@@ -24,14 +24,14 @@ changes:
         - '\bAfter(Query|Execute|Transaction)Result\b'
   - id: aborted-phase-before-encode
     summary: |
-      A `RUNTIME.ABORTED` error raised during the middleware stage before encoding reports `details.phase: 'beforeEncode'`, not `'beforeQuery'` or `'beforeExecute'`. The phases `'afterQuery'` and `'afterExecute'` no longer occur.
+      A `RUNTIME.ABORTED` error raised during the middleware stage before encoding reports `details.phase: 'beforeEncode'`, not `'beforeQuery'` or `'beforeExecute'`. The phases `'afterQuery'` and `'afterExecute'` no longer occur. Mongo's `RUNTIME.CONTENT_HASH_REQUIRES_RESOLVED_COMMAND` also reports `details.phase: 'beforeEncode'`, not `'beforeExecute'`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '[''"`](beforeQuery|beforeExecute|afterQuery|afterExecute)[''"`]'
   - id: every-started-statement-is-ended-and-finalized
     summary: |
-      Every statement the runtime accepts now starts an activity, and every started statement ends and is finalized exactly once. A call with an already-aborted signal fires `activityStarted` before it fails. A statement that fails before it runs, in `beforeCompile`, `beforeEncode` or parameter encoding, now ends `failed` and is finalized, where it got no `afterTransaction` before.
+      Every statement the runtime accepts now starts an activity, and every started statement ends and is finalized exactly once. A call with an already-aborted signal fires `activityStarted` before it fails. A statement that fails before it runs, in `beforeCompile`, `beforeEncode` or parameter encoding, now ends `failed` and is finalized, where it got no `afterTransaction` before. `activityEnded` also fires for a statement the caller stopped reading (outcome `'stopped'`) and for a statement that failed before it ran (outcome `'failed'`, `latencyMs: 0`, `source: 'driver'`); `afterQuery` and `afterExecute` fired for neither, so a metrics or slow-query middleware now counts them unless it checks `result.outcome`.
   - id: observed-row-budget-runs
     summary: |
       The `budgets()` middleware now counts the rows a query returns and enforces `maxRows` on them. Before, the observed-row check never ran. With the default row severity `'error'`, or in `strict` mode, a query that returns more than `maxRows` rows fails with `BUDGET.ROWS_EXCEEDED`; with `'warn'` in `permissive` mode it logs one warning for the statement and keeps streaming.
@@ -91,7 +91,7 @@ The interceptors move under one `intercept` object:
 + },
 ```
 
-`statementSql` is a module-level `Symbol('…')`, for example `const statementSql = Symbol('slow-query-warning.sql')`. An error thrown from `activityEnded` after a successful statement still fails it and reaches the caller, as an error from `afterQuery` did.
+`statementSql` is a module-level `Symbol('…')`, for example `const statementSql = Symbol('slow-query-warning.sql')`. An error thrown from `activityEnded` after a successful statement still fails it and reaches the caller, as an error from `afterQuery` did. `activityEnded` also fires where `afterQuery` and `afterExecute` did not: for a statement the caller stopped reading, with `result.outcome` `'stopped'`, and for a statement that failed before it ran, in `beforeCompile`, `beforeEncode` or parameter encoding, with `result.outcome` `'failed'`, `latencyMs: 0` and `source: 'driver'`. A middleware that counts statements or latencies checks `result.outcome` if it should skip them.
 
 ## Replace `afterTransaction` with `activityFinalized`
 
@@ -103,7 +103,7 @@ The interceptors move under one `intercept` object:
 
 ## Abort phases and already-aborted calls
 
-A `RUNTIME.ABORTED` error raised during the middleware stage before encoding has `details.phase` `'beforeEncode'`. Code that matches `'beforeQuery'` or `'beforeExecute'` matches `'beforeEncode'` instead. A call whose signal was aborted before it was made now fires `activityStarted`, then ends `failed`, before it rejects with `RUNTIME.ABORTED`.
+A `RUNTIME.ABORTED` error raised during the middleware stage before encoding has `details.phase` `'beforeEncode'`. Code that matches `'beforeQuery'` or `'beforeExecute'` matches `'beforeEncode'` instead. The same holds for the Mongo error `RUNTIME.CONTENT_HASH_REQUIRES_RESOLVED_COMMAND`, raised when a Mongo `beforeEncode` hook calls `ctx.contentHash`: its `details.phase` is `'beforeEncode'`. A call whose signal was aborted before it was made now fires `activityStarted`, then ends `failed`, before it rejects with `RUNTIME.ABORTED`.
 
 ## The observed-row budget now runs
 

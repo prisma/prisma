@@ -954,10 +954,15 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
    * Begins a transaction on `connection` as a transaction activity. Its `activityStarted` hooks run before `BEGIN`. Every statement sent on the transaction, or on `connection`, from the end of `BEGIN` until `commit()` or `rollback()` is called is the transaction's child, and is finalized when the transaction ends, with its outcome. `commit()` and `rollback()` resolve after every finalization hook has run. A subclass that holds its own connection begins its transactions here.
    */
   protected async beginTransactionOn(connection: SqlConnection): Promise<RuntimeTransaction> {
-    const activity = await startTransactionActivity<SqlMiddlewareContext>({
-      middleware: this.middleware,
-      context: { ...this.sqlCtx, scope: 'transaction' },
-    });
+    let activity: TransactionActivityRun<SqlMiddlewareContext>;
+    try {
+      activity = await startTransactionActivity<SqlMiddlewareContext>({
+        middleware: this.middleware,
+        context: { ...this.sqlCtx, scope: 'transaction' },
+      });
+    } catch (error) {
+      throw markedRefusedBeforeBegin(error);
+    }
     let driverTx: SqlTransaction;
     try {
       driverTx = await this.#inFlight.track(() => connection.beginTransaction());
@@ -985,6 +990,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       }
     };
     let commitAttempted = false;
+    let committed = false;
     const self = this;
     const wrappedTransaction: RuntimeTransaction &
       PreparedStatementQueryTarget &
@@ -998,14 +1004,13 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
           await activity.end({ by: 'commit', outcome: 'failed' });
           throw error;
         }
-        try {
-          await activity.end({ by: 'commit', outcome: 'succeeded' });
-        } catch (error) {
-          throw markedAfterCommit(error);
-        }
+        committed = true;
+        committedTransactions.add(wrappedTransaction);
+        await activity.end({ by: 'commit', outcome: 'succeeded' });
       },
       async rollback(): Promise<void> {
         stopAdopting();
+        if (committed) return;
         try {
           await self.#inFlight.track(() => driverTx.rollback());
         } catch (error) {
@@ -1166,16 +1171,19 @@ function standaloneContext(
   };
 }
 
-// Errors a transaction's activityEnded hook threw after its COMMIT resolved. withTransaction rethrows them as they are: the transaction committed, so it must neither roll back nor report a failed commit.
-const errorsAfterCommit = new WeakSet<object>();
+// Transactions whose COMMIT resolved. When their commit() still rejects, because an activityEnded hook threw, withTransaction rethrows the error as it is: the transaction committed, so it must neither roll back nor report a failed commit.
+const committedTransactions = new WeakSet<RuntimeTransaction>();
 
-function markedAfterCommit(error: unknown): unknown {
-  if (typeof error === 'object' && error !== null) errorsAfterCommit.add(error);
+// Errors from a transaction start refused by its activityStarted hooks, before any BEGIN was sent, so the connection is still clean. Only an object can be recorded; any other start failure leaves the connection's state unknown.
+const startsRefusedBeforeBegin = new WeakSet<object>();
+
+function markedRefusedBeforeBegin(error: unknown): unknown {
+  if (typeof error === 'object' && error !== null) startsRefusedBeforeBegin.add(error);
   return error;
 }
 
-function isErrorAfterCommit(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && errorsAfterCommit.has(error);
+function wasRefusedBeforeBegin(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && startsRefusedBeforeBegin.has(error);
 }
 
 function transactionClosedError(): Error {
@@ -1200,8 +1208,12 @@ export async function withTransaction<R>(
   try {
     transaction = await connection.transaction();
   } catch (error) {
-    // The connection's state after a failed start is not known, so it is not returned to the pool. A teardown error would mask the start error.
-    await connection.destroy(error).catch(() => undefined);
+    // A teardown error would mask the start error.
+    if (wasRefusedBeforeBegin(error)) {
+      await connection.release().catch(() => undefined);
+    } else {
+      await connection.destroy(error).catch(() => undefined);
+    }
     throw error;
   }
 
@@ -1302,7 +1314,7 @@ export async function withTransaction<R>(
     try {
       await transaction.commit();
     } catch (commitError) {
-      if (isErrorAfterCommit(commitError)) throw commitError;
+      if (committedTransactions.has(transaction)) throw commitError;
       // After a failed COMMIT the server-side transaction may be: (a) already committed (error on response path), (b) already rolled back (deferred constraint / serialization failure), or (c) still open (COMMIT never reached the server). Attempt a best-effort rollback to cover (c) and confirm the protocol is healthy.
       //
       // If rollback succeeds, the server is definitely no longer in a transaction (no-op in (a)/(b), real cleanup in (c)) and we've just proved the connection round-trips correctly — it's safe to return to the pool. If rollback fails, the connection state is ambiguous (broken socket, protocol desync, etc.) and we must destroy it.
