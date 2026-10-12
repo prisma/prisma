@@ -241,8 +241,9 @@ withTempDir(({ createTempDir }) => {
           `The value 'ten' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
         );
         const advice = error.nextActions.map(({ label }) => label).join('\n');
-        const followed =
-          /delete `([^`]+)`, and plan it again with `\S+ migration plan ([^`]+)`/.exec(advice);
+        const followed = /delete `([^`]+)`.*?plan it again with `\S+ migration plan ([^`]+)`/.exec(
+          advice,
+        );
         expect(followed, advice).not.toBeNull();
         const [, directory = '', command = ''] = followed ?? [];
         expect(query(ctx.dbPath, `SELECT id, age FROM "User" ORDER BY id`)).toEqual([

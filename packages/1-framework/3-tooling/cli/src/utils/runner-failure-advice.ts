@@ -1,3 +1,4 @@
+import { basename, relative } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
 import type {
   FailedTypeChangeCastReport,
@@ -70,22 +71,36 @@ export function dbInitRowsWithoutValueFix(reports: readonly RowsWithoutValueRepo
   return `Run \`{bin} db init\` with ${subject} optional, or give it a default. Then make it required with \`{bin} db update\`, which says how to give the rows a value.`;
 }
 
+/** A failed migration as the advice names it: its directory relative to the project, and its name. */
+interface FailedMigrationText {
+  readonly directory: string;
+  readonly name: string;
+  readonly from: string;
+}
+
+function failedMigrationText(failed: FailedMigration, projectDir: string): FailedMigrationText {
+  const dirName = basename(failed.directory);
+  return {
+    directory: relative(projectDir, failed.directory),
+    name: dirName.slice(dirName.indexOf('_') + 1),
+    from: failed.from,
+  };
+}
+
 function replan(
   flags: readonly string[],
-  failedMigration: FailedMigration,
+  failed: FailedMigrationText,
   except: string | undefined = undefined,
 ): string {
-  const { directory, from } = failedMigration;
-  const earlier =
-    except === undefined
-      ? 'the statements you planned it with before'
-      : `the statements you planned it with before, except ${except}`;
-  return `copy any code you wrote in \`${directory}/migration.ts\`, delete \`${directory}\`, and plan it again with ${migrationPlanCommand(flags, from)} and ${earlier}. Then write that code and the new steps in the migration.ts it writes, and apply it with \`{bin} db migrate\``;
+  const others =
+    except === undefined ? 'its other statements' : `its other statements except ${except}`;
+  const plan = migrationPlanCommand(['--name', failed.name, ...flags], failed.from);
+  return `delete \`${failed.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${plan} and ${others}, fill in the migration.ts it writes, and run \`{bin} db migrate\``;
 }
 
 function migrateFailedCastFix(
   cast: FailedTypeChangeCastReport,
-  failedMigration: FailedMigration | undefined,
+  failedMigration: FailedMigrationText | undefined,
 ): string {
   const convert = statementFlag({ verb: 'convert', text: cast.field });
   if (failedMigration === undefined) {
@@ -97,7 +112,7 @@ function migrateFailedCastFix(
 
 function migrateRowsWithoutValueFix(
   reports: readonly RowsWithoutValueReport[],
-  failedMigration: FailedMigration | undefined,
+  failedMigration: FailedMigrationText | undefined,
 ): string {
   const flags = backfillFlags(reports);
   const again =
@@ -128,13 +143,17 @@ function fieldList(reports: readonly RowsWithoutValueReport[]): string {
     .join(', ');
 }
 
-/** The way out of a failed `db migrate` apply. */
-export function migrateFix(failure: MigrateFailure): string {
+/** The way out of a failed `db migrate` apply, naming paths relative to `projectDir`. */
+export function migrateFix(failure: MigrateFailure, projectDir: string): string {
+  const failedMigration =
+    failure.failedMigration === undefined
+      ? undefined
+      : failedMigrationText(failure.failedMigration, projectDir);
   if (failure.failedCast !== undefined) {
-    return migrateFailedCastFix(failure.failedCast, failure.failedMigration);
+    return migrateFailedCastFix(failure.failedCast, failedMigration);
   }
   if (failure.rowsWithoutValue !== undefined) {
-    return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failure.failedMigration);
+    return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration);
   }
   return 'Fix the issue and re-run `{bin} db migrate --to <contract>` — previously applied migrations are preserved.';
 }

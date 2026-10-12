@@ -12,7 +12,8 @@ const runnerFailed = {
 
 const DATABASE = 'a'.repeat(64);
 const FROM = 'b'.repeat(64);
-const failedMigration = { directory: 'migrations/app/20261012T1200_note', from: FROM };
+const PROJECT = '/work/app';
+const failedMigration = { directory: `${PROJECT}/migrations/app/20261012T1200_note`, from: FROM };
 
 describe('the advice for rows a required field has no value for', () => {
   it('on db update, says to set the values, keep the field optional, or plan a backfill from the database contract', () => {
@@ -81,26 +82,32 @@ describe('the advice for rows a required field has no value for', () => {
       { field: 'Item.role', reason: 'newField' },
       { field: 'Item.code', reason: 'newField' },
     ] as const;
-    const replan = `copy any code you wrote in \`migrations/app/20261012T1200_note/migration.ts\`, delete \`migrations/app/20261012T1200_note\`, and plan it again with \`{bin} migration plan --from ${FROM} --backfill Item.role --backfill Item.code\` and the statements you planned it with before. Then write that code and the new steps in the migration.ts it writes, and apply it with \`{bin} db migrate\``;
+    const replan = `delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.role --backfill Item.code\` and its other statements, fill in the migration.ts it writes, and run \`{bin} db migrate\``;
     expect([
-      mapMigrateFailure({ ...runnerFailed, rowsWithoutValue, failedMigration }).fix,
-      mapMigrateFailure({
-        ...runnerFailed,
-        rowsWithoutValue: [{ field: 'Item.role', reason: 'nullValues' }, rowsWithoutValue[1]],
-        failedMigration,
-      }).fix,
+      mapMigrateFailure({ ...runnerFailed, rowsWithoutValue, failedMigration }, PROJECT).fix,
+      mapMigrateFailure(
+        {
+          ...runnerFailed,
+          rowsWithoutValue: [{ field: 'Item.role', reason: 'nullValues' }, rowsWithoutValue[1]],
+          failedMigration,
+        },
+        PROJECT,
+      ).fix,
     ]).toEqual([
       `The failed apply changed nothing. To keep the field required, ${replan}. Or make the field optional or give it a default, and plan it again.`,
       `The migration also adds a required field the existing rows have no value for, so setting values is not enough. The failed apply changed nothing: ${replan}.`,
     ]);
     expect(
-      mapMigrateFailure({
-        ...runnerFailed,
-        rowsWithoutValue: [
-          { field: 'Item.note', reason: 'nullValues' },
-          { field: 'Item.nick', reason: 'nullValues' },
-        ],
-      }).fix,
+      mapMigrateFailure(
+        {
+          ...runnerFailed,
+          rowsWithoutValue: [
+            { field: 'Item.note', reason: 'nullValues' },
+            { field: 'Item.nick', reason: 'nullValues' },
+          ],
+        },
+        PROJECT,
+      ).fix,
     ).toBe(
       'Set a value in the rows that hold NULL in each of "Item.note", "Item.nick" and re-run `{bin} db migrate`.',
     );

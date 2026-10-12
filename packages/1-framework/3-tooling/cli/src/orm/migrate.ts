@@ -469,7 +469,7 @@ export function createMigrateCommand(createClient: CreateControlClient) {
           ...ifDefined('refName', target.refName),
         });
         if (!applied.ok) {
-          return notOk(normalizeError(mapMigrateFailure(applied.failure)));
+          return notOk(normalizeError(mapMigrateFailure(applied.failure, baseDirFor(ctx.config))));
         }
         const { value } = applied;
 

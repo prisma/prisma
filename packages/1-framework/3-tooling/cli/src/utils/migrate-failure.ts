@@ -4,14 +4,14 @@ import type { CliStructuredError } from './cli-errors';
 import { errorPathUnreachable, errorRunnerFailed } from './cli-errors';
 import { migrateFix } from './runner-failure-advice';
 
-/** A `migrate` apply failure as the CLI's structured error. */
-export function mapMigrateFailure(failure: MigrateFailure): CliStructuredError {
+/** A `migrate` apply failure as the CLI's structured error; its advice names paths relative to `projectDir`. */
+export function mapMigrateFailure(failure: MigrateFailure, projectDir: string): CliStructuredError {
   if (failure.code === 'MIGRATION_PATH_NOT_FOUND') {
     return errorPathUnreachable(failure);
   }
   return errorRunnerFailed(failure.summary, {
     why: failure.why ?? 'Migration runner failed',
-    fix: migrateFix(failure),
+    fix: migrateFix(failure, projectDir),
     meta: failure.meta ?? {},
     ...ifDefined('cause', failure.cause),
   });
