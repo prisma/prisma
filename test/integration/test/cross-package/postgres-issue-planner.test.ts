@@ -385,7 +385,7 @@ describe('planIssues', () => {
             user: {
               columns: {
                 id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
-                age: { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
+                age: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
               },
               primaryKey: { columns: ['id'] },
               uniques: [],
@@ -396,10 +396,10 @@ describe('planIssues', () => {
         },
       });
 
-      const plain = planAgainst(toContract, actualWithAge('int4', 'pg/int4@1'), {
+      const plain = planAgainst(toContract, actualWithAge('text', 'pg/text@1'), {
         fromContract: toContract,
       });
-      const converted = planAgainst(toContract, actualWithAge('int4', 'pg/int4@1'), {
+      const converted = planAgainst(toContract, actualWithAge('text', 'pg/text@1'), {
         fromContract: toContract,
         statementColumns: {
           convert: [
