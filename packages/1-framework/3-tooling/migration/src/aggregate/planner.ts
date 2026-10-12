@@ -113,6 +113,7 @@ export async function planMigration<TFamilyId extends string, TTargetId extends 
         aggregateTargetId: aggregate.targetId,
         space,
         currentMarker,
+        storageNameOf: input.storageNameOf,
       });
       if (resolved.kind === 'ok') {
         perSpace.set(space.spaceId, resolved.result);
@@ -174,6 +175,8 @@ export async function planMigration<TFamilyId extends string, TTargetId extends 
       destinationContract: space.contract(),
       strategy: 'declared-state',
       appliedStatements: [],
+      dataLoss: [],
+      accessWidening: [],
       migrationEdges: [
         buildFabricatedMigrationEdge({
           currentMarkerStorageHash: currentMarker?.storageHash,

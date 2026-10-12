@@ -372,7 +372,7 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
 
         expect(dropResult.plan.operations).toHaveLength(1);
         const dropOp = await dropResult.plan.operations[0]!;
-        expect(dropOp.operationClass).toBe('destructive');
+        expect(dropOp.operationClass).toBe('widening');
         expect(dropOp.label).toContain('Drop index');
 
         // Step 3: Apply drop

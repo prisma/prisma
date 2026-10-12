@@ -66,6 +66,11 @@ describe('db update with statements on MongoDB', () => {
     });
 
     const result = await executeDbUpdate({
+      answerQuestions: async (questions) =>
+        questions.map((question) => ({
+          verb: question.verbs.includes('allow') ? ('allow' as const) : ('delete' as const),
+          text: question.subject,
+        })),
       driver: {
         close: async () => {},
         databaseName: async () => 'appdb',

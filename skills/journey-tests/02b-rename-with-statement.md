@@ -12,6 +12,7 @@
 - [ ] Runs `contract emit`.
 - [ ] Runs `migration plan --name rename-user-email --rename User.email:User.emailAddress`.
 - [ ] Runs `migration show <slug>` and confirms the plan renames the column instead of dropping and adding it.
+- [ ] If a plan without the statement is refused with `CLI.CONSENT_REQUIRED` for `User.email`, answers with `--rename User.email:User.emailAddress`, not `--delete User.email`.
 - [ ] Runs `db migrate`.
 
 ## Success criteria

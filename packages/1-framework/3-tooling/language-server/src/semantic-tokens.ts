@@ -14,6 +14,7 @@ import {
   FunctionCallAst,
   type GenericBlockMemberAst,
   type IdentifierAst,
+  MixinDeclarationAst,
   ModelDeclarationAst,
   type NamedTypeDeclarationAst,
   NamespaceDeclarationAst,
@@ -263,6 +264,13 @@ function collectDeclaration(
     return;
   }
 
+  if (declaration instanceof MixinDeclarationAst) {
+    addToken(declaration.keyword(), 'keyword', tokens);
+    addToken(declaration.mixinKeyword(), 'keyword', tokens);
+    addIdentifier(declaration.name(), 'type', tokens, semanticTokenModifierBits.declaration);
+    return;
+  }
+
   addToken(declaration.keyword(), 'keyword', tokens);
   addIdentifier(declaration.name(), 'type', tokens, semanticTokenModifierBits.declaration);
   collectGenericBlockMembers(declaration.members(), source, tokens);
@@ -440,6 +448,10 @@ function collectExpression(
   }
 
   if (expression instanceof TaggedLiteralExprAst) {
+    const tag = expression.tag();
+    addIdentifier(tag?.namespace(), 'namespace', tokens);
+    addIdentifier(tag?.identifier(), 'keyword', tokens);
+    addToken(expression.literal()?.token(), 'string', tokens);
     return;
   }
 

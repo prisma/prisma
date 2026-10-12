@@ -134,23 +134,6 @@ describe('SQLite Migration E2E - Destructive column changes', () => {
     );
   });
 
-  it('tightens nullability (nullable to NOT NULL)', async () => {
-    await applyMigration(
-      {
-        origin: defineContract({
-          models: { User: model('User', { fields: { id: int.id(), name: text.optional() } }) },
-        }),
-        destination: defineContract({
-          models: { User: model('User', { fields: { id: int.id(), name: text } }) },
-        }),
-        policy: ALL,
-      },
-      async ({ schema }) => {
-        expect(schema.tables['User']!.columns['name']!.nullable).toBe(false);
-      },
-    );
-  });
-
   it('drops a column and preserves remaining data', async () => {
     await applyMigration(
       {

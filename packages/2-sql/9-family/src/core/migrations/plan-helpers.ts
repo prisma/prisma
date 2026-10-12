@@ -1,4 +1,7 @@
-import type { AppliedMigrationStatement } from '@internal/framework-components/control';
+import type {
+  AppliedMigrationStatement,
+  MigrationPlanSubjects,
+} from '@internal/framework-components/control';
 import { blindCast } from '@internal/utils/casts';
 import type { NotOk, Ok } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
@@ -120,12 +123,15 @@ export function createMigrationPlan<TTargetDetails>(
 export function plannerSuccess<TTargetDetails>(
   plan: SqlMigrationPlan<TTargetDetails>,
   appliedStatements: readonly AppliedMigrationStatement[],
+  subjects: MigrationPlanSubjects,
   warnings?: readonly SqlPlannerConflict[],
 ): SqlPlannerSuccessResult<TTargetDetails> {
   return Object.freeze({
     kind: 'success',
     plan,
     appliedStatements: Object.freeze([...appliedStatements]),
+    dataLoss: Object.freeze([...subjects.dataLoss]),
+    accessWidening: Object.freeze([...subjects.accessWidening]),
     ...(warnings && warnings.length > 0
       ? {
           warnings: Object.freeze(

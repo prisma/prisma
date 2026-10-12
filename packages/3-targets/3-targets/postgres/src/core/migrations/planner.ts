@@ -13,16 +13,19 @@ import {
   extractCodecControlHooks,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
-  planFieldEventOperations,
+  planFieldEventCalls,
   plannerFailure,
   planStatements,
   sqlTypeLookupsOf,
+  subjectsOfCalls,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   AppliedMigrationStatement,
+  MigrationAccessChange,
   MigrationOperationClass,
+  MigrationOperationSubject,
   MigrationPlanner,
   MigrationPlanWithAuthoringSurface,
   MigrationScaffoldContext,
@@ -76,6 +79,7 @@ import {
   RenamePostgresRlsPolicyCall,
   type RenameTableCall,
 } from './op-factory-call';
+import { postgresCallSubjects } from './operation-subjects';
 import { TypeScriptRenderablePostgresMigration } from './planner-produced-postgres-migration';
 import { postgresPlannerStrategies } from './planner-strategies';
 import { resolveDdlSchemaForNamespaceStorage } from './resolve-ddl-schema';
@@ -130,6 +134,8 @@ export type PostgresPlanResult =
       readonly plan: TypeScriptRenderablePostgresMigration;
       readonly warnings?: readonly SqlPlannerConflict[];
       readonly appliedStatements: readonly AppliedMigrationStatement[];
+      readonly dataLoss: readonly MigrationOperationSubject[];
+      readonly accessWidening: readonly MigrationAccessChange[];
     }
   | SqlPlannerFailureResult;
 
@@ -400,13 +406,14 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     // within-group sorting by `(tableName, fieldName)` so re-emits are
     // byte-stable. The hook fires only at the application emitter —
     // extension-space planning never reaches this helper.
-    const fieldEventOps = planFieldEventOperations({
-      priorContract: options.fromContract,
+    const fieldEventCalls = planFieldEventCalls({
+      priorContract: options.origin === null ? null : options.fromContract,
       newContract: options.contract,
       codecHooks,
       tableRenames: statements.value.tableRenames,
       columnRenames: statements.value.columnRenames,
     });
+    const fieldEventOps = fieldEventCalls.map(({ call }) => call);
     // Codec hook ops are target-agnostic `OpFactoryCall`; Postgres planning
     // lifts them at this integration boundary (see field-event-planner JSDoc).
     const fieldEventPostgresCalls = blindCast<
@@ -458,6 +465,17 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         this.#lowerer,
       ),
       appliedStatements: statements.value.appliedStatements,
+      ...subjectsOfCalls(
+        postgresCallSubjects(calls, {
+          contract: options.fromContract ?? options.contract,
+          fieldEvents: new Map(fieldEventCalls.map((fieldEvent) => [fieldEvent.call, fieldEvent])),
+        }),
+        {
+          fromContract: options.fromContract,
+          contract: options.contract,
+          statements: options.statements,
+        },
+      ),
       ...(warnings.length > 0 ? { warnings: Object.freeze(warnings) } : {}),
     });
   }

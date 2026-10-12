@@ -154,7 +154,7 @@ describe('renderOps', () => {
       },
       {
         id: 'alterNullability.setNotNull.user.email',
-        operationClass: 'destructive',
+        operationClass: 'widening',
         details: schemaObject('column', 'email', 'user'),
       },
       {

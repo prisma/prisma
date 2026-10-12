@@ -19,6 +19,7 @@ import {
   errorStatementOriginUnknown,
   errorStatementUnresolved,
 } from '../../utils/cli-errors';
+import { parseConsentStatement } from './parse-consent';
 import {
   mixedSidesFix,
   type ParsedRename,
@@ -693,17 +694,30 @@ function resolveStatement(
 }
 
 /**
- * Resolves the statements a user gave, in order, against the origin and
+ * Resolves the rename statements a user gave, in order, against the origin and
  * destination contracts. Each resolved statement names its old and new entity
- * by namespace, model and field.
+ * by namespace, model and field. A delete or allow statement is checked and
+ * left out: it names what a plan would do to a subject, so it is matched against
+ * the plan, and it needs no origin contract.
  */
 export function resolveStatements(
   input: ResolveStatementsInput,
 ): Result<readonly ResolvedMigrationStatement[], CliStructuredError> {
-  if (input.statements.length === 0) return ok([]);
-  if (input.origin.kind === 'missing') {
-    return notOk(errorStatementOriginUnknown(input.origin));
+  const parsed: ParsedRename[] = [];
+  for (const entry of input.statements) {
+    if (entry.verb === 'delete' || entry.verb === 'allow') {
+      const statement = parseConsentStatement({ ...entry, verb: entry.verb });
+      if (!statement.ok) return statement;
+      continue;
+    }
+    if (input.origin.kind === 'missing') {
+      return notOk(errorStatementOriginUnknown(input.origin));
+    }
+    const statement = parseRenameStatement({ ...entry, verb: entry.verb });
+    if (!statement.ok) return statement;
+    parsed.push(statement.value);
   }
+  if (parsed.length === 0 || input.origin.kind === 'missing') return ok([]);
   const state: ResolutionState = {
     origin: { name: 'origin', contract: input.origin.contract },
     destination: { name: 'destination', contract: input.destination },
@@ -711,12 +725,6 @@ export function resolveStatements(
     renamedFrom: new Set(),
     renamedTo: new Set(),
   };
-  const parsed: ParsedRename[] = [];
-  for (const entry of input.statements) {
-    const statement = parseRenameStatement(entry);
-    if (!statement.ok) return statement;
-    parsed.push(statement.value);
-  }
   const resolved: ResolvedMigrationStatement[] = [];
   for (const [index, statement] of parsed.entries()) {
     const result = resolveStatement(state, statement, parsed.slice(index + 1));

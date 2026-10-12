@@ -112,6 +112,9 @@ export async function renameColumn(
   };
 }
 
+/** A type change is `widening` when every value of the old type converts to the new type unchanged. */
+export type AlterColumnTypeClass = 'widening' | 'destructive';
+
 /**
  * `qualifiedTargetType` is the new column type as it appears in the
  * `ALTER COLUMN TYPE` clause (schema-qualified for user-defined types, raw
@@ -131,6 +134,7 @@ export async function alterColumnType(
     readonly using?: string;
   },
   lowerer: ExecuteRequestLowerer,
+  operationClass: AlterColumnTypeClass = 'destructive',
 ): Promise<Op> {
   const qualified = qualifyTableName(schemaName, tableName);
   const usingClause = options.using
@@ -152,7 +156,7 @@ export async function alterColumnType(
   return {
     id: `alterType.${tableName}.${columnName}`,
     label: `Alter type of "${tableName}"."${columnName}" to ${options.rawTargetTypeForLabel}`,
-    operationClass: 'destructive',
+    operationClass,
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
     execute: [
@@ -198,7 +202,7 @@ export async function setNotNull(
   return {
     id: `alterNullability.setNotNull.${tableName}.${columnName}`,
     label: `Set NOT NULL on "${tableName}"."${columnName}"`,
-    operationClass: 'destructive',
+    operationClass: 'widening',
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
       step(`ensure column "${columnName}" exists`, present.sql, present.params),

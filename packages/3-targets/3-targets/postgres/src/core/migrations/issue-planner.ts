@@ -94,6 +94,7 @@ import {
   postgresPlannerStrategies,
   type StrategyContext,
 } from './planner-strategies';
+import { liveColumnWidensSafely } from './safe-widenings';
 
 export type { CallMigrationStrategy, StrategyContext };
 
@@ -687,11 +688,13 @@ function mapColumnNodeIssue(
   if (columnTypeChanged(expected, actual)) {
     const { qualifiedTargetType, formatTypeExpected } = renderColumnAlterType(expected, types);
     calls.push(
-      new AlterColumnTypeCall(schemaName, tableName, expected.name, {
-        qualifiedTargetType,
-        formatTypeExpected,
-        rawTargetTypeForLabel: qualifiedTargetType,
-      }),
+      new AlterColumnTypeCall(
+        schemaName,
+        tableName,
+        expected.name,
+        { qualifiedTargetType, formatTypeExpected, rawTargetTypeForLabel: qualifiedTargetType },
+        liveColumnWidensSafely(expected, actual, types) ? 'widening' : 'destructive',
+      ),
     );
   }
   if (expected.nullable !== actual.nullable) {

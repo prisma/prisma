@@ -169,10 +169,6 @@ export function createIndex(
   };
 }
 
-/**
- * Dropping an index loses no documents, but this stays 'destructive' on MongoDB until it moves to
- * 'widening' as it has on the SQL targets.
- */
 export function dropIndex(
   collectionName: string,
   keys: ReadonlyArray<MongoIndexKey>,
@@ -183,7 +179,7 @@ export function dropIndex(
   return {
     id: buildIndexOpId('drop', collectionName, keys),
     label: `Drop index on ${collectionName} (${formatKeys(keys)})`,
-    operationClass: 'destructive',
+    operationClass: 'widening',
     precheck: [
       {
         description: `index exists on ${collectionName}`,
@@ -261,7 +257,7 @@ export function setValidation(
   return {
     id: `collection.${collectionName}.setValidation`,
     label: `Set validation on ${collectionName}`,
-    operationClass: 'destructive',
+    operationClass: 'widening',
     precheck: [],
     execute: [
       {
@@ -287,7 +283,7 @@ export function collMod(
   return {
     id: meta?.id ?? `collection.${collectionName}.collMod`,
     label: meta?.label ?? `Modify collection ${collectionName}`,
-    operationClass: meta?.operationClass ?? 'destructive',
+    operationClass: meta?.operationClass ?? 'widening',
     precheck:
       options.validator != null
         ? [

@@ -59,6 +59,7 @@ const AUDIT_CONTRACT: Contract = createSqlContract({
 const AUDIT_HEAD = AUDIT_CONTRACT.storage.storageHash;
 const AUDIT_OPS: readonly MigrationPlanOperation[] = [
   { id: 'table.audit_log', label: 'Create table audit_log', operationClass: 'additive' },
+  { id: 'dropTable.audit_old', label: 'Drop table audit_old', operationClass: 'destructive' },
   { id: 'index.audit_log.at', label: 'Create index on audit_log', operationClass: 'additive' },
 ];
 const AUDIT_METADATA: Omit<MigrationMetadata, 'migrationHash'> = {
@@ -73,6 +74,8 @@ const RENAME_OP: MigrationPlanOperation = {
   label: 'Rename table "Profile" to "User"',
   operationClass: 'widening',
 };
+
+const LOST = { kind: 'storage', name: 'audit_log' } as const;
 
 function markerAt(storageHash: string): ContractMarkerRecord {
   return {
@@ -98,6 +101,7 @@ const family = {
   introspect: async () => ({ tables: {} }),
   deserializeContract: (json: unknown) => json as Contract,
   toOperationPreview: () => ({ statements: [] }),
+  storageNameOf: (operation: MigrationPlanOperation) => `stored ${operation.id}`,
 } as unknown as ControlFamilyInstance<'sql', unknown>;
 
 const migrations = {
@@ -111,6 +115,8 @@ const migrations = {
         statement,
         operationIndexes: [0],
       })),
+      dataLoss: [{ operationIndex: 0, subject: LOST }],
+      accessWidening: [{ operationIndex: 0, subject: LOST, widens: true }],
       plan: {
         targetId: 'postgres',
         origin: options.origin,
@@ -193,6 +199,7 @@ describe('executeDbUpdate statement positions', () => {
       migrationsDir: await migrationsDirWithPendingExtension(),
       targetId: 'postgres',
       extensions: [auditExtension],
+      answerQuestions: async () => [],
       statements: renameStatements(['Profile:User']),
     });
 
@@ -207,5 +214,28 @@ describe('executeDbUpdate statement positions', () => {
         applied.operationIndexes.map((index) => operations[index]?.id),
       ),
     ).toEqual([[RENAME_OP.id]]);
+    expect(
+      [result.value.dataLoss, result.value.accessWidening].map((entries) =>
+        entries.map(({ operationIndex, subject }) => ({
+          operation: operations[operationIndex]?.id,
+          subject,
+        })),
+      ),
+    ).toEqual([
+      [
+        {
+          operation: 'dropTable.audit_old',
+          subject: { kind: 'storage', name: 'stored dropTable.audit_old' },
+        },
+        { operation: RENAME_OP.id, subject: LOST },
+      ],
+      [{ operation: RENAME_OP.id, subject: LOST }],
+    ]);
+    const listed = new Set(result.value.dataLoss.map(({ operationIndex }) => operationIndex));
+    expect(
+      operations.flatMap((operation, index) =>
+        operation.operationClass === 'destructive' && !listed.has(index) ? [operation.id] : [],
+      ),
+    ).toEqual([]);
   });
 });

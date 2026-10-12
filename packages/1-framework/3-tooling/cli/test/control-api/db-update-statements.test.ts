@@ -1,10 +1,11 @@
 import { rmSync, writeFileSync } from 'node:fs';
-import type { Contract, ContractMarkerRecord } from '@internal/contract/types';
+import { asNamespaceId, type Contract, type ContractMarkerRecord } from '@internal/contract/types';
 import type {
   ControlAdapterInstance,
   ControlDriverInstance,
   ControlFamilyInstance,
   MigrationPlannerResult,
+  MigrationPlannerSuccessResult,
   ResolvedMigrationStatement,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
@@ -88,7 +89,10 @@ interface PlannerCall {
   readonly statements: readonly ResolvedMigrationStatement[];
 }
 
-function recordingMigrations(operationClass: 'additive' | 'destructive' = 'additive') {
+function recordingMigrations(
+  operationClass: 'additive' | 'destructive' = 'additive',
+  dataLoss: MigrationPlannerSuccessResult['dataLoss'] = [],
+) {
   const calls: PlannerCall[] = [];
   const execute = vi.fn().mockResolvedValue(
     ok({
@@ -106,6 +110,8 @@ function recordingMigrations(operationClass: 'additive' | 'destructive' = 'addit
         const renamed = options.statements.length > 0;
         return {
           kind: 'success',
+          dataLoss,
+          accessWidening: [],
           appliedStatements: options.statements.map((statement) => ({
             statement,
             operationIndexes: [0],
@@ -175,6 +181,7 @@ function update(options: {
     migrations: options.migrations,
     frameworkComponents: [],
     migrationsDir: options.migrationsDir,
+    answerQuestions: async () => [],
     targetId: 'postgres',
     statements: renameStatements(options.renames),
     ...(options.verifySnapshotContent === undefined
@@ -368,6 +375,35 @@ describe('executeDbUpdate with statements', () => {
         migrations,
       }),
     ).rejects.toMatchObject({ code: 'MIGRATION.STATEMENT_UNRESOLVED' });
+  });
+
+  it('names a dry run subject as the question would, through the renamed model', async () => {
+    const { migrations } = recordingMigrations('additive', [
+      {
+        operationIndex: 0,
+        subject: {
+          kind: 'field',
+          namespaceId: asNamespaceId('app'),
+          model: 'Profile',
+          field: 'nickname',
+        },
+      },
+    ]);
+
+    const result = await update({
+      migrationsDir: await migrationsDirWithSnapshot(origin),
+      marker: markerAt(ORIGIN_HASH),
+      renames: ['Profile:User'],
+      migrations,
+    });
+
+    expect(result.ok && result.value.dataLoss).toEqual([
+      {
+        operationIndex: 0,
+        subject: { kind: 'field', namespaceId: 'app', model: 'Profile', field: 'nickname' },
+        text: 'User.nickname',
+      },
+    ]);
   });
 
   it('reads no snapshot without statements, and plans from no origin contract', async () => {

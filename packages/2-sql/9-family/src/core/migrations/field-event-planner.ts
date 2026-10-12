@@ -71,9 +71,25 @@ interface FieldEntry {
   readonly newField: StorageColumn | undefined;
 }
 
+/** A call a codec hook returned, with the column of the field event it was returned for. */
+export interface FieldEventCall {
+  readonly call: OpFactoryCall;
+  readonly namespaceId: string;
+  /** The table and column as the new contract names them. */
+  readonly tableName: string;
+  readonly columnName: string;
+}
+
 export function planFieldEventOperations(
   options: PlanFieldEventOperationsOptions,
 ): readonly OpFactoryCall[] {
+  return planFieldEventCalls(options).map(({ call }) => call);
+}
+
+/** The calls the codec hooks return, each with the field event's column. */
+export function planFieldEventCalls(
+  options: PlanFieldEventOperationsOptions,
+): readonly FieldEventCall[] {
   const priorContract = options.priorContract;
   const newContract = options.newContract;
   const renamedTo = new Map(
@@ -145,7 +161,7 @@ export function planFieldEventOperations(
     }
   }
 
-  const calls: OpFactoryCall[] = [];
+  const calls: FieldEventCall[] = [];
   appendCalls('added', added, options.codecHooks, calls, (e) => e.newField?.codecId);
   appendCalls('dropped', dropped, options.codecHooks, calls, (e) => e.priorField?.codecId);
   appendCalls('altered', altered, options.codecHooks, calls, (e) => e.newField?.codecId);
@@ -170,7 +186,7 @@ function appendCalls(
   event: FieldEvent,
   entries: readonly FieldEntry[],
   codecHooks: ReadonlyMap<string, CodecControlHooks>,
-  calls: OpFactoryCall[],
+  calls: FieldEventCall[],
   pickCodecId: (entry: FieldEntry) => string | undefined,
 ): void {
   for (const entry of entries) {
@@ -180,7 +196,14 @@ function appendCalls(
     if (!hook?.onFieldEvent) continue;
     const ctx = buildContext(event, entry);
     const emitted = hook.onFieldEvent(event, ctx);
-    for (const call of emitted) calls.push(call);
+    for (const call of emitted) {
+      calls.push({
+        call,
+        namespaceId: entry.namespaceId,
+        tableName: entry.tableName,
+        columnName: entry.fieldName,
+      });
+    }
   }
 }
 

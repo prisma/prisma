@@ -70,12 +70,7 @@ export async function createIndex(
   };
 }
 
-/**
- * `ALTER INDEX … RENAME TO`. `widening` for the same typology reason as the
- * RLS policy rename: a rename is neither additive creation nor destructive,
- * and the class vocabulary has no neutral middle class — it is NOT that a
- * rename widens anything.
- */
+/** `ALTER INDEX … RENAME TO`: `widening`, because a rename keeps every row and value. */
 export function renameIndexOperationId(
   schemaName: string,
   tableName: string,

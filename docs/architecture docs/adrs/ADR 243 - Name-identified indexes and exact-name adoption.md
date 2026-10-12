@@ -47,9 +47,11 @@ The motivating case is the Cipherstash team's EQL encrypted search, which needs 
 model User {
   id    Int    @id
   email String
-  @@index(expression: "eql_v3.eq_term(email)", name: "users_email_eq", type: "btree")
+  @@index(expression: sql`eql_v3.eq_term(email)`, name: "users_email_eq", type: "btree")
 }
 ```
+
+The expression is a `sql` literal, the only form PSL takes for raw SQL, and a `sql` value in the TypeScript builder, as in ``constraints.index({ expression: sql`eql_v3.eq_term(email)`, name: 'users_email_eq', type: 'btree', options: {} })`` ([ADR 268](ADR%20268%20-%20Raw%20SQL%20is%20a%20value%20of%20the%20data%20type%20sql-expression.md)).
 
 Lowering hashes the canonical content tuple and stores the wire name in the contract:
 
@@ -70,7 +72,7 @@ Adoption of the same index created by someone else's tooling:
 
 ```prisma
 // emitted by `contract infer` — note map:, and the body is Postgres's reprint
-@@index(expression: "eql_v3.eq_term(email)", map: "users_email_eq", type: "btree")
+@@index(expression: sql`eql_v3.eq_term(email)`, map: "users_email_eq", type: "btree")
 ```
 
 Verify pairs the node by the verbatim name and compares the stored reprint against the introspected reprint. They are byte-equal, so there is zero drift and zero operations. The emitted contract signs the live database.
@@ -96,7 +98,7 @@ The index content tuple is a stability commitment — changing it re-suffixes ev
 
 `sortedOptions` is `[key, String(value)]` pairs sorted by key. Prefix, schema, and table are excluded, for ADR 234's reasons. The RLS tuple is unchanged. A table of literal content-to-hash pairs is pinned in the naming tests, so a change to the tuple encoding fails the suite rather than silently renaming every user's indexes.
 
-Default prefixes for unnamed authoring are ADR 009's existing default names, so an unnamed `@@index([a,b])` becomes `t_a_b_idx_<8hex>`. An expression index has no derivable default and must be named with `name:` or `map:`; an authoring diagnostic enforces it. A synthesized FK-backing index is the exception to authored-prefix rejection: its default prefix is derived during FK materialization and truncated to the 54-byte wire-name budget before the content-hash suffix is appended. The emitted storage contract persists that truncated prefix and full physical name; authored index prefixes remain fail-loud when over budget.
+Default prefixes for unnamed authoring are ADR 009's existing default names, so an unnamed `@@index([a,b])` becomes `t_a_b_idx_<8hex>`. An expression index has no derivable default and must be named with `name:` or `map:`; an authoring diagnostic enforces it. A synthesized FK-backing index is the exception to authored-prefix rejection: its default prefix is derived during FK materialization (which also removes indexes that duplicate another, [ADR 161](<./ADR 161 - Explicit foreign key constraint and index configuration.md#a-foreign-key-names-its-backing-index>)) and truncated to the 54-byte wire-name budget before the content-hash suffix is appended. The emitted storage contract persists that truncated prefix and full physical name; authored index prefixes remain fail-loud when over budget.
 
 ## Equivalence matrix
 

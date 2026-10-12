@@ -33,9 +33,6 @@ import type { MigrateFailure } from '../control-api/types';
 import { chooseAction, runCommandAction } from './next-actions';
 
 export {
-  ERROR_CODE_DESTRUCTIVE_CHANGES,
-  errorConsentPlanMismatch,
-  errorDestructiveChanges,
   errorHashMismatch,
   errorMarkerMissing,
   errorMarkerRequired,
@@ -613,6 +610,59 @@ export function errorStatementUnresolved(
 }
 
 /**
+ * A rename typed in answer to a data-loss question was planned, and the plan still loses the
+ * subject's data: the rename does not account for the operation the question was about.
+ */
+export function errorStatementDidNotResolveLoss(
+  statement: WrittenStatement,
+  subject: string,
+): ActionableCliError {
+  const fix = `Answer the question about "${subject}" with --delete ${subject} if its data may be lost, or give a rename whose old name stores that data.`;
+  return new ActionableCliError(
+    'MIGRATION.STATEMENT_DID_NOT_RESOLVE_LOSS',
+    `"--${statement.verb} ${statement.text}" does not keep the data of "${subject}"`,
+    {
+      why: `The plan was made again with the rename, and it still loses the data of "${subject}".`,
+      fix,
+      nextActions: [chooseAction(fix)],
+      meta: { statement: statement.text, verb: statement.verb, subject },
+    },
+  );
+}
+
+/**
+ * `delete` or `allow` statements given to a programmatic call match no question the plan asks,
+ * so they consent to nothing.
+ */
+export function errorStatementAnswersNoQuestion(
+  statements: readonly WrittenStatement[],
+  subjects: readonly string[],
+): ActionableCliError {
+  const written = statements.map(({ verb, text }) => `"--${verb} ${text}"`);
+  const listed =
+    written.length === 1
+      ? `Statement ${written[0]} answers`
+      : `Statements ${written.slice(0, -1).join(', ')} and ${written.at(-1)} answer`;
+  const fix =
+    subjects.length === 0
+      ? 'Leave the statements out: the plan asks no question.'
+      : `Leave them out, or name a subject the plan asks about: ${subjects.join(', ')}.`;
+  return new ActionableCliError(
+    'MIGRATION.STATEMENT_ANSWERS_NO_QUESTION',
+    `${listed} no question of the plan`,
+    {
+      why: 'A delete or allow statement consents to an operation the plan asks about, and these name no subject the plan would lose data from or widen access to.',
+      fix,
+      nextActions: [chooseAction(fix)],
+      meta: {
+        statements: statements.map(({ verb, text }) => ({ verb, text })),
+        subjects,
+      },
+    },
+  );
+}
+
+/**
  * Without statements, `db update` drops a renamed table or column and creates it again under the
  * new name, so any advice to run without them says so.
  */
@@ -620,7 +670,7 @@ const WITHOUT_STATEMENTS_DROPS =
   'A plan made without statements drops the storage of each renamed model or field with its data and creates it again under the new name, and asks for consent before it does.';
 
 /** How to store the snapshot of the contract the database is at, so statements can resolve. */
-const STORE_ORIGIN_SNAPSHOT_STEPS = [
+export const STORE_ORIGIN_SNAPSHOT_STEPS = [
   '1. Put the contract source back to the version the database is at, and run `{bin} contract emit`.',
   '2. Run `{bin} db update --advance-ref <name> --dry-run`, with the same `--db` as this command if it has one, and check that it plans no operations. Then run it again without `--dry-run`: the database matches that contract, so this changes nothing in it, and it stores the contract snapshot. If the dry run plans operations, the database has drifted from that contract; settle that before you go on.',
   '3. Put the new contract source back, run `{bin} contract emit`, and run this command again with `--advance-ref <name>`.',

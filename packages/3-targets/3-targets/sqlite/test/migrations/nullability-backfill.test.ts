@@ -112,7 +112,7 @@ describe('nullability-tightening backfill', async () => {
     const result = planner.plan({
       contract: tightenedEmailContract(),
       schema: nullableEmailSchema(),
-      policy: { allowedOperationClasses: ['additive', 'destructive'] },
+      policy: { allowedOperationClasses: ['additive', 'widening'] },
       fromContract: null,
       origin: null,
       statements: [],
@@ -127,14 +127,14 @@ describe('nullability-tightening backfill', async () => {
     const ops = await Promise.all(result.plan.operations);
     expect(ops).toHaveLength(1);
     expect(ops[0]?.id).toBe('recreateTable.users');
-    expect(ops[0]?.operationClass).toBe('destructive');
+    expect(ops[0]?.operationClass).toBe('widening');
   });
 
   it("with 'data' allowed, emits a backfill data-transform stub before the recreate", async () => {
     const result = planner.plan({
       contract: tightenedEmailContract(),
       schema: nullableEmailSchema(),
-      policy: { allowedOperationClasses: ['additive', 'destructive', 'data'] },
+      policy: { allowedOperationClasses: ['additive', 'widening', 'data'] },
       fromContract: null,
       origin: null,
       statements: [],

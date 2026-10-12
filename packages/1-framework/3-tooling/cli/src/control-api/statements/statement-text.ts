@@ -1,9 +1,10 @@
 /** The verbs a statement can have. */
-export type StatementVerb = 'rename';
+export type StatementVerb = 'rename' | 'delete' | 'allow';
 
 /**
  * A statement as the user wrote it, before it is parsed: its verb and its text, for example
- * `{ verb: 'rename', text: 'Profile:User' }` for `--rename Profile:User`.
+ * `{ verb: 'rename', text: 'Profile:User' }` for `--rename Profile:User` or
+ * `{ verb: 'delete', text: 'Legacy' }` for `--delete Legacy`.
  */
 export interface StatementText {
   readonly verb: StatementVerb;

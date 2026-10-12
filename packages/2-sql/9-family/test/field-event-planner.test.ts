@@ -1,9 +1,56 @@
 import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { planFieldEventOperations } from '../src/core/migrations/field-event-planner';
+import {
+  planFieldEventCalls,
+  planFieldEventOperations,
+} from '../src/core/migrations/field-event-planner';
 import type { CodecControlHooks } from '../src/core/migrations/types';
 import { col, contract, makeOp, recordingHook, table } from './field-event-fixtures';
+
+describe('planFieldEventCalls', () => {
+  it('returns each call with the column of the field event it was returned for', () => {
+    const fromContract = contract({
+      User: table({
+        id: col({ codecId: 'pg/text@1' }),
+        email: col({ codecId: 'cs/string@1' }),
+        bio: col({ codecId: 'cs/string@1' }),
+      }),
+    });
+    const newContract = contract({ User: table({ id: col({ codecId: 'pg/text@1' }) }) });
+    const cs = recordingHook((call) => [makeOp(`drop-${call.fieldName}`)]);
+
+    const calls = planFieldEventCalls({
+      priorContract: fromContract,
+      newContract,
+      codecHooks: new Map<string, CodecControlHooks>([['cs/string@1', cs.hook]]),
+      tableRenames: [],
+      columnRenames: [],
+    });
+
+    expect(
+      calls.map(({ call, namespaceId, tableName, columnName }) => ({
+        factoryName: call.factoryName,
+        namespaceId,
+        tableName,
+        columnName,
+      })),
+    ).toEqual([
+      {
+        factoryName: 'drop-bio',
+        namespaceId: UNBOUND_NAMESPACE_ID,
+        tableName: 'User',
+        columnName: 'bio',
+      },
+      {
+        factoryName: 'drop-email',
+        namespaceId: UNBOUND_NAMESPACE_ID,
+        tableName: 'User',
+        columnName: 'email',
+      },
+    ]);
+  });
+});
 
 describe('planFieldEventOperations', () => {
   it("fires 'added' once per added field on the new field's codec", () => {

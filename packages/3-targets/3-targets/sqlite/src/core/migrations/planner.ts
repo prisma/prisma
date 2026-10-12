@@ -10,14 +10,17 @@ import type {
 import {
   detectTableNameCaseChanges,
   extractCodecControlHooks,
-  planFieldEventOperations,
+  planFieldEventCalls,
   plannerFailure,
   planStatements,
+  subjectsOfCalls,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   AppliedMigrationStatement,
+  MigrationAccessChange,
+  MigrationOperationSubject,
   MigrationPlanner,
   MigrationScaffoldContext,
   PlanOrigin,
@@ -42,6 +45,7 @@ import {
   planIssues,
 } from './issue-planner';
 import type { RenameColumnCall, RenameTableCall } from './op-factory-call';
+import { sqliteCallSubjects } from './operation-subjects';
 import {
   type SqliteMigrationDestinationInfo,
   TypeScriptRenderableSqliteMigration,
@@ -68,6 +72,8 @@ export type SqlitePlanResult =
       readonly kind: 'success';
       readonly plan: TypeScriptRenderableSqliteMigration;
       readonly appliedStatements: readonly AppliedMigrationStatement[];
+      readonly dataLoss: readonly MigrationOperationSubject[];
+      readonly accessWidening: readonly MigrationAccessChange[];
     }
   | SqlPlannerFailureResult;
 
@@ -210,13 +216,14 @@ export class SqliteMigrationPlanner
     // `(tableName, fieldName)` deterministic for byte-stable re-emits.
     // Hook fires only at the application emitter — extension-space planning
     // (M2 R2) never reaches this helper.
-    const fieldEventOps = planFieldEventOperations({
-      priorContract: options.fromContract,
+    const fieldEventCalls = planFieldEventCalls({
+      priorContract: options.origin === null ? null : options.fromContract,
       newContract: options.contract,
       codecHooks,
       tableRenames: statements.value.tableRenames,
       columnRenames: statements.value.columnRenames,
     });
+    const fieldEventOps = fieldEventCalls.map(({ call }) => call);
     // Codec-emitted calls already conform to `OpFactoryCall` — render +
     // toOp + importRequirements ride directly through the same emit path
     // as structural ops, no `RawSqlCall` wrap.
@@ -248,6 +255,17 @@ export class SqliteMigrationPlanner
         this.#lowerer,
       ),
       appliedStatements: statements.value.appliedStatements,
+      ...subjectsOfCalls(
+        sqliteCallSubjects(
+          calls,
+          new Map(fieldEventCalls.map((fieldEvent) => [fieldEvent.call, fieldEvent])),
+        ),
+        {
+          fromContract: options.fromContract,
+          contract: options.contract,
+          statements: options.statements,
+        },
+      ),
     };
   }
 

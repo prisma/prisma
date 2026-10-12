@@ -3,6 +3,7 @@ import {
   type Contract,
   type ContractModelBase,
   type ControlPolicy,
+  crossRef,
   profileHash,
   type StorageHashBase,
 } from '@internal/contract/types';
@@ -29,6 +30,8 @@ export interface ModelSpec {
   readonly control?: ControlPolicy;
   /** Field name to column name; `null` for a relation field, which has no column. */
   readonly fields?: Readonly<Record<string, string | null>>;
+  /** The model this one is a variant of, in the same namespace. */
+  readonly base?: string;
 }
 
 const text = { dataType: 'test/text', codecId: 'test/text@1', nullable: false };
@@ -57,6 +60,7 @@ function model(namespaceId: string, spec: ModelSpec): ContractModelBase {
           },
         ]),
     ),
+    ...(spec.base === undefined ? {} : { base: crossRef(spec.base, namespaceId) }),
     storage:
       spec.table === null
         ? {}

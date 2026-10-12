@@ -1,15 +1,16 @@
-import type { Contract, ContractWithDomain } from '@internal/contract/types';
+import { asNamespaceId, type Contract, type ContractWithDomain } from '@internal/contract/types';
 import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
   describeMigrationStatement,
-  type MigrationOperationClass,
   type MigrationOperationPolicy,
+  type MigrationOperationSubject,
   type MigrationPlanner,
   type MigrationPlannerConflict,
   type MigrationPlannerResult,
   type MigrationPlanWithAuthoringSurface,
   type MigrationScaffoldContext,
+  type MigrationSubject,
   type ModelCoordinate,
   type PlanOrigin,
   type ResolvedMigrationStatement,
@@ -67,101 +68,8 @@ function validatorsEqual(
   );
 }
 
-function classifyValidatorUpdate(
-  origin: MongoSchemaValidator,
-  dest: MongoSchemaValidator,
-): 'widening' | 'destructive' {
-  // Moving to a stricter action or level narrows the accepted value space.
-  if (origin.validationAction !== dest.validationAction && dest.validationAction === 'error') {
-    return 'destructive';
-  }
-  if (origin.validationLevel !== dest.validationLevel && dest.validationLevel === 'strict') {
-    return 'destructive';
-  }
-
-  if (canonicalize(origin.jsonSchema) === canonicalize(dest.jsonSchema)) {
-    return 'widening';
-  }
-
-  // Check whether the schema change only adds non-required properties (widening).
-  return isWideningSchemaChange(origin.jsonSchema, dest.jsonSchema) ? 'widening' : 'destructive';
-}
-
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
-}
-
-/**
- * Returns true when `dest` is a structural superset of `origin` for the common
- * additive case: adding non-required properties to a top-level object schema.
- * Anything uncertain falls through to the safe `destructive` default.
- */
-function isWideningSchemaChange(
-  origin: Record<string, unknown>,
-  dest: Record<string, unknown>,
-): boolean {
-  // Only handle top-level object schemas.
-  if (origin['bsonType'] !== 'object' || dest['bsonType'] !== 'object') {
-    return false;
-  }
-
-  // Any change to keys besides 'required' and 'properties' is uncertain → destructive.
-  const allKeys = new Set([...Object.keys(origin), ...Object.keys(dest)]);
-  for (const key of allKeys) {
-    if (key === 'required' || key === 'properties') continue;
-    if (canonicalize(origin[key]) !== canonicalize(dest[key])) return false;
-  }
-
-  // dest.required must be a subset of origin.required — no new required fields.
-  const originRequired = new Set<unknown>(
-    Array.isArray(origin['required']) ? origin['required'] : [],
-  );
-  const destRequired = Array.isArray(dest['required']) ? dest['required'] : [];
-  for (const field of destRequired) {
-    if (!originRequired.has(field)) return false;
-  }
-
-  // All properties that existed in origin must still exist unchanged.
-  // New properties in dest (absent from origin) are allowed — widening.
-  const originProps = isPlainObject(origin['properties']) ? origin['properties'] : {};
-  const destProps = isPlainObject(dest['properties']) ? dest['properties'] : {};
-  for (const field of Object.keys(originProps)) {
-    if (!Object.hasOwn(destProps, field)) return false; // Property removed → destructive.
-    if (!admitsEverything(destProps[field], originProps[field])) return false; // Property narrowed → destructive.
-  }
-
-  return true;
-}
-
-function bsonTypeList(value: unknown): readonly unknown[] | undefined {
-  if (value === undefined) return undefined;
-  return Array.isArray(value) ? value : [value];
-}
-
-/**
- * Whether every value `origin` admits, `dest` admits too, for the property schemas Prisma derives: `{}` admits every value, a `bsonType` list may gain types, and an array's `items` may admit more. Any other difference is treated as narrowing.
- */
-function admitsEverything(dest: unknown, origin: unknown): boolean {
-  if (canonicalize(dest) === canonicalize(origin)) return true;
-  if (!isPlainObject(dest) || !isPlainObject(origin)) return false;
-  if (Object.keys(dest).length === 0) return true;
-  for (const key of new Set([...Object.keys(origin), ...Object.keys(dest)])) {
-    if (key === 'bsonType') {
-      const destTypes = bsonTypeList(dest['bsonType']);
-      const originTypes = bsonTypeList(origin['bsonType']);
-      if (destTypes === undefined) continue;
-      if (originTypes === undefined || !originTypes.every((type) => destTypes.includes(type))) {
-        return false;
-      }
-      continue;
-    }
-    if (key === 'items') {
-      if (!admitsEverything(dest['items'] ?? {}, origin['items'] ?? {})) return false;
-      continue;
-    }
-    if (canonicalize(origin[key]) !== canonicalize(dest[key])) return false;
-  }
-  return true;
 }
 
 function propertiesOf(schema: Record<string, unknown>): Record<string, unknown> {
@@ -224,10 +132,61 @@ function collectionOf(contract: ContractWithDomain | null, coordinate: ModelCoor
   return typeof collection === 'string' ? collection : coordinate.model;
 }
 
+/**
+ * The model of `fromContract` that stores its documents in `collection`, if any: the root model
+ * when variants share the collection with it.
+ */
+function modelStoredIn(
+  fromContract: ContractWithDomain,
+  collection: string,
+): ModelCoordinate | undefined {
+  const storing = Object.entries(fromContract.domain.namespaces).flatMap(
+    ([namespaceId, namespace]) =>
+      Object.entries(namespace.models).flatMap(([model, definition]) => {
+        const coordinate = { namespaceId: asNamespaceId(namespaceId), model };
+        return collectionOf(fromContract, coordinate) === collection
+          ? [{ coordinate, isRoot: definition.base === undefined }]
+          : [];
+      }),
+  );
+  return (storing.find(({ isRoot }) => isRoot) ?? storing[0])?.coordinate;
+}
+
+/** Each collection drop of the plan, with the model whose documents it loses. */
+function collectionDrops(
+  calls: readonly OpFactoryCall[],
+  fromContract: ContractWithDomain | null,
+): readonly MigrationOperationSubject[] {
+  return calls.flatMap((call, operationIndex) => {
+    if (!(call instanceof DropCollectionCall)) return [];
+    const model = fromContract === null ? undefined : modelStoredIn(fromContract, call.collection);
+    const subject: MigrationSubject =
+      model === undefined
+        ? { kind: 'storage', name: call.collection }
+        : { kind: 'model', ...model };
+    return [{ operationIndex, subject }];
+  });
+}
+
 const NOT_IN_THIS_RELEASE = 'MongoDB cannot carry out rename statements in this release.';
 
 function shellString(name: string): string {
   return JSON.stringify(name);
+}
+
+/**
+ * How to keep the documents of a subject a plan would drop, since the planner carries out no
+ * rename: rename the collection by hand before a plan that drops it is applied. Right for both
+ * `db update`, which then finds nothing to drop, and `migration plan`, whose written migration
+ * still drops it.
+ */
+export function keepDataByHand(
+  subject: MigrationSubject,
+  fromContract: ContractWithDomain,
+): string {
+  const collection =
+    subject.kind === 'storage' ? subject.name : collectionOf(fromContract, subject);
+  return `If it was renamed, keep its documents instead: rename collection "${collection}" by hand on each database before a plan that drops it is applied there, for example with db.getCollection(${shellString(collection)}).renameCollection("<new collection>") in mongosh. db update then drops nothing; a migration written by migration plan still drops "${collection}", so remove that operation from its migration.ts, or do not apply it where the collection was renamed.`;
 }
 
 /**
@@ -451,6 +410,8 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
         options.snapshotsImportPath,
       ),
       appliedStatements: [],
+      dataLoss: collectionDrops(result.calls, options.fromContract),
+      accessWidening: [],
     };
   }
 
@@ -483,9 +444,6 @@ function planValidatorDiffCall(
   if (validatorsEqual(originValidator, destValidator)) return undefined;
 
   if (destValidator) {
-    const operationClass: MigrationOperationClass = originValidator
-      ? classifyValidatorUpdate(originValidator, destValidator)
-      : 'destructive';
     return new CollModCall(
       collName,
       {
@@ -498,7 +456,7 @@ function planValidatorDiffCall(
         label: originValidator
           ? validatorUpdateLabel(collName, originValidator, destValidator)
           : `Add validator on ${collName}`,
-        operationClass,
+        operationClass: 'widening',
       },
     );
   }
@@ -536,7 +494,7 @@ function planMutableOptionsDiffCall(
     {
       id: `options.${collName}.update`,
       label: `Update mutable options on ${collName}`,
-      operationClass: desiredCSPPI.enabled ? 'widening' : 'destructive',
+      operationClass: 'widening',
     },
   );
 }

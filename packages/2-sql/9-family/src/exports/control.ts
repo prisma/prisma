@@ -37,8 +37,24 @@ export {
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
 } from '../core/migrations/control-policy';
-export type { PlanFieldEventOperationsOptions } from '../core/migrations/field-event-planner';
-export { planFieldEventOperations } from '../core/migrations/field-event-planner';
+export type {
+  FieldEventCall,
+  PlanFieldEventOperationsOptions,
+} from '../core/migrations/field-event-planner';
+export {
+  planFieldEventCalls,
+  planFieldEventOperations,
+} from '../core/migrations/field-event-planner';
+export { storageNameOfOperation } from '../core/migrations/operation-storage-name';
+export type {
+  CallSubjects,
+  SubjectStorage,
+} from '../core/migrations/operation-subjects';
+export {
+  fieldEventStorage,
+  subjectsOfCalls,
+  unknownCallNames,
+} from '../core/migrations/operation-subjects';
 export {
   createMigrationPlan,
   plannerFailure,
@@ -70,6 +86,10 @@ export type {
   SqlSchemaDiffResult,
 } from '../core/migrations/schema-differ';
 export type { SchemaTables } from '../core/migrations/schema-tables';
+export {
+  createSqlTextSources,
+  type SqlTextSources,
+} from '../core/migrations/sql-text-sources';
 export { sqlTypeLookupsOf } from '../core/migrations/sql-type-lookups';
 export type {
   CallWithCompanions,

@@ -63,7 +63,8 @@ export interface ColumnOnOneSide {
   readonly kind: 'columnOnOneSide';
 }
 
-function isSqlModelStorage(storage: ModelStorageBase): storage is SqlModelStorage {
+/** Whether a model's storage names a table, as a model a SQL contract stores in a table does. */
+export function isSqlModelStorage(storage: ModelStorageBase): storage is SqlModelStorage {
   return (
     typeof storage['table'] === 'string' &&
     typeof storage['namespaceId'] === 'string' &&

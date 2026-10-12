@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   describeMigrationStatement,
   migrationStatementJson,
+  migrationSubjectJson,
+  migrationSubjectKey,
   modelDisplayName,
   type ResolvedMigrationStatement,
 } from '../src/control/migration-statements';
@@ -98,6 +100,26 @@ describe('describeMigrationStatement', () => {
   });
 });
 
+describe('migrationSubjectJson', () => {
+  it('leaves namespaceId out for the unbound namespace and keeps it otherwise', () => {
+    const unbound = asNamespaceId(UNBOUND_NAMESPACE_ID);
+    expect([
+      migrationSubjectJson({
+        kind: 'field',
+        namespaceId: unbound,
+        model: 'User',
+        field: 'name',
+      }),
+      migrationSubjectJson({ kind: 'model', namespaceId: app, model: 'Legacy' }),
+      migrationSubjectJson({ kind: 'storage', name: 'audit_log' }),
+    ]).toEqual([
+      { kind: 'field', model: 'User', field: 'name' },
+      { kind: 'model', namespaceId: 'app', model: 'Legacy' },
+      { kind: 'storage', name: 'audit_log' },
+    ]);
+  });
+});
+
 describe('modelDisplayName', () => {
   it('qualifies a model with its namespace, except in the unbound namespace', () => {
     expect([
@@ -132,5 +154,24 @@ describe('migrationStatementJson', () => {
         to: { namespaceId: 'app', model: 'User' },
       },
     ]);
+  });
+});
+
+describe('migrationSubjectKey', () => {
+  it('is equal for subjects that name the same thing, whatever their key order', () => {
+    const app = asNamespaceId('app');
+    expect(
+      migrationSubjectKey({ kind: 'field', namespaceId: app, model: 'User', field: 'name' }),
+    ).toBe(migrationSubjectKey({ field: 'name', model: 'User', namespaceId: app, kind: 'field' }));
+  });
+
+  it('differs between a model, a field and a storage name that share a name', () => {
+    const app = asNamespaceId('app');
+    const keys = new Set([
+      migrationSubjectKey({ kind: 'model', namespaceId: app, model: 'User' }),
+      migrationSubjectKey({ kind: 'field', namespaceId: app, model: 'User', field: 'User' }),
+      migrationSubjectKey({ kind: 'storage', name: 'User' }),
+    ]);
+    expect(keys.size).toBe(3);
   });
 });

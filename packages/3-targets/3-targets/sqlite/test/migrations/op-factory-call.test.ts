@@ -219,7 +219,7 @@ describe('AddColumnCall', () => {
     await expect(async () => call.toOp()).rejects.toThrow('createSqliteMigrationPlanner');
   });
 
-  it('renders a default holding both quote kinds as a template literal', () => {
+  it('renders a default holding both quote kinds as a sql template', () => {
     const call = new AddColumnCall(
       'user',
       colSpec({
@@ -234,11 +234,14 @@ describe('AddColumnCall', () => {
         'this.addColumn({ table: "user", column: {',
         '  name: "meta",',
         '  typeSql: "TEXT",',
-        '  default: { kind: "function", expression: `\'{"a": 1}\'` },',
+        '  default: { kind: "function", expression: sql`\'{"a": 1}\'` },',
         '  nullable: false,',
         '} })',
       ].join('\n'),
     );
+    expect(call.importRequirements()).toEqual([
+      { moduleSpecifier: '@internal/sqlite/migration', symbol: 'sql' },
+    ]);
   });
 
   it('renders a literal default as its JSON value', () => {
@@ -427,6 +430,30 @@ describe('RecreateTableCall', () => {
     expect(op.postcheck.some((s) => s.description.includes('type'))).toBe(true);
   });
 
+  it('keeps its lossy columns out of the operation and the rendered migration', async () => {
+    const args = {
+      tableName: 'user',
+      contractTable: tableSpec([
+        colSpec({ name: 'id', typeSql: 'INTEGER', nullable: false }),
+        colSpec({ name: 'age', typeSql: 'INTEGER', nullable: true }),
+      ]),
+      schemaColumnNames: ['id', 'age'],
+      indexes: [],
+      summary: 'Recreates table user to apply schema changes: type mismatch on age',
+      postchecks: [],
+      operationClass: 'destructive' as const,
+    };
+    const withLossy = new RecreateTableCall(args, ['age']);
+    const without = new RecreateTableCall(args);
+
+    expect(withLossy.lossyColumns).toEqual(['age']);
+    expect(without.lossyColumns).toEqual([]);
+    expect(withLossy.renderTypeScript()).toBe(without.renderTypeScript());
+    expect(JSON.stringify(await withLossy.toOp(stubLowerer('CHECK SQL')))).toBe(
+      JSON.stringify(await without.toOp(stubLowerer('CHECK SQL'))),
+    );
+  });
+
   it('writes each column default the adapter renders, and checks the recreated table carries it', async () => {
     const lowerer: ExecuteRequestLowerer = {
       ...stubLowerer('CHECK SQL'),
@@ -519,7 +546,7 @@ describe('RecreateTableCall', () => {
     await expect(call.toOp()).rejects.toThrow('createSqliteMigrationPlanner');
   });
 
-  it('renders a column default and a postcheck holding both quote kinds as template literals', () => {
+  it('renders a column default as a sql template and its planner-built postcheck SQL as a string', () => {
     const call = new RecreateTableCall({
       tableName: 'user',
       contractTable: tableSpec(
@@ -567,7 +594,7 @@ describe('RecreateTableCall', () => {
         '  {',
         '  name: "meta",',
         '  typeSql: "TEXT",',
-        '  default: { kind: "function", expression: `\'{"a": 1}\'` },',
+        '  default: { kind: "function", expression: sql`\'{"a": 1}\'` },',
         '  codecRef: { codecId: "sqlite/text@1" },',
         '  nullable: false,',
         '},',
@@ -590,6 +617,9 @@ describe('RecreateTableCall', () => {
         '})',
       ].join('\n'),
     );
+    expect(call.importRequirements()).toEqual([
+      { moduleSpecifier: '@internal/sqlite/migration', symbol: 'sql' },
+    ]);
   });
 });
 

@@ -176,6 +176,100 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
     expect(calls.map((c) => c.factoryName)).toEqual(['alterColumnType', 'setNotNull']);
   });
 
+  describe('a type change of an introspected column, with no origin contract', () => {
+    function alterClass(
+      live: { readonly nativeType: string; readonly many?: boolean },
+      contractColumn: TableSpec['columns'][string],
+    ) {
+      const contract = makeContract({
+        user: {
+          columns: {
+            id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+            age: contractColumn,
+          },
+          primaryKey: { columns: ['id'] },
+          foreignKeys: [],
+          uniques: [],
+          indexes: [],
+        },
+      });
+      const actual = rootOf({
+        user: new PostgresTableSchemaNode({
+          name: 'user',
+          columns: {
+            id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
+            age: {
+              name: 'age',
+              nativeType: live.nativeType,
+              nullable: false,
+              resolvedNativeType: live.nativeType,
+              ...(live.many === undefined ? {} : { many: live.many }),
+            },
+          },
+          primaryKey: { columns: ['id'] },
+          foreignKeys: [],
+          uniques: [],
+          indexes: [],
+          policies: [],
+          rlsEnabled: false,
+        }),
+      });
+      const call = planFor(contract, actual).find((c) => c instanceof AlterColumnTypeCall);
+      return call?.operationClass;
+    }
+
+    it('is widening for a safe widening read from the written type name', () => {
+      expect([
+        alterClass(
+          { nativeType: 'int4' },
+          { dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false },
+        ),
+        alterClass(
+          { nativeType: 'int2' },
+          { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+        ),
+        alterClass(
+          { nativeType: 'float4' },
+          { dataType: 'pg/float8', codecId: 'pg/float8@1', nullable: false },
+        ),
+      ]).toEqual(['widening', 'widening', 'widening']);
+    });
+
+    it('is destructive for a type change that can change values, or one between lists', () => {
+      expect([
+        alterClass(
+          { nativeType: 'int8' },
+          { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+        ),
+        alterClass(
+          { nativeType: 'text' },
+          { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+        ),
+        alterClass(
+          { nativeType: 'int4', many: true },
+          {
+            dataType: 'pg/int8',
+            codecId: 'pg/int8@1',
+            nullable: false,
+            many: { elementNullable: false },
+          },
+        ),
+        alterClass(
+          { nativeType: 'float4' },
+          { dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false },
+        ),
+        alterClass(
+          { nativeType: 'numeric(10,2)' },
+          { dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false },
+        ),
+        alterClass(
+          { nativeType: 'int4' },
+          { dataType: 'pg/float8', codecId: 'pg/float8@1', nullable: false },
+        ),
+      ]).toEqual(Array(6).fill('destructive'));
+    });
+  });
+
   it('checks a type change of a column that references a storage type against the catalog text of the referenced type', () => {
     const contract = makeContract(
       {

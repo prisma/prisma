@@ -9,7 +9,7 @@
  * with additional fields for execution (precheck SQL, execute SQL, etc.).
  */
 
-import type { Contract } from '@internal/contract/types';
+import type { Contract, ContractWithDomain } from '@internal/contract/types';
 import type { ImportRequirement } from '@internal/ts-render';
 import type { Result } from '@internal/utils/result';
 import type { TargetBoundComponentDescriptor } from '../shared/framework-components';
@@ -20,7 +20,12 @@ import type {
   ControlFamilyInstance,
 } from './control-instances';
 import type { OperationContext } from './control-operation-results';
-import type { AppliedMigrationStatement, ResolvedMigrationStatement } from './migration-statements';
+import type {
+  AppliedMigrationStatement,
+  MigrationPlanSubjects,
+  MigrationSubject,
+  ResolvedMigrationStatement,
+} from './migration-statements';
 
 // ============================================================================
 // Migration Package Metadata
@@ -68,16 +73,18 @@ export interface MigrationMetadata {
 // ============================================================================
 
 /**
- * What an operation can do to the data. `destructive` means the operation loses data; no other
- * class loses a row or a value.
- * - 'additive': adds structure without changing what exists.
- * - 'widening': changes existing structure without losing data: a rename, a relaxed constraint or
- *   a wider type, and a drop of an object that holds no data (an index; a unique, foreign-key or
- *   check constraint; a default; a native enum type; a row-level-security policy) or disabling
- *   row-level security. Dropping a policy or disabling row-level security widens who can read and
- *   write rows.
- * - 'destructive': loses data, such as dropping a table or a column.
- * - 'data': transforms data, such as a backfill or a type conversion.
+ * What an operation does to the data. Of the classes a planner chooses, only `destructive` loses
+ * data by itself; a `data` operation runs what its author wrote, which may lose data by design.
+ * - 'additive': adds structure and leaves existing structure and data as they are.
+ * - 'widening': changes existing structure without losing data. An operation that cannot keep
+ *   every value fails instead, so a tightened constraint is widening: `SET NOT NULL` fails on a
+ *   NULL, and a MongoDB validator applies to later writes only. So are a rename, a relaxed
+ *   constraint, a type change that keeps every value, and a drop of an object that holds no data,
+ *   such as an index, a constraint, a default or a row-level-security policy. Dropping a policy or
+ *   disabling row-level security widens who can read and write rows.
+ * - 'destructive': can lose rows or values: dropping a table, a column or a collection, or a type
+ *   change that can change values.
+ * - 'data': reads and writes rows, such as a backfill or a type conversion, as its author wrote.
  */
 export type MigrationOperationClass = 'additive' | 'widening' | 'destructive' | 'data';
 
@@ -307,7 +314,7 @@ export interface MigrationPlannerConflict {
  * The plan is typed as `MigrationPlanWithAuthoringSurface` so the CLI can
  * uniformly ask any plan to render itself to TypeScript.
  */
-export interface MigrationPlannerSuccessResult {
+export interface MigrationPlannerSuccessResult extends MigrationPlanSubjects {
   readonly kind: 'success';
   readonly plan: MigrationPlanWithAuthoringSurface;
   readonly warnings?: readonly MigrationPlannerConflict[];
@@ -646,6 +653,18 @@ export interface TargetMigrationsCapability<
     adapter: ControlAdapterInstance<TFamilyId, TTargetId>,
   ): MigrationPlanner<TFamilyId, TTargetId>;
   createRunner(family: TFamilyInstance): MigrationRunner<TFamilyId, TTargetId>;
+  /**
+   * Set when the target's planner carries out no rename statement: a data-loss question then
+   * offers no rename, and says instead how to keep the data by hand.
+   */
+  readonly renameStatements?: {
+    readonly refused: true;
+    /** How to keep the data of `subject` by hand, so that the plan made afterwards loses nothing. */
+    readonly keepDataByHand: (
+      subject: MigrationSubject,
+      fromContract: ContractWithDomain,
+    ) => string;
+  };
   /**
    * Synthesizes a family-specific schema IR from a contract for offline planning.
    * The returned schema can be passed to `planner.plan({ schema })` as the "from" state.

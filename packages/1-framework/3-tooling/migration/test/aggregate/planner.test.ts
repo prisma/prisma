@@ -96,7 +96,13 @@ describe('planMigration', () => {
       app: makeSpace({ spaceId: 'app' }),
     });
     const stubPlan = makeSyntheticPlan('placeholder-target-id-from-stub');
-    const planner = makeStubPlanner({ kind: 'success', plan: stubPlan, appliedStatements: [] });
+    const planner = makeStubPlanner({
+      kind: 'success',
+      plan: stubPlan,
+      appliedStatements: [],
+      dataLoss: [],
+      accessWidening: [],
+    });
 
     const result = await planMigration({
       aggregate,
@@ -110,6 +116,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set(['app']) },
       operationPolicy: POLICY,
       appSpace: { fromContract: null, statements: [] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(result.ok).toBe(true);
@@ -140,6 +147,8 @@ describe('planMigration', () => {
           kind: 'success',
           plan: makeSyntheticPlan('postgres'),
           appliedStatements: [applied],
+          dataLoss: [],
+          accessWidening: [],
         };
       },
       emptyMigration: () => {
@@ -156,6 +165,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set(['app']) },
       operationPolicy: POLICY,
       appSpace: { fromContract: origin, statements: [statement] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(received).toEqual({ fromContract: origin, statements: [statement] });
@@ -174,7 +184,13 @@ describe('planMigration', () => {
     const planner: MigrationPlanner<'sql', 'postgres'> = {
       plan: () => {
         planned = true;
-        return { kind: 'success', plan: makeSyntheticPlan('postgres'), appliedStatements: [] };
+        return {
+          kind: 'success',
+          plan: makeSyntheticPlan('postgres'),
+          appliedStatements: [],
+          dataLoss: [],
+          accessWidening: [],
+        };
       },
       emptyMigration: () => {
         throw new Error('not used');
@@ -190,6 +206,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set() },
       operationPolicy: POLICY,
       appSpace: { fromContract: null, statements: [statement] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(result.assertNotOk()).toEqual({
@@ -220,7 +237,13 @@ describe('planMigration', () => {
           fromContract: options.fromContract,
           statements: options.statements,
         });
-        return { kind: 'success', plan: makeSyntheticPlan('postgres'), appliedStatements: [] };
+        return {
+          kind: 'success',
+          plan: makeSyntheticPlan('postgres'),
+          appliedStatements: [],
+          dataLoss: [],
+          accessWidening: [],
+        };
       },
       emptyMigration: () => {
         throw new Error('not used');
@@ -236,6 +259,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set(['app', 'cipherstash']) },
       operationPolicy: POLICY,
       appSpace: { fromContract: origin, statements: [statement] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(result.ok).toBe(true);
@@ -259,7 +283,13 @@ describe('planMigration', () => {
     });
 
     const stubPlan = makeSyntheticPlan('postgres');
-    const planner = makeStubPlanner({ kind: 'success', plan: stubPlan, appliedStatements: [] });
+    const planner = makeStubPlanner({
+      kind: 'success',
+      plan: stubPlan,
+      appliedStatements: [],
+      dataLoss: [],
+      accessWidening: [],
+    });
 
     const result = await planMigration({
       aggregate,
@@ -273,6 +303,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set(['app']) },
       operationPolicy: POLICY,
       appSpace: { fromContract: null, statements: [] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(result.ok).toBe(true);
@@ -305,6 +336,8 @@ describe('planMigration', () => {
         kind: 'success',
         plan: makeSyntheticPlan('postgres'),
         appliedStatements: [],
+        dataLoss: [],
+        accessWidening: [],
       }),
     );
     const planner: MigrationPlanner<'sql', 'postgres'> = {
@@ -326,6 +359,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set() },
       operationPolicy: POLICY,
       appSpace: { fromContract: null, statements: [] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(result.ok).toBe(true);
@@ -364,6 +398,8 @@ describe('planMigration', () => {
       kind: 'success',
       plan: makeSyntheticPlan('postgres'),
       appliedStatements: [],
+      dataLoss: [],
+      accessWidening: [],
     });
 
     const result = await planMigration({
@@ -380,6 +416,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set(['app', 'cipherstash']) },
       operationPolicy: POLICY,
       appSpace: { fromContract: null, statements: [] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(result.ok).toBe(false);
@@ -404,6 +441,8 @@ describe('planMigration', () => {
       kind: 'success',
       plan: makeSyntheticPlan('postgres'),
       appliedStatements: [],
+      dataLoss: [],
+      accessWidening: [],
     });
 
     const result = await planMigration({
@@ -420,6 +459,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set(['app']) },
       operationPolicy: POLICY,
       appSpace: { fromContract: null, statements: [] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(result.ok).toBe(false);
@@ -460,6 +500,8 @@ describe('planMigration', () => {
       kind: 'success',
       plan: makeSyntheticPlan('postgres'),
       appliedStatements: [],
+      dataLoss: [],
+      accessWidening: [],
     });
 
     const result = await planMigration({
@@ -474,6 +516,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set(['app']) },
       operationPolicy: POLICY,
       appSpace: { fromContract: null, statements: [] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(result.ok).toBe(false);
@@ -514,6 +557,8 @@ describe('planMigration', () => {
       kind: 'success',
       plan: makeSyntheticPlan('postgres'),
       appliedStatements: [],
+      dataLoss: [],
+      accessWidening: [],
     });
 
     const result = await planMigration({
@@ -528,6 +573,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set(['app']) },
       operationPolicy: POLICY,
       appSpace: { fromContract: null, statements: [] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(result.ok).toBe(true);
@@ -559,6 +605,7 @@ describe('planMigration', () => {
       callerPolicy: { ignoreGraphFor: new Set(['app']) },
       operationPolicy: POLICY,
       appSpace: { fromContract: null, statements: [] },
+      storageNameOf: (operation) => operation.id,
     });
 
     expect(result.ok).toBe(false);

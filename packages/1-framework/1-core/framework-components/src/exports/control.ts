@@ -126,7 +126,12 @@ export type {
   AppliedMigrationStatement,
   FieldCoordinate,
   FieldCoordinateJson,
+  MigrationAccessChange,
+  MigrationOperationSubject,
+  MigrationPlanSubjects,
   MigrationStatementJson,
+  MigrationSubject,
+  MigrationSubjectJson,
   ModelCoordinate,
   ModelCoordinateJson,
   ResolvedFieldRenameStatement,
@@ -136,6 +141,8 @@ export type {
 export {
   describeMigrationStatement,
   migrationStatementJson,
+  migrationSubjectJson,
+  migrationSubjectKey,
   modelDisplayName,
 } from '../control/migration-statements';
 export { orderIssuesByDependencies } from '../control/order-issues-by-dependencies';
@@ -158,7 +165,6 @@ export type {
 } from '../control/verifier-disposition';
 export { dispositionForCategory } from '../control/verifier-disposition';
 export type {
-  ControlDefaultRegistries,
   ControlMutationDefaultEntry,
   ControlMutationDefaultRegistry,
   ControlMutationDefaults,
@@ -170,9 +176,7 @@ export type {
   SourceSpan,
   TypedDefaultFunctionCall,
 } from '../shared/mutation-default-types';
-export type { TaggedLiteralCanonicalization } from '../shared/tagged-literal';
 export {
-  canonicalizeTaggedLiteralBody,
   describeTaggedLiteralFailure,
   resolvePslBacktickEscapes,
   resolveTemplateTagEscapes,

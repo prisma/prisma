@@ -38,18 +38,25 @@ import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder
 import { resolveAggregate } from './aggregate-codecs';
 import { emptyAggregateResult } from './aggregate-empty-result';
 import { aggregateOperationNames } from './aggregate-operations';
-import { mapCursorValuesToColumns, mapFieldsToColumns } from './collection-column-mapping';
+import {
+  mapCursorValuesToColumns,
+  mapFieldsToColumns,
+  mapSelectedFieldsToColumns,
+} from './collection-column-mapping';
 import {
   assertDistinctOnCapability,
   assertInsertConflictSkipCapability,
   assertLockCapability,
   assertReturningCapability,
-  getColumnToFieldMap,
-  getFieldToColumnMap,
+  columnOfCallerField,
+  fieldOfColumn,
+  getModelAndVariantFieldColumns,
+  getModelColumnFields,
+  getModelFieldColumns,
+  getOwnFieldColumns,
   isToOneCardinality,
   type PolymorphismInfo,
   type PolymorphismVariantInfo,
-  resolveFieldToColumn,
   resolveIncludeRelation,
   resolveInsertConflictColumns,
   resolveModelTableName,
@@ -61,6 +68,7 @@ import {
 import {
   consumeFirstRow,
   describeCollectionFirst,
+  describeCollectionFirstOrThrow,
   describeCollectionRows,
   dispatchCollectionRows,
 } from './collection-dispatch';
@@ -81,12 +89,15 @@ import {
   dispatchSplitMutationRows,
   executeMutationReturningSingleRow,
 } from './collection-mutation-dispatch';
-import { mapModelDataToStorageRow, mapPolymorphicRow } from './collection-runtime';
+import {
+  assertModelFieldNames,
+  mapModelDataToStorageRow,
+  mapPolymorphicRow,
+} from './collection-runtime';
 import type {
   CollectionRowOf,
   CollectionTypeStateOf,
   Filtered,
-  Fragment,
   HasNoVariant,
   HasOrderBy,
   HasRow,
@@ -95,6 +106,7 @@ import type {
   Including,
   ModelFragmentReceiver,
   Ordered,
+  QueryFragment,
   // biome-ignore lint/correctness/noUnusedImports: used in `declare` properties
   RowType,
   TypeState,
@@ -103,6 +115,7 @@ import { shorthandToWhereExpr } from './filters';
 import {
   assertFragmentBody,
   assertModelFragmentReceiver,
+  assertModelFragmentSource,
   type FragmentFacts,
   type FragmentFactsType,
   type WithFacts,
@@ -289,21 +302,47 @@ function isMtiVariantInfo(variant: PolymorphismVariantInfo | undefined): variant
 interface MtiCreateContext {
   polyInfo: PolymorphismInfo;
   variant: MtiVariantInfo;
-  baseFieldToColumn: Record<string, string>;
-  variantFieldToColumn: Record<string, string>;
+  baseFieldToColumn: Readonly<Record<string, string>>;
+  variantFieldToColumn: Readonly<Record<string, string>>;
+  mergedFieldToColumn: Readonly<Record<string, string>>;
   pkColumns: readonly string[];
 }
 
-/** What `fragment` reads from the collection it is called on: its contract and its model. */
+/** What `fragment` reads from the collection it is called on: its contract, its model and its query state. */
 interface FragmentSource {
   readonly modelName: string;
   readonly namespaceId: string;
+  readonly state: CollectionState;
   readonly ctx: { readonly context: { readonly contract: Contract<SqlStorage> } };
 }
 
 type ContractOf<C extends FragmentSource> = C['ctx']['context']['contract'];
 
 type ModelNameOf<C extends FragmentSource> = C['modelName'];
+
+/** The compile error `fragment` gives on a collection whose type records a filter, an order or an include. */
+interface FragmentNeedsRootCollection {
+  readonly fragmentNeedsRootCollection: 'the fragment is built from the model alone, so call fragment on the root collection of the model';
+}
+
+type HasRowBeyondModel<Self extends FragmentSource, NsId extends string> = Self extends HasRow
+  ? [
+      Exclude<
+        keyof CollectionRowOf<Self>,
+        keyof DefaultModelRow<ContractOf<Self>, ModelNameOf<Self>, NsId>
+      >,
+    ] extends [never]
+    ? false
+    : true
+  : false;
+
+type RootCollectionOnly<Self extends FragmentSource, NsId extends string> = Self extends
+  | HasWhere
+  | HasOrderBy
+  ? FragmentNeedsRootCollection
+  : HasRowBeyondModel<Self, NsId> extends true
+    ? FragmentNeedsRootCollection
+    : unknown;
 
 type ModelFragmentBody<
   TContract extends Contract<SqlStorage>,
@@ -407,7 +446,13 @@ export class CollectionBase<
     const column =
       field === undefined
         ? undefined
-        : resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
+        : columnOfCallerField(
+            this.contract,
+            this.namespaceId,
+            getModelFieldColumns(this.contract, this.namespaceId, this.modelName),
+            this.modelName,
+            field,
+          );
     return createIncludeScalar(operation, this.state, column);
   }
 
@@ -497,7 +542,9 @@ export class CollectionBase<
   }
 
   /**
-   * Define a query fragment for this collection's model, such as a shared `select` and `include`. The body is typed once, against the model's plain collection. The fragment accepts any collection of the model that `select` and `variant` have not narrowed.
+   * Define a query fragment for this collection's model, such as a shared `select` and `include`. The body is typed once, against the model's plain collection. The fragment can be applied to any collection of the model that `select` and `variant` have not narrowed.
+   *
+   * The fragment is built from the model alone, so call `fragment` on the model's root collection. On a collection with chained calls it throws `ORM.ARGUMENT_INVALID`. The type check is partial: it refuses a collection whose type records a filter, an order or an include, and a collection typed by a type parameter, such as `this` in a class method; it does not see `limit`, `offset`, `select`, `cursor`, `distinct`, `variant` or a lock, a union with a root collection, or a value typed as the plain collection.
    *
    * ```ts
    * const summary = db.Post.fragment((posts) => posts.select('id', 'title').include('user'));
@@ -505,10 +552,11 @@ export class CollectionBase<
    * ```
    */
   fragment<Self extends FragmentSource, NsId extends string, Result>(
-    this: Self & HasTypeState<{ readonly nsId: NsId }>,
+    this: Self & HasTypeState<{ readonly nsId: NsId }> & RootCollectionOnly<Self, NsId>,
     body: (collection: ModelFragmentBody<ContractOf<Self>, ModelNameOf<Self>, NsId>) => Result,
-  ): Fragment<ModelFragmentReceiver<ContractOf<Self>, ModelNameOf<Self>, NsId>, Result> {
+  ): QueryFragment<ModelFragmentReceiver<ContractOf<Self>, ModelNameOf<Self>, NsId>, Result> {
     assertFragmentBody(body);
+    assertModelFragmentSource(this);
     const source = { modelName: this.modelName, namespaceId: this.namespaceId };
     return (collection) => {
       assertModelFragmentReceiver(source, collection);
@@ -978,10 +1026,11 @@ export class CollectionBase<
     >,
     State
   > {
-    const selectedFields = mapFieldsToColumns(
+    const selectedFields = mapSelectedFieldsToColumns(
       this.contract,
       this.namespaceId,
       this.modelName,
+      this.state.variantName,
       fields,
     );
 
@@ -1314,9 +1363,11 @@ export class CollectionBase<
    * const job = await tx.orm.Job.where({ state: 'queued' }).limit(1).forUpdate({ skipLocked: true }).first();
    * ```
    */
-  forUpdate(
+  forUpdate<Self>(
+    this: Self,
     ...options: LockMethodArgs<TContract['capabilities'], 'forUpdate'>
-  ): Collection<TContract, ModelName, Row, State> {
+  ): Self;
+  forUpdate(...options: LockMethodArgs<TContract['capabilities'], 'forUpdate'>): this {
     return this.#lock('forUpdate', options[0]);
   }
 
@@ -1325,9 +1376,11 @@ export class CollectionBase<
    *
    * Requires the `postgres.forNoKeyUpdate` and `sql.lockOf` capabilities, because the lock always names the model's table with `OF`.
    */
-  forNoKeyUpdate(
+  forNoKeyUpdate<Self>(
+    this: Self,
     ...options: LockMethodArgs<TContract['capabilities'], 'forNoKeyUpdate'>
-  ): Collection<TContract, ModelName, Row, State> {
+  ): Self;
+  forNoKeyUpdate(...options: LockMethodArgs<TContract['capabilities'], 'forNoKeyUpdate'>): this {
     return this.#lock('forNoKeyUpdate', options[0]);
   }
 
@@ -1336,9 +1389,11 @@ export class CollectionBase<
    *
    * Requires the `sql.forShare` and `sql.lockOf` capabilities, because the lock always names the model's table with `OF`.
    */
-  forShare(
+  forShare<Self>(
+    this: Self,
     ...options: LockMethodArgs<TContract['capabilities'], 'forShare'>
-  ): Collection<TContract, ModelName, Row, State> {
+  ): Self;
+  forShare(...options: LockMethodArgs<TContract['capabilities'], 'forShare'>): this {
     return this.#lock('forShare', options[0]);
   }
 
@@ -1347,9 +1402,11 @@ export class CollectionBase<
    *
    * Requires the `postgres.forKeyShare` and `sql.lockOf` capabilities, because the lock always names the model's table with `OF`.
    */
-  forKeyShare(
+  forKeyShare<Self>(
+    this: Self,
     ...options: LockMethodArgs<TContract['capabilities'], 'forKeyShare'>
-  ): Collection<TContract, ModelName, Row, State> {
+  ): Self;
+  forKeyShare(...options: LockMethodArgs<TContract['capabilities'], 'forKeyShare'>): this {
     return this.#lock('forKeyShare', options[0]);
   }
 
@@ -1447,12 +1504,13 @@ export class CollectionBase<
         const selected = this.#withAnnotationsFromMeta(configure, 'all');
         return describeCollectionRows<Row>(selected.#descriptionOptions());
       },
-      first: (
-        filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
-        configure?: (meta: MetaBuilder<'read'>) => void,
-      ) => {
-        const selected = this.#forFirst(filter, configure);
+      first: (filter, configure) => {
+        const selected = this.#forFirst(filter, configure, 'first');
         return describeCollectionFirst<Row>(selected.#descriptionOptions());
+      },
+      firstOrThrow: (filter, configure) => {
+        const selected = this.#forFirst(filter, configure, 'firstOrThrow');
+        return describeCollectionFirstOrThrow<Row>(selected.#descriptionOptions());
       },
     };
     return blindCast<
@@ -1474,6 +1532,7 @@ export class CollectionBase<
   #forFirst(
     filter: WhereInput<TContract, State['nsId'], ModelName, State['variantName']> | undefined,
     configure: ((meta: MetaBuilder<'read'>) => void) | undefined,
+    terminalName: 'first' | 'firstOrThrow',
   ) {
     const scoped =
       filter === undefined
@@ -1481,7 +1540,7 @@ export class CollectionBase<
         : typeof filter === 'function'
           ? this.where(filter)
           : this.where(filter);
-    return scoped.limit(1).#withAnnotationsFromMeta(configure, 'first');
+    return scoped.limit(1).#withAnnotationsFromMeta(configure, terminalName);
   }
 
   /**
@@ -1508,31 +1567,36 @@ export class CollectionBase<
    * );
    * ```
    */
-  async first<Self extends this>(this: Self): Promise<CollectionRowOf<Self> | null>;
   async first<Self extends this>(
     this: Self,
-    filter: undefined,
-    configure: (meta: MetaBuilder<'read'>) => void,
-  ): Promise<CollectionRowOf<Self> | null>;
-  async first<Self extends this>(
-    this: Self,
-    filter: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<CollectionRowOf<Self> | null>;
-  async first(): Promise<CollectionRowOf<this> | null>;
   async first(
-    filter: undefined,
-    configure: (meta: MetaBuilder<'read'>) => void,
-  ): Promise<CollectionRowOf<this> | null>;
-  async first(
-    filter: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<CollectionRowOf<this> | null>;
   async first(
     filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<unknown> {
-    return consumeFirstRow(this.#forFirst(filter, configure).#dispatch());
+    return consumeFirstRow(this.#forFirst(filter, configure, 'first').#dispatch());
+  }
+
+  async firstOrThrow<Self extends this>(
+    this: Self,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    configure?: (meta: MetaBuilder<'read'>) => void,
+  ): Promise<CollectionRowOf<Self>>;
+  async firstOrThrow(
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    configure?: (meta: MetaBuilder<'read'>) => void,
+  ): Promise<CollectionRowOf<this>>;
+  async firstOrThrow(
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    configure?: (meta: MetaBuilder<'read'>) => void,
+  ): Promise<unknown> {
+    return this.#forFirst(filter, configure, 'firstOrThrow').#dispatch().firstOrThrow();
   }
 
   /**
@@ -1886,6 +1950,7 @@ export class CollectionBase<
       const plans = compileInsertReturningSplit(
         this.contract,
         this.namespaceId,
+        this.modelName,
         this.tableName,
         mappedRows,
         selectedForInsert,
@@ -1911,6 +1976,7 @@ export class CollectionBase<
       compileInsertReturning(
         this.contract,
         this.namespaceId,
+        this.modelName,
         this.tableName,
         mappedRows,
         selectedForInsert,
@@ -1963,7 +2029,6 @@ export class CollectionBase<
         this.namespaceId,
         this.modelName,
         conflictOn,
-        method,
       ),
     };
   }
@@ -2004,8 +2069,8 @@ export class CollectionBase<
     const variant = polyInfo.variants.get(variantName);
     if (!isMtiVariantInfo(variant)) return null;
 
-    const baseFieldToColumn = getFieldToColumnMap(this.contract, this.namespaceId, this.modelName);
-    const variantFieldToColumn = getFieldToColumnMap(
+    const baseFieldToColumn = getModelFieldColumns(this.contract, this.namespaceId, this.modelName);
+    const variantFieldToColumn = getOwnFieldColumns(
       this.contract,
       this.namespaceId,
       variant.modelName,
@@ -2017,6 +2082,12 @@ export class CollectionBase<
       variant,
       baseFieldToColumn,
       variantFieldToColumn,
+      mergedFieldToColumn: getModelAndVariantFieldColumns(
+        this.contract,
+        this.namespaceId,
+        this.modelName,
+        variant.modelName,
+      ),
       pkColumns,
     };
   }
@@ -2025,7 +2096,14 @@ export class CollectionBase<
     data: readonly Record<string, unknown>[],
     mtiCtx: MtiCreateContext,
   ): AsyncIterableResult<Row> {
-    const { polyInfo, variant, baseFieldToColumn, variantFieldToColumn, pkColumns } = mtiCtx;
+    const {
+      polyInfo,
+      variant,
+      baseFieldToColumn,
+      variantFieldToColumn,
+      mergedFieldToColumn,
+      pkColumns,
+    } = mtiCtx;
     const contract = this.contract;
     const collectionCtx = this.ctx;
     const runtime = collectionCtx.runtime;
@@ -2035,7 +2113,6 @@ export class CollectionBase<
 
     const baseFieldColumns = new Set(Object.values(baseFieldToColumn));
     const variantFieldColumns = new Set(Object.values(variantFieldToColumn));
-    const mergedFieldToColumn = { ...baseFieldToColumn, ...variantFieldToColumn };
 
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
       const defaultValueCache = new Map<string, unknown>();
@@ -2043,8 +2120,15 @@ export class CollectionBase<
         const allMapped: Record<string, unknown> = {};
         for (const [fieldName, value] of Object.entries(row)) {
           if (value === undefined) continue;
-          const columnName = mergedFieldToColumn[fieldName] ?? fieldName;
-          allMapped[columnName] = value;
+          allMapped[
+            columnOfCallerField(
+              contract,
+              namespaceId,
+              mergedFieldToColumn,
+              variant.modelName,
+              fieldName,
+            )
+          ] = value;
         }
         allMapped[polyInfo.discriminatorColumn] = variant.value;
 
@@ -2064,6 +2148,7 @@ export class CollectionBase<
           const baseCompiled = compileInsertReturning(
             contract,
             namespaceId,
+            modelName,
             tableName,
             [baseRow],
             undefined,
@@ -2101,6 +2186,7 @@ export class CollectionBase<
           const variantCompiled = compileInsertReturning(
             contract,
             namespaceId,
+            variant.modelName,
             variant.table,
             [variantRow],
             undefined,
@@ -2170,20 +2256,26 @@ export class CollectionBase<
       );
     }
 
-    const baseFieldToColumn = getFieldToColumnMap(this.contract, this.namespaceId, this.modelName);
-    const variantFieldToColumn = getFieldToColumnMap(
+    const mergedFieldToColumn = getModelAndVariantFieldColumns(
       this.contract,
       this.namespaceId,
+      this.modelName,
       variant.modelName,
     );
-    const mergedFieldToColumn = { ...baseFieldToColumn, ...variantFieldToColumn };
 
     return data.map((row) => {
       const mapped: Record<string, unknown> = {};
       for (const [fieldName, value] of Object.entries(row)) {
         if (value === undefined) continue;
-        const columnName = mergedFieldToColumn[fieldName] ?? fieldName;
-        mapped[columnName] = value;
+        mapped[
+          columnOfCallerField(
+            this.contract,
+            this.namespaceId,
+            mergedFieldToColumn,
+            variant.modelName,
+            fieldName,
+          )
+        ] = value;
       }
       mapped[polyInfo.discriminatorColumn] = variant.value;
       return mapped;
@@ -2373,6 +2465,7 @@ export class CollectionBase<
       compileUpsertReturning(
         this.contract,
         this.namespaceId,
+        this.modelName,
         this.tableName,
         createValues,
         updateValues,
@@ -2508,6 +2601,12 @@ export class CollectionBase<
       return this.#reloadMutationRowByIdentity(identityCriterion);
     }
 
+    assertModelFieldNames(
+      this.contract,
+      this.namespaceId,
+      this.modelName,
+      blindCast<Record<string, unknown>, 'scalar update input is a model-field record'>(data),
+    );
     return withMutationScope(this.ctx.runtime, async (scope) => {
       const scoped = this.#withRuntime(scope);
       const identityWhere = await scoped.#findFirstMatchingRowIdentityWhere();
@@ -2592,6 +2691,7 @@ export class CollectionBase<
       compileUpdateReturning(
         this.contract,
         this.namespaceId,
+        this.modelName,
         this.tableName,
         mappedData,
         this.state.filters,
@@ -2762,6 +2862,7 @@ export class CollectionBase<
       compileDeleteReturning(
         this.contract,
         this.namespaceId,
+        this.modelName,
         this.tableName,
         this.state.filters,
         selectedForDelete,
@@ -2872,7 +2973,6 @@ export class CollectionBase<
     createValues: Record<string, unknown>,
     conflictColumns: readonly string[],
   ): Record<string, unknown> {
-    const columnToField = getColumnToFieldMap(this.contract, this.namespaceId, this.modelName);
     const criterion: Record<string, unknown> = {};
 
     for (const columnName of conflictColumns) {
@@ -2884,7 +2984,11 @@ export class CollectionBase<
         );
       }
 
-      const fieldName = columnToField[columnName] ?? columnName;
+      const fieldName = fieldOfColumn(
+        getModelColumnFields(this.contract, this.namespaceId, this.modelName),
+        this.modelName,
+        columnName,
+      );
       criterion[fieldName] = createValues[columnName];
     }
 
@@ -2947,10 +3051,13 @@ export class CollectionBase<
     if (!firstRow) {
       return null;
     }
-    const columnToField = getColumnToFieldMap(this.contract, this.namespaceId, this.modelName);
     const criterion: Record<string, unknown> = {};
     for (const column of identityColumns) {
-      const fieldName = columnToField[column] ?? column;
+      const fieldName = fieldOfColumn(
+        getModelColumnFields(this.contract, this.namespaceId, this.modelName),
+        this.modelName,
+        column,
+      );
       const value = blindCast<
         Record<string, unknown>,
         'selected collection rows are model-field records used for identity lookup'
@@ -3029,10 +3136,7 @@ export class CollectionBase<
     );
   }
 
-  #lock(
-    strength: LockStrength,
-    options: LockWaitRequest | undefined,
-  ): Collection<TContract, ModelName, Row, State> {
+  #lock(strength: LockStrength, options: LockWaitRequest | undefined): this {
     if (this.includeRefinementMode) {
       throw lockIncompatible(
         'includeRefinement',
@@ -3049,7 +3153,7 @@ export class CollectionBase<
       of: [this.tableName],
       ...ifDefined('waitPolicy', waitPolicy),
     });
-    return this.#clone({ locking: [...(this.state.locking ?? []), clause] });
+    return this.#cloneSelf({ locking: [...(this.state.locking ?? []), clause] });
   }
 
   #clone<NextState extends CollectionTypeState = State>(
