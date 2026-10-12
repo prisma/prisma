@@ -233,7 +233,7 @@ describe('integration/polymorphism-namespaces', () => {
   );
 
   it(
-    'create() and createAll() insert the variant row into the table in its own namespace',
+    'default projection: create() and createAll() insert the variant row into the table in its own namespace',
     async () => {
       await withTasks(async (runtime, tasks) => {
         const ironing = {
@@ -278,7 +278,7 @@ describe('integration/polymorphism-namespaces', () => {
   );
 
   it(
-    'update() and delete() change one row of a variant in another namespace',
+    'default projection: update() and delete() change one row of a variant in another namespace',
     async () => {
       await withTasks(async (runtime, tasks) => {
         await tasks.variant('chore').where({ id: 3 }).update({ title: 'Dishes again' });

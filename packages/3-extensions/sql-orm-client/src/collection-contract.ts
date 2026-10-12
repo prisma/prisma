@@ -509,7 +509,7 @@ function isMultiTableVariantTable(
 }
 
 /**
- * The columns of `tableName` a query on `modelName` reads, in table order: the columns on that table of the model's own and inherited fields and of its variants' fields, and, on a multi-table variant's table, the key the variant inherits. Any other column of the table is storage the model does not map, and the ORM never reads it into a row. The table is in the model's namespace unless `tableNamespaceId` names another, as for the base table a variant in another namespace inherits fields from.
+ * The columns of `tableName` a query on `modelName` reads, in table order: the columns on that table of the model's own and inherited fields and of its variants' fields, and, on a multi-table variant's table, the key the variant inherits. Any other column of the table is storage the model does not map, and the ORM never reads it into a row.
  */
 export function getColumnsReadOnTable(
   contract: Contract<SqlStorage>,
