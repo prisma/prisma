@@ -19,7 +19,6 @@ import type {
   MigrationOperationPolicy,
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
-  TableColumn,
 } from '@internal/family-sql/control';
 import { sqlTypeLookupsOf } from '@internal/family-sql/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
@@ -426,8 +425,8 @@ export interface IssuePlannerOptions {
   readonly frameworkComponents?: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
   /** The columns of the fields convert and backfill statements name; none when omitted. */
   readonly statementColumns?: FieldStatementColumns;
-  /** The columns whose values come from a value set; none when omitted. */
-  readonly valueSetColumns?: readonly TableColumn[];
+  /** Whether a required column the plan adds may take a temporary value; every column may when omitted. */
+  readonly takesTemporaryValue?: (table: string, column: string) => boolean;
   readonly strategies?: readonly CallMigrationStrategy[];
 }
 
@@ -453,7 +452,7 @@ export function planIssues(
     frameworkComponents,
     types: sqlTypeLookupsOf(frameworkComponents),
     statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
-    valueSetColumns: options.valueSetColumns ?? [],
+    takesTemporaryValue: options.takesTemporaryValue ?? (() => true),
   };
 
   const strategies = options.strategies ?? sqlitePlannerStrategies;

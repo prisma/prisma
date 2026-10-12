@@ -19,7 +19,6 @@ import {
   type MigrationOperationPolicy,
   type SqlSlot,
   type StatementColumn,
-  type TableColumn,
 } from '@internal/family-sql/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
@@ -29,7 +28,6 @@ import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
   type SqlSchemaIR,
-  type SqlTableIR,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { columnSpecFromNode } from './column-ddl-rendering';
@@ -60,7 +58,8 @@ export interface StrategyContext {
   /** The columns of the fields `--convert` and `--backfill` statements name. */
   readonly statementColumns: FieldStatementColumns;
   /** The columns whose values come from a value set, which no temporary value fills. */
-  readonly valueSetColumns: readonly TableColumn[];
+  /** Whether a required column the plan adds to a table may take a temporary value in its rows. */
+  readonly takesTemporaryValue: (table: string, column: string) => boolean;
 }
 
 export type CallMigrationStrategy = (
@@ -166,22 +165,6 @@ function addedRequiredColumn(
   return column.nullable || column.resolvedDefault !== undefined ? undefined : column;
 }
 
-/**
- * Whether a column the plan adds is in a key or a foreign key of the new table: one temporary
- * value in every row would break it, so the column gets none.
- */
-function inKey(table: SqlTableIR, column: string): boolean {
-  return (
-    (table.primaryKey?.columns.includes(column) ?? false) ||
-    table.uniques.some(({ columns }) => columns.includes(column)) ||
-    table.foreignKeys.some(({ columns }) => columns.includes(column))
-  );
-}
-
-function hasValueSet(ctx: StrategyContext, tableName: string, column: string): boolean {
-  return ctx.valueSetColumns.some((entry) => entry.table === tableName && entry.column === column);
-}
-
 const CLASS_ORDER: readonly MigrationOperationClass[] = [
   'additive',
   'widening',
@@ -257,9 +240,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
         continue;
       }
       const fill =
-        expectedTable === undefined ||
-        inKey(expectedTable, added.name) ||
-        hasValueSet(ctx, tableName, added.name)
+        expectedTable === undefined || !ctx.takesTemporaryValue(tableName, added.name)
           ? undefined
           : sqliteFillValue(added, codecHooks, ctx.types);
       const rebuild = rebuildOf(tableName);

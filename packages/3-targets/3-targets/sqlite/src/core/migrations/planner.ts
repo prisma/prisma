@@ -10,6 +10,7 @@ import type {
 import {
   appliedStatementsInOrder,
   backfillOfDefaultedField,
+  columnTakesTemporaryValue,
   detectTableNameCaseChanges,
   extractCodecControlHooks,
   fieldStatementColumns,
@@ -17,7 +18,6 @@ import {
   plannerFailure,
   planStatements,
   subjectsOfCalls,
-  valueSetColumns,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
@@ -216,7 +216,11 @@ export class SqliteMigrationPlanner
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
       statementColumns: fieldStatementColumns(options.statements, options.contract),
-      valueSetColumns: valueSetColumns(options.contract),
+      takesTemporaryValue: (table, column) => {
+        const storageTable =
+          options.contract.storage.namespaces[UNBOUND_NAMESPACE_ID]?.entries.table?.[table];
+        return storageTable !== undefined && columnTakesTemporaryValue(storageTable, column);
+      },
       strategies: sqlitePlannerStrategies,
     });
 

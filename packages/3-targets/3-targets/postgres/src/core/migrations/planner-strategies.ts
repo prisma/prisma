@@ -27,12 +27,13 @@
  */
 
 import type { Contract } from '@internal/contract/types';
-import type {
-  CodecControlHooks,
-  FieldStatementColumns,
-  MigrationOperationPolicy,
-  SqlMigrationPlanOperation,
-  StatementColumn,
+import {
+  type CodecControlHooks,
+  columnTakesTemporaryValue,
+  type FieldStatementColumns,
+  type MigrationOperationPolicy,
+  type SqlMigrationPlanOperation,
+  type StatementColumn,
 } from '@internal/family-sql/control';
 import type { DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
@@ -67,7 +68,6 @@ import {
   RawSqlCall,
   SetNotNullCall,
 } from './op-factory-call';
-import { buildSchemaLookupMap, hasForeignKey, hasUniqueConstraint } from './planner-schema-lookup';
 import { buildTargetDetails, type PostgresPlanTargetDetails } from './planner-target-details';
 import { columnType, isSafeTypeWidening } from './safe-widenings';
 
@@ -471,8 +471,6 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
   const matched: SchemaDiffIssue[] = [];
   const calls: PostgresOpFactoryCall[] = [];
 
-  const schemaLookups = buildSchemaLookupMap(ctx.schema);
-
   for (const issue of issues) {
     if (issueOutcome(issue) !== 'not-found') continue;
     const node = issueNode(issue);
@@ -493,20 +491,11 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
     const column = contractTable?.columns[expected.name];
     if (!contractTable || !column) continue;
 
-    const schemaTable = ctx.schema.tables[tableName];
-    if (!schemaTable) continue;
+    if (ctx.schema.tables[tableName] === undefined) continue;
 
     const temporaryDefault = resolveColumnTemporaryDefault(expected, ctx.codecHooks, ctx.types);
-    const schemaLookup = schemaLookups.get(tableName);
     const canUseSharedTempDefault =
-      temporaryDefault !== null &&
-      column.valueSet === undefined &&
-      canUseSharedTemporaryDefaultStrategy({
-        table: contractTable,
-        schemaTable,
-        schemaLookup,
-        columnName: expected.name,
-      });
+      temporaryDefault !== null && columnTakesTemporaryValue(contractTable, expected.name);
 
     matched.push(issue);
 
@@ -531,40 +520,6 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
     calls,
   };
 };
-
-// ============================================================================
-// Strategy helpers
-// ============================================================================
-
-function canUseSharedTemporaryDefaultStrategy(options: {
-  readonly table: StorageTable;
-  readonly schemaTable: SqlSchemaIR['tables'][string];
-  readonly schemaLookup: ReturnType<typeof buildSchemaLookupMap> extends ReadonlyMap<
-    string,
-    infer V
-  >
-    ? V | undefined
-    : never;
-  readonly columnName: string;
-}): boolean {
-  const { table, schemaTable, schemaLookup, columnName } = options;
-
-  if (table.primaryKey?.columns.includes(columnName) && !schemaTable.primaryKey) {
-    return false;
-  }
-
-  for (const unique of table.uniques) {
-    if (!unique.columns.includes(columnName)) continue;
-    if (!schemaLookup || !hasUniqueConstraint(schemaLookup, unique.columns)) return false;
-  }
-
-  for (const foreignKey of table.foreignKeys) {
-    if (!foreignKey.source.columns.includes(columnName)) continue;
-    if (!schemaLookup || !hasForeignKey(schemaLookup, foreignKey)) return false;
-  }
-
-  return true;
-}
 
 /**
  * Ordered list of Postgres planner strategies, shared by `migration plan`

@@ -29,7 +29,7 @@ const emptyCtx: StrategyContext = {
   frameworkComponents: sqliteTestComponents,
   types: sqliteTestTypes,
   statementColumns: { convert: [], backfill: [] },
-  valueSetColumns: [],
+  takesTemporaryValue: () => true,
 };
 
 describe('mapNodeIssueToCall — table', () => {

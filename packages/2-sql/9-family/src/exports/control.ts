@@ -124,6 +124,7 @@ export {
   detectTableNameCaseChanges,
   TABLE_NAME_CASE_CHANGED_CODE,
 } from '../core/migrations/table-name-case-guard';
+export { columnTakesTemporaryValue } from '../core/migrations/temporary-value';
 export type {
   CodecControlHooks,
   CreateSqlMigrationPlanOptions,
@@ -161,8 +162,6 @@ export {
   fieldOfColumn,
   unconvertedFieldOf,
 } from '../core/migrations/unconverted-field';
-export type { TableColumn } from '../core/migrations/value-set-columns';
-export { valueSetColumns } from '../core/migrations/value-set-columns';
 export {
   temporalCodecPresetWithPrecision,
   temporalStringAuthoringPresets,
