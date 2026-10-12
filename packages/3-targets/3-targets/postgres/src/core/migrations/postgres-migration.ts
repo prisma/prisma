@@ -19,7 +19,7 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { errorPostgresMigrationStackMissing } from '../errors';
+import { errorPostgresMigrationStackMissing, postgresError } from '../errors';
 import { PostgresContractView } from '../postgres-contract-view';
 import { PostgresRlsPolicy, type RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
@@ -33,6 +33,7 @@ import {
   AddRequiredColumnToEmptyTableCall,
   AddUniqueCall,
   AlterColumnTypeCall,
+  alterColumnTypeCallText,
   CreateIndexCall,
   CreateNativeEnumTypeCall,
   CreatePostgresRlsPolicyCall,
@@ -556,6 +557,7 @@ export abstract class PostgresMigration<
     /** By default `data` when `using` is given, and `destructive` otherwise. */
     readonly operationClass?: AlterColumnTypeClass;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    refuseInvalidAlterColumnTypeOptions(options);
     const adapter = this.controlAdapterFor('alterColumnType');
     return new AlterColumnTypeCall({
       schemaName: options.schema,
@@ -748,5 +750,35 @@ function refuseEarlierSetDefaultOptions(options: {
     rewrite:
       'Pass the column as `col(name, type, { default, codecRef })`, with its default written as `lit(value)` or `fn(expression)`, in place of its name and `defaultSql`.',
     upgradeEntry: 'migration-ts-column-defaults',
+  });
+}
+
+/**
+ * `alterColumnType` options as a hand-written `migration.ts` may pass them, which `node migration.ts` does not type-check: the
+ * `options` object an earlier version wrote, or no `type`.
+ */
+function refuseInvalidAlterColumnTypeOptions(options: {
+  readonly schema: string;
+  readonly table: string;
+  readonly column: string;
+  readonly type: string;
+}): void {
+  if (Object.hasOwn(options, 'options')) {
+    throw errorMigrationOperationOptionRemoved({
+      operation: 'alterColumnType',
+      option: 'options',
+      subject: `column ${JSON.stringify(options.column)} of table ${JSON.stringify(options.table)}`,
+      rewrite:
+        'Pass `{ schema, table, column, type, using? }`: move `options.qualifiedTargetType` to `type` and `options.using` to `using`, and drop the other options.',
+      upgradeEntry: 'postgres-alter-column-type-plain-options',
+    });
+  }
+  const type: unknown = options.type;
+  if (typeof type === 'string') return;
+  const where = alterColumnTypeCallText(options.schema, options.table, options.column);
+  throw postgresError('MIGRATION.COLUMN_TYPE_UNREADABLE', `${where}: it has no \`type\``, {
+    why: 'A column type change needs the new type, and node migration.ts does not check the types of the options it is given.',
+    fix: 'Pass `{ schema, table, column, type, using? }`, with `type` written as a migration writes it, such as int4 or varchar(20).',
+    meta: { type: String(type), where },
   });
 }

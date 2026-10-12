@@ -39,6 +39,8 @@ this.alterColumnType({
 }),
 ```
 
+A `migration.ts` that still passes `options` stops with `MIGRATION.OPERATION_OPTION_REMOVED` when it runs, naming the column and the new shape.
+
 For each `migration.ts` the detection matches:
 
 1. Replace `options: { ... }` with `type: <the value of qualifiedTargetType>`, and `using: <the value of options.using>` when the old call had one.

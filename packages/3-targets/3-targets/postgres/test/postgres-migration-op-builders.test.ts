@@ -566,6 +566,46 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     expect(converted.postcheck[0]?.description).toBe('verify column "count" has type "bigint"');
   });
 
+  it('alterColumnType refuses the options an earlier version wrote, naming the new shape', () => {
+    const m = new ExposedMigration(fakeControlStack());
+    const earlier = {
+      schema: 'public',
+      table: 'User',
+      column: 'age',
+      options: {
+        qualifiedTargetType: 'int4',
+        formatTypeExpected: 'integer',
+        rawTargetTypeForLabel: 'int4',
+        using: 'trim("age")::integer',
+      },
+    } as unknown as Parameters<ExposedMigration['callAlterColumnType']>[0];
+
+    expect(() => m.callAlterColumnType(earlier)).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.OPERATION_OPTION_REMOVED',
+        message:
+          '`alterColumnType` in migration.ts passes `options`, which this version no longer reads, for column "age" of table "User"',
+        fix: 'Pass `{ schema, table, column, type, using? }`: move `options.qualifiedTargetType` to `type` and `options.using` to `using`, and drop the other options. Or, if the migration is not applied, delete its package and run `migration plan` again. The upgrade entry `postgres-alter-column-type-plain-options` shows the new shape: https://github.com/prisma/orm/tree/main/skills/prisma-8/upgrading',
+      }),
+    );
+  });
+
+  it('alterColumnType refuses a call with no type, naming the shape it takes', () => {
+    const m = new ExposedMigration(fakeControlStack());
+    const typeless = { schema: 'public', table: 'User', column: 'age' } as unknown as Parameters<
+      ExposedMigration['callAlterColumnType']
+    >[0];
+
+    expect(() => m.callAlterColumnType(typeless)).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
+        message:
+          'alterColumnType({ schema: "public", table: "User", column: "age" }): it has no `type`',
+        fix: 'Pass `{ schema, table, column, type, using? }`, with `type` written as a migration writes it, such as int4 or varchar(20).',
+      }),
+    );
+  });
+
   it('alterColumnType refuses a type the stack cannot read, naming the call', () => {
     const m = new ExposedMigration(fakeControlStack());
     expect(() =>

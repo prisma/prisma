@@ -642,6 +642,19 @@ export class DropColumnCall extends PostgresOpFactoryCallNode {
   }
 }
 
+/** An `alterColumnType` call named by the column it alters, as its errors name it. */
+export function alterColumnTypeCallText(schema: string, table: string, column: string): string {
+  return `alterColumnType({ ${columnLocation(schema, table, column).join(', ')} })`;
+}
+
+function columnLocation(schema: string, table: string, column: string): readonly string[] {
+  return [
+    ...(schema === UNBOUND_NAMESPACE_ID ? [] : [`schema: ${jsonToTsSource(schema)}`]),
+    `table: ${jsonToTsSource(table)}`,
+    `column: ${jsonToTsSource(column)}`,
+  ];
+}
+
 export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'alterColumnType' as const;
   readonly operationClass: AlterColumnTypeClass;
@@ -699,18 +712,8 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     return this.using === undefined ? 'destructive' : 'data';
   }
 
-  #location(): readonly string[] {
-    return [
-      ...(this.schemaName === UNBOUND_NAMESPACE_ID
-        ? []
-        : [`schema: ${jsonToTsSource(this.schemaName)}`]),
-      `table: ${jsonToTsSource(this.tableName)}`,
-      `column: ${jsonToTsSource(this.columnName)}`,
-    ];
-  }
-
   #callText(): string {
-    return `alterColumnType({ ${this.#location().join(', ')} })`;
+    return alterColumnTypeCallText(this.schemaName, this.tableName, this.columnName);
   }
 
   async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
@@ -741,7 +744,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   renderTypeScript(): string {
     const using = this.using === undefined ? [] : [`using: ${slotSource(this.using)}`];
     const opts = [
-      ...this.#location(),
+      ...columnLocation(this.schemaName, this.tableName, this.columnName),
       `type: ${jsonToTsSource(this.type)}`,
       ...using,
       ...(this.operationClass === this.#defaultClass()
