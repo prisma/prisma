@@ -405,7 +405,7 @@ node $D/emit-cases.mjs $C $Q/errors/project $D/error-cases.json | tee $Q/out/err
 | Case | Mistake | Expected: exit 2 and one diagnostic | At |
 |---|---|---|---|
 | 3.1 | `+Timestamp`, no such mixin | `PSL_UNRESOLVED_REFERENCE: Cannot find mixin "Timestamp"` | the `+` of the inclusion |
-| 3.2 | `+Audit`, and `Audit` is a model | `PSL_UNRESOLVED_REFERENCE: "Audit" is a model, not a mixin` | the inclusion |
+| 3.2 | `+Audit`, and `Audit` is a model | `PSL_UNRESOLVED_REFERENCE: Cannot find mixin "Audit"` | the inclusion |
 | 3.3 | an `enum` mixin included in a model | `PSL_INVALID_MODEL_MEMBER: Mixin "BaseRoles" is for "enum" blocks, not "model" blocks` | the inclusion |
 | 3.4 | `+Timestamps` twice in one model | `PSL_INVALID_MODEL_MEMBER: Mixin "Timestamps" is already included in this block` | the second inclusion |
 | 3.5 | the model declares `createdAt`, then includes `Timestamps` | `PSL_DUPLICATE_DECLARATION: Mixin "Timestamps" provides "createdAt", which "User" already has` | the inclusion |

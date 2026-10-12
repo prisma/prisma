@@ -7,7 +7,7 @@
     },
     {
       "id": "3.2",
-      "title": "the name is a model, not a mixin",
+      "title": "the name of a model",
       "schema": [
         "// use prisma-8",
         "",
