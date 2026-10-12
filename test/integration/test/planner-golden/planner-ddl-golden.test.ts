@@ -44,6 +44,7 @@ import sqliteTargetControl from '@internal/target-sqlite/control';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { join, relative, resolve } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
+import { trigramControl } from '../sql-orm-client/fixtures/collection-methods/trigram-pack';
 import { trackedContractCandidateFiles } from '../utils/tracked-contract-files';
 
 const writeRecordings = process.env['PLANNER_GOLDEN_WRITE'] === '1';
@@ -66,6 +67,7 @@ const extensionsById: Readonly<Record<string, SqlExtension>> = {
   pgvector,
   postgis,
   supabase,
+  'test-trigram': trigramControl,
 };
 
 const examplePackIds: ReadonlySet<string> = new Set([

@@ -18,6 +18,10 @@ import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { blindCast } from '@internal/utils/casts';
 import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
+import {
+  trigramControl,
+  trigramPack,
+} from '../sql-orm-client/fixtures/collection-methods/trigram-pack';
 import { trackedContractCandidateFiles } from '../utils/tracked-contract-files';
 import {
   composePostgresStack,
@@ -39,6 +43,7 @@ const extensionPacks: ReadonlyMap<string, ExtensionPack> = new Map<string, Exten
   ['pgvector', { control: pgvectorControl, packRef: pgvectorPack }],
   ['postgis', { control: postgisControl, packRef: postgisPack }],
   ['supabase', { control: supabasePack, packRef: supabasePack }],
+  ['test-trigram', { control: trigramControl, packRef: trigramPack }],
 ]);
 
 /**
