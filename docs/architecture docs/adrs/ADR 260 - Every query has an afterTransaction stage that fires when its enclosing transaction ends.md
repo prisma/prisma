@@ -1,6 +1,6 @@
 # ADR 260 — Every query has an afterTransaction stage that fires when its enclosing transaction ends
 
-Status: **Accepted**
+Status: **Superseded by [ADR 271](ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities%2C%20each%20started%2C%20ended%20and%20finalized.md)**. The `afterTransaction` hook is now `activityFinalized` on a statement activity, with the same three outcomes and error rule; a statement that fails before it runs is now also finalized.
 
 ## Decision
 
