@@ -10,7 +10,7 @@
  * invoked the second time.
  *
  * The cache key is composed by the runtime via
- * `RuntimeMiddlewareContext.contentHash(exec)`, which incorporates the
+ * `ActivityContext.contentHash(exec)`, which incorporates the
  * post-lowering SQL plus parameters. Two lookups for different `id`
  * values therefore land in different cache slots; the same `id` hits.
  *
@@ -20,7 +20,7 @@
  *   a write terminal (`create`, `update`, `delete`) is a type error
  *   *and* a runtime error — it cannot be smuggled through with a cast
  *   on one side without failing on the other.
- * - On a cache hit, every registered middleware's `afterQuery` still
+ * - On a cache hit, every registered middleware's `activityEnded` still
  *   fires and reports `source: 'middleware'` — the `slowQueryWarning`
  *   middleware in `db.ts` observes cached reads too — so observability
  *   is preserved even though the driver is skipped.
