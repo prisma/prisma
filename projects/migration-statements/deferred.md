@@ -118,3 +118,9 @@ A SQLite `--convert` rebuild runs the user's expression without the storage-clas
 **Found:** slice 3a review (2026-10-12). Outside this project.
 
 When `run` returns an array of plans or a SQL string, `node migration.ts` fails with "Cannot read properties of undefined (reading 'storageHash')". It should say what `run` must return.
+
+## A data-loss question can offer one flag value per verb
+
+**Found:** slice 4a review, dispatch 3 (2026-10-09). Engine side.
+
+The statement prompt writes one flag value per verb, so a question about a field whose model the destination names differently cannot print the two statements that keep its values (the model rename, then the field rename). The question offers only `--delete` and says to pass the model rename first, after which the next question offers the field rename. Printing both statements at once would need the engine to accept several flag values for one verb.
