@@ -188,7 +188,7 @@ describe('statement activity lifecycle', () => {
 
     it('reads the plan annotations only when a hook reads the activity annotations', async () => {
       const ownKeys = vi.fn((target: object) => Reflect.ownKeys(target));
-      const annotations = new Proxy({ codecs: {} }, { ownKeys });
+      const annotations = new Proxy<Record<string, unknown>>({ codecs: {} }, { ownKeys });
       const plan = { ...exec, meta: { ...exec.meta, annotations } };
       const run = (middleware: RuntimeMiddleware<MockExec>[]) =>
         executeStatement(

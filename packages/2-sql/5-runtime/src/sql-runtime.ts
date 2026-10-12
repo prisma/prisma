@@ -171,7 +171,7 @@ export interface TransactionContext extends RuntimeQueryable {
 
 export type { RuntimeTelemetryEvent, TelemetryOutcome, VerifyMarkerOption };
 
-type SqlStatementRun = StatementActivityRun<
+type SqlStatementActivityRun = StatementActivityRun<
   SqlExecutionPlan,
   SqlParamRefMutator,
   SqlMiddlewareContext
@@ -445,7 +445,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   private async *streamDecodedRows<Row>(
-    run: SqlStatementRun,
+    run: SqlStatementActivityRun,
     exec: SqlExecutionPlan,
     createDecodeContext: () => DecodeContext,
     driverCall: () => AsyncIterable<Record<string, unknown>>,
@@ -521,7 +521,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   private async prepareOperation(
     plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
     codecCtx: SqlCodecCallContext,
-    run: SqlStatementRun,
+    run: SqlStatementActivityRun,
   ): Promise<SqlExecutionPlan> {
     checkAborted(codecCtx, 'stream');
 
@@ -569,7 +569,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
             context: contextFields,
             parent: self.parentOf(queryable),
           },
-          async function* (run: SqlStatementRun): AsyncGenerator<Row, void, unknown> {
+          async function* (run: SqlStatementActivityRun): AsyncGenerator<Row, void, unknown> {
             const exec = await self.prepareOperation(plan, codecCtx, run);
             yield* self.streamDecodedRows<Row>(
               run,
@@ -625,7 +625,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     queryable: SqlQueryable,
     plan: QueryPlan,
     context: ActivityContextFields<SqlMiddlewareContext>,
-    body: (run: SqlStatementRun) => Promise<SqlStatementStats>,
+    body: (run: SqlStatementActivityRun) => Promise<SqlStatementStats>,
   ): Promise<SqlStatementStats> {
     return executeStatement(
       { middleware: this.middleware, plan, context, parent: this.parentOf(queryable) },
@@ -634,7 +634,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   private async executeEncodedPlan(
-    run: SqlStatementRun,
+    run: SqlStatementActivityRun,
     exec: SqlExecutionPlan,
     queryable: SqlQueryable,
     codecCtx: SqlCodecCallContext,
@@ -736,7 +736,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
             context: contextFields,
             parent: self.parentOf(queryable),
           },
-          (run: SqlStatementRun) =>
+          (run: SqlStatementActivityRun) =>
             self.streamPreparedRows<P, Row>(run, ps, userParams, queryable, codecCtx, endOperation),
         );
       } finally {
@@ -748,7 +748,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   private async *streamPreparedRows<P, Row>(
-    run: SqlStatementRun,
+    run: SqlStatementActivityRun,
     ps: PreparedStatementImpl<P, Row>,
     userParams: unknown,
     queryable: SqlQueryable,
@@ -837,7 +837,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   private async executePrepared<P>(
-    run: SqlStatementRun,
+    run: SqlStatementActivityRun,
     ps: PreparedExecutionImpl<P>,
     userParams: unknown,
     queryable: SqlQueryable,

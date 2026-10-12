@@ -27,7 +27,7 @@ import {
   type MongoParamRefMutatorInternal,
 } from './param-ref-mutator';
 
-type MongoStatementRun = StatementActivityRun<
+type MongoStatementActivityRun = StatementActivityRun<
   MongoExecutionPlan,
   MongoParamRefMutator,
   MongoMiddlewareContext
@@ -188,7 +188,7 @@ class MongoRuntimeImpl
   private async prepareOperation(
     plan: MongoQueryPlan,
     codecCtx: CodecCallContext,
-    run: MongoStatementRun,
+    run: MongoStatementActivityRun,
   ): Promise<MongoExecutionPlan> {
     checkAborted(codecCtx, 'stream');
     const compiled = await this.runBeforeCompile(plan);
@@ -221,7 +221,7 @@ class MongoRuntimeImpl
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
       yield* streamStatement(
         { middleware: self.middleware, plan, context: contextFields, parent: undefined },
-        async function* (run: MongoStatementRun): AsyncGenerator<Row, void, unknown> {
+        async function* (run: MongoStatementActivityRun): AsyncGenerator<Row, void, unknown> {
           const exec = await self.prepareOperation(plan, codecCtx, run);
           yield* self.#decodedRows<Row>(run, exec, codecCtx);
         },
@@ -231,7 +231,7 @@ class MongoRuntimeImpl
   }
 
   async *#decodedRows<Row>(
-    run: MongoStatementRun,
+    run: MongoStatementActivityRun,
     exec: MongoExecutionPlan,
     codecCtx: CodecCallContext,
   ): AsyncGenerator<Row, void, unknown> {
@@ -262,7 +262,7 @@ class MongoRuntimeImpl
     const { codecCtx, contextFields } = this.createQueryContexts(options);
     return executeStatement(
       { middleware: this.middleware, plan, context: contextFields, parent: undefined },
-      async (run: MongoStatementRun) => {
+      async (run: MongoStatementActivityRun) => {
         const exec = await this.prepareOperation(plan, codecCtx, run);
         checkAborted(codecCtx, 'stream');
         return run.runExecute(exec, () => this.runExecute(exec));
