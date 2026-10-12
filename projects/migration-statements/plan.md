@@ -10,6 +10,7 @@
 | 2 | Data loss refused until answered; `--delete`, `--allow`; the interactive prompt | 1 | Merged, prisma/orm#30648 |
 | 3a | `--convert` and `--backfill`, Postgres and SQLite | 2 | Spec: [`slices/convert-backfill/`](./slices/convert-backfill/spec.md) |
 | 4a | Renames and deletes on MongoDB | 2 | Spec: [`slices/mongo-renames/`](./slices/mongo-renames/spec.md) |
+| 4p | MongoDB contracts written in TypeScript get the same validator as PSL; removes 4a's temporary refusal | 4a | Next after 4a |
 | 3b | The remaining SQL renames and deletes | 3a | Not started |
 | 4b | `--convert`, `--backfill` and value object renames on MongoDB | 3b, 4a | Not started |
 
@@ -47,6 +48,17 @@
 
 **Hands to 4b:** a MongoDB planner that takes statements.
 
+### 4p — TypeScript MongoDB contracts get the PSL validator
+
+**Linear:** [TML-3553](https://linear.app/prisma-company/issue/TML-3553) · **Folder:** [`slices/mongo-ts-validator/`](./slices/mongo-ts-validator/investigation.md)
+
+Decided by Will on 2026-10-12: contracts written in either form must behave the same, and this slice comes right after 4a, before 3b and 4b. Two pull requests:
+
+1. The validator derivation moves into `@internal/mongo-contract`. No output changes.
+2. The TypeScript builder calls it. 4a's temporary refusal goes. An upgrade fragment covers the closed validator TypeScript users gain.
+
+**Why now:** without a validator, a TypeScript contract's field names are not in its storage hash, so a MongoDB field rename on it gives a migration `db migrate` refuses. 4a refuses that case for now.
+
 ### 3b — The remaining renames and deletes on Postgres and SQLite
 
 **Linear:** [TML-3537](https://linear.app/prisma-company/issue/TML-3537) · **Folder:** `slices/remaining-nouns/`
@@ -69,6 +81,7 @@
 - The same two flags as 3a, writing a data transform with a placeholder.
 - Making a field required on a collection with documents is no longer silent. It is answered with `--backfill`, or the command says the existing documents need the field.
 - Renaming a field inside a value object rewrites the embedded documents, including lists, dictionaries and unions.
+- Removing a variant model is data loss: today its documents stay and fail every update. `--delete <Variant>` deletes the documents with that discriminator value, as 3b does for SQL rows.
 
 **Hands to:** close-out for MongoDB.
 

@@ -9,10 +9,10 @@ A MongoDB user renames model `Profile` to `User`, renames field `name` to `fullN
 ```text
 $ prisma migration plan --name tidy --rename Profile:User --rename User.name:User.fullName --delete User.nickname
 ✔ Planned 6 operation(s)
-  Rename collection "profiles" to "users"                      widening
+  Rename collection profiles to users                          widening
   Drop index users.name_1                                      widening
-  Rename field "name" to "fullName" in collection "users"      widening
-  Remove field "nickname" from collection "users"              destructive
+  Rename field name to fullName in users                       widening
+  Remove field nickname from users                             destructive
   Create index users.fullName_1                                additive
   Update validator on users                                    widening
 ```
@@ -44,6 +44,7 @@ Without `--delete User.nickname`, both commands refuse, as they do on SQL:
 3. **Rewrites are classed by what they do to data, as on SQL.** A field rename is `widening`, like a column rename. A field removal is `destructive`, like a column drop. The planner writes a `data` operation only as a placeholder scaffold. So `db update` runs these rewrites, as it runs SQL renames. ADR 188 changes one sentence: today it says every MongoDB data transform is `data`.
 4. **Without the old contract, a removed field is named `<collection>.<field>`,** for example `users.nickname`. SQL uses `<schema>.<table>.<column>`, or `<table>.<column>` on SQLite.
 5. **A variant's field rename touches only that variant's documents.** The rewrite filters on the variant's discriminator value, so another variant in the same collection that stores a field with the same name keeps it. This differs from SQL single-table storage, where a rename renames the shared column for every row.
+6. **Contracts without a validator get a temporary refusal** (Will, 2026-10-12). A MongoDB contract written in TypeScript has no validator today, so its field names are not in its storage hash, and a field rename or removal would give a migration whose start and end hashes are equal, which `db migrate` refuses. `migration plan` refuses such a change and says why; `db update` is unaffected. TML-3553, the next slice, gives TypeScript contracts the PSL validator and removes this refusal.
 
 ## How it works
 
@@ -78,6 +79,7 @@ Without `--delete User.nickname`, both commands refuse, as they do on SQL:
 - Plans with no statements and no removed fields come out exactly as today.
 
 **Refused, with the reason named**
+- Renaming a model stored in a time-series collection, or in a view. MongoDB cannot rename them.
 - Renaming `_id`.
 - Renaming a collection onto one that already exists.
 - Renaming a field that is stored on only one side.

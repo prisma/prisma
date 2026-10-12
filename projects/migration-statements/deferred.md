@@ -72,14 +72,43 @@ Adding a required field to a populated collection, or making an optional field r
 On MongoDB a variant's field rename touches only that variant's documents. On SQL today a variant's field is a column in the shared table, and a rename applies to every row. When SQL supports variants stored in their own tables, a variant's field statements must act on that variant's table only.
 
 
-## `@map` accepts a MongoDB field name MongoDB reads as a path or an operator
+## MongoDB `@map` accepts field names MongoDB cannot validate
 
-**Found:** slice 4a review, dispatch 3 (2026-10-09). Authoring side.
+**Found:** slice 4a review of dispatch 3 (2026-10-09). For the MongoDB authoring owners, not this project.
 
-A MongoDB field can be given a stored name containing `.` or starting with `$` through `@map`, and nothing rejects it. MongoDB reads such a name as a path into embedded documents or as an operator, so the derived validator rejects documents that hold it, and the planner cannot rename or unset it: a statement naming it is refused, and a removed field with such a name is left as it is. Authoring should refuse these names.
+`@map("o.d")` or `@map("$x")` is accepted in a MongoDB schema. MongoDB reads such a name as a path or an operator, and an insert of `{ "o.d": ... }` already fails the validator Prisma writes. Slice 4a skips such fields when planning statements. The fix belongs in authoring: reject the name with a diagnostic. When it lands, remove the framework resolver's fallback that reads `User.o.d` as field `o.d` (added in slice 4a), and the planner's silent skip of such fields.
 
-## A data-loss question can offer one flag value per verb
+## A repeated run reports outdated statements one at a time
 
-**Found:** slice 4a review, dispatch 3 (2026-10-09). Engine side.
+**Found:** slice 4a manual QA (2026-10-09), F3. Applies to every family.
 
-The statement prompt writes one flag value per verb, so a question about a field whose model the destination names differently cannot print the two statements that keep its values (the model rename, then the field rename). The question offers only `--delete` and says to pass the model rename first, after which the next question offers the field rename. Printing both statements at once would need the engine to accept several flag values for one verb.
+Running the same `db update` again after it applied fails on the first outdated `--rename` or `--delete`, so a user with three outdated flags needs three runs to learn about all of them. The resolver could report every statement that no longer resolves in one error.
+
+## A collection name MongoDB rejects reaches the runner
+
+**Found:** slice 4a manual QA (2026-10-09), F9. For the MongoDB authoring owners.
+
+`@@map("system.x")` is accepted in a MongoDB schema. A rename onto it is refused with a reason, but a plan that creates or drops such a collection fails at apply with `CLI.UNEXPECTED`. Authoring should reject collection names MongoDB rejects.
+
+## `db migrate` of a migration with an unfilled placeholder gives advice that does not mention the slot
+
+**Found:** slice 3a review (2026-10-12). Older than this project's slices.
+
+A migration written with a placeholder has `ops.json` as `[]`. Running `db migrate` before filling the slot applies nothing and then fails at the destination check with general advice. It should say that the migration still has an unfilled slot, name the slot, and say to fill it and run `node migration.ts`.
+
+## `db migrate` applies an `ops.json` older than its `migration.ts`
+
+**Found:** slice 4a review (2026-10-12). Older than this project.
+
+The Migration System doc lists emit-drift detection (re-emit `migration.ts` in memory and compare with `ops.json` before applying) as architecturally required and not yet implemented. Without it, a user who edits `migration.ts` and forgets to run it applies the old operations; in slice 4a's review that turned a wrong advice text into a dropped collection. Worth a ticket when this project closes, if none exists.
+
+## A `--convert` expression can leave values the field's type cannot hold
+
+**Found:** slice 3a review (2026-10-12).
+
+A SQLite `--convert` rebuild runs the user's expression without the storage-class check the direct rebuild gets, so `trim("n")` on a field changed to `Int` leaves `'abc'` as text, and the ORM returns `"abc"` for an `Int` field. Postgres refuses such a value itself. Consider running the same check after a converted copy.
+
+## `migration status --json` prints `{bin}` unreplaced
+
+**Found:** slice 3a review (2026-10-12). Outside this project. The summary text in the JSON output contains a raw `{bin}` placeholder.
+
