@@ -591,14 +591,21 @@ export class CollectionBase<
         { meta: { method: 'whereUnique', argument: 'criterion', model: this.modelName } },
       );
     }
+    const tables = withScopeCopy(this.state.tables);
     const filter = normalizeWhereArg(
-      shorthandToWhereExpr(this.ctx.context, this.namespaceId, this.modelName, criterion),
-      { contract: this.contract, namespaceId: this.namespaceId },
+      shorthandToWhereExpr(
+        this.ctx.context,
+        this.namespaceId,
+        this.modelName,
+        criterion,
+        tables.root,
+      ),
+      { contract: this.contract, tables: tableAliases(tables) },
     );
 
-    return this.#cloneSelf<HasWhere & HasUniqueFilter>({
-      filters: filter ? [...this.state.filters, filter] : this.state.filters,
-    });
+    return this.#cloneSelf<HasWhere & HasUniqueFilter>(
+      filter ? { tables, filters: [...this.state.filters, filter] } : {},
+    );
   }
 
   #callbackTools(

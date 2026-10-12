@@ -1,4 +1,4 @@
-import { Collection, createModelAccessor } from '@internal/sql-orm-client';
+import { Collection, createCollectionTables, createModelAccessor } from '@internal/sql-orm-client';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import type { Char } from '@internal/target-postgres/codec-types';
 import { describe, expect, it } from 'vitest';
@@ -366,8 +366,18 @@ describe('integration/whereUnique', () => {
           'level',
         );
         await seedUserRoleRows(runtime);
-        const user = createModelAccessor(getTestContext(), 'public', 'User');
-        const userRole = createModelAccessor(getTestContext(), 'public', 'UserRole');
+        const user = createModelAccessor(
+          getTestContext(),
+          'public',
+          'User',
+          createCollectionTables(getTestContext().contract, 'public', 'User'),
+        );
+        const userRole = createModelAccessor(
+          getTestContext(),
+          'public',
+          'UserRole',
+          createCollectionTables(getTestContext().contract, 'public', 'UserRole'),
+        );
         const idIsId = { id: user.id } as unknown as { id: number };
         const roleIdIsRoleId = { userId: 1, roleId: userRole.roleId } as unknown as {
           userId: number;

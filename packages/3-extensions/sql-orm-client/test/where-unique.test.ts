@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { Collection } from '../src/collection';
+import { createCollectionTables } from '../src/collection-tables';
 import { createModelAccessor } from '../src/model-accessor';
 import { createChainingOrm, PostCollection } from './collection-chaining-fixture';
 import {
   buildCompositeForeignKeyContract,
+  buildMixedPolyContract,
   buildTestContextFromContract,
   createMockRuntime,
   getTestContext,
@@ -262,7 +264,12 @@ describe('whereUnique with a query expression as a key value', () => {
 
   it('throws for an expression for the same column', () => {
     const { db, runtime } = createChainingOrm();
-    const post = createModelAccessor(getTestContext(), 'public', 'Post');
+    const post = createModelAccessor(
+      getTestContext(),
+      'public',
+      'Post',
+      createCollectionTables(getTestContext().contract, 'public', 'Post'),
+    );
     const criterion = { id: post.id } as unknown as { id: number };
     expect(() => db.Post.whereUnique(criterion)).toThrow(incompleteKey('Post'));
     expect(runtime.executions).toHaveLength(0);
@@ -270,7 +277,12 @@ describe('whereUnique with a query expression as a key value', () => {
 
   it('throws for an expression for another column of the model', () => {
     const { db, runtime } = createChainingOrm();
-    const post = createModelAccessor(getTestContext(), 'public', 'Post');
+    const post = createModelAccessor(
+      getTestContext(),
+      'public',
+      'Post',
+      createCollectionTables(getTestContext().contract, 'public', 'Post'),
+    );
     const criterion = { id: post.views } as unknown as { id: number };
     expect(() => db.Post.whereUnique(criterion)).toThrow(incompleteKey('Post'));
     expect(runtime.executions).toHaveLength(0);
@@ -278,7 +290,12 @@ describe('whereUnique with a query expression as a key value', () => {
 
   it('throws for a compound key with one field given as an expression', () => {
     const { plain, runtime } = createChainingOrm();
-    const project = createModelAccessor(getTestContext(), 'public', 'Project');
+    const project = createModelAccessor(
+      getTestContext(),
+      'public',
+      'Project',
+      createCollectionTables(getTestContext().contract, 'public', 'Project'),
+    );
     const criterion = { tenantId: 1, id: project.id } as unknown as {
       tenantId: number;
       id: number;
@@ -289,7 +306,12 @@ describe('whereUnique with a query expression as a key value', () => {
 
   it('compiles an expression on a field outside the key as a further filter', () => {
     const { db } = createChainingOrm();
-    const post = createModelAccessor(getTestContext(), 'public', 'Post');
+    const post = createModelAccessor(
+      getTestContext(),
+      'public',
+      'Post',
+      createCollectionTables(getTestContext().contract, 'public', 'Post'),
+    );
     const criterion = { id: 1, views: post.userId } as unknown as { id: number };
     const unique = db.Post.whereUnique(criterion);
     expect(unique.state.filters).toHaveLength(1);
@@ -365,7 +387,12 @@ describe('whereUnique on a contract written with defineContract, whose argument 
 
   it('throws when one field of the compound key is an expression', () => {
     const { collection, runtime, context } = customers();
-    const customer = createModelAccessor(context, 'public', 'Customer');
+    const customer = createModelAccessor(
+      context,
+      'public',
+      'Customer',
+      createCollectionTables(context.contract, 'public', 'Customer'),
+    );
     expect(() => collection.whereUnique({ tenantId: 1, id: customer.id })).toThrow(
       expect.objectContaining({
         code: 'ORM.ARGUMENT_INVALID',
@@ -384,5 +411,47 @@ describe('whereUnique on a contract written with defineContract, whose argument 
       }),
     );
     expect(runtime.executions).toHaveLength(0);
+  });
+});
+
+describe('whereUnique where a statement names its tables through the scope', () => {
+  function plans(runtime: { executions: readonly { plan: { ast: unknown } }[] }) {
+    const asts = runtime.executions.map((execution) => execution.plan.ast);
+    const half = asts.length / 2;
+    return { first: asts.slice(0, half), second: asts.slice(half), count: asts.length };
+  }
+
+  it('an include of a self-relation reads with the same plans as after where', async () => {
+    const { plain, runtime } = createChainingOrm();
+    const unique = plain.User.whereUnique({ id: 1 }).include('invitedUsers').include('invitedBy');
+    const filtered = plain.User.where({ id: 1 }).include('invitedUsers').include('invitedBy');
+    await unique.first();
+    await filtered.first();
+    const { first, second, count } = plans(runtime);
+    expect(count).toBeGreaterThanOrEqual(2);
+    expect(first).toEqual(second);
+  });
+
+  it('update writes with the same plans as after where', async () => {
+    const { db, runtime } = createChainingOrm();
+    await db.Post.whereUnique({ id: 1 }).update({ title: 'y' });
+    await db.Post.where({ id: 1 }).update({ title: 'y' });
+    const { first, second, count } = plans(runtime);
+    expect(count).toBeGreaterThanOrEqual(2);
+    expect(first).toEqual(second);
+  });
+
+  it('a variant with its own table reads with the same plans as after where', async () => {
+    const runtime = createMockRuntime();
+    const context = { ...getTestContext(), contract: buildMixedPolyContract() };
+    const tasks = new Collection({ runtime, context }, 'Task', { namespaceId: 'public' });
+    const unique = tasks.whereUnique({ id: 1 } as never).variant('feature' as never);
+    const filtered = tasks.where({ id: 1 } as never).variant('feature' as never);
+    expect(unique.state).toEqual(filtered.state);
+    await unique.first();
+    await filtered.first();
+    const { first, second, count } = plans(runtime);
+    expect(count).toBeGreaterThanOrEqual(2);
+    expect(first).toEqual(second);
   });
 });
