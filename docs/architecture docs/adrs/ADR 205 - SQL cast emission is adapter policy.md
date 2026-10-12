@@ -139,9 +139,9 @@ The renderer's `renderTypedParam` chokepoint distinguishes three cases:
 
 Throwing on miss is a deliberate strengthening of the "bare factories can't see extensions" position. The alternative — silently emitting `$N` when an extension `ParamRef` reaches a stack-less adapter — would defer the failure to Postgres' parser, where it surfaces as an opaque `operator does not exist: vector <-> text` later in the call. Failing at lower-time names the misconfiguration directly: *"This usually indicates a missing extension pack in the runtime stack — register the pack that contributes this codec."* Stack composition becomes a hard precondition for any query touching extension codecs, which matches the rest of the system's "explicit composition over implicit defaults" stance.
 
-### Codecs with no static `nativeType`
+### Enum parameters (updated October 12, 2026)
 
-`pg/enum@1` has no static `meta.db.sql.postgres.nativeType` — the type name is per-column, held in `typeParams.typeName`. Codecs without a `nativeType` produce no cast. That's correct for v1: column context disambiguates enums in normal use. If per-column enum casts ever become necessary, a follow-up can route per-column metadata through `LowererContext` without changing the codec interface.
+`pg/enum@1` has no static `meta.db.sql.postgres.nativeType`: the type name is per column, held in `typeParams.typeName`. The renderer (`renderTypedParam` in `packages/3-targets/6-adapters/postgres/src/core/sql-renderer.ts`) now decides casts by data type rather than by `nativeType`. A parameter is written as plain `$N` only when its data type is one whose type PostgreSQL infers reliably (`POSTGRES_INFERRABLE_DATA_TYPES`); every other parameter, enums included, is written as `$N::<name>`, where the name comes from the data type and the parameter's `typeParams`. So an enum parameter is cast to its own type, for example `$1::"ticket_status"`.
 
 ## Consequences
 
