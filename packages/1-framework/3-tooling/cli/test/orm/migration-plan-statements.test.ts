@@ -439,6 +439,24 @@ describe('migration plan --convert and --backfill', () => {
     ]);
   });
 
+  it('says which field gets a temporary value in existing rows, and that --backfill chooses it', async () => {
+    const project = await typeChangeProject();
+    const run = await harness(project, {
+      temporaryValues: [
+        { operationIndex: 0, subject: { kind: 'field', ...ageField, field: 'email' }, value: "''" },
+      ],
+    }).run(['migration', 'plan'], { cwd: project.dir, isTty: { stdout: true } });
+
+    expect(run.presented?.data).toMatchObject({
+      temporaryValues: [{ field: 'User.email', value: "''" }],
+    });
+    expect(run.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows get '' in field "User.email". To choose the value, plan again with --backfill User.email.`,
+    });
+  });
+
   it('reports a delete that answers a type change as accepting the lossy type change', async () => {
     const project = await typeChangeProject();
     const run = await harness(project, { dataLoss: [ageChange] }).run(

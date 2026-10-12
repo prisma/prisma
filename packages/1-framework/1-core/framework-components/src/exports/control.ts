@@ -137,6 +137,7 @@ export type {
   MigrationStatementJson,
   MigrationSubject,
   MigrationSubjectJson,
+  MigrationTemporaryValue,
   ModelCoordinate,
   ModelCoordinateJson,
   ResolvedFieldBackfillStatement,

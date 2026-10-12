@@ -136,6 +136,18 @@ function plannerWarningBlocks(result: MigrationCommandResult): readonly Block[] 
   ];
 }
 
+/** The new required fields whose existing rows get a temporary value, and how to choose the value. */
+function temporaryValueBlocks(result: MigrationCommandResult): readonly Block[] {
+  const get = result.mode === 'plan' ? 'would get' : 'got';
+  return (result.temporaryValues ?? []).map(
+    ({ field, value }): Block => ({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows ${get} ${value} in field "${field}". To choose the value, plan a migration with prisma migration plan ${statementFlag({ verb: 'backfill', text: field })} instead.`,
+    }),
+  );
+}
+
 function planSummaryText(result: MigrationCommandResult): string {
   const operations = result.plan.operations.length;
   const spaces = result.perSpace?.length ?? 0;
@@ -187,6 +199,7 @@ function planBlocks(result: MigrationCommandResult): readonly Block[] {
     { kind: 'summary', status: 'ok', text: planSummaryText(result) },
     ...plannerWarningBlocks(result),
     ...operationBlocks(result),
+    ...temporaryValueBlocks(result),
     ...appliedStatementBlocks(result.appliedStatements ?? []),
     ...questionBlocks(result),
     {
@@ -253,6 +266,7 @@ function applyBlocks(result: MigrationCommandResult): readonly Block[] {
     { kind: 'summary', status: 'ok', text: applySummaryText(result) },
     ...plannerWarningBlocks(result),
     ...operationBlocks(result),
+    ...temporaryValueBlocks(result),
     ...appliedStatementBlocks(result.appliedStatements ?? []),
     ...fallbackMarkerBlocks(result),
     ...(advanced === null || advanced === undefined

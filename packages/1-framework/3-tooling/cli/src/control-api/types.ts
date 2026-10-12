@@ -32,6 +32,7 @@ import type { RenderContractDtsOptions, RenderContractDtsResult } from './render
 import type { AnswerPlanQuestions } from './statements/plan-questions';
 import type { AppliedStatementReport } from './statements/report-applied-statements';
 import type { StatementText } from './statements/statement-text';
+import type { TemporaryValueReport } from './statements/temporary-values';
 
 // ============================================================================
 // Client Options
@@ -504,6 +505,8 @@ export interface DbUpdateSuccess extends MigrationPlanSubjects<AskedDataLoss, As
   readonly perSpace?: ReadonlyArray<PerSpaceExecutionEntry>;
   /** The statements the application space's plan applied, in order; empty when none were given. */
   readonly appliedStatements: readonly AppliedStatementReport[];
+  /** The new required fields whose existing rows the plan gives a temporary value; absent when none. */
+  readonly temporaryValues?: readonly TemporaryValueReport[];
   readonly summary: string;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
 }

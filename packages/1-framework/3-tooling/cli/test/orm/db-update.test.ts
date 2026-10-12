@@ -210,6 +210,33 @@ describe('db update --rename', () => {
     expect(run.presented?.data).toMatchObject({ appliedStatements: [PROFILE_TO_USER] });
   });
 
+  it('says which field gets a temporary value in existing rows, and that migration plan --backfill chooses it', async () => {
+    const temporaryValues = [{ field: 'User.email', value: "''" }];
+    mocks.dbUpdate
+      .mockResolvedValueOnce(ok({ ...planSuccess(), temporaryValues }))
+      .mockResolvedValueOnce(ok({ ...applySuccess(), temporaryValues }));
+    const dryRun = await harness().run(['db', 'update', '--dry-run'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+    const applied = await harness().run(['db', 'update'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+
+    expect(dryRun.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma migration plan --backfill User.email instead.`,
+    });
+    expect(applied.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows got '' in field "User.email". To choose the value, plan a migration with prisma migration plan --backfill User.email instead.`,
+    });
+    expect(applied.presented?.data).toMatchObject({ temporaryValues });
+  });
+
   it('lists what an apply would ask about on a dry run, in its output and its JSON', async () => {
     const legacy = { kind: 'model', namespaceId: 'app', model: 'Legacy' } as const;
     const age = { kind: 'field', namespaceId: 'app', model: 'User', field: 'age' } as const;

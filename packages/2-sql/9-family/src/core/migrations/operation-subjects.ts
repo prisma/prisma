@@ -5,11 +5,13 @@ import type {
   MigrationDataLossKind,
   MigrationPlanSubjects,
   MigrationSubject,
+  MigrationTemporaryValue,
   ModelCoordinate,
   ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlModelStorage } from '@internal/sql-contract/types';
+import { fieldOfColumn } from './field-of-column';
 import {
   fieldRenameStorageEffect,
   isSqlModelStorage,
@@ -74,6 +76,15 @@ export interface CallSubjects {
   readonly dataLoss: readonly (SubjectStorage & { readonly loss: MigrationDataLossKind })[];
   /** What the call's operation changes access to, and whether it widens it. */
   readonly accessWidening: readonly (SubjectStorage & { readonly widens: boolean })[];
+  /** The new required columns the call's operation gives a temporary value in existing rows, and the value. */
+  readonly temporaryValues?: readonly TemporaryColumnValue[];
+}
+
+/** A new required column of `table` in the destination, and the temporary value its existing rows get. */
+export interface TemporaryColumnValue {
+  readonly table: string;
+  readonly column: string;
+  readonly value: string;
 }
 
 interface SubjectContext {
@@ -176,11 +187,22 @@ function subjectOf(target: SubjectStorage, context: SubjectContext): MigrationSu
 export function subjectsOfCalls(
   calls: readonly CallSubjects[],
   context: SubjectContext,
-): MigrationPlanSubjects {
+): MigrationPlanSubjects & { readonly temporaryValues?: readonly MigrationTemporaryValue[] } {
   const dataLoss: MigrationDataLoss[] = [];
   const accessWidening: MigrationAccessChange[] = [];
+  const temporaryValues: MigrationTemporaryValue[] = [];
   let operationIndex = 0;
   for (const call of calls) {
+    for (const { table, column, value } of call.temporaryValues ?? []) {
+      temporaryValues.push({
+        operationIndex,
+        subject: fieldOfColumn(context.contract, table, column) ?? {
+          kind: 'storage',
+          name: `${table}.${column}`,
+        },
+        value,
+      });
+    }
     for (const target of call.dataLoss) {
       dataLoss.push({
         operationIndex,
@@ -198,5 +220,5 @@ export function subjectsOfCalls(
     }
     operationIndex += call.operationCount;
   }
-  return { dataLoss, accessWidening };
+  return { dataLoss, accessWidening, ...(temporaryValues.length > 0 ? { temporaryValues } : {}) };
 }

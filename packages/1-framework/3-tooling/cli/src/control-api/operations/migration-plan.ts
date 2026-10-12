@@ -64,6 +64,7 @@ import {
 } from '../statements/report-applied-statements';
 import { resolveStatements } from '../statements/resolve-statements';
 import { isPlannedStatement, type StatementText } from '../statements/statement-text';
+import { reportTemporaryValues, type TemporaryValueReport } from '../statements/temporary-values';
 import type { ControlClient } from '../types';
 import { errorFromCaught } from './caught-errors';
 import {
@@ -115,7 +116,14 @@ type PlannerSuccess = {
   readonly appliedStatements: readonly AppliedStatementReport[];
   /** The operations that would lose data, positioned in the plan's operations. */
   readonly dataLoss: readonly PlannedDataLoss[];
+  readonly temporaryValues: readonly TemporaryValueReport[];
 };
+
+function temporaryValuesOf(leg: PlannerSuccess): {
+  readonly temporaryValues?: readonly TemporaryValueReport[];
+} {
+  return leg.temporaryValues.length === 0 ? {} : { temporaryValues: leg.temporaryValues };
+}
 
 /** The origin of a plan from an empty database: no models, so no statement resolves. */
 const EMPTY_ORIGIN: ContractWithDomain = { domain: { namespaces: {} } };
@@ -239,6 +247,7 @@ async function runPlannerLeg(
       contract,
       0,
     ),
+    temporaryValues: reportTemporaryValues(plannerResult.temporaryValues, contract),
   });
 }
 
@@ -420,6 +429,8 @@ export interface MigrationPlanResult {
    * `--rename` was given.
    */
   readonly appliedStatements: readonly AppliedStatementReport[];
+  /** The new required fields whose existing rows the plan gives a temporary value; absent when none. */
+  readonly temporaryValues?: readonly TemporaryValueReport[];
   readonly timings: {
     readonly total: number;
   };
@@ -927,6 +938,7 @@ async function executeMigrationPlanCommandInner(
           ...(warnings.length > 0 ? { warnings } : {}),
           pendingPlaceholders: true,
           appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
+          ...temporaryValuesOf(deltaLeg.value),
           summary:
             'Planned baseline + migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
           timings: { total: Date.now() - startTime },
@@ -960,6 +972,7 @@ async function executeMigrationPlanCommandInner(
         ...(preview !== undefined ? { preview } : {}),
         ...(warnings.length > 0 ? { warnings } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
+        ...temporaryValuesOf(deltaLeg.value),
         summary: buildAutoBaselinePlanSummary(
           baselineOps.length,
           deltaOps.length,
@@ -1011,6 +1024,7 @@ async function executeMigrationPlanCommandInner(
         emittedExtensionDirs,
         ...(warnings.length > 0 ? { warnings } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
+        ...temporaryValuesOf(deltaLeg.value),
         summary: 'No changes to plan: the statements need no operations',
         timings: { total: Date.now() - startTime },
       };
@@ -1039,6 +1053,7 @@ async function executeMigrationPlanCommandInner(
         pendingPlaceholders: true,
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
+        ...temporaryValuesOf(deltaLeg.value),
         summary:
           'Planned migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
         timings: { total: Date.now() - startTime },
@@ -1066,6 +1081,7 @@ async function executeMigrationPlanCommandInner(
       ...(fromDefaulted ? { fromDefaulted } : {}),
       ...(warnings.length > 0 ? { warnings } : {}),
       appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
+      ...temporaryValuesOf(deltaLeg.value),
       summary: buildPlanSummary(plannedOps.length, emittedExtensionDirs.length),
       timings: { total: Date.now() - startTime },
     };

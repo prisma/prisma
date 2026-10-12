@@ -9,6 +9,7 @@ import { createControlClient } from '../../control-api/client';
 import type { ContractSpaceSeedPhaseRecord } from '../../control-api/operations/contract-space-seed-phase';
 import type { MigrationPlanResult } from '../../control-api/operations/migration-plan';
 import { executeMigrationPlanCommand } from '../../control-api/operations/migration-plan';
+import { statementFlag } from '../../control-api/statements/statement-flag';
 import { convertAndDelete, isStatementVerb } from '../../control-api/statements/statement-text';
 import type { CreateControlClient } from '../../control-api/types';
 import { errorConvertAndDelete } from '../../utils/cli-errors';
@@ -150,6 +151,16 @@ function originNoticeBlocks(result: MigrationPlanResult): readonly Block[] {
   ];
 }
 
+function temporaryValueBlocks(result: MigrationPlanResult): readonly Block[] {
+  return (result.temporaryValues ?? []).map(
+    ({ field, value }): Block => ({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows get ${value} in field "${field}". To choose the value, plan again with ${statementFlag({ verb: 'backfill', text: field })}.`,
+    }),
+  );
+}
+
 function warningBlocks(result: MigrationPlanResult): readonly Block[] {
   return (result.warnings ?? []).map((text): Block => ({ kind: 'summary', status: 'warn', text }));
 }
@@ -174,6 +185,7 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
       { kind: 'summary', status: 'warn', text: result.summary },
       ...originNoticeBlocks(result),
       ...operationBlocks(result),
+      ...temporaryValueBlocks(result),
       ...appliedStatementBlocks(result.appliedStatements),
       outcome,
     ];
@@ -183,6 +195,7 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
     { kind: 'summary', status: 'ok', text: result.summary },
     ...originNoticeBlocks(result),
     ...operationBlocks(result),
+    ...temporaryValueBlocks(result),
     ...appliedStatementBlocks(result.appliedStatements),
     outcome,
     ...previewBlocks(result),

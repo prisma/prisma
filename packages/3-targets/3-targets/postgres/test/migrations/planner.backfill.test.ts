@@ -112,7 +112,7 @@ const backfill = (field: string): ResolvedMigrationStatement => ({
   field: { namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID), model: 'User', field },
 });
 
-async function planned(
+function plan(
   from: Contract<SqlStorage>,
   to: Contract<SqlStorage>,
   options: {
@@ -134,7 +134,11 @@ async function planned(
     snapshotsImportPath: '../../snapshots',
   });
   if (result.kind !== 'success') throw new Error(JSON.stringify(result.conflicts));
-  const settled = await Promise.allSettled(result.plan.operations);
+  return result;
+}
+
+async function planned(...args: Parameters<typeof plan>) {
+  const settled = await Promise.allSettled(plan(...args).plan.operations);
   return settled.map((entry) =>
     entry.status === 'fulfilled'
       ? `${entry.value.label} (${entry.value.operationClass}): ${entry.value.execute.map(({ description }) => description).join('; ')}`
@@ -155,6 +159,24 @@ describe('Postgres planner, a required field without a value in existing rows', 
       await planned(before, withName),
       await planned(before, withName, { policy: DB_UPDATE }),
     ]).toEqual([[temporaryDefault], [temporaryDefault]]);
+  });
+
+  it('names each new required field that takes a temporary value, with the value', () => {
+    expect(plan(before, withName).temporaryValues).toEqual([
+      {
+        operationIndex: 0,
+        subject: {
+          kind: 'field',
+          namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
+          model: 'User',
+          field: 'name',
+        },
+        value: "''",
+      },
+    ]);
+    expect(plan(before, withName, { statements: [backfill('name')] })).not.toHaveProperty(
+      'temporaryValues',
+    );
   });
 
   it('adds a new required field with a backfill slot for --backfill', async () => {

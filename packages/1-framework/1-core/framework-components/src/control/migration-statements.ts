@@ -115,6 +115,15 @@ export interface MigrationDataLoss extends MigrationOperationSubject {
   readonly label?: string;
 }
 
+/**
+ * A required field a plan adds to a table that may have rows, which every existing row gets one temporary value for. A
+ * backfill statement for the field fills them instead.
+ */
+export interface MigrationTemporaryValue extends MigrationOperationSubject {
+  /** The value as SQL text, such as `''` or `0`. */
+  readonly value: string;
+}
+
 /** What the operations of a plan lose and whose access they change, each by its position in the plan. */
 export interface MigrationPlanSubjects<
   TLoss extends MigrationDataLoss = MigrationDataLoss,

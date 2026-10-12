@@ -354,6 +354,24 @@ describe('SQLite planner, a required field without a value in existing rows', ()
     expect(rendered(textAge, withName)).toContain(`copyExpressions: { "name": "''" }`);
   });
 
+  it('names each new required field that takes a temporary value, with the value', () => {
+    expect(plan(textAge, withName).temporaryValues).toEqual([
+      {
+        operationIndex: 0,
+        subject: {
+          kind: 'field',
+          namespaceId: unbound,
+          model: 'User',
+          field: 'name',
+        },
+        value: "''",
+      },
+    ]);
+    expect(
+      plan(textAge, withName, { statements: [statement('backfill', 'name')] }),
+    ).not.toHaveProperty('temporaryValues');
+  });
+
   it('fills a new required datetime field with the instant the codec writes for the epoch', () => {
     const withStamp = contract(hex('e'), {
       id: 'integer',

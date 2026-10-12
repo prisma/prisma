@@ -175,20 +175,24 @@ withTempDir(({ createTempDir }) => {
           latestMigrationDirName(ctx),
         ]);
         expect(temporary.exitCode, `plan name: ${temporary.stderr}`).toBe(0);
+        expect(`${temporary.stdout}${temporary.stderr}`).toContain(
+          `Existing rows get '' in field "User.name". To choose the value, plan again with --backfill User.name.`,
+        );
         expect(readFileSync(join(latestDir(ctx), 'migration.ts'), 'utf-8')).toContain(
           'temporaryDefault',
         );
         expect((await runMigrate(ctx)).exitCode, 'apply name').toBe(0);
 
         await emit(ctx, contractWith('  name  String\n  title String\n'));
-        const backfill = await runMigrationPlan(ctx, [
-          '--name',
-          'title',
-          '--from',
-          latestMigrationDirName(ctx),
-          '--backfill',
-          'User.title',
-        ]);
+        const titleFrom = ['--name', 'title', '--from', latestMigrationDirName(ctx)];
+        const advised = await runMigrationPlan(ctx, titleFrom);
+        expect(advised.exitCode, `plan title: ${advised.stderr}`).toBe(0);
+        const advice = /plan again with (--backfill \S+)\./.exec(
+          `${advised.stdout}${advised.stderr}`,
+        )?.[1];
+        expect(advice).toBe('--backfill User.title');
+        rmSync(latestDir(ctx), { recursive: true });
+        const backfill = await runMigrationPlan(ctx, [...titleFrom, ...(advice ?? '').split(' ')]);
         expect(backfill.exitCode, `plan --backfill: ${backfill.stderr}`).toBe(0);
         await fillAndApply(ctx, (scaffold) =>
           injectMigrationSqlDbSetup(scaffold)
@@ -337,6 +341,9 @@ withTempDir(({ createTempDir }) => {
         await emit(ctx, contractWith('  age   Int\n  name  String\n'));
         const added = await runDbUpdate(ctx);
         expect(added.exitCode, `db update name: ${added.stderr}`).toBe(0);
+        expect(`${added.stdout}${added.stderr}`).toContain(
+          `Existing rows got '' in field "User.name". To choose the value, plan a migration with prisma migration plan --backfill User.name instead.`,
+        );
         expect(
           (await sql(db.connectionString, `SELECT id, name FROM "user" ORDER BY id`)).rows,
         ).toEqual([

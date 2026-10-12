@@ -27,6 +27,7 @@ import type {
   MigrationDataLoss,
   MigrationPlanner,
   MigrationScaffoldContext,
+  MigrationTemporaryValue,
   PlanOrigin,
   ResolvedMigrationStatement,
   SchemaDiffIssue,
@@ -78,6 +79,7 @@ export type SqlitePlanResult =
       readonly appliedStatements: readonly AppliedMigrationStatement[];
       readonly dataLoss: readonly MigrationDataLoss[];
       readonly accessWidening: readonly MigrationAccessChange[];
+      readonly temporaryValues?: readonly MigrationTemporaryValue[];
     }
   | SqlPlannerFailureResult;
 

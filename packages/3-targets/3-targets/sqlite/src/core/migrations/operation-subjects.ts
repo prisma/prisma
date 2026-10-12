@@ -50,6 +50,16 @@ function recreateLosses(
   ];
 }
 
+/** The columns a recreate adds with a value its copy writes into every existing row. */
+function temporaryValuesOf(call: RecreateTableCall): NonNullable<CallSubjects['temporaryValues']> {
+  const copied = new Set(call.schemaColumnNames);
+  return Object.entries(call.copyExpressions).flatMap(([column, expression]) =>
+    copied.has(column) || expression.kind !== 'sql'
+      ? []
+      : [{ table: call.tableName, column, value: expression.sql }],
+  );
+}
+
 /**
  * What each call of a SQLite plan loses. A recreate that leaves a column out loses its values
  * itself, so a later drop of that column is not listed again.
@@ -80,7 +90,14 @@ export function sqliteCallSubjects(
         columns.length === 0 && call.operationClass === 'destructive'
           ? [lost(tableTarget(call.tableName))]
           : columns.map(({ column, loss }) => lost(columnTarget(call.tableName, column), loss));
-      return { operationCount, label, dataLoss, accessWidening: [] };
+      const temporaryValues = temporaryValuesOf(call);
+      return {
+        operationCount,
+        label,
+        dataLoss,
+        accessWidening: [],
+        ...(temporaryValues.length > 0 ? { temporaryValues } : {}),
+      };
     }
     if (call instanceof DropColumnCall) {
       const alreadyLost = lostColumns.has(`${call.tableName}.${call.columnName}`);

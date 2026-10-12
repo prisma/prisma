@@ -375,6 +375,9 @@ withTempDir(({ createTempDir }) => {
         ]);
         expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
         expect(parseJsonOutput(planned)).not.toHaveProperty('pendingPlaceholders');
+        expect(parseJsonOutput(planned)).toMatchObject({
+          temporaryValues: [{ field: 'User.name', value: "''" }],
+        });
 
         const migrationDir = plannedDir(ctx, 'add_name');
         const opsPlanned = readFileSync(join(migrationDir, 'ops.json'), 'utf-8');
@@ -403,15 +406,15 @@ withTempDir(({ createTempDir }) => {
           ctx,
           BASE.replace('  nickname String?\n', '  nickname String?\n  name     String\n'),
         );
-        const planned = await runMigrationPlan(ctx, [
-          '--name',
-          'backfill-name',
-          '--from',
-          latestMigrationDirName(ctx),
-          '--backfill',
-          'User.name',
-          '--json',
-        ]);
+        const from = ['--name', 'backfill-name', '--from', latestMigrationDirName(ctx)];
+        const advised = await runMigrationPlan(ctx, from);
+        expect(advised.exitCode, `plan: ${advised.stderr}`).toBe(0);
+        const advice = /plan again with (--backfill \S+)\./.exec(
+          `${advised.stdout}${advised.stderr}`,
+        )?.[1];
+        expect(advice).toBe('--backfill User.name');
+        rmSync(plannedDir(ctx, 'backfill_name'), { recursive: true });
+        const planned = await runMigrationPlan(ctx, [...from, ...(advice ?? '').split(' ')]);
         expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
 
         const slot = /\(\) => placeholder\((['"])User\.name:run\1\)/;
@@ -654,6 +657,9 @@ withTempDir(({ createTempDir }) => {
         );
         const added = await runDbUpdate(ctx);
         expect(added.exitCode, `db update name: ${added.stdout}\n${added.stderr}`).toBe(0);
+        expect(`${added.stdout}${added.stderr}`).toContain(
+          `Existing rows got '' in field "User.name". To choose the value, plan a migration with prisma migration plan --backfill User.name instead.`,
+        );
         expect(query(ctx.dbPath, `SELECT id, name FROM "User" ORDER BY id`)).toEqual([
           { id: 1, name: '' },
           { id: 2, name: '' },

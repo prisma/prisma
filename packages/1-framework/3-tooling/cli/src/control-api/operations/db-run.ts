@@ -60,6 +60,7 @@ import {
 } from '../statements/report-applied-statements';
 import { resolveStatements, type StatementOrigin } from '../statements/resolve-statements';
 import { isPlannedStatement, type StatementText } from '../statements/statement-text';
+import { reportTemporaryValues, type TemporaryValueReport } from '../statements/temporary-values';
 import type {
   AskedAccessChange,
   AskedDataLoss,
@@ -394,6 +395,10 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
           ),
         ]
       : undefined;
+  const temporaryValues =
+    action === 'dbUpdate'
+      ? reportTemporaryValues(appResolution.entry.temporaryValues, contract)
+      : [];
   const contractsAsked = {
     origin: fromContract ?? EMPTY_ORIGIN,
     destination: contract,
@@ -427,6 +432,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       summary,
       appliedStatements,
       subjects,
+      temporaryValues,
       ...ifDefined('warnings', plannerWarnings),
     });
   }
@@ -479,6 +485,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     summary,
     appliedStatements,
     subjects,
+    temporaryValues,
     ...ifDefined('warnings', plannerWarnings),
   });
 }
@@ -679,12 +686,14 @@ function wrapPlanResult(args: {
   readonly appliedStatements: readonly AppliedStatementReport[] | undefined;
   /** `undefined` for `db init`, which reports no data loss. */
   readonly subjects: MigrationPlanSubjects<AskedDataLoss, AskedAccessChange> | undefined;
+  readonly temporaryValues: readonly TemporaryValueReport[];
   readonly warnings?: readonly MigrationPlannerConflict[];
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
     mode: 'plan',
     ...ifDefined('appliedStatements', args.appliedStatements),
     ...args.subjects,
+    ...(args.temporaryValues.length === 0 ? {} : { temporaryValues: args.temporaryValues }),
     plan: {
       operations: stripOperations(args.operations),
       ...ifDefined('preview', args.preview),
@@ -711,12 +720,14 @@ function wrapApplyResult(args: {
   readonly appliedStatements: readonly AppliedStatementReport[] | undefined;
   /** `undefined` for `db init`, which reports no data loss. */
   readonly subjects: MigrationPlanSubjects<AskedDataLoss, AskedAccessChange> | undefined;
+  readonly temporaryValues: readonly TemporaryValueReport[];
   readonly warnings?: readonly MigrationPlannerConflict[];
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
     mode: 'apply',
     ...ifDefined('appliedStatements', args.appliedStatements),
     ...args.subjects,
+    ...(args.temporaryValues.length === 0 ? {} : { temporaryValues: args.temporaryValues }),
     plan: { operations: stripOperations(args.operations) },
     destination: {
       storageHash: args.destination.storageHash,
