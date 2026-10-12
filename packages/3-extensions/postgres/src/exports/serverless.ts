@@ -1,4 +1,7 @@
-export type { PostgresFullTextMethod } from '../runtime/full-text-collection-method';
+export type {
+  PostgresFullTextMethod,
+  PostgresTsqueryArgument,
+} from '../runtime/full-text-collection-method';
 export type { PostgresCursorOptions } from '../runtime/postgres-options';
 export type {
   PostgresServerlessClient,
