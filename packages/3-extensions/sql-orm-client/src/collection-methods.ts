@@ -8,7 +8,7 @@ import type {
 } from '@internal/sql-relational-core/query-lane-context';
 import type { Filtered, Ordered } from './collection-types';
 import { ormError } from './orm-errors';
-import { resolveTableForContract } from './storage-resolution';
+import { storageTableForContract } from './storage-resolution';
 import type { ModelIndexReferences } from './types';
 
 /**
@@ -98,8 +98,7 @@ function tableEntries(
   tableName: string,
 ): ReadonlyArray<MethodEntry> {
   const contributions = context.collectionMethods ?? [];
-  const table = resolveTableForContract(context.contract, namespaceId, tableName)?.table;
-  if (contributions.length === 0 || table === undefined) return [];
+  const table = storageTableForContract(context.contract, namespaceId, tableName);
   const entries: MethodEntry[] = [];
   for (const [name, [index, ...others]] of indexesByAuthoredName(table)) {
     if (index === undefined || others.length > 0) continue;
