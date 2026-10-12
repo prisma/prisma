@@ -686,14 +686,8 @@ const MIXIN_KEYWORD = 'mixin';
 
 const KEYWORDS_WITHOUT_MIXINS: ReadonlySet<string> = new Set(['namespace', 'types']);
 
-function usesEarlierGrammar(options: PslParserOptions): boolean {
-  // biome-ignore lint/plugin/no-family-vocabulary: the parser names the grammar versions it parses
-  return options.grammar === 'prisma-7';
-}
-
-function isMixinHeaderAhead(cursor: Cursor, options: PslParserOptions): boolean {
+function isMixinHeaderAhead(cursor: Cursor): boolean {
   return (
-    !usesEarlierGrammar(options) &&
     cursor.peekKind() === 'Ident' &&
     cursor.peekKind(1) === 'Ident' &&
     cursor.peekToken(1).text === MIXIN_KEYWORD
@@ -719,7 +713,7 @@ function parseDeclaration(
   insideNamespace: boolean,
   options: PslParserOptions,
 ): void {
-  if (isMixinHeaderAhead(cursor, options)) {
+  if (isMixinHeaderAhead(cursor)) {
     parseMixinDeclaration(cursor, options);
     return;
   }
@@ -745,9 +739,9 @@ function parseDeclaration(
   }
 
   const node =
-    parseModel(cursor, options) ??
+    parseModel(cursor) ??
     parseNamespace(cursor, options) ??
-    parseCompositeType(cursor, options) ??
+    parseCompositeType(cursor) ??
     parseTypesBlock(cursor) ??
     parseGenericBlock(cursor, options);
   if (!node) {
@@ -790,9 +784,9 @@ function parseBlock(
   return cursor.finishNode();
 }
 
-export function parseModel(cursor: Cursor, options: PslParserOptions = {}): GreenNode | undefined {
+export function parseModel(cursor: Cursor): GreenNode | undefined {
   if (!keywordIs(cursor, 'model')) return undefined;
-  return parseBlock(cursor, 'ModelDeclaration', true, (inner) => parseModelMember(inner, options));
+  return parseBlock(cursor, 'ModelDeclaration', true, parseModelMember);
 }
 
 function parseMixinDeclaration(cursor: Cursor, options: PslParserOptions): GreenNode {
@@ -800,6 +794,7 @@ function parseMixinDeclaration(cursor: Cursor, options: PslParserOptions): Green
   const keywordMark = cursor.mark();
   const mixinMark = cursor.mark(1);
   cursor.startNode('MixinDeclaration');
+  // The block keyword, then the word `mixin`.
   cursor.bump();
   cursor.bump();
   const hasName =
@@ -845,9 +840,7 @@ function parseMixinDeclaration(cursor: Cursor, options: PslParserOptions): Green
 function mixinMemberParser(keyword: string, options: PslParserOptions): MemberParser {
   if (keyword === 'namespace') return (inner) => parseDeclaration(inner, true, options);
   if (keyword === 'types') return parseNamedTypeMember;
-  if (keyword === 'model' || keyword === 'type') {
-    return (inner) => parseModelMember(inner, options);
-  }
+  if (keyword === 'model' || keyword === 'type') return parseModelMember;
   return genericBlockMemberParser(keyword, options);
 }
 
@@ -865,7 +858,7 @@ export function parseGenericBlock(
   const keyword = cursor.peekToken().text;
   if (RESERVED_BLOCK_KEYWORDS.has(keyword)) return undefined;
   const hasName = cursor.peekKind(1) === 'Ident' && cursor.peekKind(2) === 'LBrace';
-  const isMixinKeyword = keyword === MIXIN_KEYWORD && !usesEarlierGrammar(options);
+  const isMixinKeyword = keyword === MIXIN_KEYWORD;
   if (isMixinKeyword) {
     cursor.diagnostic(
       'PSL_INVALID_DECLARATION',
@@ -902,14 +895,9 @@ export function parseNamespace(cursor: Cursor, options: PslParserOptions): Green
   return parseBlock(cursor, 'Namespace', true, (inner) => parseDeclaration(inner, true, options));
 }
 
-export function parseCompositeType(
-  cursor: Cursor,
-  options: PslParserOptions = {},
-): GreenNode | undefined {
+export function parseCompositeType(cursor: Cursor): GreenNode | undefined {
   if (!keywordIs(cursor, 'type')) return undefined;
-  return parseBlock(cursor, 'CompositeTypeDeclaration', true, (inner) =>
-    parseModelMember(inner, options),
-  );
+  return parseBlock(cursor, 'CompositeTypeDeclaration', true, parseModelMember);
 }
 
 /** `types` (plural) is the no-name types block; the singular `type` is the composite type above. */
@@ -954,12 +942,8 @@ export function parseBlockAttribute(cursor: Cursor): GreenNode | undefined {
   return parseAttribute(cursor);
 }
 
-function parseMixinInclusion(
-  cursor: Cursor,
-  options: PslParserOptions,
-  memberCode: PslDiagnosticCode,
-): GreenNode | undefined {
-  if (cursor.peekKind() !== 'Plus' || usesEarlierGrammar(options)) return undefined;
+function parseMixinInclusion(cursor: Cursor, memberCode: PslDiagnosticCode): GreenNode | undefined {
+  if (cursor.peekKind() !== 'Plus') return undefined;
   const plusMark = cursor.mark();
   cursor.startNode('MixinInclusion');
   cursor.bump();
@@ -972,9 +956,9 @@ function parseMixinInclusion(
   return cursor.finishNode();
 }
 
-function parseModelMember(cursor: Cursor, options: PslParserOptions): void {
+function parseModelMember(cursor: Cursor): void {
   const node =
-    parseMixinInclusion(cursor, options, 'PSL_INVALID_MODEL_MEMBER') ??
+    parseMixinInclusion(cursor, 'PSL_INVALID_MODEL_MEMBER') ??
     parseBlockAttribute(cursor) ??
     parseField(cursor);
   if (!node) {
@@ -1003,11 +987,10 @@ function parseNamedTypeMember(cursor: Cursor): void {
  * body. Each interpreter decides whether it accepts the block and its members.
  */
 function genericBlockMemberParser(keyword: string, options: PslParserOptions): MemberParser {
-  if (keyword === 'view' && usesEarlierGrammar(options)) {
-    return (inner) => parseModelMember(inner, options);
-  }
-  if (keyword === 'enum') return (inner) => parseEnumMember(inner, options);
-  return (inner) => parseKeyValueMember(inner, options);
+  // biome-ignore lint/plugin/no-family-vocabulary: the parser names the grammar versions it parses
+  if (keyword === 'view' && options.grammar === 'prisma-7') return parseModelMember;
+  if (keyword === 'enum') return parseEnumMember;
+  return parseKeyValueMember;
 }
 
 /**
@@ -1015,9 +998,9 @@ function genericBlockMemberParser(keyword: string, options: PslParserOptions): M
  * entry. The block-attribute alternative is purely syntactic — it does not judge
  * whether the attribute is valid for the block's kind.
  */
-function parseKeyValueMember(cursor: Cursor, options: PslParserOptions): void {
+function parseKeyValueMember(cursor: Cursor): void {
   const node =
-    parseMixinInclusion(cursor, options, 'PSL_INVALID_EXTENSION_BLOCK_MEMBER') ??
+    parseMixinInclusion(cursor, 'PSL_INVALID_EXTENSION_BLOCK_MEMBER') ??
     parseBlockAttribute(cursor) ??
     parseKeyValue(cursor);
   if (!node) {
@@ -1025,9 +1008,9 @@ function parseKeyValueMember(cursor: Cursor, options: PslParserOptions): void {
   }
 }
 
-function parseEnumMember(cursor: Cursor, options: PslParserOptions): void {
+function parseEnumMember(cursor: Cursor): void {
   const node =
-    parseMixinInclusion(cursor, options, 'PSL_INVALID_EXTENSION_BLOCK_MEMBER') ??
+    parseMixinInclusion(cursor, 'PSL_INVALID_EXTENSION_BLOCK_MEMBER') ??
     parseBlockAttribute(cursor) ??
     parseKeyValue(cursor, { memberAttributes: true });
   if (!node) {

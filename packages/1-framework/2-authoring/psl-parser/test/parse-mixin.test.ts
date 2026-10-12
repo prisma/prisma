@@ -599,54 +599,41 @@ describe('malformed mixin input', () => {
 });
 
 describe('the prisma-7 grammar', () => {
-  it('reads model mixin { } as a model named mixin', () => {
-    const result = parseLossless('model mixin {\n  id Int\n}', prisma7);
-    const models = Array.from(filterChildren(result.document.syntax, ModelDeclarationAst.cast));
+  it('gives the same tree and diagnostics as the default grammar for mixin declarations and inclusions', () => {
+    const source = [
+      'model mixin Timestamps {',
+      '  createdAt DateTime',
+      '}',
+      'enum mixin BaseRoles {',
+      '  ADMIN',
+      '}',
+      'model mixin {',
+      '}',
+      'mixin Lost {',
+      '}',
+      'model User {',
+      '  id Int',
+      '  +Timestamps',
+      '  +',
+      '}',
+      'enum Role {',
+      '  +auth.BaseRoles',
+      '}',
+    ].join('\n');
+    const inDefault = parseLossless(source);
+    const inPrisma7 = parseLossless(source, prisma7);
 
-    expect(result.diagnostics).toEqual([]);
-    expect(models.map((model) => model.name()?.name())).toEqual(['mixin']);
-  });
-
-  it('reads mixin X { } as a generic block', () => {
-    const result = parseLossless('mixin X {\n  a = 1\n}', prisma7);
-    const blocks = Array.from(
-      filterChildren(result.document.syntax, GenericBlockDeclarationAst.cast),
+    expect(printTree(inPrisma7.document.syntax.green)).toBe(
+      printTree(inDefault.document.syntax.green),
     );
-
-    expect(result.diagnostics).toEqual([]);
-    expect(blocks.map((block) => [block.keyword()?.text, block.name()?.name()])).toEqual([
-      ['mixin', 'X'],
+    expect(inPrisma7.diagnostics).toEqual(inDefault.diagnostics);
+    expect(messages(inPrisma7)).toEqual([
+      'PSL_INVALID_DECLARATION: Expected a mixin name after "mixin"',
+      'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin Lost"',
+      'PSL_INVALID_MODEL_MEMBER: Expected a mixin name after "+"',
     ]);
-  });
-
-  it('reads a namespace named mixin as a namespace', () => {
-    const result = parseLossless('namespace mixin {\n  model A {\n    id Int\n  }\n}', prisma7);
-    const [namespace] = Array.from(result.document.declarations());
-
-    expect(result.diagnostics).toEqual([]);
-    expect(namespace).toBeInstanceOf(NamespaceDeclarationAst);
-  });
-
-  it('reports model mixin X { as a model with a missing brace', () => {
-    const result = parseLossless('model mixin X {\n  id Int\n}', prisma7);
-
-    expect(messages(result)[0]).toBe(
-      'PSL_INVALID_DECLARATION: Expected "{" to open the "model" block',
+    expect(descendantKinds(inPrisma7.document.syntax)).toEqual(
+      expect.arrayContaining(['MixinDeclaration', 'MixinInclusion']),
     );
-    expect(descendantKinds(result.document.syntax)).not.toContain('MixinDeclaration');
-  });
-
-  it('reports a member that starts with a plus as an invalid member', () => {
-    const model = parseLossless('model User {\n  +Timestamps\n  id Int\n}', prisma7);
-    const enumBlock = parseLossless('enum Role {\n  +BaseRoles\n  ADMIN\n}', prisma7);
-
-    expect(messages(model)).toEqual([
-      'PSL_INVALID_MODEL_MEMBER: Invalid model member declaration "+"',
-    ]);
-    expect(messages(enumBlock)).toEqual([
-      'PSL_INVALID_EXTENSION_BLOCK_MEMBER: Invalid block entry',
-    ]);
-    expect(descendantKinds(model.document.syntax)).not.toContain('MixinInclusion');
-    expect(descendantKinds(enumBlock.document.syntax)).not.toContain('MixinInclusion');
   });
 });
