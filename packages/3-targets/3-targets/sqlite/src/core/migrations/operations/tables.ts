@@ -1,4 +1,8 @@
-import type { MigrationOperationClass } from '@internal/family-sql/control';
+import {
+  castColumnMeta,
+  type MigrationOperationClass,
+  type SqlMigrationPlanOperationStep,
+} from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
@@ -257,7 +261,7 @@ export async function recreateTable(
       ),
       ...postchecks.flatMap((check) =>
         'sql' in check
-          ? [check]
+          ? [castColumnStep(tableName, check)]
           : defaultPostcheck(tableName, check, clauseByColumn.get(check.columnDefault)),
       ),
     ],
@@ -269,8 +273,54 @@ export async function recreateTable(
  * which becomes SQL once the adapter has written the column's `DEFAULT …` clause.
  */
 export type RecreatePostcheck =
-  | { readonly description: string; readonly sql: string }
+  | {
+      readonly description: string;
+      readonly sql: string;
+      /** The column whose values the check finds converted by the copy; a failure names its field. */
+      readonly castColumn?: string;
+    }
   | { readonly description: string; readonly columnDefault: string };
+
+function castColumnStep(
+  tableName: string,
+  check: { readonly description: string; readonly sql: string; readonly castColumn?: string },
+): SqlMigrationPlanOperationStep {
+  const { castColumn, ...step } = check;
+  return castColumn === undefined ? step : { ...step, meta: castColumnMeta(tableName, castColumn) };
+}
+
+/**
+ * The storage classes SQLite keeps a value in once a column of `typeSql` has taken it: the column's
+ * type affinity converts what it can, so a value of another class is one it could not convert.
+ * See https://www.sqlite.org/datatype3.html#determination_of_column_affinity.
+ */
+function affinityStorageClasses(typeSql: string): readonly string[] {
+  const declared = typeSql.toUpperCase();
+  if (declared.includes('INT')) return ['integer'];
+  if (['CHAR', 'CLOB', 'TEXT'].some((part) => declared.includes(part))) return ['text'];
+  if (declared === '' || declared.includes('BLOB')) return ['blob'];
+  if (['REAL', 'FLOA', 'DOUB'].some((part) => declared.includes(part))) return ['real'];
+  return ['integer', 'real'];
+}
+
+/**
+ * Checks that the copy into a rebuilt table converted every value of a retyped column to the
+ * column's new type. SQLite keeps a value it cannot convert in its old storage class, so a value of
+ * any other class than the column's affinity keeps fails the check.
+ */
+export function castValuePostcheck(
+  tableName: string,
+  column: { readonly name: string; readonly typeSql: string },
+): { readonly description: string; readonly sql: string; readonly castColumn: string } {
+  const classes = ['null', ...affinityStorageClasses(column.typeSql)]
+    .map((storageClass) => `'${storageClass}'`)
+    .join(', ');
+  return {
+    description: `verify every value of "${column.name}" on "${tableName}" is stored as ${column.typeSql}`,
+    sql: `SELECT NOT EXISTS (SELECT 1 FROM ${quoteIdentifier(tableName)} WHERE typeof(${quoteIdentifier(column.name)}) NOT IN (${classes}))`,
+    castColumn: column.name,
+  };
+}
 
 function renderSpecDefaults(
   spec: SqliteTableSpec,

@@ -41,7 +41,11 @@ import {
   type SqliteOpFactoryCall,
 } from './op-factory-call';
 import type { SqliteIndexSpec } from './operations/shared';
-import { buildRecreatePostchecks, buildRecreateSummary } from './operations/tables';
+import {
+  buildRecreatePostchecks,
+  buildRecreateSummary,
+  castValuePostcheck,
+} from './operations/tables';
 import { sqliteFillValue } from './planner-fill-values';
 
 export interface StrategyContext {
@@ -323,7 +327,12 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
           schemaColumnNames: [...Object.keys(actualTable.columns), ...rebuild.addedColumns],
           indexes,
           summary: buildRecreateSummary(tableName, rebuild.issues),
-          postchecks: buildRecreatePostchecks(tableName, rebuild.issues, tableSpec),
+          postchecks: [
+            ...buildRecreatePostchecks(tableName, rebuild.issues, tableSpec),
+            ...tableSpec.columns
+              .filter((column) => rebuild.lossyColumns.includes(column.name))
+              .map((column) => castValuePostcheck(tableName, column)),
+          ],
           operationClass,
           copyExpressions: rebuild.copyExpressions,
         },

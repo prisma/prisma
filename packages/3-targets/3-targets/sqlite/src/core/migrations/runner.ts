@@ -11,7 +11,7 @@ import type {
   SqlMigrationRunnerResult,
   SqlMigrationRunnerSuccessValue,
 } from '@internal/family-sql/control';
-import { runnerFailure, runnerSuccess } from '@internal/family-sql/control';
+import { runnerFailure, runnerSuccess, unconvertedFieldOf } from '@internal/family-sql/control';
 import type { MigrationRunnerResult } from '@internal/framework-components/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
@@ -286,6 +286,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
             operation.postcheck,
             operation,
             'postcheck',
+            options.destinationContract,
           );
           if (!postcheckResult.ok) {
             return postcheckResult;
@@ -348,6 +349,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
     steps: readonly SqlMigrationPlanOperationStep[],
     operation: SqlMigrationPlanOperation<SqlitePlanTargetDetails>,
     phase: 'precheck' | 'postcheck',
+    destinationContract?: Contract<SqlStorage>,
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
     for (const step of steps) {
       const result = await driver.query(step.sql, step.params ?? []);
@@ -363,6 +365,10 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
               phase,
               stepDescription: step.description,
             },
+            unconvertedField:
+              destinationContract === undefined
+                ? undefined
+                : unconvertedFieldOf(step, destinationContract),
           },
         );
       }

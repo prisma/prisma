@@ -163,6 +163,28 @@ describe('SQLite planner, a type change', () => {
     expect(result.dataLoss.map(({ loss }) => loss)).toEqual(['typeChange']);
   });
 
+  it('checks after the copy that every value of the retyped column took the new type', async () => {
+    const [op] = await Promise.all(plan(textAge, intAge).plan.operations);
+    expect(op?.postcheck.filter((step) => step.meta !== undefined)).toEqual([
+      {
+        description: 'verify every value of "age" on "User" is stored as INTEGER',
+        sql: `SELECT NOT EXISTS (SELECT 1 FROM "User" WHERE typeof("age") NOT IN ('null', 'integer'))`,
+        meta: { castColumn: { table: 'User', column: 'age' } },
+      },
+    ]);
+    expect(rendered(textAge, intAge)).toContain('castColumn: "age"');
+  });
+
+  it('checks no values of a column it does not retype, or of one converted for --convert', () => {
+    expect([
+      rendered(textAge, withName),
+      rendered(textAge, intAge, { statements: [statement('convert', 'age')] }),
+    ]).toEqual([
+      expect.not.stringContaining('castColumn'),
+      expect.not.stringContaining('castColumn'),
+    ]);
+  });
+
   it('copies the column through a conversion slot for --convert, a data change that loses nothing', async () => {
     const result = plan(textAge, intAge, { statements: [statement('convert', 'age')] });
     expect(await planned(textAge, intAge, { statements: [statement('convert', 'age')] })).toEqual([
