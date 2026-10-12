@@ -1,6 +1,7 @@
 import { asNamespaceId, type ControlPolicy } from '@internal/contract/types';
 import type {
   MigrationOperationPolicy,
+  PlanOrigin,
   ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
 import { MongoCollection, type MongoContract } from '@internal/mongo-contract';
@@ -168,13 +169,15 @@ export function plan(input: {
   readonly schema: readonly MongoSchemaCollection[];
   readonly statements?: readonly ResolvedMigrationStatement[];
   readonly policy?: MigrationOperationPolicy;
+  /** The origin a migration package asserts; `db update` plans without one. */
+  readonly origin?: PlanOrigin | null;
 }) {
   return new MongoMigrationPlanner().plan({
     contract: input.to,
     schema: new MongoSchemaIR(input.schema),
     policy: input.policy ?? ALL_CLASSES_POLICY,
     fromContract: input.from,
-    origin: null,
+    origin: input.origin ?? null,
     statements: input.statements ?? [],
     frameworkComponents: [],
     snapshotsImportPath: '../../snapshots',
