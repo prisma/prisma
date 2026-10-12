@@ -112,3 +112,9 @@ A SQLite `--convert` rebuild runs the user's expression without the storage-clas
 
 **Found:** slice 3a review (2026-10-12). Outside this project. The summary text in the JSON output contains a raw `{bin}` placeholder.
 
+
+## A Postgres `dataTransform` whose `run` returns the wrong shape fails with an unclear error
+
+**Found:** slice 3a review (2026-10-12). Outside this project.
+
+When `run` returns an array of plans or a SQL string, `node migration.ts` fails with "Cannot read properties of undefined (reading 'storageHash')". It should say what `run` must return.
