@@ -331,4 +331,17 @@ describe('integration/polymorphism-namespaces', () => {
     },
     timeouts.spinUpPpgDev,
   );
+
+  it(
+    'whereUnique() refuses the inherited key on a variant model whose base table has the same name in another namespace',
+    async () => {
+      await withTasks(async (runtime) => {
+        const db = orm({ runtime, context });
+        const incompleteKey = expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' });
+        expect(() => db.a.Feature.whereUnique({ id: 2 })).toThrow(incompleteKey);
+        expect(() => db.b.Chore.whereUnique({ id: 3 })).toThrow(incompleteKey);
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
 });
