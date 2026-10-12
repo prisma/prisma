@@ -11,8 +11,8 @@ import {
   errorRunnerFailed,
   errorRuntime,
 } from './cli-errors';
-import { dbInitRowsWithoutValueFix } from './migrate-failure';
 import { runCommandAction } from './next-actions';
+import { dbInitRowsWithoutValueFix } from './runner-failure-advice';
 
 const DB_INIT_ADDITIVE_ONLY_FIX =
   '`db init` applies only additive changes. Run `{bin} db update`, which also applies widening and destructive ones once you answer what each operation that would lose data means, with `--delete` or `--rename`.';

@@ -3,7 +3,7 @@ import { assertNever } from '@internal/utils/internal-error';
 import type { DbUpdateFailure } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
-import { dbUpdateFailedCastFix, dbUpdateRowsWithoutValueFix } from './migrate-failure';
+import { dbUpdateFailedCastFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
 
 /**
  * A `db update` failure as the CLI's structured error.

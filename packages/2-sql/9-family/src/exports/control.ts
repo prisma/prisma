@@ -46,6 +46,7 @@ export {
   planFieldEventCalls,
   planFieldEventOperations,
 } from '../core/migrations/field-event-planner';
+export { fieldOfColumn } from '../core/migrations/field-of-column';
 export { storageNameOfOperation } from '../core/migrations/operation-storage-name';
 export type {
   CallSubjects,
@@ -159,7 +160,6 @@ export type {
 export {
   castColumnMeta,
   castColumnOf,
-  fieldOfColumn,
   unconvertedFieldOf,
 } from '../core/migrations/unconverted-field';
 export {

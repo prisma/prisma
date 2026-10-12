@@ -1,8 +1,8 @@
 import type { ContractWithDomain } from '@internal/contract/types';
 import type { RowsWithoutValue } from '@internal/framework-components/control';
 import { type } from 'arktype';
+import { fieldOfColumn } from './field-of-column';
 import type { SqlMigrationPlanOperationStep } from './types';
-import { fieldOfColumn } from './unconverted-field';
 
 const RequiredColumnMeta = type({
   requiredColumn: { table: 'string', column: 'string', reason: "'nullValues' | 'newField'" },
