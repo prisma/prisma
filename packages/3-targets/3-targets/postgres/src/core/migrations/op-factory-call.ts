@@ -25,6 +25,7 @@ import {
   checkSqlDefaultText,
   checkSqlExpressionText,
   type SqlMigrationPlanOperation,
+  type SqlQuotingRules,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { DataType } from '@internal/framework-components/codec';
@@ -642,6 +643,12 @@ export type AlterColumnTypeUsing =
   | { readonly kind: 'sql'; readonly sql: string }
   | { readonly kind: 'placeholder'; readonly slot: string };
 
+const POSTGRES_QUOTING: SqlQuotingRules = [
+  { open: "E'", close: "'", doubledCloseEscapes: true, backslashEscapes: true },
+  { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '"', close: '"', doubledCloseEscapes: true, backslashEscapes: false },
+];
+
 export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'alterColumnType' as const;
   readonly operationClass: AlterColumnTypeClass;
@@ -681,7 +688,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
 
   #refuseUnsafeUsing(): void {
     if (this.using?.kind !== 'sql') return;
-    const refused = checkSqlExpressionText(this.using.sql);
+    const refused = checkSqlExpressionText(this.using.sql, POSTGRES_QUOTING);
     if (refused === undefined) return;
     const call = this.#callText();
     throw postgresError(
@@ -689,7 +696,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
       `${call}: using ${JSON.stringify(this.using.sql)} is not one SQL expression: it holds ${refused}`,
       {
         why: 'The conversion is written into the USING clause of ALTER COLUMN … TYPE, so it must be one expression that cannot end or reshape that statement.',
-        fix: `Write using as one SQL expression over the column, such as "${this.columnName}"::${this.type}.`,
+        fix: `Write using as one SQL expression over the column, such as "${this.columnName}"::${this.type}. If the expression holds a keyword such as FROM, wrap it in parentheses.`,
         meta: { call, field: 'using', expression: this.using.sql, refused },
       },
     );

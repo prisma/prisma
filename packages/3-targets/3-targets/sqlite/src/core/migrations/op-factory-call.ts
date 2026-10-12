@@ -15,6 +15,7 @@ import {
   checkSqlExpressionText,
   type MigrationOperationClass,
   type SqlMigrationPlanOperation,
+  type SqlQuotingRules,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { OpFactoryCall as FrameworkOpFactoryCall } from '@internal/framework-components/control';
@@ -483,13 +484,20 @@ export type CopyExpression =
   | { readonly kind: 'sql'; readonly sql: string }
   | { readonly kind: 'placeholder'; readonly slot: string };
 
+const SQLITE_QUOTING: SqlQuotingRules = [
+  { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '"', close: '"', doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '`', close: '`', doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '[', close: ']', doubledCloseEscapes: false, backslashEscapes: false },
+];
+
 function refuseUnsafeCopyExpressions(
   tableName: string,
   copyExpressions: Readonly<Record<string, CopyExpression>>,
 ): void {
   for (const [column, expression] of Object.entries(copyExpressions)) {
     if (expression.kind !== 'sql') continue;
-    const refused = checkSqlExpressionText(expression.sql);
+    const refused = checkSqlExpressionText(expression.sql, SQLITE_QUOTING);
     if (refused === undefined) continue;
     const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
     throw sqliteError(
@@ -497,7 +505,7 @@ function refuseUnsafeCopyExpressions(
       `${call}: copyExpressions.${column} ${JSON.stringify(expression.sql)} is not one SQL expression: it holds ${refused}`,
       {
         why: 'A copy expression is written into the SELECT that copies the rows into the rebuilt table, so it must be one expression that cannot end or reshape that statement.',
-        fix: `Write copyExpressions.${column} as one SQL expression over the old table's columns, such as CAST("${column}" AS INTEGER).`,
+        fix: `Write copyExpressions.${column} as one SQL expression over the old table's columns, such as CAST("${column}" AS INTEGER). If the expression holds a keyword such as FROM, wrap it in parentheses.`,
         meta: { call, field: `copyExpressions.${column}`, expression: expression.sql, refused },
       },
     );

@@ -13,36 +13,69 @@ const STATEMENT_KEYWORDS = new Set([
   'WINDOW',
 ]);
 
-const CLOSING_QUOTE: Readonly<Record<string, string>> = {
-  "'": "'",
-  '"': '"',
-  '`': '`',
-  '[': ']',
-};
+/**
+ * One way a target's SQL quotes a literal or an identifier. Inside the quote, the closing text
+ * written twice stands for itself when `doubledCloseEscapes` is set, and a backslash escapes the
+ * next character when `backslashEscapes` is set.
+ */
+export interface SqlQuote {
+  readonly open: string;
+  readonly close: string;
+  readonly doubledCloseEscapes: boolean;
+  readonly backslashEscapes: boolean;
+}
+
+/** The quotes a target's SQL knows. Letters in an opening text, such as the `E` of `E'`, match either case. */
+export type SqlQuotingRules = readonly SqlQuote[];
 
 const WORD = /[A-Za-z_][A-Za-z0-9_$]*/y;
 const DOLLAR_QUOTE = /\$[A-Za-z_]*\$/y;
 
+function quoteAt(text: string, index: number, quoting: SqlQuotingRules): SqlQuote | undefined {
+  return quoting.find(
+    (quote) =>
+      text.slice(index, index + quote.open.length).toUpperCase() === quote.open.toUpperCase(),
+  );
+}
+
+function endOfQuote(text: string, start: number, quote: SqlQuote): number | undefined {
+  let index = start + quote.open.length;
+  while (index < text.length) {
+    if (quote.backslashEscapes && text[index] === '\\') {
+      index += 2;
+      continue;
+    }
+    if (text.startsWith(quote.close, index)) {
+      const after = index + quote.close.length;
+      if (!quote.doubledCloseEscapes || !text.startsWith(quote.close, after)) return after;
+      index = after + quote.close.length;
+      continue;
+    }
+    index += 1;
+  }
+  return undefined;
+}
+
 /**
  * Returns undefined when `text` is one SQL expression that a migration may write into a statement,
  * such as the conversion of an `ALTER COLUMN … USING` clause or a column of an `INSERT … SELECT`
- * list, else what makes it more than that. Quoted literals and quoted identifiers may hold
- * anything; outside them the text may not hold a semicolon, a SQL comment, dollar quoting, or, outside
+ * list, else what makes it more than that. Text inside the quotes of `quoting` may hold anything;
+ * outside them the text may not hold a semicolon, a SQL comment, dollar quoting, or, outside
  * parentheses, a keyword that would end the expression and reshape the statement around it.
+ * `FROM` directly after `DISTINCT`, as in `IS DISTINCT FROM`, belongs to the expression.
  */
-export function checkSqlExpressionText(text: string): string | undefined {
+export function checkSqlExpressionText(text: string, quoting: SqlQuotingRules): string | undefined {
   let depth = 0;
   let index = 0;
+  let previousWord: string | undefined;
   while (index < text.length) {
     const character = text[index] ?? '';
-    const closing = CLOSING_QUOTE[character];
-    if (closing !== undefined) {
-      let end = text.indexOf(closing, index + 1);
-      while (end !== -1 && closing !== ']' && text[end + 1] === closing) {
-        end = text.indexOf(closing, end + 2);
-      }
-      if (end === -1) return 'a quote that is not closed';
-      index = end + 1;
+    const quote = quoteAt(text, index, quoting);
+    if (quote !== undefined) {
+      const end = endOfQuote(text, index, quote);
+      if (end === undefined) return 'a quote that is not closed';
+      index = end;
+      previousWord = undefined;
       continue;
     }
     if (character === ';') return 'a semicolon outside a quoted literal';
@@ -55,14 +88,20 @@ export function checkSqlExpressionText(text: string): string | undefined {
       if (depth < 0) return 'parentheses that do not match';
     }
     WORD.lastIndex = index;
-    const word = /[A-Za-z_]/.test(character) ? WORD.exec(text)?.[0] : undefined;
+    const word = /[A-Za-z_]/.test(character) ? WORD.exec(text)?.[0].toUpperCase() : undefined;
     if (word !== undefined) {
-      if (depth === 0 && STATEMENT_KEYWORDS.has(word.toUpperCase())) {
-        return `the keyword ${word.toUpperCase()} outside parentheses`;
+      if (
+        depth === 0 &&
+        STATEMENT_KEYWORDS.has(word) &&
+        !(word === 'FROM' && previousWord === 'DISTINCT')
+      ) {
+        return `the keyword ${word} outside parentheses`;
       }
+      previousWord = word;
       index += word.length;
       continue;
     }
+    if (!/\s/.test(character)) previousWord = undefined;
     index += 1;
   }
   return depth === 0 ? undefined : 'parentheses that do not match';

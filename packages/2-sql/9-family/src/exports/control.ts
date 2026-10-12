@@ -12,6 +12,7 @@ export type {
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 export { assembleAuthoringContributions } from '@internal/framework-components/control';
+export type { SqlQuote, SqlQuotingRules } from '@internal/sql-contract/validators';
 export { checkSqlDefaultText, checkSqlExpressionText } from '@internal/sql-contract/validators';
 export { extractCodecControlHooks } from '../core/assembly';
 export type { SqlControlFamilyInstance } from '../core/control-instance';

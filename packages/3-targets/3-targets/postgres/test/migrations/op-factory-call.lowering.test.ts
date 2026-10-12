@@ -285,6 +285,42 @@ describe('AlterColumnTypeCall', () => {
     ).toEqual(Array(3).fill('MIGRATION.SQL_EXPRESSION_INVALID'));
   });
 
+  it('reads USING with Postgres quoting: E strings with backslash escapes, no bracket or backtick quotes', () => {
+    const refusedFor = (sql: string) => {
+      try {
+        alter({ using: { kind: 'sql', sql } });
+        return undefined;
+      } catch (error) {
+        return (error as { meta?: { refused?: string } }).meta?.refused;
+      }
+    };
+    expect(
+      [
+        `ARRAY[']']::int8[]`,
+        `E'it\\'s'`,
+        `E'\\'' ; DROP TABLE "User"; --'`,
+        '`a;b`',
+        `"name" IS DISTINCT FROM 'al'`,
+        `"name" IS NOT DISTINCT FROM 'al'`,
+      ].map(refusedFor),
+    ).toEqual([
+      undefined,
+      undefined,
+      'a semicolon outside a quoted literal',
+      'a semicolon outside a quoted literal',
+      undefined,
+      undefined,
+    ]);
+  });
+
+  it('advises parentheses when USING is refused', () => {
+    expect(() => alter({ using: { kind: 'sql', sql: '"age" FROM "user"' } })).toThrow(
+      expect.objectContaining({
+        fix: expect.stringContaining('wrap it in parentheses'),
+      }),
+    );
+  });
+
   it('is an unfilled placeholder while its USING slot is unfilled', async () => {
     const { lowerer } = recordingCheckLowerer();
     const call = alter({

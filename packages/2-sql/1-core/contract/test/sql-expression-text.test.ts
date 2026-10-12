@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { checkSqlExpressionText } from '../src/sql-expression-text';
+import { checkSqlExpressionText, type SqlQuotingRules } from '../src/sql-expression-text';
+
+const standardQuoting: SqlQuotingRules = [
+  { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '"', close: '"', doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '`', close: '`', doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '[', close: ']', doubledCloseEscapes: false, backslashEscapes: false },
+];
+const escapeStringQuoting: SqlQuotingRules = [
+  { open: "E'", close: "'", doubledCloseEscapes: true, backslashEscapes: true },
+  { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '"', close: '"', doubledCloseEscapes: true, backslashEscapes: false },
+];
+const check = (text: string) => checkSqlExpressionText(text, standardQuoting);
 
 describe('checkSqlExpressionText', () => {
   it('accepts one expression, with quoted literals and identifiers that hold anything', () => {
@@ -17,8 +30,47 @@ describe('checkSqlExpressionText', () => {
         `CASE WHEN "age" = '' THEN 0 ELSE CAST("age" AS INTEGER) END`,
         '`back;tick`',
         '[bracket;name]',
-      ].map(checkSqlExpressionText),
-    ).toEqual(Array(12).fill(undefined));
+        `"name" IS DISTINCT FROM 'al'`,
+        `"name" is not distinct from 'al'`,
+      ].map(check),
+    ).toEqual(Array(14).fill(undefined));
+  });
+
+  it('reads only the quotes the rules name', () => {
+    expect([
+      checkSqlExpressionText(`ARRAY[']']::int8[]`, escapeStringQuoting),
+      checkSqlExpressionText('`a;b`', escapeStringQuoting),
+      checkSqlExpressionText('[a;b]', escapeStringQuoting),
+    ]).toEqual([
+      undefined,
+      'a semicolon outside a quoted literal',
+      'a semicolon outside a quoted literal',
+    ]);
+  });
+
+  it('reads backslash escapes only in quotes whose rule has them', () => {
+    expect([
+      checkSqlExpressionText(`E'it\\'s'`, escapeStringQuoting),
+      checkSqlExpressionText(`e'it\\'s'`, escapeStringQuoting),
+      checkSqlExpressionText(`E'\\'' ; DROP TABLE "User"; --'`, escapeStringQuoting),
+      checkSqlExpressionText(`'a\\' || 'b'`, escapeStringQuoting),
+      checkSqlExpressionText(`"name" || E'x'`, escapeStringQuoting),
+      checkSqlExpressionText(`E'\\'' ; DROP TABLE "User"; --'`, standardQuoting),
+    ]).toEqual([
+      undefined,
+      undefined,
+      'a semicolon outside a quoted literal',
+      undefined,
+      undefined,
+      undefined,
+    ]);
+  });
+
+  it('refuses FROM that does not directly follow DISTINCT', () => {
+    expect([check(`DISTINCT "name" FROM "User"`), check(`"name" IS DISTINCT, FROM`)]).toEqual([
+      'the keyword FROM outside parentheses',
+      'the keyword FROM outside parentheses',
+    ]);
   });
 
   it('refuses a semicolon, a comment, dollar quoting, an unclosed quote and unbalanced parentheses', () => {
@@ -33,7 +85,7 @@ describe('checkSqlExpressionText', () => {
         '"unclosed',
         'CAST("age" AS INTEGER',
         'age)',
-      ].map((text) => checkSqlExpressionText(text) !== undefined),
+      ].map((text) => check(text) !== undefined),
     ).toEqual(Array(9).fill(true));
   });
 
@@ -50,7 +102,7 @@ describe('checkSqlExpressionText', () => {
         '1 EXCEPT SELECT 1',
         '1 HAVING 1',
         '1 RETURNING 1',
-      ].map(checkSqlExpressionText),
+      ].map(check),
     ).toEqual([
       'the keyword FROM outside parentheses',
       'the keyword UNION outside parentheses',
@@ -67,10 +119,10 @@ describe('checkSqlExpressionText', () => {
 
   it('names what it refuses', () => {
     expect([
-      checkSqlExpressionText('0; DROP TABLE x'),
-      checkSqlExpressionText('"age" -- trailing'),
-      checkSqlExpressionText(`'unclosed`),
-      checkSqlExpressionText('age)'),
+      check('0; DROP TABLE x'),
+      check('"age" -- trailing'),
+      check(`'unclosed`),
+      check('age)'),
     ]).toEqual([
       'a semicolon outside a quoted literal',
       'a SQL comment',

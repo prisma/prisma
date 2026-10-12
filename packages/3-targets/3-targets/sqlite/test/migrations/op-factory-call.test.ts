@@ -715,6 +715,42 @@ describe('RecreateTableCall copy expressions', () => {
     ).toEqual(Array(4).fill('MIGRATION.SQL_EXPRESSION_INVALID'));
   });
 
+  it('reads copy expressions with SQLite quoting: bracket and backtick quotes, no E strings', () => {
+    const refusedFor = (sql: string) => {
+      try {
+        rebuild({ age: { kind: 'sql', sql } });
+        return undefined;
+      } catch (error) {
+        return (error as { meta?: { refused?: string } }).meta?.refused;
+      }
+    };
+    expect(
+      [
+        '[odd;name]',
+        '`odd;name`',
+        `ARRAY[']']`,
+        `E'\\'' ; DROP TABLE "User"; --'`,
+        `"age" IS DISTINCT FROM 'al'`,
+        `"age" IS NOT DISTINCT FROM 'al'`,
+      ].map(refusedFor),
+    ).toEqual([
+      undefined,
+      undefined,
+      'a quote that is not closed',
+      undefined,
+      undefined,
+      undefined,
+    ]);
+  });
+
+  it('advises parentheses when a copy expression is refused', () => {
+    expect(() => rebuild({ age: { kind: 'sql', sql: '"age" FROM "user"' } })).toThrow(
+      expect.objectContaining({
+        fix: expect.stringContaining('wrap it in parentheses'),
+      }),
+    );
+  });
+
   it('accepts a semicolon inside a quoted literal', () => {
     expect(
       rebuild({ age: { kind: 'sql', sql: `coalesce(nullif("age", ';'), 0)` } }).copyExpressions,
