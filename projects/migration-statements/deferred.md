@@ -95,3 +95,9 @@ Running the same `db update` again after it applied fails on the first outdated 
 **Found:** slice 3a review (2026-10-12). Older than this project's slices.
 
 A migration written with a placeholder has `ops.json` as `[]`. Running `db migrate` before filling the slot applies nothing and then fails at the destination check with general advice. It should say that the migration still has an unfilled slot, name the slot, and say to fill it and run `node migration.ts`.
+
+## `db migrate` applies an `ops.json` older than its `migration.ts`
+
+**Found:** slice 4a review (2026-10-12). Older than this project.
+
+The Migration System doc lists emit-drift detection (re-emit `migration.ts` in memory and compare with `ops.json` before applying) as architecturally required and not yet implemented. Without it, a user who edits `migration.ts` and forgets to run it applies the old operations; in slice 4a's review that turned a wrong advice text into a dropped collection. Worth a ticket when this project closes, if none exists.
