@@ -30,5 +30,5 @@ export abstract class Node<Inputs extends Slots = Slots> {
 
   abstract execute(inputs: OutputsOf<Inputs>, run: Run): Executed;
 
-  abstract alsoReturning(columns: readonly ProjectionItem[]): Node<Inputs>;
+  abstract withReturning(columns: readonly ProjectionItem[]): Node<Inputs>;
 }

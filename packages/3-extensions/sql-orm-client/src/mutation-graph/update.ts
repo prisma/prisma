@@ -20,7 +20,7 @@ export class Update extends Node<Filtered> {
     return executeFiltered(this.ast, inputs.filter, run);
   }
 
-  override alsoReturning(columns: readonly ProjectionItem[]): Update {
+  override withReturning(columns: readonly ProjectionItem[]): Update {
     return new Update(this.ast.withReturning(withColumns(this.returns, columns)));
   }
 }

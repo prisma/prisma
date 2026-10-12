@@ -77,7 +77,7 @@ function returnCallerColumns(graph: Graph, callerRows: DescribeCollectionRowsOpt
   );
   for (const [id, node] of graph.nodes()) {
     if (id === graph.result && node.rowsAre === 'written') {
-      graph.replace(id, node.alsoReturning(columns));
+      graph.replace(id, node.withReturning(columns));
     }
   }
 }

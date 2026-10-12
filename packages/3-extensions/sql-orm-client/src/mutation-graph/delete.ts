@@ -20,7 +20,7 @@ export class Delete extends Node<Filtered> {
     return executeFiltered(this.ast, inputs.filter, run);
   }
 
-  override alsoReturning(columns: readonly ProjectionItem[]): Delete {
+  override withReturning(columns: readonly ProjectionItem[]): Delete {
     return new Delete(this.ast.withReturning(withColumns(this.returns, columns)));
   }
 }

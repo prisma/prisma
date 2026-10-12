@@ -30,7 +30,7 @@ export class Graph {
     this.#readers.push([]);
     for (const edge of Object.values(inputs).flat()) {
       this.#readers[edge.from]?.push({ reader: id, edge });
-      this.#nodes[edge.from] = this.#nodes[edge.from]?.alsoReturning(
+      this.#nodes[edge.from] = this.#nodes[edge.from]?.withReturning(
         edge.columns.map(([source]) => source),
       );
     }

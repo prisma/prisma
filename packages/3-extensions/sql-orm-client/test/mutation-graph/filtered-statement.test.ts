@@ -68,7 +68,7 @@ describe.each([
   it('gives a node that also returns the columns it is asked for, once each', () => {
     const node = make();
 
-    const widened = node.alsoReturning([...emailColumn, ...node.returns]);
+    const widened = node.withReturning([...emailColumn, ...node.returns]);
 
     expect(widened).toBeInstanceOf(node.constructor);
     expect(widened.returns.map((column) => column.alias)).toEqual(['id', 'email']);
@@ -92,7 +92,7 @@ describe.each([
   it('returns columns once it is asked to', async () => {
     const run = recordingRun([{ email: 'a@b.c' }]);
 
-    const rows = await make().alsoReturning(emailColumn).execute({ filter: null }, run);
+    const rows = await make().withReturning(emailColumn).execute({ filter: null }, run);
 
     expect(rows).toEqual([{ email: 'a@b.c' }]);
     expect(run.executed).toEqual([]);

@@ -20,7 +20,7 @@ export class Find extends Node<Filtered> {
     return executeFiltered(this.ast, inputs.filter, run);
   }
 
-  override alsoReturning(columns: readonly ProjectionItem[]): Find {
+  override withReturning(columns: readonly ProjectionItem[]): Find {
     return new Find(this.ast.withProjection(withColumns(this.returns, columns)));
   }
 }
