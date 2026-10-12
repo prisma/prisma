@@ -1,6 +1,6 @@
 # ADR 200 — `placeholder(slot)` for unfilled scaffolded migration slots
 
-> **Update — 2026-10:** a placeholder is no longer limited to data transforms. `--convert` puts one in the conversion slot of a type change. See § Where it's produced.
+> **Update — 2026-10:** a placeholder is no longer limited to data transforms. `--convert` puts one in the conversion slot of a type change. See § Where slots are placed and rendered.
 
 ## At a glance
 
@@ -44,9 +44,9 @@ The slot string follows the convention `{migrationName}:{slot}` — for example,
 
 The return type `never` is assignable to every type in TypeScript. A scaffolded `() => placeholder('...')` satisfies any `() => T` signature — `() => MongoQueryPlan`, `() => AggregationPipeline`, whatever the slot expects — without the slot's type needing to include a sentinel union arm. No `| TodoMarker` leaking into public API signatures. The scaffold compiles cleanly, the user's editor is happy, and `tsc` passes.
 
-### Where it's produced
+### Where slots are placed and rendered
 
-Only by the scaffolder — each target's `renderTypeScript` implementation. The planner produces a target-internal plan; it does not render TypeScript and has no concept of placeholders. Because `placeholder()` is typed `never`, it can stand in any slot of any operation the scaffolder renders. A `dataTransform` carries its `check` and `run` slots; when the user passes `--convert`, the Postgres `alterColumnType` call carries its `using` conversion and the SQLite `recreateTable` call the copied column's expression. Every other planned operation is fully specified by the differ.
+The planner decides where a slot goes; the scaffolder (each target's `renderTypeScript` implementation) renders it as a `placeholder(...)` call. Because `placeholder()` is typed `never`, it can stand in any slot of any operation the scaffolder renders. A `dataTransform` carries its `check` and `run` slots; when the user passes `--convert`, the Postgres `alterColumnType` call carries its `using` conversion and the SQLite `recreateTable` call the copied column's expression. Every other planned operation is fully specified by the differ.
 
 ### Error integration
 
