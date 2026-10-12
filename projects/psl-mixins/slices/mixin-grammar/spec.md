@@ -56,7 +56,7 @@ A mixin declaration is its own kind, not a `ModelDeclaration` or `GenericBlockDe
 
 Field names, entry keys and attribute arguments spelled `mixin` are unaffected.
 
-**`prisma-7` grammar.** With `options.grammar === 'prisma-7'` none of the above applies: `model mixin { … }` is a model named `mixin`, `mixin X { … }` is a generic block, `model mixin X {` and a member starting with `+` are the errors they are today.
+**Grammar options.** The parser reads both forms the same way under every grammar option. Rejecting them for a Prisma 7 or Prisma 6 schema is the job of those schemas' interpreters. In this slice every mixin declaration and inclusion is already rejected by the symbol table's interim diagnostic, whatever the grammar; the interpreter-level rejection is added in the slice that removes that diagnostic.
 
 **Typed AST.**
 
@@ -101,7 +101,7 @@ Everything here is syntax: how text becomes tree nodes, how those nodes are expo
 
 - [ ] Parsing then printing the unformatted source is lossless for documents containing both forms, including the malformed inputs above.
 - [ ] Formatting is idempotent on both forms, for a model, an enum and a `key = value` block.
-- [ ] With the `prisma-7` grammar, the parser tests show `model mixin { }` as a model and `mixin X { }` as a generic block, with the same diagnostics as on `main`.
+- [ ] A Prisma 7 schema that declares and includes a mixin is rejected, shown by a test through the Prisma 7 contract source.
 - [ ] No existing fixture or snapshot changes.
 
 ## Open Questions
