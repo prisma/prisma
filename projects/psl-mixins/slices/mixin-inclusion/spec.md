@@ -31,7 +31,7 @@ export interface MixinSymbol {
 
 **Blocks hold what is written.** `buildSymbolTable` builds a model, composite type or generic block with the members written in it, as before mixins existed. It resolves no name and reports nothing about an inclusion.
 
-**Placement.** `placeMixinMembers`, in the symbol table's module, takes the symbol table, a function that answers which mixin an inclusion resolved to, and the sources, and returns diagnostics. For each model, composite type and generic block with at least one such inclusion it walks the block's members and inclusions in source order: a written member is kept, and an inclusion contributes the mixin's members at that position.
+**Placement.** `placeMixinMembers`, in the symbol table's module, takes the symbol table, a function that answers which mixin an inclusion resolved to, and the sources, and returns diagnostics. For each model, composite type and generic block with at least one such inclusion it walks the block's members, which include its inclusions, in source order: a written member is kept, and an inclusion contributes the mixin's members at that position.
 
 | Record | What an inclusion contributes | Order |
 |---|---|---|

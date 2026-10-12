@@ -457,7 +457,7 @@ function placeFields(
   const attributes: ResolvedAttribute<ModelAttributeAst>[] = [];
   const placed = new Set<MixinSymbol>();
 
-  for (const member of symbol.node.membersWithInclusions()) {
+  for (const member of symbol.node.members()) {
     if (member instanceof FieldDeclarationAst) {
       const field = ownFields.get(member.syntax);
       if (field === undefined) continue;
@@ -499,7 +499,7 @@ function placeEntries(
   const attributes: ResolvedAttribute<ModelAttributeAst>[] = [];
   const placed = new Set<MixinSymbol>();
 
-  for (const member of symbol.node.membersWithInclusions()) {
+  for (const member of symbol.node.members()) {
     if (member instanceof KeyValuePairAst) {
       entries.push(member);
     } else if (member instanceof ModelAttributeAst) {

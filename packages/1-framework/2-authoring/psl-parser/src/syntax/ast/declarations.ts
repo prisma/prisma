@@ -23,8 +23,8 @@ export type NamespaceMemberAst =
 
 export type DeclarationAst = NamespaceMemberAst | TypesBlockAst | NamespaceDeclarationAst;
 export type AttributeAst = FieldAttributeAst | ModelAttributeAst;
-export type BlockMemberAst = FieldDeclarationAst | ModelAttributeAst;
-export type GenericBlockMemberAst = KeyValuePairAst | ModelAttributeAst;
+export type BlockMemberAst = FieldDeclarationAst | ModelAttributeAst | MixinInclusionAst;
+export type GenericBlockMemberAst = KeyValuePairAst | ModelAttributeAst | MixinInclusionAst;
 
 function castNamespaceMember(node: SyntaxNode): NamespaceMemberAst | undefined {
   return (
@@ -93,13 +93,6 @@ export class ModelDeclarationAst implements BracedBlock, HasDocComment {
   *members(): Iterable<BlockMemberAst> {
     yield* filterChildren(
       this.syntax,
-      (node) => FieldDeclarationAst.cast(node) ?? ModelAttributeAst.cast(node),
-    );
-  }
-
-  *membersWithInclusions(): Iterable<BlockMemberAst | MixinInclusionAst> {
-    yield* filterChildren(
-      this.syntax,
       (node) =>
         FieldDeclarationAst.cast(node) ??
         ModelAttributeAst.cast(node) ??
@@ -152,13 +145,6 @@ export class CompositeTypeDeclarationAst implements BracedBlock, HasDocComment {
   }
 
   *members(): Iterable<BlockMemberAst> {
-    yield* filterChildren(
-      this.syntax,
-      (node) => FieldDeclarationAst.cast(node) ?? ModelAttributeAst.cast(node),
-    );
-  }
-
-  *membersWithInclusions(): Iterable<BlockMemberAst | MixinInclusionAst> {
     yield* filterChildren(
       this.syntax,
       (node) =>
@@ -282,13 +268,6 @@ export class GenericBlockDeclarationAst implements BracedBlock, HasDocComment {
   *members(): Iterable<GenericBlockMemberAst> {
     yield* filterChildren(
       this.syntax,
-      (node) => KeyValuePairAst.cast(node) ?? ModelAttributeAst.cast(node),
-    );
-  }
-
-  *membersWithInclusions(): Iterable<GenericBlockMemberAst | MixinInclusionAst> {
-    yield* filterChildren(
-      this.syntax,
       (node) =>
         KeyValuePairAst.cast(node) ?? ModelAttributeAst.cast(node) ?? MixinInclusionAst.cast(node),
     );
@@ -351,7 +330,7 @@ export class MixinDeclarationAst implements BracedBlock, HasDocComment {
     yield* filterChildren(this.syntax, MixinInclusionAst.cast);
   }
 
-  *membersWithInclusions(): Iterable<BlockMemberAst | GenericBlockMemberAst | MixinInclusionAst> {
+  *members(): Iterable<BlockMemberAst | GenericBlockMemberAst> {
     yield* filterChildren(
       this.syntax,
       (node) =>

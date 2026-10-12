@@ -304,17 +304,20 @@ describe('a mixin inclusion', () => {
     ]);
     expect(Array.from(model.members(), (member) => member.syntax.kind)).toEqual([
       'FieldDeclaration',
+      'MixinInclusion',
+      'MixinInclusion',
       'FieldDeclaration',
       'ModelAttribute',
     ]);
   });
 
-  it('is listed among the members of each kind of block, in source order', () => {
+  it('is among the members of each kind of block and of a mixin, at its position', () => {
     const result = parseSchema(
       [
         'model User {\n  id Int\n  +A\n  @@map("users")\n  name String\n}',
         'type Address {\n  +A\n  street String\n}',
         'enum Role {\n  ADMIN\n  +A\n  @@map("roles")\n}',
+        'policy_select ReadPosts {\n  using = "true"\n  +A\n}',
         'model mixin M {\n  a Int\n  +A\n  @@index([a])\n}',
         'enum mixin R {\n  +A\n  USER\n}',
       ].join('\n'),
@@ -322,13 +325,14 @@ describe('a mixin inclusion', () => {
     const kinds = Array.from(result.document.declarations(), (declaration) =>
       declaration instanceof TypesBlockAst || declaration instanceof NamespaceDeclarationAst
         ? []
-        : Array.from(declaration.membersWithInclusions(), (member) => member.syntax.kind),
+        : Array.from(declaration.members(), (member) => member.syntax.kind),
     );
 
     expect(kinds).toEqual([
       ['FieldDeclaration', 'MixinInclusion', 'ModelAttribute', 'FieldDeclaration'],
       ['MixinInclusion', 'FieldDeclaration'],
       ['KeyValuePair', 'MixinInclusion', 'ModelAttribute'],
+      ['KeyValuePair', 'MixinInclusion'],
       ['FieldDeclaration', 'MixinInclusion', 'ModelAttribute'],
       ['MixinInclusion', 'KeyValuePair'],
     ]);
@@ -352,7 +356,11 @@ describe('a mixin inclusion', () => {
     expect(result.diagnostics).toEqual([]);
     expect(inclusionPaths(block)).toEqual([['BaseRoles'], ['auth', 'StaffRoles']]);
     expect(Array.from(block.entries(), (entry) => entry.key()?.name())).toEqual(['GUEST']);
-    expect(Array.from(block.members(), (member) => member.syntax.kind)).toEqual(['KeyValuePair']);
+    expect(Array.from(block.members(), (member) => member.syntax.kind)).toEqual([
+      'MixinInclusion',
+      'MixinInclusion',
+      'KeyValuePair',
+    ]);
   });
 
   it('is a member of a key = value block', () => {
