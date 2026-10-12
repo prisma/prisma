@@ -163,7 +163,6 @@ export function emptyGroupPagingState(): GroupPagingState {
 export interface CollectionTypeState {
   readonly hasOrderBy: boolean;
   readonly hasWhere: boolean;
-  readonly hasUniqueFilter: boolean;
   readonly variantValue: string | undefined;
   /**
    * The namespace coordinate this collection resolves at — set by the
@@ -181,7 +180,6 @@ export type RelationCardinalityTag = '1:1' | 'N:1' | '1:N' | 'N:M';
 export type DefaultCollectionTypeState = {
   readonly hasOrderBy: boolean;
   readonly hasWhere: boolean;
-  readonly hasUniqueFilter: boolean;
   readonly variantValue: undefined;
   readonly nsId: never;
 };
@@ -1803,10 +1801,9 @@ type CriterionFromConstraintColumns<
 > = string extends Columns[number]
   ? Record<string, unknown>
   : {
-      [C in Columns[number] as FieldNameForColumn<TContract, ModelName, C>]: RowValueForField<
-        TContract,
-        ModelName,
-        FieldNameForColumn<TContract, ModelName, C>
+      [C in Columns[number] as FieldNameForColumn<TContract, ModelName, C>]: Exclude<
+        RowValueForField<TContract, ModelName, FieldNameForColumn<TContract, ModelName, C>>,
+        null
       >;
     };
 
