@@ -30,6 +30,7 @@
 | 16 | A `type` mixin | The fourth block kind: a composite type with a mixin emits the inline contract | tmpdir | DoD-1, DoD-2 |
 | 17 | Edit a mixin and its inclusion in two open files | Deleting a mixin that is still included, restoring it, and adding a mixin that exists only in an unsaved buffer | tmpdir | (journey; no AC) |
 | 18 | Exploratory: 20 minutes of things a user tries next | Shapes the scenarios above do not enumerate | tmpdir | (no AC; charter) |
+| 19 | A mixin in a Prisma 7 schema **(negative control)** | A schema of an earlier Prisma version that declares or includes a mixin is refused at the declaration and at the inclusion | tmpdir | DoD-11 |
 | V | Operator steps: VS Code | Typing `+` in the editor opens the completion list; not run by the agent runner | external | DoD-10 |
 
 > Scenario 3 is the **negative control** for the guards this project adds; its coverage boundary is stated there. Scenarios 3, 10 and 13 are **judgement** scenarios with an explicit oracle. Scenarios 7 and 17 are **journey** scenarios. Scenario 18 is **exploratory**.
@@ -41,7 +42,7 @@
 | AC | Why it is not a manual-QA scenario |
 |---|---|
 | DoD-6 — no production call site reads block members from a syntax node | A code search; the reviewer checks it. |
-| DoD-11 — the `prisma-7` grammar option | The scratch projects are Prisma 8 projects. A Prisma 7 schema is read through a different contract source that needs its own project; the parser tests cover the three forms. |
+| DoD-11 for a Prisma 6 schema | Scenario 19 loads a Prisma 7 schema. No scratch project for a Prisma 6 schema was set up; the interpreter tests cover it. |
 | DoD-12 — ADR and feature list | A file read; the reviewer checks it. |
 | DoD-2 for MongoDB | The scratch projects use the Postgres target. Covered by the Mongo interpreter tests. |
 | A mixin for a block kind of a third-party extension | `policy_select` is an extension-defined block kind of the Postgres target and goes through the same block-spec path. No second extension is installed in the scratch projects. |
@@ -85,6 +86,7 @@ The projects:
 | `format` | 6 | A badly spaced schema |
 | `db` | 7 | `emit/mixin` with a database connection and a migrations directory, plus `dev-db.mjs` and `query-db.mjs` |
 | `type/mixin`, `type/inline` | 16 | A composite type with and without a mixin |
+| `p7/project` | 19 | Config only, with `contract: prisma7Schema('contract.prisma')`; `emit-cases.mjs` writes one Prisma 7 schema per case |
 | `lsp/project`, `lsp/after-mixin-rename`, `lsp/after-field-rename` | 8 to 15, 17, 18 | The three-file editor project and two copies that receive renamed text |
 
 ### `emit/mixin/contract.prisma`
@@ -426,6 +428,7 @@ node $D/emit-cases.mjs $C $Q/errors/project $D/error-cases.json | tee $Q/out/err
 | 3.20 | a mixin whose field has an invalid `@default(nope())`, included by two models | the interpreter's error twice, both at the member in the mixin (ADR, "Consequences": once per including block) | inside the mixin |
 | 3.21 | the same mixin, included by nothing | exit 0 (ADR, "Consequences": no family interpreter reads a mixin that nothing includes) | — |
 | 3.22 | `mixin Timestamps { }` with no keyword, and a model that includes it | two diagnostics: the one of 3.8 at the word `mixin`, and `PSL_UNRESOLVED_REFERENCE: Cannot find mixin "Timestamps"` at the inclusion. The keyword-less block is not a mixin, so the inclusion finds none | the declaration and the inclusion |
+| 3.23 | not a mistake: a top-level `model mixin Timestamps`, and in `namespace app` a model `Timestamps` and a model `User` with `+Timestamps` | exit 0, no diagnostic; `User` has the mixin's `createdAt` column with the default `now()`. The model of the same name does not hide the mixin (ADR 269, "Mixins are namespace members") | — |
 
 ### What you should see
 
@@ -435,7 +438,8 @@ node $D/emit-cases.mjs $C $Q/errors/project $D/error-cases.json | tee $Q/out/err
 
 ### Failure modes
 
-- A mistake that emits a contract (exit 0), apart from 3.21.
+- A mistake that emits a contract (exit 0). Cases 3.21 and 3.23 are expected to emit.
+- Case 3.23 reporting `Cannot find mixin "Timestamps"` or any other diagnostic.
 - A diagnostic at a line other than the one the oracle names.
 - A message that is false, that contradicts itself or another message of the same case, or that does not name what to change.
 - Additional diagnostics for one mistake that add nothing a user can act on.
@@ -978,6 +982,44 @@ Two emits exit 0 and the `cmp` line prints.
 
 Nothing was written. `diff -r` of `$Q/lsp/project` against a fresh `make-scratch.mjs` output shows no change.
 
+## Scenario 19 — A mixin in a Prisma 7 schema (negative control)
+
+**What you're proving from the user's seat:** if you paste a mixin into a schema that is still read as Prisma 7, the CLI tells you that the two forms are not supported there, at the lines where you wrote them, and does not read `model mixin Timestamps` as something else.
+
+**Covers:** DoD-11
+
+**Isolation:** `tmpdir`
+
+**Oracle:** ADR 269: "The parser reads both forms under every grammar, including the one that reads the schema of an earlier Prisma version. The interpreters for those schemas report a mixin declaration and an inclusion as unsupported, and a model named `mixin` in such a schema is no longer accepted." Project spec, DoD: "A Prisma 7 schema and a Prisma 6 schema that declare or include a mixin are rejected with a diagnostic at the mixin declaration and at the inclusion."
+
+**Coverage boundary:** one `model` mixin and one inclusion in a Prisma 7 schema loaded with `prisma7Schema(…)` on Postgres. It does not cover a Prisma 6 schema, nor mixins of other keywords.
+
+**Preconditions:** pre-flight done. The schemas have no `// use prisma-8` line and start with a `datasource db` block.
+
+### Steps
+
+```bash
+node $D/emit-cases.mjs $C $Q/p7/project $D/prisma7-cases.json | tee $Q/out/prisma7.txt
+```
+
+| Case | Schema | Expected |
+|---|---|---|
+| P7.1 | `model mixin Timestamps { createdAt … }` and `model User { id Int @id  +Timestamps }` | exit 2, two diagnostics: `PSL_UNSUPPORTED_TOP_LEVEL_BLOCK: Unsupported top-level block "model mixin"` at the declaration, and `Unsupported mixin inclusion "+Timestamps"` at the inclusion |
+| P7.2 | control: the field written in `User` | exit 0; the column has the default `now()`. Proves the project loads a Prisma 7 schema at all |
+| P7.3 | `plus Int @default(+1)` | exit 0; the default is the number `1` |
+| P7.4 | `model mixin { id Int @id }` | exit 2 with a diagnostic at that declaration; it is not a model named `mixin` |
+
+### What you should see
+
+- In P7.1 the carets are under `model` of the declaration and under the `+`.
+- No diagnostic says "Cannot find mixin": the schema version does not have mixins, so nothing is looked up.
+
+### Failure modes
+
+- P7.1 emitting a contract, or a contract with a model named `mixin`.
+- Only one of the two diagnostics, or one at another line.
+- P7.2 failing: the scratch project is then not a working Prisma 7 project and the scenario proves nothing.
+
 ## Scenario 18 — Exploratory: things a user tries next
 
 **Charter.** Explore mixins through `contract emit`, `contract print`, `contract format` and the language server with the scratch projects for 20 minutes, to discover shapes that surprise: declarations and inclusions in unusual places or spellings, mixins that carry attributes which must be unique per table, relation mixins, and edits that leave the schema half-written.
@@ -997,7 +1039,7 @@ node $D/emit-cases.mjs $C $Q/errors/project $D/explore-cases.json | tee $Q/out/e
 
 `explore-cases.json`: a field named `mixin`; a model whose body is one inclusion; an empty mixin; a block on one line; comments around an inclusion; a mixin with `@@map` in two models (with its inline control); an unused mixin with an unknown type; an inclusion at the top level and in a `types` block; `model mixin { }`; a lone `+`; relation mixins with back relations; the same `@@index` from a mixin and from the model (with its inline control); a hyphenated mixin name.
 
-In `explore.json`, step X.24 (the declaration changed to `mixin Tenanted {` while two models include it) is expected to give one `PSL_INVALID_DECLARATION` in `shared.prisma`, `Cannot find mixin "Tenanted"` at each of the two inclusions in `app.prisma`, and `Cannot find field "tenantId" on "Account"` at the `@@index` argument; X.26 is expected to show none after the keyword is typed back.
+In `explore.json`, step X.21 (go-to-definition from an inclusion typed inside a mixin body, which is an error) is not specified; record what it returns. Step X.24 (the declaration changed to `mixin Tenanted {` while two models include it) is expected to give one `PSL_INVALID_DECLARATION` in `shared.prisma`, `Cannot find mixin "Tenanted"` at each of the two inclusions in `app.prisma`, and `Cannot find field "tenantId" on "Account"` at the `@@index` argument; X.26 is expected to show none after the keyword is typed back.
 
 `explore.json`: rename of a namespace that qualifies inclusions; an invalid new name; `prepareRename` on the word `mixin`; navigation inside a mixin body; rename to an existing name; completion after `model ` and at the top level; LSP formatting of a badly spaced inclusion; a member added to a model that a mixin already provides; an inclusion typed inside a mixin; the declaration changed to `mixin Tenanted {` while two models include it; hover on a mixin's field and attribute.
 
@@ -1025,5 +1067,5 @@ In `explore.json`, step X.24 (the declaration changed to `mixin Tenanted {` whil
 | DoD-8 — formatter | 6 |
 | DoD-9 — go-to-definition and rename | 9, 11 |
 | DoD-10 — completion after `+` | 12, V |
-| DoD-11 — `prisma-7` grammar option | (parser tests; not manual-QA scope) — see "Scenarios deliberately not in this script" |
+| DoD-11 — a Prisma 7 or Prisma 6 schema with a mixin is rejected | 19 (Prisma 7 only) |
 | DoD-12 — ADR and feature list | (file read; not manual-QA scope) — see "Scenarios deliberately not in this script" |

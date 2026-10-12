@@ -314,6 +314,30 @@
         "  +Stamp",
         "}"
       ]
+    },
+    {
+      "id": "E.17",
+      "title": "the enum of the ADR's first example: bare members from a mixin",
+      "schema": [
+        "// use prisma-8",
+        "",
+        "enum mixin BaseRoles {",
+        "  ADMIN",
+        "  USER",
+        "}",
+        "",
+        "enum Role {",
+        "  @@type(\"pg/text@1\")",
+        "  +BaseRoles",
+        "  GUEST",
+        "}",
+        "",
+        "model User {",
+        "  id   Int  @id",
+        "  role Role",
+        "}"
+      ],
+      "print": ["domain/namespaces/public/enum/Role/members"]
     }
   ]
 }

@@ -1,0 +1,65 @@
+{
+  "cases": [
+    {
+      "id": "P7.1",
+      "title": "a Prisma 7 schema with a model mixin and an inclusion",
+      "schema": [
+        "datasource db {",
+        "  provider = \"postgresql\"",
+        "}",
+        "",
+        "model mixin Timestamps {",
+        "  createdAt DateTime @default(now())",
+        "}",
+        "",
+        "model User {",
+        "  id Int @id",
+        "  +Timestamps",
+        "}"
+      ]
+    },
+    {
+      "id": "P7.2",
+      "title": "control: the same Prisma 7 schema with the field written in the model",
+      "schema": [
+        "datasource db {",
+        "  provider = \"postgresql\"",
+        "}",
+        "",
+        "model User {",
+        "  id        Int      @id",
+        "  createdAt DateTime @default(now())",
+        "}"
+      ],
+      "print": ["storage/namespaces/public/entries/table/User/columns/createdAt/default"]
+    },
+    {
+      "id": "P7.3",
+      "title": "a Prisma 7 schema with @default(+1)",
+      "schema": [
+        "datasource db {",
+        "  provider = \"postgresql\"",
+        "}",
+        "",
+        "model Counter {",
+        "  id   Int @id",
+        "  plus Int @default(+1)",
+        "}"
+      ],
+      "print": ["storage/namespaces/public/entries/table/Counter/columns/plus/default"]
+    },
+    {
+      "id": "P7.4",
+      "title": "a Prisma 7 schema with a model named mixin",
+      "schema": [
+        "datasource db {",
+        "  provider = \"postgresql\"",
+        "}",
+        "",
+        "model mixin {",
+        "  id Int @id",
+        "}"
+      ]
+    }
+  ]
+}

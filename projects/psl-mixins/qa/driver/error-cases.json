@@ -413,6 +413,32 @@
         "  +Timestamps",
         "}"
       ]
+    },
+    {
+      "id": "3.23",
+      "title": "a model and a top-level mixin with one name; the mixin is included from the model's namespace",
+      "schema": [
+        "// use prisma-8",
+        "",
+        "model mixin Timestamps {",
+        "  createdAt DateTime @default(now())",
+        "}",
+        "",
+        "namespace app {",
+        "  model Timestamps {",
+        "    id Int @id",
+        "  }",
+        "",
+        "  model User {",
+        "    id Int @id",
+        "    +Timestamps",
+        "  }",
+        "}"
+      ],
+      "print": [
+        "storage/namespaces/app/entries/table/User/columns/createdAt/default",
+        "domain/namespaces/app/models/User/fields/createdAt/type"
+      ]
     }
   ]
 }
