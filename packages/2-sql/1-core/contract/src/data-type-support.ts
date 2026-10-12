@@ -19,12 +19,13 @@ import { structuredError } from '@internal/utils/structured-error';
 import { numeralText } from './numeral-text';
 
 const INTEGER_TEXT = /^-?\d+$/;
-const DECIMAL_TEXT = /^-?\d+\.\d+$/;
-const DECIMAL_NUMERAL = /^(-?)0*(\d+)(\.\d+)?$/;
+const WRITTEN_INTEGER_TEXT = /^[+-]?\d+$/;
+const WRITTEN_DECIMAL_TEXT = /^[+-]?\d+\.\d+$/;
+const DECIMAL_NUMERAL = /^([+-]?)0*(\d+)(\.\d+)?$/;
 
 /** Whether `text` is a whole number or a decimal as a contract source writes one. */
 export function isNumeralText(text: string): boolean {
-  return INTEGER_TEXT.test(text) || DECIMAL_TEXT.test(text);
+  return WRITTEN_INTEGER_TEXT.test(text) || WRITTEN_DECIMAL_TEXT.test(text);
 }
 
 /**
@@ -36,7 +37,7 @@ export function canonicalNumeralText(text: string): string {
   if (numeral === null) return text;
   const [, sign = '', whole = '', fraction = ''] = numeral;
   const digits = `${whole}${fraction}`;
-  return /^[0.]+$/.test(digits) ? digits : `${sign}${digits}`;
+  return sign !== '-' || /^[0.]+$/.test(digits) ? digits : `-${digits}`;
 }
 
 /**
@@ -111,11 +112,11 @@ export function createNumberClassifier(
     if (isNonFiniteText(text)) {
       return as(spec.words, spec.words?.form === 'number' ? Number(text) : text);
     }
-    if (DECIMAL_TEXT.test(text)) {
+    if (WRITTEN_DECIMAL_TEXT.test(text)) {
       const canonical = canonicalNumeralText(text);
       return as(spec.fraction, spec.fraction?.form === 'number' ? Number(canonical) : canonical);
     }
-    if (!INTEGER_TEXT.test(text)) return undefined;
+    if (!WRITTEN_INTEGER_TEXT.test(text)) return undefined;
     const digits = BigInt(text);
     const step = spec.integers.find(({ min, max }) => digits >= min && digits <= max);
     const classification = step ?? spec.largerWhole;
