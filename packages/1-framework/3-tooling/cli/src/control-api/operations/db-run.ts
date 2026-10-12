@@ -304,7 +304,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       planned: planned.value,
       orderedResolutions,
       subjects,
-      dataLoss: labelled(subjects.dataLoss),
+      dataLoss: labelled(subjects.dataLoss).map((entry) => ({ ...entry, loss: entry.loss })),
       accessWidening: labelled(subjects.accessWidening),
     });
   };

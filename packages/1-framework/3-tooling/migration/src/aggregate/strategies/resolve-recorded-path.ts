@@ -123,7 +123,6 @@ export function resolveRecordedPath(input: ResolveRecordedPathInputs): ResolveRe
               {
                 operationIndex,
                 subject: { kind: 'storage' as const, name: input.storageNameOf(operation) },
-                loss: 'drop' as const,
               },
             ]
           : [],

@@ -66,7 +66,7 @@ export interface PlannedSubject {
 
 /** An operation of a plan that loses its subject's data, and how. */
 export interface PlannedDataLoss extends PlannedSubject {
-  readonly loss: MigrationDataLossKind;
+  readonly loss: MigrationDataLossKind | undefined;
 }
 
 /** An operation of a plan that changes who can read or write its subject's rows. */

@@ -132,7 +132,7 @@ function dataLossEntriesJson(entries: readonly AskedDataLoss[], given: readonly 
   const answered = answeredByFlags(entries, 'delete', given);
   return entries.map((entry, index) => ({
     ...subjectEntryJson(entry, answered[index]),
-    loss: entry.loss,
+    ...ifDefined('loss', entry.loss),
   }));
 }
 
