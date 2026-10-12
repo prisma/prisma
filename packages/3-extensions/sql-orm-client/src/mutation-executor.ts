@@ -9,6 +9,7 @@ import {
 } from '@internal/sql-relational-core/ast';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import type { RuntimeScope } from '@internal/sql-relational-core/types';
+import { settlementOf } from '@internal/sql-runtime/internal/prepared-query';
 import { castAs } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import {
@@ -214,7 +215,12 @@ async function runInTransaction<T>(
     return result;
   } catch (error) {
     if (typeof transaction.rollback === 'function') {
-      await transaction.rollback();
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        // A hook that threw after the ROLLBACK landed must not replace the error that caused it.
+        if (settlementOf(transaction)?.rolledBack !== true) throw rollbackError;
+      }
     }
     throw error;
   }

@@ -139,3 +139,54 @@ describe('withTransaction with a connection the runtime did not make', () => {
     expect(release).not.toHaveBeenCalled();
   });
 });
+
+describe('a transaction whose ROLLBACK resolved', () => {
+  it('rethrows the callback error unchanged from withTransaction and releases the connection when activityEnded then throws', async () => {
+    const callbackError = new Error('callback failed');
+    const { runtime, events } = createSetup({
+      middleware: [failingTransactionEnd(new Error('transaction ended hook failed'))],
+    });
+
+    const run = withTransaction(runtime, async (tx) => {
+      await tx.execute(rawPlan('update t set x = 1'));
+      throw callbackError;
+    });
+
+    await expect(run).rejects.toBe(callbackError);
+    expect(names(events)).toContain('rollback');
+    expect(names(events)).toContain('finalized:transaction:rolled-back');
+    expect(names(events).filter((name) => name === 'release' || name === 'destroy')).toEqual([
+      'release',
+    ]);
+  });
+});
+
+describe('rollback() while commit() is finalizing', () => {
+  it('resolves only after the commit finalization hooks have run', async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const order: string[] = [];
+    const slowFinalize: SqlMiddleware = {
+      name: 'slow-finalize',
+      familyId: 'sql',
+      async activityFinalized(activity) {
+        if (activity.kind !== 'transaction') return;
+        await gate;
+        order.push('finalized');
+      },
+    };
+    const { runtime } = createSetup({ middleware: [slowFinalize] });
+    const transaction = await (await runtime.connection()).transaction();
+
+    const committing = transaction.commit();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const rollingBack = transaction.rollback().then(() => order.push('rollback resolved'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    release();
+    await Promise.all([committing, rollingBack]);
+
+    expect(order).toEqual(['finalized', 'rollback resolved']);
+  });
+});

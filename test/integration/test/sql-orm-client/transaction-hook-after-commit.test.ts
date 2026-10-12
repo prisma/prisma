@@ -106,3 +106,54 @@ describe('an ORM write whose transaction activityEnded hook throws after COMMIT'
     }
   });
 });
+
+describe('an ORM write whose transaction activityEnded hook throws after ROLLBACK', () => {
+  it('rejects with the write error, not the hook error', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'pn-hook-after-rollback-'));
+    const path = join(directory, 'test.db');
+    const database = new DatabaseSync(path);
+    database.exec(`
+      create table hook_users (
+        id integer primary key,
+        name text not null,
+        email text not null
+      );
+      insert into hook_users (id, name, email) values (1, 'Stale', 'a@example.com');
+    `);
+    database.close();
+
+    const writeError = new Error('update blocked');
+    const failingEndAndUpdate: SqlMiddleware = {
+      name: 'failing-end-and-update',
+      familyId: 'sql',
+      beforeEncode(exec) {
+        if (exec.sql.trimStart().toLowerCase().startsWith('update')) throw writeError;
+      },
+      async activityEnded(activity) {
+        if (activity.kind === 'transaction') throw new Error('transaction ended hook failed');
+      },
+    };
+
+    let setup: Awaited<ReturnType<typeof createRuntime>> | undefined;
+    try {
+      setup = await createRuntime(path, [failingEndAndUpdate]);
+      const users = new Collection({ runtime: setup.runtime, context: setup.context }, 'User', {
+        namespaceId,
+      });
+
+      await expect(users.where({ id: 1 }).update({ name: 'Updated' })).rejects.toBe(writeError);
+
+      const check = new DatabaseSync(path);
+      try {
+        expect(check.prepare('select name from hook_users where id = 1').get()).toEqual({
+          name: 'Stale',
+        });
+      } finally {
+        check.close();
+      }
+    } finally {
+      await setup?.runtime.close();
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+});
