@@ -269,7 +269,7 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
   ],
   [
     'test/integration/test/sql-builder/fixtures/generated/contract.json',
-    { reason: 'has no foreign key in storage', meta: { model: 'Post', field: 'author' } },
+    { reason: 'has no foreign key in storage', meta: { model: 'Document', field: 'parent' } },
   ],
   [
     'test/integration/test/sql-orm-client/fixtures/execution-defaulted-tags/generated/contract.json',
