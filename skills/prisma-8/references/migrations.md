@@ -297,11 +297,29 @@ export default class M extends Migration<Start, End> {
 MigrationCLI.run(import.meta.url, M);
 ```
 
+`run` takes one closure, or an array of closures, each returning one query: `run: [() => db.public.user.update(…), () => db.public.post.update(…)]`. It does not take one closure that returns an array.
+
 Self-emit:
 
 ```bash
 node migrations/app/20260515T1200_add_user_name/migration.ts
 ```
+
+### SQLite
+
+On SQLite, `--backfill User.name` writes a `dataTransform` with one slot, `User.name:run`, and no `check`; the table rebuild after it makes the column required, and fails, changing nothing, if a row still has no value. `run` is a closure that returns the SQL text of one statement:
+
+```typescript
+dataTransform({
+  id: 'data_migration.backfill-User-name',
+  label: 'Backfill NULLs in "User"."name" before NOT NULL tightening',
+  table: 'User',
+  description: 'Backfill NULL name values in User',
+  run: () => `UPDATE "User" SET name = 'user ' || id WHERE name IS NULL`,
+}),
+```
+
+Write the statement so it fills every row the field has no value in, then self-emit with `node migration.ts` as on Postgres.
 
 Self-emit regenerates `ops.json` and recomputes `migrationHash` in `migration.json`. The next `db migrate` will see a consistent package.
 
