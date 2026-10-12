@@ -22,7 +22,7 @@ import {
 import {
   AddColumnCall,
   AddNativeEnumValueCall,
-  AddNotNullColumnDirectCall,
+  AddRequiredColumnToEmptyTableCall,
   AlterColumnTypeCall,
   CreateExtensionCall,
   CreateIndexCall,
@@ -388,10 +388,12 @@ describe('AlterColumnTypeCall', () => {
   });
 });
 
-describe('AddNotNullColumnDirectCall', () => {
+describe('AddRequiredColumnToEmptyTableCall', () => {
   it('marks its empty-table precheck as the check a new required column fails on a table with rows', async () => {
     const { lowerer } = recordingCheckLowerer();
-    const op = await new AddNotNullColumnDirectCall('public', 'user', 'code', 'text').toOp(lowerer);
+    const op = await new AddRequiredColumnToEmptyTableCall('public', 'user', 'code', 'text').toOp(
+      lowerer,
+    );
     expect(op.precheck.map(({ meta }) => meta)).toEqual([
       undefined,
       { requiredColumn: { table: 'user', column: 'code', reason: 'newField' } },

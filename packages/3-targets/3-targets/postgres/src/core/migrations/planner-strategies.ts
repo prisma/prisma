@@ -59,8 +59,8 @@ import { resolveNamespaceIdForDdlSchema } from './control-policy';
 import { emissionSchemaName, issueNode, issueSchemaName, issueTableName } from './issue-planner';
 import {
   AddColumnCall,
-  AddNotNullColumnDirectCall,
-  AddNotNullColumnWithTempDefaultCall,
+  AddColumnWithTemporaryDefaultCall,
+  AddRequiredColumnToEmptyTableCall,
   AlterColumnTypeCall,
   DataTransformCall,
   DropNotNullCall,
@@ -502,14 +502,14 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
     const ddl = renderColumnDdl(expected.name, expected, ctx.types);
     calls.push(
       canUseSharedTempDefault && temporaryDefault !== null
-        ? new AddNotNullColumnWithTempDefaultCall(
+        ? new AddColumnWithTemporaryDefaultCall(
             schemaName,
             tableName,
             ddl.name,
             ddl.type,
             temporaryDefault,
           )
-        : new AddNotNullColumnDirectCall(schemaName, tableName, ddl.name, ddl.type),
+        : new AddRequiredColumnToEmptyTableCall(schemaName, tableName, ddl.name, ddl.type),
     );
   }
 

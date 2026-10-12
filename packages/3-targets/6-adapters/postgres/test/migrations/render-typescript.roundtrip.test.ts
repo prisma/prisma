@@ -26,8 +26,8 @@ import {
 } from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
-  AddNotNullColumnDirectCall,
-  AddNotNullColumnWithTempDefaultCall,
+  AddColumnWithTemporaryDefaultCall,
+  AddRequiredColumnToEmptyTableCall,
   AlterColumnTypeCall,
   CreateExtensionCall,
   CreateIndexCall,
@@ -248,8 +248,8 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       ),
       new AddColumnCall('public', 'user', col('nickname', 'text')),
       new AddColumnCall('public', 'user', col('meta', 'jsonb')),
-      new AddNotNullColumnWithTempDefaultCall('public', 'user', 'handle', 'text', "''"),
-      new AddNotNullColumnDirectCall('public', 'user', 'code', 'int4'),
+      new AddColumnWithTemporaryDefaultCall('public', 'user', 'handle', 'text', "''"),
+      new AddRequiredColumnToEmptyTableCall('public', 'user', 'code', 'int4'),
       new AlterColumnTypeCall({
         schemaName: 'public',
         tableName: 'user',

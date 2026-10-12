@@ -77,7 +77,7 @@ import type { PostgresColumnDefault } from '../types';
 import { boundSchema } from './bound-schema';
 import {
   type AlterColumnTypeClass,
-  addNotNullColumnDirect,
+  addRequiredColumnToEmptyTable,
   alterColumnType,
   dropColumn,
   dropDefault,
@@ -969,8 +969,8 @@ function columnCallLocation(schemaName: string, tableName: string, columnName: s
  * a column in a new primary key, unique constraint or foreign key, where one temporary value in
  * every row would break the constraint.
  */
-export class AddNotNullColumnDirectCall extends PostgresOpFactoryCallNode {
-  readonly factoryName = 'addColumnToEmptyTable' as const;
+export class AddRequiredColumnToEmptyTableCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'addRequiredColumnToEmptyTable' as const;
   readonly operationClass = 'additive' as const;
   readonly schemaName: string;
   readonly tableName: string;
@@ -993,11 +993,11 @@ export class AddNotNullColumnDirectCall extends PostgresOpFactoryCallNode {
     if (lowerer === undefined) {
       throw postgresError(
         'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
-        `AddNotNullColumnDirectCall.toOp: a lowerer is required on the Postgres planner path (column "${this.columnName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
-        { meta: { factory: 'AddNotNullColumnDirectCall' } },
+        `AddRequiredColumnToEmptyTableCall.toOp: a lowerer is required on the Postgres planner path (column "${this.columnName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
+        { meta: { factory: 'AddRequiredColumnToEmptyTableCall' } },
       );
     }
-    return addNotNullColumnDirect(
+    return addRequiredColumnToEmptyTable(
       this.schemaName,
       this.tableName,
       col(this.columnName, this.type, { notNull: true }),
@@ -1006,7 +1006,7 @@ export class AddNotNullColumnDirectCall extends PostgresOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
-    return `this.addColumnToEmptyTable({ ${[
+    return `this.addRequiredColumnToEmptyTable({ ${[
       ...columnCallLocation(this.schemaName, this.tableName, this.columnName),
       `type: ${jsonToTsSource(this.type)}`,
     ].join(', ')} })`;
@@ -1021,7 +1021,7 @@ export class AddNotNullColumnDirectCall extends PostgresOpFactoryCallNode {
  * Adds a required column with no default to a table that may have rows: the column is added with
  * `temporaryDefault`, a SQL value every existing row takes, and the default is then dropped.
  */
-export class AddNotNullColumnWithTempDefaultCall extends PostgresOpFactoryCallNode {
+export class AddColumnWithTemporaryDefaultCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'addColumnWithTemporaryDefault' as const;
   readonly operationClass = 'additive' as const;
   readonly schemaName: string;
@@ -1066,8 +1066,8 @@ export class AddNotNullColumnWithTempDefaultCall extends PostgresOpFactoryCallNo
     if (lowerer === undefined) {
       throw postgresError(
         'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
-        `AddNotNullColumnWithTempDefaultCall.toOp: a lowerer is required on the Postgres planner path (column "${this.columnName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
-        { meta: { factory: 'AddNotNullColumnWithTempDefaultCall' } },
+        `AddColumnWithTemporaryDefaultCall.toOp: a lowerer is required on the Postgres planner path (column "${this.columnName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
+        { meta: { factory: 'AddColumnWithTemporaryDefaultCall' } },
       );
     }
     return buildAddNotNullColumnWithTemporaryDefaultOperation({
@@ -2226,8 +2226,8 @@ export type PostgresOpFactoryCall =
   | DropNotNullCall
   | SetDefaultCall
   | DropDefaultCall
-  | AddNotNullColumnDirectCall
-  | AddNotNullColumnWithTempDefaultCall
+  | AddRequiredColumnToEmptyTableCall
+  | AddColumnWithTemporaryDefaultCall
   | AddPrimaryKeyCall
   | AddForeignKeyCall
   | AddUniqueCall

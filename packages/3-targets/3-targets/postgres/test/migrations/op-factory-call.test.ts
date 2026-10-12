@@ -8,10 +8,10 @@ import {
 } from '../../src/contract-free/checks';
 import {
   AddCheckConstraintCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
-  AddNotNullColumnDirectCall,
-  AddNotNullColumnWithTempDefaultCall,
   AddPrimaryKeyCall,
+  AddRequiredColumnToEmptyTableCall,
   AddUniqueCall,
   CreateTableCall,
   DropCheckConstraintCall,
@@ -245,10 +245,10 @@ function isAlterTableNode(value: unknown): value is { kind: string } {
   );
 }
 
-describe('AddNotNullColumnDirectCall', () => {
+describe('AddRequiredColumnToEmptyTableCall', () => {
   it('lowers a typed AlterTable DDL node for the ADD COLUMN execute step', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const call = new AddNotNullColumnDirectCall('public', 'user', 'name', 'text');
+    const call = new AddRequiredColumnToEmptyTableCall('public', 'user', 'name', 'text');
     const op = await call.toOp(lowerer);
 
     expect(isAlterTableNode(received[0])).toBe(true);
@@ -262,7 +262,7 @@ describe('AddNotNullColumnDirectCall', () => {
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
-    const call = new AddNotNullColumnDirectCall('public', 'user', 'name', 'text');
+    const call = new AddRequiredColumnToEmptyTableCall('public', 'user', 'name', 'text');
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 });
@@ -270,8 +270,8 @@ describe('AddNotNullColumnDirectCall', () => {
 describe('the NOT NULL add-column calls', () => {
   it('render as migration methods with the column and, for the temporary default, its SQL', () => {
     expect([
-      new AddNotNullColumnDirectCall('public', 'user', 'name', 'text').renderTypeScript(),
-      new AddNotNullColumnWithTempDefaultCall(
+      new AddRequiredColumnToEmptyTableCall('public', 'user', 'name', 'text').renderTypeScript(),
+      new AddColumnWithTemporaryDefaultCall(
         'public',
         'user',
         'name',
@@ -279,7 +279,7 @@ describe('the NOT NULL add-column calls', () => {
         "''",
       ).renderTypeScript(),
     ]).toEqual([
-      'this.addColumnToEmptyTable({ schema: "public", table: "user", column: "name", type: "text" })',
+      'this.addRequiredColumnToEmptyTable({ schema: "public", table: "user", column: "name", type: "text" })',
       'this.addColumnWithTemporaryDefault({ schema: "public", table: "user", column: "name", type: "text", temporaryDefault: "\'\'" })',
     ]);
   });
@@ -287,13 +287,7 @@ describe('the NOT NULL add-column calls', () => {
   it('refuses an unsafe temporary default, naming the call', () => {
     expect(
       () =>
-        new AddNotNullColumnWithTempDefaultCall(
-          'public',
-          'user',
-          'name',
-          'text',
-          "''; DROP TABLE x",
-        ),
+        new AddColumnWithTemporaryDefaultCall('public', 'user', 'name', 'text', "''; DROP TABLE x"),
     ).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.DEFAULT_INVALID',
@@ -305,10 +299,10 @@ describe('the NOT NULL add-column calls', () => {
   });
 });
 
-describe('AddNotNullColumnWithTempDefaultCall', () => {
+describe('AddColumnWithTemporaryDefaultCall', () => {
   it('lowers a typed AlterTable DDL node for the ADD COLUMN execute step', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const call = new AddNotNullColumnWithTempDefaultCall('public', 'user', 'name', 'text', "''");
+    const call = new AddColumnWithTemporaryDefaultCall('public', 'user', 'name', 'text', "''");
     const op = await call.toOp(lowerer);
 
     expect(isAlterTableNode(received[0])).toBe(true);
@@ -323,7 +317,7 @@ describe('AddNotNullColumnWithTempDefaultCall', () => {
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
-    const call = new AddNotNullColumnWithTempDefaultCall('public', 'user', 'name', 'text', "''");
+    const call = new AddColumnWithTemporaryDefaultCall('public', 'user', 'name', 'text', "''");
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 });

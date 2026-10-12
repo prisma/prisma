@@ -1,11 +1,11 @@
 export {
   AddCheckConstraintCall,
   AddColumnCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
   AddNativeEnumValueCall,
-  AddNotNullColumnDirectCall,
-  AddNotNullColumnWithTempDefaultCall,
   AddPrimaryKeyCall,
+  AddRequiredColumnToEmptyTableCall,
   AddUniqueCall,
   AlterColumnTypeCall,
   CreateExtensionCall,

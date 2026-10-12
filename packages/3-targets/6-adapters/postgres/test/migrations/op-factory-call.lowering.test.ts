@@ -9,7 +9,7 @@ import { type as arktype } from 'arktype';
  *   because the planner can only emit unfilled stubs; the other operations still lower.
  * - `TypeScriptRenderablePostgresMigration` routes `operations` through
  *   `renderOps` and `renderTypeScript()` through `renderCallsToTypeScript`.
- * - `AddNotNullColumnWithTempDefaultCall` pins the exact `ADD COLUMN` SQL
+ * - `AddColumnWithTemporaryDefaultCall` pins the exact `ADD COLUMN` SQL
  *   for a codec-typed, parameterized column resolved via `codecHooks`
  *   (type token + temp-default backfill via `resolveIdentityValue`).
  *
@@ -38,8 +38,8 @@ import {
 } from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
-  AddNotNullColumnWithTempDefaultCall,
   AddPrimaryKeyCall,
   AddUniqueCall,
   AlterColumnTypeCall,
@@ -294,7 +294,7 @@ describe('TypeScriptRenderablePostgresMigration', () => {
   });
 });
 
-describe('AddNotNullColumnWithTempDefaultCall', () => {
+describe('AddColumnWithTemporaryDefaultCall', () => {
   it('renders the exact ADD COLUMN SQL for a parameterized codec type with its temp-default backfill', async () => {
     const vectorType = sqlDataType('test/vector', {
       params: arktype({ length: 'number.integer > 0' }),
@@ -326,7 +326,7 @@ describe('AddNotNullColumnWithTempDefaultCall', () => {
     }
     expect(temporaryDefault).toBe("'[0,0,0]'");
 
-    const call = new AddNotNullColumnWithTempDefaultCall(
+    const call = new AddColumnWithTemporaryDefaultCall(
       'public',
       'doc',
       'embedding',

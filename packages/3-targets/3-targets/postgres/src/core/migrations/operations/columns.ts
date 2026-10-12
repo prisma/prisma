@@ -462,7 +462,7 @@ export async function dropDefault(
  * empty; the execute step lowers the typed `AddColumn` DDL node through the
  * adapter; postchecks assert the column exists and is NOT NULL.
  */
-export async function addNotNullColumnDirect(
+export async function addRequiredColumnToEmptyTable(
   schemaName: string,
   tableName: string,
   column: DdlColumn,

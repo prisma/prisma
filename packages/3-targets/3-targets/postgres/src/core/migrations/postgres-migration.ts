@@ -26,11 +26,11 @@ import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-
 import {
   AddCheckConstraintCall,
   AddColumnCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
   AddNativeEnumValueCall,
-  AddNotNullColumnDirectCall,
-  AddNotNullColumnWithTempDefaultCall,
   AddPrimaryKeyCall,
+  AddRequiredColumnToEmptyTableCall,
   AddUniqueCall,
   AlterColumnTypeCall,
   CreateIndexCall,
@@ -287,7 +287,7 @@ export abstract class PostgresMigration<
     readonly temporaryDefault: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     const adapter = this.controlAdapterFor('addColumnWithTemporaryDefault');
-    return new AddNotNullColumnWithTempDefaultCall(
+    return new AddColumnWithTemporaryDefaultCall(
       options.schema,
       options.table,
       options.column,
@@ -297,18 +297,18 @@ export abstract class PostgresMigration<
   }
 
   /** Adds a required column of `type` with no default, checking first that the table is empty. */
-  protected addColumnToEmptyTable(options: {
+  protected addRequiredColumnToEmptyTable(options: {
     readonly schema: string;
     readonly table: string;
     readonly column: string;
     readonly type: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new AddNotNullColumnDirectCall(
+    return new AddRequiredColumnToEmptyTableCall(
       options.schema,
       options.table,
       options.column,
       options.type,
-    ).toOp(this.controlAdapterFor('addColumnToEmptyTable'));
+    ).toOp(this.controlAdapterFor('addRequiredColumnToEmptyTable'));
   }
 
   protected addPrimaryKey(options: {
