@@ -434,10 +434,6 @@
         "    +Timestamps",
         "  }",
         "}"
-      ],
-      "print": [
-        "storage/namespaces/app/entries/table/User/columns/createdAt/default",
-        "domain/namespaces/app/models/User/fields/createdAt/type"
       ]
     }
   ]

@@ -428,7 +428,7 @@ node $D/emit-cases.mjs $C $Q/errors/project $D/error-cases.json | tee $Q/out/err
 | 3.20 | a mixin whose field has an invalid `@default(nope())`, included by two models | the interpreter's error twice, both at the member in the mixin (ADR, "Consequences": once per including block) | inside the mixin |
 | 3.21 | the same mixin, included by nothing | exit 0 (ADR, "Consequences": no family interpreter reads a mixin that nothing includes) | — |
 | 3.22 | `mixin Timestamps { }` with no keyword, and a model that includes it | two diagnostics: the one of 3.8 at the word `mixin`, and `PSL_UNRESOLVED_REFERENCE: Cannot find mixin "Timestamps"` at the inclusion. The keyword-less block is not a mixin, so the inclusion finds none | the declaration and the inclusion |
-| 3.23 | not a mistake: a top-level `model mixin Timestamps`, and in `namespace app` a model `Timestamps` and a model `User` with `+Timestamps` | exit 0, no diagnostic; `User` has the mixin's `createdAt` column with the default `now()`. The model of the same name does not hide the mixin (ADR 269, "Mixins are namespace members") | — |
+| 3.23 | a top-level `model mixin Timestamps`, and in `namespace app` a model `Timestamps` and a model `User` with `+Timestamps` | `PSL_UNRESOLVED_REFERENCE: Cannot find mixin "Timestamps"`. The model of the same name in the namespace hides the top-level mixin (ADR 269, "Mixins are namespace members") | the inclusion |
 
 ### What you should see
 
@@ -438,8 +438,8 @@ node $D/emit-cases.mjs $C $Q/errors/project $D/error-cases.json | tee $Q/out/err
 
 ### Failure modes
 
-- A mistake that emits a contract (exit 0). Cases 3.21 and 3.23 are expected to emit.
-- Case 3.23 reporting `Cannot find mixin "Timestamps"` or any other diagnostic.
+- A mistake that emits a contract (exit 0). Case 3.21 is expected to emit.
+- Case 3.23 emitting a contract, or reporting anything other than `Cannot find mixin "Timestamps"`.
 - A diagnostic at a line other than the one the oracle names.
 - A message that is false, that contradicts itself or another message of the same case, or that does not name what to change.
 - Additional diagnostics for one mistake that add nothing a user can act on.
