@@ -55,8 +55,11 @@ import {
 } from '@internal/sql-contract-psl/resolution';
 import {
   buildSqlContractFromDefinition,
+  type ColumnNode,
   type FieldNode,
   type ModelNode,
+  type TableNode,
+  type TableProperties,
 } from '@internal/sql-contract-ts/contract-builder';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -68,7 +71,7 @@ import {
   statedConstraintName,
 } from './constraint-names';
 import { givesColumnDefault, lowerPrisma7Default } from './defaults';
-import { andList, ignoredFieldReferenced, prisma7Diagnostic } from './diagnostics';
+import { ignoredFieldInPrimaryKey, prisma7Diagnostic } from './diagnostics';
 import { type IndexAttribute, indexNode, parseIndexAttribute } from './indexes';
 import { prisma7NativeTypeMapping, prisma7ScalarMapping } from './native-types';
 import {
@@ -125,6 +128,8 @@ interface ModelDeclaration {
   readonly sources: PslSources;
   readonly namespaceId: string;
   readonly tableName: string;
+  /** The model is `@@ignore`: its table is kept, and the model stays out of the domain. */
+  readonly ignored: boolean;
   readonly id: IndexAttribute | undefined;
   readonly uniqueIndexes: readonly IndexAttribute[];
   readonly indexes: readonly IndexAttribute[];
@@ -133,6 +138,9 @@ interface ModelDeclaration {
 interface ModelBuild {
   readonly declaration: ModelDeclaration;
   readonly columns: Map<string, FieldNode>;
+  /** The columns the table keeps and no field of the model maps: those of `@ignore` fields, or every column of an `@@ignore` model. */
+  readonly ignoredColumns: Map<string, ColumnNode>;
+  /** Fields marked `@ignore`, and relation fields to an `@@ignore` model. */
   readonly ignoredFields: Set<string>;
   readonly ignoredRelationFields: RelationField[];
   readonly rejectedFields: Set<string>;
@@ -230,7 +238,6 @@ export function interpretPrisma7Documents(
   const datasources: SourceBlock[] = [];
   const enumBlocks: SourceBlock[] = [];
   const models: ModelDeclaration[] = [];
-  const ignoredModels = new Set<string>();
   // The symbol table catches duplicates within one file; a name declared
   // again in a later file is caught here with the later file's id.
   const declaredNames = new Map<string, string>();
@@ -311,19 +318,9 @@ export function interpretPrisma7Documents(
     }
     for (const symbol of Object.values(symbolTable.topLevel.models)) {
       if (!claimName('model', symbol.name, sourceId, symbol.span)) continue;
-      const declaration = readModelDeclaration(
-        symbol,
-        sourceId,
-        sources,
-        defaultNamespaceId,
-        binding,
-        diagnostics,
+      models.push(
+        readModelDeclaration(symbol, sourceId, sources, defaultNamespaceId, binding, diagnostics),
       );
-      if (declaration === undefined) {
-        ignoredModels.add(symbol.name);
-      } else {
-        models.push(declaration);
-      }
     }
   }
 
@@ -342,13 +339,17 @@ export function interpretPrisma7Documents(
   }
   const namespaceEntities = lowerNativeEnums(enums, input, diagnostics);
 
-  const modelNames = new Set([...models.map((model) => model.symbol.name), ...ignoredModels]);
+  const modelNames = new Set(models.map((model) => model.symbol.name));
+  const ignoredModels = new Set(
+    models.filter((model) => model.ignored).map((model) => model.symbol.name),
+  );
   const composedExtensions = new Set(input.composedExtensions);
   const builds = new Map<string, ModelBuild>();
   for (const declaration of models) {
     const build: ModelBuild = {
       declaration,
       columns: new Map(),
+      ignoredColumns: new Map(),
       ignoredFields: new Set(),
       ignoredRelationFields: [],
       rejectedFields: new Set(),
@@ -373,7 +374,7 @@ export function interpretPrisma7Documents(
       if (
         diagnostics.length > reported &&
         !build.columns.has(field.name) &&
-        !build.ignoredFields.has(field.name)
+        !build.ignoredColumns.has(field.name)
       ) {
         build.rejectedFields.add(field.name);
       }
@@ -386,6 +387,7 @@ export function interpretPrisma7Documents(
     relationModels.set(modelName, {
       modelName,
       tableName: build.declaration.tableName,
+      ignored: build.declaration.ignored,
       tableSpan:
         build.declaration.symbol.attributes.find((attribute) => attribute.name === 'map')?.span ??
         build.declaration.symbol.span,
@@ -393,6 +395,7 @@ export function interpretPrisma7Documents(
       sourceId: build.declaration.sourceId,
       sources: build.declaration.sources,
       columns: build.columns,
+      ignoredColumns: build.ignoredColumns,
       ignoredFields: build.ignoredFields,
       ignoredRelationFields: build.ignoredRelationFields,
       rejectedFields: build.rejectedFields,
@@ -406,6 +409,7 @@ export function interpretPrisma7Documents(
   const lowered = lowerRelations(relationModels, binding, diagnostics);
 
   const modelNodes: ModelNode[] = [];
+  const tables: TableNode[] = [];
   for (const [modelName, build] of builds) {
     const model = relationModels.get(modelName);
     if (model === undefined) continue;
@@ -415,11 +419,10 @@ export function interpretPrisma7Documents(
     const ignoredIdFields = ignoredAmong(idAttribute?.fields);
     if (idAttribute !== undefined && ignoredIdFields.length > 0) {
       diagnostics.push(
-        ignoredFieldReferenced({
+        ignoredFieldInPrimaryKey({
           modelName,
           fieldNames: ignoredIdFields,
           usedBy: `@@id on model "${modelName}"`,
-          constraint: 'primary key',
           sourceId: model.sourceId,
           span: idAttribute.span,
         }),
@@ -430,20 +433,6 @@ export function interpretPrisma7Documents(
       ...build.uniqueIndexes.map((attribute) => ({ attribute, unique: true })),
       ...build.declaration.indexes.map((attribute) => ({ attribute, unique: false })),
     ].flatMap(({ attribute, unique }) => {
-      const ignoredIndexFields = ignoredAmong(attribute.fields);
-      if (ignoredIndexFields.length > 0) {
-        diagnostics.push(
-          ignoredFieldReferenced({
-            modelName,
-            fieldNames: ignoredIndexFields,
-            usedBy: `${unique ? '@@unique' : '@@index'} on model "${modelName}"`,
-            constraint: unique ? 'unique index' : 'index',
-            sourceId: model.sourceId,
-            span: attribute.span,
-          }),
-        );
-        return [];
-      }
       if (attribute.fields?.some((name) => build.rejectedFields.has(name))) return [];
       const columns =
         attribute.fields === undefined ? undefined : keyColumns(model, attribute.fields);
@@ -466,21 +455,35 @@ export function interpretPrisma7Documents(
       prisma7PrimaryKeyName(model.tableName, build.idMap, binding.identifierMaxBytes),
       binding.defaultConstraintNames.primaryKey(model.tableName),
     );
-    modelNodes.push(
-      stateServedBackingIndexes({
-        modelName,
-        tableName: model.tableName,
+    const tableProperties = stateServedBackingIndexes({
+      tableName: model.tableName,
+      ...(id !== undefined && id.length > 0
+        ? { id: { columns: id, ...ifDefined('name', primaryKeyName) } }
+        : {}),
+      ...(indexes.length > 0 ? { indexes } : {}),
+      ...(foreignKeys !== undefined ? { foreignKeys } : {}),
+    });
+    const ignoredColumns = [...build.ignoredColumns.values()];
+    if (model.ignored) {
+      tables.push({ ...tableProperties, namespaceId: model.namespaceId, columns: ignoredColumns });
+      continue;
+    }
+    modelNodes.push({
+      ...tableProperties,
+      modelName,
+      namespaceId: model.namespaceId,
+      fields: [...build.columns.values()],
+      ...(relations !== undefined ? { relations } : {}),
+    });
+    if (ignoredColumns.length > 0) {
+      tables.push({
         namespaceId: model.namespaceId,
-        fields: [...build.columns.values()],
-        ...(id !== undefined && id.length > 0
-          ? { id: { columns: id, ...ifDefined('name', primaryKeyName) } }
-          : {}),
-        ...(indexes.length > 0 ? { indexes } : {}),
-        ...(foreignKeys !== undefined ? { foreignKeys } : {}),
-        ...(relations !== undefined ? { relations } : {}),
-      }),
-    );
+        tableName: model.tableName,
+        columns: ignoredColumns,
+      });
+    }
   }
+  tables.push(...[...lowered.ignoredJunctions.values()].map(stateServedBackingIndexes));
   for (const [key, junction] of lowered.junctions) {
     const relations = lowered.relations.get(key);
     modelNodes.push(
@@ -514,6 +517,7 @@ export function interpretPrisma7Documents(
         createNamespace,
         ...(namespaceEntities.size > 0 ? { namespaces: [...namespaceEntities.keys()] } : {}),
         models: modelNodes,
+        ...(tables.length > 0 ? { tables } : {}),
       },
       input.codecLookup,
       input.dataTypes.lookup,
@@ -524,7 +528,9 @@ export function interpretPrisma7Documents(
 /**
  * Prisma 7 never derives a backing index for a foreign key, so its relations say `index: false`. Where the model's own indexes or keys already serve a foreign key, the relation takes the default instead, so the build drops the derived index again, or names the named key or plain index whose first columns are the foreign key's. Either way the stored foreign key states what backs it, and no index is added.
  */
-function stateServedBackingIndexes(node: ModelNode): ModelNode {
+function stateServedBackingIndexes<Node extends TableProperties & { readonly tableName: string }>(
+  node: Node,
+): Node {
   if (node.foreignKeys === undefined) return node;
   const table = {
     indexes: (node.indexes ?? []).map((index) =>
@@ -637,7 +643,7 @@ function keyColumns(
 ): readonly string[] | undefined {
   const columns: string[] = [];
   for (const fieldName of fieldNames) {
-    const column = model.columns.get(fieldName);
+    const column = model.columns.get(fieldName) ?? model.ignoredColumns.get(fieldName);
     if (column === undefined) return undefined;
     columns.push(column.columnName);
   }
@@ -651,9 +657,9 @@ function readModelDeclaration(
   defaultNamespaceId: string,
   binding: Pick<Prisma7TargetBinding, 'indexTypes' | 'identifierMaxBytes'>,
   diagnostics: ContractSourceDiagnostic[],
-): ModelDeclaration | undefined {
+): ModelDeclaration {
   const { indexTypes } = binding;
-  if (symbol.attributes.some((attribute) => attribute.name === 'ignore')) return undefined;
+  let ignored = false;
   let tableName = symbol.name;
   let namespaceId = defaultNamespaceId;
   let id: IndexAttribute | undefined;
@@ -711,6 +717,9 @@ function readModelDeclaration(
         if (parsed?.fields !== undefined) indexes.push(parsed);
         break;
       }
+      case 'ignore':
+        ignored = true;
+        break;
       default:
         diagnostics.push(
           prisma7Diagnostic(
@@ -722,7 +731,17 @@ function readModelDeclaration(
         );
     }
   }
-  return { symbol, sourceId, sources, namespaceId, tableName, id, uniqueIndexes, indexes };
+  return {
+    symbol,
+    sourceId,
+    sources,
+    namespaceId,
+    tableName,
+    ignored,
+    id,
+    uniqueIndexes,
+    indexes,
+  };
 }
 
 function requireStringArgument(
@@ -884,65 +903,8 @@ function lowerNativeEnums(
   return result;
 }
 
-interface FieldUse {
-  readonly usedBy: string;
-  readonly constraint: 'primary key' | 'unique index' | 'index' | 'foreign key';
-}
-
-function keysUsingField(field: FieldSymbol, model: ModelDeclaration): readonly FieldUse[] {
-  const modelName = model.symbol.name;
-  const uses: FieldUse[] = [];
-  for (const attribute of field.attributes) {
-    if (attribute.name === 'id') uses.push({ usedBy: 'its @id', constraint: 'primary key' });
-    if (attribute.name === 'unique')
-      uses.push({ usedBy: 'its @unique', constraint: 'unique index' });
-  }
-  if (model.id?.fields?.includes(field.name)) {
-    uses.push({ usedBy: `@@id on model "${modelName}"`, constraint: 'primary key' });
-  }
-  for (const unique of model.uniqueIndexes) {
-    if (unique.fields?.includes(field.name)) {
-      uses.push({ usedBy: `@@unique on model "${modelName}"`, constraint: 'unique index' });
-    }
-  }
-  for (const index of model.indexes) {
-    if (index.fields?.includes(field.name)) {
-      uses.push({ usedBy: `@@index on model "${modelName}"`, constraint: 'index' });
-    }
-  }
-  for (const other of Object.values(model.symbol.fields)) {
-    if (other.attributes.some((attribute) => attribute.name === 'ignore')) continue;
-    const relation = other.attributes.find((attribute) => attribute.name === 'relation');
-    const parsed =
-      relation === undefined
-        ? undefined
-        : parseRelationAttribute(relation, other.name, model.sourceId, []);
-    if (parsed?.fields?.includes(field.name)) {
-      uses.push({
-        usedBy: `relation field "${modelName}.${other.name}"`,
-        constraint: 'foreign key',
-      });
-    }
-  }
-  return uses;
-}
-
-function nativeTypeMessage(input: {
-  readonly label: string;
-  readonly nativeType: string;
-  readonly field: FieldSymbol;
-  readonly model: ModelDeclaration;
-  readonly defaultAttribute: ResolvedAttribute | undefined;
-}): string {
-  const { label, nativeType, field, model } = input;
-  const uses = keysUsingField(field, model);
-  if (uses.length > 0) {
-    const constraints = [...new Set(uses.map((use) => `the ${use.constraint}`))];
-    return `${label}: native type "@db.${nativeType}" has no Prisma 8 codec, and ${andList(uses.map((use) => use.usedBy))} ${uses.length === 1 ? 'uses' : 'use'} the field, so @ignore on the field does not help: Prisma 7 still creates ${andList(constraints)} over the column. Add @@ignore to model "${model.symbol.name}" to keep the model out of the contract: Prisma 7's next migration is empty, but the model disappears from the Prisma 7 client too, and every relation field in another model that points to it needs @ignore, which removes that field from the Prisma 7 client as well. Changing the field's type instead changes the column type on Prisma 7's next migration.`;
-  }
-  const cannotInsert =
-    !field.optional && !field.list && !givesColumnDefault(input.defaultAttribute);
-  return `${label}: native type "@db.${nativeType}" has no Prisma 8 codec. Add @ignore to the field to keep its column out of the contract: Prisma 7's next migration is empty, and the field disappears from the Prisma 7 client too${cannotInsert ? '; because the field is required and its column has no default, neither client can then insert rows' : ''}. Changing the field's type instead changes the column type on Prisma 7's next migration.`;
+function nativeTypeMessage(label: string, nativeType: string): string {
+  return `${label}: native type "@db.${nativeType}" has no Prisma 8 codec yet, and Prisma 8 cannot read this schema until it supports the column type. @ignore on the field or @@ignore on the model does not help: Prisma 8 keeps the columns of ignored fields and models in the contract. Changing the field's type to one Prisma 8 supports changes the column type on Prisma 7's next migration.`;
 }
 
 interface ReadFieldArgs {
@@ -957,38 +919,6 @@ interface ReadFieldArgs {
   readonly diagnostics: ContractSourceDiagnostic[];
 }
 
-function readIgnoredField(field: FieldSymbol, isRelationField: boolean, args: ReadFieldArgs): void {
-  const { build, diagnostics } = args;
-  const model = build.declaration;
-  if (isRelationField) {
-    if (args.ignoredModels.has(field.typeName)) return;
-    const relation = field.attributes.find((attribute) => attribute.name === 'relation');
-    build.ignoredRelationFields.push({
-      field,
-      targetModelName: field.typeName,
-      attribute:
-        relation === undefined
-          ? undefined
-          : parseRelationAttribute(relation, field.name, model.sourceId, []),
-    });
-    return;
-  }
-  for (const attribute of field.attributes) {
-    if (attribute.name !== 'id' && attribute.name !== 'unique') continue;
-    if (attribute.name === 'id') build.idFields = [field.name];
-    diagnostics.push(
-      ignoredFieldReferenced({
-        modelName: model.symbol.name,
-        fieldNames: [field.name],
-        usedBy: `its @${attribute.name}`,
-        constraint: attribute.name === 'id' ? 'primary key' : 'unique index',
-        sourceId: model.sourceId,
-        span: attribute.span,
-      }),
-    );
-  }
-}
-
 function readField(args: ReadFieldArgs): void {
   const { field, build, diagnostics, input } = args;
   const { binding } = input;
@@ -997,11 +927,11 @@ function readField(args: ReadFieldArgs): void {
   const label = `Field "${model.symbol.name}.${field.name}"`;
   const isRelationField =
     args.modelNames.has(field.typeName) && field.typeConstructor === undefined;
-  if (field.attributes.some((attribute) => attribute.name === 'ignore')) {
-    build.ignoredFields.add(field.name);
-    readIgnoredField(field, isRelationField, args);
-    return;
-  }
+  const fieldIgnored =
+    field.attributes.some((attribute) => attribute.name === 'ignore') ||
+    (isRelationField && args.ignoredModels.has(field.typeName));
+  if (fieldIgnored) build.ignoredFields.add(field.name);
+  const ignored = fieldIgnored || model.ignored;
 
   let columnName = field.name;
   let nativeType: { readonly name: string; readonly attribute: ResolvedAttribute } | undefined;
@@ -1036,6 +966,17 @@ function readField(args: ReadFieldArgs): void {
         build.idFields = [field.name];
         build.idMap = parsed.map;
       }
+      if (fieldIgnored) {
+        diagnostics.push(
+          ignoredFieldInPrimaryKey({
+            modelName: model.symbol.name,
+            fieldNames: [field.name],
+            usedBy: 'its @id',
+            sourceId,
+            span: attribute.span,
+          }),
+        );
+      }
     } else if (attribute.name === 'unique' && !isRelationField) {
       const parsed = parseIndexAttribute(
         attribute,
@@ -1051,6 +992,7 @@ function readField(args: ReadFieldArgs): void {
       updatedAt = attribute;
     } else if (attribute.name === 'relation' && isRelationField) {
       relation = attribute;
+    } else if (attribute.name === 'ignore') {
     } else {
       diagnostics.push(
         prisma7Diagnostic(
@@ -1068,21 +1010,24 @@ function readField(args: ReadFieldArgs): void {
     diagnostics.push(
       prisma7Diagnostic(
         'PSL.PRISMA7_UNSUPPORTED_TYPE',
-        `${label} has type "${field.typeConstructor.path.join('.')}(...)", which has no Prisma 8 codec, so model "${model.symbol.name}" cannot use this contract source while it has the field. Prisma 7 rejects @ignore on an Unsupported field, and removing the field drops its column on Prisma 7's next migration. Adding @@ignore to model "${model.symbol.name}" keeps the model out of the contract: Prisma 7's next migration is empty, but the model disappears from the Prisma 7 client too, and every relation field in another model that points to it needs @ignore, which removes that field from the Prisma 7 client as well.`,
+        `${label} has type "${field.typeConstructor.path.join('.')}(...)", which has no Prisma 8 codec yet, and Prisma 8 cannot read this schema until it supports the column type. @@ignore on model "${model.symbol.name}" does not help: Prisma 8 keeps the columns of ignored models in the contract. Removing the field drops its column on Prisma 7's next migration.`,
         sourceId,
         field.typeConstructor.span,
       ),
     );
     return;
   }
-  if (args.ignoredModels.has(field.typeName)) return;
   if (isRelationField) {
     const attribute =
       relation === undefined
         ? undefined
         : parseRelationAttribute(relation, label, sourceId, diagnostics);
     if (relation !== undefined && attribute === undefined) return;
-    build.relationFields.push({ field, targetModelName: field.typeName, attribute });
+    (ignored ? build.ignoredRelationFields : build.relationFields).push({
+      field,
+      targetModelName: field.typeName,
+      attribute,
+    });
     return;
   }
 
@@ -1130,13 +1075,7 @@ function readField(args: ReadFieldArgs): void {
         diagnostics.push(
           prisma7Diagnostic(
             'PSL.PRISMA7_NATIVE_TYPE_UNSUPPORTED',
-            nativeTypeMessage({
-              label,
-              nativeType: nativeType.name,
-              field,
-              model,
-              defaultAttribute,
-            }),
+            nativeTypeMessage(label, nativeType.name),
             sourceId,
             nativeType.attribute.span,
           ),
@@ -1187,8 +1126,10 @@ function readField(args: ReadFieldArgs): void {
     typeLookups,
   );
   const updatedAtGeneratorId =
-    updatedAt === undefined ? undefined : binding.updatedAtGeneratorId(resolved.descriptor.codecId);
-  if (updatedAt !== undefined && updatedAtGeneratorId === undefined) {
+    updatedAt === undefined || ignored
+      ? undefined
+      : binding.updatedAtGeneratorId(resolved.descriptor.codecId);
+  if (updatedAt !== undefined && !ignored && updatedAtGeneratorId === undefined) {
     const withoutUpdatedAt =
       defaultAttribute !== undefined && givesColumnDefault(defaultAttribute)
         ? `. Its ${attributeText(defaultAttribute)} still sets the value on create, and neither client changes it on update.`
@@ -1205,7 +1146,7 @@ function readField(args: ReadFieldArgs): void {
     );
     return;
   }
-  if (updatedAt !== undefined && defaultAttribute !== undefined) {
+  if (updatedAt !== undefined && !ignored && defaultAttribute !== undefined) {
     const written = attributeText(defaultAttribute);
     diagnostics.push(
       prisma7Diagnostic(
@@ -1242,6 +1183,19 @@ function readField(args: ReadFieldArgs): void {
           diagnostics,
         });
   if (defaultAttribute !== undefined && lowered === undefined) return;
+  const column: ColumnNode = {
+    columnName,
+    descriptor: resolved.descriptor,
+    nullable: field.optional || field.list,
+    // Prisma 7 creates no CHECK constraint on list columns; Prisma 8 would derive one.
+    many: field.list,
+    ...(field.list ? { elementNullable: false, noCheck: ['elementNotNull' as const] } : {}),
+    ...ifDefined('default', lowered?.storage),
+  };
+  if (ignored) {
+    build.ignoredColumns.set(field.name, column);
+    return;
+  }
   const updatedAtGenerator =
     updatedAtGeneratorId === undefined
       ? undefined
@@ -1268,13 +1222,7 @@ function readField(args: ReadFieldArgs): void {
         : undefined;
   build.columns.set(field.name, {
     fieldName: field.name,
-    columnName,
-    descriptor: resolved.descriptor,
-    nullable: field.optional || field.list,
-    // Prisma 7 creates no CHECK constraint on list columns; Prisma 8 would derive one.
-    many: field.list,
-    ...(field.list ? { elementNullable: false, noCheck: ['elementNotNull' as const] } : {}),
-    ...ifDefined('default', lowered?.storage),
+    ...column,
     ...ifDefined('executionDefaults', executionDefaults),
   });
 }
