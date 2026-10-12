@@ -184,8 +184,8 @@ export {
   readResolvedConstructorCall,
 } from '../resolve';
 export { isPrismaNextSchema, renameLegacyDirective } from '../schema-directive';
-export type { MixinResolution, Scope, ScopeResolution, WrittenMixinReference } from '../scope';
-export { isNamespaceLike, lookupMixinReference, memberEntries } from '../scope';
+export type { MixinResolution, Scope, ScopeResolution } from '../scope';
+export { isNamespaceLike, memberEntries } from '../scope';
 export type {
   BlockSymbol,
   BuildSymbolTableOptions,

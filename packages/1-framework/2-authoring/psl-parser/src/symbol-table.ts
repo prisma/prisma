@@ -9,7 +9,14 @@ import {
   readResolvedAttributes,
   readResolvedConstructorCall,
 } from './resolve';
-import { lookupMixinReference, type MixinResolution } from './scope';
+import {
+  documentScope,
+  lookupQualifiedName,
+  type MixinResolution,
+  namespaceScope,
+  type Scope,
+  type ScopeResolution,
+} from './scope';
 import type { PslSources, Range } from './source-file';
 import { type FieldAttributeAst, ModelAttributeAst } from './syntax/ast/attributes';
 import {
@@ -67,7 +74,7 @@ export interface NamespaceSymbol {
 export interface ResolvedInclusion {
   readonly node: MixinInclusionAst;
   readonly mixin: MixinResolution | undefined;
-  readonly qualifier: NamespaceSymbol | undefined;
+  readonly qualifier: ScopeResolution | undefined;
 }
 
 export interface ModelSymbol {
@@ -174,7 +181,8 @@ export function buildSymbolTable(options: BuildSymbolTableOptions): SymbolTableR
     compositeTypes: Object.create(null),
     mixins: Object.create(null),
   };
-  const context: BuildContext = { topLevel, sources, diagnostics };
+  const context: BuildContext = { sources, diagnostics };
+  const document = documentScope(topLevel, undefined);
   const topLevelNames = new Set<string>();
   const namespaceNames = new Map<NamespaceSymbol, Set<string>>();
   const topLevelBuilds: (() => void)[] = [];
@@ -206,20 +214,60 @@ export function buildSymbolTable(options: BuildSymbolTableOptions): SymbolTableR
     const builds = namespace === undefined ? topLevelBuilds : namespaceBuilds;
     const name = claim(taken, declaration.name(), filename);
     if (name === undefined) return;
+    const scope = namespace === undefined ? document : namespaceScope(namespace, document);
+    const span = nodePslSpan(declaration.syntax, sources);
+    const body: Body = { fields: Object.create(null), entries: [], attributes: [], inclusions: [] };
+    const { fields, entries, attributes, inclusions } = body;
+    const fill = (keyword: string, isMixin: boolean) => (): void =>
+      fillBody(body, { name, keyword, isMixin, scope }, declaration, context);
     if (declaration instanceof MixinDeclarationAst) {
-      records.mixins[name] = buildMixin(name, declaration, context);
+      const keyword = declaration.keyword()?.text ?? '';
+      records.mixins[name] = {
+        kind: 'mixin',
+        name,
+        keyword,
+        node: declaration,
+        span,
+        fields,
+        entries,
+        attributes,
+      };
+      fill(keyword, true)();
     } else if (declaration instanceof ModelDeclarationAst) {
-      builds.push(() => {
-        records.models[name] = buildModel(name, declaration, namespace, context);
-      });
+      records.models[name] = {
+        kind: 'model',
+        name,
+        node: declaration,
+        span,
+        fields,
+        attributes,
+        inclusions,
+      };
+      builds.push(fill('model', false));
     } else if (declaration instanceof CompositeTypeDeclarationAst) {
-      builds.push(() => {
-        records.compositeTypes[name] = buildCompositeType(name, declaration, namespace, context);
-      });
+      records.compositeTypes[name] = {
+        kind: 'compositeType',
+        name,
+        node: declaration,
+        span,
+        fields,
+        attributes,
+        inclusions,
+      };
+      builds.push(fill('type', false));
     } else {
-      builds.push(() => {
-        records.blocks[name] = buildBlock(name, declaration, namespace, context);
-      });
+      const keyword = declaration.keyword()?.text ?? '';
+      records.blocks[name] = {
+        kind: 'block',
+        name,
+        keyword,
+        node: declaration,
+        span,
+        entries,
+        attributes,
+        inclusions,
+      };
+      builds.push(fill(keyword, false));
     }
   };
 
@@ -278,65 +326,17 @@ export function buildSymbolTable(options: BuildSymbolTableOptions): SymbolTableR
 }
 
 interface BuildContext {
-  readonly topLevel: TopLevelScope;
   readonly sources: PslSources;
   readonly diagnostics: ParseDiagnostic[];
 }
 
-function buildModel(
-  name: string,
-  node: ModelDeclarationAst,
-  namespace: NamespaceSymbol | undefined,
-  context: BuildContext,
-): ModelSymbol {
-  const owner = { name, keyword: 'model', hasFields: true, isMixin: false, namespace };
-  const { fields, attributes, inclusions } = buildBody(owner, node, context);
-  const span = nodePslSpan(node.syntax, context.sources);
-  return { kind: 'model', name, node, span, fields, attributes, inclusions };
-}
-
-function buildCompositeType(
-  name: string,
-  node: CompositeTypeDeclarationAst,
-  namespace: NamespaceSymbol | undefined,
-  context: BuildContext,
-): CompositeTypeSymbol {
-  const owner = { name, keyword: 'type', hasFields: true, isMixin: false, namespace };
-  const { fields, attributes, inclusions } = buildBody(owner, node, context);
-  const span = nodePslSpan(node.syntax, context.sources);
-  return { kind: 'compositeType', name, node, span, fields, attributes, inclusions };
-}
-
-function buildBlock(
-  name: string,
-  node: GenericBlockDeclarationAst,
-  namespace: NamespaceSymbol | undefined,
-  context: BuildContext,
-): BlockSymbol {
-  const keyword = node.keyword()?.text ?? '';
-  const owner = { name, keyword, hasFields: false, isMixin: false, namespace };
-  const { entries, attributes, inclusions } = buildBody(owner, node, context);
-  const span = nodePslSpan(node.syntax, context.sources);
-  return { kind: 'block', name, keyword, node, span, entries, attributes, inclusions };
-}
-
 const FIELD_BLOCK_KEYWORDS: ReadonlySet<string> = new Set(['model', 'type']);
-
-function buildMixin(name: string, node: MixinDeclarationAst, context: BuildContext): MixinSymbol {
-  const keyword = node.keyword()?.text ?? '';
-  const hasFields = FIELD_BLOCK_KEYWORDS.has(keyword);
-  const owner = { name, keyword, hasFields, isMixin: true, namespace: undefined };
-  const { fields, entries, attributes } = buildBody(owner, node, context);
-  const span = nodePslSpan(node.syntax, context.sources);
-  return { kind: 'mixin', name, keyword, node, span, fields, entries, attributes };
-}
 
 interface BodyOwner {
   readonly name: string;
   readonly keyword: string;
-  readonly hasFields: boolean;
   readonly isMixin: boolean;
-  readonly namespace: NamespaceSymbol | undefined;
+  readonly scope: Scope;
 }
 
 interface BodyNode {
@@ -352,9 +352,9 @@ interface Body {
   readonly inclusions: ResolvedInclusion[];
 }
 
-function buildBody(owner: BodyOwner, node: BodyNode, context: BuildContext): Body {
+function fillBody(body: Body, owner: BodyOwner, node: BodyNode, context: BuildContext): void {
   const { sources, diagnostics } = context;
-  const body: Body = { fields: Object.create(null), entries: [], attributes: [], inclusions: [] };
+  const hasFields = FIELD_BLOCK_KEYWORDS.has(owner.keyword);
   const included = new Set<MixinSymbol>();
 
   const addField = (
@@ -374,7 +374,7 @@ function buildBody(owner: BodyOwner, node: BodyNode, context: BuildContext): Bod
     if (member instanceof FieldDeclarationAst) {
       const nameNode = member.name();
       const name = nameNode?.name();
-      if (!owner.hasFields || nameNode === undefined || name === undefined) continue;
+      if (!hasFields || nameNode === undefined || name === undefined) continue;
       addField(
         name,
         () => buildField(owner.name, name, member, sources, diagnostics),
@@ -387,7 +387,7 @@ function buildBody(owner: BodyOwner, node: BodyNode, context: BuildContext): Bod
           ),
       );
     } else if (member instanceof KeyValuePairAst) {
-      if (!owner.hasFields) body.entries.push(member);
+      if (!hasFields) body.entries.push(member);
     } else if (member instanceof ModelAttributeAst) {
       body.attributes.push(readResolvedAttribute(member, sources));
     } else {
@@ -416,7 +416,6 @@ function buildBody(owner: BodyOwner, node: BodyNode, context: BuildContext): Bod
       body.attributes.push(...mixin.attributes);
     }
   }
-  return body;
 }
 
 function resolveInclusion(
@@ -426,10 +425,10 @@ function resolveInclusion(
   included: Set<MixinSymbol>,
   context: BuildContext,
 ): MixinSymbol | undefined {
-  const { topLevel, sources, diagnostics } = context;
+  const { sources, diagnostics } = context;
   const reference = inclusion.name();
   if (reference === undefined) return undefined;
-  const memberCode = owner.hasFields
+  const memberCode = FIELD_BLOCK_KEYWORDS.has(owner.keyword)
     ? 'PSL_INVALID_MODEL_MEMBER'
     : 'PSL_INVALID_EXTENSION_BLOCK_MEMBER';
   const report = (code: string, message: string): undefined => {
@@ -439,12 +438,15 @@ function resolveInclusion(
 
   const name = reference.identifier()?.name();
   if (name === undefined || reference.isOverQualified()) return undefined;
-  const namespaceId = reference.namespace()?.name();
-  const qualifier = namespaceId === undefined ? undefined : topLevel.namespaces[namespaceId];
-  const resolution =
+  const qualifierNode = reference.namespace();
+  const qualifiers = new Map<SyntaxNode, ScopeResolution>();
+  const found =
     reference.space() === undefined
-      ? lookupMixinReference(topLevel, owner.namespace, { namespaceId, name })
+      ? lookupQualifiedName(name, qualifierNode, owner.scope, qualifiers)
       : undefined;
+  const resolution =
+    found !== undefined && 'kind' in found && found.kind === 'mixin' ? found : undefined;
+  const qualifier = qualifierNode === undefined ? undefined : qualifiers.get(qualifierNode.syntax);
   inclusions.push({ node: inclusion, mixin: resolution, qualifier });
   if (resolution === undefined) {
     const written = printSyntax(reference.syntax);

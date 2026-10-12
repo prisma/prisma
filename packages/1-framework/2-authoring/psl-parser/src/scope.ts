@@ -13,6 +13,8 @@ import type {
   NamespaceSymbol,
   TopLevelScope as TopLevelRecords,
 } from './symbol-table';
+import type { IdentifierAst } from './syntax/ast/identifier';
+import type { SyntaxNode } from './syntax/red';
 
 export type ScopeResolution =
   | { readonly kind: 'model'; readonly symbol: ModelSymbol; readonly namespace?: NamespaceSymbol }
@@ -172,27 +174,6 @@ export function namespaceScope(namespace: NamespaceSymbol, parent: Scope): Scope
   return new NamespaceScope(namespace, parent);
 }
 
-export interface WrittenMixinReference {
-  readonly namespaceId?: string | undefined;
-  readonly name: string;
-}
-
-export function lookupMixinReference(
-  records: TopLevelRecords,
-  enclosing: NamespaceSymbol | undefined,
-  written: WrittenMixinReference,
-): MixinResolution | undefined {
-  const namespace =
-    written.namespaceId === undefined ? enclosing : records.namespaces[written.namespaceId];
-  const member = namespace?.mixins[written.name];
-  if (namespace !== undefined && member !== undefined) {
-    return { kind: 'mixin', symbol: member, namespace };
-  }
-  if (written.namespaceId !== undefined) return undefined;
-  const mixin = records.mixins[written.name];
-  return mixin === undefined ? undefined : { kind: 'mixin', symbol: mixin };
-}
-
 export function isNamespaceLike(
   resolution: ScopeResolution,
 ): resolution is Extract<ScopeResolution, { kind: 'namespace' | 'contributedNamespace' }> {
@@ -220,4 +201,69 @@ export function lookupMember(
     return member === undefined ? undefined : contributedResolution(member);
   }
   return namespaceMember(qualifier.symbol, name);
+}
+
+export interface QualifierSink {
+  set(node: SyntaxNode, resolution: ScopeResolution): unknown;
+}
+
+export function bindQualifier(
+  qualifier: IdentifierAst | undefined,
+  scope: Scope,
+  references: QualifierSink,
+): ScopeResolution | undefined {
+  const id = qualifier?.name();
+  if (qualifier === undefined || id === undefined) return undefined;
+  const resolution = scope.lookup(id);
+  if (resolution !== undefined && isNamespaceLike(resolution)) {
+    references.set(qualifier.syntax, resolution);
+  }
+  return resolution;
+}
+
+export interface BadQualifier {
+  readonly badQualifier: string;
+  readonly qualifier: string;
+}
+
+export function qualifiedMember(
+  namespaceId: string,
+  name: string,
+  qualifier: ScopeResolution | undefined,
+): ScopeResolution | BadQualifier | undefined {
+  if (qualifier === undefined) return undefined;
+  if (!isNamespaceLike(qualifier)) {
+    return {
+      badQualifier: `"${namespaceId}" is ${describeQualifier(qualifier)}, not a namespace`,
+      qualifier: namespaceId,
+    };
+  }
+  return lookupMember(qualifier, name);
+}
+
+function describeQualifier(resolution: ScopeResolution): string {
+  switch (resolution.kind) {
+    case 'model':
+      return 'a model';
+    case 'compositeType':
+      return 'a composite type';
+    case 'namedType':
+      return 'a named type';
+    case 'block':
+      return `${resolution.symbol.keyword === 'enum' ? 'an' : 'a'} ${resolution.symbol.keyword}`;
+    default:
+      return 'a scalar type';
+  }
+}
+
+export function lookupQualifiedName(
+  name: string,
+  qualifier: IdentifierAst | undefined,
+  scope: Scope,
+  references: QualifierSink,
+): ScopeResolution | BadQualifier | undefined {
+  const namespaceId = qualifier?.name();
+  return namespaceId === undefined
+    ? scope.lookup(name)
+    : qualifiedMember(namespaceId, name, bindQualifier(qualifier, scope, references));
 }

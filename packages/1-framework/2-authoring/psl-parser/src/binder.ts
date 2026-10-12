@@ -45,12 +45,13 @@ import { findBlockDescriptor } from './extension-block';
 import type { ParseDiagnostic } from './parse';
 import type { ResolvedAttribute } from './resolve';
 import {
+  bindQualifier,
   contributedScope,
   documentScope,
-  isNamespaceLike,
-  lookupMember,
+  lookupQualifiedName,
   namedTypeBaseScope,
   namespaceScope,
+  qualifiedMember,
   type Scope,
   type ScopeResolution,
 } from './scope';
@@ -547,7 +548,7 @@ function bindInclusions(
       if (reference === undefined) continue;
       const qualifierNode = reference.namespace();
       if (qualifierNode !== undefined && qualifier !== undefined) {
-        references.set(qualifierNode.syntax, { kind: 'namespace', symbol: qualifier });
+        references.set(qualifierNode.syntax, qualifier);
       }
       references.set(
         reference.syntax,
@@ -1023,20 +1024,6 @@ function entityQualifier(node: SyntaxNode): IdentifierAst | undefined {
   return qualifier;
 }
 
-function bindQualifier(
-  qualifier: IdentifierAst | undefined,
-  scope: Scope,
-  references: ResolutionSink,
-): ScopeResolution | undefined {
-  const id = qualifier?.name();
-  if (qualifier === undefined || id === undefined) return undefined;
-  const resolution = scope.lookup(id);
-  if (resolution !== undefined && isNamespaceLike(resolution)) {
-    references.set(qualifier.syntax, resolution);
-  }
-  return resolution;
-}
-
 function resolveTypeReference(
   reference: QualifiedNameAst | undefined,
   scope: Scope,
@@ -1049,10 +1036,7 @@ function resolveTypeReference(
   if (name === undefined || name === '') return undefined;
   const qualifier = reference.namespace();
   const namespaceId = qualifier?.name();
-  const found =
-    namespaceId === undefined
-      ? scope.lookup(name)
-      : qualifiedMember(namespaceId, name, bindQualifier(qualifier, scope, references));
+  const found = lookupQualifiedName(name, qualifier, scope, references);
   if (found === undefined) {
     const written = namespaceId === undefined ? name : `${namespaceId}.${name}`;
     const message = describeUnresolved?.(written) ?? `Cannot find type "${written}"`;
@@ -1083,41 +1067,6 @@ function resolveTypeReference(
     };
   }
   return { resolution: found };
-}
-
-interface BadQualifier {
-  readonly badQualifier: string;
-  readonly qualifier: string;
-}
-
-function qualifiedMember(
-  namespaceId: string,
-  name: string,
-  qualifier: ScopeResolution | undefined,
-): ScopeResolution | BadQualifier | undefined {
-  if (qualifier === undefined) return undefined;
-  if (!isNamespaceLike(qualifier)) {
-    return {
-      badQualifier: `"${namespaceId}" is ${describeQualifier(qualifier)}, not a namespace`,
-      qualifier: namespaceId,
-    };
-  }
-  return lookupMember(qualifier, name);
-}
-
-function describeQualifier(resolution: ScopeResolution): string {
-  switch (resolution.kind) {
-    case 'model':
-      return 'a model';
-    case 'compositeType':
-      return 'a composite type';
-    case 'namedType':
-      return 'a named type';
-    case 'block':
-      return `${resolution.symbol.keyword === 'enum' ? 'an' : 'a'} ${resolution.symbol.keyword}`;
-    default:
-      return 'a scalar type';
-  }
 }
 
 function own<T>(record: Record<string, T>, name: string): T | undefined {

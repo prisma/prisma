@@ -489,32 +489,89 @@ describe('buildSymbolTable() looking up the name of an inclusion', () => {
     );
   });
 
-  it('finds a top-level mixin past a declaration of another kind with its name in the namespace', () => {
-    const { topLevel, diagnostics } = build(
-      lines(
-        'model mixin Timestamps {',
-        '  createdAt DateTime',
-        '}',
-        'namespace app {',
-        '  model Timestamps {',
-        '    id Int',
-        '  }',
-        '  model User {',
-        '    id Int',
-        '    +Timestamps',
-        '  }',
-        '}',
-      ),
-    );
+  it.each([
+    [
+      'declared before the including model',
+      [
+        lines(
+          'model mixin Timestamps {',
+          '  createdAt DateTime',
+          '}',
+          'namespace app {',
+          '  model Timestamps {',
+          '    id Int',
+          '  }',
+          '  model User {',
+          '    id Int',
+          '    +Timestamps',
+          '  }',
+          '}',
+        ),
+      ],
+    ],
+    [
+      'declared after the including model',
+      [
+        lines(
+          'model mixin Timestamps {',
+          '  createdAt DateTime',
+          '}',
+          'namespace app {',
+          '  model User {',
+          '    id Int',
+          '    +Timestamps',
+          '  }',
+          '  enum Timestamps {',
+          '  }',
+          '}',
+        ),
+      ],
+    ],
+    [
+      'declared in a later file',
+      [
+        lines(
+          'model mixin Timestamps {',
+          '  createdAt DateTime',
+          '}',
+          'namespace app {',
+          '  model User {',
+          '    id Int',
+          '    +Timestamps',
+          '  }',
+          '}',
+        ),
+        lines('namespace app {', '  type Timestamps {', '  }', '}'),
+      ],
+    ],
+  ])(
+    'does not find a top-level mixin hidden by a declaration of its name in the namespace, %s',
+    (_where, sources) => {
+      const { topLevel, diagnostics } = build(...sources);
 
-    expect(diagnostics).toEqual([]);
-    expect(Object.keys(topLevel.namespaces['app']?.models['User']?.fields ?? {})).toEqual([
-      'id',
-      'createdAt',
+      expect(diagnostics).toEqual([
+        {
+          code: 'PSL_UNRESOLVED_REFERENCE',
+          message: 'Cannot find mixin "Timestamps"',
+          filename: '0.psl',
+          range: rangeOf(sources[0] ?? '', '+Timestamps'),
+        },
+      ]);
+      expect(Object.keys(topLevel.namespaces['app']?.models['User']?.fields ?? {})).toEqual(['id']);
+    },
+  );
+
+  it('reports a qualifier that is not a namespace as a mixin that cannot be found', () => {
+    const source = lines('model Target {', '}', 'model User {', '  +Target.Timestamps', '}');
+
+    expect(build(source).diagnostics).toEqual([
+      {
+        code: 'PSL_UNRESOLVED_REFERENCE',
+        message: 'Cannot find mixin "Target.Timestamps"',
+        filename: '0.psl',
+        range: rangeOf(source, '+Target.Timestamps'),
+      },
     ]);
-    expect(topLevel.namespaces['app']?.models['User']?.fields['createdAt']).toBe(
-      topLevel.mixins['Timestamps']?.fields['createdAt'],
-    );
   });
 
   it('finds a mixin of another namespace by its qualified name', () => {
@@ -603,8 +660,8 @@ describe('buildSymbolTable() looking up the name of an inclusion', () => {
     expect(user?.inclusions.map(({ mixin, qualifier }) => ({ mixin, qualifier }))).toEqual([
       { mixin: timestamps, qualifier: undefined },
       { mixin: { kind: 'mixin', symbol: topLevel.mixins['Top'] }, qualifier: undefined },
-      { mixin: timestamps, qualifier: auth },
-      { mixin: undefined, qualifier: auth },
+      { mixin: timestamps, qualifier: { kind: 'namespace', symbol: auth } },
+      { mixin: undefined, qualifier: { kind: 'namespace', symbol: auth } },
       { mixin: undefined, qualifier: undefined },
       { mixin: undefined, qualifier: undefined },
     ]);
