@@ -39,7 +39,7 @@ The repository's own development toolchain is separate: the root `package.json` 
 
 ## Consequences
 
-- Node.js 22.18 and newer 22.x releases become supported. CI runs the test suites on the Node.js version in `.tool-versions` (a 24.x release); it does not yet run them on Node.js 22 or 26.
+- Node.js 22.18 and newer 22.x releases become supported. CI runs the test suites on the Node.js version in `.tool-versions` (a 24.x release) only, by decision; there is no job for Node.js 22 or 26. Support for Node.js 22.18 was checked when this ADR was written, by running `pnpm build` and `pnpm test:packages` on Node.js 22.18.0.
 - `tsdown` lowers syntax to Node.js 22.18. It does not check built-in APIs: code must not call an API newer than Node.js 22.18, and only a test run on Node.js 22.18 catches one that does.
 
 ## Alternatives considered
