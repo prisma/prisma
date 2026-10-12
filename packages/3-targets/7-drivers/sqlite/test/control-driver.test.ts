@@ -24,7 +24,7 @@ describe('SqliteControlDriverDescriptor', () => {
     expect(sqliteControlDriverDescriptor.targetId).toBe('sqlite');
   });
 
-  it('opens only an existing file when asked for an existing database only, and creates none', async () => {
+  it('opens only an existing file, for writing, when asked for an existing database only, and creates none', async () => {
     await expect(
       sqliteControlDriverDescriptor.create(testPath, { existingDatabaseOnly: true }),
     ).rejects.toMatchObject({ code: 'DRIVER.CONNECTION_FAILED' });
@@ -36,7 +36,8 @@ describe('SqliteControlDriverDescriptor', () => {
     const existing = await sqliteControlDriverDescriptor.create(testPath, {
       existingDatabaseOnly: true,
     });
-    expect(await existing.query('SELECT COUNT(*) AS n FROM t')).toEqual({ rows: [{ n: 0 }] });
+    await existing.query('INSERT INTO t (id) VALUES (1)');
+    expect(await existing.query('SELECT COUNT(*) AS n FROM t')).toEqual({ rows: [{ n: 1 }] });
     await existing.close();
   });
 

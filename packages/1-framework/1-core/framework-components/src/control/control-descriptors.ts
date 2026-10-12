@@ -84,7 +84,11 @@ export interface ControlDriverDescriptor<
 
 /** How a control driver connects. */
 export interface ControlDriverConnectOptions {
-  /** Connect only to a database that already exists, and never create one or its file. */
+  /**
+   * Connect only to a database that already exists, and never create one or its file. A driver
+   * whose connect could create a database must honour it; Postgres and MongoDB honour it as they
+   * are, since connecting never creates a database there.
+   */
   readonly existingDatabaseOnly?: boolean;
   /** Give up connecting after this many milliseconds, where the driver connects over a network. */
   readonly connectTimeoutMs?: number;

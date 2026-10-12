@@ -1,4 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
+import { pathToFileURL } from 'node:url';
 import { errorRuntime } from '@internal/errors/execution';
 import type {
   ControlDriverConnectOptions,
@@ -45,6 +46,14 @@ export class SqliteControlDriver implements SqlControlDriverInstance<'sqlite'> {
   }
 }
 
+/** The file as a URI that SQLite opens for reading and writing, failing rather than creating it. */
+function existingFileOnly(pathOrMemory: string): string | URL {
+  if (pathOrMemory === ':memory:') return pathOrMemory;
+  const uri = pathToFileURL(pathOrMemory);
+  uri.searchParams.set('mode', 'rw');
+  return uri;
+}
+
 const sqliteDriverDescriptor: ControlDriverDescriptor<'sql', 'sqlite', SqliteControlDriver> = {
   ...sqliteDriverDescriptorMeta,
   async create(
@@ -52,9 +61,9 @@ const sqliteDriverDescriptor: ControlDriverDescriptor<'sql', 'sqlite', SqliteCon
     options?: ControlDriverConnectOptions,
   ): Promise<SqliteControlDriver> {
     try {
-      const db = new DatabaseSync(pathOrMemory, {
-        readOnly: options?.existingDatabaseOnly === true,
-      });
+      const db = new DatabaseSync(
+        options?.existingDatabaseOnly === true ? existingFileOnly(pathOrMemory) : pathOrMemory,
+      );
       db.exec('PRAGMA foreign_keys = ON');
       db.exec('PRAGMA busy_timeout = 5000');
       return new SqliteControlDriver(db, pathOrMemory);
