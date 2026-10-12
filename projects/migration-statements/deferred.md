@@ -40,7 +40,6 @@ When one plan renames a column on SQLite and a later step rebuilds the same tabl
 
 Project decision 6 lets a namespace delete cover everything in the namespace while the refusal lists each model. The engine answers a question only by a value equal to its subject or starting with it, so a namespace-wide answer has to be expanded by the ORM before the questions are asked. Slice 3 adds the namespace noun to `rename` and `delete` together and does that expansion there. Until then every `delete` names one model, field or storage object.
 
-
 ## A MongoDB validator that requires a new field leaves existing documents unwritable
 
 **Found:** slice 2 manual QA (2026-10-08), F9. For slice 4.
@@ -64,7 +63,6 @@ Adding a required field to a populated collection, or making an optional field r
 **Found:** slice 4a design (2026-10-09). Will: SQL will need to handle multi-table storage of variants in the future.
 
 On MongoDB a variant's field rename touches only that variant's documents. On SQL today a variant's field is a column in the shared table, and a rename applies to every row. When SQL supports variants stored in their own tables, a variant's field statements must act on that variant's table only.
-
 
 ## MongoDB `@map` accepts field names MongoDB cannot validate
 
@@ -105,7 +103,6 @@ A SQLite `--convert` rebuild runs the user's expression without the storage-clas
 ## `migration status --json` prints `{bin}` unreplaced
 
 **Found:** slice 3a review (2026-10-12). Outside this project. The summary text in the JSON output contains a raw `{bin}` placeholder.
-
 
 ## A Postgres `dataTransform` whose `run` returns the wrong shape fails with an unclear error
 
