@@ -187,6 +187,70 @@ describe('whereUnique with a criterion that does not hold a complete key', () =>
   });
 });
 
+describe('whereUnique with a criterion that is not an object', () => {
+  const incompleteKey = expect.objectContaining({
+    code: 'ORM.ARGUMENT_INVALID',
+    message:
+      'whereUnique() for model "Post" needs a value for every field of the primary key or of one unique constraint',
+    meta: { method: 'whereUnique', argument: 'criterion', model: 'Post' },
+  });
+
+  function whereUniqueWith(criterion: unknown) {
+    const { db, runtime } = createChainingOrm();
+    const call = () => db.Post.whereUnique(criterion as { id: number });
+    return { call, runtime };
+  }
+
+  it('throws for null', () => {
+    const { call, runtime } = whereUniqueWith(null);
+    expect(call).toThrow(incompleteKey);
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('throws when the criterion is omitted', () => {
+    const { db, runtime } = createChainingOrm();
+    const whereUnique = db.Post.whereUnique.bind(db.Post) as unknown as () => unknown;
+    expect(() => whereUnique()).toThrow(incompleteKey);
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('throws for an empty array', () => {
+    const { call, runtime } = whereUniqueWith([]);
+    expect(call).toThrow(incompleteKey);
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('throws for an array of values', () => {
+    const { call, runtime } = whereUniqueWith([1]);
+    expect(call).toThrow(incompleteKey);
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('throws for a string', () => {
+    const { call, runtime } = whereUniqueWith('1');
+    expect(call).toThrow(incompleteKey);
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('throws for an empty string', () => {
+    const { call, runtime } = whereUniqueWith('');
+    expect(call).toThrow(incompleteKey);
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('throws for a number', () => {
+    const { call, runtime } = whereUniqueWith(1);
+    expect(call).toThrow(incompleteKey);
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('throws for a function', () => {
+    const { call, runtime } = whereUniqueWith(() => ({ id: 1 }));
+    expect(call).toThrow(incompleteKey);
+    expect(runtime.executions).toHaveLength(0);
+  });
+});
+
 describe('whereUnique with a query expression as a key value', () => {
   function incompleteKey(model: string) {
     return expect.objectContaining({

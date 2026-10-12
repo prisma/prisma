@@ -861,8 +861,11 @@ export function hasCompleteUniqueKey(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   modelName: string,
-  criterion: object,
+  criterion: unknown,
 ): boolean {
+  if (typeof criterion !== 'object' || criterion === null || Array.isArray(criterion)) {
+    return false;
+  }
   const tableName = resolveModelTableName(contract, namespaceId, modelName);
   const fields = getModelFields(contract, namespaceId, modelName);
   const fieldColumns = getModelFieldColumns(contract, namespaceId, modelName);
