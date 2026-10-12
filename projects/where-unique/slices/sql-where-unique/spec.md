@@ -38,7 +38,7 @@ Two forms, as the project spec's decision 3 records. Both were needed on the rea
 
 Methods that stay callable after `whereUnique`: `where`, `variant`, `include`, `select`, `first`, `firstOrThrow`, `update`, `delete`, `with`, and the row-lock methods `forUpdate`, `forNoKeyUpdate`, `forShare`, `forKeyShare`. `upsert`, `create*` and `fragment` are unchanged.
 
-The row-lock methods are left exactly as they are. They return a plain `Collection` for every receiver, so after `whereUnique(...).forUpdate()` the type-state facts and the user subclass are gone, `first()` is the intended call, and `all()` compiles. The project spec records this as an accepted consequence.
+The row-lock methods are not changed by this slice. Since #30673 on `main` they return the receiver's own type, so a lock keeps the unique filter and the class and the many-record calls are refused after it.
 
 ### The criterion type
 
