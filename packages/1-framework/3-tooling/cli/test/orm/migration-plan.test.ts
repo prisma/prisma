@@ -802,10 +802,20 @@ describe('migration plan', () => {
       expect(run.exitCode).toBe(0);
       const data = run.presented?.data as {
         readonly pendingPlaceholders: boolean;
+        readonly dir: string;
+        readonly baselineDir: string;
+        readonly summary: string;
         readonly operations: readonly { readonly id: string }[];
         readonly appliedStatements: readonly { readonly operationIndexes: readonly number[] }[];
       };
       expect(data.pendingPlaceholders).toBe(true);
+      expect([data.baselineDir, data.dir]).toEqual([
+        expect.stringMatching(/^migrations\/app\/[^/]+$/),
+        expect.stringMatching(/^migrations\/app\/[^/]+$/),
+      ]);
+      expect(data.summary).toBe(
+        `Planned baseline + migration with placeholder(s) — edit migration.ts, then run \`node ${data.baselineDir}/migration.ts\` and \`node ${data.dir}/migration.ts\` from this directory to self-emit`,
+      );
       expect(
         data.appliedStatements.map(({ operationIndexes }) =>
           operationIndexes.map((index) => data.operations[index]?.id),
@@ -832,7 +842,12 @@ describe('migration plan', () => {
         { cwd: project.dir },
       );
       expect(answered.exitCode).toBe(0);
-      expect(answered.presented?.data).toMatchObject({ pendingPlaceholders: true });
+      const data = answered.presented?.data as { readonly dir: string };
+      expect(data.dir).toMatch(/^migrations\/app\/[^/]+$/);
+      expect(data).toMatchObject({
+        pendingPlaceholders: true,
+        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node ${data.dir}/migration.ts\` from this directory to self-emit`,
+      });
     });
 
     it('asks a question a re-plan brings up in a second batch', async () => {

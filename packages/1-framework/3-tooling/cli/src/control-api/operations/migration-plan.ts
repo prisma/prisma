@@ -115,6 +115,11 @@ type PlannerSuccess = {
   readonly dataLoss: readonly PlannedLoss[];
 };
 
+function placeholderSummary(planned: string, dirs: readonly string[]): string {
+  const commands = dirs.map((dir) => `\`node ${join(dir, 'migration.ts')}\``).join(' and ');
+  return `Planned ${planned} with placeholder(s) — edit migration.ts, then run ${commands} from this directory to self-emit`;
+}
+
 /** The origin of a plan from an empty database: no models, so no statement resolves. */
 const EMPTY_ORIGIN: ContractWithDomain = { domain: { namespaces: {} } };
 
@@ -864,8 +869,7 @@ async function executeMigrationPlanCommandInner(
             ...(warnings.length > 0 ? { warnings } : {}),
             pendingPlaceholders: true,
             appliedStatements: [...statementsWithoutOperations, ...deletes],
-            summary:
-              'Planned baseline with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
+            summary: placeholderSummary('baseline', [baselineDir]),
             timings: { total: Date.now() - startTime },
           };
           return ok(result);
@@ -907,21 +911,22 @@ async function executeMigrationPlanCommandInner(
       const baselineOps = baselineLeg.value.hasPlaceholders ? [] : baselineLeg.value.plannedOps;
       const deltaOps = deltaLeg.value.hasPlaceholders ? [] : deltaLeg.value.plannedOps;
       if (baselineLeg.value.hasPlaceholders || deltaLeg.value.hasPlaceholders) {
+        const baselineDir = relative(cwd, baselinePackageDir);
+        const deltaDir = relative(cwd, deltaPackageDir);
         const result: MigrationPlanResult = {
           ok: true,
           noOp: false,
           from: fromHash,
           to: toStorageHash,
-          dir: relative(cwd, deltaPackageDir),
-          baselineDir: relative(cwd, baselinePackageDir),
+          dir: deltaDir,
+          baselineDir,
           operations: operationSummaries(deltaLeg.value.plannedOps),
           baselineOperations: operationSummaries(baselineLeg.value.plannedOps),
           emittedExtensionDirs,
           ...(warnings.length > 0 ? { warnings } : {}),
           pendingPlaceholders: true,
           appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
-          summary:
-            'Planned baseline + migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
+          summary: placeholderSummary('baseline + migration', [baselineDir, deltaDir]),
           timings: { total: Date.now() - startTime },
         };
         return ok(result);
@@ -1020,20 +1025,20 @@ async function executeMigrationPlanCommandInner(
     await writeDestinationSnapshot(toStorageHash);
 
     if (deltaLeg.value.hasPlaceholders) {
+      const dir = relative(cwd, packageDir);
       const result: MigrationPlanResult = {
         ok: true,
         noOp: false,
         from: fromHash,
         to: toStorageHash,
-        dir: relative(cwd, packageDir),
+        dir,
         operations: operationSummaries(deltaLeg.value.plannedOps),
         emittedExtensionDirs,
         ...(warnings.length > 0 ? { warnings } : {}),
         pendingPlaceholders: true,
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
-        summary:
-          'Planned migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
+        summary: placeholderSummary('migration', [dir]),
         timings: { total: Date.now() - startTime },
       };
       return ok(result);
