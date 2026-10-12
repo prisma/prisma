@@ -57,7 +57,6 @@ export interface StrategyContext {
   readonly types: SqlTypeLookups;
   /** The columns of the fields `--convert` and `--backfill` statements name. */
   readonly statementColumns: FieldStatementColumns;
-  /** The columns whose values come from a value set, which no temporary value fills. */
   /** Whether a required column the plan adds to a table may take a temporary value in its rows. */
   readonly takesTemporaryValue: (table: string, column: string) => boolean;
   /** The codec a column has in the origin contract, which the live schema does not record. */
