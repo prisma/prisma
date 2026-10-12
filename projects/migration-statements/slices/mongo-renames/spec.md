@@ -44,6 +44,7 @@ Without `--delete User.nickname`, both commands refuse, as they do on SQL:
 3. **Rewrites are classed by what they do to data, as on SQL.** A field rename is `widening`, like a column rename. A field removal is `destructive`, like a column drop. The planner writes a `data` operation only as a placeholder scaffold. So `db update` runs these rewrites, as it runs SQL renames. ADR 188 changes one sentence: today it says every MongoDB data transform is `data`.
 4. **Without the old contract, a removed field is named `<collection>.<field>`,** for example `users.nickname`. SQL uses `<schema>.<table>.<column>`, or `<table>.<column>` on SQLite.
 5. **A variant's field rename touches only that variant's documents.** The rewrite filters on the variant's discriminator value, so another variant in the same collection that stores a field with the same name keeps it. This differs from SQL single-table storage, where a rename renames the shared column for every row.
+6. **Contracts without a validator get a temporary refusal** (Will, 2026-10-12). A MongoDB contract written in TypeScript has no validator today, so its field names are not in its storage hash, and a field rename or removal would give a migration whose start and end hashes are equal, which `db migrate` refuses. `migration plan` refuses such a change and says why; `db update` is unaffected. TML-3553, the next slice, gives TypeScript contracts the PSL validator and removes this refusal.
 
 ## How it works
 

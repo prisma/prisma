@@ -10,6 +10,7 @@
 | 2 | Data loss refused until answered; `--delete`, `--allow`; the interactive prompt | 1 | Merged, prisma/orm#30648 |
 | 3a | `--convert` and `--backfill`, Postgres and SQLite | 2 | Spec: [`slices/convert-backfill/`](./slices/convert-backfill/spec.md) |
 | 4a | Renames and deletes on MongoDB | 2 | Spec: [`slices/mongo-renames/`](./slices/mongo-renames/spec.md) |
+| 4p | MongoDB contracts written in TypeScript get the same validator as PSL; removes 4a's temporary refusal | 4a | Next after 4a |
 | 3b | The remaining SQL renames and deletes | 3a | Not started |
 | 4b | `--convert`, `--backfill` and value object renames on MongoDB | 3b, 4a | Not started |
 
@@ -46,6 +47,17 @@
 - The temporary setting that makes MongoDB refuse renames is deleted.
 
 **Hands to 4b:** a MongoDB planner that takes statements.
+
+### 4p — TypeScript MongoDB contracts get the PSL validator
+
+**Linear:** [TML-3553](https://linear.app/prisma-company/issue/TML-3553) · **Folder:** [`slices/mongo-ts-validator/`](./slices/mongo-ts-validator/investigation.md)
+
+Decided by Will on 2026-10-12: contracts written in either form must behave the same, and this slice comes right after 4a, before 3b and 4b. Two pull requests:
+
+1. The validator derivation moves into `@internal/mongo-contract`. No output changes.
+2. The TypeScript builder calls it. 4a's temporary refusal goes. An upgrade fragment covers the closed validator TypeScript users gain.
+
+**Why now:** without a validator, a TypeScript contract's field names are not in its storage hash, so a MongoDB field rename on it gives a migration `db migrate` refuses. 4a refuses that case for now.
 
 ### 3b — The remaining renames and deletes on Postgres and SQLite
 
