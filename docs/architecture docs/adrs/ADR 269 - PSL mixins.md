@@ -98,11 +98,17 @@ The parser reads both forms under every grammar, including the one that reads th
 
 **A mixin cannot include a mixin**, and **a mixin is not a type**: a field whose type names a mixin is an unresolved reference.
 
-## Where inclusions are replaced
+## Where members are placed
 
 The parser builds a syntax tree, the symbol table collects every declaration with its members, and the binder decides what each written name refers to. Family interpreters read the symbol table and the binder.
 
-**Inclusions are replaced while the symbol table is built.** The mixins of all files are collected first. Each model, composite type and block is then built once, and where its body has an inclusion it receives the mixin's fields or entries and its attributes at that position. The binder and the family interpreters therefore read ordinary blocks. No interpreter tests whether a member came from a mixin, and a block kind an extension defines supports mixins with no work in the extension.
+**The symbol table collects what is written.** It holds each mixin with the members written in it, and each model, composite type and block with the members written in it. It decides nothing about an inclusion.
+
+**The binder alone decides what a name refers to.** It resolves the name of an inclusion like any other name, and reports a name that is not a mixin and a mixin for another block keyword.
+
+**Members are placed once inclusion names are resolved.** Each including block then receives the mixin's fields or entries and its attributes at the inclusion's position, before the binder binds members and attributes. A member provided twice is reported at this step. The family interpreters therefore read ordinary blocks. No interpreter tests whether a member came from a mixin, and a block kind an extension defines supports mixins with no work in the extension.
+
+**A block's members are complete once the binder has been created.** Code that reads a block's members before that sees only the members written in the block.
 
 **A mixin body is bound once**, whether or not anything includes it, and an including block binds only the members written in it. A name in a mixin has one meaning, and a binder error in a mixin is reported once, in the mixin.
 
@@ -112,9 +118,9 @@ The parser builds a syntax tree, the symbol table collects every declaration wit
 
 ## Consequences
 
-- An error a family interpreter raises on a mixin's member is reported once per including block, and every report points at the member in the mixin. Errors raised while inclusions are replaced point at the inclusion.
+- An error a family interpreter raises on a mixin's member is reported once per including block, and every report points at the member in the mixin. Errors about an inclusion itself point at the inclusion.
 - A mixin that nothing includes is checked by the parser, the symbol table and the binder. No family interpreter reads it, so an error only an interpreter would find is not reported until a block includes the mixin. There is no unused-mixin warning.
-- Code that reads a block's members reads them from the block's symbol; the block's syntax node does not contain mixed-in members.
+- Code that reads a block's members reads them from the block's symbol, after the binder has been created; the block's syntax node does not contain mixed-in members.
 
 ## Alternatives considered
 
@@ -125,6 +131,8 @@ The parser builds a syntax tree, the symbol table collects every declaration wit
 - **Copying members into each including block.** Not chosen. A reference to a mixed-in field would resolve to a different symbol in each block, so rename would not reach the mixin. Copies would let interpreter errors point at the inclusion, but would also move errors that are the mixin's own fault.
 - **A marker attribute on an ordinary block.** Not chosen. Every reader of models, enums or blocks would have to learn to skip marked ones. A declaration of its own kind is skipped by readers that know nothing about mixins.
 - **Expansion in each interpreter.** Not chosen. Every family interpreter and every extension's block kind would have to implement inclusion, and they could disagree on order and duplicates.
+- **Resolving inclusion names while the symbol table is built.** Not chosen. Two components would decide what a name refers to, and the symbol table would need a scope of its own and a staged construction, so that a lookup made while one block is built could see declarations that are built later.
+- **Placing members after all binding.** Not chosen. A block's own attributes can name a mixed-in field, so the binder would need a block's placed fields before they exist.
 
 ## References
 
