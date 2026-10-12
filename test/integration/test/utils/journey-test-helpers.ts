@@ -482,7 +482,7 @@ const MIGRATION_CLASS_HEADER_RE = /export default class M extends Migration(?:<[
  * `Migration` base. This helper rewrites the scaffold for the journey test's
  * runtime apply: it drops the raw-JSON import, deserializes the contract
  * (runtime SQL qualification needs a hydrated Postgres schema namespace with
- * `qualifyTable`), and wires a `db = sql(...)` the filled-in dataTransform
+ * `qualifyTable`), and wires a `db = sqlBuilder(...)` the filled-in dataTransform
  * closures use. The deserialized contract is bound back to `endContract`, so
  * the scaffold's `endContractJson = endContract` field still resolves (and
  * the base still derives `describe()` from its `storage.storageHash`).
@@ -501,13 +501,13 @@ export function injectMigrationSqlDbSetup(scaffold: string): string {
     `import endContractJson from '${endContractSpecifier}' with { type: 'json' };`,
     `import { PostgresContractSerializer } from '@internal/target-postgres/runtime';`,
     `import postgresAdapter from '@internal/adapter-postgres/runtime';`,
-    `import { sql } from '@internal/sql-builder/runtime';`,
+    `import { sql as sqlBuilder } from '@internal/sql-builder/runtime';`,
     `import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';`,
     `import postgresTarget from '@internal/target-postgres/runtime';`,
     '',
     'const endContract = new PostgresContractSerializer().deserializeContract(endContractJson);',
     '',
-    'const db = sql({',
+    'const db = sqlBuilder({',
     '  context: createExecutionContext({',
     '    contract: endContract,',
     '    stack: createSqlExecutionStack({ target: postgresTarget, adapter: postgresAdapter }),',

@@ -16,7 +16,7 @@
  *
  * Each scenario simulates the user editing the planner-emitted
  * `migration.ts` (string-patching the placeholder stubs and injecting a
- * `db = sql(...)` setup), re-emits the package in-process, applies it, and
+ * `db = sqlBuilder(...)` setup), re-emits the package in-process, applies it, and
  * asserts the post-apply data and column shape.
  */
 
@@ -201,7 +201,7 @@ withTempDir(({ createTempDir }) => {
           .replace(`() => placeholder('${scenario.slot}:check')`, scenario.checkReplacement)
           .replace(`() => placeholder('${scenario.slot}:run')`, scenario.runReplacement);
         expect(filled).not.toContain('placeholder(');
-        expect(filled).toContain('const db = sql(');
+        expect(filled).toContain('const db = sqlBuilder(');
         writeFileSync(migrationTsPath, filled);
 
         const emitResult = await selfEmitMigration(ctx, [
