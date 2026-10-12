@@ -1,8 +1,10 @@
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
+import { statementFlag } from '../control-api/statements/statement-flag';
 import type { DbUpdateFailure } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
+import { unconvertibleValue } from './migrate-failure';
 
 /**
  * A `db update` failure as the CLI's structured error.
@@ -21,10 +23,12 @@ export function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError
         ? failure.meta['runnerErrorCode']
         : undefined;
     const fix =
-      runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
-        ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
-          'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'
-        : 'Inspect the reported conflict, reconcile schema drift if needed, then re-run `{bin} db update`';
+      failure.unconvertedField !== undefined
+        ? `${unconvertibleValue(failure.unconvertedField)} Plan the change with \`{bin} migration plan ${statementFlag({ verb: 'convert', text: failure.unconvertedField })}\`, write the conversion in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`
+        : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
+          ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
+            'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'
+          : 'Inspect the reported conflict, reconcile schema drift if needed, then re-run `{bin} db update`';
     return errorRunnerFailed(failure.summary, {
       why: failure.why ?? 'Migration runner failed',
       fix,

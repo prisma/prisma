@@ -520,6 +520,8 @@ export interface DbUpdateFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
+  /** The field whose type change met a value the database could not convert, as a `convert` statement names it. */
+  readonly unconvertedField?: string;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }
@@ -732,6 +734,8 @@ export interface MigrateFailure {
   readonly summary: string;
   readonly why: string | undefined;
   readonly meta: Record<string, unknown> | undefined;
+  /** The field whose type change met a value the database could not convert, as a `convert` statement names it. */
+  readonly unconvertedField?: string;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }

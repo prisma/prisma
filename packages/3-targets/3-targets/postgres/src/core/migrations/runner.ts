@@ -11,7 +11,7 @@ import type {
   SqlMigrationRunnerResult,
   SqlMigrationRunnerSuccessValue,
 } from '@internal/family-sql/control';
-import { runnerFailure, runnerSuccess } from '@internal/family-sql/control';
+import { runnerFailure, runnerSuccess, unconvertedFieldOf } from '@internal/family-sql/control';
 import type { MigrationRunnerResult } from '@internal/framework-components/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
@@ -56,6 +56,11 @@ function cloneAndFreezeRecord<T extends Record<string, unknown>>(value: T): T {
   return blindCast<T, 'cloned record preserves the key/value shape of the input record'>(
     Object.freeze(cloned),
   );
+}
+
+/** A data exception, or a cast Postgres has no rule for: a value the cast could not convert. */
+function isCastFailure(sqlState: string | undefined): boolean {
+  return sqlState !== undefined && (sqlState.startsWith('22') || sqlState === '42846');
 }
 
 export function createPostgresMigrationRunner(
@@ -250,7 +255,12 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           }
         }
 
-        const executeResult = await this.runExecuteSteps(driver, operation.execute, operation);
+        const executeResult = await this.runExecuteSteps(
+          driver,
+          operation.execute,
+          operation,
+          options.destinationContract,
+        );
         if (!executeResult.ok) {
           return executeResult;
         }
@@ -359,6 +369,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
     steps: readonly SqlMigrationPlanOperationStep[],
     operation: SqlMigrationPlanOperation<PostgresPlanTargetDetails>,
+    destinationContract: Contract<SqlStorage>,
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
     for (const step of steps) {
       try {
@@ -370,6 +381,9 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             `Operation ${operation.id} failed during execution: ${step.description}`,
             {
               why: error.message,
+              unconvertedField: isCastFailure(error.sqlState)
+                ? unconvertedFieldOf(step, destinationContract)
+                : undefined,
               meta: {
                 operationId: operation.id,
                 stepDescription: step.description,

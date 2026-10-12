@@ -1,3 +1,4 @@
+import { castColumnMeta } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { type DdlColumn, opaqueSql, renderOpaqueSql } from '@internal/sql-relational-core/ast';
 import { ifDefined } from '@internal/utils/defined';
@@ -158,10 +159,15 @@ export async function alterColumnType(
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
     execute: [
-      step(
-        `alter type of "${columnName}"`,
-        `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} TYPE ${options.type}${usingClause}`,
-      ),
+      {
+        ...step(
+          `alter type of "${columnName}"`,
+          `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} TYPE ${options.type}${usingClause}`,
+        ),
+        ...(options.using === undefined && operationClass === 'destructive'
+          ? { meta: castColumnMeta(tableName, columnName) }
+          : {}),
+      },
     ],
     postcheck: [
       step(

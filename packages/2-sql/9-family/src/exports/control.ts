@@ -144,6 +144,7 @@ export type {
   SqlPlanTargetDetails,
   StorageTypePlanResult,
 } from '../core/migrations/types';
+export { castColumnMeta, unconvertedFieldOf } from '../core/migrations/unconverted-field';
 export type { TableColumn } from '../core/migrations/value-set-columns';
 export { valueSetColumns } from '../core/migrations/value-set-columns';
 export {

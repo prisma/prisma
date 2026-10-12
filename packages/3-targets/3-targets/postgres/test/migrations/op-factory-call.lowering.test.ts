@@ -213,6 +213,7 @@ describe('AlterColumnTypeCall', () => {
       {
         description: 'alter type of "age"',
         sql: 'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING "age"::int8',
+        meta: { castColumn: { table: 'user', column: 'age' } },
       },
     ]);
     expect(op.precheck).toEqual([
@@ -227,6 +228,19 @@ describe('AlterColumnTypeCall', () => {
     ]);
     expect(op.meta).toEqual({ warning: 'TABLE_REWRITE' });
     expect(call.label).toBe('Alter type of "user"."age" to int8');
+  });
+
+  it('marks only a destructive cast of its own as the step that converts the column', async () => {
+    const { lowerer } = recordingCheckLowerer();
+    const metaOf = async (call: AlterColumnTypeCall) => (await call.toOp(lowerer)).execute[0]?.meta;
+    expect([
+      await metaOf(alter()),
+      await metaOf(alter({ operationClass: 'widening' })),
+      await metaOf(alter({ using: { kind: 'sql', sql: '"age"::int8' } })),
+      await metaOf(
+        alter({ using: { kind: 'sql', sql: '"age"::int8' }, operationClass: 'destructive' }),
+      ),
+    ]).toEqual([{ castColumn: { table: 'user', column: 'age' } }, undefined, undefined, undefined]);
   });
 
   it('is a data change when it converts with a USING clause and nothing says otherwise', () => {

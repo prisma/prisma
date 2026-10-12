@@ -200,10 +200,10 @@ describe('consentDescription', () => {
     field: 'age',
   } as const;
 
-  it('says a delete that answers a type change loses the values, not the field', () => {
+  it('says a delete that answers a type change accepts the lossy change, not that it deletes the field', () => {
     expect([
       consentDescription('delete', age, 'User.age', 'typeChange'),
       consentDescription('delete', age, 'User.age', 'drop'),
-    ]).toEqual(['delete values of field "User.age" (type change)', 'delete field "User.age"']);
+    ]).toEqual(['accept lossy type change of field "User.age"', 'delete field "User.age"']);
   });
 });

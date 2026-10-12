@@ -376,6 +376,8 @@ export interface MigrationRunnerFailure {
    * {@link MigrationRunner.execute} processes multiple spaces.
    */
   readonly failingSpace?: string;
+  /** The field whose type change met a value the database could not convert to the new type. */
+  readonly unconvertedField?: MigrationSubject;
 }
 
 /**

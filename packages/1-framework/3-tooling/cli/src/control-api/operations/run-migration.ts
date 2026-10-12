@@ -8,12 +8,14 @@ import type {
   ControlDriverInstance,
   ControlFamilyInstance,
   MigrationOperationPolicy,
+  MigrationRunnerFailure,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type { ContractSpaceAggregate, PerSpacePlan } from '@internal/migration-tools/aggregate';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
+import { subjectText } from '../statements/plan-questions';
 import type { OnControlProgress, PerSpaceExecutionEntry } from '../types';
 
 /**
@@ -40,11 +42,23 @@ export interface RunnerFailure {
   readonly summary: string;
   readonly why?: string;
   readonly meta: Record<string, unknown>;
+  /** The field whose type change met a value the database could not convert, as a `convert` statement names it. */
+  readonly unconvertedField?: string;
   /**
    * The runner's original failure object, preserved verbatim so callers
    * can attach it as `cause` on the CLI error they build from this shape.
    */
   readonly cause?: unknown;
+}
+
+function unconvertedFieldText(
+  failure: MigrationRunnerFailure,
+  resolutions: readonly OrderedResolution[],
+): string | undefined {
+  const destination = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace)?.entry
+    .destinationContract;
+  if (failure.unconvertedField === undefined || destination === undefined) return undefined;
+  return subjectText(failure.unconvertedField, { origin: destination, statements: [] });
 }
 
 export interface RunMigrationInputs<TFamilyId extends string, TTargetId extends string> {
@@ -173,6 +187,10 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
         failingSpace: runnerResult.failure.failingSpace,
         runnerErrorCode: runnerResult.failure.code,
       },
+      ...ifDefined(
+        'unconvertedField',
+        unconvertedFieldText(runnerResult.failure, orderedResolutions),
+      ),
       cause: runnerResult.failure,
     });
   }

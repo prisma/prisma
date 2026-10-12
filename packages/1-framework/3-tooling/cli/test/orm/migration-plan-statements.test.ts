@@ -439,7 +439,7 @@ describe('migration plan --convert and --backfill', () => {
     ]);
   });
 
-  it('reports a delete that answers a type change as deleting the values of the field', async () => {
+  it('reports a delete that answers a type change as accepting the lossy type change', async () => {
     const project = await typeChangeProject();
     const run = await harness(project, { dataLoss: [ageChange] }).run(
       ['migration', 'plan', '--delete', 'User.age'],
@@ -448,7 +448,7 @@ describe('migration plan --convert and --backfill', () => {
 
     expect(run.presented?.data).toMatchObject({
       appliedStatements: [
-        { verb: 'delete', description: 'delete values of field "User.age" (type change)' },
+        { verb: 'delete', description: 'accept lossy type change of field "User.age"' },
       ],
     });
   });

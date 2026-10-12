@@ -170,8 +170,8 @@ export function subjectText(subject: MigrationSubject, contracts: StatementContr
 
 /**
  * The statement's description, written as its question names the subject: `delete field
- * "User.nickname"`, or `delete values of field "User.age" (type change)` for a delete that answers a
- * type change, which keeps the field.
+ * "User.nickname"`, or `accept lossy type change of field "User.age"` for a delete that answers a
+ * type change, which keeps the field and every value the database can cast.
  */
 export function consentDescription(
   verb: ConsentVerb,
@@ -180,7 +180,7 @@ export function consentDescription(
   loss: MigrationDataLossKind | undefined,
 ): string {
   return verb === 'delete' && loss === 'typeChange'
-    ? `delete values of ${subject.kind} "${text}" (type change)`
+    ? `accept lossy type change of ${subject.kind} "${text}"`
     : `${verb} ${subject.kind} "${text}"`;
 }
 
