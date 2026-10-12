@@ -25,7 +25,7 @@ import { InternalError } from '@internal/utils/internal-error';
 import { plainAggregateExpr } from './aggregate-codecs';
 import { createCallbackTools } from './callback-tools';
 import {
-  addressedModelName,
+  addressedModel,
   columnOfCallerField,
   columnOfContractField,
   type FieldColumn,
@@ -214,11 +214,17 @@ function createModelAccessorInScope<
   // field→column map) and the variant's table (the MTI variant table the
   // read path joins in, or the base table for STI, where the variant's
   // columns physically live). They shadow a same-named base relation.
-  const addressed = addressedModelName(contract, namespaceId, modelName, variantValue);
+  const [addressedNamespaceId, addressed] = addressedModel(
+    contract,
+    namespaceId,
+    modelName,
+    variantValue,
+  );
   const variantCoordinates = variantValue
     ? {
+        namespaceId: addressedNamespaceId,
         name: addressed,
-        relations: resolveModelRelations(contract, namespaceId, addressed),
+        relations: resolveModelRelations(contract, addressedNamespaceId, addressed),
       }
     : undefined;
   const variantFieldTable = variantTable ?? table;
@@ -263,7 +269,7 @@ function createModelAccessorInScope<
           if (variantRelation) {
             return createRelationFilterAccessor(
               context,
-              namespaceId,
+              variantCoordinates.namespaceId,
               variantCoordinates.name,
               scope,
               variantFieldTable,
@@ -294,7 +300,7 @@ function createModelAccessorInScope<
         const fieldStorage = fieldTable.storage;
         const columnName =
           variantField?.column ??
-          columnOfCallerField(contract, namespaceId, fieldColumns, addressed, prop);
+          columnOfCallerField(contract, addressedNamespaceId, fieldColumns, addressed, prop);
         const column = resolveColumn(
           contract,
           fieldStorage.namespaceId,

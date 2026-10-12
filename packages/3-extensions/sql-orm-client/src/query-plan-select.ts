@@ -30,7 +30,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
 import {
-  addressedModelName,
+  addressedModel,
   assertDistinctOnCapability,
   getColumnsReadOnTable,
   getModelColumnFields,
@@ -99,7 +99,7 @@ function jsonEntryProjection(
 
 function buildProjection(
   contract: Contract<SqlStorage>,
-  modelName: string,
+  model: readonly [namespaceId: string, modelName: string],
   table: AliasedTable,
   selectedFields: readonly string[] | undefined,
   projectedThrough?: string,
@@ -108,7 +108,7 @@ function buildProjection(
   const columns =
     selectedFields !== undefined
       ? [...selectedFields]
-      : getColumnsReadOnTable(contract, namespaceId, modelName, tableName);
+      : getColumnsReadOnTable(contract, ...model, tableName, namespaceId);
 
   return columns.map((column) =>
     ProjectionItem.of(
@@ -151,7 +151,7 @@ function resolvePolymorphicProjectionSelection(
   const baseColumnToField = getModelColumnFields(contract, namespaceId, modelName);
   const variantColumnMaps = Array.from(polyInfo.variants.values(), (variant) => ({
     variant,
-    columnToField: getOwnColumnFields(contract, namespaceId, variant.modelName),
+    columnToField: getOwnColumnFields(contract, variant.namespaceId, variant.modelName),
   }));
   const baseSelectedFields: string[] = [];
   const selectedMtiColumnsByVariant = new Map<string, Set<string>>();
@@ -593,7 +593,7 @@ function buildIncludeChildRowsSelect(
   const polyJoinsAndProjection = buildChildPolymorphismJoinsAndProjection(contract, include);
   const scalarProjection = buildProjection(
     contract,
-    addressedModelName(
+    addressedModel(
       contract,
       include.relatedNamespaceId,
       include.relatedModelName,
@@ -756,7 +756,7 @@ function buildDistinctNonLeafChildRowsSelect(options: {
   const queryPolyProjection = buildChildPolymorphismJoinsAndProjection(contract, queryInclude);
   const innerScalarProjection = buildProjection(
     contract,
-    addressedModelName(
+    addressedModel(
       contract,
       include.relatedNamespaceId,
       include.relatedModelName,
@@ -823,7 +823,7 @@ function buildDistinctNonLeafChildRowsSelect(options: {
   // the underlying table.
   const outerScalarProjection = buildProjection(
     contract,
-    addressedModelName(
+    addressedModel(
       contract,
       include.relatedNamespaceId,
       include.relatedModelName,
@@ -1309,13 +1309,13 @@ function buildSelectAst(
     assertDistinctOnCapability(contract, 'distinctOn');
     assertDistinctOnCompatibleOrder(state.orderBy, state.distinctOn.length);
   }
-  const addressed = addressedModelName(contract, namespaceId, modelName, state.variantValue);
+  const addressed = addressedModel(contract, namespaceId, modelName, state.variantValue);
   const scalarProjection = buildProjection(contract, addressed, root, state.selectedFields);
   const projection = [...scalarProjection, ...(options.includeProjection ?? [])];
   const where = options.where ?? buildStateWhere(contract, state);
 
   // `buildDedupedTableSource` wraps for `.distinct(cols)`, aliased back to the root alias.
-  const modelColumns = getColumnsReadOnTable(contract, namespaceId, addressed, tableName);
+  const modelColumns = getColumnsReadOnTable(contract, ...addressed, tableName, namespaceId);
   const modelColumnsProjection = modelColumns.map((column) =>
     ProjectionItem.of(column, root.column(column)),
   );

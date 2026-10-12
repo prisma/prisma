@@ -657,13 +657,13 @@ export type VariantAwareModelAccessor<
         ScalarModelAccessor<
           TContract,
           VariantModelName<TContract, ModelName, VariantValue, NsId>,
-          NsId
+          VariantNamespace<TContract, ModelName, VariantValue, NsId>
         > &
         RelationModelAccessor<TContract, ModelName, NsId> &
         RelationModelAccessor<
           TContract,
           VariantModelName<TContract, ModelName, VariantValue, NsId>,
-          NsId
+          VariantNamespace<TContract, ModelName, VariantValue, NsId>
         >
     : ModelAccessor<TContract, ModelName, NsId>
   : ModelAccessor<TContract, ModelName, NsId>;
@@ -822,7 +822,11 @@ type VariantRow<
             CollectionModelName<TContract>
             ? Simplify<
                 Omit<DefaultModelRow<TContract, ModelName, NsId>, DiscField> &
-                  DefaultModelRow<TContract, VK, NsId> &
+                  DefaultModelRow<
+                    TContract,
+                    VK,
+                    VariantNamespace<TContract, ModelName, Value, NsId>
+                  > &
                   Record<DiscField, Value>
               >
             : never;
@@ -861,6 +865,21 @@ type VariantModelName<
       : never
     : never;
 
+type VariantNamespace<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  VariantValue,
+  NsId extends string = never,
+> = [NsId] extends [never]
+  ? never
+  : ModelDef<TContract, ModelName, NsId> extends { readonly variants: infer V }
+    ? VariantValue extends keyof V
+      ? V[VariantValue] extends { readonly namespace: infer Namespace extends string }
+        ? ContractNamespaceKey<TContract, Namespace>
+        : never
+      : never
+    : never;
+
 export type VariantModelRow<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
@@ -876,7 +895,11 @@ export type VariantModelRow<
         ? V[VariantValue]['model'] extends infer VK extends string & CollectionModelName<TContract>
           ? Simplify<
               Omit<DefaultModelRow<TContract, ModelName, NsId>, DiscField> &
-                DefaultModelRow<TContract, VK, NsId> &
+                DefaultModelRow<
+                  TContract,
+                  VK,
+                  VariantNamespace<TContract, ModelName, VariantValue, NsId>
+                > &
                 Record<DiscField, VariantValue>
             >
           : DefaultModelRow<TContract, ModelName, NsId>
@@ -1680,11 +1703,17 @@ export type VariantCreateInput<
   BaseModelName extends string,
   VariantValue extends string,
   NsId extends string = never,
-> = Omit<
-  CreateInput<TContract, BaseModelName, NsId>,
-  DiscriminatorFieldName<TContract, BaseModelName, NsId>
-> &
-  CreateInput<TContract, VariantModelName<TContract, BaseModelName, VariantValue, NsId>, NsId>;
+> = VariantValue extends string
+  ? Omit<
+      CreateInput<TContract, BaseModelName, NsId>,
+      DiscriminatorFieldName<TContract, BaseModelName, NsId>
+    > &
+      CreateInput<
+        TContract,
+        VariantModelName<TContract, BaseModelName, VariantValue, NsId>,
+        VariantNamespace<TContract, BaseModelName, VariantValue, NsId>
+      >
+  : never;
 
 export type ResolvedCreateInput<
   TContract extends Contract<SqlStorage>,
@@ -1713,7 +1742,7 @@ export type ResolvedScalarCreateInput<
           ScalarCreateInput<
             TContract,
             VariantModelName<TContract, ModelName, VariantValue, NsId>,
-            NsId
+            VariantNamespace<TContract, ModelName, VariantValue, NsId>
           >
       : never
     : ScalarCreateInput<TContract, ModelName, NsId>;
@@ -2167,25 +2196,18 @@ type IsSingletonString<T> = [T] extends [string]
       : true
   : false;
 
-type SelectedVariantModelNames<
+type VariantDeclaredRelationKeys<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   VariantValue,
   NsId extends string,
-> = [VariantValue] extends [string]
-  ? VariantModelName<
+> = VariantValue extends string
+  ? keyof RelationsOf<
       TContract,
-      ModelName,
-      string extends VariantValue ? DiscriminatorValues<TContract, ModelName, NsId> : VariantValue,
-      NsId
+      VariantModelName<TContract, ModelName, VariantValue, NsId>,
+      VariantNamespace<TContract, ModelName, VariantValue, NsId>
     >
   : never;
-
-type VariantDeclaredRelationKeys<
-  TContract extends Contract<SqlStorage>,
-  VariantModel extends string,
-  NsId extends string,
-> = VariantModel extends string ? keyof RelationsOf<TContract, VariantModel, NsId> : never;
 
 type SelectedVariantDeclaredRelationKeys<
   TContract extends Contract<SqlStorage>,
@@ -2194,7 +2216,8 @@ type SelectedVariantDeclaredRelationKeys<
   NsId extends string,
 > = VariantDeclaredRelationKeys<
   TContract,
-  SelectedVariantModelNames<TContract, ModelName, VariantValue, NsId>,
+  ModelName,
+  string extends VariantValue ? DiscriminatorValues<TContract, ModelName, NsId> : VariantValue,
   NsId
 >;
 
@@ -2206,13 +2229,17 @@ export type VariantAwareIncludeRelationNames<
 > =
   IsSingletonString<VariantValue> extends true
     ?
-        | RelationNames<TContract, VariantModelName<TContract, ModelName, VariantValue, NsId>, NsId>
+        | RelationNames<
+            TContract,
+            VariantModelName<TContract, ModelName, VariantValue, NsId>,
+            VariantNamespace<TContract, ModelName, VariantValue, NsId>
+          >
         | Exclude<
             RelationNames<TContract, ModelName, NsId>,
             keyof RelationsOf<
               TContract,
               VariantModelName<TContract, ModelName, VariantValue, NsId>,
-              NsId
+              VariantNamespace<TContract, ModelName, VariantValue, NsId>
             >
           >
     : [VariantValue] extends [string]
@@ -2233,11 +2260,28 @@ export type IncludeRelationOwner<
     ? RelName extends keyof RelationsOf<
         TContract,
         VariantModelName<TContract, ModelName, VariantValue, NsId>,
-        NsId
+        VariantNamespace<TContract, ModelName, VariantValue, NsId>
       >
       ? VariantModelName<TContract, ModelName, VariantValue, NsId>
       : ModelName
     : ModelName;
+
+export type IncludeRelationOwnerNamespace<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  VariantValue,
+  RelName extends string,
+  NsId extends string = never,
+> =
+  IsSingletonString<VariantValue> extends true
+    ? RelName extends keyof RelationsOf<
+        TContract,
+        VariantModelName<TContract, ModelName, VariantValue, NsId>,
+        VariantNamespace<TContract, ModelName, VariantValue, NsId>
+      >
+      ? VariantNamespace<TContract, ModelName, VariantValue, NsId>
+      : NsId
+    : NsId;
 
 type RelationModelName<Relation> = Relation extends {
   readonly to: { readonly model: infer To extends string };

@@ -33,6 +33,7 @@ type ModelsMap = Record<string, ModelEntry>;
 
 export interface PolymorphismVariantInfo {
   readonly modelName: string;
+  readonly namespaceId: string;
   readonly value: string;
   readonly table: string;
   readonly strategy: 'sti' | 'mti';
@@ -118,17 +119,19 @@ export function resolvePolymorphismInfo(
 
   for (const [value, variantRef] of Object.entries(model.variants)) {
     const variantModelName = variantRef.model;
-    const variantModel = models[variantModelName];
+    const variantModel = modelOf(contract, variantRef.namespace, variantModelName);
     if (!variantModel) {
       throw new InternalError(
         `Model "${modelName}" declares variant "${variantModelName}", but that model is missing from the contract`,
       );
     }
     const variantTable = variantModel.storage?.table ?? baseTable;
-    const strategy = variantTable === baseTable ? 'sti' : 'mti';
+    const strategy =
+      variantRef.namespace === namespaceId && variantTable === baseTable ? 'sti' : 'mti';
 
     const info: PolymorphismVariantInfo = {
       modelName: variantModelName,
+      namespaceId: variantRef.namespace,
       value,
       table: variantTable,
       strategy,
@@ -154,9 +157,7 @@ export function resolvePolymorphismInfo(
 
 /** The table and column a field maps. */
 export interface FieldColumn {
-  // Bare storage-table name (namespace-flat, like every table name in this
-  // module). The namespace is bound separately when the name becomes a
-  // `TableSource` via `tableSourceForContract`.
+  readonly namespaceId: string;
   readonly table: string;
   readonly column: string;
 }
@@ -202,7 +203,7 @@ export function getModelFields(
         ? {}
         : Object.fromEntries(
             Object.entries(getOwnFieldColumns(contract, namespaceId, modelName)).map(
-              ([field, column]) => [field, { table, column }],
+              ([field, column]) => [field, { namespaceId, table, column }],
             ),
           );
     const base = model?.base;
@@ -247,8 +248,7 @@ export function getModelAndVariantFieldColumns(
         ? {}
         : getOwnFieldColumns(
             contract,
-            namespaceId,
-            addressedModelName(contract, namespaceId, modelName, variantValue),
+            ...addressedModel(contract, namespaceId, modelName, variantValue),
           )),
       ...getModelFieldColumns(contract, namespaceId, modelName),
     }),
@@ -281,9 +281,9 @@ export function getModelAndEveryVariantFieldColumns(
     )?.variants.values() ?? []) {
       add(
         Object.fromEntries(
-          Object.entries(getOwnFieldColumns(contract, namespaceId, variant.modelName)).filter(
-            ([field]) => !modelFields.has(field),
-          ),
+          Object.entries(
+            getOwnFieldColumns(contract, variant.namespaceId, variant.modelName),
+          ).filter(([field]) => !modelFields.has(field)),
         ),
       );
     }
@@ -374,29 +374,31 @@ function getUnmappedColumns(
   modelName: string,
 ): readonly { readonly table: string; readonly column: string }[] {
   return cachedFor(contract, ['unmappedColumns', namespaceId, modelName], () => {
-    const root = hierarchyRootName(contract, namespaceId, modelName);
-    const rootTable = domainModelTableInNamespace(contract, namespaceId, root);
+    const root = hierarchyRoot(contract, namespaceId, modelName);
+    const rootTable = domainModelTableInNamespace(contract, root.namespaceId, root.modelName);
     if (rootTable === undefined) return [];
-    const variants = resolvePolymorphismInfo(contract, namespaceId, root)?.variants.values();
-    const tables = new Set([rootTable, ...[...(variants ?? [])].map((variant) => variant.table)]);
-    return [...tables].flatMap((table) => {
-      const read = new Set(getColumnsReadOnTable(contract, namespaceId, root, table));
-      return getAllTableColumns(contract, namespaceId, table)
+    const polymorphism = resolvePolymorphismInfo(contract, root.namespaceId, root.modelName);
+    const models = [{ ...root, table: rootTable }, ...(polymorphism?.mtiVariants ?? [])];
+    return models.flatMap((model) => {
+      const read = new Set(
+        getColumnsReadOnTable(contract, model.namespaceId, model.modelName, model.table),
+      );
+      return getAllTableColumns(contract, model.namespaceId, model.table)
         .filter((column) => !read.has(column))
-        .map((column) => ({ table, column }));
+        .map((column) => ({ table: model.table, column }));
     });
   });
 }
 
-function hierarchyRootName(
+function hierarchyRoot(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   modelName: string,
-): string {
+): { readonly namespaceId: string; readonly modelName: string } {
   const base = modelOf(contract, namespaceId, modelName)?.base;
-  return base === undefined || base.namespace !== namespaceId
-    ? modelName
-    : hierarchyRootName(contract, namespaceId, base.model);
+  return base === undefined
+    ? { namespaceId, modelName }
+    : hierarchyRoot(contract, base.namespace, base.model);
 }
 
 /**
@@ -463,8 +465,8 @@ export function resolveVariantFieldColumns(
   );
   if (variant?.strategy !== 'mti') return {};
   return Object.fromEntries(
-    Object.entries(getModelFields(contract, namespaceId, variant.modelName)).filter(
-      ([, field]) => field.table === variant.table,
+    Object.entries(getModelFields(contract, variant.namespaceId, variant.modelName)).filter(
+      ([, field]) => field.namespaceId === variant.namespaceId && field.table === variant.table,
     ),
   );
 }
@@ -493,63 +495,74 @@ function isMultiTableVariantTable(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   modelName: string,
+  tableNamespaceId: string,
   tableName: string,
 ): boolean {
   const base = modelOf(contract, namespaceId, modelName)?.base;
   return (
     base !== undefined &&
+    namespaceId === tableNamespaceId &&
     domainModelTableInNamespace(contract, namespaceId, modelName) === tableName &&
-    domainModelTableInNamespace(contract, base.namespace, base.model) !== tableName
+    (base.namespace !== tableNamespaceId ||
+      domainModelTableInNamespace(contract, base.namespace, base.model) !== tableName)
   );
 }
 
 /**
- * The columns of `tableName` a query on `modelName` reads, in table order: the columns on that table of the model's own and inherited fields and of its variants' fields, and, on a multi-table variant's table, the key the variant inherits. Any other column of the table is storage the model does not map, and the ORM never reads it into a row.
+ * The columns of `tableName` a query on `modelName` reads, in table order: the columns on that table of the model's own and inherited fields and of its variants' fields, and, on a multi-table variant's table, the key the variant inherits. Any other column of the table is storage the model does not map, and the ORM never reads it into a row. The table is in the model's namespace unless `tableNamespaceId` names another, as for the base table a variant in another namespace inherits fields from.
  */
 export function getColumnsReadOnTable(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   modelName: string,
   tableName: string,
+  tableNamespaceId: string = namespaceId,
 ): string[] {
-  return cachedFor(contract, ['columnsReadOnTable', namespaceId, modelName, tableName], () => {
+  const cacheKey = ['columnsReadOnTable', namespaceId, modelName, tableNamespaceId, tableName];
+  return cachedFor(contract, cacheKey, () => {
     const read = new Set<string>();
-    const addFieldsOnTable = (name: string) => {
-      for (const field of Object.values(getModelFields(contract, namespaceId, name))) {
-        if (field.table === tableName) read.add(field.column);
+    const addFieldsOnTable = (modelNamespaceId: string, name: string) => {
+      for (const field of Object.values(getModelFields(contract, modelNamespaceId, name))) {
+        if (field.namespaceId === tableNamespaceId && field.table === tableName) {
+          read.add(field.column);
+        }
       }
     };
     const addInheritedKey = () => {
-      for (const column of resolvePrimaryKeyColumns(contract, namespaceId, tableName)) {
+      for (const column of resolvePrimaryKeyColumns(contract, tableNamespaceId, tableName)) {
         read.add(column);
       }
     };
-    addFieldsOnTable(modelName);
-    if (isMultiTableVariantTable(contract, namespaceId, modelName, tableName)) addInheritedKey();
+    addFieldsOnTable(namespaceId, modelName);
+    if (isMultiTableVariantTable(contract, namespaceId, modelName, tableNamespaceId, tableName)) {
+      addInheritedKey();
+    }
     const variants = resolvePolymorphismInfo(contract, namespaceId, modelName)?.variants.values();
     for (const variant of variants ?? []) {
-      if (variant.table !== tableName) continue;
-      addFieldsOnTable(variant.modelName);
+      if (variant.namespaceId !== tableNamespaceId || variant.table !== tableName) continue;
+      addFieldsOnTable(variant.namespaceId, variant.modelName);
       if (variant.strategy === 'mti') addInheritedKey();
     }
-    return getAllTableColumns(contract, namespaceId, tableName).filter((column) =>
+    return getAllTableColumns(contract, tableNamespaceId, tableName).filter((column) =>
       read.has(column),
     );
   });
 }
 
-/** The model a query or write addresses: the variant it is narrowed to, otherwise the collection's model. */
-export function addressedModelName(
+/** The namespace and name of the model a query or write addresses: the variant it is narrowed to, otherwise the collection's model. */
+export function addressedModel(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   modelName: string,
   variantValue: string | undefined,
-): string {
-  if (variantValue === undefined) return modelName;
-  const variant = resolvePolymorphismInfo(contract, namespaceId, modelName)?.variants.get(
-    variantValue,
-  );
-  return variant?.modelName ?? modelName;
+): readonly [namespaceId: string, modelName: string] {
+  const variant =
+    variantValue === undefined
+      ? undefined
+      : resolvePolymorphismInfo(contract, namespaceId, modelName)?.variants.get(variantValue);
+  return variant === undefined
+    ? [namespaceId, modelName]
+    : [variant.namespaceId, variant.modelName];
 }
 
 interface ResolvedThrough extends ContractRelationThrough {
@@ -589,17 +602,23 @@ export function resolveIncludeRelation(
 ): ResolvedIncludeRelation {
   const polymorphism = resolvePolymorphismInfo(contract, namespaceId, baseModelName);
   const variant = variantValue === undefined ? undefined : polymorphism?.variants.get(variantValue);
+  let declaringNamespaceId = namespaceId;
   let declaringModelName = baseModelName;
   let localVariantValue: string | undefined;
   let relation: ResolvedRelation | undefined;
 
   if (variant !== undefined) {
-    const variantRelations = resolveModelRelations(contract, namespaceId, variant.modelName);
+    const variantRelations = resolveModelRelations(
+      contract,
+      variant.namespaceId,
+      variant.modelName,
+    );
     const candidate = Object.hasOwn(variantRelations, relationName)
       ? variantRelations[relationName]
       : undefined;
     if (candidate !== undefined) {
       relation = candidate;
+      declaringNamespaceId = variant.namespaceId;
       declaringModelName = variant.modelName;
       localVariantValue = variant.strategy === 'mti' ? variant.value : undefined;
     }
@@ -621,7 +640,7 @@ export function resolveIncludeRelation(
     );
   }
   const localColumns = localFields.map((field) =>
-    columnOfContractField(contract, namespaceId, declaringModelName, field),
+    columnOfContractField(contract, declaringNamespaceId, declaringModelName, field),
   );
   const targetColumns = resolveRelationTargetColumns(contract, relation);
 

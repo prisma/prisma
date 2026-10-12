@@ -93,7 +93,7 @@ function getMergedColumnToFieldMap(
   if (cached) return cached;
 
   const baseMap = getModelColumnFields(contract, namespaceId, baseModelName);
-  const variantMap = getOwnColumnFields(contract, namespaceId, variant.modelName);
+  const variantMap = getOwnColumnFields(contract, variant.namespaceId, variant.modelName);
 
   const merged: Record<string, string> = { ...baseMap };
   for (const [col, field] of Object.entries(variantMap)) {

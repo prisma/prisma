@@ -566,7 +566,12 @@ function assertDeclaredFieldsFragmentFields(
       );
     }
     const fieldMany = multiplicity(domainFieldOf(contract, namespaceId, modelName, name)?.many);
-    const column = resolveColumn(contract, namespaceId, fieldColumn.table, fieldColumn.column);
+    const column = resolveColumn(
+      contract,
+      fieldColumn.namespaceId,
+      fieldColumn.table,
+      fieldColumn.column,
+    );
     const actual =
       column === undefined
         ? `${label}.${name} has no column.`
@@ -731,7 +736,7 @@ function fieldCodecId(collection: RuntimeModelCollection, field: string): string
   const modelFields = getModelFields(contract, collection.namespaceId, collection.modelName);
   const fieldColumn = Object.hasOwn(modelFields, field) ? modelFields[field] : undefined;
   if (fieldColumn === undefined) return undefined;
-  return resolveColumn(contract, collection.namespaceId, fieldColumn.table, fieldColumn.column)
+  return resolveColumn(contract, fieldColumn.namespaceId, fieldColumn.table, fieldColumn.column)
     ?.codecId;
 }
 

@@ -26,7 +26,10 @@ function createModelTables(
   const variants = new Map<string, AliasedTable>();
   const mtiVariants = resolvePolymorphismInfo(contract, namespaceId, modelName)?.mtiVariants ?? [];
   for (const variant of mtiVariants) {
-    variants.set(variant.value, scope.aliasTable({ namespaceId, tableName: variant.table }));
+    variants.set(
+      variant.value,
+      scope.aliasTable({ namespaceId: variant.namespaceId, tableName: variant.table }),
+    );
   }
   return { scope, root, variants };
 }

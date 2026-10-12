@@ -42,7 +42,7 @@ import {
   mapSelectedFieldsToColumns,
 } from './collection-column-mapping';
 import {
-  addressedModelName,
+  addressedModel,
   assertDistinctOnCapability,
   assertInsertConflictSkipCapability,
   assertLockCapability,
@@ -180,6 +180,7 @@ import {
   type IncludeCombineBranch,
   type IncludeExpr,
   type IncludeRelationOwner,
+  type IncludeRelationOwnerNamespace,
   type IncludeRelationValue,
   type IncludeScalar,
   type InferRootRow,
@@ -760,14 +761,16 @@ export class CollectionBase<
       State['nsId']
     > &
       string,
-    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> &
-      string = RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> & string,
-    TargetNs extends string = RelationTargetNamespace<
+    OwnerNs extends string = IncludeRelationOwnerNamespace<
       TContract,
-      RelationOwner,
+      ModelName,
+      State['variantValue'],
       RelName,
       State['nsId']
     >,
+    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> &
+      string = RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> & string,
+    TargetNs extends string = RelationTargetNamespace<TContract, RelationOwner, RelName, OwnerNs>,
     Self extends HasRow = never,
   >(
     this: Self,
@@ -780,7 +783,7 @@ export class CollectionBase<
         RelationOwner,
         K,
         SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
-        State['nsId']
+        OwnerNs
       >;
     }
   >;
@@ -799,15 +802,17 @@ export class CollectionBase<
       State['nsId']
     > &
       string,
-    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> &
-      string = RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> & string,
-    TargetNs extends string = RelationTargetNamespace<
+    OwnerNs extends string = IncludeRelationOwnerNamespace<
       TContract,
-      RelationOwner,
+      ModelName,
+      State['variantValue'],
       RelName,
       State['nsId']
     >,
-    IsToMany extends boolean = IsToManyRelation<TContract, RelationOwner, RelName, State['nsId']>,
+    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> &
+      string = RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> & string,
+    TargetNs extends string = RelationTargetNamespace<TContract, RelationOwner, RelName, OwnerNs>,
+    IsToMany extends boolean = IsToManyRelation<TContract, RelationOwner, RelName, OwnerNs>,
     RefinedResult extends IncludeRefinementResult<
       TContract,
       RelatedName,
@@ -841,7 +846,7 @@ export class CollectionBase<
         K,
         SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
         RefinedResult,
-        State['nsId']
+        OwnerNs
       >;
     }
   >;
@@ -860,15 +865,17 @@ export class CollectionBase<
       State['nsId']
     > &
       string,
-    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> &
-      string = RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> & string,
-    TargetNs extends string = RelationTargetNamespace<
+    OwnerNs extends string = IncludeRelationOwnerNamespace<
       TContract,
-      RelationOwner,
+      ModelName,
+      State['variantValue'],
       RelName,
       State['nsId']
     >,
-    IsToMany extends boolean = IsToManyRelation<TContract, RelationOwner, RelName, State['nsId']>,
+    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> &
+      string = RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> & string,
+    TargetNs extends string = RelationTargetNamespace<TContract, RelationOwner, RelName, OwnerNs>,
+    IsToMany extends boolean = IsToManyRelation<TContract, RelationOwner, RelName, OwnerNs>,
     RefinedResult extends IncludeRefinementResult<
       TContract,
       RelatedName,
@@ -902,7 +909,7 @@ export class CollectionBase<
           K,
           SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
           RefinedResult,
-          State['nsId']
+          OwnerNs
         >;
       }
     >,
@@ -996,7 +1003,7 @@ export class CollectionBase<
             K,
             SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
             RefinedResult,
-            State['nsId']
+            OwnerNs
           >;
         }
       >,
@@ -2110,12 +2117,12 @@ export class CollectionBase<
   }
 
   #variantModelName(): string {
-    return addressedModelName(
+    return addressedModel(
       this.contract,
       this.namespaceId,
       this.modelName,
       this.state.variantValue,
-    );
+    )[1];
   }
 
   #resolveMtiCreateContext(): MtiCreateContext | null {
@@ -2131,7 +2138,7 @@ export class CollectionBase<
     const baseFieldToColumn = getModelFieldColumns(this.contract, this.namespaceId, this.modelName);
     const variantFieldToColumn = getOwnFieldColumns(
       this.contract,
-      this.namespaceId,
+      variant.namespaceId,
       variant.modelName,
     );
     const pkColumns = resolvePrimaryKeyColumns(this.contract, this.namespaceId, this.tableName);
@@ -2184,7 +2191,7 @@ export class CollectionBase<
           allMapped[
             columnOfCallerField(
               contract,
-              namespaceId,
+              variant.namespaceId,
               mergedFieldToColumn,
               variant.modelName,
               fieldName,
@@ -2332,7 +2339,7 @@ export class CollectionBase<
         mapped[
           columnOfCallerField(
             this.contract,
-            this.namespaceId,
+            variant.namespaceId,
             mergedFieldToColumn,
             variant.modelName,
             fieldName,

@@ -34,7 +34,7 @@ import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import { resolveAggregate } from './aggregate-codecs';
 import { emptyAggregateResult } from './aggregate-empty-result';
 import {
-  addressedModelName,
+  addressedModel,
   fieldOfColumn,
   getColumnsReadOnTable,
   getModelColumnFields,
@@ -228,14 +228,14 @@ function createPreparedIncludeConsumer(
     const keys = new Set(
       getColumnsReadOnTable(
         contract,
-        namespace,
-        addressedModelName(
+        ...addressedModel(
           contract,
           namespace,
           include.relatedModelName,
           include.nested.variantValue,
         ),
         include.relatedTableName,
+        namespace,
       ),
     );
     const polyInfo = resolvePolymorphismInfo(contract, namespace, include.relatedModelName);
