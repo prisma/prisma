@@ -37,7 +37,7 @@ export interface MixinSymbol {
 
 Mixed-in members are the mixin's own objects, shared by every including block. They are not copied.
 
-**Looking up the name.** A mixin is looked up among mixins only. An unqualified name is looked up in the mixins of the including block's namespace, then in the top-level mixins. `ns.Name` is looked up in the mixins of namespace `ns` only. Declarations of other kinds take no part: a model named `Timestamps` in the current namespace does not hide a top-level mixin `Timestamps`. Each including symbol records which mixin each of its inclusions resolved to, and the binder reads that record; it does not look the name up again. (Changed after review: the lookup was kind-blind.)
+**Looking up the name.** An inclusion's name is looked up by the code and rules that look up a type reference. An unqualified name goes through the scope chain of the including block: its namespace, then the top level, where a nearer declaration of any kind hides an outer one of the same name. A model named `Timestamps` in the current namespace hides a top-level mixin `Timestamps`, and `+Timestamps` there is not found. For `ns.Name`, `ns` is looked up through the scope chain and must be a namespace, and `Name` is looked up among that namespace's members only. A name that resolves to anything other than a mixin is reported as not found. Each including symbol records which mixin each of its inclusions resolved to, and the binder reads that record; it does not look the name up again. (A mixin-only lookup was tried and reverted in review.)
 
 **Diagnostics raised here, all located at the inclusion:**
 
