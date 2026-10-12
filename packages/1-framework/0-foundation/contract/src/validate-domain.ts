@@ -2,7 +2,6 @@ import { blindCast } from '@internal/utils/casts';
 import { ContractValidationError } from './contract-validation-error';
 import type { CrossReference } from './cross-reference';
 import type { ContractWithDomain } from './domain-envelope';
-import type { ContractVariantEntry } from './domain-types';
 import { asNamespaceId, type NamespaceId } from './namespace-id';
 
 export interface DomainRelationShape {
@@ -16,7 +15,7 @@ export interface DomainModelShape {
   readonly fields: Record<string, unknown>;
   readonly relations?: Record<string, DomainRelationShape>;
   readonly discriminator?: { readonly field: string };
-  readonly variants?: Record<string, ContractVariantEntry>;
+  readonly variants?: Record<string, CrossReference>;
   readonly base?: CrossReference;
   readonly owner?: string;
 }
@@ -112,19 +111,18 @@ function validateRoots(
 function validateVariantsAndBases(modelIndex: ModelIndex, errors: string[]): void {
   for (const { namespaceId, name: modelName, model } of iterateIndexedModels(modelIndex)) {
     if (model.variants) {
-      for (const variantName of Object.keys(model.variants)) {
-        const variantRef: CrossReference = { namespace: namespaceId, model: variantName };
+      for (const variantRef of Object.values(model.variants)) {
         const variantEntry = lookupModel(modelIndex, variantRef);
         if (!variantEntry) {
           errors.push(
-            `Model "${namespaceId}:${modelName}" lists variant "${variantName}" which does not exist at that namespace coordinate`,
+            `Model "${namespaceId}:${modelName}" lists variant "${variantRef.namespace}:${variantRef.model}" which does not exist in domain.namespaces`,
           );
           continue;
         }
         const variantBase = variantEntry.model.base;
         if (variantBase?.namespace !== namespaceId || variantBase?.model !== modelName) {
           errors.push(
-            `Variant "${namespaceId}:${variantName}" has base "${variantBase?.namespace ?? '?'}:${variantBase?.model ?? '(none)'}" but expected "${namespaceId}:${modelName}"`,
+            `Variant "${variantRef.namespace}:${variantRef.model}" has base "${variantBase?.namespace ?? '?'}:${variantBase?.model ?? '(none)'}" but expected "${namespaceId}:${modelName}"`,
           );
         }
       }
@@ -138,7 +136,8 @@ function validateVariantsAndBases(modelIndex: ModelIndex, errors: string[]): voi
         );
         continue;
       }
-      if (!baseEntry.model.variants || !Object.hasOwn(baseEntry.model.variants, modelName)) {
+      const listedVariants = Object.values(baseEntry.model.variants ?? {});
+      if (!listedVariants.some((ref) => ref.namespace === namespaceId && ref.model === modelName)) {
         errors.push(
           `Model "${namespaceId}:${modelName}" has base "${model.base.namespace}:${model.base.model}" which does not list it as a variant`,
         );
@@ -203,20 +202,6 @@ function validateDiscriminators(modelIndex: ModelIndex, errors: string[]): void 
         errors.push(
           `Discriminator field "${model.discriminator.field}" is not a field on model "${namespaceId}:${modelName}"`,
         );
-      }
-    }
-
-    if (model.variants) {
-      const variantsByValue = new Map<string, string>();
-      for (const [variantName, { value }] of Object.entries(model.variants)) {
-        const existingVariant = variantsByValue.get(value);
-        if (existingVariant !== undefined) {
-          errors.push(
-            `Discriminator value "${value}" is used by both "${namespaceId}:${existingVariant}" and "${namespaceId}:${variantName}" on base model "${namespaceId}:${modelName}"`,
-          );
-          continue;
-        }
-        variantsByValue.set(value, variantName);
       }
     }
 

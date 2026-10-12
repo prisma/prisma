@@ -87,7 +87,7 @@ describe('interpretPslDocumentToSqlContract — polymorphism', () => {
       );
       expect(combined.domain.namespaces[namespace]?.models['Task']).toMatchObject({
         discriminator: { field: `${namespace}Kind` },
-        variants: { Bug: { value: 'bug' }, Feature: { value: 'feature' } },
+        variants: { bug: crossRef('Bug', namespace), feature: crossRef('Feature', namespace) },
       });
       expect(combined.domain.namespaces[namespace]?.models['Bug']).toMatchObject({
         base: crossRef('Task', namespace),
@@ -153,6 +153,158 @@ describe('interpretPslDocumentToSqlContract — polymorphism', () => {
       ]);
   });
 
+  describe('variants in other namespaces', () => {
+    const baseNamespace = `namespace a {
+  model Task {
+    id   Int    @id
+    type String
+    @@discriminator(type)
+    @@map("tasks")
+  }
+}`;
+
+    it('references each variant by its own namespace', () => {
+      const result = interpretPostgresSchema(
+        `${baseNamespace}
+namespace b {
+  model Chore {
+    effort Int
+    @@base(a.Task, "chore")
+    @@map("tasks")
+  }
+  model Epic {
+    points Int
+    @@base(a.Task, "b-epic")
+    @@map("epics")
+  }
+}
+namespace c {
+  model Epic {
+    goal String
+    @@base(a.Task, "c-epic")
+    @@map("epics")
+  }
+}`,
+        { controlMutationDefaults: builtinControlMutationDefaults },
+      );
+      if (!result.ok) throw new Error(JSON.stringify(result.failure));
+      const contract = result.value;
+      expect(() => validateSqlContractFully(JSON.parse(JSON.stringify(contract)))).not.toThrow();
+      const { a, b, c } = contract.domain.namespaces;
+      expect(a?.models['Task']?.variants).toEqual({
+        chore: crossRef('Chore', 'b'),
+        'b-epic': crossRef('Epic', 'b'),
+        'c-epic': crossRef('Epic', 'c'),
+      });
+      expect(b?.models['Chore']).toMatchObject({
+        base: crossRef('Task', 'a'),
+        storage: { table: 'tasks', namespaceId: 'b' },
+      });
+      expect(b?.models['Epic']).toMatchObject({
+        base: crossRef('Task', 'a'),
+        storage: { table: 'epics', namespaceId: 'b' },
+      });
+      expect(c?.models['Epic']).toMatchObject({
+        base: crossRef('Task', 'a'),
+        storage: { table: 'epics', namespaceId: 'c' },
+      });
+      const storage = contract.storage as SqlStorage;
+      for (const [namespace, table] of [
+        ['b', 'tasks'],
+        ['b', 'epics'],
+        ['c', 'epics'],
+      ] as const) {
+        expect(storage.namespaces[namespace]?.entries.table?.[table]).toMatchObject({
+          primaryKey: { columns: ['id'] },
+          foreignKeys: [{ target: { namespaceId: 'a', tableName: 'tasks', columns: ['id'] } }],
+        });
+      }
+      expect(Object.values(contract.roots)).toEqual([crossRef('Task', 'a')]);
+    });
+
+    it('diagnoses a variant without @@map', () => {
+      const schema = `${baseNamespace}
+namespace b {
+  model Chore {
+    effort Int
+    @@base(a.Task, "chore")
+  }
+}`;
+      const result = interpretPostgresSchema(schema, {
+        controlMutationDefaults: builtinControlMutationDefaults,
+      });
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_BASE_IN_OTHER_NAMESPACE_WITHOUT_MAP',
+          message:
+            'Model "b.Chore" declares @@base(a.Task, ...) without @@map, so it would share the table of "a.Task", which belongs to namespace "a". Add @@map to give "b.Chore" its own table.',
+          span: expect.objectContaining({
+            start: expect.objectContaining({ offset: schema.indexOf('@@base') }),
+          }),
+        }),
+      ]);
+    });
+
+    it('names both namespaces when two variants declare the same value', () => {
+      const result = interpretPostgresSchema(
+        `${baseNamespace}
+namespace b {
+  model Epic {
+    points Int
+    @@base(a.Task, "epic")
+    @@map("epics")
+  }
+}
+namespace c {
+  model Epic {
+    goal String
+    @@base(a.Task, "epic")
+    @@map("epics")
+  }
+}`,
+        { controlMutationDefaults: builtinControlMutationDefaults },
+      );
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_DUPLICATE_DISCRIMINATOR_VALUE',
+          message:
+            'Discriminator value "epic" is used by both "b.Epic" and "c.Epic" on base model "a.Task"',
+        }),
+      ]);
+    });
+
+    it('names both namespaces when the base has no @@discriminator', () => {
+      const result = interpretPostgresSchema(
+        `namespace a {
+  model Task {
+    id Int @id
+  }
+}
+namespace b {
+  model Chore {
+    effort Int
+    @@base(a.Task, "chore")
+    @@map("chores")
+  }
+}`,
+        { controlMutationDefaults: builtinControlMutationDefaults },
+      );
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_ORPHANED_BASE',
+          message:
+            'Model "b.Chore" declares @@base(a.Task, ...) but "a.Task" has no @@discriminator',
+        }),
+      ]);
+    });
+  });
+
   it('ignores polymorphism collection when the schema has no models', () => {
     const result = interpretPostgresSchema(
       `types {
@@ -201,7 +353,7 @@ model Bug {
 
       expect(modelsOf(result.value)['Task']).toMatchObject({
         discriminator: { field: 'type' },
-        variants: { Bug: { value: 'bug' } },
+        variants: { bug: crossRef('Bug', 'public') },
       });
     });
 
@@ -450,8 +602,8 @@ model Feature {
       expect(modelsOf(result.value)['Task']).toMatchObject({
         discriminator: { field: 'type' },
         variants: {
-          Bug: { value: 'bug' },
-          Feature: { value: 'feature' },
+          bug: crossRef('Bug', 'public'),
+          feature: crossRef('Feature', 'public'),
         },
       });
       expect(modelsOf(result.value)['Bug']).toMatchObject({ base: crossRef('Task', 'public') });
@@ -878,7 +1030,7 @@ model Bug {
       if (!result.ok) return;
       expect(modelsOf(result.value)['Task']).toMatchObject({
         discriminator: { field: 'type' },
-        variants: { Bug: { value: 'bug' } },
+        variants: { bug: crossRef('Bug', 'public') },
       });
     });
 
@@ -1056,8 +1208,8 @@ model Feature {
       expect(modelsOf(result.value)['Task']).toMatchObject({
         discriminator: { field: 'type' },
         variants: {
-          Bug: { value: 'bug' },
-          Feature: { value: 'feature' },
+          bug: crossRef('Bug', 'public'),
+          feature: crossRef('Feature', 'public'),
         },
       });
       expect(modelsOf(result.value)['Bug']).toMatchObject({ base: crossRef('Task', 'public') });

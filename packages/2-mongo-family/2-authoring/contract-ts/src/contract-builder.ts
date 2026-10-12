@@ -645,7 +645,15 @@ type MaybeDiscriminator<Discriminator> = [Discriminator] extends [undefined]
   : { readonly discriminator: Discriminator & { readonly field: string } };
 type MaybeVariants<Variants> = [Variants] extends [undefined]
   ? EmptyObject
-  : { readonly variants: Variants };
+  : {
+      readonly variants: {
+        readonly [K in keyof Variants & string as Variants[K] extends {
+          readonly value: infer Value extends string;
+        }
+          ? Value
+          : never]: CrossRefFor<K>;
+      };
+    };
 
 type ContractModelFromBuilder<TBuilder> =
   TBuilder extends NamedModelBuilder<
@@ -2116,7 +2124,16 @@ function buildModels(
       ...(modelBuilder.__owner ? { owner: modelBuilder.__owner } : {}),
       ...(modelBuilder.__base ? { base: crossRef(modelBuilder.__base, UNBOUND_NAMESPACE_ID) } : {}),
       ...(modelBuilder.__discriminator ? { discriminator: modelBuilder.__discriminator } : {}),
-      ...(modelBuilder.__variants ? { variants: modelBuilder.__variants } : {}),
+      ...(modelBuilder.__variants
+        ? {
+            variants: Object.fromEntries(
+              Object.entries(modelBuilder.__variants).map(([variantName, { value }]) => [
+                value,
+                crossRef(variantName, UNBOUND_NAMESPACE_ID),
+              ]),
+            ),
+          }
+        : {}),
     };
   }
 
