@@ -1,6 +1,6 @@
 # ADR 272 — A package contributes collection methods for the index types it owns
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-10-12
 **Builds on:** [ADR 270 — ORM queries use the query builder's functions and a model's indexes](ADR%20270%20-%20ORM%20queries%20use%20the%20query%20builder's%20functions%20and%20a%20model's%20indexes.md), [ADR 265 — A collection keeps its class through the chain](ADR%20265%20-%20A%20collection%20keeps%20its%20class%20through%20the%20chain.md), [ADR 259 — Query fragments are functions](ADR%20259%20-%20Query%20fragments%20are%20functions.md), [ADR 210 — Index-type registry](ADR%20210%20-%20Index-type%20registry.md)
 
@@ -74,10 +74,12 @@ ADR 210 rejects declaration merging for index types, because a contract that doe
 
 ### A contribution
 
+The type half, in the Postgres package (`packages/3-extensions/postgres`):
+
 ```ts
 export interface PostgresFullTextMethod extends CollectionMethodKind {
   readonly match: { readonly type: 'fullText' };
-  readonly parameters: readonly [query: TsqueryArgument];
+  readonly parameters: readonly [query: PostgresTsqueryArgument];
 }
 
 declare module '@internal/sql-orm-client' {
@@ -85,7 +87,11 @@ declare module '@internal/sql-orm-client' {
     readonly 'postgres/fullText': PostgresFullTextMethod;
   }
 }
+```
 
+The run-time half, on the Postgres target's runtime descriptor as `collectionMethods: () => [postgresFullTextMethod]`, beside the query operations it calls:
+
+```ts
 export const postgresFullTextMethod: SqlCollectionMethodContribution = {
   id: 'postgres/fullText',
   matches: (index) => index.type === 'fullText',
@@ -96,36 +102,50 @@ export const postgresFullTextMethod: SqlCollectionMethodContribution = {
 };
 ```
 
-- `match` is the shape of a contract index the contribution serves, compared with the model's literal index entries.
-- `parameters` are the method's arguments.
+(Simplified: the run-time half is not typed by the contract, so the real body reads `fns.fullTextMatches` and `fns.fullTextRank` through one cast and passes the method's arguments on.)
+
+- `match` is the shape of an index the contribution serves, compared with each of the model's index references (ADR 270), which carry the index's literal type and options.
+- `parameters` are the method's arguments. A kind can read the matched index from its `index` member, so a method's parameters can depend on the index's columns.
+- `matches` receives the contract's index entry: its name, type and options.
 - The body uses only the public collection surface, so it composes with everything else a collection can do.
-- `CollectionMethodRegistry` declares one optional marker member, so it is never an empty interface: the lint that rewrites an empty interface to a type alias, which cannot be merged, does not apply.
+- The two halves live in different packages because the target cannot depend on the ORM client. The target owns the run-time half, so every client built on the Postgres target, `postgres()` and the serverless client, offers the method.
+- `CollectionMethodRegistry` declares one optional marker member, `__collectionMethodRegistry?: never`, so it is never an empty interface: the lint that rewrites an empty interface to a type alias, which cannot be merged, does not apply. The method table leaves the marker out.
+- The shell build rewrites `declare module '@internal/sql-orm-client'` in the published declarations to the published module name, as it already rewrites `import("@internal/...")`. Without it an application sees no methods and no error.
 
 ### At run time
 
-A target or extension descriptor may carry `collectionMethods`. The execution context collects them, and a collection's `using` getter builds, once per model, one function per index that a contribution matches. The client refuses at construction, with `ORM.ARGUMENT_INVALID`, two contributions with the same id and two contributions that match the same index.
+A target or extension descriptor may carry `collectionMethods`. The execution context collects them in stack order. A collection's `using` getter works out, once per table and execution context, which contribution matches each index, and builds one function per matching index bound to the collection it is read from. An index name that several indexes share gets no method, as it gets no index reference (ADR 270). `orm()` refuses at construction, with `ORM.ARGUMENT_INVALID`, two contributions with the same id and two contributions that match the same index of the contract.
 
 ### In the types
 
-`using` is typed as `CollectionMethods<Contract, Model, NsId, this, Table>`: a table of the model's method names and parameter lists, computed once per model, and a receiver. Each method is generic over its receiver, `<Receiver extends Self = Self>(...args) => Ordered<Filtered<Receiver>>`. That generic signature is what keeps the cost low: TypeScript compares collection types often, and a non-generic method that returns its receiver made each comparison recurse through every collection type in the program (+6.5% on the client package, against +1.7%).
+`using` is typed as `CollectionMethods<Contract, Model, NsId, this, Table>`: a table of the model's method names and parameter lists, computed once per model, and a receiver. Each method is generic over its receiver, `<Receiver extends Self = Self>(...args) => Ordered<Filtered<Receiver>>`. That generic signature is what keeps the cost low: TypeScript compares collection types often, and a non-generic method that returns its receiver made each comparison recurse through every collection type in the program (in the spike, +6.5% on the client package against +1.7%).
 
-Errors name the group: `Property 'search' does not exist on type 'CollectionMethods<Contract, "Post", "public", ...>'`. A model with no matching index has a `using` with no members.
+Errors name the group: `Property 'search' does not exist on type 'CollectionMethods<Contract, "Post", "public", ...>'`. A wrong argument names the parameter's type: `Argument of type 'string' is not assignable to parameter of type 'PostgresTsqueryArgument'`. A model with no matching index has a `using` with no members, and so does a collection whose model or namespace is not known at the type level, such as `Collection<Contract, string>`.
 
 ### Cost
 
-Type instantiations, `pnpm typecheck --extendedDiagnostics`, TypeScript 5.9.3, each run twice with the same count, measured in the spike against the tip of ADR 270's implementation. The implementation records its final numbers here.
+Type instantiations reported by `pnpm typecheck --extendedDiagnostics`, run in `packages/3-extensions/sql-orm-client` and in `examples/prisma-8-demo` after `pnpm build` at each commit, TypeScript 5.9.3. Each count was measured twice and both runs gave the same number.
 
-| | Client package, unused | Ten uses | `examples/prisma-8-demo`, unused | Ten uses |
-| --- | --- | --- | --- | --- |
-| Before | 1,921,735 | — | 792,100 | — |
-| `using.<name>(q)` | +1.7% | +1.8% | +0.8% | +1.0% |
+- **Before** is commit `b3a3cb8ee5`, the tip of ADR 270's implementation, as it is.
+- **After** is commit `293e7fbeec`, this decision's implementation. "Unused" moves aside every collection method test and probe: in the package `test/collection-methods.test.ts`, `test/collection-methods-orm-fixture.ts` and `test/collection-methods*.test-d.ts`, keeping `test/collection-methods-fixture.ts`, which registers the two test contributions; in the demo `test/collection-methods*.test-d.ts`, with `src/orm-client/search-posts.ts` and the two `test/fixtures/declaration-*.ts` files at their versions in `b3a3cb8ee5`. The Postgres package's registration stays, as it does for every application.
+- **Ten uses** adds back the committed probe `test/collection-methods-uses.types.test-d.ts`, in the package and in the demo. Each calls a contributed method once at ten sites: a root collection, a custom class root, after `where`, after `limit`, after `select`, inside an include refinement, on `this` in a custom method, after `orderBy`, inside `with`, and in a chain through a custom class.
+
+| | Client package | `examples/prisma-8-demo` |
+| --- | --- | --- |
+| Before | 1,919,681 | 795,255 |
+| After, unused | 1,950,590 (+30,909, +1.61%) | 801,298 (+6,043, +0.76%) |
+| After, ten uses | 1,952,324 (+32,643, +1.70%) | 802,858 (+7,603, +0.96%) |
+
+The spike that chose the form measured +1.7% and +1.8% on the package and +0.8% and +1.0% on the demo against an earlier commit of ADR 270's implementation.
 
 ## Consequences
 
 - **An application searches a model with no code.** The Postgres clients register the full-text contribution for every application.
-- **An extension pack can add methods for its own index types** by contributing them, with no change to the ORM client. A test-only contribution proves it.
+- **An extension pack can add methods for its own index types** by contributing them, with no change to the ORM client. A test-only pack that owns a `test/trigram` index type proves it, with a method whose parameters read the index's columns.
+- **A pack the contract does not list adds no methods.** Its contribution matches no index of the contract, so it is harmless to register.
 - **`using` is a member of every collection.** A custom class cannot declare its own `using`, and an aggregate operation cannot be named `using`.
 - **Two cases the types accept that they should not.** A method infers its receiver from an expected type, so `const x: PostCollection = plainPostCollection.using.post_search(q)` compiles; only a subtype of the receiver is accepted this way. Inside an include refinement the result has the terminal methods back, so `.all()` compiles there; the ORM already refuses a terminal inside a refinement at run time.
+- **The methods are typed only in a program that loads the contributing package's types.** For Postgres that is `@prisma/orm-postgres/runtime` or `@prisma/orm-postgres/serverless`, which every application that creates a client imports. A library compiled on its own that imports only `@prisma/orm-postgres/orm-client` and the contract's types sees a `using` with no members; it gets the methods by importing a type from one of those two entries, as the demo's declaration-emit library does with `PostgresClient`. Its emitted declarations keep the methods' result types, so its consumers need nothing more unless they call `using` themselves.
 - **A contributed method's position in a chain decides its order's priority**, as for `orderBy`.
 - **The word "scope" keeps its meaning** (ADR 259): a query fragment that only imposes conditions. A contributed method that also orders is a collection method, not a scope.
 - **The MongoDB ORM client is unchanged.** Its indexes have no names in the contract, and some of its searches are pipeline stages, not filters.
