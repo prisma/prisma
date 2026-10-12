@@ -60,6 +60,7 @@ import {
   resolveModelTableName,
   resolvePolymorphismInfo,
   resolvePrimaryKeyColumns,
+  resolveRowIdentityColumns,
   resolveUpsertConflictColumns,
 } from './collection-contract';
 import {
@@ -85,7 +86,6 @@ import {
   dispatchMutationRows,
   dispatchSplitMutationRows,
   executeMutationReturningSingleRow,
-  mutationReturningColumns,
 } from './collection-mutation-dispatch';
 import {
   assertModelFieldNames,
@@ -2831,7 +2831,7 @@ export class CollectionBase<
     const graph =
       Object.keys(values).length === 0
         ? new Graph()
-        : updateAllGraph(this.#descriptionOptions(), values);
+        : updateAllGraph(this.#descriptionWithoutIncludes(), values);
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'updateAndCount');
     const stats = await executeGraph(graph, this.ctx, annotationsMap);
     return stats.affectedRows;
@@ -2919,12 +2919,13 @@ export class CollectionBase<
     assertBulkWriteIgnoresNothing(this.state, this.modelName, 'deleteAndCount');
     assertLockCompatible(this.state, 'mutation');
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'deleteAndCount');
-    const graph = deleteAllGraph({
-      ...this.#descriptionOptions(),
-      state: { ...this.state, includes: [] },
-    });
+    const graph = deleteAllGraph(this.#descriptionWithoutIncludes());
     const stats = await executeGraph(graph, this.ctx, annotationsMap);
     return stats.affectedRows;
+  }
+
+  #descriptionWithoutIncludes() {
+    return { ...this.#descriptionOptions(), state: { ...this.state, includes: [] } };
   }
 
   #updateValues(
@@ -2977,15 +2978,22 @@ export class CollectionBase<
     selectedForQuery: readonly string[] | undefined;
     hiddenColumns: readonly string[];
   } {
-    const selectedForQuery = mutationReturningColumns(
-      this.contract,
-      this.namespaceId,
-      this.modelName,
-      this.tableName,
-      this.state.selectedFields,
-      this.state.includes,
-    );
-    return { selectedForQuery, hiddenColumns: [] };
+    if (this.state.includes.length > 0) {
+      const identityColumns = resolveRowIdentityColumns(
+        this.contract,
+        this.namespaceId,
+        this.tableName,
+      );
+      if (identityColumns.length === 0) {
+        throw ormError(
+          'ORM.ROW_IDENTITY_MISSING',
+          `Cannot load includes for the mutation result on model "${this.modelName}": table "${this.tableName}" has no primary key or unique constraint to key the include read-back on.`,
+          { meta: { model: this.modelName, table: this.tableName } },
+        );
+      }
+      return { selectedForQuery: identityColumns, hiddenColumns: [] };
+    }
+    return { selectedForQuery: this.state.selectedFields, hiddenColumns: [] };
   }
 
   async #reloadMutationRowByIdentity(criterion: Record<string, unknown>): Promise<Row | null> {

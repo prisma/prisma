@@ -4,7 +4,6 @@ import { type Executed, Node, type OutputsOf, type Run } from './node';
 
 export class Delete extends Node<Filtered> {
   readonly ast: DeleteAst;
-  readonly rowsAre = 'written';
 
   constructor(ast: DeleteAst) {
     super();

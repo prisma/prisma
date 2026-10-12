@@ -26,7 +26,6 @@ export interface Run {
 
 export abstract class Node<Inputs extends Slots = Slots> {
   abstract readonly returns: readonly ProjectionItem[];
-  abstract readonly rowsAre: 'read' | 'written';
 
   abstract execute(inputs: OutputsOf<Inputs>, run: Run): Executed;
 

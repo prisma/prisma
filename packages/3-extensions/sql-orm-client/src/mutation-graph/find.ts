@@ -4,7 +4,6 @@ import { type Executed, Node, type OutputsOf, type Run } from './node';
 
 export class Find extends Node<Filtered> {
   readonly ast: SelectAst;
-  readonly rowsAre = 'read';
 
   constructor(ast: SelectAst) {
     super();

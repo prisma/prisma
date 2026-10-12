@@ -4,7 +4,6 @@ import { type Executed, Node, type OutputsOf, type Run } from './node';
 
 export class Update extends Node<Filtered> {
   readonly ast: UpdateAst;
-  readonly rowsAre = 'written';
 
   constructor(ast: UpdateAst) {
     super();

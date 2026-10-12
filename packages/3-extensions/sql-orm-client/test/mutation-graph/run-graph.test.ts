@@ -148,22 +148,7 @@ describe('running a graph', () => {
       expect(returnedColumns(runtime.executions[0]!)).toEqual(allUserColumns);
     });
 
-    it('makes it return the identity columns when includes will be loaded', async () => {
-      const runtime = createMockRuntime();
-      const graph = new Graph();
-      graph.setResult(graph.add(updateUsers({ name: 'Ada' }, nameIsAda), { filter: [] }));
-
-      await queryGraph(
-        graph,
-        contextOf(runtime),
-        undefined,
-        rowsOfUsers({ selectedFields: ['name'], ...usersWithPosts() }),
-      );
-
-      expect(returnedColumns(runtime.executions[0]!)).toEqual(['id']);
-    });
-
-    it('leaves the statement of a Find that is the result as it was built', async () => {
+    it('makes a Find that is the result also return what the caller selected', async () => {
       const runtime = createMockRuntime();
       const graph = new Graph();
       graph.setResult(graph.add(findUsers([nameIsAda], ['id']), { filter: [] }));
@@ -175,7 +160,7 @@ describe('running a graph', () => {
         rowsOfUsers({ selectedFields: ['id', 'email'] }),
       );
 
-      expect(returnedColumns(runtime.executions[0]!)).toEqual(['id']);
+      expect(returnedColumns(runtime.executions[0]!)).toEqual(['id', 'email']);
     });
 
     it('returns the affected row count of a count result without returning rows', async () => {
@@ -203,17 +188,6 @@ describe('running a graph', () => {
           rowsOfUsers({ selectedFields: ['id'] }),
         ),
       ).toEqual({ id: 1 });
-    });
-
-    it('executes nothing until the rows are asked for when includes will be loaded', async () => {
-      const runtime = createMockRuntime();
-      const graph = new Graph();
-      graph.setResult(graph.add(updateUsers({ name: 'Ada' }, nameIsAda, ['id']), { filter: [] }));
-
-      queryGraph(graph, contextOf(runtime), undefined, rowsOfUsers(usersWithPosts()));
-      await Promise.resolve();
-
-      expect(runtime.executions).toEqual([]);
     });
 
     it('does not open a transaction', async () => {
@@ -467,25 +441,49 @@ describe('running a graph', () => {
   });
 
   describe('with includes', () => {
-    it('loads the rows of a write with their includes by identity', async () => {
+    it('reads the rows of a write with their includes in a Find node, one statement per node', async () => {
       const runtime = createMockRuntime();
       runtime.setNextResults([[{ id: 1 }], [{ id: 1, name: 'Ada', posts: [] }]]);
+      const state = { ...usersWithPosts(), selectedFields: ['id', 'name'] };
+      const sameId = columnPairs('users', 'users', [['id', 'id']]);
       const graph = new Graph();
-      graph.setResult(graph.add(updateUsers({ name: 'Ada' }, nameIsAda, ['id']), { filter: [] }));
+      const update = graph.add(updateUsers({ name: 'Ada' }, nameIsAda), { filter: [] });
+      graph.setResult(
+        graph.add(findUsersWith(state), { filter: [new FilterData(update, sameId)] }),
+      );
 
       const rows = await queryGraph(
         graph,
         contextOf(runtime),
         auditAnnotations,
-        rowsOfUsers(usersWithPosts()),
+        rowsOfUsers(state),
       );
 
       expect(rows).toEqual([{ id: 1, name: 'Ada', posts: [] }]);
       expect(statements(runtime)).toEqual(['query update', 'query select']);
+      expect(returnedColumns(runtime.executions[0]!)).toEqual(['id']);
+      expect(whereText(runtime.executions[1]!, 'users')).toBe('id = 1');
       expect(runtime.executions.map((execution) => auditAnnotation.read(execution.plan))).toEqual([
         { actor: 'system' },
         { actor: 'system' },
       ]);
+    });
+
+    it('does not run the Find when the write changed no row', async () => {
+      const runtime = createMockRuntime();
+      runtime.setNextResults([[]]);
+      const state = { ...usersWithPosts(), selectedFields: ['id', 'name'] };
+      const sameId = columnPairs('users', 'users', [['id', 'id']]);
+      const graph = new Graph();
+      const update = graph.add(updateUsers({ name: 'Ada' }, nameIsAda), { filter: [] });
+      graph.setResult(
+        graph.add(findUsersWith(state), { filter: [new FilterData(update, sameId)] }),
+      );
+
+      expect(await queryGraph(graph, contextOf(runtime), undefined, rowsOfUsers(state))).toEqual(
+        [],
+      );
+      expect(statements(runtime)).toEqual(['query update']);
     });
 
     it('reads a Find result with its includes in one statement and shapes it with the read code', async () => {

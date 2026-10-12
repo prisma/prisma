@@ -43,13 +43,30 @@ describe('updateAllGraph', () => {
     expect(returnedAt(graph, 0)).toEqual([]);
   });
 
-  it('builds the same graph whether or not the collection has includes', () => {
+  it('adds a Find that reads the written rows with their includes, as the result', () => {
     const graph = updateAllGraph(targetWithIncludes, { email: 'ada@example.com' });
 
     expect(printGraph(graph)).toBe(
-      printGraph(updateAllGraph(target, { email: 'ada@example.com' })),
+      [
+        "n1 Update users set email = 'ada@example.com' where name = 'Ada'",
+        'n2 Find users <- FilterData n1 (id->id)',
+        'result: n2',
+      ].join('\n'),
     );
-    expect(returnedAt(graph, 0)).toEqual([]);
+    expect(returnedAt(graph, 0)).toEqual(['id']);
+    expect(returnedAt(graph, 1)).toEqual(['id', 'name', 'posts']);
+  });
+
+  it('refuses includes on a table with no identity columns', () => {
+    const noIdentity = targetOf({ ...users.include('posts').state, tables: tableWithNoIdentity });
+
+    expect(() => updateAllGraph(noIdentity, { email: 'ada@example.com' })).toThrow(
+      expect.objectContaining({
+        code: 'ORM.ROW_IDENTITY_MISSING',
+        message:
+          'Cannot load includes for the mutation result on model "User": table "no_such_table" has no primary key or unique constraint to key the include read-back on.',
+      }),
+    );
   });
 
   it('builds a Find of the same rows as the result when nothing is set', () => {
@@ -112,16 +129,19 @@ describe('updateFirstGraph', () => {
     expect(returnedAt(graph, 1)).toEqual([]);
   });
 
-  it('builds the same graph with includes, which the result carries', () => {
+  it('adds a Find that reads the updated row with its includes, as the result', () => {
     const graph = updateFirstGraph(targetWithIncludes, { email: 'ada@example.com' });
 
     expect(printGraph(graph)).toBe(
       [
         "n1 Find users where name = 'Ada' order by id asc limit 1",
         "n2 Update users set email = 'ada@example.com' <- FilterData n1 (id->id)",
-        'result: n2',
+        'n3 Find users <- FilterData n2 (id->id)',
+        'result: n3',
       ].join('\n'),
     );
+    expect(returnedAt(graph, 1)).toEqual(['id']);
+    expect(returnedAt(graph, 2)).toEqual(['id', 'name', 'posts']);
   });
 
   it('keeps the offset of the collection and reads one row whatever its limit', () => {

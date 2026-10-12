@@ -15,10 +15,8 @@
 
 import type { Contract, JsonValue } from '@internal/contract/types';
 import {
-  type AnnotationValue,
   AsyncIterableResult,
   isRuntimeError,
-  type OperationKind,
   runtimeError,
 } from '@internal/framework-components/runtime';
 import type { SqlStorage, StorageColumn } from '@internal/sql-contract/types';
@@ -32,7 +30,6 @@ import {
 } from '@internal/sql-relational-core/ast';
 import type { Preparable } from '@internal/sql-relational-core/plan';
 import { blindCast } from '@internal/utils/casts';
-import { ifDefined } from '@internal/utils/defined';
 import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import { resolveAggregate } from './aggregate-codecs';
 import { emptyAggregateResult } from './aggregate-empty-result';
@@ -486,7 +483,6 @@ export function reloadMutationRowsByIdentities<Row>(options: {
   identityRows: readonly Record<string, unknown>[];
   selectedFields: readonly string[] | undefined;
   includes: readonly IncludeExpr[];
-  annotations?: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>> | undefined;
 }): AsyncIterableResult<Row> {
   const {
     context,
@@ -497,7 +493,6 @@ export function reloadMutationRowsByIdentities<Row>(options: {
     identityRows,
     selectedFields,
     includes,
-    annotations,
   } = options;
   const { contract } = context;
   const { tableName } = tables.root.storage;
@@ -532,7 +527,6 @@ export function reloadMutationRowsByIdentities<Row>(options: {
       filters: [identityFilter],
       selectedFields,
       includes,
-      ...ifDefined('annotations', annotations),
     },
     modelName,
     namespaceId,

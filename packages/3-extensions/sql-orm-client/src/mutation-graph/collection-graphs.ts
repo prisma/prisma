@@ -13,7 +13,7 @@ import {
   updateAst,
 } from '../query-plan-mutations';
 import { collectionSelectAst, collectionSelectWithIncludesAst } from '../query-plan-select';
-import type { CollectionState } from '../types';
+import { type CollectionState, emptyState } from '../types';
 import { Delete } from './delete';
 import type { NodeId } from './edge';
 import { FilterData } from './filter-data';
@@ -32,8 +32,10 @@ export function updateAllGraph(
     return graph;
   }
 
+  requireIdentityColumnsForIncludes(collection);
   const update = updateAst(context.contract, state.tables, set, whereOf(collection));
-  graph.setResult(graph.add(new Update(update), { filter: [] }));
+  const updated = graph.add(new Update(update), { filter: [] });
+  graph.setResult(addWithIncludes(graph, collection, updated));
   return graph;
 }
 
@@ -60,6 +62,7 @@ export function updateFirstGraph(
   const nothingToSet = Object.keys(set).length === 0;
   if (!nothingToSet) {
     requireIdentityColumns(collection);
+    requireIdentityColumnsForIncludes(collection);
   }
   const find = addFindOfFirstRow(
     graph,
@@ -75,7 +78,8 @@ export function updateFirstGraph(
   }
 
   const update = updateAst(context.contract, state.tables, set, undefined);
-  graph.setResult(graph.add(new Update(update), { filter: [sameRow(find, collection)] }));
+  const updated = graph.add(new Update(update), { filter: [sameRow(find, collection)] });
+  graph.setResult(addWithIncludes(graph, collection, updated));
   return graph;
 }
 
@@ -97,6 +101,35 @@ export function deleteFirstGraph(collection: DescribeCollectionRowsOptions): Gra
   const deleted = graph.add(new Delete(del), { filter: [sameRow(find, collection)] });
   graph.setResult(withIncludes ? find : deleted);
   return graph;
+}
+
+function addWithIncludes(
+  graph: Graph,
+  collection: DescribeCollectionRowsOptions,
+  written: NodeId,
+): NodeId {
+  const { state } = collection;
+  if (state.includes.length === 0) {
+    return written;
+  }
+  const select = selectRowsAst(collection, {
+    ...emptyState(state.tables),
+    selectedFields: state.selectedFields,
+    includes: state.includes,
+  });
+  return graph.add(new Find(select), { filter: [sameRow(written, collection)] });
+}
+
+function requireIdentityColumnsForIncludes(collection: DescribeCollectionRowsOptions): void {
+  const { modelName, state } = collection;
+  const { tableName } = state.tables.root.storage;
+  if (state.includes.length > 0 && identityColumnsOf(collection).length === 0) {
+    throw ormError(
+      'ORM.ROW_IDENTITY_MISSING',
+      `Cannot load includes for the mutation result on model "${modelName}": table "${tableName}" has no primary key or unique constraint to key the include read-back on.`,
+      { meta: { model: modelName, table: tableName } },
+    );
+  }
 }
 
 function addFindOfFirstRow(

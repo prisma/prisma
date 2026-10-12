@@ -9,7 +9,6 @@ import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { getColumnsReadOnTable } from '../collection-contract';
 import { consumeCollectionRows, type DescribeCollectionRowsOptions } from '../collection-dispatch';
-import { mapMutationRows, mutationReturningColumns } from '../collection-mutation-dispatch';
 import { mapResultRows, stripHiddenMappedFields } from '../collection-runtime';
 import { withMutationScope } from '../mutation-executor';
 import { buildOrmQueryPlan, deriveParamsFromAst, mergeAnnotations } from '../query-plan-meta';
@@ -18,7 +17,7 @@ import { queryPlanRows } from '../query-plan-rows';
 import type { CollectionContext } from '../types';
 import type { NodeId, StorageRow } from './edge';
 import type { Graph } from './graph';
-import type { Executed, Node, OutputsOf, Run, Slots, StatementAst } from './node';
+import type { Executed, OutputsOf, Run, Slots, StatementAst } from './node';
 
 type Annotations = ReadonlyMap<string, AnnotationValue<unknown, OperationKind>> | undefined;
 type Context = CollectionContext<Contract<SqlStorage>>;
@@ -44,8 +43,8 @@ export function queryGraph<Row>(
   if (only !== undefined && others.length === 0 && only[0] === graph.result) {
     const [id, node] = only;
     const run = runOn(ctx, annotations);
-    const storageRows = () => rowStream(node.execute(inputsOf(graph, id, []), run));
-    return shapeRows<Row>(graph, id, node, storageRows, ctx, annotations, callerRows);
+    const storageRows = rowStream(node.execute(inputsOf(graph, id, []), run));
+    return shapeRows<Row>(graph, id, storageRows, callerRows);
   }
   const generator = async function* (): AsyncGenerator<Row, void, unknown> {
     const outcome = await runAllNodes<Row>(graph, ctx, annotations, callerRows);
@@ -64,23 +63,15 @@ export async function executeGraph(
 }
 
 function returnCallerColumns(graph: Graph, callerRows: DescribeCollectionRowsOptions): void {
-  const { context, namespaceId, modelName, state } = callerRows;
-  const { root } = state.tables;
+  const { context, modelName, state } = callerRows;
   const columns = returningProjection(
     context.contract,
     modelName,
-    root,
-    mutationReturningColumns(
-      context.contract,
-      namespaceId,
-      modelName,
-      root.storage.tableName,
-      state.selectedFields,
-      state.includes,
-    ),
+    state.tables.root,
+    state.selectedFields,
   );
   for (const [id, node] of graph.nodes()) {
-    if (id === graph.result && node.rowsAre === 'written') {
+    if (id === graph.result) {
       graph.replace(id, node.withReturning(columns));
     }
   }
@@ -120,9 +111,7 @@ async function runNodesInOrder<Row>(
     const storageRows = rowsOf(executed);
     count = typeof executed === 'number' ? executed : storageRows.length;
     if (callerRows !== undefined) {
-      const stream = () => streamOf(storageRows);
-      const shaped = shapeRows<Row>(graph, id, node, stream, ctx, annotations, callerRows);
-      rows = await shaped.toArray();
+      rows = await shapeRows<Row>(graph, id, streamOf(storageRows), callerRows).toArray();
     }
   }
 
@@ -158,10 +147,7 @@ function runOn(ctx: Context, annotations: Annotations): Run {
 function shapeRows<Row>(
   graph: Graph,
   id: NodeId,
-  node: Node,
-  storageRows: () => AsyncIterableResult<StorageRow>,
-  ctx: Context,
-  annotations: Annotations,
+  storageRows: AsyncIterableResult<StorageRow>,
   callerRows: DescribeCollectionRowsOptions,
 ): AsyncIterableResult<Row> {
   const { context, namespaceId, modelName, state } = callerRows;
@@ -174,25 +160,9 @@ function shapeRows<Row>(
     .flatMap(({ edge }) => edge.columns.map(([source]) => source.alias))
     .filter((column) => !selected.includes(column));
 
-  if (node.rowsAre === 'read') {
-    return mapResultRows(consumeCollectionRows<StorageRow>(callerRows, storageRows()), (row) => {
-      stripHiddenMappedFields(contract, namespaceId, modelName, row, hiddenColumns);
-      return blindCast<Row, 'the row the read code shaped is the row the caller selected'>(row);
-    });
-  }
-  return mapMutationRows<Row>(storageRows, {
-    context,
-    runtime: ctx.runtime,
-    tables: state.tables,
-    modelName,
-    namespaceId,
-    variantValue: state.variantValue,
-    includes: state.includes,
-    selectedFields: state.selectedFields,
-    hiddenColumns,
-    annotations,
-    mapRow: (mapped) =>
-      blindCast<Row, 'the mapped row of the result node is the row the caller selected'>(mapped),
+  return mapResultRows(consumeCollectionRows<StorageRow>(callerRows, storageRows), (row) => {
+    stripHiddenMappedFields(contract, namespaceId, modelName, row, hiddenColumns);
+    return blindCast<Row, 'the row the read code shaped is the row the caller selected'>(row);
   });
 }
 
