@@ -55,7 +55,7 @@ changes:
         - '\bplanExecutionId\s*:'
   - id: begin-transaction-on
     summary: |
-      `SqlRuntimeBase.wrapTransaction(driverTx, connection)` is replaced by `beginTransactionOn(connection, owner)`, which starts the transaction activity, runs `BEGIN` on the connection and returns the wrapped transaction. `owner` is the `RuntimeConnection` the subclass hands to its callers for that connection; when `BEGIN` fails, `withTransaction` destroys `owner` instead of releasing it.
+      `SqlRuntimeBase.wrapTransaction(driverTx, connection)` is replaced by `beginTransactionOn(connection, owner)`, which starts the transaction activity, runs `BEGIN` on the connection and returns the wrapped transaction. `owner` is the `RuntimeConnection` the subclass hands to its callers for that connection; when the transaction's `activityStarted` hooks refuse the start before `BEGIN`, `withTransaction` releases `owner`, and after any other start failure it destroys it.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:

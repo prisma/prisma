@@ -951,21 +951,26 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   /**
-   * Begins a transaction on `connection`, which `owner` wraps, as a transaction activity. When `BEGIN` fails, `owner`'s session state is unknown, and `withTransaction` destroys it rather than release it. The transaction's `activityStarted` hooks run before `BEGIN`. Every statement sent on the transaction, or on `connection`, from the end of `BEGIN` until `commit()` or `rollback()` is called is the transaction's child, and is finalized when the transaction ends, with its outcome. `commit()` and `rollback()` resolve after every finalization hook has run. A subclass that holds its own connection begins its transactions here.
+   * Begins a transaction on `connection`, which `owner` wraps, as a transaction activity. When the transaction's `activityStarted` hooks refuse the start, no `BEGIN` is sent, `owner` is recorded as clean, and `withTransaction` releases it; after any other start failure it destroys it. The transaction's `activityStarted` hooks run before `BEGIN`. Every statement sent on the transaction, or on `connection`, from the end of `BEGIN` until `commit()` or `rollback()` is called is the transaction's child, and is finalized when the transaction ends, with its outcome. `commit()` and `rollback()` resolve after every finalization hook has run. A subclass that holds its own connection begins its transactions here.
    */
   protected async beginTransactionOn(
     connection: SqlConnection,
     owner: RuntimeConnection,
   ): Promise<RuntimeTransaction> {
-    const activity = await startTransactionActivity<SqlMiddlewareContext>({
-      middleware: this.middleware,
-      context: { ...this.sqlCtx, scope: 'transaction' },
-    });
+    let activity: TransactionActivityRun<SqlMiddlewareContext>;
+    try {
+      activity = await startTransactionActivity<SqlMiddlewareContext>({
+        middleware: this.middleware,
+        context: { ...this.sqlCtx, scope: 'transaction' },
+      });
+    } catch (error) {
+      connectionsRefusedBeforeBegin.add(owner);
+      throw error;
+    }
     let driverTx: SqlTransaction;
     try {
       driverTx = await this.#inFlight.track(() => connection.beginTransaction());
     } catch (error) {
-      connectionsWithUnknownSession.add(owner);
       await activity.end({ by: 'rollback', outcome: 'failed', commitAttempted: false });
       throw error;
     }
@@ -1173,8 +1178,8 @@ function standaloneContext(
 // Transactions whose COMMIT resolved. When their commit() still rejects, because an activityEnded hook threw, withTransaction rethrows the error as it is: the transaction committed, so it must neither roll back nor report a failed commit.
 const committedTransactions = new WeakSet<RuntimeTransaction>();
 
-// Connections whose BEGIN failed, so their session state is unknown. withTransaction destroys such a connection instead of returning it to the pool.
-const connectionsWithUnknownSession = new WeakSet<RuntimeConnection>();
+// Connections whose transaction start the activityStarted hooks refused before any BEGIN was sent, so their session is clean. withTransaction releases such a connection; after any other start failure it cannot know the session's state and destroys the connection.
+const connectionsRefusedBeforeBegin = new WeakSet<RuntimeConnection>();
 
 function transactionClosedError(): Error {
   return runtimeError(
@@ -1199,10 +1204,11 @@ export async function withTransaction<R>(
     transaction = await connection.transaction();
   } catch (error) {
     // A teardown error would mask the start error.
-    if (connectionsWithUnknownSession.has(connection)) {
-      await connection.destroy(error).catch(() => undefined);
-    } else {
+    if (connectionsRefusedBeforeBegin.has(connection)) {
+      connectionsRefusedBeforeBegin.delete(connection);
       await connection.release().catch(() => undefined);
+    } else {
+      await connection.destroy(error).catch(() => undefined);
     }
     throw error;
   }

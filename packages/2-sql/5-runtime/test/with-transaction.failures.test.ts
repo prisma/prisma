@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { SqlMiddleware } from '../src/middleware/sql-middleware';
-import { withTransaction } from '../src/sql-runtime';
+import { type RuntimeConnection, withTransaction } from '../src/sql-runtime';
 import { createSetup, names, rawPlan } from './transaction-activity-fixtures';
 
 function failingTransactionEnd(error: unknown): SqlMiddleware {
@@ -115,5 +115,27 @@ describe('withTransaction when the transaction cannot start', () => {
     expect(names(events).filter((name) => name === 'release' || name === 'destroy')).toEqual([
       'release',
     ]);
+  });
+});
+
+describe('withTransaction with a connection the runtime did not make', () => {
+  it('destroys the connection when its transaction() rejects', async () => {
+    const startError = new Error('custom start failed');
+    const release = vi.fn(async () => {});
+    const destroy = vi.fn(async () => {});
+    const connection = {
+      transaction: vi.fn(async () => {
+        throw startError;
+      }),
+      release,
+      destroy,
+    } as unknown as RuntimeConnection;
+
+    await expect(
+      withTransaction({ connection: async () => connection }, async () => undefined),
+    ).rejects.toBe(startError);
+
+    expect(destroy).toHaveBeenCalledWith(startError);
+    expect(release).not.toHaveBeenCalled();
   });
 });
