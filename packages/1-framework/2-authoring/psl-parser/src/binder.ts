@@ -49,7 +49,6 @@ import {
   documentScope,
   isNamespaceLike,
   lookupMember,
-  lookupMixinReference,
   namedTypeBaseScope,
   namespaceScope,
   type Scope,
@@ -413,9 +412,9 @@ function bind(options: BindingInputs): BinderResult {
       }
     }
   }
-  bindInclusions(symbolTable.topLevel, undefined, references);
+  bindInclusions(symbolTable.topLevel, references);
   for (const namespace of Object.values(symbolTable.topLevel.namespaces)) {
-    bindInclusions(symbolTable.topLevel, namespace, references);
+    bindInclusions(namespace, references);
   }
 
   // Attributes are parsed in a second walk once every field type is bound.
@@ -534,36 +533,25 @@ function bind(options: BindingInputs): BinderResult {
 }
 
 function bindInclusions(
-  topLevel: SymbolTable['topLevel'],
-  namespace: NamespaceSymbol | undefined,
+  records: SymbolTable['topLevel'] | NamespaceSymbol,
   references: ResolutionSink,
 ): void {
-  const records = namespace ?? topLevel;
   const holders = [
     ...Object.values(records.models),
     ...Object.values(records.compositeTypes),
     ...Object.values(records.blocks),
-    ...Object.values(records.mixins),
   ];
   for (const holder of holders) {
-    for (const inclusion of holder.node.inclusions()) {
-      const reference = inclusion.name();
-      const name = reference?.identifier()?.name();
-      if (reference === undefined || name === undefined || reference.isOverQualified()) continue;
-      const qualifier = reference.namespace();
-      const namespaceId = qualifier?.name();
-      const qualifierSymbol =
-        namespaceId === undefined ? undefined : topLevel.namespaces[namespaceId];
-      if (qualifier !== undefined && qualifierSymbol !== undefined) {
-        references.set(qualifier.syntax, { kind: 'namespace', symbol: qualifierSymbol });
+    for (const { node, mixin, qualifier } of holder.inclusions) {
+      const reference = node.name();
+      if (reference === undefined) continue;
+      const qualifierNode = reference.namespace();
+      if (qualifierNode !== undefined && qualifier !== undefined) {
+        references.set(qualifierNode.syntax, { kind: 'namespace', symbol: qualifier });
       }
-      const resolution =
-        reference.space() === undefined
-          ? lookupMixinReference(topLevel, namespace, { namespaceId, name })
-          : undefined;
       references.set(
         reference.syntax,
-        resolution ?? { kind: 'unresolved', name: printSyntax(reference.syntax) },
+        mixin ?? { kind: 'unresolved', name: printSyntax(reference.syntax) },
       );
     }
   }

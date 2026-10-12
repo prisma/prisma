@@ -7,6 +7,7 @@ import {
   MixinInclusionAst,
   ModelDeclarationAst,
   NamespaceDeclarationAst,
+  TypesBlockAst,
 } from '../src/syntax/ast/declarations';
 import { filterChildren } from '../src/syntax/ast-helpers';
 import { type SyntaxNode, SyntaxNode as SyntaxNodeClass } from '../src/syntax/red';
@@ -305,6 +306,31 @@ describe('a mixin inclusion', () => {
       'FieldDeclaration',
       'FieldDeclaration',
       'ModelAttribute',
+    ]);
+  });
+
+  it('is listed among the members of each kind of block, in source order', () => {
+    const result = parseSchema(
+      [
+        'model User {\n  id Int\n  +A\n  @@map("users")\n  name String\n}',
+        'type Address {\n  +A\n  street String\n}',
+        'enum Role {\n  ADMIN\n  +A\n  @@map("roles")\n}',
+        'model mixin M {\n  a Int\n  +A\n  @@index([a])\n}',
+        'enum mixin R {\n  +A\n  USER\n}',
+      ].join('\n'),
+    );
+    const kinds = Array.from(result.document.declarations(), (declaration) =>
+      declaration instanceof TypesBlockAst || declaration instanceof NamespaceDeclarationAst
+        ? []
+        : Array.from(declaration.membersWithInclusions(), (member) => member.syntax.kind),
+    );
+
+    expect(kinds).toEqual([
+      ['FieldDeclaration', 'MixinInclusion', 'ModelAttribute', 'FieldDeclaration'],
+      ['MixinInclusion', 'FieldDeclaration'],
+      ['KeyValuePair', 'MixinInclusion', 'ModelAttribute'],
+      ['FieldDeclaration', 'MixinInclusion', 'ModelAttribute'],
+      ['MixinInclusion', 'KeyValuePair'],
     ]);
   });
 

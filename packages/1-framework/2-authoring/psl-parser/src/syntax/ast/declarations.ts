@@ -97,6 +97,16 @@ export class ModelDeclarationAst implements BracedBlock, HasDocComment {
     );
   }
 
+  *membersWithInclusions(): Iterable<BlockMemberAst | MixinInclusionAst> {
+    yield* filterChildren(
+      this.syntax,
+      (node) =>
+        FieldDeclarationAst.cast(node) ??
+        ModelAttributeAst.cast(node) ??
+        MixinInclusionAst.cast(node),
+    );
+  }
+
   docComment(): string | undefined {
     return readDocComment(this.syntax);
   }
@@ -145,6 +155,16 @@ export class CompositeTypeDeclarationAst implements BracedBlock, HasDocComment {
     yield* filterChildren(
       this.syntax,
       (node) => FieldDeclarationAst.cast(node) ?? ModelAttributeAst.cast(node),
+    );
+  }
+
+  *membersWithInclusions(): Iterable<BlockMemberAst | MixinInclusionAst> {
+    yield* filterChildren(
+      this.syntax,
+      (node) =>
+        FieldDeclarationAst.cast(node) ??
+        ModelAttributeAst.cast(node) ??
+        MixinInclusionAst.cast(node),
     );
   }
 
@@ -266,6 +286,14 @@ export class GenericBlockDeclarationAst implements BracedBlock, HasDocComment {
     );
   }
 
+  *membersWithInclusions(): Iterable<GenericBlockMemberAst | MixinInclusionAst> {
+    yield* filterChildren(
+      this.syntax,
+      (node) =>
+        KeyValuePairAst.cast(node) ?? ModelAttributeAst.cast(node) ?? MixinInclusionAst.cast(node),
+    );
+  }
+
   docComment(): string | undefined {
     return readDocComment(this.syntax);
   }
@@ -321,6 +349,17 @@ export class MixinDeclarationAst implements BracedBlock, HasDocComment {
   /** A mixin cannot include a mixin, but the parser still reads an inclusion written in a mixin body, so that it can be reported as an error at that inclusion. */
   *inclusions(): Iterable<MixinInclusionAst> {
     yield* filterChildren(this.syntax, MixinInclusionAst.cast);
+  }
+
+  *membersWithInclusions(): Iterable<BlockMemberAst | GenericBlockMemberAst | MixinInclusionAst> {
+    yield* filterChildren(
+      this.syntax,
+      (node) =>
+        FieldDeclarationAst.cast(node) ??
+        KeyValuePairAst.cast(node) ??
+        ModelAttributeAst.cast(node) ??
+        MixinInclusionAst.cast(node),
+    );
   }
 
   docComment(): string | undefined {

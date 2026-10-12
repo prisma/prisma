@@ -5,23 +5,25 @@ import {
   nodePslSpan,
   type ResolvedAttribute,
   type ResolvedTypeConstructorCall,
+  readResolvedAttribute,
   readResolvedAttributes,
   readResolvedConstructorCall,
 } from './resolve';
-import { lookupMixinReference } from './scope';
+import { lookupMixinReference, type MixinResolution } from './scope';
 import type { PslSources, Range } from './source-file';
-import type { FieldAttributeAst, ModelAttributeAst } from './syntax/ast/attributes';
+import { type FieldAttributeAst, ModelAttributeAst } from './syntax/ast/attributes';
 import {
   CompositeTypeDeclarationAst,
   type DocumentAst,
-  type FieldDeclarationAst,
-  GenericBlockDeclarationAst,
-  type KeyValuePairAst,
+  FieldDeclarationAst,
+  type GenericBlockDeclarationAst,
+  KeyValuePairAst,
   MixinDeclarationAst,
-  MixinInclusionAst,
+  type MixinInclusionAst,
   ModelDeclarationAst,
   type NamedTypeDeclarationAst,
   NamespaceDeclarationAst,
+  type NamespaceMemberAst,
   TypesBlockAst,
 } from './syntax/ast/declarations';
 import type { IdentifierAst } from './syntax/ast/identifier';
@@ -62,6 +64,12 @@ export interface NamespaceSymbol {
   readonly mixins: Record<string, MixinSymbol>;
 }
 
+export interface ResolvedInclusion {
+  readonly node: MixinInclusionAst;
+  readonly mixin: MixinResolution | undefined;
+  readonly qualifier: NamespaceSymbol | undefined;
+}
+
 export interface ModelSymbol {
   readonly kind: 'model';
   readonly name: string;
@@ -69,6 +77,7 @@ export interface ModelSymbol {
   readonly span: PslSpan;
   readonly fields: Record<string, FieldSymbol>;
   readonly attributes: readonly ResolvedAttribute<ModelAttributeAst>[];
+  readonly inclusions: readonly ResolvedInclusion[];
 }
 
 export interface CompositeTypeSymbol {
@@ -78,6 +87,7 @@ export interface CompositeTypeSymbol {
   readonly span: PslSpan;
   readonly fields: Record<string, FieldSymbol>;
   readonly attributes: readonly ResolvedAttribute<ModelAttributeAst>[];
+  readonly inclusions: readonly ResolvedInclusion[];
 }
 
 export interface BlockSymbol {
@@ -88,6 +98,7 @@ export interface BlockSymbol {
   readonly span: PslSpan;
   readonly entries: readonly KeyValuePairAst[];
   readonly attributes: readonly ResolvedAttribute<ModelAttributeAst>[];
+  readonly inclusions: readonly ResolvedInclusion[];
 }
 
 export interface MixinSymbol {
@@ -155,225 +166,302 @@ export interface SymbolTableResult {
 export function buildSymbolTable(options: BuildSymbolTableOptions): SymbolTableResult {
   const { documents, sources } = options;
   const diagnostics: ParseDiagnostic[] = [];
-
-  const namespaces: Record<string, NamespaceSymbol> = Object.create(null);
-  const namedTypes: Record<string, NamedTypeSymbol> = Object.create(null);
-  const blocks: Record<string, BlockSymbol> = Object.create(null);
-  const models: Record<string, ModelSymbol> = Object.create(null);
-  const compositeTypes: Record<string, CompositeTypeSymbol> = Object.create(null);
-  const mixins: Record<string, MixinSymbol> = Object.create(null);
+  const topLevel: TopLevelScope = {
+    namespaces: Object.create(null),
+    namedTypes: Object.create(null),
+    blocks: Object.create(null),
+    models: Object.create(null),
+    compositeTypes: Object.create(null),
+    mixins: Object.create(null),
+  };
+  const context: BuildContext = { topLevel, sources, diagnostics };
   const topLevelNames = new Set<string>();
+  const namespaceNames = new Map<NamespaceSymbol, Set<string>>();
+  const topLevelBuilds: (() => void)[] = [];
+  const namespaceBuilds: (() => void)[] = [];
+
+  const claim = (
+    taken: Set<string>,
+    name: IdentifierAst | undefined,
+    filename: string,
+  ): string | undefined => {
+    const text = name?.name();
+    if (name === undefined || text === undefined) return undefined;
+    if (taken.has(text)) {
+      const diagnostic = duplicateDeclaration(text, name, filename, sources);
+      if (diagnostic !== undefined) diagnostics.push(diagnostic);
+      return undefined;
+    }
+    taken.add(text);
+    return text;
+  };
+
+  const declare = (
+    declaration: NamespaceMemberAst,
+    namespace: NamespaceSymbol | undefined,
+    filename: string,
+  ): void => {
+    const records = namespace ?? topLevel;
+    const taken = (namespace && namespaceNames.get(namespace)) ?? topLevelNames;
+    const builds = namespace === undefined ? topLevelBuilds : namespaceBuilds;
+    const name = claim(taken, declaration.name(), filename);
+    if (name === undefined) return;
+    if (declaration instanceof MixinDeclarationAst) {
+      records.mixins[name] = buildMixin(name, declaration, context);
+    } else if (declaration instanceof ModelDeclarationAst) {
+      builds.push(() => {
+        records.models[name] = buildModel(name, declaration, namespace, context);
+      });
+    } else if (declaration instanceof CompositeTypeDeclarationAst) {
+      builds.push(() => {
+        records.compositeTypes[name] = buildCompositeType(name, declaration, namespace, context);
+      });
+    } else {
+      builds.push(() => {
+        records.blocks[name] = buildBlock(name, declaration, namespace, context);
+      });
+    }
+  };
+
+  const openNamespace = (
+    declaration: NamespaceDeclarationAst,
+    filename: string,
+  ): NamespaceSymbol | undefined => {
+    const declaredName = declaration.name()?.name();
+    if (declaredName === undefined) return undefined;
+    const part = { node: declaration, span: nodePslSpan(declaration.syntax, sources) };
+    const reopened = topLevel.namespaces[declaredName];
+    if (reopened !== undefined) {
+      reopened.declarations.push(part);
+      return reopened;
+    }
+    const name = claim(topLevelNames, declaration.name(), filename);
+    if (name === undefined) return undefined;
+    const namespace: NamespaceSymbol = {
+      kind: 'namespace',
+      name,
+      declarations: [part],
+      models: Object.create(null),
+      compositeTypes: Object.create(null),
+      blocks: Object.create(null),
+      mixins: Object.create(null),
+    };
+    topLevel.namespaces[name] = namespace;
+    namespaceNames.set(namespace, new Set());
+    return namespace;
+  };
 
   for (const document of documents) {
-    const sourceFile = sources.sourceFileFor(document.syntax);
-    const claim = (taken: Set<string>, name: IdentifierAst | undefined): string | undefined => {
-      const text = name?.name();
-      if (text === undefined) return undefined;
-      if (taken.has(text)) {
-        const range = nameRange(name, sources);
-        if (range) {
-          diagnostics.push({
-            code: 'PSL_DUPLICATE_DECLARATION',
-            message: `Duplicate declaration of "${text}"`,
-            filename: sourceFile.filename,
-            range,
-          });
-        }
-        return undefined;
-      }
-      taken.add(text);
-      return text;
-    };
-
+    const { filename } = sources.sourceFileFor(document.syntax);
     for (const declaration of document.declarations()) {
-      if (declaration instanceof ModelDeclarationAst) {
-        const name = claim(topLevelNames, declaration.name());
-        if (name !== undefined) models[name] = buildModel(name, declaration, sources, diagnostics);
-      } else if (declaration instanceof CompositeTypeDeclarationAst) {
-        const name = claim(topLevelNames, declaration.name());
-        if (name !== undefined) {
-          compositeTypes[name] = buildCompositeType(name, declaration, sources, diagnostics);
-        }
-      } else if (declaration instanceof GenericBlockDeclarationAst) {
-        const name = claim(topLevelNames, declaration.name());
-        if (name !== undefined) {
-          blocks[name] = buildBlock(name, declaration, sources);
-        }
-      } else if (declaration instanceof MixinDeclarationAst) {
-        const name = claim(topLevelNames, declaration.name());
-        if (name !== undefined) {
-          mixins[name] = buildMixin(name, declaration, sources, diagnostics);
-        }
-      } else if (declaration instanceof NamespaceDeclarationAst) {
-        const declaredName = declaration.name()?.name();
-        if (declaredName === undefined) continue;
-        let namespace = namespaces[declaredName];
-        if (namespace === undefined) {
-          const name = claim(topLevelNames, declaration.name());
-          if (name === undefined) continue;
-          namespace = {
-            kind: 'namespace',
-            name,
-            declarations: [{ node: declaration, span: nodePslSpan(declaration.syntax, sources) }],
-            models: Object.create(null),
-            compositeTypes: Object.create(null),
-            blocks: Object.create(null),
-            mixins: Object.create(null),
-          };
-          namespaces[name] = namespace;
-        } else {
-          namespace.declarations.push({
-            node: declaration,
-            span: nodePslSpan(declaration.syntax, sources),
-          });
-        }
-        extendNamespace(namespace, declaration, diagnostics, sources);
+      if (declaration instanceof NamespaceDeclarationAst) {
+        const namespace = openNamespace(declaration, filename);
+        if (namespace === undefined) continue;
+        for (const member of declaration.declarations()) declare(member, namespace, filename);
       } else if (declaration instanceof TypesBlockAst) {
         for (const binding of declaration.declarations()) {
-          const name = claim(topLevelNames, binding.name());
+          const name = claim(topLevelNames, binding.name(), filename);
           if (name === undefined) continue;
           const resolved = resolveNamedTypeBinding(binding, sources);
           const span = nodePslSpan(binding.syntax, sources);
-          namedTypes[name] = { kind: 'namedType', name, node: binding, span, ...resolved };
+          topLevel.namedTypes[name] = { kind: 'namedType', name, node: binding, span, ...resolved };
         }
+      } else {
+        declare(declaration, undefined, filename);
       }
     }
   }
-
-  const topLevel: TopLevelScope = {
-    namespaces,
-    namedTypes,
-    blocks,
-    models,
-    compositeTypes,
-    mixins,
-  };
-  includeMixins(topLevel, sources, diagnostics);
+  for (const build of topLevelBuilds) build();
+  for (const build of namespaceBuilds) build();
 
   return { symbolTable: { topLevel }, diagnostics };
+}
+
+interface BuildContext {
+  readonly topLevel: TopLevelScope;
+  readonly sources: PslSources;
+  readonly diagnostics: ParseDiagnostic[];
 }
 
 function buildModel(
   name: string,
   node: ModelDeclarationAst,
-  sources: PslSources,
-  diagnostics: ParseDiagnostic[],
+  namespace: NamespaceSymbol | undefined,
+  context: BuildContext,
 ): ModelSymbol {
-  return {
-    kind: 'model',
-    name,
-    node,
-    span: nodePslSpan(node.syntax, sources),
-    fields: buildFields(name, node.fields(), sources, diagnostics),
-    attributes: readResolvedAttributes(node.attributes(), sources),
-  };
+  const owner = { name, keyword: 'model', hasFields: true, isMixin: false, namespace };
+  const { fields, attributes, inclusions } = buildBody(owner, node, context);
+  const span = nodePslSpan(node.syntax, context.sources);
+  return { kind: 'model', name, node, span, fields, attributes, inclusions };
 }
 
 function buildCompositeType(
   name: string,
   node: CompositeTypeDeclarationAst,
-  sources: PslSources,
-  diagnostics: ParseDiagnostic[],
+  namespace: NamespaceSymbol | undefined,
+  context: BuildContext,
 ): CompositeTypeSymbol {
-  return {
-    kind: 'compositeType',
-    name,
-    node,
-    span: nodePslSpan(node.syntax, sources),
-    fields: buildFields(name, node.fields(), sources, diagnostics),
-    attributes: readResolvedAttributes(node.attributes(), sources),
-  };
+  const owner = { name, keyword: 'type', hasFields: true, isMixin: false, namespace };
+  const { fields, attributes, inclusions } = buildBody(owner, node, context);
+  const span = nodePslSpan(node.syntax, context.sources);
+  return { kind: 'compositeType', name, node, span, fields, attributes, inclusions };
 }
 
 function buildBlock(
   name: string,
   node: GenericBlockDeclarationAst,
-  sources: PslSources,
+  namespace: NamespaceSymbol | undefined,
+  context: BuildContext,
 ): BlockSymbol {
-  return {
-    kind: 'block',
-    name,
-    keyword: node.keyword()?.text ?? '',
-    node,
-    span: nodePslSpan(node.syntax, sources),
-    entries: Array.from(node.entries()),
-    attributes: readResolvedAttributes(node.attributes(), sources),
-  };
-}
-
-function extendNamespace(
-  namespace: NamespaceSymbol,
-  node: NamespaceDeclarationAst,
-  diagnostics: ParseDiagnostic[],
-  sources: PslSources,
-): void {
-  const { models, compositeTypes, blocks, mixins } = namespace;
-
-  for (const member of node.declarations()) {
-    const memberName = member.name()?.name();
-    if (memberName === undefined) continue;
-    if (
-      Object.hasOwn(models, memberName) ||
-      Object.hasOwn(compositeTypes, memberName) ||
-      Object.hasOwn(blocks, memberName) ||
-      Object.hasOwn(mixins, memberName)
-    ) {
-      const range = nameRange(member.name(), sources);
-      if (range) {
-        diagnostics.push({
-          code: 'PSL_DUPLICATE_DECLARATION',
-          message: `Duplicate declaration of "${memberName}"`,
-          filename: sources.sourceFileFor(member.syntax).filename,
-          range,
-        });
-      }
-      continue;
-    }
-    if (member instanceof ModelDeclarationAst) {
-      models[memberName] = buildModel(memberName, member, sources, diagnostics);
-    } else if (member instanceof CompositeTypeDeclarationAst) {
-      compositeTypes[memberName] = buildCompositeType(memberName, member, sources, diagnostics);
-    } else if (member instanceof GenericBlockDeclarationAst) {
-      blocks[memberName] = buildBlock(memberName, member, sources);
-    } else if (member instanceof MixinDeclarationAst) {
-      mixins[memberName] = buildMixin(memberName, member, sources, diagnostics);
-    }
-  }
+  const keyword = node.keyword()?.text ?? '';
+  const owner = { name, keyword, hasFields: false, isMixin: false, namespace };
+  const { entries, attributes, inclusions } = buildBody(owner, node, context);
+  const span = nodePslSpan(node.syntax, context.sources);
+  return { kind: 'block', name, keyword, node, span, entries, attributes, inclusions };
 }
 
 const FIELD_BLOCK_KEYWORDS: ReadonlySet<string> = new Set(['model', 'type']);
 
-function buildMixin(
-  name: string,
-  node: MixinDeclarationAst,
-  sources: PslSources,
-  diagnostics: ParseDiagnostic[],
-): MixinSymbol {
+function buildMixin(name: string, node: MixinDeclarationAst, context: BuildContext): MixinSymbol {
   const keyword = node.keyword()?.text ?? '';
   const hasFields = FIELD_BLOCK_KEYWORDS.has(keyword);
-  for (const inclusion of node.inclusions()) {
-    if (inclusion.name() === undefined) continue;
-    diagnostics.push(
-      inclusionDiagnostic(
-        hasFields ? 'PSL_INVALID_MODEL_MEMBER' : 'PSL_INVALID_EXTENSION_BLOCK_MEMBER',
-        'A mixin cannot include another mixin',
-        inclusion,
-        sources,
-      ),
+  const owner = { name, keyword, hasFields, isMixin: true, namespace: undefined };
+  const { fields, entries, attributes } = buildBody(owner, node, context);
+  const span = nodePslSpan(node.syntax, context.sources);
+  return { kind: 'mixin', name, keyword, node, span, fields, entries, attributes };
+}
+
+interface BodyOwner {
+  readonly name: string;
+  readonly keyword: string;
+  readonly hasFields: boolean;
+  readonly isMixin: boolean;
+  readonly namespace: NamespaceSymbol | undefined;
+}
+
+interface BodyNode {
+  membersWithInclusions(): Iterable<
+    FieldDeclarationAst | KeyValuePairAst | ModelAttributeAst | MixinInclusionAst
+  >;
+}
+
+interface Body {
+  readonly fields: Record<string, FieldSymbol>;
+  readonly entries: KeyValuePairAst[];
+  readonly attributes: ResolvedAttribute<ModelAttributeAst>[];
+  readonly inclusions: ResolvedInclusion[];
+}
+
+function buildBody(owner: BodyOwner, node: BodyNode, context: BuildContext): Body {
+  const { sources, diagnostics } = context;
+  const body: Body = { fields: Object.create(null), entries: [], attributes: [], inclusions: [] };
+  const included = new Set<MixinSymbol>();
+
+  const addField = (
+    name: string,
+    symbol: () => FieldSymbol,
+    duplicate: () => ParseDiagnostic | undefined,
+  ): void => {
+    if (!Object.hasOwn(body.fields, name)) {
+      body.fields[name] = symbol();
+      return;
+    }
+    const diagnostic = duplicate();
+    if (diagnostic !== undefined) diagnostics.push(diagnostic);
+  };
+
+  for (const member of node.membersWithInclusions()) {
+    if (member instanceof FieldDeclarationAst) {
+      const nameNode = member.name();
+      const name = nameNode?.name();
+      if (!owner.hasFields || nameNode === undefined || name === undefined) continue;
+      addField(
+        name,
+        () => buildField(owner.name, name, member, sources, diagnostics),
+        () =>
+          duplicateDeclaration(
+            name,
+            nameNode,
+            sources.sourceFileFor(member.syntax).filename,
+            sources,
+          ),
+      );
+    } else if (member instanceof KeyValuePairAst) {
+      if (!owner.hasFields) body.entries.push(member);
+    } else if (member instanceof ModelAttributeAst) {
+      body.attributes.push(readResolvedAttribute(member, sources));
+    } else {
+      const mixin = resolveInclusion(member, owner, body.inclusions, included, context);
+      if (mixin === undefined) continue;
+      const provides = (provided: string): ParseDiagnostic =>
+        inclusionDiagnostic(
+          'PSL_DUPLICATE_DECLARATION',
+          `Mixin "${mixin.name}" provides "${provided}", which "${owner.name}" already has`,
+          member,
+          sources,
+        );
+      for (const field of Object.values(mixin.fields)) {
+        addField(
+          field.name,
+          () => field,
+          () => provides(field.name),
+        );
+      }
+      const present = new Set(body.entries.map((entry) => entry.key()?.name()));
+      for (const entry of mixin.entries) {
+        const key = entry.key()?.name();
+        if (key !== undefined && present.has(key)) diagnostics.push(provides(key));
+        else body.entries.push(entry);
+      }
+      body.attributes.push(...mixin.attributes);
+    }
+  }
+  return body;
+}
+
+function resolveInclusion(
+  inclusion: MixinInclusionAst,
+  owner: BodyOwner,
+  inclusions: ResolvedInclusion[],
+  included: Set<MixinSymbol>,
+  context: BuildContext,
+): MixinSymbol | undefined {
+  const { topLevel, sources, diagnostics } = context;
+  const reference = inclusion.name();
+  if (reference === undefined) return undefined;
+  const memberCode = owner.hasFields
+    ? 'PSL_INVALID_MODEL_MEMBER'
+    : 'PSL_INVALID_EXTENSION_BLOCK_MEMBER';
+  const report = (code: string, message: string): undefined => {
+    diagnostics.push(inclusionDiagnostic(code, message, inclusion, sources));
+  };
+  if (owner.isMixin) return report(memberCode, 'A mixin cannot include another mixin');
+
+  const name = reference.identifier()?.name();
+  if (name === undefined || reference.isOverQualified()) return undefined;
+  const namespaceId = reference.namespace()?.name();
+  const qualifier = namespaceId === undefined ? undefined : topLevel.namespaces[namespaceId];
+  const resolution =
+    reference.space() === undefined
+      ? lookupMixinReference(topLevel, owner.namespace, { namespaceId, name })
+      : undefined;
+  inclusions.push({ node: inclusion, mixin: resolution, qualifier });
+  if (resolution === undefined) {
+    const written = printSyntax(reference.syntax);
+    return report(PSL_UNRESOLVED_REFERENCE, `Cannot find mixin "${written}"`);
+  }
+  const mixin = resolution.symbol;
+  if (mixin.keyword !== owner.keyword) {
+    return report(
+      memberCode,
+      `Mixin "${mixin.name}" is for "${mixin.keyword}" blocks, not "${owner.keyword}" blocks`,
     );
   }
-  return {
-    kind: 'mixin',
-    name,
-    keyword,
-    node,
-    span: nodePslSpan(node.syntax, sources),
-    fields: hasFields
-      ? buildFields(name, node.fields(), sources, diagnostics)
-      : Object.create(null),
-    entries: hasFields ? [] : Array.from(node.entries()),
-    attributes: readResolvedAttributes(node.attributes(), sources),
-  };
+  if (included.has(mixin)) {
+    return report(memberCode, `Mixin "${mixin.name}" is already included in this block`);
+  }
+  included.add(mixin);
+  return mixin;
 }
 
 function inclusionDiagnostic(
@@ -390,253 +478,20 @@ function inclusionDiagnostic(
   };
 }
 
-interface InclusionContext {
-  readonly topLevel: TopLevelScope;
-  readonly namespace: NamespaceSymbol | undefined;
-  readonly sources: PslSources;
-  readonly diagnostics: ParseDiagnostic[];
-}
-
-type IncludingSymbol = ModelSymbol | CompositeTypeSymbol | BlockSymbol;
-
-function includeMixins(
-  topLevel: TopLevelScope,
+function duplicateDeclaration(
+  name: string,
+  node: IdentifierAst,
+  filename: string,
   sources: PslSources,
-  diagnostics: ParseDiagnostic[],
-): void {
-  const scopes: readonly (TopLevelScope | NamespaceSymbol)[] = [
-    topLevel,
-    ...Object.values(topLevel.namespaces),
-  ];
-  for (const scope of scopes) {
-    const context: InclusionContext = {
-      topLevel,
-      namespace: scope === topLevel ? undefined : castNamespace(scope),
-      sources,
-      diagnostics,
-    };
-    replaceInclusions(scope.models, context, includeInFieldBlock);
-    replaceInclusions(scope.compositeTypes, context, includeInFieldBlock);
-    replaceInclusions(scope.blocks, context, includeInEntryBlock);
-  }
-}
-
-function castNamespace(scope: TopLevelScope | NamespaceSymbol): NamespaceSymbol | undefined {
-  return 'kind' in scope ? scope : undefined;
-}
-
-function replaceInclusions<TSymbol extends IncludingSymbol>(
-  record: Record<string, TSymbol>,
-  context: InclusionContext,
-  include: (symbol: TSymbol, included: IncludedMixins, context: InclusionContext) => TSymbol,
-): void {
-  for (const [name, symbol] of Object.entries(record)) {
-    const inclusions = Array.from(symbol.node.inclusions()).filter(
-      (inclusion) => inclusion.name() !== undefined,
-    );
-    if (inclusions.length === 0) continue;
-    record[name] = include(symbol, resolveInclusions(symbol, inclusions, context), context);
-  }
-}
-
-type IncludedMixins = ReadonlyMap<SyntaxNode, MixinSymbol>;
-
-function blockKeywordOf(symbol: IncludingSymbol): string {
-  if (symbol.kind === 'model') return 'model';
-  if (symbol.kind === 'compositeType') return 'type';
-  return symbol.keyword;
-}
-
-function memberCodeOf(symbol: IncludingSymbol): string {
-  return symbol.kind === 'block'
-    ? 'PSL_INVALID_EXTENSION_BLOCK_MEMBER'
-    : 'PSL_INVALID_MODEL_MEMBER';
-}
-
-function resolveInclusions(
-  symbol: IncludingSymbol,
-  inclusions: readonly MixinInclusionAst[],
-  context: InclusionContext,
-): IncludedMixins {
-  const { topLevel, namespace, sources, diagnostics } = context;
-  const included = new Map<SyntaxNode, MixinSymbol>();
-  const seen = new Set<MixinSymbol>();
-  const blockKeyword = blockKeywordOf(symbol);
-  const report = (code: string, message: string, inclusion: MixinInclusionAst): void => {
-    diagnostics.push(inclusionDiagnostic(code, message, inclusion, sources));
+): ParseDiagnostic | undefined {
+  const range = nameRange(node, sources);
+  if (range === undefined) return undefined;
+  return {
+    code: 'PSL_DUPLICATE_DECLARATION',
+    message: `Duplicate declaration of "${name}"`,
+    filename,
+    range,
   };
-
-  for (const inclusion of inclusions) {
-    const reference = inclusion.name();
-    const name = reference?.identifier()?.name();
-    if (reference === undefined || name === undefined || reference.isOverQualified()) continue;
-    const namespaceId = reference.namespace()?.name();
-    const resolution =
-      reference.space() === undefined
-        ? lookupMixinReference(topLevel, namespace, { namespaceId, name })
-        : undefined;
-    if (resolution === undefined) {
-      const written = printSyntax(reference.syntax);
-      report(PSL_UNRESOLVED_REFERENCE, `Cannot find mixin "${written}"`, inclusion);
-      continue;
-    }
-    const mixin = resolution.symbol;
-    if (mixin.keyword !== blockKeyword) {
-      report(
-        memberCodeOf(symbol),
-        `Mixin "${mixin.name}" is for "${mixin.keyword}" blocks, not "${blockKeyword}" blocks`,
-        inclusion,
-      );
-      continue;
-    }
-    if (seen.has(mixin)) {
-      report(
-        memberCodeOf(symbol),
-        `Mixin "${mixin.name}" is already included in this block`,
-        inclusion,
-      );
-      continue;
-    }
-    seen.add(mixin);
-    included.set(inclusion.syntax, mixin);
-  }
-  return included;
-}
-
-function duplicateMemberDiagnostic(
-  mixin: MixinSymbol,
-  member: string,
-  symbol: IncludingSymbol,
-  inclusion: MixinInclusionAst,
-  sources: PslSources,
-): ParseDiagnostic {
-  return inclusionDiagnostic(
-    'PSL_DUPLICATE_DECLARATION',
-    `Mixin "${mixin.name}" provides "${member}", which "${symbol.name}" already has`,
-    inclusion,
-    sources,
-  );
-}
-
-function includeAttributes(
-  symbol: IncludingSymbol,
-  included: IncludedMixins,
-): readonly ResolvedAttribute<ModelAttributeAst>[] {
-  const own = new Map(symbol.attributes.map((attribute) => [attribute.node.syntax, attribute]));
-  const attributes: ResolvedAttribute<ModelAttributeAst>[] = [];
-  for (const child of symbol.node.syntax.childNodes()) {
-    const attribute = own.get(child);
-    if (attribute !== undefined) attributes.push(attribute);
-    const mixin = included.get(child);
-    if (mixin !== undefined) attributes.push(...mixin.attributes);
-  }
-  return attributes;
-}
-
-function includeInFieldBlock<TSymbol extends ModelSymbol | CompositeTypeSymbol>(
-  symbol: TSymbol,
-  included: IncludedMixins,
-  context: InclusionContext,
-): TSymbol {
-  const { sources, diagnostics } = context;
-  const own = new Map(
-    Object.values(symbol.fields).map((field) => [field.node.syntax, field] as const),
-  );
-  const fields: Record<string, FieldSymbol> = Object.create(null);
-  for (const child of symbol.node.syntax.childNodes()) {
-    const field = own.get(child);
-    if (field !== undefined) {
-      if (!Object.hasOwn(fields, field.name)) {
-        fields[field.name] = field;
-        continue;
-      }
-      const range = nameRange(field.node.name(), sources);
-      if (range !== undefined) {
-        diagnostics.push({
-          code: 'PSL_DUPLICATE_DECLARATION',
-          message: `Duplicate declaration of "${field.name}"`,
-          filename: sources.sourceFileFor(field.node.syntax).filename,
-          range,
-        });
-      }
-      continue;
-    }
-    const mixin = included.get(child);
-    const inclusion = mixin === undefined ? undefined : MixinInclusionAst.cast(child);
-    if (mixin === undefined || inclusion === undefined) continue;
-    for (const mixed of Object.values(mixin.fields)) {
-      if (Object.hasOwn(fields, mixed.name)) {
-        diagnostics.push(duplicateMemberDiagnostic(mixin, mixed.name, symbol, inclusion, sources));
-        continue;
-      }
-      fields[mixed.name] = mixed;
-    }
-  }
-  return { ...symbol, fields, attributes: includeAttributes(symbol, included) };
-}
-
-function includeInEntryBlock(
-  symbol: BlockSymbol,
-  included: IncludedMixins,
-  context: InclusionContext,
-): BlockSymbol {
-  const { sources, diagnostics } = context;
-  const own = new Map(symbol.entries.map((entry) => [entry.syntax, entry] as const));
-  const entries: KeyValuePairAst[] = [];
-  const keys = new Set<string>();
-  const add = (entry: KeyValuePairAst): void => {
-    entries.push(entry);
-    const key = entry.key()?.name();
-    if (key !== undefined) keys.add(key);
-  };
-  for (const child of symbol.node.syntax.childNodes()) {
-    const entry = own.get(child);
-    if (entry !== undefined) {
-      add(entry);
-      continue;
-    }
-    const mixin = included.get(child);
-    const inclusion = mixin === undefined ? undefined : MixinInclusionAst.cast(child);
-    if (mixin === undefined || inclusion === undefined) continue;
-    const present = new Set(keys);
-    for (const mixed of mixin.entries) {
-      const key = mixed.key()?.name();
-      if (key !== undefined && present.has(key)) {
-        diagnostics.push(duplicateMemberDiagnostic(mixin, key, symbol, inclusion, sources));
-        continue;
-      }
-      add(mixed);
-    }
-  }
-  return { ...symbol, entries, attributes: includeAttributes(symbol, included) };
-}
-
-function buildFields(
-  ownerName: string,
-  fields: Iterable<FieldDeclarationAst>,
-  sources: PslSources,
-  diagnostics: ParseDiagnostic[],
-): Record<string, FieldSymbol> {
-  const result: Record<string, FieldSymbol> = Object.create(null);
-  for (const field of fields) {
-    const nameNode = field.name();
-    const name = nameNode?.name();
-    if (name === undefined) continue;
-    if (Object.hasOwn(result, name)) {
-      const range = nameRange(nameNode, sources);
-      if (range) {
-        diagnostics.push({
-          code: 'PSL_DUPLICATE_DECLARATION',
-          message: `Duplicate declaration of "${name}"`,
-          filename: sources.sourceFileFor(field.syntax).filename,
-          range,
-        });
-      }
-      continue;
-    }
-    result[name] = buildField(ownerName, name, field, sources, diagnostics);
-  }
-  return result;
 }
 
 function buildField(

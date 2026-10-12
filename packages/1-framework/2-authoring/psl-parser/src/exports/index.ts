@@ -197,6 +197,7 @@ export type {
   NamespaceSymbol,
   ResolvedAttribute,
   ResolvedAttributeArg,
+  ResolvedInclusion,
   ResolvedNamedTypeBinding,
   ResolvedTypeConstructorCall,
   SymbolTable,

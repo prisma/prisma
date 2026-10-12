@@ -575,6 +575,45 @@ describe('buildSymbolTable() looking up the name of an inclusion', () => {
     ]);
   });
 
+  it('records on the including block what each inclusion refers to', () => {
+    const { topLevel } = build(
+      lines(
+        'model mixin Top {',
+        '}',
+        'namespace auth {',
+        '  model mixin Timestamps {',
+        '  }',
+        '  model User {',
+        '    +Timestamps',
+        '    +Top',
+        '    +auth.Timestamps',
+        '    +auth.Missing',
+        '    +Missing',
+        '    +other:Top',
+        '  }',
+        '}',
+        'model Post {',
+        '}',
+      ),
+    );
+    const auth = topLevel.namespaces['auth'];
+    const user = auth?.models['User'];
+    const timestamps = { kind: 'mixin', symbol: auth?.mixins['Timestamps'], namespace: auth };
+
+    expect(user?.inclusions.map(({ mixin, qualifier }) => ({ mixin, qualifier }))).toEqual([
+      { mixin: timestamps, qualifier: undefined },
+      { mixin: { kind: 'mixin', symbol: topLevel.mixins['Top'] }, qualifier: undefined },
+      { mixin: timestamps, qualifier: auth },
+      { mixin: undefined, qualifier: auth },
+      { mixin: undefined, qualifier: undefined },
+      { mixin: undefined, qualifier: undefined },
+    ]);
+    expect(user?.inclusions.map(({ node }) => node.syntax)).toEqual(
+      Array.from(user?.node.inclusions() ?? [], (inclusion) => inclusion.syntax),
+    );
+    expect(topLevel.models['Post']?.inclusions).toEqual([]);
+  });
+
   it('finds a mixin declared in a later document and one declared in an earlier document', () => {
     const { topLevel, diagnostics } = build(
       'model User {\n  id Int\n  +Timestamps\n}',
