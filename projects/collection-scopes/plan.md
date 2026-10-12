@@ -34,6 +34,8 @@ Slice spec: [slices/4-orm-queries-name-an-index/spec.md](slices/4-orm-queries-na
 
 **Builds on:** slice 4. **Hands to:** close-out.
 
+Slice spec: [slices/5-contributed-collection-methods/spec.md](slices/5-contributed-collection-methods/spec.md).
+
 ## Sequence
 
 - The defects pull request and slice 4 ran in parallel. Slice 5 starts from main after slice 4 merges.
