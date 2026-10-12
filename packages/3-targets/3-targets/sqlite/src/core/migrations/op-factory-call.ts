@@ -16,7 +16,6 @@ import {
   isUnfilledSlot,
   type MigrationOperationClass,
   type SqlMigrationPlanOperation,
-  type SqlQuotingRules,
   type SqlSlot,
   slotSource,
   sqlOfSlot,
@@ -45,7 +44,7 @@ import {
 } from '../../contract-free/checks';
 import * as contractFreeDdl from '../../contract-free/ddl';
 import { sqliteError } from '../errors';
-import { quoteIdentifier } from '../sql-utils';
+import { quoteIdentifier, SQLITE_QUOTING } from '../sql-utils';
 import { addColumn, dropColumnExecuteSql, renameColumn } from './operations/columns';
 import type { SqliteColumnSpec, SqliteIndexSpec, SqliteTableSpec } from './operations/shared';
 import { step } from './operations/shared';
@@ -482,13 +481,6 @@ export class RenameColumnCall extends SqliteOpFactoryCallNode {
     return [];
   }
 }
-
-const SQLITE_QUOTING: SqlQuotingRules = [
-  { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
-  { open: '"', close: '"', doubledCloseEscapes: true, backslashEscapes: false },
-  { open: '`', close: '`', doubledCloseEscapes: true, backslashEscapes: false },
-  { open: '[', close: ']', doubledCloseEscapes: false, backslashEscapes: false },
-];
 
 function refuseUnsafeCopyExpressions(
   tableName: string,

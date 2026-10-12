@@ -26,7 +26,6 @@ import {
   checkSqlExpressionText,
   isUnfilledSlot,
   type SqlMigrationPlanOperation,
-  type SqlQuotingRules,
   type SqlSlot,
   slotSource,
   sqlOfSlot,
@@ -69,6 +68,7 @@ import { postgresError } from '../errors';
 import type { PostgresRlsPolicy, RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
 import {
   escapeLiteral,
+  POSTGRES_QUOTING,
   quoteIdentifier,
   quoteQualifiedName,
   validateEnumValueLength,
@@ -641,12 +641,6 @@ export class DropColumnCall extends PostgresOpFactoryCallNode {
     return [];
   }
 }
-
-const POSTGRES_QUOTING: SqlQuotingRules = [
-  { open: "E'", close: "'", doubledCloseEscapes: true, backslashEscapes: true },
-  { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
-  { open: '"', close: '"', doubledCloseEscapes: true, backslashEscapes: false },
-];
 
 export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'alterColumnType' as const;

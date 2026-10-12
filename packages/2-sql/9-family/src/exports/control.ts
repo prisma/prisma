@@ -12,8 +12,7 @@ export type {
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 export { assembleAuthoringContributions } from '@internal/framework-components/control';
-export type { SqlQuote, SqlQuotingRules } from '@internal/sql-contract/validators';
-export { checkSqlDefaultText, checkSqlExpressionText } from '@internal/sql-contract/validators';
+export { checkSqlDefaultText } from '@internal/sql-contract/validators';
 export { extractCodecControlHooks } from '../core/assembly';
 export type { SqlControlFamilyInstance } from '../core/control-instance';
 export type {
@@ -96,6 +95,8 @@ export type {
   SqlSchemaDiffResult,
 } from '../core/migrations/schema-differ';
 export type { SchemaTables } from '../core/migrations/schema-tables';
+export type { SqlQuote, SqlQuotingRules } from '../core/migrations/sql-expression-text';
+export { checkSqlExpressionText } from '../core/migrations/sql-expression-text';
 export type { SqlSlot } from '../core/migrations/sql-slot';
 export { isUnfilledSlot, slotSource, sqlOfSlot } from '../core/migrations/sql-slot';
 export { sqlTypeLookupsOf } from '../core/migrations/sql-type-lookups';

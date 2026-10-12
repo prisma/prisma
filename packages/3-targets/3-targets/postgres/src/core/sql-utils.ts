@@ -122,3 +122,10 @@ export function validateEnumValueLength(value: string, enumTypeName: string): vo
     );
   }
 }
+
+/** The quotes this target's SQL knows, for the check of SQL a migration writes into a statement. */
+export const POSTGRES_QUOTING = [
+  { open: "E'", close: "'", doubledCloseEscapes: true, backslashEscapes: true },
+  { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '"', close: '"', doubledCloseEscapes: true, backslashEscapes: false },
+] as const;

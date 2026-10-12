@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { checkSqlExpressionText, type SqlQuotingRules } from '../src/sql-expression-text';
+import {
+  checkSqlExpressionText,
+  type SqlQuotingRules,
+} from '../src/core/migrations/sql-expression-text';
 
 const standardQuoting: SqlQuotingRules = [
   { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
