@@ -124,3 +124,9 @@ When `run` returns an array of plans or a SQL string, `node migration.ts` fails 
 **Found:** slice 4a review, dispatch 3 (2026-10-09). Engine side.
 
 The statement prompt writes one flag value per verb, so a question about a field whose model the destination names differently cannot print the two statements that keep its values (the model rename, then the field rename). The question offers only `--delete` and says to pass the model rename first, after which the next question offers the field rename. Printing both statements at once would need the engine to accept several flag values for one verb.
+
+## The SQLite `recreateTable` call in `migration.ts` is hard to read
+
+**Found:** slice 3a manual QA (2026-10-12), F11. Older than this project's slices.
+
+A SQLite table rebuild renders as a 40-line `recreateTable` call full of internal fields, so a `--convert` slot sits at its end where it is easy to miss. A shorter rendering, or one built from the contract the way `alterColumnType` is on Postgres, would make the slot easy to find.
