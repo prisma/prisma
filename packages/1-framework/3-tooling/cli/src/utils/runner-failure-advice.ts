@@ -124,7 +124,11 @@ function migrateRowsWithoutValueFix(
       reports.length === 1
         ? 'Set a value in those rows and re-run `{bin} db migrate`.'
         : `Set a value in the rows that hold NULL in each of ${fieldList(reports)} and re-run \`{bin} db migrate\`.`;
-    return again === undefined ? rerun : `${rerun} Or ${again}.`;
+    const keep =
+      failedMigration === undefined
+        ? `Or keep ${reports.length === 1 ? 'the field' : 'those fields'} optional, and plan the migration again.`
+        : `Or keep ${reports.length === 1 ? 'the field' : 'those fields'} optional: make ${reports.length === 1 ? 'it' : 'them'} optional in the contract again, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), and plan it again with ${migrationPlanCommand(['--name', failedMigration.name], failedMigration.from)} and its other statements.`;
+    return [rerun, ...(again === undefined ? [] : [`Or ${again}.`]), keep].join(' ');
   }
   if (reports[0]?.reason === 'nullValues') {
     return again === undefined

@@ -263,6 +263,56 @@ withTempDir(({ createTempDir }) => {
     );
   });
 
+  describe('Postgres: an optional field made required while rows hold NULL, kept optional', () => {
+    const db = useDevDatabase();
+
+    it(
+      'follows the advice to keep the field optional',
+      async () => {
+        const ctx = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+          contractMode: 'psl',
+        });
+        await migrated(ctx, contractWith('  nick  String?\n'));
+        await sql(
+          db.connectionString,
+          `INSERT INTO "user" (id, email, nick) VALUES (1, 'a', NULL)`,
+        );
+        await emit(ctx, contractWith('  nick  String\n  title String?\n'));
+        const planned = await planMigrationAndSelfEmit(ctx, [
+          '--name',
+          'nick',
+          '--from',
+          latestMigrationDirName(ctx),
+        ]);
+        expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
+
+        const failed = await runMigrate(ctx, ['--json']);
+        expect(failed.exitCode).not.toBe(0);
+        const advice = (engineError(failed)?.nextActions ?? [])
+          .map((action) => action.label)
+          .join('\n');
+        const followed =
+          /keep the field optional: .*?delete `([^`]+)`.*?plan it again with `\S+ migration plan ([^`]+)`/.exec(
+            advice,
+          );
+        expect(followed, advice).not.toBeNull();
+        const [, directory = '', command = ''] = followed ?? [];
+
+        await emit(ctx, contractWith('  nick  String?\n  title String?\n'));
+        rmSync(join(ctx.testDir, directory), { recursive: true });
+        const replanned = await planMigrationAndSelfEmit(ctx, command.split(' '));
+        expect(replanned.exitCode, `plan as printed: ${replanned.stderr}`).toBe(0);
+        expect(latestMigrationDirName(ctx)).toMatch(/_nick$/);
+        const applied = await runMigrate(ctx);
+        expect(applied.exitCode, `apply: ${applied.stderr}`).toBe(0);
+        await expectSettled(ctx);
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
   describe('Postgres: db update --convert on a database db init created', () => {
     const db = useDevDatabase();
 

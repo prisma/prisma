@@ -109,7 +109,22 @@ describe('the advice for rows a required field has no value for', () => {
         PROJECT,
       ).fix,
     ).toBe(
-      'Set a value in the rows that hold NULL in each of "Item.note", "Item.nick" and re-run `{bin} db migrate`.',
+      'Set a value in the rows that hold NULL in each of "Item.note", "Item.nick" and re-run `{bin} db migrate`. Or keep those fields optional, and plan the migration again.',
+    );
+  });
+
+  it('on db migrate, offers keeping a field with NULL rows optional, as db update does', () => {
+    expect(
+      mapMigrateFailure(
+        {
+          ...runnerFailed,
+          rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
+          failedMigration,
+        },
+        PROJECT,
+      ).fix,
+    ).toBe(
+      `Set a value in those rows and re-run \`{bin} db migrate\`. Or delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.note\` and its other statements, fill in the migration.ts it writes, and run \`{bin} db migrate\`. Or keep the field optional: make it optional in the contract again, delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), and plan it again with \`{bin} migration plan --from ${FROM} --name note\` and its other statements.`,
     );
   });
 
