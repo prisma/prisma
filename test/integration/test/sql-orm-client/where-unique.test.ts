@@ -1,4 +1,4 @@
-import { Collection } from '@internal/sql-orm-client';
+import { Collection, createModelAccessor } from '@internal/sql-orm-client';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import type { Char } from '@internal/target-postgres/codec-types';
 import { describe, expect, it } from 'vitest';
@@ -340,6 +340,50 @@ describe('integration/whereUnique', () => {
         await expect(async () => userRoles.whereUnique(noRoleId).delete()).rejects.toMatchObject(
           incompleteKey,
         );
+
+        expect(await readUsers(runtime)).toEqual([
+          { id: 1, name: 'Alice' },
+          { id: 2, name: 'Bob' },
+        ]);
+        expect(await readUserRoles(runtime)).toEqual([
+          { user_id: 1, role_id: ROLE_ADMIN, level: 10 },
+          { user_id: 1, role_id: ROLE_EDITOR, level: 20 },
+          { user_id: 2, role_id: ROLE_ADMIN, level: 30 },
+        ]);
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'delete() after a key whose value is a query expression rejects and removes nothing',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        const users = createReturningUsersCollection(runtime).select('id', 'name', 'email');
+        const userRoles = createReturningUserRolesCollection(runtime).select(
+          'userId',
+          'roleId',
+          'level',
+        );
+        await seedUserRoleRows(runtime);
+        const user = createModelAccessor(getTestContext(), 'public', 'User');
+        const userRole = createModelAccessor(getTestContext(), 'public', 'UserRole');
+        const idIsId = { id: user.id } as unknown as { id: number };
+        const roleIdIsRoleId = { userId: 1, roleId: userRole.roleId } as unknown as {
+          userId: number;
+          roleId: Char<36>;
+        };
+        const incompleteKey = { code: 'ORM.ARGUMENT_INVALID' };
+
+        await expect(async () => users.whereUnique(idIsId).delete()).rejects.toMatchObject(
+          incompleteKey,
+        );
+        await expect(async () =>
+          userRoles.whereUnique(roleIdIsRoleId).update({ level: 1 }),
+        ).rejects.toMatchObject(incompleteKey);
+        await expect(async () =>
+          userRoles.whereUnique(roleIdIsRoleId).delete(),
+        ).rejects.toMatchObject(incompleteKey);
 
         expect(await readUsers(runtime)).toEqual([
           { id: 1, name: 'Alice' },

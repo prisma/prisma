@@ -189,7 +189,7 @@ The argument is checked at compile time. These are refused:
 - `null`, or a value whose type includes `null`, for a nullable unique column, because any number of rows can have no value there; use `where({ handle: null })` for those rows;
 - a callback. Only the object form exists.
 
-The same rule is checked again when the call runs, for code that gets past the types, such as plain JavaScript or a value cast to the key's type. A criterion that does not give a value for every field of the primary key or of one unique constraint throws `ORM.ARGUMENT_INVALID`. A field whose value is `undefined` or `null` counts as not given, so `whereUnique({ id: undefined })` throws instead of reading or writing some other row.
+The same rule is checked again when the call runs, for code that gets past the types, such as plain JavaScript or a value cast to the key's type. A criterion that does not give a value for every field of the primary key or of one unique constraint throws `ORM.ARGUMENT_INVALID`. A field whose value is `undefined` or `null` counts as not given, so `whereUnique({ id: undefined })` throws instead of reading or writing some other row. A query expression is not accepted as a key value either: a key field given as an expression, such as another column, counts as not given.
 
 On a polymorphic model, the accepted keys are those of the model's own table. `conflictOn` in `upsert` and the criteria of a relation `connect` or `disconnect` take the same object and follow the same rules.
 

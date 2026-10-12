@@ -7,6 +7,7 @@ import type {
 } from '@internal/contract/types';
 import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { type CapabilityRequirement, missingCapability } from '@internal/sql-relational-core/ast';
+import { isExpression } from '@internal/sql-relational-core/expression';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -871,7 +872,7 @@ export function hasCompleteUniqueKey(
       continue;
     }
     const column = columnOfCallerField(contract, namespaceId, fieldColumns, modelName, fieldName);
-    if (value !== null && fields[fieldName]?.table === tableName) {
+    if (value !== null && !isExpression(value) && fields[fieldName]?.table === tableName) {
       columnsWithValue.add(column);
     }
   }

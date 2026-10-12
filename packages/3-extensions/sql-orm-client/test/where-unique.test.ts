@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { Collection } from '../src/collection';
+import { createModelAccessor } from '../src/model-accessor';
 import { createChainingOrm, PostCollection } from './collection-chaining-fixture';
 import {
   buildCompositeForeignKeyContract,
   buildTestContextFromContract,
   createMockRuntime,
+  getTestContext,
 } from './helpers';
 
 describe('whereUnique', () => {
@@ -185,6 +187,52 @@ describe('whereUnique with a criterion that does not hold a complete key', () =>
   });
 });
 
+describe('whereUnique with a query expression as a key value', () => {
+  function incompleteKey(model: string) {
+    return expect.objectContaining({
+      code: 'ORM.ARGUMENT_INVALID',
+      message: `whereUnique() for model "${model}" needs a value for every field of the primary key or of one unique constraint`,
+      meta: { method: 'whereUnique', argument: 'criterion', model },
+    });
+  }
+
+  it('throws for an expression for the same column', () => {
+    const { db, runtime } = createChainingOrm();
+    const post = createModelAccessor(getTestContext(), 'public', 'Post');
+    const criterion = { id: post.id } as unknown as { id: number };
+    expect(() => db.Post.whereUnique(criterion)).toThrow(incompleteKey('Post'));
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('throws for an expression for another column of the model', () => {
+    const { db, runtime } = createChainingOrm();
+    const post = createModelAccessor(getTestContext(), 'public', 'Post');
+    const criterion = { id: post.views } as unknown as { id: number };
+    expect(() => db.Post.whereUnique(criterion)).toThrow(incompleteKey('Post'));
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('throws for a compound key with one field given as an expression', () => {
+    const { plain, runtime } = createChainingOrm();
+    const project = createModelAccessor(getTestContext(), 'public', 'Project');
+    const criterion = { tenantId: 1, id: project.id } as unknown as {
+      tenantId: number;
+      id: number;
+    };
+    expect(() => plain.Project.whereUnique(criterion)).toThrow(incompleteKey('Project'));
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('compiles an expression on a field outside the key as a further filter', () => {
+    const { db } = createChainingOrm();
+    const post = createModelAccessor(getTestContext(), 'public', 'Post');
+    const criterion = { id: 1, views: post.userId } as unknown as { id: number };
+    const unique = db.Post.whereUnique(criterion);
+    expect(unique.state.filters).toHaveLength(1);
+    expect(unique.state).toEqual(db.Post.where({ id: 1, views: post.userId }).state);
+  });
+});
+
 describe('whereUnique with a complete key', () => {
   it('accepts a complete primary key', () => {
     const { db } = createChainingOrm();
@@ -237,12 +285,11 @@ describe('whereUnique on a contract written with defineContract, whose argument 
   function customers() {
     const contract = buildCompositeForeignKeyContract();
     const runtime = createMockRuntime();
-    const collection = new Collection(
-      { runtime, context: buildTestContextFromContract(contract) },
-      'Customer',
-      { namespaceId: 'public' },
-    );
-    return { collection, runtime };
+    const context = buildTestContextFromContract(contract);
+    const collection = new Collection({ runtime, context }, 'Customer', {
+      namespaceId: 'public',
+    });
+    return { collection, runtime, context };
   }
 
   it('accepts a complete compound key', () => {
@@ -250,6 +297,18 @@ describe('whereUnique on a contract written with defineContract, whose argument 
     expect(collection.whereUnique({ tenantId: 1, id: 2 }).state).toEqual(
       collection.where({ tenantId: 1, id: 2 }).state,
     );
+  });
+
+  it('throws when one field of the compound key is an expression', () => {
+    const { collection, runtime, context } = customers();
+    const customer = createModelAccessor(context, 'public', 'Customer');
+    expect(() => collection.whereUnique({ tenantId: 1, id: customer.id })).toThrow(
+      expect.objectContaining({
+        code: 'ORM.ARGUMENT_INVALID',
+        meta: { method: 'whereUnique', argument: 'criterion', model: 'Customer' },
+      }),
+    );
+    expect(runtime.executions).toHaveLength(0);
   });
 
   it('throws when one field of the compound key is undefined', () => {
