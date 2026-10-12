@@ -644,15 +644,7 @@ export class DropColumnCall extends PostgresOpFactoryCallNode {
 
 /** An `alterColumnType` call named by the column it alters, as its errors name it. */
 export function alterColumnTypeCallText(schema: string, table: string, column: string): string {
-  return `alterColumnType({ ${columnLocation(schema, table, column).join(', ')} })`;
-}
-
-function columnLocation(schema: string, table: string, column: string): readonly string[] {
-  return [
-    ...(schema === UNBOUND_NAMESPACE_ID ? [] : [`schema: ${jsonToTsSource(schema)}`]),
-    `table: ${jsonToTsSource(table)}`,
-    `column: ${jsonToTsSource(column)}`,
-  ];
+  return `alterColumnType({ ${columnCallLocation(schema, table, column).join(', ')} })`;
 }
 
 export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
@@ -744,7 +736,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   renderTypeScript(): string {
     const using = this.using === undefined ? [] : [`using: ${slotSource(this.using)}`];
     const opts = [
-      ...columnLocation(this.schemaName, this.tableName, this.columnName),
+      ...columnCallLocation(this.schemaName, this.tableName, this.columnName),
       `type: ${jsonToTsSource(this.type)}`,
       ...using,
       ...(this.operationClass === this.#defaultClass()
