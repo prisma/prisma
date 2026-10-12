@@ -100,22 +100,22 @@ test('ResolvedCreateInput for non-polymorphic model equals CreateInput', () => {
 });
 
 test('VariantCreateInput includes base + variant fields minus discriminator', () => {
-  type BugCreate = VariantCreateInput<PolyContract, 'Task', 'Bug'>;
+  type BugCreate = VariantCreateInput<PolyContract, 'Task', 'bug'>;
   expectTypeOf<BugCreate>().toHaveProperty('title');
   expectTypeOf<BugCreate>().toHaveProperty('severity');
   expectTypeOf<BugCreate>().not.toHaveProperty('type');
 });
 
 test('VariantCreateInput for MTI variant includes base + variant fields minus discriminator', () => {
-  type FeatureCreate = VariantCreateInput<PolyContract, 'Task', 'Feature'>;
+  type FeatureCreate = VariantCreateInput<PolyContract, 'Task', 'feature'>;
   expectTypeOf<FeatureCreate>().toHaveProperty('title');
   expectTypeOf<FeatureCreate>().toHaveProperty('priority');
   expectTypeOf<FeatureCreate>().not.toHaveProperty('type');
 });
 
 test('ResolvedCreateInput with variant name equals VariantCreateInput', () => {
-  type Resolved = ResolvedCreateInput<PolyContract, 'Task', 'Bug'>;
-  type Direct = VariantCreateInput<PolyContract, 'Task', 'Bug'>;
+  type Resolved = ResolvedCreateInput<PolyContract, 'Task', 'bug'>;
+  type Direct = VariantCreateInput<PolyContract, 'Task', 'bug'>;
   expectTypeOf<Resolved>().toEqualTypeOf<Direct>();
 });
 
@@ -355,7 +355,7 @@ test('createModelAccessor with a selected variant returns a variant-aware access
     '__unbound__',
     'Task',
     createCollectionTables(executionContext.contract, '__unbound__', 'Task'),
-    'Feature',
+    'feature',
   );
   expectTypeOf(task).toHaveProperty('priority');
   expectTypeOf(task).toHaveProperty('title');
@@ -458,17 +458,17 @@ test('a variant helper result rejects a second variant selection', () => {
 test('a zero-argument custom helper exposes the variant row and create input', () => {
   const bugs = taskCollection.bugs();
   expectTypeOf<RowOfCollection<typeof bugs>>().toEqualTypeOf<
-    VariantModelRow<PolyContract, 'Task', 'Bug'>
+    VariantModelRow<PolyContract, 'Task', 'bug'>
   >();
   type BugsState =
     typeof bugs extends Collection<PolyContract, 'Task', infer _Row, infer State> ? State : never;
-  expectTypeOf<BugsState['variantName']>().toEqualTypeOf<'Bug'>();
+  expectTypeOf<BugsState['variantValue']>().toEqualTypeOf<'bug'>();
 });
 
 test('create() on a zero-argument custom helper takes the variant create input', () => {
   const bugs = taskCollection.bugs();
   expectTypeOf(bugs.create({ id: 1, title: 'Crash', severity: 'high' })).resolves.toEqualTypeOf<
-    VariantModelRow<PolyContract, 'Task', 'Bug'>
+    VariantModelRow<PolyContract, 'Task', 'bug'>
   >();
   // @ts-expect-error priority belongs to the Feature variant
   bugs.create({ id: 1, title: 'Crash', severity: 'high', priority: 1 });

@@ -26,7 +26,7 @@ type ModelEntry = {
   relations?: Record<string, unknown>;
   fields?: Record<string, { type?: ContractFieldType; many?: ContractField['many'] }>;
   discriminator?: { field: string };
-  variants?: Record<string, { value: string }>;
+  variants?: Record<string, CrossReference>;
   base?: CrossReference;
 };
 type ModelsMap = Record<string, ModelEntry>;
@@ -43,7 +43,6 @@ export interface PolymorphismInfo {
   readonly discriminatorColumn: string;
   readonly baseTable: string;
   readonly variants: ReadonlyMap<string, PolymorphismVariantInfo>;
-  readonly variantsByValue: ReadonlyMap<string, PolymorphismVariantInfo>;
   readonly mtiVariants: readonly PolymorphismVariantInfo[];
 }
 
@@ -115,10 +114,10 @@ export function resolvePolymorphismInfo(
   );
 
   const variants = new Map<string, PolymorphismVariantInfo>();
-  const variantsByValue = new Map<string, PolymorphismVariantInfo>();
   const mtiVariants: PolymorphismVariantInfo[] = [];
 
-  for (const [variantModelName, variantEntry] of Object.entries(model.variants)) {
+  for (const [value, variantRef] of Object.entries(model.variants)) {
+    const variantModelName = variantRef.model;
     const variantModel = models[variantModelName];
     if (!variantModel) {
       throw new InternalError(
@@ -130,13 +129,12 @@ export function resolvePolymorphismInfo(
 
     const info: PolymorphismVariantInfo = {
       modelName: variantModelName,
-      value: variantEntry.value,
+      value,
       table: variantTable,
       strategy,
     };
 
-    variants.set(variantModelName, info);
-    variantsByValue.set(variantEntry.value, info);
+    variants.set(value, info);
     if (strategy === 'mti') {
       mtiVariants.push(info);
     }
@@ -147,7 +145,6 @@ export function resolvePolymorphismInfo(
     discriminatorColumn,
     baseTable,
     variants,
-    variantsByValue,
     mtiVariants,
   };
 
@@ -232,7 +229,7 @@ export function getModelFieldColumns(
 }
 
 /**
- * The column each field of the model and of the variant `variantName` maps, keyed by field name. Without a variant, the model's fields alone.
+ * The column each field of the model and of the variant `variantValue` maps, keyed by field name. Without a variant, the model's fields alone.
  *
  * A surface accepts a variant's field only when it can place that field's column on the variant's table. A collection narrowed to a variant reads that variant's table, so `select`, the `where` and `orderBy` accessor and a variant create accept the narrowed variant's fields. A collection that is not narrowed reads the base table only, so only `select`, whose polymorphic projection joins each variant's table, accepts variant fields there (`getModelAndEveryVariantFieldColumns`).
  */
@@ -240,13 +237,19 @@ export function getModelAndVariantFieldColumns(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   modelName: string,
-  variantName: string | undefined,
+  variantValue: string | undefined,
 ): Readonly<Record<string, string>> {
   return cachedFor(
     contract,
-    ['modelAndVariantFieldColumns', namespaceId, modelName, variantName ?? null],
+    ['modelAndVariantFieldColumns', namespaceId, modelName, variantValue ?? null],
     () => ({
-      ...(variantName === undefined ? {} : getOwnFieldColumns(contract, namespaceId, variantName)),
+      ...(variantValue === undefined
+        ? {}
+        : getOwnFieldColumns(
+            contract,
+            namespaceId,
+            addressedModelName(contract, namespaceId, modelName, variantValue),
+          )),
       ...getModelFieldColumns(contract, namespaceId, modelName),
     }),
   );
@@ -275,10 +278,10 @@ export function getModelAndEveryVariantFieldColumns(
       contract,
       namespaceId,
       modelName,
-    )?.variants.keys() ?? []) {
+    )?.variants.values() ?? []) {
       add(
         Object.fromEntries(
-          Object.entries(getOwnFieldColumns(contract, namespaceId, variant)).filter(
+          Object.entries(getOwnFieldColumns(contract, namespaceId, variant.modelName)).filter(
             ([field]) => !modelFields.has(field),
           ),
         ),
@@ -453,10 +456,10 @@ export function resolveVariantFieldColumns(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   baseModelName: string,
-  variantName: string,
+  variantValue: string,
 ): Readonly<Record<string, FieldColumn>> {
   const variant = resolvePolymorphismInfo(contract, namespaceId, baseModelName)?.variants.get(
-    variantName,
+    variantValue,
   );
   if (variant?.strategy !== 'mti') return {};
   return Object.fromEntries(
@@ -536,8 +539,17 @@ export function getColumnsReadOnTable(
 }
 
 /** The model a query or write addresses: the variant it is narrowed to, otherwise the collection's model. */
-export function addressedModelName(modelName: string, variantName: string | undefined): string {
-  return variantName ?? modelName;
+export function addressedModelName(
+  contract: Contract<SqlStorage>,
+  namespaceId: string,
+  modelName: string,
+  variantValue: string | undefined,
+): string {
+  if (variantValue === undefined) return modelName;
+  const variant = resolvePolymorphismInfo(contract, namespaceId, modelName)?.variants.get(
+    variantValue,
+  );
+  return variant?.modelName ?? modelName;
 }
 
 interface ResolvedThrough extends ContractRelationThrough {
@@ -559,7 +571,7 @@ export interface ResolvedIncludeRelation {
   readonly relatedModelName: string;
   readonly relatedNamespaceId: string;
   readonly relatedTableName: string;
-  readonly localVariantName?: string;
+  readonly localVariantValue?: string;
   /** Target-side join columns, positionally paired with `localColumns`. */
   readonly targetColumns: readonly string[];
   /** Local-side join columns, positionally paired with `targetColumns`. */
@@ -573,12 +585,12 @@ export function resolveIncludeRelation(
   namespaceId: string,
   baseModelName: string,
   relationName: string,
-  variantName?: string,
+  variantValue?: string,
 ): ResolvedIncludeRelation {
   const polymorphism = resolvePolymorphismInfo(contract, namespaceId, baseModelName);
-  const variant = variantName === undefined ? undefined : polymorphism?.variants.get(variantName);
+  const variant = variantValue === undefined ? undefined : polymorphism?.variants.get(variantValue);
   let declaringModelName = baseModelName;
-  let localVariantName: string | undefined;
+  let localVariantValue: string | undefined;
   let relation: ResolvedRelation | undefined;
 
   if (variant !== undefined) {
@@ -589,7 +601,7 @@ export function resolveIncludeRelation(
     if (candidate !== undefined) {
       relation = candidate;
       declaringModelName = variant.modelName;
-      localVariantName = variant.strategy === 'mti' ? variant.modelName : undefined;
+      localVariantValue = variant.strategy === 'mti' ? variant.value : undefined;
     }
   }
 
@@ -631,7 +643,7 @@ export function resolveIncludeRelation(
     relatedModelName: relation.to,
     relatedNamespaceId: relation.toNamespace,
     relatedTableName,
-    ...ifDefined('localVariantName', localVariantName),
+    ...ifDefined('localVariantValue', localVariantValue),
     targetColumns,
     localColumns,
     cardinality: relation.cardinality,

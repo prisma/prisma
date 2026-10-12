@@ -176,10 +176,10 @@ function resolvePolymorphicProjectionSelection(
         continue;
       }
 
-      let selectedColumns = selectedMtiColumnsByVariant.get(variant.modelName);
+      let selectedColumns = selectedMtiColumnsByVariant.get(variant.value);
       if (selectedColumns === undefined) {
         selectedColumns = new Set();
-        selectedMtiColumnsByVariant.set(variant.modelName, selectedColumns);
+        selectedMtiColumnsByVariant.set(variant.value, selectedColumns);
       }
       selectedColumns.add(column);
     }
@@ -195,7 +195,7 @@ function resolvePolymorphicProjectionSelection(
     baseSelectedFields,
     selectedMtiColumnsByVariant,
     needsHiddenDiscriminator:
-      state.variantName === undefined &&
+      state.variantValue === undefined &&
       hasVariantOwnedSelection &&
       !baseSelectedFields.includes(polyInfo.discriminatorColumn),
   };
@@ -289,9 +289,9 @@ function buildIncludeJoinExpr(
 }
 
 function localTable(tables: CollectionTables, include: IncludeExpr): AliasedTable {
-  return include.localVariantName === undefined
+  return include.localVariantValue === undefined
     ? tables.root
-    : requireVariantTable(tables, include.localVariantName);
+    : requireVariantTable(tables, include.localVariantValue);
 }
 
 function resolveParentLocalRefs(
@@ -386,7 +386,7 @@ function buildChildPolymorphismJoinsAndProjection(
     contract,
     include.nested.tables,
     polyInfo,
-    include.nested.variantName,
+    include.nested.variantValue,
     selection.selectedMtiColumnsByVariant,
   );
   return {
@@ -409,10 +409,10 @@ function buildRequiredMtiJoinKeyProjection(
   const aliases = new Set<string>();
   const projection: ProjectionItem[] = [];
   for (const nested of include.nested.includes) {
-    if (nested.localVariantName === undefined) {
+    if (nested.localVariantValue === undefined) {
       continue;
     }
-    const variantTable = requireVariantTable(include.nested.tables, nested.localVariantName);
+    const variantTable = requireVariantTable(include.nested.tables, nested.localVariantValue);
     for (const column of localColumnsForRowInclude(nested)) {
       const alias = variantColumnLabel(variantTable, column);
       if (aliases.has(alias)) {
@@ -593,7 +593,12 @@ function buildIncludeChildRowsSelect(
   const polyJoinsAndProjection = buildChildPolymorphismJoinsAndProjection(contract, include);
   const scalarProjection = buildProjection(
     contract,
-    addressedModelName(include.relatedModelName, include.nested.variantName),
+    addressedModelName(
+      contract,
+      include.relatedNamespaceId,
+      include.relatedModelName,
+      include.nested.variantValue,
+    ),
     child,
     polyJoinsAndProjection.baseSelectedFields,
   );
@@ -720,7 +725,7 @@ function buildDistinctNonLeafChildRowsSelect(options: {
   const grandchildJoinColumns = Array.from(
     new Set(
       childState.includes.flatMap((nested) =>
-        nested.localVariantName === undefined ? localColumnsForRowInclude(nested) : [],
+        nested.localVariantValue === undefined ? localColumnsForRowInclude(nested) : [],
       ),
     ),
   );
@@ -751,7 +756,12 @@ function buildDistinctNonLeafChildRowsSelect(options: {
   const queryPolyProjection = buildChildPolymorphismJoinsAndProjection(contract, queryInclude);
   const innerScalarProjection = buildProjection(
     contract,
-    addressedModelName(include.relatedModelName, include.nested.variantName),
+    addressedModelName(
+      contract,
+      include.relatedNamespaceId,
+      include.relatedModelName,
+      include.nested.variantValue,
+    ),
     child,
     queryPolyProjection.baseSelectedFields,
   );
@@ -813,7 +823,12 @@ function buildDistinctNonLeafChildRowsSelect(options: {
   // the underlying table.
   const outerScalarProjection = buildProjection(
     contract,
-    addressedModelName(include.relatedModelName, include.nested.variantName),
+    addressedModelName(
+      contract,
+      include.relatedNamespaceId,
+      include.relatedModelName,
+      include.nested.variantValue,
+    ),
     child,
     visiblePolyProjection.baseSelectedFields,
     distinctAlias,
@@ -1294,7 +1309,7 @@ function buildSelectAst(
     assertDistinctOnCapability(contract, 'distinctOn');
     assertDistinctOnCompatibleOrder(state.orderBy, state.distinctOn.length);
   }
-  const addressed = addressedModelName(modelName, state.variantName);
+  const addressed = addressedModelName(contract, namespaceId, modelName, state.variantValue);
   const scalarProjection = buildProjection(contract, addressed, root, state.selectedFields);
   const projection = [...scalarProjection, ...(options.includeProjection ?? [])];
   const where = options.where ?? buildStateWhere(contract, state);
@@ -1370,7 +1385,7 @@ function buildRootPolymorphism(
           contract,
           state.tables,
           polyInfo,
-          state.variantName,
+          state.variantValue,
           selection.selectedMtiColumnsByVariant,
         )
       : undefined;

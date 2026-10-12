@@ -38,9 +38,9 @@ export type WithWhereState<State extends CollectionTypeState> = Omit<State, 'has
 
 export type WithVariantState<State extends CollectionTypeState, V extends string> = Omit<
   State,
-  'variantName'
+  'variantValue'
 > & {
-  readonly variantName: V;
+  readonly variantValue: V;
 };
 
 export type IncludedRelationsForRow<
@@ -151,10 +151,10 @@ export type WhereInput<
   TContract extends Contract<SqlStorage>,
   NsId extends string,
   ModelName extends string,
-  VariantName extends string | undefined = undefined,
+  VariantValue extends string | undefined = undefined,
 > =
   | ((
-      model: VariantAwareModelAccessor<TContract, ModelName, VariantName, NsId>,
+      model: VariantAwareModelAccessor<TContract, ModelName, VariantValue, NsId>,
       tools: ModelCallbackTools<TContract, ModelName, NsId>,
     ) => WhereCallbackResult)
   | ShorthandWhereFilter<TContract, NsId, ModelName>;

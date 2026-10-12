@@ -27,16 +27,16 @@ export function mapSelectedFieldsToColumns(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   modelName: string,
-  variantName: string | undefined,
+  variantValue: string | undefined,
   fieldNames: readonly string[],
 ): string[] {
-  const addressed = addressedModelName(modelName, variantName);
-  if (variantName !== undefined) {
+  const addressed = addressedModelName(contract, namespaceId, modelName, variantValue);
+  if (variantValue !== undefined) {
     const fieldColumns = getModelAndVariantFieldColumns(
       contract,
       namespaceId,
       modelName,
-      variantName,
+      variantValue,
     );
     return fieldNames.map((fieldName) =>
       columnOfCallerField(contract, namespaceId, fieldColumns, addressed, fieldName),

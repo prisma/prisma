@@ -263,14 +263,14 @@ function buildMtiJoins(
   contract: Contract<SqlStorage>,
   tables: CollectionTables,
   polyInfo: PolymorphismInfo,
-  variantName: string | undefined,
+  variantValue: string | undefined,
   selectedColumnsByVariant: ReadonlyMap<string, ReadonlySet<string>> | undefined,
 ): { joins: JoinAst[]; projection: ProjectionItem[] } {
   const joins: JoinAst[] = [];
   const projection: ProjectionItem[] = [];
 
-  const variantsToJoin = variantName
-    ? polyInfo.mtiVariants.filter((v) => v.modelName === variantName)
+  const variantsToJoin = variantValue
+    ? polyInfo.mtiVariants.filter((v) => v.value === variantValue)
     : polyInfo.mtiVariants;
   if (variantsToJoin.length === 0) {
     return { joins, projection };
@@ -283,10 +283,10 @@ function buildMtiJoins(
   );
 
   for (const variant of variantsToJoin) {
-    const variantTable = requireVariantTable(tables, variant.modelName);
+    const variantTable = requireVariantTable(tables, variant.value);
     const joinOn = buildPrimaryKeyJoinOn(root, variantTable, pkColumns);
     joins.push(
-      variantName
+      variantValue
         ? JoinAst.inner(variantTable.tableSource(contract), joinOn)
         : JoinAst.left(variantTable.tableSource(contract), joinOn),
     );
@@ -298,7 +298,7 @@ function buildMtiJoins(
       variant.modelName,
       tableName,
     );
-    const selectedVariantColumns = selectedColumnsByVariant?.get(variant.modelName);
+    const selectedVariantColumns = selectedColumnsByVariant?.get(variant.value);
     for (const col of variantColumns) {
       if (pkColumns.includes(col)) continue;
       if (selectedColumnsByVariant !== undefined && selectedVariantColumns?.has(col) !== true) {
@@ -338,7 +338,7 @@ function buildAggregateInput(
     : undefined;
   const variantJoins =
     polyInfo && polyInfo.mtiVariants.length > 0
-      ? buildMtiJoins(contract, state.tables, polyInfo, state.variantName, undefined).joins
+      ? buildMtiJoins(contract, state.tables, polyInfo, state.variantValue, undefined).joins
       : [];
 
   const where = buildStateWhere(contract, state);

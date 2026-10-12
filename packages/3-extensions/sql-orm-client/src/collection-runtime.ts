@@ -80,10 +80,10 @@ function getMergedColumnToFieldMap(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   baseModelName: string,
-  variantModelName: string,
+  variant: PolymorphismVariantInfo,
   variantTable: AliasedTable | undefined,
 ): Record<string, string> {
-  const cacheKey = `${namespaceId}:${baseModelName}:${variantModelName}:${variantTable?.alias ?? ''}`;
+  const cacheKey = `${namespaceId}:${baseModelName}:${variant.value}:${variantTable?.alias ?? ''}`;
   let perContract = mergedColumnToFieldCache.get(contract);
   if (!perContract) {
     perContract = new Map();
@@ -93,7 +93,7 @@ function getMergedColumnToFieldMap(
   if (cached) return cached;
 
   const baseMap = getModelColumnFields(contract, namespaceId, baseModelName);
-  const variantMap = getOwnColumnFields(contract, namespaceId, variantModelName);
+  const variantMap = getOwnColumnFields(contract, namespaceId, variant.modelName);
 
   const merged: Record<string, string> = { ...baseMap };
   for (const [col, field] of Object.entries(variantMap)) {
@@ -112,7 +112,7 @@ function variantTableOf(
   tables: CollectionTables,
   variant: PolymorphismVariantInfo,
 ): AliasedTable | undefined {
-  return variant.strategy === 'mti' ? requireVariantTable(tables, variant.modelName) : undefined;
+  return variant.strategy === 'mti' ? requireVariantTable(tables, variant.value) : undefined;
 }
 
 export function mapPolymorphicRow(
@@ -122,15 +122,13 @@ export function mapPolymorphicRow(
   polyInfo: PolymorphismInfo,
   tables: CollectionTables,
   row: Record<string, unknown>,
-  variantName?: string,
+  variantValue?: string,
 ): Record<string, unknown> {
   const discriminatorValue =
     row[polyInfo.discriminatorColumn] ?? row[POLYMORPHIC_DISCRIMINATOR_ALIAS];
-  const variant = variantName
-    ? polyInfo.variants.get(variantName)
-    : typeof discriminatorValue === 'string'
-      ? polyInfo.variantsByValue.get(discriminatorValue)
-      : undefined;
+  const selectedValue = variantValue ?? discriminatorValue;
+  const variant =
+    typeof selectedValue === 'string' ? polyInfo.variants.get(selectedValue) : undefined;
 
   if (!variant) {
     return mapKnownColumnNames(row, getModelColumnFields(contract, namespaceId, baseModelName));
@@ -140,7 +138,7 @@ export function mapPolymorphicRow(
     contract,
     namespaceId,
     baseModelName,
-    variant.modelName,
+    variant,
     variantTableOf(tables, variant),
   );
   return mapKnownColumnNames(row, mergedMap);
@@ -152,33 +150,31 @@ export function createPolymorphicRowMapper(
   baseModelName: string,
   polyInfo: PolymorphismInfo,
   tables: CollectionTables,
-  variantName?: string,
+  variantValue?: string,
 ): (row: Record<string, unknown>) => Record<string, unknown> {
   const baseMapper = captureColumnMapper(() =>
     getModelColumnFields(contract, namespaceId, baseModelName),
   );
   const mappersByValue = new Map<string, typeof baseMapper>();
   let pinnedMapper = baseMapper;
-  for (const [name, variant] of polyInfo.variants) {
-    if (variantName && name !== variantName) continue;
+  for (const [value, variant] of polyInfo.variants) {
+    if (variantValue && value !== variantValue) continue;
     const mapper = captureColumnMapper(() =>
       getMergedColumnToFieldMap(
         contract,
         namespaceId,
         baseModelName,
-        variant.modelName,
+        variant,
         variantTableOf(tables, variant),
       ),
     );
-    if (variantName) pinnedMapper = mapper;
-    for (const [value, candidate] of polyInfo.variantsByValue) {
-      if (candidate === variant) mappersByValue.set(value, mapper);
-    }
+    if (variantValue) pinnedMapper = mapper;
+    mappersByValue.set(value, mapper);
   }
   const discriminatorColumn = polyInfo.discriminatorColumn;
   return (row) => {
     const value = row[discriminatorColumn] ?? row[POLYMORPHIC_DISCRIMINATOR_ALIAS];
-    const mapper = variantName
+    const mapper = variantValue
       ? pinnedMapper
       : typeof value === 'string'
         ? (mappersByValue.get(value) ?? baseMapper)

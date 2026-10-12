@@ -431,7 +431,7 @@ export function assertModelFragmentReceiver(
 
 function firstQueryState(state: CollectionState): string | undefined {
   const present: ReadonlyArray<readonly [string, boolean]> = [
-    ['a variant', state.variantName !== undefined],
+    ['a variant', state.variantValue !== undefined],
     ['a cursor', state.cursor !== undefined],
     ['distinctOn', state.distinctOn !== undefined],
     ['distinct', state.distinct !== undefined],

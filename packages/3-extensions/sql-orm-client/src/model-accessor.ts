@@ -87,23 +87,23 @@ type NamedOp = readonly [name: string, entry: SqlOperationEntry];
 export function createModelAccessor<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
-  VariantName extends string | undefined = undefined,
+  VariantValue extends string | undefined = undefined,
   NsId extends string = string,
 >(
   context: ExecutionContext<TContract>,
   namespaceId: NsId,
   modelName: ModelName,
   tables: CollectionTables,
-  variantName?: VariantName,
-): VariantAwareModelAccessor<TContract, ModelName, VariantName, NsId> {
+  variantValue?: VariantValue,
+): VariantAwareModelAccessor<TContract, ModelName, VariantValue, NsId> {
   return createModelAccessorInScope(
     context,
     namespaceId,
     modelName,
-    variantName,
+    variantValue,
     tables.scope,
     tables.root,
-    variantName === undefined ? undefined : tables.variants.get(variantName),
+    variantValue === undefined ? undefined : tables.variants.get(variantValue),
   );
 }
 
@@ -180,44 +180,45 @@ function createModelAccessorInScope<
   TContract extends Contract<SqlStorage>,
   NsId extends string,
   ModelName extends string,
-  VariantName extends string | undefined = undefined,
+  VariantValue extends string | undefined = undefined,
 >(
   context: ExecutionContext<TContract>,
   namespaceId: NsId,
   modelName: ModelName,
-  variantName: VariantName | undefined,
+  variantValue: VariantValue | undefined,
   scope: TableScope,
   table: AliasedTable,
   variantTable: AliasedTable | undefined,
-): VariantAwareModelAccessor<TContract, ModelName, VariantName, NsId> {
+): VariantAwareModelAccessor<TContract, ModelName, VariantValue, NsId> {
   const contract = context.contract;
   const fieldColumns = getModelAndVariantFieldColumns(
     contract,
     namespaceId,
     modelName,
-    variantName,
+    variantValue,
   );
   const modelRelations = resolveModelRelations(contract, namespaceId, modelName);
   // When a variant is selected, MTI variant-owned fields resolve to a
   // `ColumnRef` qualified against the variant table the read path joins into
   // the correlated child SELECT. STI variant columns live on the base table
   // and never appear here, so base resolution is untouched. Gating strictly
-  // on `variantName` means the no-variant path (`variantName === undefined`)
+  // on `variantValue` means the no-variant path (`variantValue === undefined`)
   // produces exactly the same accessor it did before variant support was
   // added: an empty `variantFieldColumns`, so every field falls through to the
   // base-table column resolution below.
-  const variantFieldColumns: Readonly<Record<string, FieldColumn>> = variantName
-    ? resolveVariantFieldColumns(contract, namespaceId, modelName, variantName)
+  const variantFieldColumns: Readonly<Record<string, FieldColumn>> = variantValue
+    ? resolveVariantFieldColumns(contract, namespaceId, modelName, variantValue)
     : {};
   // A selected variant's own relations are resolved against the variant's
   // coordinates: the variant model name (so join columns read the variant's
   // field→column map) and the variant's table (the MTI variant table the
   // read path joins in, or the base table for STI, where the variant's
   // columns physically live). They shadow a same-named base relation.
-  const variantCoordinates = variantName
+  const addressed = addressedModelName(contract, namespaceId, modelName, variantValue);
+  const variantCoordinates = variantValue
     ? {
-        name: variantName,
-        relations: resolveModelRelations(contract, namespaceId, variantName),
+        name: addressed,
+        relations: resolveModelRelations(contract, namespaceId, addressed),
       }
     : undefined;
   const variantFieldTable = variantTable ?? table;
@@ -293,13 +294,7 @@ function createModelAccessorInScope<
         const fieldStorage = fieldTable.storage;
         const columnName =
           variantField?.column ??
-          columnOfCallerField(
-            contract,
-            namespaceId,
-            fieldColumns,
-            addressedModelName(modelName, variantName),
-            prop,
-          );
+          columnOfCallerField(contract, namespaceId, fieldColumns, addressed, prop);
         const column = resolveColumn(
           contract,
           fieldStorage.namespaceId,
@@ -333,7 +328,7 @@ function createModelAccessorInScope<
     },
   );
   return blindCast<
-    VariantAwareModelAccessor<TContract, ModelName, VariantName, NsId>,
+    VariantAwareModelAccessor<TContract, ModelName, VariantValue, NsId>,
     'model accessor proxy resolves declared model fields and the selected variant fields dynamically'
   >(accessor);
 }

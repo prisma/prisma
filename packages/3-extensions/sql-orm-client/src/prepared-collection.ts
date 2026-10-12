@@ -24,11 +24,11 @@ export interface PreparedCollection<
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Preparable<Record<string, unknown>, AsyncIterableResult<Row>>;
   first(
-    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantValue']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Preparable<Record<string, unknown>, Promise<Row | null>>;
   firstOrThrow(
-    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantValue']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Preparable<Record<string, unknown>, Promise<Row>>;
 }

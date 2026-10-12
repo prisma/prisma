@@ -22,8 +22,8 @@ export interface HasWhere extends HasTypeState<{ readonly hasWhere: true }> {}
 /** The fact that an order has been applied: the type-state flag `hasOrderBy` is `true`. Write `Ordered<C>` for an ordered collection; error messages print `HasOrderBy`. */
 export interface HasOrderBy extends HasTypeState<{ readonly hasOrderBy: true }> {}
 
-/** The fact that no variant has been selected: the type-state field `variantName` is `undefined`. `variant()` needs it; error messages print `HasNoVariant`. */
-export interface HasNoVariant extends HasTypeState<{ readonly variantName: undefined }> {}
+/** The fact that no variant has been selected: the type-state field `variantValue` is `undefined`. `variant()` needs it; error messages print `HasNoVariant`. */
+export interface HasNoVariant extends HasTypeState<{ readonly variantValue: undefined }> {}
 
 /** A collection with a filter applied: `C & HasWhere`. */
 export type Filtered<C> = C & HasWhere;
@@ -45,8 +45,8 @@ export type ModelFragmentReceiver<
 > = HasRow<DefaultModelRow<TContract, ModelName, NsId>> &
   HasTypeState<
     [NsId] extends [never]
-      ? { readonly variantName: undefined }
-      : { readonly variantName: undefined; readonly nsId: NsId }
+      ? { readonly variantValue: undefined }
+      : { readonly variantValue: undefined; readonly nsId: NsId }
   > & { readonly modelName: ModelName };
 
 /** The type state of a collection. */
