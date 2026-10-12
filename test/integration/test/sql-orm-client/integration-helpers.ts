@@ -103,7 +103,7 @@ export function createReturningTagsCollection(runtime: PgIntegrationRuntime) {
 
 export async function withPushedContractRuntime(
   contract: Contract<SqlStorage>,
-  fn: (runtime: PgIntegrationRuntime) => Promise<void>,
+  fn: (runtime: PgIntegrationRuntime, connectionString: string) => Promise<void>,
 ): Promise<void> {
   await withDevDatabase(async ({ connectionString }) => {
     const driver = await postgresDriverControl.create(connectionString);
@@ -156,7 +156,7 @@ export async function withPushedContractRuntime(
 
     const runtime = await createPgIntegrationRuntime(connectionString, contract);
     try {
-      await fn(runtime);
+      await fn(runtime, connectionString);
     } finally {
       await runtime.close();
     }
