@@ -66,13 +66,13 @@ const posts = await db.Post
 - **ORM callbacks for `where` and `orderBy` receive a second argument, `{ fns, indexes }`** (ADR 270): the SQL query builder's functions, and the model's table's indexes as index references. Packages need no new mechanism.
 - **Nothing is added to the schema grammar, the contract's domain plane, or the `Collection` type's chaining methods.**
 
-## Slice 5: collection scopes built from indexes (design in progress)
+## Slice 5: collection scopes built from indexes
 
 Added 2026-10-12. The ORM offers each search index as a scope on the model's collection, so the application writes no query, for example `db.Post.search(q).where(...)`. This was the project's original purpose: a package that introduces a kind of index gives applications a typed search built from the index's own definition. Slice 4 supplies the query primitive (a `where` and an `orderBy` that name the index), so a package's scope operation is built from it.
 
 Starting point: the September 2026 design (draft ADR "Collection scopes derived from indexes" on branch `spike-collection-scope-declared`; `spikes/type-composition.md`, `spikes/declared-scopes.md`). The package that owns an index type supplies its scope operations through an interface the ORM defines; the ORM derives a model's scopes from its indexes in the contract; the contract declares no scopes; contributions are registered so the application writes no types.
 
-Open, for Will: the call form (`db.Post.scopes.search.fulltext(q)`, `db.Post.search.fulltext(q)` or `db.Post.search(q)`), decided on cost measured on top of slice 4; and ordering (proposed: a plain relevance order that a later `orderBy` appends to, not a default that `orderBy` replaces).
+Decided 2026-10-12: the call form is `db.Post.scopes.<index name>(...args)` (form B of `spikes/scope-call-forms.md` on branch `spike-slice-5-scope-forms`). Design: [ADR 272](../../docs/architecture%20docs/adrs/ADR%20272%20-%20A%20model's%20collection%20offers%20a%20scope%20for%20each%20index%20a%20package%20understands.md) (Proposed).
 
 ## Non-goals
 
