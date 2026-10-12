@@ -1,5 +1,7 @@
 # ADR 200 — `placeholder(slot)` for unfilled scaffolded migration slots
 
+> **Update — 2026-10:** a placeholder is no longer limited to data transforms. `--convert` puts one in the conversion slot of a type change. See § Where it's produced.
+
 ## At a glance
 
 When `migration plan` detects a data transform, the scaffolder writes a `migration.ts` file. Most of the file is auto-derived, but two slots — `check.source` and `run` — require hand-authored queries that only the migration author knows. The scaffolder emits them like this:
@@ -44,7 +46,7 @@ The return type `never` is assignable to every type in TypeScript. A scaffolded 
 
 ### Where it's produced
 
-Only by the scaffolder — each target's `renderTypeScript` implementation. The planner produces a target-internal plan; it does not render TypeScript and has no concept of placeholders. The only operation kind with user-authored holes is `dataTransform`; every other kind (createCollection, createIndex, etc.) is fully specified by the differ.
+Only by the scaffolder — each target's `renderTypeScript` implementation. The planner produces a target-internal plan; it does not render TypeScript and has no concept of placeholders. Because `placeholder()` is typed `never`, it can stand in any slot of any operation the scaffolder renders. A `dataTransform` carries its `check` and `run` slots; when the user passes `--convert`, the Postgres `alterColumnType` call carries its `using` conversion and the SQLite `recreateTable` call the copied column's expression. Every other planned operation is fully specified by the differ.
 
 ### Error integration
 
