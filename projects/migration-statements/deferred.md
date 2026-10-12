@@ -89,3 +89,9 @@ Running the same `db update` again after it applied fails on the first outdated 
 **Found:** slice 4a manual QA (2026-10-09), F9. For the MongoDB authoring owners.
 
 `@@map("system.x")` is accepted in a MongoDB schema. A rename onto it is refused with a reason, but a plan that creates or drops such a collection fails at apply with `CLI.UNEXPECTED`. Authoring should reject collection names MongoDB rejects.
+
+## `db migrate` of a migration with an unfilled placeholder gives advice that does not mention the slot
+
+**Found:** slice 3a review (2026-10-12). Older than this project's slices.
+
+A migration written with a placeholder has `ops.json` as `[]`. Running `db migrate` before filling the slot applies nothing and then fails at the destination check with general advice. It should say that the migration still has an unfilled slot, name the slot, and say to fill it and run `node migration.ts`.
