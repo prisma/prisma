@@ -1963,7 +1963,7 @@ describe('providePslCompletionItems — after the plus of an inclusion', () => {
     expect(labels(['policy P {', '  +|', '}'])).toEqual([]);
   });
 
-  it('offers a top-level mixin whose name a model of the namespace also has', () => {
+  it('does not offer a top-level mixin whose name a model of the namespace hides', () => {
     const { items } = completeWithSource({
       markedSource: [
         'model mixin Timestamps {',
@@ -1982,9 +1982,7 @@ describe('providePslCompletionItems — after the plus of an inclusion', () => {
       pslBlockDescriptors,
     });
 
-    expect(items.map(({ label, detail }) => [label, detail])).toEqual([
-      ['Timestamps', 'model mixin'],
-    ]);
+    expect(items.map(({ label, detail }) => [label, detail])).toEqual([]);
   });
 
   it('offers nothing after a qualifier that names no namespace', () => {

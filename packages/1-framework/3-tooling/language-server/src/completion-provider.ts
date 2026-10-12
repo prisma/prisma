@@ -13,7 +13,6 @@ import {
   EMPTY_DATA_TYPES,
   findBlockDescriptor,
   isNamespaceLike,
-  lookupMixinReference,
   type MixinSymbol,
   memberEntries,
   type ScopeResolution,
@@ -25,7 +24,6 @@ import {
   GenericBlockDeclarationAst,
   MixinInclusionAst,
   ModelDeclarationAst,
-  NamespaceDeclarationAst,
   type SourceFile,
   type SyntaxNode,
 } from '@internal/psl-parser/syntax';
@@ -590,27 +588,18 @@ function provideMixinInclusionCompletionItems(
   const block = context.inclusion.syntax.parent;
   const keyword = block === undefined ? undefined : includingBlockKeyword(block);
   if (block === undefined || keyword === undefined) return [];
-  const { topLevel } = source.symbolTable;
-  const enclosing = block.findAncestor(NamespaceDeclarationAst.cast);
-  const declared =
-    enclosing === undefined ? undefined : source.binder.declaredSymbol(enclosing.syntax);
-  const namespace = declared?.kind === 'namespace' ? declared : undefined;
+  const scope = source.binder.scopeAt(block);
   const namespaceId = context.namespace;
-  const qualifier = namespaceId === undefined ? undefined : topLevel.namespaces[namespaceId];
+  const qualifier = namespaceId === undefined ? undefined : scope.lookup(namespaceId);
   const visible =
     namespaceId === undefined
-      ? source.binder.scopeAt(block).entries()
-      : qualifier === undefined
-        ? []
-        : memberEntries({ kind: 'namespace', symbol: qualifier });
+      ? scope.entries()
+      : qualifier !== undefined && isNamespaceLike(qualifier)
+        ? memberEntries(qualifier)
+        : [];
   const entries: (readonly [string, ScopeResolution])[] = [];
-  for (const [name, resolution] of visible) {
-    if (resolution.kind === 'namespace') {
-      entries.push([name, resolution]);
-      continue;
-    }
-    const mixin = lookupMixinReference(topLevel, namespace, { namespaceId, name });
-    if (mixin !== undefined) entries.push([name, mixin]);
+  for (const entry of visible) {
+    if (entry[1].kind === 'mixin' || entry[1].kind === 'namespace') entries.push(entry);
   }
   const included = includedMixins(block, context.inclusion, source);
   return scopeCompletionItems(
