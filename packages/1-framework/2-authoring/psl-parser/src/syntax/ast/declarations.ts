@@ -318,6 +318,7 @@ export class MixinDeclarationAst implements BracedBlock, HasDocComment {
     yield* filterChildren(this.syntax, ModelAttributeAst.cast);
   }
 
+  /** A mixin cannot include a mixin, but the parser still reads an inclusion written in a mixin body, so that it can be reported as an error at that inclusion. */
   *inclusions(): Iterable<MixinInclusionAst> {
     yield* filterChildren(this.syntax, MixinInclusionAst.cast);
   }
