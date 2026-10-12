@@ -39,9 +39,25 @@ Configured via the `extensions` array in `prisma.config.ts`; emitted into the co
 
 ### Middleware
 
-A function that runs around every query, similar to middleware in Express or Koa. Middleware can inspect queries, enforce limits, collect metrics, or block unsafe operations — without changing how queries are built or executed. Examples: `budgets()` (cost limits), `lints()` (query checks).
+An object of hooks that the runtime calls for every activity: lifecycle events, which observe each activity, and interceptors, which can change or stop a statement while the runtime runs it. Middleware can inspect statements, enforce limits, collect metrics, or block unsafe operations — without changing how queries are built. Examples: `budgets()` (cost limits), `lints()` (query checks), the cache middleware.
 
 At the framework level, middleware is defined by the `RuntimeMiddleware` interface in `@internal/framework-components`. A middleware can be family-agnostic (runs in any runtime) or scoped to a specific family (`familyId: 'sql'`) and/or target (`targetId: 'postgres'`). Family-specific interfaces (`SqlMiddleware`, `MongoMiddleware`) narrow the plan and context types.
+
+### Activity
+
+One act the runtime's middleware observes: a statement sent to the database (`kind: 'statement'`), or a transaction from `transaction()` to its `commit()` or `rollback()` (`kind: 'transaction'`). An activity has an `id`, a `kind`, the `annotations` the user put on it, and may have a parent: a statement sent on an open transaction is that transaction's child. Every hook of one activity receives the same context, with `ctx.state(key)` for per-activity state. See ADR 271.
+
+### Lifecycle event
+
+One of the three hooks every activity has: `activityStarted` when the act begins, `activityEnded` when it ends (`succeeded`, `failed` or `stopped`), and `activityFinalized` when its effects are final. Lifecycle events observe; they cannot change the activity.
+
+### Interceptor
+
+A hook that can change or stop a statement while the runtime runs it: `beforeCompile` (SQL only) rewrites the query tree, `beforeEncode` can block the statement or change its parameter values, `intercept.onQuery` and `intercept.onExecute` can supply its result instead of running it, and `onRow` sees each row the driver returns.
+
+### Finalized
+
+An activity is finalized when its effects are final, and `activityFinalized` reports the outcome: `committed`, `rolled-back`, or `unknown` when the runtime cannot tell whether the writes landed. A statement with no enclosing transaction is finalized right after it ends; one inside a transaction is finalized when the transaction ends, with the transaction's outcome.
 
 ### Plan
 

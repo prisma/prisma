@@ -60,8 +60,8 @@ Middleware has two kinds of hook: **lifecycle events**, which observe, and **int
 
 Every activity has the same three, and each is one hook whatever the activity's kind:
 
-- **`activityStarted(activity, ctx)`**: the act begins.
-- **`activityEnded(activity, result, ctx)`**: the act ends, with the outcome as the actor saw it: `succeeded`, `failed`, or `stopped` when the caller stopped reading a row stream early. A statement's result also carries its latency, where its result came from (`source: 'driver' | 'middleware'`), and its row count or statistics, discriminated by `result.returns`. An error thrown from this hook fails the activity: the actor receives it. A latency budget fails a statement this way.
+- **`activityStarted(activity, ctx)`**: the act begins. If a middleware's `activityStarted` throws, the activity fails; the middleware after it never saw the activity start, so they receive no later lifecycle event for it.
+- **`activityEnded(activity, result, ctx)`**: the act ends, with the outcome as the actor saw it: `succeeded`, `failed`, or `stopped` when the caller stopped reading a row stream early. A statement's result also carries its latency, where its result came from (`source: 'driver' | 'middleware'`), and its row count or statistics, discriminated by `result.returns`. An error thrown from this hook fails the activity: the actor receives it. A latency budget fails a statement this way. For a transaction whose `COMMIT` or `ROLLBACK` the database has already settled, nothing can fail any more: the database outcome stands, and the transaction is finalized with it. A `commit()` then rejects with the hook's error, and a `rollback()` after a failed callback leaves the caller with the callback's original error; `rollback()` after a commit does nothing.
 - **`activityFinalized(activity, result, ctx)`**: the act's effects are final, with `committed`, `rolled-back` or `unknown`. An error thrown from this hook is passed to `ctx.log.error` and swallowed; later middleware still run.
 
 A middleware that only cares about some kinds checks `activity.kind` at the top of the hook.
@@ -81,7 +81,7 @@ An activity inside a transaction is finalized when the outermost enclosing trans
 
 `unknown` means the runtime cannot tell whether the writes landed. A rejected `COMMIT` may have landed on the server before the error came back, and the cleanup `ROLLBACK` that follows succeeds either way. A resolved `COMMIT` after a failed statement is answered by Postgres with a silent `ROLLBACK`, while other databases commit. A consumer that must not miss a committed write treats `unknown` like `committed`.
 
-When a transaction ends, the activities beneath it are finalized children first: its statements and child activities in the order they started, then the transaction itself, then its parent if the parent has already ended. An activity's own end cannot stand in for its finalization: inside a transaction it ends before the `COMMIT`, and acting then lets a concurrent read store rows the transaction is about to replace.
+When a transaction ends, the activities beneath it are finalized children first: its statements and child activities in the order they started, then the transaction itself, then its parent if the parent has already ended. A child still open when its transaction ends, such as a row stream the caller is still reading, is finalized when it ends, with the outcome the transaction recorded, and keeps its `ctx.state` until then; the transaction does not wait for it. So every activity is started, then ended, then finalized. An activity's own end cannot stand in for its finalization: inside a transaction it ends before the `COMMIT`, and acting then lets a concurrent read store rows the transaction is about to replace.
 
 ### Interceptors
 
@@ -98,11 +98,13 @@ The runtime executes statements and nothing else, so three of the four intercept
 
 ```ts
 intercept?: {
-  onQuery?(activity, ctx): Promise<{ readonly rows: Iterable<Row> | AsyncIterable<Row> } | undefined>;
-  onExecute?(activity, ctx): Promise<{ readonly stats: RuntimeStatementStats } | undefined>;
+  onQuery?(plan, ctx): Promise<{ readonly rows: Iterable<Row> | AsyncIterable<Row> } | undefined>;
+  onExecute?(plan, ctx): Promise<{ readonly stats: RuntimeStatementStats } | undefined>;
   onActivity?(activity, ctx): Promise<{ readonly result: unknown } | undefined>;
 };
 ```
+
+The statement interceptors receive the plan at their stage: `beforeEncode(draft, ctx, params)`, `intercept.onQuery(plan, ctx)`, `intercept.onExecute(plan, ctx)` and `onRow(row, plan, ctx)`. `activity.plan` is the plan the caller sent; the interceptors need the lowered or encoded plan, which is what the cache keys on through `ctx.contentHash(plan)`. Interceptors for activities a client started receive the activity.
 
 `onQuery` and `onExecute` run for statements, named after the runtime method that sent them. `onActivity` runs for activities a client started; its result type belongs to the client, so the framework types it `unknown` and the client checks what it receives. Middleware run in registration order and the first handler that returns a result wins. A transaction has no handler: it has no result to supply, and its statements are run by its actor, not the runtime.
 
@@ -125,7 +127,7 @@ interface ActivityHandle<TResult> extends RuntimeQueryable {
 }
 ```
 
-Statements sent through the handle are the activity's children, and `handle.transaction()` starts a transaction activity beneath it. `intercepted` is set when an `intercept.onActivity` handler supplied a result; the client then returns it without running anything. `end()` hands the runtime the value the client returns to its caller, which the runtime passes to middleware without reading it. Ending an activity while one of its children is still open is a runtime error.
+Statements sent through the handle are the activity's children, and `handle.transaction()` starts a transaction activity beneath it. `intercepted` is set when an `intercept.onActivity` handler supplied a result; the client then returns it without running anything. `end()` hands the runtime the value the client returns to its caller, which the runtime passes to middleware without reading it. Ending an activity while one of its children is still open is a runtime error. A transaction is the exception: the database ends it, so a child still open then is finalized when it ends (see "When an activity is finalized").
 
 The SQL ORM's terminal methods follow this shape:
 
