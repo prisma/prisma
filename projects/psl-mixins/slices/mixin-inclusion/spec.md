@@ -41,7 +41,7 @@ export interface MixinSymbol {
 
 Mixed-in members are the mixin's own objects, shared by every including block. They are not copied.
 
-Placement is in place: the block's symbol object and its member records keep their identity, so a symbol obtained before placement shows the placed members afterwards. The module keeps the writable member records of the symbols it built to itself; the symbol types stay read-only. A block with no placed inclusion is not touched.
+Placement is in place: the block's symbol object keeps its identity, so a symbol obtained before placement shows the placed members afterwards. A block with no placed inclusion is not touched.
 
 **Diagnostics raised by placement:**
 
