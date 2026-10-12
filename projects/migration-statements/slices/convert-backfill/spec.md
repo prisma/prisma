@@ -48,7 +48,7 @@ SQLite works the same way. Two SQLite gaps close on the way:
 
 1. **Temporary values without asking.** Without `--backfill`, `migration plan` writes fill values such as `''` or `0` into existing rows. The project spec already decided this. It is the biggest behaviour change in the slice.
 2. **`alterColumnType` changes shape.** Its options become `{ table, column, type, using? }`. Today they expose internal names. Hand-written migrations that call it need the upgrade instructions.
-3. **A type change answered with `delete` is reported honestly.** The output says `delete values of field "User.age" (type change)`, not "delete field". Slice 2's QA found the old wording misleading.
+3. **A type change answered with `delete` runs the database's cast** (decided by Will, 2026-10-12). Values the database can cast are kept; a value it cannot cast fails the migration, and the failure points to `--convert`. The statement is reported as `accept lossy type change of field "User.age"`, not as deleting the field or its values.
 
 ## The two flags
 
