@@ -693,10 +693,10 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     const call = this.#callText();
     throw postgresError(
       'MIGRATION.SQL_EXPRESSION_INVALID',
-      `${call}: using ${JSON.stringify(this.using.sql)} is not one SQL expression: it holds ${refused}`,
+      `${call}: using ${JSON.stringify(this.using.sql)} holds ${refused}, which could end or extend the ALTER COLUMN … TYPE statement it is written into`,
       {
-        why: 'The conversion is written into the USING clause of ALTER COLUMN … TYPE, so it must be one expression that cannot end or reshape that statement.',
-        fix: `Write using as one SQL expression over the column, such as "${this.columnName}"::${this.type}. If the expression holds a keyword such as FROM, wrap it in parentheses.`,
+        why: 'The conversion is written into the USING clause of ALTER COLUMN … TYPE. The check refuses a semicolon, a SQL comment, dollar quoting, and a comma or a statement keyword outside parentheses, since each could end or extend that statement; it does not check that the text is valid SQL.',
+        fix: `Write using as one SQL expression over the column, such as "${this.columnName}"::${this.type}. If it holds a comma or a keyword such as FROM outside parentheses, wrap it in parentheses.`,
         meta: { call, field: 'using', expression: this.using.sql, refused },
       },
     );

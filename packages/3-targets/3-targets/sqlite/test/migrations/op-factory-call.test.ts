@@ -695,16 +695,22 @@ describe('RecreateTableCall copy expressions', () => {
       copyExpressions,
     });
 
-  it('refuses an expression that is not one SQL expression, naming the call', () => {
+  it('refuses an expression that could end or extend the statement, naming the call', () => {
     expect(() => rebuild({ age: { kind: 'sql', sql: '0; DROP TABLE x' } })).toThrow(
       expect.objectContaining({
         code: 'MIGRATION.SQL_EXPRESSION_INVALID',
         message:
-          'recreateTable({ tableName: "user" }): copyExpressions.age "0; DROP TABLE x" is not one SQL expression: it holds a semicolon outside a quoted literal',
+          'recreateTable({ tableName: "user" }): copyExpressions.age "0; DROP TABLE x" holds a semicolon outside a quoted literal, which could end or extend the INSERT … SELECT statement it is written into',
       }),
     );
     expect(
-      ['"age" -- note', '"age" FROM "user"', '1 UNION SELECT 2', '1 WHERE 1'].map((sql) => {
+      [
+        '"age" -- note',
+        '"age" FROM "user"',
+        '1 UNION SELECT 2',
+        '1 WHERE 1',
+        'CAST("age" AS INTEGER), "name"',
+      ].map((sql) => {
         try {
           rebuild({ age: { kind: 'sql', sql } });
           return undefined;
@@ -712,7 +718,7 @@ describe('RecreateTableCall copy expressions', () => {
           return (error as { code?: string }).code;
         }
       }),
-    ).toEqual(Array(4).fill('MIGRATION.SQL_EXPRESSION_INVALID'));
+    ).toEqual(Array(5).fill('MIGRATION.SQL_EXPRESSION_INVALID'));
   });
 
   it('reads copy expressions with SQLite quoting: bracket and backtick quotes, no E strings', () => {

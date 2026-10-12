@@ -57,12 +57,13 @@ function endOfQuote(text: string, start: number, quote: SqlQuote): number | unde
 }
 
 /**
- * Returns undefined when `text` is one SQL expression that a migration may write into a statement,
- * such as the conversion of an `ALTER COLUMN … USING` clause or a column of an `INSERT … SELECT`
- * list, else what makes it more than that. Text inside the quotes of `quoting` may hold anything;
- * outside them the text may not hold a semicolon, a SQL comment, dollar quoting, or, outside
- * parentheses, a keyword that would end the expression and reshape the statement around it.
- * `FROM` directly after `DISTINCT`, as in `IS DISTINCT FROM`, belongs to the expression.
+ * Returns what in `text` could end or extend the statement a migration writes it into, such as the
+ * conversion of an `ALTER COLUMN … USING` clause or a column of an `INSERT … SELECT` list, or
+ * undefined when it finds nothing. Text inside the quotes of `quoting` may hold anything; outside
+ * them the text may not hold a semicolon, a SQL comment, dollar quoting, or, outside parentheses
+ * and brackets, a comma or a keyword that would end the expression. `FROM` directly after
+ * `DISTINCT`, as in `IS DISTINCT FROM`, belongs to the expression. It checks for these mistakes
+ * only; it does not parse the SQL.
  */
 export function checkSqlExpressionText(text: string, quoting: SqlQuotingRules): string | undefined {
   let depth = 0;
@@ -82,8 +83,9 @@ export function checkSqlExpressionText(text: string, quoting: SqlQuotingRules): 
     if (text.startsWith('--', index) || text.startsWith('/*', index)) return 'a SQL comment';
     DOLLAR_QUOTE.lastIndex = index;
     if (character === '$' && DOLLAR_QUOTE.test(text)) return 'dollar quoting';
-    if (character === '(') depth += 1;
-    if (character === ')') {
+    if (character === ',' && depth === 0) return 'a comma outside parentheses';
+    if (character === '(' || character === '[') depth += 1;
+    if (character === ')' || character === ']') {
       depth -= 1;
       if (depth < 0) return 'parentheses that do not match';
     }

@@ -279,7 +279,7 @@ describe('AlterColumnTypeCall', () => {
     ]);
   });
 
-  it('refuses a USING clause that is not one SQL expression, naming the call', () => {
+  it('refuses a USING clause that could end or extend the statement, naming the call', () => {
     const refusal = (sql: string) => {
       try {
         alter({ using: { kind: 'sql', sql } });
@@ -291,13 +291,13 @@ describe('AlterColumnTypeCall', () => {
     expect(refusal('"age"::int8; DROP TABLE "user"')).toMatchObject({
       code: 'MIGRATION.SQL_EXPRESSION_INVALID',
       message:
-        'alterColumnType({ schema: "public", table: "user", column: "age" }): using "\\"age\\"::int8; DROP TABLE \\"user\\"" is not one SQL expression: it holds a semicolon outside a quoted literal',
+        'alterColumnType({ schema: "public", table: "user", column: "age" }): using "\\"age\\"::int8; DROP TABLE \\"user\\"" holds a semicolon outside a quoted literal, which could end or extend the ALTER COLUMN … TYPE statement it is written into',
     });
     expect(
-      ['age::int8 -- widen', '"age" FROM "user"', '1 UNION SELECT 2'].map(
+      ['age::int8 -- widen', '"age" FROM "user"', '1 UNION SELECT 2', '"age"::int8, DROP "x"'].map(
         (sql) => (refusal(sql) as { code?: string } | undefined)?.code,
       ),
-    ).toEqual(Array(3).fill('MIGRATION.SQL_EXPRESSION_INVALID'));
+    ).toEqual(Array(4).fill('MIGRATION.SQL_EXPRESSION_INVALID'));
   });
 
   it('reads USING with Postgres quoting: E strings with backslash escapes, no bracket or backtick quotes', () => {

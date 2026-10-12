@@ -32,8 +32,10 @@ describe('checkSqlExpressionText', () => {
         '[bracket;name]',
         `"name" IS DISTINCT FROM 'al'`,
         `"name" is not distinct from 'al'`,
+        `coalesce("a", "b")`,
+        'ARRAY[1, 2]',
       ].map(check),
-    ).toEqual(Array(14).fill(undefined));
+    ).toEqual(Array(16).fill(undefined));
   });
 
   it('reads only the quotes the rules name', () => {
@@ -67,7 +69,7 @@ describe('checkSqlExpressionText', () => {
   });
 
   it('refuses FROM that does not directly follow DISTINCT', () => {
-    expect([check(`DISTINCT "name" FROM "User"`), check(`"name" IS DISTINCT, FROM`)]).toEqual([
+    expect([check(`DISTINCT "name" FROM "User"`), check(`"name" IS DISTINCT + FROM`)]).toEqual([
       'the keyword FROM outside parentheses',
       'the keyword FROM outside parentheses',
     ]);
@@ -89,7 +91,7 @@ describe('checkSqlExpressionText', () => {
     ).toEqual(Array(9).fill(true));
   });
 
-  it('refuses a keyword that would reshape the statement around it, outside parentheses', () => {
+  it('refuses a keyword or a comma that would reshape the statement around it, outside parentheses', () => {
     expect(
       [
         '"age" FROM "User"',
@@ -102,6 +104,7 @@ describe('checkSqlExpressionText', () => {
         '1 EXCEPT SELECT 1',
         '1 HAVING 1',
         '1 RETURNING 1',
+        'trim("age")::integer, ALTER COLUMN "label" DROP DEFAULT',
       ].map(check),
     ).toEqual([
       'the keyword FROM outside parentheses',
@@ -114,6 +117,7 @@ describe('checkSqlExpressionText', () => {
       'the keyword EXCEPT outside parentheses',
       'the keyword HAVING outside parentheses',
       'the keyword RETURNING outside parentheses',
+      'a comma outside parentheses',
     ]);
   });
 

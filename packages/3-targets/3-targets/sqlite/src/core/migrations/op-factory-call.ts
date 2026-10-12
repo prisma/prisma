@@ -502,10 +502,10 @@ function refuseUnsafeCopyExpressions(
     const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
     throw sqliteError(
       'MIGRATION.SQL_EXPRESSION_INVALID',
-      `${call}: copyExpressions.${column} ${JSON.stringify(expression.sql)} is not one SQL expression: it holds ${refused}`,
+      `${call}: copyExpressions.${column} ${JSON.stringify(expression.sql)} holds ${refused}, which could end or extend the INSERT … SELECT statement it is written into`,
       {
-        why: 'A copy expression is written into the SELECT that copies the rows into the rebuilt table, so it must be one expression that cannot end or reshape that statement.',
-        fix: `Write copyExpressions.${column} as one SQL expression over the old table's columns, such as CAST("${column}" AS INTEGER). If the expression holds a keyword such as FROM, wrap it in parentheses.`,
+        why: 'A copy expression is written into the SELECT that copies the rows into the rebuilt table. The check refuses a semicolon, a SQL comment, dollar quoting, and a comma or a statement keyword outside parentheses, since each could end or extend that statement; it does not check that the text is valid SQL.',
+        fix: `Write copyExpressions.${column} as one SQL expression over the old table's columns, such as CAST("${column}" AS INTEGER). If it holds a comma or a keyword such as FROM outside parentheses, wrap it in parentheses.`,
         meta: { call, field: `copyExpressions.${column}`, expression: expression.sql, refused },
       },
     );
