@@ -4,7 +4,7 @@
 
 ## Purpose
 
-A developer writes named queries once, as methods of a collection class or as functions, and uses them anywhere a collection of the model appears, with the collection's type staying sound however the query is composed. A query can search a weighted full-text index over several fields by naming the index, in the ORM as in the SQL query builder, so the search cannot miss the index. A package that introduces a kind of index gives each model a typed scope built from the index's own definition, so the application can search without writing the query.
+A developer writes named queries once, as methods of a collection class or as functions, and uses them anywhere a collection of the model appears, with the collection's type staying sound however the query is composed. A query can search a weighted full-text index over several fields by naming the index, in the ORM as in the SQL query builder, so the search cannot miss the index. A package that introduces a kind of index gives each model a typed collection method built from the index's own definition, so the application can search without writing the query.
 
 ## At a glance
 
@@ -66,13 +66,13 @@ const posts = await db.Post
 - **ORM callbacks for `where` and `orderBy` receive a second argument, `{ fns, indexes }`** (ADR 270): the SQL query builder's functions, and the model's table's indexes as index references. Packages need no new mechanism.
 - **Nothing is added to the schema grammar, the contract's domain plane, or the `Collection` type's chaining methods.**
 
-## Slice 5: collection scopes built from indexes
+## Slice 5: packages contribute collection methods for their index types
 
-Added 2026-10-12. The ORM offers each search index as a scope on the model's collection, so the application writes no query, for example `db.Post.search(q).where(...)`. This was the project's original purpose: a package that introduces a kind of index gives applications a typed search built from the index's own definition. Slice 4 supplies the query primitive (a `where` and an `orderBy` that name the index), so a package's scope operation is built from it.
+Added 2026-10-12. The package that owns an index type contributes a collection method for each index of that type, so the application writes no query: `db.Post.using.post_search(q).where(...)`. This was the project's original purpose: a package that introduces a kind of index gives applications a typed search built from the index's own definition. Slice 4 supplies the query primitive (a `where` and an `orderBy` that name the index), so a package's scope operation is built from it.
 
 Starting point: the September 2026 design (draft ADR "Collection scopes derived from indexes" on branch `spike-collection-scope-declared`; `spikes/type-composition.md`, `spikes/declared-scopes.md`). The package that owns an index type supplies its scope operations through an interface the ORM defines; the ORM derives a model's scopes from its indexes in the contract; the contract declares no scopes; contributions are registered so the application writes no types.
 
-Decided 2026-10-12: the call form is `db.Post.scopes.<index name>(...args)` (form B of `spikes/scope-call-forms.md` on branch `spike-slice-5-scope-forms`). Design: [ADR 272](../../docs/architecture%20docs/adrs/ADR%20272%20-%20A%20model's%20collection%20offers%20a%20scope%20for%20each%20index%20a%20package%20understands.md) (Proposed).
+Decided 2026-10-12: the call form is `db.Post.using.<index name>(...args)` (form B of `spikes/scope-call-forms.md` on branch `spike-slice-5-scope-forms`, under the member `using`); these are collection methods, not scopes, because they also order. Design: [ADR 272](../../docs/architecture%20docs/adrs/ADR%20272%20-%20A%20package%20contributes%20collection%20methods%20for%20the%20index%20types%20it%20owns.md) (Proposed).
 
 ## Non-goals
 
@@ -113,9 +113,9 @@ Decided 2026-10-12: the call form is `db.Post.scopes.<index name>(...args)` (for
 - [ ] A title match ranks above a body match through the ORM.
 - [ ] `EXPLAIN` shows the planner using the declared index for an ORM query that names it.
 - [ ] A test on the built packages shows the chaining types, the fragment helpers and the second callback argument typed through `dist`.
-- [ ] A Postgres model with a full-text index offers a search scope named after the index, with no code in the application: on a root collection, after other methods, inside an include refinement and on `this` in a custom class, with whole-shape results, a title match ranking above a body match, and `EXPLAIN` showing the index used.
-- [ ] A second, test-only kind of index contributes its own scope without any change to the ORM client.
-- [ ] The application writes no type arguments or annotations to get typed scopes, and type checking of `examples/prisma-8-demo` costs no more than the slice 5 ADR records when no scope is used.
+- [ ] A Postgres model with a full-text index offers `using.<index name>(q)`, with no code in the application: on a root collection, after other methods, inside an include refinement and on `this` in a custom class, with whole-shape results, a title match ranking above a body match, and `EXPLAIN` showing the index used.
+- [ ] A second, test-only kind of index contributes its own collection method without any change to the ORM client.
+- [ ] The application writes no type arguments or annotations to get typed contributed methods, and type checking of `examples/prisma-8-demo` costs no more than the slice 5 ADR records when no scope is used.
 
 ## Open questions
 
