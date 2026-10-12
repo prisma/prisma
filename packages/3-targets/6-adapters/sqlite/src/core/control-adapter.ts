@@ -72,9 +72,9 @@ const SQLITE_LEDGER_TABLE = '_prisma_ledger';
  */
 const OTHER_TOOL_MIGRATION_TABLES: ReadonlySet<string> = new Set(['_prisma_migrations']);
 
-/** Returns true when `value` is a non-null object, narrowing it to `Record<string, unknown>`. */
+/** Returns true when `value` is a non-null object, narrowing it to `Record<string, unknown>`. Arrays are excluded so array-shaped contract fields are treated as malformed. */
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**

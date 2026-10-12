@@ -77,4 +77,14 @@ describe('SqliteControlAdapter introspection of migration tool tables', () => {
     expect(Object.keys(result.tables)).toEqual(['_prisma_migrations', 'user']);
     await driver.close();
   });
+
+  it('leaves out _prisma_migrations when contract namespaces is an array (malformed)', async () => {
+    const driver = createMemoryDriver(INIT_SQL);
+    const result = await adapter.introspect(driver, {
+      storage: { namespaces: [{ entries: { table: { _prisma_migrations: {} } } }] },
+    });
+
+    expect(Object.keys(result.tables)).toEqual(['user']);
+    await driver.close();
+  });
 });
