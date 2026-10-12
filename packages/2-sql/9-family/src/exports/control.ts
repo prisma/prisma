@@ -111,6 +111,7 @@ export type {
 } from '../core/migrations/statement-planning';
 export {
   appliedStatementsInOrder,
+  backfillOfDefaultedField,
   fieldRenameStorageEffect,
   fieldStatementColumns,
   modelRenameStorageEffect,

@@ -595,6 +595,40 @@ export function fieldStatementColumns(
 }
 
 /**
+ * A conflict for the first backfill statement that names a field the origin model does not have and
+ * whose column has a default: the default fills the existing rows when the column is added, so the
+ * statement has nothing to fill. A field already in the origin keeps its backfill, since a default
+ * does not fill the rows that hold NULL when the column becomes required.
+ */
+export function backfillOfDefaultedField(
+  statements: readonly ResolvedMigrationStatement[],
+  fromContract: ContractWithDomain | null,
+  contract: Contract<SqlStorage>,
+): SqlPlannerConflict | undefined {
+  for (const statement of statements) {
+    if (statement.kind !== 'backfill' || fromContract === null) continue;
+    const originModel = sqlModelStorage(fromContract, statement.field);
+    if (originModel === undefined || Object.hasOwn(originModel.fields, statement.field.field)) {
+      continue;
+    }
+    const table = modelTable(contract, statement.field);
+    const column = fieldColumn(contract, statement.field);
+    if (table === undefined || column === undefined) continue;
+    const storageColumn =
+      contract.storage.namespaces[table.namespaceId]?.entries.table?.[table.table]?.columns[column];
+    if (storageColumn?.default === undefined) continue;
+    const label = describeMigrationStatement(statement, fromContract, contract);
+    return statementRefused(
+      statement,
+      `${label}: the field is new and has a default`,
+      'The default fills the existing rows when the column is added, so there is nothing to backfill. Leave out the --backfill statement.',
+      { namespaceId: table.namespaceId, table: table.table, column },
+    );
+  }
+  return undefined;
+}
+
+/**
  * Every statement of a plan in the order given, with the operations it accounts for: a rename's
  * from `renames`, and none yet for any other statement.
  */

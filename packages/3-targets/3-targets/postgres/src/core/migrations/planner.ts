@@ -9,6 +9,7 @@ import type {
 } from '@internal/family-sql/control';
 import {
   appliedStatementsInOrder,
+  backfillOfDefaultedField,
   controlPolicyForCall,
   detectTableNameCaseChanges,
   extractCodecControlHooks,
@@ -362,6 +363,14 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     });
     if (caseChangeConflicts.length > 0) {
       return plannerFailure(caseChangeConflicts);
+    }
+    const defaultedBackfill = backfillOfDefaultedField(
+      options.statements,
+      options.fromContract,
+      options.contract,
+    );
+    if (defaultedBackfill !== undefined) {
+      return plannerFailure([defaultedBackfill]);
     }
 
     const result = planIssues({

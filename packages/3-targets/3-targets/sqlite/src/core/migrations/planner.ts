@@ -9,6 +9,7 @@ import type {
 } from '@internal/family-sql/control';
 import {
   appliedStatementsInOrder,
+  backfillOfDefaultedField,
   detectTableNameCaseChanges,
   extractCodecControlHooks,
   fieldStatementColumns,
@@ -197,6 +198,14 @@ export class SqliteMigrationPlanner
     });
     if (caseChangeConflicts.length > 0) {
       return plannerFailure(caseChangeConflicts);
+    }
+    const defaultedBackfill = backfillOfDefaultedField(
+      options.statements,
+      options.fromContract,
+      options.contract,
+    );
+    if (defaultedBackfill !== undefined) {
+      return plannerFailure([defaultedBackfill]);
     }
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
 

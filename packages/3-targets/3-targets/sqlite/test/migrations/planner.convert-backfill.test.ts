@@ -26,6 +26,12 @@ const DB_UPDATE: MigrationOperationPolicy = {
 const columnTypes = {
   integer: { dataType: 'sqlite/integer', codecId: 'sqlite/integer@1', nullable: false },
   text: { dataType: 'sqlite/text', codecId: 'sqlite/text@1', nullable: false },
+  'text=q': {
+    dataType: 'sqlite/text',
+    codecId: 'sqlite/text@1',
+    nullable: false,
+    default: { kind: 'literal', value: 'q' },
+  },
   'text?': { dataType: 'sqlite/text', codecId: 'sqlite/text@1', nullable: true },
   datetime: { dataType: 'sqlite/text', codecId: 'sqlite/datetime@1', nullable: false },
   role: {
@@ -202,6 +208,50 @@ describe('SQLite planner, a type change', () => {
     expect(rendered(textAge, intAge, { statements: [statement('convert', 'age')] })).toContain(
       'copyExpressions: { "age": placeholder("User.age:using") }',
     );
+  });
+});
+
+describe('SQLite planner, --backfill on a field with a default', () => {
+  const statementFor = (field: string) => [statement('backfill', field)];
+  const conflictsOf = (to: Contract<SqlStorage>, field: string) =>
+    createSqliteMigrationPlanner(stubLowerer).plan({
+      contract: to,
+      schema: sqliteContractToSchema(textAge, sqliteTestTypes),
+      policy: MIGRATION_PLAN,
+      fromContract: textAge,
+      origin: planOriginOf(textAge),
+      statements: statementFor(field),
+      frameworkComponents: sqliteTestComponents,
+      spaceId: APP_SPACE_ID,
+      snapshotsImportPath: '../../snapshots',
+    });
+
+  it('refuses a new field whose default already fills the existing rows', () => {
+    const withDefault = contract(hex('6'), {
+      id: 'integer',
+      age: 'text',
+      nickname: 'text?',
+      tag: 'text=q',
+    });
+    expect(conflictsOf(withDefault, 'tag')).toMatchObject({
+      kind: 'failure',
+      conflicts: [
+        {
+          kind: 'statementRefused',
+          summary: 'backfill field "User.tag": the field is new and has a default',
+          location: { entityName: 'User', column: 'tag' },
+        },
+      ],
+    });
+  });
+
+  it('keeps a backfill of an optional field made required that has a default', () => {
+    const nicknameDefaulted = contract(hex('5'), {
+      id: 'integer',
+      age: 'text',
+      nickname: 'text=q',
+    });
+    expect(conflictsOf(nicknameDefaulted, 'nickname').kind).toBe('success');
   });
 });
 
