@@ -160,14 +160,16 @@ export type VariantModelRow<
   VariantValue extends string,
 > = MongoModelsMap<TContract>[ModelName] extends {
   readonly discriminator: { readonly field: infer DiscField extends string };
+  readonly variants: infer V extends Record<string, { readonly model: string }>;
 }
-  ? VariantModelName<TContract, ModelName, VariantValue> extends infer VK extends string &
-      keyof MongoModelsMap<TContract>
-    ? Simplify<
-        Omit<InferFullRow<TContract, ModelName>, DiscField> &
-          InferFullRow<TContract, VK> &
-          Record<DiscField, VariantValue>
-      >
+  ? VariantValue extends keyof V
+    ? V[VariantValue]['model'] extends infer VK extends string & keyof MongoModelsMap<TContract>
+      ? Simplify<
+          Omit<InferFullRow<TContract, ModelName>, DiscField> &
+            InferFullRow<TContract, VK> &
+            Record<DiscField, VariantValue>
+        >
+      : InferFullRow<TContract, ModelName>
     : InferFullRow<TContract, ModelName>
   : InferFullRow<TContract, ModelName>;
 
@@ -305,11 +307,12 @@ type VariantNullableFields<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
   VariantValue extends string,
-> =
-  VariantModelName<TContract, ModelName, VariantValue> extends infer VK extends string &
-    keyof MongoModelsMap<TContract>
+> = VariantValue extends string
+  ? VariantModelName<TContract, ModelName, VariantValue> extends infer VK extends string &
+      keyof MongoModelsMap<TContract>
     ? NullableFields<TContract, VK>
-    : never;
+    : never
+  : never;
 
 type DiscriminatorField<
   TContract extends MongoContract,

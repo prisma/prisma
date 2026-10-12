@@ -450,6 +450,9 @@ test('variant() keeps a union of values', () => {
   expectTypeOf(col.variant(value)).toEqualTypeOf<
     MongoCollection<Contract, 'Task', NoIncludes, 'bug' | 'feature'>
   >();
+  expectTypeOf<VariantModelRow<Contract, 'Task', 'bug' | 'feature'>>().toEqualTypeOf<
+    VariantModelRow<Contract, 'Task', 'bug'> | VariantModelRow<Contract, 'Task', 'feature'>
+  >();
 });
 
 test('variant() cannot be called on a collection with a variant selected', () => {
