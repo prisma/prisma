@@ -22,13 +22,11 @@ function sqlOf(plan: SqlQueryPlan<unknown>): string {
 }
 
 function usersSql(state: CollectionState): string {
-  return sqlOf(compileSelect(baseContract, 'public', 'User', 'users', state));
+  return sqlOf(compileSelect(baseContract, 'User', state));
 }
 
 function usersSqlWithIncludes(state: CollectionState): string {
-  return sqlOf(
-    compileSelectWithIncludes(baseContract, getTestAggregates(), 'public', 'User', 'users', state),
-  );
+  return sqlOf(compileSelectWithIncludes(baseContract, getTestAggregates(), 'User', state));
 }
 
 const searchOf = (table: string) =>
@@ -99,7 +97,7 @@ describe('where with fns and indexes', () => {
       );
 
     expect(usersSql(users.state)).toBe(
-      `SELECT "users"."id" AS "id" FROM "public"."users" WHERE EXISTS (SELECT "__orm_rel_1"."invited_by_id" AS "_exists" FROM "public"."users" AS "__orm_rel_1" WHERE ("__orm_rel_1"."invited_by_id" = "users"."id" AND ${searchOf('__orm_rel_1')} @@ websearch_to_tsquery('english', $1)))`,
+      `SELECT "users"."id" AS "id" FROM "public"."users" WHERE EXISTS (SELECT "users_2"."invited_by_id" AS "_exists" FROM "public"."users" AS "users_2" WHERE ("users_2"."invited_by_id" = "users"."id" AND ${searchOf('users_2')} @@ websearch_to_tsquery('english', $1)))`,
     );
   });
 
@@ -115,7 +113,7 @@ describe('where with fns and indexes', () => {
       );
 
     expect(usersSqlWithIncludes(users.state)).toBe(
-      `SELECT "users"."id" AS "id", (SELECT coalesce(json_agg(json_build_object('id', "invitedUsers__rows"."id")), json_build_array()) AS "invitedUsers" FROM (SELECT "invitedUsers__child"."id" AS "id" FROM "public"."users" AS "invitedUsers__child" WHERE ("invitedUsers__child"."invited_by_id" = "users"."id" AND ${searchOf('invitedUsers__child')} @@ websearch_to_tsquery('english', $1))) AS "invitedUsers__rows") AS "invitedUsers" FROM "public"."users"`,
+      `SELECT "users"."id" AS "id", (SELECT coalesce(json_agg(json_build_object('id', "invitedUsers__rows"."id")), json_build_array()) AS "invitedUsers" FROM (SELECT "users_2"."id" AS "id" FROM "public"."users" AS "users_2" WHERE ("users_2"."invited_by_id" = "users"."id" AND ${searchOf('users_2')} @@ websearch_to_tsquery('english', $1))) AS "invitedUsers__rows") AS "invitedUsers" FROM "public"."users"`,
     );
   });
 });

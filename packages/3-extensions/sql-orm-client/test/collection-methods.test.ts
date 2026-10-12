@@ -32,7 +32,7 @@ function sqlOf(contract: Contract<SqlStorage>, plan: SqlQueryPlan<unknown>): str
 const contract = getTestContract();
 
 function usersSql(state: CollectionState): string {
-  return sqlOf(contract, compileSelect(contract, 'public', 'User', 'users', state));
+  return sqlOf(contract, compileSelect(contract, 'User', state));
 }
 
 const search = `(setweight(to_tsvector('english', coalesce("users"."name", '')), 'A') || setweight(to_tsvector('english', coalesce("users"."email", '')), 'B'))`;
@@ -139,19 +139,12 @@ describe('a contributed method', () => {
 
     const sql = sqlOf(
       contract,
-      compileSelectWithIncludes(
-        contract,
-        getTestAggregates(),
-        'public',
-        'User',
-        'users',
-        users.state,
-      ),
+      compileSelectWithIncludes(contract, getTestAggregates(), 'User', users.state),
     );
-    const child = `(setweight(to_tsvector('english', coalesce("invitedUsers__child"."name", '')), 'A') || setweight(to_tsvector('english', coalesce("invitedUsers__child"."email", '')), 'B'))`;
+    const child = `(setweight(to_tsvector('english', coalesce("users_2"."name", '')), 'A') || setweight(to_tsvector('english', coalesce("users_2"."email", '')), 'B'))`;
     const rank = `ts_rank(${child}, websearch_to_tsquery('english', $1))`;
     expect(sql).toBe(
-      `SELECT "users"."id" AS "id", (SELECT coalesce(json_agg(json_build_object('id', "invitedUsers__rows"."id") ORDER BY "invitedUsers__rows"."invitedUsers__order_0" DESC), json_build_array()) AS "invitedUsers" FROM (SELECT "invitedUsers__child"."id" AS "id", ${rank} AS "invitedUsers__order_0" FROM "public"."users" AS "invitedUsers__child" WHERE ("invitedUsers__child"."invited_by_id" = "users"."id" AND ${child} @@ websearch_to_tsquery('english', $1)) ORDER BY ${rank} DESC LIMIT 3) AS "invitedUsers__rows") AS "invitedUsers" FROM "public"."users"`,
+      `SELECT "users"."id" AS "id", (SELECT coalesce(json_agg(json_build_object('id', "invitedUsers__rows"."id") ORDER BY "invitedUsers__rows"."invitedUsers__order_0" DESC), json_build_array()) AS "invitedUsers" FROM (SELECT "users_2"."id" AS "id", ${rank} AS "invitedUsers__order_0" FROM "public"."users" AS "users_2" WHERE ("users_2"."invited_by_id" = "users"."id" AND ${child} @@ websearch_to_tsquery('english', $1)) ORDER BY ${rank} DESC LIMIT 3) AS "invitedUsers__rows") AS "invitedUsers" FROM "public"."users"`,
     );
   });
 
@@ -162,14 +155,7 @@ describe('a contributed method', () => {
 
     const sql = sqlOf(
       contract,
-      compileSelectWithIncludes(
-        contract,
-        getTestAggregates(),
-        'public',
-        'Post',
-        'posts',
-        posts.state,
-      ),
+      compileSelectWithIncludes(contract, getTestAggregates(), 'Post', posts.state),
     );
     const rank = `ts_rank(${search}, websearch_to_tsquery('english', $1))`;
     expect(sql).toBe(
@@ -181,9 +167,7 @@ describe('a contributed method', () => {
     const notesSchema = notesContract();
     const found = notes.Note.select('id').using.notes_title_trgm('title', 'zebra');
 
-    expect(
-      sqlOf(notesSchema, compileSelect(notesSchema, 'public', 'Note', 'notes', found.state)),
-    ).toBe(
+    expect(sqlOf(notesSchema, compileSelect(notesSchema, 'Note', found.state))).toBe(
       'SELECT "notes"."id" AS "id" FROM "public"."notes" WHERE "notes"."title" = $1 ORDER BY similarity("notes"."title", $2) DESC',
     );
   });
