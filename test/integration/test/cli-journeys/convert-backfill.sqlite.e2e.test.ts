@@ -563,5 +563,60 @@ withTempDir(({ createTempDir }) => {
       },
       timeouts.spinUpPpgDev,
     );
+
+    it(
+      'db update asks about a lossy type change offering only --delete, casts with it, and gives a new required field a temporary value',
+      async () => {
+        const ctx = setup(createTempDir);
+        expect((await runContractEmit(ctx)).exitCode, 'emit base').toBe(0);
+        expect((await runDbUpdate(ctx)).exitCode, 'db update base').toBe(0);
+        exec(
+          ctx.dbPath,
+          `INSERT INTO "User" (id, age, nickname) VALUES (1, '10', NULL), (2, 'abc', 'bo')`,
+        );
+
+        await emit(ctx, BASE.replace('age      String', 'age      Int'));
+        const asked = await runDbUpdate(ctx, ['--json']);
+        const question = parseJsonOutput<{ readonly code: string; readonly nextActions: unknown }>(
+          asked,
+        );
+        expect(question.code).toBe('CLI.CONSENT_REQUIRED');
+        expect(JSON.stringify(question.nextActions)).toContain('--delete User.age');
+        expect(JSON.stringify(question.nextActions)).not.toContain('--convert');
+
+        const failed = await runDbUpdate(ctx, ['--delete', 'User.age', '--json']);
+        const error = parseJsonOutput<{ readonly code: string; readonly nextActions: unknown }>(
+          failed,
+        );
+        expect(error.code).toBe('MIGRATION.RUNNER_FAILED');
+        expect(JSON.stringify(error.nextActions)).toContain('--convert User.age');
+        exec(ctx.dbPath, `UPDATE "User" SET age = '7' WHERE id = 2`);
+        const cast = await runDbUpdate(ctx, ['--delete', 'User.age']);
+        expect(cast.exitCode, `db update --delete: ${cast.stdout}\n${cast.stderr}`).toBe(0);
+        expect(
+          query(ctx.dbPath, `SELECT id, age, typeof(age) AS stored FROM "User" ORDER BY id`),
+        ).toEqual([
+          { id: 1, age: 10, stored: 'integer' },
+          { id: 2, age: 7, stored: 'integer' },
+        ]);
+
+        await emit(
+          ctx,
+          BASE.replace('age      String', 'age      Int').replace(
+            '  nickname String?\n',
+            '  nickname String?\n  name     String\n',
+          ),
+        );
+        const added = await runDbUpdate(ctx);
+        expect(added.exitCode, `db update name: ${added.stdout}\n${added.stderr}`).toBe(0);
+        expect(query(ctx.dbPath, `SELECT id, name FROM "User" ORDER BY id`)).toEqual([
+          { id: 1, name: '' },
+          { id: 2, name: '' },
+        ]);
+        const verify = await runDbVerify(ctx, ['--schema-only']);
+        expect(verify.exitCode, `db verify: ${verify.stdout}\n${verify.stderr}`).toBe(0);
+      },
+      timeouts.spinUpPpgDev,
+    );
   });
 });

@@ -454,8 +454,11 @@ async function databaseContractIfReachable(
   const prepared = await prepareMigrationRun(inputs);
   if (!prepared.ok) return undefined;
   const { client, dbConnection, migrationsDir } = prepared.value;
-  try {
-    await client.connect(dbConnection, { existingDatabaseOnly: true });
+  const read = async (): Promise<string | undefined> => {
+    await client.connect(dbConnection, {
+      existingDatabaseOnly: true,
+      connectTimeoutMs: MARKER_READ_TIMEOUT_MS,
+    });
     const marker = await client.readMarker();
     if (marker === null) return undefined;
     const { packages } = await readMigrationsDir(join(migrationsDir, APP_SPACE_ID), {
@@ -464,9 +467,23 @@ async function databaseContractIfReachable(
     return packages.some(({ metadata }) => metadata.to === marker.storageHash)
       ? marker.storageHash
       : undefined;
-  } catch {
-    return undefined;
-  } finally {
-    await closeQuietly(client);
-  }
+  };
+  const settled = read()
+    .catch(() => undefined)
+    .finally(() => closeQuietly(client));
+  return settledWithin(settled, MARKER_READ_TIMEOUT_MS);
+}
+
+/** How long the refusal waits for the marker before it refuses without `--from`. */
+const MARKER_READ_TIMEOUT_MS = 3000;
+
+function settledWithin<T>(promise: Promise<T>, ms: number): Promise<T | undefined> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(undefined), ms);
+    timer.unref();
+    void promise.then((value) => {
+      clearTimeout(timer);
+      resolve(value);
+    });
+  });
 }

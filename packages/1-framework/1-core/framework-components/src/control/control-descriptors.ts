@@ -86,6 +86,8 @@ export interface ControlDriverDescriptor<
 export interface ControlDriverConnectOptions {
   /** Connect only to a database that already exists, and never create one or its file. */
   readonly existingDatabaseOnly?: boolean;
+  /** Give up connecting after this many milliseconds, where the driver connects over a network. */
+  readonly connectTimeoutMs?: number;
 }
 
 export interface ControlExtensionDescriptor<

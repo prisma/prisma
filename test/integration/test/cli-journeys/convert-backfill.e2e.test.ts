@@ -282,4 +282,58 @@ withTempDir(({ createTempDir }) => {
       timeouts.spinUpPpgDev,
     );
   });
+
+  describe('Postgres: db update on a table with rows', () => {
+    const db = useDevDatabase();
+
+    it(
+      'asks about a lossy type change offering only --delete, casts with it, and gives a new required field a temporary value',
+      async () => {
+        const ctx = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+          contractMode: 'psl',
+        });
+        await emit(ctx, contractWith('  age   String\n'));
+        expect((await runDbUpdate(ctx)).exitCode, 'db update base').toBe(0);
+        await sql(
+          db.connectionString,
+          `INSERT INTO "user" (id, email, age) VALUES (1, 'a', '10'), (2, 'b', 'abc')`,
+        );
+
+        await emit(ctx, contractWith('  age   Int\n'));
+        const asked = await runDbUpdate(ctx, ['--json']);
+        expect(engineError(asked)?.code).toBe('CLI.CONSENT_REQUIRED');
+        const offered = JSON.stringify(engineError(asked)?.nextActions);
+        expect(offered).toContain('--delete User.age');
+        expect(offered).not.toContain('--convert');
+
+        const failed = await runDbUpdate(ctx, ['--delete', 'User.age', '--json']);
+        expect(engineError(failed)?.code).toBe('MIGRATION.RUNNER_FAILED');
+        expect(JSON.stringify(engineError(failed)?.nextActions)).toContain('--convert User.age');
+        await sql(db.connectionString, `UPDATE "user" SET age = '7' WHERE id = 2`);
+        const cast = await runDbUpdate(ctx, ['--delete', 'User.age']);
+        expect(cast.exitCode, `db update --delete: ${cast.stderr}`).toBe(0);
+        expect(
+          (await sql(db.connectionString, `SELECT id, age FROM "user" ORDER BY id`)).rows,
+        ).toEqual([
+          { id: 1, age: 10 },
+          { id: 2, age: 7 },
+        ]);
+
+        await emit(ctx, contractWith('  age   Int\n  name  String\n'));
+        const added = await runDbUpdate(ctx);
+        expect(added.exitCode, `db update name: ${added.stderr}`).toBe(0);
+        expect(
+          (await sql(db.connectionString, `SELECT id, name FROM "user" ORDER BY id`)).rows,
+        ).toEqual([
+          { id: 1, name: '' },
+          { id: 2, name: '' },
+        ]);
+        const verify = await runDbVerify(ctx, ['--schema-only']);
+        expect(verify.exitCode, `db verify: ${verify.stdout}\n${verify.stderr}`).toBe(0);
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
 });
