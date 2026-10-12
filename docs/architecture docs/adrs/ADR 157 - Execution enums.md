@@ -1,8 +1,12 @@
 # ADR 157 — Execution enums
 
+**Status: Partially superseded.** The idea stands: an enum is a set of allowed values plus an explicit enforcement mechanism, and execution derives the allowed values from the contract. How the contract realizes it is superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized). The contract has no `storage.sets` and no structured `inSet` checks, and a native enum is not a `storage.types` entry with `typeParams.values`. The sections it replaces carry a note and are kept as a record.
+
 We want enum-like behavior that is explicit in storage and reusable in execution.
 
 ## Summary
+
+> Superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): the portable mechanism is a value set plus a derived CHECK, not ADR 156's sets and `inSet` checks.
 
 - “Enum” means **a set of allowed values** plus an explicit **storage enforcement mechanism**.
 - The execution plane derives “allowed values” from storage enforcement so lanes don’t drift.
@@ -34,6 +38,8 @@ This ADR does not redefine those components; it defines how “enums” are expr
 
 ## Terminology
 
+> Superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): an enum's members and its value set hold each value in the form the codec stores it, not as a canonical string.
+
 - **set**: a named list of allowed values, stored as canonical strings plus a `codecId` (ADR 156).
 - **enforcement mechanism**: the storage rule the database uses to enforce membership (native enum type, check constraint, etc.).
 - **execution enum**: the execution-plane behavior: “given a column, what values are allowed?” + “is this value allowed?”.
@@ -41,6 +47,8 @@ This ADR does not redefine those components; it defines how “enums” are expr
 Note: we call it a “set” because that’s the mental model, but some storage mechanisms treat the list as **ordered** (notably Postgres enums).
 
 ## What problem are we solving?
+
+> Superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): a native enum is a `native_enum` storage entry, and the portable mechanism is a value set plus a derived CHECK.
 
 The primary problem is: **how do we provide enum behavior on databases that don’t have a native enum representation?**
 
@@ -68,12 +76,16 @@ We want one implementation shared via the execution context, derived from the co
 
 ## Design constraints
 
+> The value-encoding bullet is superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): members are stored in the form the codec stores them.
+
 - **Contract must be explicit**: storage enforcement is described directly in `storage`, not inferred later.
 - **Execution derives from storage**: execution-plane “allowed values” are derived from `storage`, not duplicated under `execution`.
 - **Deterministic value encoding**: when the contract needs to store a list of allowed values, it stores canonical strings plus a `codecId` (ADR 155, ADR 156).
 - **Portable baseline**: we need an emulated strategy that works on targets without native enum types.
 
 ## Non-goals
+
+> The second bullet is superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): a native enum now derives a value set, as a domain enum does.
 
 - This ADR does not define the authoring surface (“how users write enums in PSL/TS”). It only defines contract meaning and execution-plane behavior.
 - This ADR does not require refactoring native enums to reference `storage.sets` today. It calls that out as future work.
@@ -90,6 +102,8 @@ In Prisma Next, an “enum” is not a single universal storage node. It is:
 The enforcement mechanism must be explicit in the contract.
 
 ### 2) Supported enforcement mechanisms (contract-level)
+
+> Superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): the contract has no `storage.sets`, no `inSet` checks, and no `pg/enum@1` entry in `storage.types`.
 
 #### A) Check constraint (“emulated enum”, portable baseline)
 
@@ -118,6 +132,8 @@ That is not the current implementation; this ADR treats it as future work, not a
 
 ### 3) Execution-plane behavior: “allowed values” are derived and shared
 
+> The derivation bullets are superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): a column's allowed values come from the value set its `valueSet` reference names.
+
 The execution plane must expose a shared, lane-agnostic way to:
 
 - **discover** the allowed values for a storage column, and
@@ -145,6 +161,8 @@ The important part is *where this logic lives*: it should be implemented once (e
   - exposes shared helpers so all lanes behave consistently
 
 ## Worked examples
+
+> Superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized), which has an example the contract build emits today. The contract shapes below no longer exist.
 
 ### Example 1: Emulated enum via check constraint (portable)
 
@@ -231,6 +249,8 @@ Note: this example uses Postgres codec IDs for concreteness. The same shape appl
 
 ## Hashing implications
 
+> Superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): the storage facts are now the value set, the derived checks and the `native_enum` entry. Each is part of `storage`, so a change to any of them changes `storageHash`.
+
 Enum enforcement and membership lists are **storage facts**:
 
 - changing `storage.sets.*.values`
@@ -249,9 +269,13 @@ Because SQL query lanes operate on tables/columns, and the database enforces con
 
 ### “Why do sets store strings + a codecId?”
 
+> Superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): a member is stored in the form its codec stores it.
+
 Because JSON cannot safely represent many domain values (big numbers, dates, etc.) in a way that round-trips deterministically. ADR 155 standardizes a canonical boundary representation, and ADR 156 uses that representation for set members.
 
 ### “Are sets actually sets, or ordered lists?”
+
+> Superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): a value set is an ordered list for both kinds of enum.
 
 They’re “sets” in the sense that they describe membership. But some enforcement mechanisms treat ordering as schema-significant (Postgres enums). If we refactor native enums to reference `storage.sets`, we must treat `storage.sets.*.values` as an ordered canonical list for that use case.
 
@@ -260,6 +284,129 @@ They’re “sets” in the sense that they describe membership. But some enforc
 `db.enums` holds each member as the value a query returns for it: the enum's codec reads the member's stored form with `decodeJson`, so an int8 member stored as `"1"` is `1n` and a timestamp member is a `Date` or a Temporal value. `has()`, `nameOf()` and `ordinalOf()` find a value equal to a member: a primitive by SameValueZero, an object by its kind and the form the codec stores it in.
 
 A client resolves every enum's codec when it builds `db.enums`, so a client refuses a contract whose enum codec its runtime lacks, with `RUNTIME.CODEC_DESCRIPTOR_MISSING`. It decodes an enum's members when the enum is first read, once, so a codec that needs something the runtime lacks, such as a global `Temporal`, fails only when that enum is read. An immutable member is handed out as decoded; a mutable one, such as a `Date`, is copied on every read. The Mongo ORM checks a written enum value against the same accessors.
+
+## Amendment (October 12, 2026) — how enums are realized
+
+The idea of this ADR stands. The contract realizes it as follows, and this replaces the sections marked above.
+
+**A domain enum.** PSL writes `enum Name { @@type("<codec id>") Member = <value> }`, and TypeScript writes `enumType(name, codec, member(...))`. The contract holds it at `domain.namespaces.<ns>.enum.<Name>`: the `codecId` and the ordered `members`, each a `{ name, value }` pair. The value is in the form the codec stores it, so a `pg/int4@1` member is the number `1` and a `pg/int8@1` member is the string `"1"`.
+
+**A value set.** The contract build also writes `storage.namespaces.<ns>.entries.valueSet.<Name>`, the ordered stored values. A field typed by the enum carries a `valueSet` reference to the domain enum, and its column carries a `valueSet` reference to the value set. A reference names the plane, the entity kind, the namespace and the name. The emitted read type of the field narrows the codec's output type to the members.
+
+**Enforcement.** On a `managed` table, the contract build derives a CHECK from the column and its members and stores it as an opaque wire-named expression ([ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>)). A scalar column gets `"col" IN (...)` and a list column gets `array_remove("col", NULL) <@ '{...}'`. `@noCheck` opts a column out. SQLite emits no check (ADR 244). Mongo enforces membership with the `enum` keyword of the collection's `$jsonSchema` validator.
+
+**A native Postgres enum.** PSL writes a `native_enum Name { ... }` block and types a column `pg.enum(Name)`. The contract holds a `native_enum` storage entry keyed by the Postgres type name, a value set derived from it under the block's name, and columns with `dataType: "pg/enum"` and `typeParams.typeName`. The database type enforces membership, so no CHECK is derived.
+
+**Execution.** A column's allowed values are the values of the value set its `valueSet` reference names, for both kinds of enum. `db.enums.<ns>.<Name>` holds each domain enum, with members decoded as the October 7 amendment describes. `db.nativeEnums.<ns>.<Name>` holds native Postgres enums only: it reads the namespace's value sets and leaves out each one a domain enum names.
+
+**Which codecs can type an enum.** A codec without the `equality` trait, or one that sets `enumRefusal`, cannot type an enum ([ADR 254](<./ADR 254 - Data types and casts.md>), amendment of October 7, 2026). When a CHECK is derived, each member must be stored as a string or a finite number. Both refusals are `CONTRACT.ENUM_INVALID`.
+
+**Example.** This schema declares one domain enum and one native enum:
+
+```prisma
+native_enum TicketStatus {
+  OPEN   = "open"
+  CLOSED = "closed"
+  @@map("ticket_status")
+}
+
+enum Priority {
+  @@type("pg/int8@1")
+  Low  = "1"
+  High = "10"
+}
+
+model Ticket {
+  id       Int                     @id
+  status   pg.enum(TicketStatus)
+  priority Priority
+
+  @@map("tickets")
+}
+```
+
+The domain plane holds the domain enum and the field that references it:
+
+```json
+{
+  "domain": {
+    "namespaces": {
+      "public": {
+        "enum": {
+          "Priority": {
+            "codecId": "pg/int8@1",
+            "members": [
+              { "name": "Low", "value": "1" },
+              { "name": "High", "value": "10" }
+            ]
+          }
+        },
+        "models": {
+          "Ticket": {
+            "fields": {
+              "priority": {
+                "nullable": false,
+                "type": { "codecId": "pg/int8@1", "kind": "scalar" },
+                "valueSet": { "entityKind": "enum", "entityName": "Priority", "namespaceId": "public", "plane": "domain" }
+              },
+              "status": {
+                "nullable": false,
+                "type": { "codecId": "pg/enum@1", "kind": "scalar", "typeParams": { "typeName": "ticket_status" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+The storage plane holds the native type, both value sets, the columns and the derived check:
+
+```json
+{
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "native_enum": {
+            "ticket_status": { "kind": "postgres-enum", "members": ["open", "closed"], "typeName": "ticket_status" }
+          },
+          "table": {
+            "tickets": {
+              "checks": [
+                { "expression": "\"priority\" IN ('1', '10')", "name": "tickets_priority_check_8f50aef7", "prefix": "tickets_priority_check" }
+              ],
+              "columns": {
+                "priority": {
+                  "codecId": "pg/int8@1",
+                  "dataType": "pg/int8",
+                  "nullable": false,
+                  "valueSet": { "entityKind": "valueSet", "entityName": "Priority", "namespaceId": "public", "plane": "storage" }
+                },
+                "status": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "nullable": false,
+                  "typeParams": { "typeName": "ticket_status" },
+                  "valueSet": { "entityKind": "valueSet", "entityName": "TicketStatus", "namespaceId": "public", "plane": "storage" }
+                }
+              }
+            }
+          },
+          "valueSet": {
+            "Priority": { "kind": "valueSet", "values": ["1", "10"] },
+            "TicketStatus": { "kind": "valueSet", "values": ["open", "closed"] }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+The emitted row type has `priority: 1n | 10n` and `status: 'open' | 'closed'`.
 
 ## Consequences
 
@@ -278,4 +425,5 @@ A client resolves every enum's codec when it builds `db.enums`, so a client refu
 
 - ADR 155 — Driver/Codec boundary value representation and responsibilities
 - ADR 156 — Storage sets and check constraints
-
+- [ADR 244 — Check constraints are opaque wire-named expressions](<./ADR 244 - Check constraints are opaque wire-named expressions.md>)
+- [ADR 254 — Data types and casts](<./ADR 254 - Data types and casts.md>)
