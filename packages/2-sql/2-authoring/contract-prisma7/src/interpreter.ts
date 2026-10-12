@@ -37,10 +37,11 @@ import {
 import type {
   DocumentAst,
   KeyValuePairAst,
+  MixinInclusionAst,
   PslSources,
   SourceFile,
 } from '@internal/psl-parser/syntax';
-import { dottedPathsIn, StringLiteralExprAst } from '@internal/psl-parser/syntax';
+import { dottedPathsIn, printSyntax, StringLiteralExprAst } from '@internal/psl-parser/syntax';
 import { sqlDataTypeOfCodec, unquotedSqlBaseNameOfCodec } from '@internal/sql-contract/data-type';
 import {
   declaredBackingObjectName,
@@ -229,6 +230,10 @@ function reportDuplicateBlockEntries(
   }
 }
 
+interface InclusionHolderAst {
+  inclusions(): Iterable<MixinInclusionAst>;
+}
+
 export function interpretPrisma7Documents(
   input: InterpretPrisma7DocumentsInput,
 ): Result<Contract, ContractSourceDiagnostics> {
@@ -277,6 +282,21 @@ export function interpretPrisma7Documents(
         span,
       });
     };
+    const unsupportedInclusions = (
+      code: string,
+      holders: Readonly<Record<string, { readonly node: InclusionHolderAst }>>,
+    ): void => {
+      for (const holder of Object.values(holders)) {
+        for (const inclusion of holder.node.inclusions()) {
+          diagnostics.push({
+            code,
+            message: `Unsupported mixin inclusion "${printSyntax(inclusion.syntax).trim()}"`,
+            sourceId,
+            span: nodePslSpan(inclusion.syntax, sources),
+          });
+        }
+      }
+    };
     for (const block of Object.values(symbolTable.topLevel.blocks)) {
       switch (block.keyword) {
         case 'datasource':
@@ -316,6 +336,11 @@ export function interpretPrisma7Documents(
     for (const namedType of Object.values(symbolTable.topLevel.namedTypes)) {
       unsupported('types', namedType.span);
     }
+    for (const mixin of Object.values(symbolTable.topLevel.mixins)) {
+      unsupported(`${mixin.keyword} mixin`, mixin.span);
+    }
+    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.topLevel.models);
+    unsupportedInclusions('PSL_INVALID_EXTENSION_BLOCK_MEMBER', symbolTable.topLevel.blocks);
     for (const symbol of Object.values(symbolTable.topLevel.models)) {
       if (!claimName('model', symbol.name, sourceId, symbol.span)) continue;
       models.push(
