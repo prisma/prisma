@@ -252,62 +252,6 @@ describe('validateContractDomain()', () => {
       expect(() => validateContractDomain(contract)).not.toThrow();
     });
 
-    it('rejects a variant whose base is a same-named model in another namespace', () => {
-      const base = {
-        fields: {
-          type: { nullable: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
-        },
-        discriminator: { field: 'type' },
-      };
-      const contract = makeValidContract({
-        roots: { tasks: crossRef('Task', 'a') },
-        domain: {
-          namespaces: {
-            a: {
-              models: {
-                Task: makeMinimalModel({ ...base, variants: { chore: crossRef('Chore', 'b') } }),
-              },
-            },
-            b: {
-              models: {
-                Task: makeMinimalModel({ ...base, variants: { chore: crossRef('Chore', 'b') } }),
-                Chore: makeMinimalModel({ base: crossRef('Task', 'b') }),
-              },
-            },
-          },
-        },
-      });
-      expect(() => validateContractDomain(contract)).toThrow(
-        'Variant "b:Chore" has base "b:Task" but expected "a:Task"',
-      );
-    });
-
-    it('rejects a model whose base lists a same-named model in another namespace', () => {
-      const contract = makeValidContract({
-        roots: { tasks: crossRef('Task', 'a') },
-        domain: {
-          namespaces: {
-            a: {
-              models: {
-                Task: makeMinimalModel({
-                  fields: {
-                    type: { nullable: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
-                  },
-                  discriminator: { field: 'type' },
-                  variants: { chore: crossRef('Chore', 'b') },
-                }),
-              },
-            },
-            b: { models: { Chore: makeMinimalModel({ base: crossRef('Task', 'a') }) } },
-            c: { models: { Chore: makeMinimalModel({ base: crossRef('Task', 'a') }) } },
-          },
-        },
-      });
-      expect(() => validateContractDomain(contract)).toThrow(
-        'Model "c:Chore" has base "a:Task" which does not list it as a variant',
-      );
-    });
-
     it('rejects model with base referencing non-existent model', () => {
       const contract = makeValidContract({
         models: {

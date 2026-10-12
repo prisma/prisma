@@ -209,11 +209,12 @@ namespace c {
         storage: { table: 'epics', namespaceId: 'c' },
       });
       const storage = contract.storage as SqlStorage;
-      for (const [namespace, table] of [
+      const variantTables = [
         ['b', 'tasks'],
         ['b', 'epics'],
         ['c', 'epics'],
-      ] as const) {
+      ] as const;
+      for (const [namespace, table] of variantTables) {
         expect(storage.namespaces[namespace]?.entries.table?.[table]).toMatchObject({
           primaryKey: { columns: ['id'] },
           foreignKeys: [{ target: { namespaceId: 'a', tableName: 'tasks', columns: ['id'] } }],
