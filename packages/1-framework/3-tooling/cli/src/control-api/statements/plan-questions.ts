@@ -59,6 +59,12 @@ export interface PlannedSubject {
   readonly subject: MigrationSubject;
 }
 
+/** An operation of a plan that loses its subject's data. */
+export interface PlannedLoss extends PlannedSubject {
+  /** How to keep the data instead, in the target's words; the question ends with it. */
+  readonly keepDataAdvice?: string;
+}
+
 /** An operation of a plan that changes who can read or write its subject's rows. */
 export interface PlannedAccessChange extends PlannedSubject {
   readonly widens: boolean;
@@ -66,7 +72,7 @@ export interface PlannedAccessChange extends PlannedSubject {
 
 /** What a plan would lose, and whose access it would change. */
 export interface PlannedQuestions {
-  readonly dataLoss: readonly PlannedSubject[];
+  readonly dataLoss: readonly PlannedLoss[];
   readonly accessWidening: readonly PlannedAccessChange[];
 }
 
@@ -239,7 +245,7 @@ function missingFieldModel(
  * after a statement renames the model, so the question says to pass one.
  */
 export function dataLossQuestion(
-  loss: PlannedSubject,
+  loss: PlannedLoss,
   contracts: StatementContracts & {
     readonly destination: ContractWithDomain;
     readonly originKnown: boolean;
@@ -257,6 +263,7 @@ export function dataLossQuestion(
     question: [
       `${loss.label} ${lossText(loss.subject, subject, contracts.originKnown)}.`,
       ...(missingModel === undefined ? [] : [modelRenameAdvice(missingModel, contracts)]),
+      ...(loss.keepDataAdvice === undefined ? [] : [loss.keepDataAdvice]),
     ].join(' '),
     subject,
     verbs: renamable ? ['rename', 'delete'] : ['delete'],
@@ -362,7 +369,7 @@ function checkAnswers(questions: readonly PlanQuestion[], answers: readonly Plan
 }
 
 function withRecoveryOnFirstStorageQuestion(
-  asked: readonly { readonly loss: PlannedSubject; readonly question: PlanQuestion }[],
+  asked: readonly { readonly loss: PlannedLoss; readonly question: PlanQuestion }[],
   recoveryApplies: boolean,
 ): readonly PlanQuestion[] {
   const first = recoveryApplies

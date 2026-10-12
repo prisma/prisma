@@ -61,9 +61,12 @@ function contractWith(
   } as unknown as MongoContract;
 }
 
-function plan(fromContract: MongoContract | null) {
+function plan(
+  fromContract: MongoContract | null,
+  contract: MongoContract = contractWith({ User: 'users' }, 'to'),
+) {
   const result = new MongoMigrationPlanner().plan({
-    contract: contractWith({ User: 'users' }, 'to'),
+    contract,
     schema: new MongoSchemaIR([
       new MongoSchemaCollection({ name: 'users' }),
       new MongoSchemaCollection({
@@ -141,5 +144,32 @@ describe('MongoDB planner, data loss', () => {
         subject: { kind: 'model', namespaceId: asNamespaceId('__unbound__'), model: 'Event' },
       },
     ]);
+  });
+
+  it('advises renaming the collection by hand when only the collection of a model that keeps its name changes', () => {
+    const planned = plan(
+      contractWith({ User: 'users', Event: 'events' }, 'from'),
+      contractWith({ User: 'users', Event: 'occasions' }, 'to'),
+    );
+
+    expect(
+      planned.dataLoss.map(({ operationIndex, subject, keepDataAdvice }) => ({
+        operation: planned.operations[operationIndex],
+        subject,
+        keepDataAdvice,
+      })),
+    ).toEqual([
+      {
+        operation: 'Drop collection events',
+        subject: { kind: 'model', namespaceId: asNamespaceId('__unbound__'), model: 'Event' },
+        keepDataAdvice:
+          'To keep its documents, rename collection "events" to "occasions" instead; a statement cannot rename the collection of a model that keeps its name. With db update, rename the collection in the database yourself, for example db.getCollection("events").renameCollection("occasions") in mongosh, then run db update. With migration plan, plan it, passing --delete Event to answer its question; in its migration.ts replace the drop of "events" and the create of "occasions" with renameCollection("events", "occasions"), imported with the other operations; run node migration.ts in the migration\'s directory, so it writes ops.json again; then apply it with migrate.',
+      },
+    ]);
+  });
+
+  it('gives no advice when the model of the dropped collection is gone', () => {
+    const planned = plan(contractWith({ User: 'users', Event: 'events' }, 'from'));
+    expect(planned.dataLoss.map(({ keepDataAdvice }) => keepDataAdvice)).toEqual([undefined]);
   });
 });

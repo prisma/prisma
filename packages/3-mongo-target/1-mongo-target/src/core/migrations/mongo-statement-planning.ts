@@ -393,7 +393,23 @@ function collectionChangeAdvice(
   if (!sameModel(statement.from, statement.to)) {
     return `Add --rename ${modelDisplayName(statement.from)}:${modelDisplayName(statement.to)} before this statement, so the collection is renamed with its documents.`;
   }
-  return `A statement cannot rename the collection of a model that keeps its name. Rename the collection in a step of its own first: change only @@map and emit the contract. With db update, rename the collection in the database yourself, for example db.getCollection(${JSON.stringify(from)}).renameCollection(${JSON.stringify(to)}) in mongosh, then run db update. With migration plan, plan it, passing --delete ${modelDisplayName(statement.from)} to answer its question; in its migration.ts replace the drop of "${from}" and the create of "${to}" with renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)}), imported with the other operations; run node migration.ts in the migration's directory, so it writes ops.json again; then apply it with migrate. Then change the field and run this statement again.`;
+  return `A statement cannot rename the collection of a model that keeps its name. Rename the collection in a step of its own first: change only @@map and emit the contract. ${renameCollectionByHandSteps(statement.from, from, to)} Then change the field and run this statement again.`;
+}
+
+function renameCollectionByHandSteps(model: ModelCoordinate, from: string, to: string): string {
+  return `With db update, rename the collection in the database yourself, for example db.getCollection(${JSON.stringify(from)}).renameCollection(${JSON.stringify(to)}) in mongosh, then run db update. With migration plan, plan it, passing --delete ${modelDisplayName(model)} to answer its question; in its migration.ts replace the drop of "${from}" and the create of "${to}" with renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)}), imported with the other operations; run node migration.ts in the migration's directory, so it writes ops.json again; then apply it with migrate.`;
+}
+
+/**
+ * How to keep the documents of a model that keeps its name while its collection changes from
+ * `from` to `to`: no statement can rename that collection, so the user renames it by hand.
+ */
+export function keepCollectionByHandAdvice(
+  model: ModelCoordinate,
+  from: string,
+  to: string,
+): string {
+  return `To keep its documents, rename collection "${from}" to "${to}" instead; a statement cannot rename the collection of a model that keeps its name. ${renameCollectionByHandSteps(model, from, to)}`;
 }
 
 export interface FieldRemoval {

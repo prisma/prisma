@@ -3,7 +3,7 @@
  *
  * Dropping a collection loses its documents, so `migration plan` and `db update` ask what the drop means; `--delete <Model>` answers. The MongoDB planner refuses rename statements in this release.
  *
- * Journey S1 removes `Event` through `migration plan`: refused without `--delete Event`, planned with it, and applied by `migrate`. Journey S2 does the same through `db update`, where `--confirm <database>` no longer consents. Journey S3 adds a required field with no refusal. Journey S4 gives a rename, which renames the collection and keeps its documents. Journey S5 follows, as printed, the refusal of a field rename whose model keeps its name while its collection changes.
+ * Journey S1 removes `Event` through `migration plan`: refused without `--delete Event`, planned with it, and applied by `migrate`. Journey S2 does the same through `db update`, where `--confirm <database>` no longer consents. Journey S3 adds a required field with no refusal. Journey S4 gives a rename, which renames the collection and keeps its documents. Journey S5 follows, as printed, the refusal of a field rename whose model keeps its name while its collection changes. Journey S6 follows, through `db update`, the question about a collection whose model keeps its name, and keeps its documents.
  */
 
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -336,6 +336,12 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
 
     useFixture(ctx, 'contract-events-remapped.ts');
     await emit(ctx, 'S5.06');
+    const asked = await runMigrationPlan(ctx, ['--from', origin, '--json']);
+    expect(asked.exitCode, 'S5.06: the drop of events needs a statement').toBe(2);
+    expect(
+      JSON.stringify(engineError(asked)),
+      'S5.06: the question says how to keep the documents',
+    ).toContain('replace the drop of \\"events\\" and the create of \\"occasions\\"');
     const remap = await runMigrationPlan(ctx, [
       '--name',
       'remap',
@@ -394,5 +400,42 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
     expect(documents, 'S5.14: its document is kept under the new field').toEqual([
       { title: 'launch' },
     ]);
+  });
+
+  it('S6: db update keeps the documents when the question about a collection whose model keeps its name is followed', async () => {
+    const dbName = 'mongo_remap_update';
+    const ctx = setupProject(withDatabase(replSet.getUri(), dbName));
+    created.add(ctx.testDir);
+    await emit(ctx, 'S6.01');
+    const create = await runDbUpdate(ctx, ['--no-interactive', '--json']);
+    expect(create.exitCode, `S6.02: db update creates the collections: ${create.stderr}`).toBe(0);
+    await client.db(dbName).collection('events').insertOne({ name: 'launch' });
+    useFixture(ctx, 'contract-events-remapped.ts');
+    await emit(ctx, 'S6.03');
+
+    const refused = await runDbUpdate(ctx, ['--no-interactive', '--json']);
+    expect(refused.exitCode, 'S6.04: the drop of events needs a statement').toBe(2);
+    expect(engineError(refused)?.code, 'S6.04').toBe('CLI.CONSENT_REQUIRED');
+    expect(
+      JSON.stringify(engineError(refused)),
+      'S6.04: the question says how to keep the documents',
+    ).toContain(
+      'db.getCollection(\\"events\\").renameCollection(\\"occasions\\") in mongosh, then run db update',
+    );
+    expect(await collections(dbName), 'S6.04: nothing dropped').toContain('events');
+
+    await client.db(dbName).collection('events').rename('occasions');
+    const updated = await runDbUpdate(ctx, ['--no-interactive', '--json']);
+    expect(updated.exitCode, `S6.05: db update after the rename: ${updated.stderr}`).toBe(0);
+    expect(await collections(dbName), 'S6.05: the collection is renamed').toEqual([
+      'occasions',
+      'users',
+    ]);
+    const documents = await client
+      .db(dbName)
+      .collection('occasions')
+      .find({}, { projection: { _id: 0 } })
+      .toArray();
+    expect(documents, 'S6.05: its document is kept').toEqual([{ name: 'launch' }]);
   });
 });

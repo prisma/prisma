@@ -140,3 +140,25 @@ describe('dataLossQuestion for a field whose model the destination names differe
     });
   });
 });
+
+describe('dataLossQuestion with advice from the target', () => {
+  it('ends the question with how to keep the data, and still offers only delete', () => {
+    const app = asNamespaceId('app');
+    const users = contractOf({ app: { models: { User: { fields: ['email'] } } } });
+    const question = dataLossQuestion(
+      {
+        operationIndex: 0,
+        label: 'Drop storage users',
+        subject: { kind: 'model', namespaceId: app, model: 'User' },
+        keepDataAdvice: 'To keep its data, move it by hand.',
+      },
+      { origin: users, destination: users, renames: [], originKnown: true },
+    );
+
+    expect({ question: question.question, verbs: question.verbs }).toEqual({
+      question:
+        'Drop storage users would lose the data of model "User". To keep its data, move it by hand.',
+      verbs: ['delete'],
+    });
+  });
+});

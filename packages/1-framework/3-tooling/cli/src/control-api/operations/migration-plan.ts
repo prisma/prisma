@@ -52,7 +52,7 @@ import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
 import {
   type AnswerPlanQuestions,
   askPlanQuestions,
-  type PlannedSubject,
+  type PlannedLoss,
   subjectText,
 } from '../statements/plan-questions';
 import {
@@ -112,7 +112,7 @@ type PlannerSuccess = {
   readonly hasPlaceholders: boolean;
   readonly appliedStatements: readonly AppliedStatementReport[];
   /** The operations that would lose data, positioned in the plan's operations. */
-  readonly dataLoss: readonly PlannedSubject[];
+  readonly dataLoss: readonly PlannedLoss[];
 };
 
 /** The origin of a plan from an empty database: no models, so no statement resolves. */
@@ -216,9 +216,10 @@ async function runPlannerLeg(
     plannedOps,
     migrationTsContent: plannerResult.plan.renderTypeScript(resolveImportSpecifier),
     hasPlaceholders,
-    dataLoss: plannerResult.dataLoss.map(({ operationIndex, subject }) => ({
+    dataLoss: plannerResult.dataLoss.map(({ operationIndex, subject, keepDataAdvice }) => ({
       operationIndex: position(operationIndex),
       subject,
+      ...ifDefined('keepDataAdvice', keepDataAdvice),
       label:
         resolved[operationIndex]?.label ??
         subjectText(subject, { origin: fromContract ?? EMPTY_ORIGIN, renames: [] }),

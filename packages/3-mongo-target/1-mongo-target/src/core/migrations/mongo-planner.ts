@@ -2,6 +2,7 @@ import { asNamespaceId, type Contract, type ContractWithDomain } from '@internal
 import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
+  MigrationDataLoss,
   MigrationOperationPolicy,
   MigrationOperationSubject,
   MigrationPlanner,
@@ -27,6 +28,7 @@ import { blindCast } from '@internal/utils/casts';
 import {
   collectionOf,
   type FieldRemoval,
+  keepCollectionByHandAdvice,
   planFieldRemovals,
   planStatements,
   planValidatorFieldRemovals,
@@ -168,20 +170,52 @@ function modelStoredIn(
   return (storing.find(({ isRoot }) => isRoot) ?? storing[0])?.coordinate;
 }
 
-/** Each collection drop of the plan, with the model whose documents it loses. */
+/**
+ * Each collection drop of the plan, with the model whose documents it loses. When that model keeps
+ * its name and the plan creates its new collection, the drop says how to rename the collection by
+ * hand instead.
+ */
 function collectionDrops(
   calls: readonly OpFactoryCall[],
   fromContract: ContractWithDomain | null,
-): readonly MigrationOperationSubject[] {
-  return calls.flatMap((call, operationIndex) => {
+  contract: ContractWithDomain,
+): readonly MigrationDataLoss[] {
+  const created = new Set(
+    calls.flatMap((call) => (call instanceof CreateCollectionCall ? [call.collection] : [])),
+  );
+  return calls.flatMap((call, operationIndex): readonly MigrationDataLoss[] => {
     if (!(call instanceof DropCollectionCall)) return [];
     const model = fromContract === null ? undefined : modelStoredIn(fromContract, call.collection);
-    const subject: MigrationSubject =
-      model === undefined
-        ? { kind: 'storage', name: call.collection }
-        : { kind: 'model', ...model };
-    return [{ operationIndex, subject }];
+    if (model === undefined) {
+      return [{ operationIndex, subject: { kind: 'storage', name: call.collection } }];
+    }
+    const subject: MigrationSubject = { kind: 'model', ...model };
+    const destinationCollection = modelStoredInDestination(contract, model);
+    return [
+      destinationCollection !== undefined && created.has(destinationCollection)
+        ? {
+            operationIndex,
+            subject,
+            keepDataAdvice: keepCollectionByHandAdvice(
+              model,
+              call.collection,
+              destinationCollection,
+            ),
+          }
+        : { operationIndex, subject },
+    ];
   });
+}
+
+/** The collection the destination stores `model` in, when the destination still has that model. */
+function modelStoredInDestination(
+  contract: ContractWithDomain,
+  model: ModelCoordinate,
+): string | undefined {
+  const namespace = contract.domain.namespaces[model.namespaceId];
+  return namespace !== undefined && Object.hasOwn(namespace.models, model.model)
+    ? collectionOf(contract, model)
+    : undefined;
 }
 
 export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'> {
@@ -410,7 +444,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
         const call = callOfStatement[index];
         return { statement, operationIndexes: call === undefined ? [] : [calls.indexOf(call)] };
       }),
-      dataLoss: [...collectionDrops(calls, fromContract), ...fieldLoss].sort(
+      dataLoss: [...collectionDrops(calls, fromContract, contract), ...fieldLoss].sort(
         (a, b) => a.operationIndex - b.operationIndex,
       ),
       accessWidening: [],
