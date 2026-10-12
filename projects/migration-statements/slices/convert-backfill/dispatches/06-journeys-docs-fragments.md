@@ -17,6 +17,7 @@ The slice's done conditions hold through journeys on Postgres and SQLite, and th
 2. **Follow every printed advice to its end** (F46), on each target, including the `db update` refusal through `migrate` on a database created by `db init`.
 3. **Docs.**
    - Migration System doc § Statements: `--convert` and `--backfill`; the loss kinds; the questions per command; remove the sentence saying the Postgres planner writes no placeholder data transforms (§ Authoring intermediate state); § NOT NULL columns without defaults now applies to `migration plan` too.
+   - Migration System doc: what a `--delete` answer to a type change does (the database's cast on Postgres; the storage-class check after a SQLite rebuild), how it is reported, and the `--convert` advice when a cast fails.
    - `docs/reference/error-reference.md`: every code added or changed.
    - The CLI README sections for `migration plan` and `db update`.
    - `skills/prisma-8/references/migrations.md`: type changes and new required fields.

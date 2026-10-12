@@ -101,3 +101,14 @@ A migration written with a placeholder has `ops.json` as `[]`. Running `db migra
 **Found:** slice 4a review (2026-10-12). Older than this project.
 
 The Migration System doc lists emit-drift detection (re-emit `migration.ts` in memory and compare with `ops.json` before applying) as architecturally required and not yet implemented. Without it, a user who edits `migration.ts` and forgets to run it applies the old operations; in slice 4a's review that turned a wrong advice text into a dropped collection. Worth a ticket when this project closes, if none exists.
+
+## A `--convert` expression can leave values the field's type cannot hold
+
+**Found:** slice 3a review (2026-10-12).
+
+A SQLite `--convert` rebuild runs the user's expression without the storage-class check the direct rebuild gets, so `trim("n")` on a field changed to `Int` leaves `'abc'` as text, and the ORM returns `"abc"` for an `Int` field. Postgres refuses such a value itself. Consider running the same check after a converted copy.
+
+## `migration status --json` prints `{bin}` unreplaced
+
+**Found:** slice 3a review (2026-10-12). Outside this project. The summary text in the JSON output contains a raw `{bin}` placeholder.
+
