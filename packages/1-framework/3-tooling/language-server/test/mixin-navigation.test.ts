@@ -398,3 +398,20 @@ describe('rename of a field declared in a mixin', () => {
     ]);
   });
 });
+
+describe('an inclusion written inside a mixin body', () => {
+  const nested: Files = {
+    'nested.prisma': 'model mixin A {\n  a Int\n}\nmodel mixin B {\n  +A\n  b Int\n}\n',
+  };
+
+  it('has no definition, no hover and no references', () => {
+    const input = cursorInput(nested, 'nested.prisma', '+|A', stack);
+    const sources = new PslSources(
+      input.documents.map(({ document, sourceFile }) => [document.syntax, sourceFile] as const),
+    );
+
+    expect(provideDefinition({ ...input, sources, linkSupport: true }) ?? []).toEqual([]);
+    expect(providePslHover(input)).toBeNull();
+    expect(provideReferences({ ...input, includeDeclaration: true })).toEqual([]);
+  });
+});
