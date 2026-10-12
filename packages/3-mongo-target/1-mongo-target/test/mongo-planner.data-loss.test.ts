@@ -6,6 +6,12 @@ import { expectDataLossMatchesDestructive } from '@repo/test-utils/data-loss-exp
 import { describe, expect, it } from 'vitest';
 import { MongoMigrationPlanner } from '../src/core/migrations/mongo-planner';
 import type { PlannerProducedMongoMigration } from '../src/core/migrations/planner-produced-migration';
+import {
+  contract,
+  planned,
+  plan as planStatementsFixture,
+  schemaCollection,
+} from './mongo-statement-fixtures';
 
 const ALL_CLASSES_POLICY: MigrationOperationPolicy = {
   allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'],
@@ -171,5 +177,32 @@ describe('MongoDB planner, data loss', () => {
   it('gives no advice when the model of the dropped collection is gone', () => {
     const planned = plan(contractWith({ User: 'users', Event: 'events' }, 'from'));
     expect(planned.dataLoss.map(({ keepDataAdvice }) => keepDataAdvice)).toEqual([undefined]);
+  });
+
+  it('advises renaming the collection by hand when the plan creates the new collection only with its indexes', () => {
+    const result = planStatementsFixture({
+      from: contract(
+        'from',
+        { Event: { collection: 'events', fields: ['_id', 'name'] } },
+        { events: { unique: ['name'] } },
+      ),
+      to: contract(
+        'to',
+        { Event: { collection: 'occasions', fields: ['_id', 'name'] } },
+        { occasions: { unique: ['name'] } },
+      ),
+      schema: [schemaCollection('events', { unique: ['name'] })],
+    });
+    const { labels, dataLoss } = planned(result);
+
+    expect({
+      creates: labels.filter((label) => label.startsWith('Create')),
+      advice: dataLoss.map(({ keepDataAdvice }) => keepDataAdvice),
+    }).toEqual({
+      creates: ['Create index on occasions (name:1)'],
+      advice: [
+        expect.stringMatching(/^To keep its documents, rename collection "events" to "occasions"/),
+      ],
+    });
   });
 });

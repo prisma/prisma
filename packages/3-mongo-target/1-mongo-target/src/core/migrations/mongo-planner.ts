@@ -202,17 +202,18 @@ function modelStoredIn(
 
 /**
  * Each collection drop of the plan, with the model whose documents it loses. When that model keeps
- * its name and the plan creates its new collection, the drop says how to rename the collection by
- * hand instead.
+ * its name and the plan brings its new collection into existence, the drop says how to rename the
+ * collection by hand instead.
  */
 function collectionDrops(
   calls: readonly OpFactoryCall[],
   fromContract: ContractWithDomain | null,
   contract: ContractWithDomain,
+  collections: { readonly origin: MongoSchemaIR; readonly destination: MongoSchemaIR },
 ): readonly MigrationDataLoss[] {
-  const created = new Set(
-    calls.flatMap((call) => (call instanceof CreateCollectionCall ? [call.collection] : [])),
-  );
+  const created = (collection: string) =>
+    collections.origin.collection(collection) === undefined &&
+    collections.destination.collection(collection) !== undefined;
   return calls.flatMap((call, operationIndex): readonly MigrationDataLoss[] => {
     if (!(call instanceof DropCollectionCall)) return [];
     const model = fromContract === null ? undefined : modelStoredIn(fromContract, call.collection);
@@ -222,7 +223,7 @@ function collectionDrops(
     const subject: MigrationSubject = { kind: 'model', ...model };
     const destinationCollection = modelStoredInDestination(contract, model);
     return [
-      destinationCollection !== undefined && created.has(destinationCollection)
+      destinationCollection !== undefined && created(destinationCollection)
         ? {
             operationIndex,
             subject,
@@ -484,9 +485,13 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
         const call = callOfStatement[index];
         return { statement, operationIndexes: call === undefined ? [] : [calls.indexOf(call)] };
       }),
-      dataLoss: [...collectionDrops(calls, fromContract, contract), ...fieldLoss].sort(
-        (a, b) => a.operationIndex - b.operationIndex,
-      ),
+      dataLoss: [
+        ...collectionDrops(calls, fromContract, contract, {
+          origin: schema,
+          destination: destinationIR,
+        }),
+        ...fieldLoss,
+      ].sort((a, b) => a.operationIndex - b.operationIndex),
       accessWidening: [],
     };
   }
